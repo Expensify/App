@@ -12,6 +12,7 @@ const TEST_POLICY_ID = 'ABC123';
 
 jest.mock('@libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
+    setNavigationActionToMicrotaskQueue: jest.fn((callback: () => void) => callback()),
 }));
 
 jest.mock('@hooks/useLocalize', () =>
@@ -195,12 +196,12 @@ describe('GettingStartedSection', () => {
             expect(screen.getByText('homePage.gettingStartedSection.linkCompanyCards')).toBeTruthy();
         });
 
-        it('hides "Link company cards" row when company cards feature is disabled', async () => {
+        it('always shows "Link company cards" row even when company cards feature is disabled', async () => {
             await setManageTeamUserState({areCompanyCardsEnabled: false});
 
             renderGettingStartedSection();
 
-            expect(screen.queryByText('homePage.gettingStartedSection.linkCompanyCards')).toBeNull();
+            expect(screen.getByText('homePage.gettingStartedSection.linkCompanyCards')).toBeTruthy();
         });
 
         it('shows "Set up spend rules" row when rules feature is enabled', async () => {
@@ -211,12 +212,12 @@ describe('GettingStartedSection', () => {
             expect(screen.getByText('homePage.gettingStartedSection.setupRules')).toBeTruthy();
         });
 
-        it('hides "Set up spend rules" row when rules feature is disabled', async () => {
+        it('always shows "Set up spend rules" row even when rules feature is disabled', async () => {
             await setManageTeamUserState({areRulesEnabled: false});
 
             renderGettingStartedSection();
 
-            expect(screen.queryByText('homePage.gettingStartedSection.setupRules')).toBeNull();
+            expect(screen.getByText('homePage.gettingStartedSection.setupRules')).toBeTruthy();
         });
 
         it('renders rows in the expected order: workspace, accounting, cards, rules', async () => {

@@ -19,6 +19,11 @@ jest.mock('@hooks/useLocalize', () =>
     })),
 );
 
+jest.mock('@hooks/useResponsiveLayout', () => jest.fn(() => ({shouldUseNarrowLayout: false})));
+
+jest.mock('@userActions/Policy/Category', () => ({enablePolicyCategories: jest.fn()}));
+jest.mock('@userActions/Policy/Policy', () => ({enableCompanyCards: jest.fn(), enablePolicyConnections: jest.fn(), enablePolicyRules: jest.fn()}));
+
 const POLICY_ID = '1';
 
 function buildPolicy(overrides: Partial<Policy> = {}): Policy {
@@ -349,19 +354,7 @@ describe('useGettingStartedItems', () => {
     });
 
     describe('row 3 - Link company cards', () => {
-        it('should be shown when company cards feature is enabled on the workspace', async () => {
-            await setupManageTeamScenario({
-                accounting: CONST.POLICY.CONNECTIONS.NAME.QBO,
-                policy: {areCompanyCardsEnabled: true},
-            });
-
-            const {result} = renderHook(() => useGettingStartedItems());
-
-            const companyCardsItem = result.current.items.find((item) => item.key === 'linkCompanyCards');
-            expect(companyCardsItem).toBeDefined();
-        });
-
-        it('should be hidden when company cards feature is not enabled on the workspace', async () => {
+        it('should always be shown', async () => {
             await setupManageTeamScenario({
                 accounting: CONST.POLICY.CONNECTIONS.NAME.QBO,
                 policy: {areCompanyCardsEnabled: false},
@@ -370,7 +363,31 @@ describe('useGettingStartedItems', () => {
             const {result} = renderHook(() => useGettingStartedItems());
 
             const companyCardsItem = result.current.items.find((item) => item.key === 'linkCompanyCards');
-            expect(companyCardsItem).toBeUndefined();
+            expect(companyCardsItem).toBeDefined();
+        });
+
+        it('should have isFeatureEnabled=true when company cards feature is enabled', async () => {
+            await setupManageTeamScenario({
+                accounting: CONST.POLICY.CONNECTIONS.NAME.QBO,
+                policy: {areCompanyCardsEnabled: true},
+            });
+
+            const {result} = renderHook(() => useGettingStartedItems());
+
+            const companyCardsItem = result.current.items.find((item) => item.key === 'linkCompanyCards');
+            expect(companyCardsItem?.isFeatureEnabled).toBe(true);
+        });
+
+        it('should have isFeatureEnabled=false when company cards feature is not enabled', async () => {
+            await setupManageTeamScenario({
+                accounting: CONST.POLICY.CONNECTIONS.NAME.QBO,
+                policy: {areCompanyCardsEnabled: false},
+            });
+
+            const {result} = renderHook(() => useGettingStartedItems());
+
+            const companyCardsItem = result.current.items.find((item) => item.key === 'linkCompanyCards');
+            expect(companyCardsItem?.isFeatureEnabled).toBe(false);
         });
 
         it('should navigate to workspace company cards route', async () => {
@@ -399,19 +416,7 @@ describe('useGettingStartedItems', () => {
     });
 
     describe('row 4 - Set up spend rules', () => {
-        it('should be shown when rules feature is enabled on the workspace', async () => {
-            await setupManageTeamScenario({
-                accounting: CONST.POLICY.CONNECTIONS.NAME.QBO,
-                policy: {areRulesEnabled: true},
-            });
-
-            const {result} = renderHook(() => useGettingStartedItems());
-
-            const rulesItem = result.current.items.find((item) => item.key === 'setupRules');
-            expect(rulesItem).toBeDefined();
-        });
-
-        it('should be hidden when rules feature is not enabled on the workspace', async () => {
+        it('should always be shown', async () => {
             await setupManageTeamScenario({
                 accounting: CONST.POLICY.CONNECTIONS.NAME.QBO,
                 policy: {areRulesEnabled: false},
@@ -420,7 +425,31 @@ describe('useGettingStartedItems', () => {
             const {result} = renderHook(() => useGettingStartedItems());
 
             const rulesItem = result.current.items.find((item) => item.key === 'setupRules');
-            expect(rulesItem).toBeUndefined();
+            expect(rulesItem).toBeDefined();
+        });
+
+        it('should have isFeatureEnabled=true when rules feature is enabled', async () => {
+            await setupManageTeamScenario({
+                accounting: CONST.POLICY.CONNECTIONS.NAME.QBO,
+                policy: {areRulesEnabled: true},
+            });
+
+            const {result} = renderHook(() => useGettingStartedItems());
+
+            const rulesItem = result.current.items.find((item) => item.key === 'setupRules');
+            expect(rulesItem?.isFeatureEnabled).toBe(true);
+        });
+
+        it('should have isFeatureEnabled=false when rules feature is not enabled', async () => {
+            await setupManageTeamScenario({
+                accounting: CONST.POLICY.CONNECTIONS.NAME.QBO,
+                policy: {areRulesEnabled: false},
+            });
+
+            const {result} = renderHook(() => useGettingStartedItems());
+
+            const rulesItem = result.current.items.find((item) => item.key === 'setupRules');
+            expect(rulesItem?.isFeatureEnabled).toBe(false);
         });
 
         it('should navigate to workspace rules route', async () => {
@@ -511,7 +540,7 @@ describe('useGettingStartedItems', () => {
             expect(keys).toEqual(['createWorkspace', 'customizeCategories', 'linkCompanyCards', 'setupRules']);
         });
 
-        it('should only contain createWorkspace and accounting row when no optional features are enabled', async () => {
+        it('should always contain all four rows even when optional features are disabled', async () => {
             await setupManageTeamScenario({
                 accounting: CONST.POLICY.CONNECTIONS.NAME.QBO,
                 policy: {areCompanyCardsEnabled: false, areRulesEnabled: false},
@@ -520,7 +549,7 @@ describe('useGettingStartedItems', () => {
             const {result} = renderHook(() => useGettingStartedItems());
 
             const keys = result.current.items.map((item) => item.key);
-            expect(keys).toEqual(['createWorkspace', 'connectAccounting']);
+            expect(keys).toEqual(['createWorkspace', 'connectAccounting', 'linkCompanyCards', 'setupRules']);
         });
     });
 

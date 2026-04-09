@@ -3,6 +3,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import {hasCompanyCardFeeds} from '@libs/CardUtils';
+import Navigation from '@libs/Navigation/Navigation';
 import {hasAccountingConnections, hasCustomCategories, hasNonDefaultRules, isPaidGroupPolicy, isPendingDeletePolicy} from '@libs/PolicyUtils';
 import isWithinGettingStartedPeriod from '@pages/home/GettingStartedSection/utils/isWithinGettingStartedPeriod';
 import {enablePolicyCategories} from '@userActions/Policy/Category';
@@ -67,7 +68,7 @@ function useGettingStartedItems(): UseGettingStartedItemsResult {
         key: 'createWorkspace',
         label: translate('homePage.gettingStartedSection.createWorkspace'),
         isComplete: true,
-        route: shouldUseNarrowLayout ? ROUTES.WORKSPACE_INITIAL.getRoute(activePolicyID) : ROUTES.WORKSPACE_OVERVIEW.getRoute(activePolicyID),
+        route: shouldUseNarrowLayout ? ROUTES.WORKSPACE_INITIAL.getRoute(activePolicyID, Navigation.getActiveRoute()) : ROUTES.WORKSPACE_OVERVIEW.getRoute(activePolicyID),
     });
 
     const isDirectConnect = !!reportedIntegration && DIRECT_CONNECT_INTEGRATIONS.has(reportedIntegration);
