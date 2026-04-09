@@ -1,47 +1,39 @@
 ---
 title: Unlock a Business Bank Account
-description: How to resolve a locked business bank account in Expensify and restore payment functionality.
-keywords: [locked bank account, unlock bank account, reimbursements failed, ACH rejected, bank error, fix bank account, Expensify Card locked, ACH company ID, unlock payment method]
-internalScope: Audience is Workspace Admins with a locked business bank account. Covers unlocking a locked account and ensuring ACH direct debits are enabled. Does not cover initial bank account setup, validation, sharing, or unsharing.
+description: Request an unlock for a locked business bank account in Expensify and restore reimbursements and payments.
+keywords: [New Expensify, locked bank account, unlock bank account, reimbursements failed, ACH rejected, bank error, fix bank account, Expensify Card locked, ACH company ID, unlock payment method]
+internalScope: Audience is Workspace Admins with a locked business bank account. Covers requesting an unlock and preventing future lockouts. Does not cover initial bank account setup, validation, sharing, or unsharing.
 ---
-
-<div id="new-expensify" markdown="1">
-
-If your business bank account gets locked, Expensify pauses reimbursements and payments to prevent errors. You'll need to unlock the account before you can use it again for any financial activity.
 
 # Unlock a Business Bank Account
 
+If your business bank account is locked, Expensify pauses reimbursements and payments to prevent failed debits. You’ll need to request an unlock before the account can be used again.
+
 ---
 
-## Why a business bank account may get locked
+## Why your business bank account is locked
 
 Bank accounts may be locked after a failed debit attempt or a bank-side restriction. Common reasons include:
 
 - Insufficient funds at the time of reimbursement
 - Your bank blocked the debit attempt
-- Your account isn't enabled for ACH direct debits
+- The bank account isn't enabled for ACH direct debits
 
-When this happens, you'll see a **Locked** badge next to the account in both **Settings > Wallet** and **Workspaces > [Workspace Name] > Workflows**.
+When a bank account is locked, you’ll see a **Locked** badge on the account in: 
 
----
-
-## Where to find locked business bank accounts
-
-- Go to **Settings > Wallet** and look for the account with a **Locked** badge.
-- Or go to **Workspaces > [Workspace Name] > Workflows** if the account is linked to a workspace.
-
-On mobile, tap the hamburger menu in the top-left corner, then select **Settings > Wallet**.
+ - **Settings > Wallet** in the **Bank accounts** section
+ - **Workspaces > [Workspace Name] > Workflows** in the **Payments** section
 
 ---
 
 ## How to unlock a business bank account
 
-1. Click the bank account with the **Locked** badge.
-2. Click **Fix** or **Unlock account**.
-3. This opens a Concierge chat and sends your unlock request.
-4. Concierge will walk you through the next steps or confirm when your account is ready to use.
+1. In the navigation tabs (on the left on web, on the bottom on mobile) go to **Account > Wallet**.
+2. Click the bank account with the **Locked** badge.
+3. Click **Fix** or **Unlock account**.
+4. Send the message to Concierge to request the unlock.
 
-If there's already an open issue for this account, your message will be added to the ongoing thread.
+Concierge will walk you through the next steps to unlock the account, or confirm when your account is ready to use.
 
 <!-- SCREENSHOT:
 Suggestion: Locked bank account row showing the Locked badge and Fix button
@@ -51,7 +43,7 @@ Purpose: Shows the locked state and how to initiate an unlock
 
 ---
 
-## What to expect after requesting an unlock
+## What happens after you request to unlock a business bank account
 
 Unlocking is tied to your bank's processing timeline:
 
@@ -64,9 +56,9 @@ Expensify cannot manually retry debits until the bank returns the original attem
 
 ---
 
-## How to ensure your bank allows ACH debits
+## How to prevent your business bank account from locking again
 
-To prevent future lockouts, ask your bank to approve the following ACH details:
+Ask your bank to allow ACH debits from the following originators:
 
 **For reimbursements via Expensify:**
 - ACH Company IDs: 1270239450, 4270239450, 2270239450
@@ -84,20 +76,15 @@ To prevent future lockouts, ask your bank to approve the following ACH details:
 
 # FAQ
 
-## Will I be notified when my account is locked?
+## Will I be notified when my bank account is locked?
 
-Yes. You'll see a **Locked** badge in Wallet and Workflows, and you'll receive a message from Concierge.
-
-## Can I still pay reports with a different bank account?
-
-Yes, but if you try to pay from a locked account, you'll see a message explaining the issue.
+Yes. You’ll see a **Locked** badge in **Wallet** and **Workflows**, and Concierge will message you.
 
 ## Can I delete a locked bank account?
 
 No. Locked accounts can't be deleted until they're resolved and unlocked.
 
-## What if I already requested an unlock but didn't get a response?
+## Why hasn’t my account unlocked yet?
 
-If your account is still locked, the failed debit may still be processing. Concierge will notify you as soon as it's ready to retry.
+The failed debit may still be processing with your bank. Concierge will notify you as soon as it can be retried.
 
-</div>
