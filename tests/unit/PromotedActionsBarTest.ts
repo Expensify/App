@@ -117,7 +117,7 @@ describe('PromotedActions.message', () => {
         expect(mockNavigateToAndOpenReportWithAccountIDs).toHaveBeenCalledWith([42], 1, introSelected, false, betas);
     });
 
-    it('should pass isSelfTourViewed to navigateToAndOpenReportWithAccountIDs when accountID is provided', () => {
+    it('should call navigateToAndOpenReportWithAccountIDs with isSelfTourViewed=true when self tour has been viewed and accountID is provided', () => {
         const introSelected = {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM};
         const action = PromotedActions.message({
             accountID: 42,

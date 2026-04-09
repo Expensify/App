@@ -435,7 +435,7 @@ describe('actions/Report', () => {
         TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.OPEN_REPORT, 1);
     });
 
-    it('clearCreateChatError should pass isSelfTourViewed=true through navigateToConciergeChatAndDeleteReport when deleting optimistic report', async () => {
+    it('clearCreateChatError should delete optimistic report and navigate to concierge when isSelfTourViewed is true', async () => {
         const TEST_USER_ACCOUNT_ID = 1;
         const TEST_USER_LOGIN = 'test@user.com';
         const REPORT: OnyxTypes.Report = {...createRandomReport(1, undefined), errorFields: {createChat: {error: 'error'}}};
@@ -460,7 +460,7 @@ describe('actions/Report', () => {
         TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.OPEN_REPORT, 1);
     });
 
-    it('clearCreateChatError should pass isSelfTourViewed=false through navigateToConciergeChatAndDeleteReport when deleting optimistic report', async () => {
+    it('clearCreateChatError should delete optimistic report and navigate to concierge when isSelfTourViewed is false', async () => {
         const TEST_USER_ACCOUNT_ID = 1;
         const TEST_USER_LOGIN = 'test@user.com';
         const REPORT: OnyxTypes.Report = {...createRandomReport(1, undefined), errorFields: {createChat: {error: 'error'}}};
@@ -6377,7 +6377,7 @@ describe('actions/Report', () => {
             expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(EXISTING_REPORT_ID));
         });
 
-        it('should pass isSelfTourViewed=true through to openReport when creating new chat', async () => {
+        it('should create new chat and call openReport when isSelfTourViewed is true and no existing chat is found', async () => {
             const TEST_USER_ACCOUNT_ID = 1;
             const TEST_USER_LOGIN = 'test@user.com';
             const PARTICIPANT_ACCOUNT_ID = 2;
@@ -6394,7 +6394,7 @@ describe('actions/Report', () => {
             expect(Navigation.navigate).toHaveBeenCalled();
         });
 
-        it('should pass isSelfTourViewed=false through to openReport when creating new chat', async () => {
+        it('should create new chat and call openReport when isSelfTourViewed is false and no existing chat is found', async () => {
             const TEST_USER_ACCOUNT_ID = 1;
             const TEST_USER_LOGIN = 'test@user.com';
             const PARTICIPANT_ACCOUNT_ID = 2;
