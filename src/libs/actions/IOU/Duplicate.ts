@@ -40,13 +40,13 @@ import type {Attendee, Participant} from '@src/types/onyx/IOU';
 import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 import type {WaypointCollection} from '@src/types/onyx/Transaction';
 import type {CreateDistanceRequestInformation, RequestMoneyInformation} from '.';
+import {getCleanUpTransactionThreadReportOnyxData} from './DeleteMoneyRequest';
 import {
     createDistanceRequest,
     getAllReportActionsFromIOU,
     getAllReports,
     getAllTransactions,
     getAllTransactionViolations,
-    getCleanUpTransactionThreadReportOnyxData,
     getCurrentUserEmail,
     getMoneyRequestParticipantsFromReport,
     getUserAccountID,

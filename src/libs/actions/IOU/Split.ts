@@ -97,7 +97,6 @@ import {
     getAllPersonalDetails,
     getAllReports,
     getAllTransactions,
-    getCleanUpTransactionThreadReportOnyxData,
     getMoneyRequestInformation,
     getMoneyRequestParticipantsFromReport,
     getOrCreateOptimisticSplitChatReport,
@@ -108,6 +107,7 @@ import {
     mergePolicyRecentlyUsedCategories,
     mergePolicyRecentlyUsedCurrencies,
 } from './index';
+import {getCleanUpTransactionThreadReportOnyxData} from './DeleteMoneyRequest';
 import type {BuildOnyxDataForMoneyRequestKeys, MoneyRequestInformationParams, OneOnOneIOUReport, StartSplitBilActionParams, UpdateMoneyRequestDataKeys} from './index';
 import {getDeleteTrackExpenseInformation} from './TrackExpense';
 
