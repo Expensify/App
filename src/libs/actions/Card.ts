@@ -1572,7 +1572,7 @@ function combineSpendRuleASTNodes(nodes: ExpensifyCardRuleFilter[], operator: Va
     return remainingNodes.reduce<ExpensifyCardRuleFilter>((accumulator, node) => ({left: accumulator, operator, right: node}), firstNode);
 }
 
-function buildSpendRuleAST(spendRuleValues: SpendRuleForm): ExpensifyCardRule | undefined {
+function buildSpendRuleAST(spendRuleValues: SpendRuleForm, existingCreated?: string): ExpensifyCardRule | undefined {
     const cardIDs = spendRuleValues.cardIDs ?? [];
     if (cardIDs.length === 0) {
         return undefined;
@@ -1643,7 +1643,7 @@ function buildSpendRuleAST(spendRuleValues: SpendRuleForm): ExpensifyCardRule | 
     }
 
     return {
-        created: DateUtils.getDBTime(),
+        created: existingCreated ?? DateUtils.getDBTime(),
         action: spendRuleValues.restrictionAction ?? CONST.SPEND_RULES.ACTION.ALLOW,
         filters,
     };
@@ -1711,7 +1711,7 @@ function getSpendRuleFormValuesFromCardRule(cardRule: ExpensifyCardRule): SpendR
 
 function setExpensifyCardRule(domainAccountID: number, cardRuleID: string, spendRuleValues: SpendRuleForm, existingRule?: ExpensifyCardRule) {
     const ruleID = cardRuleID;
-    const ruleAST = buildSpendRuleAST(spendRuleValues);
+    const ruleAST = buildSpendRuleAST(spendRuleValues, existingRule?.created);
     if (!ruleAST) {
         return;
     }
