@@ -42,7 +42,15 @@ function useFreeTrial(): FreeTrialState {
     const onFreeTrial = isUserOnFreeTrial(firstDayFreeTrial, lastDayFreeTrial);
     const hasPaymentCard = doesUserHavePaymentCardAdded(userBillingFundID);
     const hasOwnedPaidPolicies = getOwnedPaidPolicies(allPolicies, accountID).length > 0;
-    const showDiscount = shouldShowDiscountBanner(hasTeam2025Pricing, subscriptionPlan, firstDayFreeTrial, lastDayFreeTrial, userBillingFundID, allPolicies);
+    const showDiscount = shouldShowDiscountBanner(
+        accountID ?? CONST.DEFAULT_NUMBER_ID,
+        hasTeam2025Pricing,
+        subscriptionPlan,
+        firstDayFreeTrial,
+        lastDayFreeTrial,
+        userBillingFundID,
+        allPolicies,
+    );
     const daysLeft = calculateRemainingFreeTrialDays(lastDayFreeTrial);
 
     const [discountInfo, setDiscountInfo] = useState<DiscountInfo | null>(() => (showDiscount ? getEarlyDiscountInfo(firstDayFreeTrial) : null));

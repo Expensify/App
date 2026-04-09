@@ -213,11 +213,19 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
         );
     };
 
-    // If the onboarding report is directly loaded, shouldShowDiscountBanner can return wrong value as it is not
-    // linked to the react lifecycle directly. Wait for trial dates to load, before calculating.
+    // Memoize so trial Onyx values and current user account participate in React updates (shouldShowDiscountBanner is pure).
     const shouldShowDiscount = useMemo(
-        () => shouldShowDiscountBanner(hasTeam2025Pricing, subscriptionPlan, firstDayFreeTrial, lastDayFreeTrial, userBillingFundID, allPolicies) && !isReportArchived,
-        [hasTeam2025Pricing, subscriptionPlan, firstDayFreeTrial, lastDayFreeTrial, userBillingFundID, isReportArchived, allPolicies],
+        () =>
+            shouldShowDiscountBanner(
+                currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID,
+                hasTeam2025Pricing,
+                subscriptionPlan,
+                firstDayFreeTrial,
+                lastDayFreeTrial,
+                userBillingFundID,
+                allPolicies,
+            ) && !isReportArchived,
+        [currentUserAccountID, hasTeam2025Pricing, subscriptionPlan, firstDayFreeTrial, lastDayFreeTrial, userBillingFundID, isReportArchived, allPolicies],
     );
 
     const shouldShowSubscript = shouldReportShowSubscript(report, isReportArchived);
