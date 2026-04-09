@@ -26,7 +26,7 @@ import Log from '@libs/Log';
 import {validateAmount} from '@libs/MoneyRequestUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getIOUConfirmationOptionsFromPayeePersonalDetail, hasEnabledOptions} from '@libs/OptionsListUtils';
-import {getTagLists, isTaxTrackingEnabled} from '@libs/PolicyUtils';
+import {getTagLists, isAttendeeTrackingEnabled, isTaxTrackingEnabled} from '@libs/PolicyUtils';
 import {isSelectedManagerMcTest} from '@libs/ReportUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {hasEnabledTags, hasMatchingTag} from '@libs/TagsOptionsListUtils';
@@ -444,7 +444,7 @@ function MoneyRequestConfirmationList({
         policyTaxRates: policy?.taxRates?.taxes,
         iouAttendees,
         currentUserPersonalDetails,
-        isAttendeeTrackingEnabled: policy?.isAttendeeTrackingEnabled,
+        isAttendeeTrackingEnabled: isAttendeeTrackingEnabled(policy),
         isControlPolicy: policy?.type === CONST.POLICY.TYPE.CORPORATE,
     });
 
@@ -816,7 +816,7 @@ function MoneyRequestConfirmationList({
                     iouCategory,
                     iouAttendees,
                     currentUserPersonalDetails,
-                    policy?.isAttendeeTrackingEnabled,
+                    isAttendeeTrackingEnabled(policy),
                     policy?.type === CONST.POLICY.TYPE.CORPORATE,
                 );
             if (isMissingAttendeesViolation) {
