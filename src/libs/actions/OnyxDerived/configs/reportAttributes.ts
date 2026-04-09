@@ -323,7 +323,7 @@ export default createOnyxDerivedValueConfig({
             };
 
             return acc;
-        }, currentValue?.reports ?? {});
+        }, currentValue?.reports ? {...currentValue.reports} : {});
 
         // Propagate errors from IOU reports to their parent chat reports.
         const chatReportIDsWithErrors = new Set<string>();
