@@ -3659,14 +3659,6 @@ const ROUTES = {
             return getUrlWithBackToParam(`workspaces/${policyID}/connections/netsuite/export/` as const, backTo, false);
         },
     },
-    POLICY_ACCOUNTING_NETSUITE_PREFERRED_EXPORTER_SELECT: {
-        route: 'workspaces/:policyID/connections/netsuite/export/preferred-exporter/select',
-        getRoute: (policyID: string) => `workspaces/${policyID}/connections/netsuite/export/preferred-exporter/select` as const,
-    },
-    POLICY_ACCOUNTING_NETSUITE_DATE_SELECT: {
-        route: 'workspaces/:policyID/connections/netsuite/export/date/select',
-        getRoute: (policyID: string) => `workspaces/${policyID}/connections/netsuite/export/date/select` as const,
-    },
     POLICY_ACCOUNTING_NETSUITE_EXPORT_EXPENSES: {
         route: 'workspaces/:policyID/connections/netsuite/export/expenses/:expenseType',
         getRoute: (policyID: string | undefined, expenseType: ValueOf<typeof CONST.NETSUITE_EXPENSE_TYPE>, backTo?: string) => {
