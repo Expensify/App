@@ -1452,7 +1452,7 @@ function Search({
     const yearIndicators = useMemo(
         () =>
             searchResults?.data
-                ? shouldShowYearUtil(searchResults.data, isExpenseReportType ?? false, undefined, !isExpenseReportType)
+                ? shouldShowYearUtil(searchResults.data, isExpenseReportType ?? false, undefined, type === CONST.SEARCH.DATA_TYPES.EXPENSE)
                 : {
                       shouldShowYearCreated: false,
                       shouldShowYearSubmitted: false,
@@ -1461,7 +1461,7 @@ function Search({
                       shouldShowYearExported: false,
                       shouldShowYearWithdrawn: false,
                   },
-        [searchResults?.data, isExpenseReportType],
+        [searchResults?.data, isExpenseReportType, type],
     );
 
     const amountIndicators = useMemo(
