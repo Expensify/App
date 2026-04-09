@@ -124,7 +124,6 @@ function useSelectionModeReportActions({
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Send', 'ThumbsUp', 'Cash', 'ArrowRight', 'Building'] as const);
 
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
-    const isSelectionModeReportActionsEnabled = isBetaEnabled(CONST.BETAS.SELECTION_MODE_REPORT_ACTIONS);
 
     const currentUserEmail = session?.email;
     const hasViolations = hasViolationsReportUtils(report?.reportID, allTransactionViolations, currentUserAccountID, currentUserEmail ?? '');
@@ -454,7 +453,7 @@ function useSelectionModeReportActions({
     };
 
     const hasActualPaymentOptions = paymentButtonOptions.some((opt) => Object.values(CONST.IOU.PAYMENT_TYPE).some((type) => type === opt.value));
-    const hasPayInSelectionMode = allExpensesSelected && hasPayAction && hasActualPaymentOptions && isSelectionModeReportActionsEnabled;
+    const hasPayInSelectionMode = allExpensesSelected && hasPayAction && hasActualPaymentOptions;
 
     const handleWorkspaceSelected = (wp: OnyxTypes.Policy) => {
         if (checkForNecessaryAction()) {
@@ -487,9 +486,6 @@ function useSelectionModeReportActions({
     })();
 
     const selectionModeReportLevelActions = (() => {
-        if (!isSelectionModeReportActionsEnabled) {
-            return [];
-        }
         const actions: Array<DropdownOption<string> & Pick<PopoverMenuItem, 'backButtonText' | 'rightIcon' | 'subMenuItems'>> = [];
         let idx = 0;
         if (hasSubmitAction && !shouldBlockSubmit) {
