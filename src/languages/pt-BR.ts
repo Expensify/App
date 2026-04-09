@@ -7949,6 +7949,11 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             'Junte-se à Expensify.org para eliminar as injustiças ao redor do mundo. A atual campanha “Teachers Unite” apoia educadores em todos os lugares ao dividir os custos de materiais escolares essenciais.',
         iKnowATeacher: 'Eu conheço um professor',
         iAmATeacher: 'Sou professor(a)',
+        personalKarma: {
+            title: 'Ativar Karma pessoal',
+            description: 'Doe US$ 1 para Expensify.org a cada US$ 500 que você gastar por mês',
+            stopDonationsPrompt: 'Tem certeza de que deseja parar de doar para Expensify.org?',
+        },
         getInTouch: 'Excelente! Compartilhe as informações deles para que possamos entrar em contato.',
         introSchoolPrincipal: 'Apresentação ao diretor da sua escola',
         schoolPrincipalVerifyExpense:
