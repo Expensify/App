@@ -138,6 +138,7 @@ const hasPoliciesConnectedToNetSuiteSelector = (policies: OnyxCollection<Policy>
 
 // Locales are loaded on demand. Instead of getting each workspace translation using `translate`, we hardcoded it here.
 // en|es|fr|it|ja|nl|pl|pt-BR|zh-hans
+// cspell:disable-next-line
 const WORKSPACE_TRANSLATIONS = 'Workspace|Espacio de trabajo|Espace de travail|Spazio di lavoro|ワークスペース|Werkruimte|Przestrzeń robocza|Espaço de trabalho|工作区';
 
 function lastWorkspaceNumberSelector(policies: OnyxCollection<Policy>, email: string): number | undefined {
