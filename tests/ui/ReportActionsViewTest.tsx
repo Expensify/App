@@ -177,6 +177,7 @@ describe('ReportActionsView', () => {
             isExtraSmallScreenWidth: false,
             isSmallScreen: false,
             onboardingIsMediumOrLargerScreenWidth: true,
+            isInLandscapeMode: false,
         });
 
         mockUseTransactionsAndViolationsForReport.mockReturnValue({
