@@ -7472,6 +7472,7 @@ ${reportName}
             hold: '保留',
             unhold: '保留を解除',
             reject: '却下',
+            duplicateExpense: ({count}: {count: number}) => `${count === 1 ? '経費を複製' : '経費を一括複製'}`,
             noOptionsAvailable: '選択した経費グループには利用できるオプションがありません。',
         },
         filtersHeader: 'フィルター',

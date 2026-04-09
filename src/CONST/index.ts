@@ -1429,6 +1429,14 @@ const CONST = {
             DUPLICATE: 'duplicate',
             MOVE_EXPENSE: 'moveExpense',
         },
+        SELECTED_TRANSACTIONS_BULK_ACTION_TYPES: {
+            HOLD: 'hold',
+            UNHOLD: 'unhold',
+            MOVE: 'move',
+            MERGE: 'merge',
+            SPLIT: 'split',
+            DUPLICATE: 'duplicate',
+        },
         ADD_EXPENSE_OPTIONS: {
             CREATE_NEW_EXPENSE: 'createNewExpense',
             ADD_UNREPORTED_EXPENSE: 'addUnreportedExpense',
@@ -7522,6 +7530,7 @@ const CONST = {
             REJECT: 'reject',
             CHANGE_REPORT: 'changeReport',
             SPLIT: 'split',
+            DUPLICATE: 'duplicate',
         },
         TRANSACTION_TYPE: {
             CASH: 'cash',

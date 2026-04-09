@@ -7596,6 +7596,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             hold: 'En attente',
             unhold: 'Supprimer la mise en attente',
             reject: 'Rejeter',
+            duplicateExpense: ({count}: {count: number}) => `Dupliquer ${count === 1 ? 'la dépense' : 'les dépenses'}`,
             noOptionsAvailable: 'Aucune option n’est disponible pour le groupe de dépenses sélectionné.',
         },
         filtersHeader: 'Filtres',
