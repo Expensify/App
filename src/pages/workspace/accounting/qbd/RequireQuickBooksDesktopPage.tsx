@@ -26,7 +26,7 @@ function RequireQuickBooksDesktopModal() {
             <HeaderWithBackButton
                 title={translate('workspace.qbd.qbdSetup')}
                 shouldShowBackButton
-                onBackButtonPress={() => Navigation.dismissModal()}
+                onBackButtonPress={() => Navigation.goBack()}
             />
             <View style={[styles.flex1]}>
                 <View style={[styles.flex1, styles.justifyContentCenter, styles.ph5]}>
@@ -42,7 +42,7 @@ function RequireQuickBooksDesktopModal() {
                     <Button
                         success
                         text={translate('common.buttonConfirm')}
-                        onPress={() => Navigation.dismissModal()}
+                        onPress={() => Navigation.goBack()}
                         pressOnEnter
                         large
                     />
