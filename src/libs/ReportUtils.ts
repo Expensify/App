@@ -6951,8 +6951,7 @@ function getDeletedTransactionMessage(translate: LocalizedTranslate, action: Rep
     return message;
 }
 
-// TODO: conciergeReportID will be required eventually. Refactor issue: https://github.com/Expensify/App/issues/66411
-function getMovedTransactionMessage(translate: LocalizedTranslate, action: ReportAction, conciergeReportID?: string) {
+function getMovedTransactionMessage(translate: LocalizedTranslate, action: ReportAction, conciergeReportID: string | undefined) {
     const movedTransactionOriginalMessage = getOriginalMessage(action) ?? {};
     const {toReportID, fromReportID} = movedTransactionOriginalMessage as OriginalMessageMovedTransaction;
 
