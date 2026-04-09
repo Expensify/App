@@ -42,7 +42,6 @@ function BaseSelectionList<TItem extends ListItem>({
     ref,
     ListItem,
     textInputOptions,
-    searchValueForFocusSync,
     initiallyFocusedItemKey,
     onSelectRow,
     onSelectAll,
@@ -206,7 +205,6 @@ function BaseSelectionList<TItem extends ListItem>({
     // Including data.length ensures FlashList resets its layout cache when the list size changes
     // This prevents "index out of bounds" errors when filtering reduces the list size
     const extraData = useMemo(() => [data.length], [data.length]);
-    const syncedSearchValue = searchValueForFocusSync ?? textInputOptions?.value;
 
     const selectRow = useCallback(
         (item: TItem, indexToFocus?: number) => {
@@ -496,12 +494,12 @@ function BaseSelectionList<TItem extends ListItem>({
         initiallyFocusedItemKey,
         isItemSelected,
         focusedIndex,
-        searchValue: syncedSearchValue,
+        searchValue: textInputOptions?.value,
         setFocusedIndex,
     });
 
     useSearchFocusSync({
-        searchValue: syncedSearchValue,
+        searchValue: textInputOptions?.value,
         data,
         selectedOptionsCount: dataDetails.selectedOptions.length,
         isItemSelected,
