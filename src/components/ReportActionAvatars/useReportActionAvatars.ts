@@ -62,7 +62,7 @@ function useReportActionAvatars({
     const defaultAvatars = useDefaultAvatars();
     /* Get avatar type */
     const allPersonalDetails = usePersonalDetails();
-    const {formatPhoneNumber} = useLocalize();
+    const {formatPhoneNumber, translate} = useLocalize();
     const [personalDetailsFromSnapshot] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     // When the search hash changes, personalDetails from the snapshot will be undefined if it hasn't been fetched yet.
     // Therefore, we will fall back to allPersonalDetails while the data is being fetched.
@@ -351,7 +351,7 @@ function useReportActionAvatars({
                 id: humanAgentAccountID,
                 type: CONST.ICON_TYPE_AVATAR,
                 source: humanAgentDetails.avatar ?? defaultAvatars.FallbackAvatar,
-                name: humanAgentDetails.displayName ?? '',
+                name: humanAgentDetails.displayName || translate('reportAction.humanSupportAgent'),
             };
             const [conciergeAvatar] = avatars;
             avatars = [conciergeAvatar, agentAvatar];

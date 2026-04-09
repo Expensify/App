@@ -882,6 +882,7 @@ const translations: TranslationDeepObject<typeof en> = {
     reportAction: {
         asCopilot: 'als Copilot für',
         assistedBy: (agentName: string) => `unterstützt von ${agentName}`,
+        humanSupportAgent: 'einem menschlichen Support-Mitarbeiter',
         harvestCreatedExpenseReport: (reportUrl: string, reportName: string) =>
             `hat diesen Bericht erstellt, um alle Ausgaben aus <a href="${reportUrl}">${reportName}</a> aufzunehmen, die nicht mit der von dir gewählten Häufigkeit eingereicht werden konnten`,
         createdReportForUnapprovedTransactions: ({reportUrl, reportName, reportID, isReportDeleted}: CreatedReportForUnapprovedTransactionsParams) =>
