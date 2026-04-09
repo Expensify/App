@@ -1,4 +1,4 @@
-import React, {useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry, OnyxKey} from 'react-native-onyx';
 import useAncestors from '@hooks/useAncestors';
@@ -64,21 +64,18 @@ function ChronosTimerHeaderButton({report}: ChronosTimerHeaderButtonProps) {
         });
     }
 
-    const options: Array<DropdownOption<ChronosAction>> = useMemo(
-        () => [
-            {
-                value: 'timer' as const,
-                text: translate(isTimerRunning ? 'chronos.stopTimer' : 'chronos.startTimer'),
-            },
-            {
-                value: 'scheduleOOO' as const,
-                text: translate('chronos.scheduleOOO'),
-                onSelected: () => Navigation.navigate(ROUTES.CHRONOS_SCHEDULE_OOO.getRoute(report.reportID)),
-                shouldUpdateSelectedIndex: false,
-            },
-        ],
-        [isTimerRunning, translate, report.reportID],
-    );
+    const options: Array<DropdownOption<ChronosAction>> = [
+        {
+            value: 'timer' as const,
+            text: translate(isTimerRunning ? 'chronos.stopTimer' : 'chronos.startTimer'),
+        },
+        {
+            value: 'scheduleOOO' as const,
+            text: translate('chronos.scheduleOOO'),
+            onSelected: () => Navigation.navigate(ROUTES.CHRONOS_SCHEDULE_OOO.getRoute(report.reportID)),
+            shouldUpdateSelectedIndex: false,
+        },
+    ];
 
     if (!canWriteInReport(report)) {
         return null;
