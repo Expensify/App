@@ -56,6 +56,9 @@ type BaseSelectionListProps<TItem extends ListItem> = {
     /** Configuration options for the text input */
     textInputOptions?: TextInputOptions;
 
+    /** Search value used for focus synchronization. Defaults to textInputOptions.value */
+    searchValueForFocusSync?: string;
+
     /** Whether to show the text input */
     shouldShowTextInput?: boolean;
 
@@ -203,6 +206,9 @@ type SelectionListStyle = {
 
     /** Styles for the list header wrapper */
     listHeaderWrapperStyle?: StyleProp<ViewStyle>;
+
+    /** Styles for the default "Select all" label in the list header (merged after textStrong) */
+    listHeaderSelectAllTextStyle?: StyleProp<TextStyle>;
 
     /** Styles for the title container of the list item */
     listItemTitleContainerStyles?: StyleProp<ViewStyle>;
