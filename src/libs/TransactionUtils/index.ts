@@ -2820,9 +2820,9 @@ function recalculateUnreportedTransactionDetails(
     const comment: NullishDeep<Comment> = {
         hold: null,
     };
-    let modifiedAmount: number | undefined;
-    let modifiedCurrency: string | undefined;
-    let modifiedMerchant: string | undefined;
+    let modifiedAmount = transaction?.modifiedAmount;
+    let modifiedCurrency = transaction?.modifiedCurrency;
+    let modifiedMerchant = transaction?.modifiedMerchant;
 
     // For distance requests we need to update its custom unit ID to `_FAKE_P2P_ID_` so it's no longer tied to the policy's rate which would cause the "Rate out of policy" violation to appear.
     // Let's also set the defaultP2PRate and update the distanceUnit, the quantity, the amount, the currency and the merchant to match the P2P rate.
