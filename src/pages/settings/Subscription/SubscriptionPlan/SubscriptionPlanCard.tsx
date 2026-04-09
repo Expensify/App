@@ -125,11 +125,12 @@ function SubscriptionPlanCard({subscriptionPlan, isFromComparisonModal = false, 
                                 height={variables.iconHeader}
                             />
                             {isFromComparisonModal && (
-                                <View>
+                                <View pointerEvents="none">
                                     <RadioButton
                                         isChecked={isSelected}
                                         onPress={() => {}}
-                                        accessibilityLabel={translate('common.select')}
+                                        accessibilityLabel=""
+                                        accessible={false}
                                     />
                                 </View>
                             )}

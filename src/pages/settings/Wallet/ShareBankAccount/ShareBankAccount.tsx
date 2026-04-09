@@ -197,7 +197,7 @@ function ShareBankAccount({route}: ShareBankAccountProps) {
                             />
                         }
                         ListItem={UserListItem}
-                        shouldUseDefaultRightHandSideCheckmark
+                        shouldShowRadioButton
                         onCheckboxPress={toggleOption}
                         onSelectRow={toggleOption}
                         footerContent={

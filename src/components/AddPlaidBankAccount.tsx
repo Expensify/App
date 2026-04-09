@@ -274,7 +274,6 @@ function AddPlaidBankAccount({
                 items={options}
                 defaultCheckedValue={defaultSelectedPlaidAccountID}
                 onPress={handleSelectingPlaidAccount}
-                radioButtonStyle={[styles.optionRowCompact, styles.ph5]}
             />
             <FormHelpMessage message={errorText} />
         </FullPageOfflineBlockingView>

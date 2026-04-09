@@ -31,7 +31,6 @@ function TravelDomainListItem<TItem extends ListItem>({
             isFocused={isFocused}
             isDisabled={isDisabled}
             showTooltip={showTooltip}
-            canSelectMultiple
             onSelectRow={onSelectRow}
             keyForList={item.keyForList}
             onFocus={onFocus}

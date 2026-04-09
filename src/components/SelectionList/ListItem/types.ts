@@ -276,9 +276,6 @@ type ListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
     /** Styles applied for the title container of the list item */
     titleContainerStyles?: StyleProp<ViewStyle>;
 
-    /** Whether to show the default right hand side checkmark */
-    shouldUseDefaultRightHandSideCheckmark?: boolean;
-
     /** Whether to highlight the selected item */
     shouldHighlightSelectedItem?: boolean;
 
@@ -330,8 +327,6 @@ type BaseListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> &
         shouldDisplayRBR?: boolean;
         /** Test ID of the component. Used to locate this view in end-to-end tests. */
         testID?: string;
-        /** Whether to show the default right hand side checkmark */
-        shouldUseDefaultRightHandSideCheckmark?: boolean;
         /** Whether to show the right caret icon */
         shouldShowRightCaret?: boolean;
         /** Whether to highlight the selected item */

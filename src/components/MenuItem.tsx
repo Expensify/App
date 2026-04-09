@@ -1139,7 +1139,8 @@ function MenuItem({
                                                         <RadioButton
                                                             isChecked={isSelected}
                                                             onPress={() => {}}
-                                                            accessibilityLabel={typeof title === 'string' ? title : ''}
+                                                            accessibilityLabel=""
+                                                            accessible={false}
                                                         />
                                                     </View>
                                                 )}

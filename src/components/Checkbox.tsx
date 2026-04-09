@@ -71,6 +71,9 @@ type CheckboxProps = Partial<ChildrenProps> &
 
         /** Accessibility role override (defaults to checkbox) */
         role?: typeof CONST.ROLE.CHECKBOX | typeof CONST.ROLE.RADIO;
+
+        /** Whether the checkbox is accessible to screen readers */
+        accessible?: boolean;
     };
 
 function Checkbox({
@@ -95,6 +98,7 @@ function Checkbox({
     sentryLabel,
     tabIndex,
     role = CONST.ROLE.CHECKBOX,
+    accessible,
 }: CheckboxProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -149,6 +153,7 @@ function Checkbox({
                 mixed → indeterminate  */
             aria-checked={isIndeterminate ? 'mixed' : isChecked}
             accessibilityLabel={accessibilityLabel}
+            accessible={accessible}
             pressDimmingValue={1}
             wrapperStyle={wrapperStyle}
             sentryLabel={sentryLabel}

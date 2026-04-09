@@ -17,7 +17,6 @@ type ListItemRendererProps<TItem extends ListItem> = Omit<BaseListItemProps<TIte
         titleStyles?: StyleProp<TextStyle>;
         titleContainerStyles?: StyleProp<ViewStyle>;
         shouldHighlightSelectedItem?: boolean;
-        shouldShowRadioButton?: boolean;
         shouldPreventEnterKeySubmit?: boolean;
     };
 
@@ -50,7 +49,6 @@ function ListItemRenderer<TItem extends ListItem>({
     titleStyles,
     singleExecution,
     titleContainerStyles,
-    shouldUseDefaultRightHandSideCheckmark,
     shouldHighlightSelectedItem,
     shouldDisableHoverStyle,
     shouldShowRightCaret,
@@ -110,7 +108,6 @@ function ListItemRenderer<TItem extends ListItem>({
                 canShowProductTrainingTooltip={canShowProductTrainingTooltip}
                 titleContainerStyles={titleContainerStyles}
                 errorRowStyles={errorRowStyles}
-                shouldUseDefaultRightHandSideCheckmark={shouldUseDefaultRightHandSideCheckmark}
                 shouldHighlightSelectedItem={shouldHighlightSelectedItem}
                 shouldDisableHoverStyle={shouldDisableHoverStyle}
                 shouldShowRightCaret={shouldShowRightCaret}

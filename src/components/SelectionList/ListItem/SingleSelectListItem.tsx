@@ -1,4 +1,4 @@
-import React, {useCallback} from 'react';
+import React from 'react';
 import SelectionButton from '@components/SelectionList/components/SelectionButton';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
@@ -31,17 +31,6 @@ function SingleSelectListItem<TItem extends ListItem>({
 }: SingleSelectListItemProps<TItem>) {
     const styles = useThemeStyles();
 
-    const radioCheckboxComponent = useCallback(() => {
-        return (
-            <SelectionButton
-                role={CONST.ROLE.RADIO}
-                item={item}
-                onSelectRow={onSelectRow}
-                accessibilityLabel="SingleSelectListItem"
-            />
-        );
-    }, [item, onSelectRow]);
-
     return (
         <BaseSelectListItem
             item={item}
@@ -49,7 +38,16 @@ function SingleSelectListItem<TItem extends ListItem>({
             isFocused={isFocused}
             showTooltip={showTooltip}
             isDisabled={isDisabled}
-            rightHandSideComponent={rightHandSideComponent ?? radioCheckboxComponent}
+            rightHandSideComponent={
+                rightHandSideComponent ?? (
+                    <SelectionButton
+                        role={CONST.ROLE.RADIO}
+                        item={item}
+                        onSelectRow={onSelectRow}
+                        accessibilityLabel="SingleSelectListItem"
+                    />
+                )
+            }
             onSelectRow={onSelectRow}
             onDismissError={onDismissError}
             shouldPreventEnterKeySubmit={shouldPreventEnterKeySubmit}

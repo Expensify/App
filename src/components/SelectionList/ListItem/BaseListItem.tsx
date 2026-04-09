@@ -83,7 +83,7 @@ function BaseListItem<TItem extends ListItem>({
     onFocus = () => {},
     hoverStyle,
     onLongPressRow,
-    shouldUseDefaultRightHandSideCheckmark = false,
+    shouldShowRadioButton = false,
     shouldHighlightSelectedItem = false,
     shouldDisableHoverStyle,
     shouldShowRightCaret = false,
@@ -142,8 +142,6 @@ function BaseListItem<TItem extends ListItem>({
 
         return rightHandSideComponent;
     };
-
-    const shouldShowCheckbox = !canSelectMultiple && !rightHandSideComponent && shouldUseDefaultRightHandSideCheckmark;
 
     const shouldShowRBRIndicator = (!item.isSelected || !!item.canShowSeveralIndicators) && !!item.brickRoadIndicator && shouldDisplayRBR;
 
@@ -244,7 +242,7 @@ function BaseListItem<TItem extends ListItem>({
                         </View>
                     )}
 
-                    {shouldShowCheckbox && (
+                    {!canSelectMultiple && !rightHandSideComponent && shouldShowRadioButton && (
                         <View
                             style={[styles.flexRow, styles.alignItemsCenter, styles.ml3]}
                             accessible={false}

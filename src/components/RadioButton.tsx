@@ -10,6 +10,9 @@ type RadioButtonProps = {
     /** A function that is called when the box/label is pressed */
     onPress: () => void;
 
+    /** Whether the radio button is accessible to screen readers */
+    accessible?: boolean;
+
     /** Specifies the accessibility label for the radio button */
     accessibilityLabel: string;
 
@@ -20,7 +23,7 @@ type RadioButtonProps = {
     disabled?: boolean;
 };
 
-function RadioButton({isChecked, onPress, accessibilityLabel, hasError = false, disabled = false}: RadioButtonProps) {
+function RadioButton({isChecked, onPress, accessibilityLabel, hasError = false, disabled = false, accessible}: RadioButtonProps) {
     return (
         <Checkbox
             isChecked={isChecked}
@@ -28,6 +31,7 @@ function RadioButton({isChecked, onPress, accessibilityLabel, hasError = false, 
             accessibilityLabel={accessibilityLabel}
             hasError={hasError}
             disabled={disabled}
+            accessible={accessible}
             containerBorderRadius={variables.componentBorderRadiusCircle}
             role={CONST.ROLE.RADIO}
             sentryLabel={CONST.SENTRY_LABEL.RADIO_BUTTON.BUTTON}

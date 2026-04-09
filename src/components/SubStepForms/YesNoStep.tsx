@@ -82,7 +82,6 @@ function YesNoStep({title, description, defaultValue, onSelectedValue, submitBut
                 items={options}
                 onPress={handleSelectValue}
                 defaultCheckedValue={defaultValue.toString()}
-                radioButtonStyle={[styles.optionRowCompact, styles.ph5]}
             />
             {children}
         </FormProvider>

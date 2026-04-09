@@ -480,7 +480,6 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
                         style={{listItemTitleContainerStyles: styles.flex3}}
                         onTurnOnSelectionMode={(item) => item && toggleSubRate(item)}
                         shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
-                        shouldUseDefaultRightHandSideCheckmark={false}
                         customListHeaderContent={headerContent}
                         shouldShowListEmptyContent={false}
                         showScrollIndicator={false}

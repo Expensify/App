@@ -92,7 +92,6 @@ function BaseSelectionList<TItem extends ListItem>({
     shouldShowTextInput = !!textInputOptions?.label,
     shouldClearInputOnSelect = false,
     shouldHighlightSelectedItem,
-    shouldUseDefaultRightHandSideCheckmark,
     shouldDisableHoverStyle = false,
     shouldShowRadioButton,
     setShouldDisableHoverStyle = () => {},
@@ -356,7 +355,6 @@ function BaseSelectionList<TItem extends ListItem>({
                 onLongPressRow={onLongPressRow}
                 onCheckboxPress={onCheckboxPress}
                 shouldSingleExecuteRowSelect={shouldSingleExecuteRowSelect}
-                shouldUseDefaultRightHandSideCheckmark={shouldUseDefaultRightHandSideCheckmark}
                 shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
                 rightHandSideComponent={rightHandSideComponent}
                 isMultilineSupported={isRowMultilineSupported}

@@ -436,7 +436,6 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                         shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
                         onTurnOnSelectionMode={(item) => item && toggleTag(item)}
                         turnOnSelectionModeOnLongPress={!hasDependentTags}
-                        shouldUseDefaultRightHandSideCheckmark={false}
                         customListHeaderContent={listHeaderContent}
                         canSelectMultiple={canSelectMultiple}
                         onSelectRow={navigateToTagSettings}

@@ -911,7 +911,6 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                             onTurnOnSelectionMode={(item) => item && toggleTag(item)}
                             turnOnSelectionModeOnLongPress={!hasDependentTags}
                             shouldSingleExecuteRowSelect={!canSelectMultiple}
-                            shouldUseDefaultRightHandSideCheckmark={false}
                             customListHeaderContent={headerContent}
                             shouldShowListEmptyContent={false}
                             showScrollIndicator={false}

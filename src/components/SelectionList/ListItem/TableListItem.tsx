@@ -25,7 +25,7 @@ function TableListItem<TItem extends ListItem>({
     onLongPressRow,
     shouldSyncFocus,
     titleContainerStyles,
-    shouldUseDefaultRightHandSideCheckmark,
+    shouldShowRadioButton,
     shouldShowRightCaret,
     errorRowStyles,
 }: TableListItemProps<TItem>) {
@@ -72,7 +72,7 @@ function TableListItem<TItem extends ListItem>({
             onFocus={onFocus}
             shouldSyncFocus={shouldSyncFocus}
             hoverStyle={item.isSelected && styles.activeComponentBG}
-            shouldUseDefaultRightHandSideCheckmark={shouldUseDefaultRightHandSideCheckmark}
+            shouldShowRadioButton={shouldShowRadioButton}
             shouldShowRightCaret={shouldShowRightCaret}
         >
             {(hovered) => (

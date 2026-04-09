@@ -306,7 +306,6 @@ function ExpenseRulesPage() {
                     shouldHeaderBeInsideList
                     shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
                     shouldShowRightCaret
-                    shouldUseDefaultRightHandSideCheckmark={false}
                     shouldShowListEmptyContent={false}
                     showScrollIndicator={false}
                     turnOnSelectionModeOnLongPress={shouldUseNarrowLayout}

@@ -858,7 +858,6 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                         onTurnOnSelectionMode={(item) => item && toggleUser(item.login)}
                         shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
                         onCheckboxPress={(item) => toggleUser(item.login)}
-                        shouldUseDefaultRightHandSideCheckmark={false}
                         shouldSingleExecuteRowSelect={!isPolicyAdmin}
                         customListHeader={getCustomListHeader()}
                         customListHeaderContent={headerContent}

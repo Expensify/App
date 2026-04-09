@@ -39,7 +39,6 @@ function UserListItem<TItem extends ListItem>({
     shouldSyncFocus,
     wrapperStyle,
     pressableStyle,
-    shouldUseDefaultRightHandSideCheckmark,
     forwardedFSClass,
     shouldDisableHoverStyle,
     shouldShowRadioButton = true,
@@ -92,7 +91,7 @@ function UserListItem<TItem extends ListItem>({
                     <Text style={[styles.ml9, styles.ph5, styles.pb3, styles.textLabelSupporting]}>{translate('workspace.people.invitedBySecondaryLogin', item.invitedSecondaryLogin)}</Text>
                 ) : undefined
             }
-            shouldUseDefaultRightHandSideCheckmark={false}
+            shouldShowRadioButton={false}
             keyForList={item.keyForList}
             onFocus={onFocus}
             shouldSyncFocus={shouldSyncFocus}
@@ -109,7 +108,7 @@ function UserListItem<TItem extends ListItem>({
                         role={shouldDisableAccessibleGrouping ? CONST.ROLE.BUTTON : undefined}
                         style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}
                     >
-                        {!shouldUseDefaultRightHandSideCheckmark && !!canSelectMultiple && (
+                        {!shouldShowRadioButton && !!canSelectMultiple && (
                             <SelectionButton
                                 role={CONST.ROLE.CHECKBOX}
                                 item={item}
@@ -166,7 +165,7 @@ function UserListItem<TItem extends ListItem>({
                                 />
                             </View>
                         )}
-                        {((!!shouldUseDefaultRightHandSideCheckmark && !!canSelectMultiple) || (!!shouldShowRadioButton && !canSelectMultiple)) && (
+                        {!!shouldShowRadioButton && (
                             <SelectionButton
                                 role={canSelectMultiple ? CONST.ROLE.CHECKBOX : CONST.ROLE.RADIO}
                                 item={item}

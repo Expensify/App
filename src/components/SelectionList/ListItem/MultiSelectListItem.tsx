@@ -1,4 +1,4 @@
-import React, {useCallback, useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import Avatar from '@components/Avatar';
 import SelectionButton from '@components/SelectionList/components/SelectionButton';
@@ -32,42 +32,21 @@ function MultiSelectListItem<TItem extends ListItem>({
     const styles = useThemeStyles();
     const icon = item.icons?.at(0);
 
-    const checkboxComponent = useCallback(() => {
-        return (
-            <SelectionButton
-                role={CONST.ROLE.CHECKBOX}
-                item={item}
-                onSelectRow={onSelectRow}
+    const avatarElement = icon ? (
+        <View style={[styles.mentionSuggestionsAvatarContainer, styles.mr3]}>
+            <Avatar
+                source={icon.source}
+                size={CONST.AVATAR_SIZE.SMALLER}
+                name={icon.name}
+                avatarID={icon.id}
+                type={icon.type ?? CONST.ICON_TYPE_AVATAR}
+                fallbackIcon={icon.fallbackIcon}
             />
-        );
-    }, [item, onSelectRow]);
+        </View>
+    ) : undefined;
 
-    const {itemWithAvatar, computedWrapperStyle} = useMemo(() => {
-        if (!icon) {
-            return {
-                itemWithAvatar: item,
-                computedWrapperStyle: [wrapperStyle, styles.optionRowCompact],
-            };
-        }
-
-        const avatarElement = (
-            <View style={[styles.mentionSuggestionsAvatarContainer, styles.mr3]}>
-                <Avatar
-                    source={icon.source}
-                    size={CONST.AVATAR_SIZE.SMALLER}
-                    name={icon.name}
-                    avatarID={icon.id}
-                    type={icon.type ?? CONST.ICON_TYPE_AVATAR}
-                    fallbackIcon={icon.fallbackIcon}
-                />
-            </View>
-        );
-
-        return {
-            itemWithAvatar: {...item, leftElement: avatarElement},
-            computedWrapperStyle: [wrapperStyle, styles.pv0, styles.mnh13],
-        };
-    }, [icon, item, wrapperStyle, styles.mentionSuggestionsAvatarContainer, styles.mr3, styles.optionRowCompact, styles.pv0, styles.mnh13]);
+    const itemWithAvatar = icon ? {...item, leftElement: avatarElement} : item;
+    const computedWrapperStyle = icon ? [wrapperStyle, styles.pv0, styles.mnh13] : [wrapperStyle, styles.optionRowCompact];
 
     return (
         <BaseSelectListItem
@@ -76,7 +55,13 @@ function MultiSelectListItem<TItem extends ListItem>({
             isFocused={isFocused}
             showTooltip={showTooltip}
             isDisabled={isDisabled}
-            rightHandSideComponent={checkboxComponent}
+            rightHandSideComponent={
+                <SelectionButton
+                    role={CONST.ROLE.CHECKBOX}
+                    item={item}
+                    onSelectRow={onSelectRow}
+                />
+            }
             onSelectRow={onSelectRow}
             accessibilityRole={CONST.ROLE.CHECKBOX}
             onDismissError={onDismissError}

@@ -31,7 +31,7 @@ function EditReportFieldDropdown({onSubmit, fieldKey, fieldValue, fieldOptions}:
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
     const {translate, localeCompare} = useLocalize();
     const recentlyUsedOptions = recentlyUsedReportFields?.[fieldKey]?.sort(localeCompare) ?? [];
-    const icons = useMemoizedLazyExpensifyIcons(['Checkmark'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Checkmark']);
     const theme = useTheme();
 
     const itemRightSideComponent = (item: ListItem) => {

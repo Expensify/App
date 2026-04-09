@@ -9102,9 +9102,6 @@ const CONST = {
                 CONTINUE_BUTTON: 'OdometerImage-ContinueButton',
             },
         },
-        NEW_CHAT: {
-            SELECT_PARTICIPANT: 'NewChat-SelectParticipant',
-        },
         WORKSPACE_EXPENSIFY_CARD: {
             CARD_LIST_ROW: 'WorkspaceExpensifyCard-CardListRow',
         },
