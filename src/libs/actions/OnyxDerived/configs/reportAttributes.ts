@@ -349,8 +349,13 @@ export default createOnyxDerivedValueConfig({
                 continue;
             }
 
-            reportAttributes[chatReportID].brickRoadStatus = CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
-            reportAttributes[chatReportID].actionBadge = CONST.REPORT.ACTION_BADGE.FIX;
+            // Clone the entry before mutating — it may be a reference carried over from
+            // currentValue.reports that wasn't recomputed in this incremental run.
+            reportAttributes[chatReportID] = {
+                ...reportAttributes[chatReportID],
+                brickRoadStatus: CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR,
+                actionBadge: CONST.REPORT.ACTION_BADGE.FIX,
+            };
         }
 
         return {
