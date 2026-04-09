@@ -1,7 +1,7 @@
 import {useMemo} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
-import {getPolicyByCustomUnitID} from '@libs/PolicyUtils';
-import {isExpenseUnreported} from '@libs/TransactionUtils';
+import {getPolicyByCustomUnitID, getPolicyByCustomUnitRateID} from '@libs/PolicyUtils';
+import {isDistanceRequest, isExpenseUnreported} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Transaction} from '@src/types/onyx';
@@ -42,12 +42,26 @@ function usePolicyForTransaction({transaction, reportPolicyID, action, iouType, 
         return getPolicyByCustomUnitID(transaction, allPolicies);
     }, [transaction, allPolicies]);
 
+    const distanceRatePolicy = useMemo(() => {
+        return getPolicyByCustomUnitRateID(transaction, allPolicies);
+    }, [transaction, allPolicies]);
+
     const [reportPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${reportPolicyID}`);
 
     const isUnreportedExpense = isExpenseUnreported(transaction);
     const isCreatingTrackExpense = action === CONST.IOU.ACTION.CREATE && iouType === CONST.IOU.TYPE.TRACK;
+    const isDistanceExpense = isDistanceRequest(transaction);
 
-    const policyForSelfDMExpense = isPerDiemRequest ? customUnitPolicy : policyForMovingExpenses;
+    const getPolicyForSelfDMExpense = () => {
+        if (isPerDiemRequest) {
+            return customUnitPolicy;
+        }
+        if (isDistanceExpense && distanceRatePolicy) {
+            return distanceRatePolicy;
+        }
+        return policyForMovingExpenses;
+    };
+    const policyForSelfDMExpense = getPolicyForSelfDMExpense();
     const policy = isUnreportedExpense || isCreatingTrackExpense ? policyForSelfDMExpense : (reportPolicy ?? policyDraft);
 
     return {policy};

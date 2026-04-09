@@ -231,6 +231,22 @@ function getPolicyByCustomUnitID(transaction: OnyxEntry<Transaction>, policies: 
 }
 
 /**
+ * Finds a policy that contains the customUnitRateID from the transaction's distance rate
+ */
+function getPolicyByCustomUnitRateID(transaction: OnyxEntry<Transaction>, policies: OnyxCollection<Policy>): OnyxEntry<Policy> {
+    const customUnitRateID = transaction?.comment?.customUnit?.customUnitRateID;
+
+    if (!customUnitRateID || !policies) {
+        return undefined;
+    }
+
+    return Object.values(policies).find((policy) => {
+        const distanceUnit = getDistanceRateCustomUnit(policy);
+        return !!distanceUnit?.rates && customUnitRateID in distanceUnit.rates;
+    });
+}
+
+/**
  * Retrieves custom unit rate object from the given customUnitRateID
  */
 function getDistanceRateCustomUnitRate(policy: OnyxEntry<Policy>, customUnitRateID: string): Rate | undefined {
@@ -2167,6 +2183,7 @@ export {
     getDistanceRateCustomUnit,
     getPerDiemCustomUnit,
     getPolicyByCustomUnitID,
+    getPolicyByCustomUnitRateID,
     getDistanceRateCustomUnitRate,
     getPerDiemRateCustomUnitRate,
     sortWorkspacesBySelected,
