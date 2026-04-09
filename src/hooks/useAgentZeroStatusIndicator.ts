@@ -1,3 +1,4 @@
+import agentZeroProcessingIndicatorSelector from '@selectors/ReportNameValuePairs';
 import {useEffect, useRef, useState, useSyncExternalStore} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {clearAgentZeroProcessingIndicator, getNewerActions, subscribeToReportReasoningEvents, unsubscribeFromReportReasoningChannel} from '@libs/actions/Report';
@@ -40,12 +41,11 @@ const POLL_INTERVAL_MS = 30000;
  */
 const MAX_POLL_DURATION_MS = 120000;
 
-/**
- * Hook to manage AgentZero status indicator for chats where AgentZero responds.
- * This includes both Concierge DM chats and policy #admins rooms (where Concierge handles onboarding).
- * @param reportID - The report ID to monitor
- * @param isAgentZeroChat - Whether the chat is an AgentZero-enabled chat (Concierge DM or #admins room)
- */
+// Minimum time to display a label before allowing change (prevents rapid flicker)
+const MIN_DISPLAY_TIME = 300; // ms
+// Debounce delay for server label updates
+const DEBOUNCE_DELAY = 150; // ms
+
 /** Selector that extracts the newest report action ID and actor from the report actions collection. */
 function selectNewestReportAction(reportActions: OnyxEntry<ReportActions>): NewestReportAction | undefined {
     if (!reportActions) {
@@ -62,9 +62,16 @@ function selectNewestReportAction(reportActions: OnyxEntry<ReportActions>): Newe
     };
 }
 
+/**
+ * Hook to manage AgentZero status indicator for chats where AgentZero responds.
+ * This includes both Concierge DM chats and policy #admins rooms (where Concierge handles onboarding).
+ * @param reportID - The report ID to monitor
+ * @param isAgentZeroChat - Whether the chat is an AgentZero-enabled chat (Concierge DM or #admins room)
+ */
 function useAgentZeroStatusIndicator(reportID: string, isAgentZeroChat: boolean): AgentZeroStatusState {
-    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`);
-    const serverLabel = reportNameValuePairs?.agentZeroProcessingRequestIndicator?.trim() ?? '';
+    // Server-driven processing label from report name-value pairs (e.g. "Looking up categories...")
+    // Uses selector to only re-render when the specific field changes, not on any NVP change.
+    const [serverLabel] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`, {selector: agentZeroProcessingIndicatorSelector});
 
     // Track the newest report action so we can fetch missed actions and detect actual Concierge replies.
     const [newestReportAction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {selector: selectNewestReportAction});
@@ -77,19 +84,18 @@ function useAgentZeroStatusIndicator(reportID: string, isAgentZeroChat: boolean)
     // Each kickoffWaitingIndicator() call increments the counter; when a Concierge reply
     // is detected (via polling, Pusher, or reconnect), the counter resets to 0.
     const [pendingOptimisticRequests, setPendingOptimisticRequests] = useState(0);
+    // Debounced label shown to the user — smooths rapid server label changes.
+    // displayedLabelRef mirrors state so the label-sync effect can read the current value
+    // without including displayedLabel in its dependency array (avoids extra effect cycles).
+    const displayedLabelRef = useRef<string>('');
     const [displayedLabel, setDisplayedLabel] = useState<string>('');
     const {translate} = useLocalize();
-    const prevServerLabelRef = useRef<string>(serverLabel);
+    const prevServerLabelRef = useRef<string>(serverLabel ?? '');
     const updateTimerRef = useRef<NodeJS.Timeout | null>(null);
     const lastUpdateTimeRef = useRef<number>(0);
     const pollIntervalRef = useRef<NodeJS.Timeout | null>(null);
     const pollSafetyTimerRef = useRef<NodeJS.Timeout | null>(null);
     const isOfflineRef = useRef<boolean>(false);
-
-    // Minimum time to display a label before allowing change (prevents rapid flicker)
-    const MIN_DISPLAY_TIME = 300; // ms
-    // Debounce delay for server label updates
-    const DEBOUNCE_DELAY = 150; // ms
 
     /**
      * Clear the polling interval and safety timer. Called when the indicator clears normally,
@@ -117,6 +123,7 @@ function useAgentZeroStatusIndicator(reportID: string, isAgentZeroChat: boolean)
         }
         clearPolling();
         setPendingOptimisticRequests(0);
+        displayedLabelRef.current = '';
         setDisplayedLabel('');
         clearAgentZeroProcessingIndicator(reportID);
         getNewerActions(reportID, newestReportActionRef.current?.reportActionID);
@@ -215,79 +222,76 @@ function useAgentZeroStatusIndicator(reportID: string, isAgentZeroChat: boolean)
         };
     }, [isAgentZeroChat, reportID]);
 
+    // Synchronize the displayed label with debounce and minimum display time.
+    // displayedLabelRef mirrors state so the effect can check the current value without depending on displayedLabel.
     useEffect(() => {
         const hadServerLabel = !!prevServerLabelRef.current;
         const hasServerLabel = !!serverLabel;
 
-        // Helper function to update label with timing control
-        const updateLabel = (newLabel: string) => {
-            const now = Date.now();
-            const timeSinceLastUpdate = now - lastUpdateTimeRef.current;
-            const remainingMinTime = Math.max(0, MIN_DISPLAY_TIME - timeSinceLastUpdate);
-
-            // Clear any pending update
-            if (updateTimerRef.current) {
-                clearTimeout(updateTimerRef.current);
-                updateTimerRef.current = null;
-            }
-
-            // If enough time has passed or it's a critical update (clearing), update immediately
-            if (remainingMinTime === 0 || newLabel === '') {
-                if (displayedLabel !== newLabel) {
-                    setDisplayedLabel(newLabel);
-                    lastUpdateTimeRef.current = now;
-                }
-            } else {
-                // Schedule update after debounce + remaining min display time
-                const delay = DEBOUNCE_DELAY + remainingMinTime;
-                updateTimerRef.current = setTimeout(() => {
-                    if (displayedLabel !== newLabel) {
-                        setDisplayedLabel(newLabel);
-                        lastUpdateTimeRef.current = Date.now();
-                    }
-                    updateTimerRef.current = null;
-                }, delay);
-            }
-        };
-
-        // When server label arrives, transition smoothly without flicker.
-        // Start/reset polling — the label acts as a lease renewal.
+        let targetLabel = '';
         if (hasServerLabel) {
-            updateLabel(serverLabel);
+            targetLabel = serverLabel ?? '';
+        } else if (pendingOptimisticRequests > 0) {
+            targetLabel = translate('common.thinking');
+        }
+
+        // Start/reset polling when server label arrives (acts as a lease renewal)
+        if (hasServerLabel) {
             startPolling();
             if (pendingOptimisticRequests > 0) {
                 setPendingOptimisticRequests(0);
             }
         }
-        // When optimistic state is active but no server label, show "Concierge is thinking..."
-        else if (pendingOptimisticRequests > 0) {
-            const thinkingLabel = translate('common.thinking');
-            updateLabel(thinkingLabel);
-            // Polling was already started in kickoffWaitingIndicator
-        }
-        // Clear everything when processing ends — either via the normal transition
-        // (server label went from non-empty to empty), or when the indicator is idle.
-        else {
+        // Clear polling when processing ends
+        else if (pendingOptimisticRequests === 0) {
             clearPolling();
-            if (displayedLabel !== '') {
-                updateLabel('');
-            }
             if (hadServerLabel && reasoningHistory.length > 0) {
                 ConciergeReasoningStore.clearReasoning(reportID);
             }
         }
 
-        prevServerLabelRef.current = serverLabel;
+        // Use ref to check current value without depending on displayedLabel in deps
+        if (displayedLabelRef.current === targetLabel) {
+            prevServerLabelRef.current = serverLabel ?? '';
+            return;
+        }
 
-        // Cleanup timer on unmount
+        const now = Date.now();
+        const timeSinceLastUpdate = now - lastUpdateTimeRef.current;
+        const remainingMinTime = Math.max(0, MIN_DISPLAY_TIME - timeSinceLastUpdate);
+
+        if (updateTimerRef.current) {
+            clearTimeout(updateTimerRef.current);
+            updateTimerRef.current = null;
+        }
+
+        // Immediate update when enough time has passed or when clearing the label
+        if (remainingMinTime === 0 || targetLabel === '') {
+            displayedLabelRef.current = targetLabel;
+            // eslint-disable-next-line react-hooks/set-state-in-effect -- guarded by displayedLabelRef check above; fires once per serverLabel/optimistic transition
+            setDisplayedLabel(targetLabel);
+            lastUpdateTimeRef.current = now;
+        } else {
+            // Schedule update after debounce + remaining min display time
+            const delay = DEBOUNCE_DELAY + remainingMinTime;
+            updateTimerRef.current = setTimeout(() => {
+                displayedLabelRef.current = targetLabel;
+                setDisplayedLabel(targetLabel);
+                lastUpdateTimeRef.current = Date.now();
+                updateTimerRef.current = null;
+            }, delay);
+        }
+
+        prevServerLabelRef.current = serverLabel ?? '';
+
         return () => {
             if (!updateTimerRef.current) {
                 return;
             }
             clearTimeout(updateTimerRef.current);
         };
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- startPolling/clearPolling are plain functions stable via React Compiler
-    }, [serverLabel, reasoningHistory.length, reportID, pendingOptimisticRequests, translate, displayedLabel]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- displayedLabelRef avoids depending on displayedLabel; startPolling/clearPolling use refs
+    }, [serverLabel, reasoningHistory.length, reportID, pendingOptimisticRequests, translate]);
 
     useEffect(() => {
         isOfflineRef.current = isOffline;
@@ -303,9 +307,6 @@ function useAgentZeroStatusIndicator(reportID: string, isAgentZeroChat: boolean)
     );
 
     const kickoffWaitingIndicator = () => {
-        if (!isAgentZeroChat) {
-            return;
-        }
         setPendingOptimisticRequests((prev) => prev + 1);
         startPolling();
     };
@@ -325,7 +326,7 @@ function useAgentZeroStatusIndicator(reportID: string, isAgentZeroChat: boolean)
         setPendingOptimisticRequests(0);
     }, [newestActorAccountID, serverLabel, pendingOptimisticRequests, reportID]);
 
-    const isProcessing = isAgentZeroChat && !isOffline && (!!serverLabel || pendingOptimisticRequests > 0);
+    const isProcessing = !isOffline && (!!serverLabel || pendingOptimisticRequests > 0);
 
     return {
         isProcessing,
