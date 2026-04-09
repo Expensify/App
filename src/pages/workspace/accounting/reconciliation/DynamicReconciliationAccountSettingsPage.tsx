@@ -6,6 +6,7 @@ import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import Text from '@components/Text';
 import useDefaultFundID from '@hooks/useDefaultFundID';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -21,23 +22,18 @@ import type {SettingsNavigatorParamList} from '@navigation/types';
 import {updateSettlementAccount} from '@userActions/Card';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
-import type {Route} from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-type ReconciliationAccountSettingsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.RECONCILIATION_ACCOUNT_SETTINGS>;
+type DynamicReconciliationAccountSettingsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_RECONCILIATION_ACCOUNT_SETTINGS>;
 
-type ReconciliationAccountSettingsPageRouteParams = {
-    backTo?: Route;
-};
-
-function ReconciliationAccountSettingsPage({route}: ReconciliationAccountSettingsPageProps) {
+function DynamicReconciliationAccountSettingsPage({route}: DynamicReconciliationAccountSettingsPageProps) {
     const {policyID, connection} = route.params;
-    const {backTo} = route.params as ReconciliationAccountSettingsPageRouteParams;
 
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.WORKSPACE_ACCOUNTING_RECONCILIATION_ACCOUNT_SETTINGS.path);
 
     const connectionName = getConnectionNameFromRouteParam(connection);
     const defaultFundID = useDefaultFundID(policyID);
@@ -53,6 +49,10 @@ function ReconciliationAccountSettingsPage({route}: ReconciliationAccountSetting
     const settlementAccountEnding = getLastFourDigits(bankAccountNumber);
     const domainName = settings?.domainName ?? getDomainNameForPolicy(policyID);
     const {environmentURL} = useEnvironment();
+
+    const goBack = useCallback(() => {
+        Navigation.goBack(backPath);
+    }, [backPath]);
 
     const options = useMemo(() => {
         if (!bankAccountList || isEmptyObject(bankAccountList)) {
@@ -70,10 +70,6 @@ function ReconciliationAccountSettingsPage({route}: ReconciliationAccountSetting
                 (bankAccount.accountData?.accountNumber ? `${translate('bankAccount.accountEnding')} ${getLastFourDigits(bankAccount.accountData.accountNumber)}` : ''),
         }));
     }, [bankAccountList, paymentBankAccountID, translate]);
-
-    const goBack = useCallback(() => {
-        Navigation.goBack(backTo ?? ROUTES.WORKSPACE_ACCOUNTING_CARD_RECONCILIATION.getRoute(policyID, connection));
-    }, [policyID, backTo, connection]);
 
     const selectBankAccount = (newBankAccountID?: number) => {
         if (!programKey) {
@@ -117,4 +113,4 @@ function ReconciliationAccountSettingsPage({route}: ReconciliationAccountSetting
     );
 }
 
-export default ReconciliationAccountSettingsPage;
+export default DynamicReconciliationAccountSettingsPage;

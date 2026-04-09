@@ -4,6 +4,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updateXeroAutoSync} from '@libs/actions/connections/Xero';
@@ -18,26 +19,21 @@ import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOpt
 import {clearXeroErrorField} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
-import type {Route} from '@src/ROUTES';
-import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 
-type XeroAutoSyncPageRouteParams = {
-    backTo?: Route;
-};
-
-function XeroAutoSyncPage({policy, route}: WithPolicyConnectionsProps) {
+function DynamicXeroAutoSyncPage({policy}: WithPolicyConnectionsProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const policyID = policy?.id;
     const config = policy?.connections?.xero?.config;
     const {autoSync, pendingFields} = config ?? {};
-    const {backTo} = route.params as XeroAutoSyncPageRouteParams;
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.POLICY_ACCOUNTING_XERO_AUTO_SYNC.path);
     const accountingMethod = config?.export?.accountingMethod ?? COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH;
     const pendingAction = settingsPendingAction([CONST.XERO_CONFIG.AUTO_SYNC], pendingFields) ?? settingsPendingAction([CONST.XERO_CONFIG.ACCOUNTING_METHOD], pendingFields);
 
     const goBack = useCallback(() => {
-        Navigation.goBack(backTo ?? ROUTES.POLICY_ACCOUNTING_XERO_ADVANCED.getRoute(policyID));
-    }, [policyID, backTo]);
+        Navigation.goBack(backPath);
+    }, [backPath]);
 
     return (
         <AccessOrNotFoundWrapper
@@ -95,4 +91,4 @@ function XeroAutoSyncPage({policy, route}: WithPolicyConnectionsProps) {
     );
 }
 
-export default withPolicyConnections(XeroAutoSyncPage);
+export default withPolicyConnections(DynamicXeroAutoSyncPage);
