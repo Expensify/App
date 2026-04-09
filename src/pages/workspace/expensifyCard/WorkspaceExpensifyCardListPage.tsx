@@ -21,7 +21,6 @@ import useDefaultFundID from '@hooks/useDefaultFundID';
 import useEmptyViewHeaderHeight from '@hooks/useEmptyViewHeaderHeight';
 import useExpensifyCardFeedsForFeedSelector from '@hooks/useExpensifyCardFeedsForFeedSelector';
 import useExpensifyCardUkEuSupported from '@hooks/useExpensifyCardUkEuSupported';
-import useHasAnyAdminExpensifyCardFeed from '@hooks/useHasAnyAdminExpensifyCardFeed';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -76,7 +75,6 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const settings = getCardSettings(cardSettings);
     const {allFeeds: allAdminExpensifyCardFeeds} = useExpensifyCardFeedsForFeedSelector(policyID);
-    const hasAnyAdminExpensifyCardFeed = useHasAnyAdminExpensifyCardFeed();
 
     const shouldShowSelector = allAdminExpensifyCardFeeds.length >= 1;
 
@@ -117,10 +115,6 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
             return;
         }
         const activeRoute = Navigation.getActiveRoute();
-        if (hasAnyAdminExpensifyCardFeed) {
-            Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_SELECT_FEED.getRoute(policyID, undefined, true));
-            return;
-        }
         setIssueNewCardStepAndData({policyID, isChangeAssigneeDisabled: false});
         Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW.getRoute(policyID, activeRoute));
     };
