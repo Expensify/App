@@ -5356,6 +5356,7 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
             oneMoreStepDescription: 'Sembra che dobbiamo verificare manualmente il tuo conto bancario. Vai su Concierge, dove ti aspettano le istruzioni.',
             gotIt: 'Ho capito',
             goToConcierge: 'Vai a Concierge',
+            exportAsCSV: 'Esporta come CSV',
         },
         categories: {
             deleteCategories: 'Elimina categorie',

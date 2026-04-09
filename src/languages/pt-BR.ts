@@ -5339,6 +5339,7 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
             oneMoreStepDescription: 'Parece que precisamos verificar sua conta bancária manualmente. Vá até o Concierge, onde as instruções estão esperando por você.',
             gotIt: 'Entendi',
             goToConcierge: 'Ir para o Concierge',
+            exportAsCSV: 'Exportar como CSV',
         },
         categories: {
             deleteCategories: 'Excluir categorias',

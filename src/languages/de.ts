@@ -5372,6 +5372,7 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             oneMoreStepDescription: 'Es sieht so aus, als müssten wir Ihr Bankkonto manuell verifizieren. Bitte gehen Sie zu Concierge, wo bereits Anweisungen auf Sie warten.',
             gotIt: 'Verstanden',
             goToConcierge: 'Zu Concierge gehen',
+            exportAsCSV: 'Als CSV exportieren',
         },
         categories: {
             deleteCategories: 'Kategorien löschen',

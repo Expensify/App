@@ -5305,6 +5305,7 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             oneMoreStepDescription: '銀行口座を手動で確認する必要があるようです。指示が表示されていますので、Concierge 画面に進んでください。',
             gotIt: '了解しました',
             goToConcierge: 'Concierge へ移動',
+            exportAsCSV: 'CSVでエクスポート',
         },
         categories: {
             deleteCategories: 'カテゴリを削除',

@@ -5382,6 +5382,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             oneMoreStepDescription: 'Il semble que nous devions vérifier votre compte bancaire manuellement. Rendez-vous dans Concierge, où vos instructions vous attendent.',
             gotIt: 'Compris',
             goToConcierge: 'Aller à Concierge',
+            exportAsCSV: 'Exporter en CSV',
         },
         categories: {
             deleteCategories: 'Supprimer des catégories',
