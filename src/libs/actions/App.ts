@@ -628,15 +628,10 @@ function createWorkspaceWithPolicyDraftAndNavigateToIt(params: CreateWorkspaceWi
         });
 
         if (transitionFromOldDot) {
-            Navigation.navigate(routeToNavigate, {forceReplace: false});
-            return;
-        }
-
-        if (Navigation.isTopmostRouteModalScreen()) {
+            Navigation.navigate(routeToNavigate);
+        } else if (Navigation.isTopmostRouteModalScreen()) {
             Navigation.dismissModal({
-                callback: () => {
-                    Navigation.navigate(routeToNavigate);
-                },
+                callback: () => Navigation.navigate(routeToNavigate),
             });
         } else {
             Navigation.navigate(routeToNavigate, {forceReplace: true});
