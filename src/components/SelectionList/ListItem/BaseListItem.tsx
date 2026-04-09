@@ -110,6 +110,28 @@ function BaseListItem<TItem extends ListItem>({
 
     // Sync focus on an item
     useSyncFocus(pressableRef, !!isFocused, shouldSyncFocus);
+
+    // List items use role="option" which doesn't natively respond to Enter key presses.
+    // When the list-level keyboard shortcut is disabled (disableKeyboardShortcuts), we handle
+    // Enter activation here at the item level so each row can still be activated individually
+    // without interfering with other focusable controls (e.g. footer inputs) on the same screen.
+    const handleKeyDown = (event: React.KeyboardEvent) => {
+        if (
+            shouldPreventEnterKeySubmit ||
+            accessible === false ||
+            event.key !== CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey ||
+            event.shiftKey ||
+            event.metaKey ||
+            event.ctrlKey ||
+            item.isInteractive === false
+        ) {
+            return;
+        }
+
+        event.preventDefault();
+        onSelectRow(item);
+    };
+
     const handleMouseLeave = (e: React.MouseEvent<Element, MouseEvent>) => {
         bind.onMouseLeave();
         e.stopPropagation();
@@ -199,6 +221,9 @@ function BaseListItem<TItem extends ListItem>({
                 accessibilityState={accessibilityState}
                 aria-current={ariaCurrent}
                 onMouseLeave={handleMouseLeave}
+                // When the list-level Enter shortcut is disabled (disableKeyboardShortcuts), items with role="option"
+                // won't natively fire click on Enter, so we handle it manually via onKeyDown.
+                onKeyDown={!shouldPreventEnterKeySubmit ? handleKeyDown : undefined}
                 wrapperStyle={pressableWrapperStyle}
                 testID={`${CONST.BASE_LIST_ITEM_TEST_ID}${item.keyForList}`}
             >
