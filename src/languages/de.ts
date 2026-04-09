@@ -7990,6 +7990,11 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             'Schließ dich Expensify.org an, um Ungerechtigkeit auf der ganzen Welt zu beseitigen. Die aktuelle „Teachers Unite“-Kampagne unterstützt Lehrkräfte überall, indem sie die Kosten für grundlegende Schulmaterialien teilt.',
         iKnowATeacher: 'Ich kenne eine Lehrkraft',
         iAmATeacher: 'Ich bin Lehrer',
+        personalKarma: {
+            title: 'Persönliches Karma aktivieren',
+            description: 'Spende 1 $ an Expensify.org für je 500 $, die du jeden Monat ausgibst',
+            stopDonationsPrompt: 'Bist du sicher, dass du nicht mehr an Expensify.org spenden möchtest?',
+        },
         getInTouch: 'Ausgezeichnet! Bitte teile ihre Kontaktdaten, damit wir sie erreichen können.',
         introSchoolPrincipal: 'Einführung für Ihre Schulleitung',
         schoolPrincipalVerifyExpense:

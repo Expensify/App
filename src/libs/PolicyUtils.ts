@@ -321,10 +321,20 @@ function getCustomUnitsForDuplication(
         return undefined;
     }
 
-    if (isDistanceRatesOptionSelected && isPerDiemOptionSelected) {
-        const distanceCustomUnit = Object.values(customUnits).find((customUnit) => customUnit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE);
-        const perDiemUnit = Object.values(customUnits).find((customUnit) => customUnit.name === CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL);
+    const getUnitWithoutPendingDeleteRates = (customUnit: CustomUnit | undefined) => {
+        if (!customUnit) {
+            return undefined;
+        }
+        return {
+            ...customUnit,
+            rates: Object.fromEntries(Object.entries(customUnit.rates).filter(([, rate]) => rate.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)),
+        };
+    };
 
+    const distanceCustomUnit = getUnitWithoutPendingDeleteRates(Object.values(customUnits).find((customUnit) => customUnit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE));
+    const perDiemUnit = getUnitWithoutPendingDeleteRates(Object.values(customUnits).find((customUnit) => customUnit.name === CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL));
+
+    if (isDistanceRatesOptionSelected && isPerDiemOptionSelected) {
         if (!perDiemUnit || !distanceCustomUnit || !perDiemCustomUnitID || !distanceCustomUnitID) {
             return undefined;
         }
@@ -333,14 +343,12 @@ function getCustomUnitsForDuplication(
     }
 
     if (isDistanceRatesOptionSelected && distanceCustomUnitID) {
-        const distanceCustomUnit = Object.values(customUnits).find((customUnit) => customUnit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE);
         if (!distanceCustomUnit) {
             return undefined;
         }
         return {[distanceCustomUnitID]: distanceCustomUnit};
     }
 
-    const perDiemUnit = Object.values(customUnits).find((customUnit) => customUnit.name === CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL);
     if (!perDiemUnit || !perDiemCustomUnitID) {
         return undefined;
     }

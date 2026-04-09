@@ -7979,6 +7979,11 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             'Unisciti a Expensify.org per eliminare le ingiustizie in tutto il mondo. L’attuale campagna “Teachers Unite” supporta gli insegnanti ovunque, dividendo i costi delle forniture scolastiche essenziali.',
         iKnowATeacher: 'Conosco un insegnante',
         iAmATeacher: 'Sono un insegnante',
+        personalKarma: {
+            title: 'Attiva il Karma personale',
+            description: 'Dona 1 $ a Expensify.org per ogni 500 $ che spendi ogni mese',
+            stopDonationsPrompt: 'Sei sicuro di voler smettere di donare a Expensify.org?',
+        },
         getInTouch: 'Eccellente! Condividi le loro informazioni così possiamo metterci in contatto con loro.',
         introSchoolPrincipal: 'Introduzione al dirigente scolastico',
         schoolPrincipalVerifyExpense:

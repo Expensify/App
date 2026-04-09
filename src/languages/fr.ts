@@ -8013,6 +8013,11 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             'Rejoignez Expensify.org pour éliminer l’injustice dans le monde entier. La campagne actuelle « Teachers Unite » soutient les enseignants partout en partageant le coût des fournitures scolaires essentielles.',
         iKnowATeacher: 'Je connais un enseignant',
         iAmATeacher: 'Je suis enseignant',
+        personalKarma: {
+            title: 'Activer le Karma personnel',
+            description: 'Faites un don de 1 $ à Expensify.org pour chaque tranche de 500 $ dépensée chaque mois',
+            stopDonationsPrompt: 'Êtes-vous sûr de vouloir arrêter de faire des dons à Expensify.org ?',
+        },
         getInTouch: 'Excellent ! Veuillez partager leurs coordonnées afin que nous puissions les contacter.',
         introSchoolPrincipal: 'Présentation de la direction de votre école',
         schoolPrincipalVerifyExpense:
