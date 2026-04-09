@@ -74,6 +74,8 @@ import {getMicroSecondOnyxErrorWithTranslationKey, getMicroSecondTranslationErro
 import fileDownload from '@libs/fileDownload';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import HttpUtils from '@libs/HttpUtils';
+import {toLocaleDigit} from '@libs/LocaleDigitUtils';
+import {translateLocal} from '@libs/Localize';
 import Log from '@libs/Log';
 import {isEmailPublicDomain} from '@libs/LoginUtils';
 import {getMovedReportID} from '@libs/ModifiedExpenseMessage';
@@ -193,6 +195,7 @@ import type {OnboardingCompanySize, OnboardingMessage} from '@userActions/Welcom
 import CONFIG from '@src/CONFIG';
 import type {OnboardingAccounting} from '@src/CONST';
 import CONST from '@src/CONST';
+import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/NewRoomForm';
@@ -5792,8 +5795,8 @@ function deleteAppReport({
             const {comment, modifiedAmount, modifiedCurrency, modifiedMerchant} = recalculateUnreportedTransactionDetails(
                 transaction,
                 undefined,
-                undefined,
-                undefined,
+                translateLocal,
+                (digit: string) => toLocaleDigit(IntlStore.getCurrentLocale(), digit),
                 defaultP2PMileageRate,
             );
 
