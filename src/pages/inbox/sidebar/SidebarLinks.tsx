@@ -3,6 +3,7 @@ import {StyleSheet, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {EdgeInsets} from 'react-native-safe-area-context';
 import type {ValueOf} from 'type-fest';
+import LHNEmptyState from '@components/LHNOptionsList/LHNEmptyState';
 import LHNOptionsList from '@components/LHNOptionsList/LHNOptionsList';
 import OptionsListSkeletonView from '@components/OptionsListSkeletonView';
 import useOnyx from '@hooks/useOnyx';
@@ -38,7 +39,7 @@ function SidebarLinks({insets, optionListItems, priorityMode = CONST.PRIORITY_MO
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const [isLoadingReportData = true] = useOnyx(ONYXKEYS.RAM_ONLY_IS_LOADING_REPORT_DATA);
+    const [isLoadingReportData = true] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA);
 
     useEffect(() => {
         ReportActionContextMenu.hideContextMenu(false);
@@ -84,18 +85,26 @@ function SidebarLinks({insets, optionListItems, priorityMode = CONST.PRIORITY_MO
     // eslint-disable-next-line react-hooks/exhaustive-deps
     const contentContainerStyles = useMemo(() => StyleSheet.flatten([styles.pt2, {paddingBottom: StyleUtils.getSafeAreaMargins(insets).marginBottom}]), [insets]);
 
+    const shouldShowEmptyLHN = optionListItems.length === 0;
+
     return (
         <View style={[styles.flex1, styles.h100]}>
             <View style={[styles.pRelative, styles.flex1]}>
-                <LHNOptionsList
-                    style={styles.flex1}
-                    contentContainerStyles={contentContainerStyles}
-                    data={optionListItems}
-                    onSelectRow={showReportPage}
-                    shouldDisableFocusOptions={shouldUseNarrowLayout}
-                    optionMode={viewMode}
-                    onFirstItemRendered={setSidebarLoaded}
-                />
+                {shouldShowEmptyLHN ? (
+                    <View style={[styles.flex1, styles.emptyLHNWrapper]}>
+                        <LHNEmptyState />
+                    </View>
+                ) : (
+                    <LHNOptionsList
+                        style={styles.flex1}
+                        contentContainerStyles={contentContainerStyles}
+                        data={optionListItems}
+                        onSelectRow={showReportPage}
+                        shouldDisableFocusOptions={shouldUseNarrowLayout}
+                        optionMode={viewMode}
+                        onFirstItemRendered={setSidebarLoaded}
+                    />
+                )}
                 {isLoadingReportData && optionListItems?.length === 0 && (
                     <View style={[StyleSheet.absoluteFill, styles.appBG, styles.mt3]}>
                         <OptionsListSkeletonView
