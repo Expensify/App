@@ -294,10 +294,6 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
                                 searchQueryItem={searchQueryItem}
                                 onListItemPress={onListItemPress}
                                 ref={listRef}
-                                personalDetails={personalDetails}
-                                reports={reports}
-                                allCards={personalAndWorkspaceCards}
-                                allFeeds={allFeeds}
                                 textInputRef={textInputRef}
                             />
                         </View>
@@ -366,10 +362,6 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
                                 onListItemPress={onListItemPress}
                                 ref={listRef}
                                 shouldSubscribeToArrowKeyEvents={isAutocompleteListVisible}
-                                personalDetails={personalDetails}
-                                reports={reports}
-                                allCards={personalAndWorkspaceCards}
-                                allFeeds={allFeeds}
                                 textInputRef={textInputRef}
                             />
                         </View>

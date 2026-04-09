@@ -1,6 +1,6 @@
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import {deepEqual} from 'fast-equals';
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {TextInputProps} from 'react-native';
 import {InteractionManager, View} from 'react-native';
 import type {ValueOf} from 'type-fest';
@@ -21,7 +21,6 @@ import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import usePrivateIsArchivedMap from '@hooks/usePrivateIsArchivedMap';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useRootNavigationState from '@hooks/useRootNavigationState';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -49,6 +48,8 @@ import {getQueryWithSubstitutions} from './getQueryWithSubstitutions';
 import {getUpdatedSubstitutionsMap} from './getUpdatedSubstitutionsMap';
 import {getContextualReportData, getContextualSearchAutocompleteKey, getContextualSearchQuery} from './SearchRouterUtils';
 
+const privateIsArchivedSelector = (nvp: {private_isArchived?: string} | undefined) => nvp?.private_isArchived;
+
 type SearchRouterProps = {
     onRouterClose: () => void;
     shouldHideInputCaret?: TextInputProps['caretHidden'];
@@ -67,11 +68,6 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const personalDetails = usePersonalDetails();
-    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
-    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
-    const [personalAndWorkspaceCards] = useOnyx(ONYXKEYS.DERIVED.PERSONAL_AND_WORKSPACE_CARD_LIST);
-    const [allFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER);
-    const privateIsArchivedMap = usePrivateIsArchivedMap();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const listRef = useRef<SelectionListWithSectionsHandle>(null);
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['MagnifyingGlass']);
@@ -86,13 +82,32 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
 
     const {contextualReportID, isSearchRouterScreen} = useRootNavigationState(getContextualReportData);
 
+    const [contextualReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${contextualReportID}`);
+    const [contextualReportNVP] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${contextualReportID}`, {
+        selector: privateIsArchivedSelector,
+    });
+    const [contextualReportPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${contextualReport?.policyID}`);
+
+    const contextualPoliciesMap = useMemo(() => {
+        if (!contextualReport?.policyID || !contextualReportPolicy) {
+            return {};
+        }
+        return {[`${ONYXKEYS.COLLECTION.POLICY}${contextualReport.policyID}`]: contextualReportPolicy};
+    }, [contextualReport?.policyID, contextualReportPolicy]);
+
+    const contextualReportsMap = useMemo(() => {
+        if (!contextualReportID || !contextualReport) {
+            return {};
+        }
+        return {[`${ONYXKEYS.COLLECTION.REPORT}${contextualReportID}`]: contextualReport};
+    }, [contextualReportID, contextualReport]);
+
     const getAdditionalSections: GetAdditionalSectionsCallback = useCallback(
         ({recentReports}, sectionIndex) => {
             if (!contextualReportID) {
                 return undefined;
             }
 
-            // We will only show the contextual search suggestion if the user has not typed anything
             if (textInputValue) {
                 return undefined;
             }
@@ -105,14 +120,13 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
             const reportAction = getReportAction(reportForContextualSearchReport?.parentReportID, reportForContextualSearchReport?.parentReportActionID);
             const shouldParserToHTML = reportAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT;
             if (!reportForContextualSearch) {
-                const report = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${contextualReportID}`];
-                if (!report) {
+                if (!contextualReport) {
                     return undefined;
                 }
 
-                const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${contextualReportID}`];
-                const reportPolicy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
-                const option = createOptionFromReport(report, personalDetails, currentUserAccountID, privateIsArchived, reportPolicy, undefined, {showPersonalDetails: true});
+                const option = createOptionFromReport(contextualReport, personalDetails, currentUserAccountID, contextualReportNVP, contextualReportPolicy, undefined, {
+                    showPersonalDetails: true,
+                });
                 reportForContextualSearch = option;
             }
 
@@ -172,11 +186,11 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
             translate,
             expensifyIcons.MagnifyingGlass,
             styles.activeComponentBG,
-            reports,
+            contextualReport,
             personalDetails,
             currentUserAccountID,
-            privateIsArchivedMap,
-            policies,
+            contextualReportNVP,
+            contextualReportPolicy,
         ],
     );
 
@@ -262,12 +276,12 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                 }
 
                 if (item.searchItemType === CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.CONTEXTUAL_SUGGESTION) {
-                    const searchQuery = getContextualSearchQuery(item, policies, reports);
+                    const searchQuery = getContextualSearchQuery(item, contextualPoliciesMap, contextualReportsMap);
                     const newSearchQuery = `${searchQuery}\u00A0`;
                     onSearchQueryChange(newSearchQuery, true);
                     setSelection({start: newSearchQuery.length, end: newSearchQuery.length});
 
-                    const autocompleteKey = getContextualSearchAutocompleteKey(item, policies, reports);
+                    const autocompleteKey = getContextualSearchAutocompleteKey(item, contextualPoliciesMap, contextualReportsMap);
                     if (autocompleteKey && item.autocompleteID) {
                         const substitutions = {...autocompleteSubstitutions, [autocompleteKey]: item.autocompleteID};
                         setAutocompleteSubstitutions(substitutions);
@@ -299,7 +313,19 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                 onRouterClose();
             }
         },
-        [autocompleteSubstitutions, onRouterClose, onSearchQueryChange, policies, reports, submitSearch, textInputValue, currentUserAccountID, introSelected, isSelfTourViewed, betas],
+        [
+            autocompleteSubstitutions,
+            onRouterClose,
+            onSearchQueryChange,
+            submitSearch,
+            textInputValue,
+            currentUserAccountID,
+            introSelected,
+            isSelfTourViewed,
+            betas,
+            contextualPoliciesMap,
+            contextualReportsMap,
+        ],
     );
 
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ESCAPE, () => {
@@ -356,10 +382,6 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                 onListItemPress={onListItemPress}
                 onHighlightFirstItem={updateAndScrollToFocusedIndex}
                 ref={listRef}
-                personalDetails={personalDetails}
-                reports={reports}
-                allFeeds={allFeeds}
-                allCards={personalAndWorkspaceCards}
                 textInputRef={textInputRef}
             />
         </View>

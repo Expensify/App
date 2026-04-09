@@ -20,12 +20,8 @@ function SearchPageInputNarrow({queryJSON, searchRouterListVisible, hideSearchRo
     const styles = useThemeStyles();
 
     const {
-        allFeeds,
         autocompleteSubstitutions,
         autocompleteQueryValue,
-        personalAndWorkspaceCards,
-        personalDetails,
-        reports,
         searchQueryItem,
         selection,
         textInputRef,
@@ -81,10 +77,6 @@ function SearchPageInputNarrow({queryJSON, searchRouterListVisible, hideSearchRo
                     handleSearch={handleSearchAction}
                     searchQueryItem={searchQueryItem}
                     onListItemPress={onListItemPress}
-                    personalDetails={personalDetails}
-                    reports={reports}
-                    allCards={personalAndWorkspaceCards}
-                    allFeeds={allFeeds}
                     textInputRef={textInputRef}
                 />
             )}

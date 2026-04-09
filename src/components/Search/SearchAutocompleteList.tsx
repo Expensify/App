@@ -1,6 +1,7 @@
 import type {ForwardedRef, RefObject} from 'react';
 import React, {useContext, useEffect, useMemo, useRef, useState} from 'react';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection} from 'react-native-onyx';
+import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import {OptionsListStateContext, useOptionsList} from '@components/OptionListContextProvider';
 import OptionsListSkeletonView from '@components/OptionsListSkeletonView';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
@@ -33,7 +34,7 @@ import {cancelSpan, endSpan, getSpan} from '@libs/telemetry/activeSpans';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {CardFeeds, CardList, PersonalDetailsList, Policy, Report} from '@src/types/onyx';
+import type {Policy, Report} from '@src/types/onyx';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import type {SearchQueryItem, SearchQueryListItemProps} from './SearchList/ListItem/SearchQueryListItem';
@@ -69,18 +70,6 @@ type SearchAutocompleteListProps = {
 
     /** Ref for the external text input */
     textInputRef?: RefObject<AnimatedTextInputRef | null>;
-
-    /** Personal details */
-    personalDetails: OnyxEntry<PersonalDetailsList>;
-
-    /** Reports */
-    reports: OnyxCollection<Report>;
-
-    /** All feeds */
-    allFeeds: Record<string, CardFeeds | undefined> | undefined;
-
-    /** All cards */
-    allCards: CardList | undefined;
 
     /** Reference to the outer element */
     ref?: ForwardedRef<SelectionListWithSectionsHandle>;
@@ -139,10 +128,6 @@ function SearchAutocompleteList({
     shouldSubscribeToArrowKeyEvents = true,
     onHighlightFirstItem,
     textInputRef,
-    personalDetails,
-    reports,
-    allFeeds,
-    allCards = CONST.EMPTY_OBJECT,
     ref,
 }: SearchAutocompleteListProps) {
     const styles = useThemeStyles();
@@ -159,11 +144,16 @@ function SearchAutocompleteList({
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
     const [policies = getEmptyObject<NonNullable<OnyxCollection<Policy>>>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [visibleReportActionsData] = useOnyx(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS);
+    const personalDetails = usePersonalDetails();
+    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+    const [personalAndWorkspaceCards] = useOnyx(ONYXKEYS.DERIVED.PERSONAL_AND_WORKSPACE_CARD_LIST);
+    const [allFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER);
+    const allCards = personalAndWorkspaceCards ?? CONST.EMPTY_OBJECT;
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserEmail = currentUserPersonalDetails.email ?? '';
     const currentUserAccountID = currentUserPersonalDetails.accountID;
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['History', 'MagnifyingGlass']);
-    const taxRates = getAllTaxRates(policies);
+    const taxRates = useMemo(() => getAllTaxRates(policies), [policies]);
 
     const {options, areOptionsInitialized} = useOptionsList();
 
@@ -188,7 +178,7 @@ function SearchAutocompleteList({
         }
     }, [contextAreOptionsInitialized]);
 
-    const searchOptions = (() => {
+    const searchOptions = useMemo(() => {
         if (!areOptionsInitialized) {
             return defaultListOptions;
         }
@@ -214,7 +204,21 @@ function SearchAutocompleteList({
             policyCollection: policies,
             personalDetails,
         });
-    })();
+    }, [
+        areOptionsInitialized,
+        options,
+        draftComments,
+        nvpDismissedProductTraining,
+        betas,
+        autocompleteQueryValue,
+        countryCode,
+        loginList,
+        visibleReportActionsData,
+        currentUserAccountID,
+        currentUserEmail,
+        policies,
+        personalDetails,
+    ]);
 
     const [isInitialRender, setIsInitialRender] = useState(true);
     const prevQueryRef = useRef(autocompleteQueryValue);
@@ -294,37 +298,53 @@ function SearchAutocompleteList({
 
     const autocompleteQueryWithoutFilters = getQueryWithoutFilters(autocompleteQueryValue);
 
-    const sortedRecentSearches = Object.entries(recentSearches ?? {}).sort(([, firstRecentSearch], [, secondRecentSearch]) =>
-        localeCompare(secondRecentSearch.timestamp, firstRecentSearch.timestamp),
-    );
+    const recentSearchesData = useMemo(() => {
+        const sortedRecentSearches = Object.entries(recentSearches ?? {}).sort(([, firstRecentSearch], [, secondRecentSearch]) =>
+            localeCompare(secondRecentSearch.timestamp, firstRecentSearch.timestamp),
+        );
 
-    const recentSearchesData = sortedRecentSearches?.slice(0, 5).map(([recentSearchHash, {query}]) => {
-        const searchQueryJSON = buildSearchQueryJSON(query);
-        return {
-            text: searchQueryJSON
-                ? buildUserReadableQueryString({
-                      queryJSON: searchQueryJSON,
-                      PersonalDetails: personalDetails,
-                      reports,
-                      taxRates,
-                      cardList: allCards,
-                      cardFeeds: allFeeds,
-                      policies,
-                      currentUserAccountID,
-                      autoCompleteWithSpace: false,
-                      translate,
-                      feedKeysWithCards,
-                      reportAttributes,
-                  })
-                : query,
-            singleIcon: expensifyIcons.History,
-            searchQuery: query,
-            keyForList: recentSearchHash,
-            searchItemType: CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.SEARCH,
-        };
-    });
+        return sortedRecentSearches.slice(0, 5).map(([recentSearchHash, {query}]) => {
+            const searchQueryJSON = buildSearchQueryJSON(query);
+            return {
+                text: searchQueryJSON
+                    ? buildUserReadableQueryString({
+                          queryJSON: searchQueryJSON,
+                          PersonalDetails: personalDetails,
+                          reports,
+                          taxRates,
+                          cardList: allCards,
+                          cardFeeds: allFeeds,
+                          policies,
+                          currentUserAccountID,
+                          autoCompleteWithSpace: false,
+                          translate,
+                          feedKeysWithCards,
+                          reportAttributes,
+                      })
+                    : query,
+                singleIcon: expensifyIcons.History,
+                searchQuery: query,
+                keyForList: recentSearchHash,
+                searchItemType: CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.SEARCH,
+            };
+        });
+    }, [
+        recentSearches,
+        localeCompare,
+        personalDetails,
+        reports,
+        taxRates,
+        allCards,
+        allFeeds,
+        policies,
+        currentUserAccountID,
+        translate,
+        feedKeysWithCards,
+        reportAttributes,
+        expensifyIcons.History,
+    ]);
 
-    const recentReportsOptions = (() => {
+    const recentReportsOptions = useMemo(() => {
         if (autocompleteQueryValue.trim() === '') {
             return searchOptions.recentReports;
         }
@@ -340,7 +360,7 @@ function SearchAutocompleteList({
         }
 
         return reportOptions.slice(0, 20);
-    })();
+    }, [autocompleteQueryValue, searchOptions]);
 
     const debounceHandleSearch = useDebounce(() => {
         if (!handleSearch || !autocompleteQueryWithoutFilters) {
