@@ -44,9 +44,12 @@ Any member can switch between views, unless a **Workspace Admin** or **Domain Ad
 
 # Why you might not see the option to switch
 
-If you don’t see the option to **Switch to Expensify Classic**, it may have been **disabled at the domain level** by a Domain Admin.
+If you don’t see the option to **Switch to Expensify Classic**, it may be because:
 
-**Note:** While Domain Admins can restrict access to Expensify Classic, there is currently no way to disable New Expensify.
+- A **Domain Admin** has disabled access to Expensify Classic at the domain level.
+- Your organization has locked your account to the new Expensify mobile app, which removes the option to switch on mobile.
+
+**Note:** While admins can restrict access to Expensify Classic, there is currently no way to disable New Expensify.
 
 ---
 
@@ -54,7 +57,7 @@ If you don’t see the option to **Switch to Expensify Classic**, it may have be
 
 ## Can I use both New Expensify and Expensify Classic?
 
-Yes! You can switch between them at any time—unless restricted by your admin.
+Yes! You can switch between them at any time—unless restricted by your admin or your organization has locked your account to the new Expensify mobile app.
 
 ## Will Classic Expensify be removed?
 
@@ -62,7 +65,7 @@ No. We’re gradually merging the best parts of Expensify Classic and New Expens
 
 ## Can I disable New Expensify for my team?
 
-No. While admins can restrict access to Expensify Classic, there is currently no way to disable New Expensify.
+No. While admins can restrict access to Expensify Classic or lock accounts to the new Expensify mobile app, there is currently no way to disable New Expensify.
 
 ## Why does New Expensify look so different?
 

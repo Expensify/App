@@ -59,7 +59,7 @@ If your domain doesn't have 2FA enabled yet:
 2. Enable **Two-Factor Authentication**.
 3. Then follow the steps above to reset 2FA for the member.
 
-**Note** Domain Admin 2FA resets are only available in Expensify Classic. To complete these steps, temporarily [switch to Expensify Classic](https://help.expensify.com/articles/new-expensify/settings/Switch-between-New-Expensify-and-Expensify-Classic.html)). 
+**Note** Domain Admin 2FA resets are only available in Expensify Classic. To complete these steps, temporarily [switch to Expensify Classic](https://help.expensify.com/articles/new-expensify/settings/Switch-between-New-Expensify-and-Expensify-Classic.html)). If your account is locked to the new Expensify mobile app, use the web version to switch to Expensify Classic. 
 
 ---
 
