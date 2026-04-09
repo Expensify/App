@@ -1,7 +1,16 @@
-import {activeAdminPoliciesSelector, adminPoliciesConnectedToQBDSelector, hasMultipleOutputCurrenciesSelector, hasPoliciesConnectedToQBDSelector} from '@selectors/Policy';
+import {
+    activeAdminPoliciesSelector,
+    adminPoliciesConnectedToQBDSelector,
+    hasMultipleOutputCurrenciesSelector,
+    hasPoliciesConnectedToQBDSelector,
+    hasReusablePoliciesConnectedToQBDSelector,
+    reusablePoliciesConnectedToQBDSelector,
+} from '@selectors/Policy';
 import type {OnyxCollection} from 'react-native-onyx';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy} from '@src/types/onyx';
+import type {PolicyConnectionSyncProgress} from '@src/types/onyx/Policy';
 import createRandomPolicy from '../../utils/collections/policies';
 
 describe('hasMultipleOutputCurrenciesSelector', () => {
@@ -55,6 +64,15 @@ function buildSelectorPolicy(id: number, overrides: Partial<Policy>): Policy {
         pendingAction: undefined,
         ...overrides,
     };
+}
+
+function buildConnectionSyncProgressCollection(syncProgressByPolicyID: Record<string, PolicyConnectionSyncProgress>): OnyxCollection<PolicyConnectionSyncProgress> {
+    return Object.fromEntries(
+        Object.entries(syncProgressByPolicyID).map(([policyID, syncProgress]) => [
+            `${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policyID}`,
+            syncProgress,
+        ]),
+    );
 }
 
 describe('activeAdminPoliciesSelector', () => {
@@ -153,5 +171,111 @@ describe('hasPoliciesConnectedToQBDSelector', () => {
 
     it('returns false for empty collection', () => {
         expect(hasPoliciesConnectedToQBDSelector({})).toBe(false);
+    });
+});
+
+describe('reusablePoliciesConnectedToQBDSelector', () => {
+    it('includes healthy QBD admin workspaces from other policies', () => {
+        const currentPolicyID = '1';
+        const policies: OnyxCollection<Policy> = {
+            policy1: buildSelectorPolicy(1, {
+                name: 'Current Workspace',
+                role: CONST.POLICY.ROLE.ADMIN,
+                connections: {quickbooksDesktop: {}} as Policy['connections'],
+            }),
+            policy2: buildSelectorPolicy(2, {
+                name: 'Healthy Workspace',
+                role: CONST.POLICY.ROLE.ADMIN,
+                connections: {quickbooksDesktop: {}} as Policy['connections'],
+            }),
+        };
+
+        const result = reusablePoliciesConnectedToQBDSelector(policies, {}, currentPolicyID);
+
+        expect(result).toHaveLength(1);
+        expect(result.at(0)?.name).toBe('Healthy Workspace');
+    });
+
+    it('excludes the current workspace from reusable QBD connections', () => {
+        const currentPolicyID = '1';
+        const policies: OnyxCollection<Policy> = {
+            policy1: buildSelectorPolicy(1, {
+                name: 'Current Workspace',
+                role: CONST.POLICY.ROLE.ADMIN,
+                connections: {quickbooksDesktop: {}} as Policy['connections'],
+            }),
+        };
+
+        expect(reusablePoliciesConnectedToQBDSelector(policies, {}, currentPolicyID)).toEqual([]);
+    });
+
+    it('excludes workspaces with a QBD sync error', () => {
+        const currentPolicyID = '1';
+        const policies: OnyxCollection<Policy> = {
+            policy1: buildSelectorPolicy(1, {name: 'Current Workspace', role: CONST.POLICY.ROLE.ADMIN}),
+            policy2: buildSelectorPolicy(2, {
+                name: 'Errored Workspace',
+                role: CONST.POLICY.ROLE.ADMIN,
+                connections: {
+                    quickbooksDesktop: {
+                        lastSync: {
+                            errorDate: new Date().toISOString(),
+                            errorMessage: 'Data sync did not complete',
+                            isSuccessful: false,
+                        },
+                    },
+                } as Policy['connections'],
+            }),
+        };
+
+        const result = reusablePoliciesConnectedToQBDSelector(policies, {}, currentPolicyID);
+
+        expect(result).toEqual([]);
+    });
+
+    it('keeps workspaces with a past error when their QBD sync is currently in progress', () => {
+        const currentPolicyID = '1';
+        const policies: OnyxCollection<Policy> = {
+            policy1: buildSelectorPolicy(1, {name: 'Current Workspace', role: CONST.POLICY.ROLE.ADMIN}),
+            policy2: buildSelectorPolicy(2, {
+                name: 'Retrying Workspace',
+                role: CONST.POLICY.ROLE.ADMIN,
+                connections: {
+                    quickbooksDesktop: {
+                        lastSync: {
+                            errorDate: new Date().toISOString(),
+                            errorMessage: 'Data sync did not complete',
+                            isSuccessful: false,
+                        },
+                    },
+                } as Policy['connections'],
+            }),
+        };
+        const connectionSyncProgressCollection = buildConnectionSyncProgressCollection({
+            '2': {
+                connectionName: CONST.POLICY.CONNECTIONS.NAME.QBD,
+                stageInProgress: CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.STARTING_IMPORT_QBD,
+                timestamp: new Date().toISOString(),
+            },
+        });
+
+        const result = reusablePoliciesConnectedToQBDSelector(policies, connectionSyncProgressCollection, currentPolicyID);
+
+        expect(result).toHaveLength(1);
+        expect(result.at(0)?.name).toBe('Retrying Workspace');
+    });
+});
+
+describe('hasReusablePoliciesConnectedToQBDSelector', () => {
+    it('returns false when no eligible reusable QBD workspaces exist', () => {
+        const currentPolicyID = '1';
+        const policies: OnyxCollection<Policy> = {
+            policy1: buildSelectorPolicy(1, {
+                role: CONST.POLICY.ROLE.ADMIN,
+                connections: {quickbooksDesktop: {}} as Policy['connections'],
+            }),
+        };
+
+        expect(hasReusablePoliciesConnectedToQBDSelector(policies, {}, currentPolicyID)).toBe(false);
     });
 });
