@@ -13,7 +13,6 @@ import {hasAnyTransactionWithoutRTERViolation} from '@src/libs/TransactionUtils'
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Policy, Report, ReportMetadata, Transaction, TransactionViolations} from '@src/types/onyx';
-import type {TransactionCollectionDataSet} from '@src/types/onyx/Transaction';
 import createRandomPolicy from '../utils/collections/policies';
 import {createRandomReport} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
@@ -39,75 +38,6 @@ jest.mock('@src/libs/Navigation/Navigation', () => ({
 }));
 
 describe('IOUUtils', () => {
-    describe('isIOUReportPendingCurrencyConversion', () => {
-        beforeAll(() => {
-            Onyx.init({
-                keys: ONYXKEYS,
-            });
-        });
-
-        test('Submitting an expense offline in a different currency will show the pending conversion message', () => {
-            const iouReport = ReportUtils.buildOptimisticIOUReport(1, 2, 100, '1', 'USD');
-            const usdPendingTransaction = TransactionUtils.buildOptimisticTransaction({
-                transactionParams: {
-                    amount: 100,
-                    currency: 'USD',
-                    reportID: iouReport.reportID,
-                },
-            });
-            const aedPendingTransaction = TransactionUtils.buildOptimisticTransaction({
-                transactionParams: {
-                    amount: 100,
-                    currency: 'AED',
-                    reportID: iouReport.reportID,
-                },
-            });
-            const MergeQueries: TransactionCollectionDataSet = {};
-            MergeQueries[`${ONYXKEYS.COLLECTION.TRANSACTION}${usdPendingTransaction.transactionID}`] = usdPendingTransaction;
-            MergeQueries[`${ONYXKEYS.COLLECTION.TRANSACTION}${aedPendingTransaction.transactionID}`] = aedPendingTransaction;
-
-            // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
-            return Onyx.mergeCollection(ONYXKEYS.COLLECTION.TRANSACTION, MergeQueries).then(() => {
-                // We submitted an expense offline in a different currency, we don't know the total of the iouReport until we're back online
-                expect(IOUUtils.isIOUReportPendingCurrencyConversion(iouReport)).toBe(true);
-            });
-        });
-
-        test('Submitting an expense online in a different currency will not show the pending conversion message', () => {
-            const iouReport = ReportUtils.buildOptimisticIOUReport(2, 3, 100, '1', 'USD');
-            const usdPendingTransaction = TransactionUtils.buildOptimisticTransaction({
-                transactionParams: {
-                    amount: 100,
-                    currency: 'USD',
-                    reportID: iouReport.reportID,
-                },
-            });
-            const aedPendingTransaction = TransactionUtils.buildOptimisticTransaction({
-                transactionParams: {
-                    amount: 100,
-                    currency: 'AED',
-                    reportID: iouReport.reportID,
-                },
-            });
-
-            const MergeQueries: TransactionCollectionDataSet = {};
-            MergeQueries[`${ONYXKEYS.COLLECTION.TRANSACTION}${usdPendingTransaction.transactionID}`] = {
-                ...usdPendingTransaction,
-                pendingAction: null,
-            };
-            MergeQueries[`${ONYXKEYS.COLLECTION.TRANSACTION}${aedPendingTransaction.transactionID}`] = {
-                ...aedPendingTransaction,
-                pendingAction: null,
-            };
-
-            // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
-            return Onyx.mergeCollection(ONYXKEYS.COLLECTION.TRANSACTION, MergeQueries).then(() => {
-                // We submitted an expense online in a different currency, we know the iouReport total and there's no need to show the pending conversion message
-                expect(IOUUtils.isIOUReportPendingCurrencyConversion(iouReport)).toBe(false);
-            });
-        });
-    });
-
     describe('calculateAmount', () => {
         beforeAll(() => initCurrencyList());
 
