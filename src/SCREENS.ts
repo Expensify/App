@@ -563,6 +563,7 @@ const SCREENS = {
             QUICKBOOKS_DESKTOP_EXPORT_OUT_OF_POCKET_EXPENSES_SELECT: 'Workspace_Accounting_Quickbooks_Desktop_Export_Out_Of_Pocket_Expenses_Select',
             QUICKBOOKS_DESKTOP_EXPORT_OUT_OF_POCKET_EXPENSES_ACCOUNT_SELECT: 'Workspace_Accounting_Quickbooks_Desktop_Export_Out_Of_Pocket_Expenses_Account_Select',
             QUICKBOOKS_DESKTOP_EXPORT: 'Workspace_Accounting_Quickbooks_Desktop_Export',
+            QUICKBOOKS_DESKTOP_REUSE_EXISTING_CONNECTIONS: 'Policy_Accounting_Quickbooks_Desktop_Reuse_Existing_Connections',
             QUICKBOOKS_DESKTOP_SETUP_MODAL: 'Policy_Accounting_Quickbooks_Desktop_Setup_Modal',
             QUICKBOOKS_DESKTOP_SETUP_REQUIRED_DEVICE_MODAL: 'Policy_Accounting_Quickbooks_Desktop_Setup_Required_Device_Modal',
             QUICKBOOKS_DESKTOP_TRIGGER_FIRST_SYNC: 'Policy_Accounting_Quickbooks_Desktop_Trigger_First_Sync',
