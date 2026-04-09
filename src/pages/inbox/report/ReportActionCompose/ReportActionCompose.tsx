@@ -225,15 +225,21 @@ function ReportActionCompose({reportID}: ReportActionComposeProps) {
     const [draftComment] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
 
-    const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.reportID}`, {
+    const [rawReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.reportID}`, {
         canEvict: false,
+    });
+
+    /**
+     * Updates the Highlight state of the composer
+     */
+    const [isFocused, setIsFocused] = useState(() => {
+        return shouldFocusInputOnScreenFocus && !initialModalState?.isVisible && !initialModalState?.willAlertModalBecomeVisible;
     });
 
     const {editingState, editingReportID, editingReportActionID, editingReportAction, editingMessage} = useReportActionActiveEdit();
 
     const [didResetComposerHeight, setDidResetComposerHeight] = useState(false);
     const isEditingInComposer = shouldUseNarrowLayout && editingState !== 'off' && !didResetComposerHeight;
-    const composerEditingToggleKey = editingReportActionID;
 
     useEffect(() => {
         if (editingState !== 'off' || !didResetComposerHeight) {
@@ -243,22 +249,13 @@ function ReportActionCompose({reportID}: ReportActionComposeProps) {
         setDidResetComposerHeight(false);
     }, [didResetComposerHeight, editingState]);
 
-    const reportActionEntries = useMemo(() => (reportActions ? Object.entries(reportActions) : []), [reportActions]);
-    const isEditingLastReportAction = useMemo(() => editingReportActionID === reportActionEntries.at(-1)?.[0], [editingReportActionID, reportActionEntries]);
-
-    const shouldFocusComposerOnScreenFocus = shouldFocusInputOnScreenFocus || !!draftComment;
+    const reportActionKeys = useMemo(() => (rawReportActions ? Object.keys(rawReportActions) : []), [rawReportActions]);
+    const isEditingLastReportAction = useMemo(() => editingReportActionID === reportActionKeys.at(-1), [editingReportActionID, reportActionKeys]);
 
     const [targetReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${effectiveTransactionThreadReportID ?? reportID}`);
     const reportAncestors = useAncestors(report);
     const targetReportAncestors = useAncestors(targetReport);
     const {scrollOffsetRef} = useContext(ActionListContext);
-
-    /**
-     * Updates the Highlight state of the composer
-     */
-    const [isFocused, setIsFocused] = useState(() => {
-        return shouldFocusComposerOnScreenFocus && !initialModalState?.isVisible && !initialModalState?.willAlertModalBecomeVisible;
-    });
 
     const [isFullComposerAvailable, setIsFullComposerAvailable] = useState(isComposerFullSize);
 
@@ -299,11 +296,8 @@ function ReportActionCompose({reportID}: ReportActionComposeProps) {
     const isTransactionThreadView = useMemo(() => isReportTransactionThread(report), [report]);
     const isExpensesReport = useMemo(() => reportTransactions && reportTransactions.length > 1, [reportTransactions]);
 
-    const [rawReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.reportID}`, {
-        canEvict: false,
-    });
-
-    const iouAction = rawReportActions ? Object.values(rawReportActions).find((action) => isMoneyRequestAction(action)) : null;
+    const reportActionValues = useMemo(() => (rawReportActions ? Object.values(rawReportActions) : []), [rawReportActions]);
+    const iouAction = reportActionValues.find((action) => isMoneyRequestAction(action));
     const linkedTransactionID = iouAction && !isExpensesReport ? getLinkedTransactionID(iouAction) : undefined;
 
     const transactionID = useMemo(() => getTransactionID(report) ?? linkedTransactionID, [report, linkedTransactionID]);
@@ -787,7 +781,7 @@ function ReportActionCompose({reportID}: ReportActionComposeProps) {
                                 onAddActionPressed={onAddActionPressed}
                                 onItemSelected={onItemSelected}
                                 onCanceledAttachmentPicker={() => {
-                                    if (!shouldFocusComposerOnScreenFocus) {
+                                    if (!shouldFocusInputOnScreenFocus) {
                                         return;
                                     }
                                     focus();
@@ -797,7 +791,6 @@ function ReportActionCompose({reportID}: ReportActionComposeProps) {
                             />
                         )}
                         <ComposerWithSuggestions
-                            key={composerEditingToggleKey}
                             ref={(ref) => {
                                 composerRef.current = ref;
                                 composerRefShared.set({

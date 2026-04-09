@@ -48,7 +48,7 @@ export default function () {
             [ONYXKEYS.SESSION]: {loading: false},
             [ONYXKEYS.ACCOUNT]: CONST.DEFAULT_ACCOUNT_DATA,
             [ONYXKEYS.NETWORK]: CONST.DEFAULT_NETWORK_DATA,
-            [ONYXKEYS.IS_SIDEBAR_LOADED]: false,
+            [ONYXKEYS.RAM_ONLY_IS_SIDEBAR_LOADED]: false,
             [ONYXKEYS.MODAL]: {
                 isVisible: false,
                 willAlertModalBecomeVisible: false,

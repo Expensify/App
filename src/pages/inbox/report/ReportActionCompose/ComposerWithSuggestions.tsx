@@ -294,12 +294,12 @@ function ComposerWithSuggestions({
 
     const commentRef = useRef(value);
 
-    const updateSelectionImperatively = useCallback((start: number, end: number) => {
+    const updateNativeSelectionValue = useCallback((start: number, end: number) => {
         if (!isIOSNative) {
             return;
         }
 
-        // ensure that selection is set imperatively after all state changes are effective
+        // Ensure that native selection value is set imperatively after all state changes are effective
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             // note: this implementation is only available on non-web RN, thus the wrapping
@@ -312,6 +312,7 @@ function ComposerWithSuggestions({
         isEditingInComposer?: boolean;
         shouldMoveSelectionToEnd?: boolean;
         selection?: TextSelection | null;
+        shouldForceNativeValueUpdate?: boolean;
     };
 
     const applyComposerValue = useCallback(
@@ -327,28 +328,57 @@ function ComposerWithSuggestions({
             emojisPresentBefore.current = extractEmojis(nextValue);
 
             setValue(nextValue);
+            // We need to manually update the native text prop,
+            // in order to force a re-calculation of the composer height and layout,
+            // when the composer changes in or out of edit mode.
+            if (isIOSNative && options?.shouldForceNativeValueUpdate) {
+                composerRef.current?.setNativeProps({text: nextValue});
+            }
+
             setSelection(selectionToApply);
-            updateSelectionImperatively(selectionToApply.start, selectionToApply.end ?? selectionToApply.start);
+            updateNativeSelectionValue(selectionToApply.start, selectionToApply.end ?? selectionToApply.start);
 
             if (options?.isEditingInComposer) {
                 composerRef.current?.focus();
             }
         },
-        [currentEditMessageSelection, updateSelectionImperatively],
+        [currentEditMessageSelection, updateNativeSelectionValue],
     );
 
-    const isFirstEditingRenderRef = useRef(isEditing);
+    const wasEditing = useRef(isEditing);
     const wasEditingInComposerRef = useRef(shouldUseNarrowLayout);
+    const wasComposerFocusedBeforeEditingRef = useRef(false);
+    const previousDraftSelectionRef = useRef<TextSelection | null>(null);
+    const previousEditingReportActionIDRef = useRef<string | null>(null);
 
     useEffect(() => {
         // If the draft message is already being submitted, do nothing.
-        if (editingState !== 'editing') {
+        if (editingState === 'submitted') {
             return;
         }
 
-        // This is the initial render of the composer when editing is turned on
-        if (isFirstEditingRenderRef.current) {
-            isFirstEditingRenderRef.current = false;
+        if (editingState !== 'editing') {
+            if (wasEditing.current && wasEditingInComposerRef.current) {
+                // Editing just ended in the composer – restore the draft comment and its previous selection.
+                applyComposerValue(draftComment ?? '', {selection: previousDraftSelectionRef.current, shouldForceNativeValueUpdate: true});
+                if (!wasComposerFocusedBeforeEditingRef.current) {
+                    composerRef.current?.blur();
+                }
+            }
+
+            wasEditing.current = false;
+            wasEditingInComposerRef.current = shouldUseNarrowLayout;
+            previousDraftSelectionRef.current = null;
+            return;
+        }
+
+        // Editing just started.
+        if (!wasEditing.current) {
+            wasComposerFocusedBeforeEditingRef.current = composerRef.current?.isFocused() ?? false;
+            // Store the draft selection before switching into edit mode so we can restore it later.
+            previousDraftSelectionRef.current = selection;
+
+            wasEditing.current = true;
             wasEditingInComposerRef.current = shouldUseNarrowLayout;
 
             if (!shouldUseNarrowLayout) {
@@ -357,7 +387,7 @@ function ComposerWithSuggestions({
             }
             // In narrow layout we always show the message being edited.
             // When starting to edit in the composer, always place the cursor at the end of the message.
-            applyComposerValue(editingMessage ?? '', {isEditingInComposer: true, shouldMoveSelectionToEnd: true});
+            applyComposerValue(editingMessage ?? '', {isEditingInComposer: true, shouldMoveSelectionToEnd: true, shouldForceNativeValueUpdate: true});
             return;
         }
 
@@ -373,12 +403,16 @@ function ComposerWithSuggestions({
         if (!shouldUseNarrowLayout && wasEditingInComposerRef.current) {
             wasEditingInComposerRef.current = false;
             applyComposerValue(draftComment ?? '');
+            return;
         }
 
-        if (shouldUseNarrowLayout) {
-            applyComposerValue(editingMessage ?? '', {isEditingInComposer: true});
+        // The editing report action and message changed
+        if (shouldUseNarrowLayout && editingReportActionID !== previousEditingReportActionIDRef.current) {
+            applyComposerValue(editingMessage ?? '', {isEditingInComposer: true, shouldForceNativeValueUpdate: true});
         }
-    }, [applyComposerValue, draftComment, editingMessage, editingState, isEditing, selection, shouldUseNarrowLayout, updateSelectionImperatively]);
+
+        previousEditingReportActionIDRef.current = editingReportActionID;
+    }, [applyComposerValue, draftComment, editingMessage, editingReportActionID, editingState, selection, shouldUseNarrowLayout, updateNativeSelectionValue]);
 
     const {superWideRHPRouteKeys} = useWideRHPState();
     // When SearchReport is stacked above another RHP, delay autofocus until after the transition completes to avoid animation jank
@@ -594,7 +628,7 @@ function ComposerWithSuggestions({
                     syncSelectionWithOnChangeTextRef.current = {position, value: newComment};
                 }
 
-                if (!isFirstEditingRenderRef.current) {
+                if (!wasEditing.current) {
                     setSelection((prevSelection) => ({
                         ...prevSelection,
                         start: position,
@@ -764,9 +798,9 @@ function ComposerWithSuggestions({
 
             const positionSnapshot = syncSelectionWithOnChangeTextRef.current.position;
             syncSelectionWithOnChangeTextRef.current = null;
-            updateSelectionImperatively(positionSnapshot, positionSnapshot);
+            updateNativeSelectionValue(positionSnapshot, positionSnapshot);
         },
-        [clearComposerHeight, updateComment, updateSelectionImperatively],
+        [clearComposerHeight, updateComment, updateNativeSelectionValue],
     );
 
     const onSelectionChange = useCallback(

@@ -11,10 +11,10 @@ import ReportActionItemMessageEdit from '@pages/inbox/report/ReportActionItemMes
 import {KeyboardStateProvider} from '@src/components/withKeyboardState';
 import * as LHNTestUtils from './LHNTestUtils';
 
-const reportActionComposeDefaultReport = LHNTestUtils.getFakeReport();
+const reportActionComposeTestReport = LHNTestUtils.getFakeReport();
 
 function ReportActionEditMessageContextProviderForReport({children}: PropsWithChildren) {
-    return <ReportActionEditMessageContextProvider reportID={reportActionComposeDefaultReport.reportID}>{children}</ReportActionEditMessageContextProvider>;
+    return <ReportActionEditMessageContextProvider reportID={reportActionComposeTestReport.reportID}>{children}</ReportActionEditMessageContextProvider>;
 }
 
 function ReportScreenProviders({children}: PropsWithChildren) {
@@ -22,10 +22,7 @@ function ReportScreenProviders({children}: PropsWithChildren) {
 }
 
 const defaultReportActionComposeProps: ReportActionComposeProps = {
-    onSubmit: jest.fn(),
-    isComposerFullSize: false,
-    reportID: reportActionComposeDefaultReport.reportID,
-    report: reportActionComposeDefaultReport,
+    reportID: reportActionComposeTestReport.reportID,
 };
 
 function ReportActionComposeWrapper(props?: Partial<ReportActionComposeProps>) {
@@ -48,8 +45,8 @@ const renderReportActionCompose = (props?: Partial<ReportActionComposeProps>) =>
 
 const defaultReportActionItemMessageEditProps: ReportActionItemMessageEditProps = {
     action: LHNTestUtils.getFakeReportAction(),
-    reportID: reportActionComposeDefaultReport.reportID,
-    originalReportID: reportActionComposeDefaultReport.reportID,
+    reportID: reportActionComposeTestReport.reportID,
+    originalReportID: reportActionComposeTestReport.reportID,
     index: 0,
     isGroupPolicyReport: false,
 };
@@ -89,4 +86,4 @@ const renderReportActionMessageEditComponents = (
     );
 };
 
-export {ReportActionComposeWrapper, renderReportActionCompose, renderReportActionItemMessageEdit, renderReportActionMessageEditComponents, reportActionComposeDefaultReport};
+export {ReportActionComposeWrapper, renderReportActionCompose, renderReportActionItemMessageEdit, renderReportActionMessageEditComponents, reportActionComposeTestReport};

@@ -6,7 +6,7 @@ import {onSubmitAction} from '@pages/inbox/report/ReportActionCompose/ReportActi
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
-import {renderReportActionCompose, reportActionComposeDefaultReport} from '../utils/ReportActionComposeUtils';
+import {renderReportActionCompose, reportActionComposeTestReport} from '../utils/ReportActionComposeUtils';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
@@ -67,7 +67,7 @@ describe('ReportActionCompose Integration Tests', () => {
 
     beforeEach(async () => {
         await act(async () => {
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportActionComposeDefaultReport.reportID}`, reportActionComposeDefaultReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportActionComposeTestReport.reportID}`, reportActionComposeTestReport);
         });
     });
 
