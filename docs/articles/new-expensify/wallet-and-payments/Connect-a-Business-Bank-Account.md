@@ -7,7 +7,7 @@ internalScope: Audience is Workspace Admins. Covers connecting a new US business
 
 # Connect a US Business Bank Account
 
-You can connect a US business bank account from **Wallet**, or from a Workspace if you are a Workdpace Admin. Once connected, you can use the bank account for reimbursements, Expensify Card payments, and invoice payouts.
+You can connect a US business bank account from **Wallet**, or from a Workspace if you are a Workspace Admin. Once connected, you can use the bank account for reimbursements, Expensify Card payments, and invoice payouts.
 
 This article covers connecting US bank accounts only. If your business bank account is based outside the United States, [learn how to connect an international business bank account](/articles/new-expensify/wallet-and-payments/Enable-Global-Reimbursement). 
 
@@ -17,7 +17,7 @@ This article covers connecting US bank accounts only. If your business bank acco
 
 - Any member can connect a US business bank account in **Wallet**. 
 - Workspace Admins can connect a business bank account to a Workspace.
-- The member who sets up the account and all beneficial owners must have a phyical US address, a US photo ID, and a US SSN.
+- The member who sets up the account and all beneficial owners must have a physical US address, a US photo ID, and a US SSN.
 
 To connect a business bank account, the Workspace must have Workflows enabled. [Learn how to enable Workflows](/articles/new-expensify/workspaces/Workspace-Workflows#enable-workflows).
 
