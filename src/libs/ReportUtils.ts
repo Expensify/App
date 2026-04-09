@@ -4731,13 +4731,12 @@ function canEditMoneyRequest(
         return true;
     }
 
-    const moneyRequestReportID = originalMessage?.IOUReportID;
     const isRequestor = deprecatedCurrentUserAccountID === reportAction?.actorAccountID;
-
-    if (!moneyRequestReportID) {
-        return actionType === CONST.IOU.REPORT_ACTION_TYPE.TRACK && isRequestor;
+    if (actionType === CONST.IOU.REPORT_ACTION_TYPE.TRACK && isRequestor) {
+        return true;
     }
 
+    const moneyRequestReportID = originalMessage?.IOUReportID ?? reportAction?.reportID;
     const moneyRequestReport = report ?? getReportOrDraftReport(String(moneyRequestReportID));
 
     const isSubmitted = isProcessingReport(moneyRequestReport);
@@ -4957,7 +4956,8 @@ function canEditFieldOfMoneyRequest({
     }
 
     const iouMessage = getOriginalMessage(reportAction);
-    const moneyRequestReport = report ?? (iouMessage?.IOUReportID ? (getReport(iouMessage?.IOUReportID, deprecatedAllReports) ?? ({} as Report)) : ({} as Report));
+    const iouReportID = iouMessage?.IOUReportID ?? reportAction?.reportID;
+    const moneyRequestReport = report ?? (iouReportID ? (getReport(iouReportID, deprecatedAllReports) ?? ({} as Report)) : ({} as Report));
 
     if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.BILLABLE && isInvoiceReport(moneyRequestReport) && isReportApproved({report: moneyRequestReport})) {
         return false;
@@ -5163,7 +5163,7 @@ const changeMoneyRequestHoldStatus = (reportAction: OnyxEntry<ReportAction>, iou
     if (!isMoneyRequestAction(reportAction)) {
         return;
     }
-    const moneyRequestReportID = getOriginalMessage(reportAction)?.IOUReportID;
+    const moneyRequestReportID = getOriginalMessage(reportAction)?.IOUReportID ?? reportAction?.reportID;
 
     const moneyRequestReport = getReportOrDraftReport(String(moneyRequestReportID));
     if (!moneyRequestReportID || !moneyRequestReport) {
@@ -5198,7 +5198,7 @@ const rejectMoneyRequestReason = (reportAction: OnyxEntry<ReportAction>): void =
     }
 
     const originalMessage = getOriginalMessage(reportAction);
-    const moneyRequestReportID = originalMessage?.IOUReportID;
+    const moneyRequestReportID = originalMessage?.IOUReportID ?? reportAction?.reportID;
     const transactionID = originalMessage?.IOUTransactionID;
 
     if (!transactionID || !moneyRequestReportID) {

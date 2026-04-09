@@ -271,7 +271,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
 
         // Check that reportActions belong to the current report to avoid using stale data from the previous report
         const hasMatchingReportActions = reportActions.some((action) => {
-            const iouReportID = isMoneyRequestAction(action) ? getOriginalMessage(action)?.IOUReportID : undefined;
+            const iouReportID = isMoneyRequestAction(action) ? action?.reportID : undefined;
             return iouReportID?.toString() === reportIDFromRoute;
         });
 
