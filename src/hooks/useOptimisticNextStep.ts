@@ -41,7 +41,6 @@ function useOptimisticNextStep(reportID: string | undefined) {
 
     const {reportActions: unfilteredReportActions} = usePaginatedReportActions(moneyRequestReport?.reportID);
     const reportActions = getFilteredReportActionsForReportView(unfilteredReportActions);
-    const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
 
     const {transactions: reportTransactions, violations} = useTransactionsAndViolationsForReport(moneyRequestReport?.reportID);
     const transactions = Object.values(reportTransactions);
@@ -68,7 +67,7 @@ function useOptimisticNextStep(reportID: string | undefined) {
                 }
                 return acc;
             }, {});
-            const {errors} = getAllReportActionsErrorsAndReportActionThatRequiresAttention(moneyRequestReport, reportActionsObject, allTransactions);
+            const {errors} = getAllReportActionsErrorsAndReportActionThatRequiresAttention(moneyRequestReport, reportActionsObject, reportTransactions);
 
             if (errors?.dewSubmitFailed) {
                 optimisticNextStep = buildOptimisticNextStepForDynamicExternalWorkflowSubmitError(theme.danger);
