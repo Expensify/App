@@ -1,5 +1,5 @@
 import {useRoute} from '@react-navigation/native';
-import {isUserValidatedSelector} from '@selectors/Account';
+import {delegateEmailSelector, isUserValidatedSelector} from '@selectors/Account';
 import truncate from 'lodash/truncate';
 import React, {useContext, useRef} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
@@ -80,6 +80,7 @@ function MoneyReportHeaderSelectionDropdown({reportID, primaryAction, isReportIn
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(moneyRequestReport?.policyID)}`);
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isUserValidatedSelector});
+    const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [nextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${getNonEmptyStringOnyxID(moneyRequestReport?.reportID)}`);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
@@ -409,6 +410,7 @@ function MoneyReportHeaderSelectionDropdown({reportID, primaryAction, isReportIn
             userBillingGracePeriodEnds,
             amountOwed,
             ownerBillingGracePeriodEnd,
+            delegateEmail,
         });
     };
 

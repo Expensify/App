@@ -160,6 +160,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startSubmittingA
                 }
                 startApprovedAnimation();
             },
+            delegateEmail,
         });
         if (skipAnimation) {
             clearSelectedTransactions(true);
