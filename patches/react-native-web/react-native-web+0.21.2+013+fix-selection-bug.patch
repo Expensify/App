@@ -1,5 +1,5 @@
 diff --git a/node_modules/react-native-web/dist/exports/ScrollView/index.js b/node_modules/react-native-web/dist/exports/ScrollView/index.js
-index c4f9b5b..cc5076e 100644
+index c4f9b5b..fa32056 100644
 --- a/node_modules/react-native-web/dist/exports/ScrollView/index.js
 +++ b/node_modules/react-native-web/dist/exports/ScrollView/index.js
 @@ -558,8 +558,9 @@ class ScrollView extends React.Component {
@@ -22,7 +22,7 @@ index c4f9b5b..cc5076e 100644
    pagingEnabledHorizontal: {
      scrollSnapType: 'x mandatory'
 diff --git a/node_modules/react-native-web/dist/vendor/react-native/VirtualizedList/index.js b/node_modules/react-native-web/dist/vendor/react-native/VirtualizedList/index.js
-index 42c4984..0124746 100644
+index 42c4984..caf22bb 100644
 --- a/node_modules/react-native-web/dist/vendor/react-native/VirtualizedList/index.js
 +++ b/node_modules/react-native-web/dist/vendor/react-native/VirtualizedList/index.js
 @@ -108,6 +108,15 @@ function windowSizeOrDefault(windowSize) {
@@ -68,7 +68,7 @@ index 42c4984..0124746 100644
        }
      };
      this._onCellLayout = (e, cellKey, index) => {
-@@ -568,6 +581,17 @@ class VirtualizedList extends StateSafePureComponent {
+@@ -568,6 +581,14 @@ class VirtualizedList extends StateSafePureComponent {
        this._updateViewableItems(this.props, this.state.cellsAroundViewport);
        this.setState((state, props) => {
          var cellsAroundViewport = this._adjustCellsAroundViewport(props, state.cellsAroundViewport, state.pendingScrollUpdateCount);
@@ -77,16 +77,13 @@ index 42c4984..0124746 100644
 +        // this would only happen on the inverted flatlist (probably a bug with overscroll-behavior)
 +        // when scrolled from bottom all the way up until onEndReached is triggered
 +        if (cellsAroundViewport.first === cellsAroundViewport.last) {
-+            var constrainedPrev = VirtualizedList._constrainToItemCount(state.cellsAroundViewport, props);
-+            if (constrainedPrev.last > constrainedPrev.first) {
-+                cellsAroundViewport = constrainedPrev;
-+            }
++          cellsAroundViewport = state.cellsAroundViewport;
 +        }
 +
          var renderMask = VirtualizedList._createRenderMask(props, cellsAroundViewport, this._getNonViewportRenderRegions(props));
          if (cellsAroundViewport.first === state.cellsAroundViewport.first && cellsAroundViewport.last === state.cellsAroundViewport.last && renderMask.equals(state.renderMask)) {
            return null;
-@@ -679,7 +703,7 @@ class VirtualizedList extends StateSafePureComponent {
+@@ -679,7 +700,7 @@ class VirtualizedList extends StateSafePureComponent {
          onViewableItemsChanged = _this$props3.onViewableItemsChanged,
          viewabilityConfig = _this$props3.viewabilityConfig;
        if (onViewableItemsChanged) {
@@ -95,7 +92,7 @@ index 42c4984..0124746 100644
            viewabilityHelper: new ViewabilityHelper(viewabilityConfig),
            onViewableItemsChanged: onViewableItemsChanged
          });
-@@ -991,15 +1015,15 @@ class VirtualizedList extends StateSafePureComponent {
+@@ -991,15 +1012,15 @@ class VirtualizedList extends StateSafePureComponent {
      var end = getItemCount(data) - 1;
      var prevCellKey;
      last = Math.min(end, last);
@@ -114,7 +111,7 @@ index 42c4984..0124746 100644
          CellRendererComponent: CellRendererComponent,
          ItemSeparatorComponent: ii < end ? ItemSeparatorComponent : undefined,
          ListItemComponent: ListItemComponent,
-@@ -1074,14 +1098,14 @@ class VirtualizedList extends StateSafePureComponent {
+@@ -1074,14 +1095,14 @@ class VirtualizedList extends StateSafePureComponent {
      // 1. Add cell for ListHeaderComponent
      if (ListHeaderComponent) {
        if (stickyIndicesFromProps.has(0)) {
@@ -131,7 +128,7 @@ index 42c4984..0124746 100644
          cellKey: this._getCellKey() + '-header',
          key: "$header"
        }, /*#__PURE__*/React.createElement(View
-@@ -1105,7 +1129,7 @@ class VirtualizedList extends StateSafePureComponent {
+@@ -1105,7 +1126,7 @@ class VirtualizedList extends StateSafePureComponent {
        // $FlowFixMe[not-a-component]
        // $FlowFixMe[incompatible-type-arg]
        React.createElement(ListEmptyComponent, null);
@@ -140,7 +137,7 @@ index 42c4984..0124746 100644
          cellKey: this._getCellKey() + '-empty',
          key: "$empty"
        }, /*#__PURE__*/React.cloneElement(_element2, {
-@@ -1145,7 +1169,7 @@ class VirtualizedList extends StateSafePureComponent {
+@@ -1145,7 +1166,7 @@ class VirtualizedList extends StateSafePureComponent {
            var firstMetrics = this.__getFrameMetricsApprox(section.first, this.props);
            var lastMetrics = this.__getFrameMetricsApprox(last, this.props);
            var spacerSize = lastMetrics.offset + lastMetrics.length - firstMetrics.offset;
@@ -149,7 +146,7 @@ index 42c4984..0124746 100644
              key: "$spacer-" + section.first,
              style: {
                [spacerKey]: spacerSize
-@@ -1168,7 +1192,7 @@ class VirtualizedList extends StateSafePureComponent {
+@@ -1168,7 +1189,7 @@ class VirtualizedList extends StateSafePureComponent {
        // $FlowFixMe[not-a-component]
        // $FlowFixMe[incompatible-type-arg]
        React.createElement(ListFooterComponent, null);
@@ -158,7 +155,7 @@ index 42c4984..0124746 100644
          cellKey: this._getFooterCellKey(),
          key: "$footer"
        }, /*#__PURE__*/React.createElement(View, {
-@@ -1179,6 +1203,14 @@ class VirtualizedList extends StateSafePureComponent {
+@@ -1179,6 +1200,14 @@ class VirtualizedList extends StateSafePureComponent {
        _element3)));
      }
  
@@ -173,7 +170,7 @@ index 42c4984..0124746 100644
      // 4. Render the ScrollView
      var scrollProps = _objectSpread(_objectSpread({}, this.props), {}, {
        onContentSizeChange: this._onContentSizeChange,
-@@ -1353,7 +1385,7 @@ class VirtualizedList extends StateSafePureComponent {
+@@ -1353,7 +1382,7 @@ class VirtualizedList extends StateSafePureComponent {
         * suppresses an error found when Flow v0.68 was deployed. To see the
         * error delete this comment and run Flow. */
        if (frame.inLayout) {
@@ -182,7 +179,7 @@ index 42c4984..0124746 100644
        }
      }
      var windowTop = this.__getFrameMetricsApprox(this.state.cellsAroundViewport.first, this.props).offset;
-@@ -1526,6 +1558,12 @@ var styles = StyleSheet.create({
+@@ -1526,6 +1555,12 @@ var styles = StyleSheet.create({
    horizontallyInverted: {
      transform: 'scaleX(-1)'
    },
