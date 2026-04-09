@@ -133,8 +133,13 @@ function SpendRuleCardPage({route}: SpendRuleCardPageProps) {
     });
 
     useEffect(() => {
+        // We already load the card settings in when the section is mounted, so we don't load it again here.
+        // We only need to load it if the user is navigated directly to this page and the card settings are not already loaded.
+        if (!expensifyCardSettings) {
+            return;
+        }
         openPolicyExpensifyCardsPage(policyID, defaultFundID);
-    }, [defaultFundID, policyID]);
+    }, [defaultFundID, expensifyCardSettings, policyID]);
 
     const toggleCard = (item: ExpensifyCardListItem) => {
         setSelectedCardIDs((prev) => {
