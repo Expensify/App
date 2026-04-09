@@ -471,8 +471,8 @@ function getHumanAgentAccountIDFromReportAction(reportAction: OnyxInputOrEntry<R
         return undefined;
     }
 
-    if ('humanAgentAccountID' in originalMessage) {
-        return originalMessage.humanAgentAccountID as number;
+    if ('humanAgentAccountID' in originalMessage && typeof originalMessage.humanAgentAccountID === 'number') {
+        return originalMessage.humanAgentAccountID;
     }
 
     return undefined;
