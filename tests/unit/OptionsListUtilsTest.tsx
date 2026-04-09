@@ -4059,6 +4059,9 @@ describe('OptionsListUtils', () => {
             });
         });
         describe('canonical money request preview fallback', () => {
+            const getExpectedPreviewText = (report: Report, reportAction: ReportAction, reportPreviewAction?: ReportAction) =>
+                formatReportLastMessageText(Parser.htmlToText(getReportPreviewMessage(report, undefined, reportAction, true, false, null, true, reportPreviewAction)));
+
             it('should format expense preview without brackets when falling back for expense reports', async () => {
                 const report: Report = {
                     ...createRandomReport(0, undefined),
@@ -4104,7 +4107,7 @@ describe('OptionsListUtils', () => {
                     currentUserLogin: CURRENT_USER_EMAIL,
                 });
 
-                expect(lastMessage).toBe('$25.00 expense for Dinner');
+                expect(lastMessage).toBe(getExpectedPreviewText(report, moneyRequestAction));
             });
 
             it('should ignore deleted money request actions when building canonical expense preview', async () => {
@@ -4167,7 +4170,198 @@ describe('OptionsListUtils', () => {
                     currentUserLogin: CURRENT_USER_EMAIL,
                 });
 
-                expect(lastMessage).toBe('$45.00 expense for Visible comment');
+                expect(lastMessage).toBe(getExpectedPreviewText(report, visibleMoneyRequestAction));
+            });
+
+            it('should format amount-only preview when the canonical money request has an empty comment', async () => {
+                const report: Report = {
+                    ...createRandomReport(0, undefined),
+                    reportID: 'expense-report-3',
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                    currency: CONST.CURRENCY.USD,
+                    transactionCount: 1,
+                };
+                const createdAction: ReportAction = {
+                    ...createRandomReportAction(6),
+                    reportID: report.reportID,
+                    actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
+                    message: [{type: 'COMMENT', text: ''}],
+                    originalMessage: {},
+                };
+                const moneyRequestAction: ReportAction = {
+                    ...createRandomReportAction(7),
+                    reportID: report.reportID,
+                    actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                    created: '2026-04-01 12:00:00.000',
+                    message: [{type: 'COMMENT', text: ''}],
+                    originalMessage: {
+                        amount: -2500,
+                        currency: CONST.CURRENCY.USD,
+                        comment: '',
+                        type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                    },
+                };
+
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
+                    [createdAction.reportActionID]: createdAction,
+                    [moneyRequestAction.reportActionID]: moneyRequestAction,
+                });
+                await waitForBatchedUpdates();
+
+                const lastMessage = getLastMessageTextForReport({
+                    translate: translateLocal,
+                    report,
+                    lastActorDetails: null,
+                    isReportArchived: false,
+                    lastAction: createdAction,
+                    currentUserLogin: CURRENT_USER_EMAIL,
+                });
+
+                expect(lastMessage).toBe(getExpectedPreviewText(report, moneyRequestAction));
+                expect(lastMessage.endsWith('$25.00')).toBe(true);
+            });
+
+            it('should format preview correctly for non-USD currencies', async () => {
+                const report: Report = {
+                    ...createRandomReport(0, undefined),
+                    reportID: 'expense-report-4',
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                    currency: CONST.CURRENCY.EUR,
+                    transactionCount: 1,
+                };
+                const createdAction: ReportAction = {
+                    ...createRandomReportAction(8),
+                    reportID: report.reportID,
+                    actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
+                    message: [{type: 'COMMENT', text: ''}],
+                    originalMessage: {},
+                };
+                const moneyRequestAction: ReportAction = {
+                    ...createRandomReportAction(9),
+                    reportID: report.reportID,
+                    actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                    created: '2026-04-01 13:00:00.000',
+                    message: [{type: 'COMMENT', text: ''}],
+                    originalMessage: {
+                        amount: -2500,
+                        currency: CONST.CURRENCY.EUR,
+                        comment: 'Lunch',
+                        type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                    },
+                };
+
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
+                    [createdAction.reportActionID]: createdAction,
+                    [moneyRequestAction.reportActionID]: moneyRequestAction,
+                });
+                await waitForBatchedUpdates();
+
+                const lastMessage = getLastMessageTextForReport({
+                    translate: translateLocal,
+                    report,
+                    lastActorDetails: null,
+                    isReportArchived: false,
+                    lastAction: createdAction,
+                    currentUserLogin: CURRENT_USER_EMAIL,
+                });
+
+                expect(lastMessage).toBe(getExpectedPreviewText(report, moneyRequestAction));
+            });
+
+            it('should fall back to shared preview formatting when the canonical money request is missing amount', async () => {
+                const report: Report = {
+                    ...createRandomReport(0, undefined),
+                    reportID: 'expense-report-5',
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                    currency: CONST.CURRENCY.USD,
+                    transactionCount: 1,
+                };
+                const createdAction: ReportAction = {
+                    ...createRandomReportAction(10),
+                    reportID: report.reportID,
+                    actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
+                    message: [{type: 'COMMENT', text: ''}],
+                    originalMessage: {},
+                };
+                const moneyRequestAction: ReportAction = {
+                    ...createRandomReportAction(11),
+                    reportID: report.reportID,
+                    actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                    created: '2026-04-01 14:00:00.000',
+                    message: [{type: 'COMMENT', text: ''}],
+                    originalMessage: {
+                        currency: CONST.CURRENCY.USD,
+                        comment: 'Missing amount',
+                        type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                    },
+                };
+
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
+                    [createdAction.reportActionID]: createdAction,
+                    [moneyRequestAction.reportActionID]: moneyRequestAction,
+                });
+                await waitForBatchedUpdates();
+
+                const lastMessage = getLastMessageTextForReport({
+                    translate: translateLocal,
+                    report,
+                    lastActorDetails: null,
+                    isReportArchived: false,
+                    lastAction: createdAction,
+                    currentUserLogin: CURRENT_USER_EMAIL,
+                });
+
+                expect(lastMessage).toBe(getExpectedPreviewText(report, moneyRequestAction));
+            });
+
+            it('should fall back to shared preview formatting when the canonical money request is missing currency', async () => {
+                const report: Report = {
+                    ...createRandomReport(0, undefined),
+                    reportID: 'expense-report-6',
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                    currency: CONST.CURRENCY.USD,
+                    transactionCount: 1,
+                };
+                const createdAction: ReportAction = {
+                    ...createRandomReportAction(12),
+                    reportID: report.reportID,
+                    actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
+                    message: [{type: 'COMMENT', text: ''}],
+                    originalMessage: {},
+                };
+                const moneyRequestAction: ReportAction = {
+                    ...createRandomReportAction(13),
+                    reportID: report.reportID,
+                    actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                    created: '2026-04-01 15:00:00.000',
+                    message: [{type: 'COMMENT', text: ''}],
+                    originalMessage: {
+                        amount: -2500,
+                        comment: 'Missing currency',
+                        type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                    },
+                };
+
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
+                    [createdAction.reportActionID]: createdAction,
+                    [moneyRequestAction.reportActionID]: moneyRequestAction,
+                });
+                await waitForBatchedUpdates();
+
+                const lastMessage = getLastMessageTextForReport({
+                    translate: translateLocal,
+                    report,
+                    lastActorDetails: null,
+                    isReportArchived: false,
+                    lastAction: createdAction,
+                    currentUserLogin: CURRENT_USER_EMAIL,
+                });
+
+                expect(lastMessage).toBe(getExpectedPreviewText(report, moneyRequestAction));
             });
         });
         it('MOVED_TRANSACTION action', async () => {
