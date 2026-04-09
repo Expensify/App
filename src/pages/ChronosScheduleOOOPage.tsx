@@ -68,6 +68,16 @@ function ChronosScheduleOOOPage({route}: ChronosScheduleOOOPageProps) {
                 addErrorMessage(errors, INPUT_IDS.TIME, translate('chronos.invalidTimeFormat'));
             }
 
+            const durationAmount = values[INPUT_IDS.DURATION_AMOUNT]?.trim();
+            if (durationAmount && !/^\d+$/.test(durationAmount)) {
+                addErrorMessage(errors, INPUT_IDS.DURATION_AMOUNT, translate('chronos.enterANumber'));
+            }
+
+            const percentage = values[INPUT_IDS.WORKING_PERCENTAGE]?.replaceAll('%', '').trim();
+            if (percentage && !/^\d+$/.test(percentage)) {
+                addErrorMessage(errors, INPUT_IDS.WORKING_PERCENTAGE, translate('chronos.enterANumber'));
+            }
+
             return errors;
         },
         [translate],

@@ -120,7 +120,7 @@ function buildOOOCommand({date, time, timePeriod, durationAmount, durationUnit, 
     }
 
     if (workingPercentage) {
-        const sanitized = workingPercentage.replace(/%/g, '').trim();
+        const sanitized = workingPercentage.replaceAll('%', '').trim();
         if (sanitized) {
             command += ` ${sanitized}%`;
         }

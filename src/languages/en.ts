@@ -7845,6 +7845,7 @@ const translations = {
         workingPercentage: 'Working percentage',
         dateRequired: 'Date is required.',
         invalidTimeFormat: 'Please enter a valid time (e.g., 12:30).',
+        enterANumber: 'Please enter a number.',
         hour: 'hours',
         day: 'days',
         week: 'weeks',

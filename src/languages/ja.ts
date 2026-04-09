@@ -7777,6 +7777,7 @@ ${reportName}
         workingPercentage: '稼働率',
         dateRequired: '日付は必須です。',
         invalidTimeFormat: '有効な時刻を入力してください（例：12:30）。',
+        enterANumber: '数字を入力してください。',
         hour: '時間',
         day: '日間',
         week: '週間',
