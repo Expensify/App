@@ -625,6 +625,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             path: ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_EXPORT_OUT_OF_POCKET_EXPENSES_SELECT.route,
                         },
                         [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_DESKTOP_EXPORT]: {path: ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_EXPORT.route},
+                        [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_DESKTOP_REUSE_EXISTING_CONNECTIONS]: {
+                            path: ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_EXISTING_CONNECTIONS.route,
+                        },
                         [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_DESKTOP_SETUP_MODAL]: {
                             path: ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_SETUP_MODAL.route,
                         },
@@ -1239,6 +1242,24 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         },
                         [SCREENS.WORKSPACE.RULES_MERCHANT_NEW]: {
                             path: ROUTES.RULES_MERCHANT_NEW.route,
+                        },
+                        [SCREENS.WORKSPACE.RULES_SPEND_NEW]: {
+                            path: ROUTES.RULES_SPEND_NEW.route,
+                        },
+                        [SCREENS.WORKSPACE.RULES_SPEND_CARD]: {
+                            path: ROUTES.RULES_SPEND_CARD.route,
+                        },
+                        [SCREENS.WORKSPACE.RULES_SPEND_CATEGORY]: {
+                            path: ROUTES.RULES_SPEND_CATEGORY.route,
+                        },
+                        [SCREENS.WORKSPACE.RULES_SPEND_MAX_AMOUNT]: {
+                            path: ROUTES.RULES_SPEND_MAX_AMOUNT.route,
+                        },
+                        [SCREENS.WORKSPACE.RULES_SPEND_MERCHANTS]: {
+                            path: ROUTES.RULES_SPEND_MERCHANTS.route,
+                        },
+                        [SCREENS.WORKSPACE.RULES_SPEND_MERCHANT_EDIT]: {
+                            path: ROUTES.RULES_SPEND_MERCHANT_EDIT.route,
                         },
                         [SCREENS.WORKSPACE.RULES_MERCHANT_MERCHANT_TO_MATCH]: {
                             path: ROUTES.RULES_MERCHANT_MERCHANT_TO_MATCH.route,
