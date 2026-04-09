@@ -1,12 +1,11 @@
 import escapeRegExp from 'lodash/escapeRegExp';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import {hasSynchronizationErrorMessage, isConnectionInProgress} from '@libs/actions/connections';
+import {hasSynchronizationErrorMessage, isConnectionUnverified} from '@libs/actions/connections';
 import {getDisplayNameForWorkspace} from '@libs/actions/Policy/Policy';
 import {translate} from '@libs/Localize';
 import {areAllGroupPoliciesExpenseChatDisabled, getActiveAdminWorkspaces, getOwnedPaidPolicies, isPaidGroupPolicy, shouldShowPolicy} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, PolicyConnectionSyncProgress, PolicyReportField} from '@src/types/onyx';
+import type {Policy, PolicyReportField} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 const activePolicySelector = (policy: OnyxEntry<Policy>) => (policy?.type !== CONST.POLICY.TYPE.PERSONAL ? policy : undefined);
@@ -138,19 +137,17 @@ const adminPoliciesConnectedToNetSuiteSelector = (policies: OnyxCollection<Polic
 const adminPoliciesConnectedToQBDSelector = (policies: OnyxCollection<Policy>) =>
     Object.values(policies ?? {}).filter<Policy>((policy): policy is Policy => !!policy && policy.role === CONST.POLICY.ROLE.ADMIN && !!policy?.connections?.quickbooksDesktop);
 
-function getReusablePoliciesConnectedToQBD(policies: OnyxCollection<Policy>, connectionSyncProgressCollection: OnyxCollection<PolicyConnectionSyncProgress>, currentPolicyID?: string) {
+function getReusablePoliciesConnectedToQBD(policies: OnyxCollection<Policy>, currentPolicyID?: string) {
     return adminPoliciesConnectedToQBDSelector(policies).filter((policy) => {
         if (policy.id === currentPolicyID) {
             return false;
         }
 
-        const syncProgress = connectionSyncProgressCollection?.[`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policy.id}`];
-        return !hasSynchronizationErrorMessage(policy, CONST.POLICY.CONNECTIONS.NAME.QBD, isConnectionInProgress(syncProgress, policy));
+        return !isConnectionUnverified(policy, CONST.POLICY.CONNECTIONS.NAME.QBD) && !hasSynchronizationErrorMessage(policy, CONST.POLICY.CONNECTIONS.NAME.QBD, false);
     });
 }
 
-const reusablePoliciesConnectedToQBDSelector = (policies: OnyxCollection<Policy>, connectionSyncProgressCollection: OnyxCollection<PolicyConnectionSyncProgress>, currentPolicyID?: string) =>
-    getReusablePoliciesConnectedToQBD(policies, connectionSyncProgressCollection, currentPolicyID);
+const reusablePoliciesConnectedToQBDSelector = (policies: OnyxCollection<Policy>, currentPolicyID?: string) => getReusablePoliciesConnectedToQBD(policies, currentPolicyID);
 
 const hasPoliciesConnectedToSageIntacctSelector = (policies: OnyxCollection<Policy>) => !!adminPoliciesConnectedToSageIntacctSelector(policies).length;
 
@@ -158,11 +155,7 @@ const hasPoliciesConnectedToNetSuiteSelector = (policies: OnyxCollection<Policy>
 
 const hasPoliciesConnectedToQBDSelector = (policies: OnyxCollection<Policy>) => !!adminPoliciesConnectedToQBDSelector(policies).length;
 
-const hasReusablePoliciesConnectedToQBDSelector = (
-    policies: OnyxCollection<Policy>,
-    connectionSyncProgressCollection: OnyxCollection<PolicyConnectionSyncProgress>,
-    currentPolicyID?: string,
-) => !!getReusablePoliciesConnectedToQBD(policies, connectionSyncProgressCollection, currentPolicyID).length;
+const hasReusablePoliciesConnectedToQBDSelector = (policies: OnyxCollection<Policy>, currentPolicyID?: string) => !!getReusablePoliciesConnectedToQBD(policies, currentPolicyID).length;
 
 function lastWorkspaceNumberSelector(policies: OnyxCollection<Policy>, email: string): number | undefined {
     const emailParts = email.split('@');
