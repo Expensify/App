@@ -1574,7 +1574,14 @@ function shouldShowYear(
         }
 
         // Early exit if all flags are true
-        if (result.shouldShowYearCreated && result.shouldShowYearSubmitted && result.shouldShowYearApproved && result.shouldShowYearPosted && result.shouldShowYearExported) {
+        if (
+            result.shouldShowYearCreated &&
+            result.shouldShowYearSubmitted &&
+            result.shouldShowYearApproved &&
+            result.shouldShowYearPosted &&
+            result.shouldShowYearExported &&
+            result.shouldShowYearWithdrawn
+        ) {
             return result;
         }
     }
