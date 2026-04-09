@@ -7907,6 +7907,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         reason: 'Motif',
         workingPercentage: 'Pourcentage de travail',
         dateRequired: 'La date est obligatoire.',
+        invalidTimeFormat: 'Veuillez saisir une heure valide (ex. : 12:30).',
         hour: 'heure',
         day: 'jour',
         week: 'semaine',

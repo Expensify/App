@@ -7776,6 +7776,7 @@ ${reportName}
         reason: '理由',
         workingPercentage: '稼働率',
         dateRequired: '日付は必須です。',
+        invalidTimeFormat: '有効な時刻を入力してください（例：12:30）。',
         hour: '時間',
         day: '日',
         week: '週',

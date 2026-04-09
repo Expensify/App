@@ -7635,6 +7635,7 @@ ${reportName}
         reason: '原因',
         workingPercentage: '工作百分比',
         dateRequired: '日期为必填项。',
+        invalidTimeFormat: '请输入有效的时间（例如 12:30）。',
         hour: '小时',
         day: '天',
         week: '周',

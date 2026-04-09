@@ -4,6 +4,7 @@ import type Form from './Form';
 const INPUT_IDS = {
     DATE: 'date',
     TIME: 'time',
+    TIME_PERIOD: 'timePeriod',
     DURATION_AMOUNT: 'durationAmount',
     DURATION_UNIT: 'durationUnit',
     REASON: 'reason',
@@ -17,6 +18,7 @@ type ChronosScheduleOOOForm = Form<
     {
         [INPUT_IDS.DATE]: string;
         [INPUT_IDS.TIME]: string;
+        [INPUT_IDS.TIME_PERIOD]: string;
         [INPUT_IDS.DURATION_AMOUNT]: string;
         [INPUT_IDS.DURATION_UNIT]: string;
         [INPUT_IDS.REASON]: string;

@@ -37,6 +37,14 @@ function ChronosScheduleOOOPage({route}: ChronosScheduleOOOPageProps) {
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const ancestors = useAncestors(report);
 
+    const timePeriodItems = useMemo(
+        () => [
+            {value: 'AM', label: 'AM'},
+            {value: 'PM', label: 'PM'},
+        ],
+        [],
+    );
+
     const durationUnitItems = useMemo(
         () => [
             {value: CONST.CHRONOS.OOO_DURATION_UNITS.HOUR, label: translate('chronos.hour')},
@@ -55,6 +63,11 @@ function ChronosScheduleOOOPage({route}: ChronosScheduleOOOPageProps) {
                 addErrorMessage(errors, INPUT_IDS.DATE, translate('chronos.dateRequired'));
             }
 
+            const timeValue = values[INPUT_IDS.TIME]?.trim();
+            if (timeValue && !/^(1[0-2]|0?[1-9])(:[0-5]\d)?$/.test(timeValue)) {
+                addErrorMessage(errors, INPUT_IDS.TIME, translate('chronos.invalidTimeFormat'));
+            }
+
             return errors;
         },
         [translate],
@@ -65,6 +78,7 @@ function ChronosScheduleOOOPage({route}: ChronosScheduleOOOPageProps) {
             const commandText = buildOOOCommand({
                 date: values[INPUT_IDS.DATE],
                 time: values[INPUT_IDS.TIME],
+                timePeriod: values[INPUT_IDS.TIME_PERIOD],
                 durationAmount: values[INPUT_IDS.DURATION_AMOUNT],
                 durationUnit: values[INPUT_IDS.DURATION_UNIT],
                 reason: values[INPUT_IDS.REASON],
@@ -111,15 +125,25 @@ function ChronosScheduleOOOPage({route}: ChronosScheduleOOOPageProps) {
                         label={translate('chronos.date')}
                     />
                 </View>
-                <View style={styles.mb4}>
-                    <InputWrapper
-                        InputComponent={TextInput}
-                        inputID={INPUT_IDS.TIME}
-                        label={translate('chronos.time')}
-                        accessibilityLabel={translate('chronos.time')}
-                        role={CONST.ROLE.PRESENTATION}
-                        placeholder="12:30"
-                    />
+                <View style={[styles.flexRow, styles.gap2, styles.mb4]}>
+                    <View style={styles.flex1}>
+                        <InputWrapper
+                            InputComponent={TextInput}
+                            inputID={INPUT_IDS.TIME}
+                            label={translate('chronos.time')}
+                            accessibilityLabel={translate('chronos.time')}
+                            role={CONST.ROLE.PRESENTATION}
+                            placeholder="12:30"
+                        />
+                    </View>
+                    <View style={styles.flex1}>
+                        <InputWrapper
+                            InputComponent={ValuePicker}
+                            inputID={INPUT_IDS.TIME_PERIOD}
+                            label="AM/PM"
+                            items={timePeriodItems}
+                        />
+                    </View>
                 </View>
                 <View style={[styles.flexRow, styles.gap2, styles.mb4]}>
                     <View style={styles.flex1}>
