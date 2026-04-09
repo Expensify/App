@@ -1859,7 +1859,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                 },
                 [SCREENS.RIGHT_MODAL.FLAG_COMMENT]: {
                     screens: {
-                        [SCREENS.FLAG_COMMENT_ROOT]: ROUTES.FLAG_COMMENT.route,
+                        [SCREENS.DYNAMIC_FLAG_COMMENT]: DYNAMIC_ROUTES.FLAG_COMMENT.path,
                     },
                 },
                 [SCREENS.RIGHT_MODAL.EDIT_REQUEST]: {

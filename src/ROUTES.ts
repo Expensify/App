@@ -239,6 +239,11 @@ const DYNAMIC_ROUTES = {
             }),
         queryParams: ['fieldName', 'fieldValue', 'policyID'],
     },
+    FLAG_COMMENT: {
+        path: 'flag/:reportID/:reportActionID',
+        entryScreens: [SCREENS.REPORT, SCREENS.RIGHT_MODAL.SEARCH_REPORT, SCREENS.RIGHT_MODAL.EXPENSE_REPORT, SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT],
+        getRoute: (reportID: string, reportActionID: string) => `flag/${reportID}/${reportActionID}`,
+    },
 } as const satisfies DynamicRoutes;
 
 const ROUTES = {
@@ -368,12 +373,6 @@ const ROUTES = {
     CONCIERGE: 'concierge',
     TRACK_EXPENSE: 'track-expense',
     SUBMIT_EXPENSE: 'submit-expense',
-    FLAG_COMMENT: {
-        route: 'flag/:reportID/:reportActionID',
-
-        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-        getRoute: (reportID: string, reportActionID: string, backTo?: string) => getUrlWithBackToParam(`flag/${reportID}/${reportActionID}` as const, backTo),
-    },
     PROFILE: {
         route: 'a/:accountID',
         getRoute: (accountID?: number, backTo?: string, login?: string) => {
