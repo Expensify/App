@@ -9,7 +9,7 @@ internalScope: Audience is members with personal credit cards already connected 
 
 Expensify lets you view and manage your personal credit cards in one place, making it easier to track spending, submit reimbursable expenses, and stay organized for tax time.
 
-If you previously connected a personal card in Expensify Classic, you can now manage that card directly in Expensify on both web and mobile.
+[Learn how to connect a personal card]({{site.url}}/articles/new-expensify/connect-credit-cards/Connect-Personal-Cards).
 
 ---
 
@@ -63,9 +63,6 @@ You can:
 
 # FAQ
 
-## Can I add a new personal card?
-
-Yes! You can connect new personal cards directly in New Expensify. Learn how to [connect a personal card]({{site.url}}/articles/new-expensify/connect-credit-cards/Connect-Personal-Cards).
 
 ## Can I change the reimbursable setting for past transactions?
 
