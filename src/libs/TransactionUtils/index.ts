@@ -1134,20 +1134,6 @@ function isFetchingWaypointsFromServer(transaction: OnyxInputOrEntry<Transaction
 }
 
 /**
- * Verify that the transaction is in Self DM or is an original split transaction and that its distance rate is invalid.
- */
-function isUnreportedAndHasInvalidDistanceRateTransaction(transaction: OnyxInputOrEntry<Transaction>, policy: OnyxEntry<Policy>, defaultP2PMileageRate?: DefaultP2PMileageRate | null) {
-    if (!transaction || !isDistanceRequest(transaction)) {
-        return false;
-    }
-
-    const {rate} = DistanceRequestUtils.getRate({transaction, policy, defaultP2PMileageRate});
-    const isUnreportedExpense = !transaction.reportID || transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID || String(transaction.reportID) === CONST.REPORT.SPLIT_REPORT_ID;
-
-    return isUnreportedExpense && !rate;
-}
-
-/**
  * Return the merchant field from the transaction, return the modifiedMerchant if present.
  */
 function getMerchant(transaction: OnyxInputOrEntry<Transaction>): string {
@@ -3014,7 +3000,6 @@ export {
     isDistanceTypeRequest,
     recalculateUnreportedTransactionDetails,
     hasSmartScanFailedWithMissingFields,
-    isUnreportedAndHasInvalidDistanceRateTransaction,
 };
 
 export type {TransactionChanges};

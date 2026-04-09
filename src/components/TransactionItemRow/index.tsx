@@ -20,7 +20,6 @@ import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -48,13 +47,11 @@ import {
     isMerchantMissing,
     isScanning,
     isTimeRequest,
-    isUnreportedAndHasInvalidDistanceRateTransaction,
     shouldShowAttendees as shouldShowAttendeesUtils,
 } from '@libs/TransactionUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
-import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails, Policy, Report, ReportAction, TransactionViolation} from '@src/types/onyx';
 import type {SearchTransactionAction} from '@src/types/onyx/SearchResults';
 import CategoryCell from './DataCells/CategoryCell';
@@ -213,8 +210,6 @@ function TransactionItemRow({
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const transactionThreadReportID = reportActions ? getIOUActionForTransactionID(reportActions, transactionItem.transactionID)?.childReportID : undefined;
 
-    const [defaultP2PMileageRate] = useOnyx(ONYXKEYS.DEFAULT_P2P_MILEAGE_RATE);
-
     const isDateColumnWide = dateColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE;
     const isSubmittedColumnWide = submittedColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE;
     const isApprovedColumnWide = approvedColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE;
@@ -241,9 +236,7 @@ function TransactionItemRow({
             return '';
         }
 
-        const policyParam = policy ?? transactionItem.policy;
-        const isCustomUnitOutOfPolicy = isUnreportedAndHasInvalidDistanceRateTransaction(transactionItem, policyParam, defaultP2PMileageRate);
-        const hasFieldErrors = hasMissingSmartscanFields(transactionItem, report) || isCustomUnitOutOfPolicy;
+        const hasFieldErrors = hasMissingSmartscanFields(transactionItem, report);
         if (hasFieldErrors) {
             const amountMissing = isAmountMissing(transactionItem);
             const merchantMissing = isMerchantMissing(transactionItem);
@@ -259,7 +252,7 @@ function TransactionItemRow({
 
             return error;
         }
-    }, [transactionItem, translate, report, policy, defaultP2PMileageRate]);
+    }, [transactionItem, translate, report]);
 
     const exchangeRateMessage = getExchangeRate(transactionItem, report?.currency);
 
