@@ -100,7 +100,13 @@ function ReportActionsList({reportID, onLayout}: ReportActionsListProps) {
         hasNewerActions: pagination.hasNewerActions,
     });
 
-    const visibility = useReportActionsVisibility(reportID, pagination.reportActions, !!canPerformWriteAction, pagination.hasOlderActions, loadOlderChats);
+    const visibility = useReportActionsVisibility({
+        reportID,
+        reportActions: pagination.reportActions,
+        canPerformWriteAction: !!canPerformWriteAction,
+        hasOlderActions: pagination.hasOlderActions,
+        loadOlderChats,
+    });
 
     const sortedVisibleReportActions = visibility.visibleReportActions;
 

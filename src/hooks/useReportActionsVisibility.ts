@@ -23,13 +23,15 @@ type UseReportActionsVisibilityResult = {
     handleShowPreviousMessages: () => void;
 };
 
-function useReportActionsVisibility(
-    reportID: string | undefined,
-    reportActions: ReportAction[],
-    canPerformWriteAction: boolean,
-    hasOlderActions: boolean,
-    loadOlderChats: (force?: boolean) => void,
-): UseReportActionsVisibilityResult {
+type UseReportActionsVisibilityParams = {
+    reportID: string | undefined;
+    reportActions: ReportAction[];
+    canPerformWriteAction: boolean;
+    hasOlderActions: boolean;
+    loadOlderChats: (force?: boolean) => void;
+};
+
+function useReportActionsVisibility({reportID, reportActions, canPerformWriteAction, hasOlderActions, loadOlderChats}: UseReportActionsVisibilityParams): UseReportActionsVisibilityResult {
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
 
