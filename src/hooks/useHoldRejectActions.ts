@@ -41,17 +41,14 @@ function useHoldRejectActions({reportID, onHoldEducationalOpen, onRejectModalOpe
     const [reportActionsForParent] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(moneyRequestReport?.reportID)}`, {canEvict: false});
     const requestParentReportAction = transactionThreadReport?.parentReportActionID ? reportActionsForParent?.[transactionThreadReport.parentReportActionID] : undefined;
 
-    // Transaction — derive ID from the IOU action, fall back to DEFAULT_NUMBER_ID so the Onyx key is always valid
     const iouTransactionID = isMoneyRequestAction(requestParentReportAction)
         ? (getOriginalMessage(requestParentReportAction)?.IOUTransactionID ?? CONST.DEFAULT_NUMBER_ID)
         : CONST.DEFAULT_NUMBER_ID;
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${iouTransactionID}`);
 
-    // Dismissed explanation flags
     const [dismissedRejectUseExplanation] = useOnyx(ONYXKEYS.NVP_DISMISSED_REJECT_USE_EXPLANATION);
     const [dismissedHoldUseExplanation] = useOnyx(ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION);
 
-    // Derived booleans
     const isReportSubmitter = isCurrentUserSubmitter(moneyRequestReport);
     const isChatReportDM = isDM(chatReport);
 
