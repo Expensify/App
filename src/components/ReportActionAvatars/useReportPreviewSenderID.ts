@@ -11,7 +11,7 @@ import {isDM, isIOUReport} from '@libs/ReportUtils';
 import {isScanRequest} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, Report, ReportAction, ReportActions, Transaction} from '@src/types/onyx';
+import type {OriginalMessageIOU, Policy, Report, ReportAction, ReportActions, Transaction} from '@src/types/onyx';
 
 function getSplitAuthor(transaction: Transaction, splits?: Array<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>>) {
     const {originalTransactionID, source} = transaction.comment ?? {};
@@ -71,13 +71,28 @@ function getReportPreviewSenderID({iouReport, action, chatReport, iouActions, tr
     if (isOptimisticReportPreview) {
         return currentUserAccountID;
     }
+
     const loadedTransactionCount = transactions?.length ?? 0;
     const childMoneyRequestCount = action?.childMoneyRequestCount ?? 0;
+    const uniqueIOUActionActorMap = new Map<string, number>();
+
+    for (const iouAction of iouActions ?? []) {
+        const iouTransactionID = (getOriginalMessage(iouAction) as OriginalMessageIOU | undefined)?.IOUTransactionID;
+
+        if (!iouTransactionID || iouAction.actorAccountID === undefined) {
+            continue;
+        }
+
+        uniqueIOUActionActorMap.set(iouTransactionID, iouAction.actorAccountID);
+    }
+
+    const hasCompleteActorCoverageFromIOUActions = childMoneyRequestCount > 0 && uniqueIOUActionActorMap.size >= childMoneyRequestCount;
+    const areAllChildRequestsCreatedByOneActor = new Set(uniqueIOUActionActorMap.values()).size < 2;
 
     // After refresh, the report preview action can arrive before all child transactions hydrate.
-    // In that partial state, making a single-avatar decision is unsafe because we may only see a subset
-    // of the requests that belong to the preview.
-    if (childMoneyRequestCount > loadedTransactionCount) {
+    // In that partial state, making a single-avatar decision is unsafe unless IOU actions already prove
+    // that every child request belongs to the same actor.
+    if (childMoneyRequestCount > loadedTransactionCount && (!hasCompleteActorCoverageFromIOUActions || !areAllChildRequestsCreatedByOneActor)) {
         return undefined;
     }
     const transactionActorAccountIDs = transactions?.map((transaction) => getIOUActionForTransactionID(iouActions ?? [], transaction.transactionID)?.actorAccountID);
