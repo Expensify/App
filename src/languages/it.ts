@@ -1143,7 +1143,6 @@ const translations: TranslationDeepObject<typeof en> = {
         flash: 'flash',
         multiScan: 'scansione multipla',
         shutter: 'otturatore',
-        flipCamera: 'capovolgi fotocamera',
         gallery: 'galleria',
         deleteReceipt: 'Elimina ricevuta',
         deleteConfirmation: 'Sei sicuro di voler eliminare questa ricevuta?',
@@ -1624,6 +1623,11 @@ const translations: TranslationDeepObject<typeof en> = {
             `approvazione non riuscita tramite le <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">regole dello spazio di lavoro</a>. ${reason}`,
         failedToApproveViaDEW: (reason: string) => `approvazione non riuscita. ${reason}`,
         cannotDuplicateDistanceExpense: 'Non puoi duplicare le spese chilometriche tra diversi spazi di lavoro perché le tariffe potrebbero essere diverse.',
+        taxDisabledAlert: {
+            title: 'Imposta disattivata',
+            prompt: 'Abilita il monitoraggio delle imposte nello spazio di lavoro per modificare i dettagli della spesa o eliminare l’imposta da questa spesa.',
+            confirmText: 'Elimina imposta',
+        },
     },
     transactionMerge: {
         listPage: {
@@ -2865,6 +2869,7 @@ ${amount} per ${merchant} - ${date}`,
         workspaceYouMayJoin: (domain: string, email: string) => `Qualcuno di ${domain} ha già creato uno spazio di lavoro. Inserisci il codice magico inviato a ${email}.`,
         joinAWorkspace: 'Unisciti a uno spazio di lavoro',
         listOfWorkspaces: "Ecco l'elenco degli spazi di lavoro a cui puoi unirti. Non preoccuparti, potrai sempre unirti anche in un secondo momento, se preferisci.",
+        skipForNow: 'Salta per ora',
         workspaceMemberList: (employeeCount: number, policyOwner: string) => `${employeeCount} membro${employeeCount > 1 ? 's' : ''} • ${policyOwner}`,
         whereYouWork: 'Dove lavori?',
         errorSelection: 'Seleziona un’opzione per procedere',

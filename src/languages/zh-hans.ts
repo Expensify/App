@@ -1105,7 +1105,6 @@ const translations: TranslationDeepObject<typeof en> = {
         flash: '闪光',
         multiScan: '多重扫描',
         shutter: '快门',
-        flipCamera: '翻转摄像头',
         gallery: '图库',
         deleteReceipt: '删除收据',
         deleteConfirmation: '确定要删除这张收据吗？',
@@ -1572,6 +1571,7 @@ const translations: TranslationDeepObject<typeof en> = {
         failedToAutoApproveViaDEW: (reason: string) => `未能通过<a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">工作区规则</a>批准。${reason}`,
         failedToApproveViaDEW: (reason: string) => `批准失败。${reason}`,
         cannotDuplicateDistanceExpense: '你无法在不同工作区之间复制里程报销，因为各个工作区的费率可能不同。',
+        taxDisabledAlert: {title: '税费已禁用', prompt: '请在工作区中启用税费跟踪，以便编辑此报销的详细信息或从该报销中删除税费。', confirmText: '删除税费'},
     },
     transactionMerge: {
         listPage: {
@@ -2784,6 +2784,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         workspaceYouMayJoin: (domain: string, email: string) => `${domain} 中的某位成员已经创建了一个工作区。请输入发送到 ${email} 的魔法验证码。`,
         joinAWorkspace: '加入工作区',
         listOfWorkspaces: '以下是你可以加入的工作空间列表。别担心，如果你愿意，你随时都可以稍后再加入。',
+        skipForNow: '暂时跳过',
         workspaceMemberList: (employeeCount: number, policyOwner: string) => `${employeeCount} 位成员${employeeCount > 1 ? '秒' : ''} • ${policyOwner}`,
         whereYouWork: '你在哪里工作？',
         errorSelection: '选择一个选项以继续',

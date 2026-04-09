@@ -656,7 +656,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_XERO_EXPORT_BANK_ACCOUNT_SELECT]: DYNAMIC_ROUTES.POLICY_ACCOUNTING_XERO_EXPORT_BANK_ACCOUNT_SELECT.path,
                         [SCREENS.WORKSPACE.ACCOUNTING.XERO_ADVANCED]: {path: ROUTES.POLICY_ACCOUNTING_XERO_ADVANCED.route},
                         [SCREENS.WORKSPACE.ACCOUNTING.CLAIM_OFFER]: {path: ROUTES.POLICY_ACCOUNTING_CLAIM_OFFER.route},
-                        [SCREENS.WORKSPACE.ACCOUNTING.XERO_AUTO_SYNC]: {path: ROUTES.POLICY_ACCOUNTING_XERO_AUTO_SYNC.route},
+                        [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_XERO_AUTO_SYNC]: DYNAMIC_ROUTES.POLICY_ACCOUNTING_XERO_AUTO_SYNC.path,
                         [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_XERO_ACCOUNTING_METHOD]: DYNAMIC_ROUTES.POLICY_ACCOUNTING_XERO_ACCOUNTING_METHOD.path,
                         [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_XERO_BILL_STATUS_SELECTOR]: DYNAMIC_ROUTES.POLICY_ACCOUNTING_XERO_BILL_STATUS_SELECTOR.path,
                         [SCREENS.WORKSPACE.ACCOUNTING.XERO_INVOICE_ACCOUNT_SELECTOR]: {path: ROUTES.POLICY_ACCOUNTING_XERO_INVOICE_SELECTOR.route},
@@ -770,7 +770,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.ACCOUNTING.CARD_RECONCILIATION_SAGE_INTACCT_AUTO_SYNC]: {
                             path: ROUTES.POLICY_ACCOUNTING_CARD_RECONCILIATION_SAGE_INTACCT_AUTO_SYNC.route,
                         },
-                        [SCREENS.WORKSPACE.ACCOUNTING.RECONCILIATION_ACCOUNT_SETTINGS]: {path: ROUTES.WORKSPACE_ACCOUNTING_RECONCILIATION_ACCOUNT_SETTINGS.route},
+                        [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_RECONCILIATION_ACCOUNT_SETTINGS]: DYNAMIC_ROUTES.WORKSPACE_ACCOUNTING_RECONCILIATION_ACCOUNT_SETTINGS.path,
                         [SCREENS.WORKSPACE.DESCRIPTION]: {
                             path: ROUTES.WORKSPACE_OVERVIEW_DESCRIPTION.route,
                         },
@@ -1167,6 +1167,10 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         },
                         [SCREENS.REIMBURSEMENT_ACCOUNT]: {
                             path: ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.route,
+                            exact: true,
+                        },
+                        [SCREENS.REIMBURSEMENT_ACCOUNT_USD]: {
+                            path: ROUTES.BANK_ACCOUNT_USD_SETUP.route,
                             exact: true,
                         },
                         [SCREENS.REIMBURSEMENT_ACCOUNT_NON_USD]: {
@@ -1859,7 +1863,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                 },
                 [SCREENS.RIGHT_MODAL.FLAG_COMMENT]: {
                     screens: {
-                        [SCREENS.FLAG_COMMENT_ROOT]: ROUTES.FLAG_COMMENT.route,
+                        [SCREENS.DYNAMIC_FLAG_COMMENT]: DYNAMIC_ROUTES.FLAG_COMMENT.path,
                     },
                 },
                 [SCREENS.RIGHT_MODAL.EDIT_REQUEST]: {

@@ -1142,7 +1142,6 @@ const translations: TranslationDeepObject<typeof en> = {
         flash: 'flits',
         multiScan: 'meerscannen',
         shutter: 'sluiter',
-        flipCamera: 'camera omdraaien',
         gallery: 'galerij',
         deleteReceipt: 'Bon verwijderen',
         deleteConfirmation: 'Weet je zeker dat je deze bon wilt verwijderen?',
@@ -1620,6 +1619,11 @@ const translations: TranslationDeepObject<typeof en> = {
         failedToAutoApproveViaDEW: (reason: string) => `goedkeuren via <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">werkruimte­regels</a> is mislukt. ${reason}`,
         failedToApproveViaDEW: (reason: string) => `goedkeuren mislukt. ${reason}`,
         cannotDuplicateDistanceExpense: 'Je kunt afstandsvergoedingen niet dupliceren tussen werkruimtes, omdat de tarieven per werkruimte kunnen verschillen.',
+        taxDisabledAlert: {
+            title: 'Belasting uitgeschakeld',
+            prompt: 'Schakel belastingregistratie in voor de workspace om de onkostendetails te bewerken of de belasting uit deze onkostendeclaratie te verwijderen.',
+            confirmText: 'Belasting verwijderen',
+        },
     },
     transactionMerge: {
         listPage: {
@@ -2864,6 +2868,7 @@ ${amount} voor ${merchant} - ${date}`,
         workspaceYouMayJoin: (domain: string, email: string) => `Iemand van ${domain} heeft al een workspace gemaakt. Voer de magische code in die is verzonden naar ${email}.`,
         joinAWorkspace: 'Lid worden van een workspace',
         listOfWorkspaces: 'Hier is de lijst met werkruimtes waaraan je kunt deelnemen. Geen zorgen, je kunt je er altijd later nog bij aansluiten als je dat liever hebt.',
+        skipForNow: 'Voorlopig overslaan',
         workspaceMemberList: (employeeCount: number, policyOwner: string) => `${employeeCount} lid${employeeCount > 1 ? 's' : ''} • ${policyOwner}`,
         whereYouWork: 'Waar werk je?',
         errorSelection: 'Selecteer een optie om verder te gaan',
