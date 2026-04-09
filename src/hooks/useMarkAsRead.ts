@@ -1,5 +1,5 @@
 import {useIsFocused, useRoute} from '@react-navigation/native';
-import {useEffect, useRef, useState} from 'react';
+import {useEffect, useRef, useSyncExternalStore} from 'react';
 import type {RefObject} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import DateUtils from '@libs/DateUtils';
@@ -43,21 +43,13 @@ function useMarkAsRead({reportID, sortedVisibleReportActions, transactionThreadR
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`);
 
-    const [isVisible, setIsVisible] = useState(Visibility.isVisible);
+    const isVisible = useSyncExternalStore(Visibility.onVisibilityChange, Visibility.isVisible);
 
     const readActionSkippedRef = useRef(false);
     const userActiveSince = useRef<string>(DateUtils.getDBTime());
     const lastMessageTime = useRef<string | null>(null);
 
     const lastAction = sortedVisibleReportActions.at(0);
-
-    useEffect(() => {
-        const unsubscribe = Visibility.onVisibilityChange(() => {
-            setIsVisible(Visibility.isVisible());
-        });
-
-        return unsubscribe;
-    }, []);
 
     function handleReportChangeMarkAsRead() {
         if (reportID !== prevReportID) {
