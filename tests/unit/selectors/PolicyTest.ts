@@ -67,12 +67,7 @@ function buildSelectorPolicy(id: number, overrides: Partial<Policy>): Policy {
 }
 
 function buildConnectionSyncProgressCollection(syncProgressByPolicyID: Record<string, PolicyConnectionSyncProgress>): OnyxCollection<PolicyConnectionSyncProgress> {
-    return Object.fromEntries(
-        Object.entries(syncProgressByPolicyID).map(([policyID, syncProgress]) => [
-            `${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policyID}`,
-            syncProgress,
-        ]),
-    );
+    return Object.fromEntries(Object.entries(syncProgressByPolicyID).map(([policyID, syncProgress]) => [`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policyID}`, syncProgress]));
 }
 
 describe('activeAdminPoliciesSelector', () => {

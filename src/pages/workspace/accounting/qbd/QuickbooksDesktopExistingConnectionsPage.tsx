@@ -21,10 +21,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import getQuickbooksDesktopSetupEntryRoute from './utils';
 
-type QuickbooksDesktopExistingConnectionsPageProps = PlatformStackScreenProps<
-    SettingsNavigatorParamList,
-    typeof SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_DESKTOP_REUSE_EXISTING_CONNECTIONS
->;
+type QuickbooksDesktopExistingConnectionsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_DESKTOP_REUSE_EXISTING_CONNECTIONS>;
 
 function QuickbooksDesktopExistingConnectionsPage({route}: QuickbooksDesktopExistingConnectionsPageProps) {
     const {translate, datetimeToRelative, getLocalDateFromDatetime} = useLocalize();
@@ -55,14 +52,7 @@ function QuickbooksDesktopExistingConnectionsPage({route}: QuickbooksDesktopExis
                     },
                 };
             }),
-        [
-            reusablePoliciesConnectedToQBD,
-            connectionSyncProgressCollection,
-            policyID,
-            translate,
-            datetimeToRelative,
-            getLocalDateFromDatetime,
-        ],
+        [reusablePoliciesConnectedToQBD, connectionSyncProgressCollection, policyID, translate, datetimeToRelative, getLocalDateFromDatetime],
     );
 
     return (

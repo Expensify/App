@@ -138,11 +138,7 @@ const adminPoliciesConnectedToNetSuiteSelector = (policies: OnyxCollection<Polic
 const adminPoliciesConnectedToQBDSelector = (policies: OnyxCollection<Policy>) =>
     Object.values(policies ?? {}).filter<Policy>((policy): policy is Policy => !!policy && policy.role === CONST.POLICY.ROLE.ADMIN && !!policy?.connections?.quickbooksDesktop);
 
-function getReusablePoliciesConnectedToQBD(
-    policies: OnyxCollection<Policy>,
-    connectionSyncProgressCollection: OnyxCollection<PolicyConnectionSyncProgress>,
-    currentPolicyID?: string,
-) {
+function getReusablePoliciesConnectedToQBD(policies: OnyxCollection<Policy>, connectionSyncProgressCollection: OnyxCollection<PolicyConnectionSyncProgress>, currentPolicyID?: string) {
     return adminPoliciesConnectedToQBDSelector(policies).filter((policy) => {
         if (policy.id === currentPolicyID) {
             return false;
@@ -153,11 +149,8 @@ function getReusablePoliciesConnectedToQBD(
     });
 }
 
-const reusablePoliciesConnectedToQBDSelector = (
-    policies: OnyxCollection<Policy>,
-    connectionSyncProgressCollection: OnyxCollection<PolicyConnectionSyncProgress>,
-    currentPolicyID?: string,
-) => getReusablePoliciesConnectedToQBD(policies, connectionSyncProgressCollection, currentPolicyID);
+const reusablePoliciesConnectedToQBDSelector = (policies: OnyxCollection<Policy>, connectionSyncProgressCollection: OnyxCollection<PolicyConnectionSyncProgress>, currentPolicyID?: string) =>
+    getReusablePoliciesConnectedToQBD(policies, connectionSyncProgressCollection, currentPolicyID);
 
 const hasPoliciesConnectedToSageIntacctSelector = (policies: OnyxCollection<Policy>) => !!adminPoliciesConnectedToSageIntacctSelector(policies).length;
 
