@@ -34,6 +34,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionViolations from '@hooks/useTransactionViolations';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import {getBrokenConnectionUrlToFixPersonalCard} from '@libs/CardUtils';
 import {hasHoverSupport} from '@libs/DeviceCapabilities';
 import {getMicroSecondOnyxErrorWithTranslationKey, isReceiptError} from '@libs/ErrorUtils';
@@ -124,6 +125,7 @@ function MoneyRequestReceiptView({
     const {translate} = useLocalize();
     const {environmentURL} = useEnvironment();
     const {shouldUseNarrowLayout, isInNarrowPaneModal} = useResponsiveLayout();
+    const {windowWidth, windowHeight} = useWindowDimensions();
     const {getReportRHPActiveRoute} = useActiveRoute();
     const parentReportID = report?.parentReportID;
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(parentReportID)}`);
@@ -414,7 +416,8 @@ function MoneyRequestReceiptView({
     } else if (fillSpace) {
         receiptStyle = styles.flexibleHeight;
     } else {
-        receiptStyle = shouldUseNarrowLayout ? styles.expenseViewImageSmall : styles.expenseViewImage;
+        const receiptMaxWidth = Math.min(windowWidth, windowHeight) - (styles.moneyRequestViewImage.marginHorizontal ?? 0) * 2;
+        receiptStyle = shouldUseNarrowLayout ? [styles.expenseViewImageSmall, {maxWidth: receiptMaxWidth, height: Math.round(receiptMaxWidth * (9 / 16))}] : styles.expenseViewImage;
     }
 
     const showBorderlessLoading = isLoading && fillSpace;
