@@ -1,6 +1,6 @@
 ---
 title: Connect a US Business Bank Account
-description: How to connect a US business bank account. 
+description: Learn how to connect and verify a US business bank account in Expensify for reimbursements, Expensify Card payments, and invoice payouts.
 keywords: [New Expensify, business bank account, connect bank account, verified business bank account, reimbursement, Expensify Card, Plaid, Wallet, workspace payments, link bank account, ACH]
 internalScope: Audience is Workspace Admins. Covers connecting a new US business bank account from a workspace or Wallet, and linking an existing one to a workspace for reimbursements. Does not cover validating test transactions, sharing, unsharing, or unlocking a business bank account.
 ---
