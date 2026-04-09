@@ -28,7 +28,7 @@ import useTransactionsAndViolationsForReport from './useTransactionsAndViolation
 
 type UseExportActionsParams = {
     reportID: string | undefined;
-    onPDFModalOpen: () => void;
+    onPDFModalOpen?: () => void;
 };
 
 type UseExportActionsReturn = {
@@ -236,7 +236,7 @@ function useExportActions({reportID, onPDFModalOpen}: UseExportActionsParams): U
                 if (!moneyRequestReport?.reportID) {
                     return;
                 }
-                onPDFModalOpen();
+                onPDFModalOpen?.();
                 exportReportToPDF({reportID: moneyRequestReport.reportID});
             },
         },
