@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useEffect} from 'react';
 import {View} from 'react-native';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
@@ -26,7 +26,6 @@ function AddPersonalNewCardPage() {
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const {currentStep} = addNewPersonalCardFeed ?? {};
-    const [isModalVisible, setIsModalVisible] = useState(false);
     const {showConfirmModal} = useConfirmModal();
     const {translate} = useLocalize();
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
@@ -66,29 +65,24 @@ function AddPersonalNewCardPage() {
             CurrentStep = (
                 <PlaidConnectionStep
                     onExit={() => {
-                        setIsModalVisible(true);
                         showConfirmModal({
                             title: translate('workspace.companyCards.addNewCard.exitModal.title'),
                             success: true,
                             confirmText: translate('workspace.companyCards.addNewCard.exitModal.confirmText'),
                             cancelText: translate('workspace.companyCards.addNewCard.exitModal.cancelText'),
                             prompt: translate('workspace.companyCards.addNewCard.exitModal.prompt'),
-                        })
-                            .then((result) => {
-                                if (result.action !== ModalActions.CONFIRM) {
-                                    return;
-                                }
-                                navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, false, betas);
-                            })
-                            .finally(() => {
-                                setIsModalVisible(false);
-                            });
+                        }).then((result) => {
+                            if (result.action !== ModalActions.CONFIRM) {
+                                return;
+                            }
+                            navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, false, betas);
+                        });
                     }}
                 />
             );
             break;
         default:
-            CurrentStep = <SelectCountryStep disableAutoFocus={isModalVisible} />;
+            CurrentStep = <SelectCountryStep />;
             break;
     }
 
