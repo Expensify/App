@@ -240,11 +240,6 @@ function ReportActionsList({reportID, onLayout}: ReportActionsListProps) {
         return <ReportActionsSkeletonView />;
     }
 
-    const hasDerivedValueTimingIssue = pagination.reportActions.length > 0 && isMissingReportActions;
-    if (hasDerivedValueTimingIssue && !visibility.showConciergeSidePanelWelcome) {
-        return <ReportActionsSkeletonView shouldAnimate={false} />;
-    }
-
     const reportActionsListFSClass = FS.getChatFSClass(report);
     const topReportAction = sortedVisibleReportActions.at(-1);
 

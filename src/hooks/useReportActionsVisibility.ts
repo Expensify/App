@@ -18,7 +18,6 @@ type UseReportActionsVisibilityResult = {
     mostRecentIOUReportActionID: string | null;
     isConciergeSidePanel: boolean;
     hasPreviousMessages: boolean;
-    showConciergeSidePanelWelcome: boolean;
     showFullHistory: boolean;
     handleShowPreviousMessages: () => void;
 };
@@ -38,8 +37,11 @@ function useReportActionsVisibility({reportID, reportActions, canPerformWriteAct
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [visibleReportActionsData] = useOnyx(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS);
 
-    const {transactions} = useTransactionsAndViolationsForReport(reportID);
-    const reportTransactionIDs = getAllNonDeletedTransactions(transactions, reportActions).map((t) => t.transactionID);
+    const {transactions, isLoaded: areTransactionsLoaded} = useTransactionsAndViolationsForReport(reportID);
+    // When transactions haven't loaded yet, pass undefined to skip IOU filtering entirely
+    // (undefined = "don't filter" in isIOUActionMatchingTransactionList).
+    // Once loaded, filter normally — even if transactions is empty (genuinely no transactions).
+    const reportTransactionIDs = areTransactionsLoaded ? getAllNonDeletedTransactions(transactions, reportActions).map((t) => t.transactionID) : undefined;
 
     const baseFilteredActions = reportActions.filter((reportAction) => {
         const passesOfflineCheck = isOffline || isDeletedParentAction(reportAction) || reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || reportAction.errors;
@@ -92,7 +94,6 @@ function useReportActionsVisibility({reportID, reportActions, canPerformWriteAct
         mostRecentIOUReportActionID: getMostRecentIOURequestActionID(reportActions),
         isConciergeSidePanel,
         hasPreviousMessages: concierge.hasPreviousMessages,
-        showConciergeSidePanelWelcome: concierge.showConciergeSidePanelWelcome,
         showFullHistory: concierge.showFullHistory,
         handleShowPreviousMessages: concierge.handleShowPreviousMessages,
     };
