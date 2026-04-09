@@ -9,7 +9,7 @@ internalScope: Audience is members with personal credit cards already connected 
 
 Expensify lets you view and manage your personal credit cards in one place, making it easier to track spending, submit reimbursable expenses, and stay organized for tax time.
 
-[Learn how to connect a personal card]({{site.url}}/articles/new-expensify/connect-credit-cards/Connect-Personal-Cards).
+[Learn how to connect a personal card](/articles/new-expensify/connect-credit-cards/Connect-Personal-Cards).
 
 ---
 
