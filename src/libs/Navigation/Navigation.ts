@@ -586,41 +586,18 @@ function goBackToHome() {
 }
 
 /**
- * Find the navigator state key that directly contains a route with the given key.
- * This is needed because SET_PARAMS only searches flat routes arrays, so dispatching
- * without `target` fails for routes nested inside split navigators.
- */
-function findParentNavigatorKey(routeKey: string, state?: NavigationState): string | undefined {
-    const navState = state ?? navigationRef.getRootState();
-    if (!navState?.routes) {
-        return undefined;
-    }
-    for (const route of navState.routes) {
-        if (route.key === routeKey) {
-            return navState.key;
-        }
-        if (route.state?.routes) {
-            const found = findParentNavigatorKey(routeKey, route.state as NavigationState);
-            if (found) {
-                return found;
-            }
-        }
-    }
-    return undefined;
-}
-
-/**
  * Update route params for the specified route.
+ *
+ * @param targetKey - Optional navigator key to target the dispatch at. When provided,
+ *   the SET_PARAMS action is delivered directly to that navigator, which is required for
+ *   routes nested inside split navigators (where the default dispatch would fail if a
+ *   modal is focused). Can be obtained via `navigation.getState()?.key` in a component.
  */
-function setParams(params: Record<string, unknown>, routeKey = '') {
-    // When a routeKey is provided, find its parent navigator and set `target` so the
-    // action is delivered directly to that navigator. Without this, SET_PARAMS fails
-    // for routes nested inside split navigators (e.g. when a modal is focused).
-    const navigatorKey = routeKey ? findParentNavigatorKey(routeKey) : undefined;
+function setParams(params: Record<string, unknown>, routeKey = '', targetKey?: string) {
     navigationRef.current?.dispatch({
         ...CommonActions.setParams(params),
         source: routeKey,
-        ...(navigatorKey && {target: navigatorKey}),
+        ...(targetKey && {target: targetKey}),
     });
 }
 
@@ -923,19 +900,19 @@ function cleanStaleBackToParam(reportID: string, reportActionID: string) {
     const staleSegment = `r/${reportID}/${reportActionID}`;
     const cleanSegment = `r/${reportID}`;
 
-    function walk(routes: NavigationState['routes']) {
+    function walk(routes: NavigationState['routes'], navigatorKey?: string) {
         for (const route of routes) {
             const backTo = (route.params as Record<string, unknown> | undefined)?.backTo;
             if (typeof backTo === 'string' && backTo.includes(staleSegment)) {
-                setParams({backTo: backTo.replace(staleSegment, cleanSegment)}, route.key);
+                setParams({backTo: backTo.replace(staleSegment, cleanSegment)}, route.key, navigatorKey);
             }
             if (route.state?.routes) {
-                walk(route.state.routes as NavigationState['routes']);
+                walk(route.state.routes as NavigationState['routes'], (route.state as NavigationState).key);
             }
         }
     }
 
-    walk(rootState.routes);
+    walk(rootState.routes, rootState.key);
 }
 
 function clearPreloadedRoutes() {
@@ -1093,4 +1070,4 @@ export default {
     cleanStaleBackToParam,
 };
 
-export {navigationRef, getDeepestFocusedScreen, isTwoFactorSetupScreen, isMFAFlowScreen, shouldShowRequire2FAPage, findParentNavigatorKey};
+export {navigationRef, getDeepestFocusedScreen, isTwoFactorSetupScreen, isMFAFlowScreen, shouldShowRequire2FAPage};

@@ -9,6 +9,7 @@ import type {ReportAction} from '@src/types/onyx';
 const REPORT_ID = '12345';
 const REPORT_ACTION_ID = '67890';
 const ROUTE_KEY = 'test-route-key';
+const NAVIGATOR_KEY = 'test-navigator-key';
 
 const mockSetParams = jest.fn();
 const mockCleanStaleBackToParam = jest.fn();
@@ -36,6 +37,9 @@ jest.mock('@react-navigation/native', () => {
             key: ROUTE_KEY,
             name: 'Report',
             params: mockRouteParams,
+        }),
+        useNavigation: () => ({
+            getState: () => ({key: NAVIGATOR_KEY}),
         }),
     };
 });
@@ -147,7 +151,7 @@ describe('LinkedActionNotFoundGuard', () => {
         );
 
         // The cleanup effect should clear reportActionID with the route key
-        expect(mockSetParams).toHaveBeenCalledWith({reportActionID: undefined}, ROUTE_KEY);
+        expect(mockSetParams).toHaveBeenCalledWith({reportActionID: undefined}, ROUTE_KEY, NAVIGATOR_KEY);
     });
 
     it('does not navigate away when action disappears but was never visible', () => {
@@ -185,7 +189,7 @@ describe('LinkedActionNotFoundGuard', () => {
 
         expect(mockSetParams).toHaveBeenCalledTimes(1);
         // Verify route.key is the second argument (needed for split navigator targeting)
-        expect(mockSetParams).toHaveBeenCalledWith({reportActionID: undefined}, ROUTE_KEY);
+        expect(mockSetParams).toHaveBeenCalledWith({reportActionID: undefined}, ROUTE_KEY, NAVIGATOR_KEY);
     });
 
     it('renders children without guard when no reportActionID in route', () => {

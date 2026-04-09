@@ -1,4 +1,4 @@
-import {useRoute} from '@react-navigation/native';
+import {useNavigation, useRoute} from '@react-navigation/native';
 import type {ReactNode} from 'react';
 import React, {useEffect, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -50,6 +50,8 @@ type LinkedActionNotFoundGateProps = {
 // eslint-disable-next-line rulesdir/no-negated-variables
 function LinkedActionNotFoundGate({reportActionIDFromRoute, children}: LinkedActionNotFoundGateProps) {
     const route = useRoute();
+    const navigation = useNavigation();
+    const navigatorKey = navigation.getState()?.key;
     const routeParams = route.params as {reportID?: string; reportActionID?: string} | undefined;
     const reportIDFromRoute = getNonEmptyStringOnyxID(routeParams?.reportID);
 
@@ -145,13 +147,13 @@ function LinkedActionNotFoundGate({reportActionIDFromRoute, children}: LinkedAct
         if (!isActionGone) {
             return;
         }
-        Navigation.setParams({reportActionID: undefined}, route.key);
+        Navigation.setParams({reportActionID: undefined}, route.key, navigatorKey);
         // Also strip the stale reportActionID from any `backTo` params on sibling routes
         // (e.g. the IOU report screen that was navigated to FROM this deep link).
         if (reportIDFromRoute) {
             Navigation.cleanStaleBackToParam(reportIDFromRoute, reportActionIDFromRoute);
         }
-    }, [isLinkedActionDeleted, wasEverVisible, linkedAction, isLoadingInitialReportActions, route.key, reportIDFromRoute, reportActionIDFromRoute]);
+    }, [isLinkedActionDeleted, wasEverVisible, linkedAction, isLoadingInitialReportActions, route.key, navigatorKey, reportIDFromRoute, reportActionIDFromRoute]);
 
     // Handle inaccessible whisper
     useEffect(() => {
@@ -163,15 +165,15 @@ function LinkedActionNotFoundGate({reportActionIDFromRoute, children}: LinkedAct
             if (ignore) {
                 return;
             }
-            Navigation.setParams({reportActionID: undefined}, route.key);
+            Navigation.setParams({reportActionID: undefined}, route.key, navigatorKey);
         });
         return () => {
             ignore = true;
         };
-    }, [isLinkedActionInaccessibleWhisper, route.key]);
+    }, [isLinkedActionInaccessibleWhisper, route.key, navigatorKey]);
 
     const navigateToEndOfReport = () => {
-        Navigation.setParams({reportActionID: undefined}, route.key);
+        Navigation.setParams({reportActionID: undefined}, route.key, navigatorKey);
     };
 
     return (

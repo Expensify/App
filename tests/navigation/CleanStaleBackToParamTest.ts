@@ -47,10 +47,10 @@ jest.mock('@react-navigation/native', () => ({
     createNavigationContainerRef: jest.fn(() => ({current: null})),
 }));
 
-function buildRoute(key: string, params: Record<string, unknown> = {}, nestedRoutes?: NavigationState['routes']): NavigationState['routes'][number] {
+function buildRoute(key: string, params: Record<string, unknown> = {}, nestedRoutes?: NavigationState['routes'], nestedStateKey?: string): NavigationState['routes'][number] {
     const route: NavigationState['routes'][number] = {key, name: 'Screen', params} as NavigationState['routes'][number];
     if (nestedRoutes) {
-        (route as Record<string, unknown>).state = {routes: nestedRoutes};
+        (route as Record<string, unknown>).state = {routes: nestedRoutes, key: nestedStateKey ?? `${key}-nav`};
     }
     return route;
 }
@@ -83,6 +83,7 @@ describe('cleanStaleBackToParam', () => {
                 type: 'SET_PARAMS',
                 payload: {params: {backTo: '/r/111'}},
                 source: 'route-1',
+                target: 'root',
             }),
         );
     });
@@ -106,6 +107,7 @@ describe('cleanStaleBackToParam', () => {
             expect.objectContaining({
                 payload: {params: {backTo: '/r/111'}},
                 source: 'nested-route',
+                target: 'parent-nav',
             }),
         );
     });
