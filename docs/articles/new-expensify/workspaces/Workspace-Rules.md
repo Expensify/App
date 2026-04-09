@@ -1,8 +1,8 @@
 ---
 title: Workspace Rules
 description: Configure and manage rules for your workspace to enforce expense policies and automate compliance.
-keywords: [New Expensify, workspace rules, expense rules, receipt requirements, category rules, self-approvals, prohibited expenses, disable Smartscan, automate expenses, subscription expense, non-reimbursable, default expense handling, control expenses, expense categorization, rule-based expenses, compliance, itemized receipt, itemized receipts required over, merchant rules, workspace merchant rules, auto-categorize by merchant]
-internalScope: Audience is Workspace Admins on the Control plan. Covers enabling and managing workspace-level rules such as expense rules, prohibited expenses, category rules, tag rules, and report rules. Does not cover personal expense rules, Workspace Merchant Rules setup details, or troubleshooting specific rule outcomes.
+keywords: [New Expensify, workspace rules, expense rules, receipt requirements, category rules, self-approvals, prohibited expenses, disable Smartscan, automate expenses, subscription expense, non-reimbursable, default expense handling, control expenses, expense categorization, rule-based expenses, compliance, itemized receipt, itemized receipts required over, merchant rules, workspace merchant rules, auto-categorize by merchant, spend rules, Expensify Card spend rules, card spend rules, block card transactions, allow card transactions, spend categories, card spending restrictions]
+internalScope: Audience is Workspace Admins on the Control plan. Covers enabling and managing workspace-level rules such as expense rules, prohibited expenses, spend rules for Expensify Cards, category rules, tag rules, and report rules. Does not cover personal expense rules, Workspace Merchant Rules setup details, or troubleshooting specific rule outcomes.
 ---
 
 # Workspace Rules 
@@ -82,6 +82,47 @@ To enable it:
    - Adult Entertainment
 
 **Note:** Violations appear in both New Expensify and Expensify Classic, but the rule must be enabled in **New Expensify**.
+
+---
+
+# How to configure Spend Rules for Expensify Cards
+
+Spend Rules let you approve or decline Expensify Card transactions in real time based on merchants, spend categories, or transaction amounts. Use them to control where and how company cards are used.
+
+**Note:** Spend Rules require the **Expensify Card** to be enabled on the workspace. To learn how to set up the Expensify Card, see [Set Up and Manage the Expensify Card](https://help.expensify.com/articles/new-expensify/expensify-card/Set-Up-and-Manage-the-Expensify-Card).
+
+## What built-in protection Expensify Cards include
+
+All Expensify Cards automatically block transactions in these categories:
+
+- Adult services
+- ATMs
+- Gambling
+- Money transfers
+
+This built-in protection is always active and cannot be disabled.
+
+## How to add a custom Spend Rule
+
+1. In the **navigation tabs** (on the left on web, and at the bottom on mobile), click **Workspaces**.
+2. Click your **workspace name**.
+3. Click **Rules**.
+4. Under the **Spend** section, click **Add spend rule**.
+5. Under **Cards**, click **Choose cards** and select which Expensify Cards this rule applies to.
+6. Choose a **Restriction type**:
+   - **Allow** – Charges are approved if they match any merchant or category, and don't exceed a max amount.
+   - **Block** – Charges are declined if they match any merchant or category, or exceed a max amount.
+7. Configure at least one of the following:
+   - **Merchant** – Add merchants to match against. Choose whether the merchant name **Contains** or **Matches exactly** the text you enter.
+   - **Spend category** – Select one or more predefined spend categories (e.g., Airlines, Dining, Hotels, Software, Retail).
+   - **Max amount** – Set a maximum transaction amount. Any charge over this amount is declined regardless of merchant or category restrictions. All selected cards must settle in the same currency to set a max amount.
+8. Click **Save rule**.
+
+<!-- SCREENSHOT:
+Suggestion: Show the Spend Rules section on the Rules page with the Add spend rule button and an example custom rule.
+Location: After step 8.
+Purpose: Helps users identify where Spend Rules appear and what a configured rule looks like.
+-->
 
 ---
 

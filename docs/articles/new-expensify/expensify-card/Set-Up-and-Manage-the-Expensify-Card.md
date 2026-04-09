@@ -13,7 +13,7 @@ Workspace Admins can enable and issue Expensify Visa® Commercial Cards to manag
 - Individual Smart, Monthly, Fixed, or Single-use spend limits
 - Optional expiration dates for time-bound spending
 - Custom names for easier categorization
-- Spend restrictions by employee and merchant
+- Spend restrictions by employee, merchant, and category via [Spend Rules](https://help.expensify.com/articles/new-expensify/workspaces/Workspace-Rules)
 - Real-time visibility and cash back rewards
 
 **Prerequisites:** You must be a workspace admin and have a U.S. business bank account connected to Expensify. See this guide on [connecting a business bank account](https://help.expensify.com/articles/new-expensify/wallet-and-payments/Connect-a-Business-Bank-Account).
