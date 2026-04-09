@@ -135,24 +135,18 @@ function MoneyReportHeaderSecondaryActions({reportID, primaryAction, isReportInS
         if (isDelegateAccessRestricted) {
             showDelegateNoAccessModal();
         } else if (isAnyTransactionOnHold) {
+            const holdMenuParams = {
+                requestType: CONST.IOU.REPORT_ACTION_TYPE.PAY,
+                paymentType: type,
+                methodID: type === CONST.IOU.PAYMENT_TYPE.VBBA ? methodID : undefined,
+                onConfirm: () => startAnimation(),
+            };
             if (getPlatform() === CONST.PLATFORM.IOS) {
                 // InteractionManager delays modal until current interaction completes, preventing visual glitches on iOS
                 // eslint-disable-next-line @typescript-eslint/no-deprecated
-                InteractionManager.runAfterInteractions(() =>
-                    openHoldMenu({
-                        requestType: CONST.IOU.REPORT_ACTION_TYPE.PAY,
-                        paymentType: type,
-                        methodID: type === CONST.IOU.PAYMENT_TYPE.VBBA ? methodID : undefined,
-                        onConfirm: () => startAnimation(),
-                    }),
-                );
+                InteractionManager.runAfterInteractions(() => openHoldMenu(holdMenuParams));
             } else {
-                openHoldMenu({
-                    requestType: CONST.IOU.REPORT_ACTION_TYPE.PAY,
-                    paymentType: type,
-                    methodID: type === CONST.IOU.PAYMENT_TYPE.VBBA ? methodID : undefined,
-                    onConfirm: () => startAnimation(),
-                });
+                openHoldMenu(holdMenuParams);
             }
         } else if (isInvoiceReport) {
             startAnimation();
@@ -234,20 +228,12 @@ function MoneyReportHeaderSecondaryActions({reportID, primaryAction, isReportInS
 
     const activeAdminPolicies = useActiveAdminPolicies();
 
-    const workspacePolicyOptions = (() => {
-        if (!isIOUReportUtil(moneyRequestReport)) {
-            return [];
-        }
-        const hasPersonalPaymentOption = paymentButtonOptions.some((opt) => opt.value === CONST.IOU.PAYMENT_TYPE.EXPENSIFY);
-        if (!hasPersonalPaymentOption || !activeAdminPolicies.length) {
-            return [];
-        }
-        const canUseBusinessBankAccount = moneyRequestReport?.reportID && !hasRequestFromCurrentAccount(moneyRequestReport.reportID, accountID ?? CONST.DEFAULT_NUMBER_ID);
-        if (!canUseBusinessBankAccount) {
-            return [];
-        }
-        return sortPoliciesByName(activeAdminPolicies, localeCompare);
-    })();
+    const hasPersonalPaymentOption = paymentButtonOptions.some((opt) => opt.value === CONST.IOU.PAYMENT_TYPE.EXPENSIFY);
+    const canUseBusinessBankAccount = !!moneyRequestReport?.reportID && !hasRequestFromCurrentAccount(moneyRequestReport.reportID, accountID ?? CONST.DEFAULT_NUMBER_ID);
+    const workspacePolicyOptions =
+        isIOUReportUtil(moneyRequestReport) && hasPersonalPaymentOption && activeAdminPolicies.length && canUseBusinessBankAccount
+            ? sortPoliciesByName(activeAdminPolicies, localeCompare)
+            : [];
 
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Info', 'Cash', 'ArrowRight', 'Building']);
 
@@ -293,28 +279,25 @@ function MoneyReportHeaderSecondaryActions({reportID, primaryAction, isReportInS
     });
 
     // Compute list of applicable secondary action keys
-    const secondaryActions = (() => {
-        if (!moneyRequestReport) {
-            return [];
-        }
-        return getSecondaryReportActions({
-            currentUserLogin: currentUserLogin ?? '',
-            currentUserAccountID: accountID,
-            report: moneyRequestReport,
-            chatReport,
-            reportTransactions: nonPendingDeleteTransactions,
-            originalTransaction: undefined,
-            violations,
-            bankAccountList,
-            policy,
-            reportNameValuePairs,
-            reportActions,
-            reportMetadata,
-            policies,
-            outstandingReportsByPolicyID,
-            isChatReportArchived,
-        });
-    })();
+    const secondaryActions = moneyRequestReport
+        ? getSecondaryReportActions({
+              currentUserLogin: currentUserLogin ?? '',
+              currentUserAccountID: accountID,
+              report: moneyRequestReport,
+              chatReport,
+              reportTransactions: nonPendingDeleteTransactions,
+              originalTransaction: undefined,
+              violations,
+              bankAccountList,
+              policy,
+              reportNameValuePairs,
+              reportActions,
+              reportMetadata,
+              policies,
+              outstandingReportsByPolicyID,
+              isChatReportArchived,
+          })
+        : [];
 
     // Merge all action implementations
     const secondaryActionsImplementation: Record<string, (typeof lifecycleActions.actions)[string]> = {
