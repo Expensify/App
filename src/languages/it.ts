@@ -507,6 +507,10 @@ const translations: TranslationDeepObject<typeof en> = {
         approver: 'Approvante',
         enterDigitLabel: ({digitIndex, totalDigits}: {digitIndex: number; totalDigits: number}) => `inserire la cifra ${digitIndex} di ${totalDigits}`,
         copyOfReportName: (reportName: string) => `Copia di ${reportName}`,
+        previousMonth: 'Mese precedente',
+        nextMonth: 'Il prossimo mese',
+        previousYear: 'Anno precedente',
+        nextYear: "L'anno prossimo",
     },
     socials: {
         podcast: 'Seguici su Podcast',
@@ -720,7 +724,7 @@ const translations: TranslationDeepObject<typeof en> = {
             in cui è stato originariamente richiesto
         `),
         doNotShare: dedent(`
-            Non condividere il tuo codice con nessuno.  
+            Non condividere il tuo codice con nessuno.
             Expensify non te lo chiederà mai!
         `),
         or: ', oppure',
@@ -729,7 +733,7 @@ const translations: TranslationDeepObject<typeof en> = {
         expiredCodeDescription: 'Torna al dispositivo originale e richiedi un nuovo codice',
         successfulNewCodeRequest: 'Codice richiesto. Controlla il tuo dispositivo.',
         tfaRequiredTitle: dedent(`
-            Autenticazione a due fattori  
+            Autenticazione a due fattori
             obbligatoria
         `),
         tfaRequiredDescription: dedent(`
@@ -1071,15 +1075,12 @@ const translations: TranslationDeepObject<typeof en> = {
             if (!added && !updated) {
                 return 'Nessuna categoria è stata aggiunta o aggiornata.';
             }
-
             if (added && updated) {
                 return `${added} ${added === 1 ? 'categoria aggiunta' : 'categorie aggiunte'}, ${updated} ${updated === 1 ? 'categoria aggiornata' : 'categorie aggiornate'}.`;
             }
-
             if (added) {
                 return added === 1 ? 'È stata aggiunta 1 categoria.' : `Sono state aggiunte ${added} categorie.`;
             }
-
             return updated === 1 ? 'È stata aggiornata 1 categoria.' : `Sono state aggiornate ${updated} categorie.`;
         },
         importCompanyCardTransactionsSuccessfulDescription: ({transactions}: {transactions: number}) =>
@@ -3930,7 +3931,7 @@ ${amount} per ${merchant} - ${date}`,
         regulationRequiresUs: 'La normativa ci impone di verificare l’identità di ogni persona fisica che possiede più del 25% dell’attività.',
         iAmAuthorized: 'Sono autorizzato/a a usare il conto bancario aziendale per le spese aziendali.',
         iCertify: 'Dichiaro che le informazioni fornite sono veritiere e accurate.',
-        iAcceptTheTermsAndConditions: `Accetto i <a href="https://cross-border.corpay.com/tc/">termini e condizioni</a>.`,
+        iAcceptTheTermsAndConditions: `Accetto i <a href="https://www.corpay.com/cross-border/terms">termini e condizioni</a>.`,
         iAcceptTheTermsAndConditionsAccessibility: 'Accetto i termini e le condizioni.',
         accept: 'Accetta e aggiungi conto bancario',
         iConsentToThePrivacyNotice: 'Acconsento all’<a href="https://payments.corpay.com/compliance">informativa sulla privacy</a>.',
@@ -4981,7 +4982,7 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
 
 _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.NETSUITE_IMPORT.HELP_LINKS.CUSTOM_SEGMENTS})_.`,
                             customSegmentScriptIDTitle: "Qual è l'ID dello script?",
-                            customSegmentScriptIDFooter: `Puoi trovare gli ID script dei segmenti personalizzati in NetSuite in: 
+                            customSegmentScriptIDFooter: `Puoi trovare gli ID script dei segmenti personalizzati in NetSuite in:
 
 1. *Customization > Lists, Records, & Fields > Custom Segments*.
 2. Fai clic su un segmento personalizzato.
@@ -6807,6 +6808,62 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
   • Trasferimenti di denaro
 
 Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
+                },
+                addSpendRule: 'Aggiungi regola di spesa',
+                cardPageTitle: 'Carta',
+                cardsSectionTitle: 'Carte',
+                chooseCards: 'Scegli le carte',
+                saveRule: 'Salva regola',
+                allow: 'Consenti',
+                spendRuleSectionTitle: 'Regola di spesa',
+                restrictionType: 'Tipo di restrizione',
+                restrictionTypeHelpAllow: 'Le spese vengono approvate se corrispondono a qualsiasi venditore o categoria e non superano un importo massimo.',
+                restrictionTypeHelpBlock: 'Le transazioni vengono rifiutate se corrispondono a un esercente o a una categoria, oppure se superano un importo massimo.',
+                addMerchant: 'Aggiungi esercente',
+                merchantContains: 'Il commerciante contiene',
+                merchantExactlyMatches: 'Il commerciante corrisponde esattamente',
+                noBlockedMerchants: 'Nessun esercente bloccato',
+                addMerchantToBlockSpend: 'Aggiungi un esercente da bloccare',
+                noAllowedMerchants: 'Nessun esercente consentito',
+                addMerchantToAllowSpend: 'Aggiungi un esercente per consentire la spesa',
+                matchType: 'Tipo di corrispondenza',
+                matchTypeContains: 'Contiene',
+                matchTypeExact: 'Corrisponde esattamente',
+                spendCategory: 'Categoria di spesa',
+                maxAmount: 'Importo massimo',
+                maxAmountHelp: 'Qualsiasi addebito superiore a questo importo verrà rifiutato, indipendentemente dalle restrizioni sul commerciante e sulla categoria di spesa.',
+                currencyMismatchTitle: 'Valuta non corrispondente',
+                currencyMismatchPrompt: 'Per impostare un importo massimo, seleziona carte che si regolano nella stessa valuta.',
+                reviewSelectedCards: 'Controlla le carte selezionate',
+                summaryMoreCount: ({summary, count}: {summary: string; count: number}) => `${summary}, +${count} altro`,
+                confirmErrorApplyAtLeastOneSpendRuleToOneCard: 'Applica almeno una regola di spesa a una carta',
+                confirmErrorCardRequired: 'Il campo Carta è obbligatorio',
+                confirmErrorApplyAtLeastOneSpendRule: 'Applica almeno una regola di spesa',
+                categories: 'Categorie',
+                merchants: 'Esercenti',
+                max: 'Massimo',
+                categoryOptions: {
+                    [CONST.SPEND_RULES.CATEGORIES.AIRLINES]: 'Compagnie aeree',
+                    [CONST.SPEND_RULES.CATEGORIES.ALCOHOL_AND_BARS]: 'Alcol e bar',
+                    [CONST.SPEND_RULES.CATEGORIES.AMAZON_AND_BOOKSTORES]: 'Amazon e librerie',
+                    [CONST.SPEND_RULES.CATEGORIES.AUTOMOTIVE]: 'Automotive',
+                    [CONST.SPEND_RULES.CATEGORIES.CAR_RENTALS]: 'Noleggio auto',
+                    [CONST.SPEND_RULES.CATEGORIES.DINING]: 'Ristoranti',
+                    [CONST.SPEND_RULES.CATEGORIES.FUEL_AND_GAS]: 'Carburante e gas',
+                    [CONST.SPEND_RULES.CATEGORIES.GOVERNMENT_AND_NON_PROFITS]: 'Pubblica amministrazione e non profit',
+                    [CONST.SPEND_RULES.CATEGORIES.GROCERIES]: 'Spesa supermercato',
+                    [CONST.SPEND_RULES.CATEGORIES.GYMS_AND_FITNESS]: 'Palestre e fitness',
+                    [CONST.SPEND_RULES.CATEGORIES.HEALTHCARE]: 'Sanità',
+                    [CONST.SPEND_RULES.CATEGORIES.HOTELS]: 'Hotel',
+                    [CONST.SPEND_RULES.CATEGORIES.INTERNET_AND_PHONE]: 'Internet e telefono',
+                    [CONST.SPEND_RULES.CATEGORIES.OFFICE_SUPPLIES]: "Materiale d'ufficio",
+                    [CONST.SPEND_RULES.CATEGORIES.PARKING_AND_TOLLS]: 'Parcheggi e pedaggi',
+                    [CONST.SPEND_RULES.CATEGORIES.PROFESSIONAL_SERVICES]: 'Servizi professionali',
+                    [CONST.SPEND_RULES.CATEGORIES.RETAIL]: 'Vendita al dettaglio',
+                    [CONST.SPEND_RULES.CATEGORIES.SHIPPING_AND_DELIVERY]: 'Spedizione e consegna',
+                    [CONST.SPEND_RULES.CATEGORIES.SOFTWARE]: 'Software',
+                    [CONST.SPEND_RULES.CATEGORIES.TRANSIT_AND_RIDESHARE]: 'Trasporti e ride sharing',
+                    [CONST.SPEND_RULES.CATEGORIES.TRAVEL_AGENCIES]: 'Agenzie di viaggio',
                 },
             },
         },
@@ -8954,5 +9011,6 @@ Ecco una *ricevuta di prova* per mostrarti come funziona:`,
         positiveButton: 'Sì!',
         negativeButton: 'Non proprio',
     },
+    monthPickerPage: {month: 'Mese', selectMonth: 'Seleziona un mese'},
 };
 export default translations;

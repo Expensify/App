@@ -502,6 +502,10 @@ const translations: TranslationDeepObject<typeof en> = {
         approver: '审批人',
         enterDigitLabel: ({digitIndex, totalDigits}: {digitIndex: number; totalDigits: number}) => `输入第 ${digitIndex} 位数字，共 ${totalDigits} 位`,
         copyOfReportName: (reportName: string) => `${reportName} 的副本`,
+        previousMonth: '上个月',
+        nextMonth: '下个月',
+        previousYear: '上一年',
+        nextYear: '明年',
     },
     socials: {
         podcast: '在播客上关注我们',
@@ -3832,7 +3836,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         regulationRequiresUs: '法规要求我们核实任何持有该企业超过 25% 股权的个人身份。',
         iAmAuthorized: '我已被授权使用该公司银行账户进行业务支出。',
         iCertify: '本人证明所提供的信息真实且准确。',
-        iAcceptTheTermsAndConditions: `我接受<a href="https://cross-border.corpay.com/tc/">条款和条件</a>。`,
+        iAcceptTheTermsAndConditions: `我接受<a href="https://www.corpay.com/cross-border/terms">条款和条件</a>。`,
         iAcceptTheTermsAndConditionsAccessibility: '我接受条款和条件。',
         accept: '接受并添加银行账户',
         iConsentToThePrivacyNotice: '我同意<a href="https://payments.corpay.com/compliance">隐私声明</a>。',
@@ -4845,13 +4849,13 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
 
 _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IMPORT.HELP_LINKS.CUSTOM_SEGMENTS})_。`,
                             customSegmentScriptIDTitle: '脚本 ID 是什么？',
-                            customSegmentScriptIDFooter: `您可以在 NetSuite 中通过以下路径找到自定义段脚本 ID：  
+                            customSegmentScriptIDFooter: `您可以在 NetSuite 中通过以下路径找到自定义段脚本 ID：
 
-1. 进入 *Customization > Lists, Records, & Fields > Custom Segments*。  
-2. 点击进入某个自定义段。  
-3. 在页面底部附近点击 *Application and Sourcing* 选项卡，然后：  
-   a. 如果您希望在 Expensify 中将自定义段显示为*标签*（行项目级别），请点击 *Transaction Columns* 子选项卡，并使用其中的 *Field ID*。  
-   b. 如果您希望在 Expensify 中将自定义段显示为*报表字段*（报表级别），请点击 *Transactions* 子选项卡，并使用其中的 *Field ID*。  
+1. 进入 *Customization > Lists, Records, & Fields > Custom Segments*。
+2. 点击进入某个自定义段。
+3. 在页面底部附近点击 *Application and Sourcing* 选项卡，然后：
+   a. 如果您希望在 Expensify 中将自定义段显示为*标签*（行项目级别），请点击 *Transaction Columns* 子选项卡，并使用其中的 *Field ID*。
+   b. 如果您希望在 Expensify 中将自定义段显示为*报表字段*（报表级别），请点击 *Transactions* 子选项卡，并使用其中的 *Field ID*。
 
 _如需更详细的说明，[请访问我们的帮助网站](${CONST.NETSUITE_IMPORT.HELP_LINKS.CUSTOM_LISTS})_。`,
                             customRecordScriptIDTitle: '交易列的 ID 是什么？',
@@ -6608,6 +6612,62 @@ ${reportName}
   • 转账
 
 添加更多消费规则以保护公司现金流。`,
+                },
+                addSpendRule: '添加支出规则',
+                cardPageTitle: '卡',
+                cardsSectionTitle: '卡片',
+                chooseCards: '选择卡片',
+                saveRule: '保存规则',
+                allow: '允许',
+                spendRuleSectionTitle: '支出规则',
+                restrictionType: '限制类型',
+                restrictionTypeHelpAllow: '如果符合任一商户或类别，且不超过最大金额，则费用会被批准。',
+                restrictionTypeHelpBlock: '如果交易符合任一商户或类别，或超过最高金额，都会被拒付。',
+                addMerchant: '添加商家',
+                merchantContains: '商家包含',
+                merchantExactlyMatches: '商户完全匹配',
+                noBlockedMerchants: '没有被屏蔽的商户',
+                addMerchantToBlockSpend: '添加商家以阻止消费',
+                noAllowedMerchants: '没有允许的商家',
+                addMerchantToAllowSpend: '添加商户以允许消费',
+                matchType: '匹配类型',
+                matchTypeContains: '包含',
+                matchTypeExact: '完全匹配',
+                spendCategory: '支出类别',
+                maxAmount: '最高金额',
+                maxAmountHelp: '无论商家或消费类别限制如何，任何超过此金额的消费都会被拒绝。',
+                currencyMismatchTitle: '货币不匹配',
+                currencyMismatchPrompt: '若要设置最高金额，请选择以相同货币结算的卡片。',
+                reviewSelectedCards: '检查所选卡片',
+                summaryMoreCount: ({summary, count}: {summary: string; count: number}) => `${summary}，还有 +${count} 个`,
+                confirmErrorApplyAtLeastOneSpendRuleToOneCard: '至少将一条支出规则应用到一张卡上',
+                confirmErrorCardRequired: '“卡”是必填字段',
+                confirmErrorApplyAtLeastOneSpendRule: '至少应用一条支出规则',
+                categories: '类别',
+                merchants: '商家',
+                max: '最大',
+                categoryOptions: {
+                    [CONST.SPEND_RULES.CATEGORIES.AIRLINES]: '航空公司',
+                    [CONST.SPEND_RULES.CATEGORIES.ALCOHOL_AND_BARS]: '酒精和酒吧',
+                    [CONST.SPEND_RULES.CATEGORIES.AMAZON_AND_BOOKSTORES]: 'Amazon 和书店',
+                    [CONST.SPEND_RULES.CATEGORIES.AUTOMOTIVE]: '汽车',
+                    [CONST.SPEND_RULES.CATEGORIES.CAR_RENTALS]: '租车',
+                    [CONST.SPEND_RULES.CATEGORIES.DINING]: '餐饮',
+                    [CONST.SPEND_RULES.CATEGORIES.FUEL_AND_GAS]: '燃料和汽油',
+                    [CONST.SPEND_RULES.CATEGORIES.GOVERNMENT_AND_NON_PROFITS]: '政府和非营利组织',
+                    [CONST.SPEND_RULES.CATEGORIES.GROCERIES]: '杂货',
+                    [CONST.SPEND_RULES.CATEGORIES.GYMS_AND_FITNESS]: '健身房和健身',
+                    [CONST.SPEND_RULES.CATEGORIES.HEALTHCARE]: '医疗保健',
+                    [CONST.SPEND_RULES.CATEGORIES.HOTELS]: '酒店',
+                    [CONST.SPEND_RULES.CATEGORIES.INTERNET_AND_PHONE]: '网络和电话',
+                    [CONST.SPEND_RULES.CATEGORIES.OFFICE_SUPPLIES]: '办公用品',
+                    [CONST.SPEND_RULES.CATEGORIES.PARKING_AND_TOLLS]: '停车和过路费',
+                    [CONST.SPEND_RULES.CATEGORIES.PROFESSIONAL_SERVICES]: '专业服务',
+                    [CONST.SPEND_RULES.CATEGORIES.RETAIL]: '零售',
+                    [CONST.SPEND_RULES.CATEGORIES.SHIPPING_AND_DELIVERY]: '配送与交付',
+                    [CONST.SPEND_RULES.CATEGORIES.SOFTWARE]: '软件',
+                    [CONST.SPEND_RULES.CATEGORIES.TRANSIT_AND_RIDESHARE]: '公共交通和网约车',
+                    [CONST.SPEND_RULES.CATEGORIES.TRAVEL_AGENCIES]: '旅行社',
                 },
             },
         },
@@ -8672,5 +8732,6 @@ ${reportName}
         groups: {title: '群组', memberCount: () => ({one: '1 名成员', other: (count: number) => `${count} 名成员`})},
     },
     proactiveAppReview: {title: '喜欢全新的 Expensify 吗？', description: '请告诉我们，这样我们就能帮助您让报销体验变得更好。', positiveButton: '太棒了！', negativeButton: '不太是'},
+    monthPickerPage: {month: '月份', selectMonth: '请选择月份'},
 };
 export default translations;

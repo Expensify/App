@@ -1,4 +1,4 @@
-import {activeAdminPoliciesSelector, hasMultipleOutputCurrenciesSelector} from '@selectors/Policy';
+import {activeAdminPoliciesSelector, adminPoliciesConnectedToQBDSelector, hasMultipleOutputCurrenciesSelector, hasPoliciesConnectedToQBDSelector} from '@selectors/Policy';
 import type {OnyxCollection} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import type {Policy} from '@src/types/onyx';
@@ -102,5 +102,56 @@ describe('activeAdminPoliciesSelector', () => {
 
         const result = activeAdminPoliciesSelector(policies, TEST_LOGIN);
         expect(result).toHaveLength(0);
+    });
+});
+
+describe('adminPoliciesConnectedToQBDSelector', () => {
+    it('returns admin policies with QBD connections', () => {
+        const policies: OnyxCollection<Policy> = {
+            policy1: buildSelectorPolicy(1, {name: 'QBD Policy', role: CONST.POLICY.ROLE.ADMIN, connections: {quickbooksDesktop: {}} as Policy['connections']}),
+            policy2: buildSelectorPolicy(2, {name: 'No Connection', role: CONST.POLICY.ROLE.ADMIN}),
+        };
+
+        const result = adminPoliciesConnectedToQBDSelector(policies);
+        expect(result).toHaveLength(1);
+        expect(result.at(0)?.name).toBe('QBD Policy');
+    });
+
+    it('excludes non-admin policies with QBD connections', () => {
+        const policies: OnyxCollection<Policy> = {
+            policy1: buildSelectorPolicy(1, {name: 'User QBD', role: CONST.POLICY.ROLE.USER, connections: {quickbooksDesktop: {}} as Policy['connections']}),
+        };
+
+        expect(adminPoliciesConnectedToQBDSelector(policies)).toHaveLength(0);
+    });
+
+    it('returns empty array for empty collection', () => {
+        expect(adminPoliciesConnectedToQBDSelector({})).toEqual([]);
+    });
+
+    it('returns empty array for undefined collection', () => {
+        expect(adminPoliciesConnectedToQBDSelector(undefined)).toEqual([]);
+    });
+});
+
+describe('hasPoliciesConnectedToQBDSelector', () => {
+    it('returns true when admin policies with QBD connections exist', () => {
+        const policies: OnyxCollection<Policy> = {
+            policy1: buildSelectorPolicy(1, {role: CONST.POLICY.ROLE.ADMIN, connections: {quickbooksDesktop: {}} as Policy['connections']}),
+        };
+
+        expect(hasPoliciesConnectedToQBDSelector(policies)).toBe(true);
+    });
+
+    it('returns false when no QBD connections exist', () => {
+        const policies: OnyxCollection<Policy> = {
+            policy1: buildSelectorPolicy(1, {role: CONST.POLICY.ROLE.ADMIN}),
+        };
+
+        expect(hasPoliciesConnectedToQBDSelector(policies)).toBe(false);
+    });
+
+    it('returns false for empty collection', () => {
+        expect(hasPoliciesConnectedToQBDSelector({})).toBe(false);
     });
 });
