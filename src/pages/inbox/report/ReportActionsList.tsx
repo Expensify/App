@@ -1,8 +1,7 @@
 import type {ListRenderItemInfo} from '@react-native/virtualized-lists';
-import {useRoute} from '@react-navigation/native';
 import {isUserValidatedSelector} from '@selectors/Account';
 import {tierNameSelector} from '@selectors/UserWallet';
-import React, {useContext, useEffect, useRef, useState} from 'react';
+import React, {useContext, useEffect, useState} from 'react';
 import type {LayoutChangeEvent} from 'react-native';
 import {View} from 'react-native';
 import {renderScrollComponent as renderActionSheetAwareScrollView} from '@components/ActionSheetAwareScrollView';
@@ -29,8 +28,6 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import {updateLoadingInitialReportAction} from '@libs/actions/Report';
 import {isConsecutiveChronosAutomaticTimerAction} from '@libs/ChronosUtils';
 import FS from '@libs/Fullstory';
-import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
-import {generateNewRandomInt} from '@libs/NumberUtils';
 import {
     getFirstVisibleReportActionID,
     isConsecutiveActionMadeByPreviousActor,
@@ -52,12 +49,10 @@ import {
     isTaskReport,
 } from '@libs/ReportUtils';
 import markOpenReportEnd from '@libs/telemetry/markOpenReportEnd';
-import type {ReportsSplitNavigatorParamList} from '@navigation/types';
 import {ActionListContext} from '@pages/inbox/ReportScreenContext';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import FloatingMessageCounter from './FloatingMessageCounter';
 import getInitialNumToRender from './getInitialNumReportActionsToRender';
@@ -73,8 +68,6 @@ type ReportActionsListProps = {
     /** Callback executed on layout */
     onLayout?: (event: LayoutChangeEvent) => void;
 };
-
-let listOldID = Math.round(Math.random() * 100);
 
 function keyExtractor(item: OnyxTypes.ReportAction): string {
     return item.reportActionID;
@@ -95,7 +88,6 @@ function ReportActionsList({reportID, onLayout}: ReportActionsListProps) {
     const isReportArchived = useReportIsArchived(reportID);
     const canPerformWriteAction = canUserPerformWriteAction(report, isReportArchived);
 
-    const route = useRoute<PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
     const {isOffline} = useNetwork();
 
     // ─── Pipeline: pagination → load → visibility ───
@@ -156,22 +148,6 @@ function ReportActionsList({reportID, onLayout}: ReportActionsListProps) {
         hasOnceLoadedReportActions: !!reportMetadata?.hasOnceLoadedReportActions,
         onLayout,
     });
-
-    // ─── listID — changes only for comment linking ───
-    const prevReportActionID = useRef(linkedReportActionID);
-    const [listID, setListID] = useState(listOldID);
-
-    useEffect(() => {
-        if (!linkedReportActionID && !prevReportActionID.current) {
-            prevReportActionID.current = linkedReportActionID;
-            return;
-        }
-        const newID = generateNewRandomInt(listOldID, 1, Number.MAX_SAFE_INTEGER);
-        listOldID = newID;
-        setListID(newID);
-        prevReportActionID.current = linkedReportActionID;
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [route, linkedReportActionID]);
 
     // ─── Linked message offline effect ───
     useEffect(() => {
@@ -260,13 +236,10 @@ function ReportActionsList({reportID, onLayout}: ReportActionsListProps) {
     const reportActionsListFSClass = FS.getChatFSClass(report);
     const topReportAction = sortedVisibleReportActions.at(-1);
 
-    // ─── Offline footer skeleton ───
     const shouldShowOfflineSkeleton = isOffline && !sortedVisibleReportActions.some((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED);
 
-    // ─── extraData for native re-render ───
     const extraData = [shouldUseNarrowLayout ? unreadMarkerReportActionID : undefined];
 
-    // ─── renderItem ───
     const renderItem = ({item: reportAction, index}: ListRenderItemInfo<OnyxTypes.ReportAction>) => {
         const originalReportID = getOriginalReportID(reportID, reportAction, reportActionsFromOnyx);
 
@@ -372,7 +345,8 @@ function ReportActionsList({reportID, onLayout}: ReportActionsListProps) {
                     onViewableItemsChanged={scroll.onViewableItemsChanged}
                     onScrollToIndexFailed={onScrollToIndexFailed}
                     extraData={extraData}
-                    key={listID}
+                    // changes only for comment linking
+                    key={linkedReportActionID ? `${reportID}-${linkedReportActionID}` : reportID}
                     shouldEnableAutoScrollToTopThreshold
                     initialScrollKey={linkedReportActionID}
                     onContentSizeChange={() => {
