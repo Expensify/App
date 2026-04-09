@@ -73,9 +73,11 @@ function ChronosTimerHeaderButton({report}: ChronosTimerHeaderButtonProps) {
             {
                 value: 'scheduleOOO' as const,
                 text: translate('chronos.scheduleOOO'),
+                onSelected: () => Navigation.navigate(ROUTES.CHRONOS_SCHEDULE_OOO.getRoute(report.reportID)),
+                shouldUpdateSelectedIndex: false,
             },
         ],
-        [isTimerRunning, translate],
+        [isTimerRunning, translate, report.reportID],
     );
 
     if (!canWriteInReport(report)) {
@@ -86,12 +88,8 @@ function ChronosTimerHeaderButton({report}: ChronosTimerHeaderButtonProps) {
         <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentEnd]}>
             <ButtonWithDropdownMenu<ChronosAction>
                 success={!isTimerRunning}
-                onPress={(_event, value) => {
-                    if (value === 'timer') {
-                        callFunctionIfActionIsAllowed(sendCommentToChronos)();
-                    } else if (value === 'scheduleOOO') {
-                        Navigation.navigate(ROUTES.CHRONOS_SCHEDULE_OOO.getRoute(report.reportID));
-                    }
+                onPress={() => {
+                    callFunctionIfActionIsAllowed(sendCommentToChronos)();
                 }}
                 options={options}
                 style={styles.flex1}
