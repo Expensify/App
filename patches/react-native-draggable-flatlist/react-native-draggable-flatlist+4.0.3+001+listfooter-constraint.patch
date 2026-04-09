@@ -34,7 +34,7 @@ index 2f59c7a..a324da2 100644
    const onListContentSizeChange = (w: number, h: number) => {
      scrollViewSize.value = props.horizontal ? w : h;
      props.onContentSizeChange?.(w, h);
-@@ -357,6 +366,20 @@ function DraggableFlatListInner<T>(props: DraggableFlatListProps<T>) {
+@@ -357,6 +366,21 @@ function DraggableFlatListInner<T>(props: DraggableFlatListProps<T>) {
      props.onViewableItemsChanged?.(info);
    });
  
