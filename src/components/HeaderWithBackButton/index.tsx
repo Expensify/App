@@ -12,6 +12,7 @@ import SearchButton from '@components/Search/SearchRouter/SearchButton';
 import SidePanelButton from '@components/SidePanel/SidePanelButton';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
 import Tooltip from '@components/Tooltip';
+import useDialogLabelRegistration from '@hooks/useDialogLabelRegistration';
 import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -79,6 +80,9 @@ function HeaderWithBackButton({
     shouldMinimizeMenuButton = false,
     openParentReportInCurrentTab = false,
 }: HeaderWithBackButtonProps) {
+    // Avatar-header routes skip Header, so register the dialog label here.
+    useDialogLabelRegistration(shouldShowReportAvatarWithDisplay ? (report?.reportName ?? '') : '');
+
     const icons = useMemoizedLazyExpensifyIcons(['Download', 'Rotate', 'BackArrow', 'Close']);
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -148,6 +152,7 @@ function HeaderWithBackButton({
                 textStyles={[titleColor ? StyleUtils.getTextColorStyle(titleColor) : {}, shouldUseHeadlineHeader && styles.textHeadlineH2]}
                 subTitleLink={subTitleLink}
                 numberOfTitleLines={1}
+                isScreenHeader
             />
         );
     }, [

@@ -79,17 +79,16 @@ function SortableTableHeader({
                             isActive={isActive}
                             sentryLabel={CONST.SENTRY_LABEL.SEARCH.SORTABLE_HEADER}
                             containerStyle={[
-                                StyleUtils.getReportTableColumnStyles(
-                                    columnName,
-                                    dateColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE,
-                                    amountColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE,
-                                    taxAmountColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE,
-                                    submittedColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE,
-                                    approvedColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE,
-                                    postedColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE,
-                                    exportedColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE,
+                                StyleUtils.getReportTableColumnStyles(columnName, {
+                                    isDateColumnWide: dateColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE,
+                                    isSubmittedColumnWide: submittedColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE,
+                                    isApprovedColumnWide: approvedColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE,
+                                    isPostedColumnWide: postedColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE,
+                                    isExportedColumnWide: exportedColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE,
+                                    isTaxAmountColumnWide: taxAmountColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE,
+                                    isAmountColumnWide: amountColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE,
                                     shouldRemoveTotalColumnFlex,
-                                ),
+                                }),
                             ]}
                             isSortable={isSortable}
                             onPress={(order: SortOrder) => onSortPress(columnName, order)}

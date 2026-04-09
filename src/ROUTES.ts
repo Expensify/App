@@ -14,7 +14,6 @@ import type {ReplacementReason} from './libs/actions/Card';
 import type {IOURequestType} from './libs/actions/IOU';
 import Log from './libs/Log';
 import type {RootNavigatorParamList} from './libs/Navigation/types';
-import type {ReimbursementAccountStepToOpen} from './libs/ReimbursementAccountUtils';
 import StringUtils from './libs/StringUtils';
 import {getUrlWithParams} from './libs/Url';
 import SCREENS from './SCREENS';
@@ -111,6 +110,56 @@ const DYNAMIC_ROUTES = {
         path: 'visibility',
         entryScreens: [SCREENS.REPORT_SETTINGS.ROOT],
     },
+    POLICY_ACCOUNTING_NETSUITE_EXPORT_EXPENSES_VENDOR_SELECT: {
+        path: 'vendor/select',
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_EXPORT_EXPENSES],
+    },
+    POLICY_ACCOUNTING_NETSUITE_EXPORT_EXPENSES_PAYABLE_ACCOUNT_SELECT: {
+        path: 'payable-account/select',
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_EXPORT_EXPENSES],
+    },
+    POLICY_ACCOUNTING_NETSUITE_EXPORT_EXPENSES_JOURNAL_POSTING_PREFERENCE_SELECT: {
+        path: 'journal-posting-preference/select',
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_EXPORT_EXPENSES],
+    },
+    POLICY_ACCOUNTING_NETSUITE_RECEIVABLE_ACCOUNT_SELECT: {
+        path: 'receivable-account/select',
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_EXPORT],
+    },
+    POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_PREFERRED_EXPORTER: {
+        path: 'preferred-exporter',
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_EXPORT],
+    },
+    POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT_OUT_OF_POCKET_EXPENSES: {
+        path: 'out-of-pocket-expense',
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_EXPORT],
+    },
+    POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT_OUT_OF_POCKET_EXPENSES_ACCOUNT_SELECT: {
+        path: 'account-select',
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_QUICKBOOKS_ONLINE_EXPORT_OUT_OF_POCKET_EXPENSES],
+    },
+    POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT_OUT_OF_POCKET_EXPENSES_SELECT: {
+        path: 'entity-select',
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_QUICKBOOKS_ONLINE_EXPORT_OUT_OF_POCKET_EXPENSES],
+    },
+    POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT_DATE_SELECT: {
+        path: 'date-select',
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_EXPORT],
+    },
+    POLICY_ACCOUNTING_SAGE_INTACCT_NON_REIMBURSABLE_DESTINATION: {
+        path: 'destination',
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSES],
+    },
+    POLICY_ACCOUNTING_SAGE_INTACCT_DEFAULT_VENDOR: {
+        path: 'default-vendor',
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_REIMBURSABLE_EXPENSES, SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSES],
+        getRoute: (reimbursable: string) => getUrlWithParams('default-vendor', {reimbursable}),
+        queryParams: ['reimbursable'],
+    },
+    POLICY_ACCOUNTING_SAGE_INTACCT_NON_REIMBURSABLE_CREDIT_CARD_ACCOUNT: {
+        path: 'credit-card-account',
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSES],
+    },
     POLICY_ACCOUNTING_XERO_EXPORT_BANK_ACCOUNT_SELECT: {
         path: 'bank-account-select',
         entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.XERO_EXPORT],
@@ -119,9 +168,17 @@ const DYNAMIC_ROUTES = {
         path: 'purchase-bill-status-selector',
         entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.XERO_EXPORT],
     },
+    POLICY_ACCOUNTING_XERO_AUTO_SYNC: {
+        path: 'autosync',
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.XERO_ADVANCED, SCREENS.WORKSPACE.ACCOUNTING.CARD_RECONCILIATION],
+    },
     POLICY_ACCOUNTING_XERO_ACCOUNTING_METHOD: {
         path: 'accounting-method',
-        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.XERO_AUTO_SYNC],
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.CARD_RECONCILIATION, SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_XERO_AUTO_SYNC],
+    },
+    WORKSPACE_ACCOUNTING_RECONCILIATION_ACCOUNT_SETTINGS: {
+        path: 'account-reconciliation-settings',
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.CARD_RECONCILIATION, SCREENS.WORKSPACE.EXPENSIFY_CARD_SETTINGS_ACCOUNT],
     },
     ADDRESS_COUNTRY: {
         path: 'country',
@@ -135,6 +192,12 @@ const DYNAMIC_ROUTES = {
         ],
         getRoute: (country = '') => `country?country=${country}`,
         queryParams: ['country'],
+    },
+    NOTIFICATION_PREFERENCES: {
+        path: 'notification-preferences',
+        entryScreens: [SCREENS.REPORT_SETTINGS.ROOT, SCREENS.PROFILE_ROOT],
+        getRoute: (reportID: string) => getUrlWithParams('notification-preferences', {reportID}),
+        queryParams: ['reportID'],
     },
     WORKSPACE_OVERVIEW_PLAN: {
         path: 'plan',
@@ -182,6 +245,11 @@ const DYNAMIC_ROUTES = {
                 policyID,
             }),
         queryParams: ['fieldName', 'fieldValue', 'policyID'],
+    },
+    FLAG_COMMENT: {
+        path: 'flag/:reportID/:reportActionID',
+        entryScreens: [SCREENS.REPORT, SCREENS.RIGHT_MODAL.SEARCH_REPORT, SCREENS.RIGHT_MODAL.EXPENSE_REPORT, SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT],
+        getRoute: (reportID: string, reportActionID: string) => `flag/${reportID}/${reportActionID}`,
     },
 } as const satisfies DynamicRoutes;
 
@@ -312,12 +380,6 @@ const ROUTES = {
     CONCIERGE: 'concierge',
     TRACK_EXPENSE: 'track-expense',
     SUBMIT_EXPENSE: 'submit-expense',
-    FLAG_COMMENT: {
-        route: 'flag/:reportID/:reportActionID',
-
-        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-        getRoute: (reportID: string, reportActionID: string, backTo?: string) => getUrlWithBackToParam(`flag/${reportID}/${reportActionID}` as const, backTo),
-    },
     PROFILE: {
         route: 'a/:accountID',
         getRoute: (accountID?: number, backTo?: string, login?: string) => {
@@ -346,36 +408,24 @@ const ROUTES = {
         // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
         getRoute: (policyID?: string, backTo?: string) => getUrlWithBackToParam(`bank-account/${VERIFY_ACCOUNT}?policyID=${policyID}`, backTo),
     },
-    BANK_ACCOUNT_NEW: 'bank-account/new',
     BANK_ACCOUNT_PERSONAL: 'bank-account/personal',
+    // TODO: rename the route as no longer accepts step
     BANK_ACCOUNT_WITH_STEP_TO_OPEN: {
-        route: 'bank-account/:stepToOpen?',
-        getRoute: ({
-            policyID,
-            stepToOpen = '',
-            bankAccountID,
-            backTo,
-            subStepToOpen,
-        }: {
-            policyID: string | undefined;
-            stepToOpen?: ReimbursementAccountStepToOpen;
-            bankAccountID?: number;
-            backTo?: string;
-            subStepToOpen?: typeof CONST.BANK_ACCOUNT.STEP.COUNTRY;
-        }) => {
+        route: 'bank-account/new',
+        getRoute: ({policyID, bankAccountID, backTo}: {policyID: string | undefined; bankAccountID?: number; backTo?: string}) => {
             if (!policyID && !bankAccountID) {
                 // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-                return getUrlWithBackToParam(`bank-account/${stepToOpen}`, backTo);
+                return getUrlWithBackToParam(`bank-account/new`, backTo);
             }
 
             if (bankAccountID) {
                 // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-                return getUrlWithBackToParam(`bank-account/${stepToOpen}?bankAccountID=${bankAccountID}`, backTo);
+                return getUrlWithBackToParam(`bank-account/new?bankAccountID=${bankAccountID}`, backTo);
             }
             // TODO this backTo comes from drilling it through bank account form screens
             // should be removed once https://github.com/Expensify/App/pull/72219 is resolved
             // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-            return getUrlWithBackToParam(`bank-account/${stepToOpen}?policyID=${policyID}${subStepToOpen ? `&subStep=${subStepToOpen}` : ''}`, backTo);
+            return getUrlWithBackToParam(`bank-account/new?policyID=${policyID}`, backTo);
         },
     },
     BANK_ACCOUNT_ENTER_SIGNER_INFO: {
@@ -399,6 +449,19 @@ const ROUTES = {
         // eslint-disable-next-line no-restricted-syntax -- backTo is a temporary param will be removed after https://github.com/Expensify/App/issues/73825 is done
         getRoute: ({policyID, page, subPage, action, backTo}: {policyID?: string; page?: string; subPage?: string; action?: 'edit'; backTo?: string}) => {
             const base = 'bank-account/new/global';
+            const pagePart = page ? `/${page}` : '';
+            const subPagePart = subPage ? `/${subPage}` : '';
+            const actionPart = action ? `/${action}` : '';
+            const queryString = policyID ? `?policyID=${policyID}` : '';
+            // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
+            return getUrlWithBackToParam(`${base}${pagePart}${subPagePart}${actionPart}${queryString}`, backTo);
+        },
+    },
+    BANK_ACCOUNT_USD_SETUP: {
+        route: 'bank-account/new/us/:page?/:subPage?/:action?',
+        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
+        getRoute: ({policyID, page, subPage, action, backTo}: {policyID?: string; page?: string; subPage?: string; action?: 'edit'; backTo?: string}) => {
+            const base = 'bank-account/new/us';
             const pagePart = page ? `/${page}` : '';
             const subPagePart = subPage ? `/${subPage}` : '';
             const actionPart = action ? `/${action}` : '';
@@ -751,6 +814,7 @@ const ROUTES = {
     },
 
     SETTINGS_SAVE_THE_WORLD: 'settings/teachersunite',
+    SETTINGS_SAVE_THE_WORLD_ADD_PAYMENT_CARD: 'settings/teachersunite/add-payment-card',
 
     NEW: 'new',
     NEW_CHAT: 'new/chat',
@@ -908,11 +972,11 @@ const ROUTES = {
         // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
         getRoute: (reportID: string, backTo?: string) => getUrlWithBackToParam(`r/${reportID}/settings` as const, backTo),
     },
-    REPORT_SETTINGS_NOTIFICATION_PREFERENCES: {
-        route: 'r/:reportID/settings/notification-preferences',
+    REPORT_SETTINGS_NAME: {
+        route: 'r/:reportID/settings/name',
 
         // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-        getRoute: (reportID: string, backTo?: string) => getUrlWithBackToParam(`r/${reportID}/settings/notification-preferences` as const, backTo),
+        getRoute: (reportID: string, backTo?: string) => getUrlWithBackToParam(`r/${reportID}/settings/name` as const, backTo),
     },
     REPORT_CHANGE_APPROVER: {
         route: 'r/:reportID/change-approver',
@@ -1756,36 +1820,6 @@ const ROUTES = {
         route: 'workspaces/:policyID/accounting/quickbooks-online/export/travel-invoicing/payable-account',
         getRoute: (policyID: string) => `workspaces/${policyID}/accounting/quickbooks-online/export/travel-invoicing/payable-account` as const,
     },
-    POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_PREFERRED_EXPORTER: {
-        route: 'workspaces/:policyID/accounting/quickbooks-online/export/preferred-exporter',
-
-        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-        getRoute: (policyID: string, backTo?: string) => getUrlWithBackToParam(`workspaces/${policyID}/accounting/quickbooks-online/export/preferred-exporter` as const, backTo),
-    },
-    POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT_OUT_OF_POCKET_EXPENSES: {
-        route: 'workspaces/:policyID/accounting/quickbooks-online/export/out-of-pocket-expense',
-
-        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-        getRoute: (policyID: string, backTo?: string) => getUrlWithBackToParam(`workspaces/${policyID}/accounting/quickbooks-online/export/out-of-pocket-expense` as const, backTo),
-    },
-    POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT_OUT_OF_POCKET_EXPENSES_ACCOUNT_SELECT: {
-        route: 'workspaces/:policyID/accounting/quickbooks-online/export/out-of-pocket-expense/account-select',
-        getRoute: (policyID: string, backTo?: string) =>
-            // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-            getUrlWithBackToParam(`workspaces/${policyID}/accounting/quickbooks-online/export/out-of-pocket-expense/account-select` as const, backTo),
-    },
-    POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT_OUT_OF_POCKET_EXPENSES_SELECT: {
-        route: 'workspaces/:policyID/accounting/quickbooks-online/export/out-of-pocket-expense/entity-select',
-        getRoute: (policyID: string, backTo?: string) =>
-            // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-            getUrlWithBackToParam(`workspaces/${policyID}/accounting/quickbooks-online/export/out-of-pocket-expense/entity-select` as const, backTo),
-    },
-    POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT_DATE_SELECT: {
-        route: 'workspaces/:policyID/accounting/quickbooks-online/export/date-select',
-
-        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-        getRoute: (policyID: string, backTo?: string) => getUrlWithBackToParam(`workspaces/${policyID}/accounting/quickbooks-online/export/date-select` as const, backTo),
-    },
     POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_COMPANY_CARD_EXPENSE_ACCOUNT_SELECT: {
         route: 'workspaces/:policyID/accounting/quickbooks-desktop/export/company-card-expense-account/account-select',
         getRoute: (policyID?: string, backTo?: string) => {
@@ -1944,6 +1978,10 @@ const ROUTES = {
             // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
             return getUrlWithBackToParam(`workspaces/${policyID}/accounting/quickbooks-desktop/export` as const, backTo, false);
         },
+    },
+    POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_EXISTING_CONNECTIONS: {
+        route: 'workspaces/:policyID/accounting/quickbooks-desktop/existing-connections',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/quickbooks-desktop/existing-connections` as const,
     },
     POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_SETUP_MODAL: {
         route: 'workspaces/:policyID/accounting/quickbooks-desktop/setup-modal',
@@ -2188,17 +2226,6 @@ const ROUTES = {
             }
 
             return `workspaces/${policyID}/accounting/${connection as string}/card-reconciliation` as const;
-        },
-    },
-    WORKSPACE_ACCOUNTING_RECONCILIATION_ACCOUNT_SETTINGS: {
-        route: 'workspaces/:policyID/accounting/:connection/card-reconciliation/account',
-        getRoute: (policyID: string | undefined, connection?: ValueOf<typeof CONST.POLICY.CONNECTIONS.ROUTE>, backTo?: string) => {
-            if (!policyID) {
-                Log.warn('Invalid policyID is used to build the WORKSPACE_ACCOUNTING_RECONCILIATION_ACCOUNT_SETTINGS route');
-            }
-
-            // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-            return getUrlWithBackToParam(`workspaces/${policyID}/accounting/${connection as string}/card-reconciliation/account` as const, backTo);
         },
     },
     WORKSPACE_CATEGORIES: {
@@ -2973,6 +3000,30 @@ const ROUTES = {
         route: 'workspaces/:policyID/rules/merchant-rules/new',
         getRoute: (policyID: string) => `workspaces/${policyID}/rules/merchant-rules/new` as const,
     },
+    RULES_SPEND_NEW: {
+        route: 'workspaces/:policyID/rules/spend-rules/new',
+        getRoute: (policyID: string) => `workspaces/${policyID}/rules/spend-rules/new` as const,
+    },
+    RULES_SPEND_CARD: {
+        route: 'workspaces/:policyID/rules/spend-rules/new/card',
+        getRoute: (policyID: string) => `workspaces/${policyID}/rules/spend-rules/new/card` as const,
+    },
+    RULES_SPEND_CATEGORY: {
+        route: 'workspaces/:policyID/rules/spend-rules/new/category',
+        getRoute: (policyID: string) => `workspaces/${policyID}/rules/spend-rules/new/category` as const,
+    },
+    RULES_SPEND_MAX_AMOUNT: {
+        route: 'workspaces/:policyID/rules/spend-rules/new/max-amount',
+        getRoute: (policyID: string) => `workspaces/${policyID}/rules/spend-rules/new/max-amount` as const,
+    },
+    RULES_SPEND_MERCHANTS: {
+        route: 'workspaces/:policyID/rules/spend-rules/new/merchants',
+        getRoute: (policyID: string) => `workspaces/${policyID}/rules/spend-rules/new/merchants` as const,
+    },
+    RULES_SPEND_MERCHANT_EDIT: {
+        route: 'workspaces/:policyID/rules/spend-rules/new/merchants/:merchantIndex',
+        getRoute: (policyID: string, merchantIndex: string) => `workspaces/${policyID}/rules/spend-rules/new/merchants/${merchantIndex}` as const,
+    },
     RULES_MERCHANT_MERCHANT_TO_MATCH: {
         route: 'workspaces/:policyID/rules/merchant-rules/:ruleID/merchant-to-match',
         getRoute: (policyID: string, ruleID?: string) => `workspaces/${policyID}/rules/merchant-rules/${ruleID ?? 'new'}/merchant-to-match` as const,
@@ -3407,17 +3458,6 @@ const ROUTES = {
         route: 'workspaces/:policyID/accounting/claim-offer/:integration',
         getRoute: (policyID: string, integration: string) => `workspaces/${policyID}/accounting/claim-offer/${integration}` as const,
     },
-    POLICY_ACCOUNTING_XERO_AUTO_SYNC: {
-        route: 'workspaces/:policyID/accounting/xero/advanced/autosync',
-        getRoute: (policyID: string | undefined, backTo?: string) => {
-            if (!policyID) {
-                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_XERO_AUTO_SYNC route');
-            }
-
-            // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-            return getUrlWithBackToParam(`workspaces/${policyID}/accounting/xero/advanced/autosync` as const, backTo);
-        },
-    },
     POLICY_ACCOUNTING_XERO_INVOICE_SELECTOR: {
         route: 'workspaces/:policyID/accounting/xero/advanced/invoice-account-selector',
         getRoute: (policyID: string | undefined) => {
@@ -3640,30 +3680,6 @@ const ROUTES = {
             // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
             getUrlWithBackToParam(`workspaces/${policyID}/connections/netsuite/export/expenses/${expenseType as string}/destination/select` as const, backTo),
     },
-    POLICY_ACCOUNTING_NETSUITE_EXPORT_EXPENSES_VENDOR_SELECT: {
-        route: 'workspaces/:policyID/connections/netsuite/export/expenses/:expenseType/vendor/select',
-        getRoute: (policyID: string, expenseType: ValueOf<typeof CONST.NETSUITE_EXPENSE_TYPE>, backTo?: string) =>
-            // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-            getUrlWithBackToParam(`workspaces/${policyID}/connections/netsuite/export/expenses/${expenseType as string}/vendor/select` as const, backTo),
-    },
-    POLICY_ACCOUNTING_NETSUITE_EXPORT_EXPENSES_PAYABLE_ACCOUNT_SELECT: {
-        route: 'workspaces/:policyID/connections/netsuite/export/expenses/:expenseType/payable-account/select',
-        getRoute: (policyID: string, expenseType: ValueOf<typeof CONST.NETSUITE_EXPENSE_TYPE>, backTo?: string) =>
-            // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-            getUrlWithBackToParam(`workspaces/${policyID}/connections/netsuite/export/expenses/${expenseType as string}/payable-account/select` as const, backTo),
-    },
-    POLICY_ACCOUNTING_NETSUITE_EXPORT_EXPENSES_JOURNAL_POSTING_PREFERENCE_SELECT: {
-        route: 'workspaces/:policyID/connections/netsuite/export/expenses/:expenseType/journal-posting-preference/select',
-        getRoute: (policyID: string, expenseType: ValueOf<typeof CONST.NETSUITE_EXPENSE_TYPE>, backTo?: string) =>
-            // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-            getUrlWithBackToParam(`workspaces/${policyID}/connections/netsuite/export/expenses/${expenseType as string}/journal-posting-preference/select` as const, backTo),
-    },
-    POLICY_ACCOUNTING_NETSUITE_RECEIVABLE_ACCOUNT_SELECT: {
-        route: 'workspaces/:policyID/connections/netsuite/export/receivable-account/select',
-
-        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-        getRoute: (policyID: string, backTo?: string) => getUrlWithBackToParam(`workspaces/${policyID}/connections/netsuite/export/receivable-account/select` as const, backTo),
-    },
     POLICY_ACCOUNTING_NETSUITE_INVOICE_ITEM_PREFERENCE_SELECT: {
         route: 'workspaces/:policyID/connections/netsuite/export/invoice-item-preference/select',
         getRoute: (policyID: string | undefined, backTo?: string) => {
@@ -3842,24 +3858,6 @@ const ROUTES = {
 
         // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
         getRoute: (policyID: string, backTo?: string) => getUrlWithBackToParam(`workspaces/${policyID}/accounting/sage-intacct/export/reimbursable/destination` as const, backTo),
-    },
-    POLICY_ACCOUNTING_SAGE_INTACCT_NON_REIMBURSABLE_DESTINATION: {
-        route: 'workspaces/:policyID/accounting/sage-intacct/export/nonreimbursable/destination',
-
-        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-        getRoute: (policyID: string, backTo?: string) => getUrlWithBackToParam(`workspaces/${policyID}/accounting/sage-intacct/export/nonreimbursable/destination` as const, backTo),
-    },
-    POLICY_ACCOUNTING_SAGE_INTACCT_DEFAULT_VENDOR: {
-        route: 'workspaces/:policyID/accounting/sage-intacct/export/:reimbursable/default-vendor',
-        getRoute: (policyID: string, reimbursable: string, backTo?: string) =>
-            // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-            getUrlWithBackToParam(`workspaces/${policyID}/accounting/sage-intacct/export/${reimbursable}/default-vendor` as const, backTo),
-    },
-    POLICY_ACCOUNTING_SAGE_INTACCT_NON_REIMBURSABLE_CREDIT_CARD_ACCOUNT: {
-        route: 'workspaces/:policyID/accounting/sage-intacct/export/nonreimbursable/credit-card-account',
-
-        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-        getRoute: (policyID: string, backTo?: string) => getUrlWithBackToParam(`workspaces/${policyID}/accounting/sage-intacct/export/nonreimbursable/credit-card-account` as const, backTo),
     },
     POLICY_ACCOUNTING_SAGE_INTACCT_ADVANCED: {
         route: 'workspaces/:policyID/accounting/sage-intacct/advanced',
