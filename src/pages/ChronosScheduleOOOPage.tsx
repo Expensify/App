@@ -1,5 +1,6 @@
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
+import DatePicker from '@components/DatePicker';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
@@ -105,12 +106,9 @@ function ChronosScheduleOOOPage({route}: ChronosScheduleOOOPageProps) {
             >
                 <View style={styles.mb4}>
                     <InputWrapper
-                        InputComponent={TextInput}
+                        InputComponent={DatePicker}
                         inputID={INPUT_IDS.DATE}
                         label={translate('chronos.date')}
-                        accessibilityLabel={translate('chronos.date')}
-                        role={CONST.ROLE.PRESENTATION}
-                        placeholder="2025-04-09"
                     />
                 </View>
                 <View style={styles.mb4}>
