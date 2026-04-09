@@ -74,6 +74,8 @@ function Text({color, fontSize = variables.fontSizeNormal, textAlign = 'left', c
             allowFontScaling={false}
             ref={ref}
             style={componentStyle}
+            // On Android, TalkBack reads style metadata (e.g. color codes) along with text content.
+            // Setting accessibilityLabel explicitly causes TalkBack to read only the label, skipping style info.
             accessibilityLabel={typeof children === 'string' && !!children && Platform.OS === 'android' ? children : undefined}
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
