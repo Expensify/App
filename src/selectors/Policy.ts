@@ -136,6 +136,10 @@ const hasPoliciesConnectedToSageIntacctSelector = (policies: OnyxCollection<Poli
 
 const hasPoliciesConnectedToNetSuiteSelector = (policies: OnyxCollection<Policy>) => !!adminPoliciesConnectedToNetSuiteSelector(policies).length;
 
+// Locales are loaded on demand. Instead of getting each workspace translation using `translate`, we hardcoded it here.
+// en|es|fr|it|ja|nl|pl|pt-BR|zh-hans
+const WORKSPACE_TRANSLATIONS = 'Workspace|Espacio de trabajo|Espace de travail|Spazio di lavoro|ワークスペース|Werkruimte|Przestrzeń robocza|Espaço de trabalho|工作区';
+
 function lastWorkspaceNumberSelector(policies: OnyxCollection<Policy>, email: string): number | undefined {
     const emailParts = email.split('@');
     if (emailParts.length !== 2) {
@@ -145,13 +149,10 @@ function lastWorkspaceNumberSelector(policies: OnyxCollection<Policy>, email: st
     const displayNameForWorkspace = getDisplayNameForWorkspace(email);
     // find default named workspaces and increment the last number
     const escapedName = escapeRegExp(displayNameForWorkspace);
-    // Locales are loaded on demand. Instead of getting each workspace translation using `translate`, we hardcoded it here.
-    // en|es|fr|it|ja|nl|pl|pt-BR|zh-hans
-    const workspaceTranslations = 'Workspace|Espacio de trabajo|Espace de travail|Spazio di lavoro|ワークスペース|Werkruimte|Przestrzeń robocza|Espaço de trabalho|工作区';
 
     const domain = emailParts.at(1) ?? '';
     const isSMSDomain = `@${domain}` === CONST.SMS.DOMAIN;
-    const workspaceRegex = isSMSDomain ? new RegExp(`^${escapedName}\\s*(\\d+)?$`, 'i') : new RegExp(`^(?=.*${escapedName})(?:.*(?:${workspaceTranslations})\\s*(\\d+)?)`, 'i');
+    const workspaceRegex = isSMSDomain ? new RegExp(`^${escapedName}\\s*(\\d+)?$`, 'i') : new RegExp(`^(?=.*${escapedName})(?:.*(?:${WORKSPACE_TRANSLATIONS})\\s*(\\d+)?)`, 'i');
 
     const workspaceNumbers = Object.values(policies ?? {})
         .map((policy) => workspaceRegex.exec(policy?.name ?? ''))
