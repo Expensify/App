@@ -1199,7 +1199,6 @@ const translations = {
         flash: 'flash',
         multiScan: 'multi-scan',
         shutter: 'shutter',
-        flipCamera: 'flip camera',
         gallery: 'gallery',
         deleteReceipt: 'Delete receipt',
         deleteConfirmation: 'Are you sure you want to delete this receipt?',
@@ -1672,6 +1671,11 @@ const translations = {
         },
         duplicateNonDefaultWorkspacePerDiemError: "You can't duplicate per diem expenses across workspaces because the rates may differ between workspaces.",
         cannotDuplicateDistanceExpense: "You can't duplicate distance expenses across workspaces because the rates may differ between workspaces.",
+        taxDisabledAlert: {
+            title: 'Tax disabled',
+            prompt: 'Enable tax tracking on the workspace to edit the expense details or delete the tax from this expense.',
+            confirmText: 'Delete tax',
+        },
     },
     transactionMerge: {
         listPage: {
@@ -2904,6 +2908,7 @@ const translations = {
         workspaceYouMayJoin: (domain: string, email: string) => `Someone from ${domain} has already created a workspace. Please enter the magic code sent to ${email}.`,
         joinAWorkspace: 'Join a workspace',
         listOfWorkspaces: "Here's the list of workspaces you can join. Don't worry, you can always join them later if you prefer.",
+        skipForNow: 'Skip for now',
         workspaceMemberList: (employeeCount: number, policyOwner: string) => `${employeeCount} member${employeeCount > 1 ? 's' : ''} • ${policyOwner}`,
         whereYouWork: 'Where do you work?',
         errorSelection: 'Select an option to move forward',
@@ -6695,7 +6700,7 @@ const translations = {
             },
             merchantRules: {
                 title: 'Merchant',
-                subtitle: 'Set the merchant rules so expenses arrive correctly coded and require less cleanup.',
+                subtitle: 'Set merchant rules so expenses arrive correctly coded and require less cleanup.',
                 addRule: 'Add merchant rule',
                 findRule: 'Find merchant rule',
                 addRuleTitle: 'Add rule',
@@ -7539,6 +7544,7 @@ const translations = {
             hold: 'Hold',
             unhold: 'Remove hold',
             reject: 'Reject',
+            duplicateExpense: ({count}: {count: number}) => `Duplicate ${count === 1 ? 'expense' : 'expenses'}`,
             noOptionsAvailable: 'No options available for the selected group of expenses.',
         },
         filtersHeader: 'Filters',
@@ -7945,6 +7951,11 @@ const translations = {
             'Join Expensify.org in eliminating injustice around the world. The current "Teachers Unite" campaign supports educators everywhere by splitting the costs of essential school supplies.',
         iKnowATeacher: 'I know a teacher',
         iAmATeacher: 'I am a teacher',
+        personalKarma: {
+            title: 'Enable Personal Karma',
+            description: 'Donate $1 to Expensify.org for every $500 you spend each month',
+            stopDonationsPrompt: 'Are you sure you want to stop donating to Expensify.org?',
+        },
         getInTouch: 'Excellent! Please share their information so we can get in touch with them.',
         introSchoolPrincipal: 'Intro to your school principal',
         schoolPrincipalVerifyExpense:

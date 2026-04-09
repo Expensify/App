@@ -21,7 +21,6 @@ import ThreeDotsMenu from '@components/ThreeDotsMenu';
 import type ThreeDotsMenuProps from '@components/ThreeDotsMenu/types';
 import useEnvironment from '@hooks/useEnvironment';
 import useExpensifyCardFeeds from '@hooks/useExpensifyCardFeeds';
-import useHasPoliciesConnectedToQBD from '@hooks/useHasPoliciesConnectedToQBD';
 import useHasPoliciesConnectedToSageIntacct from '@hooks/useHasPoliciesConnectedToSageIntacct';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -29,6 +28,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useReusablePoliciesConnectedToQBD from '@hooks/useReusablePoliciesConnectedToQBD';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
@@ -75,7 +75,7 @@ type RouteParams = {
 function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
     useWorkspaceDocumentTitle(policy?.name, 'workspace.common.accounting');
     const hasPoliciesConnectedToSageIntacct = useHasPoliciesConnectedToSageIntacct();
-    const hasPoliciesConnectedToQBD = useHasPoliciesConnectedToQBD();
+    const {hasReusablePoliciesConnectedToQBD} = useReusablePoliciesConnectedToQBD(policy?.id);
     const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policy?.id}`);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const theme = useTheme();
@@ -303,7 +303,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                         integration,
                         policyID,
                         translate,
-                        {sageIntacct: hasPoliciesConnectedToSageIntacct, qbd: hasPoliciesConnectedToQBD},
+                        {sageIntacct: hasPoliciesConnectedToSageIntacct, qbd: hasReusablePoliciesConnectedToQBD},
                         undefined,
                         undefined,
                         undefined,
@@ -367,7 +367,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
             connectedIntegration,
             policyID,
             translate,
-            {sageIntacct: hasPoliciesConnectedToSageIntacct, qbd: hasPoliciesConnectedToQBD},
+            {sageIntacct: hasPoliciesConnectedToSageIntacct, qbd: hasReusablePoliciesConnectedToQBD},
             policy,
             undefined,
             undefined,
@@ -501,7 +501,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
         popoverAnchorRefs,
         datetimeToRelative,
         hasPoliciesConnectedToSageIntacct,
-        hasPoliciesConnectedToQBD,
+        hasReusablePoliciesConnectedToQBD,
     ]);
 
     const otherIntegrationsItems = useMemo(() => {
@@ -517,7 +517,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                     integration,
                     policyID,
                     translate,
-                    {sageIntacct: hasPoliciesConnectedToSageIntacct, qbd: hasPoliciesConnectedToQBD},
+                    {sageIntacct: hasPoliciesConnectedToSageIntacct, qbd: hasReusablePoliciesConnectedToQBD},
                     undefined,
                     undefined,
                     undefined,
@@ -571,7 +571,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
         policyID,
         translate,
         hasPoliciesConnectedToSageIntacct,
-        hasPoliciesConnectedToQBD,
+        hasReusablePoliciesConnectedToQBD,
         styles.justifyContentCenter,
         styles.sectionMenuItemTopDescription,
         isOffline,
