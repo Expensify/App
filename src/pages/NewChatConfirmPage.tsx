@@ -121,54 +121,43 @@ function NewChatConfirmPage() {
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [newGroupDraft] = useOnyx(ONYXKEYS.NEW_GROUP_CHAT_DRAFT);
 
-    const selectedOptions = useMemo((): Participant[] => {
-        if (!newGroupDraft?.participants) {
-            return [];
-        }
-        const options: Participant[] = newGroupDraft.participants.map((participant) =>
-            getParticipantsOption({accountID: participant.accountID, login: participant?.login, reportID: ''}, allPersonalDetails),
-        );
-        return options;
-    }, [allPersonalDetails, newGroupDraft]);
+    const participants = newGroupDraft?.participants ?? [];
 
-    const selectedParticipants: ListItem[] = useMemo(
-        () =>
-            selectedOptions
-                .map((selectedOption: Participant) => {
-                    const accountID = selectedOption.accountID;
-                    const isAdmin = personalData.accountID === accountID;
-                    const section: ListItem = {
-                        login: selectedOption?.login ?? '',
-                        text: selectedOption?.text ?? '',
-                        keyForList: selectedOption?.keyForList ?? '',
-                        isSelected: !isAdmin,
-                        isDisabled: isAdmin,
-                        accountID,
-                        icons: selectedOption?.icons,
-                        alternateText: selectedOption?.login ?? '',
-                        rightElement: isAdmin ? <Badge text={translate('common.admin')} /> : undefined,
-                    };
-                    return section;
-                })
-                .sort((a, b) => localeCompare(a.text?.toLowerCase() ?? '', b.text?.toLowerCase() ?? '')),
-        [selectedOptions, personalData.accountID, translate, localeCompare],
+    const selectedOptions: Participant[] = participants.map((participant) =>
+        getParticipantsOption({accountID: participant.accountID, login: participant?.login, reportID: ''}, allPersonalDetails),
     );
+
+    const selectedParticipants: ListItem[] = selectedOptions
+        .map((selectedOption: Participant) => {
+            const accountID = selectedOption.accountID;
+            const isAdmin = personalData.accountID === accountID;
+            const section: ListItem = {
+                login: selectedOption?.login ?? '',
+                text: selectedOption?.text ?? '',
+                keyForList: selectedOption?.keyForList ?? '',
+                isSelected: !isAdmin,
+                isDisabled: isAdmin,
+                accountID,
+                icons: selectedOption?.icons,
+                alternateText: selectedOption?.login ?? '',
+                rightElement: isAdmin ? <Badge text={translate('common.admin')} /> : undefined,
+            };
+            return section;
+        })
+        .sort((a, b) => localeCompare(a.text?.toLowerCase() ?? '', b.text?.toLowerCase() ?? ''));
 
     /**
      * Removes a selected option from list if already selected.
      */
-    const unselectOption = useCallback(
-        (option: ListItem) => {
-            if (!newGroupDraft) {
-                return;
-            }
-            const newSelectedParticipants = (newGroupDraft.participants ?? []).filter((participant) => participant?.login !== option.login);
-            setGroupDraft({participants: newSelectedParticipants});
-        },
-        [newGroupDraft],
-    );
+    const unselectOption = (option: ListItem) => {
+        if (!newGroupDraft) {
+            return;
+        }
+        const newSelectedParticipants = (newGroupDraft.participants ?? []).filter((participant) => participant?.login !== option.login);
+        setGroupDraft({participants: newSelectedParticipants});
+    };
 
-    const createGroup = useCallback(() => {
+    const createGroup = () => {
         if (!newGroupDraft) {
             return;
         }
@@ -185,7 +174,7 @@ function NewChatConfirmPage() {
             newGroupDraft.avatarUri ?? '',
             avatarFile,
         );
-    }, [newGroupDraft, avatarFile, personalData.login, introSelected, betas, isSelfTourViewed]);
+    };
 
     return (
         <ScreenWrapper testID="NewChatConfirmPage">
