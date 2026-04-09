@@ -187,7 +187,7 @@ function buildOptimisticTransactionAndCreateDraft({initialTransaction, currentUs
     return newTransaction;
 }
 
-function removeBackupTransactionWithImageCleanup(transactionID: string | undefined, isDraft: boolean, onComplete?: () => void) {
+function removeBackupTransactionWithImageCleanup(transactionID: string | undefined, isDraft: boolean) {
     if (!transactionID) {
         return;
     }
@@ -202,14 +202,13 @@ function removeBackupTransactionWithImageCleanup(transactionID: string | undefin
                     revokeOdometerImageUri(backupTransaction?.comment?.odometerStartImage, currentTransaction?.comment?.odometerStartImage);
                     revokeOdometerImageUri(backupTransaction?.comment?.odometerEndImage, currentTransaction?.comment?.odometerEndImage);
                     removeBackupTransaction(transactionID);
-                    onComplete?.();
                 },
             });
         },
     });
 }
 
-function restoreOriginalTransactionFromBackupWithImageCleanup(transactionID: string | undefined, isDraft: boolean, onComplete?: () => void) {
+function restoreOriginalTransactionFromBackupWithImageCleanup(transactionID: string | undefined, isDraft: boolean) {
     if (!transactionID) {
         return;
     }
@@ -225,7 +224,6 @@ function restoreOriginalTransactionFromBackupWithImageCleanup(transactionID: str
                     revokeOdometerImageUri(currentTransaction?.comment?.odometerEndImage, backupTransaction?.comment?.odometerEndImage);
                     Onyx.set(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, backupTransaction ?? null);
                     removeBackupTransaction(transactionID);
-                    onComplete?.();
                 },
             });
         },
