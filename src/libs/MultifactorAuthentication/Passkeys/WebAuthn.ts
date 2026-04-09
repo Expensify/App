@@ -1,4 +1,5 @@
 import type {ValueOf} from 'type-fest';
+import {getErrorMessage} from '@libs/ErrorUtils';
 import Log from '@libs/Log';
 import type {AuthenticationChallenge, RegistrationChallenge} from '@libs/MultifactorAuthentication/shared/challengeTypes';
 import MARQETA_VALUES from '@libs/MultifactorAuthentication/shared/MarqetaValues';
@@ -9,7 +10,6 @@ import Base64URL from '@src/utils/Base64URL';
 
 /**
  * Passkey authentication type metadata.
- * Not part of SecureStore — passkeys bypass the native secure store entirely.
  */
 const PASSKEY_AUTH_TYPE = {
     NAME: 'Passkey',
@@ -131,14 +131,19 @@ function isWebAuthnReason(name: string): name is MultifactorAuthenticationReason
     return Object.values<string>(VALUES.REASON.WEBAUTHN).includes(name);
 }
 
+type DecodedWebAuthnError = {
+    reason: MultifactorAuthenticationReason;
+    message?: string;
+};
+
 /** Decodes WebAuthn DOMException errors and maps them to authentication error reasons. */
-function decodeWebAuthnError(error: unknown): MultifactorAuthenticationReason {
-    Log.info('[Passkey] WebAuthn error', false, {error: error instanceof Error ? error.message : String(error)});
+function decodeWebAuthnError(error: unknown): DecodedWebAuthnError {
+    Log.info('[Passkey] WebAuthn error', false, {error: getErrorMessage(error)});
     if (error instanceof DOMException && isWebAuthnReason(error.name)) {
-        return error.name;
+        return {reason: error.name};
     }
 
-    return VALUES.REASON.WEBAUTHN.GENERIC;
+    return {reason: VALUES.REASON.WEBAUTHN.GENERIC, message: getErrorMessage(error)};
 }
 
 export {

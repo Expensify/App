@@ -254,6 +254,7 @@ export default {
     onboardingModalWidth: 640,
     holdEducationModalWidth: 400,
     changePolicyEducationModalWidth: 400,
+    builtInProtectionModalWidth: 400,
     changePolicyEducationModalIconWidth: 147.69,
     changePolicyEducationModalIconHeight: 180,
     transactionReceiptButtonWidth: 100,
@@ -440,4 +441,9 @@ export default {
     rightPositionOdometerPhotoInformationContainer: 20,
     bottomPositionOdometerPhotoInformationContainer: 20,
     paddingOdometerPhotoInformationContainer: 13.5,
+
+    // Camera permission view padding
+    permissionViewPaddingVertical: 108,
+    permissionViewPaddingHorizontal: 61,
+    permissionViewPaddingVerticalLandscape: 16,
 } as const;
