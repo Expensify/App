@@ -368,7 +368,8 @@ function ReportActionsView({reportID, onLayout}: ReportActionsViewProps) {
     const shouldShowSkeletonForInitialLoad = isLoadingInitialReportActions && (isReportDataIncomplete || isMissingReportActions) && !isOffline;
 
     // Show skeleton while the app is loading and we're online
-    const shouldShowSkeletonForAppLoad = isLoadingApp && !isOffline;
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const shouldShowSkeletonForAppLoad = (isLoadingApp || (isLoadingInitialReportActions && !hasOnceLoadedReportActions)) && !isOffline;
 
     // Show skeleton for the Concierge side panel until report data has been
     // loaded at least once. Before the first openReport response, hasOlderActions
