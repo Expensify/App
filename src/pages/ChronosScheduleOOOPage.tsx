@@ -61,6 +61,10 @@ function ChronosScheduleOOOPage({route}: ChronosScheduleOOOPageProps) {
             addErrorMessage(errors, INPUT_IDS.TIME, translate('chronos.invalidTimeFormat'));
         }
 
+        if (timeValue && !values[INPUT_IDS.TIME_PERIOD]?.trim()) {
+            addErrorMessage(errors, INPUT_IDS.TIME_PERIOD, translate('common.error.fieldRequired'));
+        }
+
         const durationAmount = values[INPUT_IDS.DURATION_AMOUNT]?.trim();
         if (durationAmount && !/^\d+$/.test(durationAmount)) {
             addErrorMessage(errors, INPUT_IDS.DURATION_AMOUNT, translate('chronos.enterANumber'));
