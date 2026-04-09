@@ -16,6 +16,7 @@ type ListItemRendererProps<TItem extends ListItem> = Omit<BaseListItemProps<TIte
         singleExecution: ReturnType<typeof useSingleExecution>['singleExecution'];
         titleStyles?: StyleProp<TextStyle>;
         titleContainerStyles?: StyleProp<ViewStyle>;
+        isLastItem?: boolean;
         shouldHighlightSelectedItem: boolean;
         shouldPreventEnterKeySubmit?: boolean;
     };
@@ -54,6 +55,7 @@ function ListItemRenderer<TItem extends ListItem>({
     shouldDisableHoverStyle,
     shouldShowRightCaret,
     errorRowStyles,
+    isLastItem,
     shouldPreventEnterKeySubmit = true,
 }: ListItemRendererProps<TItem>) {
     const handleOnCheckboxPress = () => {
@@ -112,6 +114,7 @@ function ListItemRenderer<TItem extends ListItem>({
                 shouldHighlightSelectedItem={shouldHighlightSelectedItem}
                 shouldDisableHoverStyle={shouldDisableHoverStyle}
                 shouldShowRightCaret={shouldShowRightCaret}
+                isLastItem={isLastItem}
             />
             {item.footerContent && item.footerContent}
         </>
