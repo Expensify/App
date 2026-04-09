@@ -204,7 +204,7 @@ function WorkspaceExpensifyCardFeedSelectorPage({route}: WorkspaceExpensifyCardF
             />
             {otherFeeds.length > 0 && (
                 <>
-                    <Text style={[styles.ph5, styles.mv2, styles.textLabelSupporting]}>{translate('workspace.expensifyCard.otherWorkspaces')}</Text>
+                    <Text style={[styles.ph5, styles.mv2, styles.textLabelSupporting]}>{translate('workspace.companyCards.fromOtherWorkspaces')}</Text>
                     {otherFeeds.map((entry) => {
                         const item = toListItem(entry, true);
                         return (

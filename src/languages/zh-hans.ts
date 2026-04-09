@@ -5084,7 +5084,6 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             euUkDisclaimer:
                 '向欧洲经济区居民提供的卡由 Transact Payments Malta Limited 发行，向英国居民提供的卡由 Transact Payments Limited 根据 Visa Europe Limited 授权发行。Transact Payments Malta Limited 依据《1994 年金融机构法》经马耳他金融服务管理局正式授权并监管，为一家金融机构。注册号 C 91879。Transact Payments Limited 获直布罗陀金融服务委员会授权并监管。',
             issueCard: '发卡',
-            otherWorkspaces: '其他工作区',
             findCard: '查找卡片',
             newCard: '新卡片',
             name: '姓名',
