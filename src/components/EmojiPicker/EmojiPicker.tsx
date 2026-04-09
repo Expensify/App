@@ -236,36 +236,36 @@ function EmojiPicker({viewportOffsetTop, ref}: EmojiPickerProps) {
     }, [isEmojiPickerVisible, shouldUseNarrowLayout, emojiPopoverAnchorOrigin, getEmojiPopoverAnchor, hideEmojiPicker]);
 
     return (
-        <Activity mode={isEmojiPickerVisible ? 'visible' : 'hidden'}>
-            <PopoverWithMeasuredContent
-                shouldHandleNavigationBack={isMobileChrome()}
-                isVisible={isEmojiPickerVisible}
-                onClose={hideEmojiPicker}
-                onModalShow={focusEmojiSearchInput}
-                onModalHide={handleModalHide}
-                shouldSetModalVisibility={false}
-                anchorPosition={{
-                    vertical: emojiPopoverAnchorPosition.vertical,
-                    horizontal: emojiPopoverAnchorPosition.horizontal,
-                }}
-                anchorRef={getEmojiPopoverAnchor() as RefObject<View | HTMLDivElement>}
-                withoutOverlay={isWithoutOverlay}
-                popoverDimensions={{
-                    width: CONST.EMOJI_PICKER_SIZE.WIDTH,
-                    height: CONST.EMOJI_PICKER_SIZE.HEIGHT,
-                }}
-                anchorAlignment={emojiPopoverAnchorOrigin}
-                outerStyle={StyleUtils.getOuterModalStyle(windowHeight, viewportOffsetTop)}
-                innerContainerStyle={styles.popoverInnerContainer}
-                anchorDimensions={emojiAnchorDimension.current}
-                avoidKeyboard
-                shouldSwitchPositionIfOverflow
-                shouldEnableNewFocusManagement
-                restoreFocusType={CONST.MODAL.RESTORE_FOCUS_TYPE.DELETE}
-                shouldSkipRemeasurement
-                shouldWrapModalChildrenInScrollViewIfBottomDockedInLandscapeMode={false}
-            >
-                <FocusTrapForModal active={isEmojiPickerVisible}>
+        <PopoverWithMeasuredContent
+            shouldHandleNavigationBack={isMobileChrome()}
+            isVisible={isEmojiPickerVisible}
+            onClose={hideEmojiPicker}
+            onModalShow={focusEmojiSearchInput}
+            onModalHide={handleModalHide}
+            shouldSetModalVisibility={false}
+            anchorPosition={{
+                vertical: emojiPopoverAnchorPosition.vertical,
+                horizontal: emojiPopoverAnchorPosition.horizontal,
+            }}
+            anchorRef={getEmojiPopoverAnchor() as RefObject<View | HTMLDivElement>}
+            withoutOverlay={isWithoutOverlay}
+            popoverDimensions={{
+                width: CONST.EMOJI_PICKER_SIZE.WIDTH,
+                height: CONST.EMOJI_PICKER_SIZE.HEIGHT,
+            }}
+            anchorAlignment={emojiPopoverAnchorOrigin}
+            outerStyle={StyleUtils.getOuterModalStyle(windowHeight, viewportOffsetTop)}
+            innerContainerStyle={styles.popoverInnerContainer}
+            anchorDimensions={emojiAnchorDimension.current}
+            avoidKeyboard
+            shouldSwitchPositionIfOverflow
+            shouldEnableNewFocusManagement
+            restoreFocusType={CONST.MODAL.RESTORE_FOCUS_TYPE.DELETE}
+            shouldSkipRemeasurement
+            shouldWrapModalChildrenInScrollViewIfBottomDockedInLandscapeMode={false}
+        >
+            <FocusTrapForModal active={isEmojiPickerVisible}>
+                <Activity mode={isEmojiPickerVisible ? 'visible' : 'hidden'}>
                     <View>
                         <EmojiPickerMenu
                             onEmojiSelected={selectEmoji}
@@ -275,9 +275,9 @@ function EmojiPicker({viewportOffsetTop, ref}: EmojiPickerProps) {
                             }}
                         />
                     </View>
-                </FocusTrapForModal>
-            </PopoverWithMeasuredContent>
-        </Activity>
+                </Activity>
+            </FocusTrapForModal>
+        </PopoverWithMeasuredContent>
     );
 }
 
