@@ -5,7 +5,7 @@ import useOnyx from './useOnyx';
 function useReusablePoliciesConnectedToQBD(policyID: string | undefined) {
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [connectionSyncProgressCollection] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS);
-    const reusablePoliciesConnectedToQBD = reusablePoliciesConnectedToQBDSelector(policies, connectionSyncProgressCollection, policyID);
+    const reusablePoliciesConnectedToQBD = reusablePoliciesConnectedToQBDSelector(policies, policyID);
 
     return {
         connectionSyncProgressCollection,
