@@ -400,20 +400,42 @@ function clearTravelInvoicingErrors(workspaceAccountID: number) {
  * Optimistically sets the manual billing flag to true (payment queued state).
  * The backend will send updates for private_expensifyCardManualBilling_ to clear it when billing runs.
  */
-function payTravelInvoicingSpend(workspaceAccountID: number) {
-    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_MANUAL_BILLING>> = [
+function payTravelInvoicingSpend(workspaceAccountID: number, travelSpend: number) {
+    const cardSettingsKey = getTravelInvoicingCardSettingsKey(workspaceAccountID);
+
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_MANUAL_BILLING | typeof ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS>> = [
         {
             onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_MANUAL_BILLING}${workspaceAccountID}`,
             value: true,
         },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: cardSettingsKey,
+            value: {
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                TRAVEL_US: {
+                    pendingSettlementAmount: travelSpend,
+                },
+            },
+        },
     ];
 
-    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_MANUAL_BILLING>> = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_MANUAL_BILLING | typeof ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS>> = [
         {
             onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_MANUAL_BILLING}${workspaceAccountID}`,
             value: false,
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: cardSettingsKey,
+            value: {
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                TRAVEL_US: {
+                    pendingSettlementAmount: 0,
+                },
+            },
         },
     ];
 
