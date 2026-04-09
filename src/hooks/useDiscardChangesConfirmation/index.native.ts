@@ -7,7 +7,7 @@ import useLocalize from '@hooks/useLocalize';
 import navigationRef from '@libs/Navigation/navigationRef';
 import type UseDiscardChangesConfirmationOptions from './types';
 
-function useDiscardChangesConfirmation({getHasUnsavedChanges, onVisibilityChange}: UseDiscardChangesConfirmationOptions) {
+function useDiscardChangesConfirmation({getHasUnsavedChanges, onVisibilityChange, onConfirm}: UseDiscardChangesConfirmationOptions) {
     const {translate} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
     const [shouldAllowNavigation, setShouldAllowNavigation] = useState(false);
@@ -37,16 +37,22 @@ function useDiscardChangesConfirmation({getHasUnsavedChanges, onVisibilityChange
                     if (result.action !== ModalActions.CONFIRM) {
                         return;
                     }
-                    setShouldAllowNavigation(true);
-                    if (blockedNavigationAction.current) {
-                        navigationRef.current?.dispatch(blockedNavigationAction.current);
-                        blockedNavigationAction.current = undefined;
-                    } else {
-                        navigationRef.current?.goBack();
+                    const confirmNavigation = () => {
+                        setShouldAllowNavigation(true);
+                        if (blockedNavigationAction.current) {
+                            navigationRef.current?.dispatch(blockedNavigationAction.current);
+                            blockedNavigationAction.current = undefined;
+                        } else {
+                            navigationRef.current?.goBack();
+                        }
+                    };
+                    if (onConfirm) {
+                        onConfirm?.();
                     }
+                    confirmNavigation();
                 });
             },
-            [getHasUnsavedChanges, onVisibilityChange, showConfirmModal, translate],
+            [getHasUnsavedChanges, onVisibilityChange, onConfirm, showConfirmModal, translate],
         ),
     );
 }

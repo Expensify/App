@@ -12,7 +12,7 @@ import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNa
 import type {RootNavigatorParamList} from '@libs/Navigation/types';
 import type UseDiscardChangesConfirmationOptions from './types';
 
-function useDiscardChangesConfirmation({getHasUnsavedChanges, onCancel, onVisibilityChange}: UseDiscardChangesConfirmationOptions) {
+function useDiscardChangesConfirmation({getHasUnsavedChanges, onCancel, onVisibilityChange, onConfirm}: UseDiscardChangesConfirmationOptions) {
     const navigation = useNavigation<PlatformStackNavigationProp<RootNavigatorParamList>>();
     const {translate} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
@@ -42,6 +42,9 @@ function useDiscardChangesConfirmation({getHasUnsavedChanges, onCancel, onVisibi
         }).then((result) => {
             onVisibilityChange?.(false);
             if (result.action === ModalActions.CONFIRM) {
+                if (onConfirm) {
+                    onConfirm?.();
+                }
                 setNavigationActionToMicrotaskQueue(navigateBack);
             } else {
                 blockedNavigationAction.current = undefined;
@@ -49,7 +52,7 @@ function useDiscardChangesConfirmation({getHasUnsavedChanges, onCancel, onVisibi
                 onCancel?.();
             }
         });
-    }, [showConfirmModal, translate, navigateBack, onCancel, onVisibilityChange]);
+    }, [showConfirmModal, translate, navigateBack, onCancel, onConfirm, onVisibilityChange]);
 
     useBeforeRemove((e) => {
         if (!getHasUnsavedChanges() || shouldNavigateBack.current) {

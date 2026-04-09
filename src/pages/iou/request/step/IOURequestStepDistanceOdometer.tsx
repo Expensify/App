@@ -371,14 +371,11 @@ function IOURequestStepDistanceOdometer({
 
     const navigateBack = useCallback(() => {
         if (isEditingConfirmation) {
-            backupHandledManually.current = true;
-            restoreOriginalTransactionFromBackupWithImageCleanup(transactionID, isTransactionDraft, () => {
-                Navigation.goBack(confirmationRoute);
-            });
+            Navigation.goBack(confirmationRoute);
             return;
         }
         Navigation.goBack();
-    }, [isEditingConfirmation, confirmationRoute, transactionID, isTransactionDraft]);
+    }, [confirmationRoute, isEditingConfirmation]);
 
     const handlePressStartImage = useCallback(() => {
         if (odometerStartImage) {
@@ -555,6 +552,12 @@ function IOURequestStepDistanceOdometer({
             const hasImageChanges = transaction?.comment?.odometerStartImage !== initialStartImageRef.current || transaction?.comment?.odometerEndImage !== initialEndImageRef.current;
             return hasReadingChanges || hasImageChanges;
         },
+        onConfirm: isEditingConfirmation
+            ? () => {
+                  backupHandledManually.current = true;
+                  restoreOriginalTransactionFromBackupWithImageCleanup(transactionID, isTransactionDraft);
+              }
+            : undefined,
     });
 
     return (
