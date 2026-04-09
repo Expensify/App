@@ -161,6 +161,7 @@ function ChronosScheduleOOOPage({route}: ChronosScheduleOOOPageProps) {
                         <InputWrapper
                             InputComponent={ValuePicker}
                             inputID={INPUT_IDS.DURATION_UNIT}
+                            defaultValue={CONST.CHRONOS.OOO_DURATION_UNITS.DAY}
                             label={translate('chronos.durationUnit')}
                             items={durationUnitItems}
                         />
