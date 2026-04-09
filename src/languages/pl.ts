@@ -1141,7 +1141,6 @@ const translations: TranslationDeepObject<typeof en> = {
         flash: 'błysk',
         multiScan: 'wielokrotne skanowanie',
         shutter: 'migawka',
-        flipCamera: 'obróć kamerę',
         gallery: 'galeria',
         deleteReceipt: 'Usuń paragon',
         deleteConfirmation: 'Czy na pewno chcesz usunąć ten paragon?',
@@ -1620,6 +1619,11 @@ const translations: TranslationDeepObject<typeof en> = {
             `nie udało się zatwierdzić przez <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">zasady w przestrzeni roboczej</a>. ${reason}`,
         failedToApproveViaDEW: (reason: string) => `nie udało się zaakceptować. ${reason}`,
         cannotDuplicateDistanceExpense: 'Nie możesz duplikować wydatków za przejazdy między przestrzeniami roboczymi, ponieważ stawki mogą się różnić między poszczególnymi przestrzeniami.',
+        taxDisabledAlert: {
+            title: 'Podatek wyłączony',
+            prompt: 'Włącz śledzenie podatku w przestrzeni roboczej, aby edytować szczegóły wydatku lub usunąć podatek z tego wydatku.',
+            confirmText: 'Usuń podatek',
+        },
     },
     transactionMerge: {
         listPage: {
@@ -2856,6 +2860,7 @@ ${amount} dla ${merchant} - ${date}`,
         workspaceYouMayJoin: (domain: string, email: string) => `Ktoś z domeny ${domain} utworzył już przestrzeń roboczą. Wprowadź magiczny kod wysłany na adres ${email}.`,
         joinAWorkspace: 'Dołącz do przestrzeni roboczej',
         listOfWorkspaces: 'Oto lista przestrzeni roboczych, do których możesz dołączyć. Nie martw się, zawsze możesz dołączyć do nich później, jeśli wolisz.',
+        skipForNow: 'Pomiń na razie',
         workspaceMemberList: (employeeCount: number, policyOwner: string) => `${employeeCount} członek${employeeCount > 1 ? 's' : ''} • ${policyOwner}`,
         whereYouWork: 'Gdzie pracujesz?',
         errorSelection: 'Wybierz opcję, aby przejść dalej',
@@ -2973,7 +2978,7 @@ ${amount} dla ${merchant} - ${date}`,
                 description: dedent(`
                     *Zgłoś wydatek*, wprowadzając kwotę lub skanując paragon.
 
-                    1. Kliknij przycisk ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}.
+                    1. Kliknij przycisk *+*.
                     2. Wybierz *Utwórz wydatek*.
                     3. Wprowadź kwotę lub zeskanuj paragon.
                     4. Dodaj adres e-mail lub numer telefonu swojego przełożonego.
@@ -2987,7 +2992,7 @@ ${amount} dla ${merchant} - ${date}`,
                 description: dedent(`
                     *Zgłoś wydatek*, wpisując kwotę lub skanując paragon.
 
-                    1. Kliknij przycisk ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}.
+                    1. Kliknij przycisk *+*.
                     2. Wybierz *Utwórz wydatek*.
                     3. Wpisz kwotę lub zeskanuj paragon.
                     4. Potwierdź szczegóły.
@@ -3001,7 +3006,7 @@ ${amount} dla ${merchant} - ${date}`,
                 description: dedent(`
                     *Śledź wydatek* w dowolnej walucie, niezależnie od tego, czy masz paragon, czy nie.
 
-                    1. Kliknij przycisk ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}.
+                    1. Kliknij przycisk *+*.
                     2. Wybierz *Utwórz wydatek*.
                     3. Wprowadź kwotę lub zeskanuj paragon.
                     4. Wybierz swoją *przestrzeń osobistą*.
@@ -3098,7 +3103,7 @@ ${amount} dla ${merchant} - ${date}`,
                 description: dedent(`
                     *Rozpocznij czat* z dowolną osobą, używając jej adresu e-mail lub numeru telefonu.
 
-                    1. Kliknij przycisk ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}.
+                    1. Kliknij przycisk *+*.
                     2. Wybierz *Rozpocznij czat*.
                     3. Wpisz adres e-mail lub numer telefonu.
 
@@ -3112,7 +3117,7 @@ ${amount} dla ${merchant} - ${date}`,
                 description: dedent(`
                     *Podziel wydatki* z jedną lub większą liczbą osób.
 
-                    1. Kliknij przycisk ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}.
+                    1. Kliknij przycisk *+*.
                     2. Wybierz *Rozpocznij czat*.
                     3. Wpisz adresy e‑mail lub numery telefonów.
                     4. Kliknij szary przycisk *+* na czacie > *Podziel wydatek*.
@@ -3136,7 +3141,7 @@ ${amount} dla ${merchant} - ${date}`,
                 description: dedent(`
                     Oto jak utworzyć raport:
 
-                    1. Kliknij przycisk ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}.
+                    1. Kliknij przycisk *+*.
                     2. Wybierz *Utwórz raport*.
                     3. Kliknij *Dodaj wydatek*.
                     4. Dodaj swój pierwszy wydatek.
@@ -3915,7 +3920,7 @@ ${amount} dla ${merchant} - ${date}`,
         regulationRequiresUs: 'Przepisy wymagają od nas weryfikacji tożsamości każdej osoby, która posiada ponad 25% udziałów w firmie.',
         iAmAuthorized: 'Mam upoważnienie do korzystania z firmowego rachunku bankowego na wydatki służbowe.',
         iCertify: 'Oświadczam, że podane informacje są prawdziwe i dokładne.',
-        iAcceptTheTermsAndConditions: `Akceptuję <a href="https://cross-border.corpay.com/tc/">warunki i zasady</a>.`,
+        iAcceptTheTermsAndConditions: `Akceptuję <a href="https://www.corpay.com/cross-border/terms">warunki i zasady</a>.`,
         iAcceptTheTermsAndConditionsAccessibility: 'Akceptuję warunki.',
         accept: 'Zaakceptuj i dodaj konto bankowe',
         iConsentToThePrivacyNotice: 'Wyrażam zgodę na <a href="https://payments.corpay.com/compliance">informację o ochronie prywatności</a>.',
@@ -4961,7 +4966,7 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
 
 _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy](${CONST.NETSUITE_IMPORT.HELP_LINKS.CUSTOM_SEGMENTS})_.`,
                             customSegmentScriptIDTitle: 'Jaki jest identyfikator skryptu?',
-                            customSegmentScriptIDFooter: `Możesz znaleźć identyfikatory skryptów niestandardowych segmentów w NetSuite w menu: 
+                            customSegmentScriptIDFooter: `Możesz znaleźć identyfikatory skryptów niestandardowych segmentów w NetSuite w menu:
 
 1. *Customization > Lists, Records, & Fields > Custom Segments*.
 2. Wejdź w szczegóły wybranego niestandardowego segmentu.
@@ -7524,6 +7529,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             hold: 'Wstrzymaj',
             unhold: 'Usuń blokadę',
             reject: 'Odrzuć',
+            duplicateExpense: ({count}: {count: number}) => `Duplikuj ${count === 1 ? 'wydatek' : 'wydatki'}`,
             noOptionsAvailable: 'Brak opcji dostępnych dla wybranej grupy wydatków.',
         },
         filtersHeader: 'Filtry',
@@ -7940,6 +7946,11 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             'Dołącz do Expensify.org w eliminowaniu niesprawiedliwości na całym świecie. Obecna kampania „Teachers Unite” wspiera nauczycieli wszędzie, dzieląc koszty niezbędnych przyborów szkolnych.',
         iKnowATeacher: 'Znam nauczyciela',
         iAmATeacher: 'Jestem nauczycielem',
+        personalKarma: {
+            title: 'Włącz osobistą karmę',
+            description: 'Przekaż 1 USD na Expensify.org za każde 500 USD wydane w miesiącu',
+            stopDonationsPrompt: 'Czy na pewno chcesz przestać przekazywać darowizny na rzecz Expensify.org?',
+        },
         getInTouch: 'Świetnie! Udostępnij ich dane kontaktowe, abyśmy mogli się z nimi skontaktować.',
         introSchoolPrincipal: 'Wprowadzenie dla dyrektora szkoły',
         schoolPrincipalVerifyExpense:

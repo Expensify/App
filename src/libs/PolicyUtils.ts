@@ -321,10 +321,20 @@ function getCustomUnitsForDuplication(
         return undefined;
     }
 
-    if (isDistanceRatesOptionSelected && isPerDiemOptionSelected) {
-        const distanceCustomUnit = Object.values(customUnits).find((customUnit) => customUnit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE);
-        const perDiemUnit = Object.values(customUnits).find((customUnit) => customUnit.name === CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL);
+    const getUnitWithoutPendingDeleteRates = (customUnit: CustomUnit | undefined) => {
+        if (!customUnit) {
+            return undefined;
+        }
+        return {
+            ...customUnit,
+            rates: Object.fromEntries(Object.entries(customUnit.rates).filter(([, rate]) => rate.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)),
+        };
+    };
 
+    const distanceCustomUnit = getUnitWithoutPendingDeleteRates(Object.values(customUnits).find((customUnit) => customUnit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE));
+    const perDiemUnit = getUnitWithoutPendingDeleteRates(Object.values(customUnits).find((customUnit) => customUnit.name === CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL));
+
+    if (isDistanceRatesOptionSelected && isPerDiemOptionSelected) {
         if (!perDiemUnit || !distanceCustomUnit || !perDiemCustomUnitID || !distanceCustomUnitID) {
             return undefined;
         }
@@ -333,14 +343,12 @@ function getCustomUnitsForDuplication(
     }
 
     if (isDistanceRatesOptionSelected && distanceCustomUnitID) {
-        const distanceCustomUnit = Object.values(customUnits).find((customUnit) => customUnit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE);
         if (!distanceCustomUnit) {
             return undefined;
         }
         return {[distanceCustomUnitID]: distanceCustomUnit};
     }
 
-    const perDiemUnit = Object.values(customUnits).find((customUnit) => customUnit.name === CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL);
     if (!perDiemUnit || !perDiemCustomUnitID) {
         return undefined;
     }
@@ -814,6 +822,14 @@ function isControlPolicy(policy: OnyxEntry<Policy>): boolean {
 }
 
 /**
+ * For backwards compatibility with Expensify Classic, attendee tracking defaults to enabled
+ * on Control policies when the property is undefined.
+ */
+function isAttendeeTrackingEnabled(policy: OnyxEntry<Policy>): boolean {
+    return (isControlPolicy(policy) && policy?.isAttendeeTrackingEnabled) ?? true;
+}
+
+/**
  * Whether the policy can access a feature based on plan level.
  * Corporate-only features are restricted to control (Corporate) policies.
  */
@@ -1013,6 +1029,9 @@ function isPolicyFeatureEnabled(policy: OnyxEntry<Policy>, featureName: PolicyFe
     }
     if (featureName === CONST.POLICY.MORE_FEATURES.IS_TIME_TRACKING_ENABLED) {
         return isTimeTrackingEnabled(policy);
+    }
+    if (featureName === CONST.POLICY.MORE_FEATURES.IS_ATTENDEE_TRACKING_ENABLED) {
+        return isAttendeeTrackingEnabled(policy);
     }
 
     return !!policy?.[featureName];
@@ -2161,6 +2180,7 @@ export {
     getApprovalWorkflow,
     getReimburserAccountID,
     isControlPolicy,
+    isAttendeeTrackingEnabled,
     isCollectPolicy,
     isNetSuiteCustomSegmentRecord,
     getNameFromNetSuiteCustomField,

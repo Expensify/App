@@ -5,6 +5,12 @@ import type Policy from '@src/types/onyx/Policy';
 import createRandomTransaction from '../utils/collections/transaction';
 import {translateLocal} from '../utils/TestHelper';
 
+const customUnitRateIDWithTaxClaimablePercentage = 'FG515011039A4';
+const rateWithTaxClaimablePercentage = 100;
+const totalDistance = 1000;
+const taxClaimablePercentage = 0.5;
+const distanceUnit: Unit = CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES;
+const customUnitRateIDWithOutTaxClaimablePercentage = 'EB515052039A4';
 const FAKE_POLICY: Policy = {
     id: 'CEEEDB0EC660F71A',
     name: 'Test',
@@ -16,8 +22,8 @@ const FAKE_POLICY: Policy = {
     customUnits: {
         C9031B6F4725D: {
             attributes: {
-                taxEnabled: false,
-                unit: 'mi',
+                taxEnabled: true,
+                unit: distanceUnit,
             },
             customUnitID: 'C9031B6F4725D',
             defaultCategory: '',
@@ -51,6 +57,31 @@ const FAKE_POLICY: Policy = {
                     enabled: true,
                     attributes: {},
                     subRates: [],
+                    pendingFields: {},
+                },
+                [customUnitRateIDWithOutTaxClaimablePercentage]: {
+                    currency: 'USD',
+                    customUnitRateID: `${customUnitRateIDWithOutTaxClaimablePercentage}`,
+                    enabled: true,
+                    name: 'Default Rate',
+                    rate: 72.5,
+                    subRates: [],
+                    attributes: {
+                        taxRateExternalID: 'id_TAX_RATE_1',
+                    },
+                    pendingFields: {},
+                },
+                [customUnitRateIDWithTaxClaimablePercentage]: {
+                    currency: 'USD',
+                    customUnitRateID: `${customUnitRateIDWithTaxClaimablePercentage}`,
+                    enabled: true,
+                    name: 'Default Rate',
+                    rate: rateWithTaxClaimablePercentage,
+                    subRates: [],
+                    attributes: {
+                        taxRateExternalID: 'id_TAX_RATE_1',
+                        taxClaimablePercentage,
+                    },
                     pendingFields: {},
                 },
             },
@@ -205,6 +236,19 @@ describe('DistanceRequestUtils', () => {
                 true,
             );
             expect(result).toBe('0.00 mi @ $0.67 / mi');
+        });
+    });
+
+    describe('getTaxableAmount', () => {
+        it('should return 0 if tax reclaimable percentage is undefined', () => {
+            const result = DistanceRequestUtils.getTaxableAmount(FAKE_POLICY, customUnitRateIDWithOutTaxClaimablePercentage, totalDistance);
+            expect(result).toBe(0);
+        });
+
+        it('should return taxable amount that is greater than 0 if tax reclaimable percentage is greater than 0', () => {
+            const result = DistanceRequestUtils.getTaxableAmount(FAKE_POLICY, customUnitRateIDWithTaxClaimablePercentage, totalDistance);
+            const expectedTaxableAmount = taxClaimablePercentage * DistanceRequestUtils.getDistanceRequestAmount(totalDistance, distanceUnit, rateWithTaxClaimablePercentage);
+            expect(result).toEqual(expectedTaxableAmount);
         });
     });
 

@@ -1105,7 +1105,6 @@ const translations: TranslationDeepObject<typeof en> = {
         flash: '闪光',
         multiScan: '多重扫描',
         shutter: '快门',
-        flipCamera: '翻转摄像头',
         gallery: '图库',
         deleteReceipt: '删除收据',
         deleteConfirmation: '确定要删除这张收据吗？',
@@ -1572,6 +1571,7 @@ const translations: TranslationDeepObject<typeof en> = {
         failedToAutoApproveViaDEW: (reason: string) => `未能通过<a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">工作区规则</a>批准。${reason}`,
         failedToApproveViaDEW: (reason: string) => `批准失败。${reason}`,
         cannotDuplicateDistanceExpense: '你无法在不同工作区之间复制里程报销，因为各个工作区的费率可能不同。',
+        taxDisabledAlert: {title: '税费已禁用', prompt: '请在工作区中启用税费跟踪，以便编辑此报销的详细信息或从该报销中删除税费。', confirmText: '删除税费'},
     },
     transactionMerge: {
         listPage: {
@@ -2784,6 +2784,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         workspaceYouMayJoin: (domain: string, email: string) => `${domain} 中的某位成员已经创建了一个工作区。请输入发送到 ${email} 的魔法验证码。`,
         joinAWorkspace: '加入工作区',
         listOfWorkspaces: '以下是你可以加入的工作空间列表。别担心，如果你愿意，你随时都可以稍后再加入。',
+        skipForNow: '暂时跳过',
         workspaceMemberList: (employeeCount: number, policyOwner: string) => `${employeeCount} 位成员${employeeCount > 1 ? '秒' : ''} • ${policyOwner}`,
         whereYouWork: '你在哪里工作？',
         errorSelection: '选择一个选项以继续',
@@ -2901,7 +2902,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
                 description: dedent(`
                     通过输入金额或扫描收据来*提交一笔报销*。
 
-                    1. 点击 ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} 按钮。
+                    1. 点击 *+* 按钮。
                     2. 选择 *创建报销*。
                     3. 输入金额或扫描收据。
                     4. 添加你老板的邮箱或电话号码。
@@ -2915,7 +2916,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
                 description: dedent(`
                     通过输入金额或扫描收据来*提交报销*。
 
-                    1. 点击 ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} 按钮。
+                    1. 点击 *+* 按钮。
                     2. 选择*创建报销*。
                     3. 输入金额或扫描收据。
                     4. 确认详细信息。
@@ -2929,7 +2930,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
                 description: dedent(`
                     *以任意货币*记录一笔报销，无论你是否有收据。
 
-                    1. 点击 ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} 按钮。
+                    1. 点击 *+* 按钮。
                     2. 选择 *创建报销*。
                     3. 输入金额或扫描收据。
                     4. 选择你的*个人*空间。
@@ -3026,7 +3027,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
                 description: dedent(`
                     *开始聊天*，只需输入对方的邮箱或电话号码。
 
-                    1. 点击 ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} 按钮。
+                    1. 点击 *+* 按钮。
                     2. 选择 *开始聊天*。
                     3. 输入邮箱或电话号码。
 
@@ -3040,7 +3041,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
                 description: dedent(`
                     与一人或多人*平摊费用*。
 
-                    1. 点击 ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} 按钮。
+                    1. 点击 *+* 按钮。
                     2. 选择 *开始聊天*。
                     3. 输入邮箱或电话号码。
                     4. 在聊天中点击灰色的 *+* 按钮 > *分摊费用*。
@@ -3064,7 +3065,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
                 description: dedent(`
                     创建报表步骤如下：
 
-                    1. 点击 ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} 按钮。
+                    1. 点击 *+* 按钮。
                     2. 选择 *创建报表*。
                     3. 点击 *添加报销*。
                     4. 添加你的第一笔报销。
@@ -3831,7 +3832,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         regulationRequiresUs: '法规要求我们核实任何持有该企业超过 25% 股权的个人身份。',
         iAmAuthorized: '我已被授权使用该公司银行账户进行业务支出。',
         iCertify: '本人证明所提供的信息真实且准确。',
-        iAcceptTheTermsAndConditions: `我接受<a href="https://cross-border.corpay.com/tc/">条款和条件</a>。`,
+        iAcceptTheTermsAndConditions: `我接受<a href="https://www.corpay.com/cross-border/terms">条款和条件</a>。`,
         iAcceptTheTermsAndConditionsAccessibility: '我接受条款和条件。',
         accept: '接受并添加银行账户',
         iConsentToThePrivacyNotice: '我同意<a href="https://payments.corpay.com/compliance">隐私声明</a>。',
@@ -4844,13 +4845,13 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
 
 _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IMPORT.HELP_LINKS.CUSTOM_SEGMENTS})_。`,
                             customSegmentScriptIDTitle: '脚本 ID 是什么？',
-                            customSegmentScriptIDFooter: `您可以在 NetSuite 中通过以下路径找到自定义段脚本 ID：  
+                            customSegmentScriptIDFooter: `您可以在 NetSuite 中通过以下路径找到自定义段脚本 ID：
 
-1. 进入 *Customization > Lists, Records, & Fields > Custom Segments*。  
-2. 点击进入某个自定义段。  
-3. 在页面底部附近点击 *Application and Sourcing* 选项卡，然后：  
-   a. 如果您希望在 Expensify 中将自定义段显示为*标签*（行项目级别），请点击 *Transaction Columns* 子选项卡，并使用其中的 *Field ID*。  
-   b. 如果您希望在 Expensify 中将自定义段显示为*报表字段*（报表级别），请点击 *Transactions* 子选项卡，并使用其中的 *Field ID*。  
+1. 进入 *Customization > Lists, Records, & Fields > Custom Segments*。
+2. 点击进入某个自定义段。
+3. 在页面底部附近点击 *Application and Sourcing* 选项卡，然后：
+   a. 如果您希望在 Expensify 中将自定义段显示为*标签*（行项目级别），请点击 *Transaction Columns* 子选项卡，并使用其中的 *Field ID*。
+   b. 如果您希望在 Expensify 中将自定义段显示为*报表字段*（报表级别），请点击 *Transactions* 子选项卡，并使用其中的 *Field ID*。
 
 _如需更详细的说明，[请访问我们的帮助网站](${CONST.NETSUITE_IMPORT.HELP_LINKS.CUSTOM_LISTS})_。`,
                             customRecordScriptIDTitle: '交易列的 ID 是什么？',
@@ -7335,6 +7336,7 @@ ${reportName}
             hold: '暂挂',
             unhold: '解除保留',
             reject: '拒绝',
+            duplicateExpense: ({count}: {count: number}) => `复制${count === 1 ? '报销' : '报销费用'}`,
             noOptionsAvailable: '所选报销的费用组没有可用选项。',
         },
         filtersHeader: '筛选器',
@@ -7739,6 +7741,11 @@ ${reportName}
         joinExpensifyOrg: '加入 Expensify.org，一起消除世界各地的不公现象。当前的“教师联合”活动通过分担基本学习用品的费用来支持全世界的教育工作者。',
         iKnowATeacher: '我认识一位老师',
         iAmATeacher: '我是老师',
+        personalKarma: {
+            title: '启用个人 Karma',
+            description: '您每月每消费 500 美元，就向 Expensify.org 捐赠 1 美元',
+            stopDonationsPrompt: '确定要停止向 Expensify.org 捐款吗？',
+        },
         getInTouch: '太好了！请分享他们的联系方式，以便我们与他们取得联系。',
         introSchoolPrincipal: '向你们学校校长的介绍',
         schoolPrincipalVerifyExpense: 'Expensify.org 会分摊基本学习用品的费用，让来自低收入家庭的学生能够拥有更好的学习体验。我们会请你的校长核实你的报销。',
