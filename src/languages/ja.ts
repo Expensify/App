@@ -1126,7 +1126,6 @@ const translations: TranslationDeepObject<typeof en> = {
         flash: 'フラッシュ',
         multiScan: 'マルチスキャン',
         shutter: 'シャッター',
-        flipCamera: 'カメラを反転',
         gallery: 'ギャラリー',
         deleteReceipt: '領収書を削除',
         deleteConfirmation: 'この領収書を削除してもよろしいですか？',
