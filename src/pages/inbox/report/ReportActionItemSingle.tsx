@@ -18,7 +18,15 @@ import ControlSelection from '@libs/ControlSelection';
 import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
-import {getDelegateAccountIDFromReportAction, getHumanAgentAccountIDFromReportAction, getManagerOnVacation, getOriginalMessage, getReportActionMessage, getSubmittedTo, getVacationer} from '@libs/ReportActionsUtils';
+import {
+    getDelegateAccountIDFromReportAction,
+    getHumanAgentAccountIDFromReportAction,
+    getManagerOnVacation,
+    getOriginalMessage,
+    getReportActionMessage,
+    getSubmittedTo,
+    getVacationer,
+} from '@libs/ReportActionsUtils';
 import {isOptimisticPersonalDetail} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';

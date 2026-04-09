@@ -7,7 +7,14 @@ import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
-import {getDelegateAccountIDFromReportAction, getHumanAgentAccountIDFromReportAction, getOriginalMessage, getReportAction, getReportActionActorAccountID, isMoneyRequestAction} from '@libs/ReportActionsUtils';
+import {
+    getDelegateAccountIDFromReportAction,
+    getHumanAgentAccountIDFromReportAction,
+    getOriginalMessage,
+    getReportAction,
+    getReportActionActorAccountID,
+    isMoneyRequestAction,
+} from '@libs/ReportActionsUtils';
 import {
     getDefaultWorkspaceAvatar,
     getDisplayNameForParticipant,
@@ -346,7 +353,8 @@ function useReportActionAvatars({
                 source: humanAgentDetails.avatar ?? defaultAvatars.FallbackAvatar,
                 name: humanAgentDetails.displayName ?? humanAgentDetails.login ?? '',
             };
-            avatars = [avatars.at(0) ?? avatars[0], agentAvatar];
+            const [conciergeAvatar] = avatars;
+            avatars = [conciergeAvatar, agentAvatar];
             avatarType = CONST.REPORT_ACTION_AVATARS.TYPE.SUBSCRIPT;
         }
     }
