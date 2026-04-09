@@ -1,6 +1,9 @@
+import {useIsFocused} from '@react-navigation/native';
 import React from 'react';
 import useOnyx from '@hooks/useOnyx';
 import useReportAttributes from '@hooks/useReportAttributes';
+import useRootNavigationState from '@hooks/useRootNavigationState';
+import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -26,11 +29,16 @@ function LHNTooltipContextProvider({data, children}: LHNTooltipContextProviderPr
     });
     const firstReportIDWithGBRorRBR = firstReport?.reportID;
 
+    const isScreenFocused = useIsFocused();
+    const isReportsSplitNavigatorLast = useRootNavigationState((state) => state?.routes?.at(-1)?.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR);
+
     const value = {
         onboardingPurpose: introSelected?.choice,
         onboarding,
         isFullscreenVisible,
         firstReportIDWithGBRorRBR,
+        isScreenFocused,
+        isReportsSplitNavigatorLast,
     };
 
     return <LHNTooltipContext.Provider value={value}>{children}</LHNTooltipContext.Provider>;

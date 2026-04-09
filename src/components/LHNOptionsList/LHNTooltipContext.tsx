@@ -7,6 +7,8 @@ type LHNTooltipContextValue = {
     onboarding: OnyxEntry<Onboarding>;
     isFullscreenVisible: boolean | undefined;
     firstReportIDWithGBRorRBR: string | undefined;
+    isScreenFocused: boolean;
+    isReportsSplitNavigatorLast: boolean;
 };
 
 const LHNTooltipContext = createContext<LHNTooltipContextValue>({
@@ -14,6 +16,8 @@ const LHNTooltipContext = createContext<LHNTooltipContextValue>({
     onboarding: undefined,
     isFullscreenVisible: undefined,
     firstReportIDWithGBRorRBR: undefined,
+    isScreenFocused: false,
+    isReportsSplitNavigatorLast: false,
 });
 
 function useLHNTooltipContext(): LHNTooltipContextValue {

@@ -1,4 +1,3 @@
-import {useIsFocused} from '@react-navigation/native';
 import React, {useMemo, useRef, useState} from 'react';
 import type {GestureResponderEvent, ViewStyle} from 'react-native';
 import {StyleSheet, View} from 'react-native';
@@ -20,7 +19,6 @@ import useEnvironment from '@hooks/useEnvironment';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useRootNavigationState from '@hooks/useRootNavigationState';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -38,7 +36,6 @@ import {showContextMenu} from '@pages/inbox/report/ContextMenu/ReportActionConte
 import FreeTrial from '@pages/settings/Subscription/FreeTrial';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
-import NAVIGATORS from '@src/NAVIGATORS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import LHNAvatar from './LHNAvatar';
 import {useLHNTooltipContext} from './LHNTooltipContext';
@@ -65,9 +62,7 @@ function OptionRowLHN({
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Pencil', 'DotIndicator', 'Pin']);
 
-    const isScreenFocused = useIsFocused();
-    const isReportsSplitNavigatorLast = useRootNavigationState((state) => state?.routes?.at(-1)?.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR);
-    const {onboardingPurpose, onboarding, isFullscreenVisible, firstReportIDWithGBRorRBR} = useLHNTooltipContext();
+    const {onboardingPurpose, onboarding, isFullscreenVisible, firstReportIDWithGBRorRBR, isScreenFocused, isReportsSplitNavigatorLast} = useLHNTooltipContext();
     const shouldShowRBRorGBRTooltip = firstReportIDWithGBRorRBR === reportID;
 
     const personalDetails = usePersonalDetails();
