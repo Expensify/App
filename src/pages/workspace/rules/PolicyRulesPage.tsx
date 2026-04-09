@@ -56,7 +56,7 @@ function PolicyRulesPage({route}: PolicyRulesPageProps) {
                 <View style={[styles.mt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
                     <IndividualExpenseRulesSection policyID={policyID} />
                     <MerchantRulesSection policyID={policyID} />
-                    {!!policy?.areExpensifyCardsEnabled && <SpendRulesSection />}
+                    {!!policy?.areExpensifyCardsEnabled && <SpendRulesSection policyID={policyID} />}
                 </View>
             </WorkspacePageWithSections>
         </AccessOrNotFoundWrapper>
