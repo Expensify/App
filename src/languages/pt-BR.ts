@@ -3916,7 +3916,7 @@ ${amount} para ${merchant} - ${date}`,
         regulationRequiresUs: 'A regulamentação exige que verifiquemos a identidade de qualquer pessoa física que possua mais de 25% do negócio.',
         iAmAuthorized: 'Estou autorizado(a) a usar a conta bancária empresarial para gastos do negócio.',
         iCertify: 'Eu certifico que as informações fornecidas são verdadeiras e corretas.',
-        iAcceptTheTermsAndConditions: `Eu aceito os <a href="https://cross-border.corpay.com/tc/">termos e condições</a>.`,
+        iAcceptTheTermsAndConditions: `Eu aceito os <a href="https://www.corpay.com/cross-border/terms">termos e condições</a>.`,
         iAcceptTheTermsAndConditionsAccessibility: 'Eu aceito os termos e condições.',
         accept: 'Aceitar e adicionar conta bancária',
         iConsentToThePrivacyNotice: 'Eu concordo com o <a href="https://payments.corpay.com/compliance">aviso de privacidade</a>.',
@@ -4963,7 +4963,7 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
 
 _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETSUITE_IMPORT.HELP_LINKS.CUSTOM_SEGMENTS})_.`,
                             customSegmentScriptIDTitle: 'Qual é o ID do script?',
-                            customSegmentScriptIDFooter: `Você pode encontrar os IDs de script de segmentos personalizados no NetSuite em: 
+                            customSegmentScriptIDFooter: `Você pode encontrar os IDs de script de segmentos personalizados no NetSuite em:
 
 1. *Customization > Lists, Records, & Fields > Custom Segments*.
 2. Clique em um segmento personalizado.

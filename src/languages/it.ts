@@ -724,7 +724,7 @@ const translations: TranslationDeepObject<typeof en> = {
             in cui è stato originariamente richiesto
         `),
         doNotShare: dedent(`
-            Non condividere il tuo codice con nessuno.  
+            Non condividere il tuo codice con nessuno.
             Expensify non te lo chiederà mai!
         `),
         or: ', oppure',
@@ -733,7 +733,7 @@ const translations: TranslationDeepObject<typeof en> = {
         expiredCodeDescription: 'Torna al dispositivo originale e richiedi un nuovo codice',
         successfulNewCodeRequest: 'Codice richiesto. Controlla il tuo dispositivo.',
         tfaRequiredTitle: dedent(`
-            Autenticazione a due fattori  
+            Autenticazione a due fattori
             obbligatoria
         `),
         tfaRequiredDescription: dedent(`
@@ -3926,7 +3926,7 @@ ${amount} per ${merchant} - ${date}`,
         regulationRequiresUs: 'La normativa ci impone di verificare l’identità di ogni persona fisica che possiede più del 25% dell’attività.',
         iAmAuthorized: 'Sono autorizzato/a a usare il conto bancario aziendale per le spese aziendali.',
         iCertify: 'Dichiaro che le informazioni fornite sono veritiere e accurate.',
-        iAcceptTheTermsAndConditions: `Accetto i <a href="https://cross-border.corpay.com/tc/">termini e condizioni</a>.`,
+        iAcceptTheTermsAndConditions: `Accetto i <a href="https://www.corpay.com/cross-border/terms">termini e condizioni</a>.`,
         iAcceptTheTermsAndConditionsAccessibility: 'Accetto i termini e le condizioni.',
         accept: 'Accetta e aggiungi conto bancario',
         iConsentToThePrivacyNotice: 'Acconsento all’<a href="https://payments.corpay.com/compliance">informativa sulla privacy</a>.',
@@ -4977,7 +4977,7 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
 
 _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.NETSUITE_IMPORT.HELP_LINKS.CUSTOM_SEGMENTS})_.`,
                             customSegmentScriptIDTitle: "Qual è l'ID dello script?",
-                            customSegmentScriptIDFooter: `Puoi trovare gli ID script dei segmenti personalizzati in NetSuite in: 
+                            customSegmentScriptIDFooter: `Puoi trovare gli ID script dei segmenti personalizzati in NetSuite in:
 
 1. *Customization > Lists, Records, & Fields > Custom Segments*.
 2. Fai clic su un segmento personalizzato.
