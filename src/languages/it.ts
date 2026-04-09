@@ -8238,9 +8238,9 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                         return `tabacco`;
                     case 'adultEntertainment':
                         return `intrattenimento per adulti`;
-                    case ‘hotelIncidentals’:
+                    case 'hotelIncidentals':
                         return `spese accessorie dell’hotel`;
-                    case ‘giftCard’:
+                    case 'giftCard':
                         return `acquisto di carte regalo`;
                     default:
                         return `${prohibitedExpenseType}`;
