@@ -1718,6 +1718,13 @@ function getCurrentTaxID(policy: OnyxEntry<Policy>, taxID: string): string | und
     return Object.keys(policy?.taxRates?.taxes ?? {}).find((taxIDKey) => policy?.taxRates?.taxes?.[taxIDKey].previousTaxCode === taxID || taxIDKey === taxID);
 }
 
+/**
+ * Resolves a renamed tax code to the current policy tax key.
+ */
+function resolveCurrentTaxCode(policy: OnyxEntry<Policy>, taxCode: string): string {
+    return getCurrentTaxID(policy, taxCode) ?? taxCode;
+}
+
 function getTagApproverRule(policy: OnyxEntry<Policy>, tagName: string) {
     if (!policy) {
         return;
@@ -2217,6 +2224,7 @@ export {
     getActivePoliciesWithExpenseChatAndTimeEnabled,
     isPolicyTaxEnabled,
     sortPoliciesByName,
+    resolveCurrentTaxCode,
     isPolicyApprover,
 };
 

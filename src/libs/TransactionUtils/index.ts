@@ -29,6 +29,7 @@ import {
     isMultiLevelTags as isMultiLevelTagsPolicyUtils,
     isPolicyAdmin,
     isPolicyMember as isPolicyMemberPolicyUtils,
+    resolveCurrentTaxCode,
 } from '@libs/PolicyUtils';
 import {getOriginalMessage, getReportAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {
@@ -2137,7 +2138,8 @@ function transformedTaxRates(policy: OnyxEntry<Policy> | undefined, transaction?
  * Gets the tax value of a selected tax
  */
 function getTaxValue(policy: OnyxEntry<Policy>, transaction: OnyxEntry<Transaction>, taxCode: string) {
-    return Object.values(transformedTaxRates(policy, transaction)).find((taxRate) => taxRate.code === taxCode)?.value;
+    const resolvedTaxCode = resolveCurrentTaxCode(policy, taxCode);
+    return Object.values(transformedTaxRates(policy, transaction)).find((taxRate) => taxRate.code === resolvedTaxCode)?.value;
 }
 
 /**
@@ -2155,7 +2157,9 @@ function getTaxName(policy: OnyxEntry<Policy>, transaction: OnyxEntry<Transactio
 
     // transaction?.taxCode may be an empty string
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const taxRate = Object.values(transformedTaxRates(policy, transaction)).find((rate) => rate.code === (transaction?.taxCode || defaultTaxCode));
+    const taxCodeToMatch = transaction?.taxCode || defaultTaxCode;
+    const resolvedTaxCode = taxCodeToMatch ? resolveCurrentTaxCode(policy, taxCodeToMatch) : taxCodeToMatch;
+    const taxRate = Object.values(transformedTaxRates(policy, transaction)).find((rate) => rate.code === resolvedTaxCode);
 
     if (shouldFallbackToValue && transaction?.taxValue !== undefined && taxRate?.value !== transaction?.taxValue) {
         return transaction?.taxValue;
@@ -2173,8 +2177,9 @@ function hasTaxRateWithMatchingValue(policy: OnyxEntry<Policy>, transaction: Ony
     }
 
     const transactionTaxCode = getTaxCode(transaction);
+    const resolvedTaxCode = transactionTaxCode ? resolveCurrentTaxCode(policy, transactionTaxCode) : transactionTaxCode;
     const transformedRates = transformedTaxRates(policy, transaction);
-    const taxRate = Object.values(transformedRates).find((rate) => rate.code === transactionTaxCode);
+    const taxRate = Object.values(transformedRates).find((rate) => rate.code === resolvedTaxCode);
 
     if (!transaction?.taxValue) {
         return !!taxRate;
