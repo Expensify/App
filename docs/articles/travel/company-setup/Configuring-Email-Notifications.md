@@ -67,6 +67,9 @@ These settings can help manage inbox volume or ensure backup approvers stay info
 ## Can I send notifications to shared email addresses or aliases?
 Yes. You can use shared inboxes, email aliases, or distribution lists in the CC or BCC fields.
 
+## Can I turn off notifications for reports that I approve for reimbursement?
+No. To comply with regulations in several US states, Expensify is required to send you an email whenever you send money to another individual.
+
 ## Can I create multiple rules with different conditions?
 Absolutely. Each rule can have different triggers and filters. You can create as many rules as needed.
 
