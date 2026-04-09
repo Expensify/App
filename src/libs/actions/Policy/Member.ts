@@ -325,6 +325,27 @@ function resetAccountingPreferredExporter(policy: OnyxEntry<Policy>, loginList: 
 }
 
 /**
+ * Walk the forwardsTo chain starting from the current default approver
+ * and return the first approver that is not in the removal set.
+ * Falls back to the policy owner if no valid approver is found.
+ */
+function findNextApproverInChain(policy: OnyxEntry<Policy>, selectedMemberEmails: string[]): string | undefined {
+    const employeeList = policy?.employeeList ?? {};
+    const visited = new Set<string>();
+    let current = employeeList[policy?.approver ?? '']?.forwardsTo;
+
+    while (current && !visited.has(current)) {
+        if (!selectedMemberEmails.includes(current)) {
+            return current;
+        }
+        visited.add(current);
+        current = employeeList[current]?.forwardsTo;
+    }
+
+    return policy?.owner;
+}
+
+/**
  * Remove the passed members from the policy employeeList
  * Please see https://github.com/Expensify/App/blob/main/README.md#Security for more details
  */
@@ -397,7 +418,7 @@ function removeMembers(policy: OnyxEntry<Policy>, selectedMemberEmails: string[]
             key: policyKey,
             value: {
                 employeeList: optimisticMembersState,
-                approver: selectedMemberEmails.includes(policy?.approver ?? '') ? (policy?.employeeList?.[policy?.approver ?? '']?.forwardsTo ?? policy?.owner) : policy?.approver,
+                approver: selectedMemberEmails.includes(policy?.approver ?? '') ? findNextApproverInChain(policy, selectedMemberEmails) : policy?.approver,
                 rules: {
                     ...(policy?.rules ?? {}),
                     approvalRules: optimisticApprovalRules,
