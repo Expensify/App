@@ -46,6 +46,7 @@ import useIsSidebarRouteActive from '@libs/Navigation/helpers/useIsSidebarRouteA
 import Navigation from '@libs/Navigation/Navigation';
 import {getFreeTrialText, hasSubscriptionRedDotError} from '@libs/SubscriptionUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+import {shouldHideOldAppRedirect} from '@libs/TryNewDotUtils';
 import {getProfilePageBrickRoadIndicator} from '@libs/UserUtils';
 import type SETTINGS_TO_RHP from '@navigation/linkingConfig/RELATIONS/SETTINGS_TO_RHP';
 import {showContextMenu} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
@@ -68,6 +69,7 @@ import {isTrackingSelector} from '@src/selectors/GPSDraftDetails';
 import type {Icon as TIcon} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import type WithSentryLabel from '@src/types/utils/SentryLabel';
 
 type InitialSettingsPageProps = WithCurrentUserPersonalDetailsProps;
@@ -155,7 +157,8 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     const privateSubscription = usePrivateSubscription();
     const subscriptionPlan = useSubscriptionPlan();
     const previousUserPersonalDetails = usePrevious(currentUserPersonalDetails);
-    const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT);
+    const [tryNewDot, tryNewDotMetadata] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT);
+    const isLoadingTryNewDot = isLoadingOnyxValue(tryNewDotMetadata);
 
     const freeTrialText = getFreeTrialText(translate, policies, introSelected, firstDayFreeTrial, lastDayFreeTrial);
 
@@ -314,7 +317,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     };
 
     let classicRedirectMenuItem: MenuData | null = null;
-    if (!tryNewDot?.classicRedirect?.isLockedToNewDot) {
+    if (!shouldHideOldAppRedirect(tryNewDot, isLoadingTryNewDot, CONFIG.IS_HYBRID_APP)) {
         const shouldOpenSurveyReasonPage = tryNewDot?.classicRedirect?.dismissed === false;
 
         classicRedirectMenuItem = {
@@ -568,7 +571,6 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                     shouldDisplayHelpButton
                 />
             )}
-            {headerContent}
             <ScrollView
                 ref={scrollViewRef}
                 onScroll={onScroll}
@@ -576,6 +578,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                 contentContainerStyle={[styles.w100]}
                 showsVerticalScrollIndicator={false}
             >
+                {headerContent}
                 {accountMenuItems}
                 {generalMenuItems}
             </ScrollView>
