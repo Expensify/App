@@ -257,7 +257,7 @@ function useSelectionModeReportActions({
     const [requestType, setRequestType] = useState<ActionHandledType>();
     const [selectedVBBAToPayFromHoldMenu, setSelectedVBBAToPayFromHoldMenu] = useState<number | undefined>(undefined);
 
-    const checkForNecessaryAction = () => {
+    const shouldBlockAction = () => {
         if (isDelegateAccessRestricted) {
             showDelegateNoAccessModal();
             return true;
@@ -420,7 +420,7 @@ function useSelectionModeReportActions({
     const handlePaySelected = () => {};
 
     const onSelectionModePaymentSelect = (event: KYCFlowEvent, iouPaymentType: PaymentMethodType, triggerKYCFlow: TriggerKYCFlow) => {
-        if (checkForNecessaryAction()) {
+        if (shouldBlockAction()) {
             return;
         }
         // This callback fires via onSubItemSelected before the popover closes. Defer heavy payment
@@ -458,7 +458,7 @@ function useSelectionModeReportActions({
     const hasPayInSelectionMode = allExpensesSelected && hasPayAction && hasActualPaymentOptions;
 
     const handleWorkspaceSelected = (wp: OnyxTypes.Policy) => {
-        if (checkForNecessaryAction()) {
+        if (shouldBlockAction()) {
             return;
         }
         kycWallRef.current?.continueAction?.({policy: wp});
@@ -545,7 +545,7 @@ function useSelectionModeReportActions({
         handleHoldMenuConfirm,
         confirmPayment,
         confirmApproval,
-        checkForNecessaryAction,
+        shouldBlockAction,
 
         // Pay-related
         hasPayAction,
