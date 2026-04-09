@@ -15,8 +15,6 @@ import type {
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as CollectionUtils from '@libs/CollectionUtils';
 import DateUtils from '@libs/DateUtils';
-import {toLocaleDigit as localeDigitForStandardDigit} from '@libs/LocaleDigitUtils';
-import {translateLocal} from '@libs/Localize';
 import {buildNextStepNew, buildOptimisticNextStep} from '@libs/NextStepUtils';
 import * as NumberUtils from '@libs/NumberUtils';
 import {rand64} from '@libs/NumberUtils';
@@ -53,7 +51,6 @@ import {
 } from '@libs/TransactionUtils';
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
 import CONST from '@src/CONST';
-import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {
     PersonalDetails,
@@ -860,8 +857,8 @@ type ChangeTransactionsReportProps = {
     reportNextStep?: OnyxEntry<ReportNextStepDeprecated>;
     policyCategories?: OnyxEntry<PolicyCategories>;
     allTransactions: OnyxCollection<Transaction>;
-    translate?: LocaleContextProps['translate'];
-    toLocaleDigit?: LocaleContextProps['toLocaleDigit'];
+    translate: LocaleContextProps['translate'];
+    toLocaleDigit: LocaleContextProps['toLocaleDigit'];
     defaultP2PMileageRate?: DefaultP2PMileageRate;
 };
 
@@ -875,13 +872,10 @@ function changeTransactionsReport({
     reportNextStep,
     policyCategories,
     allTransactions,
-    translate: translateParam,
-    toLocaleDigit: toLocaleDigitParam,
+    translate,
+    toLocaleDigit,
     defaultP2PMileageRate,
 }: ChangeTransactionsReportProps) {
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const translate = translateParam ?? translateLocal;
-    const toLocaleDigit = toLocaleDigitParam ?? ((digit: string) => localeDigitForStandardDigit(IntlStore.getCurrentLocale(), digit));
     const reportID = newReport?.reportID ?? CONST.REPORT.UNREPORTED_REPORT_ID;
 
     const transactions = transactionIDs.map((id) => allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`]).filter((t): t is NonNullable<typeof t> => t !== undefined);
