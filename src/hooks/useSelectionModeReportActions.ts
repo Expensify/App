@@ -257,7 +257,7 @@ function useSelectionModeReportActions({
     const [requestType, setRequestType] = useState<ActionHandledType>();
     const [selectedVBBAToPayFromHoldMenu, setSelectedVBBAToPayFromHoldMenu] = useState<number | undefined>(undefined);
 
-    const shouldBlockAction = () => {
+    const shouldBlockAction = (paymentMethodType?: PaymentMethodType) => {
         if (isDelegateAccessRestricted) {
             showDelegateNoAccessModal();
             return true;
@@ -266,7 +266,7 @@ function useSelectionModeReportActions({
             showLockedAccountModal();
             return true;
         }
-        if (!isUserValidated) {
+        if (!isUserValidated && paymentMethodType !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
             handleUnvalidatedAccount(report);
             return true;
         }
@@ -420,7 +420,7 @@ function useSelectionModeReportActions({
     const handlePaySelected = () => {};
 
     const onSelectionModePaymentSelect = (event: KYCFlowEvent, iouPaymentType: PaymentMethodType, triggerKYCFlow: TriggerKYCFlow) => {
-        if (shouldBlockAction()) {
+        if (shouldBlockAction(iouPaymentType)) {
             return;
         }
         // This callback fires via onSubItemSelected before the popover closes. Defer heavy payment

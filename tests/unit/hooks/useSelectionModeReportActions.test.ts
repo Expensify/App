@@ -593,6 +593,26 @@ describe('useSelectionModeReportActions', () => {
 
             expect(blocked).toBe(false);
         });
+
+        it('returns true for unvalidated user when payment type is not Elsewhere', async () => {
+            await Onyx.merge(ONYXKEYS.ACCOUNT, {validated: false});
+            await waitForBatchedUpdates();
+
+            const {result} = renderSelectionModeHook();
+            const blocked = result.current.shouldBlockAction(CONST.IOU.PAYMENT_TYPE.EXPENSIFY);
+
+            expect(blocked).toBe(true);
+        });
+
+        it('returns false for unvalidated user when payment type is Elsewhere', async () => {
+            await Onyx.merge(ONYXKEYS.ACCOUNT, {validated: false});
+            await waitForBatchedUpdates();
+
+            const {result} = renderSelectionModeHook();
+            const blocked = result.current.shouldBlockAction(CONST.IOU.PAYMENT_TYPE.ELSEWHERE);
+
+            expect(blocked).toBe(false);
+        });
     });
 
     describe('handleSubmitReport guards', () => {
