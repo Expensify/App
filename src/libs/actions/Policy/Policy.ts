@@ -1296,7 +1296,7 @@ function leaveWorkspace(currentUserAccountID: number, currentUserEmail: string, 
     ];
 
     const currentTime = DateUtils.getDBTime();
-    const pendingChatMembers = ReportUtils.getPendingChatMembers([deprecatedSessionAccountID], [], CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+    const pendingChatMembers = ReportUtils.getPendingChatMembers([currentUserAccountID], [], CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
 
     for (const report of workspaceChats) {
         if (!report?.reportID) {
@@ -2310,25 +2310,18 @@ function buildOptimisticDistanceRateCustomUnits(reportCurrency?: string): Optimi
 
 /**
  * Optimistically creates a Policy Draft for a new workspace
- *
- * @param [policyOwnerEmail] the email of the account to make the owner of the policy
- * @param [policyName] custom policy name we will use for created workspace
- * @param [policyID] custom policy id we will use for created workspace
- * @param [makeMeAdmin] leave the calling account as an admin on the policy
- * @param [currency] Optional, selected currency for the workspace
- * @param [file], avatar file for workspace
  */
 function createDraftInitialWorkspace(
     introSelected: OnyxEntry<IntroSelected>,
-    policyOwnerEmail = '',
-    policyName = '',
+    workspaceName: string,
+    currentUserAccountID: number,
+    currentUserEmail: string,
     policyID = generatePolicyID(),
     makeMeAdmin = false,
     currency = '',
     file?: File,
     type: typeof CONST.POLICY.TYPE.TEAM | typeof CONST.POLICY.TYPE.CORPORATE = CONST.POLICY.TYPE.TEAM,
 ) {
-    const workspaceName = policyName || generateDefaultWorkspaceName(policyOwnerEmail);
     const {customUnits, outputCurrency} = buildOptimisticDistanceRateCustomUnits(currency);
     const shouldEnableWorkflowsByDefault =
         !introSelected?.choice || introSelected.choice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM || introSelected.choice === CONST.ONBOARDING_CHOICES.LOOKING_AROUND;
@@ -2342,11 +2335,11 @@ function createDraftInitialWorkspace(
                 type: type || CONST.POLICY.TYPE.TEAM,
                 name: workspaceName,
                 role: CONST.POLICY.ROLE.ADMIN,
-                owner: deprecatedSessionEmail,
-                ownerAccountID: deprecatedSessionAccountID,
+                owner: currentUserEmail,
+                ownerAccountID: currentUserAccountID,
                 isPolicyExpenseChatEnabled: true,
                 areCategoriesEnabled: true,
-                approver: deprecatedSessionEmail,
+                approver: currentUserEmail,
                 areCompanyCardsEnabled: true,
                 areExpensifyCardsEnabled: false,
                 outputCurrency,
@@ -2361,9 +2354,9 @@ function createDraftInitialWorkspace(
                 },
                 originalFileName: file?.name,
                 employeeList: {
-                    [deprecatedSessionEmail]: {
-                        submitsTo: deprecatedSessionEmail,
-                        email: deprecatedSessionEmail,
+                    [currentUserEmail]: {
+                        submitsTo: currentUserEmail,
+                        email: currentUserEmail,
                         role: CONST.POLICY.ROLE.ADMIN,
                         errors: {},
                     },
@@ -3104,6 +3097,98 @@ function createDraftWorkspace(
     return params;
 }
 
+function buildOptimisticDuplicatePolicy(sourcePolicy: Policy, policyOptions: DuplicatePolicyDataOptions) {
+    const {
+        policyName: duplicatedPolicyName = '',
+        targetPolicyID: duplicatedPolicyID,
+        file: duplicatedPolicyFile,
+        parts: duplicatedParts,
+        localCurrency: duplicatedLocalCurrency,
+    } = policyOptions;
+
+    const isMemberFeatureSelected = duplicatedParts?.people;
+    const isReportsFeatureSelected = duplicatedParts?.reports;
+    const isConnectionsFeatureSelected = duplicatedParts?.connections;
+    const isTaxesFeatureSelected = duplicatedParts?.taxes;
+    const isTagsFeatureSelected = duplicatedParts?.tags;
+    const isInvoicesFeatureSelected = duplicatedParts?.invoices;
+    const isDistanceRatesFeatureSelected = duplicatedParts?.distance;
+    const isRulesFeatureSelected = duplicatedParts?.expenses;
+    const isWorkflowsFeatureSelected = duplicatedParts?.exportLayouts;
+    const isPerDiemFeatureSelected = duplicatedParts?.perDiem;
+    const isOverviewFeatureSelected = duplicatedParts?.overview;
+    const isTravelFeatureSelected = duplicatedParts?.travel;
+    const isCodingRulesFeatureSelected = duplicatedParts?.codingRules;
+    const duplicatedOutputCurrency = isOverviewFeatureSelected ? sourcePolicy?.outputCurrency : duplicatedLocalCurrency;
+    const {customUnitID: duplicatedDistanceCustomUnitID} = buildOptimisticDistanceRateCustomUnits(duplicatedOutputCurrency);
+    const duplicatedPerDiemCustomUnitID = generateCustomUnitID();
+
+    const filterPendingDeleteData = <T>(data?: Record<string, T>): Record<string, T> | undefined =>
+        data
+            ? (Object.fromEntries(
+                  Object.entries(data).filter(([, value]) => {
+                      if (!value || typeof value !== 'object' || !('pendingAction' in value)) {
+                          return true;
+                      }
+                      return value.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+                  }),
+              ) as Record<string, T>)
+            : undefined;
+
+    const codingRulesWithoutPendingDelete = filterPendingDeleteData(sourcePolicy?.rules?.codingRules);
+    const employeeListWithoutPendingDelete = filterPendingDeleteData(sourcePolicy?.employeeList);
+    const fieldListWithoutPendingDelete = filterPendingDeleteData(sourcePolicy?.fieldList);
+    const connectionsWithoutPendingDelete = filterPendingDeleteData(sourcePolicy?.connections);
+    const taxRatesWithoutPendingDelete = {
+        ...sourcePolicy?.taxRates,
+        taxes: filterPendingDeleteData(sourcePolicy?.taxRates?.taxes),
+    };
+
+    return {
+        ...sourcePolicy,
+        areCategoriesEnabled: true,
+        areTagsEnabled: isTagsFeatureSelected,
+        areDistanceRatesEnabled: isDistanceRatesFeatureSelected,
+        areInvoicesEnabled: isInvoicesFeatureSelected,
+        areRulesEnabled: isRulesFeatureSelected,
+        areWorkflowsEnabled: isWorkflowsFeatureSelected,
+        areReportFieldsEnabled: isReportsFeatureSelected,
+        areConnectionsEnabled: isConnectionsFeatureSelected,
+        arePerDiemRatesEnabled: isPerDiemFeatureSelected,
+        isTravelEnabled: isTravelFeatureSelected ? sourcePolicy?.isTravelEnabled : undefined,
+        travelSettings: undefined,
+        workspaceAccountID: undefined,
+        tax: isTaxesFeatureSelected ? sourcePolicy?.tax : undefined,
+        employeeList: isMemberFeatureSelected ? employeeListWithoutPendingDelete : {[sourcePolicy.owner]: sourcePolicy?.employeeList?.[sourcePolicy.owner]},
+        id: duplicatedPolicyID,
+        name: duplicatedPolicyName,
+        fieldList: isReportsFeatureSelected ? fieldListWithoutPendingDelete : undefined,
+        connections: isConnectionsFeatureSelected ? connectionsWithoutPendingDelete : undefined,
+        customUnits: getCustomUnitsForDuplication(sourcePolicy, isDistanceRatesFeatureSelected, isPerDiemFeatureSelected, {
+            distanceCustomUnitID: duplicatedDistanceCustomUnitID,
+            perDiemCustomUnitID: duplicatedPerDiemCustomUnitID,
+        }),
+        taxRates: isTaxesFeatureSelected ? taxRatesWithoutPendingDelete : undefined,
+        rules: isCodingRulesFeatureSelected ? {codingRules: codingRulesWithoutPendingDelete} : undefined,
+        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+        pendingFields: {
+            autoReporting: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+            approvalMode: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+            reimbursementChoice: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+            name: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+            outputCurrency: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+            address: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+            description: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+            type: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+            areReportFieldsEnabled: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+        },
+        avatarURL: duplicatedPolicyFile?.uri,
+        originalFileName: duplicatedPolicyFile?.name,
+        outputCurrency: duplicatedOutputCurrency,
+        address: isOverviewFeatureSelected ? sourcePolicy?.address : undefined,
+    };
+}
+
 function buildDuplicatePolicyData(policy: Policy, options: DuplicatePolicyDataOptions) {
     const {policyName = '', policyID = generatePolicyID(), file, welcomeNote, parts, targetPolicyID = generatePolicyID(), policyCategories, localCurrency} = options;
 
@@ -3119,19 +3204,8 @@ function buildDuplicatePolicyData(policy: Policy, options: DuplicatePolicyDataOp
         pendingChatMembers,
     } = ReportUtils.buildOptimisticWorkspaceChats(targetPolicyID, policyName);
     const isMemberOptionSelected = parts?.people;
-    const isReportsOptionSelected = parts?.reports;
-    const isConnectionsOptionSelected = parts?.connections;
     const isCategoriesOptionSelected = parts?.categories;
-    const isTaxesOptionSelected = parts?.taxes;
-    const isTagsOptionSelected = parts?.tags;
-    const isInvoicesOptionSelected = parts?.invoices;
-    const isDistanceRatesOptionSelected = parts?.distance;
-    const isRulesOptionSelected = parts?.expenses;
-    const isWorkflowsOptionSelected = parts?.exportLayouts;
-    const isPerDiemOptionSelected = parts?.perDiem;
     const isOverviewOptionSelected = parts?.overview;
-    const isTravelOptionSelected = parts?.travel;
-    const isCodingRulesOptionSelected = parts?.codingRules;
 
     const outputCurrency = isOverviewOptionSelected ? policy?.outputCurrency : localCurrency;
 
@@ -3164,46 +3238,7 @@ function buildDuplicatePolicyData(policy: Policy, options: DuplicatePolicyDataOp
         {
             onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.POLICY}${targetPolicyID}`,
-            value: {
-                ...policy,
-                areCategoriesEnabled: true,
-                areTagsEnabled: isTagsOptionSelected,
-                areDistanceRatesEnabled: isDistanceRatesOptionSelected,
-                areInvoicesEnabled: isInvoicesOptionSelected,
-                areRulesEnabled: isRulesOptionSelected,
-                areWorkflowsEnabled: isWorkflowsOptionSelected,
-                areReportFieldsEnabled: isReportsOptionSelected,
-                areConnectionsEnabled: isConnectionsOptionSelected,
-                arePerDiemRatesEnabled: isPerDiemOptionSelected,
-                isTravelEnabled: isTravelOptionSelected ? policy?.isTravelEnabled : undefined,
-                travelSettings: undefined,
-                workspaceAccountID: undefined,
-                tax: isTaxesOptionSelected ? policy?.tax : undefined,
-                employeeList: isMemberOptionSelected ? policy.employeeList : {[policy.owner]: policy?.employeeList?.[policy.owner]},
-                id: targetPolicyID,
-                name: policyName,
-                fieldList: isReportsOptionSelected ? policy?.fieldList : undefined,
-                connections: isConnectionsOptionSelected ? policy?.connections : undefined,
-                customUnits: getCustomUnitsForDuplication(policy, isDistanceRatesOptionSelected, isPerDiemOptionSelected, {distanceCustomUnitID, perDiemCustomUnitID}),
-                taxRates: isTaxesOptionSelected ? policy?.taxRates : undefined,
-                rules: isCodingRulesOptionSelected ? {codingRules: policy?.rules?.codingRules} : undefined,
-                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-                pendingFields: {
-                    autoReporting: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-                    approvalMode: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-                    reimbursementChoice: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-                    name: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-                    outputCurrency: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-                    address: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-                    description: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-                    type: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-                    areReportFieldsEnabled: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-                },
-                avatarURL: file?.uri,
-                originalFileName: file?.name,
-                outputCurrency,
-                address: isOverviewOptionSelected ? policy?.address : undefined,
-            },
+            value: buildOptimisticDuplicatePolicy(policy, {...options, targetPolicyID}),
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -3941,9 +3976,11 @@ function dismissAddedWithPrimaryLoginMessages(policyID: string) {
 function createWorkspaceFromIOUPayment(
     iouReport: OnyxEntry<Report>,
     reportPreviewAction: ReportAction | undefined,
+    currentUserAccountID: number,
     currentUserEmail: string,
     iouReportOwnerEmail: string,
     conciergeReportID: string | undefined,
+    currentUserLocalCurrency: string,
     lastWorkspaceNumber: number | undefined,
     localeTranslate: LocalizedTranslate,
 ): WorkspaceFromIOUCreationData | undefined {
@@ -3956,7 +3993,7 @@ function createWorkspaceFromIOUPayment(
     const policyID = generatePolicyID();
     const workspaceName = newGenerateDefaultWorkspaceName(currentUserEmail, lastWorkspaceNumber, localeTranslate);
     const employeeAccountID = iouReport?.ownerAccountID;
-    const {customUnits, customUnitID, customUnitRateID} = buildOptimisticDistanceRateCustomUnits(iouReport?.currency);
+    const {customUnits, customUnitID, customUnitRateID} = buildOptimisticDistanceRateCustomUnits(iouReport?.currency ?? currentUserLocalCurrency);
     const oldPersonalPolicyID = iouReport?.policyID;
     const iouReportID = iouReport?.reportID;
 
@@ -3987,7 +4024,7 @@ function createWorkspaceFromIOUPayment(
         name: workspaceName,
         role: CONST.POLICY.ROLE.ADMIN,
         owner: currentUserEmail,
-        ownerAccountID: deprecatedSessionAccountID,
+        ownerAccountID: currentUserAccountID,
         isPolicyExpenseChatEnabled: true,
 
         // Setting the new workspace currency to the currency of the iouReport
@@ -7096,6 +7133,7 @@ export {
     openPolicyMoreFeaturesPage,
     openPolicyProfilePage,
     openPolicyInitialPage,
+    buildOptimisticDistanceRateCustomUnits,
     generateCustomUnitID,
     clearQBOErrorField,
     clearXeroErrorField,
