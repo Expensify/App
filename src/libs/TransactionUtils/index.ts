@@ -2811,7 +2811,7 @@ function recalculateUnreportedTransactionDetails(
         hold: null,
     };
 
-    if (!transaction || !isDistanceRequest(transaction)) {
+    if (!transaction || !isDistanceRequest(transaction) || !translateFn || !toLocaleDigitFn) {
         return {comment};
     }
 
