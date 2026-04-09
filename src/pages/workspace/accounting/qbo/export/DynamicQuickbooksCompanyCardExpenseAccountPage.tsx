@@ -41,7 +41,7 @@ function DynamicQuickbooksCompanyCardExpenseAccountPage({policy}: WithPolicyConn
         {
             title: qboConfig?.nonReimbursableExpensesAccount?.name,
             description: getQBONonReimbursableExportAccountType(translate, qboConfig?.nonReimbursableExpensesExportDestination),
-            onPress: () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_ACCOUNT_SELECT.path)),
+            onPress: () => policyID && Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_ACCOUNT_SELECT.path)),
             subscribedSettings: [CONST.QUICKBOOKS_CONFIG.NON_REIMBURSABLE_EXPENSE_ACCOUNT],
         },
     ];
