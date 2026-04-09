@@ -7639,7 +7639,7 @@ ${reportName}
         hour: '小时',
         day: '天',
         week: '周',
-        month: '月',
+        month: '个月',
     },
     footer: {
         features: '功能',

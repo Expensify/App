@@ -7778,9 +7778,9 @@ ${reportName}
         dateRequired: '日付は必須です。',
         invalidTimeFormat: '有効な時刻を入力してください（例：12:30）。',
         hour: '時間',
-        day: '日',
-        week: '週',
-        month: '月',
+        day: '日間',
+        week: '週間',
+        month: 'ヶ月',
     },
     footer: {
         features: '機能',
