@@ -141,12 +141,12 @@ describe('useHasAnyAdminExpensifyCardFeed', () => {
         expect(result.current).toBe(true);
     });
 
-    it('returns true when feed uses linkedPolicyIds and user is admin of a linked workspace (no preferredPolicy)', () => {
+    it('returns true when feed uses linkedPolicyIDs and user is admin of a linked workspace (no preferredPolicy)', () => {
         mockUseOnyx.mockImplementation((key: string) => {
             if (key === ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS) {
                 return [
                     {
-                        [cardSettingsKey(42)]: {linkedPolicyIds: [policyID], isEnabled: true},
+                        [cardSettingsKey(42)]: {linkedPolicyIDs: [policyID], isEnabled: true},
                     },
                     {status: 'loaded'},
                 ];

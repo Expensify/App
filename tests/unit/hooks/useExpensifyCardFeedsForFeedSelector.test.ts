@@ -62,7 +62,7 @@ describe('useExpensifyCardFeedsForFeedSelector', () => {
         });
     });
 
-    it('partitions by preferredPolicy when no entry has linkedPolicyIds', () => {
+    it('partitions by preferredPolicy when no entry has linkedPolicyIDs', () => {
         mockUseOnyx.mockImplementation((key: string) => {
             if (key === ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS) {
                 return [
@@ -94,7 +94,7 @@ describe('useExpensifyCardFeedsForFeedSelector', () => {
         expect(result.current.otherFeeds.at(0)?.fundID).toBe(222);
     });
 
-    it('partitions by linkedPolicyIds for feeds that define them (per feed, not global)', () => {
+    it('partitions by linkedPolicyIDs for feeds that define them (per feed, not global)', () => {
         mockUseOnyx.mockImplementation((key: string) => {
             if (key === ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS) {
                 return [
@@ -102,12 +102,12 @@ describe('useExpensifyCardFeedsForFeedSelector', () => {
                         [cardSettingsKey(10)]: {
                             preferredPolicy: otherPolicyID,
                             isEnabled: true,
-                            linkedPolicyIds: [currentPolicyID],
+                            linkedPolicyIDs: [currentPolicyID],
                         },
                         [cardSettingsKey(20)]: {
                             preferredPolicy: currentPolicyID,
                             isEnabled: true,
-                            linkedPolicyIds: [otherPolicyID],
+                            linkedPolicyIDs: [otherPolicyID],
                         },
                     },
                     {status: 'loaded'},
@@ -128,14 +128,14 @@ describe('useExpensifyCardFeedsForFeedSelector', () => {
         expect(result.current.allFeeds).toHaveLength(2);
     });
 
-    it('resolves linkedPolicyIds nested under US (not only on settings root)', () => {
+    it('resolves linkedPolicyIDs nested under US (not only on settings root)', () => {
         mockUseOnyx.mockImplementation((key: string) => {
             if (key === ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS) {
                 return [
                     {
                         [cardSettingsKey(77)]: {
                             [US_PROGRAM]: {
-                                linkedPolicyIds: [currentPolicyID, otherPolicyID],
+                                linkedPolicyIDs: [currentPolicyID, otherPolicyID],
                                 isEnabled: true,
                             },
                             hasOnceLoaded: true,
@@ -188,7 +188,7 @@ describe('useExpensifyCardFeedsForFeedSelector', () => {
         expect(result.current.primaryFeeds.at(0)?.fundID).toBe(88);
     });
 
-    it('includes feeds visible via linkedPolicyIds when preferredPolicy is a different workspace', () => {
+    it('includes feeds visible via linkedPolicyIDs when preferredPolicy is a different workspace', () => {
         mockUseOnyx.mockImplementation((key: string) => {
             if (key === ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS) {
                 return [
@@ -196,7 +196,7 @@ describe('useExpensifyCardFeedsForFeedSelector', () => {
                         [cardSettingsKey(7)]: {
                             preferredPolicy: otherPolicyID,
                             isEnabled: true,
-                            linkedPolicyIds: [currentPolicyID, otherPolicyID],
+                            linkedPolicyIDs: [currentPolicyID, otherPolicyID],
                         },
                     },
                     {status: 'loaded'},

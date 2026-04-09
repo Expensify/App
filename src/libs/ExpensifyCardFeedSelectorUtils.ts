@@ -1,7 +1,7 @@
 import type {OnyxCollection} from 'react-native-onyx';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ExpensifyCardSettings, Policy} from '@src/types/onyx';
-import {getFundIdFromSettingsKey, getLinkedPolicyIdsFromExpensifyCardSettings, getPreferredPolicyFromExpensifyCardSettings, isPolicyIDInLinkedExpensifyCardPolicyList} from './CardUtils';
+import {getFundIdFromSettingsKey, getLinkedPolicyIDsFromExpensifyCardSettings, getPreferredPolicyFromExpensifyCardSettings, isPolicyIDInLinkedExpensifyCardPolicyList} from './CardUtils';
 import {isPolicyAdmin} from './PolicyUtils';
 
 type ExpensifyCardFeedEntry = {
@@ -18,9 +18,9 @@ function isExpensifyCardFeedVisibleToAdmin(settings: ExpensifyCardSettings, poli
     if (!hasLoadedExpensifyCardSettings(settings)) {
         return false;
     }
-    const linkedPolicyIds = getLinkedPolicyIdsFromExpensifyCardSettings(settings);
-    if (linkedPolicyIds?.length) {
-        return linkedPolicyIds.some((linkedPolicyID) => isPolicyAdmin(policies?.[`${ONYXKEYS.COLLECTION.POLICY}${linkedPolicyID.toUpperCase()}`]));
+    const linkedPolicyIDs = getLinkedPolicyIDsFromExpensifyCardSettings(settings);
+    if (linkedPolicyIDs?.length) {
+        return linkedPolicyIDs.some((linkedPolicyID) => isPolicyAdmin(policies?.[`${ONYXKEYS.COLLECTION.POLICY}${linkedPolicyID.toUpperCase()}`]));
     }
     const preferredPolicy = getPreferredPolicyFromExpensifyCardSettings(settings);
     if (!preferredPolicy) {
@@ -31,7 +31,7 @@ function isExpensifyCardFeedVisibleToAdmin(settings: ExpensifyCardSettings, poli
 }
 
 function isFeedLinkedToPolicy(entry: ExpensifyCardFeedEntry, policyID: string): boolean {
-    return isPolicyIDInLinkedExpensifyCardPolicyList(getLinkedPolicyIdsFromExpensifyCardSettings(entry.settings), policyID);
+    return isPolicyIDInLinkedExpensifyCardPolicyList(getLinkedPolicyIDsFromExpensifyCardSettings(entry.settings), policyID);
 }
 
 function isFeedForCurrentWorkspace(entry: ExpensifyCardFeedEntry, policyID: string): boolean {
@@ -39,9 +39,9 @@ function isFeedForCurrentWorkspace(entry: ExpensifyCardFeedEntry, policyID: stri
     return preferred?.toUpperCase() === policyID.toUpperCase();
 }
 
-/** Primary vs other: use linkedPolicyIds/linkedPolicyIDs when present; otherwise preferredPolicy (legacy). */
+/** Primary vs other: use linkedPolicyIDs when present; otherwise preferredPolicy (legacy). */
 function isFeedPrimaryForPolicy(entry: ExpensifyCardFeedEntry, policyID: string): boolean {
-    const linked = getLinkedPolicyIdsFromExpensifyCardSettings(entry.settings);
+    const linked = getLinkedPolicyIDsFromExpensifyCardSettings(entry.settings);
     if (linked?.length) {
         return isFeedLinkedToPolicy(entry, policyID);
     }

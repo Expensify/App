@@ -3,7 +3,7 @@ import type {OnyxCollection} from 'react-native-onyx';
 import {
     getCardSettings,
     getFundIdFromSettingsKey,
-    getLinkedPolicyIdsFromExpensifyCardSettings,
+    getLinkedPolicyIDsFromExpensifyCardSettings,
     getPreferredPolicyFromExpensifyCardSettings,
     isPolicyIDInLinkedExpensifyCardPolicyList,
 } from '@libs/CardUtils';
@@ -33,7 +33,7 @@ function useDefaultFundID(policyID: string | undefined) {
                     return getFundIdFromSettingsKey(preferredMatch[0]);
                 }
 
-                const linkedMatch = eligibleEntries.find(([, settings]) => isPolicyIDInLinkedExpensifyCardPolicyList(getLinkedPolicyIdsFromExpensifyCardSettings(settings), policyID));
+                const linkedMatch = eligibleEntries.find(([, settings]) => isPolicyIDInLinkedExpensifyCardPolicyList(getLinkedPolicyIDsFromExpensifyCardSettings(settings), policyID));
                 if (linkedMatch) {
                     return getFundIdFromSettingsKey(linkedMatch[0]);
                 }
