@@ -326,6 +326,7 @@ function useSelectionModeReportActions({
                 userBillingGracePeriodEnds,
                 amountOwed,
                 ownerBillingGracePeriodEnd,
+                delegateEmail,
                 full: true,
             });
             clearSelectedTransactions(true);
@@ -444,6 +445,7 @@ function useSelectionModeReportActions({
                 userBillingGracePeriodEnds,
                 amountOwed,
                 ownerBillingGracePeriodEnd,
+                delegateEmail,
             });
         });
     };
