@@ -133,9 +133,14 @@ const adminPoliciesConnectedToSageIntacctSelector = (policies: OnyxCollection<Po
 const adminPoliciesConnectedToNetSuiteSelector = (policies: OnyxCollection<Policy>) =>
     Object.values(policies ?? {}).filter<Policy>((policy): policy is Policy => !!policy && policy.role === CONST.POLICY.ROLE.ADMIN && !!policy?.connections?.netsuite);
 
+const adminPoliciesConnectedToQBDSelector = (policies: OnyxCollection<Policy>) =>
+    Object.values(policies ?? {}).filter<Policy>((policy): policy is Policy => !!policy && policy.role === CONST.POLICY.ROLE.ADMIN && !!policy?.connections?.quickbooksDesktop);
+
 const hasPoliciesConnectedToSageIntacctSelector = (policies: OnyxCollection<Policy>) => !!adminPoliciesConnectedToSageIntacctSelector(policies).length;
 
 const hasPoliciesConnectedToNetSuiteSelector = (policies: OnyxCollection<Policy>) => !!adminPoliciesConnectedToNetSuiteSelector(policies).length;
+
+const hasPoliciesConnectedToQBDSelector = (policies: OnyxCollection<Policy>) => !!adminPoliciesConnectedToQBDSelector(policies).length;
 
 function lastWorkspaceNumberSelector(policies: OnyxCollection<Policy>, email: string): number | undefined {
     const emailParts = email.split('@');
@@ -177,7 +182,9 @@ export {
     shouldRedirectToExpensifyClassicSelector,
     adminPoliciesConnectedToSageIntacctSelector,
     adminPoliciesConnectedToNetSuiteSelector,
+    adminPoliciesConnectedToQBDSelector,
     hasPoliciesConnectedToSageIntacctSelector,
     hasPoliciesConnectedToNetSuiteSelector,
+    hasPoliciesConnectedToQBDSelector,
     lastWorkspaceNumberSelector,
 };
