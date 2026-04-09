@@ -466,12 +466,12 @@ function getReimbursedMessage(translate: LocalizedTranslate, reportAction: OnyxI
 
     // Resolve submitter from report owner
     const submitterAccountID = report?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID;
-    const submitterLogin = getPersonalDetailsByIDs({accountIDs: [submitterAccountID], currentUserAccountID}).at(0)?.login ?? '';
-    const isCurrentUser = submitterAccountID === currentUserAccountID;
+    const submitterLogin = getPersonalDetailsByIDs({accountIDs: [submitterAccountID], currentUserAccountID: effectiveCurrentUserAccountID}).at(0)?.login ?? '';
+    const isCurrentUser = submitterAccountID === effectiveCurrentUserAccountID;
 
     // Resolve actor from action
     const actorAccountID = reportAction?.actorAccountID ?? CONST.DEFAULT_NUMBER_ID;
-    const actorLogin = getPersonalDetailsByIDs({accountIDs: [actorAccountID], currentUserAccountID}).at(0)?.login ?? '';
+    const actorLogin = getPersonalDetailsByIDs({accountIDs: [actorAccountID], currentUserAccountID: effectiveCurrentUserAccountID}).at(0)?.login ?? '';
 
     const isAutomation = !!reportAction?.delegateAccountID;
 
