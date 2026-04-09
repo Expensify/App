@@ -351,7 +351,7 @@ function useReportActionAvatars({
                 id: humanAgentAccountID,
                 type: CONST.ICON_TYPE_AVATAR,
                 source: humanAgentDetails.avatar ?? defaultAvatars.FallbackAvatar,
-                name: humanAgentDetails.displayName || translate('reportAction.humanSupportAgent'),
+                name: humanAgentDetails.displayName ?? translate('reportAction.humanSupportAgent'),
             };
             const [conciergeAvatar] = avatars;
             avatars = [conciergeAvatar, agentAvatar];

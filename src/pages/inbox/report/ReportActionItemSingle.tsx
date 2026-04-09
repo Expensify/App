@@ -235,7 +235,7 @@ function ReportActionItemSingle({
                 ) : null}
                 {!!delegateAccountID && <Text style={[styles.chatDelegateMessage]}>{translate('delegate.onBehalfOfMessage', accountOwnerDetails?.displayName ?? '')}</Text>}
                 {!!humanAgentAccountID && (
-                    <Text style={[styles.chatDelegateMessage]}>{translate('reportAction.assistedBy', humanAgentDetails?.displayName || translate('reportAction.humanSupportAgent'))}</Text>
+                    <Text style={[styles.chatDelegateMessage]}>{translate('reportAction.assistedBy', humanAgentDetails?.displayName ?? translate('reportAction.humanSupportAgent'))}</Text>
                 )}
                 {!!vacationer && !!submittedTo && (
                     <Text style={[styles.chatDelegateMessage]}>
