@@ -7,9 +7,11 @@ import {View} from 'react-native';
 import useConfirmModal from '@hooks/useConfirmModal';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {isReceiptError, isTranslationKeyError} from '@libs/ErrorUtils';
 import fileDownload from '@libs/fileDownload';
 import handleRetryPress from '@libs/ReceiptUploadRetryHandler';
@@ -49,6 +51,7 @@ function DotIndicatorMessage({messages = {}, style, type, textStyles, dismissErr
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['DotIndicator']);
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {showConfirmModal} = useConfirmModal();
 
     if (Object.keys(messages).length === 0) {
@@ -66,6 +69,8 @@ function DotIndicatorMessage({messages = {}, style, type, textStyles, dismissErr
     const isErrorMessage = type === 'error';
     const receiptError = uniqueMessages.find(isReceiptError);
 
+    const isTextSelectable = !canUseTouchScreen() || !shouldUseNarrowLayout;
+
     const renderMessage = (message: string | ReceiptError | ReactElement, index: number) => {
         if (isReceiptError(message)) {
             return null;
@@ -78,7 +83,7 @@ function DotIndicatorMessage({messages = {}, style, type, textStyles, dismissErr
             <Text
                 // eslint-disable-next-line react/no-array-index-key
                 key={index}
-                style={[StyleUtils.getDotIndicatorTextStyles(isErrorMessage), textStyles]}
+                style={[StyleUtils.getDotIndicatorTextStyles(isErrorMessage), textStyles, isTextSelectable ? styles.userSelectText : styles.userSelectNone]}
                 accessibilityRole={isErrorMessage ? CONST.ROLE.ALERT : undefined}
                 accessibilityLiveRegion={isErrorMessage ? 'assertive' : undefined}
             >

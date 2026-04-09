@@ -3,6 +3,7 @@ import type {RefObject} from 'react';
 import type {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import AccountingConnectionConfirmationModal from '@components/AccountingConnectionConfirmationModal';
+import useHasPoliciesConnectedToQBD from '@hooks/useHasPoliciesConnectedToQBD';
 import useHasPoliciesConnectedToSageIntacct from '@hooks/useHasPoliciesConnectedToSageIntacct';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -30,6 +31,7 @@ function AccountingContextProvider({children, policy}: AccountingContextProvider
     const policyID = policy?.id;
     const accountingIcons = useMemoizedLazyExpensifyIcons(['IntacctSquare', 'QBOSquare', 'XeroSquare', 'NetSuiteSquare', 'QBDSquare']);
     const hasPoliciesConnectedToSageIntacct = useHasPoliciesConnectedToSageIntacct();
+    const hasPoliciesConnectedToQBD = useHasPoliciesConnectedToQBD();
 
     const startIntegrationFlow = useCallback(
         (newActiveIntegration: ActiveIntegration) => {
@@ -41,7 +43,7 @@ function AccountingContextProvider({children, policy}: AccountingContextProvider
                 newActiveIntegration.name,
                 policyID,
                 translate,
-                hasPoliciesConnectedToSageIntacct,
+                {sageIntacct: hasPoliciesConnectedToSageIntacct, qbd: hasPoliciesConnectedToQBD},
                 undefined,
                 undefined,
                 newActiveIntegration.integrationToDisconnect,
@@ -61,7 +63,7 @@ function AccountingContextProvider({children, policy}: AccountingContextProvider
                 key: Math.random(),
             });
         },
-        [policy, policyID, translate, hasPoliciesConnectedToSageIntacct, accountingIcons],
+        [policy, policyID, translate, hasPoliciesConnectedToSageIntacct, hasPoliciesConnectedToQBD, accountingIcons],
     );
 
     const closeConfirmationModal = () => {
@@ -101,7 +103,7 @@ function AccountingContextProvider({children, policy}: AccountingContextProvider
             activeIntegration.name,
             policyID,
             translate,
-            hasPoliciesConnectedToSageIntacct,
+            {sageIntacct: hasPoliciesConnectedToSageIntacct, qbd: hasPoliciesConnectedToQBD},
             policy,
             activeIntegration.key,
             undefined,

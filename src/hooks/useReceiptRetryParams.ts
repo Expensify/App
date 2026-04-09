@@ -1,6 +1,7 @@
 import type {OnyxEntry} from 'react-native-onyx';
 import {isPolicyExpenseChat as isPolicyExpenseChatReportUtils} from '@libs/ReportUtils';
-import type {CreateTrackExpenseParams, RequestMoneyInformation} from '@userActions/IOU';
+import type {RequestMoneyInformation} from '@userActions/IOU';
+import type {CreateTrackExpenseParams} from '@userActions/IOU/TrackExpense';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
