@@ -83,6 +83,74 @@ describe('getReportPreviewSenderID', () => {
         expect(result).toBe(OWNER_ACCOUNT_ID);
     });
 
+    it('returns childOwnerAccountID when all transactions map to IOU actions from the same actor', () => {
+        const transaction1 = makeTransaction(100, 'user1@test.com', {transactionID: 'tr-1'});
+        const transaction2 = makeTransaction(200, 'user2@test.com', {transactionID: 'tr-2'});
+
+        const result = getReportPreviewSenderID({
+            ...baseParams,
+            iouReport: makeIOUReport(),
+            action: makeAction({childMoneyRequestCount: 2}),
+            iouActions: [
+                makeIOUAction(CONST.IOU.REPORT_ACTION_TYPE.CREATE, {
+                    actorAccountID: 10,
+                    originalMessage: {
+                        type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                        IOUTransactionID: 'tr-1',
+                        amount: 100,
+                        currency: 'USD',
+                    },
+                }),
+                makeIOUAction(CONST.IOU.REPORT_ACTION_TYPE.CREATE, {
+                    actorAccountID: 10,
+                    originalMessage: {
+                        type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                        IOUTransactionID: 'tr-2',
+                        amount: 200,
+                        currency: 'USD',
+                    },
+                }),
+            ],
+            transactions: [transaction1, transaction2],
+        });
+
+        expect(result).toBe(OWNER_ACCOUNT_ID);
+    });
+
+    it('returns undefined when transactions map to IOU actions from different actors', () => {
+        const transaction1 = makeTransaction(100, 'user1@test.com', {transactionID: 'tr-1'});
+        const transaction2 = makeTransaction(200, 'user2@test.com', {transactionID: 'tr-2'});
+
+        const result = getReportPreviewSenderID({
+            ...baseParams,
+            iouReport: makeIOUReport(),
+            action: makeAction({childMoneyRequestCount: 2}),
+            iouActions: [
+                makeIOUAction(CONST.IOU.REPORT_ACTION_TYPE.CREATE, {
+                    actorAccountID: 10,
+                    originalMessage: {
+                        type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                        IOUTransactionID: 'tr-1',
+                        amount: 100,
+                        currency: 'USD',
+                    },
+                }),
+                makeIOUAction(CONST.IOU.REPORT_ACTION_TYPE.CREATE, {
+                    actorAccountID: 20,
+                    originalMessage: {
+                        type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                        IOUTransactionID: 'tr-2',
+                        amount: 200,
+                        currency: 'USD',
+                    },
+                }),
+            ],
+            transactions: [transaction1, transaction2],
+        });
+
+        expect(result).toBeUndefined();
+    });
+
     it('returns childManagerAccountID for send money flow (all iouActions are sentMoney)', () => {
         const sentMoneyAction = makeIOUAction(CONST.IOU.REPORT_ACTION_TYPE.PAY, {
             originalMessage: {
@@ -138,6 +206,23 @@ describe('getReportPreviewSenderID', () => {
         });
 
         expect(result).toBeUndefined();
+    });
+
+    it('returns childOwnerAccountID for a zero-amount scan request when modifiedAmount reveals the direction', () => {
+        const result = getReportPreviewSenderID({
+            ...baseParams,
+            iouReport: makeIOUReport(),
+            action: makeAction(),
+            iouActions: [],
+            transactions: [
+                makeTransaction(0, 'user@test.com', {
+                    modifiedAmount: 100,
+                    receipt: {source: 'receipt.jpg'},
+                }),
+            ],
+        });
+
+        expect(result).toBe(OWNER_ACCOUNT_ID);
     });
 
     it('returns undefined when the report preview has not loaded all child transactions yet', () => {
