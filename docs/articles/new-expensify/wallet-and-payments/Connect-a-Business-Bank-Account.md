@@ -42,7 +42,7 @@ Purpose: Shows the new Wallet entry point for business bank accounts
 
 ## How to connect a new US business bank account in a Workspace
 
-1. In the navigation tabs (on the left on web, on the bottom on mobile) click **Workspace > [Workspace name]**.
+1. In the navigation tabs (on the left on web, on the bottom on mobile)**,** click **Workspace > [Workspace name]**.
 2. Select **Workflows**.
 3. Enable **Payments**.
 4. In the **Payments** section, select **Add bank account**.
