@@ -94,11 +94,11 @@ describe('isConsecutiveActionMadeByPreviousActor', () => {
     it('returns false when humanAgentAccountID changes between consecutive Concierge messages', () => {
         const humanAssistedMessage = getFakeReportAction(conciergeAccountID, {
             actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
-            originalMessage: {html: 'I am a human agent', lastModified: '2023-09-12T16:27:35Z', humanAgentAccountID: 42},
+            originalMessage: {html: 'I am a human agent', lastModified: '2023-09-12T16:27:35Z', humanAgentAccountID: 42, whisperedTo: []},
         });
         const normalConciergeMessage = getFakeReportAction(conciergeAccountID, {
             actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
-            originalMessage: {html: 'I am Concierge', lastModified: '2023-09-12T16:27:35Z'},
+            originalMessage: {html: 'I am Concierge', lastModified: '2023-09-12T16:27:35Z', whisperedTo: []},
         });
         const actions = [normalConciergeMessage, humanAssistedMessage];
         expect(isConsecutiveActionMadeByPreviousActorUtil(actions, 0, false)).toBe(false);
@@ -107,11 +107,11 @@ describe('isConsecutiveActionMadeByPreviousActor', () => {
     it('returns true when consecutive Concierge messages both have the same humanAgentAccountID', () => {
         const humanAssistedMessage1 = getFakeReportAction(conciergeAccountID, {
             actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
-            originalMessage: {html: 'Human message 1', lastModified: '2023-09-12T16:27:35Z', humanAgentAccountID: 42},
+            originalMessage: {html: 'Human message 1', lastModified: '2023-09-12T16:27:35Z', humanAgentAccountID: 42, whisperedTo: []},
         });
         const humanAssistedMessage2 = getFakeReportAction(conciergeAccountID, {
             actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
-            originalMessage: {html: 'Human message 2', lastModified: '2023-09-12T16:27:35Z', humanAgentAccountID: 42},
+            originalMessage: {html: 'Human message 2', lastModified: '2023-09-12T16:27:35Z', humanAgentAccountID: 42, whisperedTo: []},
         });
         const actions = [humanAssistedMessage2, humanAssistedMessage1];
         expect(isConsecutiveActionMadeByPreviousActorUtil(actions, 0, false)).toBe(true);
@@ -120,11 +120,11 @@ describe('isConsecutiveActionMadeByPreviousActor', () => {
     it('returns true when consecutive Concierge messages both lack humanAgentAccountID', () => {
         const conciergeMessage1 = getFakeReportAction(conciergeAccountID, {
             actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
-            originalMessage: {html: 'Concierge message 1', lastModified: '2023-09-12T16:27:35Z'},
+            originalMessage: {html: 'Concierge message 1', lastModified: '2023-09-12T16:27:35Z', whisperedTo: []},
         });
         const conciergeMessage2 = getFakeReportAction(conciergeAccountID, {
             actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
-            originalMessage: {html: 'Concierge message 2', lastModified: '2023-09-12T16:27:35Z'},
+            originalMessage: {html: 'Concierge message 2', lastModified: '2023-09-12T16:27:35Z', whisperedTo: []},
         });
         const actions = [conciergeMessage2, conciergeMessage1];
         expect(isConsecutiveActionMadeByPreviousActorUtil(actions, 0, false)).toBe(true);
