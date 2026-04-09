@@ -7797,6 +7797,7 @@ function buildOptimisticTaskReportAction(
     message = '',
     actorAccountID = deprecatedCurrentUserAccountID,
     createdOffset = 0,
+    delegateEmailParam: string | undefined,
 ): OptimisticTaskReportAction {
     const originalMessage = {
         taskReportID,
@@ -7805,7 +7806,7 @@ function buildOptimisticTaskReportAction(
         html: message,
         whisperedTo: [],
     };
-    const delegateAccountDetails = getPersonalDetailByEmail(delegateEmail);
+    const delegateAccountDetails = delegateEmailParam ? getPersonalDetailByEmail(delegateEmailParam) : undefined;
 
     return {
         actionName,
@@ -11904,7 +11905,8 @@ function prepareOnboardingOnyxData({
             }
 
             const completedTaskReportAction = isTaskAutoCompleted
-                ? buildOptimisticTaskReportAction(currentTask.reportID, CONST.REPORT.ACTIONS.TYPE.TASK_COMPLETED, 'marked as complete', actorAccountID, 2)
+                ? // Will be refactored in next PR; full restructure tracked in https://github.com/Expensify/App/issues/66417
+                  buildOptimisticTaskReportAction(currentTask.reportID, CONST.REPORT.ACTIONS.TYPE.TASK_COMPLETED, 'marked as complete', actorAccountID, 2, undefined)
                 : null;
             if (task.type === CONST.ONBOARDING_TASK_TYPE.CREATE_WORKSPACE) {
                 createWorkspaceTaskReportID = currentTask.reportID;
