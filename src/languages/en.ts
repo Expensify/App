@@ -5286,6 +5286,7 @@ const translations = {
             csvColumnOwner: 'Owner',
             csvColumnCardNumber: 'Card number',
             csvColumnType: 'Type',
+            csvColumnLimitType: 'Limit type',
             csvColumnLimit: 'Limit',
             csvCardNumberInactive: 'INACTIVE',
             csvCardNumberWaitingForActivation: 'Waiting for activation',

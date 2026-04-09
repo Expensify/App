@@ -24,7 +24,7 @@ import type {
 } from '@libs/API/parameters';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import type {CardProgramKey} from '@libs/CardUtils';
-import {isCardPendingActivate, isCardPendingIssue} from '@libs/CardUtils';
+import {getTranslationKeyForLimitType, isCardPendingActivate, isCardPendingIssue} from '@libs/CardUtils';
 import {convertToShortDisplayString} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
@@ -1683,6 +1683,7 @@ function exportExpensifyCardListToCSV({policyID, cards, personalDetailsList, set
         translate('workspace.expensifyCard.csvColumnOwner'),
         translate('workspace.expensifyCard.csvColumnCardNumber'),
         translate('workspace.expensifyCard.csvColumnType'),
+        translate('workspace.expensifyCard.csvColumnLimitType'),
         translate('workspace.expensifyCard.csvColumnLimit'),
     ]
         .map(escapeCsvField)
@@ -1692,10 +1693,11 @@ function exportExpensifyCardListToCSV({policyID, cards, personalDetailsList, set
         const owner = getOwnerEmailForCard(card, personalDetailsList);
         const cardNumberColumn = getExpensifyCardPANColumnForCSV(card, translate);
         const typeColumn = card.nameValuePairs?.isVirtual ? translate('workspace.expensifyCard.virtual') : translate('workspace.expensifyCard.physical');
+        const limitTypeColumn = translate(getTranslationKeyForLimitType(card.nameValuePairs?.limitType));
         const limitAmount = card.nameValuePairs?.unapprovedExpenseLimit ?? 0;
         const limitColumn = convertToShortDisplayString(limitAmount, settlementCurrency);
 
-        return [owner, cardNumberColumn, typeColumn, limitColumn].map(escapeCsvField).join(',');
+        return [owner, cardNumberColumn, typeColumn, limitTypeColumn, limitColumn].map(escapeCsvField).join(',');
     });
 
     const csvContent = [header, ...rows].join('\r\n');
