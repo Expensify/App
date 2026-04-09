@@ -77,6 +77,8 @@ function AgentZeroStatusProvider({reportID, children}: React.PropsWithChildren<{
 const MIN_DISPLAY_TIME = 300; // ms
 // Debounce delay for server label updates
 const DEBOUNCE_DELAY = 150; // ms
+// Maximum time to wait for a server label before clearing the optimistic indicator
+const OPTIMISTIC_TIMEOUT = 120000; // 2 minutes
 
 /**
  * Inner gate — all Pusher, reasoning, label, and processing state.
@@ -222,6 +224,20 @@ function AgentZeroStatusGate({reportID, children}: React.PropsWithChildren<{repo
             clearTimeout(updateTimerRef.current);
         };
     }, [serverLabel, optimisticStartTime, translate]);
+
+    // Safety net: clear optimistic state if the server never responds within 2 minutes.
+    // Handles cases where the Pusher update carrying the server label is dropped.
+    useEffect(() => {
+        if (!optimisticStartTime) {
+            return;
+        }
+        const elapsed = Date.now() - optimisticStartTime;
+        const remaining = Math.max(0, OPTIMISTIC_TIMEOUT - elapsed);
+        const timer = setTimeout(() => {
+            setOptimisticStartTime(null);
+        }, remaining);
+        return () => clearTimeout(timer);
+    }, [optimisticStartTime]);
 
     const kickoffWaitingIndicator = () => {
         setOptimisticStartTime(Date.now());
