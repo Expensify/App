@@ -268,9 +268,7 @@ describe('AgentZeroStatusContext', () => {
 
             // Then the server label should still be showing (timeout was cancelled, didn't clear it)
             expect(result.current.isProcessing).toBe(true);
-            await waitFor(() => {
-                expect(result.current.statusLabel).toBe(serverLabel);
-            });
+            expect(result.current.statusLabel).toBe(serverLabel);
 
             jest.useRealTimers();
         });
