@@ -146,9 +146,9 @@ function lastWorkspaceNumberSelector(policies: OnyxCollection<Policy>, email: st
     const displayNameForWorkspace = getDisplayNameForWorkspace(email);
     // find default named workspaces and increment the last number
     const escapedName = escapeRegExp(displayNameForWorkspace);
-    const workspaceTranslations = Object.values(CONST.LOCALES)
-        .map((lang) => translate(lang, 'workspace.common.workspace'))
-        .join('|');
+    // Locales are loaded on demand. Instead of getting each workspace translation using `translate`, we hardcoded it here.
+    // en|es|fr|it|ja|nl|pl|pt-BR|zh-hans
+    const workspaceTranslations = 'Workspace|Espacio de trabajo|Espace de travail|Spazio di lavoro|ワークスペース|Werkruimte|Przestrzeń robocza|Espaço de trabalho|工作区';
 
     const domain = emailParts.at(1) ?? '';
     const isSMSDomain = `@${domain}` === CONST.SMS.DOMAIN;
