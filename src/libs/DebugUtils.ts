@@ -710,6 +710,7 @@ function validateReportActionDraftProperty(key: keyof ReportAction, value: strin
         case 'childMoneyRequestCount':
         case 'adminAccountID':
         case 'delegateAccountID':
+        case 'humanAgentAccountID':
             return validateNumber(value);
         case 'isLoading':
         case 'automatic':
