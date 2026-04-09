@@ -1672,6 +1672,11 @@ const translations = {
         },
         duplicateNonDefaultWorkspacePerDiemError: "You can't duplicate per diem expenses across workspaces because the rates may differ between workspaces.",
         cannotDuplicateDistanceExpense: "You can't duplicate distance expenses across workspaces because the rates may differ between workspaces.",
+        taxDisabledAlert: {
+            title: 'Tax disabled',
+            prompt: 'Enable tax tracking on the workspace to edit the expense details or delete the tax from this expense.',
+            confirmText: 'Delete tax',
+        },
     },
     transactionMerge: {
         listPage: {
