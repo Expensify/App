@@ -10,10 +10,10 @@ import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
-import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
+import SectionSubtitleHTML from '@components/SectionSubtitleHTML';
 import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import useConfirmModal from '@hooks/useConfirmModal';
@@ -181,9 +181,10 @@ function WorkspaceReportFieldsPage({
 
     const renderReportSubtitle = () => (
         <OfflineWithFeedback pendingAction={policy?.pendingAction}>
-            <View style={[[styles.renderHTML, styles.mt1]]}>
-                <RenderHTML html={translate('workspace.reports.customReportNamesSubtitle')} />
-            </View>
+            <SectionSubtitleHTML
+                html={translate('workspace.reports.customReportNamesSubtitle')}
+                wrapperStyle={styles.mt1}
+            />
         </OfflineWithFeedback>
     );
 
@@ -264,7 +265,7 @@ function WorkspaceReportFieldsPage({
                                         return;
                                     }
 
-                                    setPolicyPreventMemberCreatedTitle(policyID, isEnabled);
+                                    setPolicyPreventMemberCreatedTitle(policyID, isEnabled, policy?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE]);
                                 }}
                             />
                         </Section>

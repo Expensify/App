@@ -60,7 +60,7 @@ type WorkspaceExpensifyCardListPageProps = {
 };
 
 function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExpensifyCardListPageProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['Gear', 'Plus'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Gear', 'Plus']);
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
     const {translate, localeCompare} = useLocalize();
     const styles = useThemeStyles();

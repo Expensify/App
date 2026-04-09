@@ -40,7 +40,9 @@ import {
     getActionableCardFraudAlertResolutionMessage,
     getAddedApprovalRuleMessage,
     getAddedBudgetMessage,
+    getAddedCardFeedMessage,
     getAddedConnectionMessage,
+    getAssignedCompanyCardMessage,
     getAutoPayApprovedReportsEnabledMessage,
     getAutoReimbursementMessage,
     getCardIssuedMessage,
@@ -73,8 +75,10 @@ import {
     getPolicyChangeLogMaxExpenseAmountNoReceiptMessage,
     getPolicyChangeLogUpdateEmployee,
     getReimburserUpdateMessage,
+    getRemovedCardFeedMessage,
     getRemovedConnectionMessage,
     getRenamedAction,
+    getRenamedCardFeedMessage,
     getReportAction,
     getReportActionActorAccountID,
     getReportActionMessageText,
@@ -86,11 +90,14 @@ import {
     getTagListUpdatedMessage,
     getTagListUpdatedRequiredMessage,
     getTravelUpdateMessage,
+    getUnassignedCompanyCardMessage,
     getUpdateACHAccountMessage,
     getUpdatedApprovalRuleMessage,
     getUpdatedAuditRateMessage,
     getUpdatedAutoHarvestingMessage,
     getUpdatedBudgetMessage,
+    getUpdatedCardFeedLiabilityMessage,
+    getUpdatedCardFeedStatementPeriodMessage,
     getUpdatedDefaultTitleMessage,
     getUpdatedIndividualBudgetNotificationMessage,
     getUpdatedManualApprovalThresholdMessage,
@@ -628,6 +635,7 @@ function getReasonAndReportActionThatHasRedBrickRoad(
     transactions: OnyxCollection<Transaction>,
     transactionViolations?: OnyxCollection<TransactionViolation[]>,
     isReportArchived = false,
+    reports?: OnyxCollection<Report>,
 ): ReasonAndReportActionThatHasRedBrickRoad | null {
     if (isReportArchived) {
         return null;
@@ -642,7 +650,7 @@ function getReasonAndReportActionThatHasRedBrickRoad(
         };
     }
 
-    const {reportAction} = getAllReportActionsErrorsAndReportActionThatRequiresAttention(report, reportActions, isReportArchived);
+    const {reportAction} = getAllReportActionsErrorsAndReportActionThatRequiresAttention(report, reportActions, isReportArchived, reports);
     const errors = reportErrors;
     const hasErrors = Object.keys(errors).length !== 0;
 
@@ -772,7 +780,7 @@ function getOptionData({
     result.isTaskReport = isTaskReport(report);
     result.isInvoiceReport = isInvoiceReport(report);
     result.parentReportAction = parentReportAction;
-    result.private_isArchived = reportNameValuePairs?.private_isArchived;
+    result.private_isArchived = !!reportNameValuePairs?.private_isArchived;
     result.isPolicyExpenseChat = isPolicyExpenseChat(report);
     result.isExpenseRequest = isExpenseRequest(report);
     result.isMoneyRequestReport = isMoneyRequestReport(report);
@@ -1068,6 +1076,20 @@ function getOptionData({
             result.alternateText = getAddedConnectionMessage(translate, lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_INTEGRATION) {
             result.alternateText = getRemovedConnectionMessage(translate, lastAction);
+        } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_CARD_FEED)) {
+            result.alternateText = getAddedCardFeedMessage(translate, lastAction);
+        } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_CARD_FEED)) {
+            result.alternateText = getRemovedCardFeedMessage(translate, lastAction);
+        } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.RENAME_CARD_FEED)) {
+            result.alternateText = getRenamedCardFeedMessage(translate, lastAction);
+        } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ASSIGN_COMPANY_CARD)) {
+            result.alternateText = getAssignedCompanyCardMessage(translate, lastAction);
+        } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UNASSIGN_COMPANY_CARD)) {
+            result.alternateText = getUnassignedCompanyCardMessage(translate, lastAction);
+        } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CARD_FEED_LIABILITY)) {
+            result.alternateText = getUpdatedCardFeedLiabilityMessage(translate, lastAction);
+        } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CARD_FEED_STATEMENT_PERIOD)) {
+            result.alternateText = getUpdatedCardFeedStatementPeriodMessage(translate, lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUDIT_RATE) {
             result.alternateText = getUpdatedAuditRateMessage(translate, lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_APPROVER_RULE) {
@@ -1113,7 +1135,7 @@ function getOptionData({
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_OWNERSHIP) {
             result.alternateText = Parser.htmlToText(getUpdatedOwnershipMessage(translate, lastAction, policy));
         } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION)) {
-            result.alternateText = Parser.htmlToText(getMovedTransactionMessage(translate, lastAction, movedFromReportPolicy, movedToReportPolicy));
+            result.alternateText = Parser.htmlToText(getMovedTransactionMessage(translate, lastAction, movedFromReportPolicy, movedToReportPolicy, conciergeReportID));
         } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.SETTLEMENT_ACCOUNT_LOCKED)) {
             result.alternateText = Parser.htmlToText(getSettlementAccountLockedMessage(translate, lastAction));
         } else if (lastAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && lastActorDisplayName && lastMessageTextFromReport) {
@@ -1124,7 +1146,7 @@ function getOptionData({
                         lastActorDetails,
                         currentUserAccountID,
                         personalDetails,
-                        reportNameValuePairs?.private_isArchived,
+                        !!reportNameValuePairs?.private_isArchived,
                         visibleReportActionsData,
                         lastAction,
                     )) ||
@@ -1178,7 +1200,7 @@ function getOptionData({
                         lastActorDetails,
                         currentUserAccountID,
                         personalDetails,
-                        reportNameValuePairs?.private_isArchived,
+                        !!reportNameValuePairs?.private_isArchived,
                         visibleReportActionsData,
                         lastAction,
                     )) ||

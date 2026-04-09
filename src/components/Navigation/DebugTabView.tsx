@@ -8,7 +8,6 @@ import Text from '@components/Text';
 import useIndicatorStatus from '@hooks/useIndicatorStatus';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import type {IndicatorStatus} from '@hooks/useNavigationTabBarIndicatorChecks';
 import useOnyx from '@hooks/useOnyx';
 import useReportAttributes from '@hooks/useReportAttributes';
 import {useSidebarOrderedReportsState} from '@hooks/useSidebarOrderedReports';
@@ -16,7 +15,6 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
-import {getRouteForCurrentStep as getReimbursementAccountRouteForCurrentStep} from '@libs/ReimbursementAccountUtils';
 import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
 import {getChatTabBrickRoadReportID} from '@libs/WorkspacesSettingsUtils';
 import CONST from '@src/CONST';
@@ -25,6 +23,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import type {ReimbursementAccount} from '@src/types/onyx';
+import type IndicatorStatus from '@src/types/utils/IndicatorStatus';
 import NAVIGATION_TABS from './NavigationTabBar/NAVIGATION_TABS';
 
 type DebugTabViewProps = {
@@ -82,10 +81,7 @@ function getSettingsRoute(status: IndicatorStatus | undefined, reimbursementAcco
         case CONST.INDICATOR_STATUS.HAS_POLICY_ERRORS:
             return ROUTES.WORKSPACE_INITIAL.getRoute(policyIDWithErrors);
         case CONST.INDICATOR_STATUS.HAS_REIMBURSEMENT_ACCOUNT_ERRORS:
-            return ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute({
-                policyID: reimbursementAccount?.achData?.policyID,
-                stepToOpen: getReimbursementAccountRouteForCurrentStep(reimbursementAccount?.achData?.currentStep ?? CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT),
-            });
+            return ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute({policyID: reimbursementAccount?.achData?.policyID});
         case CONST.INDICATOR_STATUS.HAS_SUBSCRIPTION_ERRORS:
             return ROUTES.SETTINGS_SUBSCRIPTION.route;
         case CONST.INDICATOR_STATUS.HAS_SUBSCRIPTION_INFO:
@@ -112,7 +108,7 @@ function DebugTabView({selectedTab, chatTabBrickRoad}: DebugTabViewProps) {
     const reportAttributes = useReportAttributes();
     const {status, indicatorColor, policyIDWithErrors} = useIndicatorStatus();
     const {orderedReportIDs} = useSidebarOrderedReportsState();
-    const icons = useMemoizedLazyExpensifyIcons(['DotIndicator'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['DotIndicator']);
 
     const message = useMemo((): TranslationPaths | undefined => {
         if (selectedTab === NAVIGATION_TABS.INBOX) {

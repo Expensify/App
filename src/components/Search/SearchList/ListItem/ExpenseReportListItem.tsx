@@ -22,6 +22,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {handleActionButtonPress} from '@libs/actions/Search';
 import {syncMissingAttendeesViolation} from '@libs/AttendeeUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import {isAttendeeTrackingEnabled} from '@libs/PolicyUtils';
 import {isInvoiceReport, isOpenExpenseReport, isProcessingReport, isReportPendingDelete} from '@libs/ReportUtils';
 import {isViolationDismissed, shouldShowViolation} from '@libs/TransactionUtils';
 import variables from '@styles/variables';
@@ -53,7 +54,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
     const {translate} = useLocalize();
     const {isLargeScreenWidth} = useResponsiveLayout();
     const {currentSearchHash, currentSearchKey, currentSearchResults} = useSearchStateContext();
-    const [userBillingGraceEndPeriods] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
+    const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [isActionLoading] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportItem.reportID}`, {selector: isActionLoadingSelector});
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['DotIndicator']);
     const currentUserDetails = useCurrentUserPersonalDetails();
@@ -96,7 +97,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
     // Sync missingAttendees violation at render time for each transaction in the report
     // This ensures violations show immediately when category settings change, without needing to click the row
     const hasSyncedMissingAttendeesViolation = useMemo(() => {
-        if (!policyForViolations?.isAttendeeTrackingEnabled || policyForViolations?.type !== CONST.POLICY.TYPE.CORPORATE) {
+        if (!isAttendeeTrackingEnabled(policyForViolations)) {
             return false;
         }
 
@@ -114,7 +115,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
                 transaction.category ?? '',
                 transaction.attendees,
                 currentUserDetails,
-                policyForViolations.isAttendeeTrackingEnabled ?? false,
+                isAttendeeTrackingEnabled(policyForViolations),
                 policyForViolations.type === CONST.POLICY.TYPE.CORPORATE,
                 isInvoice,
             );
@@ -124,7 +125,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
 
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
-    const [ownerBillingGraceEndPeriod] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
+    const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
 
     const handleOnButtonPress = useCallback(() => {
         handleActionButtonPress({
@@ -134,12 +135,12 @@ function ExpenseReportListItem<TItem extends ListItem>({
             snapshotReport,
             snapshotPolicy,
             lastPaymentMethod,
-            userBillingGraceEndPeriods,
+            userBillingGracePeriodEnds,
             currentSearchKey,
             isDelegateAccessRestricted,
             onDelegateAccessRestricted: showDelegateNoAccessModal,
             personalPolicyID,
-            ownerBillingGraceEndPeriod,
+            ownerBillingGracePeriodEnd,
         });
     }, [
         currentSearchHash,
@@ -148,12 +149,12 @@ function ExpenseReportListItem<TItem extends ListItem>({
         snapshotReport,
         snapshotPolicy,
         lastPaymentMethod,
-        userBillingGraceEndPeriods,
+        userBillingGracePeriodEnds,
         personalPolicyID,
         currentSearchKey,
         isDelegateAccessRestricted,
         showDelegateNoAccessModal,
-        ownerBillingGraceEndPeriod,
+        ownerBillingGracePeriodEnd,
     ]);
 
     const handleCheckboxPress = useCallback(() => {

@@ -41,7 +41,7 @@ function WorkspacePerDiemDetailsPage({route}: WorkspacePerDiemDetailsPageProps) 
     const selectedRate = customUnit?.rates?.[rateID];
     const fetchedSubRate = selectedRate?.subRates?.find((subRate) => subRate.id === subRateID);
     const previousFetchedSubRate = usePrevious(fetchedSubRate);
-    const icons = useMemoizedLazyExpensifyIcons(['Trashcan'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Trashcan']);
 
     const selectedSubRate = fetchedSubRate ?? previousFetchedSubRate;
 

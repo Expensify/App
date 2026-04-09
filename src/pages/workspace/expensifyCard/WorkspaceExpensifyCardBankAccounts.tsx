@@ -18,7 +18,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {getLastFourDigits} from '@libs/BankAccountUtils';
 import {getEligibleBankAccountsForCard, getEligibleBankAccountsForUkEuCard} from '@libs/CardUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import {REIMBURSEMENT_ACCOUNT_ROUTE_NAMES} from '@libs/ReimbursementAccountUtils';
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -66,7 +65,6 @@ function WorkspaceExpensifyCardBankAccounts({route}: WorkspaceExpensifyCardBankA
         Navigation.navigate(
             ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute({
                 policyID,
-                stepToOpen: REIMBURSEMENT_ACCOUNT_ROUTE_NAMES.NEW,
                 backTo: ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(policyID),
             }),
         );
@@ -111,7 +109,7 @@ function WorkspaceExpensifyCardBankAccounts({route}: WorkspaceExpensifyCardBankA
 
     const verificationState = getVerificationState();
 
-    const icons = useMemoizedLazyExpensifyIcons(['Plus'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Plus']);
 
     const handleVerifiedButtonPress = () => {
         setIssueNewCardStepAndData({policyID, isChangeAssigneeDisabled: false});
