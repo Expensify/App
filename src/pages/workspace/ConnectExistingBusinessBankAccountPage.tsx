@@ -51,6 +51,8 @@ function ConnectExistingBusinessBankAccountPage({route}: ConnectExistingBusiness
         if (bankAccountList && methodID && !bankAccountList[methodID]?.accountData?.policyIDs?.includes(policyID)) {
             setWorkspaceReimbursement({
                 policyID,
+                currentAchAccount: policy?.achAccount,
+                currentReimbursementChoice: policy?.reimbursementChoice,
                 reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
                 bankAccountID: methodID ?? CONST.DEFAULT_NUMBER_ID,
                 reimburserEmail: newReimburserEmail,
@@ -95,6 +97,7 @@ function ConnectExistingBusinessBankAccountPage({route}: ConnectExistingBusiness
                     itemIconRight={icons.ArrowRight}
                     filterType={CONST.BANK_ACCOUNT.TYPE.BUSINESS}
                     filterCurrency={policyCurrency}
+                    excludeStates={[CONST.BANK_ACCOUNT.STATE.LOCKED]}
                     shouldHideDefaultBadge
                 />
             </ScrollView>

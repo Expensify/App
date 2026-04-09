@@ -24,6 +24,7 @@ import {navigateToAndCreateGroupChat, setGroupDraft} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import {hasSeenTourSelector} from '@src/selectors/Onboarding';
 import type {Participant} from '@src/types/onyx/IOU';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
@@ -45,6 +46,7 @@ function NewChatConfirmPage() {
     const [allPersonalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
 
     const icons = useMemoizedLazyExpensifyIcons(['Camera']);
 
@@ -108,11 +110,12 @@ function NewChatConfirmPage() {
             personalData.login ?? '',
             optimisticReportID.current,
             introSelected,
+            isSelfTourViewed,
+            betas,
             newGroupDraft.avatarUri ?? '',
             avatarFile,
-            betas,
         );
-    }, [newGroupDraft, avatarFile, personalData.login, introSelected, betas]);
+    }, [newGroupDraft, avatarFile, personalData.login, introSelected, betas, isSelfTourViewed]);
 
     const stashedLocalAvatarImage = newGroupDraft?.avatarUri;
 

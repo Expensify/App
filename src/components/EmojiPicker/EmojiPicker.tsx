@@ -262,6 +262,7 @@ function EmojiPicker({viewportOffsetTop, ref}: EmojiPickerProps) {
             shouldEnableNewFocusManagement
             restoreFocusType={CONST.MODAL.RESTORE_FOCUS_TYPE.DELETE}
             shouldSkipRemeasurement
+            shouldWrapModalChildrenInScrollViewIfBottomDockedInLandscapeMode={false}
         >
             <FocusTrapForModal active={isEmojiPickerVisible}>
                 <View>

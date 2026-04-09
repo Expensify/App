@@ -192,6 +192,7 @@ export default {
     tabSelectorButtonHeight: 40,
     tabSelectorButtonPadding: 12,
     tabSelectorScrollMarginInline: 20,
+    tabSelectorMaxTabLabelWidth: 256,
     lhnLogoWidth: 95.09,
     lhnLogoHeight: 22.33,
     signInLogoWidthLargeScreenPill: 162,
@@ -253,6 +254,7 @@ export default {
     onboardingModalWidth: 640,
     holdEducationModalWidth: 400,
     changePolicyEducationModalWidth: 400,
+    builtInProtectionModalWidth: 400,
     changePolicyEducationModalIconWidth: 147.69,
     changePolicyEducationModalIconHeight: 180,
     transactionReceiptButtonWidth: 100,
@@ -332,9 +334,9 @@ export default {
     inlineImagePreviewMinSize: 64,
     inlineImagePreviewMaxSize: 148,
 
-    minimalTopBarOffset: -124,
+    minimalTopBarOffset: -176,
     searchHeaderDefaultOffset: 0,
-    searchListContentMarginTop: 124,
+    searchListContentMarginTop: 176,
     searchTopBarZIndex: 9,
     searchTopBarHeight: 52,
     searchRouterInputMargin: 52,
@@ -439,4 +441,9 @@ export default {
     rightPositionOdometerPhotoInformationContainer: 20,
     bottomPositionOdometerPhotoInformationContainer: 20,
     paddingOdometerPhotoInformationContainer: 13.5,
+
+    // Camera permission view padding
+    permissionViewPaddingVertical: 108,
+    permissionViewPaddingHorizontal: 61,
+    permissionViewPaddingVerticalLandscape: 16,
 } as const;

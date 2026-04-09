@@ -61,12 +61,12 @@ function SearchFiltersCategoryPage() {
         const items = [{name: translate('search.noCategory'), value: CONST.SEARCH.CATEGORY_EMPTY_VALUE as string}];
         const uniqueCategoryNames = new Set<string>();
 
-        if (!selectedPoliciesCategories || selectedPoliciesCategories.length === 0) {
+        if (policyIDs.length === 0) {
             const categories = Object.values(allPolicyCategories ?? {}).flatMap((policyCategories) => Object.values(policyCategories ?? {}));
             for (const category of categories) {
                 uniqueCategoryNames.add(category.name);
             }
-        } else {
+        } else if (selectedPoliciesCategories.length > 0) {
             for (const category of selectedPoliciesCategories) {
                 uniqueCategoryNames.add(category.name);
             }
@@ -80,7 +80,7 @@ function SearchFiltersCategoryPage() {
                 }),
         );
         return items;
-    }, [allPolicyCategories, selectedPoliciesCategories, translate]);
+    }, [allPolicyCategories, policyIDs.length, selectedPoliciesCategories, translate]);
 
     const onSaveSelection = useCallback((values: string[]) => updateAdvancedFilters({category: values}), []);
 
