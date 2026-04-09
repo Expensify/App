@@ -799,6 +799,7 @@ const translations: TranslationDeepObject<typeof en> = {
     adminOnlyCanPost: 'Solo los administradores pueden enviar mensajes en esta sala.',
     reportAction: {
         asCopilot: 'como copiloto de',
+        assistedBy: (agentName: string) => `asistido por ${agentName}`,
         harvestCreatedExpenseReport: (reportUrl, reportName) =>
             `creó este informe para contener todos los gastos de <a href="${reportUrl}">${reportName}</a> que no se pudieron enviar con la frecuencia que elegiste`,
         createdReportForUnapprovedTransactions: ({reportUrl, reportName, reportID, isReportDeleted}: CreatedReportForUnapprovedTransactionsParams) =>

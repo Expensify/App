@@ -461,6 +461,23 @@ function getDelegateAccountIDFromReportAction(reportAction: OnyxInputOrEntry<Rep
     return undefined;
 }
 
+function getHumanAgentAccountIDFromReportAction(reportAction: OnyxInputOrEntry<ReportAction>): number | undefined {
+    if (!reportAction || reportAction?.actorAccountID !== CONST.ACCOUNT_ID.CONCIERGE) {
+        return undefined;
+    }
+
+    const originalMessage = getOriginalMessage(reportAction);
+    if (!originalMessage) {
+        return undefined;
+    }
+
+    if ('humanAgentAccountID' in originalMessage) {
+        return originalMessage.humanAgentAccountID as number;
+    }
+
+    return undefined;
+}
+
 function isExportIntegrationAction(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION> {
     return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION;
 }
@@ -4741,6 +4758,7 @@ export {
     getUpdatedIndividualBudgetNotificationMessage,
     getUpdatedSharedBudgetNotificationMessage,
     getDelegateAccountIDFromReportAction,
+    getHumanAgentAccountIDFromReportAction,
     isPendingHide,
     filterOutDeprecatedReportActions,
     getActionableCardFraudAlertMessage,

@@ -7,7 +7,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
-import {getDelegateAccountIDFromReportAction, getOriginalMessage, getReportAction, getReportActionActorAccountID, isMoneyRequestAction} from '@libs/ReportActionsUtils';
+import {getDelegateAccountIDFromReportAction, getHumanAgentAccountIDFromReportAction, getOriginalMessage, getReportAction, getReportActionActorAccountID, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {
     getDefaultWorkspaceAvatar,
     getDisplayNameForParticipant,
@@ -114,6 +114,7 @@ function useReportActionAvatars({
     const delegateAccountID = getDelegateAccountIDFromReportAction(action);
     const delegatePersonalDetails = delegateAccountID ? personalDetails?.[delegateAccountID] : undefined;
     const actorAccountID = getReportActionActorAccountID(action, iouReport, chatReport, delegatePersonalDetails);
+    const humanAgentAccountID = getHumanAgentAccountIDFromReportAction(action);
 
     const isAInvoiceReport = isInvoiceReport(iouReport ?? null);
 
@@ -334,6 +335,22 @@ function useReportActionAvatars({
         avatars = [firstAvatar, policyChatReportIcon];
     }
 
+    // When a human Concierge agent reveals themselves, show a subscript avatar
+    // with Concierge as the main avatar and the agent as the secondary avatar
+    if (humanAgentAccountID && avatarType === CONST.REPORT_ACTION_AVATARS.TYPE.SINGLE) {
+        const humanAgentDetails = personalDetails?.[humanAgentAccountID];
+        if (humanAgentDetails) {
+            const agentAvatar: IconType = {
+                id: humanAgentAccountID,
+                type: CONST.ICON_TYPE_AVATAR,
+                source: humanAgentDetails.avatar ?? defaultAvatars.FallbackAvatar,
+                name: humanAgentDetails.displayName ?? humanAgentDetails.login ?? '',
+            };
+            avatars = [avatars.at(0) ?? avatars[0], agentAvatar];
+            avatarType = CONST.REPORT_ACTION_AVATARS.TYPE.SUBSCRIPT;
+        }
+    }
+
     return {
         avatars,
         avatarType,
@@ -345,6 +362,7 @@ function useReportActionAvatars({
             actorHint: String(shouldUsePrimaryAvatarID ? primaryAvatar.id : login || defaultDisplayName || fallbackDisplayName).replaceAll(CONST.REGEX.MERGED_ACCOUNT_PREFIX, ''),
             accountID,
             delegateAccountID: !isWorkspaceActor && !!delegateAccountID ? actorAccountID : undefined,
+            humanAgentAccountID,
         },
         source: {
             iouReport,
