@@ -20,6 +20,8 @@ import {startDistanceRequest, startMoneyRequest} from '@libs/actions/IOU';
 import {openOldDotLink} from '@libs/actions/Link';
 import {createNewReport} from '@libs/actions/Report';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
+import getCreateReportRoute, {getDefaultReportsPageRoute} from '@libs/Navigation/helpers/getCreateReportRoute';
+import isHomeTopmostFullScreenRoute from '@libs/Navigation/helpers/isHomeTopmostFullScreenRoute';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {openTravelDotLink} from '@libs/openTravelDotLink';
@@ -120,10 +122,15 @@ function QuickCreationActionsBar() {
                 shouldDismissEmptyReportsConfirmation,
             );
             Navigation.setNavigationActionToMicrotaskQueue(() => {
+                const activeRoute = Navigation.getActiveRoute();
                 Navigation.navigate(
-                    isSearchTopmostFullScreenRoute()
-                        ? ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: createdReportID, backTo: Navigation.getActiveRoute()})
-                        : ROUTES.REPORT_WITH_ID.getRoute(createdReportID, undefined, undefined, Navigation.getActiveRoute()),
+                    getCreateReportRoute({
+                        reportID: createdReportID,
+                        searchBackTo: activeRoute,
+                        fallbackBackTo: activeRoute,
+                        shouldOpenInReports: isHomeTopmostFullScreenRoute(),
+                        shouldOpenInSearch: isSearchTopmostFullScreenRoute(),
+                    }),
                 );
             });
         },
@@ -134,6 +141,7 @@ function QuickCreationActionsBar() {
         policyID: defaultChatEnabledPolicyID,
         policyName: defaultChatEnabledPolicy?.name ?? '',
         onConfirm: handleCreateWorkspaceReport,
+        shouldHandleNavigationBack: false,
     });
 
     const handleExpense = useCallback(
@@ -178,7 +186,7 @@ function QuickCreationActionsBar() {
                     (shouldRestrictUserBillableActions(workspaceIDForReportCreation, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, undefined, defaultChatEnabledPolicy) &&
                         groupPoliciesWithChatEnabled.length > 1)
                 ) {
-                    Navigation.navigate(ROUTES.NEW_REPORT_WORKSPACE_SELECTION.getRoute());
+                    Navigation.navigate(ROUTES.NEW_REPORT_WORKSPACE_SELECTION.getRoute(undefined, isHomeTopmostFullScreenRoute() ? getDefaultReportsPageRoute() : undefined));
                     return;
                 }
 
