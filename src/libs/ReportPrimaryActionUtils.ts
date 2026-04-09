@@ -124,8 +124,7 @@ function isSubmitAction(
     }
 
     const isExpenseReport = isExpenseReportUtils(report);
-    const isAdmin = isPolicyAdminPolicyUtils(policy);
-    const canUserSubmit = report?.ownerAccountID === currentUserAccountID || report?.managerID === currentUserAccountID || isAdmin;
+    const isReportSubmitter = isCurrentUserSubmitter(report);
     const isOpenReport = isOpenReportUtils(report);
 
     if (hasPendingDEWSubmit(reportMetadata, hasDynamicExternalWorkflow(policy))) {
@@ -160,11 +159,11 @@ function isSubmitAction(
 
     const submitToAccountID = getSubmitToAccountID(policy, report);
 
-    if (policy?.preventSelfApproval && submitToAccountID === report.ownerAccountID) {
+    if (submitToAccountID === report.ownerAccountID && policy?.preventSelfApproval && !isReportSubmitter) {
         return false;
     }
 
-    return isExpenseReport && canUserSubmit && isOpenReport && reportTransactions.length !== 0;
+    return isExpenseReport && isReportSubmitter && isOpenReport && reportTransactions.length !== 0;
 }
 
 function isApproveAction(
@@ -214,11 +213,6 @@ function isApproveAction(
     }
 
     if (isClosedReportUtils(report)) {
-        return false;
-    }
-
-    const submitToAccountID = getSubmitToAccountID(policy, report);
-    if (policy?.preventSelfApproval && submitToAccountID === report.ownerAccountID) {
         return false;
     }
 
@@ -274,7 +268,7 @@ function isPrimaryPayAction({
         arePaymentsEnabled &&
         isReportFinished &&
         !isReportSettled &&
-        (reimbursableSpend > 0 || (nonReimbursableSpend !== 0 && hasOnlyNonReimbursableTransactions(report?.reportID, reportTransactions))) &&
+        (reimbursableSpend > 0 || (isPayElsewhere && reimbursableSpend < 0) || (isPayElsewhere && nonReimbursableSpend !== 0 && hasOnlyNonReimbursableTransactions(report?.reportID, reportTransactions))) &&
         !isAutoReimbursable &&
         !isPayAtEnd
     ) {
