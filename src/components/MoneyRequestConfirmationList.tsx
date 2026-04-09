@@ -1,5 +1,4 @@
 import {useFocusEffect, useIsFocused} from '@react-navigation/native';
-import {deepEqual} from 'fast-equals';
 import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -27,7 +26,7 @@ import Log from '@libs/Log';
 import {validateAmount} from '@libs/MoneyRequestUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getIOUConfirmationOptionsFromPayeePersonalDetail, hasEnabledOptions} from '@libs/OptionsListUtils';
-import {getTagLists, isTaxTrackingEnabled} from '@libs/PolicyUtils';
+import {getTagLists, isAttendeeTrackingEnabled, isTaxTrackingEnabled} from '@libs/PolicyUtils';
 import {isSelectedManagerMcTest} from '@libs/ReportUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {hasEnabledTags, hasMatchingTag} from '@libs/TagsOptionsListUtils';
@@ -51,6 +50,10 @@ import {
     hasMissingSmartscanFields,
     hasRoute as hasRouteUtil,
     hasTaxRateWithMatchingValue,
+    hasValidModifiedAmount,
+    isDistanceRequest as isDistanceRequestUtil,
+    isGPSDistanceRequest as isGPSDistanceRequestUtil,
+    isManualDistanceRequest as isManualDistanceRequestUtil,
     isMerchantMissing,
     isScanning,
     isScanRequest as isScanRequestUtil,
@@ -128,20 +131,11 @@ type MoneyRequestConfirmationListProps = {
     /** Transaction that represents the expense */
     transaction?: OnyxEntry<OnyxTypes.Transaction>;
 
-    /** Whether the expense is a distance expense */
-    isDistanceRequest: boolean;
-
-    /** Whether the expense is a manual distance expense */
-    isManualDistanceRequest: boolean;
-
     /** Whether the expense is an odometer distance expense */
     isOdometerDistanceRequest?: boolean;
 
     /** Whether the odometer receipt is currently being stitched */
     isLoadingReceipt?: boolean;
-
-    /** Whether the expense is a GPS distance expense */
-    isGPSDistanceRequest: boolean;
 
     /** Whether the expense is a per diem expense */
     isPerDiemRequest?: boolean;
@@ -206,11 +200,8 @@ function MoneyRequestConfirmationList({
     onSendMoney,
     onConfirm,
     iouType = CONST.IOU.TYPE.SUBMIT,
-    isDistanceRequest,
-    isManualDistanceRequest,
     isOdometerDistanceRequest = false,
     isLoadingReceipt = false,
-    isGPSDistanceRequest,
     isPerDiemRequest = false,
     isPolicyExpenseChat = false,
     shouldShowSmartScanFields = true,
@@ -255,7 +246,6 @@ function MoneyRequestConfirmationList({
         selector: mileageRateSelector,
     });
     const [policyCategoriesDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES_DRAFT}${policyID}`);
-    const [lastSelectedDistanceRates] = useOnyx(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES);
     const {getCurrencySymbol, getCurrencyDecimals} = useCurrencyListActions();
     const {isBetaEnabled} = usePermissions();
     const isNewManualExpenseFlowEnabled = isBetaEnabled(CONST.BETAS.NEW_MANUAL_EXPENSE_FLOW);
@@ -296,7 +286,11 @@ function MoneyRequestConfirmationList({
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {isRestrictedToPreferredPolicy} = usePreferredPolicy();
 
-    const iouAmount = transaction?.amount ?? 0;
+    const isDistanceRequest = isDistanceRequestUtil(transaction);
+    const isManualDistanceRequest = isManualDistanceRequestUtil(transaction);
+    const isGPSDistanceRequest = isGPSDistanceRequestUtil(transaction);
+
+    const iouAmount = hasValidModifiedAmount(transaction) ? Number(transaction?.modifiedAmount) : (transaction?.amount ?? 0);
     const iouComment = getDescription(transaction);
     const iouCurrencyCode = getCurrency(transaction);
     const iouMerchant = getMerchant(transaction);
@@ -323,7 +317,6 @@ function MoneyRequestConfirmationList({
     const subRates = transaction?.comment?.customUnit?.subRates ?? [];
     const prevSubRates = usePrevious(subRates);
     const defaultRate = defaultMileageRate?.customUnitRateID;
-    const lastSelectedRate = policy?.id ? (lastSelectedDistanceRates?.[policy.id] ?? defaultRate) : defaultRate;
 
     const mileageRate = DistanceRequestUtils.getRate({
         transaction,
@@ -455,7 +448,7 @@ function MoneyRequestConfirmationList({
         policyTaxRates: policy?.taxRates?.taxes,
         iouAttendees,
         currentUserPersonalDetails,
-        isAttendeeTrackingEnabled: policy?.isAttendeeTrackingEnabled,
+        isAttendeeTrackingEnabled: isAttendeeTrackingEnabled(policy),
         isControlPolicy: policy?.type === CONST.POLICY.TYPE.CORPORATE,
     });
 
@@ -827,7 +820,7 @@ function MoneyRequestConfirmationList({
                     iouCategory,
                     iouAttendees,
                     currentUserPersonalDetails,
-                    policy?.isAttendeeTrackingEnabled,
+                    isAttendeeTrackingEnabled(policy),
                     policy?.type === CONST.POLICY.TYPE.CORPORATE,
                 );
             if (isMissingAttendeesViolation) {
@@ -1183,7 +1176,7 @@ function MoneyRequestConfirmationList({
                 isTypeSplit={isTypeSplit}
                 selectedParticipants={selectedParticipants}
                 selectedParticipantsProp={selectedParticipantsProp}
-                lastSelectedRate={lastSelectedRate}
+                defaultMileageRateCustomUnitRateID={defaultRate}
                 hasRoute={hasRoute}
                 isDistanceRequestWithPendingRoute={isDistanceRequestWithPendingRoute}
                 shouldCalculateDistanceAmount={shouldCalculateDistanceAmount}
@@ -1230,32 +1223,4 @@ function MoneyRequestConfirmationList({
     );
 }
 
-export default memo(
-    MoneyRequestConfirmationList,
-    (prevProps, nextProps) =>
-        prevProps.transaction === nextProps.transaction &&
-        prevProps.onSendMoney === nextProps.onSendMoney &&
-        prevProps.onConfirm === nextProps.onConfirm &&
-        prevProps.iouType === nextProps.iouType &&
-        prevProps.isDistanceRequest === nextProps.isDistanceRequest &&
-        prevProps.isPolicyExpenseChat === nextProps.isPolicyExpenseChat &&
-        prevProps.expensesNumber === nextProps.expensesNumber &&
-        prevProps.shouldShowSmartScanFields === nextProps.shouldShowSmartScanFields &&
-        prevProps.isEditingSplitBill === nextProps.isEditingSplitBill &&
-        // eslint-disable-next-line rulesdir/no-deep-equal-in-memo -- selectedParticipants is derived with .map() which creates new array references
-        deepEqual(prevProps.selectedParticipants, nextProps.selectedParticipants) &&
-        prevProps.payeePersonalDetails === nextProps.payeePersonalDetails &&
-        prevProps.isReadOnly === nextProps.isReadOnly &&
-        prevProps.policyID === nextProps.policyID &&
-        prevProps.reportID === nextProps.reportID &&
-        prevProps.receiptPath === nextProps.receiptPath &&
-        prevProps.receiptFilename === nextProps.receiptFilename &&
-        prevProps.onToggleBillable === nextProps.onToggleBillable &&
-        prevProps.hasSmartScanFailed === nextProps.hasSmartScanFailed &&
-        prevProps.reportActionID === nextProps.reportActionID &&
-        prevProps.action === nextProps.action &&
-        prevProps.shouldDisplayReceipt === nextProps.shouldDisplayReceipt &&
-        prevProps.isTimeRequest === nextProps.isTimeRequest &&
-        prevProps.shouldHideToSection === nextProps.shouldHideToSection &&
-        prevProps.isLoadingReceipt === nextProps.isLoadingReceipt,
-);
+export default memo(MoneyRequestConfirmationList);
