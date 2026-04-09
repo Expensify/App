@@ -6734,39 +6734,25 @@ describe('ReportUtils', () => {
     });
 
     describe('buildOptimisticGroupChatReport', () => {
-        it('should create a group chat report with correct chatType', () => {
-            const result = buildOptimisticGroupChatReport([1, 2, 3], 'Test Group', '', 1);
-            expect(result.chatType).toBe(CONST.REPORT.CHAT_TYPE.GROUP);
-        });
-
-        it('should set the report name from the provided reportName', () => {
-            const result = buildOptimisticGroupChatReport([1, 2, 3], 'My Group Chat', '', 1);
-            expect(result.reportName).toBe('My Group Chat');
-        });
-
-        it('should set the avatarUrl from the provided avatarUri', () => {
+        it('should create a group chat report with correct properties', () => {
             const avatarUri = 'https://example.com/avatar.png';
-            const result = buildOptimisticGroupChatReport([1, 2], 'Group', avatarUri, 1);
-            expect(result.avatarUrl).toBe(avatarUri);
-        });
-
-        it('should use the provided optimisticReportID', () => {
             const reportID = 'custom-report-id-123';
-            const result = buildOptimisticGroupChatReport([1, 2], 'Group', '', 1, reportID);
+            const result = buildOptimisticGroupChatReport([1, 2, 3], 'My Group Chat', avatarUri, 1, reportID);
+
+            expect(result.chatType).toBe(CONST.REPORT.CHAT_TYPE.GROUP);
+            expect(result.reportName).toBe('My Group Chat');
+            expect(result.avatarUrl).toBe(avatarUri);
             expect(result.reportID).toBe(reportID);
         });
 
         it('should assign ADMIN role to currentUserAccountID and MEMBER to others', () => {
             const currentUser = 100;
-            const result = buildOptimisticGroupChatReport([currentUser, 200, 300], 'Group', '', currentUser);
+            const participantIDs = [currentUser, 200, 300];
+            const result = buildOptimisticGroupChatReport(participantIDs, 'Group', '', currentUser);
+
             expect(result.participants?.[currentUser]?.role).toBe(CONST.REPORT.ROLE.ADMIN);
             expect(result.participants?.[200]?.role).toBe(CONST.REPORT.ROLE.MEMBER);
             expect(result.participants?.[300]?.role).toBe(CONST.REPORT.ROLE.MEMBER);
-        });
-
-        it('should include all participantAccountIDs in the participants', () => {
-            const participantIDs = [10, 20, 30];
-            const result = buildOptimisticGroupChatReport(participantIDs, 'Group', '', 10);
             const participantKeys = Object.keys(result.participants ?? {}).map(Number);
             expect(participantKeys).toEqual(expect.arrayContaining(participantIDs));
             expect(participantKeys).toHaveLength(participantIDs.length);
