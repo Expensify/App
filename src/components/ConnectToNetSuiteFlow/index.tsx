@@ -29,7 +29,7 @@ function ConnectToNetSuiteFlow({policyID}: ConnectToNetSuiteFlowProps) {
     const {popoverAnchorRefs} = useAccountingState();
 
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
-    const icons = useMemoizedLazyExpensifyIcons(['Copy', 'LinkCopy'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Copy', 'LinkCopy']);
     const shouldGoToCredentialsPage = isAuthenticationError(policy, CONST.POLICY.CONNECTIONS.NAME.NETSUITE);
 
     const threeDotsMenuContainerRef = popoverAnchorRefs?.current?.[CONST.POLICY.CONNECTIONS.NAME.NETSUITE];
