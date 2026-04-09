@@ -13,9 +13,18 @@ import LeftFrameLine from '@components/Charts/components/LeftFrameLine';
 import ScatterPoints from '@components/Charts/components/ScatterPoints';
 import {AXIS_LABEL_GAP, CHART_CONTENT_MIN_HEIGHT, CHART_PADDING, GLYPH_PADDING, X_AXIS_LINE_WIDTH, Y_AXIS_LINE_WIDTH, Y_AXIS_TICK_COUNT} from '@components/Charts/constants';
 import type {ComputeGeometryFn, HitTestArgs} from '@components/Charts/hooks';
-import {useChartFontManager, useChartInteractions, useChartLabelFormats, useChartLabelLayout, useDynamicYDomain, useLabelHitTesting} from '@components/Charts/hooks';
+import {
+    useChartFontManager,
+    useChartInteractions,
+    useChartLabelFormats,
+    useChartLabelLayout,
+    useChartLabelMeasurements,
+    useDynamicYDomain,
+    useLabelHitTesting,
+    useYAxisLabelWidth,
+} from '@components/Charts/hooks';
 import type {CartesianChartProps, ChartDataPoint} from '@components/Charts/types';
-import {calculateMinDomainPadding, DEFAULT_CHART_COLOR, getAdditionalOffset, getYAxisLabelWidth, measureTextWidth, rotatedLabelYOffset} from '@components/Charts/utils';
+import {calculateMinDomainPadding, DEFAULT_CHART_COLOR, getAdditionalOffset, rotatedLabelYOffset} from '@components/Charts/utils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
@@ -89,6 +98,8 @@ function LineChartContent({data, isLoading, yAxisUnit, yAxisUnitPosition = 'left
 
     const chartBottom = useSharedValue(0);
 
+    const labelMeasurements = useChartLabelMeasurements(data, fontMgr, variables.iconSizeExtraSmall);
+
     const domainPadding = (() => {
         if (chartWidth === 0 || data.length === 0) {
             return BASE_DOMAIN_PADDING;
@@ -96,12 +107,11 @@ function LineChartContent({data, isLoading, yAxisUnit, yAxisUnitPosition = 'left
 
         const geometricPadding = calculateMinDomainPadding(chartWidth, data.length);
 
-        if (!fontMgr) {
+        if (!labelMeasurements) {
             return {...BASE_DOMAIN_PADDING, left: geometricPadding, right: geometricPadding};
         }
 
-        const firstLabelWidth = measureTextWidth(data.at(0)?.label ?? '', fontMgr, variables.iconSizeExtraSmall);
-        const lastLabelWidth = measureTextWidth(data.at(-1)?.label ?? '', fontMgr, variables.iconSizeExtraSmall);
+        const {firstLabelWidth, lastLabelWidth} = labelMeasurements;
 
         const firstLabelNeeds = firstLabelWidth / 2;
         const lastLabelNeeds = lastLabelWidth / 2;
@@ -123,7 +133,7 @@ function LineChartContent({data, isLoading, yAxisUnit, yAxisUnitPosition = 'left
     const totalDomainPadding = domainPadding.left + domainPadding.right;
     const paddingScale = plotAreaWidth > 0 ? plotAreaWidth / (plotAreaWidth + totalDomainPadding) : 0;
 
-    const {labelRotation, labelSkipInterval, truncatedLabels, xAxisLabelHeight} = useChartLabelLayout({
+    const {labelRotation, labelSkipInterval, truncatedLabels, truncatedLabelWidths, xAxisLabelHeight} = useChartLabelLayout({
         data,
         fontMgr,
         fontSize: variables.iconSizeExtraSmall,
@@ -143,7 +153,7 @@ function LineChartContent({data, isLoading, yAxisUnit, yAxisUnitPosition = 'left
     const {isCursorOverLabel, findLabelCursorX, updateTickPositions} = useLabelHitTesting({
         fontMgr,
         fontSize: variables.iconSizeExtraSmall,
-        truncatedLabels,
+        truncatedLabelWidths,
         labelRotation,
         labelSkipInterval,
         chartBottom,
@@ -229,9 +239,14 @@ function LineChartContent({data, isLoading, yAxisUnit, yAxisUnitPosition = 'left
 
     const labelSpace = AXIS_LABEL_GAP + (xAxisLabelHeight ?? 0);
     const dynamicChartStyle = {height: CHART_CONTENT_MIN_HEIGHT + labelSpace};
-    const rawDataMax = Math.max(...data.map((p) => p.total), 0);
-    const rawDataMin = Math.min(...data.map((p) => p.total), 0);
-    const yAxisLabelWidth = fontMgr ? getYAxisLabelWidth(rawDataMax, rawDataMin, Y_AXIS_TICK_COUNT, formatValue, fontMgr, variables.iconSizeExtraSmall) : 0;
+    const yAxisLabelWidth = useYAxisLabelWidth(
+        Math.max(...data.map((p) => p.total), 0),
+        Math.min(...data.map((p) => p.total), 0),
+        Y_AXIS_TICK_COUNT,
+        formatValue,
+        fontMgr,
+        variables.iconSizeExtraSmall,
+    );
     const chartPadding = {...CHART_PADDING, bottom: labelSpace + CHART_PADDING.bottom + variables.iconSizeExtraSmall, left: yAxisLabelWidth + GLYPH_PADDING};
 
     if (isLoading || !fontMgr) {

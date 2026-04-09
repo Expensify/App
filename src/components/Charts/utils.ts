@@ -1,5 +1,5 @@
 import {FontStyle, FontWeight, Skia} from '@shopify/react-native-skia';
-import type {SkParagraph, SkTypefaceFontProvider} from '@shopify/react-native-skia';
+import type {SkParagraph, SkParagraphBuilder, SkTypefaceFontProvider} from '@shopify/react-native-skia';
 import colors from '@styles/theme/colors';
 import variables from '@styles/variables';
 import {CHART_FONT_FAMILIES, DIAGONAL_ANGLE_RADIAN_THRESHOLD, ELLIPSIS, LABEL_PADDING, LABEL_ROTATIONS, MAX_X_AXIS_LABEL_WIDTH, PIE_CHART_TOOLTIP_RADIUS_DISTANCE, SIN_45} from './constants';
@@ -46,13 +46,26 @@ function getChartColor(index: number): string {
 /** Default color used for single-color charts (e.g., line chart, single-color bar chart) */
 const DEFAULT_CHART_COLOR = getChartColor(5);
 
+/** One reusable ParagraphBuilder per fontMgr instance. Auto-GC'd when fontMgr is released. */
+const builderCache = new WeakMap<SkTypefaceFontProvider, SkParagraphBuilder>();
+
 /**
  * Builds a Skia paragraph for chart labels.
  * Encapsulates the shared font configuration (families, weight, size, optional color).
  * The caller is responsible for calling `para.layout(width)` before measuring or rendering.
+ *
+ * Reuses a cached ParagraphBuilder per fontMgr (via reset()) to avoid allocating a new
+ * builder on every call.
  */
 function buildChartParagraph(text: string, fontMgr: SkTypefaceFontProvider, fontSize: number, color?: string): SkParagraph {
-    return Skia.ParagraphBuilder.Make({}, fontMgr)
+    let builder = builderCache.get(fontMgr);
+    if (!builder) {
+        builder = Skia.ParagraphBuilder.Make({}, fontMgr);
+        builderCache.set(fontMgr, builder);
+    } else {
+        builder.reset();
+    }
+    return builder
         .pushStyle({
             fontFamilies: CHART_FONT_FAMILIES,
             fontStyle: {weight: FontWeight.Normal},

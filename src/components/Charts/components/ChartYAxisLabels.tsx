@@ -1,10 +1,10 @@
 import {Paragraph} from '@shopify/react-native-skia';
 import type {SkTypefaceFontProvider} from '@shopify/react-native-skia';
-import React from 'react';
+import React, {useMemo} from 'react';
 import type {ChartBounds, Scale} from 'victory-native';
 import {AXIS_LABEL_GAP, GLYPH_PADDING, MAX_Y_AXIS_LABEL_WIDTH} from '@components/Charts/constants';
-import type {ParagraphWithWidth} from '@components/Charts/types';
-import {buildChartParagraph, getFontLineMetrics} from '@components/Charts/utils';
+import useChartParagraphs from '@components/Charts/hooks/useChartParagraphs';
+import {getFontLineMetrics} from '@components/Charts/utils';
 
 type ChartYAxisLabelsProps = {
     /** Tick values on the Y axis. */
@@ -35,16 +35,10 @@ type ChartYAxisLabelsProps = {
 function ChartYAxisLabels({yTicks, yScale, chartBounds, fontSize, fontMgr, labelColor, formatValue, leftAlign = false}: ChartYAxisLabelsProps) {
     const formattedLabels = yTicks.map((tick) => formatValue(tick));
 
-    const paragraphs: ParagraphWithWidth[] = formattedLabels.map((label) => {
-        const para = buildChartParagraph(label, fontMgr, fontSize, labelColor);
-        para.layout(MAX_Y_AXIS_LABEL_WIDTH);
-        const width = para.getLongestLine();
-        return {para, width};
-    });
+    const paragraphs = useChartParagraphs(formattedLabels, fontMgr, fontSize, labelColor, MAX_Y_AXIS_LABEL_WIDTH);
     const maxWidth = Math.max(0, ...paragraphs.map((item) => item.width));
 
-    // Derive line height from the first available paragraph's line metrics.
-    const {ascent, descent} = getFontLineMetrics(fontMgr, fontSize);
+    const {ascent, descent} = useMemo(() => getFontLineMetrics(fontMgr, fontSize), [fontMgr, fontSize]);
     const lineHeight = ascent + descent;
 
     return yTicks.map((tick, i) => {
@@ -68,33 +62,5 @@ function ChartYAxisLabels({yTicks, yScale, chartBounds, fontSize, fontMgr, label
     });
 }
 
-/**
- * Custom comparator for React.memo.
- *
- * Victory-native's `renderOutside` callback is invoked on every pointer/hover event and always
- * passes freshly-created objects for `yScale` and `chartBounds`, even when the underlying chart
- * geometry has not changed. Without this comparator, `ChartYAxisLabels` would re-render on every
- * mouse move, triggering expensive Skia paragraph re-builds for every label.
- *
- * Instead of relying on reference equality, we compare the values that actually affect rendering:
- * tick values, bounds coordinates, font settings, and a sampled scale output.
- */
-function arePropsEqual(prev: ChartYAxisLabelsProps, next: ChartYAxisLabelsProps): boolean {
-    return (
-        prev.yTicks.length === next.yTicks.length &&
-        prev.yTicks.every((t, i) => t === next.yTicks.at(i)) &&
-        prev.chartBounds.left === next.chartBounds.left &&
-        prev.chartBounds.right === next.chartBounds.right &&
-        prev.chartBounds.top === next.chartBounds.top &&
-        prev.chartBounds.bottom === next.chartBounds.bottom &&
-        prev.fontSize === next.fontSize &&
-        prev.fontMgr === next.fontMgr &&
-        prev.labelColor === next.labelColor &&
-        prev.formatValue === next.formatValue &&
-        prev.leftAlign === next.leftAlign &&
-        (prev.yTicks.length === 0 || prev.yScale(prev.yTicks.at(0) ?? 0) === next.yScale(prev.yTicks.at(0) ?? 0))
-    );
-}
-
-export default React.memo(ChartYAxisLabels, arePropsEqual);
+export default ChartYAxisLabels;
 export type {ChartYAxisLabelsProps};
