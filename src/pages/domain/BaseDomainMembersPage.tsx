@@ -272,6 +272,7 @@ function BaseDomainMembersPage({
                     {!shouldUseNarrowLayout && !!headerContent && <View style={[styles.flexRow, styles.gap2]}>{headerContent}</View>}
                 </HeaderWithBackButton>
                 {shouldUseNarrowLayout && !!headerContent && <View style={[styles.ph5, styles.flexRow, styles.gap2]}>{headerContent}</View>}
+                {listHeaderContent}
                 <SelectionListWithModal
                     data={filteredData}
                     shouldShowRightCaret
@@ -290,7 +291,6 @@ function BaseDomainMembersPage({
                     showScrollIndicator={false}
                     customListHeader={getFilteredListHeader()}
                     shouldHeaderBeInsideList
-                    customListHeaderContent={listHeaderContent}
                     canSelectMultiple={canSelectMultiple}
                     onSelectAll={toggleAllUsers}
                     onCheckboxPress={toggleUser}
