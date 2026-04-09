@@ -94,21 +94,17 @@ function isConsecutiveChronosAutomaticTimerAction(reportActions: ReportAction[],
 type OOOCommandParams = {
     date: string;
     time?: string;
-    timePeriod?: string;
     durationAmount?: string;
     durationUnit?: string;
     reason?: string;
     workingPercentage?: string;
 };
 
-function buildOOOCommand({date, time, timePeriod, durationAmount, durationUnit, reason, workingPercentage}: OOOCommandParams): string {
+function buildOOOCommand({date, time, durationAmount, durationUnit, reason, workingPercentage}: OOOCommandParams): string {
     let command = `ooo ${date}`;
 
     if (time) {
         command += ` ${time}`;
-        if (timePeriod) {
-            command += ` ${timePeriod}`;
-        }
     }
 
     if (durationAmount && durationUnit) {

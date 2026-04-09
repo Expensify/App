@@ -6,15 +6,7 @@ describe('buildOOOCommand', () => {
     });
 
     test('appends time when provided', () => {
-        expect(buildOOOCommand({date: '2025-04-09', time: '12:30'})).toBe('ooo 2025-04-09 12:30');
-    });
-
-    test('appends time period after time', () => {
-        expect(buildOOOCommand({date: '2025-04-09', time: '12:30', timePeriod: 'PM'})).toBe('ooo 2025-04-09 12:30 PM');
-    });
-
-    test('does not append time period without time', () => {
-        expect(buildOOOCommand({date: '2025-04-09', timePeriod: 'AM'})).toBe('ooo 2025-04-09');
+        expect(buildOOOCommand({date: '2025-04-09', time: '14:30'})).toBe('ooo 2025-04-09 14:30');
     });
 
     test('appends duration when both amount and unit provided', () => {
@@ -58,25 +50,23 @@ describe('buildOOOCommand', () => {
             buildOOOCommand({
                 date: '2025-04-09',
                 time: '9:00',
-                timePeriod: 'AM',
                 durationAmount: '3',
                 durationUnit: 'days',
                 reason: 'in Portland',
                 workingPercentage: '0',
             }),
-        ).toBe('ooo 2025-04-09 9:00 AM for 3 days in Portland 0%');
+        ).toBe('ooo 2025-04-09 9:00 for 3 days in Portland 0%');
     });
 
     test('builds command with time, duration, and percentage', () => {
         expect(
             buildOOOCommand({
                 date: '2025-01-15',
-                time: '1:30',
-                timePeriod: 'PM',
+                time: '13:30',
                 durationAmount: '1',
                 durationUnit: 'hours',
                 workingPercentage: '50',
             }),
-        ).toBe('ooo 2025-01-15 1:30 PM for 1 hours 50%');
+        ).toBe('ooo 2025-01-15 13:30 for 1 hours 50%');
     });
 });

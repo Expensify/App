@@ -7844,7 +7844,7 @@ const translations = {
         reason: 'Reason',
         workingPercentage: 'Working percentage',
         dateRequired: 'Date is required.',
-        invalidTimeFormat: 'Please enter a valid time (e.g., 12:30).',
+        invalidTimeFormat: 'Please enter a valid 24-hour time (e.g., 14:30).',
         enterANumber: 'Please enter a number.',
         hour: 'hours',
         day: 'days',
