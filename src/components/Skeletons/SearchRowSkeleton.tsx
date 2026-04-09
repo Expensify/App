@@ -166,6 +166,7 @@ function SearchRowSkeleton({shouldAnimate = true, fixedNumItems, gradientOpacity
                         )}
 
                         <SkeletonRect
+                            // We have to calculate this value to make sure the element is aligned to the button on the right side.
                             transform={[
                                 {translateX: windowWidth - leftPaneWidth - rightArrowWidth - rightButtonWidth - gapWidth - centralPanePadding - gapWidth - rightSideElementWidth},
                                 {translateY: 24},
@@ -175,6 +176,7 @@ function SearchRowSkeleton({shouldAnimate = true, fixedNumItems, gradientOpacity
                         />
 
                         <SkeletonRect
+                            // We have to calculate this value to make sure the element is aligned to the right border.
                             transform={[{translateX: windowWidth - leftPaneWidth - rightArrowWidth - rightSideElementWidth - gapWidth - centralPanePadding}, {translateY: 14}]}
                             borderRadius={15}
                             width={68}
