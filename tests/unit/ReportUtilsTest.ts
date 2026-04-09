@@ -4923,16 +4923,8 @@ describe('ReportUtils', () => {
     });
 
     describe('isAdminOwnerApproverOrReportOwner uses explicit currentUserAccountID', () => {
-        it('should use the passed currentUserAccountID instead of the Onyx session value', async () => {
-            const sessionAccountID = currentUserAccountID;
+        it('should use the passed currentUserAccountID instead of the Onyx session value', () => {
             const approverAccountID = 42;
-
-            await Onyx.set(ONYXKEYS.SESSION, {email: currentUserEmail, accountID: sessionAccountID});
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-                [sessionAccountID]: {accountID: sessionAccountID, displayName: currentUserEmail, login: currentUserEmail},
-                [approverAccountID]: {accountID: approverAccountID, displayName: 'Approver', login: 'approver@test.com'},
-            });
-            await waitForBatchedUpdates();
 
             const report: Report = {
                 ...createExpenseReport(300),
@@ -4946,23 +4938,16 @@ describe('ReportUtils', () => {
             };
 
             expect(isAdminOwnerApproverOrReportOwner(report, testPolicy, approverAccountID)).toBe(true);
-            expect(isAdminOwnerApproverOrReportOwner(report, testPolicy, sessionAccountID)).toBe(false);
+            expect(isAdminOwnerApproverOrReportOwner(report, testPolicy, currentUserAccountID)).toBe(false);
             expect(isAdminOwnerApproverOrReportOwner(report, testPolicy, undefined)).toBe(false);
         });
     });
 
     describe('canLeaveChat uses explicit currentUserAccountID', () => {
-        it('should use the passed currentUserAccountID for IOU owner/manager check instead of the Onyx session value', async () => {
-            const sessionAccountID = currentUserAccountID;
+        it('should use the passed currentUserAccountID for IOU owner/manager check instead of the Onyx session value', () => {
             const ownerAccountID = 100;
             const managerAccountID = 200;
             const unrelatedAccountID = 999;
-
-            await Onyx.set(ONYXKEYS.SESSION, {email: currentUserEmail, accountID: sessionAccountID});
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-                [sessionAccountID]: {accountID: sessionAccountID, displayName: currentUserEmail, login: currentUserEmail},
-            });
-            await waitForBatchedUpdates();
 
             const report: Report = {
                 reportID: '400',
@@ -4971,7 +4956,7 @@ describe('ReportUtils', () => {
                 managerID: managerAccountID,
                 parentReportID: '12345',
                 parentReportActionID: '67890',
-                participants: buildParticipantsFromAccountIDs([sessionAccountID, ownerAccountID]),
+                participants: buildParticipantsFromAccountIDs([currentUserAccountID, ownerAccountID]),
             };
 
             expect(canLeaveChat(report, undefined, unrelatedAccountID)).toBe(true);

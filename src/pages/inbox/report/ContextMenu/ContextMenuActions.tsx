@@ -261,7 +261,7 @@ type ShouldShow = (args: {
     moneyRequestReport?: OnyxEntry<ReportType>;
     moneyRequestPolicy?: OnyxEntry<Policy>;
     isHarvestReport?: boolean;
-    currentUserAccountID?: number;
+    currentUserAccountID: number;
 }) => boolean;
 
 type ContextMenuActionPayload = {
