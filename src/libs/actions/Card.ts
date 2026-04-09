@@ -1733,6 +1733,7 @@ function setExpensifyCardRule(domainAccountID: number, cardRuleID: string, spend
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${domainAccountID}`,
             value: {
+                hasOnceLoaded: true,
                 cardRules: {
                     [ruleID]: existingRule ?? null,
                 },
@@ -1755,6 +1756,7 @@ function deleteExpensifyCardRule(domainAccountID: number, cardRuleID: string, ex
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${domainAccountID}`,
             value: {
+                hasOnceLoaded: true,
                 cardRules: {
                     [cardRuleID]: null,
                 },
