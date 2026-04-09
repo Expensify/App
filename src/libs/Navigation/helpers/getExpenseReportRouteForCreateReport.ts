@@ -3,7 +3,7 @@ import CONST from '@src/CONST';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 
-type CreateReportOrigin = 'home' | 'search' | 'default';
+type CreateReportOrigin = 'home' | 'search' | 'reports' | 'default';
 
 type GetExpenseReportRouteForCreateReportParams = {
     reportID: string;
@@ -61,7 +61,7 @@ function getExpenseReportRouteForCreateReport({reportID, createReportOrigin = 'd
         });
     }
 
-    if (createReportOrigin === 'home') {
+    if (createReportOrigin === 'home' || createReportOrigin === 'reports') {
         return ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({
             reportID,
             backTo: getReportsRootRoute(),

@@ -11,8 +11,6 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import {createNewReport} from '@libs/actions/Report';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import getExpenseReportRouteForCreateReport from '@libs/Navigation/helpers/getExpenseReportRouteForCreateReport';
-import isHomeTopmostFullScreenRoute from '@libs/Navigation/helpers/isHomeTopmostFullScreenRoute';
-import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {getDefaultChatEnabledPolicy, isPaidGroupPolicy, shouldShowPolicy} from '@libs/PolicyUtils';
 import {hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
@@ -53,10 +51,10 @@ const chatEnabledPaidGroupPoliciesSelector = (policies: OnyxCollection<OnyxTypes
 
 function CreateReportMenuItem() {
     const pendingCreateReportNavigationContextRef = useRef<{
-        createReportOrigin: 'home' | 'search' | 'default';
+        createReportOrigin: 'home' | 'search' | 'reports' | 'default';
         createReportSourceRoute?: string;
     }>({
-        createReportOrigin: 'default',
+        createReportOrigin: 'reports',
         createReportSourceRoute: undefined,
     });
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
@@ -140,13 +138,8 @@ function CreateReportMenuItem() {
                         return;
                     }
 
-                    let createReportOrigin: 'home' | 'search' | 'default' = 'default';
-                    if (isSearchTopmostFullScreenRoute()) {
-                        createReportOrigin = 'search';
-                    } else if (isHomeTopmostFullScreenRoute()) {
-                        createReportOrigin = 'home';
-                    }
-                    const createReportSourceRoute = createReportOrigin === 'home' ? undefined : Navigation.getActiveRoute();
+                    const createReportOrigin: 'reports' = 'reports';
+                    const createReportSourceRoute = undefined;
                     pendingCreateReportNavigationContextRef.current = {
                         createReportOrigin,
                         createReportSourceRoute,
