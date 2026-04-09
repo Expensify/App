@@ -2098,27 +2098,7 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
                         </View>
                     ))}
 
-                {shouldShowMoreContent && (
-                    <View style={[styles.flexRow, styles.gap2, styles.justifyContentStart, styles.flexNoWrap, styles.ph5, styles.pb3]}>
-                        <View style={[styles.flexShrink1, styles.flexGrow1, styles.mnw0, styles.flexWrap, styles.justifyContentCenter]}>
-                            {showNextStepBar && <MoneyReportHeaderStatusBar nextStep={optimisticNextStep} />}
-                            {showNextStepSkeleton && <MoneyReportHeaderStatusBarSkeleton reasonAttributes={nextStepSkeletonReasonAttributes} />}
-                            <MoneyReportHeaderStatusBarSection
-                                reportID={reportIDProp}
-                                statusBarType={statusBarType}
-                                iouTransactionID={transaction?.transactionID}
-                            />
-                        </View>
-                        {isReportInSearch && (
-                            <MoneyRequestReportNavigation
-                                reportID={moneyRequestReport?.reportID}
-                                shouldDisplayNarrowVersion={!shouldDisplayNarrowMoreButton}
-                            />
-                        )}
-                    </View>
-                ))}
-
-            <MoneyReportHeaderMoreContent reportID={reportIDProp} />
+                <MoneyReportHeaderMoreContent reportID={reportIDProp} />
 
                 <HeaderLoadingBar />
             </View>
