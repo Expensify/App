@@ -14,7 +14,7 @@ import type {FrequentlyUsedEmoji, Locale} from '@src/types/onyx';
 import type {ReportActionReaction, UsersReactions} from '@src/types/onyx/ReportActionReactions';
 import type IconAsset from '@src/types/utils/IconAsset';
 import {isSafari} from './Browser';
-import type {getEmojiTrie as getEmojiTrieType} from './EmojiTrie';
+import type EmojiTrie from './EmojiTrie';
 import memoize from './memoize';
 
 type HeaderIndices = {code: string; index: number; icon: IconAsset};
@@ -22,7 +22,7 @@ type EmojiSpacer = {code: string; spacer: boolean};
 type EmojiPickerListItem = EmojiSpacer | Emoji | HeaderEmoji;
 type EmojiPickerList = EmojiPickerListItem[];
 type ReplacedEmoji = {text: string; emojis: Emoji[]; cursorPosition?: number};
-type EmojiTrieModule = {getEmojiTrie: typeof getEmojiTrieType};
+type EmojiTrieModule = {default: typeof EmojiTrie};
 type TextWithEmoji = {
     text: string;
     isEmoji: boolean;
@@ -391,10 +391,11 @@ function getAddedEmojis(currentEmojis: Emoji[], formerEmojis: Emoji[]): Emoji[] 
  * If we're on mobile, we also add a space after the emoji granted there's no text after it.
  */
 function replaceEmojis(text: string, preferredSkinTone: OnyxEntry<number | string> = CONST.EMOJI_DEFAULT_SKIN_TONE, locale: Locale = CONST.LOCALES.DEFAULT): ReplacedEmoji {
-    const {getEmojiTrie} = require<EmojiTrieModule>('./EmojiTrie');
+    // emojisTrie is importing the emoji JSON file on the app starting and we want to avoid it
+    const emojisTrie = require<EmojiTrieModule>('./EmojiTrie').default;
 
     const normalizedLocale = locale && isFullySupportedLocale(locale) ? locale : CONST.LOCALES.EN;
-    const trie = getEmojiTrie(normalizedLocale);
+    const trie = emojisTrie[normalizedLocale];
     if (!trie) {
         return {text, emojis: []};
     }
@@ -409,7 +410,7 @@ function replaceEmojis(text: string, preferredSkinTone: OnyxEntry<number | strin
     const codeBlockRanges = parseExpensiMark(text);
     const replacements: Array<{position: number; shortcode: string; replacement: string; name: string}> = [];
     const shortcodeSearchPositions: Record<string, number> = {};
-    const englishTrie = normalizedLocale !== CONST.LOCALES.DEFAULT ? getEmojiTrie(CONST.LOCALES.DEFAULT) : null;
+    const englishTrie = normalizedLocale !== CONST.LOCALES.DEFAULT ? emojisTrie[CONST.LOCALES.DEFAULT] : null;
 
     for (const emoji of emojiData) {
         const name = emoji.slice(1, -1);
@@ -491,10 +492,11 @@ function replaceAndExtractEmojis(text: string, preferredSkinTone: OnyxEntry<numb
  * @param [limit] - matching emojis limit
  */
 function suggestEmojis(text: string, locale: Locale = CONST.LOCALES.DEFAULT, limit: number = CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_SUGGESTIONS): Emoji[] | undefined {
-    const {getEmojiTrie} = require<EmojiTrieModule>('./EmojiTrie');
+    // emojisTrie is importing the emoji JSON file on the app starting and we want to avoid it
+    const emojisTrie = require<EmojiTrieModule>('./EmojiTrie').default;
 
     const normalizedLocale = locale && isFullySupportedLocale(locale) ? locale : CONST.LOCALES.EN;
-    const trie = getEmojiTrie(normalizedLocale);
+    const trie = emojisTrie[normalizedLocale];
     if (!trie) {
         return [];
     }
