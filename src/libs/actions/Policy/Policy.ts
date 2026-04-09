@@ -2314,6 +2314,8 @@ function buildOptimisticDistanceRateCustomUnits(reportCurrency?: string): Optimi
 function createDraftInitialWorkspace(
     introSelected: OnyxEntry<IntroSelected>,
     workspaceName: string,
+    currentUserAccountID: number,
+    currentUserEmail: string,
     policyID = generatePolicyID(),
     makeMeAdmin = false,
     currency = '',
@@ -2333,11 +2335,11 @@ function createDraftInitialWorkspace(
                 type: type || CONST.POLICY.TYPE.TEAM,
                 name: workspaceName,
                 role: CONST.POLICY.ROLE.ADMIN,
-                owner: deprecatedSessionEmail,
-                ownerAccountID: deprecatedSessionAccountID,
+                owner: currentUserEmail,
+                ownerAccountID: currentUserAccountID,
                 isPolicyExpenseChatEnabled: true,
                 areCategoriesEnabled: true,
-                approver: deprecatedSessionEmail,
+                approver: currentUserEmail,
                 areCompanyCardsEnabled: true,
                 areExpensifyCardsEnabled: false,
                 outputCurrency,
@@ -2352,9 +2354,9 @@ function createDraftInitialWorkspace(
                 },
                 originalFileName: file?.name,
                 employeeList: {
-                    [deprecatedSessionEmail]: {
-                        submitsTo: deprecatedSessionEmail,
-                        email: deprecatedSessionEmail,
+                    [currentUserEmail]: {
+                        submitsTo: currentUserEmail,
+                        email: currentUserEmail,
                         role: CONST.POLICY.ROLE.ADMIN,
                         errors: {},
                     },

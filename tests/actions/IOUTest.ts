@@ -9237,6 +9237,78 @@ describe('actions/IOU', () => {
             const reportAction = Object.values(reportActionsUpdate?.value as Record<string, ReportAction>).at(0);
             expect(reportAction?.delegateAccountID).toBe(DELEGATE_ACCOUNT_ID);
         });
+
+        it('approveMoneyRequest includes delegateAccountID when delegateEmail is provided', () => {
+            const expenseReport: Report = {
+                ...createRandomReport(1, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                total: 10000,
+                currency: CONST.CURRENCY.USD,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            };
+
+            approveMoneyRequest({
+                expenseReport,
+                policy: {} as Policy,
+                currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
+                currentUserEmailParam: CARLOS_EMAIL,
+                hasViolations: false,
+                isASAPSubmitBetaEnabled: false,
+                expenseReportCurrentNextStepDeprecated: undefined,
+                betas: [CONST.BETAS.ALL],
+                userBillingGracePeriodEnds: undefined,
+                amountOwed: 0,
+                ownerBillingGracePeriodEnd: undefined,
+                delegateEmail: DELEGATE_EMAIL,
+            });
+
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls -- Inspecting mock call args to verify optimistic data structure
+            const calls = (API.write as jest.Mock).mock.calls;
+            const [, , onyxData] = calls.at(0) as [unknown, unknown, OnyxData<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>];
+            const optimisticData = onyxData.optimisticData ?? [];
+
+            const reportActionsUpdate = optimisticData.find((update: {key: string}) => update.key === `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`);
+            expect(reportActionsUpdate).toBeDefined();
+
+            const reportAction = Object.values(reportActionsUpdate?.value as Record<string, ReportAction>).at(0);
+            expect(reportAction?.delegateAccountID).toBe(DELEGATE_ACCOUNT_ID);
+        });
+
+        it('approveMoneyRequest sets delegateAccountID to undefined when delegateEmail is undefined', () => {
+            const expenseReport: Report = {
+                ...createRandomReport(1, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                total: 10000,
+                currency: CONST.CURRENCY.USD,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            };
+
+            approveMoneyRequest({
+                expenseReport,
+                policy: {} as Policy,
+                currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
+                currentUserEmailParam: CARLOS_EMAIL,
+                hasViolations: false,
+                isASAPSubmitBetaEnabled: false,
+                expenseReportCurrentNextStepDeprecated: undefined,
+                betas: [CONST.BETAS.ALL],
+                userBillingGracePeriodEnds: undefined,
+                amountOwed: 0,
+                ownerBillingGracePeriodEnd: undefined,
+                delegateEmail: undefined,
+            });
+
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls -- Inspecting mock call args to verify optimistic data structure
+            const calls = (API.write as jest.Mock).mock.calls;
+            const [, , onyxData] = calls.at(0) as [unknown, unknown, OnyxData<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>];
+            const optimisticData = onyxData.optimisticData ?? [];
+
+            const reportActionsUpdate = optimisticData.find((update: {key: string}) => update.key === `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`);
+            expect(reportActionsUpdate).toBeDefined();
+
+            const reportAction = Object.values(reportActionsUpdate?.value as Record<string, ReportAction>).at(0);
+            expect(reportAction?.delegateAccountID).toBeUndefined();
+        });
     });
 
     describe('canIOUBePaid', () => {
@@ -13836,6 +13908,7 @@ describe('actions/IOU', () => {
                 userBillingGracePeriodEnds: undefined,
                 amountOwed: 0,
                 ownerBillingGracePeriodEnd: undefined,
+                delegateEmail: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -13887,6 +13960,7 @@ describe('actions/IOU', () => {
                 userBillingGracePeriodEnds: undefined,
                 amountOwed: 0,
                 ownerBillingGracePeriodEnd: undefined,
+                delegateEmail: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -13934,6 +14008,7 @@ describe('actions/IOU', () => {
                 userBillingGracePeriodEnds: undefined,
                 amountOwed: 0,
                 ownerBillingGracePeriodEnd: undefined,
+                delegateEmail: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -14057,6 +14132,7 @@ describe('actions/IOU', () => {
                 userBillingGracePeriodEnds: undefined,
                 amountOwed: 0,
                 ownerBillingGracePeriodEnd: undefined,
+                delegateEmail: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -14087,6 +14163,7 @@ describe('actions/IOU', () => {
                 userBillingGracePeriodEnds: undefined,
                 amountOwed: 0,
                 ownerBillingGracePeriodEnd: undefined,
+                delegateEmail: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -14115,6 +14192,7 @@ describe('actions/IOU', () => {
                 userBillingGracePeriodEnds: undefined,
                 amountOwed: 0,
                 ownerBillingGracePeriodEnd: undefined,
+                delegateEmail: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -14173,6 +14251,7 @@ describe('actions/IOU', () => {
                 userBillingGracePeriodEnds: undefined,
                 amountOwed: 0,
                 ownerBillingGracePeriodEnd: undefined,
+                delegateEmail: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -14288,6 +14367,7 @@ describe('actions/IOU', () => {
                 amountOwed: 0,
                 full: false,
                 ownerBillingGracePeriodEnd: undefined,
+                delegateEmail: undefined,
             });
             await waitForBatchedUpdates();
 

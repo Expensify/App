@@ -1,11 +1,11 @@
 ---
-title: Manage personal cards in New Expensify
+title: Manage Personal Cards
 description: Learn how to view, manage, and fix broken connections for personal credit cards in New Expensify.
 keywords: [New Expensify, personal cards, Wallet, reimbursable, credit card import, Expensify Classic, New Expensify, assigned cards, card details, broken connection, fix card]
 internalScope: Audience is members with personal credit cards already connected to their account. Covers viewing and managing existing personal cards in the Wallet, including reimbursable settings and fixing broken card connections. Does not cover connecting new personal cards or company card programs.
 ---
 
-# Manage personal cards in New Expensify
+# Manage Personal Cards
 
 Expensify lets you view and manage your personal credit cards in one place, making it easier to track spending, submit reimbursable expenses, and stay organized for tax time.
 

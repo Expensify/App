@@ -199,6 +199,7 @@ describe('PaymentUtils', () => {
             userBillingGracePeriodEnds: undefined,
             amountOwed: 0,
             ownerBillingGracePeriodEnd: undefined,
+            delegateEmail: undefined,
         };
 
         beforeEach(() => {
@@ -281,6 +282,7 @@ describe('PaymentUtils', () => {
                 amountOwed: 42,
                 ownerBillingGracePeriodEnd: 999,
                 full: true,
+                delegateEmail: undefined,
             });
         });
 
@@ -303,6 +305,7 @@ describe('PaymentUtils', () => {
                 amountOwed: undefined,
                 ownerBillingGracePeriodEnd: undefined,
                 full: true,
+                delegateEmail: undefined,
             });
         });
 
