@@ -169,9 +169,17 @@ const DYNAMIC_ROUTES = {
         path: 'purchase-bill-status-selector',
         entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.XERO_EXPORT],
     },
+    POLICY_ACCOUNTING_XERO_AUTO_SYNC: {
+        path: 'autosync',
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.XERO_ADVANCED, SCREENS.WORKSPACE.ACCOUNTING.CARD_RECONCILIATION],
+    },
     POLICY_ACCOUNTING_XERO_ACCOUNTING_METHOD: {
         path: 'accounting-method',
-        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.XERO_AUTO_SYNC],
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.CARD_RECONCILIATION, SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_XERO_AUTO_SYNC],
+    },
+    WORKSPACE_ACCOUNTING_RECONCILIATION_ACCOUNT_SETTINGS: {
+        path: 'account-reconciliation-settings',
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.CARD_RECONCILIATION, SCREENS.WORKSPACE.EXPENSIFY_CARD_SETTINGS_ACCOUNT],
     },
     ADDRESS_COUNTRY: {
         path: 'country',
@@ -238,6 +246,11 @@ const DYNAMIC_ROUTES = {
                 policyID,
             }),
         queryParams: ['fieldName', 'fieldValue', 'policyID'],
+    },
+    FLAG_COMMENT: {
+        path: 'flag/:reportID/:reportActionID',
+        entryScreens: [SCREENS.REPORT, SCREENS.RIGHT_MODAL.SEARCH_REPORT, SCREENS.RIGHT_MODAL.EXPENSE_REPORT, SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT],
+        getRoute: (reportID: string, reportActionID: string) => `flag/${reportID}/${reportActionID}`,
     },
 } as const satisfies DynamicRoutes;
 
@@ -368,12 +381,6 @@ const ROUTES = {
     CONCIERGE: 'concierge',
     TRACK_EXPENSE: 'track-expense',
     SUBMIT_EXPENSE: 'submit-expense',
-    FLAG_COMMENT: {
-        route: 'flag/:reportID/:reportActionID',
-
-        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-        getRoute: (reportID: string, reportActionID: string, backTo?: string) => getUrlWithBackToParam(`flag/${reportID}/${reportActionID}` as const, backTo),
-    },
     PROFILE: {
         route: 'a/:accountID',
         getRoute: (accountID?: number, backTo?: string, login?: string) => {
@@ -2220,17 +2227,6 @@ const ROUTES = {
             return `workspaces/${policyID}/accounting/${connection as string}/card-reconciliation` as const;
         },
     },
-    WORKSPACE_ACCOUNTING_RECONCILIATION_ACCOUNT_SETTINGS: {
-        route: 'workspaces/:policyID/accounting/:connection/card-reconciliation/account',
-        getRoute: (policyID: string | undefined, connection?: ValueOf<typeof CONST.POLICY.CONNECTIONS.ROUTE>, backTo?: string) => {
-            if (!policyID) {
-                Log.warn('Invalid policyID is used to build the WORKSPACE_ACCOUNTING_RECONCILIATION_ACCOUNT_SETTINGS route');
-            }
-
-            // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-            return getUrlWithBackToParam(`workspaces/${policyID}/accounting/${connection as string}/card-reconciliation/account` as const, backTo);
-        },
-    },
     WORKSPACE_CATEGORIES: {
         route: 'workspaces/:policyID/categories',
         getRoute: (policyID: string | undefined) => {
@@ -3460,17 +3456,6 @@ const ROUTES = {
     POLICY_ACCOUNTING_CLAIM_OFFER: {
         route: 'workspaces/:policyID/accounting/claim-offer/:integration',
         getRoute: (policyID: string, integration: string) => `workspaces/${policyID}/accounting/claim-offer/${integration}` as const,
-    },
-    POLICY_ACCOUNTING_XERO_AUTO_SYNC: {
-        route: 'workspaces/:policyID/accounting/xero/advanced/autosync',
-        getRoute: (policyID: string | undefined, backTo?: string) => {
-            if (!policyID) {
-                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_XERO_AUTO_SYNC route');
-            }
-
-            // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-            return getUrlWithBackToParam(`workspaces/${policyID}/accounting/xero/advanced/autosync` as const, backTo);
-        },
     },
     POLICY_ACCOUNTING_XERO_INVOICE_SELECTOR: {
         route: 'workspaces/:policyID/accounting/xero/advanced/invoice-account-selector',

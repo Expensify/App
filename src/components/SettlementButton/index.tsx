@@ -1,4 +1,4 @@
-import {isUserValidatedSelector} from '@selectors/Account';
+import {delegateEmailSelector, isUserValidatedSelector} from '@selectors/Account';
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import truncate from 'lodash/truncate';
 import React, {useCallback, useContext} from 'react';
@@ -163,6 +163,7 @@ function SettlementButton({
 
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
+    const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const isPayInvoiceViaExpensifyBetaEnabled = isBetaEnabled(CONST.BETAS.PAY_INVOICE_VIA_EXPENSIFY);
     const hasViolations = hasViolationsReportUtils(iouReport?.reportID, transactionViolations, accountID, email ?? '');
@@ -505,6 +506,7 @@ function SettlementButton({
                     amountOwed,
                     ownerBillingGracePeriodEnd,
                     full: false,
+                    delegateEmail,
                 });
             }
             return;
