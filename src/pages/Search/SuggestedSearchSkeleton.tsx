@@ -46,7 +46,7 @@ const LHN = {
 };
 
 type SuggestedSearchSkeletonProps = {
-    sectionCount?: number;
+    sectionCount: number;
 };
 
 function SuggestedSearchSkeleton({sectionCount}: SuggestedSearchSkeletonProps) {
