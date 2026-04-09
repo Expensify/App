@@ -82,7 +82,7 @@ function ExpenseReportListItemRow({
 
     const columnComponents = {
         [CONST.SEARCH.TABLE_COLUMNS.DATE]: (
-            <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.DATE, item.shouldShowYear)]}>
+            <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.DATE, {isDateColumnWide: item.shouldShowYear})]}>
                 <DateCell
                     date={item.created ?? ''}
                     showTooltip
@@ -91,7 +91,7 @@ function ExpenseReportListItemRow({
             </View>
         ),
         [CONST.SEARCH.TABLE_COLUMNS.SUBMITTED]: (
-            <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.SUBMITTED, false, false, false, item.shouldShowYearSubmitted)]}>
+            <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.SUBMITTED, {isSubmittedColumnWide: item.shouldShowYearSubmitted})]}>
                 <DateCell
                     date={item.submitted ?? ''}
                     showTooltip
@@ -100,7 +100,7 @@ function ExpenseReportListItemRow({
             </View>
         ),
         [CONST.SEARCH.TABLE_COLUMNS.APPROVED]: (
-            <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.APPROVED, false, false, false, false, item.shouldShowYearApproved)]}>
+            <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.APPROVED, {isApprovedColumnWide: item.shouldShowYearApproved})]}>
                 <DateCell
                     date={item.approved ?? ''}
                     showTooltip
@@ -109,7 +109,7 @@ function ExpenseReportListItemRow({
             </View>
         ),
         [CONST.SEARCH.TABLE_COLUMNS.EXPORTED]: (
-            <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.EXPORTED, false, false, false, false, false, false, item.shouldShowYearExported)]}>
+            <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.EXPORTED, {isExportedColumnWide: item.shouldShowYearExported})]}>
                 <DateCell
                     date={item.exported ?? ''}
                     showTooltip
