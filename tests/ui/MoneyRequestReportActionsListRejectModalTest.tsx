@@ -194,15 +194,7 @@ const renderComponent = () => {
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
             <SearchContextProvider>
                 <ScreenWrapper testID="test">
-                    <MoneyRequestReportActionsList
-                        report={mockReport}
-                        policy={mockPolicy}
-                        reportActions={[mockReportAction]}
-                        transactions={[mockTransaction]}
-                        newTransactions={[]}
-                        hasNewerActions={false}
-                        hasOlderActions={false}
-                    />
+                    <MoneyRequestReportActionsList reportID={FAKE_REPORT_ID} />
                 </ScreenWrapper>
             </SearchContextProvider>
         </ComposeProviders>,
@@ -216,6 +208,7 @@ describe('MoneyRequestReportActionsList - Reject Educational Modal', () => {
     beforeAll(async () => {
         Onyx.init({
             keys: ONYXKEYS,
+            evictableKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS],
         });
         jest.spyOn(NativeNavigation, 'useRoute').mockReturnValue({
             key: 'test-key',
@@ -241,6 +234,8 @@ describe('MoneyRequestReportActionsList - Reject Educational Modal', () => {
                 [`${ONYXKEYS.COLLECTION.REPORT}${FAKE_REPORT_ID}` as const]: mockReport,
                 [`${ONYXKEYS.COLLECTION.POLICY}${FAKE_POLICY_ID}` as const]: mockPolicy,
                 [`${ONYXKEYS.COLLECTION.TRANSACTION}${FAKE_TRANSACTION_ID}` as const]: mockTransaction,
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${FAKE_REPORT_ID}` as const]: {[mockReportAction.reportActionID]: mockReportAction},
+                [`${ONYXKEYS.COLLECTION.REPORT_METADATA}${FAKE_REPORT_ID}` as const]: {isLoadingInitialReportActions: false, hasOnceLoadedReportActions: true},
                 [ONYXKEYS.SESSION]: {accountID: FAKE_ACCOUNT_ID, email: FAKE_EMAIL} as Session,
             });
         });
