@@ -31,7 +31,6 @@ import {
     getMoneyRequestSpendBreakdown,
     getParentReport,
     hasExportError as hasExportErrorUtil,
-    hasHeldExpenses,
     hasOnlyHeldExpenses,
     hasOnlyNonReimbursableTransactions,
     isArchivedReport,
@@ -215,10 +214,6 @@ function isApproveAction(
     }
 
     if (isClosedReportUtils(report)) {
-        return false;
-    }
-
-    if (hasHeldExpenses(report.reportID, reportTransactions)) {
         return false;
     }
 
