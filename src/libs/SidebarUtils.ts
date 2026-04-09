@@ -873,7 +873,6 @@ function getOptionData({
             reportAttributesDerived,
             policyTags,
             currentUserLogin,
-            currentUserAccountID,
             lastAction,
         });
     }
