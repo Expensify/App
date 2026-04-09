@@ -1,6 +1,6 @@
 import {format, parseISO} from 'date-fns';
 import {Str} from 'expensify-common';
-import React, {useMemo, useRef, useState} from 'react';
+import React, {useMemo, useRef} from 'react';
 import {View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -58,7 +58,6 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
     const [shouldUseStagingServer = isUsingStagingApi()] = useOnyx(ONYXKEYS.SHOULD_USE_STAGING_SERVER);
     const policy = usePolicy(policyID);
     const workspaceAccountID = policy?.policyAccountID ?? CONST.DEFAULT_NUMBER_ID;
-    const [isUnassignModalVisible, setIsUnassignModalVisible] = useState(false);
     const isUnassigningRef = useRef(false);
     const {translate, getLocalDateFromDatetime} = useLocalize();
     const styles = useThemeStyles();
