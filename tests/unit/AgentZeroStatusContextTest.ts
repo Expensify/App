@@ -185,6 +185,94 @@ describe('AgentZeroStatusContext', () => {
             expect(result.current.statusLabel).toBe('');
         });
 
+        it('should clear optimistic waiting state after 2-minute timeout when server never responds', async () => {
+            jest.useFakeTimers();
+
+            // Given a Concierge chat where user triggered optimistic waiting
+            const {result} = renderHook(() => ({...useAgentZeroStatus(), ...useAgentZeroStatusActions()}), {wrapper});
+            await waitForBatchedUpdates();
+
+            // When the user triggers the waiting indicator
+            act(() => {
+                result.current.kickoffWaitingIndicator();
+            });
+            await waitForBatchedUpdates();
+            expect(result.current.isProcessing).toBe(true);
+            expect(result.current.statusLabel).toBe('Thinking...');
+
+            // And the server never responds within 2 minutes
+            act(() => {
+                jest.advanceTimersByTime(120000);
+            });
+            await waitForBatchedUpdates();
+
+            // Then the optimistic state should be automatically cleared
+            expect(result.current.isProcessing).toBe(false);
+            expect(result.current.statusLabel).toBe('');
+
+            jest.useRealTimers();
+        });
+
+        it('should not clear optimistic state before the 2-minute timeout', async () => {
+            jest.useFakeTimers();
+
+            // Given a Concierge chat where user triggered optimistic waiting
+            const {result} = renderHook(() => ({...useAgentZeroStatus(), ...useAgentZeroStatusActions()}), {wrapper});
+            await waitForBatchedUpdates();
+
+            act(() => {
+                result.current.kickoffWaitingIndicator();
+            });
+            await waitForBatchedUpdates();
+
+            // When only 1 minute has passed (less than the 2-minute timeout)
+            act(() => {
+                jest.advanceTimersByTime(60000);
+            });
+            await waitForBatchedUpdates();
+
+            // Then the optimistic state should still be active
+            expect(result.current.isProcessing).toBe(true);
+            expect(result.current.statusLabel).toBe('Thinking...');
+
+            jest.useRealTimers();
+        });
+
+        it('should cancel timeout when server label arrives before 2 minutes', async () => {
+            jest.useFakeTimers();
+
+            // Given a Concierge chat where user triggered optimistic waiting
+            const {result} = renderHook(() => ({...useAgentZeroStatus(), ...useAgentZeroStatusActions()}), {wrapper});
+            await waitForBatchedUpdates();
+
+            act(() => {
+                result.current.kickoffWaitingIndicator();
+            });
+            await waitForBatchedUpdates();
+            expect(result.current.isProcessing).toBe(true);
+
+            // When the server label arrives before the timeout
+            const serverLabel = 'Concierge is looking up categories...';
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`, {
+                agentZeroProcessingRequestIndicator: serverLabel,
+            });
+            await waitForBatchedUpdates();
+
+            // And the full 2 minutes elapse
+            act(() => {
+                jest.advanceTimersByTime(120000);
+            });
+            await waitForBatchedUpdates();
+
+            // Then the server label should still be showing (timeout was cancelled, didn't clear it)
+            expect(result.current.isProcessing).toBe(true);
+            await waitFor(() => {
+                expect(result.current.statusLabel).toBe(serverLabel);
+            });
+
+            jest.useRealTimers();
+        });
+
         it('should clear optimistic waiting state when server label arrives', async () => {
             // Given a Concierge chat with optimistic waiting state
             const {result} = renderHook(() => ({...useAgentZeroStatus(), ...useAgentZeroStatusActions()}), {wrapper});
