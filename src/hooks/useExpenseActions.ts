@@ -103,15 +103,9 @@ function useExpenseActions({reportID, isReportInSearch = false}: UseExpenseActio
     }
 
     const currentTransaction = transactions.at(0);
-    const requestParentReportAction = (() => {
-        if (!reportActions || !transactionThreadReport?.parentReportActionID) {
-            return null;
-        }
-        return (
-            reportActions.find((action): action is OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> => action.reportActionID === transactionThreadReport.parentReportActionID) ??
-            null
-        );
-    })();
+    const requestParentReportAction =
+        reportActions?.find((action): action is OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> => action.reportActionID === transactionThreadReport?.parentReportActionID) ??
+        null;
 
     const iouTransactionID = isMoneyRequestAction(requestParentReportAction) ? getOriginalMessage(requestParentReportAction)?.IOUTransactionID : undefined;
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(iouTransactionID)}`);
@@ -167,13 +161,7 @@ function useExpenseActions({reportID, isReportInSearch = false}: UseExpenseActio
 
     // Split indicator
     const {isExpenseSplit} = getOriginalTransactionWithSplitInfo(transaction, originalTransaction);
-    const hasMultipleSplits = (() => {
-        if (!transaction?.comment?.originalTransactionID) {
-            return false;
-        }
-        const children = getChildTransactions(allTransactions, allReports, transaction.comment.originalTransactionID);
-        return children.length > 1;
-    })();
+    const hasMultipleSplits = !!transaction?.comment?.originalTransactionID && getChildTransactions(allTransactions, allReports, transaction.comment.originalTransactionID).length > 1;
     const isReportOpen = isOpenReport(moneyRequestReport);
     const hasSplitIndicator = isExpenseSplit && (hasMultipleSplits || isReportOpen);
 
@@ -190,26 +178,17 @@ function useExpenseActions({reportID, isReportInSearch = false}: UseExpenseActio
     // is set, the caller should call dropdownMenuRef.current?.setIsMenuVisible(false).
     // To keep this self-contained we return the ref so the caller can react to it.
 
-    // canMoveSingleExpense
-    const canMoveSingleExpense = (() => {
-        if (nonPendingDeleteTransactions.length !== 1) {
-            return false;
-        }
-        const transactionToMove = nonPendingDeleteTransactions.at(0);
-        if (!transactionToMove) {
-            return false;
-        }
-        const iouReportAction = getIOUActionForTransactionID(reportActions, transactionToMove.transactionID);
-        const canMoveExpense = canEditFieldOfMoneyRequest({
-            reportAction: iouReportAction,
+    const singleTransaction = nonPendingDeleteTransactions.length === 1 ? nonPendingDeleteTransactions.at(0) : undefined;
+    const canMoveSingleExpense =
+        !!singleTransaction &&
+        canEditFieldOfMoneyRequest({
+            reportAction: getIOUActionForTransactionID(reportActions, singleTransaction.transactionID),
             fieldToEdit: CONST.EDIT_REQUEST_FIELD.REPORT,
             isChatReportArchived,
             outstandingReportsByPolicyID,
-            transaction: transactionToMove,
-        });
-        const canUserPerformWriteAction = canUserPerformWriteActionReportUtils(moneyRequestReport, isChatReportArchived);
-        return canMoveExpense && canUserPerformWriteAction;
-    })();
+            transaction: singleTransaction,
+        }) &&
+        canUserPerformWriteActionReportUtils(moneyRequestReport, isChatReportArchived);
 
     // Duplicate expense: unsupported / shouldClose flags
     const transactionViolations = useTransactionViolations(transaction?.transactionID);
@@ -228,10 +207,8 @@ function useExpenseActions({reportID, isReportInSearch = false}: UseExpenseActio
     // Dropdown ref is owned by the orchestrator — no reset callback needed here.
     const [isDuplicateActive, temporarilyDisableDuplicateAction] = useThrottledButtonState();
 
-    // Policy tags for duplicate report
     const targetPolicyTags = defaultExpensePolicy ? (allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${defaultExpensePolicy.id}`] ?? {}) : {};
 
-    // duplicateExpenseTransaction
     const duplicateExpenseTransaction = (transactionList: OnyxTypes.Transaction[]) => {
         if (!transactionList.length) {
             return;
@@ -268,7 +245,6 @@ function useExpenseActions({reportID, isReportInSearch = false}: UseExpenseActio
         }
     };
 
-    // addExpenseDropdownOptions
     const addExpenseDropdownOptions = getAddExpenseDropdownOptions({
         translate,
         icons: useMemoizedLazyExpensifyIcons(['Plus', 'ReceiptPlus', 'Location', 'Feed', 'ArrowRight']),
