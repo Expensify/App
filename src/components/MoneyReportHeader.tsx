@@ -265,7 +265,7 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
     });
     const draftTransactionIDs = Object.keys(transactionDrafts ?? {});
 
-    const {translate, localeCompare} = useLocalize();
+    const {translate, toLocaleDigit, localeCompare} = useLocalize();
     const {isProduction} = useEnvironment();
     const exportTemplates = useMemo(
         () => getExportTemplates(integrationsExportTemplates ?? [], csvExportLayouts ?? {}, translate, policy),
@@ -1701,6 +1701,8 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
                             bankAccountList,
                             hash: currentSearchHash,
                             defaultP2PMileageRate,
+                            translate,
+                            toLocaleDigit,
                         });
                     });
                 });

@@ -96,7 +96,7 @@ function getRestrictedPolicyID(
 }
 
 function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
-    const {translate, localeCompare, formatPhoneNumber} = useLocalize();
+    const {translate, toLocaleDigit, localeCompare, formatPhoneNumber} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
     const {isOffline} = useNetwork();
@@ -493,6 +493,8 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                             bankAccountList,
                             hash,
                             defaultP2PMileageRate,
+                            translate,
+                            toLocaleDigit,
                         });
                     }
                 } else {
@@ -511,6 +513,8 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                         transactions,
                         allReportNameValuePairs,
                         defaultP2PMileageRate,
+                        translate,
+                        toLocaleDigit,
                     });
                 }
                 clearSelectedTransactions();

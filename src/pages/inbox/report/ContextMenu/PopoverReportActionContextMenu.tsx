@@ -47,7 +47,7 @@ type PopoverReportActionContextMenuProps = {
 };
 
 function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuProps) {
-    const {translate} = useLocalize();
+    const {translate, toLocaleDigit} = useLocalize();
     const reportIDRef = useRef<string | undefined>(undefined);
     const typeRef = useRef<ContextMenuType | undefined>(undefined);
     const reportActionRef = useRef<NonNullable<OnyxEntry<ReportAction>> | null>(null);
@@ -383,6 +383,8 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
                 bankAccountList,
                 hash: currentSearchHash,
                 defaultP2PMileageRate,
+                translate,
+                toLocaleDigit,
             });
         } else if (reportAction) {
             // eslint-disable-next-line @typescript-eslint/no-deprecated

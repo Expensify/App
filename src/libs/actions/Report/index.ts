@@ -74,8 +74,6 @@ import {getMicroSecondOnyxErrorWithTranslationKey, getMicroSecondTranslationErro
 import fileDownload from '@libs/fileDownload';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import HttpUtils from '@libs/HttpUtils';
-import {toLocaleDigit} from '@libs/LocaleDigitUtils';
-import {translateLocal} from '@libs/Localize';
 import Log from '@libs/Log';
 import {isEmailPublicDomain} from '@libs/LoginUtils';
 import {getMovedReportID} from '@libs/ModifiedExpenseMessage';
@@ -195,7 +193,6 @@ import type {OnboardingCompanySize, OnboardingMessage} from '@userActions/Welcom
 import CONFIG from '@src/CONFIG';
 import type {OnboardingAccounting} from '@src/CONST';
 import CONST from '@src/CONST';
-import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/NewRoomForm';
@@ -5649,6 +5646,8 @@ type DeleteAppReportProps = {
     bankAccountList: OnyxEntry<BankAccountList>;
     hash?: number;
     defaultP2PMileageRate?: DefaultP2PMileageRate;
+    translate?: LocaleContextProps['translate'];
+    toLocaleDigit?: LocaleContextProps['toLocaleDigit'];
 };
 
 /** Deletes a report and un-reports all transactions on the report along with its reportActions, any linked reports and any linked IOU report actions. */
@@ -5662,6 +5661,8 @@ function deleteAppReport({
     bankAccountList,
     hash,
     defaultP2PMileageRate,
+    translate,
+    toLocaleDigit,
 }: DeleteAppReportProps) {
     if (!report?.reportID) {
         Log.warn('[Report] deleteAppReport called with no reportID');
@@ -5795,8 +5796,8 @@ function deleteAppReport({
             const {comment, modifiedAmount, modifiedCurrency, modifiedMerchant} = recalculateUnreportedTransactionDetails(
                 transaction,
                 undefined,
-                translateLocal,
-                (digit: string) => toLocaleDigit(IntlStore.getCurrentLocale(), digit),
+                translate,
+                toLocaleDigit,
                 defaultP2PMileageRate,
             );
 
