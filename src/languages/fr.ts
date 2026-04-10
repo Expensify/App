@@ -507,6 +507,10 @@ const translations: TranslationDeepObject<typeof en> = {
         approver: 'Approbateur',
         enterDigitLabel: ({digitIndex, totalDigits}: {digitIndex: number; totalDigits: number}) => `saisir le chiffre ${digitIndex} sur ${totalDigits}`,
         copyOfReportName: (reportName: string) => `Copie de ${reportName}`,
+        previousMonth: 'Mois précédent',
+        nextMonth: 'Le mois prochain',
+        previousYear: 'Année précédente',
+        nextYear: 'L’an prochain',
     },
     socials: {
         podcast: 'Suivez-nous sur Podcast',
@@ -1622,6 +1626,11 @@ const translations: TranslationDeepObject<typeof en> = {
             `impossible d’approuver via les <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">règles de l’espace de travail</a>. ${reason}`,
         failedToApproveViaDEW: (reason: string) => `échec de l’approbation. ${reason}`,
         cannotDuplicateDistanceExpense: 'Vous ne pouvez pas dupliquer des dépenses de distance entre espaces de travail, car les taux peuvent différer d’un espace de travail à l’autre.',
+        taxDisabledAlert: {
+            title: 'Taxe désactivée',
+            prompt: 'Activez le suivi des taxes dans l’espace de travail pour modifier les détails de la dépense ou supprimer la taxe de cette dépense.',
+            confirmText: 'Supprimer la taxe',
+        },
     },
     transactionMerge: {
         listPage: {
@@ -2869,6 +2878,7 @@ ${amount} pour ${merchant} - ${date}`,
         workspaceYouMayJoin: (domain: string, email: string) => `Quelqu’un de ${domain} a déjà créé un espace de travail. Veuillez saisir le code magique envoyé à ${email}.`,
         joinAWorkspace: 'Rejoindre un espace de travail',
         listOfWorkspaces: 'Voici la liste des espaces de travail que vous pouvez rejoindre. Ne vous inquiétez pas, vous pourrez toujours les rejoindre plus tard si vous préférez.',
+        skipForNow: 'Passer pour le moment',
         workspaceMemberList: (employeeCount: number, policyOwner: string) => `${employeeCount} membre${employeeCount > 1 ? 's' : ''} • ${policyOwner}`,
         whereYouWork: 'Où travaillez-vous ?',
         errorSelection: 'Sélectionnez une option pour continuer',
@@ -2987,7 +2997,7 @@ ${amount} pour ${merchant} - ${date}`,
                 description: dedent(`
                     *Soumettez une dépense* en saisissant un montant ou en scannant un reçu.
 
-                    1. Cliquez sur le bouton ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}.
+                    1. Cliquez sur le bouton *+*.
                     2. Choisissez *Créer une dépense*.
                     3. Saisissez un montant ou scannez un reçu.
                     4. Ajoutez l’e-mail ou le numéro de téléphone de votre responsable.
@@ -3001,7 +3011,7 @@ ${amount} pour ${merchant} - ${date}`,
                 description: dedent(`
                     *Soumettez une dépense* en saisissant un montant ou en scannant un reçu.
 
-                    1. Cliquez sur le bouton ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}.
+                    1. Cliquez sur le bouton *+*.
                     2. Choisissez *Créer une dépense*.
                     3. Saisissez un montant ou scannez un reçu.
                     4. Confirmez les détails.
@@ -3015,7 +3025,7 @@ ${amount} pour ${merchant} - ${date}`,
                 description: dedent(`
                     *Enregistrez une dépense* dans n’importe quelle devise, que vous ayez un reçu ou non.
 
-                    1. Cliquez sur le bouton ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}.
+                    1. Cliquez sur le bouton *+*.
                     2. Choisissez *Créer une dépense*.
                     3. Saisissez un montant ou scannez un reçu.
                     4. Choisissez votre espace *personnel*.
@@ -3112,7 +3122,7 @@ ${amount} pour ${merchant} - ${date}`,
                 description: dedent(`
                     *Lancez une discussion* avec n'importe qui en utilisant son e-mail ou son numéro de téléphone.
 
-                    1. Cliquez sur le bouton ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}.
+                    1. Cliquez sur le bouton *+*.
                     2. Choisissez *Démarrer une discussion*.
                     3. Saisissez une adresse e-mail ou un numéro de téléphone.
 
@@ -3126,7 +3136,7 @@ ${amount} pour ${merchant} - ${date}`,
                 description: dedent(`
                     *Répartissez les dépenses* avec une ou plusieurs personnes.
 
-                    1. Cliquez sur le bouton ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}.
+                    1. Cliquez sur le bouton *+*.
                     2. Choisissez *Démarrer une discussion*.
                     3. Saisissez des e-mails ou des numéros de téléphone.
                     4. Cliquez sur le bouton *+* gris dans la discussion > *Répartir la dépense*.
@@ -3150,7 +3160,7 @@ ${amount} pour ${merchant} - ${date}`,
                 description: dedent(`
                     Voici comment créer une note de frais :
 
-                    1. Cliquez sur le bouton ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}.
+                    1. Cliquez sur le bouton *+*.
                     2. Choisissez *Créer une note de frais*.
                     3. Cliquez sur *Ajouter une dépense*.
                     4. Ajoutez votre première dépense.
@@ -3940,7 +3950,7 @@ ${amount} pour ${merchant} - ${date}`,
         regulationRequiresUs: 'La réglementation nous oblige à vérifier l’identité de toute personne détenant plus de 25 % de l’entreprise.',
         iAmAuthorized: 'Je suis autorisé à utiliser le compte bancaire professionnel pour les dépenses professionnelles.',
         iCertify: 'Je certifie que les informations fournies sont exactes et véridiques.',
-        iAcceptTheTermsAndConditions: `J'accepte les <a href="https://cross-border.corpay.com/tc/">conditions générales</a>.`,
+        iAcceptTheTermsAndConditions: `J'accepte les <a href="https://www.corpay.com/cross-border/terms">conditions générales</a>.`,
         iAcceptTheTermsAndConditionsAccessibility: 'J’accepte les conditions générales.',
         accept: 'Accepter et ajouter un compte bancaire',
         iConsentToThePrivacyNotice: 'Je consens à l’<a href="https://payments.corpay.com/compliance">avis de confidentialité</a>.',
@@ -4994,7 +5004,7 @@ _Pour des instructions plus détaillées, [consultez notre site d’aide](${CONS
 
 _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.NETSUITE_IMPORT.HELP_LINKS.CUSTOM_SEGMENTS})._`,
                             customSegmentScriptIDTitle: 'Quel est l’ID du script ?',
-                            customSegmentScriptIDFooter: `Vous pouvez trouver les ID de script de segment personnalisé dans NetSuite sous : 
+                            customSegmentScriptIDFooter: `Vous pouvez trouver les ID de script de segment personnalisé dans NetSuite sous :
 
 1. *Customization > Lists, Records, & Fields > Custom Segments*.
 2. Cliquez sur un segment personnalisé.
@@ -6832,6 +6842,62 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
 
 Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’entreprise.`,
                 },
+                addSpendRule: 'Ajouter une règle de dépense',
+                cardPageTitle: 'Carte',
+                cardsSectionTitle: 'Cartes',
+                chooseCards: 'Choisir des cartes',
+                saveRule: 'Enregistrer la règle',
+                allow: 'Autoriser',
+                spendRuleSectionTitle: 'Règle de dépense',
+                restrictionType: 'Type de restriction',
+                restrictionTypeHelpAllow: 'Les frais sont approuvés s’ils correspondent à n’importe quel commerçant ou catégorie et ne dépassent pas un montant maximal.',
+                restrictionTypeHelpBlock: 'Les frais sont refusés s’ils correspondent à un commerçant ou à une catégorie, ou s’ils dépassent un montant maximal.',
+                addMerchant: 'Ajouter un commerçant',
+                merchantContains: 'Le commerçant contient',
+                merchantExactlyMatches: 'Le commerçant correspond exactement',
+                noBlockedMerchants: 'Aucun commerçant bloqué',
+                addMerchantToBlockSpend: 'Ajouter un commerçant pour bloquer les dépenses',
+                noAllowedMerchants: 'Aucun commerçant autorisé',
+                addMerchantToAllowSpend: 'Ajouter un commerçant pour autoriser les dépenses',
+                matchType: 'Type de correspondance',
+                matchTypeContains: 'Contient',
+                matchTypeExact: 'Correspond exactement',
+                spendCategory: 'Catégorie de dépense',
+                maxAmount: 'Montant maximal',
+                maxAmountHelp: 'Toute transaction supérieure à ce montant sera refusée, indépendamment des restrictions liées au commerçant et à la catégorie de dépense.',
+                currencyMismatchTitle: 'Incompatibilité de devise',
+                currencyMismatchPrompt: 'Pour définir un montant maximal, sélectionnez des cartes qui sont réglées dans la même devise.',
+                reviewSelectedCards: 'Examiner les cartes sélectionnées',
+                summaryMoreCount: ({summary, count}: {summary: string; count: number}) => `${summary}, +${count} de plus`,
+                confirmErrorApplyAtLeastOneSpendRuleToOneCard: 'Appliquez au moins une règle de dépense à une carte',
+                confirmErrorCardRequired: 'La carte est un champ obligatoire',
+                confirmErrorApplyAtLeastOneSpendRule: 'Appliquez au moins une règle de dépense',
+                categories: 'Catégories',
+                merchants: 'Commerçants',
+                max: 'Max',
+                categoryOptions: {
+                    [CONST.SPEND_RULES.CATEGORIES.AIRLINES]: 'Compagnies aériennes',
+                    [CONST.SPEND_RULES.CATEGORIES.ALCOHOL_AND_BARS]: 'Alcool et bars',
+                    [CONST.SPEND_RULES.CATEGORIES.AMAZON_AND_BOOKSTORES]: 'Amazon et les librairies',
+                    [CONST.SPEND_RULES.CATEGORIES.AUTOMOTIVE]: 'Automobile',
+                    [CONST.SPEND_RULES.CATEGORIES.CAR_RENTALS]: 'Locations de voiture',
+                    [CONST.SPEND_RULES.CATEGORIES.DINING]: 'Restauration',
+                    [CONST.SPEND_RULES.CATEGORIES.FUEL_AND_GAS]: 'Carburant et gaz',
+                    [CONST.SPEND_RULES.CATEGORIES.GOVERNMENT_AND_NON_PROFITS]: 'Secteur public et organisations à but non lucratif',
+                    [CONST.SPEND_RULES.CATEGORIES.GROCERIES]: 'Courses',
+                    [CONST.SPEND_RULES.CATEGORIES.GYMS_AND_FITNESS]: 'Salles de sport et fitness',
+                    [CONST.SPEND_RULES.CATEGORIES.HEALTHCARE]: 'Santé',
+                    [CONST.SPEND_RULES.CATEGORIES.HOTELS]: 'Hôtels',
+                    [CONST.SPEND_RULES.CATEGORIES.INTERNET_AND_PHONE]: 'Internet et téléphone',
+                    [CONST.SPEND_RULES.CATEGORIES.OFFICE_SUPPLIES]: 'Fournitures de bureau',
+                    [CONST.SPEND_RULES.CATEGORIES.PARKING_AND_TOLLS]: 'Parking et péages',
+                    [CONST.SPEND_RULES.CATEGORIES.PROFESSIONAL_SERVICES]: 'Services professionnels',
+                    [CONST.SPEND_RULES.CATEGORIES.RETAIL]: 'Vente au détail',
+                    [CONST.SPEND_RULES.CATEGORIES.SHIPPING_AND_DELIVERY]: 'Expédition et livraison',
+                    [CONST.SPEND_RULES.CATEGORIES.SOFTWARE]: 'Logiciel',
+                    [CONST.SPEND_RULES.CATEGORIES.TRANSIT_AND_RIDESHARE]: 'Transports en commun et VTC',
+                    [CONST.SPEND_RULES.CATEGORIES.TRAVEL_AGENCIES]: 'Agences de voyages',
+                },
             },
         },
         planTypePage: {
@@ -7526,6 +7592,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             hold: 'En attente',
             unhold: 'Supprimer la mise en attente',
             reject: 'Rejeter',
+            duplicateExpense: ({count}: {count: number}) => `Dupliquer ${count === 1 ? 'la dépense' : 'les dépenses'}`,
             noOptionsAvailable: 'Aucune option n’est disponible pour le groupe de dépenses sélectionné.',
         },
         filtersHeader: 'Filtres',
@@ -7943,6 +8010,11 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             'Rejoignez Expensify.org pour éliminer l’injustice dans le monde entier. La campagne actuelle « Teachers Unite » soutient les enseignants partout en partageant le coût des fournitures scolaires essentielles.',
         iKnowATeacher: 'Je connais un enseignant',
         iAmATeacher: 'Je suis enseignant',
+        personalKarma: {
+            title: 'Activer le Karma personnel',
+            description: 'Faites un don de 1 $ à Expensify.org pour chaque tranche de 500 $ dépensée chaque mois',
+            stopDonationsPrompt: 'Êtes-vous sûr de vouloir arrêter de faire des dons à Expensify.org ?',
+        },
         getInTouch: 'Excellent ! Veuillez partager leurs coordonnées afin que nous puissions les contacter.',
         introSchoolPrincipal: 'Présentation de la direction de votre école',
         schoolPrincipalVerifyExpense:
@@ -8975,5 +9047,6 @@ Voici un *reçu test* pour vous montrer comment ça fonctionne :`,
         positiveButton: 'Oui !',
         negativeButton: 'Pas vraiment',
     },
+    monthPickerPage: {month: 'Mois', selectMonth: 'Veuillez sélectionner un mois'},
 };
 export default translations;

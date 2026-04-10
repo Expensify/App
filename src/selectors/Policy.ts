@@ -1,5 +1,6 @@
 import escapeRegExp from 'lodash/escapeRegExp';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import {hasSynchronizationErrorMessage, isConnectionUnverified} from '@libs/actions/connections';
 import {getDisplayNameForWorkspace} from '@libs/actions/Policy/Policy';
 import {translate} from '@libs/Localize';
 import {areAllGroupPoliciesExpenseChatDisabled, getActiveAdminWorkspaces, getOwnedPaidPolicies, isPaidGroupPolicy, shouldShowPolicy} from '@libs/PolicyUtils';
@@ -133,9 +134,28 @@ const adminPoliciesConnectedToSageIntacctSelector = (policies: OnyxCollection<Po
 const adminPoliciesConnectedToNetSuiteSelector = (policies: OnyxCollection<Policy>) =>
     Object.values(policies ?? {}).filter<Policy>((policy): policy is Policy => !!policy && policy.role === CONST.POLICY.ROLE.ADMIN && !!policy?.connections?.netsuite);
 
+const adminPoliciesConnectedToQBDSelector = (policies: OnyxCollection<Policy>) =>
+    Object.values(policies ?? {}).filter<Policy>((policy): policy is Policy => !!policy && policy.role === CONST.POLICY.ROLE.ADMIN && !!policy?.connections?.quickbooksDesktop);
+
+function getReusablePoliciesConnectedToQBD(policies: OnyxCollection<Policy>, currentPolicyID?: string) {
+    return adminPoliciesConnectedToQBDSelector(policies).filter((policy) => {
+        if (policy.id === currentPolicyID) {
+            return false;
+        }
+
+        return !isConnectionUnverified(policy, CONST.POLICY.CONNECTIONS.NAME.QBD) && !hasSynchronizationErrorMessage(policy, CONST.POLICY.CONNECTIONS.NAME.QBD, false);
+    });
+}
+
+const reusablePoliciesConnectedToQBDSelector = (policies: OnyxCollection<Policy>, currentPolicyID?: string) => getReusablePoliciesConnectedToQBD(policies, currentPolicyID);
+
 const hasPoliciesConnectedToSageIntacctSelector = (policies: OnyxCollection<Policy>) => !!adminPoliciesConnectedToSageIntacctSelector(policies).length;
 
 const hasPoliciesConnectedToNetSuiteSelector = (policies: OnyxCollection<Policy>) => !!adminPoliciesConnectedToNetSuiteSelector(policies).length;
+
+const hasPoliciesConnectedToQBDSelector = (policies: OnyxCollection<Policy>) => !!adminPoliciesConnectedToQBDSelector(policies).length;
+
+const hasReusablePoliciesConnectedToQBDSelector = (policies: OnyxCollection<Policy>, currentPolicyID?: string) => !!getReusablePoliciesConnectedToQBD(policies, currentPolicyID).length;
 
 function lastWorkspaceNumberSelector(policies: OnyxCollection<Policy>, email: string): number | undefined {
     const emailParts = email.split('@');
@@ -177,7 +197,11 @@ export {
     shouldRedirectToExpensifyClassicSelector,
     adminPoliciesConnectedToSageIntacctSelector,
     adminPoliciesConnectedToNetSuiteSelector,
+    adminPoliciesConnectedToQBDSelector,
+    reusablePoliciesConnectedToQBDSelector,
     hasPoliciesConnectedToSageIntacctSelector,
     hasPoliciesConnectedToNetSuiteSelector,
+    hasPoliciesConnectedToQBDSelector,
+    hasReusablePoliciesConnectedToQBDSelector,
     lastWorkspaceNumberSelector,
 };
