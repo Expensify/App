@@ -165,8 +165,11 @@ function shouldShowBulkDuplicateOption({
 
         const report = reportID ? ((searchData?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] as Report | undefined) ?? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]) : undefined;
 
-        if (isPerDiemRequest(transaction) && report?.policyID && defaultExpensePolicyID !== report.policyID) {
-            return false;
+        if (isPerDiemRequest(transaction)) {
+            const policyID = report?.policyID;
+            if (!policyID || defaultExpensePolicyID !== policyID) {
+                return false;
+            }
         }
 
         if (isDistanceRequest(transaction) && reportID) {
