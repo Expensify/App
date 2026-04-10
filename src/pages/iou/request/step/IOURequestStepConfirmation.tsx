@@ -198,10 +198,7 @@ function IOURequestStepConfirmation({
 
     const reportAttributesDerived = useReportAttributes();
     const [recentlyUsedDestinations] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_DESTINATIONS}${policyID}`);
-    const [transactionViolationsEntry] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${currentTransactionID}`);
-    // Wrap in a single-entry collection for action functions that expect OnyxCollection<TransactionViolation[]>
-    const transactionViolations =
-        currentTransactionID && transactionViolationsEntry ? {[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${currentTransactionID}`]: transactionViolationsEntry} : {};
+    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const transactionViolationsRef = useRef(transactionViolations);
     transactionViolationsRef.current = transactionViolations;
     const hasViolations = hasViolationsReportUtils(report?.reportID, transactionViolations, currentUserPersonalDetails.accountID, currentUserPersonalDetails.login ?? '');
