@@ -3,14 +3,14 @@ import {accountIDSelector} from '@selectors/Session';
 import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
 import React from 'react';
 // eslint-disable-next-line no-restricted-imports
-import type {ImageStyle, TextStyle, ViewStyle} from 'react-native';
+import type {ImageStyle, NativeScrollEvent, NativeSyntheticEvent, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {Linking, View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import Animated from 'react-native-reanimated';
 import BookTravelButton from '@components/BookTravelButton';
 import GenericEmptyStateComponent from '@components/EmptyStateComponent/GenericEmptyStateComponent';
 import type {EmptyStateButton, HeaderMedia} from '@components/EmptyStateComponent/types';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
-import ScrollView from '@components/ScrollView';
 import {SearchScopeProvider} from '@components/Search/SearchScopeProvider';
 import type {SearchQueryJSON} from '@components/Search/types';
 import Text from '@components/Text';
@@ -25,6 +25,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import useSearchTypeMenuSections from '@hooks/useSearchTypeMenuSections';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import {startMoneyRequest} from '@libs/actions/IOU';
 import {openOldDotLink} from '@libs/actions/Link';
 import {createNewReport} from '@libs/actions/Report';
@@ -48,6 +49,8 @@ type EmptySearchViewProps = {
     type: SearchDataTypes;
     hasResults: boolean;
     queryJSON?: SearchQueryJSON;
+    onScroll?: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
+    contentContainerStyle?: StyleProp<ViewStyle>;
 };
 
 type EmptySearchViewContentProps = EmptySearchViewProps & {
@@ -70,7 +73,7 @@ type EmptySearchViewItem = {
     children?: React.ReactNode;
 };
 
-function EmptySearchView({similarSearchHash, type, hasResults, queryJSON}: EmptySearchViewProps) {
+function EmptySearchView({similarSearchHash, type, hasResults, queryJSON, onScroll, contentContainerStyle}: EmptySearchViewProps) {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {typeMenuSections} = useSearchTypeMenuSections();
 
@@ -98,6 +101,8 @@ function EmptySearchView({similarSearchHash, type, hasResults, queryJSON}: Empty
                 groupPoliciesWithChatEnabled={groupPoliciesWithChatEnabled}
                 hasSeenTour={hasSeenTour}
                 queryJSON={queryJSON}
+                onScroll={onScroll}
+                contentContainerStyle={contentContainerStyle}
             />
         </SearchScopeProvider>
     );
@@ -120,9 +125,12 @@ function EmptySearchViewContent({
     groupPoliciesWithChatEnabled,
     hasSeenTour,
     queryJSON,
+    onScroll,
+    contentContainerStyle,
 }: EmptySearchViewContentProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const {windowHeight} = useWindowDimensions();
 
     const illustrations = useMemoizedLazyIllustrations(['EmptyStateTravel']);
     const {showConfirmModal} = useConfirmModal();
@@ -433,9 +441,11 @@ function EmptySearchViewContent({
     }
 
     return (
-        <ScrollView
+        <Animated.ScrollView
             showsVerticalScrollIndicator={false}
-            contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}
+            contentContainerStyle={[styles.flexGrow1, styles.flexShrink0, contentContainerStyle, {minHeight: windowHeight}]}
+            scrollEventThrottle={16}
+            onScroll={onScroll}
         >
             <GenericEmptyStateComponent
                 headerMedia={content.headerMedia}
@@ -449,7 +459,7 @@ function EmptySearchViewContent({
             >
                 {content.children}
             </GenericEmptyStateComponent>
-        </ScrollView>
+        </Animated.ScrollView>
     );
 }
 
