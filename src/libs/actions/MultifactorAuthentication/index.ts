@@ -71,14 +71,14 @@ function cleanUpLocallyProcessed3DSTransactionReviews(entriesToDelete: string[])
  * Please consult before using this pattern.
  */
 
-async function registerAuthenticationKey({keyInfo, authenticationMethod}: MultifactorAuthenticationScenarioParameters['REGISTER-BIOMETRICS']) {
+async function registerAuthenticationKey({keyInfo}: MultifactorAuthenticationScenarioParameters['REGISTER-BIOMETRICS']) {
     try {
-        const response = await makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.REGISTER_AUTHENTICATION_KEY, {keyInfo: JSON.stringify(keyInfo), authenticationMethod});
+        const response = await makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.REGISTER_AUTHENTICATION_KEY, {keyInfo: JSON.stringify(keyInfo)});
 
         const {jsonCode, message} = response ?? {};
         return parseHttpRequest(jsonCode, CONST.MULTIFACTOR_AUTHENTICATION.API_RESPONSE_MAP.REGISTER_AUTHENTICATION_KEY, message);
     } catch (error) {
-        Log.hmmm('[MultifactorAuthentication] Failed to register an authentication key', {error});
+        Log.hmmm('[MFA] Failed to register an authentication key', {error});
         return parseHttpRequest(undefined, CONST.MULTIFACTOR_AUTHENTICATION.API_RESPONSE_MAP.REGISTER_AUTHENTICATION_KEY, undefined);
     }
 }
@@ -138,7 +138,7 @@ async function requestRegistrationChallenge(validateCode: string): Promise<Regis
             publicKeys,
         };
     } catch (error) {
-        Log.hmmm('[MultifactorAuthentication] Failed to request a registration challenge', {error});
+        Log.hmmm('[MFA] Failed to request a registration challenge', {error});
         return {
             ...parseHttpRequest(undefined, CONST.MULTIFACTOR_AUTHENTICATION.API_RESPONSE_MAP.REQUEST_AUTHENTICATION_CHALLENGE, undefined),
             challenge: undefined,
@@ -165,7 +165,7 @@ async function requestAuthorizationChallenge(): Promise<AuthenticationChallengeR
             publicKeys,
         };
     } catch (error) {
-        Log.hmmm('[MultifactorAuthentication] Failed to request an authorization challenge', {error});
+        Log.hmmm('[MFA] Failed to request an authorization challenge', {error});
         return {
             ...parseHttpRequest(undefined, CONST.MULTIFACTOR_AUTHENTICATION.API_RESPONSE_MAP.REQUEST_AUTHENTICATION_CHALLENGE, undefined),
             challenge: undefined,
@@ -186,7 +186,7 @@ async function troubleshootMultifactorAuthentication({signedChallenge, authentic
 
         return parseHttpRequest(jsonCode, CONST.MULTIFACTOR_AUTHENTICATION.API_RESPONSE_MAP.TROUBLESHOOT_MULTIFACTOR_AUTHENTICATION, message);
     } catch (error) {
-        Log.hmmm('[MultifactorAuthentication] Failed to troubleshoot multifactor authentication', {error});
+        Log.hmmm('[MFA] Failed to troubleshoot multifactor authentication', {error});
         return parseHttpRequest(undefined, CONST.MULTIFACTOR_AUTHENTICATION.API_RESPONSE_MAP.TROUBLESHOOT_MULTIFACTOR_AUTHENTICATION, undefined);
     }
 }
@@ -198,7 +198,7 @@ async function revokeMultifactorAuthenticationCredentials(params: RevokeMultifac
 
         return parseHttpRequest(jsonCode, CONST.MULTIFACTOR_AUTHENTICATION.API_RESPONSE_MAP.REVOKE_MULTIFACTOR_AUTHENTICATION_SETUP, message);
     } catch (error) {
-        Log.hmmm('[MultifactorAuthentication] Failed to revoke multifactor authentication credentials', {error});
+        Log.hmmm('[MFA] Failed to revoke multifactor authentication credentials', {error});
         return parseHttpRequest(undefined, CONST.MULTIFACTOR_AUTHENTICATION.API_RESPONSE_MAP.REVOKE_MULTIFACTOR_AUTHENTICATION_SETUP, undefined);
     }
 }
@@ -236,7 +236,7 @@ async function setPersonalDetailsAndShipExpensifyCardsWithPIN(params: Multifacto
         const {jsonCode, message} = response ?? {};
         return parseHttpRequest(jsonCode, CONST.MULTIFACTOR_AUTHENTICATION.API_RESPONSE_MAP.SET_PERSONAL_DETAILS_AND_SHIP_EXPENSIFY_CARDS_WITH_PIN, message);
     } catch (error) {
-        Log.hmmm('[MultifactorAuthentication] Failed to set personal details and ship card with PIN', {error});
+        Log.hmmm('[MFA] Failed to set personal details and ship card with PIN', {error});
         return parseHttpRequest(undefined, CONST.MULTIFACTOR_AUTHENTICATION.API_RESPONSE_MAP.SET_PERSONAL_DETAILS_AND_SHIP_EXPENSIFY_CARDS_WITH_PIN, undefined);
     }
 }
@@ -301,7 +301,7 @@ async function authorizeTransaction({transactionID, signedChallenge, authenticat
 
         return parseHttpRequest(jsonCode, CONST.MULTIFACTOR_AUTHENTICATION.API_RESPONSE_MAP.APPROVE_TRANSACTION, message);
     } catch (error) {
-        Log.hmmm('[MultifactorAuthentication] Failed to authorize transaction', {error});
+        Log.hmmm('[MFA] Failed to authorize transaction', {error});
         return parseHttpRequest(undefined, CONST.MULTIFACTOR_AUTHENTICATION.API_RESPONSE_MAP.APPROVE_TRANSACTION, undefined);
     }
 }
@@ -328,7 +328,7 @@ async function denyTransaction({transactionID}: DenyTransactionParams) {
 
         return parseHttpRequest(jsonCode, CONST.MULTIFACTOR_AUTHENTICATION.API_RESPONSE_MAP.DENY_TRANSACTION, message);
     } catch (error) {
-        Log.hmmm('[MultifactorAuthentication] Failed to deny transaction', {error});
+        Log.hmmm('[MFA] Failed to deny transaction', {error});
         return parseHttpRequest(undefined, CONST.MULTIFACTOR_AUTHENTICATION.API_RESPONSE_MAP.DENY_TRANSACTION, undefined);
     }
 }
@@ -352,8 +352,12 @@ async function fireAndForgetDenyTransaction({transactionID}: DenyTransactionPara
     );
 }
 
-function markHasAcceptedSoftPrompt() {
-    Onyx.merge(ONYXKEYS.DEVICE_BIOMETRICS, {
+function getDeviceBiometricsOnyxKey(accountID: number): `${typeof ONYXKEYS.COLLECTION.DEVICE_BIOMETRICS}${string}` {
+    return `${ONYXKEYS.COLLECTION.DEVICE_BIOMETRICS}${accountID}`;
+}
+
+function markHasAcceptedSoftPrompt(accountID: number) {
+    Onyx.merge(getDeviceBiometricsOnyxKey(accountID), {
         hasAcceptedSoftPrompt: true,
     });
 }
@@ -370,6 +374,7 @@ export {
     requestAuthorizationChallenge,
     troubleshootMultifactorAuthentication,
     revokeMultifactorAuthenticationCredentials,
+    getDeviceBiometricsOnyxKey,
     markHasAcceptedSoftPrompt,
     clearLocalMFAPublicKeyList,
     setPersonalDetailsAndShipExpensifyCardsWithPIN,

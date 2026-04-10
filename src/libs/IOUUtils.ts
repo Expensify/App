@@ -11,9 +11,9 @@ import {getCurrencyUnit} from './CurrencyUtils';
 import Navigation from './Navigation/Navigation';
 import {isPaidGroupPolicy} from './PolicyUtils';
 import {getOriginalMessage, isMoneyRequestAction} from './ReportActionsUtils';
-import {getReportTransactions, isSelfDM} from './ReportUtils';
+import {isSelfDM} from './ReportUtils';
 import {endSpan, getSpan, startSpan} from './telemetry/activeSpans';
-import {getCurrency, getTagArrayFromName} from './TransactionUtils';
+import {getTagArrayFromName} from './TransactionUtils';
 
 function navigateToStartMoneyRequestStep(requestType: IOURequestType, iouType: IOUType, transactionID: string, reportID: string, iouAction?: IOUAction, backToReport?: string): void {
     if (iouAction === CONST.IOU.ACTION.CATEGORIZE || iouAction === CONST.IOU.ACTION.SUBMIT || iouAction === CONST.IOU.ACTION.SHARE) {
@@ -252,16 +252,6 @@ function updateIOUOwnerAndTotal<TReport extends OnyxInputOrEntry<Report>>(
 }
 
 /**
- * Returns whether or not an IOU report contains expenses in a different currency
- * that are either created or cancelled offline, and thus haven't been converted to the report's currency yet
- */
-function isIOUReportPendingCurrencyConversion(iouReport: Report): boolean {
-    const reportTransactions = getReportTransactions(iouReport.reportID);
-    const pendingRequestsInDifferentCurrency = reportTransactions.filter((transaction) => transaction.pendingAction && getCurrency(transaction) !== iouReport.currency);
-    return pendingRequestsInDifferentCurrency.length > 0;
-}
-
-/**
  * Checks if the iou type is one of request, send, invoice or split.
  */
 function isValidMoneyRequestType(iouType: string): boolean {
@@ -465,7 +455,6 @@ export {
     calculateSplitPercentagesFromAmounts,
     getExistingTransactionID,
     insertTagIntoTransactionTagsString,
-    isIOUReportPendingCurrencyConversion,
     isMovingTransactionFromTrackExpense,
     shouldUseTransactionDraft,
     isValidMoneyRequestType,

@@ -115,7 +115,7 @@ function ActionCell({taskItem, isLargeScreenWidth}: TaskCellProps) {
 }
 
 function TaskListItemRow({item, containerStyle, showTooltip}: TaskListItemRowProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['ArrowRightLong'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['ArrowRightLong']);
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const theme = useTheme();
@@ -203,7 +203,7 @@ function TaskListItemRow({item, containerStyle, showTooltip}: TaskListItemRowPro
     return (
         <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, containerStyle]}>
             <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap3]}>
-                <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.DATE, item.shouldShowYear)]}>
+                <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.DATE, {isDateColumnWide: item.shouldShowYear})]}>
                     <DateCell
                         date={item.created}
                         showTooltip={showTooltip}

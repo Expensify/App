@@ -39,7 +39,7 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type {Attendee, Participant} from '@src/types/onyx/IOU';
 import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 import type {WaypointCollection} from '@src/types/onyx/Transaction';
-import type {CreateDistanceRequestInformation, CreateTrackExpenseParams, RequestMoneyInformation} from '.';
+import type {CreateDistanceRequestInformation, RequestMoneyInformation} from '.';
 import {
     createDistanceRequest,
     getAllReportActionsFromIOU,
@@ -50,11 +50,11 @@ import {
     getCurrentUserEmail,
     getMoneyRequestParticipantsFromReport,
     getUserAccountID,
-    requestMoney,
-    trackExpense,
 } from '.';
 import type {PerDiemExpenseInformation} from './PerDiem';
 import {submitPerDiemExpense} from './PerDiem';
+import type {CreateTrackExpenseParams} from './TrackExpense';
+import {requestMoney, trackExpense} from './TrackExpense';
 
 function getIOUActionForTransactions(transactionIDList: Array<string | undefined>, iouReportID: string | undefined): Array<OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>> {
     const allReportActions = getAllReportActionsFromIOU();
@@ -79,6 +79,7 @@ function mergeDuplicates({transactionThreadReportID: optimisticTransactionThread
     const allTransactionViolations = getAllTransactionViolations();
     const allReports = getAllReports();
     const currentUserEmail = getCurrentUserEmail();
+    const currentUserAccountID = getUserAccountID();
 
     const originalSelectedTransaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${params.transactionID}`];
 
@@ -221,6 +222,7 @@ function mergeDuplicates({transactionThreadReportID: optimisticTransactionThread
             reportAction: iouAction,
             updatedReportPreviewAction,
             shouldAddUpdatedReportPreviewActionToOnyxData: Number(index) === iouActionsToDelete.length - 1,
+            currentUserAccountID,
         });
         cleanUpTransactionThreadReportsOptimisticData.push(...cleanUpTransactionThreadReportOnyxDataForIouAction.optimisticData);
         cleanUpTransactionThreadReportsSuccessData.push(...cleanUpTransactionThreadReportOnyxDataForIouAction.successData);
@@ -521,8 +523,8 @@ function buildDuplicateTransactionParams(transaction: OnyxTypes.Transaction, tra
     const transactionParams = {
         ...transactionWithoutLinkedAction,
         ...transactionDetails,
-        amount: Math.abs(transactionDetails?.amount ?? 0),
-        taxAmount: Math.abs(transactionDetails?.taxAmount ?? 0),
+        amount: transactionDetails?.amount ?? 0,
+        taxAmount: transactionDetails?.taxAmount ?? 0,
         convertedAmount: undefined,
         originalAmount: undefined,
         actionableWhisperReportActionID: undefined,
@@ -861,12 +863,17 @@ function duplicateReport({
 
     let currentIOUReport = newReport as OnyxEntry<OnyxTypes.Report>;
 
-    for (const transaction of eligibleTransactions) {
+    for (let i = 0; i < eligibleTransactions.length; i++) {
+        const transaction = eligibleTransactions.at(i);
+        if (!transaction) {
+            continue;
+        }
         const transactionDetails = getTransactionDetails(transaction);
         if (!transactionDetails) {
             continue;
         }
 
+        const isLastExpense = i === eligibleTransactions.length - 1;
         const {transactionParams, waypoints} = buildDuplicateTransactionParams(transaction, transactionDetails);
 
         const params: RequestMoneyInformation = {
@@ -896,6 +903,7 @@ function duplicateReport({
             isSelfTourViewed,
             betas,
             personalDetails,
+            shouldDeferAutoSubmit: !isLastExpense,
         };
 
         const result = createExpenseByType({
