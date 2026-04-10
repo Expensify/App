@@ -146,10 +146,6 @@ const DYNAMIC_ROUTES = {
         path: 'date-select',
         entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_EXPORT],
     },
-    POLICY_ACCOUNTING_SAGE_INTACCT_EXPORT: {
-        path: 'sage-intacct/export',
-        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.ROOT],
-    },
     POLICY_ACCOUNTING_SAGE_INTACCT_PREFERRED_EXPORTER: {
         path: 'sage-preferred-exporter',
         entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_EXPORT],
