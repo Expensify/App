@@ -22,7 +22,7 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 
-function SelectCountryStep() {
+function SelectCountryStep({disableAutoFocus}: {disableAutoFocus?: boolean}) {
     const {translate, localeCompare} = useLocalize();
     const styles = useThemeStyles();
     const {currencyList} = useCurrencyListState();
@@ -112,6 +112,7 @@ function SelectCountryStep() {
                     value: searchValue,
                     label: translate('common.search'),
                     onChangeText: setSearchValue,
+                    disableAutoFocus,
                 }}
                 confirmButtonOptions={{
                     onConfirm: submit,

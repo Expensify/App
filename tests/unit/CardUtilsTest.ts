@@ -1421,6 +1421,18 @@ describe('CardUtils', () => {
             const exists = doesCardFeedExist(feed, undefined);
             expect(exists).toBe(false);
         });
+
+        it('Should return true for Expensify Card feed even though it is excluded from company feeds', () => {
+            const feed = CONST.EXPENSIFY_CARD.BANK as CompanyCardFeed;
+            const exists = doesCardFeedExist(feed, cardFeedsCollection);
+            expect(exists).toBe(true);
+        });
+
+        it('Should return true for Expensify Card feed even with empty cardFeeds', () => {
+            const feed = CONST.EXPENSIFY_CARD.BANK as CompanyCardFeed;
+            const exists = doesCardFeedExist(feed, {});
+            expect(exists).toBe(true);
+        });
     });
 
     describe('getCustomFeedNameFromFeeds', () => {
