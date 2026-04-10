@@ -74,6 +74,7 @@ function KYCWall({
     const currentUserDetails = useCurrentUserPersonalDetails();
     const currentUserAccountID = currentUserDetails.accountID;
     const currentUserEmail = currentUserDetails.email ?? '';
+    const localCurrency = currentUserDetails.localCurrencyCode ?? CONST.CURRENCY.USD;
     const reportPreviewAction = useParentReportAction(iouReport);
     const personalDetails = usePersonalDetails();
     const employeeEmail = personalDetails?.[iouReport?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID]?.login ?? '';
@@ -179,6 +180,7 @@ function KYCWall({
                             currentUserEmail,
                             employeeEmail,
                             conciergeReportID,
+                            localCurrency,
                             lastWorkspaceNumber,
                             translate,
                         ) ?? {};
@@ -237,6 +239,7 @@ function KYCWall({
             betas,
             conciergeReportID,
             allReports,
+            localCurrency,
         ],
     );
 
