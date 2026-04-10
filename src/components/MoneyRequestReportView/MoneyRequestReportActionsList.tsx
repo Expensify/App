@@ -1064,7 +1064,6 @@ function MoneyRequestReportActionsList({reportID: reportIDProp, onLayout}: Money
                     hasNonHeldExpenses={!hasOnlyHeldExpenses}
                     onConfirm={handleHoldMenuConfirm}
                     transactionCount={transactions.length}
-                    transactions={transactionsWithoutPendingDelete}
                 />
             )}
         </>

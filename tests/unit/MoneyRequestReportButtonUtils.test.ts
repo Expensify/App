@@ -1,6 +1,5 @@
 import Onyx from 'react-native-onyx';
 import {getTotalAmountForIOUReportPreviewButton} from '@libs/MoneyRequestReportUtils';
-import {hasOnlyNonReimbursableTransactions} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {policy420A as mockPolicy} from '../../__mocks__/reportData/policies';
@@ -18,7 +17,6 @@ jest.mock('@libs/ReportUtils', () => ({
         reimbursableSpend: 50,
         totalDisplaySpend: 100,
     }),
-    hasOnlyNonReimbursableTransactions: jest.fn().mockReturnValue(false),
     hasHeldExpenses: jest.fn().mockReturnValue(false),
     parseReportRouteParams: jest.fn().mockReturnValue({
         reportID: mockedReportID,

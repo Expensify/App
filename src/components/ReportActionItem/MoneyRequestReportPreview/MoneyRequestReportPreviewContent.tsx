@@ -744,7 +744,6 @@ function MoneyRequestReportPreviewContent({
                                 chatReport={chatReport}
                                 moneyRequestReport={iouReport}
                                 transactionCount={numberOfRequests}
-                                transactions={transactions}
                                 hasNonHeldExpenses={!hasOnlyHeldExpenses}
                                 onConfirm={() => {
                                     if (requestType === CONST.IOU.REPORT_ACTION_TYPE.APPROVE) {
