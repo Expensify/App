@@ -7839,7 +7839,7 @@ const translations = {
         scheduleOOOTitle: 'Schedule Out of Office',
         date: 'Date',
         time: 'Time (use 24-hour format)',
-        durationAmount: 'Amount',
+        durationAmount: 'Duration',
         durationUnit: 'Unit',
         reason: 'Reason',
         workingPercentage: 'Working percentage',

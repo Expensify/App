@@ -7880,7 +7880,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         scheduleOOOTitle: 'Planifier une absence du bureau',
         date: 'Date',
         time: 'Heure (format 24 heures)',
-        durationAmount: 'Montant',
+        durationAmount: 'Durée',
         durationUnit: 'Unité',
         reason: 'Raison',
         workingPercentage: 'Pourcentage de travail',

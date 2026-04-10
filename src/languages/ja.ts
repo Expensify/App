@@ -7749,7 +7749,7 @@ ${reportName}
         scheduleOOOTitle: '不在予定を設定',
         date: '日付',
         time: '時間（24時間表記）',
-        durationAmount: '金額',
+        durationAmount: '期間',
         durationUnit: '単位',
         reason: '理由',
         workingPercentage: '稼働率',

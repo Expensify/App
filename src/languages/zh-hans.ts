@@ -7608,7 +7608,7 @@ ${reportName}
         scheduleOOOTitle: '安排外出办公',
         date: '日期',
         time: '时间（请使用24小时制）',
-        durationAmount: '金额',
+        durationAmount: '时长',
         durationUnit: '单位',
         reason: '原因',
         workingPercentage: '工作百分比',
