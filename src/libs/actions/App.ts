@@ -560,7 +560,7 @@ type CreateWorkspaceWithPolicyDraftParams = {
     makeMeAdmin?: boolean;
     backTo?: string;
     policyID?: string;
-    currency?: string;
+    currency: string;
     file?: File;
     routeToNavigateAfterCreate?: Route;
     lastUsedPaymentMethod?: OnyxTypes.LastPaymentMethodType;
@@ -600,7 +600,7 @@ function createWorkspaceWithPolicyDraftAndNavigateToIt(params: CreateWorkspaceWi
     } = params;
 
     const policyIDWithDefault = policyID || generatePolicyID();
-    createDraftInitialWorkspace(introSelected, policyName, policyIDWithDefault, makeMeAdmin, currency, file, type);
+    createDraftInitialWorkspace(introSelected, policyName, currentUserAccountIDParam, currentUserEmailParam, policyIDWithDefault, makeMeAdmin, currency, file, type);
     Navigation.isNavigationReady().then(() => {
         if (transitionFromOldDot) {
             // We must call goBack() to remove the /transition route from history
@@ -649,7 +649,7 @@ function createWorkspaceWithPolicyDraft(params: CreateWorkspaceWithPolicyDraftPa
         hasActiveAdminPolicies,
     } = params;
 
-    createDraftInitialWorkspace(introSelected, policyName, policyID, makeMeAdmin, currency, file);
+    createDraftInitialWorkspace(introSelected, policyName, currentUserAccountIDParam, currentUserEmailParam, policyID, makeMeAdmin, currency, file);
     savePolicyDraftByNewWorkspace({
         policyID,
         policyName,
@@ -752,6 +752,7 @@ function savePolicyDraftByNewWorkspace({
 function setUpPoliciesAndNavigate(
     session: OnyxEntry<OnyxTypes.Session>,
     introSelected: OnyxEntry<OnyxTypes.IntroSelected>,
+    currency: string,
     activePolicyID: string | undefined,
     isSelfTourViewed: boolean | undefined,
     betas: OnyxEntry<OnyxTypes.Beta[]>,
@@ -781,6 +782,7 @@ function setUpPoliciesAndNavigate(
     if (shouldCreateFreePolicy) {
         createWorkspaceWithPolicyDraftAndNavigateToIt({
             introSelected,
+            currency,
             policyOwnerEmail,
             policyName: policyName || newGenerateDefaultWorkspaceName(policyOwnerEmail, lastWorkspaceNumber, translate),
             transitionFromOldDot: true,
