@@ -188,7 +188,23 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
             shouldEnableMinHeight={canUseTouchScreen()}
             testID="ShareDetailsPage"
         >
-            <View style={[styles.flex1, styles.flexColumn, styles.h100, styles.appBG]}>
+            <PressableWithoutFeedback
+                onPress={() => {
+                    KeyboardUtils.dismiss();
+                }}
+                accessible={false}
+                sentryLabel={CONST.SENTRY_LABEL.SHARE_DETAIL.DISMISS_KEYBOARD_BUTTON}
+            >
+                <HeaderWithBackButton
+                    title={translate('share.shareToExpensify')}
+                    shouldShowBackButton
+                />
+            </PressableWithoutFeedback>
+
+            <ScrollView
+                style={[styles.flex1, styles.appBG]}
+                contentContainerStyle={styles.flexGrow1}
+            >
                 <PressableWithoutFeedback
                     onPress={() => {
                         KeyboardUtils.dismiss();
@@ -196,11 +212,6 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
                     accessible={false}
                     sentryLabel={CONST.SENTRY_LABEL.SHARE_DETAIL.DISMISS_KEYBOARD_BUTTON}
                 >
-                    <HeaderWithBackButton
-                        title={translate('share.shareToExpensify')}
-                        shouldShowBackButton
-                    />
-
                     {!!report && (
                         <View>
                             <View style={[styles.optionsListSectionHeader, styles.justifyContentCenter]}>
@@ -221,46 +232,44 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
                     )}
                 </PressableWithoutFeedback>
                 <View style={[styles.ph5, styles.flex1, styles.flexColumn, styles.overflowHidden]}>
-                    <ScrollView contentContainerStyle={styles.flexGrow1}>
-                        <View style={styles.pv3}>
-                            <ScrollView scrollEnabled={false}>
-                                <TextInput
-                                    autoFocus={false}
-                                    value={message}
-                                    scrollEnabled
-                                    type="markdown"
-                                    autoGrowHeight
-                                    maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}
-                                    onChangeText={setMessage}
-                                    accessibilityLabel={translate('share.messageInputLabel')}
-                                    label={translate('share.messageInputLabel')}
+                    <View style={styles.pv3}>
+                        <ScrollView scrollEnabled={false}>
+                            <TextInput
+                                autoFocus={false}
+                                value={message}
+                                scrollEnabled
+                                type="markdown"
+                                autoGrowHeight
+                                maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}
+                                onChangeText={setMessage}
+                                accessibilityLabel={translate('share.messageInputLabel')}
+                                label={translate('share.messageInputLabel')}
+                            />
+                        </ScrollView>
+                    </View>
+                    <PressableWithoutFeedback
+                        onPress={() => {
+                            KeyboardUtils.dismiss();
+                        }}
+                        accessible={false}
+                        sentryLabel={CONST.SENTRY_LABEL.SHARE_DETAIL.DISMISS_KEYBOARD_BUTTON}
+                    >
+                        {shouldShowAttachment && (
+                            <>
+                                <View style={[styles.pt6, styles.pb2]}>
+                                    <Text style={styles.textLabelSupporting}>{translate('common.attachment')}</Text>
+                                </View>
+                                <AttachmentPreview
+                                    source={fileSource ?? ''}
+                                    aspectRatio={currentAttachment?.aspectRatio}
+                                    onPress={showAttachmentModalScreen}
+                                    onLoadError={() => {
+                                        showErrorAlert(translate('attachmentPicker.attachmentError'), translate('attachmentPicker.errorWhileSelectingCorruptedAttachment'));
+                                    }}
                                 />
-                            </ScrollView>
-                        </View>
-                        <PressableWithoutFeedback
-                            onPress={() => {
-                                KeyboardUtils.dismiss();
-                            }}
-                            accessible={false}
-                            sentryLabel={CONST.SENTRY_LABEL.SHARE_DETAIL.DISMISS_KEYBOARD_BUTTON}
-                        >
-                            {shouldShowAttachment && (
-                                <>
-                                    <View style={[styles.pt6, styles.pb2]}>
-                                        <Text style={styles.textLabelSupporting}>{translate('common.attachment')}</Text>
-                                    </View>
-                                    <AttachmentPreview
-                                        source={fileSource ?? ''}
-                                        aspectRatio={currentAttachment?.aspectRatio}
-                                        onPress={showAttachmentModalScreen}
-                                        onLoadError={() => {
-                                            showErrorAlert(translate('attachmentPicker.attachmentError'), translate('attachmentPicker.errorWhileSelectingCorruptedAttachment'));
-                                        }}
-                                    />
-                                </>
-                            )}
-                        </PressableWithoutFeedback>
-                    </ScrollView>
+                            </>
+                        )}
+                    </PressableWithoutFeedback>
                 </View>
                 <FixedFooter style={[styles.pt4]}>
                     <Button
@@ -271,7 +280,7 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
                         onPress={handleShare}
                     />
                 </FixedFooter>
-            </View>
+            </ScrollView>
         </ScreenWrapper>
     );
 }
