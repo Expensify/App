@@ -85,16 +85,17 @@ function useOnboardingFlowRouter() {
             // Skip onboarding for migrated users or users who were invited/have workspace policies
             const isMigratedUser = hasBeenAddedToNudgeMigration ?? false;
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-            const isInvitedOrGroupMember = (!CONFIG.IS_HYBRID_APP && (hasNonPersonalPolicy || wasInvitedToNewDot)) ?? false;
+            const isInvitedOrGroupMember = !!(hasNonPersonalPolicy || wasInvitedToNewDot);
             if (isMigratedUser || isInvitedOrGroupMember) {
                 return;
             }
 
-            // For non-HybridApp (web), explicitly start the onboarding flow when onboarding is not completed.
+            // Explicitly start the onboarding flow when onboarding is not completed.
             // We use startOnboardingFlow (which calls resetRoot) instead of Navigation.navigate because
             // navigate goes through the router where OnboardingGuard would block the navigation.
             // waitForProtectedRoutes ensures navigation is ready, which is critical during fresh login.
-            if (!CONFIG.IS_HYBRID_APP && isOnboardingCompleted === false) {
+            // Skip when HybridApp explanation modal is active (OldDot-transitioning users).
+            if (isOnboardingCompleted === false && !(CONFIG.IS_HYBRID_APP && isHybridAppOnboardingCompleted === false)) {
                 Navigation.waitForProtectedRoutes().then(() => {
                     startOnboardingFlow({
                         onboardingValuesParam: onboardingValues ?? undefined,
