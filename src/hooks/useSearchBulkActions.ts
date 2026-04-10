@@ -41,7 +41,6 @@ import {
     getIntegrationIcon,
     getPolicyExpenseChat,
     getReportOrDraftReport,
-    hasOnlyNonReimbursableTransactions,
     isArchivedReport,
     isBusinessInvoiceRoom,
     isCurrentUserSubmitter,
@@ -681,12 +680,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     (transaction): transaction is NonNullable<typeof transaction> => !!transaction && transaction.reportID === itemReportID,
                 );
 
-                if (
-                    isExpenseReport &&
-                    !isInvoiceReport(itemReportID) &&
-                    hasOnlyNonReimbursableTransactions(itemReportID, reportTransactions.length > 0 ? reportTransactions : undefined) &&
-                    lastPolicyPaymentMethod !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE
-                ) {
+                if (isExpenseReport && !isInvoiceReport(itemReportID) && lastPolicyPaymentMethod !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
                     setIsNonReimbursablePaymentErrorModalVisible(true);
                     return;
                 }

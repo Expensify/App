@@ -28,7 +28,6 @@ import {
     getNonHeldAndFullAmount,
     hasHeldExpenses as hasHeldExpensesReportUtils,
     hasOnlyHeldExpenses as hasOnlyHeldExpensesReportUtils,
-    hasOnlyNonReimbursableTransactions,
     hasUpdatedTotal,
     hasViolations as hasViolationsReportUtils,
     isAllowedToApproveExpenseReport,
@@ -159,10 +158,9 @@ function useSelectionModeReportActions({
         canIOUBePaidAction(report, chatReport, policy, bankAccountList, transactions, onlyShowPayElsewhere, undefined, invoiceReceiverPolicy);
 
     const canIOUBePaid = getCanIOUBePaid();
-    const reportHasOnlyNonReimbursableTransactions = hasOnlyNonReimbursableTransactions(report?.reportID, transactions);
-    const onlyShowPayElsewhere = reportHasOnlyNonReimbursableTransactions ? false : !canIOUBePaid && getCanIOUBePaid(true);
+    const onlyShowPayElsewhere = !canIOUBePaid && getCanIOUBePaid(true);
 
-    const shouldShowPayButton = canIOUBePaid || onlyShowPayElsewhere || (reportHasOnlyNonReimbursableTransactions && (report?.total ?? 0) !== 0);
+    const shouldShowPayButton = canIOUBePaid || onlyShowPayElsewhere;
 
     const {nonHeldAmount, fullAmount, hasValidNonHeldAmount} = getNonHeldAndFullAmount(report, shouldShowPayButton);
 
