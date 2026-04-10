@@ -7862,7 +7862,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         reason: 'Grund',
         workingPercentage: 'Arbeitsprozentsatz',
         dateRequired: 'Datum ist erforderlich.',
-        invalidTimeFormat: 'Bitte geben Sie eine gültige Uhrzeit ein (z. B. 12:30).',
+        invalidTimeFormat: 'Bitte geben Sie eine gültige Uhrzeit im 24‑Stunden-Format ein (z. B. 14:30).',
         enterANumber: 'Bitte geben Sie eine Zahl ein.',
         hour: 'Stunden',
         day: 'Tage',
