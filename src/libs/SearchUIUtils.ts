@@ -1782,29 +1782,8 @@ function getTransactionsSections({
             const actions = reportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionItem.reportID}`] ?? [];
             const reportMetadata = allReportMetadata?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${transactionItem.reportID}`] ?? {};
             const allActions = getActions(data, allViolations, key, currentSearch, currentUserEmail, currentAccountID, bankAccountList, reportMetadata, actions);
-            // Show amount in report currency, original amount in transaction currency.
-            // Search API provides groupAmount/groupCurrency for the report-currency value.
-            // Override modifiedAmount/modifiedCurrency too since display functions read those first.
-            const reportCurrencyValue = report?.currency ?? transactionItem.groupCurrency ?? '';
-            const currentDisplayCurrency = (transactionItem.modifiedCurrency ? transactionItem.modifiedCurrency : transactionItem.currency) ?? '';
-            const groupAmount = transactionItem.groupAmount ?? 0;
-            const shouldSwapAmounts = groupAmount !== 0 && currentDisplayCurrency !== reportCurrencyValue;
-            // Use the current display amount/currency (modifiedAmount/modifiedCurrency take priority)
-            const currentAmount = Number(transactionItem.modifiedAmount) ? Number(transactionItem.modifiedAmount) : transactionItem.amount;
-            const resolvedAmountFields = shouldSwapAmounts
-                ? {
-                      originalAmount: currentAmount,
-                      originalCurrency: currentDisplayCurrency,
-                      amount: groupAmount,
-                      currency: reportCurrencyValue,
-                      modifiedAmount: groupAmount,
-                      modifiedCurrency: reportCurrencyValue,
-                  }
-                : {};
-
             const transactionSection: TransactionListItemType = {
                 ...transactionItem,
-                ...resolvedAmountFields,
                 keyForList: transactionItem.transactionID,
                 action: allActions.at(0) ?? CONST.SEARCH.ACTION_TYPES.VIEW,
                 allActions,
@@ -4757,14 +4736,12 @@ function getColumnsToShow({
                 columns[CONST.SEARCH.TABLE_COLUMNS.TAX_RATE] = true;
             }
 
-            if (transaction.taxAmount != null) {
+            if (transaction.taxAmount) {
                 columns[CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT] = true;
             }
 
             const hasExchangeRate = getExchangeRate(transaction, reportCurrency) !== '';
-            // Zero original amount is valid if the expense was created as 0 and modified (modifiedAmount is set).
-            const hasOriginalAmount = transaction.originalAmount != null || (transaction.amount === 0 && transaction.modifiedAmount != null && transaction.modifiedAmount !== '');
-            if (hasExchangeRate || hasOriginalAmount) {
+            if (hasExchangeRate || transaction.originalAmount) {
                 columns[CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT] = true;
                 columns[CONST.SEARCH.TABLE_COLUMNS.EXCHANGE_RATE] = true;
             }

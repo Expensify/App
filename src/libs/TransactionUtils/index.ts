@@ -1307,15 +1307,22 @@ function getExchangeRate(transaction: TransactionWithOptionalSearchFields, repor
     const fromCurrency = getCurrency(transaction);
     const toCurrency = transaction.groupCurrency ?? reportCurrency ?? fromCurrency;
 
-    if (transaction.groupExchangeRate && Number(transaction.groupExchangeRate) !== 1) {
+    // groupExchangeRate: search page rate (from→groupCurrency)
+    const groupRate = Number(transaction.groupExchangeRate);
+    if (groupRate && groupRate !== 1) {
         return `${transaction.groupExchangeRate} ${fromCurrency}/${toCurrency}`;
     }
 
-    if (!transaction.currencyConversionRate || Number(transaction.currencyConversionRate) === 1) {
-        return '';
+    // currencyConversionRate: report layout rate (from→policy outputCurrency)
+    // Only use when fromCurrency differs from toCurrency to avoid showing stale
+    // Onyx-merged rates when both currencies are the same (e.g. "USD/USD").
+    const conversionRate = Number(transaction.currencyConversionRate);
+    const conversionToCurrency = reportCurrency ?? (transaction.currency !== fromCurrency ? transaction.currency : toCurrency);
+    if (conversionRate && conversionRate !== 1 && fromCurrency !== conversionToCurrency) {
+        return `${transaction.currencyConversionRate} ${fromCurrency}/${conversionToCurrency}`;
     }
 
-    return `${transaction.currencyConversionRate} ${fromCurrency}/${toCurrency}`;
+    return '';
 }
 
 /**

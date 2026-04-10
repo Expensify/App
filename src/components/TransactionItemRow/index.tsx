@@ -28,7 +28,7 @@ import {isCategoryMissing} from '@libs/CategoryUtils';
 import getBase62ReportID from '@libs/getBase62ReportID';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
 import {getReportName} from '@libs/ReportNameUtils';
-import {isExpenseReport, isIOUReport, isSettled} from '@libs/ReportUtils';
+import {getTransactionDetails, isExpenseReport, isIOUReport, isSettled} from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
 import {
     getAmount,
@@ -258,7 +258,7 @@ function TransactionItemRow({
         }
     }, [transactionItem, translate, report, policy]);
 
-    const exchangeRateMessage = getExchangeRate(transactionItem, report?.currency);
+    const exchangeRateMessage = getExchangeRate(transactionItem, policy?.outputCurrency ?? report?.currency);
 
     const cardName = useMemo(() => {
         if (transactionItem.cardName === CONST.EXPENSE.TYPE.CASH_CARD_NAME) {
@@ -563,6 +563,7 @@ function TransactionItemRow({
                             transactionItem={transactionItem}
                             shouldShowTooltip={shouldShowTooltip}
                             shouldUseNarrowLayout={shouldUseNarrowLayout}
+                            reportCurrency={policy?.outputCurrency ?? report?.currency}
                         />
                     </View>
                 );
@@ -581,18 +582,24 @@ function TransactionItemRow({
                         )}
                     </View>
                 );
-            case CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT:
+            case CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT: {
+                // "Original amount" means the transaction amount in its own currency (before conversion to report currency).
+                // Use the current display amount (which includes modifications), not the raw pre-edit amount.
+                const transactionDetails = getTransactionDetails(transactionItem);
+                const originalAmount = transactionDetails?.amount ?? getOriginalAmountForDisplay(transactionItem, isExpenseReport(transactionItem.report));
+                const originalCurrency = transactionDetails?.currency ?? getOriginalCurrencyForDisplay(transactionItem);
                 return (
                     <View
                         key={column}
                         style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT, undefined, isAmountColumnWide)]}
                     >
                         <AmountCell
-                            total={getOriginalAmountForDisplay(transactionItem, isExpenseReport(transactionItem.report))}
-                            currency={getOriginalCurrencyForDisplay(transactionItem)}
+                            total={originalAmount}
+                            currency={originalCurrency}
                         />
                     </View>
                 );
+            }
             case CONST.SEARCH.TABLE_COLUMNS.REPORT_ID:
                 return (
                     <View
