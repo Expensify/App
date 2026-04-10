@@ -45,7 +45,7 @@ function useExportActions({reportID, onPDFModalOpen}: UseExportActionsParams): U
     const styles = useThemeStyles();
 
     const [moneyRequestReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportID)}`);
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(moneyRequestReport?.policyID)}`);
+    const policy = usePolicy(moneyRequestReport?.policyID);
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [integrationsExportTemplates] = useOnyx(ONYXKEYS.NVP_INTEGRATION_SERVER_EXPORT_TEMPLATES);
     const [csvExportLayouts] = useOnyx(ONYXKEYS.NVP_CSV_EXPORT_LAYOUTS);
@@ -54,13 +54,12 @@ function useExportActions({reportID, onPDFModalOpen}: UseExportActionsParams): U
     const reportActions = getFilteredReportActionsForReportView(unfilteredReportActions);
 
     const {login: currentUserLogin, accountID} = useCurrentUserPersonalDetails();
-    const policyFromHook = usePolicy(moneyRequestReport?.policyID);
 
     const {transactions: reportTransactions} = useTransactionsAndViolationsForReport(moneyRequestReport?.reportID);
     const transactionIDs = Object.values(reportTransactions).map((t) => t.transactionID);
 
-    const connectedIntegration = getValidConnectedIntegration(policyFromHook);
-    const connectedIntegrationFallback = getConnectedIntegration(policyFromHook);
+    const connectedIntegration = getValidConnectedIntegration(policy);
+    const connectedIntegrationFallback = getConnectedIntegration(policy);
     const exportTemplates = getExportTemplates(integrationsExportTemplates ?? [], csvExportLayouts ?? {}, translate, policy);
     const isExported = isExportedUtils(reportActions, moneyRequestReport);
 

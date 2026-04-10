@@ -43,6 +43,7 @@ import {setDeleteTransactionNavigateBackUrl} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {Route} from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import useConfirmModal from './useConfirmModal';
 import {useCurrencyListActions} from './useCurrencyList';
@@ -64,6 +65,7 @@ import useTransactionViolations from './useTransactionViolations';
 type UseExpenseActionsParams = {
     reportID: string | undefined;
     isReportInSearch?: boolean;
+    backTo?: Route;
 };
 
 type UseExpenseActionsReturn = {
@@ -74,7 +76,7 @@ type UseExpenseActionsReturn = {
     wasDuplicateReportTriggered: React.RefObject<boolean>;
 };
 
-function useExpenseActions({reportID, isReportInSearch = false}: UseExpenseActionsParams): UseExpenseActionsReturn {
+function useExpenseActions({reportID, isReportInSearch = false, backTo}: UseExpenseActionsParams): UseExpenseActionsReturn {
     const {translate, localeCompare} = useLocalize();
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
@@ -113,6 +115,7 @@ function useExpenseActions({reportID, isReportInSearch = false}: UseExpenseActio
     const {iouReport, chatReport: chatIOUReport, isChatIOUReportArchived} = useGetIOUReportFromReportAction(requestParentReportAction);
 
     // Global collections
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
@@ -238,7 +241,7 @@ function useExpenseActions({reportID, isReportInSearch = false}: UseExpenseActio
                 existingTransactionDraft,
                 draftTransactionIDs,
                 betas,
-                personalDetails: undefined,
+                personalDetails,
                 recentWaypoints,
                 targetPolicyTags,
             });
@@ -376,7 +379,7 @@ function useExpenseActions({reportID, isReportInSearch = false}: UseExpenseActio
                         ownerPersonalDetails: currentUserPersonalDetails,
                         isASAPSubmitBetaEnabled,
                         betas,
-                        personalDetails: undefined,
+                        personalDetails,
                         quickAction,
                         policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
                         draftTransactionIDs,
@@ -496,7 +499,7 @@ function useExpenseActions({reportID, isReportInSearch = false}: UseExpenseActio
                 if (result.action !== ModalActions.CONFIRM) {
                     return;
                 }
-                const backToRoute = chatReport?.reportID ? ROUTES.REPORT_WITH_ID.getRoute(chatReport.reportID) : undefined;
+                const backToRoute = backTo ?? (chatReport?.reportID ? ROUTES.REPORT_WITH_ID.getRoute(chatReport.reportID) : undefined);
                 const deleteNavigateBackUrl = backToRoute ?? Navigation.getActiveRoute();
                 setDeleteTransactionNavigateBackUrl(deleteNavigateBackUrl);
 

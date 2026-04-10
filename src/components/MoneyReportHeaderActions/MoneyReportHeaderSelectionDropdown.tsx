@@ -1,5 +1,6 @@
 import {useRoute} from '@react-navigation/native';
 import {delegateEmailSelector, isUserValidatedSelector} from '@selectors/Account';
+import {hasSeenTourSelector} from '@selectors/Onboarding';
 import truncate from 'lodash/truncate';
 import React, {useContext, useRef} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
@@ -26,8 +27,10 @@ import useLifecycleActions from '@hooks/useLifecycleActions';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import useParticipantsInvoiceReport from '@hooks/useParticipantsInvoiceReport';
 import usePaymentOptions from '@hooks/usePaymentOptions';
 import usePermissions from '@hooks/usePermissions';
+import usePolicy from '@hooks/usePolicy';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useSelectedTransactionsActions from '@hooks/useSelectedTransactionsActions';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
@@ -39,10 +42,10 @@ import {handleUnvalidatedAccount, selectPaymentType} from '@libs/PaymentUtils';
 import {sortPoliciesByName} from '@libs/PolicyUtils';
 import {hasRequestFromCurrentAccount} from '@libs/ReportActionsUtils';
 import {getSecondaryReportActions} from '@libs/ReportSecondaryActionUtils';
-import {hasHeldExpenses, hasUpdatedTotal, isIOUReport as isIOUReportUtil} from '@libs/ReportUtils';
+import {hasHeldExpenses, hasUpdatedTotal, isInvoiceReport as isInvoiceReportUtil, isIOUReport as isIOUReportUtil} from '@libs/ReportUtils';
 import shouldPopoverUseScrollView from '@libs/shouldPopoverUseScrollView';
 import {isTransactionPendingDelete} from '@libs/TransactionUtils';
-import {canIOUBePaid as canIOUBePaidAction, payMoneyRequest} from '@userActions/IOU';
+import {canIOUBePaid as canIOUBePaidAction, payInvoice, payMoneyRequest} from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -96,6 +99,12 @@ function MoneyReportHeaderSelectionDropdown({reportID, primaryAction, isReportIn
     const [invoiceReceiverPolicy] = useOnyx(
         `${ONYXKEYS.COLLECTION.POLICY}${chatReport?.invoiceReceiver && 'policyID' in chatReport.invoiceReceiver ? chatReport.invoiceReceiver.policyID : undefined}`,
     );
+
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
+    const [isSelfTourViewed = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
+    const activePolicy = usePolicy(activePolicyID);
+    const existingB2BInvoiceReport = useParticipantsInvoiceReport(activePolicyID, CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS, chatReport?.policyID);
+    const isInvoiceReport = isInvoiceReportUtil(moneyRequestReport);
 
     const isChatReportArchived = useReportIsArchived(chatReport?.reportID);
     const isAnyTransactionOnHold = hasHeldExpenses(moneyRequestReport?.reportID);
@@ -199,7 +208,7 @@ function MoneyReportHeaderSelectionDropdown({reportID, primaryAction, isReportIn
     const canIOUBePaid = canIOUBePaidAction(moneyRequestReport, chatReport, policy, bankAccountList, undefined, false, undefined, invoiceReceiverPolicy);
     const isPayable = hasPayAction && canIOUBePaid;
 
-    const confirmPayment = ({paymentType: type, methodID}: PaymentActionParams) => {
+    const confirmPayment = ({paymentType: type, payAsBusiness, methodID, paymentMethod}: PaymentActionParams) => {
         if (!type || !chatReport) {
             return;
         }
@@ -220,23 +229,42 @@ function MoneyReportHeaderSelectionDropdown({reportID, primaryAction, isReportIn
             return;
         }
 
-        payMoneyRequest({
-            paymentType: type,
-            chatReport,
-            iouReport: moneyRequestReport,
-            introSelected,
-            iouReportCurrentNextStepDeprecated: nextStep,
-            currentUserAccountID: accountID,
-            activePolicy: undefined,
-            policy,
-            betas,
-            isSelfTourViewed: undefined,
-            userBillingGracePeriodEnds,
-            amountOwed,
-            ownerBillingGracePeriodEnd,
-            methodID: type === CONST.IOU.PAYMENT_TYPE.VBBA ? methodID : undefined,
-            onPaid: () => {},
-        });
+        if (isInvoiceReport) {
+            payInvoice({
+                paymentMethodType: type,
+                chatReport,
+                invoiceReport: moneyRequestReport,
+                invoiceReportCurrentNextStepDeprecated: nextStep,
+                introSelected,
+                currentUserAccountIDParam: accountID,
+                currentUserEmailParam: email ?? '',
+                payAsBusiness,
+                existingB2BInvoiceReport,
+                methodID,
+                paymentMethod,
+                activePolicy,
+                betas,
+                isSelfTourViewed,
+            });
+        } else {
+            payMoneyRequest({
+                paymentType: type,
+                chatReport,
+                iouReport: moneyRequestReport,
+                introSelected,
+                iouReportCurrentNextStepDeprecated: nextStep,
+                currentUserAccountID: accountID,
+                activePolicy,
+                policy,
+                betas,
+                isSelfTourViewed,
+                userBillingGracePeriodEnds,
+                amountOwed,
+                ownerBillingGracePeriodEnd,
+                methodID: type === CONST.IOU.PAYMENT_TYPE.VBBA ? methodID : undefined,
+                onPaid: () => {},
+            });
+        }
 
         clearSelectedTransactions(true);
     };

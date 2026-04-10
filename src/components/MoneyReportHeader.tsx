@@ -17,6 +17,7 @@ import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigat
 import type {ReportsSplitNavigatorParamList, RightModalNavigatorParamList} from '@libs/Navigation/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Route} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {ButtonWithDropdownMenuRef} from './ButtonWithDropdownMenu/types';
 import HeaderLoadingBar from './HeaderLoadingBar';
@@ -95,6 +96,8 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
     const isReportInRHP = route.name !== SCREENS.REPORT;
     const shouldDisplaySearchRouter = !isReportInRHP || isSmallScreenWidth;
     const isReportInSearch = route.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT || route.name === SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT;
+    // eslint-disable-next-line no-restricted-syntax -- backTo is a legacy route param, preserving existing behavior
+    const backTo = (route.params as {backTo?: Route} | undefined)?.backTo;
 
     const primaryAction = useReportPrimaryAction(reportIDProp);
 
@@ -147,6 +150,7 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
                         reportID={reportIDProp}
                         primaryAction={primaryAction}
                         isReportInSearch={isReportInSearch}
+                        backTo={backTo}
                     />
                 )}
             </HeaderWithBackButton>

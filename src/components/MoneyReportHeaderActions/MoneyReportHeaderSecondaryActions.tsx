@@ -53,6 +53,7 @@ import {
 import {canApproveIOU, canIOUBePaid as canIOUBePaidAction, payInvoice, payMoneyRequest} from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Route} from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 
@@ -60,10 +61,11 @@ type MoneyReportHeaderSecondaryActionsProps = {
     reportID: string | undefined;
     primaryAction: ValueOf<typeof CONST.REPORT.PRIMARY_ACTIONS> | '';
     isReportInSearch?: boolean;
+    backTo?: Route;
     dropdownMenuRef?: React.RefObject<ButtonWithDropdownMenuRef>;
 };
 
-function MoneyReportHeaderSecondaryActions({reportID, primaryAction, isReportInSearch, dropdownMenuRef}: MoneyReportHeaderSecondaryActionsProps) {
+function MoneyReportHeaderSecondaryActions({reportID, primaryAction, isReportInSearch, backTo, dropdownMenuRef}: MoneyReportHeaderSecondaryActionsProps) {
     const {startAnimation, startApprovedAnimation, startSubmittingAnimation} = usePaymentAnimationsContext();
     const {openHoldMenu, openPDFDownload, openHoldEducational, openRejectModal} = useMoneyReportHeaderModals();
 
@@ -265,7 +267,7 @@ function MoneyReportHeaderSecondaryActions({reportID, primaryAction, isReportInS
         },
     });
 
-    const {actions: expenseActions, handleOptionsMenuHide} = useExpenseActions({reportID, isReportInSearch});
+    const {actions: expenseActions, handleOptionsMenuHide} = useExpenseActions({reportID, isReportInSearch, backTo});
 
     const holdRejectActions = useHoldRejectActions({
         reportID,
