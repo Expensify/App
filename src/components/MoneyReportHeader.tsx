@@ -967,7 +967,7 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
             return [];
         }
 
-        const canUseBusinessBankAccount = moneyRequestReport?.reportID && !hasRequestFromCurrentAccount(moneyRequestReport.reportID, accountID ?? CONST.DEFAULT_NUMBER_ID);
+        const canUseBusinessBankAccount = moneyRequestReport?.reportID && !hasRequestFromCurrentAccount(moneyRequestReport, accountID ?? CONST.DEFAULT_NUMBER_ID);
         if (!canUseBusinessBankAccount) {
             return [];
         }

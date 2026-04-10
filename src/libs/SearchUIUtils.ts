@@ -5130,7 +5130,7 @@ function getTransactionFromTransactionListItem(item: TransactionListItemType): O
     return transaction as OnyxTypes.Transaction;
 }
 
-function getTableMinWidth(columns: SearchColumnType[]) {
+function getTableMinWidth(columns: SearchColumnType[], type?: SearchDataTypes) {
     // Starts at 24px to account for the checkbox width
     let minWidth = 24;
 
@@ -5144,7 +5144,7 @@ function getTableMinWidth(columns: SearchColumnType[]) {
         } else if (column === CONST.SEARCH.TABLE_COLUMNS.STATUS) {
             minWidth += 80;
         } else if (column === CONST.SEARCH.TABLE_COLUMNS.ACTION) {
-            minWidth += 68;
+            minWidth += type === CONST.SEARCH.DATA_TYPES.TASK ? 80 : 68;
         } else if (column === CONST.SEARCH.TABLE_COLUMNS.DATE) {
             minWidth += 48;
         } else if (
