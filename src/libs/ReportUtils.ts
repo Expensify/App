@@ -9183,6 +9183,10 @@ function getViolatingReportIDForRBRInLHN(report: OnyxEntry<Report>, transactionV
                 return false;
             }
 
+            const transactionViolationsForNoticeCheck = isProcessingReport(potentialReport)
+                ? filterOutModifiedAmountViolationsForTransactions(transactionViolations, transactions)
+                : transactionViolations;
+
             return (
                 !isInvoiceReport(potentialReport) &&
                 ViolationsUtils.hasVisibleViolationsForUser(
@@ -9215,7 +9219,7 @@ function getViolatingReportIDForRBRInLHN(report: OnyxEntry<Report>, transactionV
                     ) ||
                     hasNoticeTypeViolations(
                         potentialReport.reportID,
-                        transactionViolations,
+                        transactionViolationsForNoticeCheck,
                         deprecatedCurrentUserAccountID ?? CONST.DEFAULT_NUMBER_ID,
                         deprecatedCurrentUserEmail ?? '',
                         true,
@@ -9226,6 +9230,30 @@ function getViolatingReportIDForRBRInLHN(report: OnyxEntry<Report>, transactionV
             );
         });
     return violatingReport ? violatingReport.reportID : null;
+}
+
+function filterOutModifiedAmountViolationsForTransactions(
+    transactionViolations: OnyxCollection<TransactionViolation[]>,
+    transactions: Transaction[],
+): OnyxCollection<TransactionViolation[]> {
+    const filteredViolations = {...transactionViolations};
+
+    for (const transaction of transactions) {
+        const transactionID = transaction?.transactionID;
+        if (!transactionID) {
+            continue;
+        }
+
+        const transactionViolationKey = `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`;
+        const violations = filteredViolations[transactionViolationKey];
+        if (!violations?.length) {
+            continue;
+        }
+
+        filteredViolations[transactionViolationKey] = violations.filter((violation) => violation.name !== CONST.VIOLATIONS.MODIFIED_AMOUNT);
+    }
+
+    return filteredViolations;
 }
 
 /**
