@@ -31,9 +31,9 @@ function ConnectToXeroFlow({policyID}: ConnectToXeroFlowProps) {
     const is2FAEnabled = account?.requiresTwoFactorAuth ?? false;
 
     const renderLoading = () => (
-        <View style={[StyleSheet.absoluteFill, styles.fullScreenLoading, styles.w100]}>
+        <View style={[StyleSheet.absoluteFill, styles.fullScreenLoading]}>
             <ActivityIndicator
-                size="large"
+                size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                 reasonAttributes={{context: 'ConnectToXeroFlow'}}
             />
         </View>
