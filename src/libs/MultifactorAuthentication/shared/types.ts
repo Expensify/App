@@ -1,10 +1,9 @@
 /**
  * Shared type definitions for multifactor authentication operations.
- * Technology-agnostic types used across NativeBiometrics and Passkeys.
+ * Technology-agnostic types used across NativeBiometricsHSM and Passkeys.
  */
 import type {ValueOf} from 'type-fest';
 import type {MultifactorAuthenticationScenario, MultifactorAuthenticationScenarioAdditionalParams} from '@components/MultifactorAuthentication/config/types';
-import type {NativeBiometricsKeyInfo} from '@libs/MultifactorAuthentication/NativeBiometrics/types';
 import type NativeBiometricsHSMKeyInfo from '@libs/MultifactorAuthentication/NativeBiometricsHSM/types';
 import type NATIVE_BIOMETRICS_HSM_VALUES from '@libs/MultifactorAuthentication/NativeBiometricsHSM/VALUES';
 import type {PasskeyRegistrationKeyInfo} from '@libs/MultifactorAuthentication/Passkeys/types';
@@ -53,7 +52,7 @@ type MultifactorAuthenticationResponseMap = typeof VALUES.API_RESPONSE_MAP;
 type MultifactorAuthenticationActionParams<T extends Record<string, unknown>, R extends keyof AllMultifactorAuthenticationBaseParameters> = T &
     Pick<AllMultifactorAuthenticationBaseParameters, R> & {authenticationMethod: MarqetaAuthTypeName};
 
-type RegistrationKeyInfo = NativeBiometricsKeyInfo | NativeBiometricsHSMKeyInfo | PasskeyRegistrationKeyInfo;
+type RegistrationKeyInfo = NativeBiometricsHSMKeyInfo | PasskeyRegistrationKeyInfo;
 
 type ChallengeType = ValueOf<typeof VALUES.CHALLENGE_TYPE>;
 
