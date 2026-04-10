@@ -56,21 +56,25 @@ function WorkspaceTravelInvoicingMonthlyLimitPage({route}: WorkspaceTravelInvoic
         return errors;
     };
 
-    const handleSubmit = async ({limit}: FormOnyxValues<typeof ONYXKEYS.FORMS.EDIT_TRAVEL_INVOICING_MONTHLY_LIMIT_FORM>) => {
+    const handleSubmit = ({limit}: FormOnyxValues<typeof ONYXKEYS.FORMS.EDIT_TRAVEL_INVOICING_MONTHLY_LIMIT_FORM>) => {
         const newLimitInCents = convertToBackendAmount(parseFloat(limit));
-        if (newLimitInCents < currentLimit && currentLimit > 0) {
-            const result = await showConfirmModal({
-                title: translate('workspace.moreFeatures.travel.travelInvoicing.centralInvoicingSection.subsections.reduceLimitTitle'),
-                prompt: translate('workspace.moreFeatures.travel.travelInvoicing.centralInvoicingSection.subsections.reduceLimitWarning'),
-                confirmText: translate('common.confirm'),
-                cancelText: translate('common.cancel'),
-                danger: true,
-            });
+        const isReducingLimit = newLimitInCents < currentLimit && currentLimit > 0;
+        if (!isReducingLimit) {
+            submitLimit(newLimitInCents);
+            return;
+        }
+        showConfirmModal({
+            title: translate('workspace.moreFeatures.travel.travelInvoicing.centralInvoicingSection.subsections.reduceLimitTitle'),
+            prompt: translate('workspace.moreFeatures.travel.travelInvoicing.centralInvoicingSection.subsections.reduceLimitWarning'),
+            confirmText: translate('common.confirm'),
+            cancelText: translate('common.cancel'),
+            danger: true,
+        }).then((result) => {
             if (result.action !== ModalActions.CONFIRM) {
                 return;
             }
-        }
-        submitLimit(newLimitInCents);
+            submitLimit(newLimitInCents);
+        });
     };
 
     return (
