@@ -3658,6 +3658,7 @@ function buildNewReportOptimisticData(
             value: {
                 [reportActionID]: {
                     pendingAction: null,
+                    errors: null,
                 },
             },
         },
@@ -3667,6 +3668,7 @@ function buildNewReportOptimisticData(
             value: {
                 [reportPreviewReportActionID]: {
                     pendingAction: null,
+                    errors: null,
                 },
             },
         },
