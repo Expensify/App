@@ -123,7 +123,7 @@ function SearchPageNarrow({queryJSON, searchResults, isMobileSelectionModeEnable
                 scrollOffset.set(currentOffset);
             },
         },
-        [],
+        [windowHeight],
     );
 
     const handleOnBackButtonPress = () => Navigation.goBack(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery()}));
