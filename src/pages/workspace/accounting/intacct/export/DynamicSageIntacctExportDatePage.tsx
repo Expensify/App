@@ -23,7 +23,7 @@ type MenuListItem = ListItem & {
     value: ValueOf<typeof CONST.SAGE_INTACCT_EXPORT_DATE>;
 };
 
-function SageIntacctDatePage({policy}: WithPolicyProps) {
+function DynamicSageIntacctExportDatePage({policy}: WithPolicyProps) {
     const {translate} = useLocalize();
     const policyID = policy?.id;
     const styles = useThemeStyles();
@@ -63,7 +63,7 @@ function SageIntacctDatePage({policy}: WithPolicyProps) {
 
     return (
         <SelectionScreen
-            displayName="SageIntacctDatePage"
+            displayName="DynamicSageIntacctExportDatePage"
             title="workspace.sageIntacct.exportDate.label"
             headerContent={headerContent}
             data={data}
@@ -83,4 +83,4 @@ function SageIntacctDatePage({policy}: WithPolicyProps) {
     );
 }
 
-export default withPolicyConnections(SageIntacctDatePage);
+export default withPolicyConnections(DynamicSageIntacctExportDatePage);

@@ -21,7 +21,7 @@ import CONST from '@src/CONST';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import {getDefaultVendorName} from './utils';
 
-function SageIntacctNonReimbursableExpensesPage({policy}: WithPolicyConnectionsProps) {
+function DynamicSageIntacctNonReimbursableExpensesPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
     const policyID = policy?.id;
     const styles = useThemeStyles();
@@ -143,7 +143,7 @@ function SageIntacctNonReimbursableExpensesPage({policy}: WithPolicyConnectionsP
 
     return (
         <ConnectionLayout
-            displayName="SageIntacctNonReimbursableExpensesPage"
+            displayName="DynamicSageIntacctNonReimbursableExpensesPage"
             headerTitle="workspace.accounting.exportCompanyCard"
             title="workspace.sageIntacct.nonReimbursableExpenses.description"
             onBackButtonPress={() => Navigation.goBack(backPath || (policyID && ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_EXPORT.getRoute(policyID)))}
@@ -186,4 +186,4 @@ function SageIntacctNonReimbursableExpensesPage({policy}: WithPolicyConnectionsP
     );
 }
 
-export default withPolicyConnections(SageIntacctNonReimbursableExpensesPage);
+export default withPolicyConnections(DynamicSageIntacctNonReimbursableExpensesPage);

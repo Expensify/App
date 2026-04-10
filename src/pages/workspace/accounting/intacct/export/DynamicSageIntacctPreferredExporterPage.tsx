@@ -23,7 +23,7 @@ type CardListItem = ListItem & {
     value: string;
 };
 
-function SageIntacctPreferredExporterPage({policy}: WithPolicyProps) {
+function DynamicSageIntacctPreferredExporterPage({policy}: WithPolicyProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policyOwner = policy?.owner ?? '';
@@ -96,7 +96,7 @@ function SageIntacctPreferredExporterPage({policy}: WithPolicyProps) {
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
-            displayName="SageIntacctPreferredExporterPage"
+            displayName="DynamicSageIntacctPreferredExporterPage"
             data={data}
             listItem={RadioListItem}
             headerContent={headerContent}
@@ -113,4 +113,4 @@ function SageIntacctPreferredExporterPage({policy}: WithPolicyProps) {
     );
 }
 
-export default withPolicyConnections(SageIntacctPreferredExporterPage);
+export default withPolicyConnections(DynamicSageIntacctPreferredExporterPage);
