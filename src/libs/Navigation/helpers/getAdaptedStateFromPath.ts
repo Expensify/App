@@ -54,7 +54,6 @@ function getSearchScreenNameForRoute(route: NavigationPartialRoute): string {
 }
 
 function getMatchingFullScreenRoute(route: NavigationPartialRoute) {
-
     const isDynamicScreen = route.name.startsWith('Dynamic_');
     const dynamicSuffixMatch = findMatchingDynamicSuffix(route?.path);
 
