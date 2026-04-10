@@ -65,15 +65,12 @@ function ComposerInputWrapper({reportID, submitForm, onPasteFile, lastReportActi
     const isEnglishLocale = (preferredLocale ?? CONST.LOCALES.DEFAULT) === CONST.LOCALES.EN;
     const canUserPerformWriteAction = !!canUserPerformWriteActionReportUtils(report, isReportArchived);
 
-    const inputPlaceholder = (() => {
-        if (includesConcierge && userBlockedFromConcierge) {
-            return translate('reportActionCompose.blockedFromConcierge');
-        }
-        if (isExpenseRelatedReport && canUserPerformWriteAction && isEnglishLocale) {
-            return getRandomPlaceholder(translate);
-        }
-        return translate('reportActionCompose.writeSomething');
-    })();
+    let inputPlaceholder = translate('reportActionCompose.writeSomething');
+    if (includesConcierge && userBlockedFromConcierge) {
+        inputPlaceholder = translate('reportActionCompose.blockedFromConcierge');
+    } else if (isExpenseRelatedReport && canUserPerformWriteAction && isEnglishLocale) {
+        inputPlaceholder = getRandomPlaceholder(translate);
+    }
     const fsClass = report ? FS.getChatFSClass(report) : undefined;
 
     return (
