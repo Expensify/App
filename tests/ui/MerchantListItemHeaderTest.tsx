@@ -124,6 +124,7 @@ describe('MerchantListItemHeader', () => {
             isSmallScreen: true,
             isInNarrowPaneModal: false,
             onboardingIsMediumOrLargerScreenWidth: false,
+            isInLandscapeMode: false,
         });
     });
 
@@ -278,6 +279,7 @@ describe('MerchantListItemHeader', () => {
                 isSmallScreen: false,
                 isInNarrowPaneModal: false,
                 onboardingIsMediumOrLargerScreenWidth: true,
+                isInLandscapeMode: false,
             });
         });
 

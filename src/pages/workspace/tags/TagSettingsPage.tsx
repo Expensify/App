@@ -6,6 +6,7 @@ import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
+import ScrollView from '@components/ScrollView';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
 import useConfirmModal from '@hooks/useConfirmModal';
@@ -147,7 +148,7 @@ function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
                     onBackButtonPress={() => Navigation.goBack(isQuickSettingsFlow ? ROUTES.SETTINGS_TAGS_ROOT.getRoute(policyID, backTo) : undefined)}
                 />
 
-                <View style={styles.flexGrow1}>
+                <ScrollView>
                     {!hasDependentTags && (
                         <OfflineWithFeedback
                             errors={getLatestErrorMessageField(currentPolicyTag)}
@@ -247,7 +248,7 @@ function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
                             }}
                         />
                     )}
-                </View>
+                </ScrollView>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );

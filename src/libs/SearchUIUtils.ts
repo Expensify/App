@@ -105,7 +105,16 @@ import isSearchTopmostFullScreenRoute from './Navigation/helpers/isSearchTopmost
 import Navigation from './Navigation/Navigation';
 import Parser from './Parser';
 import {getDisplayNameOrDefault} from './PersonalDetailsUtils';
-import {arePaymentsEnabled, canSendInvoice, getCommaSeparatedTagNameWithSanitizedColons, getSubmitToAccountID, isPaidGroupPolicy, isPolicyApprover, isPolicyPayer} from './PolicyUtils';
+import {
+    arePaymentsEnabled,
+    canSendInvoice,
+    getCommaSeparatedTagNameWithSanitizedColons,
+    getSubmitToAccountID,
+    isPaidGroupPolicy,
+    isPolicyAdmin,
+    isPolicyApprover,
+    isPolicyPayer,
+} from './PolicyUtils';
 import {
     getIOUActionForReportID,
     getOriginalMessage,
@@ -138,12 +147,15 @@ import {
     isAllowedToApproveExpenseReport as isAllowedToApproveExpenseReportUtils,
     isArchivedReport,
     isClosedReport,
+    isExpenseReport as isExpenseReportUtil,
     isInvoiceReport,
     isIOUReport as isIOUReportReportUtil,
     isMoneyRequestReport,
+    isMoneyRequestReportPendingDeletion,
     isOneTransactionReport,
     isOpenExpenseReport,
     isOpenReport,
+    isProcessingReport,
     isSettled,
     shouldReportShowSubscript,
 } from './ReportUtils';
@@ -1396,6 +1408,7 @@ type ShouldShowYearResult = {
     shouldShowYearApproved: boolean;
     shouldShowYearPosted: boolean;
     shouldShowYearExported: boolean;
+    shouldShowYearWithdrawn: boolean;
 };
 
 /**
@@ -1442,6 +1455,7 @@ function shouldShowYear(
     data: TransactionListItemType[] | TransactionGroupListItemType[] | TaskListItemType[] | OnyxTypes.SearchResults['data'],
     checkOnlyReports = false,
     precomputedLastExportedMap?: Map<string, OnyxTypes.ReportAction>,
+    skipReportCreatedDate = false,
 ): ShouldShowYearResult {
     const result: ShouldShowYearResult = {
         shouldShowYearCreated: false,
@@ -1449,6 +1463,7 @@ function shouldShowYear(
         shouldShowYearApproved: false,
         shouldShowYearPosted: false,
         shouldShowYearExported: false,
+        shouldShowYearWithdrawn: false,
     };
 
     const currentYear = new Date().getFullYear();
@@ -1537,7 +1552,7 @@ function shouldShowYear(
         } else if (isReportEntry(key)) {
             const item = data[key];
 
-            if (item.created && DateUtils.doesDateBelongToAPastYear(item.created)) {
+            if (!skipReportCreatedDate && item.created && DateUtils.doesDateBelongToAPastYear(item.created)) {
                 result.shouldShowYearCreated = true;
             }
             if (item.submitted && DateUtils.doesDateBelongToAPastYear(item.submitted)) {
@@ -1551,10 +1566,22 @@ function shouldShowYear(
             if (exportedAction?.created && DateUtils.doesDateBelongToAPastYear(exportedAction.created)) {
                 result.shouldShowYearExported = true;
             }
+        } else if (!result.shouldShowYearWithdrawn && isGroupEntry(key)) {
+            const group = data[key];
+            if ('debitPosted' in group && group.debitPosted && DateUtils.doesDateBelongToAPastYear(group.debitPosted)) {
+                result.shouldShowYearWithdrawn = true;
+            }
         }
 
         // Early exit if all flags are true
-        if (result.shouldShowYearCreated && result.shouldShowYearSubmitted && result.shouldShowYearApproved && result.shouldShowYearPosted && result.shouldShowYearExported) {
+        if (
+            result.shouldShowYearCreated &&
+            result.shouldShowYearSubmitted &&
+            result.shouldShowYearApproved &&
+            result.shouldShowYearPosted &&
+            result.shouldShowYearExported &&
+            result.shouldShowYearWithdrawn
+        ) {
             return result;
         }
     }
@@ -1721,7 +1748,12 @@ function getTransactionsSections({
 }: GetTransactionSectionsParams): [TransactionListItemType[], number] {
     const shouldShowMerchant = getShouldShowMerchant(data);
     const lastExportedActionByReportID = buildLastExportedActionByReportIDMap(data);
-    const {shouldShowYearCreated, shouldShowYearSubmitted, shouldShowYearApproved, shouldShowYearPosted, shouldShowYearExported} = shouldShowYear(data, false, lastExportedActionByReportID);
+    const {shouldShowYearCreated, shouldShowYearSubmitted, shouldShowYearApproved, shouldShowYearPosted, shouldShowYearExported} = shouldShowYear(
+        data,
+        false,
+        lastExportedActionByReportID,
+        true,
+    );
     const {shouldShowAmountInWideColumn, shouldShowTaxAmountInWideColumn} = getWideAmountIndicators(data);
 
     // Pre-filter transaction keys to avoid repeated checks
@@ -1789,7 +1821,7 @@ function getTransactionsSections({
             const transactionSection: TransactionListItemType = {
                 ...transactionItem,
                 keyForList: transactionItem.transactionID,
-                action: allActions.at(0) ?? CONST.SEARCH.ACTION_TYPES.VIEW,
+                action: getAction(allActions),
                 allActions,
                 report,
                 policy,
@@ -2047,11 +2079,25 @@ function getActions(
         allActions.push(CONST.SEARCH.ACTION_TYPES.SUBMIT);
     }
 
+    const isApprovalEnabled = policy?.approvalMode && policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL;
+    if (report && policy && isPolicyAdmin(policy) && isExpenseReportUtil(report) && isProcessingReport(report) && !isMoneyRequestReportPendingDeletion(report) && isApprovalEnabled) {
+        allActions.push(CONST.SEARCH.ACTION_TYPES.CHANGE_APPROVER);
+    }
+
     if (reportNVP?.exportFailedTime) {
         return allActions.length > 0 ? allActions : [CONST.SEARCH.ACTION_TYPES.VIEW];
     }
 
     return allActions.length > 0 ? allActions : [CONST.SEARCH.ACTION_TYPES.VIEW];
+}
+
+/**
+ * @private
+ * Returns the primary action to show in the Action column for a given transaction or report
+ */
+function getAction(allActions: SearchTransactionAction[]) {
+    // Do not set CHANGE_APPROVER as the primary action as it is less frequently used than VIEW
+    return allActions.find((action) => action !== CONST.SEARCH.ACTION_TYPES.CHANGE_APPROVER) ?? CONST.SEARCH.ACTION_TYPES.VIEW;
 }
 
 /**
@@ -2419,7 +2465,7 @@ function getReportSections({
 
                 reportIDToTransactions[reportKey] = {
                     ...reportItem,
-                    action: allActions.at(0) ?? CONST.SEARCH.ACTION_TYPES.VIEW,
+                    action: getAction(allActions),
                     allActions,
                     keyForList: String(reportItem.reportID),
                     groupedBy: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
@@ -2441,6 +2487,7 @@ function getReportSections({
                     totalDisplaySpend,
                     nonReimbursableSpend,
                     reimbursableSpend,
+                    isAmountColumnWide: shouldShowAmountInWideColumn,
                     isAllScanning: false,
                     ...avatarProps,
                 };
@@ -2475,7 +2522,7 @@ function getReportSections({
             const allActions = getActions(data, allViolations, key, currentSearch, currentUserEmail, currentAccountID, bankAccountList, transactionReportMetadata, actions);
             const transaction = {
                 ...transactionItem,
-                action: allActions.at(0) ?? CONST.SEARCH.ACTION_TYPES.VIEW,
+                action: getAction(allActions),
                 allActions,
                 report,
                 reportAction,
@@ -2759,6 +2806,7 @@ function getCardSections(
  * Do not use directly, use only via `getSections()` facade.
  */
 function getWithdrawalIDSections(data: OnyxTypes.SearchResults['data'], queryJSON: SearchQueryJSON | undefined): [TransactionWithdrawalIDGroupListItemType[], number] {
+    const {shouldShowYearWithdrawn} = shouldShowYear(data);
     const withdrawalIDSections: Record<string, TransactionWithdrawalIDGroupListItemType> = {};
 
     for (const key in data) {
@@ -2776,6 +2824,7 @@ function getWithdrawalIDSections(data: OnyxTypes.SearchResults['data'], queryJSO
                 transactions: [],
                 transactionsQueryJSON,
                 ...withdrawalIDGroup,
+                shouldShowYearWithdrawn,
                 formattedWithdrawalID: String(withdrawalIDGroup.entryID),
                 keyForList: key,
             };
@@ -4218,7 +4267,7 @@ function getViewOptions(translate: LocalizedTranslate) {
     return Object.values(CONST.SEARCH.VIEW).map<SingleSelectItem<SearchView>>((value) => ({text: translate(`search.view.${value}`), value}));
 }
 
-function getGroupCurrencyOptions(currencyList: OnyxTypes.CurrencyList, getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol']) {
+function getCurrencyOptions(currencyList: OnyxTypes.CurrencyList, getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol']) {
     return Object.keys(currencyList).reduce(
         (options, currencyCode) => {
             if (!currencyList?.[currencyCode]?.retired) {
@@ -5078,18 +5127,28 @@ function getTableMinWidth(columns: SearchColumnType[]) {
     let minWidth = 24;
 
     for (const column of columns) {
-        if (column === CONST.SEARCH.TABLE_COLUMNS.RECEIPT || column === CONST.SEARCH.TABLE_COLUMNS.COMMENTS) {
+        if (column === CONST.SEARCH.TABLE_COLUMNS.COMMENTS) {
             minWidth += 36;
+        } else if (column === CONST.SEARCH.TABLE_COLUMNS.RECEIPT) {
+            minWidth += 28;
         } else if (column === CONST.SEARCH.TABLE_COLUMNS.AVATAR) {
-            minWidth += 40;
-        } else if (column === CONST.SEARCH.TABLE_COLUMNS.STATUS || column === CONST.SEARCH.TABLE_COLUMNS.ACTION) {
+            minWidth += 28;
+        } else if (column === CONST.SEARCH.TABLE_COLUMNS.STATUS) {
             minWidth += 80;
+        } else if (column === CONST.SEARCH.TABLE_COLUMNS.ACTION) {
+            minWidth += 68;
         } else if (column === CONST.SEARCH.TABLE_COLUMNS.DATE) {
             minWidth += 48;
-        } else if (column === CONST.SEARCH.TABLE_COLUMNS.SUBMITTED || column === CONST.SEARCH.TABLE_COLUMNS.APPROVED || column === CONST.SEARCH.TABLE_COLUMNS.POSTED) {
+        } else if (
+            column === CONST.SEARCH.TABLE_COLUMNS.SUBMITTED ||
+            column === CONST.SEARCH.TABLE_COLUMNS.APPROVED ||
+            column === CONST.SEARCH.TABLE_COLUMNS.POSTED ||
+            column === CONST.SEARCH.TABLE_COLUMNS.WITHDRAWN ||
+            column === CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWN
+        ) {
             minWidth += 72;
         } else if (column === CONST.SEARCH.TABLE_COLUMNS.TYPE) {
-            minWidth += 20;
+            minWidth += 16;
         } else if (column === CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE || column === CONST.SEARCH.TABLE_COLUMNS.BILLABLE) {
             minWidth += 80;
         } else {
@@ -5307,7 +5366,7 @@ export {
     getSortByOptions,
     getGroupBySections,
     getViewOptions,
-    getGroupCurrencyOptions,
+    getCurrencyOptions,
     getFeedOptions,
     getWideAmountIndicators,
     isTransactionAmountTooLong,

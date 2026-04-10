@@ -111,7 +111,7 @@ function MerchantOrDescriptionCell({merchantOrDescription, shouldShowTooltip, sh
             <TextWithTooltip
                 shouldShowTooltip={shouldShowTooltip}
                 text={localValue}
-                numberOfLines={shouldUseNarrowLayout ? 1 : 2}
+                numberOfLines={1}
                 style={shouldUseNarrowLayout ? [styles.lh20, styles.pre, styles.justifyContentCenter, styles.flex1] : [styles.lineHeightXLarge, styles.preWrap]}
             />
         </EditableCell>

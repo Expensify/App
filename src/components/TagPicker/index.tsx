@@ -1,6 +1,8 @@
 import React, {useMemo, useState} from 'react';
 import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
+import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
+import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -70,6 +72,7 @@ function TagPicker({
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
     const [policyRecentlyUsedTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${policyID}`);
     const styles = useThemeStyles();
+    const {inputCallbackRef} = useAutoFocusInput();
     const {translate, localeCompare} = useLocalize();
     const [searchValue, setSearchValue] = useState('');
 
@@ -130,6 +133,8 @@ function TagPicker({
         onChangeText: setSearchValue,
         headerMessage: getHeaderMessageForNonUserList((sections?.at(0)?.data?.length ?? 0) > 0, searchValue),
         label: translate('common.search'),
+        disableAutoFocus: true,
+        ref: inputCallbackRef as (ref: BaseTextInputRef | null) => void,
     };
 
     const listItemTitleStyles = [styles.breakAll, styles.w100];

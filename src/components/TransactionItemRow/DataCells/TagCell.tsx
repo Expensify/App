@@ -45,8 +45,8 @@ function TagCell({canEdit, onSave, shouldUseNarrowLayout, shouldShowTooltip, tra
         <TextWithTooltip
             shouldShowTooltip={shouldShowTooltip}
             text={tagForDisplay}
-            numberOfLines={2}
-            style={[styles.lineHeightLarge, styles.preWrap, styles.justifyContentCenter]}
+            numberOfLines={1}
+            style={[styles.lineHeightLarge, styles.justifyContentCenter]}
         />
     );
 
