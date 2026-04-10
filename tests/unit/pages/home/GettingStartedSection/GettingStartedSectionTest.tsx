@@ -62,6 +62,7 @@ async function setManageTeamUserState(overrides?: {
         id: TEST_POLICY_ID,
         name: 'Test Workspace',
         type: CONST.POLICY.TYPE.TEAM,
+        role: CONST.POLICY.ROLE.ADMIN,
         areCompanyCardsEnabled: overrides?.areCompanyCardsEnabled ?? true,
         areRulesEnabled: overrides?.areRulesEnabled ?? true,
     };
@@ -124,6 +125,7 @@ describe('GettingStartedSection', () => {
                     id: TEST_POLICY_ID,
                     name: 'Test Workspace',
                     type: CONST.POLICY.TYPE.TEAM,
+                    role: CONST.POLICY.ROLE.ADMIN,
                     areCompanyCardsEnabled: true,
                     areRulesEnabled: true,
                 } as never,
