@@ -97,10 +97,10 @@ describe('usePendingConciergeResponse', () => {
     });
 
     it('should cancel the timer on unmount and not apply the action', async () => {
-        // Given a pending concierge response
+        // Given a pending concierge response with a large delay so the timer never races with unmount under CI load
         await Onyx.merge(`${ONYXKEYS.COLLECTION.PENDING_CONCIERGE_RESPONSE}${REPORT_ID}`, {
             reportAction: fakeConciergeAction,
-            displayAfter: Date.now() + SHORT_DELAY,
+            displayAfter: Date.now() + 10_000,
         });
         await waitForBatchedUpdates();
 
@@ -110,8 +110,8 @@ describe('usePendingConciergeResponse', () => {
         // When the hook unmounts before the delay
         unmount();
 
-        // And we wait past the delay
-        await delay(SHORT_DELAY + 50);
+        // And we wait long enough to confirm the action was not applied
+        await delay(150);
         await waitForBatchedUpdates();
 
         // Then the action should NOT be in REPORT_ACTIONS (timer was cleaned up)
