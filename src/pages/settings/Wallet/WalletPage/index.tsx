@@ -674,60 +674,58 @@ function WalletPage() {
                             />
                         </Section>
 
-                        {hasAssignedCard && (
-                            <Section
-                                subtitle={translate('walletPage.assignedCardsDescription')}
-                                title={translate('walletPage.assignedCards')}
-                                isCentralPane
-                                subtitleMuted
-                                centralPaneContainerStyle={!hasAssignedCard ? styles.pb0 : undefined}
-                                titleStyles={styles.accountSettingsSectionTitle}
-                            >
-                                <>
-                                    <PaymentMethodList
-                                        shouldShowAddBankAccount={false}
-                                        shouldShowAssignedCards
-                                        onPress={assignedCardPressed}
-                                        threeDotsMenuItems={cardThreeDotsMenuItems}
-                                        style={[styles.mt5, [shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8]]}
-                                        listItemStyle={shouldUseNarrowLayout ? styles.ph5 : styles.ph8}
-                                    />
-                                    <View style={shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8}>
-                                        <MenuItem
-                                            onPress={onAddPersonalCardPress}
-                                            title={translate('personalCard.addPersonalCard')}
-                                            icon={icons.Plus}
-                                            wrapperStyle={[styles.paymentMethod, shouldUseNarrowLayout ? styles.ph5 : styles.ph8]}
-                                            sentryLabel={CONST.SENTRY_LABEL.SETTINGS_WALLET.ADD_PERSONAL_CARD}
-                                        />
-                                    </View>
-                                </>
-                                <View style={[hasAssignedCard ? styles.mt3 : styles.mt5, shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8]}>
+                        <Section
+                            subtitle={translate('walletPage.assignedCardsDescription')}
+                            title={translate('walletPage.assignedCards')}
+                            isCentralPane
+                            subtitleMuted
+                            centralPaneContainerStyle={!hasAssignedCard ? styles.pb0 : undefined}
+                            titleStyles={styles.accountSettingsSectionTitle}
+                        >
+                            <>
+                                <PaymentMethodList
+                                    shouldShowAddBankAccount={false}
+                                    shouldShowAssignedCards
+                                    onPress={assignedCardPressed}
+                                    threeDotsMenuItems={cardThreeDotsMenuItems}
+                                    style={[styles.mt5, [shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8]]}
+                                    listItemStyle={shouldUseNarrowLayout ? styles.ph5 : styles.ph8}
+                                />
+                                <View style={shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8}>
                                     <MenuItem
-                                        title={translate('workspace.companyCards.importTransactions.importButton')}
-                                        icon={icons.Table}
-                                        shouldShowRightIcon
-                                        onPress={() => Navigation.navigate(ROUTES.SETTINGS_WALLET_IMPORT_TRANSACTIONS)}
+                                        onPress={onAddPersonalCardPress}
+                                        title={translate('personalCard.addPersonalCard')}
+                                        icon={icons.Plus}
                                         wrapperStyle={[styles.paymentMethod, shouldUseNarrowLayout ? styles.ph5 : styles.ph8]}
-                                        sentryLabel={CONST.SENTRY_LABEL.SETTINGS_WALLET.IMPORT_TRANSACTIONS}
+                                        sentryLabel={CONST.SENTRY_LABEL.SETTINGS_WALLET.ADD_PERSONAL_CARD}
                                     />
                                 </View>
-                                {!hasAssignedCard ? (
-                                    <MenuItem
-                                        iconHeight={48}
-                                        iconWidth={48}
-                                        containerStyle={styles.hoveredComponentBG}
-                                        shouldShowRightIcon
-                                        icon={illustrations.VerticalCreditCards}
-                                        wrapperStyle={styles.sectionMenuItemTopDescription}
-                                        title={translate('personalCard.lookingForCompanyCards')}
-                                        description={translate('personalCard.lookingForCompanyCardsDescription')}
-                                        titleStyle={styles.textStrong}
-                                        onPress={openCompanyCardFlow}
-                                    />
-                                ) : null}
-                            </Section>
-                        )}
+                            </>
+                            <View style={[hasAssignedCard ? styles.mt3 : styles.mt5, shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8]}>
+                                <MenuItem
+                                    title={translate('workspace.companyCards.importTransactions.importButton')}
+                                    icon={icons.Table}
+                                    shouldShowRightIcon
+                                    onPress={() => Navigation.navigate(ROUTES.SETTINGS_WALLET_IMPORT_TRANSACTIONS)}
+                                    wrapperStyle={[styles.paymentMethod, shouldUseNarrowLayout ? styles.ph5 : styles.ph8]}
+                                    sentryLabel={CONST.SENTRY_LABEL.SETTINGS_WALLET.IMPORT_TRANSACTIONS}
+                                />
+                            </View>
+                            {!hasAssignedCard ? (
+                                <MenuItem
+                                    iconHeight={48}
+                                    iconWidth={48}
+                                    containerStyle={styles.hoveredComponentBG}
+                                    shouldShowRightIcon
+                                    icon={illustrations.VerticalCreditCards}
+                                    wrapperStyle={styles.sectionMenuItemTopDescription}
+                                    title={translate('personalCard.lookingForCompanyCards')}
+                                    description={translate('personalCard.lookingForCompanyCardsDescription')}
+                                    titleStyle={styles.textStrong}
+                                    onPress={openCompanyCardFlow}
+                                />
+                            ) : null}
+                        </Section>
 
                         {hasWallet && (
                             <Section
