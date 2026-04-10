@@ -1696,28 +1696,6 @@ function getToFieldValueForTransaction(
     return emptyPersonalDetails;
 }
 
-type PreprocessedData = {
-    transactionKeys: TransactionKey[];
-    reportKeys: ReportKey[];
-    violations: OnyxCollection<OnyxTypes.TransactionViolation[]>;
-    shouldShowMerchant: boolean;
-    lastExportedActionByReportID: Map<string, OnyxTypes.ReportAction>;
-    moneyRequestReportActionsByTransactionID: Map<string, OnyxTypes.ReportAction>;
-    holdReportActionsByTransactionID: Map<string, OnyxTypes.ReportAction>;
-    transactionsByReportID: Map<string, OnyxTypes.Transaction[]>;
-    shouldShowYearCreated: boolean;
-    shouldShowYearSubmitted: boolean;
-    shouldShowYearApproved: boolean;
-    shouldShowYearPosted: boolean;
-    shouldShowYearExported: boolean;
-    shouldShowYearCreatedReport: boolean;
-    shouldShowYearSubmittedReport: boolean;
-    shouldShowYearApprovedReport: boolean;
-    shouldShowYearExportedReport: boolean;
-    shouldShowAmountInWideColumn: boolean;
-    shouldShowTaxAmountInWideColumn: boolean;
-};
-
 type PreprocessingContext = {
     transactionKeys: TransactionKey[];
     reportKeys: ReportKey[];
@@ -1921,7 +1899,7 @@ function resolveExportedYearFlags(ctx: PreprocessingContext, data: OnyxTypes.Sea
  * (key classification, violations, export/action maps, year flags, column indicators)
  * needed by getTransactionsSections and getReportSections.
  */
-function classifyAndPreprocess(data: OnyxTypes.SearchResults['data']): PreprocessedData {
+function classifyAndPreprocess(data: OnyxTypes.SearchResults['data']): Omit<PreprocessingContext, 'allHoldReportActions' | 'currentYear'> {
     const ctx = createPreprocessingContext();
 
     for (const key of Object.keys(data)) {
