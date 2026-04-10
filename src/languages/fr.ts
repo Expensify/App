@@ -7300,7 +7300,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         setReceiptRequiredAmount: (newValue: string) => `définir le montant de reçu obligatoire sur « ${newValue} »`,
         changedReceiptRequiredAmount: (oldValue: string, newValue: string) => `a modifié le montant requis pour le reçu à « ${newValue} » (auparavant « ${oldValue} »)`,
         removedReceiptRequiredAmount: (oldValue: string) => `a supprimé le montant requis pour le reçu (précédemment « ${oldValue} »)`,
-        setItemizedReceiptRequiredAmount: (newValue: string) => `a défini le montant requis pour le reçu détaillé sur « ${newValue} »`,
+        setItemizedReceiptRequiredAmount: (newValue: string) => `définir le montant requis pour le reçu détaillé sur « ${newValue} »`,
         changedItemizedReceiptRequiredAmount: (oldValue: string, newValue: string) => `a modifié le montant requis pour le reçu détaillé à « ${newValue} » (auparavant « ${oldValue} »)`,
         removedItemizedReceiptRequiredAmount: (oldValue: string) => `a supprimé le montant requis pour le reçu détaillé (précédemment « ${oldValue} »)`,
         setMaxExpenseAmount: (newValue: string) => `définir le montant maximal de dépense sur « ${newValue} »`,
