@@ -255,6 +255,7 @@ import {isEmptyObject, isEmptyValueObject} from '@src/types/utils/EmptyObject';
 import FraudAlertContent from './actionContents/FraudAlertContent';
 import JoinRequestContent from './actionContents/JoinRequestContent';
 import MentionWhisperContent from './actionContents/MentionWhisperContent';
+import ReportMentionWhisperContent from './actionContents/ReportMentionWhisperContent';
 import {RestrictedReadOnlyContextMenuActions} from './ContextMenu/ContextMenuActions';
 import MiniReportActionContextMenu from './ContextMenu/MiniReportActionContextMenu';
 import type {ContextMenuAnchor} from './ContextMenu/ReportActionContextMenu';
@@ -584,8 +585,7 @@ function PureReportActionItem({
     const prevDraftMessage = usePrevious(draftMessage);
     const isReportActionLinked = linkedReportActionID && action.reportActionID && linkedReportActionID === action.reportActionID;
     const [isReportActionActive, setIsReportActionActive] = useState(!!isReportActionLinked);
-    const isActionableWhisper =
-        isActionableMentionWhisper(action) || isActionableMentionInviteToSubmitExpenseConfirmWhisper(action) || isActionableTrackExpense(action) || isActionableReportMentionWhisper(action);
+    const isActionableWhisper = isActionableMentionInviteToSubmitExpenseConfirmWhisper(action) || isActionableTrackExpense(action);
     const isReportArchived = useReportIsArchived(reportID);
     const isOriginalReportArchived = useReportIsArchived(originalReportID);
     const isHarvestCreatedExpenseReport = isHarvestCreatedExpenseReportUtils(reportNameValuePairsOrigin, reportNameValuePairsOriginalID);
@@ -1034,22 +1034,6 @@ function PureReportActionItem({
             return options;
         }
 
-        if (isActionableReportMentionWhisper(action)) {
-            return [
-                {
-                    text: 'common.yes',
-                    key: `${action.reportActionID}-actionableReportMentionWhisper-${CONST.REPORT.ACTIONABLE_REPORT_MENTION_WHISPER_RESOLUTION.CREATE}`,
-                    onPress: () => resolveActionableReportMentionWhisper(reportActionReport, action, CONST.REPORT.ACTIONABLE_REPORT_MENTION_WHISPER_RESOLUTION.CREATE, isReportArchived),
-                    isPrimary: true,
-                },
-                {
-                    text: 'common.no',
-                    key: `${action.reportActionID}-actionableReportMentionWhisper-${CONST.REPORT.ACTIONABLE_REPORT_MENTION_WHISPER_RESOLUTION.NOTHING}`,
-                    onPress: () => resolveActionableReportMentionWhisper(reportActionReport, action, CONST.REPORT.ACTIONABLE_REPORT_MENTION_WHISPER_RESOLUTION.NOTHING, isReportArchived),
-                },
-            ];
-        }
-
         if (isActionableMentionInviteToSubmitExpenseConfirmWhisper(action)) {
             return [
                 {
@@ -1082,8 +1066,6 @@ function PureReportActionItem({
         preferredPolicyID,
         dismissTrackExpenseActionableWhisper,
         isOriginalReportArchived,
-        resolveActionableReportMentionWhisper,
-        isReportArchived,
         introSelected,
         draftTransactionIDs,
         activePolicy,
@@ -1606,6 +1588,17 @@ function PureReportActionItem({
                     personalPolicyID={personalPolicyID}
                     isOriginalReportArchived={isOriginalReportArchived}
                     resolveActionableMentionWhisper={resolveActionableMentionWhisper}
+                />
+            );
+        } else if (isActionableReportMentionWhisper(action)) {
+            children = (
+                <ReportMentionWhisperContent
+                    action={action}
+                    reportID={reportID}
+                    report={report}
+                    originalReport={originalReport}
+                    isReportArchived={isReportArchived}
+                    resolveActionableReportMentionWhisper={resolveActionableReportMentionWhisper}
                 />
             );
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.LEAVE_ROOM) || isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.LEAVE_ROOM)) {

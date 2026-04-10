@@ -1998,6 +1998,18 @@ describe('PureReportActionItem', () => {
             expect(screen.getByText(/requested to join/i)).toBeOnTheScreen();
         });
 
+        it('isActionableReportMentionWhisper renders message and yes/no buttons', async () => {
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_REPORT_MENTION_WHISPER, {});
+            const messageText = "Heads up, #test5 doesn't exist yet. Do you want to create it?";
+            action.message = [{type: 'COMMENT', html: messageText, text: messageText}];
+            renderItemWithAction(action);
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByText(/Heads up, #test5 doesn't exist yet/)).toBeOnTheScreen();
+            expect(screen.getByText(translateLocal('common.yes'))).toBeOnTheScreen();
+            expect(screen.getByText(translateLocal('common.no'))).toBeOnTheScreen();
+        });
+
         it('isCardIssuedAction renders card issued message', async () => {
             const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED, {});
             renderItemWithAction(action);
