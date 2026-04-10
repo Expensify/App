@@ -20,7 +20,7 @@ function setupSentry(): void {
         tracesSampleRate: 1.0,
         // 1. Profiling for Android is currently disabled because it causes crashes sometimes.
         // 2. When updating the profile sample rate, make sure it will not blow up our current limit in Sentry.
-        profilesSampleRate: 0.1,
+        profilesSampleRate: 1,
         enableAutoPerformanceTracing: true,
         enableUserInteractionTracing: true,
         integrations,
