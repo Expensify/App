@@ -6,8 +6,8 @@
  * the `showStatic` prop.
  *
  * IMPORTANT - keeping visual parity:
- *  • If you change the UI of an interactive component (SearchPageTabSelector,
- *    SearchPageHeader, SearchFiltersBar), verify the matching Static* version
+ *  • If you change the UI of an interactive component (SearchTypeMenuNarrow,
+ *    SearchPageInputNarrow, SearchActionsBarNarrow), verify the matching Static* version
  *    still looks visually identical.
  *  • Static components intentionally avoid expensive hooks and Onyx reads.
  *    Do NOT add new subscriptions unless absolutely necessary for correctness.
