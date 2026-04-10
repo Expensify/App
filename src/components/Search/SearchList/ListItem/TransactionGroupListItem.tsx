@@ -535,6 +535,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
                     animatedHighlightStyle,
                     styles.userSelectNone,
                     isLargeScreenWidth && StyleUtils.getSearchTableGroupRowBorderStyle(isFirstItem, isLastItem, isItemSelected),
+                    isLargeScreenWidth && isLastItem && styles.overflowHidden,
                 ]}
             >
                 {({hovered}) => (

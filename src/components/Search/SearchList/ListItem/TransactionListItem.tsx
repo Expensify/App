@@ -212,7 +212,7 @@ function TransactionListItem<TItem extends ListItem>({
                     styles.flex1,
                     animatedHighlightStyle,
                     styles.userSelectNone,
-                    isLargeScreenWidth && isLastItem && styles.searchTableBottomRadius,
+                    isLargeScreenWidth && isLastItem && [styles.searchTableBottomRadius, styles.overflowHidden],
                 ]}
             >
                 {({hovered}) => (
