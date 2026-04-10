@@ -20,6 +20,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import Navigation from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
+import {isDeletedAction} from '@libs/ReportActionsUtils';
 import {startSpan} from '@libs/telemetry/activeSpans';
 import {getChatTabBrickRoad} from '@libs/WorkspacesSettingsUtils';
 import type {ReportsSplitNavigatorParamList} from '@navigation/types';
@@ -30,7 +31,7 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import type {Report} from '@src/types/onyx';
+import type {Report, ReportActions} from '@src/types/onyx';
 import getLastRoute from './getLastRoute';
 import NAVIGATION_TABS from './NAVIGATION_TABS';
 import SearchTabButton from './SearchTabButton';
@@ -61,7 +62,22 @@ function NavigationTabBar({selectedTab, shouldShowFloatingButtons = true}: Navig
         const route = getLastRoute(rootState, NAVIGATORS.REPORTS_SPLIT_NAVIGATOR, SCREENS.REPORT);
         return (route?.params as ReportsSplitNavigatorParamList[typeof SCREENS.REPORT])?.reportID;
     });
+
+    const lastReportRouteReportActionID = useRootNavigationState((rootState) => {
+        if (!rootState) {
+            return undefined;
+        }
+        const route = getLastRoute(rootState, NAVIGATORS.REPORTS_SPLIT_NAVIGATOR, SCREENS.REPORT);
+        return (route?.params as ReportsSplitNavigatorParamList[typeof SCREENS.REPORT])?.reportActionID;
+    });
+
     const [doesLastReportExist] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${lastReportRouteReportID}`, {selector: doesLastReportExistSelector}, [lastReportRouteReportID]);
+
+    const doesLastReportActionExistSelector = (reportActions: OnyxEntry<ReportActions>) => {
+        const reportAction = lastReportRouteReportActionID ? reportActions?.[lastReportRouteReportActionID] : undefined;
+        return !!reportAction && !isDeletedAction(reportAction);
+    };
+    const [doesLastReportActionExist] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${lastReportRouteReportID}`, {selector: doesLastReportActionExistSelector});
 
     const reportAttributes = useReportAttributes();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -103,7 +119,7 @@ function NavigationTabBar({selectedTab, shouldShowFloatingButtons = true}: Navig
             const lastRoute = rootState ? getLastRoute(rootState, NAVIGATORS.REPORTS_SPLIT_NAVIGATOR, SCREENS.REPORT) : undefined;
             if (lastRoute) {
                 const {reportID, reportActionID, referrer, backTo} = lastRoute.params as ReportsSplitNavigatorParamList[typeof SCREENS.REPORT];
-                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID, reportActionID, referrer, backTo));
+                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID, doesLastReportActionExist ? reportActionID : undefined, referrer, backTo));
                 return;
             }
         }
