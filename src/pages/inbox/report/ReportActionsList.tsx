@@ -3,7 +3,7 @@ import {isUserValidatedSelector} from '@selectors/Account';
 import {tierNameSelector} from '@selectors/UserWallet';
 import React, {useContext, useEffect, useState} from 'react';
 import type {LayoutChangeEvent} from 'react-native';
-import {InteractionManager, View} from 'react-native';
+import {View} from 'react-native';
 import {renderScrollComponent as renderActionSheetAwareScrollView} from '@components/ActionSheetAwareScrollView';
 import InvertedFlatList from '@components/FlatList/InvertedFlatList';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
@@ -17,7 +17,6 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useParentReportAction from '@hooks/useParentReportAction';
 import usePendingConciergeResponse from '@hooks/usePendingConciergeResponse';
-import usePrevious from '@hooks/usePrevious';
 import useReportActionsPagination from '@hooks/useReportActionsPagination';
 import useReportActionsScroll from '@hooks/useReportActionsScroll';
 import useReportActionsVisibility from '@hooks/useReportActionsVisibility';
@@ -137,23 +136,6 @@ function ReportActionsList({reportID, onLayout}: ReportActionsListProps) {
     const shouldFocusToTopOnMount = isTransactionThreadReport || isMoneyRequestOrInvoiceReport;
 
     const linkedReportActionID = pagination.reportActionID;
-    const prevTransactionThreadReport = usePrevious(pagination.transactionThreadReport);
-
-    // AutoScroll is disabled while navigating to a linked message to prevent
-    // autoscrollToTopThreshold from firing before the list settles on the target action.
-    const [isNavigatingToLinkedMessage, setIsNavigatingToLinkedMessage] = useState(!!linkedReportActionID);
-    useEffect(() => {
-        if (!linkedReportActionID) {
-            return;
-        }
-        setIsNavigatingToLinkedMessage(true);
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        const handle = InteractionManager.runAfterInteractions(() => {
-            const timer = setTimeout(() => setIsNavigatingToLinkedMessage(false), 10);
-            return () => clearTimeout(timer);
-        });
-        return () => handle.cancel();
-    }, [linkedReportActionID]);
 
     // "Mount scrolled to end" workaround for transaction threads and money request reports.
     // RN's FlatList has no native way to mount an inverted list at the end with variable-height items:
@@ -266,12 +248,6 @@ function ReportActionsList({reportID, onLayout}: ReportActionsListProps) {
 
     const shouldShowOfflineSkeleton = isOffline && !sortedVisibleReportActions.some((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED);
 
-    // AutoScroll is disabled when linking to a specific reportAction (isNavigatingToLinkedMessage)
-    // and re-enabled once the list settles. Also enabled when a transaction thread report just loaded.
-    const hasNewestReportAction = !linkedReportActionID || (pagination.hasNewerActions !== undefined && !pagination.hasNewerActions);
-    const shouldEnableAutoScroll =
-        (hasNewestReportAction && (!linkedReportActionID || !isNavigatingToLinkedMessage)) || (!!pagination.transactionThreadReport && !prevTransactionThreadReport);
-
     const extraData = [shouldUseNarrowLayout ? unreadMarkerReportActionID : undefined];
 
     const renderItem = ({item: reportAction, index}: ListRenderItemInfo<OnyxTypes.ReportAction>) => {
@@ -380,7 +356,7 @@ function ReportActionsList({reportID, onLayout}: ReportActionsListProps) {
                     extraData={extraData}
                     // changes only for comment linking
                     key={linkedReportActionID ? `${reportID}-${linkedReportActionID}` : reportID}
-                    shouldEnableAutoScrollToTopThreshold={shouldEnableAutoScroll}
+                    shouldEnableAutoScrollToTopThreshold={!pagination.hasNewerActions}
                     initialScrollKey={linkedReportActionID}
                     onContentSizeChange={() => {
                         scroll.trackVerticalScrolling(undefined);
