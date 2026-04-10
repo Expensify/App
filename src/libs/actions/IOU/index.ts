@@ -9577,6 +9577,7 @@ function updateMultipleMoneyRequests({
         if (changes.taxCode && supportsExpenseFields && canEditField(CONST.EDIT_REQUEST_FIELD.TAX_RATE)) {
             transactionChanges.taxCode = changes.taxCode;
             const taxValue = getTaxValue(transactionPolicy, transaction, changes.taxCode);
+            transactionChanges.taxValue = taxValue;
             const decimals = getCurrencyDecimals(getCurrency(transaction));
             const effectiveAmount = transactionChanges.amount !== undefined ? Math.abs(transactionChanges.amount) : Math.abs(getAmount(transaction));
             const taxAmount = calculateTaxAmount(taxValue, effectiveAmount, decimals);
@@ -9613,6 +9614,9 @@ function updateMultipleMoneyRequests({
         }
         if (transactionChanges.taxCode) {
             updates.taxCode = transactionChanges.taxCode;
+        }
+        if (transactionChanges.taxValue) {
+            updates.taxValue = transactionChanges.taxValue;
         }
         if (transactionChanges.taxAmount !== undefined) {
             updates.taxAmount = transactionChanges.taxAmount;
