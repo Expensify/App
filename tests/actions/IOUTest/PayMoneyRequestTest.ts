@@ -92,14 +92,6 @@ const RORY_ACCOUNT_ID = 3;
 
 OnyxUpdateManager();
 describe('actions/IOU/PayMoneyRequest', () => {
-    const currentUserPersonalDetails = {
-        ...createPersonalDetails(RORY_ACCOUNT_ID),
-        login: RORY_EMAIL,
-        email: RORY_EMAIL,
-        displayName: RORY_EMAIL,
-        avatar: 'https://example.com/avatar.jpg',
-    };
-
     beforeAll(() => {
         Onyx.init({
             keys: ONYXKEYS,
