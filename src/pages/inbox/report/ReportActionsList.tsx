@@ -259,10 +259,15 @@ function ReportActionsList({
      */
     const [unreadMarkerTime, setUnreadMarkerTime] = useState(reportLastReadTime);
     useEffect(() => {
+        // When lastReadTime is empty (e.g. data hasn't loaded yet after sign-in),
+        // skip the update so we don't place the marker at the wrong position.
+        if (reportLastReadTime === '') {
+            return;
+        }
         setUnreadMarkerTime(reportLastReadTime);
 
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [report.reportID, reportLastReadTime === '' ? 'empty' : 'populated']);
+    }, [report.reportID, reportLastReadTime]);
 
     const prevUnreadMarkerReportActionID = useRef<string | null>(null);
 
