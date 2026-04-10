@@ -101,4 +101,26 @@ describe('NetworkState — reachability recovery triggers reconnect', () => {
 
         expect(reconnectListener).not.toHaveBeenCalled();
     });
+
+    test('turning off force-offline resets prevIsInternetReachable so next refresh triggers reconnect', () => {
+        const reconnectListener = jest.fn();
+        onReachabilityConfirmed(reconnectListener);
+
+        // Boot event — sets prevIsInternetReachable to true
+        fireNetInfoState({isInternetReachable: true});
+        expect(reconnectListener).not.toHaveBeenCalled();
+
+        // Enable force-offline. Real network stays reachable throughout.
+        setForceOffline(true);
+        fireNetInfoState({isInternetReachable: true});
+        expect(reconnectListener).not.toHaveBeenCalled();
+
+        // Disable force-offline. This resets prevIsInternetReachable to null.
+        setForceOffline(false);
+
+        // NetInfo.refresh() would deliver current state — simulate that.
+        // With the fix, prevIsInternetReachable is null so null→true fires reconnect.
+        fireNetInfoState({isInternetReachable: true});
+        expect(reconnectListener).toHaveBeenCalledTimes(1);
+    });
 });

@@ -132,6 +132,11 @@ function setForceOffline(force: boolean) {
     updateState();
 
     if (!force) {
+        // Reset so the NetInfo listener sees a genuine transition (e.g. null→true)
+        // and fires onReachabilityRestored(). Without this, prevIsInternetReachable
+        // is already true (we track real state during force-offline) so the listener
+        // sees true→true and skips reconnect.
+        prevIsInternetReachable = null;
         NetInfo.refresh();
     }
 }
@@ -190,6 +195,9 @@ function simulatePoorConnection(shouldSimulate: boolean) {
         poorConnectionTimerID = undefined;
         simulatedOffline = false;
         updateState();
+
+        // Reset so NetInfo listener sees a transition and fires onReachabilityRestored().
+        prevIsInternetReachable = null;
         NetInfo.refresh();
     }
 }
