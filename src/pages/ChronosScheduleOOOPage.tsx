@@ -5,6 +5,8 @@ import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import NumberWithSymbolForm from '@components/NumberWithSymbolForm';
+import PercentageForm from '@components/PercentageForm';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TextInput from '@components/TextInput';
 import ValuePicker from '@components/ValuePicker';
@@ -16,6 +18,7 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {buildOOOCommand} from '@libs/ChronosUtils';
 import {addErrorMessage} from '@libs/ErrorUtils';
+import {replaceCommasWithPeriod} from '@libs/MoneyRequestUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ChronosScheduleOOONavigatorParamList} from '@navigation/types';
@@ -57,12 +60,12 @@ function ChronosScheduleOOOPage({route}: ChronosScheduleOOOPageProps) {
         }
 
         const durationAmount = values[INPUT_IDS.DURATION_AMOUNT]?.trim();
-        if (durationAmount && !/^\d+$/.test(durationAmount)) {
+        if (durationAmount && !/^\d+(\.\d+)?$/.test(replaceCommasWithPeriod(durationAmount))) {
             addErrorMessage(errors, INPUT_IDS.DURATION_AMOUNT, translate('chronos.enterANumber'));
         }
 
         const percentage = values[INPUT_IDS.WORKING_PERCENTAGE]?.replaceAll('%', '').trim();
-        if (percentage && !/^\d+$/.test(percentage)) {
+        if (percentage && !/^\d+(\.\d+)?$/.test(replaceCommasWithPeriod(percentage))) {
             addErrorMessage(errors, INPUT_IDS.WORKING_PERCENTAGE, translate('chronos.enterANumber'));
         }
 
@@ -130,13 +133,17 @@ function ChronosScheduleOOOPage({route}: ChronosScheduleOOOPageProps) {
                 <View style={[styles.flexRow, styles.gap2, styles.mb4]}>
                     <View style={styles.flex1}>
                         <InputWrapper
-                            InputComponent={TextInput}
+                            InputComponent={NumberWithSymbolForm}
                             inputID={INPUT_IDS.DURATION_AMOUNT}
                             label={translate('chronos.durationAmount')}
-                            accessibilityLabel={translate('chronos.durationAmount')}
-                            role={CONST.ROLE.PRESENTATION}
-                            inputMode={CONST.INPUT_MODE.NUMERIC}
-                            placeholder="1"
+                            displayAsTextInput
+                            hideSymbol
+                            symbol=""
+                            shouldShowCurrencyButton={false}
+                            shouldShowBigNumberPad={false}
+                            shouldWrapInputInContainer={false}
+                            decimals={0}
+                            isSymbolPressable={false}
                         />
                     </View>
                     <View style={styles.flex1}>
@@ -161,13 +168,11 @@ function ChronosScheduleOOOPage({route}: ChronosScheduleOOOPageProps) {
                 </View>
                 <View style={styles.mb4}>
                     <InputWrapper
-                        InputComponent={TextInput}
+                        InputComponent={PercentageForm}
                         inputID={INPUT_IDS.WORKING_PERCENTAGE}
                         label={translate('chronos.workingPercentage')}
-                        accessibilityLabel={translate('chronos.workingPercentage')}
+                        allowDecimal
                         role={CONST.ROLE.PRESENTATION}
-                        inputMode={CONST.INPUT_MODE.NUMERIC}
-                        placeholder="0"
                     />
                 </View>
             </FormProvider>
