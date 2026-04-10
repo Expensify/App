@@ -469,6 +469,8 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                         isRestrictedToPreferredPolicy,
                         preferredPolicyID,
                         transaction: iouTransaction,
+                        currentUserAccountID: currentUserPersonalDetails.accountID,
+                        currentUserEmail: currentUserPersonalDetails.email ?? '',
                     });
                 },
             });
@@ -491,6 +493,8 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                             amountOwed,
                             ownerBillingGracePeriodEnd,
                             transaction: iouTransaction,
+                            currentUserAccountID: currentUserPersonalDetails.accountID,
+                            currentUserEmail: currentUserPersonalDetails.email ?? '',
                         });
                     },
                 });
@@ -512,6 +516,8 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                             amountOwed,
                             ownerBillingGracePeriodEnd,
                             transaction: iouTransaction,
+                            currentUserAccountID: currentUserPersonalDetails.accountID,
+                            currentUserEmail: currentUserPersonalDetails.email ?? '',
                         });
                     },
                 });

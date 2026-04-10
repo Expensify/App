@@ -540,6 +540,8 @@ describe('actions/IOU', () => {
                 userBillingGracePeriodEnds: undefined,
                 amountOwed: 0,
                 transaction: transactionToCategorize,
+                currentUserAccountID: RORY_ACCOUNT_ID,
+                currentUserEmail: RORY_EMAIL,
             });
             await waitForBatchedUpdates();
 
@@ -588,6 +590,8 @@ describe('actions/IOU', () => {
                 userBillingGracePeriodEnds: undefined,
                 amountOwed: 0,
                 transaction: originalTransaction,
+                currentUserAccountID: RORY_ACCOUNT_ID,
+                currentUserEmail: RORY_EMAIL,
             });
             await waitForBatchedUpdates();
 
@@ -625,6 +629,8 @@ describe('actions/IOU', () => {
                 userBillingGracePeriodEnds: undefined,
                 amountOwed: 0,
                 transaction: undefined,
+                currentUserAccountID: RORY_ACCOUNT_ID,
+                currentUserEmail: RORY_EMAIL,
             });
             await waitForBatchedUpdates();
 
@@ -657,6 +663,8 @@ describe('actions/IOU', () => {
                 transaction,
                 userBillingGracePeriodEnds: undefined,
                 amountOwed: 0,
+                currentUserAccountID: RORY_ACCOUNT_ID,
+                currentUserEmail: RORY_EMAIL,
             });
             await waitForBatchedUpdates();
 
