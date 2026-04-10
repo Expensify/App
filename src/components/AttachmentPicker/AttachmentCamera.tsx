@@ -227,6 +227,7 @@ function AttachmentCamera({isVisible, onCapture, onClose}: AttachmentCameraProps
                         role={CONST.ROLE.BUTTON}
                         accessibilityLabel={translate('common.close')}
                         onPress={handleClose}
+                        sentryLabel="AttachmentCamera-Close"
                     >
                         <Icon
                             height={variables.iconSizeNormal}
@@ -301,6 +302,7 @@ function AttachmentCamera({isVisible, onCapture, onClose}: AttachmentCameraProps
                         style={[styles.alignItemsStart, !hasFlash && styles.opacity0]}
                         disabled={cameraPermissionStatus !== RESULTS.GRANTED || !hasFlash}
                         onPress={() => setFlash((prevFlash) => !prevFlash)}
+                        sentryLabel="AttachmentCamera-Flash"
                     >
                         <Icon
                             height={variables.iconSizeMenuItem}
@@ -316,6 +318,7 @@ function AttachmentCamera({isVisible, onCapture, onClose}: AttachmentCameraProps
                         accessibilityLabel={translate('receipt.shutter')}
                         style={[styles.alignItemsCenter]}
                         onPress={capturePhoto}
+                        sentryLabel="AttachmentCamera-Shutter"
                     >
                         <ImageSVG
                             contentFit="contain"
@@ -332,6 +335,7 @@ function AttachmentCamera({isVisible, onCapture, onClose}: AttachmentCameraProps
                         style={[styles.alignItemsEnd]}
                         disabled={cameraPermissionStatus !== RESULTS.GRANTED}
                         onPress={() => setCameraPosition((prev) => (prev === 'back' ? 'front' : 'back'))}
+                        sentryLabel="AttachmentCamera-FlipCamera"
                     >
                         <Icon
                             height={variables.iconSizeMenuItem}
