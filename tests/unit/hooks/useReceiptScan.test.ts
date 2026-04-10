@@ -5,6 +5,7 @@ import Onyx from 'react-native-onyx';
 import useReceiptScan from '@pages/iou/request/step/IOURequestStepScan/hooks/useReceiptScan';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import SCREENS from '@src/SCREENS';
 import type {Report, Transaction} from '@src/types/onyx';
 import waitForBatchedUpdatesWithAct from '../../utils/waitForBatchedUpdatesWithAct';
 
@@ -42,7 +43,7 @@ jest.mock('@userActions/TransactionEdit', () => ({
     buildOptimisticTransactionAndCreateDraft: (...args: unknown[]) => mockBuildOptimisticTransactionAndCreateDraft(...args),
 }));
 
-jest.mock('@userActions/IOU', () => ({
+jest.mock('@userActions/IOU/Receipt', () => ({
     setMoneyRequestReceipt: (...args: unknown[]) => mockSetMoneyRequestReceipt(...args),
 }));
 
@@ -62,6 +63,7 @@ function createDefaultParams(): Parameters<typeof useReceiptScan>[0] {
         getSource: (file: {uri?: string}) => file?.uri ?? 'file://image.png',
         backTo: undefined,
         backToReport: undefined,
+        routeName: SCREENS.MONEY_REQUEST.CREATE,
     };
 }
 
@@ -361,11 +363,6 @@ describe('useReceiptScan', () => {
             const {result} = renderHook(() => useReceiptScan(params));
             await waitForBatchedUpdatesWithAct();
 
-            await act(async () => {
-                result.current.setIsMultiScanEnabled(false);
-            });
-            await waitForBatchedUpdatesWithAct();
-
             const files = [{uri: 'file://receipt.jpg', name: 'receipt.jpg', type: 'image/jpeg'}];
             await act(async () => {
                 result.current.validateFiles(files);
@@ -408,7 +405,7 @@ describe('useReceiptScan', () => {
         });
 
         it('should not call removeDraftTransactionsByIDs when isStartingScan is false', async () => {
-            const nonStartingParams = {...params, action: CONST.IOU.ACTION.SUBMIT};
+            const nonStartingParams = {...params, routeName: SCREENS.MONEY_REQUEST.STEP_SCAN};
             const {result} = renderHook(() => useReceiptScan(nonStartingParams));
             await waitForBatchedUpdatesWithAct();
 
@@ -429,11 +426,6 @@ describe('useReceiptScan', () => {
             await waitForBatchedUpdatesWithAct();
 
             const {result} = renderHook(() => useReceiptScan(params));
-            await waitForBatchedUpdatesWithAct();
-
-            await act(async () => {
-                result.current.setIsMultiScanEnabled(false);
-            });
             await waitForBatchedUpdatesWithAct();
 
             const files = [{uri: 'file://receipt.jpg', name: 'receipt.jpg', type: 'image/jpeg'}];

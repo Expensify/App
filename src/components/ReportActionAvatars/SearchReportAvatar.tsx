@@ -12,9 +12,12 @@ type SearchReportAvatarProps = {
     shouldShowTooltip: boolean;
     subscriptAvatarBorderColor: ColorValue;
     reportID: string;
+    isLargeScreenWidth?: boolean;
 };
 
-function SearchReportAvatar({primaryAvatar, secondaryAvatar, avatarType, shouldShowTooltip, subscriptAvatarBorderColor, reportID}: SearchReportAvatarProps) {
+function SearchReportAvatar({primaryAvatar, secondaryAvatar, avatarType, shouldShowTooltip, subscriptAvatarBorderColor, reportID, isLargeScreenWidth}: SearchReportAvatarProps) {
+    const avatarSize = isLargeScreenWidth ? CONST.AVATAR_SIZE.SMALL : CONST.AVATAR_SIZE.DEFAULT;
+
     if (!primaryAvatar) {
         return null;
     }
@@ -24,7 +27,7 @@ function SearchReportAvatar({primaryAvatar, secondaryAvatar, avatarType, shouldS
             <ReportActionAvatar.Subscript
                 primaryAvatar={primaryAvatar}
                 secondaryAvatar={secondaryAvatar}
-                size={CONST.AVATAR_SIZE.DEFAULT}
+                size={avatarSize}
                 shouldShowTooltip={shouldShowTooltip}
                 noRightMarginOnContainer={false}
                 subscriptAvatarBorderColor={subscriptAvatarBorderColor}
@@ -37,7 +40,7 @@ function SearchReportAvatar({primaryAvatar, secondaryAvatar, avatarType, shouldS
         return (
             <ReportActionAvatar.Multiple.Diagonal
                 icons={[primaryAvatar, secondaryAvatar]}
-                size={CONST.AVATAR_SIZE.DEFAULT}
+                size={avatarSize}
                 shouldShowTooltip={shouldShowTooltip}
                 isInReportAction={false}
                 useMidSubscriptSize={false}
@@ -49,7 +52,7 @@ function SearchReportAvatar({primaryAvatar, secondaryAvatar, avatarType, shouldS
     return (
         <ReportActionAvatar.Single
             avatar={primaryAvatar}
-            size={CONST.AVATAR_SIZE.DEFAULT}
+            size={avatarSize}
             shouldShowTooltip={shouldShowTooltip}
             accountID={Number(primaryAvatar?.id ?? CONST.DEFAULT_NUMBER_ID)}
             fallbackIcon={primaryAvatar?.fallbackIcon}

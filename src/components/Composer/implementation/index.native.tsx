@@ -6,12 +6,14 @@ import {StyleSheet} from 'react-native';
 import type {ComposerProps} from '@components/Composer/types';
 import type {AnimatedMarkdownTextInputRef} from '@components/RNMarkdownTextInput';
 import RNMarkdownTextInput from '@components/RNMarkdownTextInput';
+import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import useMarkdownStyle from '@hooks/useMarkdownStyle';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {containsOnlyEmojis} from '@libs/EmojiUtils';
 import {splitExtensionFromFileName} from '@libs/fileDownload/FileUtils';
+import getLandscapeTextInputRefProxy from '@libs/getLandscapeTextInputRefProxy';
 import Parser from '@libs/Parser';
 import getFileSize from '@pages/Share/getFileSize';
 import CONST from '@src/CONST';
@@ -42,6 +44,7 @@ function Composer({
     const markdownStyle = useMarkdownStyle(textContainsOnlyEmojis, !isGroupPolicyReport ? excludeReportMentionStyle : excludeNoStyles);
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+    const isInLandscapeMode = useIsInLandscapeMode();
 
     useEffect(() => {
         if (!textInput.current || !textInput.current.setSelection || !selection || isComposerFullSize) {
@@ -66,19 +69,23 @@ function Composer({
      * Set the TextInput Ref
      * @param {Element} el
      */
-    const setTextInputRef = useCallback((el: AnimatedMarkdownTextInputRef | null) => {
-        textInput.current = el;
-        if (typeof ref !== 'function' || textInput.current === null) {
-            return;
-        }
+    const setTextInputRef = useCallback(
+        (el: AnimatedMarkdownTextInputRef | null) => {
+            textInput.current = isInLandscapeMode ? getLandscapeTextInputRefProxy(el) : el;
 
-        // This callback prop is used by the parent component using the constructor to
-        // get a ref to the inner textInput element e.g. if we do
-        // <constructor ref={el => this.textInput = el} /> this will not
-        // return a ref to the component, but rather the HTML element by default
-        ref(textInput.current);
+            if (typeof ref !== 'function' || textInput.current === null) {
+                return;
+            }
+
+            // This callback prop is used by the parent component using the constructor to
+            // get a ref to the inner textInput element e.g. if we do
+            // <constructor ref={el => this.textInput = el} /> this will not
+            // return a ref to the component, but rather the HTML element by default
+            ref(textInput.current);
+        },
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+        [isInLandscapeMode],
+    );
 
     const onClear = useCallback(
         ({nativeEvent}: TextInputChangeEvent) => {
@@ -125,9 +132,11 @@ function Composer({
             markdownStyle={markdownStyle}
             /* eslint-disable-next-line react/jsx-props-no-spreading */
             {...props}
+            autoFocus={isInLandscapeMode ? false : props.autoFocus}
             readOnly={isDisabled}
             onPaste={pasteFile}
             onClear={onClear}
+            disableFullscreenUI
         />
     );
 }
