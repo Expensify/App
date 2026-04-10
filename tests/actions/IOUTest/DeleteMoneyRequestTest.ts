@@ -12,7 +12,7 @@ import {subscribeToUserEvents} from '@libs/actions/User';
 import {getLoginsByAccountIDs} from '@libs/PersonalDetailsUtils';
 import {getOriginalMessage, getReportActionMessage, getReportActionText, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import type {OptimisticChatReport} from '@libs/ReportUtils';
-import {buildOptimisticIOUReportAction, buildTransactionThread, isIOUReport} from '@libs/ReportUtils';
+import {buildTransactionThread, isIOUReport} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
@@ -21,6 +21,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {IntroSelected, Report} from '@src/types/onyx';
 import type ReportAction from '@src/types/onyx/ReportAction';
+import type {ReportActions} from '@src/types/onyx/ReportAction';
 import type Transaction from '@src/types/onyx/Transaction';
 import createRandomReportAction from '../../utils/collections/reportActions';
 import {createRandomReport} from '../../utils/collections/reports';
@@ -1430,7 +1431,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
             const reportActionsForIOUReport = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport?.iouReportID}`];
             createIOUAction = Object.values(reportActionsForIOUReport ?? {}).find(
                 (reportAction): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> =>
-                    isMoneyRequestAction(reportAction) && reportAction.reportActionID === createIOUAction?.reportActionID,
+                    isMoneyRequestAction(reportAction as ReportAction) && (reportAction as ReportAction).reportActionID === createIOUAction?.reportActionID,
             );
             expect(createIOUAction).toBeTruthy();
             expect(createIOUAction?.childVisibleActionCount).toEqual(1);
