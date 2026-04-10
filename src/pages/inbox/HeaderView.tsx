@@ -217,7 +217,7 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
     const shouldShowDiscount = useMemo(
         () =>
             shouldShowDiscountBanner(
-                currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID,
+                currentUserAccountID,
                 hasTeam2025Pricing,
                 subscriptionPlan,
                 firstDayFreeTrial,

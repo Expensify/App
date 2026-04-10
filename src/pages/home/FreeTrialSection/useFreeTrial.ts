@@ -43,7 +43,7 @@ function useFreeTrial(): FreeTrialState {
     const hasPaymentCard = doesUserHavePaymentCardAdded(userBillingFundID);
     const hasOwnedPaidPolicies = getOwnedPaidPolicies(allPolicies, accountID).length > 0;
     const showDiscount = shouldShowDiscountBanner(
-        accountID ?? CONST.DEFAULT_NUMBER_ID,
+        accountID,
         hasTeam2025Pricing,
         subscriptionPlan,
         firstDayFreeTrial,
