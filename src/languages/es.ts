@@ -966,6 +966,14 @@ const translations: TranslationDeepObject<typeof en> = {
                 fireworksDescription: 'Las próximas tareas aparecerán aquí.',
             },
         },
+        gettingStartedSection: {
+            title: 'Primeros pasos',
+            createWorkspace: 'Crear un espacio de trabajo',
+            connectAccounting: ({integrationName}: {integrationName: string}) => `Conectar con ${integrationName}`,
+            customizeCategories: 'Personalizar categorías contables',
+            linkCompanyCards: 'Vincular tarjetas corporativas',
+            setupRules: 'Configurar reglas de gasto',
+        },
         upcomingTravel: 'Próximos viajes',
         upcomingTravelSection: {
             flightTo: ({destination}: {destination: string}) => `Vuelo a ${destination}`,

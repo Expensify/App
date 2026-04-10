@@ -1043,6 +1043,14 @@ const translations: TranslationDeepObject<typeof en> = {
                 other: (pluralCount: number) => `Tempo rimanente: ${pluralCount} giorni`,
             }),
         },
+        gettingStartedSection: {
+            title: 'Per iniziare',
+            createWorkspace: 'Crea uno spazio di lavoro',
+            connectAccounting: ({integrationName}: {integrationName: string}) => `Connetti a ${integrationName}`,
+            customizeCategories: 'Personalizza le categorie contabili',
+            linkCompanyCards: 'Collega carte aziendali',
+            setupRules: 'Configura le regole di spesa',
+        },
     },
     allSettingsScreen: {
         subscription: 'Abbonamento',

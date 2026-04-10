@@ -1009,6 +1009,14 @@ const translations: TranslationDeepObject<typeof en> = {
                 other: (pluralCount: number) => `剩余时间：${pluralCount}天`,
             }),
         },
+        gettingStartedSection: {
+            title: '入门',
+            createWorkspace: '创建工作区',
+            connectAccounting: ({integrationName}: {integrationName: string}) => `连接到 ${integrationName}`,
+            customizeCategories: '自定义会计类别',
+            linkCompanyCards: '关联公司卡',
+            setupRules: '设置消费规则',
+        },
     },
     allSettingsScreen: {
         subscription: '订阅',

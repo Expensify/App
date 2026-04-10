@@ -1026,6 +1026,14 @@ const translations: TranslationDeepObject<typeof en> = {
                 other: (pluralCount: number) => `残り時間：${pluralCount}日`,
             }),
         },
+        gettingStartedSection: {
+            title: 'はじめに',
+            createWorkspace: 'ワークスペースを作成',
+            connectAccounting: ({integrationName}: {integrationName: string}) => `${integrationName}に接続する`,
+            customizeCategories: '会計カテゴリをカスタマイズする',
+            linkCompanyCards: '会社カードを連携',
+            setupRules: '支出ルールを設定',
+        },
     },
     allSettingsScreen: {
         subscription: 'サブスクリプション',
