@@ -1727,6 +1727,10 @@ function getToFieldValueForTransaction(
     return emptyPersonalDetails;
 }
 
+function getTransactionPendingAction(transactionItem: OnyxTypes.Transaction): OnyxTypes.Transaction['pendingAction'] {
+    return transactionItem.pendingAction ?? (transactionItem.pendingFields ? Object.values(transactionItem.pendingFields).find(Boolean) : undefined);
+}
+
 /**
  * @private
  * Organizes data into List Sections for display, for the TransactionListItemType of Search Results.
@@ -1818,8 +1822,10 @@ function getTransactionsSections({
             const actions = reportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionItem.reportID}`] ?? [];
             const reportMetadata = allReportMetadata?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${transactionItem.reportID}`] ?? {};
             const allActions = getActions(data, allViolations, key, currentSearch, currentUserEmail, currentAccountID, bankAccountList, reportMetadata, actions);
+            const transactionPendingAction = getTransactionPendingAction(transactionItem);
             const transactionSection: TransactionListItemType = {
                 ...transactionItem,
+                ...(transactionPendingAction ? {pendingAction: transactionPendingAction} : {}),
                 keyForList: transactionItem.transactionID,
                 action: getAction(allActions),
                 allActions,
@@ -2520,8 +2526,10 @@ function getReportSections({
 
             const transactionReportMetadata = allReportMetadata?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${transactionItem.reportID}`] ?? {};
             const allActions = getActions(data, allViolations, key, currentSearch, currentUserEmail, currentAccountID, bankAccountList, transactionReportMetadata, actions);
+            const transactionPendingAction = getTransactionPendingAction(transactionItem);
             const transaction = {
                 ...transactionItem,
+                ...(transactionPendingAction ? {pendingAction: transactionPendingAction} : {}),
                 action: getAction(allActions),
                 allActions,
                 report,
