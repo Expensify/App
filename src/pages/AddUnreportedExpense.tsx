@@ -10,18 +10,17 @@ import type {ListItem, SelectionListHandle} from '@components/SelectionList/type
 import UnreportedExpensesSkeleton from '@components/Skeletons/UnreportedExpensesSkeleton';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
+import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import {fetchUnreportedExpenses} from '@libs/actions/UnreportedExpenses';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
-import isInLandscapeMode from '@libs/isInLandscapeMode';
 import type {AddUnreportedExpensesParamList} from '@libs/Navigation/types';
 import {canSubmitPerDiemExpenseFromWorkspace, getPerDiemCustomUnit} from '@libs/PolicyUtils';
 import {getTransactionDetails, isIOUReport} from '@libs/ReportUtils';
@@ -65,8 +64,7 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const shouldShowUnreportedTransactionsSkeletons = isLoadingUnreportedTransactions && hasMoreUnreportedTransactionsResults && !isOffline;
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
-    const {windowHeight, windowWidth} = useWindowDimensions();
-
+    const isInLandscapeMode = useIsInLandscapeMode();
     const initialSkeletonReasonAttributes: SkeletonSpanReasonAttributes = {
         context: 'AddUnreportedExpense.InitialSkeleton',
         isLoadingUnreportedTransactions,
@@ -290,7 +288,7 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
                 />
                 <ScrollView contentContainerStyle={[styles.flexGrow1]}>
                     <EmptyStateComponent
-                        minModalHeight={isInLandscapeMode(windowWidth, windowHeight) ? 0 : undefined}
+                        minModalHeight={isInLandscapeMode ? 0 : undefined}
                         cardStyles={[styles.appBG]}
                         cardContentStyles={[styles.pb0]}
                         headerMedia={illustrations.FolderWithPapersAndWatch}
