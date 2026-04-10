@@ -1,8 +1,8 @@
 ---
 title: Expensify Home Overview
 description: Learn what you’ll see on Home and how it helps you understand what needs attention, get oriented, and stay informed when you sign in. 
-keywords: [New Expensify, Expensify Home, Home, Home tab, For you, Discover, Announcements, time-sensitive, urgent alerts, Expensify Card fraud, broken bank connection, assigned cards, Expensify Card limit, available limit, available balance, Spend over time, spending chart, insights]
-internalScope: Audience is all Expensify members. Covers what Home is and what appears on it, including the For you, Spend over time, Discover, Announcements, Time-sensitive, and Assigned cards sections. Does not cover how to complete actions like submitting, approving, paying, exporting, or fixing expenses.
+keywords: [New Expensify, Expensify Home, Home, Home tab, For you, Discover, Announcements, time-sensitive, urgent alerts, Expensify Card fraud, broken bank connection, assigned cards, Expensify Card limit, available limit, available balance, Spend over time, spending chart, insights, Getting started, onboarding checklist]
+internalScope: Audience is all Expensify members. Covers what Home is and what appears on it, including the For you, Spend over time, Discover, Announcements, Time-sensitive, Getting started, and Assigned cards sections. Does not cover how to complete actions like submitting, approving, paying, exporting, or fixing expenses.
 
 ---
 
@@ -33,6 +33,7 @@ Home includes:
 - **Time-sensitive alerts** (when applicable)
 - **For you**
 - **Spend over time** (when applicable)
+- **Getting started** (when applicable)
 - **Discover**
 - **Announcements**
 - **Assigned cards** (when applicable)
@@ -76,6 +77,27 @@ The **Spend over time** section displays a line chart showing your workspace spe
 This section is available to Workspace Admins, Auditors, and approvers on paid workspaces that have transaction data. Click **View** to open the full **Spend over time** chart on the Search page.
 
 If you don't hold one of these roles or your workspace has no transactions yet, this section won't appear.
+
+---
+
+## How the Getting started section works on Home
+
+The **Getting started** section shows a checklist of key setup steps to help new Workspace Admins configure their workspace during onboarding.
+
+This section appears when:
+- You selected the **manage my team** intent during onboarding
+- You are within the free trial period (60 days from trial start)
+- You have an active paid workspace
+
+The checklist can include up to four items:
+- **Create a workspace** — always shown and marked complete
+- **Connect to [accounting system]** — shown if you selected a direct-connect integration (such as QuickBooks Online, QuickBooks Desktop, Xero, NetSuite, or Sage Intacct) during onboarding. Otherwise, **Customize accounting categories** appears instead
+- **Link company cards** — shown if company cards are enabled on the workspace
+- **Set up spend rules** — shown if rules are enabled on the workspace
+
+Each item links to the relevant workspace setting. Completed items show a filled checkmark, and incomplete items show an empty checkbox.
+
+If none of the conditions above apply, this section will not appear.
 
 ---
 
@@ -128,6 +150,10 @@ The **Time-sensitive** section only appears when there is an urgent issue or lim
 ## Why don’t I see the Spend over time section?
 
 The **Spend over time** section only appears if you are a Workspace Admin, Auditor, or approver on a paid workspace that has existing transactions. If you don't hold one of these roles, or your workspace has no transactions yet, this section won't be visible.
+
+## Why don’t I see the Getting started section?
+
+The **Getting started** section only appears if you selected the **manage my team** intent during onboarding, you are within 60 days of your free trial start date, and you have an active paid workspace. If any of these conditions are not met, the section won’t be visible.
 
 ## Why don’t I see the Assigned cards section?
 
