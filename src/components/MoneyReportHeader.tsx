@@ -22,7 +22,6 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
-import useNonReimbursablePaymentModal from '@hooks/useNonReimbursablePaymentModal';
 import useOnyx from '@hooks/useOnyx';
 import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
 import useParticipantsInvoiceReport from '@hooks/useParticipantsInvoiceReport';
@@ -465,7 +464,6 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
 
     const shouldDisplayNarrowMoreButton = !shouldDisplayNarrowVersion || isWideRHPDisplayedOnWideLayout || isSuperWideRHPDisplayedOnWideLayout;
 
-    const {showNonReimbursablePaymentErrorModal, shouldBlockDirectPayment} = useNonReimbursablePaymentModal(moneyRequestReport, transactions);
     const {openHoldMenu, openPDFDownload, openHoldEducational, openRejectModal} = useMoneyReportHeaderModals();
 
     const showExportProgressModal = useCallback(() => {
@@ -562,10 +560,6 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
             if (!type || !chatReport) {
                 return;
             }
-            if (shouldBlockDirectPayment(type)) {
-                showNonReimbursablePaymentErrorModal();
-                return;
-            }
             const isFromSelectionMode = isSelectionModePaymentRef.current;
             if (isDelegateAccessRestricted) {
                 showDelegateNoAccessModal();
@@ -654,8 +648,6 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
             isAnyTransactionOnHold,
             isInvoiceReport,
             showDelegateNoAccessModal,
-            showNonReimbursablePaymentErrorModal,
-            shouldBlockDirectPayment,
             openHoldMenu,
             startAnimation,
             moneyRequestReport,
