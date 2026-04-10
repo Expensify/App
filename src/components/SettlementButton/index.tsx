@@ -107,10 +107,8 @@ function SettlementButton({
     const {isOffline} = useNetwork();
     const policy = usePolicy(policyID);
     const {accountID, email} = useCurrentUserPersonalDetails();
-
     // The app would crash due to subscribing to the entire report collection if chatReportID is an empty string. So we should have a fallback ID here.
     // eslint-disable-next-line rulesdir/no-default-id-values
-    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`);
     const [conciergeReportID = ''] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [iouReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${iouReport?.reportID}`);
@@ -279,7 +277,7 @@ function SettlementButton({
     };
 
     const canUseWallet = !isExpenseReport && !isInvoiceReport && isCurrencySupportedForGlobalReimbursement(currency as CurrencyType);
-    const canUseBusinessBankAccount = isExpenseReport || (isIOUReport(iouReport) && reportID && !hasRequestFromCurrentAccount(reportID, accountID ?? CONST.DEFAULT_NUMBER_ID, allReports));
+    const canUseBusinessBankAccount = isExpenseReport || (isIOUReport(iouReport) && reportID && !hasRequestFromCurrentAccount(iouReport, accountID ?? CONST.DEFAULT_NUMBER_ID));
     const canUsePersonalBankAccount = shouldShowPersonalBankAccountOption || isIOUReport(iouReport);
     const isPersonalOnlyOption = canUsePersonalBankAccount && !canUseBusinessBankAccount;
 

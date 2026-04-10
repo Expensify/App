@@ -11302,25 +11302,21 @@ describe('ReportUtils', () => {
             expect(result).toEqual(mockOnyxReport);
         });
 
-        test('returns report from explicit allReports parameter instead of Onyx state', async () => {
+        test('returns explicit report parameter instead of Onyx state', async () => {
             const explicitReport: Report = {
                 ...createRandomReport(mockReportIDIndex, undefined),
                 reportName: 'Explicit Report',
                 type: CONST.REPORT.TYPE.CHAT,
             };
-            const explicitAllReports = {
-                [`${ONYXKEYS.COLLECTION.REPORT}${mockReportID}`]: explicitReport,
-            };
             // Set a different report in Onyx to verify the explicit param takes precedence
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${mockReportID}`, mockOnyxReport);
-            const result = getReportOrDraftReport(mockReportID, undefined, undefined, undefined, explicitAllReports);
+            const result = getReportOrDraftReport(mockReportID, undefined, undefined, undefined, explicitReport);
             expect(result).toEqual(explicitReport);
             expect(result).not.toEqual(mockOnyxReport);
         });
 
-        test('returns undefined when explicit allReports does not contain the report', () => {
-            const explicitAllReports = {};
-            const result = getReportOrDraftReport(mockReportID, undefined, undefined, undefined, explicitAllReports);
+        test('returns undefined when explicit report is undefined and no Onyx state', () => {
+            const result = getReportOrDraftReport(mockReportID, undefined, undefined, undefined, undefined);
             expect(result).toBeUndefined();
         });
     });

@@ -1288,10 +1288,10 @@ function getReportOrDraftReport(
     searchReports?: Array<OnyxEntry<Report>>,
     fallbackReport?: Report,
     reportDrafts?: OnyxCollection<Report>,
-    allReports: OnyxCollection<Report> = deprecatedAllReports,
+    report?: OnyxEntry<Report>,
 ): OnyxEntry<Report> {
-    const searchReport = searchReports?.find((report) => report?.reportID === reportID);
-    const onyxReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+    const searchReport = searchReports?.find((searchItem) => searchItem?.reportID === reportID);
+    const onyxReport = report ?? deprecatedAllReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
     return searchReport ?? onyxReport ?? (reportDrafts ?? allReportsDraft)?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${reportID}`] ?? fallbackReport;
 }
 

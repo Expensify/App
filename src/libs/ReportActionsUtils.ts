@@ -2419,7 +2419,8 @@ function getReportActionMessageFragments(translate: LocalizedTranslate, action: 
  * @param currentAccountID
  * @returns
  */
-function hasRequestFromCurrentAccount(reportID: string | undefined, currentAccountID: number, allReportsParam: OnyxCollection<Report>): boolean {
+function hasRequestFromCurrentAccount(report: OnyxEntry<Report>, currentAccountID: number): boolean {
+    const reportID = report?.reportID;
     if (!reportID) {
         return false;
     }
@@ -2427,8 +2428,8 @@ function hasRequestFromCurrentAccount(reportID: string | undefined, currentAccou
     const reportActions = Object.values(getAllReportActions(reportID));
     if (reportActions.length === 0) {
         // In case the reportActions of the report have not been loaded, we will check based on the transactions.
-        const report = getReportOrDraftReport(reportID, undefined, undefined, undefined, allReportsParam);
-        return doesReportContainRequestsFromMultipleUsers(report, true);
+        const resolvedReport = getReportOrDraftReport(reportID, undefined, undefined, undefined, report);
+        return doesReportContainRequestsFromMultipleUsers(resolvedReport, true);
     }
 
     return reportActions.some((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && action.actorAccountID === currentAccountID && !isDeletedAction(action));

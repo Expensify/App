@@ -716,9 +716,9 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                         );
                         return;
                     }
-                    const invite = moveIOUReportToPolicyAndInviteSubmitter(itemReport, adminPolicy, formatPhoneNumber, policyExpenseChatReportActions, allReports, reportTransactions);
+                    const invite = moveIOUReportToPolicyAndInviteSubmitter(itemReport, adminPolicy, formatPhoneNumber, policyExpenseChatReportActions, reportTransactions);
                     if (!invite?.policyExpenseChatReportID) {
-                        moveIOUReportToPolicy(itemReport, adminPolicy, allReports, false, reportTransactions);
+                        moveIOUReportToPolicy(itemReport, adminPolicy, false, reportTransactions);
                     }
                 }
             }

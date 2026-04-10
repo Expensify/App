@@ -55,7 +55,6 @@ function ReportChangeWorkspacePage({report, route}: ReportChangeWorkspacePagePro
     const {translate, formatPhoneNumber, localeCompare} = useLocalize();
     const reportTransactions = useReportTransactions(reportID);
 
-    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`);
     const [policies, fetchStatus] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [reportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${reportID}`);
@@ -91,9 +90,9 @@ function ReportChangeWorkspacePage({report, route}: ReportChangeWorkspacePagePro
             const {backTo} = route.params;
             Navigation.goBack(backTo);
             if (isIOUReport(reportID)) {
-                const invite = moveIOUReportToPolicyAndInviteSubmitter(report, policy, formatPhoneNumber, filteredReportActions, allReports, reportTransactions);
+                const invite = moveIOUReportToPolicyAndInviteSubmitter(report, policy, formatPhoneNumber, filteredReportActions, reportTransactions);
                 if (!invite?.policyExpenseChatReportID) {
-                    moveIOUReportToPolicy(report, policy, allReports, false, reportTransactions);
+                    moveIOUReportToPolicy(report, policy, false, reportTransactions);
                 }
                 // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
                 // eslint-disable-next-line @typescript-eslint/no-deprecated
@@ -138,7 +137,6 @@ function ReportChangeWorkspacePage({report, route}: ReportChangeWorkspacePagePro
             formatPhoneNumber,
             reportTransactions,
             filteredReportActions,
-            allReports,
             isReportLastVisibleArchived,
             session?.accountID,
             session?.email,
