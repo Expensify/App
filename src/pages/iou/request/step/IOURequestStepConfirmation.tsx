@@ -1509,11 +1509,8 @@ function IOURequestStepConfirmation({
                         shouldDisplayReceipt={!isMovingTransactionFromTrackExpense && (!isDistanceRequest || isManualDistanceRequest || isOdometerDistanceRequest) && !isPerDiemRequest}
                         isPolicyExpenseChat={isPolicyExpenseChat}
                         policyID={policyID}
-                        isDistanceRequest={isDistanceRequest}
-                        isManualDistanceRequest={isManualDistanceRequest}
                         isOdometerDistanceRequest={isOdometerDistanceRequest}
                         isLoadingReceipt={isStitchingReceipt}
-                        isGPSDistanceRequest={isGPSDistanceRequest}
                         isPerDiemRequest={isPerDiemRequest}
                         shouldShowSmartScanFields={shouldShowSmartScanFields}
                         action={action}

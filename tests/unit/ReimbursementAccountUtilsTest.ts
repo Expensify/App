@@ -1,19 +1,12 @@
 import Onyx from 'react-native-onyx';
 import CONST from '../../src/CONST';
-import {getBankAccountIDAsNumber, getRouteForCurrentStep, REIMBURSEMENT_ACCOUNT_ROUTE_NAMES} from '../../src/libs/ReimbursementAccountUtils';
+import {getBankAccountIDAsNumber} from '../../src/libs/ReimbursementAccountUtils';
 import ONYXKEYS from '../../src/ONYXKEYS';
 import type {ACHDataReimbursementAccount} from '../../src/types/onyx/ReimbursementAccount';
 
 Onyx.init({keys: ONYXKEYS});
 
 describe('ReimbursementAccountUtils', () => {
-    describe('getRouteForCurrentStep', () => {
-        it("should return 'new' step if 'BankAccountStep' or '' is provided", () => {
-            expect(getRouteForCurrentStep(CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT)).toEqual(REIMBURSEMENT_ACCOUNT_ROUTE_NAMES.NEW);
-            expect(getRouteForCurrentStep('')).toEqual(REIMBURSEMENT_ACCOUNT_ROUTE_NAMES.NEW);
-        });
-    });
-
     describe('getBankAccountIDAsNumber', () => {
         it('should return DEFAULT_NUMBER_ID when achData is undefined', () => {
             // Given no ACH data
