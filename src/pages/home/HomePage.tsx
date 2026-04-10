@@ -80,8 +80,8 @@ function HomePage() {
                                 <>
                                     <FreeTrialSection />
                                     <TimeSensitiveSection />
-                                    <ForYouSection />
                                     <GettingStartedSection />
+                                    <ForYouSection />
                                     <UpcomingTravelSection />
                                     <AssignedCardsSection />
                                     <SpendOverTimeSection />
