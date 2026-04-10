@@ -2,25 +2,22 @@ import HybridAppModule from '@expensify/react-native-hybrid-app';
 import type * as Sentry from '@sentry/react-native';
 import React, {useCallback, useEffect, useLayoutEffect, useRef, useState} from 'react';
 import type {NativeEventSubscription} from 'react-native';
-import {AppState, Linking, Platform} from 'react-native';
+import {AppState, Platform} from 'react-native';
 import Onyx from 'react-native-onyx';
 import {useInitialURLActions} from './components/InitialURLContextProvider';
 import AppleAuthWrapper from './components/SignInButtons/AppleAuthWrapper';
 import SplashScreenHider from './components/SplashScreenHider';
 import CONFIG from './CONFIG';
 import CONST from './CONST';
+import DeepLinkHandler from './DeepLinkHandler';
 import DelegateAccessHandler from './DelegateAccessHandler';
 import FullstoryInitHandler from './FullstoryInitHandler';
 import GlobalModals from './GlobalModals';
-import useArchivedReportsIdSet from './hooks/useArchivedReportsIDSet';
 import useDebugShortcut from './hooks/useDebugShortcut';
 import useIsAuthenticated from './hooks/useIsAuthenticated';
 import useLocalize from './hooks/useLocalize';
 import useOnyx from './hooks/useOnyx';
 import {updateLastRoute} from './libs/actions/App';
-import {openReportFromDeepLink} from './libs/actions/Link';
-import * as Report from './libs/actions/Report';
-import {hasAuthToken} from './libs/actions/Session';
 import * as ActiveClientManager from './libs/ActiveClientManager';
 import {isSafari} from './libs/Browser';
 import Log from './libs/Log';
@@ -37,10 +34,8 @@ import Visibility from './libs/Visibility';
 import ONYXKEYS from './ONYXKEYS';
 import PriorityModeHandler from './PriorityModeHandler';
 import type {Route} from './ROUTES';
-import {hasSeenTourSelector} from './selectors/Onboarding';
 import {accountIDSelector} from './selectors/Session';
 import {useSplashScreenActions, useSplashScreenState} from './SplashScreenStateContext';
-import isLoadingOnyxValue from './types/utils/isLoadingOnyxValue';
 
 Onyx.registerLogger(({level, message, parameters}) => {
     if (level === 'alert') {
@@ -55,7 +50,6 @@ Onyx.registerLogger(({level, message, parameters}) => {
 
 function Expensify() {
     const appStateChangeListener = useRef<NativeEventSubscription | null>(null);
-    const linkingChangeListener = useRef<NativeEventSubscription | null>(null);
     const [isNavigationReady, setIsNavigationReady] = useState(false);
     const [isOnyxMigrated, setIsOnyxMigrated] = useState(false);
     const {splashScreenState} = useSplashScreenState();
@@ -63,17 +57,10 @@ function Expensify() {
     const [hasAttemptedToOpenPublicRoom, setAttemptedToOpenPublicRoom] = useState(false);
     const {preferredLocale} = useLocalize();
     const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
-    const [, sessionMetadata] = useOnyx(ONYXKEYS.SESSION);
     const [lastRoute] = useOnyx(ONYXKEYS.LAST_ROUTE);
-    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [isCheckingPublicRoom = true] = useOnyx(ONYXKEYS.IS_CHECKING_PUBLIC_ROOM, {initWithStoredValues: false});
-    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
-    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [isSelfTourViewed, isSelfTourViewedMetadata] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [updateRequired] = useOnyx(ONYXKEYS.RAM_ONLY_UPDATE_REQUIRED);
     const [lastVisitedPath] = useOnyx(ONYXKEYS.LAST_VISITED_PATH);
-    const archivedReportsIDSet = useArchivedReportsIdSet();
 
     useDebugShortcut();
 
@@ -280,46 +267,6 @@ function Expensify() {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isNavigationReady]);
 
-    useEffect(() => {
-        if (isLoadingOnyxValue(sessionMetadata, isSelfTourViewedMetadata)) {
-            return;
-        }
-
-        Linking.getInitialURL().then((url) => {
-            setInitialUrl(url as Route);
-
-            if (url) {
-                if (conciergeReportID === undefined) {
-                    Log.info('[Deep link] conciergeReportID is undefined when processing initial URL', false, {url});
-                }
-                if (introSelected === undefined) {
-                    Log.info('[Deep link] introSelected is undefined when processing initial URL', false, {url});
-                }
-                openReportFromDeepLink(url, allReports, isAuthenticated, conciergeReportID, introSelected, isSelfTourViewed, archivedReportsIDSet, betas);
-            } else {
-                Report.doneCheckingPublicRoom();
-            }
-
-            endSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.DEEP_LINK);
-        });
-
-        linkingChangeListener.current = Linking.addEventListener('url', (state) => {
-            if (conciergeReportID === undefined) {
-                Log.info('[Deep link] conciergeReportID is undefined when processing URL change', false, {url: state.url});
-            }
-            if (introSelected === undefined) {
-                Log.info('[Deep link] introSelected is undefined when processing URL change', false, {url: state.url});
-            }
-            const isCurrentlyAuthenticated = hasAuthToken();
-            openReportFromDeepLink(state.url, allReports, isCurrentlyAuthenticated, conciergeReportID, introSelected, isSelfTourViewed, archivedReportsIDSet, betas);
-        });
-
-        return () => {
-            linkingChangeListener.current?.remove();
-        };
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- this bootstrap should only rerun when session metadata or concierge routing changes
-    }, [sessionMetadata?.status, conciergeReportID, isSelfTourViewedMetadata]);
-
     // Display a blank page until the onyx migration completes
     if (!isOnyxMigrated) {
         return null;
@@ -335,6 +282,7 @@ function Expensify() {
             <PriorityModeHandler />
             <DelegateAccessHandler />
             <FullstoryInitHandler />
+            <DeepLinkHandler onInitialUrl={setInitialUrl} />
             <AppleAuthWrapper />
             {hasAttemptedToOpenPublicRoom && (
                 <NavigationRoot

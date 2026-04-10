@@ -17,7 +17,6 @@ import Navigation from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
 import type {NetworkStatus} from '@libs/NetworkConnection';
 import {findLastAccessedReport, getReportIDFromLink, getRouteFromLink} from '@libs/ReportUtils';
-import type {ArchivedReportsIDSet} from '@libs/SearchUIUtils';
 import shouldSkipDeepLinkNavigation from '@libs/shouldSkipDeepLinkNavigation';
 import {endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
 import * as Url from '@libs/Url';
@@ -240,7 +239,6 @@ function openReportFromDeepLink(
     conciergeReportID: string | undefined,
     introSelected: OnyxEntry<IntroSelected>,
     isSelfTourViewed: boolean | undefined,
-    archivedReportsIDSet: ArchivedReportsIDSet,
     betas: OnyxEntry<Beta[]>,
 ) {
     const reportID = getReportIDFromLink(url);
@@ -339,7 +337,7 @@ function openReportFromDeepLink(
                                 const report = reportParam ?? reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
                                 // If the report does not exist, navigate to the last accessed report or Concierge chat
                                 if (reportID && (!report?.reportID || report.errorFields?.notFound)) {
-                                    const lastAccessedReportID = findLastAccessedReport(false, shouldOpenOnAdminRoom(), reportID, archivedReportsIDSet)?.reportID;
+                                    const lastAccessedReportID = findLastAccessedReport(false, shouldOpenOnAdminRoom(), reportID)?.reportID;
                                     if (lastAccessedReportID) {
                                         const lastAccessedReportRoute = ROUTES.REPORT_WITH_ID.getRoute(lastAccessedReportID);
                                         Navigation.navigate(lastAccessedReportRoute, {forceReplace: Navigation.getTopmostReportId() === reportID});
