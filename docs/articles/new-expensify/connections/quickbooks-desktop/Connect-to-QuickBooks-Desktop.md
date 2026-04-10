@@ -20,8 +20,9 @@ To connect QuickBooks Desktop to Expensify, you must log in as an Admin in Quick
 4. In the **Integrate** section, toggle on **Accounting**
 5. Click **Accounting** in the left-hand menu
 6. Click **Set up** next to QuickBooks Desktop
-7. Click **Copy** to copy the link, then paste the link into the computer that runs QuickBooks Desktop
-8. Select your QuickBooks Desktop version
+7. If you already have QuickBooks Desktop connected on another workspace, you'll see a list of existing connections. You can select one to reuse it, or click **Create new connection** to set up a fresh connection. If you reuse an existing connection, the setup is complete — no further steps are needed.
+8. Click **Copy** to copy the link, then paste the link into the computer that runs QuickBooks Desktop
+9. Select your QuickBooks Desktop version
 
 ![QuickBooks Desktop version selection](https://help.expensify.com/assets/images/QBO_desktop_02.png){:width="100%"}
 
@@ -65,6 +66,10 @@ Expensify supports:
 - **Special editions**: Contractor, Manufacturing and Wholesale, Accountant, Professional Services, Nonprofit
 
 Expensify follows [Intuit’s service discontinuation policy](https://quickbooks.intuit.com/learn-support/en-us/help-article/feature-preferences/quickbooks-desktop-service-discontinuation-policy/L17cXxlie_US_en_US)
+
+## Can I reuse an existing QuickBooks Desktop connection on a new workspace?
+
+Yes. If you've already connected QuickBooks Desktop on another workspace, you can reuse that connection when setting up a new workspace. During setup, you'll see a list of your existing connections. Select one to copy it to the new workspace without going through the full Web Connector setup again.
 
 ## Can I install multiple QuickBooks Desktop connectors?
 
