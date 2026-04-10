@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useMemo, useState} from 'react';
 import type {LayoutChangeEvent} from 'react-native';
 import {View} from 'react-native';
 import {GestureDetector} from 'react-native-gesture-handler';
@@ -11,7 +11,16 @@ import ChartXAxisLabels from '@components/Charts/components/ChartXAxisLabels';
 import ChartYAxisLabels from '@components/Charts/components/ChartYAxisLabels';
 import {AXIS_LABEL_GAP, CHART_CONTENT_MIN_HEIGHT, CHART_PADDING, GLYPH_PADDING, X_AXIS_LINE_WIDTH, Y_AXIS_LINE_WIDTH, Y_AXIS_TICK_COUNT} from '@components/Charts/constants';
 import type {ComputeGeometryFn, HitTestArgs} from '@components/Charts/hooks';
-import {useChartFontManager, useChartInteractions, useChartLabelFormats, useChartLabelLayout, useDynamicYDomain, useLabelHitTesting, useYAxisLabelWidth} from '@components/Charts/hooks';
+import {
+    useChartFontManager,
+    useChartInteractions,
+    useChartLabelFormats,
+    useChartLabelLayout,
+    useChartLabelMeasurements,
+    useDynamicYDomain,
+    useLabelHitTesting,
+    useYAxisLabelWidth,
+} from '@components/Charts/hooks';
 import type {CartesianChartProps, ChartDataPoint} from '@components/Charts/types';
 import {calculateMinDomainPadding, DEFAULT_CHART_COLOR, getAdditionalOffset, getChartColor, rotatedLabelYOffset} from '@components/Charts/utils';
 import useTheme from '@hooks/useTheme';
@@ -100,7 +109,11 @@ function BarChartContent({data, isLoading, yAxisUnit, yAxisUnitPosition = 'left'
     const totalDomainPadding = domainPadding.left + domainPadding.right;
     const paddingScale = barAreaWidth > 0 ? barAreaWidth / (barAreaWidth + totalDomainPadding) : 0;
 
-    const {labelRotation, labelSkipInterval, truncatedLabels, truncatedLabelWidths, xAxisLabelHeight} = useChartLabelLayout({
+    const {labelWidths, ellipsisWidth} = useChartLabelMeasurements(data, fontMgr, variables.iconSizeExtraSmall);
+
+    const originalLabels = useMemo(() => data.map((p) => p.label), [data]);
+
+    const {labelRotation, labelSkipInterval, truncatedLabelWidths, xAxisLabelHeight, regularLabelMaxWidth, firstLabelMaxWidth, lastLabelMaxWidth} = useChartLabelLayout({
         data,
         fontMgr,
         fontSize: variables.iconSizeExtraSmall,
@@ -205,7 +218,12 @@ function BarChartContent({data, isLoading, yAxisUnit, yAxisUnitPosition = 'left'
         return (
             <>
                 <ChartXAxisLabels
-                    labels={truncatedLabels}
+                    labels={originalLabels}
+                    labelWidths={labelWidths}
+                    regularLabelMaxWidth={regularLabelMaxWidth}
+                    firstLabelMaxWidth={firstLabelMaxWidth}
+                    lastLabelMaxWidth={lastLabelMaxWidth}
+                    ellipsisWidth={ellipsisWidth}
                     labelRotation={labelRotation}
                     labelSkipInterval={labelSkipInterval}
                     fontSize={variables.iconSizeExtraSmall}

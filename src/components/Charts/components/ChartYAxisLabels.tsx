@@ -33,7 +33,7 @@ type ChartYAxisLabelsProps = {
 };
 
 function ChartYAxisLabels({yTicks, yScale, chartBounds, fontSize, fontMgr, labelColor, formatValue, leftAlign = false}: ChartYAxisLabelsProps) {
-    const formattedLabels = yTicks.map((tick) => formatValue(tick));
+    const formattedLabels = useMemo(() => yTicks.map((tick) => formatValue(tick)), [yTicks, formatValue]);
 
     const paragraphs = useChartParagraphs(formattedLabels, fontMgr, fontSize, labelColor, MAX_Y_AXIS_LABEL_WIDTH);
     const maxWidth = Math.max(0, ...paragraphs.map((item) => item.width));

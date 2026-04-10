@@ -36,7 +36,16 @@ const LINE_HEIGHT = MOCK_ASCENT + MOCK_DESCENT; // 16
 
 describe('useChartLabelLayout', () => {
     describe('early returns', () => {
-        const defaults = {labelRotation: 0, labelSkipInterval: 1, truncatedLabels: []};
+        const defaults = {
+            labelRotation: 0,
+            labelSkipInterval: 1,
+            labelMaxWidths: [],
+            truncatedLabelWidths: [],
+            xAxisLabelHeight: 0,
+            regularLabelMaxWidth: Infinity,
+            firstLabelMaxWidth: Infinity,
+            lastLabelMaxWidth: Infinity,
+        };
 
         it('returns defaults when fontMgr is null', () => {
             const {result} = renderHook(() => useChartLabelLayout({data: makeData('A', 'B'), fontMgr: null, fontSize: FONT_SIZE, tickSpacing: 50, labelAreaWidth: 100}));
@@ -64,7 +73,6 @@ describe('useChartLabelLayout', () => {
             // "AAA" = 21px. 21+4=25 ≤ tickSpacing(30). maxVisibleCount(90,21)=3 ≥ 3
             const {result} = renderHook(() => useChartLabelLayout({data: makeData('AAA', 'BBB', 'CCC'), fontMgr: mockFontMgr, fontSize: FONT_SIZE, tickSpacing: 30, labelAreaWidth: 90}));
             expect(result.current.labelRotation).toBe(0);
-            expect(result.current.truncatedLabels).toEqual(['AAA', 'BBB', 'CCC']);
             expect(result.current.xAxisLabelHeight).toBe(LINE_HEIGHT);
             expect(result.current.labelSkipInterval).toBe(1);
         });
@@ -74,7 +82,6 @@ describe('useChartLabelLayout', () => {
             // At 45°: 42*SIN_45 ≈ 29.7, 29.7+4 ≤ 40 ✓
             const {result} = renderHook(() => useChartLabelLayout({data: makeData('AAAAAA', 'BBBBBB'), fontMgr: mockFontMgr, fontSize: FONT_SIZE, tickSpacing: 40, labelAreaWidth: 400}));
             expect(result.current.labelRotation).toBe(45);
-            expect(result.current.truncatedLabels).toEqual(['AAAAAA', 'BBBBBB']);
             expect(result.current.xAxisLabelHeight).toBeCloseTo((42 + LINE_HEIGHT) * SIN_45, 5);
             expect(result.current.labelSkipInterval).toBe(1);
         });
@@ -91,7 +98,6 @@ describe('useChartLabelLayout', () => {
             // tickSpacing=20: 0° fails (46>20), 45° fails (29.7+4=33.7>20)
             const {result} = renderHook(() => useChartLabelLayout({data: makeData('AAAAAA', 'BBBBBB'), fontMgr: mockFontMgr, fontSize: FONT_SIZE, tickSpacing: 20, labelAreaWidth: 400}));
             expect(result.current.labelRotation).toBe(90);
-            expect(result.current.truncatedLabels).toEqual(['AAAAAA', 'BBBBBB']);
         });
     });
 
@@ -170,10 +176,10 @@ describe('useChartLabelLayout', () => {
         });
     });
 
-    describe('edge-aware truncation', () => {
-        it('truncates first label due to edge constraint while middle labels remain full (centered)', () => {
+    describe('edge-aware max-width constraints', () => {
+        it('constrains first label below full width when centered and edge is tight', () => {
             // First label: 16 chars = 112px. tickMaxWidth ≈ 164. edgeMax ≈ 97 (stricter).
-            // Truncated to 10 chars + "..."
+            // labelMaxWidths[0] should be < 112; middle/last labels unconstrained.
             const {result} = renderHook(() =>
                 useChartLabelLayout({
                     data: makeData('A'.repeat(16), 'BB', 'CC'),
@@ -186,14 +192,15 @@ describe('useChartLabelLayout', () => {
                 }),
             );
             expect(result.current.labelRotation).toBe(45);
-            expect(result.current.truncatedLabels.at(0)).toBe(`${'A'.repeat(10)}...`);
-            expect(result.current.truncatedLabels.at(1)).toBe('BB');
-            expect(result.current.truncatedLabels.at(2)).toBe('CC');
+            // Edge constraint tightens first label below its natural width
+            expect(result.current.labelMaxWidths.at(0)).toBeLessThan(16 * PX_PER_CHAR);
+            // Middle and last labels are only tick-constrained (much wider than 'BB'/'CC')
+            expect(result.current.labelMaxWidths.at(1)).toBeGreaterThanOrEqual(2 * PX_PER_CHAR);
+            expect(result.current.labelMaxWidths.at(2)).toBeGreaterThanOrEqual(2 * PX_PER_CHAR);
         });
 
-        it('truncates first label due to edge constraint (right-aligned)', () => {
-            // Right-aligned first label: edgeMax = 72/SIN_45 - 8 ≈ 93.8. tickMax ≈ 95.2.
-            // Edge is stricter → first label truncated to 10 chars + "..."
+        it('constrains first label below full width when right-aligned and edge is tight', () => {
+            // Right-aligned first label: edgeMax = 72/SIN_45 - 8 ≈ 93.8 < 112 → constrained.
             const {result} = renderHook(() =>
                 useChartLabelLayout({
                     data: makeData('A'.repeat(16), 'BB', 'CC'),
@@ -207,13 +214,12 @@ describe('useChartLabelLayout', () => {
                 }),
             );
             expect(result.current.labelRotation).toBe(45);
-            expect(result.current.truncatedLabels.at(0)).toBe(`${'A'.repeat(10)}...`);
-            expect(result.current.truncatedLabels.at(1)).toBe('BB');
+            expect(result.current.labelMaxWidths.at(0)).toBeLessThan(16 * PX_PER_CHAR);
+            expect(result.current.labelMaxWidths.at(1)).toBeGreaterThanOrEqual(2 * PX_PER_CHAR);
         });
 
-        it('truncates last label when centered due to symmetric overhang', () => {
-            // Centered: last label right overhang = (W/2+halfLH)*SIN_45 ≈ 45.6 for W=112
-            // lastTickRightSpace=40: edgeMax = 2*(40/SIN_45-8) ≈ 97.1 < 112 → truncated
+        it('constrains last label below full width when centered and right edge is tight', () => {
+            // lastTickRightSpace=40: edgeMax = 2*(40/SIN_45-8) ≈ 97.1 < 112 → constrained.
             const {result} = renderHook(() =>
                 useChartLabelLayout({
                     data: makeData('AA', 'BB', 'A'.repeat(16)),
@@ -226,13 +232,13 @@ describe('useChartLabelLayout', () => {
                 }),
             );
             expect(result.current.labelRotation).toBe(45);
-            expect(result.current.truncatedLabels.at(2)).toBe(`${'A'.repeat(10)}...`);
+            expect(result.current.labelMaxWidths.at(2)).toBeLessThan(16 * PX_PER_CHAR);
         });
 
-        it('does NOT truncate last label when right-aligned despite tight right edge', () => {
+        it('does NOT constrain last label when right-aligned despite tight right edge', () => {
             // Right-aligned: last label right overhang = halfLH*SIN_45 ≈ 5.6 (constant, tiny).
-            // lastTickRightSpace=40 >> 5.6 → edgeMax = Infinity → no edge truncation.
-            // tickMaxWidth = (200-4)/SIN_45+16 ≈ 293 > 112 → no tick truncation either.
+            // lastTickRightSpace=40 >> 5.6 → edgeMax = Infinity → no edge constraint.
+            // tickMaxWidth = (200-4)/SIN_45+16 ≈ 293 > 112 → no tick constraint either.
             const {result} = renderHook(() =>
                 useChartLabelLayout({
                     data: makeData('AA', 'BB', 'A'.repeat(16)),
@@ -246,7 +252,7 @@ describe('useChartLabelLayout', () => {
                 }),
             );
             expect(result.current.labelRotation).toBe(45);
-            expect(result.current.truncatedLabels.at(2)).toBe('A'.repeat(16));
+            expect(result.current.labelMaxWidths.at(2)).toBeGreaterThanOrEqual(16 * PX_PER_CHAR);
         });
     });
 
@@ -264,7 +270,6 @@ describe('useChartLabelLayout', () => {
             const {result} = renderHook(() => useChartLabelLayout({data: makeData('AAAAAA', 'BBBBBB'), fontMgr: mockFontMgr, fontSize: FONT_SIZE, tickSpacing: 10, labelAreaWidth: 400}));
             expect(result.current.labelRotation).toBe(90);
             expect(result.current.labelSkipInterval).toBe(1);
-            expect(result.current.truncatedLabels).toEqual(['AAAAAA', 'BBBBBB']);
             expect(result.current.xAxisLabelHeight).toBe(42);
         });
     });
@@ -273,7 +278,6 @@ describe('useChartLabelLayout', () => {
         it('handles single data point', () => {
             const {result} = renderHook(() => useChartLabelLayout({data: makeData('AAA'), fontMgr: mockFontMgr, fontSize: FONT_SIZE, tickSpacing: 50, labelAreaWidth: 50}));
             expect(result.current.labelRotation).toBe(0);
-            expect(result.current.truncatedLabels).toEqual(['AAA']);
             expect(result.current.labelSkipInterval).toBe(1);
         });
     });

@@ -12,7 +12,7 @@ import {getFontLineMetrics, measureTextWidth} from '@components/Charts/utils';
 function useChartLabelMeasurements(data: ChartDataPoint[], fontMgr: SkTypefaceFontProvider | null, fontSize: number) {
     return useMemo(() => {
         if (!fontMgr || data.length === 0) {
-            return null;
+            return {lineHeight: 0, ellipsisWidth: 0, labelWidths: [], maxLabelWidth: 0, firstLabelWidth: 0, lastLabelWidth: 0, minTruncatedWidth: 0, firstMinTrunc: 0, lastMinTrunc: 0};
         }
 
         const {ascent, descent} = getFontLineMetrics(fontMgr, fontSize);

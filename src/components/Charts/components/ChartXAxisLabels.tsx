@@ -4,12 +4,27 @@ import React, {useMemo} from 'react';
 import {AXIS_LABEL_GAP, GLYPH_PADDING, MAX_X_AXIS_LABEL_WIDTH} from '@components/Charts/constants';
 import useChartParagraphs from '@components/Charts/hooks/useChartParagraphs';
 import type {LabelRotation} from '@components/Charts/types';
-import {getFontLineMetrics, rotatedLabelCenterCorrection, rotatedLabelYOffset} from '@components/Charts/utils';
+import {getFontLineMetrics, rotatedLabelCenterCorrection, rotatedLabelYOffset, truncateLabel} from '@components/Charts/utils';
 import variables from '@styles/variables';
 
 type ChartXAxisLabelsProps = {
-    /** Processed label strings (already truncated by the layout hook). */
+    /** Original (non-truncated) label strings from the data. */
     labels: string[];
+
+    /** Pre-measured pixel width of each original label (from useChartLabelMeasurements). */
+    labelWidths: number[];
+
+    /** Maximum pixel width for inner tick labels (not first/last). From useChartLabelLayout (`tickMaxWidth`). */
+    regularLabelMaxWidth: number;
+
+    /** Maximum pixel width for the first label (edge + tick constraints). */
+    firstLabelMaxWidth: number;
+
+    /** Maximum pixel width for the last label (edge + tick constraints). */
+    lastLabelMaxWidth: number;
+
+    /** Pixel width of the ellipsis character (from useChartLabelMeasurements). */
+    ellipsisWidth: number;
 
     /** Label rotation in degrees (e.g. 0, 45, 90). */
     labelRotation: LabelRotation;
@@ -36,21 +51,48 @@ type ChartXAxisLabelsProps = {
     centerRotatedLabels?: boolean;
 };
 
-function ChartXAxisLabels({labels, labelRotation, labelSkipInterval, fontSize, fontMgr, labelColor, xScale, chartBoundsBottom, centerRotatedLabels = false}: ChartXAxisLabelsProps) {
+function ChartXAxisLabels({
+    labels,
+    labelWidths,
+    regularLabelMaxWidth,
+    firstLabelMaxWidth,
+    lastLabelMaxWidth,
+    ellipsisWidth,
+    labelRotation,
+    labelSkipInterval,
+    fontSize,
+    fontMgr,
+    labelColor,
+    xScale,
+    chartBoundsBottom,
+    centerRotatedLabels = false,
+}: ChartXAxisLabelsProps) {
     const angleRad = (Math.abs(labelRotation) * Math.PI) / 180;
+    const truncatedLabels = useMemo(() => {
+        const lastIndex = labels.length - 1;
+        return labels.map((label, i) => {
+            let maxWidth = regularLabelMaxWidth;
+            if (i === 0) {
+                maxWidth = firstLabelMaxWidth;
+            } else if (i === lastIndex) {
+                maxWidth = lastLabelMaxWidth;
+            }
+            return truncateLabel(label, labelWidths.at(i) ?? 0, maxWidth, ellipsisWidth);
+        });
+    }, [labels, labelWidths, regularLabelMaxWidth, firstLabelMaxWidth, lastLabelMaxWidth, ellipsisWidth]);
 
-    const paragraphs = useChartParagraphs(labels, fontMgr, fontSize, labelColor, MAX_X_AXIS_LABEL_WIDTH);
+    const paragraphs = useChartParagraphs(truncatedLabels, fontMgr, fontSize, labelColor, MAX_X_AXIS_LABEL_WIDTH);
 
-    const labelWidths = labels.map((_, i) => paragraphs?.at(i)?.width ?? 0);
+    const renderedWidths = truncatedLabels.map((_, i) => paragraphs?.at(i)?.width ?? 0);
 
     // Derive ascent/descent from the first available paragraph's line metrics.
     const {ascent, descent} = useMemo(() => getFontLineMetrics(fontMgr, fontSize), [fontMgr, fontSize]);
 
     const correction = rotatedLabelCenterCorrection(ascent, descent, angleRad);
-    const centeredUpwardOffset = centerRotatedLabels && angleRad > 0 ? (Math.max(...labelWidths) / 2) * Math.sin(angleRad) : 0;
+    const centeredUpwardOffset = centerRotatedLabels && angleRad > 0 ? (Math.max(...renderedWidths) / 2) * Math.sin(angleRad) : 0;
     const labelY = chartBoundsBottom + AXIS_LABEL_GAP + rotatedLabelYOffset(ascent, descent, angleRad) + centeredUpwardOffset;
 
-    return labels.map((label, i) => {
+    return truncatedLabels.map((label, i) => {
         if (i % labelSkipInterval !== 0 || label.length === 0) {
             return null;
         }

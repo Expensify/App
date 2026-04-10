@@ -65,6 +65,7 @@ function buildChartParagraph(text: string, fontMgr: SkTypefaceFontProvider, font
     } else {
         builder.reset();
     }
+    console.log('buildChartParagraph');
     return builder
         .pushStyle({
             fontFamilies: CHART_FONT_FAMILIES,

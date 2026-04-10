@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useMemo, useState} from 'react';
 import type {LayoutChangeEvent} from 'react-native';
 import {View} from 'react-native';
 import {GestureDetector} from 'react-native-gesture-handler';
@@ -98,7 +98,7 @@ function LineChartContent({data, isLoading, yAxisUnit, yAxisUnitPosition = 'left
 
     const chartBottom = useSharedValue(0);
 
-    const labelMeasurements = useChartLabelMeasurements(data, fontMgr, variables.iconSizeExtraSmall);
+    const {labelWidths, firstLabelWidth, lastLabelWidth, ellipsisWidth} = useChartLabelMeasurements(data, fontMgr, variables.iconSizeExtraSmall);
 
     const domainPadding = (() => {
         if (chartWidth === 0 || data.length === 0) {
@@ -107,11 +107,9 @@ function LineChartContent({data, isLoading, yAxisUnit, yAxisUnitPosition = 'left
 
         const geometricPadding = calculateMinDomainPadding(chartWidth, data.length);
 
-        if (!labelMeasurements) {
+        if (!firstLabelWidth || !lastLabelWidth) {
             return {...BASE_DOMAIN_PADDING, left: geometricPadding, right: geometricPadding};
         }
-
-        const {firstLabelWidth, lastLabelWidth} = labelMeasurements;
 
         const firstLabelNeeds = firstLabelWidth / 2;
         const lastLabelNeeds = lastLabelWidth / 2;
@@ -133,7 +131,7 @@ function LineChartContent({data, isLoading, yAxisUnit, yAxisUnitPosition = 'left
     const totalDomainPadding = domainPadding.left + domainPadding.right;
     const paddingScale = plotAreaWidth > 0 ? plotAreaWidth / (plotAreaWidth + totalDomainPadding) : 0;
 
-    const {labelRotation, labelSkipInterval, truncatedLabels, truncatedLabelWidths, xAxisLabelHeight} = useChartLabelLayout({
+    const {labelRotation, labelSkipInterval, truncatedLabelWidths, xAxisLabelHeight, regularLabelMaxWidth, firstLabelMaxWidth, lastLabelMaxWidth} = useChartLabelLayout({
         data,
         fontMgr,
         fontSize: variables.iconSizeExtraSmall,
@@ -143,6 +141,8 @@ function LineChartContent({data, isLoading, yAxisUnit, yAxisUnitPosition = 'left
         lastTickRightSpace: chartWidth > 0 ? chartWidth - boundsRight + domainPadding.right * paddingScale : 0,
         allowTightDiagonalPacking: true,
     });
+
+    const originalLabels = useMemo(() => data.map((p) => p.label), [data]);
 
     const {formatValue} = useChartLabelFormats({
         data,
@@ -211,7 +211,12 @@ function LineChartContent({data, isLoading, yAxisUnit, yAxisUnitPosition = 'left
                 />
                 {xAxisLabelHeight !== undefined && !!fontMgr && (
                     <ChartXAxisLabels
-                        labels={truncatedLabels}
+                        labels={originalLabels}
+                        labelWidths={labelWidths}
+                        regularLabelMaxWidth={regularLabelMaxWidth}
+                        firstLabelMaxWidth={firstLabelMaxWidth}
+                        lastLabelMaxWidth={lastLabelMaxWidth}
+                        ellipsisWidth={ellipsisWidth}
                         labelRotation={labelRotation}
                         labelSkipInterval={labelSkipInterval}
                         fontSize={variables.iconSizeExtraSmall}

@@ -9,9 +9,6 @@ import {buildChartParagraph} from '@components/Charts/utils';
  * width actually changes — not when the parent passes a new array reference with the same strings.
  */
 function useChartParagraphs(labels: string[], fontMgr: SkTypefaceFontProvider | null, fontSize: number, labelColor: string, layoutWidth: number): ParagraphWithWidth[] {
-    // Join into a single string so useMemo compares label content, not the array reference.
-    const labelsKey = labels.join('\0');
-
     return useMemo((): ParagraphWithWidth[] => {
         if (!fontMgr) {
             return [];
@@ -24,10 +21,7 @@ function useChartParagraphs(labels: string[], fontMgr: SkTypefaceFontProvider | 
             para.layout(layoutWidth);
             return {para, width: para.getLongestLine()};
         });
-        // labelsKey is a serialized form of labels — intentionally used instead of the array
-        // reference so the memo re-runs only when label strings change, not on every render.
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [labelsKey, fontMgr, fontSize, labelColor, layoutWidth]);
+    }, [labels, fontMgr, fontSize, labelColor, layoutWidth]);
 }
 
 export default useChartParagraphs;
