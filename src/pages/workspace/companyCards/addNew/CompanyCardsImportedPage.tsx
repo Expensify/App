@@ -36,15 +36,14 @@ function CompanyCardsImportedPage({route}: CompanyCardsImportedPageProps) {
     const workspaceAccountID = policy?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const [lastSelectedFeed] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`);
     const [workspaceCardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`);
-    const [allWorkspaceCardsList] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST);
     const [isImportingTransactions, setIsImportingTransactions] = useState(false);
     const {setIsClosing} = useCloseImportPage();
     const shouldUseAdvancedFields = addNewCard?.data?.useAdvancedFields ?? false;
     const layoutName = addNewCard?.data?.companyCardLayoutName ?? '';
     const prefilledLayoutType = addNewCard?.data?.layoutType;
     const generatedLayoutType = useMemo(
-        () => prefilledLayoutType ?? getCSVFeedType(workspaceCardFeeds?.settings?.companyCards, workspaceAccountID, allWorkspaceCardsList),
-        [prefilledLayoutType, workspaceCardFeeds?.settings?.companyCards, workspaceAccountID, allWorkspaceCardsList],
+        () => prefilledLayoutType ?? getCSVFeedType(workspaceCardFeeds?.settings?.companyCards),
+        [prefilledLayoutType, workspaceCardFeeds?.settings?.companyCards],
     );
     const layoutType = prefilledLayoutType ?? generatedLayoutType;
     const [existingCardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${layoutType}`);

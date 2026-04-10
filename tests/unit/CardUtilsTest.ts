@@ -67,7 +67,6 @@ import {
 } from '@src/libs/CardUtils';
 import type {CardProgramKey} from '@src/libs/CardUtils';
 import DateUtils from '@src/libs/DateUtils';
-import ONYXKEYS from '@src/ONYXKEYS';
 import type {
     BankAccountList,
     Card,
@@ -1887,34 +1886,19 @@ describe('CardUtils', () => {
     describe('getCSVFeedType', () => {
         it('returns the first gap when higher-numbered CSV feeds exist in companyCards only', () => {
             expect(
-                getCSVFeedType(
-                    {
-                        ccupload3: {pending: false},
-                        ccupload7: {pending: false},
-                    } as CompanyFeeds,
-                    111,
-                    undefined,
-                ),
+                getCSVFeedType({
+                    ccupload3: {pending: false},
+                    ccupload7: {pending: false},
+                } as CompanyFeeds),
             ).toBe('ccupload1');
         });
 
-        it('treats existing workspace card list keys as used slots', () => {
-            const collection = {
-                [`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}111_ccupload3`]: {cardList: {}},
-            } as OnyxCollection<WorkspaceCardsList>;
-            expect(getCSVFeedType(undefined, 111, collection)).toBe('ccupload1');
-        });
-
-        it('merges companyCards and workspace keys when picking the next slot', () => {
-            expect(
-                getCSVFeedType({ccupload1: {pending: false}} as CompanyFeeds, 111, {
-                    [`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}111_ccupload2`]: {cardList: {}},
-                } as OnyxCollection<WorkspaceCardsList>),
-            ).toBe('ccupload3');
+        it('returns ccupload2 when ccupload1 is already in companyCards', () => {
+            expect(getCSVFeedType({ccupload1: {pending: false}} as CompanyFeeds)).toBe('ccupload2');
         });
 
         it('returns ccupload1 when no CSV feeds exist', () => {
-            expect(getCSVFeedType(undefined, 111, {})).toBe('ccupload1');
+            expect(getCSVFeedType(undefined)).toBe('ccupload1');
         });
     });
 

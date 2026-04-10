@@ -1072,41 +1072,13 @@ function collectUsedCSVFeedSlotNumbersFromCompanyCards(companyCards: CompanyFeed
     return numbers;
 }
 
-function collectUsedCSVFeedSlotNumbersFromWorkspaceCardsCollection(allWorkspaceCardsList: OnyxCollection<WorkspaceCardsList> | undefined, domainID: number, csvPrefix: string): number[] {
-    const numbers: number[] = [];
-    const domainKeyPrefix = `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${domainID}_`;
-    for (const key of Object.keys(allWorkspaceCardsList ?? {})) {
-        if (!key.startsWith(domainKeyPrefix)) {
-            continue;
-        }
-        const feedPart = key.slice(domainKeyPrefix.length);
-        if (!feedPart.startsWith(csvPrefix)) {
-            continue;
-        }
-        const suffix = feedPart.slice(csvPrefix.length);
-        if (!suffix) {
-            continue;
-        }
-        const n = Number.parseInt(suffix, 10);
-        if (!Number.isNaN(n) && n > 0) {
-            numbers.push(n);
-        }
-    }
-    return numbers;
-}
-
 /**
- * Next available CSV file-import feed (`ccuploadN`). Uses `settings.companyCards` and any
- * `cards_<domainID>_ccuploadN` workspace card keys so numbering matches Onyx, including feeds
- * omitted from {@link getFeedType}'s `CombinedCardFeeds` input.
+ * Next available CSV file-import feed (`ccuploadN`) from `settings.companyCards` keys only,
+ * including feeds omitted from {@link getFeedType}'s `CombinedCardFeeds` input.
  */
-function getCSVFeedType(companyCards: CompanyFeeds | undefined, domainID: number, allWorkspaceCardsList: OnyxCollection<WorkspaceCardsList> | undefined): CompanyCardFeedWithNumber {
+function getCSVFeedType(companyCards: CompanyFeeds | undefined): CompanyCardFeedWithNumber {
     const csvPrefix = CONST.COMPANY_CARD.FEED_BANK_NAME.CSV;
-    const merged = [
-        ...collectUsedCSVFeedSlotNumbersFromCompanyCards(companyCards, csvPrefix),
-        ...collectUsedCSVFeedSlotNumbersFromWorkspaceCardsCollection(allWorkspaceCardsList, domainID, csvPrefix),
-    ];
-    const feedNumbers = [...new Set(merged)].sort((a, b) => a - b);
+    const feedNumbers = [...new Set(collectUsedCSVFeedSlotNumbersFromCompanyCards(companyCards, csvPrefix))].sort((a, b) => a - b);
 
     let firstAvailableNumber = 1;
     for (const num of feedNumbers) {
