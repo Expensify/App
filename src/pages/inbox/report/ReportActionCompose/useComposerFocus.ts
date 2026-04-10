@@ -3,7 +3,7 @@ import type {RefObject} from 'react';
 import type {BlurEvent, View} from 'react-native';
 import willBlurTextInputOnTapOutsideFunc from '@libs/willBlurTextInputOnTapOutside';
 import type {SuggestionsRef} from './ComposerContext';
-import type {ComposerRef} from './ComposerWithSuggestions/ComposerWithSuggestions';
+import type {ComposerRef} from './ComposerWithSuggestions';
 
 const willBlurTextInputOnTapOutside = willBlurTextInputOnTapOutsideFunc();
 

@@ -4,7 +4,7 @@ import type {BlurEvent, TextInputSelectionChangeEvent, View} from 'react-native'
 import type {Emoji} from '@assets/emojis/types';
 import type {Mention} from '@components/MentionSuggestions';
 import type {FileObject} from '@src/types/utils/Attachment';
-import type {ComposerRef} from './ComposerWithSuggestions/ComposerWithSuggestions';
+import type {ComposerRef} from './ComposerWithSuggestions';
 
 type SuggestionsRef = {
     resetSuggestions: () => void;
