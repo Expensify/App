@@ -1,6 +1,6 @@
 import {renderHook} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
-import type {OnyxCollection, OnyxMergeCollectionInput} from 'react-native-onyx';
+import type {OnyxCollection} from 'react-native-onyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';

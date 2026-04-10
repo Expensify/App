@@ -9576,6 +9576,7 @@ function updateMultipleMoneyRequests({
         if (changes.taxCode && supportsExpenseFields && canEditField(CONST.EDIT_REQUEST_FIELD.TAX_RATE)) {
             transactionChanges.taxCode = changes.taxCode;
             const taxValue = getTaxValue(transactionPolicy, transaction, changes.taxCode);
+            transactionChanges.taxValue = taxValue;
             const decimals = getCurrencyDecimals(getCurrency(transaction));
             const effectiveAmount = transactionChanges.amount !== undefined ? Math.abs(transactionChanges.amount) : Math.abs(getAmount(transaction));
             const taxAmount = calculateTaxAmount(taxValue, effectiveAmount, decimals);
@@ -9612,6 +9613,9 @@ function updateMultipleMoneyRequests({
         }
         if (transactionChanges.taxCode) {
             updates.taxCode = transactionChanges.taxCode;
+        }
+        if (transactionChanges.taxValue) {
+            updates.taxValue = transactionChanges.taxValue;
         }
         if (transactionChanges.taxAmount !== undefined) {
             updates.taxAmount = transactionChanges.taxAmount;
@@ -9650,6 +9654,7 @@ function updateMultipleMoneyRequests({
             >
         > = [];
         const snapshotOptimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT>> = [];
+        const snapshotSuccessData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT>> = [];
         const snapshotFailureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT>> = [];
 
         // Pending fields for the transaction
@@ -9722,7 +9727,7 @@ function updateMultipleMoneyRequests({
         if (hash) {
             // Initializing as an empty typed object to allow dynamic key assignment resolves TypeScript type inference issue
             const optimisticSnapshotData: NullishDeep<SearchResultDataType> = {};
-            optimisticSnapshotData[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] = updatedTransaction;
+            optimisticSnapshotData[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] = {...updatedTransaction, pendingFields};
             if (optimisticViolationsData && optimisticViolationsData.onyxMethod === Onyx.METHOD.SET) {
                 optimisticSnapshotData[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`] = optimisticViolationsData.value;
             }
@@ -9735,7 +9740,7 @@ function updateMultipleMoneyRequests({
             });
             // Initializing as an empty typed object to allow dynamic key assignment resolves TypeScript type inference issue
             const failureSnapshotData: NullishDeep<SearchResultDataType> = {};
-            failureSnapshotData[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] = transaction;
+            failureSnapshotData[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] = {...transaction, pendingFields: clearedPendingFields};
             if (currentTransactionViolations) {
                 failureSnapshotData[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`] = currentTransactionViolations;
             }
@@ -9907,7 +9912,15 @@ function updateMultipleMoneyRequests({
                     | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
                 >
             >,
-            successData,
+            successData: [...successData, ...snapshotSuccessData] as Array<
+                OnyxUpdate<
+                    | typeof ONYXKEYS.COLLECTION.TRANSACTION
+                    | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS
+                    | typeof ONYXKEYS.COLLECTION.SNAPSHOT
+                    | typeof ONYXKEYS.COLLECTION.REPORT
+                    | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
+                >
+            >,
             failureData: [...failureData, ...snapshotFailureData] as Array<
                 OnyxUpdate<
                     | typeof ONYXKEYS.COLLECTION.TRANSACTION
