@@ -54,8 +54,16 @@ function getSearchScreenNameForRoute(route: NavigationPartialRoute): string {
 }
 
 function getMatchingFullScreenRoute(route: NavigationPartialRoute) {
+
+    const isDynamicScreen = route.name.startsWith('Dynamic_');
+    const dynamicSuffixMatch = findMatchingDynamicSuffix(route?.path);
+
     // Check for backTo param. One screen with different backTo value may need different screens visible under the overlay.
-    if (isRouteWithBackToParam(route)) {
+    // Before checking backTo, we verify the URL doesn't end with a dynamic route suffix.
+    // Dynamic routes never carry their own backTo - they only inherit it from the screen underneath.
+    // So when a dynamic suffix is present, we must strip it first to resolve the correct full-screen
+    // route from the base path, rather than letting backTo (which belongs to the underlying screen) dictate it.
+    if (isRouteWithBackToParam(route) && !dynamicSuffixMatch && !isDynamicScreen) {
         const stateForBackTo = getStateFromPath(route.params.backTo as RoutePath);
 
         // This may happen if the backTo url is invalid.
@@ -184,41 +192,38 @@ function getMatchingFullScreenRoute(route: NavigationPartialRoute) {
     }
 
     // Handle dynamic routes: find the appropriate full screen route
-    if (route.path) {
-        const suffixMatch = findMatchingDynamicSuffix(route.path);
-        if (suffixMatch) {
-            // Strip the suffix from the URL. For parametric routes we pass both the actual URL
-            // suffix and the registered pattern so query params can be resolved correctly.
-            const pathWithoutDynamicSuffix = getPathWithoutDynamicSuffix(route.path, suffixMatch.actualSuffix, suffixMatch.pattern);
+    if (route.path && dynamicSuffixMatch) {
+        // Strip the suffix from the URL. For parametric routes we pass both the actual URL
+        // suffix and the registered pattern so query params can be resolved correctly.
+        const pathWithoutDynamicSuffix = getPathWithoutDynamicSuffix(route.path, dynamicSuffixMatch.actualSuffix, dynamicSuffixMatch.pattern);
 
-            if (!pathWithoutDynamicSuffix) {
-                return undefined;
-            }
-
-            // Parse the base path (without dynamic suffix) into a navigation state
-            // to determine which full-screen route should be visible underneath the overlay.
-            const stateUnderDynamicRoute = getStateFromPath(pathWithoutDynamicSuffix);
-            const lastRoute = stateUnderDynamicRoute?.routes.at(-1);
-
-            if (!stateUnderDynamicRoute || !lastRoute || lastRoute.name === SCREENS.NOT_FOUND) {
-                return undefined;
-            }
-
-            const isLastRouteFullScreen = isFullScreenName(lastRoute.name);
-
-            if (isLastRouteFullScreen) {
-                return lastRoute;
-            }
-
-            const focusedRouteUnderDynamicRoute = findFocusedRouteWithOnyxTabGuard(stateUnderDynamicRoute);
-
-            if (!focusedRouteUnderDynamicRoute) {
-                return undefined;
-            }
-
-            // Recursively find the matching full screen route for the focused dynamic route
-            return getMatchingFullScreenRoute(focusedRouteUnderDynamicRoute);
+        if (!pathWithoutDynamicSuffix) {
+            return undefined;
         }
+
+        // Parse the base path (without dynamic suffix) into a navigation state
+        // to determine which full-screen route should be visible underneath the overlay.
+        const stateUnderDynamicRoute = getStateFromPath(pathWithoutDynamicSuffix);
+        const lastRoute = stateUnderDynamicRoute?.routes.at(-1);
+
+        if (!stateUnderDynamicRoute || !lastRoute || lastRoute.name === SCREENS.NOT_FOUND) {
+            return undefined;
+        }
+
+        const isLastRouteFullScreen = isFullScreenName(lastRoute.name);
+
+        if (isLastRouteFullScreen) {
+            return lastRoute;
+        }
+
+        const focusedRouteUnderDynamicRoute = findFocusedRouteWithOnyxTabGuard(stateUnderDynamicRoute);
+
+        if (!focusedRouteUnderDynamicRoute) {
+            return undefined;
+        }
+
+        // Recursively find the matching full screen route for the focused dynamic route
+        return getMatchingFullScreenRoute(focusedRouteUnderDynamicRoute);
     }
 
     return undefined;
