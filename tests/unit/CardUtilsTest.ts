@@ -2289,7 +2289,7 @@ describe('CardUtils', () => {
                 } as Card['nameValuePairs'],
             };
             const description = getCardDescription(card, translateLocal);
-            expect(description).toBe('cardTransactions.centralInvoicing');
+            expect(description).toBe('Central invoicing');
         });
 
         it('should return the correct card description for personal card', () => {
@@ -2328,7 +2328,7 @@ describe('CardUtils', () => {
                 } as Card['nameValuePairs'],
             };
             const description = getCardDescriptionForSearchTable(card, translateLocal, 'John Doe');
-            expect(description).toBe('cardTransactions.centralInvoicing');
+            expect(description).toBe('Central invoicing');
         });
 
         it('should return normal description for non-travel Expensify cards', () => {
