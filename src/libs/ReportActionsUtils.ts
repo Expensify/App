@@ -1005,6 +1005,33 @@ function isReportActionDeprecated(reportAction: OnyxEntry<ReportAction>, key: st
     return false;
 }
 
+function isActionable(reportAction: OnyxInputOrEntry<ReportAction>, currentUserAccountID: number) {
+    if (!reportAction) {
+        return false;
+    }
+
+    const actionableTypes = [
+        CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+        CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_WHISPER,
+        CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_REPORT_MENTION_WHISPER,
+        CONST.REPORT.ACTIONS.TYPE.CREATED,
+        CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.INVITE_TO_ROOM,
+        CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.LEAVE_ROOM,
+        CONST.REPORT.ACTIONS.TYPE.CONCIERGE_CATEGORY_OPTIONS,
+    ] as const;
+
+    if ((actionableTypes as readonly string[]).includes(reportAction.actionName)) {
+        return true;
+    }
+
+    const originalMessage = getOriginalMessage(reportAction);
+    const actionableForAccountIDs = (
+        originalMessage && typeof originalMessage === 'object' && 'actionableForAccountIDs' in originalMessage ? originalMessage?.actionableForAccountIDs : []
+    ) as number[];
+
+    return actionableForAccountIDs.includes(currentUserAccountID);
+}
+
 /**
  * Checks if a given report action corresponds to an actionable mention whisper.
  * @param reportAction
@@ -2392,7 +2419,8 @@ function getReportActionMessageFragments(translate: LocalizedTranslate, action: 
  * @param currentAccountID
  * @returns
  */
-function hasRequestFromCurrentAccount(reportID: string | undefined, currentAccountID: number): boolean {
+function hasRequestFromCurrentAccount(report: OnyxEntry<Report>, currentAccountID: number): boolean {
+    const reportID = report?.reportID;
     if (!reportID) {
         return false;
     }
@@ -2400,8 +2428,8 @@ function hasRequestFromCurrentAccount(reportID: string | undefined, currentAccou
     const reportActions = Object.values(getAllReportActions(reportID));
     if (reportActions.length === 0) {
         // In case the reportActions of the report have not been loaded, we will check based on the transactions.
-        const report = getReportOrDraftReport(reportID);
-        return doesReportContainRequestsFromMultipleUsers(report, true);
+        const resolvedReport = getReportOrDraftReport(reportID, undefined, undefined, undefined, report);
+        return doesReportContainRequestsFromMultipleUsers(resolvedReport, true);
     }
 
     return reportActions.some((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && action.actorAccountID === currentAccountID && !isDeletedAction(action));
@@ -4522,6 +4550,7 @@ export {
     hasReasoning,
     hasRequestFromCurrentAccount,
     isActionOfType,
+    isActionable,
     isActionableWhisper,
     isActionableJoinRequest,
     isActionableJoinRequestPending,

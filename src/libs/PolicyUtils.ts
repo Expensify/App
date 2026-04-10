@@ -321,10 +321,20 @@ function getCustomUnitsForDuplication(
         return undefined;
     }
 
-    if (isDistanceRatesOptionSelected && isPerDiemOptionSelected) {
-        const distanceCustomUnit = Object.values(customUnits).find((customUnit) => customUnit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE);
-        const perDiemUnit = Object.values(customUnits).find((customUnit) => customUnit.name === CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL);
+    const getUnitWithoutPendingDeleteRates = (customUnit: CustomUnit | undefined) => {
+        if (!customUnit) {
+            return undefined;
+        }
+        return {
+            ...customUnit,
+            rates: Object.fromEntries(Object.entries(customUnit.rates).filter(([, rate]) => rate.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)),
+        };
+    };
 
+    const distanceCustomUnit = getUnitWithoutPendingDeleteRates(Object.values(customUnits).find((customUnit) => customUnit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE));
+    const perDiemUnit = getUnitWithoutPendingDeleteRates(Object.values(customUnits).find((customUnit) => customUnit.name === CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL));
+
+    if (isDistanceRatesOptionSelected && isPerDiemOptionSelected) {
         if (!perDiemUnit || !distanceCustomUnit || !perDiemCustomUnitID || !distanceCustomUnitID) {
             return undefined;
         }
@@ -333,14 +343,12 @@ function getCustomUnitsForDuplication(
     }
 
     if (isDistanceRatesOptionSelected && distanceCustomUnitID) {
-        const distanceCustomUnit = Object.values(customUnits).find((customUnit) => customUnit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE);
         if (!distanceCustomUnit) {
             return undefined;
         }
         return {[distanceCustomUnitID]: distanceCustomUnit};
     }
 
-    const perDiemUnit = Object.values(customUnits).find((customUnit) => customUnit.name === CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL);
     if (!perDiemUnit || !perDiemCustomUnitID) {
         return undefined;
     }
@@ -688,6 +696,25 @@ function hasCustomCategories(policyCategories: OnyxEntry<PolicyCategories>): boo
 }
 
 /**
+ * Checks if a policy has any non-default rules configured.
+ * Defaults are: no approval/expense/coding rules and no custom rules text.
+ */
+function hasNonDefaultRules(policy: OnyxEntry<Policy>): boolean {
+    if (!policy) {
+        return false;
+    }
+
+    const hasCustomRules = !!policy.customRules && policy.customRules.trim().length > 0;
+
+    const {rules} = policy;
+    const hasApprovalRules = !!rules?.approvalRules && rules.approvalRules.length > 0;
+    const hasExpenseRules = !!rules?.expenseRules && rules.expenseRules.length > 0;
+    const hasCodingRules = !!rules?.codingRules && Object.keys(rules.codingRules).length > 0;
+
+    return hasCustomRules || hasApprovalRules || hasExpenseRules || hasCodingRules;
+}
+
+/**
  * Gets a tag list of a policy by a tag index
  */
 function getTagList(policyTagList: OnyxEntry<PolicyTagLists>, tagIndex: number): ValueOf<PolicyTagLists> {
@@ -811,6 +838,14 @@ function getOwnedPaidPolicies(policies: OnyxCollection<Policy> | null, currentUs
 
 function isControlPolicy(policy: OnyxEntry<Policy>): boolean {
     return policy?.type === CONST.POLICY.TYPE.CORPORATE;
+}
+
+/**
+ * For backwards compatibility with Expensify Classic, attendee tracking defaults to enabled
+ * on Control policies when the property is undefined.
+ */
+function isAttendeeTrackingEnabled(policy: OnyxEntry<Policy>): boolean {
+    return (isControlPolicy(policy) && policy?.isAttendeeTrackingEnabled) ?? true;
 }
 
 /**
@@ -1013,6 +1048,9 @@ function isPolicyFeatureEnabled(policy: OnyxEntry<Policy>, featureName: PolicyFe
     }
     if (featureName === CONST.POLICY.MORE_FEATURES.IS_TIME_TRACKING_ENABLED) {
         return isTimeTrackingEnabled(policy);
+    }
+    if (featureName === CONST.POLICY.MORE_FEATURES.IS_ATTENDEE_TRACKING_ENABLED) {
+        return isAttendeeTrackingEnabled(policy);
     }
 
     return !!policy?.[featureName];
@@ -2074,6 +2112,7 @@ export {
     getTagLists,
     hasTags,
     hasCustomCategories,
+    hasNonDefaultRules,
     getTaxByID,
     getUnitRateValue,
     getRateDisplayValue,
@@ -2161,6 +2200,7 @@ export {
     getApprovalWorkflow,
     getReimburserAccountID,
     isControlPolicy,
+    isAttendeeTrackingEnabled,
     isCollectPolicy,
     isNetSuiteCustomSegmentRecord,
     getNameFromNetSuiteCustomField,
