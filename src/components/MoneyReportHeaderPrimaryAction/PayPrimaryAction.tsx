@@ -21,6 +21,7 @@ import {canApproveIOU, canIOUBePaid as canIOUBePaidAction, payInvoice, payMoneyR
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {Transaction} from '@src/types/onyx';
 import useConfirmApproval from './useConfirmApproval';
 import useTransactionThreadData from './useTransactionThreadData';
 
@@ -64,6 +65,7 @@ function PayPrimaryAction({reportID, chatReportID, isPaidAnimationRunning, isApp
     const {transactions: reportTransactionsMap} = useTransactionsAndViolationsForReport(moneyRequestReport?.reportID);
     const transactions = Object.values(reportTransactionsMap);
     const hasOnlyPendingTransactions = transactions.length > 0 && transactions.every((t) => isExpensifyCardTransaction(t) && isPending(t));
+    const nonPendingDeleteTransactions = transactions.filter((t): t is Transaction => !!t && (isOffline || t.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE));
 
     const canIOUBePaid = canIOUBePaidAction(moneyRequestReport, chatReport, policy, bankAccountList, transaction ? [transaction] : undefined, false, undefined, invoiceReceiverPolicy);
     const onlyShowPayElsewhere =
@@ -72,7 +74,7 @@ function PayPrimaryAction({reportID, chatReportID, isPaidAnimationRunning, isApp
     const shouldShowApproveButton = (canApproveIOU(moneyRequestReport, policy, reportMetadata, transactions) && !hasOnlyPendingTransactions) || isApprovedAnimationRunning;
     const shouldDisableApproveButton = shouldShowApproveButton && !isAllowedToApproveExpenseReport(moneyRequestReport);
     const canAllowSettlement = hasUpdatedTotal(moneyRequestReport, policy);
-    const totalAmount = getTotalAmountForIOUReportPreviewButton(moneyRequestReport, policy, CONST.REPORT.PRIMARY_ACTIONS.PAY);
+    const totalAmount = getTotalAmountForIOUReportPreviewButton(moneyRequestReport, policy, CONST.REPORT.PRIMARY_ACTIONS.PAY, nonPendingDeleteTransactions);
     const isAnyTransactionOnHold = hasHeldExpensesReportUtils(moneyRequestReport?.reportID);
 
     const {currentSearchQueryJSON, currentSearchKey, currentSearchResults} = useSearchStateContext();
