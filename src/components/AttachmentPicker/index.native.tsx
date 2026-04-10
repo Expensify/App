@@ -24,7 +24,8 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type {FileObject, ImagePickerResponse as FileResponse} from '@src/types/utils/Attachment';
 import type IconAsset from '@src/types/utils/IconAsset';
-import launchCamera from './launchCamera/launchCamera';
+import AttachmentCamera from './AttachmentCamera';
+import type {CapturedPhoto} from './AttachmentCamera';
 import type AttachmentPickerProps from './types';
 
 type LocalCopy = {
@@ -127,6 +128,7 @@ function AttachmentPicker({
     const icons = useMemoizedLazyExpensifyIcons(['Camera', 'Gallery', 'Paperclip']);
     const styles = useThemeStyles();
     const [isVisible, setIsVisible] = useState(false);
+    const [showAttachmentCamera, setShowAttachmentCamera] = useState(false);
     const StyleUtils = useStyleUtils();
     const theme = useTheme();
 
@@ -135,6 +137,7 @@ function AttachmentPicker({
     const onCanceled = useRef<() => void>(() => {});
     const onClosed = useRef<() => void>(() => {});
     const popoverRef = useRef(null);
+    const cameraResolveRef = useRef<((value: Asset[] | void) => void) | null>(null);
 
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -148,6 +151,38 @@ function AttachmentPicker({
         },
         [translate],
     );
+
+    /**
+     * Launch the in-app VisionCamera instead of the external system camera.
+     * Returns a promise that resolves with the captured photo assets.
+     */
+    const launchInAppCamera = useCallback(
+        (): Promise<Asset[] | void> =>
+            new Promise((resolve) => {
+                cameraResolveRef.current = resolve;
+                setShowAttachmentCamera(true);
+            }),
+        [],
+    );
+
+    const handleCameraCapture = useCallback((photos: CapturedPhoto[]) => {
+        setShowAttachmentCamera(false);
+        const assets: Asset[] = photos.map((photo) => ({
+            uri: photo.uri,
+            fileName: photo.fileName,
+            type: photo.type,
+            width: photo.width,
+            height: photo.height,
+        }));
+        cameraResolveRef.current?.(assets);
+        cameraResolveRef.current = null;
+    }, []);
+
+    const handleCameraClose = useCallback(() => {
+        setShowAttachmentCamera(false);
+        cameraResolveRef.current?.();
+        cameraResolveRef.current = null;
+    }, []);
 
     /**
      * Common image picker handling
@@ -301,12 +336,12 @@ function AttachmentPicker({
             data.unshift({
                 icon: icons.Camera,
                 textTranslationKey: 'attachmentPicker.takePhoto',
-                pickAttachment: () => showImagePicker(launchCamera),
+                pickAttachment: launchInAppCamera,
             });
         }
 
         return data;
-    }, [icons.Camera, icons.Paperclip, icons.Gallery, showDocumentPicker, shouldHideGalleryOption, shouldHideCameraOption, showImagePicker]);
+    }, [icons.Camera, icons.Paperclip, icons.Gallery, showDocumentPicker, shouldHideGalleryOption, shouldHideCameraOption, launchInAppCamera, showImagePicker]);
 
     const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({initialFocusedIndex: -1, maxIndex: menuItemData.length - 1, isActive: isVisible});
 
@@ -526,6 +561,11 @@ function AttachmentPicker({
                     ))}
                 </View>
             </Popover>
+            <AttachmentCamera
+                isVisible={showAttachmentCamera}
+                onCapture={handleCameraCapture}
+                onClose={handleCameraClose}
+            />
             {renderChildren()}
         </>
     );
