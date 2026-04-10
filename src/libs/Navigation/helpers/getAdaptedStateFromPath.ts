@@ -59,10 +59,9 @@ function getMatchingFullScreenRoute(route: NavigationPartialRoute) {
     const isDynamicScreen = isDynamicRouteScreen(route.name as Screen);
 
     // Check for backTo param. One screen with different backTo value may need different screens visible under the overlay.
-    // Before checking backTo, we verify the URL doesn't end with a dynamic route suffix.
-    // Dynamic routes never carry their own backTo - they only inherit it from the screen underneath.
-    // So when a dynamic suffix is present, we must strip it first to resolve the correct full-screen
-    // route from the base path, rather than letting backTo (which belongs to the underlying screen) dictate it.
+    // Dynamic screens are skipped here because they never carry their own backTo - they only
+    // inherit it from the screen underneath. Letting backTo dictate the full-screen route for
+    // a dynamic screen would resolve the wrong page.
     if (isRouteWithBackToParam(route) && !isDynamicScreen) {
         const stateForBackTo = getStateFromPath(route.params.backTo as RoutePath);
 
