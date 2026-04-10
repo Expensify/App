@@ -2217,6 +2217,7 @@ type NewTaskNavigatorParamList = {
 
 type TeachersUniteNavigatorParamList = {
     [SCREENS.SAVE_THE_WORLD.ROOT]: undefined;
+    [SCREENS.SAVE_THE_WORLD.ADD_PAYMENT_CARD]: undefined;
     [SCREENS.I_KNOW_A_TEACHER]: undefined;
     [SCREENS.INTRO_SCHOOL_PRINCIPAL]: undefined;
     [SCREENS.I_AM_A_TEACHER]: undefined;
@@ -2266,6 +2267,14 @@ type ReimbursementAccountNavigatorParamList = {
         policyID?: string;
         bankAccountID?: string;
         subStep?: typeof CONST.BANK_ACCOUNT.STEP.COUNTRY;
+    };
+    [SCREENS.REIMBURSEMENT_ACCOUNT_USD]: {
+        page?: string;
+        subPage?: string;
+        action?: 'edit';
+        policyID?: string;
+        // eslint-disable-next-line no-restricted-syntax -- backTo is a temporary param will be removed after https://github.com/Expensify/App/issues/73825 is done
+        backTo?: Routes;
     };
     [SCREENS.REIMBURSEMENT_ACCOUNT_NON_USD]: {
         page?: string;
