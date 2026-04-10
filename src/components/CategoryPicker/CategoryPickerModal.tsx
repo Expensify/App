@@ -1,6 +1,5 @@
-import React, {useRef, useState} from 'react';
+import React, {useRef} from 'react';
 import {View} from 'react-native';
-import ConfirmCancelButtonRow from '@components/ConfirmCancelButtonRow';
 import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
 import type PopoverWithMeasuredContentProps from '@components/PopoverWithMeasuredContent/types';
 import type {ListItem} from '@components/SelectionList/types';
@@ -52,27 +51,8 @@ function CategoryPickerModal({
     const {isSmallScreenWidth} = useResponsiveLayout();
     const anchorRef = useRef<View>(null);
 
-    const [pendingItem, setPendingItem] = useState<ListItem | undefined>(selectedCategory ? {keyForList: selectedCategory, searchText: selectedCategory} : undefined);
-
     const handleCategorySelect = (item: ListItem) => {
-        // If clicking the same category that's already selected, treat it as deselection
-        if (item.keyForList === pendingItem?.keyForList) {
-            setPendingItem({keyForList: '', searchText: ''});
-        } else {
-            setPendingItem(item);
-        }
-    };
-
-    const handleConfirm = () => {
-        if (pendingItem) {
-            onSelected?.(pendingItem);
-        }
-        setPendingItem(undefined);
-        onClose();
-    };
-
-    const handleCancel = () => {
-        setPendingItem(undefined);
+        onSelected?.(item);
         onClose();
     };
 
@@ -80,7 +60,7 @@ function CategoryPickerModal({
         <PopoverWithMeasuredContent
             anchorRef={anchorRef}
             isVisible={isVisible}
-            onClose={handleCancel}
+            onClose={onClose}
             anchorPosition={anchorPosition}
             popoverDimensions={popoverDimensions}
             anchorAlignment={anchorAlignment}
@@ -93,16 +73,10 @@ function CategoryPickerModal({
             shouldDisplayBelowModals
         >
             <View style={[StyleUtils.getHeight(CONST.POPOVER_DROPDOWN_MAX_HEIGHT), styles.flexColumn, styles.pt4]}>
-                <View style={styles.flex1}>
-                    <CategoryPicker
-                        selectedCategory={pendingItem?.keyForList}
-                        policyID={policyID}
-                        onSubmit={handleCategorySelect}
-                    />
-                </View>
-                <ConfirmCancelButtonRow
-                    onConfirm={handleConfirm}
-                    onCancel={handleCancel}
+                <CategoryPicker
+                    selectedCategory={selectedCategory}
+                    policyID={policyID}
+                    onSubmit={handleCategorySelect}
                 />
             </View>
         </PopoverWithMeasuredContent>

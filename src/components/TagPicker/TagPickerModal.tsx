@@ -1,6 +1,5 @@
-import React, {useRef, useState} from 'react';
+import React, {useRef} from 'react';
 import {View} from 'react-native';
-import ConfirmCancelButtonRow from '@components/ConfirmCancelButtonRow';
 import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
 import type PopoverWithMeasuredContentProps from '@components/PopoverWithMeasuredContent/types';
 import useOnyx from '@hooks/useOnyx';
@@ -62,22 +61,8 @@ function TagPickerModal({
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
     const tagListName = getTagList(policyTags, 0).name;
 
-    const [pendingItem, setPendingItem] = useState<Partial<OptionData> | undefined>(undefined);
-
     const handleTagSelected = (item: Partial<OptionData>) => {
-        setPendingItem(item);
-    };
-
-    const handleConfirm = () => {
-        if (pendingItem) {
-            onSelected?.(pendingItem.searchText ?? pendingItem.text ?? '');
-        }
-        setPendingItem(undefined);
-        onClose();
-    };
-
-    const handleCancel = () => {
-        setPendingItem(undefined);
+        onSelected?.(item.searchText ?? item.text ?? '');
         onClose();
     };
 
@@ -85,7 +70,7 @@ function TagPickerModal({
         <PopoverWithMeasuredContent
             anchorRef={anchorRef}
             isVisible={isVisible}
-            onClose={handleCancel}
+            onClose={onClose}
             anchorPosition={anchorPosition}
             popoverDimensions={popoverDimensions}
             anchorAlignment={anchorAlignment}
@@ -98,21 +83,14 @@ function TagPickerModal({
             shouldDisplayBelowModals
         >
             <View style={[{height: CONST.POPOVER_DROPDOWN_MAX_HEIGHT, flexDirection: 'column'}, styles.pt4]}>
-                <View style={styles.flex1}>
-                    <TagPicker
-                        policyID={policyID}
-                        tagListName={tagListName}
-                        tagListIndex={0}
-                        selectedTag={pendingItem?.searchText ?? pendingItem?.text ?? selectedTag}
-                        transactionTag={transactionTag}
-                        hasDependentTags={hasDependentTags}
-                        onSubmit={handleTagSelected}
-                    />
-                </View>
-                <ConfirmCancelButtonRow
-                    onConfirm={handleConfirm}
-                    onCancel={handleCancel}
-                    isConfirmDisabled={!pendingItem}
+                <TagPicker
+                    policyID={policyID}
+                    tagListName={tagListName}
+                    tagListIndex={0}
+                    selectedTag={selectedTag}
+                    transactionTag={transactionTag}
+                    hasDependentTags={hasDependentTags}
+                    onSubmit={handleTagSelected}
                 />
             </View>
         </PopoverWithMeasuredContent>

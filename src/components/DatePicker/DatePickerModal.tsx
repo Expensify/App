@@ -1,7 +1,6 @@
 import {setYear} from 'date-fns';
 import React, {useEffect, useRef, useState} from 'react';
 import type {View} from 'react-native';
-import ConfirmCancelButtonRow from '@components/ConfirmCancelButtonRow';
 import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -15,16 +14,10 @@ const DEFAULT_ANCHOR_ORIGIN = {
     vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
 };
 
-/**
- * Returns popover dimensions based on whether confirm buttons are shown.
- * Uses taller height with buttons, otherwise they could get cut off at screen bottom.
- */
-function getPopoverDimensions(shouldShowConfirmButtons?: boolean) {
-    return {
-        height: shouldShowConfirmButtons ? CONST.POPOVER_DROPDOWN_MAX_HEIGHT : CONST.POPOVER_DATE_MIN_HEIGHT,
-        width: CONST.POPOVER_DATE_WIDTH,
-    };
-}
+const popoverDimensions = {
+    height: CONST.POPOVER_DATE_MIN_HEIGHT,
+    width: CONST.POPOVER_DATE_WIDTH,
+};
 
 function DatePickerModal({
     value,
@@ -44,7 +37,6 @@ function DatePickerModal({
     shouldCloseWhenBrowserNavigationChanged = false,
     shouldPositionFromTop = false,
     forwardedFSClass,
-    shouldShowConfirmButtons = false,
 }: DatePickerProps) {
     const [selectedDate, setSelectedDate] = useState(value ?? defaultValue ?? undefined);
     const anchorRef = useRef<View>(null);
@@ -55,39 +47,22 @@ function DatePickerModal({
     const {isSmallScreenWidth} = useResponsiveLayout();
 
     useEffect(() => {
-        // In confirm mode, selectedDate is a pending selection and should not be synced with value until the user confirms
-        if (shouldShowConfirmButtons) {
-            return;
-        }
         if (shouldSaveDraft && formID) {
             setDraftValues(formID, {[inputID]: selectedDate});
         }
         if (selectedDate !== value) {
             setSelectedDate(value);
         }
-    }, [formID, inputID, selectedDate, shouldSaveDraft, shouldShowConfirmButtons, value]);
-
-    const commitDate = (date: string) => {
-        onSelected?.(date);
-        onTouched?.();
-        onInputChange?.(date);
-        if (shouldSaveDraft && formID) {
-            setDraftValues(formID, {[inputID]: date});
-        }
-    };
+    }, [formID, inputID, selectedDate, shouldSaveDraft, value]);
 
     const handleDateSelection = (newValue: string) => {
+        onSelected?.(newValue);
+        onTouched?.();
+        onInputChange?.(newValue);
+        if (shouldSaveDraft && formID) {
+            setDraftValues(formID, {[inputID]: newValue});
+        }
         setSelectedDate(newValue);
-        if (!shouldShowConfirmButtons) {
-            commitDate(newValue);
-        }
-    };
-
-    const handleConfirm = () => {
-        if (selectedDate) {
-            commitDate(selectedDate);
-        }
-        onClose();
     };
 
     return (
@@ -96,7 +71,7 @@ function DatePickerModal({
             isVisible={isVisible}
             onClose={onClose}
             anchorPosition={anchorPosition}
-            popoverDimensions={getPopoverDimensions(shouldShowConfirmButtons)}
+            popoverDimensions={popoverDimensions}
             shouldCloseWhenBrowserNavigationChanged={shouldCloseWhenBrowserNavigationChanged}
             innerContainerStyle={isSmallScreenWidth ? styles.w100 : {width: CONST.POPOVER_DATE_WIDTH}}
             anchorAlignment={anchorAlignment}
@@ -114,13 +89,6 @@ function DatePickerModal({
                 value={selectedDate}
                 onSelected={handleDateSelection}
             />
-            {shouldShowConfirmButtons && (
-                <ConfirmCancelButtonRow
-                    onConfirm={handleConfirm}
-                    onCancel={onClose}
-                    isConfirmDisabled={!selectedDate}
-                />
-            )}
         </PopoverWithMeasuredContent>
     );
 }
