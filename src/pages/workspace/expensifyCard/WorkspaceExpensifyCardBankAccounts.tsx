@@ -121,7 +121,7 @@ function WorkspaceExpensifyCardBankAccounts({route}: WorkspaceExpensifyCardBankA
         }
         if (hasAnyAdminExpensifyCardFeed) {
             Navigation.dismissModal();
-            Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_SELECT_FEED.getRoute(policyID, undefined, true));
+            Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_SELECT_FEED.getRoute(policyID, undefined));
             return;
         }
         setIssueNewCardStepAndData({policyID, isChangeAssigneeDisabled: false});
