@@ -112,17 +112,15 @@ import {
 import {
     approveMoneyRequest,
     canApproveIOU,
-    cancelPayment,
     canIOUBePaid as canIOUBePaidAction,
     getNavigationUrlOnMoneyRequestDelete,
-    payInvoice,
-    payMoneyRequest,
     reopenReport,
     retractReport,
     startMoneyRequest,
     submitReport,
     unapproveExpenseReport,
 } from '@userActions/IOU';
+import {cancelPayment, payInvoice, payMoneyRequest} from '@userActions/IOU/PayMoneyRequest';
 import {setDeleteTransactionNavigateBackUrl} from '@userActions/Report';
 import {markPendingRTERTransactionsAsCash} from '@userActions/Transaction';
 import CONST from '@src/CONST';
