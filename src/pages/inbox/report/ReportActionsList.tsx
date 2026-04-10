@@ -875,7 +875,7 @@ function ReportActionsList({
                     renderScrollComponent={renderActionSheetAwareScrollView}
                     contentContainerStyle={styles.chatContentScrollView}
                     shouldHideContent={shouldScrollToEndAfterLayout}
-                    shouldFocusToTopOnMount={shouldFocusToTopOnMount}
+                    focusToTopOnMount={shouldFocusToTopOnMount}
                     shouldDisableVisibleContentPosition={shouldScrollToEndAfterLayout}
                     showsVerticalScrollIndicator={!shouldScrollToEndAfterLayout}
                     keyExtractor={keyExtractor}

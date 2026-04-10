@@ -24,7 +24,7 @@ function defaultKeyExtractor<T>(item: T | {key: string} | {id: string}, index: n
 function InvertedFlatList<T>({
     ref,
     shouldEnableAutoScrollToTopThreshold,
-    shouldFocusToTopOnMount = false,
+    focusToTopOnMount = false,
     initialScrollKey,
     data,
     onStartReached,
@@ -46,7 +46,7 @@ function InvertedFlatList<T>({
 
     const platform = getPlatform();
     const isWeb = platform === CONST.PLATFORM.WEB;
-    const focusToTopOnMount = !isWeb ? shouldFocusToTopOnMount : !shouldFocusToTopOnMount;
+    const shouldFocusToTopOnMount = !isWeb ? focusToTopOnMount : !focusToTopOnMount;
 
     return (
         <FlatList<T>
@@ -64,7 +64,7 @@ function InvertedFlatList<T>({
             contentContainerStyle={[
                 restProps.contentContainerStyle,
                 restProps.horizontal ? styles.flexRowReverse : styles.flexColumnReverse,
-                !focusToTopOnMount ? styles.justifyContentEnd : undefined,
+                !shouldFocusToTopOnMount ? styles.justifyContentEnd : undefined,
             ]}
         />
     );
