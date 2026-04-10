@@ -9239,6 +9239,7 @@ describe('actions/IOU', () => {
         });
 
         it('approveMoneyRequest includes delegateAccountID when delegateEmail is provided', () => {
+            const expenseReportPolicy = createRandomPolicy(1);
             const expenseReport: Report = {
                 ...createRandomReport(1, undefined),
                 type: CONST.REPORT.TYPE.EXPENSE,
@@ -9249,7 +9250,8 @@ describe('actions/IOU', () => {
 
             approveMoneyRequest({
                 expenseReport,
-                policy: {} as Policy,
+                expenseReportPolicy,
+                policy: expenseReportPolicy,
                 currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
                 currentUserEmailParam: CARLOS_EMAIL,
                 hasViolations: false,
@@ -9275,6 +9277,7 @@ describe('actions/IOU', () => {
         });
 
         it('approveMoneyRequest sets delegateAccountID to undefined when delegateEmail is undefined', () => {
+            const expenseReportPolicy = createRandomPolicy(1);
             const expenseReport: Report = {
                 ...createRandomReport(1, undefined),
                 type: CONST.REPORT.TYPE.EXPENSE,
@@ -9285,7 +9288,8 @@ describe('actions/IOU', () => {
 
             approveMoneyRequest({
                 expenseReport,
-                policy: {} as Policy,
+                expenseReportPolicy,
+                policy: expenseReportPolicy,
                 currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
                 currentUserEmailParam: CARLOS_EMAIL,
                 hasViolations: false,
