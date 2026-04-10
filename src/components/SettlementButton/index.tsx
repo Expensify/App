@@ -185,74 +185,77 @@ function SettlementButton({
         return formattedPaymentMethods.filter((ba) => (ba.accountData as AccountData)?.type === CONST.BANK_ACCOUNT.TYPE.PERSONAL);
     }
 
-    const checkForNecessaryAction = useCallback(() => {
-        if (isDelegateAccessRestricted) {
-            showDelegateNoAccessModal();
-            return true;
-        }
+    const checkForNecessaryAction = useCallback(
+        (paymentMethodType?: PaymentMethodType) => {
+            if (isDelegateAccessRestricted) {
+                showDelegateNoAccessModal();
+                return true;
+            }
 
-        if (isAccountLocked) {
-            showLockedAccountModal();
-            return true;
-        }
+            if (isAccountLocked) {
+                showLockedAccountModal();
+                return true;
+            }
 
-        if (!isUserValidated) {
-            handleUnvalidatedUserNavigation(chatReportID, reportID);
-            return true;
-        }
+            if (!isUserValidated && paymentMethodType !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
+                handleUnvalidatedUserNavigation(chatReportID, reportID);
+                return true;
+            }
 
-        if (isBankAccountLocked) {
-            showConfirmModal({
-                title: translate('bankAccount.lockedBankAccount'),
-                prompt: (
-                    <View style={[styles.renderHTML, styles.flexRow]}>
-                        <RenderHTML html={translate('bankAccount.youCantPayThis')} />
-                    </View>
-                ),
-                confirmText: translate('bankAccount.unlockBankAccount'),
-                cancelText: translate('common.cancel'),
-            }).then(({action}) => {
-                if (action !== ModalActions.CONFIRM) {
-                    return;
-                }
-                if (policy?.achAccount?.bankAccountID === undefined) {
-                    return;
-                }
-                pressLockedBankAccount(policy?.achAccount?.bankAccountID, translate, conciergeReportID);
-                navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas);
-            });
-            return true;
-        }
+            if (isBankAccountLocked) {
+                showConfirmModal({
+                    title: translate('bankAccount.lockedBankAccount'),
+                    prompt: (
+                        <View style={[styles.renderHTML, styles.flexRow]}>
+                            <RenderHTML html={translate('bankAccount.youCantPayThis')} />
+                        </View>
+                    ),
+                    confirmText: translate('bankAccount.unlockBankAccount'),
+                    cancelText: translate('common.cancel'),
+                }).then(({action}) => {
+                    if (action !== ModalActions.CONFIRM) {
+                        return;
+                    }
+                    if (policy?.achAccount?.bankAccountID === undefined) {
+                        return;
+                    }
+                    pressLockedBankAccount(policy?.achAccount?.bankAccountID, translate, conciergeReportID);
+                    navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas);
+                });
+                return true;
+            }
 
-        if (policy && shouldRestrictUserBillableActions(policy.id, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, policy)) {
-            Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
-            return true;
-        }
+            if (policy && shouldRestrictUserBillableActions(policy.id, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, policy)) {
+                Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
+                return true;
+            }
 
-        return false;
-    }, [
-        isDelegateAccessRestricted,
-        isAccountLocked,
-        isUserValidated,
-        isBankAccountLocked,
-        policy,
-        userBillingGracePeriodEnds,
-        ownerBillingGracePeriodEnd,
-        showDelegateNoAccessModal,
-        showLockedAccountModal,
-        chatReportID,
-        reportID,
-        showConfirmModal,
-        translate,
-        styles.renderHTML,
-        styles.flexRow,
-        conciergeReportID,
-        introSelected,
-        currentUserAccountID,
-        isSelfTourViewed,
-        betas,
-        amountOwed,
-    ]);
+            return false;
+        },
+        [
+            isDelegateAccessRestricted,
+            isAccountLocked,
+            isUserValidated,
+            isBankAccountLocked,
+            policy,
+            userBillingGracePeriodEnds,
+            ownerBillingGracePeriodEnd,
+            showDelegateNoAccessModal,
+            showLockedAccountModal,
+            chatReportID,
+            reportID,
+            showConfirmModal,
+            translate,
+            styles.renderHTML,
+            styles.flexRow,
+            conciergeReportID,
+            introSelected,
+            currentUserAccountID,
+            isSelfTourViewed,
+            betas,
+            amountOwed,
+        ],
+    );
 
     const shortFormPayElsewhereButton = {
         text: translate('iou.pay'),
@@ -323,7 +326,7 @@ function SettlementButton({
                         value: CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT,
                         description: account.description,
                         onSelected: () => {
-                            if (checkForNecessaryAction()) {
+                            if (checkForNecessaryAction(CONST.IOU.PAYMENT_TYPE.VBBA)) {
                                 return;
                             }
                             onPress({
@@ -386,7 +389,7 @@ function SettlementButton({
                         icon: formattedPaymentMethod?.icon,
                         shouldUpdateSelectedIndex: true,
                         onSelected: () => {
-                            if (checkForNecessaryAction()) {
+                            if (checkForNecessaryAction(CONST.IOU.PAYMENT_TYPE.EXPENSIFY)) {
                                 return;
                             }
                             onPress({
@@ -445,7 +448,7 @@ function SettlementButton({
                         value: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
                         shouldUpdateSelectedIndex: true,
                         onSelected: () => {
-                            if (checkForNecessaryAction()) {
+                            if (checkForNecessaryAction(CONST.IOU.PAYMENT_TYPE.ELSEWHERE)) {
                                 return;
                             }
                             onPress({paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE, payAsBusiness});
@@ -556,16 +559,16 @@ function SettlementButton({
     };
 
     const handlePaymentSelection = (event: GestureResponderEvent | KeyboardEvent | undefined, selectedOption: string, triggerKYCFlow: (params: ContinueActionParams) => void) => {
-        if (checkForNecessaryAction()) {
-            return;
-        }
-
         const {paymentType, policyFromPaymentMethod, policyFromContext, shouldSelectPaymentMethod} = getActivePaymentType(
             selectedOption,
             activeAdminPolicies,
             businessBankAccountOptions,
             policyIDKey,
         );
+
+        if (checkForNecessaryAction(paymentType)) {
+            return;
+        }
         const isPayingWithMethod = paymentType !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE;
 
         if ((!!policyFromPaymentMethod || shouldSelectPaymentMethod) && (isPayingWithMethod || !!policyFromPaymentMethod)) {
