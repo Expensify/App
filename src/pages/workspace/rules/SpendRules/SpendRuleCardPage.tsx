@@ -219,7 +219,7 @@ function SpendRuleCardPage({route}: SpendRuleCardPageProps) {
                         onSelectRow={toggleCard}
                         selectedItems={selectedCardIDs}
                         ListItem={CardListItem}
-                        shouldShowRadioButton={false}
+                        shouldShowSelectionButton={false}
                         shouldUpdateFocusedIndex
                         shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
                         listEmptyContent={

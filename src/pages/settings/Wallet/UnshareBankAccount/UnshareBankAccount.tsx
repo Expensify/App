@@ -169,7 +169,7 @@ function UnshareBankAccount({route}: ShareBankAccountProps) {
                     }
                     onSelectRow={() => {}}
                     ListItem={UserListItem}
-                    shouldShowRadioButton={false}
+                    shouldShowSelectionButton={false}
                 />
             </>
             <ConfirmModal

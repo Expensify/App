@@ -1,7 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
 import Avatar from '@components/Avatar';
-import SelectionButton from '@components/SelectionList/components/SelectionButton';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import BaseSelectListItem from './BaseSelectListItem';
@@ -55,13 +54,7 @@ function MultiSelectListItem<TItem extends ListItem>({
             isFocused={isFocused}
             showTooltip={showTooltip}
             isDisabled={isDisabled}
-            rightHandSideComponent={
-                <SelectionButton
-                    role={CONST.ROLE.CHECKBOX}
-                    item={item}
-                    onSelectRow={onSelectRow}
-                />
-            }
+            canSelectMultiple
             onSelectRow={onSelectRow}
             accessibilityRole={CONST.ROLE.CHECKBOX}
             onDismissError={onDismissError}
@@ -75,6 +68,7 @@ function MultiSelectListItem<TItem extends ListItem>({
             titleStyles={titleStyles}
             accessibilityState={accessibilityState}
             shouldHighlightSelectedItem={shouldHighlightSelectedItem}
+            shouldShowSelectionButton
         />
     );
 }

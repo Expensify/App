@@ -198,9 +198,6 @@ type CommonListItemProps<TItem extends ListItem> = {
     /** Number of lines to show for title text when multiline is supported */
     titleNumberOfLines?: number;
 
-    /** Whether to show the default right hand side component */
-    shouldUseDefaultRightHandSideComponent?: boolean;
-
     /** Handles what to do when the item is focused */
     onFocus?: ListItemFocusEventHandler;
 
@@ -218,9 +215,6 @@ type CommonListItemProps<TItem extends ListItem> = {
 
     /** Whether product training tooltips can be displayed */
     canShowProductTrainingTooltip?: boolean;
-
-    /** Whether to show the radio button */
-    shouldShowRadioButton?: boolean;
 } & TRightHandSideComponent<TItem> &
     WithSentryLabel;
 
@@ -242,6 +236,12 @@ type TRightHandSideComponent<TItem extends ListItem> = {
 type ListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
     /** The section list item */
     item: TItem;
+
+    /** Whether to show the selection button (checkbox or radio) */
+    shouldShowSelectionButton?: boolean;
+
+    /** Which side of the row to render the selection button on */
+    selectionButtonPosition?: 'left' | 'right';
 
     /** Additional styles to apply to text */
     style?: StyleProp<TextStyle>;
@@ -346,6 +346,12 @@ type BaseListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> &
          * When false, allows child elements (like TextInput) to be independently focusable by screen readers.
          */
         accessible?: boolean;
+
+        /** Whether to show the selection button (checkbox or radio) */
+        shouldShowSelectionButton?: boolean;
+
+        /** Which side of the row to render the selection button on */
+        selectionButtonPosition?: 'left' | 'right';
     };
 
 type SplitListItemType = ListItem &

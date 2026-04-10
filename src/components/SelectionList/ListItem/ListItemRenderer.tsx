@@ -40,7 +40,6 @@ function ListItemRenderer<TItem extends ListItem>({
     rightHandSideComponent,
     isMultilineSupported,
     isAlternateTextMultilineSupported,
-    shouldUseDefaultRightHandSideComponent,
     alternateTextNumberOfLines,
     shouldIgnoreFocus,
     setFocusedIndex,
@@ -53,7 +52,8 @@ function ListItemRenderer<TItem extends ListItem>({
     shouldHighlightSelectedItem,
     shouldDisableHoverStyle,
     shouldShowRightCaret,
-    shouldShowRadioButton,
+    shouldShowSelectionButton,
+    selectionButtonPosition,
     errorRowStyles,
     isLastItem,
     shouldPreventEnterKeySubmit = true,
@@ -88,7 +88,6 @@ function ListItemRenderer<TItem extends ListItem>({
                 shouldPreventEnterKeySubmit={shouldPreventEnterKeySubmit}
                 rightHandSideComponent={rightHandSideComponent}
                 keyForList={item.keyForList}
-                shouldUseDefaultRightHandSideComponent={shouldUseDefaultRightHandSideComponent}
                 isMultilineSupported={isMultilineSupported}
                 isAlternateTextMultilineSupported={isAlternateTextMultilineSupported}
                 alternateTextNumberOfLines={alternateTextNumberOfLines}
@@ -113,7 +112,8 @@ function ListItemRenderer<TItem extends ListItem>({
                 shouldHighlightSelectedItem={shouldHighlightSelectedItem}
                 shouldDisableHoverStyle={shouldDisableHoverStyle}
                 shouldShowRightCaret={shouldShowRightCaret}
-                shouldShowRadioButton={shouldShowRadioButton}
+                shouldShowSelectionButton={shouldShowSelectionButton}
+                selectionButtonPosition={selectionButtonPosition}
                 isLastItem={isLastItem}
             />
             {item.footerContent && item.footerContent}

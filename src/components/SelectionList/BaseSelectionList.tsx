@@ -93,7 +93,8 @@ function BaseSelectionList<TItem extends ListItem>({
     shouldClearInputOnSelect = false,
     shouldHighlightSelectedItem,
     shouldDisableHoverStyle = false,
-    shouldShowRadioButton,
+    shouldShowSelectionButton,
+    selectionButtonPosition,
     setShouldDisableHoverStyle = () => {},
 }: SelectionListProps<TItem>) {
     const styles = useThemeStyles();
@@ -372,7 +373,8 @@ function BaseSelectionList<TItem extends ListItem>({
                 shouldShowRightCaret={shouldShowRightCaret}
                 isLastItem={index === data.length - 1}
                 shouldPreventEnterKeySubmit={!disableKeyboardShortcuts}
-                shouldShowRadioButton={shouldShowRadioButton}
+                shouldShowSelectionButton={shouldShowSelectionButton}
+                selectionButtonPosition={selectionButtonPosition}
             />
         );
     };

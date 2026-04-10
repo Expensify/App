@@ -268,7 +268,6 @@ function ExpenseReportListItem<TItem extends ListItem>({
             pressableWrapperStyle={[styles.mh5, animatedHighlightStyle, isPendingDelete && styles.cursorDisabled, isLargeScreenWidth && isLastItem && styles.searchTableBottomRadius]}
             accessible={false}
             shouldShowRightCaret={false}
-            shouldShowRadioButton={false}
             isDisabled={isPendingDelete}
             shouldDisableHoverStyle={isPendingDelete}
         >

@@ -118,7 +118,6 @@ function SplitListItem<TItem extends ListItem>({
             onSelectRow={onSelectRow}
             shouldPreventEnterKeySubmit={shouldPreventEnterKeySubmit}
             rightHandSideComponent={rightHandSideComponent}
-            shouldShowRadioButton={false}
             shouldHighlightSelectedItem={false}
             keyForList={item.keyForList}
             onFocus={onFocus}

@@ -4,7 +4,6 @@ import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Icon from '@components/Icon';
 import ReportActionAvatars from '@components/ReportActionAvatars';
-import SelectionButton from '@components/SelectionList/components/SelectionButton';
 import {ListItemFocusContext} from '@components/SelectionList/ListItemFocusContext';
 import getAccessibilityLabel from '@components/SelectionList/utils/getAccessibilityLabel';
 import Text from '@components/Text';
@@ -41,7 +40,8 @@ function UserListItem<TItem extends ListItem>({
     pressableStyle,
     forwardedFSClass,
     shouldDisableHoverStyle,
-    shouldShowRadioButton = true,
+    shouldShowSelectionButton,
+    selectionButtonPosition,
 }: UserListItemProps<TItem>) {
     const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'Checkmark']);
     const styles = useThemeStyles();
@@ -91,12 +91,14 @@ function UserListItem<TItem extends ListItem>({
                     <Text style={[styles.ml9, styles.ph5, styles.pb3, styles.textLabelSupporting]}>{translate('workspace.people.invitedBySecondaryLogin', item.invitedSecondaryLogin)}</Text>
                 ) : undefined
             }
-            shouldShowRadioButton={false}
             keyForList={item.keyForList}
             onFocus={onFocus}
             shouldSyncFocus={shouldSyncFocus}
             accessible={shouldDisableAccessibleGrouping ? false : undefined}
             shouldDisableHoverStyle={shouldDisableHoverStyle}
+            shouldShowSelectionButton={shouldShowSelectionButton}
+            selectionButtonPosition={selectionButtonPosition}
+            onCheckboxPress={onCheckboxPress}
         >
             {(hovered?: boolean) => {
                 const isHovered = !!hovered && !shouldDisableHoverStyle;
@@ -108,16 +110,6 @@ function UserListItem<TItem extends ListItem>({
                         role={shouldDisableAccessibleGrouping ? CONST.ROLE.BUTTON : undefined}
                         style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}
                     >
-                        {!shouldShowRadioButton && !!canSelectMultiple && (
-                            <SelectionButton
-                                role={CONST.ROLE.CHECKBOX}
-                                item={item}
-                                onSelectRow={onCheckboxPress ?? onSelectRow}
-                                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                                disabled={isDisabled || item.isDisabledCheckbox}
-                                style={styles.mr3}
-                            />
-                        )}
                         {(!!reportExists || !!itemAccountID || !!policyID) && (
                             <ReportActionAvatars
                                 subscriptAvatarBorderColor={isHovered && !isFocused ? hoveredBackgroundColor : subscriptAvatarBorderColor}
@@ -164,16 +156,6 @@ function UserListItem<TItem extends ListItem>({
                                     fill={StyleUtils.getIconFillColor(getButtonState(isHovered, false, false, !!isDisabled, item.isInteractive !== false))}
                                 />
                             </View>
-                        )}
-                        {!!shouldShowRadioButton && (
-                            <SelectionButton
-                                role={canSelectMultiple ? CONST.ROLE.CHECKBOX : CONST.ROLE.RADIO}
-                                item={item}
-                                onSelectRow={onCheckboxPress ?? onSelectRow}
-                                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                                disabled={isDisabled || item.isDisabledCheckbox}
-                                style={styles.ml3}
-                            />
                         )}
                     </View>
                 );

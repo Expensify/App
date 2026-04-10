@@ -25,7 +25,8 @@ function TableListItem<TItem extends ListItem>({
     onLongPressRow,
     shouldSyncFocus,
     titleContainerStyles,
-    shouldShowRadioButton,
+    shouldShowSelectionButton,
+    selectionButtonPosition = 'right',
     shouldShowRightCaret,
     errorRowStyles,
 }: TableListItemProps<TItem>) {
@@ -42,6 +43,11 @@ function TableListItem<TItem extends ListItem>({
 
     const focusedBackgroundColor = styles.sidebarLinkActive.backgroundColor;
     const hoveredBackgroundColor = styles.sidebarLinkHover?.backgroundColor ? styles.sidebarLinkHover.backgroundColor : theme.sidebar;
+
+    // TableListItem renders its own custom left-side checkbox (with special styling,
+    // testID, and shouldStopMouseDownPropagation). For the right side, it delegates
+    // to BaseListItem's standard rendering.
+    const hasCustomLeftCheckbox = !!shouldShowSelectionButton && selectionButtonPosition === 'left';
 
     return (
         <BaseListItem
@@ -63,6 +69,7 @@ function TableListItem<TItem extends ListItem>({
             canSelectMultiple={canSelectMultiple}
             onLongPressRow={onLongPressRow}
             onSelectRow={onSelectRow}
+            onCheckboxPress={onCheckboxPress}
             onDismissError={onDismissError}
             rightHandSideComponent={rightHandSideComponent}
             errors={item.errors}
@@ -72,14 +79,15 @@ function TableListItem<TItem extends ListItem>({
             onFocus={onFocus}
             shouldSyncFocus={shouldSyncFocus}
             hoverStyle={item.isSelected && styles.activeComponentBG}
-            shouldShowRadioButton={shouldShowRadioButton}
             shouldShowRightCaret={shouldShowRightCaret}
+            shouldShowSelectionButton={!hasCustomLeftCheckbox && shouldShowSelectionButton}
+            selectionButtonPosition={selectionButtonPosition}
         >
             {(hovered) => (
                 <>
-                    {!!canSelectMultiple && (
+                    {hasCustomLeftCheckbox && (
                         <SelectionButton
-                            role={CONST.ROLE.CHECKBOX}
+                            role={canSelectMultiple ? CONST.ROLE.CHECKBOX : CONST.ROLE.RADIO}
                             item={item}
                             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                             disabled={isDisabled || item.isDisabledCheckbox}

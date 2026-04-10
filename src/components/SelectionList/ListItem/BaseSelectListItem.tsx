@@ -1,6 +1,5 @@
-import React, {useCallback, useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
-import Checkbox from '@components/Checkbox';
 import TextWithTooltip from '@components/TextWithTooltip';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
@@ -27,31 +26,14 @@ function BaseSelectListItem<TItem extends ListItem>({
     titleStyles,
     shouldHighlightSelectedItem = true,
     accessibilityRole,
-    shouldUseDefaultRightHandSideComponent,
+    shouldShowSelectionButton,
+    selectionButtonPosition,
 }: BaseSelectListItemProps<TItem>) {
     const styles = useThemeStyles();
     const fullTitle = isMultilineSupported ? item.text?.trimStart() : item.text;
     const indentsLength = (item.text?.length ?? 0) - (fullTitle?.length ?? 0);
     const paddingLeft = Math.floor(indentsLength / CONST.INDENTS.length) * styles.ml3.marginLeft;
     const alternateTextMaxWidth = variables.sideBarWidth - styles.ph5.paddingHorizontal * 2 - styles.ml3.marginLeft - variables.iconSizeNormal;
-    const handleCheckboxPress = useCallback(() => {
-        onSelectRow(item);
-    }, [item, onSelectRow]);
-
-    const defaultRightHandSideComponent = useMemo(
-        () => (
-            <Checkbox
-                shouldSelectOnPressEnter
-                containerBorderRadius={variables.componentBorderRadiusCircle}
-                accessibilityLabel={item.text ?? ''}
-                isChecked={!!item.isSelected}
-                disabled={!!isDisabled && !item.isSelected}
-                onPress={handleCheckboxPress}
-            />
-        ),
-        [item.text, item.isSelected, isDisabled, handleCheckboxPress],
-    );
-
     return (
         <BaseListItem
             item={item}
@@ -62,7 +44,7 @@ function BaseSelectListItem<TItem extends ListItem>({
             onSelectRow={onSelectRow}
             onDismissError={onDismissError}
             shouldPreventEnterKeySubmit={shouldPreventEnterKeySubmit}
-            rightHandSideComponent={shouldUseDefaultRightHandSideComponent ? defaultRightHandSideComponent : rightHandSideComponent}
+            rightHandSideComponent={rightHandSideComponent}
             keyForList={item.keyForList}
             onFocus={onFocus}
             shouldSyncFocus={shouldSyncFocus}
@@ -70,6 +52,8 @@ function BaseSelectListItem<TItem extends ListItem>({
             errors={item.errors}
             shouldHighlightSelectedItem={shouldHighlightSelectedItem}
             accessibilityRole={accessibilityRole}
+            shouldShowSelectionButton={shouldShowSelectionButton}
+            selectionButtonPosition={selectionButtonPosition}
         >
             <>
                 {!!item.leftElement && item.leftElement}

@@ -1,9 +1,8 @@
 import {Str} from 'expensify-common';
-import React, {useCallback} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import {useProductTrainingContext} from '@components/ProductTrainingContext';
 import ReportActionAvatars from '@components/ReportActionAvatars';
-import SelectionButton from '@components/SelectionList/components/SelectionButton';
 import {ListItemFocusContext} from '@components/SelectionList/ListItemFocusContext';
 import Text from '@components/Text';
 import TextWithTooltip from '@components/TextWithTooltip';
@@ -39,7 +38,7 @@ function InviteMemberListItem<TItem extends ListItem>({
     canShowProductTrainingTooltip = true,
     index = 0,
     sectionIndex = 0,
-    shouldShowRadioButton = true,
+    shouldShowSelectionButton = true,
 }: InviteMemberListItemProps<TItem>) {
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -61,16 +60,7 @@ function InviteMemberListItem<TItem extends ListItem>({
     const subscriptAvatarBorderColor = isFocused ? focusedBackgroundColor : theme.sidebar;
     const hoveredBackgroundColor = !!styles.sidebarLinkHover && 'backgroundColor' in styles.sidebarLinkHover ? styles.sidebarLinkHover.backgroundColor : theme.sidebar;
 
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- we need to check if the item is disabled and if the checkbox or radio button should be shown
-    const shouldShowCheckbox = !item.isDisabled && (canSelectMultiple || shouldShowRadioButton);
-
-    const handleCheckboxPress = useCallback(() => {
-        if (onCheckboxPress) {
-            onCheckboxPress(item);
-        } else {
-            onSelectRow(item);
-        }
-    }, [item, onCheckboxPress, onSelectRow]);
+    const shouldShowCheckbox = !item.isDisabled && shouldShowSelectionButton;
 
     const firstItemIconID = Number(item?.icons?.at(0)?.id);
 
@@ -99,6 +89,8 @@ function InviteMemberListItem<TItem extends ListItem>({
             onFocus={onFocus}
             shouldSyncFocus={shouldSyncFocus}
             shouldDisplayRBR={!shouldShowCheckbox}
+            shouldShowSelectionButton={shouldShowCheckbox}
+            onCheckboxPress={onCheckboxPress}
             testID={item.text}
         >
             {(hovered?: boolean) => (
@@ -156,15 +148,6 @@ function InviteMemberListItem<TItem extends ListItem>({
                             )}
                         </View>
                         {!!item.rightElement && <ListItemFocusContext.Provider value={{isFocused}}>{item.rightElement}</ListItemFocusContext.Provider>}
-                        {!!shouldShowCheckbox && (
-                            <SelectionButton
-                                role={canSelectMultiple ? CONST.ROLE.CHECKBOX : CONST.ROLE.RADIO}
-                                item={item}
-                                onSelectRow={handleCheckboxPress}
-                                disabled={!!isDisabled}
-                                style={styles.ml2}
-                            />
-                        )}
                     </View>
                 </EducationalTooltip>
             )}

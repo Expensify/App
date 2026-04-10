@@ -68,6 +68,7 @@ function BaseListItem<TItem extends ListItem>({
     shouldPreventEnterKeySubmit = false,
     canSelectMultiple = false,
     onSelectRow,
+    onCheckboxPress,
     onDismissError = () => {},
     rightHandSideComponent,
     keyForList,
@@ -83,13 +84,14 @@ function BaseListItem<TItem extends ListItem>({
     onFocus = () => {},
     hoverStyle,
     onLongPressRow,
-    shouldShowRadioButton = false,
     shouldHighlightSelectedItem = false,
     shouldDisableHoverStyle,
     shouldShowRightCaret = false,
     accessible,
     accessibilityRole = getButtonRole(true),
     forwardedFSClass,
+    shouldShowSelectionButton = false,
+    selectionButtonPosition = 'right',
 }: BaseListItemProps<TItem>) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -132,7 +134,7 @@ function BaseListItem<TItem extends ListItem>({
     };
 
     const rightHandSideComponentRender = () => {
-        if (canSelectMultiple || !rightHandSideComponent) {
+        if (!rightHandSideComponent) {
             return null;
         }
 
@@ -230,6 +232,17 @@ function BaseListItem<TItem extends ListItem>({
                     ]}
                     fsClass={forwardedFSClass}
                 >
+                    {shouldShowSelectionButton && selectionButtonPosition === 'left' && (
+                        <SelectionButton
+                            role={canSelectMultiple ? CONST.ROLE.CHECKBOX : CONST.ROLE.RADIO}
+                            item={item}
+                            onSelectRow={onCheckboxPress ?? onSelectRow}
+                            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                            disabled={isDisabled || item.isDisabledCheckbox}
+                            style={styles.mr3}
+                        />
+                    )}
+
                     {typeof children === 'function' ? children(hovered) : children}
 
                     {shouldShowRBRIndicator && (
@@ -242,17 +255,15 @@ function BaseListItem<TItem extends ListItem>({
                         </View>
                     )}
 
-                    {!canSelectMultiple && !rightHandSideComponent && shouldShowRadioButton && (
-                        <View
-                            style={[styles.flexRow, styles.alignItemsCenter, styles.ml3]}
-                            accessible={false}
-                        >
-                            <SelectionButton
-                                role={CONST.ROLE.RADIO}
-                                item={item}
-                                onSelectRow={onSelectRow}
-                            />
-                        </View>
+                    {shouldShowSelectionButton && selectionButtonPosition === 'right' && (
+                        <SelectionButton
+                            role={canSelectMultiple ? CONST.ROLE.CHECKBOX : CONST.ROLE.RADIO}
+                            item={item}
+                            onSelectRow={onCheckboxPress ?? onSelectRow}
+                            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                            disabled={isDisabled || item.isDisabledCheckbox}
+                            style={styles.ml3}
+                        />
                     )}
 
                     {rightHandSideComponentRender()}

@@ -1,7 +1,5 @@
 import React from 'react';
-import SelectionButton from '@components/SelectionList/components/SelectionButton';
 import useThemeStyles from '@hooks/useThemeStyles';
-import CONST from '@src/CONST';
 import BaseSelectListItem from './BaseSelectListItem';
 import type {ListItem, SingleSelectListItemProps} from './types';
 
@@ -26,7 +24,8 @@ function SingleSelectListItem<TItem extends ListItem>({
     titleStyles,
     shouldHighlightSelectedItem = false,
     rightHandSideComponent = undefined,
-    shouldShowRadioButton = true,
+    shouldShowSelectionButton = true,
+    selectionButtonPosition,
     accessibilityState,
 }: SingleSelectListItemProps<TItem>) {
     const styles = useThemeStyles();
@@ -38,16 +37,7 @@ function SingleSelectListItem<TItem extends ListItem>({
             isFocused={isFocused}
             showTooltip={showTooltip}
             isDisabled={isDisabled}
-            rightHandSideComponent={
-                rightHandSideComponent ?? (
-                    <SelectionButton
-                        role={CONST.ROLE.RADIO}
-                        item={item}
-                        onSelectRow={onSelectRow}
-                        accessibilityLabel="SingleSelectListItem"
-                    />
-                )
-            }
+            rightHandSideComponent={rightHandSideComponent}
             onSelectRow={onSelectRow}
             onDismissError={onDismissError}
             shouldPreventEnterKeySubmit={shouldPreventEnterKeySubmit}
@@ -59,7 +49,8 @@ function SingleSelectListItem<TItem extends ListItem>({
             wrapperStyle={[styles.optionRow, wrapperStyle]}
             titleStyles={titleStyles}
             shouldHighlightSelectedItem={shouldHighlightSelectedItem}
-            shouldShowRadioButton={shouldShowRadioButton}
+            shouldShowSelectionButton={shouldShowSelectionButton}
+            selectionButtonPosition={selectionButtonPosition}
             accessibilityState={accessibilityState}
         />
     );
