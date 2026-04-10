@@ -7856,7 +7856,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         scheduleOOO: 'Abwesenheit planen',
         scheduleOOOTitle: 'Abwesenheit planen',
         date: 'Datum',
-        time: 'Zeit',
+        time: 'Zeit (24-Stunden-Format)',
         durationAmount: 'Betrag',
         durationUnit: 'Einheit',
         reason: 'Grund',

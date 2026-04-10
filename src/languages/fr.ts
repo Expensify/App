@@ -7879,7 +7879,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         scheduleOOO: 'Planifier une absence',
         scheduleOOOTitle: 'Planifier une absence du bureau',
         date: 'Date',
-        time: 'Heure',
+        time: 'Heure (format 24 heures)',
         durationAmount: 'Montant',
         durationUnit: 'Unité',
         reason: 'Raison',

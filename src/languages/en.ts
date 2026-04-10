@@ -7838,7 +7838,7 @@ const translations = {
         scheduleOOO: 'Schedule OOO',
         scheduleOOOTitle: 'Schedule Out of Office',
         date: 'Date',
-        time: 'Time',
+        time: 'Time (use 24-hour format)',
         durationAmount: 'Amount',
         durationUnit: 'Unit',
         reason: 'Reason',
