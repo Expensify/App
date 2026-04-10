@@ -619,6 +619,7 @@ const CONST = {
             ACH_CONTRACT: 'ach-contract',
             VALIDATION: 'validation',
             ENABLE: 'enable',
+            KYB_DOCS: 'upload-kyb-documents',
         },
         STEP_NAMES: ['1', '2', '3', '4', '5', '6'],
         BANK_INFO_STEP: {

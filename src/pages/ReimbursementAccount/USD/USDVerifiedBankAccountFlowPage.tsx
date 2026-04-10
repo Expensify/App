@@ -15,6 +15,7 @@ import BusinessInfo from './BusinessInfo/BusinessInfo';
 import CompleteVerification from './CompleteVerification/CompleteVerification';
 import ConnectBankAccount from './ConnectBankAccount/ConnectBankAccount';
 import Country from './Country';
+import KYBDocuments from './KYBDocuments';
 import RequestorStep from './Requestor/RequestorStep';
 import VerifyIdentity from './Requestor/VerifyIdentity/VerifyIdentity';
 import type USDPageProps from './types';
@@ -61,6 +62,7 @@ const pages: PageEntry[] = [
         firstSubPage: COMPLETE_VERIFICATION_SUB_PAGES.CONFIRM_AGREEMENTS,
         lastSubPage: COMPLETE_VERIFICATION_SUB_PAGES.CONFIRM_AGREEMENTS,
     },
+    {pageName: PAGE_NAMES.KYB_DOCS, component: KYBDocuments as React.ComponentType<USDPageProps>},
     {pageName: PAGE_NAMES.VALIDATION, component: ConnectBankAccount as React.ComponentType<USDPageProps>},
 ];
 

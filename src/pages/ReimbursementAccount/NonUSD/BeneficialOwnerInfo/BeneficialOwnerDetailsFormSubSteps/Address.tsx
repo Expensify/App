@@ -60,22 +60,9 @@ function Address({onNext, isEditing, onMove, isUserEnteringHisOwnData, ownerBein
         setShouldDisplayStateSelector(country === CONST.COUNTRY.US || country === CONST.COUNTRY.CA);
     };
 
-    const handleNextStep = () => {
-        // owner is US citizen so we need to gather last four digits of his SSN
-        if (nationality === CONST.COUNTRY.US) {
-            onNext();
-            // currency is set to GBP and owner is UK citizen, so we skip SSN and KYBDocuments step
-        } else if (countryStepCountryValue === CONST.COUNTRY.GB && nationality === CONST.COUNTRY.GB) {
-            onMove(7, false);
-            // owner is not US citizen so we skip SSN step
-        } else {
-            onMove(6, false);
-        }
-    };
-
     const handleSubmit = useReimbursementAccountStepFormSubmit({
         fieldIds: stepFields,
-        onNext: handleNextStep,
+        onNext,
         shouldSaveDraft: isEditing,
     });
 

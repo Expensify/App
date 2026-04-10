@@ -45,19 +45,19 @@ function KYBDocuments({onBackButtonPress}: KYBDocumentsProps) {
             inputID: 'companyTaxID',
             title: 'documentsStep.taxIDVerification',
             description: 'documentsStep.taxIDVerificationDescription',
-            required: reimbursementAccountData?.companyTaxID?.status !== 'pass',
+            required: reimbursementAccountData?.companyTaxID?.status !== undefined && reimbursementAccountData?.companyTaxID?.status !== 'pass',
         },
         {
             inputID: 'nameChangeDocument',
             title: 'documentsStep.nameChangeDocument',
             description: 'documentsStep.nameChangeDocumentDescription',
-            required: reimbursementAccountData?.lexisNexisInstantIDResult?.status !== 'pass',
+            required: (reimbursementAccountData?.lexisNexisInstantIDResult?.status !== undefined && reimbursementAccountData?.lexisNexisInstantIDResult?.status) !== 'pass',
         },
         {
             inputID: 'companyAddressVerification',
             title: 'documentsStep.companyAddressVerification',
             description: 'documentsStep.companyAddressVerificationDescription',
-            required: reimbursementAccountData?.lexisNexisInstantIDResult?.status !== 'pass',
+            required: reimbursementAccountData?.lexisNexisInstantIDResult?.status !== undefined && reimbursementAccountData?.lexisNexisInstantIDResult?.status !== 'pass',
         },
         {
             inputID: 'userAddressVerification',
