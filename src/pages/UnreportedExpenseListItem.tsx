@@ -3,7 +3,9 @@ import type {View} from 'react-native';
 import {getButtonRole} from '@components/Button/utils';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {PressableWithFeedback} from '@components/Pressable';
-import type {ListItem, ListItemProps, TransactionListItemType} from '@components/SelectionListWithSections/types';
+import type {TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
+import type {ListItemProps} from '@components/SelectionList/ListItem/types';
+import type {ListItem} from '@components/SelectionList/types';
 import TransactionItemRow from '@components/TransactionItemRow';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -16,6 +18,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {TransactionViolation} from '@src/types/onyx';
 
 type UnreportedExpenseListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
+    readOnly?: boolean;
     violations?: Record<string, TransactionViolation[]>;
 };
 
@@ -25,6 +28,7 @@ function UnreportedExpenseListItem<TItem extends ListItem>({
     showTooltip,
     isDisabled,
     onFocus,
+    readOnly,
     shouldSyncFocus,
     onSelectRow,
     violations,
@@ -47,7 +51,7 @@ function UnreportedExpenseListItem<TItem extends ListItem>({
 
     useSyncFocus(pressableRef, !!isFocused, shouldSyncFocus);
 
-    const isItemDisabled = !!isDisabled && !isSelected;
+    const isItemDisabled = (!!isDisabled && !isSelected) || readOnly;
 
     return (
         <OfflineWithFeedback pendingAction={item.pendingAction}>
@@ -61,12 +65,13 @@ function UnreportedExpenseListItem<TItem extends ListItem>({
                 role={getButtonRole(true)}
                 isNested
                 onMouseDown={(e) => e.preventDefault()}
-                hoverStyle={[!item.isDisabled && styles.hoveredComponentBG, isSelected && styles.activeComponentBG]}
+                hoverStyle={[!item.isDisabled && !readOnly && styles.hoveredComponentBG, isSelected && styles.activeComponentBG]}
                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true, [CONST.INNER_BOX_SHADOW_ELEMENT]: false}}
                 id={item.keyForList ?? ''}
                 style={[pressableStyle, isFocused && StyleUtils.getItemBackgroundColorStyle(!!isSelected, !!isFocused, !!item.isDisabled, theme.activeComponentBG, theme.hoverComponentBG)]}
                 onFocus={onFocus}
                 wrapperStyle={[styles.mb2, styles.mh5, styles.flex1, animatedHighlightStyle, styles.userSelectNone]}
+                sentryLabel={CONST.SENTRY_LABEL.SEARCH.UNREPORTED_EXPENSE_LIST_ITEM}
             >
                 {({hovered}) => (
                     <TransactionItemRow
@@ -82,7 +87,7 @@ function UnreportedExpenseListItem<TItem extends ListItem>({
                             onSelectRow(item);
                         }}
                         isDisabled={isItemDisabled}
-                        shouldShowCheckbox
+                        shouldShowCheckbox={!readOnly}
                         style={styles.p3}
                         isHover={hovered}
                     />

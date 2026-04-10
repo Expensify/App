@@ -1,10 +1,12 @@
-import React from 'react';
+import React, {useMemo} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {PressableWithFeedback} from '@components/Pressable';
 import Text from '@components/Text';
+import useAccountTabIndicatorStatus from '@hooks/useAccountTabIndicatorStatus';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -26,11 +28,13 @@ type NavigationTabBarAvatarProps = {
 function NavigationTabBarAvatar({onPress, isSelected = false, style}: NavigationTabBarAvatarProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: false});
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
 
     const delegateEmail = account?.delegatedAccess?.delegate ?? '';
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const emojiStatus = currentUserPersonalDetails?.status?.emojiCode ?? '';
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {status} = useAccountTabIndicatorStatus();
 
     /**
      * Renders the appropriate avatar component based on user state (delegate, emoji status, or default profile)
@@ -64,19 +68,22 @@ function NavigationTabBarAvatar({onPress, isSelected = false, style}: Navigation
             />
         );
     };
+    const accountAccessibilityState = useMemo(() => ({selected: isSelected}), [isSelected]);
 
     return (
         <PressableWithFeedback
             onPress={onPress}
-            role={CONST.ROLE.BUTTON}
-            accessibilityLabel={`${translate('initialSettingsPage.account')}, ${translate('sidebarScreen.buttonMySettings')}`}
+            accessibilityLabel={`${translate('initialSettingsPage.account')}, ${translate('sidebarScreen.buttonMySettings')}. ${status ? `${translate('common.yourReviewIsRequired')}.` : ''}`}
+            role={CONST.ROLE.TAB}
             wrapperStyle={styles.flex1}
-            style={({hovered}) => [style, hovered && styles.navigationTabBarItemHovered]}
+            accessibilityState={accountAccessibilityState}
+            aria-selected={accountAccessibilityState.selected}
+            style={({hovered}) => [style, !shouldUseNarrowLayout && hovered && styles.navigationTabBarItemHovered]}
             sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.ACCOUNT}
         >
             {({hovered}) => (
                 <>
-                    {renderAvatar(isSelected || hovered)}
+                    {renderAvatar(isSelected || (!shouldUseNarrowLayout && hovered))}
                     <Text style={[styles.textSmall, styles.textAlignCenter, isSelected ? styles.textBold : styles.textSupporting, styles.mt0Half, styles.navigationTabBarLabel]}>
                         {translate('initialSettingsPage.account')}
                     </Text>

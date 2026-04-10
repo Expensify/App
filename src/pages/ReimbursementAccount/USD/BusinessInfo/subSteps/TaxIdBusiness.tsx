@@ -5,7 +5,8 @@ import SingleFieldStep from '@components/SubStepForms/SingleFieldStep';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useReimbursementAccountStepFormSubmit from '@hooks/useReimbursementAccountStepFormSubmit';
-import type {SubStepProps} from '@hooks/useSubStep/types';
+import type {SubPageProps} from '@hooks/useSubPage/types';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {getFieldRequiredErrors, isValidTaxID} from '@libs/ValidationUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -14,10 +15,10 @@ import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 const COMPANY_TAX_ID_KEY = INPUT_IDS.BUSINESS_INFO_STEP.COMPANY_TAX_ID;
 const STEP_FIELDS = [COMPANY_TAX_ID_KEY];
-function TaxIdBusiness({onNext, onMove, isEditing}: SubStepProps) {
+function TaxIdBusiness({onNext, onMove, isEditing}: SubPageProps) {
     const {translate} = useLocalize();
 
-    const [reimbursementAccount, reimbursementAccountResult] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: false});
+    const [reimbursementAccount, reimbursementAccountResult] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const isLoadingReimbursementAccount = isLoadingOnyxValue(reimbursementAccountResult);
 
     // This is default value for the input to be display
@@ -34,7 +35,7 @@ function TaxIdBusiness({onNext, onMove, isEditing}: SubStepProps) {
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
-            const errors = getFieldRequiredErrors(values, STEP_FIELDS);
+            const errors = getFieldRequiredErrors(values, STEP_FIELDS, translate);
 
             if (values.companyTaxID && !isValidTaxID(values.companyTaxID)) {
                 errors.companyTaxID = translate('bankAccount.error.taxID');
@@ -52,7 +53,11 @@ function TaxIdBusiness({onNext, onMove, isEditing}: SubStepProps) {
     });
 
     if (isLoadingReimbursementAccount) {
-        return <FullScreenLoadingIndicator />;
+        const reasonAttributes: SkeletonSpanReasonAttributes = {
+            context: 'TaxIdBusiness',
+            isLoadingReimbursementAccount,
+        };
+        return <FullScreenLoadingIndicator reasonAttributes={reasonAttributes} />;
     }
 
     return (
@@ -72,6 +77,7 @@ function TaxIdBusiness({onNext, onMove, isEditing}: SubStepProps) {
             shouldShowHelpLinks={false}
             placeholder={translate('businessInfoStep.taxIDNumberPlaceholder')}
             inputMode={CONST.INPUT_MODE.NUMERIC}
+            shouldDelayAutoFocus
         />
     );
 }

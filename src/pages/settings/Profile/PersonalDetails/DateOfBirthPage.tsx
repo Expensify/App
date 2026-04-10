@@ -12,6 +12,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {getAgeRequirementError, getFieldRequiredErrors} from '@libs/ValidationUtils';
 import {updateDateOfBirth} from '@userActions/PersonalDetails';
 import CONST from '@src/CONST';
@@ -19,28 +20,31 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/DateOfBirthForm';
 
 function DateOfBirthPage() {
-    const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, {canBeMissing: true});
-    const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
+    const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
+    const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
     /**
      * @returns An object containing the errors for each inputID
      */
-    const validate = useCallback((values: FormOnyxValues<typeof ONYXKEYS.FORMS.DATE_OF_BIRTH_FORM>) => {
-        const requiredFields = ['dob' as const];
-        const errors = getFieldRequiredErrors(values, requiredFields);
+    const validate = useCallback(
+        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.DATE_OF_BIRTH_FORM>) => {
+            const requiredFields = ['dob' as const];
+            const errors = getFieldRequiredErrors(values, requiredFields, translate);
 
-        const minimumAge = CONST.DATE_BIRTH.MIN_AGE;
-        const maximumAge = CONST.DATE_BIRTH.MAX_AGE;
-        const dateError = getAgeRequirementError(values.dob ?? '', minimumAge, maximumAge);
+            const minimumAge = CONST.DATE_BIRTH.MIN_AGE_FOR_PAYMENT;
+            const maximumAge = CONST.DATE_BIRTH.MAX_AGE;
+            const dateError = getAgeRequirementError(translate, values.dob ?? '', minimumAge, maximumAge);
 
-        if (values.dob && dateError) {
-            errors.dob = dateError;
-        }
+            if (values.dob && dateError) {
+                errors.dob = dateError;
+            }
 
-        return errors;
-    }, []);
+            return errors;
+        },
+        [translate],
+    );
 
     return (
         <ScreenWrapper
@@ -53,7 +57,10 @@ function DateOfBirthPage() {
                     onBackButtonPress={() => Navigation.goBack()}
                 />
                 {isLoadingApp ? (
-                    <FullscreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />
+                    <FullscreenLoadingIndicator
+                        style={[styles.flex1, styles.pRelative]}
+                        reasonAttributes={{context: 'DateOfBirthPage', isLoadingApp} satisfies SkeletonSpanReasonAttributes}
+                    />
                 ) : (
                     <FormProvider
                         style={[styles.flexGrow1, styles.ph5]}
@@ -70,8 +77,9 @@ function DateOfBirthPage() {
                             label={translate('common.date')}
                             defaultValue={privatePersonalDetails?.dob ?? ''}
                             minDate={subYears(new Date(), CONST.DATE_BIRTH.MAX_AGE)}
-                            maxDate={subYears(new Date(), CONST.DATE_BIRTH.MIN_AGE)}
+                            maxDate={subYears(new Date(), CONST.DATE_BIRTH.MIN_AGE_FOR_PAYMENT)}
                             autoFocus
+                            autoComplete="birthdate-full"
                         />
                     </FormProvider>
                 )}

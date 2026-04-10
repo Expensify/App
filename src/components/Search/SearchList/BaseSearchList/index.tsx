@@ -3,12 +3,13 @@ import {FlashList} from '@shopify/flash-list';
 import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 import type {NativeSyntheticEvent} from 'react-native';
 import Animated from 'react-native-reanimated';
-import type {ExtendedTargetedEvent, SearchListItem} from '@components/SelectionListWithSections/types';
+import type {ExtendedTargetedEvent} from '@components/SelectionList/ListItem/types';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import {isMobileChrome} from '@libs/Browser';
 import {addKeyDownPressListener, removeKeyDownPressListener} from '@libs/KeyboardShortcut/KeyDownPressListener';
 import CONST from '@src/CONST';
+import type {SearchListItem} from '../ListItem/types';
 import type BaseSearchListProps from './types';
 
 const AnimatedFlashListComponent = Animated.createAnimatedComponent(FlashList<SearchListItem>);
@@ -115,7 +116,7 @@ function BaseSearchList({
             renderItem={renderItemWithKeyboardFocus}
             keyExtractor={keyExtractor}
             onScroll={onScroll}
-            showsVerticalScrollIndicator
+            showsVerticalScrollIndicator={false}
             ref={ref}
             extraData={extraData}
             onEndReached={onEndReached}
@@ -124,7 +125,7 @@ function BaseSearchList({
             onViewableItemsChanged={onViewableItemsChanged}
             onLayout={onLayout}
             removeClippedSubviews
-            drawDistance={1000}
+            drawDistance={250}
             contentContainerStyle={contentContainerStyle}
             maintainVisibleContentPosition={{disabled: true}}
         />

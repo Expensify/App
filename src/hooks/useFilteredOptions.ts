@@ -1,12 +1,12 @@
-import reportsSelector from '@selectors/Attributes';
-import {useEffect, useState} from 'react';
+import {useMemo, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {createFilteredOptionList} from '@libs/OptionsListUtils';
 import type {OptionList} from '@libs/OptionsListUtils/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type Beta from '@src/types/onyx/Beta';
-import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useOnyx from './useOnyx';
+import usePrivateIsArchivedMap from './usePrivateIsArchivedMap';
+import useReportAttributes from './useReportAttributes';
 
 type UseFilteredOptionsConfig = {
     /** Maximum number of recent reports to pre-filter and process (default: 500). */
@@ -62,63 +62,54 @@ type UseFilteredOptionsResult = {
  *
  * <SelectionList
  *   sections={isLoading ? [] : sections}
- *   showLoadingPlaceholder={isLoading}
+ *   shouldShowLoadingPlaceholder={isLoading}
  * />
  */
 function useFilteredOptions(config: UseFilteredOptionsConfig = {}): UseFilteredOptionsResult {
     const {maxRecentReports = 500, enabled = true, includeP2P = true, batchSize = 100, searchTerm = '', betas} = config;
 
-    const [isLoadingMore, setIsLoadingMore] = useState(false);
     const [reportsLimit, setReportsLimit] = useState(maxRecentReports);
 
-    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
-    const [allPersonalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: true});
-    const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {
-        canBeMissing: true,
-        selector: reportsSelector,
-    });
-    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+    const [allPersonalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const reportAttributesDerived = useReportAttributes();
+
+    const privateIsArchivedMap = usePrivateIsArchivedMap();
 
     const totalReports = allReports ? Object.keys(allReports).length : 0;
 
-    const options: OptionList | null =
-        enabled && allReports && allPersonalDetails
-            ? createFilteredOptionList(allPersonalDetails, allReports, currentUserPersonalDetails.accountID, reportAttributesDerived, {
-                  maxRecentReports: reportsLimit,
-                  includeP2P,
-                  searchTerm,
-                  betas,
-              })
-            : null;
+    // React Compiler can't prove referential stability for the destructured `config` param with default values, so explicit useMemo is required here.
+    const options: OptionList | null = useMemo(
+        () =>
+            enabled && allReports && allPersonalDetails
+                ? createFilteredOptionList(allPersonalDetails, allReports, reportAttributesDerived, privateIsArchivedMap, allPolicies, {
+                      maxRecentReports: reportsLimit,
+                      includeP2P,
+                      searchTerm,
+                      betas,
+                  })
+                : null,
+        [enabled, allReports, allPersonalDetails, reportAttributesDerived, privateIsArchivedMap, allPolicies, reportsLimit, includeP2P, searchTerm, betas],
+    );
 
-    // Reset loading state after options are computed
-    useEffect(() => {
-        if (!isLoadingMore || !options) {
-            return;
-        }
-        setIsLoadingMore(false);
-    }, [options, isLoadingMore]);
+    const hasMore = options ? reportsLimit < totalReports : false;
 
     const loadMore = () => {
-        if (!options || isLoadingMore) {
+        if (!hasMore) {
             return;
         }
-
-        const hasMoreToLoad = options.reports.length < totalReports;
-        if (hasMoreToLoad) {
-            setIsLoadingMore(true);
-            setReportsLimit((prev) => prev + batchSize);
-        }
+        setReportsLimit((prev) => prev + batchSize);
     };
-
-    const hasMore = options ? options.reports.length < totalReports : false;
 
     return {
         options,
         isLoading: !options,
         loadMore,
         hasMore,
-        isLoadingMore,
+        // Options are derived synchronously from reportsLimit, so there is no
+        // intermediate "loading" state between calling loadMore and the recomputed options.
+        isLoadingMore: false,
     };
 }
 

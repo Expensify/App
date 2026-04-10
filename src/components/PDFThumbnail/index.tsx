@@ -1,20 +1,16 @@
-import 'core-js/proposals/promise-with-resolvers';
 // eslint-disable-next-line import/extensions
-import pdfWorkerSource from 'pdfjs-dist/build/pdf.worker.min.mjs';
+import pdfWorkerSource from 'pdfjs-dist/legacy/build/pdf.worker.min.mjs';
 import React, {useMemo, useState} from 'react';
 import {View} from 'react-native';
 import {Document, pdfjs, Thumbnail} from 'react-pdf';
 import LoadingIndicator from '@components/LoadingIndicator';
 import useThemeStyles from '@hooks/useThemeStyles';
-import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
 import PDFThumbnailError from './PDFThumbnailError';
 import type PDFThumbnailProps from './types';
 
-if (!pdfjs.GlobalWorkerOptions.workerSrc) {
-    pdfjs.GlobalWorkerOptions.workerSrc = URL.createObjectURL(new Blob([pdfWorkerSource], {type: 'text/javascript'}));
-}
+pdfjs.GlobalWorkerOptions.workerSrc = URL.createObjectURL(new Blob([pdfWorkerSource], {type: 'text/javascript'}));
 
-function PDFThumbnail({previewSourceURL, style, isAuthTokenRequired = false, enabled = true, onPassword, onLoadError, onLoadSuccess}: PDFThumbnailProps) {
+function PDFThumbnail({previewSourceURL, style, enabled = true, onPassword, onLoadError, onLoadSuccess}: PDFThumbnailProps) {
     const styles = useThemeStyles();
     const [failedToLoad, setFailedToLoad] = useState(false);
 
@@ -22,7 +18,7 @@ function PDFThumbnail({previewSourceURL, style, isAuthTokenRequired = false, ena
         () => (
             <Document
                 loading={<LoadingIndicator />}
-                file={isAuthTokenRequired ? addEncryptedAuthTokenToURL(previewSourceURL) : previewSourceURL}
+                file={previewSourceURL}
                 options={{
                     cMapUrl: 'cmaps/',
                     cMapPacked: true,
@@ -51,7 +47,7 @@ function PDFThumbnail({previewSourceURL, style, isAuthTokenRequired = false, ena
                 </View>
             </Document>
         ),
-        [isAuthTokenRequired, previewSourceURL, onPassword, onLoadError, onLoadSuccess],
+        [previewSourceURL, onPassword, onLoadError, onLoadSuccess],
     );
 
     return (

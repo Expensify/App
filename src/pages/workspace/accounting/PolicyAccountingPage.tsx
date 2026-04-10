@@ -8,8 +8,6 @@ import ConfirmModal from '@components/ConfirmModal';
 import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
-// eslint-disable-next-line no-restricted-imports
-import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import MenuItemList from '@components/MenuItemList';
 import type {MenuItemWithLink} from '@components/MenuItemList';
@@ -23,14 +21,18 @@ import ThreeDotsMenu from '@components/ThreeDotsMenu';
 import type ThreeDotsMenuProps from '@components/ThreeDotsMenu/types';
 import useEnvironment from '@hooks/useEnvironment';
 import useExpensifyCardFeeds from '@hooks/useExpensifyCardFeeds';
+import useHasPoliciesConnectedToSageIntacct from '@hooks/useHasPoliciesConnectedToSageIntacct';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useReusablePoliciesConnectedToQBD from '@hooks/useReusablePoliciesConnectedToQBD';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
+import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
 import {isAuthenticationError, isConnectionInProgress, isConnectionUnverified, removePolicyConnection, syncConnection} from '@libs/actions/connections';
 import {shouldShowQBOReimbursableExportDestinationAccountError} from '@libs/actions/connections/QuickbooksOnline';
 import {isExpensifyCardFullySetUp} from '@libs/CardUtils';
@@ -49,16 +51,18 @@ import {
     settingsPendingAction,
     shouldShowSyncError,
 } from '@libs/PolicyUtils';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import Navigation from '@navigation/Navigation';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import {openOldDotLink} from '@userActions/Link';
+import {openPolicyExpensifyCardsPage} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {ConnectionName} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import {AccountingContextProvider, useAccountingContext} from './AccountingContext';
+import {AccountingContextProvider, useAccountingActions, useAccountingState} from './AccountingContext';
 import type {MenuItemData, PolicyAccountingPageProps} from './types';
 import {getAccountingIntegrationData, getSynchronizationErrorMessage} from './utils';
 
@@ -69,8 +73,11 @@ type RouteParams = {
 };
 
 function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
-    const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policy?.id}`, {canBeMissing: true});
-    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID, {canBeMissing: true});
+    useWorkspaceDocumentTitle(policy?.name, 'workspace.common.accounting');
+    const hasPoliciesConnectedToSageIntacct = useHasPoliciesConnectedToSageIntacct();
+    const {hasReusablePoliciesConnectedToQBD} = useReusablePoliciesConnectedToQBD(policy?.id);
+    const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policy?.id}`);
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate, datetimeToRelative: getDatetimeToRelative, getLocalDateFromDatetime} = useLocalize();
@@ -81,8 +88,9 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [isDisconnectModalOpen, setIsDisconnectModalOpen] = useState(false);
     const [datetimeToRelative, setDateTimeToRelative] = useState('');
-    const {startIntegrationFlow, popoverAnchorRefs} = useAccountingContext();
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: false});
+    const {popoverAnchorRefs} = useAccountingState();
+    const {startIntegrationFlow} = useAccountingActions();
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const {isLargeScreenWidth} = useResponsiveLayout();
     const route = useRoute();
     const params = route.params as RouteParams | undefined;
@@ -90,9 +98,10 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
     const integrationToDisconnect = params?.integrationToDisconnect;
     const shouldDisconnectIntegrationBeforeConnecting = params?.shouldDisconnectIntegrationBeforeConnecting;
     const policyID = policy?.id;
+    const workspaceAccountID = useWorkspaceAccountID(policyID);
     const allCardSettings = useExpensifyCardFeeds(policyID);
     const isSyncInProgress = isConnectionInProgress(connectionSyncProgress, policy);
-    const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'CircularArrowBackwards', 'Gear', 'NewWindow', 'ExpensifyCard', 'Key', 'Sync', 'Trashcan', 'QuestionMark', 'Pencil']);
+    const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'CircularArrowBackwards', 'ExpensifyCard', 'Gear', 'Key', 'NewWindow', 'Pencil', 'QuestionMark', 'Send', 'Sync', 'Trashcan']);
     const accountingIcons = useMemoizedLazyExpensifyIcons(['IntacctSquare', 'QBOSquare', 'XeroSquare', 'NetSuiteSquare', 'QBDSquare']);
     const illustrations = useMemoizedLazyIllustrations(['Accounting']);
 
@@ -196,6 +205,13 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
         setDateTimeToRelative('');
     }, [getDatetimeToRelative, successfulDate]);
 
+    useEffect(() => {
+        if (!policyID || !policy?.areExpensifyCardsEnabled || !workspaceAccountID) {
+            return;
+        }
+        openPolicyExpensifyCardsPage(policyID, workspaceAccountID);
+    }, [policyID, policy?.areExpensifyCardsEnabled, workspaceAccountID]);
+
     const integrationSpecificMenuItems = useMemo(() => {
         const sageIntacctEntityList = policy?.connections?.intacct?.data?.entities ?? [];
         const netSuiteSubsidiaryList = policy?.connections?.netsuite?.options?.data?.subsidiaryList ?? [];
@@ -283,7 +299,18 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
         if (isEmptyObject(policy?.connections) && !isSyncInProgress && policyID) {
             return accountingIntegrations
                 .map((integration) => {
-                    const integrationData = getAccountingIntegrationData(integration, policyID, translate, undefined, undefined, undefined, undefined, undefined, accountingIcons);
+                    const integrationData = getAccountingIntegrationData(
+                        integration,
+                        policyID,
+                        translate,
+                        {sageIntacct: hasPoliciesConnectedToSageIntacct, qbd: hasReusablePoliciesConnectedToQBD},
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        accountingIcons,
+                    );
                     if (!integrationData) {
                         return undefined;
                     }
@@ -309,7 +336,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                               }
                             : undefined,
                         badgeStyle: styles.mr3,
-                        badgeSuccess: isXero,
+                        isBadgeSuccess: isXero,
                         shouldShowBadgeBelow: shouldUseNarrowLayout,
                         rightComponent: (
                             <Button
@@ -324,6 +351,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                                     }
                                     popoverAnchorRefs.current[integration].current = ref;
                                 }}
+                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.SETUP_BUTTON}
                             />
                         ),
                     };
@@ -339,6 +367,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
             connectedIntegration,
             policyID,
             translate,
+            {sageIntacct: hasPoliciesConnectedToSageIntacct, qbd: hasReusablePoliciesConnectedToQBD},
             policy,
             undefined,
             undefined,
@@ -354,7 +383,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
         } else if (!isConnectionVerified) {
             connectionMessage = translate('workspace.accounting.notSync');
         } else {
-            connectionMessage = translate('workspace.accounting.lastSync', {relativeDate: datetimeToRelative});
+            connectionMessage = translate('workspace.accounting.lastSync', datetimeToRelative);
         }
 
         const configurationOptions = [
@@ -369,7 +398,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                 pendingAction: settingsPendingAction(integrationData?.subscribedImportSettings, integrationData?.pendingFields),
             },
             {
-                icon: Expensicons.Send,
+                icon: icons.Send,
                 iconRight: icons.ArrowRight,
                 shouldShowRightIcon: true,
                 title: translate('workspace.accounting.export'),
@@ -405,6 +434,10 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
             },
         ];
 
+        const syncActivityReasonAttributes: SkeletonSpanReasonAttributes = {
+            context: 'PolicyAccountingPage.connectionsMenuItems',
+            isSyncInProgress,
+        };
         return [
             {
                 ...iconProps,
@@ -417,7 +450,10 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                 shouldShowRedDotIndicator: true,
                 description: connectionMessage,
                 rightComponent: isSyncInProgress ? (
-                    <ActivityIndicator style={[styles.popoverMenuIcon]} />
+                    <ActivityIndicator
+                        style={[styles.popoverMenuIcon]}
+                        reasonAttributes={syncActivityReasonAttributes}
+                    />
                 ) : (
                     <ThreeDotsMenu
                         shouldSelfPosition
@@ -426,6 +462,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                             horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
                             vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
                         }}
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.THREE_DOT_MENU}
                     />
                 ),
             },
@@ -445,6 +482,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
         icons.ArrowRight,
         icons.ExpensifyCard,
         icons.Gear,
+        icons.Send,
         styles.sectionMenuItemTopDescription,
         styles.pb0,
         styles.mt5,
@@ -462,6 +500,8 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
         startIntegrationFlow,
         popoverAnchorRefs,
         datetimeToRelative,
+        hasPoliciesConnectedToSageIntacct,
+        hasReusablePoliciesConnectedToQBD,
     ]);
 
     const otherIntegrationsItems = useMemo(() => {
@@ -473,7 +513,18 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
         );
         return otherIntegrations
             .map((integration) => {
-                const integrationData = getAccountingIntegrationData(integration, policyID, translate, undefined, undefined, undefined, undefined, undefined, accountingIcons);
+                const integrationData = getAccountingIntegrationData(
+                    integration,
+                    policyID,
+                    translate,
+                    {sageIntacct: hasPoliciesConnectedToSageIntacct, qbd: hasReusablePoliciesConnectedToQBD},
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    accountingIcons,
+                );
                 if (!integrationData) {
                     return undefined;
                 }
@@ -502,6 +553,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                                 }
                                 popoverAnchorRefs.current[integration].current = r;
                             }}
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.SETUP_BUTTON}
                         />
                     ),
                     interactive: false,
@@ -518,6 +570,8 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
         connectedIntegration,
         policyID,
         translate,
+        hasPoliciesConnectedToSageIntacct,
+        hasReusablePoliciesConnectedToQBD,
         styles.justifyContentCenter,
         styles.sectionMenuItemTopDescription,
         isOffline,
@@ -557,7 +611,8 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                     shouldShowBackButton={shouldUseNarrowLayout}
                     icon={illustrations.Accounting}
                     shouldUseHeadlineHeader
-                    onBackButtonPress={Navigation.popToSidebar}
+                    shouldDisplayHelpButton
+                    onBackButtonPress={Navigation.goBack}
                 />
                 <ScrollView
                     contentContainerStyle={styles.pt3}

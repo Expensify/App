@@ -11,6 +11,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getLastFourDigits} from '@libs/BankAccountUtils';
+import {getCardSettings} from '@libs/CardUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
@@ -28,13 +29,14 @@ function WorkspaceCardSettingsPage({route}: WorkspaceCardSettingsPageProps) {
     const policyID = route.params?.policyID;
     const defaultFundID = useDefaultFundID(policyID);
 
-    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: false});
-    const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${defaultFundID}`, {canBeMissing: false});
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
+    const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${defaultFundID}`);
+    const settings = getCardSettings(cardSettings);
 
-    const paymentBankAccountID = cardSettings?.paymentBankAccountID;
-    const paymentBankAccountNumber = cardSettings?.paymentBankAccountNumber;
-    const isMonthlySettlementAllowed = cardSettings?.isMonthlySettlementAllowed ?? false;
-    const settlementFrequency = cardSettings?.monthlySettlementDate ? CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.MONTHLY : CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.DAILY;
+    const paymentBankAccountID = settings?.paymentBankAccountID;
+    const paymentBankAccountNumber = settings?.paymentBankAccountNumber;
+    const isMonthlySettlementAllowed = settings?.isMonthlySettlementAllowed ?? false;
+    const settlementFrequency = settings?.monthlySettlementDate ? CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.MONTHLY : CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.DAILY;
     const isSettlementFrequencyBlocked = !isMonthlySettlementAllowed && settlementFrequency === CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.DAILY;
     const bankAccountNumber = bankAccountList?.[paymentBankAccountID?.toString() ?? '']?.accountData?.accountNumber ?? paymentBankAccountNumber ?? '';
 

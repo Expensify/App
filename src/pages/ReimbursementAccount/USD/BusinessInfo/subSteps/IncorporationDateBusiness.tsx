@@ -8,8 +8,9 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useReimbursementAccountStepFormSubmit from '@hooks/useReimbursementAccountStepFormSubmit';
-import type {SubStepProps} from '@hooks/useSubStep/types';
+import type {SubPageProps} from '@hooks/useSubPage/types';
 import useThemeStyles from '@hooks/useThemeStyles';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {getFieldRequiredErrors, isValidDate, isValidPastDate} from '@libs/ValidationUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
@@ -18,17 +19,17 @@ import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 const COMPANY_INCORPORATION_DATE_KEY = INPUT_IDS.BUSINESS_INFO_STEP.INCORPORATION_DATE;
 const STEP_FIELDS = [COMPANY_INCORPORATION_DATE_KEY];
 
-function IncorporationDateBusiness({onNext, isEditing}: SubStepProps) {
+function IncorporationDateBusiness({onNext, isEditing}: SubPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    const [reimbursementAccount, reimbursementAccountResult] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: true});
+    const [reimbursementAccount, reimbursementAccountResult] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const isLoadingReimbursementAccount = isLoadingOnyxValue(reimbursementAccountResult);
-    const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, {canBeMissing: true});
+    const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
-            const errors = getFieldRequiredErrors(values, STEP_FIELDS);
+            const errors = getFieldRequiredErrors(values, STEP_FIELDS, translate);
 
             if (values.incorporationDate && !isValidDate(values.incorporationDate)) {
                 errors.incorporationDate = translate('common.error.dateInvalid');
@@ -50,7 +51,11 @@ function IncorporationDateBusiness({onNext, isEditing}: SubStepProps) {
     });
 
     if (isLoadingReimbursementAccount) {
-        return <FullScreenLoadingIndicator />;
+        const reasonAttributes: SkeletonSpanReasonAttributes = {
+            context: 'IncorporationDateBusiness',
+            isLoadingReimbursementAccount,
+        };
+        return <FullScreenLoadingIndicator reasonAttributes={reasonAttributes} />;
     }
 
     return (

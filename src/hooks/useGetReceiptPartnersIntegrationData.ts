@@ -19,7 +19,7 @@ export default function useGetReceiptPartnersIntegrationData(policyID?: string) 
                 case CONST.POLICY.RECEIPT_PARTNERS.NAME.UBER: {
                     return {
                         title: CONST.POLICY.RECEIPT_PARTNERS.NAME_USER_FRIENDLY[CONST.POLICY.RECEIPT_PARTNERS.NAME.UBER],
-                        description: translate('workspace.receiptPartners.uber.subtitle', {organizationName: uber?.organizationName ?? ''}),
+                        description: translate('workspace.receiptPartners.uber.subtitle', uber?.organizationName ?? ''),
                         icon: icons.Uber,
                         errorFields: uber?.errorFields,
                         errors: uber?.errors,

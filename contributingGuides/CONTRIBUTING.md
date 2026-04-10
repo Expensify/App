@@ -50,7 +50,7 @@ We hire and pay external contributors via [Upwork.com](https://www.upwork.com). 
 
 Please add your Upwork profile link in your GitHub Bio to help ensure prompt payment.  If you're using Slack or Expensify for discussions, please add your Upwork profile link **and** your GitHub username in your Slack Title and Expensify Status. 
 
-Payment for your contributions will be made no less than 7 days after the pull request is deployed to production to allow for [regression](https://github.com/Expensify/App/blob/main/contributingGuides/CONTRIBUTING.md#regressions) testing. If you have not received payment after 8 days of the PR being deployed to production, and there are no [regressions](https://github.com/Expensify/App/blob/main/contributingGuides/CONTRIBUTING.md#regressions), please add a comment to the issue mentioning the BugZero team member (Look for the melvin-bot "Triggered auto assignment to... (`Bug`)" to see who this is).
+Payment for your contributions will be made no less than 7 days after the pull request is deployed to production to allow for [regression](https://github.com/Expensify/App/blob/main/contributingGuides/CONTRIBUTING.md#regressions) testing. If you have not received payment after 8 days of the PR being deployed to production, and there are no [regressions](https://github.com/Expensify/App/blob/main/contributingGuides/CONTRIBUTING.md#regressions), please add a comment to the issue mentioning the team member assigned to pay (Look for the melvin-bot "Triggered auto assignment to... (`Awaiting Payment`)" to see who this is).
 
 New contributors are limited to working on one job at a time, **do not submit proposals for new jobs until your first PR has been merged**. Experienced contributors may work on numerous jobs simultaneously.
 
@@ -65,8 +65,6 @@ Contributors are eligible to be paid via Expensify 18 months after they were fir
 If a PR causes a regression at any point within the regression period (starting when the code is merged and ending 168 hours (that's 7 days) after being deployed to production): 
 - payments will be issued 7 days after all regressions are fixed (ie: deployed to production)
 - a 50% penalty will be applied to the Contributor and [Contributor+](https://github.com/Expensify/App/blob/main/contributingGuides/HOW_TO_BECOME_A_CONTRIBUTOR_PLUS.md) for each regression on an issue
-
-The 168 hours (aka 7 days) will be measured by calculating the time between when the PR is merged, and when a bug is posted to the #expensify-bugs Slack channel.
 
 ## Finding Jobs
 A job could be fixing a bug or working on a new feature. There are two ways you can find a job that you can contribute to:
@@ -124,6 +122,17 @@ Basically, a bad problem statement (ie, a reverse solution statement) is written
 ### Posting Ideas
 Additionally, if you want to discuss an idea with the open source community without having a P/S statement yet, you can post it in #expensify-open-source with the prefix `IDEA:`. All ideas to build the future of Expensify are always welcome! i.e.: "`IDEA:` I don't have a P/S for this yet, but just kicking the idea around... what if we [insert crazy idea]?".
 
+## Working on Sentry Issues
+If you have access to Sentry and are investigating an error, please **assign yourself to the Sentry issue** before starting your investigation. This helps prevent duplicate efforts where multiple contributors spend time investigating the same error independently.
+
+When working on Sentry issues:
+1. **Assign yourself** in Sentry when you start investigating an issue
+2. **Link a GitHub issue** - find or create a GitHub issue for the error, then link it in Sentry using their issue tracking integration
+3. **Document your findings** in the linked GitHub issue
+4. **Update the Sentry issue status** when the fix is merged (mark as resolved with the version number if applicable)
+
+This helps future investigators understand the history and current status of errors, potentially saving hours of duplicate work.
+
 ## Working on Expensify Jobs
 *Reminder: For technical guidance, please refer to the [README](https://github.com/Expensify/App/blob/main/README.md)*.
 
@@ -141,7 +150,7 @@ Additionally, if you want to discuss an idea with the open source community with
 3. If you cannot reproduce the problem, pause on this step and add a comment to the issue explaining where you are stuck or that you don't think the issue can be reproduced.
 
 ### Propose a solution for the job
-4. You can propose solutions on any Github issue at any time, do not post proposals in Slack. If you propose solutions to jobs before the `Help Wanted` label is applied, you do so at your own risk. Proposals will not be reviewed until the label is added and there is always a chance that we might not add the label or hire an external contributor for the job.
+4. Proposals must only be posted after the `Help Wanted` label is added. Any proposals submitted beforehand will be ignored and not reviewed. Do not post proposals in Slack.
 5. Contributors should **not** submit proposals on issues when they have assigned issues or PRs that are awaiting an action from them. If so, they will be in violation of Rule #1 (Get Shit Done) in our [Code of Conduct](https://github.com/Expensify/App/blob/main/CODE_OF_CONDUCT.md) and will receive a warning. Multiple warnings can lead to removal from the program. 
 6. After you reproduce the issue, complete the [proposal template here](./PROPOSAL_TEMPLATE.md) and post it as a comment in the corresponding GitHub issue (linked in the Upwork job).
     - Note: Before submitting a proposal on an issue, be sure to read any other existing proposals. ALL NEW PROPOSALS MUST BE DIFFERENT FROM EXISTING PROPOSALS. The *difference* should be important, meaningful or considerable.
@@ -182,15 +191,16 @@ Additionally, if you want to discuss an idea with the open source community with
 16. Please pay attention to the pull request template, especially to how we link PRs with issues they fix. Make sure you don't use GitHub keywords such as `fixes` in your PR description, as this can break our current automated steps for issue management. Follow the PR template format carefully.
 17. Upon submission of a PR, please include a numbered list of explicit testing steps for each platform (Web, iOS, Android, and Mobile Web) to confirm the fix works as expected and there are no regressions.
 18. Please add a screenshot of the app running on each platform (Web, iOS, Android, Mobile Web).
+19. Please review the [PR Authoring & Reviewing Best Practices](./PR_AUTHOR_REVIEWER_BEST_PRACTICES.md) for standards on PR titles, testing responsibilities, and the review workflow.
 
 ### Completing the final checklist
-19. Once your PR has been deployed to production, a checklist will automatically be commented in the GH issue. You're required to complete the steps that have your name mentioned before payment will be issued.
-20. The items requiring your completion consist of: 
+20. Once your PR has been deployed to production, a checklist will automatically be commented in the GH issue. You're required to complete the steps that have your name mentioned before payment will be issued.
+21. The items requiring your completion consist of: 
     1. Proposing steps to take for a regression test to ensure the bug doesn't occur again (For information on how to successfully complete this, head [here](https://github.com/Expensify/App/blob/main/contributingGuides/REGRESSION_TEST_BEST_PRACTICES.md)).
     2. Identifying and noting the offending PR that caused the bug (if any).
     3. Commenting on the offending PR to note the bug it caused and why (if applicable).
     4. Starting a conversation on if any additional steps should be taken to prevent further bugs similar to the one fixed from occurring again. 
-21. Once the above items have been successfully completed, then payments will begin to be issued. 
+22. Once the above items have been successfully completed, then payments will begin to be issued. 
 
 ### Timeline expectations and asking for help along the way
 - If you have made a change to your pull request and are ready for another review, leave a comment that says "Updated" on the pull request  itself.
@@ -200,6 +210,9 @@ Additionally, if you want to discuss an idea with the open source community with
 
 ### Important note about JavaScript Style
 - Read our official [JavaScript and React style guide](https://github.com/Expensify/App/blob/main/contributingGuides/STYLE.md). Please refer to our Style Guide before asking for a review.
+
+### Using AI tools
+- If you use AI tools (Copilot, Cursor, ChatGPT, etc.) to help write code or PR descriptions, please read our [AI Etiquette guide](https://github.com/Expensify/App/blob/main/contributingGuides/AI_ETIQUETTE.md). You are accountable for all AI output you submit.
 
 ### For external agencies that Expensify partners with
 Follow all the above above steps and processes. When you find a job you'd like to work on:

@@ -1,5 +1,5 @@
 import {isRHPVisibleSelector} from '@selectors/Modal';
-import React, {useContext, useEffect} from 'react';
+import React, {useEffect} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import {Animated, View} from 'react-native';
 // @ts-expect-error This is a workaround to display SidePanel on top of everything,
@@ -8,7 +8,7 @@ import ModalPortal from 'react-native-web/dist/exports/Modal/ModalPortal';
 import ColorSchemeWrapper from '@components/ColorSchemeWrapper';
 import FocusTrapForModal from '@components/FocusTrap/FocusTrapForModal';
 import SidePanelOverlay from '@components/SidePanel/SidePanelOverlay';
-import {WideRHPContext} from '@components/WideRHPContextProvider';
+import {useWideRHPState} from '@components/WideRHPContextProvider';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -24,10 +24,10 @@ function SidePanelModal({children, sidePanelTranslateX, closeSidePanel, shouldHi
     const {isExtraLargeScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
     const {paddingTop, paddingBottom} = useSafeAreaPaddings();
 
-    const [isRHPVisible = false] = useOnyx(ONYXKEYS.MODAL, {selector: isRHPVisibleSelector, canBeMissing: true});
+    const [isRHPVisible = false] = useOnyx(ONYXKEYS.MODAL, {selector: isRHPVisibleSelector});
     const uniqueModalId = ComposerFocusManager.getId();
 
-    const {wideRHPRouteKeys, isWideRHPFocused, superWideRHPRouteKeys, isSuperWideRHPFocused} = useContext(WideRHPContext);
+    const {wideRHPRouteKeys, isWideRHPFocused, superWideRHPRouteKeys, isSuperWideRHPFocused} = useWideRHPState();
 
     const shouldOverlayBeVisible = (!!wideRHPRouteKeys.length && isWideRHPFocused) || (!!superWideRHPRouteKeys.length && isSuperWideRHPFocused) || !isRHPVisible;
 
@@ -51,12 +51,16 @@ function SidePanelModal({children, sidePanelTranslateX, closeSidePanel, shouldHi
 
     // Web back button: push history state and close Side Panel on popstate
     useEffect(() => {
+        // Side Panel is not a normal modal on ExtraLargeScreenWidth.
+        if (isExtraLargeScreenWidth) {
+            return;
+        }
         ComposerFocusManager.resetReadyToFocus(uniqueModalId);
         return () => {
             ComposerFocusManager.setReadyToFocus(uniqueModalId);
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    }, [isExtraLargeScreenWidth]);
 
     return (
         <ModalPortal>

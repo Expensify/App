@@ -96,6 +96,7 @@ autocompleteKey "key"
       / cardID
       / feed
       / groupBy
+      / view
       / reimbursable
       / billable
       / policyID
@@ -104,6 +105,7 @@ autocompleteKey "key"
       / submitted
       / approved
       / paid
+      / exportedTo
       / exported
       / withdrawn
       / posted

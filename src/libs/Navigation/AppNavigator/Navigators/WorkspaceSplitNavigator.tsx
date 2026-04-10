@@ -3,11 +3,9 @@ import {View} from 'react-native';
 import FocusTrapForScreens from '@components/FocusTrap/FocusTrapForScreen';
 import useThemeStyles from '@hooks/useThemeStyles';
 import createSplitNavigator from '@libs/Navigation/AppNavigator/createSplitNavigator';
-import usePreloadFullScreenNavigators from '@libs/Navigation/AppNavigator/usePreloadFullScreenNavigators';
 import useSplitNavigatorScreenOptions from '@libs/Navigation/AppNavigator/useSplitNavigatorScreenOptions';
-import useEnableBackAnimationWhenOpenedFromTabBar from '@libs/Navigation/helpers/useEnableBackAnimationWhenOpenedFromTabBar';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {AuthScreensParamList, WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
+import type {WorkspaceNavigatorParamList, WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import type NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
 import type ReactComponentModule from '@src/types/utils/ReactComponentModule';
@@ -34,18 +32,14 @@ const CENTRAL_PANE_WORKSPACE_SCREENS = {
     [SCREENS.WORKSPACE.DISTANCE_RATES]: () => require<ReactComponentModule>('../../../../pages/workspace/distanceRates/PolicyDistanceRatesPage').default,
     [SCREENS.WORKSPACE.TRAVEL]: () => require<ReactComponentModule>('../../../../pages/workspace/travel/PolicyTravelPage').default,
     [SCREENS.WORKSPACE.RULES]: () => require<ReactComponentModule>('../../../../pages/workspace/rules/PolicyRulesPage').default,
+    [SCREENS.WORKSPACE.TIME_TRACKING]: () => require<ReactComponentModule>('../../../../pages/workspace/timeTracking/WorkspaceTimeTrackingPage').default,
 } satisfies Screens;
 
 const Split = createSplitNavigator<WorkspaceSplitNavigatorParamList>();
 
-function WorkspaceSplitNavigator({route, navigation}: PlatformStackScreenProps<AuthScreensParamList, typeof NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR>) {
+function WorkspaceSplitNavigator({route}: PlatformStackScreenProps<WorkspaceNavigatorParamList, typeof NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR>) {
     const splitNavigatorScreenOptions = useSplitNavigatorScreenOptions();
     const styles = useThemeStyles();
-
-    // This hook preloads the screens of adjacent tabs to make changing tabs faster.
-    usePreloadFullScreenNavigators();
-
-    useEnableBackAnimationWhenOpenedFromTabBar(navigation, route.key);
 
     return (
         <FocusTrapForScreens>

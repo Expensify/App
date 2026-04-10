@@ -6,6 +6,7 @@ import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDiscardChangesConfirmation from '@hooks/useDiscardChangesConfirmation';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
@@ -16,14 +17,16 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
 import {getTransactionDetails, isExpenseRequest, isPolicyExpenseChat} from '@libs/ReportUtils';
-import {isValidInputLength} from '@libs/ValidationUtils';
-import {setDraftSplitTransaction, setMoneyRequestMerchant, updateMoneyRequestMerchant} from '@userActions/IOU';
+import {hasReceipt} from '@libs/TransactionUtils';
+import {isInvalidMerchantValue, isValidInputLength} from '@libs/ValidationUtils';
+import {setMoneyRequestMerchant} from '@userActions/IOU';
+import {setDraftSplitTransaction} from '@userActions/IOU/Split';
+import {updateMoneyRequestMerchant} from '@userActions/IOU/UpdateMoneyRequest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/MoneyRequestMerchantForm';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import DiscardChangesConfirmation from './DiscardChangesConfirmation';
 import StepScreenWrapper from './StepScreenWrapper';
 import type {WithFullTransactionOrNotFoundProps} from './withFullTransactionOrNotFound';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
@@ -41,11 +44,11 @@ function IOURequestStepMerchant({
     report,
 }: IOURequestStepMerchantProps) {
     const policy = usePolicy(report?.policyID);
-    const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`, {canBeMissing: true});
-    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID}`, {canBeMissing: true});
-    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${report?.policyID}`, {canBeMissing: true});
-    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`, {canBeMissing: true});
-    const [parentReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${getNonEmptyStringOnyxID(report?.parentReportID)}`, {canBeMissing: true});
+    const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID}`);
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${report?.policyID}`);
+    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
+    const [parentReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {inputCallbackRef, inputRef} = useAutoFocusInput();
@@ -57,10 +60,11 @@ function IOURequestStepMerchant({
     // In the split flow, when editing we use SPLIT_TRANSACTION_DRAFT to save draft value
     const isEditingSplitBill = iouType === CONST.IOU.TYPE.SPLIT && isEditing;
     const merchant = getTransactionDetails(isEditingSplitBill && !isEmptyObject(splitDraftTransaction) ? splitDraftTransaction : transaction)?.merchant;
-    const isEmptyMerchant = merchant === '' || merchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT || merchant === CONST.TRANSACTION.DEFAULT_MERCHANT;
+    const isEmptyMerchant = isInvalidMerchantValue(merchant);
     const initialMerchant = isEmptyMerchant ? '' : merchant;
     const [currentMerchant, setCurrentMerchant] = useState(initialMerchant);
     const [isSaved, setIsSaved] = useState(false);
+    const [isDiscardModalVisible, setIsDiscardModalVisible] = useState(false);
     const shouldNavigateAfterSaveRef = useRef(false);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserAccountIDParam = currentUserPersonalDetails.accountID;
@@ -87,12 +91,10 @@ function IOURequestStepMerchant({
             const errors: FormInputErrors<typeof ONYXKEYS.FORMS.MONEY_REQUEST_MERCHANT_FORM> = {};
             const {isValid, byteLength} = isValidInputLength(value.moneyRequestMerchant, CONST.MERCHANT_NAME_MAX_BYTES);
 
-            if (isMerchantRequired && !value.moneyRequestMerchant) {
+            const trimmedMerchant = value.moneyRequestMerchant?.trim();
+            if (isMerchantRequired && !trimmedMerchant) {
                 errors.moneyRequestMerchant = translate('common.error.fieldRequired');
-            } else if (
-                isMerchantRequired &&
-                (value.moneyRequestMerchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT || value.moneyRequestMerchant === CONST.TRANSACTION.DEFAULT_MERCHANT)
-            ) {
+            } else if (trimmedMerchant && isInvalidMerchantValue(trimmedMerchant)) {
                 errors.moneyRequestMerchant = translate('iou.error.invalidMerchant');
             } else if (!isValid) {
                 errors.moneyRequestMerchant = translate('common.error.characterLimitExceedCounter', byteLength, CONST.MERCHANT_NAME_MAX_BYTES);
@@ -122,7 +124,7 @@ function IOURequestStepMerchant({
             shouldNavigateAfterSaveRef.current = true;
             return;
         }
-        setMoneyRequestMerchant(transactionID, newMerchant || CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT, !isEditing);
+        setMoneyRequestMerchant(transactionID, newMerchant || CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT, !isEditing, hasReceipt(transaction));
         if (isEditing) {
             updateMoneyRequestMerchant({
                 transactionID,
@@ -141,6 +143,22 @@ function IOURequestStepMerchant({
         setIsSaved(true);
         shouldNavigateAfterSaveRef.current = true;
     };
+
+    useDiscardChangesConfirmation({
+        onCancel: () => {
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
+            InteractionManager.runAfterInteractions(() => {
+                inputRef.current?.focus();
+            });
+        },
+        getHasUnsavedChanges: () => {
+            if (isSaved) {
+                return false;
+            }
+            return currentMerchant !== initialMerchant;
+        },
+        onVisibilityChange: setIsDiscardModalVisible,
+    });
 
     return (
         <StepScreenWrapper
@@ -171,24 +189,11 @@ function IOURequestStepMerchant({
                         label={translate('common.merchant')}
                         accessibilityLabel={translate('common.merchant')}
                         role={CONST.ROLE.PRESENTATION}
+                        editable={!isDiscardModalVisible}
                         ref={inputCallbackRef}
                     />
                 </View>
             </FormProvider>
-            <DiscardChangesConfirmation
-                onCancel={() => {
-                    // eslint-disable-next-line @typescript-eslint/no-deprecated
-                    InteractionManager.runAfterInteractions(() => {
-                        inputRef.current?.focus();
-                    });
-                }}
-                getHasUnsavedChanges={() => {
-                    if (isSaved) {
-                        return false;
-                    }
-                    return currentMerchant !== initialMerchant;
-                }}
-            />
         </StepScreenWrapper>
     );
 }

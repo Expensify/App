@@ -1,8 +1,8 @@
 import {useRoute} from '@react-navigation/native';
-import {useCallback, useContext, useEffect} from 'react';
+import {useCallback, useEffect} from 'react';
 import {navigationRef} from '@libs/Navigation/Navigation';
 import NAVIGATORS from '@src/NAVIGATORS';
-import {expandedRHPProgress, WideRHPContext} from '..';
+import {expandedRHPProgress, useWideRHPActions} from '..';
 
 /**
  * Hook that manages wide RHP display for a screen based on condition or optimistic state.
@@ -14,7 +14,7 @@ import {expandedRHPProgress, WideRHPContext} from '..';
 function useShowWideRHPVersion(condition: boolean) {
     const route = useRoute();
     const reportID = route.params && 'reportID' in route.params && typeof route.params.reportID === 'string' ? route.params.reportID : '';
-    const {showWideRHPVersion, removeWideRHPRouteKey, isReportIDMarkedAsExpense} = useContext(WideRHPContext);
+    const {showWideRHPVersion, removeWideRHPRouteKey, isReportIDMarkedAsExpense} = useWideRHPActions();
 
     const onWideRHPClose = useCallback(() => {
         removeWideRHPRouteKey(route);

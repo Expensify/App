@@ -5,11 +5,11 @@ import * as API from '@libs/API';
 import type {SendInvoiceParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import DateUtils from '@libs/DateUtils';
+import {registerDeferredWrite} from '@libs/deferredLayoutWrite';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import Log from '@libs/Log';
-import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
-import Navigation from '@libs/Navigation/Navigation';
+import isReportTopmostSplitNavigator from '@libs/Navigation/helpers/isReportTopmostSplitNavigator';
 import {getReportActionHtml, getReportActionText} from '@libs/ReportActionsUtils';
 import type {OptimisticChatReport, OptimisticCreatedReportAction, OptimisticIOUReportAction} from '@libs/ReportUtils';
 import {
@@ -17,7 +17,6 @@ import {
     buildOptimisticInvoiceReport,
     buildOptimisticMoneyRequestEntities,
     buildOptimisticReportPreview,
-    doesReportReceiverMatchParticipant,
     getParsedComment,
     getPersonalDetailsForAccountID,
 } from '@libs/ReportUtils';
@@ -34,8 +33,16 @@ import type {InvoiceReceiver, InvoiceReceiverType} from '@src/types/onyx/Report'
 import type {OnyxData} from '@src/types/onyx/Request';
 import type {Receipt} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import {getAllPersonalDetails, getPolicyTags, getReceiptError, getSearchOnyxUpdate, mergePolicyRecentlyUsedCategories, mergePolicyRecentlyUsedCurrencies} from '.';
-import type {BasePolicyParams} from '.';
+import {
+    getAllPersonalDetails,
+    getReceiptError,
+    getSearchOnyxUpdate,
+    handleNavigateAfterExpenseCreate,
+    highlightTransactionOnSearchRouteIfNeeded,
+    mergePolicyRecentlyUsedCategories,
+    mergePolicyRecentlyUsedCurrencies,
+} from '.';
+import type BasePolicyParams from './types/BasePolicyParams';
 
 type SendInvoiceInformation = {
     senderWorkspaceID: string | undefined;
@@ -77,6 +84,8 @@ type SendInvoiceOptions = {
     companyWebsite?: string;
     policyRecentlyUsedCategories?: OnyxEntry<OnyxTypes.RecentlyUsedCategories>;
     policyRecentlyUsedTags?: OnyxEntry<OnyxTypes.RecentlyUsedTags>;
+    isFromGlobalCreate?: boolean;
+    senderPolicyTags: OnyxEntry<OnyxTypes.PolicyTagLists>;
 };
 
 type BuildOnyxDataForInvoiceParams = {
@@ -107,16 +116,6 @@ type BuildOnyxDataForInvoiceParams = {
     companyWebsite?: string;
     participant?: Participant;
 };
-
-/**
- * @deprecated This function uses Onyx.connect and should be replaced with useOnyx for reactive data access.
- * TODO: remove `getPolicyTagsData` from this file https://github.com/Expensify/App/issues/80048
- * All usages of this function should be replaced with useOnyx hook in React components.
- */
-function getPolicyTagsData(policyID: string | undefined) {
-    const allPolicyTags = getPolicyTags();
-    return allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] ?? {};
-}
 
 /** Builds the Onyx data for an invoice */
 function buildOnyxDataForInvoice(
@@ -589,20 +588,20 @@ function getSendInvoiceInformation({
     companyWebsite,
     policyRecentlyUsedCategories,
     policyRecentlyUsedTags,
+    senderPolicyTags,
 }: SendInvoiceOptions): SendInvoiceInformation {
-    const {amount = 0, currency = '', created = '', merchant = '', category = '', tag = '', taxCode = '', taxAmount = 0, billable, comment, participants} = transaction ?? {};
+    const {amount = 0, currency = '', created = '', merchant = '', category = '', tag = '', taxCode = '', taxAmount = 0, taxValue, billable, comment, participants} = transaction ?? {};
     const trimmedComment = (comment?.comment ?? '').trim();
     const senderWorkspaceID = participants?.find((participant) => participant?.isSender)?.policyID;
     const receiverParticipant: Participant | InvoiceReceiver | undefined =
         participants?.find((participant) => participant?.accountID && !participant?.isSender) ?? invoiceChatReport?.invoiceReceiver;
     const receiverAccountID = receiverParticipant && 'accountID' in receiverParticipant && receiverParticipant.accountID ? receiverParticipant.accountID : CONST.DEFAULT_NUMBER_ID;
-    const invoiceChatReportReceiverMatches = doesReportReceiverMatchParticipant(invoiceChatReport, receiverAccountID);
     let receiver = getPersonalDetailsForAccountID(receiverAccountID);
     let optimisticPersonalDetailListAction = {};
 
     // STEP 1: Get existing chat report OR build a new optimistic one
     let isNewChatReport = false;
-    let chatReport = !isEmptyObject(invoiceChatReport) && invoiceChatReport?.reportID && invoiceChatReportReceiverMatches ? invoiceChatReport : null;
+    let chatReport = !isEmptyObject(invoiceChatReport) && invoiceChatReport?.reportID ? invoiceChatReport : null;
 
     if (!chatReport) {
         isNewChatReport = true;
@@ -611,6 +610,7 @@ function getSendInvoiceInformation({
             participantList: [receiverAccountID, currentUserAccountID],
             chatType: CONST.REPORT.CHAT_TYPE.INVOICE,
             policyID: senderWorkspaceID,
+            currentUserAccountID,
         });
     }
 
@@ -638,6 +638,7 @@ function getSendInvoiceInformation({
             tag,
             taxCode,
             taxAmount,
+            taxValue,
             billable,
             reimbursable: true,
         },
@@ -645,9 +646,7 @@ function getSendInvoiceInformation({
 
     const optimisticPolicyRecentlyUsedCategories = mergePolicyRecentlyUsedCategories(category, policyRecentlyUsedCategories);
     const optimisticPolicyRecentlyUsedTags = buildOptimisticPolicyRecentlyUsedTags({
-        // TODO: remove `allPolicyTags` from this file https://github.com/Expensify/App/issues/80048
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        policyTags: getPolicyTagsData(optimisticInvoiceReport.policyID),
+        policyTags: senderPolicyTags ?? {},
         policyRecentlyUsedTags,
         transactionTags: tag,
     });
@@ -734,6 +733,8 @@ function sendInvoice({
     companyWebsite,
     policyRecentlyUsedCategories,
     policyRecentlyUsedTags,
+    isFromGlobalCreate,
+    senderPolicyTags,
 }: SendInvoiceOptions) {
     const parsedComment = getParsedComment(transaction?.comment?.comment?.trim() ?? '');
     if (transaction?.comment) {
@@ -767,6 +768,7 @@ function sendInvoice({
         companyWebsite,
         policyRecentlyUsedCategories,
         policyRecentlyUsedTags,
+        senderPolicyTags: senderPolicyTags ?? {},
     });
 
     const parameters: SendInvoiceParams = {
@@ -794,17 +796,33 @@ function sendInvoice({
     };
 
     playSound(SOUNDS.DONE);
-    API.write(WRITE_COMMANDS.SEND_INVOICE, parameters, onyxData);
+
+    const shouldDeferWrite = isFromGlobalCreate && !isReportTopmostSplitNavigator();
+    const apiWrite = () => {
+        API.write(WRITE_COMMANDS.SEND_INVOICE, parameters, onyxData);
+    };
+
+    if (shouldDeferWrite) {
+        registerDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH, apiWrite, {
+            optimisticWatchKey: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+        });
+    } else {
+        apiWrite();
+    }
+
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     InteractionManager.runAfterInteractions(() => removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID));
 
-    if (isSearchTopmostFullScreenRoute()) {
-        Navigation.dismissModal();
-    } else {
-        Navigation.dismissModalWithReport({reportID: invoiceRoom.reportID});
-    }
+    highlightTransactionOnSearchRouteIfNeeded(isFromGlobalCreate, transactionID, CONST.SEARCH.DATA_TYPES.INVOICE);
 
-    notifyNewAction(invoiceRoom.reportID, currentUserAccountID);
+    handleNavigateAfterExpenseCreate({
+        activeReportID: invoiceRoom.reportID,
+        transactionID,
+        isFromGlobalCreate,
+        isInvoice: true,
+    });
+
+    notifyNewAction(invoiceRoom.reportID, undefined, true);
 }
 
 export {getReceiverType, getSendInvoiceInformation, sendInvoice};

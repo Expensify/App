@@ -1,6 +1,7 @@
 import {useCallback, useState} from 'react';
 import {RESULTS} from 'react-native-permissions';
 import type {PermissionStatus} from 'react-native-permissions';
+import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import contactImport from '@libs/ContactImport';
 import type {ContactImportResult} from '@libs/ContactImport/types';
 import useContactPermissions from '@libs/ContactPermission/useContactPermissions';
@@ -32,19 +33,19 @@ function useContactImport(): UseContactImportResult {
     const [contactPermissionState, setContactPermissionState] = useState<PermissionStatus>(RESULTS.UNAVAILABLE);
     const [contacts, setContacts] = useState<Array<SearchOption<PersonalDetails>>>([]);
     const {localeCompare} = useLocalize();
-    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
-    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: true});
+    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
+    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
+    const personalDetails = usePersonalDetails();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserEmail = currentUserPersonalDetails.email ?? '';
-    const currentUserAccountID = currentUserPersonalDetails.accountID;
 
     const importAndSaveContacts = useCallback(() => {
         contactImport().then(({contactList, permissionStatus}: ContactImportResult) => {
             setContactPermissionState(permissionStatus);
-            const usersFromContact = getContacts(contactList, localeCompare, countryCode, loginList, currentUserEmail, currentUserAccountID);
+            const usersFromContact = getContacts(contactList, localeCompare, countryCode, loginList, currentUserEmail, personalDetails);
             setContacts(usersFromContact);
         });
-    }, [localeCompare, countryCode, loginList, currentUserEmail, currentUserAccountID]);
+    }, [localeCompare, countryCode, loginList, currentUserEmail, personalDetails]);
 
     useContactPermissions({
         importAndSaveContacts,

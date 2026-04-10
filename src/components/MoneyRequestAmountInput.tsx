@@ -1,8 +1,9 @@
 import type {ForwardedRef} from 'react';
 import React, {useCallback, useEffect, useRef} from 'react';
-import type {BlurEvent, StyleProp, TextStyle, ViewStyle} from 'react-native';
+import type {BlurEvent, KeyboardTypeOptions, StyleProp, TextStyle, ViewStyle} from 'react-native';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
-import {convertToFrontendAmountAsString, getCurrencyDecimals, getLocalizedCurrencySymbol} from '@libs/CurrencyUtils';
+import {getLocalizedCurrencySymbol} from '@libs/CurrencyUtils';
 import CONST from '@src/CONST';
 import NumberWithSymbolForm from './NumberWithSymbolForm';
 import type {NumberWithSymbolFormRef} from './NumberWithSymbolForm';
@@ -22,7 +23,7 @@ type MoneyRequestAmountInputProps = {
     amount?: number;
 
     /** A callback to format the amount number */
-    onFormatAmount?: (amount: number, currency?: string) => string;
+    onFormatAmount: (amount: number, currency?: string) => string;
 
     /** Currency chosen by user or saved in Onyx */
     currency?: string;
@@ -92,14 +93,20 @@ type MoneyRequestAmountInputProps = {
     /** Function to clear the negative amount */
     clearNegative?: () => void;
 
-    /** Whether to allow flipping amount */
+    /** Whether to allow flipping amount (shows flip button and enables toggle mechanism) */
     allowFlippingAmount?: boolean;
+
+    /** Whether to allow direct negative input (for split amounts where value is already negative) */
+    allowNegativeInput?: boolean;
 
     /** The testID of the input. Used to locate this view in end-to-end tests. */
     testID?: string;
 
     /** Whether to show the big number pad */
     shouldShowBigNumberPad?: boolean;
+
+    /** Whether to use dynamic font size for the amount input */
+    shouldUseDynamicFontSize?: boolean;
 
     /** Error to display at the bottom of the form */
     errorText?: string;
@@ -122,14 +129,15 @@ type MoneyRequestAmountInputProps = {
 
     /** Reference to the outer element */
     ref?: ForwardedRef<BaseTextInputRef>;
+
+    /** Determines which keyboard to open */
+    keyboardType?: KeyboardTypeOptions;
 } & Pick<TextInputWithSymbolProps, 'autoGrowExtraSpace' | 'submitBehavior' | 'shouldUseDefaultLineHeightForPrefix' | 'onFocus' | 'onBlur'>;
 
 type Selection = {
     start: number;
     end: number;
 };
-
-const defaultOnFormatAmount = (amount: number, currency?: string) => convertToFrontendAmountAsString(amount, currency ?? CONST.CURRENCY.USD);
 
 /**
  * Specialized money amount input with currency and money amount formatting.
@@ -144,7 +152,7 @@ function MoneyRequestAmountInput({
     hideCurrencySymbol = false,
     moneyRequestAmountInputRef,
     disableKeyboard = true,
-    onFormatAmount = defaultOnFormatAmount,
+    onFormatAmount,
     formatAmountOnBlur,
     maxLength,
     hideFocusedState = true,
@@ -161,13 +169,16 @@ function MoneyRequestAmountInput({
     shouldWrapInputInContainer = true,
     isNegative = false,
     allowFlippingAmount = false,
+    allowNegativeInput = false,
     toggleNegative,
     clearNegative,
     ref,
     disabled,
+    shouldUseDynamicFontSize = false,
     ...props
 }: MoneyRequestAmountInputProps) {
     const {preferredLocale, translate} = useLocalize();
+    const {getCurrencyDecimals} = useCurrencyListActions();
     const textInput = useRef<BaseTextInputRef | null>(null);
     const numberFormRef = useRef<NumberWithSymbolFormRef | null>(null);
     const decimals = getCurrencyDecimals(currency);
@@ -255,10 +266,13 @@ function MoneyRequestAmountInput({
             autoGrowExtraSpace={autoGrowExtraSpace}
             submitBehavior={submitBehavior}
             allowFlippingAmount={allowFlippingAmount}
+            allowNegativeInput={allowNegativeInput}
             toggleNegative={toggleNegative}
             clearNegative={clearNegative}
             onFocus={props.onFocus}
             accessibilityLabel={`${translate('iou.amount')} (${currency})`}
+            keyboardType={props.keyboardType}
+            shouldUseDynamicFontSize={shouldUseDynamicFontSize}
         />
     );
 }

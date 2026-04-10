@@ -26,6 +26,9 @@ type UseSearchFocusSyncParams<TItem extends ListItem, TData = TItem> = {
 
     /** Function to set the focused index */
     setFocusedIndex: (index: number) => void;
+
+    /** The first focusable index in the list (useful when index 0 is a header). Defaults to 0. */
+    firstFocusableIndex?: number;
 };
 
 /**
@@ -44,6 +47,7 @@ function useSearchFocusSync<TItem extends ListItem, TData = TItem>({
     shouldUpdateFocusedIndex,
     scrollToIndex,
     setFocusedIndex,
+    firstFocusableIndex = 0,
 }: UseSearchFocusSyncParams<TItem, TData>) {
     const prevSearchValue = usePrevious(searchValue);
     const prevSelectedOptionsCount = usePrevious(selectedOptionsCount);
@@ -76,12 +80,18 @@ function useSearchFocusSync<TItem extends ListItem, TData = TItem>({
         // Remove focus (set focused index to -1) if:
         // 1. If the search is idle or
         // 2. If the user is just toggling options without changing the list content
-        // Otherwise (e.g. when filtering/typing), focus on the first item (0)
+        // Otherwise (e.g. when filtering/typing), scroll to top and focus on the first focusable item
         const isSearchIdle = !prevSearchValue && !searchValue;
-        const newSelectedIndex = isSearchIdle || (selectedOptionsChanged && prevItemsLength === data.length) ? -1 : 0;
+        const shouldResetFocus = isSearchIdle || (selectedOptionsChanged && prevItemsLength === data.length);
 
-        scrollToIndex(newSelectedIndex);
-        setFocusedIndex(newSelectedIndex);
+        if (shouldResetFocus) {
+            setFocusedIndex(-1);
+            return;
+        }
+
+        // Scroll to top of list and focus on first focusable item (not header)
+        scrollToIndex(0);
+        setFocusedIndex(firstFocusableIndex);
     }, [
         canSelectMultiple,
         data,
@@ -94,6 +104,7 @@ function useSearchFocusSync<TItem extends ListItem, TData = TItem>({
         shouldUpdateFocusedIndex,
         searchValue,
         isItemSelected,
+        firstFocusableIndex,
     ]);
 }
 

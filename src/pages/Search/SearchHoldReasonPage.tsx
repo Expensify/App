@@ -1,13 +1,14 @@
-import React, {useCallback, useContext, useEffect} from 'react';
-import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
+import React, {useCallback, useEffect} from 'react';
+import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
-import {useSearchContext} from '@components/Search/SearchContext';
+import {useSearchActionsContext, useSearchStateContext} from '@components/Search/SearchContext';
 import useAncestors from '@hooks/useAncestors';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import {clearErrorFields, clearErrors} from '@libs/actions/FormActions';
-import {putTransactionsOnHold} from '@libs/actions/IOU/Hold';
-import {holdMoneyRequestOnSearch} from '@libs/actions/Search';
+import {putOnHold, putTransactionsOnHold} from '@libs/actions/IOU/Hold';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getFieldRequiredErrors} from '@libs/ValidationUtils';
@@ -24,36 +25,44 @@ type SearchHoldReasonPageProps =
 function SearchHoldReasonPage({route}: SearchHoldReasonPageProps) {
     const {translate} = useLocalize();
     const {backTo = '', reportID} = route.params ?? {};
-    const context = useSearchContext();
-    const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: true});
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: true});
-    const ancestors = useAncestors(report);
+    const {selectedTransactionIDs, selectedTransactions} = useSearchStateContext();
+    const {clearSelectedTransactions} = useSearchActionsContext();
+    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+    const {isOffline} = useNetwork();
 
-    const [allReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {canBeMissing: true});
-    const {isDelegateAccessRestricted, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
+    const selectedTransactionsList = Object.values(selectedTransactions);
+    const isSubmitter = report ? report.ownerAccountID === currentUserAccountID : selectedTransactionsList.some((t) => t.ownerAccountID === currentUserAccountID);
+
+    const ancestors = useAncestors(report);
+    const {isDelegateAccessRestricted} = useDelegateNoAccessState();
+    const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
     const onSubmit = useCallback(
         ({comment}: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_HOLD_FORM>) => {
             if (isDelegateAccessRestricted) {
                 showDelegateNoAccessModal();
                 return;
             }
-
             if (route.name === SCREENS.SEARCH.MONEY_REQUEST_REPORT_HOLD_TRANSACTIONS) {
-                putTransactionsOnHold(context.selectedTransactionIDs, comment, reportID, ancestors);
-                context.clearSelectedTransactions(true);
+                putTransactionsOnHold(selectedTransactionIDs, comment, reportID, isOffline, ancestors);
+                clearSelectedTransactions(true);
             } else {
-                holdMoneyRequestOnSearch(context.currentSearchHash, Object.keys(context.selectedTransactions), comment, allTransactions, allReportActions);
-                context.clearSelectedTransactions();
+                const transactionIDs = Object.keys(selectedTransactions);
+                for (const transactionID of transactionIDs) {
+                    const transactionThreadReportID = selectedTransactions[transactionID].reportAction?.childReportID;
+                    putOnHold(transactionID, comment, transactionThreadReportID, isOffline, ancestors);
+                }
+                clearSelectedTransactions();
             }
 
             Navigation.goBack();
         },
-        [route.name, context, reportID, allTransactions, allReportActions, ancestors, isDelegateAccessRestricted, showDelegateNoAccessModal],
+        [route.name, selectedTransactionIDs, selectedTransactions, clearSelectedTransactions, reportID, ancestors, isOffline, isDelegateAccessRestricted, showDelegateNoAccessModal],
     );
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_HOLD_FORM>) => {
-            const errors: FormInputErrors<typeof ONYXKEYS.FORMS.MONEY_REQUEST_HOLD_FORM> = getFieldRequiredErrors(values, [INPUT_IDS.COMMENT]);
+            const errors: FormInputErrors<typeof ONYXKEYS.FORMS.MONEY_REQUEST_HOLD_FORM> = getFieldRequiredErrors(values, [INPUT_IDS.COMMENT], translate);
 
             if (!values.comment) {
                 errors.comment = translate('common.error.fieldRequired');
@@ -69,7 +78,7 @@ function SearchHoldReasonPage({route}: SearchHoldReasonPageProps) {
         clearErrorFields(ONYXKEYS.FORMS.MONEY_REQUEST_HOLD_FORM);
     }, []);
 
-    const expenseCount = route.name === SCREENS.SEARCH.MONEY_REQUEST_REPORT_HOLD_TRANSACTIONS ? context.selectedTransactionIDs.length : Object.keys(context.selectedTransactions).length;
+    const expenseCount = route.name === SCREENS.SEARCH.MONEY_REQUEST_REPORT_HOLD_TRANSACTIONS ? selectedTransactionIDs.length : Object.keys(selectedTransactions).length;
 
     return (
         <HoldReasonFormView
@@ -77,6 +86,7 @@ function SearchHoldReasonPage({route}: SearchHoldReasonPageProps) {
             validate={validate}
             expenseCount={expenseCount}
             backTo={backTo}
+            isSubmitter={isSubmitter}
         />
     );
 }

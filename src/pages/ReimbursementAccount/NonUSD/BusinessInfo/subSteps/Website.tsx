@@ -5,27 +5,29 @@ import SingleFieldStep from '@components/SubStepForms/SingleFieldStep';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useReimbursementAccountStepFormSubmit from '@hooks/useReimbursementAccountStepFormSubmit';
-import type {SubStepProps} from '@hooks/useSubStep/types';
+import type {SubPageProps} from '@hooks/useSubPage/types';
 import {getDefaultCompanyWebsite} from '@libs/BankAccountUtils';
 import {getFieldRequiredErrors, isValidWebsite} from '@libs/ValidationUtils';
+import getCurrencyForNonUSDBankAccount from '@pages/ReimbursementAccount/NonUSD/utils/getCurrencyForNonUSDBankAccount';
 import {setDraftValues} from '@userActions/FormActions';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 
-type WebsiteProps = SubStepProps;
+type WebsiteProps = SubPageProps;
 
 const {COMPANY_WEBSITE} = INPUT_IDS.ADDITIONAL_DATA.CORPAY;
 const STEP_FIELDS = [COMPANY_WEBSITE];
 
 function Website({onNext, onMove, isEditing}: WebsiteProps) {
     const {translate} = useLocalize();
-    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: false});
-    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: false});
+    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
+    const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
     const policyID = reimbursementAccount?.achData?.policyID;
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: false});
-    const currency = policy?.outputCurrency ?? '';
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+    const {currency} = getCurrencyForNonUSDBankAccount(policy, reimbursementAccountDraft, reimbursementAccount);
     const isWebsiteRequired = currency === CONST.CURRENCY.USD || CONST.CURRENCY.CAD;
 
     const defaultWebsiteExample = useMemo(() => getDefaultCompanyWebsite(session, account, true), [session, account]);
@@ -33,7 +35,7 @@ function Website({onNext, onMove, isEditing}: WebsiteProps) {
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
-            const errors = isWebsiteRequired ? getFieldRequiredErrors(values, STEP_FIELDS) : {};
+            const errors = isWebsiteRequired ? getFieldRequiredErrors(values, STEP_FIELDS, translate) : {};
 
             if (values[COMPANY_WEBSITE] && !isValidWebsite(Str.sanitizeURL(values[COMPANY_WEBSITE], CONST.COMPANY_WEBSITE_DEFAULT_SCHEME))) {
                 errors[COMPANY_WEBSITE] = translate('bankAccount.error.website');
@@ -69,6 +71,7 @@ function Website({onNext, onMove, isEditing}: WebsiteProps) {
             inputMode={CONST.INPUT_MODE.URL}
             defaultValue={defaultCompanyWebsite}
             shouldShowHelpLinks={false}
+            shouldDelayAutoFocus
         />
     );
 }

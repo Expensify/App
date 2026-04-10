@@ -26,7 +26,6 @@ function useTripTransactions(reportID: string | undefined): Transaction[] {
 
     const [tripTransactionReportIDs = getEmptyArray<string>()] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {
         selector: tripTransactionReportIDsSelector,
-        canBeMissing: true,
     });
 
     const tripTransactionsSelector = useCallback(
@@ -44,7 +43,6 @@ function useTripTransactions(reportID: string | undefined): Transaction[] {
         ONYXKEYS.COLLECTION.TRANSACTION,
         {
             selector: tripTransactionsSelector,
-            canBeMissing: true,
         },
         [tripTransactionsSelector],
     );

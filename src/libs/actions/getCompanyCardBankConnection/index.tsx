@@ -23,6 +23,12 @@ type CompanyCardPlaidConnection = {
     plaidAccounts: string;
 };
 
+type PersonalCardBankConnection = {
+    authToken: string;
+    isNewDot: string;
+    scrapeMinDate: string;
+};
+
 function getCompanyCardBankConnection(policyID?: string, bankName?: string | null) {
     const bankConnection = Object.keys(CONST.COMPANY_CARDS.BANKS).find((key) => CONST.COMPANY_CARDS.BANKS[key as keyof typeof CONST.COMPANY_CARDS.BANKS] === bankName);
 
@@ -44,7 +50,6 @@ function getCompanyCardBankConnection(policyID?: string, bankName?: string | nul
     const commandURL = getApiRoot(
         {
             shouldSkipWebProxy: true,
-            command: '',
         },
         forceProductionAPI,
     );
@@ -68,9 +73,34 @@ function getCompanyCardPlaidConnection(policyID?: string, publicToken?: string, 
 
     const commandURL = getApiRoot({
         shouldSkipWebProxy: true,
-        command: '',
     });
     return `${commandURL}partners/banks/plaid/oauth_callback.php?${new URLSearchParams(params).toString()}`;
 }
 
-export {getCompanyCardPlaidConnection, getCompanyCardBankConnection};
+function getPersonalCardBankConnection(bankName?: string | null) {
+    const bankConnection = Object.keys(CONST.PERSONAL_CARDS.BANKS).find((key) => CONST.PERSONAL_CARDS.BANKS[key as keyof typeof CONST.PERSONAL_CARDS.BANKS] === bankName);
+
+    if (!bankName || !bankConnection) {
+        return null;
+    }
+    const authToken = NetworkStore.getAuthToken();
+    const params: PersonalCardBankConnection = {
+        authToken: authToken ?? '',
+        isNewDot: 'true',
+        scrapeMinDate: '',
+    };
+    const bank = CONST.PERSONAL_CARDS.BANK_CONNECTIONS[bankConnection as keyof typeof CONST.PERSONAL_CARDS.BANK_CONNECTIONS];
+
+    // The Amex connection whitelists only our production servers, so we need to always use the production API for American Express
+    const forceProductionAPI = bank === CONST.PERSONAL_CARDS.BANK_CONNECTIONS.AMEX;
+    const commandURL = getApiRoot(
+        {
+            shouldSkipWebProxy: true,
+            command: '',
+        },
+        forceProductionAPI,
+    );
+    return `${commandURL}partners/banks/${bank}/oauth_callback.php?${new URLSearchParams(params).toString()}`;
+}
+
+export {getCompanyCardPlaidConnection, getCompanyCardBankConnection, getPersonalCardBankConnection};

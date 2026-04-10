@@ -1,5 +1,5 @@
-import useNavigationTabBarIndicatorChecks from './useNavigationTabBarIndicatorChecks';
-import type {IndicatorStatus} from './useNavigationTabBarIndicatorChecks';
+import type IndicatorStatus from '@src/types/utils/IndicatorStatus';
+import usePolicyIndicatorChecks from './usePolicyIndicatorChecks';
 import useTheme from './useTheme';
 
 type WorkspacesTabIndicatorStatusResult = {
@@ -11,10 +11,10 @@ type WorkspacesTabIndicatorStatusResult = {
 function useWorkspacesTabIndicatorStatus(): WorkspacesTabIndicatorStatusResult {
     const theme = useTheme();
 
-    const {policyStatus, policyIDWithErrors} = useNavigationTabBarIndicatorChecks();
+    const {policyStatus, domainStatus, policyIDWithErrors} = usePolicyIndicatorChecks();
 
-    const status = policyStatus;
-    const indicatorColor = policyStatus ? theme.danger : theme.success;
+    const status = policyStatus ?? domainStatus;
+    const indicatorColor = status ? theme.danger : theme.success;
 
     return {indicatorColor, status, policyIDWithErrors};
 }

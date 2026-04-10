@@ -1,7 +1,7 @@
 import {findFocusedRoute} from '@react-navigation/native';
 import type {NavigationState} from '@react-navigation/routers';
 import type {OnyxCollection} from 'react-native-onyx';
-import type {SearchQueryItem} from '@components/SelectionListWithSections/Search/SearchQueryListItem';
+import type {SearchQueryItem} from '@components/Search/SearchList/ListItem/SearchQueryListItem';
 import {getPolicyNameWithFallback, sanitizeSearchValue} from '@libs/SearchQueryUtils';
 import type {ReportsSplitNavigatorParamList} from '@navigation/types';
 import CONST from '@src/CONST';
@@ -34,7 +34,7 @@ function getContextualReportData(state: NavigationState | undefined): Contextual
         return {contextualReportID: undefined, isSearchRouterScreen: false};
     }
     let maybeReportRoute = findFocusedRoute(state);
-    const isSearchRouterScreen = maybeReportRoute?.name === SCREENS.RIGHT_MODAL.SEARCH_ROUTER;
+    const isSearchRouterScreen = maybeReportRoute?.name === SCREENS.SEARCH_ROUTER.ROOT;
     if (isSearchRouterScreen) {
         const stateWithoutLastRoute = {
             ...state,

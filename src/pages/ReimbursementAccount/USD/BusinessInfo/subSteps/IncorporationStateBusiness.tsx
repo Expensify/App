@@ -3,13 +3,15 @@ import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import StateSelector from '@components/StateSelector';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useReimbursementAccountStepFormSubmit from '@hooks/useReimbursementAccountStepFormSubmit';
-import type {SubStepProps} from '@hooks/useSubStep/types';
+import type {SubPageProps} from '@hooks/useSubPage/types';
 import useThemeStyles from '@hooks/useThemeStyles';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {getFieldRequiredErrors} from '@libs/ValidationUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
@@ -18,10 +20,12 @@ import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 const COMPANY_INCORPORATION_STATE_KEY = INPUT_IDS.BUSINESS_INFO_STEP.INCORPORATION_STATE;
 const STEP_FIELDS = [COMPANY_INCORPORATION_STATE_KEY];
 
-const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> =>
-    getFieldRequiredErrors(values, STEP_FIELDS);
+const validate = (
+    values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>,
+    translate: LocalizedTranslate,
+): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => getFieldRequiredErrors(values, STEP_FIELDS, translate);
 
-function IncorporationStateBusiness({onNext, isEditing}: SubStepProps) {
+function IncorporationStateBusiness({onNext, isEditing}: SubPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
@@ -37,7 +41,11 @@ function IncorporationStateBusiness({onNext, isEditing}: SubStepProps) {
     });
 
     if (isLoadingReimbursementAccount) {
-        return <FullScreenLoadingIndicator />;
+        const reasonAttributes: SkeletonSpanReasonAttributes = {
+            context: 'IncorporationStateBusiness',
+            isLoadingReimbursementAccount,
+        };
+        return <FullScreenLoadingIndicator reasonAttributes={reasonAttributes} />;
     }
 
     return (
