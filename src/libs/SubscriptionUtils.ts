@@ -397,13 +397,14 @@ function calculateRemainingFreeTrialDays(lastDayFreeTrial: string | undefined): 
  * @returns The free trial badge text .
  */
 function getFreeTrialText(
+    currentUserAccountID: number | undefined,
     translate: LocalizedTranslate,
     policies: OnyxCollection<Policy> | null,
     introSelected: OnyxEntry<IntroSelected>,
     firstDayFreeTrial: string | undefined,
     lastDayFreeTrial: string | undefined,
 ): string | undefined {
-    const ownedPaidPolicies = getOwnedPaidPolicies(policies, deprecatedCurrentUserAccountID);
+    const ownedPaidPolicies = getOwnedPaidPolicies(policies, currentUserAccountID);
     if (isEmptyObject(ownedPaidPolicies)) {
         return undefined;
     }
