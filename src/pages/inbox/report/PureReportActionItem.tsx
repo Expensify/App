@@ -236,13 +236,7 @@ import variables from '@styles/variables';
 import {openPersonalBankAccountSetupView} from '@userActions/BankAccounts';
 import type {IgnoreDirection} from '@userActions/ClearReportActionErrors';
 import {hideEmojiPicker, isActive} from '@userActions/EmojiPickerAction';
-import {
-    createTransactionThreadReport,
-    expandURLPreview,
-    resolveActionableMentionConfirmWhisper,
-    resolveConciergeCategoryOptions,
-    resolveConciergeDescriptionOptions,
-} from '@userActions/Report';
+import {createTransactionThreadReport, expandURLPreview, resolveConciergeCategoryOptions, resolveConciergeDescriptionOptions} from '@userActions/Report';
 import {isAnonymousUser, signOutAndRedirectToSignIn} from '@userActions/Session';
 import {isBlockedFromConcierge} from '@userActions/User';
 import CONST from '@src/CONST';
@@ -252,6 +246,7 @@ import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject, isEmptyValueObject} from '@src/types/utils/EmptyObject';
+import ConfirmWhisperContent from './actionContents/ConfirmWhisperContent';
 import FraudAlertContent from './actionContents/FraudAlertContent';
 import JoinRequestContent from './actionContents/JoinRequestContent';
 import MentionWhisperContent from './actionContents/MentionWhisperContent';
@@ -585,9 +580,8 @@ function PureReportActionItem({
     const prevDraftMessage = usePrevious(draftMessage);
     const isReportActionLinked = linkedReportActionID && action.reportActionID && linkedReportActionID === action.reportActionID;
     const [isReportActionActive, setIsReportActionActive] = useState(!!isReportActionLinked);
-    const isActionableWhisper = isActionableMentionInviteToSubmitExpenseConfirmWhisper(action) || isActionableTrackExpense(action);
     const isReportArchived = useReportIsArchived(reportID);
-    const isOriginalReportArchived = useReportIsArchived(originalReportID);
+
     const isHarvestCreatedExpenseReport = isHarvestCreatedExpenseReportUtils(reportNameValuePairsOrigin, reportNameValuePairsOriginalID);
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Eye']);
     const {environmentURL} = useEnvironment();
@@ -949,12 +943,8 @@ function PureReportActionItem({
             }
         }
 
-        if (!isActionableWhisper) {
-            return [];
-        }
-
-        const reportActionReportID = originalReportID ?? reportID;
         if (isActionableTrackExpense(action)) {
+            const reportActionReportID = originalReportID ?? reportID;
             const options = [
                 {
                     text: 'actionableMentionTrackExpense.submit',
@@ -1034,30 +1024,12 @@ function PureReportActionItem({
             return options;
         }
 
-        if (isActionableMentionInviteToSubmitExpenseConfirmWhisper(action)) {
-            return [
-                {
-                    text: 'common.buttonConfirm',
-                    key: `${action.reportActionID}-actionableReportMentionConfirmWhisper-${CONST.REPORT.ACTIONABLE_MENTION_INVITE_TO_SUBMIT_EXPENSE_CONFIRM_WHISPER.DONE}`,
-                    onPress: () =>
-                        resolveActionableMentionConfirmWhisper(
-                            reportActionReport,
-                            action,
-                            CONST.REPORT.ACTIONABLE_MENTION_INVITE_TO_SUBMIT_EXPENSE_CONFIRM_WHISPER.DONE,
-                            isOriginalReportArchived,
-                        ),
-                    isPrimary: true,
-                },
-            ];
-        }
-
         return [];
     }, [
         action,
         userBillingFundID,
         originalReportID,
         reportID,
-        isActionableWhisper,
         currentUserAccountID,
         currentUserEmail,
         personalDetail.timezone,
@@ -1065,7 +1037,6 @@ function PureReportActionItem({
         isRestrictedToPreferredPolicy,
         preferredPolicyID,
         dismissTrackExpenseActionableWhisper,
-        isOriginalReportArchived,
         introSelected,
         draftTransactionIDs,
         activePolicy,
@@ -1586,7 +1557,7 @@ function PureReportActionItem({
                     policy={policy}
                     currentUserAccountID={currentUserAccountID}
                     personalPolicyID={personalPolicyID}
-                    isOriginalReportArchived={isOriginalReportArchived}
+                    originalReportID={originalReportID}
                     resolveActionableMentionWhisper={resolveActionableMentionWhisper}
                 />
             );
@@ -1599,6 +1570,16 @@ function PureReportActionItem({
                     originalReport={originalReport}
                     isReportArchived={isReportArchived}
                     resolveActionableReportMentionWhisper={resolveActionableReportMentionWhisper}
+                />
+            );
+        } else if (isActionableMentionInviteToSubmitExpenseConfirmWhisper(action)) {
+            children = (
+                <ConfirmWhisperContent
+                    action={action}
+                    reportID={reportID}
+                    report={report}
+                    originalReport={originalReport}
+                    originalReportID={originalReportID}
                 />
             );
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.LEAVE_ROOM) || isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.LEAVE_ROOM)) {
@@ -1765,11 +1746,6 @@ function PureReportActionItem({
                                                 </Text>
                                             </Button>
                                         )}
-                                        {/**
-                                     These are the actionable buttons that appear at the bottom of a Concierge message
-                                     for example: Invite a user mentioned but not a member of the room
-                                     https://github.com/Expensify/App/issues/32741
-                                     */}
                                         {actionableItemButtons.length > 0 && (
                                             <ActionableItemButtons
                                                 items={actionableItemButtons}

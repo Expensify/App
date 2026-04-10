@@ -5,6 +5,7 @@ import RenderHTML from '@components/RenderHTML';
 import type {ActionableItem} from '@components/ReportActionItem/ActionableItemButtons';
 import ActionableItemButtons from '@components/ReportActionItem/ActionableItemButtons';
 import useLocalize from '@hooks/useLocalize';
+import useReportIsArchived from '@hooks/useReportIsArchived';
 import {isPolicyAdmin, isPolicyMember, isPolicyOwner} from '@libs/PolicyUtils';
 import {getActionableMentionWhisperMessage, getOriginalMessage, isSystemUserMentioned} from '@libs/ReportActionsUtils';
 import ReportActionItemBasicMessage from '@pages/inbox/report/ReportActionItemBasicMessage';
@@ -18,7 +19,7 @@ type MentionWhisperContentProps = {
     policy: OnyxEntry<Policy>;
     currentUserAccountID: number;
     personalPolicyID: string | undefined;
-    isOriginalReportArchived: boolean;
+    originalReportID: string | undefined;
     resolveActionableMentionWhisper: (
         report: OnyxEntry<Report>,
         reportAction: OnyxEntry<ReportAction>,
@@ -34,10 +35,11 @@ function MentionWhisperContent({
     policy,
     currentUserAccountID,
     personalPolicyID,
-    isOriginalReportArchived,
+    originalReportID,
     resolveActionableMentionWhisper,
 }: MentionWhisperContentProps) {
     const {translate} = useLocalize();
+    const isOriginalReportArchived = useReportIsArchived(originalReportID);
 
     const reportActionReport = originalReport ?? report;
     const reportPolicyID = report?.policyID;
