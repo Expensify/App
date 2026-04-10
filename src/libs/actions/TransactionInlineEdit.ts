@@ -38,7 +38,7 @@ import {
     updateMoneyRequestDescription,
     updateMoneyRequestMerchant,
     updateMoneyRequestTag,
-} from './IOU';
+} from './IOU/UpdateMoneyRequest';
 
 type TransactionEditPermissions = {
     canEditDate: boolean;
