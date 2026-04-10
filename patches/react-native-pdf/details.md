@@ -42,6 +42,6 @@
     ```
 
 - Upstream PR/issue: https://github.com/wonday/react-native-pdf/issues/1009
-- Upstream draft PR: https://github.com/wonday/react-native-pdf/pull/1010
+- Upstream PR: https://github.com/wonday/react-native-pdf/pull/1011
 - E/App issue: https://github.com/Expensify/App/issues/81225
 - PR introducing patch: https://github.com/Expensify/App/pull/87416
