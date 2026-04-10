@@ -151,7 +151,7 @@ const DYNAMIC_ROUTES = {
         entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.ROOT],
     },
     POLICY_ACCOUNTING_SAGE_INTACCT_PREFERRED_EXPORTER: {
-        path: 'preferred-exporter',
+        path: 'sage-preferred-exporter',
         entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_EXPORT],
     },
     POLICY_ACCOUNTING_SAGE_INTACCT_EXPORT_DATE: {
