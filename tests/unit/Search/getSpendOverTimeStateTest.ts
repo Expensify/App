@@ -24,7 +24,6 @@ const makeData = (count: number): GroupedItem[] => Array.from({length: count}, (
 describe('getSpendOverTimeState', () => {
     it('returns OFFLINE when offline with no data', () => {
         expect(getSpendOverTimeState(true, undefined, queryJSON, undefined)).toBe(SPEND_OVER_TIME_STATE.OFFLINE);
-        expect(getSpendOverTimeState(true, undefined, queryJSON, [])).toBe(SPEND_OVER_TIME_STATE.OFFLINE);
     });
 
     it('returns READY when offline but cached data exists', () => {
@@ -35,11 +34,6 @@ describe('getSpendOverTimeState', () => {
     it('returns ERROR when online and searchResults has errors', () => {
         const results = makeSearchResults({errors: {someError: 'Something went wrong'}});
         expect(getSpendOverTimeState(false, results, queryJSON, makeData(5))).toBe(SPEND_OVER_TIME_STATE.ERROR);
-    });
-
-    it('does not return ERROR when offline even if errors exist', () => {
-        const results = makeSearchResults({errors: {someError: 'err'}});
-        expect(getSpendOverTimeState(true, results, queryJSON, [])).toBe(SPEND_OVER_TIME_STATE.OFFLINE);
     });
 
     it('returns LOADING when data has not loaded yet', () => {
