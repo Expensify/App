@@ -30,7 +30,7 @@ function SpendOverTimeSectionContent() {
         return null;
     }
 
-    if (!shouldShowErrorIndicator && sortedData?.length === 0) {
+    if (!shouldShowErrorIndicator && (sortedData?.length ?? 0 < 2)) {
         return null;
     }
 
