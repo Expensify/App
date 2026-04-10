@@ -44,6 +44,7 @@ import {calculateAmount as calculateIOUAmount, formatCurrentUserToAttendee, upda
 import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import * as Localize from '@libs/Localize';
 import Log from '@libs/Log';
+import {hasNonReimbursableTransactions as hasNonReimbursableTransactionsMoneyRequestReportUtils} from '@libs/MoneyRequestReportUtils';
 import isReportOpenInRHP from '@libs/Navigation/helpers/isReportOpenInRHP';
 import isReportOpenInSuperWideRHP from '@libs/Navigation/helpers/isReportOpenInSuperWideRHP';
 import isReportTopmostSplitNavigator from '@libs/Navigation/helpers/isReportTopmostSplitNavigator';
@@ -131,7 +132,6 @@ import {
     getReportTransactions,
     getTransactionDetails,
     hasHeldExpenses as hasHeldExpensesReportUtils,
-    hasNonReimbursableTransactions as hasNonReimbursableTransactionsReportUtils,
     hasOnlyNonReimbursableTransactions,
     hasOutstandingChildRequest,
     hasViolations as hasViolationsReportUtils,
@@ -4699,7 +4699,7 @@ function prepareToCleanUpMoneyRequest(
         updatedIOUReport.lastVisibleActionCreated = lastVisibleAction?.created;
     }
 
-    const hasNonReimbursableTransactions = hasNonReimbursableTransactionsReportUtils(iouReport?.reportID);
+    const hasNonReimbursableTransactions = hasNonReimbursableTransactionsMoneyRequestReportUtils(getReportTransactions(iouReport?.reportID));
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     const messageText = Localize.translateLocal(
         hasNonReimbursableTransactions ? 'iou.payerSpentAmount' : 'iou.payerOwesAmount',
