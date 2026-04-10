@@ -10,8 +10,10 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import type {Route as RoutePath} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+import type {Screen} from '@src/SCREENS';
 import findMatchingDynamicSuffix from './dynamicRoutesUtils/findMatchingDynamicSuffix';
 import getPathWithoutDynamicSuffix from './dynamicRoutesUtils/getPathWithoutDynamicSuffix';
+import isDynamicRouteScreen from './dynamicRoutesUtils/isDynamicRouteScreen';
 import findFocusedRouteWithOnyxTabGuard from './findFocusedRouteWithOnyxTabGuard';
 import getMatchingNewRoute from './getMatchingNewRoute';
 import getParamsFromRoute from './getParamsFromRoute';
@@ -54,15 +56,14 @@ function getSearchScreenNameForRoute(route: NavigationPartialRoute): string {
 }
 
 function getMatchingFullScreenRoute(route: NavigationPartialRoute) {
-    const isDynamicScreen = route.name.startsWith('Dynamic_');
-    const dynamicSuffixMatch = findMatchingDynamicSuffix(route?.path);
+    const isDynamicScreen = isDynamicRouteScreen(route.name as Screen);
 
     // Check for backTo param. One screen with different backTo value may need different screens visible under the overlay.
     // Before checking backTo, we verify the URL doesn't end with a dynamic route suffix.
     // Dynamic routes never carry their own backTo - they only inherit it from the screen underneath.
     // So when a dynamic suffix is present, we must strip it first to resolve the correct full-screen
     // route from the base path, rather than letting backTo (which belongs to the underlying screen) dictate it.
-    if (isRouteWithBackToParam(route) && !dynamicSuffixMatch && !isDynamicScreen) {
+    if (isRouteWithBackToParam(route) && !isDynamicScreen) {
         const stateForBackTo = getStateFromPath(route.params.backTo as RoutePath);
 
         // This may happen if the backTo url is invalid.
@@ -190,6 +191,7 @@ function getMatchingFullScreenRoute(route: NavigationPartialRoute) {
         };
     }
 
+    const dynamicSuffixMatch = findMatchingDynamicSuffix(route?.path);
     // Handle dynamic routes: find the appropriate full screen route
     if (route.path && dynamicSuffixMatch) {
         // Strip the suffix from the URL. For parametric routes we pass both the actual URL
