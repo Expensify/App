@@ -1,8 +1,8 @@
 import {act} from '@testing-library/react-native';
-import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import {addDays, addMinutes, format as formatDate, getUnixTime, subDays} from 'date-fns';
 import Onyx from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
+import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import {
     calculateRemainingFreeTrialDays,
     doesUserHavePaymentCardAdded,
@@ -1424,35 +1424,35 @@ describe('SubscriptionUtils', () => {
         });
 
         it('should return true for a regular user whose trial ended, no card, with owned workspace', () => {
-            expect(shouldShowTrialEndedUI(lastDayFreeTrialEnded, undefined, policies, undefined, undefined, undefined)).toBeTruthy();
+            expect(shouldShowTrialEndedUI(ownerAccountID, lastDayFreeTrialEnded, undefined, policies, undefined, undefined, undefined)).toBeTruthy();
         });
 
         it('should return false if the user has no owned paid policies', () => {
-            expect(shouldShowTrialEndedUI(lastDayFreeTrialEnded, undefined, {}, undefined, undefined, undefined)).toBeFalsy();
+            expect(shouldShowTrialEndedUI(ownerAccountID, lastDayFreeTrialEnded, undefined, {}, undefined, undefined, undefined)).toBeFalsy();
         });
 
         it('should return false if the user is grandfathered free', () => {
-            expect(shouldShowTrialEndedUI(lastDayFreeTrialEnded, undefined, policies, true, undefined, undefined)).toBeFalsy();
+            expect(shouldShowTrialEndedUI(ownerAccountID, lastDayFreeTrialEnded, undefined, policies, true, undefined, undefined)).toBeFalsy();
         });
 
         it('should return false if the user is from an internal domain', () => {
-            expect(shouldShowTrialEndedUI(lastDayFreeTrialEnded, undefined, policies, undefined, true, undefined)).toBeFalsy();
+            expect(shouldShowTrialEndedUI(ownerAccountID, lastDayFreeTrialEnded, undefined, policies, undefined, true, undefined)).toBeFalsy();
         });
 
         it('should return false if the user is on invoiced billing', () => {
-            expect(shouldShowTrialEndedUI(lastDayFreeTrialEnded, undefined, policies, undefined, undefined, CONST.SUBSCRIPTION.TYPE.INVOICING)).toBeFalsy();
+            expect(shouldShowTrialEndedUI(ownerAccountID, lastDayFreeTrialEnded, undefined, policies, undefined, undefined, CONST.SUBSCRIPTION.TYPE.INVOICING)).toBeFalsy();
         });
 
         it('should return false if the user has a payment card added', () => {
-            expect(shouldShowTrialEndedUI(lastDayFreeTrialEnded, 8010, policies, undefined, undefined, undefined)).toBeFalsy();
+            expect(shouldShowTrialEndedUI(ownerAccountID, lastDayFreeTrialEnded, 8010, policies, undefined, undefined, undefined)).toBeFalsy();
         });
 
         it('should return false if the trial has not ended yet', () => {
-            expect(shouldShowTrialEndedUI(lastDayFreeTrialActive, undefined, policies, undefined, undefined, undefined)).toBeFalsy();
+            expect(shouldShowTrialEndedUI(ownerAccountID, lastDayFreeTrialActive, undefined, policies, undefined, undefined, undefined)).toBeFalsy();
         });
 
         it('should return false if lastDayFreeTrial is undefined', () => {
-            expect(shouldShowTrialEndedUI(undefined, undefined, policies, undefined, undefined, undefined)).toBeFalsy();
+            expect(shouldShowTrialEndedUI(ownerAccountID, undefined, undefined, policies, undefined, undefined, undefined)).toBeFalsy();
         });
     });
 });

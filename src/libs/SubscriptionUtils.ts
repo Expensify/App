@@ -585,7 +585,11 @@ function getSubscriptionPlanInfo(
     };
 }
 
+/**
+ * @param currentUserAccountID — Session account ID of the current user (used to detect owned paid policies).
+ */
 function shouldShowTrialEndedUI(
+    currentUserAccountID: number | undefined,
     lastDayFreeTrial: string | undefined,
     userBillingFundID: number | undefined,
     policies: OnyxCollection<Policy>,
@@ -593,7 +597,7 @@ function shouldShowTrialEndedUI(
     isFromInternalDomain: boolean | undefined,
     privateSubscriptionType: SubscriptionType | undefined,
 ): boolean {
-    if (!getOwnedPaidPolicies(policies, deprecatedCurrentUserAccountID)?.length) {
+    if (!getOwnedPaidPolicies(policies, currentUserAccountID)?.length) {
         return false;
     }
     if (isGrandfatheredFree || isFromInternalDomain) {
