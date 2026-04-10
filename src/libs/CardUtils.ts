@@ -1072,11 +1072,7 @@ function collectUsedCSVFeedSlotNumbersFromCompanyCards(companyCards: CompanyFeed
     return numbers;
 }
 
-function collectUsedCSVFeedSlotNumbersFromWorkspaceCardsCollection(
-    allWorkspaceCardsList: OnyxCollection<WorkspaceCardsList> | undefined,
-    domainID: number,
-    csvPrefix: string,
-): number[] {
+function collectUsedCSVFeedSlotNumbersFromWorkspaceCardsCollection(allWorkspaceCardsList: OnyxCollection<WorkspaceCardsList> | undefined, domainID: number, csvPrefix: string): number[] {
     const numbers: number[] = [];
     const domainKeyPrefix = `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${domainID}_`;
     for (const key of Object.keys(allWorkspaceCardsList ?? {})) {
@@ -1104,11 +1100,7 @@ function collectUsedCSVFeedSlotNumbersFromWorkspaceCardsCollection(
  * `cards_<domainID>_ccuploadN` workspace card keys so numbering matches Onyx, including feeds
  * omitted from {@link getFeedType}'s `CombinedCardFeeds` input.
  */
-function getCSVFeedType(
-    companyCards: CompanyFeeds | undefined,
-    domainID: number,
-    allWorkspaceCardsList: OnyxCollection<WorkspaceCardsList> | undefined,
-): CompanyCardFeedWithNumber {
+function getCSVFeedType(companyCards: CompanyFeeds | undefined, domainID: number, allWorkspaceCardsList: OnyxCollection<WorkspaceCardsList> | undefined): CompanyCardFeedWithNumber {
     const csvPrefix = CONST.COMPANY_CARD.FEED_BANK_NAME.CSV;
     const merged = [
         ...collectUsedCSVFeedSlotNumbersFromCompanyCards(companyCards, csvPrefix),

@@ -43,9 +43,7 @@ function CompanyCardsImportedPage({route}: CompanyCardsImportedPageProps) {
     const layoutName = addNewCard?.data?.companyCardLayoutName ?? '';
     const prefilledLayoutType = addNewCard?.data?.layoutType;
     const generatedLayoutType = useMemo(
-        () =>
-            prefilledLayoutType ??
-            getCSVFeedType(workspaceCardFeeds?.settings?.companyCards, workspaceAccountID, allWorkspaceCardsList),
+        () => prefilledLayoutType ?? getCSVFeedType(workspaceCardFeeds?.settings?.companyCards, workspaceAccountID, allWorkspaceCardsList),
         [prefilledLayoutType, workspaceCardFeeds?.settings?.companyCards, workspaceAccountID, allWorkspaceCardsList],
     );
     const layoutType = prefilledLayoutType ?? generatedLayoutType;

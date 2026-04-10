@@ -4,7 +4,6 @@ import type {OnyxCollection} from 'react-native-onyx';
 import type {FeedKeysWithAssignedCards} from '@hooks/useFeedKeysWithAssignedCards';
 import type IllustrationsType from '@styles/theme/illustrations/types';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import type {CombinedCardFeeds} from '@src/hooks/useCardFeeds';
 import IntlStore from '@src/languages/IntlStore';
 import {
@@ -30,6 +29,7 @@ import {
     getCompanyCardDescription,
     getCompanyCardFeed,
     getCompanyFeeds,
+    getCSVFeedType,
     getCustomFeedNameFromFeeds,
     getCustomOrFormattedFeedName,
     getDefaultExpensifyCardLimitType,
@@ -38,7 +38,6 @@ import {
     getEligibleBankAccountsForUkEuCard,
     getFeedConnectionBrokenCard,
     getFeedNameForDisplay,
-    getCSVFeedType,
     getFeedType,
     getFilteredCardList,
     getMonthFromExpirationDateString,
@@ -68,6 +67,7 @@ import {
 } from '@src/libs/CardUtils';
 import type {CardProgramKey} from '@src/libs/CardUtils';
 import DateUtils from '@src/libs/DateUtils';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {
     BankAccountList,
     Card,
@@ -80,7 +80,7 @@ import type {
     Policy,
     WorkspaceCardsList,
 } from '@src/types/onyx';
-import type {CardFeedWithDomainID, CardFeedWithNumber, CompanyFeeds, CompanyCardFeedWithNumber} from '@src/types/onyx/CardFeeds';
+import type {CardFeedWithDomainID, CardFeedWithNumber, CompanyCardFeedWithNumber, CompanyFeeds} from '@src/types/onyx/CardFeeds';
 import type IconAsset from '@src/types/utils/IconAsset';
 import {localeCompare, translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -1907,11 +1907,9 @@ describe('CardUtils', () => {
 
         it('merges companyCards and workspace keys when picking the next slot', () => {
             expect(
-                getCSVFeedType(
-                    {ccupload1: {pending: false}} as CompanyFeeds,
-                    111,
-                    {[`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}111_ccupload2`]: {cardList: {}}} as OnyxCollection<WorkspaceCardsList>,
-                ),
+                getCSVFeedType({ccupload1: {pending: false}} as CompanyFeeds, 111, {
+                    [`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}111_ccupload2`]: {cardList: {}},
+                } as OnyxCollection<WorkspaceCardsList>),
             ).toBe('ccupload3');
         });
 
