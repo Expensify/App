@@ -2483,6 +2483,8 @@ ${amount} para ${merchant} - ${date}`,
         frozenByAdminNeedsUnfreezePrefix: 'Este cartão foi bloqueado por ',
         frozenByAdminNeedsUnfreezeSuffix: '. Entre em contato com um administrador para desbloqueá-lo.',
         frozenByAdminNeedsUnfreeze: ({person}: {person: string}) => `Este cartão foi bloqueado por ${person}. Entre em contato com um administrador para desbloqueá-lo.`,
+        spendRules: 'Regras de gasto',
+        editSpendRules: 'Editar regras de gasto',
     },
     workflowsPage: {
         workflowTitle: 'Gastos',
