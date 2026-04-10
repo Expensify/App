@@ -47,7 +47,7 @@ function ChartYAxisLabels({yTicks, yScale, chartBounds, fontSize, fontMgr, label
             return null;
         }
 
-        const x = chartBounds.left - AXIS_LABEL_GAP + GLYPH_PADDING / 2 - (leftAlign ? maxWidth : paraData.width);
+        const x = chartBounds.left - AXIS_LABEL_GAP + GLYPH_PADDING - (leftAlign ? maxWidth : paraData.width);
         const tickY = yScale(tick);
 
         return (
@@ -56,7 +56,7 @@ function ChartYAxisLabels({yTicks, yScale, chartBounds, fontSize, fontMgr, label
                 paragraph={paraData.para}
                 x={x}
                 y={tickY - lineHeight / 2}
-                width={paraData.width + GLYPH_PADDING * 2}
+                width={paraData.width + GLYPH_PADDING}
             />
         );
     });
