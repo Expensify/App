@@ -1,15 +1,16 @@
-import React from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
+import AmountForm from '@components/AmountForm';
 import DatePicker from '@components/DatePicker';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import NumberWithSymbolForm from '@components/NumberWithSymbolForm';
 import PercentageForm from '@components/PercentageForm';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TextInput from '@components/TextInput';
-import ValuePicker from '@components/ValuePicker';
+import type {ValuePickerItem} from '@components/ValuePicker/types';
+import ValueSelectorModal from '@components/ValuePicker/ValueSelectorModal';
 import useAncestors from '@hooks/useAncestors';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useIsInSidePanel from '@hooks/useIsInSidePanel';
@@ -38,14 +39,28 @@ function ChronosScheduleOOOPage({route}: ChronosScheduleOOOPageProps) {
     const isInSidePanel = useIsInSidePanel();
 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+    const [isDurationUnitModalVisible, setIsDurationUnitModalVisible] = useState(false);
+    const [selectedDurationUnit, setSelectedDurationUnit] = useState<string>(CONST.CHRONOS.OOO_DURATION_UNITS.DAY);
     const ancestors = useAncestors(report);
 
-    const durationUnitItems = [
-        {value: CONST.CHRONOS.OOO_DURATION_UNITS.HOUR, label: translate('chronos.hour')},
-        {value: CONST.CHRONOS.OOO_DURATION_UNITS.DAY, label: translate('chronos.day')},
-        {value: CONST.CHRONOS.OOO_DURATION_UNITS.WEEK, label: translate('chronos.week')},
-        {value: CONST.CHRONOS.OOO_DURATION_UNITS.MONTH, label: translate('chronos.month')},
-    ];
+    const durationUnitItems = useMemo(
+        () => [
+            {value: CONST.CHRONOS.OOO_DURATION_UNITS.HOUR, label: translate('chronos.hour')},
+            {value: CONST.CHRONOS.OOO_DURATION_UNITS.DAY, label: translate('chronos.day')},
+            {value: CONST.CHRONOS.OOO_DURATION_UNITS.WEEK, label: translate('chronos.week')},
+            {value: CONST.CHRONOS.OOO_DURATION_UNITS.MONTH, label: translate('chronos.month')},
+        ],
+        [translate],
+    );
+
+    const durationUnitButtonLabel = durationUnitItems.find((item) => item.value === selectedDurationUnit)?.label ?? '';
+
+    const onDurationUnitSelected = useCallback((item: ValuePickerItem) => {
+        if (item.value) {
+            setSelectedDurationUnit(item.value);
+        }
+        setIsDurationUnitModalVisible(false);
+    }, []);
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.CHRONOS_SCHEDULE_OOO_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.CHRONOS_SCHEDULE_OOO_FORM> => {
         const errors: FormInputErrors<typeof ONYXKEYS.FORMS.CHRONOS_SCHEDULE_OOO_FORM> = {};
@@ -77,7 +92,7 @@ function ChronosScheduleOOOPage({route}: ChronosScheduleOOOPageProps) {
             date: values[INPUT_IDS.DATE],
             time: values[INPUT_IDS.TIME],
             durationAmount: values[INPUT_IDS.DURATION_AMOUNT],
-            durationUnit: values[INPUT_IDS.DURATION_UNIT],
+            durationUnit: selectedDurationUnit,
             reason: values[INPUT_IDS.REASON],
             workingPercentage: values[INPUT_IDS.WORKING_PERCENTAGE],
         });
@@ -130,31 +145,31 @@ function ChronosScheduleOOOPage({route}: ChronosScheduleOOOPageProps) {
                         placeholder="14:30"
                     />
                 </View>
-                <View style={[styles.flexRow, styles.gap2, styles.mb4]}>
-                    <View style={styles.flex1}>
-                        <InputWrapper
-                            InputComponent={NumberWithSymbolForm}
-                            inputID={INPUT_IDS.DURATION_AMOUNT}
-                            label={translate('chronos.durationAmount')}
-                            displayAsTextInput
-                            hideSymbol
-                            symbol=""
-                            shouldShowCurrencyButton={false}
-                            shouldShowBigNumberPad={false}
-                            shouldWrapInputInContainer={false}
-                            decimals={0}
-                            isSymbolPressable={false}
-                        />
-                    </View>
-                    <View style={styles.flex1}>
-                        <InputWrapper
-                            InputComponent={ValuePicker}
-                            inputID={INPUT_IDS.DURATION_UNIT}
-                            defaultValue={CONST.CHRONOS.OOO_DURATION_UNITS.DAY}
-                            label={translate('chronos.durationUnit')}
-                            items={durationUnitItems}
-                        />
-                    </View>
+                <View style={styles.mb4}>
+                    <InputWrapper
+                        InputComponent={AmountForm}
+                        inputID={INPUT_IDS.DURATION_AMOUNT}
+                        label={translate('chronos.durationAmount')}
+                        displayAsTextInput
+                        hideCurrencySymbol
+                        shouldShowCurrencyButton
+                        currencyButtonLabel={durationUnitButtonLabel}
+                        currencyButtonAccessibilityLabel={`${translate('common.select')}, ${durationUnitButtonLabel}`}
+                        currency={CONST.CURRENCY.USD}
+                        decimals={0}
+                        onCurrencyButtonPress={() => setIsDurationUnitModalVisible(true)}
+                        isCurrencyPressable
+                    />
+                    <ValueSelectorModal
+                        isVisible={isDurationUnitModalVisible}
+                        label={translate('chronos.durationUnit')}
+                        selectedItem={durationUnitItems.find((item) => item.value === selectedDurationUnit)}
+                        items={durationUnitItems}
+                        onClose={() => setIsDurationUnitModalVisible(false)}
+                        onItemSelected={onDurationUnitSelected}
+                        onBackdropPress={Navigation.dismissModal}
+                        shouldEnableKeyboardAvoidingView={false}
+                    />
                 </View>
                 <View style={styles.mb4}>
                     <InputWrapper

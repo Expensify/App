@@ -106,6 +106,14 @@ type NumberWithSymbolFormProps = {
 
     /** Callback when currency button is pressed */
     onCurrencyButtonPress?: () => void;
+
+    /**
+     * Label on the trailing dropdown button (e.g. currency code). When set, used instead of `currency` so the same control can show a unit or other suffix.
+     */
+    currencyButtonLabel?: string;
+
+    /** Accessibility label for the trailing dropdown button (defaults to currency-based copy when unset) */
+    currencyButtonAccessibilityLabel?: string;
 } & Omit<TextInputWithSymbolProps, 'formattedAmount' | 'onAmountChange' | 'placeholder' | 'onSelectionChange' | 'onKeyPress' | 'onMouseDown' | 'onMouseUp'>;
 
 type NumberWithSymbolFormRef = {
@@ -173,6 +181,8 @@ function NumberWithSymbolForm({
     shouldShowFlipButton = false,
     shouldShowCurrencyButton = false,
     onCurrencyButtonPress,
+    currencyButtonLabel,
+    currencyButtonAccessibilityLabel,
     ...props
 }: NumberWithSymbolFormProps) {
     const icons = useMemoizedLazyExpensifyIcons(['DownArrow', 'PlusMinus']);
@@ -198,6 +208,9 @@ function NumberWithSymbolForm({
     const forwardDeletePressedRef = useRef(false);
     // The ref is used to ignore any onSelectionChange event that happens while we are updating the selection manually in setNewNumber
     const willSelectionBeUpdatedManually = useRef(false);
+
+    const currencyOrUnitButtonText = currencyButtonLabel ?? currency;
+    const onTrailingDropdownPress = onCurrencyButtonPress ?? onSymbolButtonPress;
 
     const {setMouseDown, setMouseUp} = useMouseActions();
     const handleMouseDown = (e: React.MouseEvent<Element, MouseEvent>) => {
@@ -430,21 +443,33 @@ function NumberWithSymbolForm({
                         isDisabled={disabled}
                     />
                 )}
-                {shouldShowCurrencyButton && !!currency && (
+                {shouldShowCurrencyButton && !!currencyOrUnitButtonText && (
                     <Button
                         shouldShowRightIcon
                         small
                         iconRight={icons.DownArrow}
-                        onPress={onCurrencyButtonPress}
+                        onPress={onTrailingDropdownPress}
                         isContentCentered
-                        text={currency}
-                        accessibilityLabel={`${translate('common.selectCurrency')}, ${currency}`}
+                        text={currencyOrUnitButtonText}
+                        accessibilityLabel={currencyButtonAccessibilityLabel ?? `${translate('common.selectCurrency')}, ${currencyOrUnitButtonText}`}
                         isDisabled={disabled}
                     />
                 )}
             </View>
         );
-    }, [shouldShowFlipButton, allowNegativeInput, disabled, shouldShowCurrencyButton, styles, icons, handleFlipPress, onCurrencyButtonPress, currency, translate]);
+    }, [
+        shouldShowFlipButton,
+        allowNegativeInput,
+        disabled,
+        shouldShowCurrencyButton,
+        styles,
+        icons,
+        handleFlipPress,
+        onTrailingDropdownPress,
+        currencyOrUnitButtonText,
+        currencyButtonAccessibilityLabel,
+        translate,
+    ]);
 
     if (displayAsTextInput) {
         return (
@@ -463,7 +488,7 @@ function NumberWithSymbolForm({
                     textInput.current = newRef;
                 }}
                 disabled={disabled}
-                prefixCharacter={symbol}
+                prefixCharacter={hideSymbol ? '' : symbol}
                 prefixStyle={styles.colorMuted}
                 keyboardType={props.keyboardType ?? CONST.KEYBOARD_TYPE.DECIMAL_PAD}
                 // On android autoCapitalize="words" is necessary when keyboardType="decimal-pad" or inputMode="decimal" to prevent input lag.
