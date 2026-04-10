@@ -10,9 +10,12 @@ import Text from '@components/Text';
 import withNavigationFallback from '@components/withNavigationFallback';
 import useStyleUtils from '@hooks/useStyleUtils';
 // eslint-disable-next-line no-restricted-imports
+import styles from '@styles/index';
+// eslint-disable-next-line no-restricted-imports
 import {defaultTheme} from '@styles/theme';
-import {defaultStyles} from '@src/styles';
 import type {FileObject} from '@src/types/utils/Attachment';
+
+const defaultStyles = styles(defaultTheme);
 
 const ComposerWithNavigation = withNavigationFallback(Composer);
 

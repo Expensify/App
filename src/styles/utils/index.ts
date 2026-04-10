@@ -10,7 +10,6 @@ import {isMobile, isMobileChrome} from '@libs/Browser';
 import getPlatform from '@libs/getPlatform';
 import {hashText} from '@libs/UserUtils';
 // eslint-disable-next-line no-restricted-imports
-import {defaultTheme} from '@styles/theme';
 import colors from '@styles/theme/colors';
 import type {ThemeColors} from '@styles/theme/types';
 import variables from '@styles/variables';
@@ -18,7 +17,6 @@ import CONST from '@src/CONST';
 import type {Transaction} from '@src/types/onyx';
 import type {Dimensions} from '@src/types/utils/Layout';
 import type Nullable from '@src/types/utils/Nullable';
-import {defaultStyles} from '..';
 import type {ThemeStyles} from '..';
 import shouldPreventScrollOnAutoCompleteSuggestion from './autoCompleteSuggestion';
 import getCardStyles from './cardStyles';
@@ -2287,8 +2285,5 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
 
 type StyleUtilsType = ReturnType<typeof createStyleUtils>;
 
-const DefaultStyleUtils = createStyleUtils(defaultTheme, defaultStyles);
-
 export default createStyleUtils;
-export {DefaultStyleUtils};
 export type {StyleUtilsType, AvatarSizeName};

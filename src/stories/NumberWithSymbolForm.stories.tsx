@@ -6,8 +6,12 @@ import type {NumberWithSymbolFormProps} from '@components/NumberWithSymbolForm';
 import ScrollView from '@components/ScrollView';
 import withNavigationFallback from '@components/withNavigationFallback';
 // eslint-disable-next-line no-restricted-imports
-import {defaultStyles} from '@styles/index';
+import styles from '@styles/index';
+// eslint-disable-next-line no-restricted-imports
+import {defaultTheme} from '@styles/theme';
 import CONST from '@src/CONST';
+
+const defaultStyles = styles(defaultTheme);
 
 type NumberWithSymbolFormStory = StoryFn<typeof NumberWithSymbolForm>;
 

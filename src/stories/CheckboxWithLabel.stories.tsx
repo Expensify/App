@@ -4,7 +4,11 @@ import CheckboxWithLabel from '@components/CheckboxWithLabel';
 import type {CheckboxWithLabelProps} from '@components/CheckboxWithLabel';
 import Text from '@components/Text';
 // eslint-disable-next-line no-restricted-imports
-import {defaultStyles} from '@styles/index';
+import styles from '@styles/index';
+// eslint-disable-next-line no-restricted-imports
+import {defaultTheme} from '@styles/theme';
+
+const defaultStyles = styles(defaultTheme);
 
 type CheckboxWithLabelStory = StoryFn<typeof CheckboxWithLabel>;
 

@@ -4,7 +4,12 @@ import {Image, View} from 'react-native';
 import DragAndDropConsumer from '@components/DragAndDrop/Consumer';
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
 import Text from '@components/Text';
-import {defaultStyles} from '@src/styles';
+// eslint-disable-next-line no-restricted-imports
+import styles from '@styles/index';
+// eslint-disable-next-line no-restricted-imports
+import {defaultTheme} from '@styles/theme';
+
+const defaultStyles = styles(defaultTheme);
 
 /**
  * We use the Component Story Format for writing stories. Follow the docs here:
