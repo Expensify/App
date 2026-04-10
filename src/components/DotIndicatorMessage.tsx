@@ -94,7 +94,7 @@ function DotIndicatorMessage({messages = {}, style, type, textStyles, dismissErr
 
     if (receiptError) {
         return (
-            <View style={[styles.mt3, style]}>
+            <View style={[styles.mt3, styles.mb3, style]}>
                 <View style={[styles.dotIndicatorMessage]}>
                     <View style={styles.offlineFeedbackErrorDot}>
                         <Icon
@@ -110,7 +110,7 @@ function DotIndicatorMessage({messages = {}, style, type, textStyles, dismissErr
                             medium
                             text={translate('iou.error.downloadReceipt')}
                             onPress={() => {
-                                fileDownload(translate, receiptError.source, receiptError.filename).finally(() => dismissError());
+                                fileDownload(translate, receiptError.source, receiptError.filename);
                             }}
                         />
                     </View>
