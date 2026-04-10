@@ -1363,11 +1363,6 @@ const translations: TranslationDeepObject<typeof en> = {
             endDateSameAsStartDate: 'La fecha de finalización no puede ser la misma que la fecha de inicio',
             manySplitsProvided: `La cantidad máxima de divisiones permitidas es ${CONST.IOU.SPLITS_LIMIT}.`,
             dateRangeExceedsMaxDays: `El rango de fechas no puede exceder los ${CONST.IOU.SPLITS_LIMIT} días.`,
-            nonReimbursablePayment: 'No se puede pagar a través de Expensify',
-            nonReimbursablePaymentDescription: (isMultiple?: boolean) =>
-                isMultiple
-                    ? 'Uno o más informes seleccionados no tienen gastos reembolsables. Vuelve a revisar los gastos o márcalos manualmente como pagados.'
-                    : 'El informe no tiene gastos reembolsables. Vuelve a revisar los gastos o márcalo manualmente como pagado.',
         },
         dismissReceiptError: 'Descartar error',
         dismissReceiptErrorConfirmation: '¡Atención! Descartar este error eliminará completamente tu recibo cargado. ¿Estás seguro?',
