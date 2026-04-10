@@ -30,6 +30,7 @@ function buildPolicy(overrides: Partial<Policy> = {}): Policy {
     return {
         ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM, 'Test Workspace'),
         id: POLICY_ID,
+        role: CONST.POLICY.ROLE.ADMIN,
         pendingAction: undefined,
         areCompanyCardsEnabled: false,
         areRulesEnabled: false,
@@ -584,6 +585,18 @@ describe('useGettingStartedItems', () => {
             await Onyx.merge(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL, '2026-03-01');
             await Onyx.merge(ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL, '2026-04-01');
             await waitForBatchedUpdates();
+
+            const {result} = renderHook(() => useGettingStartedItems());
+
+            expect(result.current.shouldShowSection).toBe(false);
+            expect(result.current.items).toEqual([]);
+        });
+
+        it('should be hidden when user is not an admin of the active policy', async () => {
+            await setupManageTeamScenario({
+                accounting: CONST.POLICY.CONNECTIONS.NAME.QBO,
+                policy: {role: CONST.POLICY.ROLE.USER},
+            });
 
             const {result} = renderHook(() => useGettingStartedItems());
 
