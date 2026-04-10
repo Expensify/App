@@ -123,9 +123,16 @@ function SpendRulesSection({policyID}: SpendRulesSectionProps) {
                 return undefined;
             }
             const actionLabel = formValues.restrictionAction === CONST.SPEND_RULES.ACTION.BLOCK ? blockLabel : allowLabel;
-            const selectedCurrency = getSelectedCardsSharedCurrency(formValues.cardIDs, cardsList);
+            const activeCardIDs = formValues.cardIDs.filter((cardID) => {
+                const card = cardsList?.[cardID];
+                return card && isCard(card);
+            });
+            if (activeCardIDs.length === 0) {
+                return undefined;
+            }
+            const selectedCurrency = getSelectedCardsSharedCurrency(activeCardIDs, cardsList);
             const cardSummary = getTruncatedSpendRuleSummary(
-                formValues.cardIDs.map((cardID) => {
+                activeCardIDs.map((cardID) => {
                     const card = cardsList?.[cardID];
                     if (!card || !isCard(card)) {
                         return cardID;

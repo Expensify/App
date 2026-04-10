@@ -107,8 +107,9 @@ function SpendRulePageBase({policyID, ruleID, titleKey, testID}: SpendRulePageBa
     };
 
     function getCardsMenuTitle(cardIDsToSummarize: string[] | undefined): string {
+        const activeCardIDs = cardIDsToSummarize?.filter((id) => cardsList?.[id] !== undefined);
         return getTruncatedSpendRuleSummary(
-            cardIDsToSummarize?.map((id) => {
+            activeCardIDs?.map((id) => {
                 const card = cardsList?.[id];
                 if (card === undefined) {
                     return id;
