@@ -214,12 +214,12 @@ function SpendRuleCardPage({route}: SpendRuleCardPageProps) {
                     />
                     <SelectionList
                         canSelectMultiple
-                        textInputOptions={{
+                        textInputOptions={eligibleCards.length > 0 ? {
                             headerMessage,
                             value: inputValue,
                             label: translate('common.search'),
                             onChangeText: setInputValue,
-                        }}
+                        } : undefined}
                         data={listData}
                         style={{
                             listHeaderWrapperStyle: [styles.pt5, styles.pb2],
@@ -243,7 +243,7 @@ function SpendRuleCardPage({route}: SpendRuleCardPageProps) {
                         }
                         footerContent={
                             <FormAlertWithSubmitButton
-                                buttonText={translate('common.save')}
+                                buttonText={eligibleCards.length > 0 ? translate('common.save') : translate('common.buttonConfirm')}
                                 isAlertVisible={false}
                                 isDisabled={isCardSettingsLoading}
                                 onSubmit={handleSave}
