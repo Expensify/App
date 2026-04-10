@@ -3,6 +3,7 @@ import BaseListItem from '@components/SelectionList/ListItem/BaseListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import FS from '@libs/Fullstory';
@@ -22,10 +23,12 @@ function TaskListItem<TItem extends ListItem>({
     onLongPressRow,
     shouldSyncFocus,
     allReports,
+    isLastItem,
 }: TaskListItemProps<TItem>) {
     const taskItem = item as unknown as TaskListItemType;
     const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${taskItem?.parentReportID}`];
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const theme = useTheme();
 
     const {isLargeScreenWidth} = useResponsiveLayout();
@@ -38,6 +41,7 @@ function TaskListItem<TItem extends ListItem>({
         styles.bgTransparent,
         item.isSelected && styles.activeComponentBG,
         styles.mh0,
+        isLargeScreenWidth && StyleUtils.getSearchTableRowPressableStyle(!!isLastItem, item.isSelected, {vertical: variables.tableRowPaddingVertical}),
     ];
 
     const listItemWrapperStyle = [
@@ -47,7 +51,7 @@ function TaskListItem<TItem extends ListItem>({
     ];
 
     const animatedHighlightStyle = useAnimatedHighlightStyle({
-        borderRadius: variables.componentBorderRadius,
+        borderRadius: StyleUtils.getSearchTableHighlightBorderRadius(isLargeScreenWidth),
         shouldHighlight: item?.shouldAnimateInHighlight ?? false,
         highlightColor: theme.messageHighlightBG,
         backgroundColor: theme.highlightBG,
@@ -60,7 +64,7 @@ function TaskListItem<TItem extends ListItem>({
             item={item}
             pressableStyle={listItemPressableStyle}
             wrapperStyle={listItemWrapperStyle}
-            containerStyle={[styles.mb2]}
+            containerStyle={!isLargeScreenWidth && [styles.mb2]}
             isFocused={isFocused}
             isDisabled={isDisabled}
             showTooltip={showTooltip}
@@ -72,7 +76,7 @@ function TaskListItem<TItem extends ListItem>({
             onLongPressRow={onLongPressRow}
             shouldSyncFocus={shouldSyncFocus}
             hoverStyle={item.isSelected && styles.activeComponentBG}
-            pressableWrapperStyle={[styles.mh5, animatedHighlightStyle]}
+            pressableWrapperStyle={[styles.mh5, animatedHighlightStyle, isLargeScreenWidth && isLastItem && styles.searchTableBottomRadius]}
             forwardedFSClass={fsClass}
         >
             <TaskListItemRow
