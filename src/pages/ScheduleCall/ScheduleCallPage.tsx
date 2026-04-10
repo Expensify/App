@@ -1,7 +1,7 @@
 import {useFocusEffect, useRoute} from '@react-navigation/native';
 import {compareAsc, parse} from 'date-fns';
 import React, {useCallback, useEffect, useMemo} from 'react';
-import {StyleSheet, View} from 'react-native';
+import {View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import Button from '@components/Button';
@@ -174,7 +174,7 @@ function ScheduleCallPage() {
             />
             <FullPageOfflineBlockingView>
                 {adminReportNameValuePairs?.calendlySchedule?.isLoading ? (
-                    <View style={[StyleSheet.absoluteFill, styles.fullScreenLoading, styles.w100, styles.flex1, styles.pRelative]}>
+                    <View style={[styles.flex1, styles.fullScreenLoading]}>
                         <ActivityIndicator
                             size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                             reasonAttributes={{context: 'ScheduleCallPage', isLoading: !!adminReportNameValuePairs?.calendlySchedule?.isLoading}}
