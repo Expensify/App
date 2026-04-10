@@ -2624,6 +2624,22 @@ function deleteReportComment(
         }
     }
 
+    // Whispers created during a message edit receive a random ID (not parentID+1/+2), but the
+    // backend stores the parent's reportActionID in originalMessage.parentReportActionID. Scan
+    // all actions to catch any such whispers that the offset lookup above would miss.
+    for (const [actionID, action] of Object.entries(reportActionsForReport)) {
+        if (unresolvedMentionWhisperIDs.includes(actionID)) {
+            continue;
+        }
+        if (!ReportActionsUtils.isActionableMentionWhisper(action) && !ReportActionsUtils.isActionableReportMentionWhisper(action)) {
+            continue;
+        }
+        const originalMessage = ReportActionsUtils.getOriginalMessage(action);
+        if (originalMessage?.parentReportActionID === reportActionID && !originalMessage?.resolution && !originalMessage?.deleted) {
+            unresolvedMentionWhisperIDs.push(actionID);
+        }
+    }
+
     const deletedTime = DateUtils.getDBTime();
     for (const whisperID of unresolvedMentionWhisperIDs) {
         optimisticReportActions[whisperID] = {
