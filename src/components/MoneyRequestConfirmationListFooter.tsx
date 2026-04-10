@@ -361,6 +361,10 @@ function MoneyRequestConfirmationListFooter({
 
     // Capture the thumbnail source on first render (or when the underlying image changes) to
     // avoid a visible source swap (flash) when the thumbnail arrives late for local files.
+    // We use the React-recommended "store information from previous renders" pattern (useState +
+    // conditional setState during render) because React Compiler forbids reading refs during render
+    // (react-hooks/refs). React handles this synchronously before painting, so there is no visible
+    // double-render or layout thrash.
     const resolvedReceiptImageStr = resolvedReceiptImage != null ? String(resolvedReceiptImage) : undefined;
     const [initialLocalSource, setInitialLocalSource] = useState<{source: string | undefined; resolvedImage: string | undefined}>({source: undefined, resolvedImage: undefined});
     if (isLocalFile && (initialLocalSource.source === undefined || initialLocalSource.resolvedImage !== resolvedReceiptImageStr)) {
@@ -857,21 +861,23 @@ function MoneyRequestConfirmationListFooter({
     return (
         <View style={isCompactMode ? styles.flex1 : undefined}>
             <View>
-                <ReportDestinationPicker
-                    selectedParticipants={selectedParticipants}
-                    isTypeInvoice={isTypeInvoice}
-                    isPolicyExpenseChat={isPolicyExpenseChat}
-                    isReadOnly={isReadOnly}
-                    didConfirm={didConfirm}
-                    iouType={iouType}
-                    reportID={reportID}
-                    reportActionID={reportActionID}
-                    action={action}
-                    transactionID={transactionID}
-                    transaction={transaction}
-                    isPerDiemRequest={isPerDiemRequest}
-                    showOnlyInvoiceSender
-                />
+                {isTypeInvoice && (
+                    <ReportDestinationPicker
+                        selectedParticipants={selectedParticipants}
+                        isTypeInvoice={isTypeInvoice}
+                        isPolicyExpenseChat={isPolicyExpenseChat}
+                        isReadOnly={isReadOnly}
+                        didConfirm={didConfirm}
+                        iouType={iouType}
+                        reportID={reportID}
+                        reportActionID={reportActionID}
+                        action={action}
+                        transactionID={transactionID}
+                        transaction={transaction}
+                        isPerDiemRequest={isPerDiemRequest}
+                        showOnlyInvoiceSender
+                    />
+                )}
                 {shouldShowMap && (
                     <View style={styles.confirmationListMapItem}>
                         <ConfirmedRoute transaction={transaction ?? ({} as OnyxTypes.Transaction)} />
