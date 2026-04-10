@@ -67,7 +67,7 @@ function useOptimisticNextStep(reportID: string | undefined) {
                 }
                 return acc;
             }, {});
-            const {errors} = getAllReportActionsErrorsAndReportActionThatRequiresAttention(moneyRequestReport, reportActionsObject);
+            const {errors} = getAllReportActionsErrorsAndReportActionThatRequiresAttention(moneyRequestReport, reportActionsObject, reportTransactions);
 
             if (errors?.dewSubmitFailed) {
                 optimisticNextStep = buildOptimisticNextStepForDynamicExternalWorkflowSubmitError(theme.danger);
