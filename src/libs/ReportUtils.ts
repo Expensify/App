@@ -5258,14 +5258,18 @@ function getLinkedTransaction(reportAction: OnyxEntry<ReportAction | OptimisticI
 /**
  * Get report action which is missing smartscan fields
  */
-function getReportActionWithMissingSmartscanFields(iouReport: OnyxEntry<Report>, iouReportID: string | undefined, allTransactions: OnyxCollection<Transaction>): ReportAction | undefined {
+function getReportActionWithMissingSmartscanFields(
+    iouReport: OnyxEntry<Report>,
+    iouReportID: string | undefined,
+    iouReportTransactions: OnyxCollection<Transaction>,
+): ReportAction | undefined {
     const reportActions = Object.values(getAllReportActions(iouReportID));
     return reportActions.find((action) => {
         if (!isMoneyRequestAction(action)) {
             return false;
         }
         const transactionID = getOriginalMessage(action)?.IOUTransactionID;
-        const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+        const transaction = iouReportTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
         if (isEmptyObject(transaction)) {
             return false;
         }
@@ -5279,8 +5283,8 @@ function getReportActionWithMissingSmartscanFields(iouReport: OnyxEntry<Report>,
 /**
  * Check if iouReportID has required missing fields
  */
-function shouldShowRBRForMissingSmartscanFields(iouReport: OnyxEntry<Report>, iouReportID: string | undefined, allTransactions: OnyxCollection<Transaction>): boolean {
-    return !!getReportActionWithMissingSmartscanFields(iouReport, iouReportID, allTransactions);
+function shouldShowRBRForMissingSmartscanFields(iouReport: OnyxEntry<Report>, iouReportID: string | undefined, iouReportTransactions: OnyxCollection<Transaction>): boolean {
+    return !!getReportActionWithMissingSmartscanFields(iouReport, iouReportID, iouReportTransactions);
 }
 
 /**
