@@ -4,6 +4,7 @@ import type {OnyxCollection} from 'react-native-onyx';
 import type {FeedKeysWithAssignedCards} from '@hooks/useFeedKeysWithAssignedCards';
 import type IllustrationsType from '@styles/theme/illustrations/types';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {CombinedCardFeeds} from '@src/hooks/useCardFeeds';
 import IntlStore from '@src/languages/IntlStore';
 import {
@@ -37,6 +38,7 @@ import {
     getEligibleBankAccountsForUkEuCard,
     getFeedConnectionBrokenCard,
     getFeedNameForDisplay,
+    getCSVFeedType,
     getFeedType,
     getFilteredCardList,
     getMonthFromExpirationDateString,
@@ -78,7 +80,7 @@ import type {
     Policy,
     WorkspaceCardsList,
 } from '@src/types/onyx';
-import type {CardFeedWithDomainID, CardFeedWithNumber, CompanyCardFeedWithNumber} from '@src/types/onyx/CardFeeds';
+import type {CardFeedWithDomainID, CardFeedWithNumber, CompanyFeeds, CompanyCardFeedWithNumber} from '@src/types/onyx/CardFeeds';
 import type IconAsset from '@src/types/utils/IconAsset';
 import {localeCompare, translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -1879,6 +1881,42 @@ describe('CardUtils', () => {
         it('should return the feed name with with the first smallest available number', () => {
             const feedType = getFeedType('vcf', companyCardsCustomVisaFeedSettingsWithNumbers as CombinedCardFeeds);
             expect(feedType).toBe('vcf2');
+        });
+    });
+
+    describe('getCSVFeedType', () => {
+        it('returns the first gap when higher-numbered CSV feeds exist in companyCards only', () => {
+            expect(
+                getCSVFeedType(
+                    {
+                        ccupload3: {pending: false},
+                        ccupload7: {pending: false},
+                    } as CompanyFeeds,
+                    111,
+                    undefined,
+                ),
+            ).toBe('ccupload1');
+        });
+
+        it('treats existing workspace card list keys as used slots', () => {
+            const collection = {
+                [`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}111_ccupload3`]: {cardList: {}},
+            } as OnyxCollection<WorkspaceCardsList>;
+            expect(getCSVFeedType(undefined, 111, collection)).toBe('ccupload1');
+        });
+
+        it('merges companyCards and workspace keys when picking the next slot', () => {
+            expect(
+                getCSVFeedType(
+                    {ccupload1: {pending: false}} as CompanyFeeds,
+                    111,
+                    {[`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}111_ccupload2`]: {cardList: {}}} as OnyxCollection<WorkspaceCardsList>,
+                ),
+            ).toBe('ccupload3');
+        });
+
+        it('returns ccupload1 when no CSV feeds exist', () => {
+            expect(getCSVFeedType(undefined, 111, {})).toBe('ccupload1');
         });
     });
 

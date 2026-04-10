@@ -1054,6 +1054,79 @@ function isSmartLimitEnabled(cardsList: CardList) {
 
 const CUSTOM_FEEDS = [CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD, CONST.COMPANY_CARD.FEED_BANK_NAME.VISA, CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX, CONST.COMPANY_CARD.FEED_BANK_NAME.CSV];
 
+function collectUsedCSVFeedSlotNumbersFromCompanyCards(companyCards: CompanyFeeds | undefined, csvPrefix: string): number[] {
+    const numbers: number[] = [];
+    for (const key of Object.keys(companyCards ?? {})) {
+        if (!key.startsWith(csvPrefix)) {
+            continue;
+        }
+        const suffix = key.slice(csvPrefix.length);
+        if (!suffix) {
+            continue;
+        }
+        const n = Number.parseInt(suffix, 10);
+        if (!Number.isNaN(n) && n > 0) {
+            numbers.push(n);
+        }
+    }
+    return numbers;
+}
+
+function collectUsedCSVFeedSlotNumbersFromWorkspaceCardsCollection(
+    allWorkspaceCardsList: OnyxCollection<WorkspaceCardsList> | undefined,
+    domainID: number,
+    csvPrefix: string,
+): number[] {
+    const numbers: number[] = [];
+    const domainKeyPrefix = `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${domainID}_`;
+    for (const key of Object.keys(allWorkspaceCardsList ?? {})) {
+        if (!key.startsWith(domainKeyPrefix)) {
+            continue;
+        }
+        const feedPart = key.slice(domainKeyPrefix.length);
+        if (!feedPart.startsWith(csvPrefix)) {
+            continue;
+        }
+        const suffix = feedPart.slice(csvPrefix.length);
+        if (!suffix) {
+            continue;
+        }
+        const n = Number.parseInt(suffix, 10);
+        if (!Number.isNaN(n) && n > 0) {
+            numbers.push(n);
+        }
+    }
+    return numbers;
+}
+
+/**
+ * Next available CSV file-import feed (`ccuploadN`). Uses `settings.companyCards` and any
+ * `cards_<domainID>_ccuploadN` workspace card keys so numbering matches Onyx, including feeds
+ * omitted from {@link getFeedType}'s `CombinedCardFeeds` input.
+ */
+function getCSVFeedType(
+    companyCards: CompanyFeeds | undefined,
+    domainID: number,
+    allWorkspaceCardsList: OnyxCollection<WorkspaceCardsList> | undefined,
+): CompanyCardFeedWithNumber {
+    const csvPrefix = CONST.COMPANY_CARD.FEED_BANK_NAME.CSV;
+    const merged = [
+        ...collectUsedCSVFeedSlotNumbersFromCompanyCards(companyCards, csvPrefix),
+        ...collectUsedCSVFeedSlotNumbersFromWorkspaceCardsCollection(allWorkspaceCardsList, domainID, csvPrefix),
+    ];
+    const feedNumbers = [...new Set(merged)].sort((a, b) => a - b);
+
+    let firstAvailableNumber = 1;
+    for (const num of feedNumbers) {
+        if (num && num !== firstAvailableNumber) {
+            return `${csvPrefix}${firstAvailableNumber}`;
+        }
+        firstAvailableNumber++;
+    }
+
+    return `${csvPrefix}${firstAvailableNumber}`;
+}
+
 function getFeedType(feedKey: CompanyCardFeed, cardFeeds: OnyxEntry<CombinedCardFeeds>): CompanyCardFeedWithNumber {
     if (CUSTOM_FEEDS.some((feed) => feed === feedKey)) {
         const filteredFeeds = Object.keys(cardFeeds ?? {})
@@ -1670,6 +1743,7 @@ export {
     filterCardsByNonExpensify,
     getAllCardsForWorkspace,
     isCardHiddenFromSearch,
+    getCSVFeedType,
     getFeedType,
     flattenWorkspaceCardsList,
     isCardConnectionBroken,
