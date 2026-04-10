@@ -4,7 +4,7 @@ import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import {hasCompanyCardFeeds} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {hasAccountingConnections, hasCustomCategories, hasNonDefaultRules, isPaidGroupPolicy, isPendingDeletePolicy} from '@libs/PolicyUtils';
+import {hasAccountingConnections, hasCustomCategories, hasNonDefaultRules, isControlPolicy, isPaidGroupPolicy, isPendingDeletePolicy} from '@libs/PolicyUtils';
 import isWithinGettingStartedPeriod from '@pages/home/GettingStartedSection/utils/isWithinGettingStartedPeriod';
 import {enablePolicyCategories} from '@userActions/Policy/Category';
 import {enableCompanyCards, enablePolicyConnections, enablePolicyRules} from '@userActions/Policy/Policy';
@@ -107,9 +107,11 @@ function useGettingStartedItems(): UseGettingStartedItemsResult {
         key: 'setupRules',
         label: translate('homePage.gettingStartedSection.setupRules'),
         isComplete: hasNonDefaultRules(policy),
-        route: ROUTES.WORKSPACE_RULES.getRoute(activePolicyID),
+        route: isControlPolicy(policy)
+            ? ROUTES.WORKSPACE_RULES.getRoute(activePolicyID)
+            : ROUTES.WORKSPACE_UPGRADE.getRoute(activePolicyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.rules.alias, ROUTES.WORKSPACE_MORE_FEATURES.getRoute(activePolicyID)),
         isFeatureEnabled: policy.areRulesEnabled,
-        enableFeature: () => enablePolicyRules(policy, true, false),
+        enableFeature: isControlPolicy(policy) ? () => enablePolicyRules(policy, true, false) : undefined,
     });
 
     return {shouldShowSection: true, items};

@@ -452,16 +452,29 @@ describe('useGettingStartedItems', () => {
             expect(rulesItem?.isFeatureEnabled).toBe(false);
         });
 
-        it('should navigate to workspace rules route', async () => {
+        it('should navigate to workspace rules route on Control policy', async () => {
             await setupManageTeamScenario({
                 accounting: CONST.POLICY.CONNECTIONS.NAME.QBO,
-                policy: {areRulesEnabled: true},
+                policy: {areRulesEnabled: true, type: CONST.POLICY.TYPE.CORPORATE},
             });
 
             const {result} = renderHook(() => useGettingStartedItems());
 
             const rulesItem = result.current.items.find((item) => item.key === 'setupRules');
             expect(rulesItem?.route).toBe(ROUTES.WORKSPACE_RULES.getRoute(POLICY_ID));
+        });
+
+        it('should navigate to upgrade page on non-Control policy', async () => {
+            await setupManageTeamScenario({
+                accounting: CONST.POLICY.CONNECTIONS.NAME.QBO,
+                policy: {areRulesEnabled: false, type: CONST.POLICY.TYPE.TEAM},
+            });
+
+            const {result} = renderHook(() => useGettingStartedItems());
+
+            const rulesItem = result.current.items.find((item) => item.key === 'setupRules');
+            expect(rulesItem?.route).toBe(ROUTES.WORKSPACE_UPGRADE.getRoute(POLICY_ID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.rules.alias, ROUTES.WORKSPACE_MORE_FEATURES.getRoute(POLICY_ID)));
+            expect(rulesItem?.enableFeature).toBeUndefined();
         });
 
         it('should be not completed when workspace has default rules only', async () => {

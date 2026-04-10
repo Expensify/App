@@ -310,15 +310,17 @@ describe('GettingStartedSection', () => {
             expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(TEST_POLICY_ID));
         });
 
-        it('navigates to workspace rules when "Set up spend rules" row is pressed', async () => {
-            await setManageTeamUserState({areRulesEnabled: true});
+        it('navigates to upgrade page when "Set up spend rules" row is pressed on non-Control policy', async () => {
+            await setManageTeamUserState({areRulesEnabled: false});
 
             renderGettingStartedSection();
 
             const row = screen.getByText('homePage.gettingStartedSection.setupRules');
             fireEvent.press(row);
 
-            expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.WORKSPACE_RULES.getRoute(TEST_POLICY_ID));
+            expect(Navigation.navigate).toHaveBeenCalledWith(
+                ROUTES.WORKSPACE_UPGRADE.getRoute(TEST_POLICY_ID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.rules.alias, ROUTES.WORKSPACE_MORE_FEATURES.getRoute(TEST_POLICY_ID)),
+            );
         });
     });
 });
