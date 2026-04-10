@@ -825,7 +825,7 @@ function ReportActionsList({
     }, [shouldShowSkeleton]);
 
     const renderTopReportActions = useCallback(() => {
-        const previewItems = sortedVisibleReportActions.slice(initialNumToRender ? -initialNumToRender : 0).reverse();
+        const previewItems = listData.slice(initialNumToRender ? -initialNumToRender : 0).reverse();
 
         return (
             <>
@@ -835,14 +835,14 @@ function ReportActionsList({
                         <View key={action.reportActionID}>
                             {renderItem({
                                 item: action,
-                                index: sortedVisibleReportActions.indexOf(action),
+                                index: listData.indexOf(action),
                             } as ListRenderItemInfo<OnyxTypes.ReportAction>)}
                         </View>
                     ))}
                 </StaticReportActionsPreview>
             </>
         );
-    }, [hideComposer, initialNumToRender, renderItem, shouldShowReportRecipientLocalTime, sortedVisibleReportActions, styles]);
+    }, [hideComposer, initialNumToRender, renderItem, shouldShowReportRecipientLocalTime, listData, styles]);
 
     const onStartReached = useCallback(() => {
         if (!isSearchTopmostFullScreenRoute()) {
