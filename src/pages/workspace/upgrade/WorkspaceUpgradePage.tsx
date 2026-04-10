@@ -67,7 +67,7 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
         [featureNameAlias],
     );
     const {translate} = useLocalize();
-    const {accountID} = useCurrentUserPersonalDetails();
+    const {accountID, email = ''} = useCurrentUserPersonalDetails();
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const ownerPoliciesSelectorWithAccountID = useCallback((policies: OnyxCollection<Policy>) => ownerPoliciesSelector(policies, accountID), [accountID]);
     const [ownerPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: ownerPoliciesSelectorWithAccountID});
@@ -131,7 +131,7 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
             return;
         }
 
-        upgradeToCorporate(policy.id, feature?.name);
+        upgradeToCorporate(policy, feature?.name);
     };
 
     // useCallback is needed here because confirmUpgrade is passed as a prop to child components;
@@ -143,19 +143,19 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
         }
         if (!feature) {
             if (featureNameAlias === CONST.UPGRADE_FEATURE_INTRO_MAPPING.policyPreventMemberChangingTitle.alias) {
-                setPolicyPreventMemberCreatedTitle(policyID, true);
+                setPolicyPreventMemberCreatedTitle(policyID, true, policy?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE]);
             }
             return;
         }
         switch (feature.id) {
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.preventSelfApproval.id:
-                setPolicyPreventSelfApproval(policyID, true);
+                setPolicyPreventSelfApproval(policyID, true, policy?.preventSelfApproval);
                 break;
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.autoApproveCompliantReports.id:
-                enableAutoApprovalOptions(policyID, true);
+                enableAutoApprovalOptions(policyID, true, policy?.shouldShowAutoApprovalOptions, policy?.autoApproval?.limit, policy?.autoApproval?.auditRate);
                 break;
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.autoPayApprovedReports.id:
-                enablePolicyAutoReimbursementLimit(policyID, true);
+                enablePolicyAutoReimbursementLimit(policyID, true, policy?.shouldShowAutoReimbursementLimitOption, policy?.autoReimbursement?.limit);
                 break;
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.reportFields.id:
                 switch (route.params.featureName) {
@@ -186,7 +186,7 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
                 }
                 break;
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.rules.id:
-                enablePolicyRules(policyID, true, false, policyDataRef.current);
+                enablePolicyRules(policy, true, false, policyDataRef.current);
                 break;
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.companyCards.id:
                 enableCompanyCards(policyID, true, false);
@@ -195,23 +195,24 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
                 enablePerDiem(policyID, true, perDiemCustomUnit?.customUnitID, false);
                 break;
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.id:
-                setWorkspaceApprovalMode(policyID, defaultApprover, CONST.POLICY.APPROVAL_MODE.ADVANCED);
+                setWorkspaceApprovalMode(policy, defaultApprover, CONST.POLICY.APPROVAL_MODE.ADVANCED, accountID, email);
                 break;
             default:
         }
     }, [
-        categoryId,
-        feature,
-        perDiemCustomUnit?.customUnitID,
-        policy?.connections?.xero?.config,
-        policy?.connections?.xero?.data,
         policyID,
+        feature,
+        featureNameAlias,
+        policy,
+        route.params.featureName,
+        perDiemCustomUnit?.customUnitID,
+        defaultApprover,
+        accountID,
+        email,
         qboConfig?.syncClasses,
         qboConfig?.syncCustomers,
         qboConfig?.syncLocations,
-        route.params?.featureName,
-        featureNameAlias,
-        defaultApprover,
+        categoryId,
     ]);
 
     useFocusEffect(

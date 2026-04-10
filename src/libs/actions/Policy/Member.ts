@@ -58,16 +58,6 @@ Onyx.connectWithoutView({
     },
 });
 
-/** Check if the passed employee is an approver in the policy's employeeList */
-function isApprover(policy: OnyxEntry<Policy>, employeeLogin: string) {
-    if (policy?.approver === employeeLogin) {
-        return true;
-    }
-    return Object.values(policy?.employeeList ?? {}).some(
-        (employee) => employee?.submitsTo === employeeLogin || employee?.forwardsTo === employeeLogin || employee?.overLimitForwardsTo === employeeLogin,
-    );
-}
-
 /**
  * Build optimistic data for adding members to the announcement/admins room
  */
@@ -857,6 +847,7 @@ function buildAddMembersToWorkspaceOnyxData(
     policyMemberAccountIDs: number[],
     role: string,
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
+    approverEmail?: string,
     policyExpenseChatNotificationPreference?: NotificationPreference,
 ) {
     const policyID = policy.id;
@@ -878,7 +869,8 @@ function buildAddMembersToWorkspaceOnyxData(
     const announceRoomChat = optimisticAnnounceChat.announceChatData;
 
     // create onyx data for policy expense chats for each new member
-    const membersChats = createPolicyExpenseChats(policyID, invitedEmailsToAccountIDs, undefined, policyExpenseChatNotificationPreference);
+    // TODO: Update to include reportActionsList later (https://github.com/Expensify/App/issues/66578)
+    const membersChats = createPolicyExpenseChats(policyID, invitedEmailsToAccountIDs, undefined, undefined, policyExpenseChatNotificationPreference);
 
     const optimisticMembersState: OnyxCollectionInputValue<PolicyEmployee> = {};
     const successMembersState: OnyxCollectionInputValue<PolicyEmployee> = {};
@@ -888,7 +880,7 @@ function buildAddMembersToWorkspaceOnyxData(
             email,
             pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
             role,
-            submitsTo: getDefaultApprover(policy),
+            submitsTo: approverEmail ?? getDefaultApprover(policy),
         };
         successMembersState[email] = {pendingAction: null};
         failureMembersState[email] = {
@@ -988,6 +980,7 @@ function addMembersToWorkspace(
     policyMemberAccountIDs: number[],
     role: string,
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
+    approverEmail?: string,
 ) {
     if (!policy?.id) {
         Log.warn('addMembersToWorkspace: Policy ID is undefined');
@@ -999,10 +992,11 @@ function addMembersToWorkspace(
         policyMemberAccountIDs,
         role,
         formatPhoneNumber,
+        approverEmail,
     );
 
     const params: AddMembersToWorkspaceParams = {
-        employees: JSON.stringify(logins.map((login) => ({email: login, role}))),
+        employees: JSON.stringify(logins.map((login) => ({email: login, role, ...(approverEmail ? {submitsTo: approverEmail} : {})}))),
         ...(optimisticAnnounceChat.announceChatReportID ? {announceChatReportID: optimisticAnnounceChat.announceChatReportID} : {}),
         ...(optimisticAnnounceChat.announceChatReportActionID ? {announceCreatedReportActionID: optimisticAnnounceChat.announceChatReportActionID} : {}),
         welcomeNote: Parser.replace(welcomeNote, {
@@ -1221,6 +1215,17 @@ function clearWorkspaceInviteRoleDraft(policyID: string) {
     Onyx.set(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_ROLE_DRAFT}${policyID}`, null);
 }
 
+function setWorkspaceInviteApproverDraft(policyID: string, approverEmail: string) {
+    if (!approverEmail) {
+        return;
+    }
+    Onyx.set(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_APPROVER_DRAFT}${policyID}`, approverEmail);
+}
+
+function clearWorkspaceInviteApproverDraft(policyID: string) {
+    Onyx.set(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_APPROVER_DRAFT}${policyID}`, null);
+}
+
 /**
  * Accept user join request to a workspace
  */
@@ -1363,6 +1368,8 @@ function downloadMembersCSV(policyID: string, onDownloadFailed: () => void, tran
 
 function clearInviteDraft(policyID: string) {
     setWorkspaceInviteMembersDraft(policyID, {});
+    clearWorkspaceInviteRoleDraft(policyID);
+    clearWorkspaceInviteApproverDraft(policyID);
     FormActions.clearDraftValues(ONYXKEYS.FORMS.WORKSPACE_INVITE_MESSAGE_FORM);
 }
 
@@ -1391,7 +1398,6 @@ export {
     askToJoinPolicy,
     acceptJoinRequest,
     declineJoinRequest,
-    isApprover,
     importPolicyMembers,
     downloadMembersCSV,
     clearInviteDraft,
@@ -1399,6 +1405,8 @@ export {
     openPolicyMemberProfilePage,
     setWorkspaceInviteRoleDraft,
     clearWorkspaceInviteRoleDraft,
+    setWorkspaceInviteApproverDraft,
+    clearWorkspaceInviteApproverDraft,
     setImportedSpreadsheetMemberData,
     clearImportedSpreadsheetMemberData,
 };

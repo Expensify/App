@@ -1,12 +1,13 @@
 import React, {useCallback, useState} from 'react';
 import {View} from 'react-native';
+import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import * as Expensicons from '@components/Icon/Expensicons';
 import MagicCodeInput from '@components/MagicCodeInput';
 import {useMultifactorAuthentication} from '@components/MultifactorAuthentication/Context';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
@@ -23,6 +24,7 @@ type ChangePINPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, t
 function ChangePINPageContent({cardID}: {cardID: string}) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const icons = useMemoizedLazyExpensifyIcons(['Eye', 'EyeDisabled']);
     const {executeScenario} = useMultifactorAuthentication();
     const {isConfirmStep, isPINHidden} = usePINState();
     const {setIsConfirmStep, togglePINVisibility} = usePINActions();
@@ -96,43 +98,45 @@ function ChangePINPageContent({cardID}: {cardID: string}) {
                     setError('');
                 }}
             />
-            <View style={[styles.flexGrow1, styles.ph5]}>
-                <View style={[styles.flex1]}>
-                    <Text style={[styles.textHeadlineH1, styles.mb2]}>{title}</Text>
+            <FullPageOfflineBlockingView>
+                <View style={[styles.flexGrow1, styles.ph5]}>
+                    <View style={[styles.flex1]}>
+                        <Text style={[styles.textHeadlineH1, styles.mb2]}>{title}</Text>
 
-                    <View style={[styles.mv4, styles.ph11]}>
-                        <MagicCodeInput
-                            key={`pin-${isConfirmStep}`}
-                            autoComplete={CONST.AUTO_COMPLETE_VARIANTS.OFF}
-                            name="pin"
-                            value={currentPIN}
-                            maxLength={CONST.EXPENSIFY_CARD.PIN.LENGTH}
-                            onChangeText={handlePINChange}
-                            hasError={!!error}
-                            autoFocus
-                            secureTextEntry={isPINHidden}
-                        />
-                        {!!error && <Text style={[styles.formError, styles.mt2]}>{error}</Text>}
+                        <View style={[styles.mv4, styles.ph11]}>
+                            <MagicCodeInput
+                                key={`pin-${isConfirmStep}`}
+                                autoComplete={CONST.AUTO_COMPLETE_VARIANTS.OFF}
+                                name="pin"
+                                value={currentPIN}
+                                maxLength={CONST.EXPENSIFY_CARD.PIN.LENGTH}
+                                onChangeText={handlePINChange}
+                                hasError={!!error}
+                                autoFocus
+                                secureTextEntry={isPINHidden}
+                            />
+                            {!!error && <Text style={[styles.formError, styles.mt2]}>{error}</Text>}
+                        </View>
+
+                        <View style={[styles.flexRow, styles.justifyContentCenter, styles.mv4, styles.alignItemsCenter, styles.w100]}>
+                            <Button
+                                icon={isPINHidden ? icons.Eye : icons.EyeDisabled}
+                                text={isPINHidden ? translate('cardPage.revealPin') : translate('cardPage.hidePin')}
+                                onPress={togglePINVisibility}
+                                medium
+                            />
+                        </View>
                     </View>
 
-                    <View style={[styles.flexRow, styles.justifyContentCenter, styles.mv4, styles.alignItemsCenter, styles.w100]}>
-                        <Button
-                            icon={isPINHidden ? Expensicons.Eye : Expensicons.EyeDisabled}
-                            text={isPINHidden ? translate('cardPage.revealPin') : translate('cardPage.hidePin')}
-                            onPress={togglePINVisibility}
-                            medium
-                        />
-                    </View>
+                    <Button
+                        success
+                        large
+                        text={isConfirmStep ? translate('common.confirm') : translate('common.next')}
+                        onPress={handleSubmit}
+                        style={[styles.mb5]}
+                    />
                 </View>
-
-                <Button
-                    success
-                    large
-                    text={isConfirmStep ? translate('common.confirm') : translate('common.next')}
-                    onPress={handleSubmit}
-                    style={[styles.mb5]}
-                />
-            </View>
+            </FullPageOfflineBlockingView>
         </ScreenWrapper>
     );
 }

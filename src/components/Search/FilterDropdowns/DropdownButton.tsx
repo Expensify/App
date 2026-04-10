@@ -20,7 +20,9 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type WithSentryLabel from '@src/types/utils/SentryLabel';
 
 type PopoverComponentProps = {
+    isExpanded: boolean;
     closeOverlay: () => void;
+    setPopoverWidth?: (width: number | undefined) => void;
 };
 
 type DropdownButtonProps = WithSentryLabel & {
@@ -70,6 +72,7 @@ function DropdownButton({label, value, viewportOffsetTop, PopoverComponent, medi
     const triggerRef = useRef<View | null>(null);
     const anchorRef = useRef<View | null>(null);
     const [isOverlayVisible, setIsOverlayVisible] = useState(false);
+    const [customPopoverWidth, setCustomPopoverWidth] = useState<number | undefined>(undefined);
     const {calculatePopoverPosition} = usePopoverPosition();
 
     const [popoverTriggerPosition, setPopoverTriggerPosition] = useState({
@@ -114,16 +117,18 @@ function DropdownButton({label, value, viewportOffsetTop, PopoverComponent, medi
         return `${label}: ${selectedItems}`;
     }, [label, value]);
 
+    const actualPopoverWidth = customPopoverWidth ?? CONST.POPOVER_DROPDOWN_WIDTH;
+
     const containerStyles = useMemo(() => {
         if (isSmallScreenWidth) {
             return styles.w100;
         }
-        return {width: CONST.POPOVER_DROPDOWN_WIDTH};
-    }, [isSmallScreenWidth, styles]);
+        return {width: actualPopoverWidth};
+    }, [isSmallScreenWidth, styles, actualPopoverWidth]);
 
     const popoverContent = useMemo(() => {
-        return PopoverComponent({closeOverlay: toggleOverlay});
-    }, [PopoverComponent, toggleOverlay]);
+        return PopoverComponent({closeOverlay: toggleOverlay, isExpanded: isOverlayVisible, setPopoverWidth: setCustomPopoverWidth});
+    }, [PopoverComponent, toggleOverlay, isOverlayVisible]);
 
     return (
         <View
@@ -141,8 +146,8 @@ function DropdownButton({label, value, viewportOffsetTop, PopoverComponent, medi
             >
                 <CaretWrapper
                     style={[styles.flex1, styles.mw100, caretWrapperStyle]}
-                    caretWidth={variables.iconSizeSmall}
-                    caretHeight={variables.iconSizeSmall}
+                    caretWidth={medium ? variables.iconSizeSmall : variables.iconSizeExtraSmall}
+                    caretHeight={medium ? variables.iconSizeSmall : variables.iconSizeExtraSmall}
                     isActive={isOverlayVisible}
                 >
                     <Text
@@ -171,11 +176,12 @@ function DropdownButton({label, value, viewportOffsetTop, PopoverComponent, medi
                 shouldCloseWhenBrowserNavigationChanged={false}
                 innerContainerStyle={containerStyles}
                 popoverDimensions={{
-                    width: CONST.POPOVER_DROPDOWN_WIDTH,
+                    width: actualPopoverWidth,
                     height: CONST.POPOVER_DROPDOWN_MIN_HEIGHT,
                 }}
                 shouldSkipRemeasurement
                 shouldDisplayBelowModals
+                shouldWrapModalChildrenInScrollViewIfBottomDockedInLandscapeMode={false}
             >
                 {popoverContent}
             </PopoverWithMeasuredContent>
@@ -183,5 +189,5 @@ function DropdownButton({label, value, viewportOffsetTop, PopoverComponent, medi
     );
 }
 
-export type {PopoverComponentProps};
+export type {PopoverComponentProps, DropdownButtonProps};
 export default withViewportOffsetTop(DropdownButton);

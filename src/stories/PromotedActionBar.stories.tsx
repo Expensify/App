@@ -1,6 +1,5 @@
 import React from 'react';
 import {View} from 'react-native';
-import {getExpensifyIcon} from '@components/Icon/chunks/expensify-icons.chunk';
 import PromotedActionsBar from '@components/PromotedActionsBar';
 import type {PromotedAction, PromotedActionsBarProps} from '@components/PromotedActionsBar';
 import variables from '@src/styles/variables';
@@ -39,13 +38,13 @@ const promotedActions = [
     },
     {
         key: 'pin',
-        icon: getExpensifyIcon('Pin'),
+        icon: 'Pin',
         text: 'Pin',
         onSelected: () => {},
     },
     {
         key: 'share',
-        icon: getExpensifyIcon('QrCode'),
+        icon: 'QrCode',
         text: 'Share',
         onSelected: () => {},
     },
@@ -53,10 +52,10 @@ const promotedActions = [
 
 const defaultPromotedAction = {
     key: '',
-    icon: getExpensifyIcon('ExpensifyLogoNew'),
+    icon: 'ChatBubbles',
     text: '',
     onSelected: () => {},
-};
+} satisfies PromotedActionWithText;
 
 // Arguments can be passed to the component by binding
 // See: https://storybook.js.org/docs/react/writing-stories/introduction#using-args

@@ -44,9 +44,12 @@ type BankConnectionProps = {
 
     /** Route params for add new card flow */
     route?: PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS_BANK_CONNECTION>;
+
+    /** Title of the header */
+    title?: string;
 };
 
-function BankConnection({policyID: policyIDFromProps, feed, route}: BankConnectionProps) {
+function BankConnection({policyID: policyIDFromProps, feed, route, title}: BankConnectionProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD);
@@ -236,7 +239,7 @@ function BankConnection({policyID: policyIDFromProps, feed, route}: BankConnecti
             enableEdgeToEdgeBottomSafeAreaPadding
         >
             <HeaderWithBackButton
-                title={headerTitle}
+                title={title ?? headerTitle}
                 onBackButtonPress={handleBackButtonPress}
             />
             <FullPageOfflineBlockingView addBottomSafeAreaPadding>{getContent()}</FullPageOfflineBlockingView>

@@ -1,7 +1,7 @@
 import {InteractionManager} from 'react-native';
 import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import * as Expensicons from '@components/Icon/Expensicons';
+import FallbackAvatar from '@assets/images/avatars/fallback-avatar.svg';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import * as API from '@libs/API';
 import type {CancelTaskParams, CompleteTaskParams, CreateTaskParams, EditTaskAssigneeParams, EditTaskParams, ReopenTaskParams} from '@libs/API/parameters';
@@ -30,6 +30,20 @@ import type {OnyxData} from '@src/types/onyx/Request';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {getMostRecentReportID, navigateToConciergeChatAndDeleteReport, notifyNewAction, optimisticReportLastData} from './Report';
 import {setSelfTourViewed} from './Welcome';
+
+type EditTaskAssigneeOptions = {
+    report: OnyxTypes.Report;
+    parentReport: OnyxEntry<OnyxTypes.Report>;
+    sessionAccountID: number;
+    assigneeEmail: string;
+    currentUserEmail: string;
+    currentUserAccountID: number;
+    hasOutstandingChildTask: boolean;
+    delegateEmail: string | undefined;
+    assigneeAccountID?: number | null;
+    assigneeChatReport?: OnyxEntry<OnyxTypes.Report>;
+    isOptimisticReport?: boolean;
+};
 
 type OptimisticReport = Pick<OnyxTypes.Report, 'reportName' | 'managerID' | 'pendingFields' | 'participants'>;
 type Assignee = {
@@ -106,7 +120,16 @@ function createTaskAndNavigate(params: CreateTaskAndNavigateParams) {
         return;
     }
 
-    const optimisticTaskReport = ReportUtils.buildOptimisticTaskReport(currentUserAccountID, parentReportID, assigneeAccountID, title, description, policyID);
+    const optimisticTaskReport = ReportUtils.buildOptimisticTaskReport(
+        currentUserAccountID,
+        parentReportID,
+        assigneeAccountID,
+        title,
+        description,
+        policyID,
+        CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
+        parentReport?.chatType,
+    );
 
     const assigneeChatReportID = assigneeChatReport?.reportID;
     const taskReportID = optimisticTaskReport.reportID;
@@ -613,9 +636,9 @@ function reopenTask(taskReport: OnyxEntry<OnyxTypes.Report>, parentReport: OnyxE
     API.write(WRITE_COMMANDS.REOPEN_TASK, parameters, {optimisticData, successData, failureData});
 }
 
-function editTask(report: OnyxTypes.Report, {title, description}: OnyxTypes.Task) {
+function editTask(report: OnyxTypes.Report, {title, description}: OnyxTypes.Task, delegateEmail: string | undefined) {
     // Create the EditedReportAction on the task
-    const editTaskReportAction = ReportUtils.buildOptimisticEditedTaskFieldReportAction({title, description});
+    const editTaskReportAction = ReportUtils.buildOptimisticEditedTaskFieldReportAction({title, description}, delegateEmail);
 
     // Ensure title is defined before parsing it with getParsedComment. If title is undefined, fall back to reportName from report.
     // Trim the final parsed title for consistency.
@@ -717,20 +740,21 @@ function editTask(report: OnyxTypes.Report, {title, description}: OnyxTypes.Task
     API.write(WRITE_COMMANDS.EDIT_TASK, parameters, {optimisticData, successData, failureData});
 }
 
-function editTaskAssignee(
-    report: OnyxTypes.Report,
-    parentReport: OnyxEntry<OnyxTypes.Report>,
-    sessionAccountID: number,
-    assigneeEmail: string,
-    currentUserEmail: string,
-    currentUserAccountID: number,
-    hasOutstandingChildTask: boolean,
-    assigneeAccountID: number | null = 0,
-    assigneeChatReport?: OnyxEntry<OnyxTypes.Report>,
-    isOptimisticReport?: boolean,
-) {
+function editTaskAssignee({
+    report,
+    parentReport,
+    sessionAccountID,
+    assigneeEmail,
+    currentUserEmail,
+    currentUserAccountID,
+    hasOutstandingChildTask,
+    delegateEmail,
+    assigneeAccountID = 0,
+    assigneeChatReport,
+    isOptimisticReport,
+}: EditTaskAssigneeOptions) {
     // Create the EditedReportAction on the task
-    const editTaskReportAction = ReportUtils.buildOptimisticChangedTaskAssigneeReportAction(assigneeAccountID ?? CONST.DEFAULT_NUMBER_ID);
+    const editTaskReportAction = ReportUtils.buildOptimisticChangedTaskAssigneeReportAction(assigneeAccountID ?? CONST.DEFAULT_NUMBER_ID, currentUserAccountID, delegateEmail);
     const reportName = report.reportName?.trim();
 
     let assigneeChatReportOnyxData;
@@ -924,6 +948,7 @@ function setNewOptimisticAssignee(currentUserAccountID: number, assigneePersonal
         policyID: CONST.POLICY.OWNER_EMAIL_FAKE,
         ownerAccountID: CONST.POLICY.OWNER_ACCOUNT_ID_FAKE,
         notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
+        currentUserAccountID,
     });
 
     Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
@@ -1101,7 +1126,7 @@ function getShareDestination(
         subtitle = ReportUtils.getChatRoomSubtitle(report) ?? '';
     }
     return {
-        icons: ReportUtils.getIcons(report, LocalePhoneNumber.formatPhoneNumber, personalDetails, Expensicons.FallbackAvatar),
+        icons: ReportUtils.getIcons(report, LocalePhoneNumber.formatPhoneNumber, personalDetails, FallbackAvatar),
         displayName: getReportName(report, reportAttributes),
         subtitle,
         displayNamesWithTooltips,
@@ -1327,7 +1352,8 @@ function canModifyTask(taskReport: OnyxEntry<OnyxTypes.Report>, sessionAccountID
 }
 
 /**
- * Check if you can change the status of the task (mark complete or incomplete). Only the task owner and task assignee can do this.
+ * Check if you can change the status of the task (mark complete or incomplete).
+ * The task owner and task assignee can always do this. When a task has no assignee, any participant of the parent report can do this.
  */
 function canActionTask(
     taskReport: OnyxEntry<OnyxTypes.Report>,
@@ -1359,11 +1385,27 @@ function canActionTask(
         return false;
     }
 
-    // The task can only be actioned by the task report owner or the task assignee
-    return sessionAccountID === taskReport?.ownerAccountID || sessionAccountID === getTaskAssigneeAccountID(taskReport, parentReportAction);
+    // The task can be actioned by the task owner or the explicit assignee
+    const assigneeAccountID = getTaskAssigneeAccountID(taskReport, parentReportAction);
+    if (sessionAccountID === taskReport?.ownerAccountID || sessionAccountID === assigneeAccountID) {
+        return true;
+    }
+
+    // When the task has no assignee, any participant of the parent report can action it
+    if (!assigneeAccountID) {
+        return !!parentReport?.participants?.[sessionAccountID];
+    }
+
+    return false;
 }
 
-function clearTaskErrors(report: OnyxEntry<OnyxTypes.Report>, conciergeReportID: string | undefined, currentUserAccountID: number, introSelected: OnyxEntry<OnyxTypes.IntroSelected>) {
+function clearTaskErrors(
+    report: OnyxEntry<OnyxTypes.Report>,
+    conciergeReportID: string | undefined,
+    currentUserAccountID: number,
+    introSelected: OnyxEntry<OnyxTypes.IntroSelected>,
+    betas: OnyxEntry<OnyxTypes.Beta[]>,
+) {
     const reportID = report?.reportID;
     if (!reportID) {
         return;
@@ -1373,7 +1415,8 @@ function clearTaskErrors(report: OnyxEntry<OnyxTypes.Report>, conciergeReportID:
     if (report?.pendingFields?.createChat === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
         Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`, report.parentReportActionID ? {[report.parentReportActionID]: null} : {});
 
-        navigateToConciergeChatAndDeleteReport(reportID, conciergeReportID, currentUserAccountID, introSelected);
+        // TODO: We'll pass isSelfTourViewed in the next PR. Refactor issue: https://github.com/Expensify/App/issues/66424
+        navigateToConciergeChatAndDeleteReport(reportID, conciergeReportID, currentUserAccountID, introSelected, undefined, betas);
         return;
     }
 
