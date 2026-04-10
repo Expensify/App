@@ -886,7 +886,7 @@ function ComposerWithSuggestions({
         if (!isInSidePanel) {
             ReportActionComposeFocusManager.sidePanelComposerRef.current = null;
         } else {
-            ReportActionComposeFocusManager.sidePanelComposerRef.current = textInputRef.current;
+            ReportActionComposeFocusManager.sidePanelComposerRef.current = composerRef.current;
         }
     }, [isInSidePanel]);
 
