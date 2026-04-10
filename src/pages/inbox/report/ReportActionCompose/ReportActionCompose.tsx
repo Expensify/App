@@ -1,4 +1,3 @@
-import {useRoute} from '@react-navigation/native';
 import {Str} from 'expensify-common';
 import React, {useContext, useState} from 'react';
 import {View} from 'react-native';
@@ -17,7 +16,6 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
-import useParentReportAction from '@hooks/useParentReportAction';
 import usePreferredPolicy from '@hooks/usePreferredPolicy';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useReportTransactionsCollection from '@hooks/useReportTransactionsCollection';
@@ -34,7 +32,6 @@ import {getAllNonDeletedTransactions} from '@libs/MoneyRequestReportUtils';
 import {rand64} from '@libs/NumberUtils';
 import {addDomainToShortMention} from '@libs/ParsingUtils';
 import {
-    getCombinedReportActions,
     getFilteredReportActionsForReportView,
     getLinkedTransactionID,
     getOneTransactionThreadReportID,
@@ -44,7 +41,6 @@ import {
 } from '@libs/ReportActionsUtils';
 import {
     canEditFieldOfMoneyRequest,
-    canEditReportAction,
     canUserPerformWriteAction as canUserPerformWriteActionReportUtils,
     getParentReport,
     isChatRoom,
@@ -63,7 +59,6 @@ import {ActionListContext} from '@pages/inbox/ReportScreenContext';
 import {addAttachmentWithComment} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {FileObject} from '@src/types/utils/Attachment';
 import ComposerActionMenu from './ComposerActionMenu';
@@ -116,16 +111,6 @@ function ReportActionComposeInner({reportID}: ReportActionComposeProps) {
     const isSentMoneyReport = filteredReportActions.some((action) => isSentMoneyReportAction(action));
     const transactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, filteredReportActions, isOffline, reportTransactionIDs);
     const effectiveTransactionThreadReportID = isSentMoneyReport ? undefined : transactionThreadReportID;
-
-    const parentReportAction = useParentReportAction(report);
-    const [transactionThreadReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${effectiveTransactionThreadReportID}`);
-    const transactionThreadReportActionsArray = transactionThreadReportActions ? Object.values(transactionThreadReportActions) : [];
-    const combinedReportActions = getCombinedReportActions(filteredReportActions, effectiveTransactionThreadReportID ?? null, transactionThreadReportActionsArray);
-
-    const route = useRoute();
-    const isOnSearchMoneyRequestReport = route.name === SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT || route.name === SCREENS.RIGHT_MODAL.EXPENSE_REPORT;
-    const actionsForLastEditable = isOnSearchMoneyRequestReport ? filteredReportActions : combinedReportActions;
-    const lastReportAction = [...actionsForLastEditable, parentReportAction].find((action) => !isMoneyRequestAction(action) && canEditReportAction(action, undefined));
 
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`);
     const [newParentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`);
@@ -316,7 +301,6 @@ function ReportActionComposeInner({reportID}: ReportActionComposeProps) {
                         reportID={reportID}
                         submitForm={submitForm}
                         onPasteFile={(files) => validateAttachments({files})}
-                        lastReportAction={lastReportAction}
                     />
                     {shouldDisplayDualDropZone && (
                         <DualDropZone
