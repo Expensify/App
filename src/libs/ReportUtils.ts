@@ -12556,7 +12556,7 @@ function getSourceIDFromReportAction(reportAction: OnyxEntry<ReportAction>): str
 }
 
 function getIntegrationIcon(
-    connectionName?: ConnectionName | 'gusto',
+    connectionName?: ConnectionName | typeof CONST.POLICY.CONNECTIONS.NAME.GUSTO,
     expensifyIcons?: Record<'XeroSquare' | 'QBOSquare' | 'NetSuiteSquare' | 'IntacctSquare' | 'QBDSquare' | 'CertiniaSquare' | 'GustoSquare', IconAsset> | undefined,
 ) {
     if (connectionName === CONST.POLICY.CONNECTIONS.NAME.XERO) {
@@ -12577,7 +12577,7 @@ function getIntegrationIcon(
     if (connectionName === CONST.POLICY.CONNECTIONS.NAME.CERTINIA) {
         return expensifyIcons?.CertiniaSquare;
     }
-    if (connectionName === 'gusto') {
+    if (connectionName === CONST.POLICY.CONNECTIONS.NAME.GUSTO) {
         return expensifyIcons?.GustoSquare;
     }
 
