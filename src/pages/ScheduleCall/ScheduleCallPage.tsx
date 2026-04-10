@@ -174,7 +174,7 @@ function ScheduleCallPage() {
             />
             <FullPageOfflineBlockingView>
                 {adminReportNameValuePairs?.calendlySchedule?.isLoading ? (
-                    <View style={[StyleSheet.absoluteFillObject, styles.fullScreenLoading, styles.w100, styles.flex1, styles.pRelative]}>
+                    <View style={[StyleSheet.absoluteFill, styles.fullScreenLoading, styles.w100, styles.flex1, styles.pRelative]}>
                         <ActivityIndicator
                             size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                             reasonAttributes={{context: 'ScheduleCallPage', isLoading: !!adminReportNameValuePairs?.calendlySchedule?.isLoading}}
