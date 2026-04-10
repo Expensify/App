@@ -262,7 +262,7 @@ function ReportActionsList({
         setUnreadMarkerTime(reportLastReadTime);
 
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [report.reportID]);
+    }, [report.reportID, reportLastReadTime === '' ? 'empty' : 'populated']);
 
     const prevUnreadMarkerReportActionID = useRef<string | null>(null);
 
