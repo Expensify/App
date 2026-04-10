@@ -1202,7 +1202,7 @@ function collectLinkedPolicyIDsFromBase(base: ExpensifyCardSettingsBase | undefi
     if (!base) {
         return [];
     }
-    return base.linkedPolicyIDs?.length ? [...base.linkedPolicyIDs] : [];
+    return base.linkedPolicyIDs ?? [];
 }
 
 function dedupePolicyIDsCaseInsensitive(ids: string[]): string[] {
