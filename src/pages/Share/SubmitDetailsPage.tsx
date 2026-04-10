@@ -24,10 +24,10 @@ import {
     getMoneyRequestParticipantsFromReport,
     initMoneyRequest,
     setMoneyRequestBillable,
-    setMoneyRequestReceipt,
     setMoneyRequestReimbursable,
     updateLastLocationPermissionPrompt,
 } from '@libs/actions/IOU';
+import {setMoneyRequestReceipt} from '@libs/actions/IOU/Receipt';
 import {requestMoney, trackExpense} from '@libs/actions/IOU/TrackExpense';
 import DateUtils from '@libs/DateUtils';
 import {getFileName, readFileAsync} from '@libs/fileDownload/FileUtils';

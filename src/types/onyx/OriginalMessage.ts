@@ -1036,6 +1036,8 @@ type OriginalMessageChangePolicy = {
 type OriginalMessageUnreportedTransaction = {
     /** ID of the old report */
     fromReportID: string;
+    /** Reasoning for the automated action, used by Concierge Explain feature */
+    reasoning?: string;
 };
 
 /** Model of MOVED_TRANSACTION report action */

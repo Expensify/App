@@ -6,6 +6,7 @@ import AccountingConnectionConfirmationModal from '@components/AccountingConnect
 import useHasPoliciesConnectedToSageIntacct from '@hooks/useHasPoliciesConnectedToSageIntacct';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useReusablePoliciesConnectedToQBD from '@hooks/useReusablePoliciesConnectedToQBD';
 import {removePolicyConnection} from '@libs/actions/connections';
 import Navigation from '@libs/Navigation/Navigation';
 import {isControlPolicy} from '@libs/PolicyUtils';
@@ -30,6 +31,7 @@ function AccountingContextProvider({children, policy}: AccountingContextProvider
     const policyID = policy?.id;
     const accountingIcons = useMemoizedLazyExpensifyIcons(['IntacctSquare', 'QBOSquare', 'XeroSquare', 'NetSuiteSquare', 'QBDSquare']);
     const hasPoliciesConnectedToSageIntacct = useHasPoliciesConnectedToSageIntacct();
+    const {hasReusablePoliciesConnectedToQBD} = useReusablePoliciesConnectedToQBD(policyID);
 
     const startIntegrationFlow = useCallback(
         (newActiveIntegration: ActiveIntegration) => {
@@ -41,7 +43,7 @@ function AccountingContextProvider({children, policy}: AccountingContextProvider
                 newActiveIntegration.name,
                 policyID,
                 translate,
-                hasPoliciesConnectedToSageIntacct,
+                {sageIntacct: hasPoliciesConnectedToSageIntacct, qbd: hasReusablePoliciesConnectedToQBD},
                 undefined,
                 undefined,
                 newActiveIntegration.integrationToDisconnect,
@@ -61,7 +63,7 @@ function AccountingContextProvider({children, policy}: AccountingContextProvider
                 key: Math.random(),
             });
         },
-        [policy, policyID, translate, hasPoliciesConnectedToSageIntacct, accountingIcons],
+        [policy, policyID, translate, hasPoliciesConnectedToSageIntacct, hasReusablePoliciesConnectedToQBD, accountingIcons],
     );
 
     const closeConfirmationModal = () => {
@@ -101,7 +103,7 @@ function AccountingContextProvider({children, policy}: AccountingContextProvider
             activeIntegration.name,
             policyID,
             translate,
-            hasPoliciesConnectedToSageIntacct,
+            {sageIntacct: hasPoliciesConnectedToSageIntacct, qbd: hasReusablePoliciesConnectedToQBD},
             policy,
             activeIntegration.key,
             undefined,
