@@ -410,6 +410,13 @@ function SearchAutocompleteList({
                 data: nextStyledRecentReports,
                 sectionIndex: sectionIndex++,
             });
+        } else if (autocompleteQueryValue.trim() !== '' && nextStyledRecentReports.length > 0) {
+            // When options aren't fully initialized but we have a search query with available results,
+            // render them immediately so they're selectable instead of hiding the section entirely.
+            pushSection({
+                data: nextStyledRecentReports,
+                sectionIndex: sectionIndex++,
+            });
         } else if (autocompleteQueryValue.trim() === '') {
             pushSection({
                 title: translate('search.recentChats'),

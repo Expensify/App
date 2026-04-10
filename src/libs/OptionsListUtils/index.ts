@@ -2663,8 +2663,12 @@ function getValidOptions(
             return searchTerms.every((term) => searchText.includes(term));
         };
 
-        // when we expect that function return eg. 50 elements and we already found 40 recent reports, we should adjust the max personal details number
-        const maxPersonalDetailsElements = maxElements ? Math.max(maxElements - recentReportOptions.length - workspaceChats.length - (!selfDMChat ? 1 : 0), 0) : undefined;
+        // when we expect that function return eg. 50 elements and we already found 40 recent reports, we should adjust the max personal details number.
+        // Always guarantee a minimum number of personalDetails slots so that workspace members without an existing DM report remain visible.
+        const MIN_PERSONAL_DETAILS_SLOTS = 5;
+        const maxPersonalDetailsElements = maxElements
+            ? Math.max(maxElements - recentReportOptions.length - workspaceChats.length - (!selfDMChat ? 1 : 0), MIN_PERSONAL_DETAILS_SLOTS)
+            : undefined;
         personalDetailsOptions = optionsOrderBy(options.personalDetails, personalDetailsComparator, maxPersonalDetailsElements, filteringFunction, true);
 
         for (let i = 0; i < personalDetailsOptions.length; i++) {
