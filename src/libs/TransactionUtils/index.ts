@@ -2148,11 +2148,13 @@ function getWorkspaceTaxesSettingsName(policy: OnyxEntry<Policy>, taxCode: strin
  * Gets the name corresponding to the taxCode that is displayed to the user
  */
 function getTaxName(policy: OnyxEntry<Policy>, transaction: OnyxEntry<Transaction>, shouldFallbackToValue = false) {
-    const defaultTaxCode = getDefaultTaxCode(policy, transaction);
+    // An empty string taxCode means tax was explicitly cleared (e.g. via "Delete tax"), so return undefined
+    if (transaction?.taxCode === '') {
+        return undefined;
+    }
 
-    // transaction?.taxCode may be an empty string
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const taxRate = Object.values(transformedTaxRates(policy, transaction)).find((rate) => rate.code === (transaction?.taxCode || defaultTaxCode));
+    const defaultTaxCode = getDefaultTaxCode(policy, transaction);
+    const taxRate = Object.values(transformedTaxRates(policy, transaction)).find((rate) => rate.code === (transaction?.taxCode ?? defaultTaxCode));
 
     if (shouldFallbackToValue && transaction?.taxValue !== undefined && taxRate?.value !== transaction?.taxValue) {
         return transaction?.taxValue;
