@@ -156,7 +156,7 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
     const frozenByAccountID = currentCard?.nameValuePairs?.frozen?.byAccountID;
 
     const {isBetaEnabled} = usePermissions();
-    const canManageCardFreeze = isBetaEnabled(CONST.BETAS.FREEZE_CARD) && isCardHolder && !!currentCard && !isAccountLocked;
+    const canManageCardFreeze = isCardHolder && !!currentCard && !isAccountLocked;
 
     const policySelector = useCallback(
         (allPolicies: OnyxCollection<Policy>): Policy | undefined => {

@@ -131,7 +131,7 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
         setIsUnfreezeModalVisible(false);
     };
 
-    const canManageCardFreeze = isBetaEnabled(CONST.BETAS.FREEZE_CARD) && isAdmin && !!card;
+    const canManageCardFreeze = isAdmin && !!card;
     const scarfOverlayStyle = useMemo(
         () => ({
             top: 0,
