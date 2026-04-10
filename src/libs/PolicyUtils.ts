@@ -47,6 +47,8 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {getBankAccountFromID} from './actions/BankAccounts';
 import {hasSynchronizationErrorMessage, isConnectionUnverified} from './actions/connections';
 import {shouldShowQBOReimbursableExportDestinationAccountError} from './actions/connections/QuickbooksOnline';
+import addEncryptedAuthTokenToURL from './addEncryptedAuthTokenToURL';
+import {getApiRoot} from './ApiUtils';
 import {getCategoryApproverRule} from './CategoryUtils';
 import {convertToBackendAmount} from './CurrencyUtils';
 import Navigation from './Navigation/Navigation';
@@ -2098,6 +2100,30 @@ function sortPoliciesByName(policies: Policy[], localeCompare: (a: string, b: st
     return policies.sort((a, b) => localeCompare(a.name || '', b.name || ''));
 }
 
+/**
+ * Builds a source URL for rendering a policy document PDF.
+ * Local blob/file URIs (from optimistic uploads) are returned directly.
+ * Remote URLs are routed through the authenticated GetPolicyDocument streaming endpoint.
+ * The stored URL (which contains a unique timestamp per upload) is appended as a version
+ * parameter so the browser treats each replacement as a distinct resource.
+ */
+function getPolicyDocumentSourceURL(policyDocumentURL: string | undefined, policyID: string | undefined, encryptedAuthToken: string): string {
+    if (!policyDocumentURL || !policyID) {
+        return '';
+    }
+
+    const isLocalFile = policyDocumentURL.startsWith('blob:') || policyDocumentURL.startsWith('file:');
+    if (isLocalFile) {
+        return policyDocumentURL;
+    }
+
+    return addEncryptedAuthTokenToURL(
+        `${getApiRoot({shouldUseSecure: false})}api/GetPolicyDocument?policyID=${policyID}&v=${encodeURIComponent(policyDocumentURL)}`,
+        encryptedAuthToken,
+        true,
+    );
+}
+
 export {
     canEditTaxRate,
     canPolicyAccessFeature,
@@ -2280,6 +2306,7 @@ export {
     isPolicyTaxEnabled,
     sortPoliciesByName,
     isPolicyApprover,
+    getPolicyDocumentSourceURL,
 };
 
 export type {MemberEmailsToAccountIDs};
