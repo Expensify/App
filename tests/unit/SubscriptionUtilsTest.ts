@@ -1,4 +1,5 @@
 import {act} from '@testing-library/react-native';
+import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import {addDays, addMinutes, format as formatDate, getUnixTime, subDays} from 'date-fns';
 import Onyx from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -6,6 +7,7 @@ import {
     calculateRemainingFreeTrialDays,
     doesUserHavePaymentCardAdded,
     getEarlyDiscountInfo,
+    getFreeTrialText,
     getSubscriptionStatus,
     hasCardAuthenticatedError,
     hasGracePeriodOverdue,
@@ -1222,6 +1224,71 @@ describe('SubscriptionUtils', () => {
             expect(shouldShowPreTrialBillingBanner(introSelected, firstDayFreeTrial, lastDayFreeTrial)).toBeFalsy();
         });
     });
+
+    describe('getFreeTrialText', () => {
+        const accountID = 42;
+        const paidPolicyID = '200099';
+        const ownedPaidPolicies = {
+            [`${ONYXKEYS.COLLECTION.POLICY}${paidPolicyID}`]: {
+                ...createRandomPolicy(Number(paidPolicyID)),
+                ownerAccountID: accountID,
+                type: CONST.POLICY.TYPE.CORPORATE,
+            },
+        };
+
+        const translate = jest.fn((key: string, ...parameters: unknown[]) => {
+            const remainingDays = parameters.at(0) as number | undefined;
+            if (key === 'subscription.billingBanner.trialStarted.title' && remainingDays !== undefined) {
+                return `trialStarted:${remainingDays}`;
+            }
+            if (key === 'subscription.billingBanner.preTrial.title') {
+                return 'preTrial';
+            }
+            return key;
+        }) as unknown as LocalizedTranslate;
+
+        beforeEach(() => {
+            jest.clearAllMocks();
+        });
+
+        it('returns undefined when the user has no owned paid workspace', () => {
+            expect(getFreeTrialText(accountID, translate, {}, undefined, undefined, undefined)).toBeUndefined();
+            expect(translate).not.toHaveBeenCalled();
+        });
+
+        it('returns pre-trial billing copy when the trial has not started and has not ended', () => {
+            const firstDayFreeTrial = formatDate(addDays(new Date(), 5), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING);
+            const lastDayFreeTrial = formatDate(addDays(new Date(), 15), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING);
+            const introSelected: OnyxEntry<IntroSelected> = {
+                choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
+            };
+
+            expect(getFreeTrialText(accountID, translate, ownedPaidPolicies, introSelected, firstDayFreeTrial, lastDayFreeTrial)).toBe('preTrial');
+            expect(translate).toHaveBeenCalledWith('subscription.billingBanner.preTrial.title');
+        });
+
+        it('returns trial-started copy with remaining days when the user is currently on a free trial', () => {
+            const firstDayFreeTrial = formatDate(subDays(new Date(), 1), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING);
+            const lastDayFreeTrial = formatDate(addDays(new Date(), 5), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING);
+            const introSelected: OnyxEntry<IntroSelected> = {
+                choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
+            };
+
+            const result = getFreeTrialText(accountID, translate, ownedPaidPolicies, introSelected, firstDayFreeTrial, lastDayFreeTrial);
+
+            expect(translate).toHaveBeenCalledWith('subscription.billingBanner.trialStarted.title', expect.any(Number));
+            expect(result).toMatch(/^trialStarted:\d+$/);
+        });
+
+        it('returns undefined when the free trial has ended', () => {
+            const firstDayFreeTrial = formatDate(subDays(new Date(), 20), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING);
+            const lastDayFreeTrial = formatDate(subDays(new Date(), 2), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING);
+
+            expect(getFreeTrialText(accountID, translate, ownedPaidPolicies, undefined, firstDayFreeTrial, lastDayFreeTrial)).toBeUndefined();
+            expect(translate).not.toHaveBeenCalled();
+        });
+    });
+
     describe('shouldCalculateBillNewDot', () => {
         const testUserAccountID = 1; // A consistent account ID for tests
         const paidPolicyID = '12345';
