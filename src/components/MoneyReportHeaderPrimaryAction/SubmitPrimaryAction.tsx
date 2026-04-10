@@ -119,6 +119,7 @@ function SubmitPrimaryAction({reportID, isSubmittingAnimationRunning, stopAnimat
             isSubmittingAnimationRunning={isSubmittingAnimationRunning}
             onAnimationFinish={stopAnimation}
             isDisabled={shouldBlockSubmit}
+            policyID={moneyRequestReport?.policyID}
         />
     );
 }

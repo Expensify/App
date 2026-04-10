@@ -74,7 +74,7 @@ function UserInfoAndActionButtonRow({
                     goToItem={handleActionButtonPress}
                     isSelected={item.isSelected}
                     isLoading={isActionLoading}
-                    policyID={item.policyID}
+                    policyID={item.policyID || (item as TransactionListItemType).report?.policyID}
                     reportID={item.reportID}
                     hash={item.hash}
                     amount={(item as TransactionListItemType)?.amount ?? (item as TransactionReportGroupListItemType)?.total}
