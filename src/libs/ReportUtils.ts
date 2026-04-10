@@ -11328,7 +11328,12 @@ function canLeaveChat(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, isRe
 
 function createDraftWorkspaceAndNavigateToConfirmationScreen(introSelected: OnyxEntry<IntroSelected>, transactionID: string, actionName: IOUAction, workspaceName: string): void {
     const isCategorizing = actionName === CONST.IOU.ACTION.CATEGORIZE;
-    const {expenseChatReportID, policyID, policyName} = createDraftWorkspace(introSelected, workspaceName, deprecatedCurrentUserEmail);
+    const {expenseChatReportID, policyID, policyName} = createDraftWorkspace(
+        introSelected,
+        workspaceName,
+        deprecatedCurrentUserAccountID ?? CONST.DEFAULT_NUMBER_ID,
+        deprecatedCurrentUserEmail ?? '',
+    );
     setMoneyRequestParticipants(transactionID, [
         {
             selected: true,
