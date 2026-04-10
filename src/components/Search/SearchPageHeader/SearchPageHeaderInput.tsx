@@ -52,9 +52,10 @@ type SearchPageHeaderInputProps = {
     hideSearchRouterList?: () => void;
     onSearchRouterFocus?: () => void;
     handleSearch: (value: string) => void;
+    skipInputSkeleton?: boolean;
 };
 
-function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRouterList, onSearchRouterFocus, handleSearch}: SearchPageHeaderInputProps) {
+function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRouterList, onSearchRouterFocus, handleSearch, skipInputSkeleton}: SearchPageHeaderInputProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
@@ -283,6 +284,7 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
                                 wrapperFocusedStyle={styles.searchAutocompleteInputResultsFocused}
                                 ref={textInputRef}
                                 onKeyPress={handleKeyPress}
+                                skipSkeleton={skipInputSkeleton}
                             />
                         </Animated.View>
                     </View>

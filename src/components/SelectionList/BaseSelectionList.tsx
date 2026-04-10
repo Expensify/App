@@ -26,7 +26,7 @@ import TextInput from './components/TextInput';
 import useSearchFocusSync from './hooks/useSearchFocusSync';
 import useSelectedItemFocusSync from './hooks/useSelectedItemFocusSync';
 import ListItemRenderer from './ListItem/ListItemRenderer';
-import type {ButtonOrCheckBoxRoles, DataDetailsType, ListItem, SelectionListProps} from './types';
+import type {DataDetailsType, InteractiveElementRoles, ListItem, SelectionListProps} from './types';
 import {getListboxRole} from './utils/getListboxRole';
 
 const ANIMATED_HIGHLIGHT_DURATION =
@@ -257,14 +257,14 @@ function BaseSelectionList<TItem extends ListItem>({
     }, [data, focusedIndex, isItemSelected]);
 
     const selectFocusedOption = () => {
-        if (!focusedOption) {
+        if (!focusedOption || focusedOption.isInteractive === false) {
             return;
         }
         selectRow(focusedOption);
     };
 
-    // Disable `Enter` shortcut if the active element is a button or checkbox
-    const disableEnterShortcut = activeElementRole && [CONST.ROLE.BUTTON, CONST.ROLE.CHECKBOX].includes(activeElementRole as ButtonOrCheckBoxRoles);
+    // Disable `Enter` shortcut if the active element is a button, checkbox, or switch
+    const disableEnterShortcut = activeElementRole && [CONST.ROLE.BUTTON, CONST.ROLE.CHECKBOX, CONST.ROLE.SWITCH].includes(activeElementRole as InteractiveElementRoles);
 
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ENTER, selectFocusedOption, {
         captureOnInputs: true,
@@ -363,6 +363,8 @@ function BaseSelectionList<TItem extends ListItem>({
                 shouldSyncFocus={!isTextInputFocusedRef.current && hasKeyBeenPressed.current}
                 shouldDisableHoverStyle={shouldDisableHoverStyle}
                 shouldShowRightCaret={shouldShowRightCaret}
+                isLastItem={index === data.length - 1}
+                shouldPreventEnterKeySubmit={!disableKeyboardShortcuts}
             />
         );
     };
@@ -537,6 +539,7 @@ function BaseSelectionList<TItem extends ListItem>({
             canSelectMultiple={canSelectMultiple}
             onSelectAll={handleSelectAll}
             headerStyle={style?.listHeaderWrapperStyle}
+            selectAllTextStyle={style?.listHeaderSelectAllTextStyle}
             shouldShowSelectAllButton={!!onSelectAll}
             shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
         />

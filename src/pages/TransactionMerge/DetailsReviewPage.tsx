@@ -9,6 +9,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import useMergeTransactions from '@hooks/useMergeTransactions';
 import useOnyx from '@hooks/useOnyx';
@@ -42,6 +43,7 @@ type DetailsReviewPageProps = PlatformStackScreenProps<MergeTransactionNavigator
 function DetailsReviewPage({route}: DetailsReviewPageProps) {
     const {translate, localeCompare} = useLocalize();
     const styles = useThemeStyles();
+    const {getCurrencyDecimals} = useCurrencyListActions();
     const {transactionID, isOnSearch, backTo} = route.params;
 
     const [mergeTransaction, mergeTransactionMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`);
@@ -60,6 +62,7 @@ function DetailsReviewPage({route}: DetailsReviewPageProps) {
             targetTransaction,
             sourceTransaction,
             localeCompare,
+            getCurrencyDecimals,
             [targetTransactionReport, sourceTransactionReport],
             targetTransactionPolicy,
             sourceTransactionPolicy,
@@ -67,7 +70,17 @@ function DetailsReviewPage({route}: DetailsReviewPageProps) {
 
         setMergeTransactionKey(transactionID, mergeableData);
         return detectedConflictFields as MergeFieldKey[];
-    }, [targetTransaction, sourceTransaction, transactionID, localeCompare, sourceTransactionReport, targetTransactionReport, targetTransactionPolicy, sourceTransactionPolicy]);
+    }, [
+        targetTransaction,
+        sourceTransaction,
+        transactionID,
+        localeCompare,
+        sourceTransactionReport,
+        targetTransactionReport,
+        targetTransactionPolicy,
+        sourceTransactionPolicy,
+        getCurrencyDecimals,
+    ]);
 
     // Handle selection
     const handleSelect = useCallback(
@@ -87,6 +100,7 @@ function DetailsReviewPage({route}: DetailsReviewPageProps) {
                 transaction,
                 field,
                 fieldValue,
+                getCurrencyDecimals,
                 mergeTransaction,
                 searchReports: [targetTransactionReport, sourceTransactionReport],
                 policy: transaction.transactionID === targetTransaction?.transactionID ? targetTransactionPolicy : sourceTransactionPolicy,
@@ -100,7 +114,16 @@ function DetailsReviewPage({route}: DetailsReviewPageProps) {
                 } as Partial<Record<MergeFieldKey, string>>,
             });
         },
-        [mergeTransaction, transactionID, targetTransactionReport, sourceTransactionReport, targetTransaction?.transactionID, targetTransactionPolicy, sourceTransactionPolicy],
+        [
+            mergeTransaction,
+            transactionID,
+            targetTransactionReport,
+            sourceTransactionReport,
+            targetTransaction?.transactionID,
+            targetTransactionPolicy,
+            sourceTransactionPolicy,
+            getCurrencyDecimals,
+        ],
     );
 
     // Handle continue

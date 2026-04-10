@@ -48,7 +48,7 @@ import {getQueryWithSubstitutions} from './getQueryWithSubstitutions';
 import {getUpdatedSubstitutionsMap} from './getUpdatedSubstitutionsMap';
 import {getContextualReportData, getContextualSearchAutocompleteKey, getContextualSearchQuery} from './SearchRouterUtils';
 
-const privateIsArchivedSelector = (nvp: {private_isArchived?: string} | undefined) => nvp?.private_isArchived;
+const privateIsArchivedSelector = (nvp: {private_isArchived?: string} | undefined): boolean | undefined => (nvp?.private_isArchived ? true : undefined);
 
 type SearchRouterProps = {
     onRouterClose: () => void;
@@ -63,7 +63,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
     const {setShouldResetSearchQuery} = useSearchActionsContext();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserAccountID = currentUserPersonalDetails.accountID;
-    const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false});
+    const [isSearchingForReports] = useOnyx(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
@@ -108,6 +108,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                 return undefined;
             }
 
+            // We will only show the contextual search suggestion if the user has not typed anything
             if (textInputValue) {
                 return undefined;
             }
@@ -124,7 +125,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                     return undefined;
                 }
 
-                const option = createOptionFromReport(contextualReport, personalDetails, currentUserAccountID, contextualReportNVP, contextualReportPolicy, undefined, {
+                const option = createOptionFromReport(contextualReport, personalDetails, !!contextualReportNVP || undefined, contextualReportPolicy, undefined, {
                     showPersonalDetails: true,
                 });
                 reportForContextualSearch = option;
@@ -188,7 +189,6 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
             styles.activeComponentBG,
             contextualReport,
             personalDetails,
-            currentUserAccountID,
             contextualReportNVP,
             contextualReportPolicy,
         ],
