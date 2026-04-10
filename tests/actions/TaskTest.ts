@@ -1099,7 +1099,17 @@ describe('actions/Task', () => {
                 reportName: 'Task with assignee',
             };
 
-            editTaskAssignee(taskReport, undefined, CURRENT_USER_ACCOUNT_ID, 'assignee@example.com', 'user@example.com', CURRENT_USER_ACCOUNT_ID, false, DELEGATE_EMAIL, ASSIGNEE_ACCOUNT_ID);
+            editTaskAssignee({
+                report: taskReport,
+                parentReport: undefined,
+                sessionAccountID: CURRENT_USER_ACCOUNT_ID,
+                assigneeEmail: 'assignee@example.com',
+                currentUserEmail: 'user@example.com',
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                hasOutstandingChildTask: false,
+                delegateEmail: DELEGATE_EMAIL,
+                assigneeAccountID: ASSIGNEE_ACCOUNT_ID,
+            });
 
             // eslint-disable-next-line rulesdir/no-multiple-api-calls -- Inspecting mock call args to verify optimistic data structure
             const calls = (API.write as jest.Mock).mock.calls;
@@ -1121,7 +1131,17 @@ describe('actions/Task', () => {
                 reportName: 'Task with assignee',
             };
 
-            editTaskAssignee(taskReport, undefined, CURRENT_USER_ACCOUNT_ID, 'assignee@example.com', 'user@example.com', CURRENT_USER_ACCOUNT_ID, false, undefined, ASSIGNEE_ACCOUNT_ID);
+            editTaskAssignee({
+                report: taskReport,
+                parentReport: undefined,
+                sessionAccountID: CURRENT_USER_ACCOUNT_ID,
+                assigneeEmail: 'assignee@example.com',
+                currentUserEmail: 'user@example.com',
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                hasOutstandingChildTask: false,
+                delegateEmail: undefined,
+                assigneeAccountID: ASSIGNEE_ACCOUNT_ID,
+            });
 
             // eslint-disable-next-line rulesdir/no-multiple-api-calls -- Inspecting mock call args to verify optimistic data structure
             const calls = (API.write as jest.Mock).mock.calls;

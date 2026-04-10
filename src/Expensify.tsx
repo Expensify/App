@@ -37,6 +37,7 @@ import Visibility from './libs/Visibility';
 import ONYXKEYS from './ONYXKEYS';
 import PriorityModeHandler from './PriorityModeHandler';
 import type {Route} from './ROUTES';
+import {hasSeenTourSelector} from './selectors/Onboarding';
 import {accountIDSelector} from './selectors/Session';
 import {useSplashScreenActions, useSplashScreenState} from './SplashScreenStateContext';
 import isLoadingOnyxValue from './types/utils/isLoadingOnyxValue';
@@ -68,6 +69,7 @@ function Expensify() {
     const [isCheckingPublicRoom = true] = useOnyx(ONYXKEYS.IS_CHECKING_PUBLIC_ROOM, {initWithStoredValues: false});
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [isSelfTourViewed, isSelfTourViewedMetadata] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [updateRequired] = useOnyx(ONYXKEYS.RAM_ONLY_UPDATE_REQUIRED);
     const [lastVisitedPath] = useOnyx(ONYXKEYS.LAST_VISITED_PATH);
@@ -279,7 +281,7 @@ function Expensify() {
     }, [isNavigationReady]);
 
     useEffect(() => {
-        if (isLoadingOnyxValue(sessionMetadata)) {
+        if (isLoadingOnyxValue(sessionMetadata, isSelfTourViewedMetadata)) {
             return;
         }
 
@@ -293,7 +295,7 @@ function Expensify() {
                 if (introSelected === undefined) {
                     Log.info('[Deep link] introSelected is undefined when processing initial URL', false, {url});
                 }
-                openReportFromDeepLink(url, allReports, isAuthenticated, conciergeReportID, introSelected, archivedReportsIDSet, betas);
+                openReportFromDeepLink(url, allReports, isAuthenticated, conciergeReportID, introSelected, isSelfTourViewed, archivedReportsIDSet, betas);
             } else {
                 Report.doneCheckingPublicRoom();
             }
@@ -309,14 +311,14 @@ function Expensify() {
                 Log.info('[Deep link] introSelected is undefined when processing URL change', false, {url: state.url});
             }
             const isCurrentlyAuthenticated = hasAuthToken();
-            openReportFromDeepLink(state.url, allReports, isCurrentlyAuthenticated, conciergeReportID, introSelected, archivedReportsIDSet, betas);
+            openReportFromDeepLink(state.url, allReports, isCurrentlyAuthenticated, conciergeReportID, introSelected, isSelfTourViewed, archivedReportsIDSet, betas);
         });
 
         return () => {
             linkingChangeListener.current?.remove();
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps -- this bootstrap should only rerun when session metadata or concierge routing changes
-    }, [sessionMetadata?.status, conciergeReportID]);
+    }, [sessionMetadata?.status, conciergeReportID, isSelfTourViewedMetadata]);
 
     // Display a blank page until the onyx migration completes
     if (!isOnyxMigrated) {
@@ -342,7 +344,12 @@ function Expensify() {
                     initialUrl={initialUrl}
                 />
             )}
-            {shouldHideSplash && <SplashScreenHider onHide={onSplashHide} />}
+            {(isSplashVisible || isSplashReadyToBeHidden) && (
+                <SplashScreenHider
+                    shouldHideSplash={shouldHideSplash}
+                    onHide={onSplashHide}
+                />
+            )}
         </>
     );
 }

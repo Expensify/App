@@ -1,5 +1,5 @@
 import React from 'react';
-import type {StyleProp, ViewStyle} from 'react-native';
+import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import Checkbox from '@components/Checkbox';
 import {PressableWithFeedback} from '@components/Pressable';
@@ -22,6 +22,9 @@ type ListHeaderProps<TItem extends ListItem> = {
     /** Styles for the list header wrapper */
     headerStyle?: StyleProp<ViewStyle>;
 
+    /** Styles for the "Select all" text (merged after textStrong) */
+    selectAllTextStyle?: StyleProp<TextStyle>;
+
     /** Function called when the select all button is pressed */
     onSelectAll: () => void;
 
@@ -38,6 +41,7 @@ function ListHeader<TItem extends ListItem>({
     canSelectMultiple,
     onSelectAll,
     headerStyle,
+    selectAllTextStyle,
     shouldShowSelectAllButton,
     shouldPreventDefaultFocusOnSelectRow,
 }: ListHeaderProps<TItem>) {
@@ -84,7 +88,7 @@ function ListHeader<TItem extends ListItem>({
                         dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
                         onMouseDown={handleMouseDown}
                     >
-                        <Text style={[styles.textStrong, styles.ph3]}>{translate('workspace.people.selectAll')}</Text>
+                        <Text style={[styles.textStrong, styles.ph3, selectAllTextStyle]}>{translate('workspace.people.selectAll')}</Text>
                     </PressableWithFeedback>
                 )}
             </View>
