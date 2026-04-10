@@ -17,7 +17,6 @@ import useDebugShortcut from './hooks/useDebugShortcut';
 import useIsAuthenticated from './hooks/useIsAuthenticated';
 import useLocalize from './hooks/useLocalize';
 import useOnyx from './hooks/useOnyx';
-import useOnyxWithMountReset from './hooks/useOnyxWithMountReset';
 import {updateLastRoute} from './libs/actions/App';
 import * as ActiveClientManager from './libs/ActiveClientManager';
 import {isSafari} from './libs/Browser';
@@ -59,7 +58,7 @@ function Expensify() {
     const {preferredLocale} = useLocalize();
     const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
     const [lastRoute] = useOnyx(ONYXKEYS.LAST_ROUTE);
-    const [isCheckingPublicRoom = true] = useOnyxWithMountReset(ONYXKEYS.IS_CHECKING_PUBLIC_ROOM, true);
+    const [isCheckingPublicRoom = true] = useOnyx(ONYXKEYS.RAM_ONLY_IS_CHECKING_PUBLIC_ROOM);
     const [updateRequired] = useOnyx(ONYXKEYS.RAM_ONLY_UPDATE_REQUIRED);
     const [lastVisitedPath] = useOnyx(ONYXKEYS.LAST_VISITED_PATH);
 
@@ -74,7 +73,7 @@ function Expensify() {
 
     const bootsplashSpan = useRef<Sentry.Span>(null);
 
-    const [initialUrl, setInitialUrl] = useState<Route | null>(null);
+    const [initialUrl, setInitialUrl] = useState<Route | null | undefined>(undefined);
     const {setIsAuthenticatedAtStartup} = useInitialURLActions();
 
     useEffect(() => {
@@ -285,12 +284,15 @@ function Expensify() {
             <FullstoryInitHandler />
             <DeepLinkHandler onInitialUrl={setInitialUrl} />
             <AppleAuthWrapper />
-            {hasAttemptedToOpenPublicRoom && (
+            {/* Wait for the initial URL to resolve before mounting NavigationRoot, because its initialState
+                is computed once on mount. In HybridApp, getInitialURL() may never resolve (OldDot native
+                bridge), so we skip this guard to avoid blocking the app. */}
+            {hasAttemptedToOpenPublicRoom && (CONFIG.IS_HYBRID_APP || initialUrl !== undefined) && (
                 <NavigationRoot
                     onReady={setNavigationReady}
                     authenticated={isAuthenticated}
                     lastVisitedPath={lastVisitedPath as Route}
-                    initialUrl={initialUrl}
+                    initialUrl={initialUrl ?? null}
                 />
             )}
             {(isSplashVisible || isSplashReadyToBeHidden) && (
