@@ -10,7 +10,6 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import useDefaultFundID from '@hooks/useDefaultFundID';
 import useExpensifyCardUkEuSupported from '@hooks/useExpensifyCardUkEuSupported';
-import useHasAnyAdminExpensifyCardFeed from '@hooks/useHasAnyAdminExpensifyCardFeed';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -44,7 +43,6 @@ function WorkspaceExpensifyCardBankAccounts({route}: WorkspaceExpensifyCardBankA
     const isUkEuCurrencySupported = useExpensifyCardUkEuSupported(policyID);
 
     const defaultFundID = useDefaultFundID(policyID);
-    const hasAnyAdminExpensifyCardFeed = useHasAnyAdminExpensifyCardFeed();
 
     const [cardBankAccountMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.EXPENSIFY_CARD_BANK_ACCOUNT_METADATA}${defaultFundID}`);
     const [cardOnWaitlist] = useOnyx(`${ONYXKEYS.COLLECTION.NVP_EXPENSIFY_ON_CARD_WAITLIST}${policyID}`);
