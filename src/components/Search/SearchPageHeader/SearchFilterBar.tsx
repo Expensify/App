@@ -1,22 +1,24 @@
 import React from 'react';
 import DropdownButton from '@components/Search/FilterDropdowns/DropdownButton';
 import type {DropdownButtonProps} from '@components/Search/FilterDropdowns/DropdownButton';
-import useFilterFeedValue from '@components/Search/hooks/useFilterFeedValue';
-import useFilterFromValue from '@components/Search/hooks/useFilterFromValue';
 import useFilterWorkspaceValue from '@components/Search/hooks/useFilterWorkspaceValue';
 import type {SearchFilter} from '@libs/SearchUIUtils';
 import FILTER_KEYS from '@src/types/form/SearchAdvancedFiltersForm';
 import type {SearchAdvancedFiltersKey} from '@src/types/form/SearchAdvancedFiltersForm';
+import useFilterCardValue from '@components/Search/hooks/useFilterCardValue';
+import useFilterReportValue from '@components/Search/hooks/useFilterReportValue';
+import useFilterTaxRateValue from '@components/Search/hooks/useFilterTaxRateValue';
+import useFilterUserValue from '@components/Search/hooks/useFilterUserValue';
 import type {FilterItem} from './useSearchFiltersBar';
 
 type SearchDropdownProps = Omit<DropdownButtonProps, 'viewportOffsetTop'>;
 
-function FromDropdown({label, value, PopoverComponent, sentryLabel}: SearchDropdownProps) {
-    const fromValue = useFilterFromValue(value);
+function UserDropdown({label, value, PopoverComponent, sentryLabel}: SearchDropdownProps) {
+    const users = useFilterUserValue(value);
     return (
         <DropdownButton
             label={label}
-            value={fromValue ?? []}
+            value={users ?? []}
             PopoverComponent={PopoverComponent}
             sentryLabel={sentryLabel}
         />
@@ -35,26 +37,60 @@ function WorkspaceDropdown({label, value, PopoverComponent, sentryLabel}: Search
     );
 }
 
-function FeedDropdown({label, value, PopoverComponent, sentryLabel}: SearchDropdownProps) {
-    const feedValue = useFilterFeedValue(value);
+function CardDropdown({label, PopoverComponent, sentryLabel}: SearchDropdownProps) {
+    const cardValue = useFilterCardValue();
     return (
         <DropdownButton
             label={label}
-            value={feedValue}
+            value={cardValue}
             PopoverComponent={PopoverComponent}
             sentryLabel={sentryLabel}
         />
     );
 }
 
-const FILTER_KEY_TO_COMPONENT: Partial<Record<SearchAdvancedFiltersKey, React.ComponentType<SearchDropdownProps>>> = {
-    [FILTER_KEYS.FROM]: FromDropdown,
+function TaxRateDropdowwn({label, PopoverComponent, sentryLabel}: SearchDropdownProps) {
+    const taxRateValue = useFilterTaxRateValue();
+    return (
+        <DropdownButton
+            label={label}
+            value={taxRateValue}
+            PopoverComponent={PopoverComponent}
+            sentryLabel={sentryLabel}
+        />
+    );
+}
+
+function ReportDropdown({label, value, PopoverComponent, sentryLabel}: SearchDropdownProps) {
+    const reportValue = useFilterReportValue(value);
+    return (
+        <DropdownButton
+            label={label}
+            value={reportValue}
+            PopoverComponent={PopoverComponent}
+            sentryLabel={sentryLabel}
+        />
+    );
+}
+
+const FILTER_COMPONENT_MAP: Partial<Record<SearchAdvancedFiltersKey, React.ComponentType<SearchDropdownProps>>> = {
+    [FILTER_KEYS.FROM]: UserDropdown,
+    [FILTER_KEYS.TO]: UserDropdown,
+    [FILTER_KEYS.ATTENDEE]: UserDropdown,
+    [FILTER_KEYS.ASSIGNEE]: UserDropdown,
+
     [FILTER_KEYS.POLICY_ID]: WorkspaceDropdown,
-    [FILTER_KEYS.FEED]: FeedDropdown,
+
+    [FILTER_KEYS.FEED]: CardDropdown,
+    [FILTER_KEYS.CARD_ID]: CardDropdown,
+
+    [FILTER_KEYS.TAX_RATE]: TaxRateDropdowwn,
+
+    [FILTER_KEYS.IN]: ReportDropdown,
 };
 
 function SearchFilterBar({item}: {item: SearchFilter & FilterItem}) {
-    const Component = FILTER_KEY_TO_COMPONENT[item.key] ?? DropdownButton;
+    const Component = FILTER_COMPONENT_MAP[item.key] ?? DropdownButton;
     return (
         <Component
             key={item.key}

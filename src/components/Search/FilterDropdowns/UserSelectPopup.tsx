@@ -184,7 +184,7 @@ function UserSelectPopup({value, label, closeOverlay, onChange, isSearchable}: U
                 textInputOptions={textInputOptions}
                 canSelectMultiple
                 ListItem={UserSelectionListItem}
-                style={{containerStyle: [!shouldUseNarrowLayout && styles.pt4], listStyle: styles.pb2}}
+                style={{listStyle: styles.pb2}}
                 onSelectRow={selectUser}
                 isLoadingNewOptions={isLoadingNewOptions}
                 shouldShowLoadingPlaceholder={!areOptionsInitialized}
