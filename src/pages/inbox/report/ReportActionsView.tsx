@@ -31,7 +31,6 @@ import {generateNewRandomInt, rand64} from '@libs/NumberUtils';
 import {
     getCombinedReportActions,
     getFilteredReportActionsForReportView,
-    getMostRecentIOURequestActionID,
     getOneTransactionThreadReportID,
     getOriginalMessage,
     getSortedReportActionsForDisplay,
@@ -49,6 +48,7 @@ import {
     isInvoiceReport,
     isMoneyRequestReport,
     isReportTransactionThread as isReportTransactionThreadUtil,
+    isUnread,
 } from '@libs/ReportUtils';
 import markOpenReportEnd from '@libs/telemetry/markOpenReportEnd';
 import CONST from '@src/CONST';
@@ -81,7 +81,13 @@ function ReportActionsView({reportID, onLayout}: ReportActionsViewProps) {
     const [report, reportResult] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
 
     const reportActionID = route?.params?.reportActionID;
-    const {reportActions: unfilteredReportActions, hasNewerActions, hasOlderActions} = usePaginatedReportActions(reportID, reportActionID, {shouldLinkToOldestUnreadReportAction: true});
+    const {
+        reportActions: unfilteredReportActions,
+        hasNewerActions,
+        hasOlderActions,
+        oldestUnreadReportAction,
+        linkedAction,
+    } = usePaginatedReportActions(reportID, reportActionID, {shouldLinkToOldestUnreadReportAction: true});
     const allReportActions = useMemo(() => getFilteredReportActionsForReportView(unfilteredReportActions), [unfilteredReportActions]);
 
     const parentReportAction = useParentReportAction(report);
@@ -139,7 +145,7 @@ function ReportActionsView({reportID, onLayout}: ReportActionsViewProps) {
         [getTransactionThreadReportActions],
     );
     const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`);
-    const [isLoadingApp] = useOnyx(ONYXKEYS.RAM_ONLY_IS_LOADING_APP);
+    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const [visibleReportActionsData] = useOnyx(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS);
     const prevTransactionThreadReport = usePrevious(transactionThreadReport);
     const prevReportActionID = usePrevious(reportActionID);
@@ -275,7 +281,6 @@ function ReportActionsView({reportID, onLayout}: ReportActionsViewProps) {
     );
 
     const newestReportAction = useMemo(() => reportActions?.at(0), [reportActions]);
-    const mostRecentIOUReportActionID = useMemo(() => getMostRecentIOURequestActionID(reportActions), [reportActions]);
     const lastActionCreated = visibleReportActions.at(0)?.created;
     const isNewestAction = (actionCreated: string | undefined, lastVisibleActionCreated: string | undefined) =>
         actionCreated && lastVisibleActionCreated ? actionCreated >= lastVisibleActionCreated : actionCreated === lastVisibleActionCreated;
@@ -381,6 +386,29 @@ function ReportActionsView({reportID, onLayout}: ReportActionsViewProps) {
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const shouldShowSkeleton = shouldShowSkeletonForConciergePanel || shouldShowSkeletonForInitialLoad || shouldShowSkeletonForAppLoad;
 
+    const isReportUnread = isUnread(report, transactionThreadReport, isReportArchived);
+    const isReportUnreadInitially = useRef(isReportUnread);
+
+    // When we first open a report with a linked report action,
+    // we need to wait for the results from the OpenReport api call,
+    // if the linked report action is not stored in Onyx.
+    const isLinkedMessagePageLoadingInitially = !!reportActionID && !linkedAction;
+
+    // Same for unread messages, we need to wait for the results from the OpenReport api call,
+    // if the oldest unread report action is not stored in Onyx.
+    const isUnreadMessagePageLoadingInitially = !reportActionID && isReportUnreadInitially.current && !oldestUnreadReportAction;
+
+    const shouldWaitForOpenReportResultInitially = isLinkedMessagePageLoadingInitially || isUnreadMessagePageLoadingInitially;
+
+    // console.log({isLinkedMessageLoading: isLinkedMessagePageLoading, isUnreadMessageLoading: isUnreadMessagePageLoading, shouldWaitForOpenReportResult});
+
+    // When opening an unread report, it is very likely that the message we will open to is not the latest,
+    // which is the only one we will have in cache.
+    const isInitiallyLoadingReport = isReportUnread && !!reportMetadata?.isLoadingInitialReportActions && (isOffline || reportActions.length <= 1);
+
+    // Once all the above conditions are met, we can consider the report ready.
+    const isReportReady = !isInitiallyLoadingReport && !shouldWaitForOpenReportResultInitially;
+
     useEffect(() => {
         if (!shouldShowSkeleton || !report) {
             return;
@@ -388,11 +416,7 @@ function ReportActionsView({reportID, onLayout}: ReportActionsViewProps) {
         markOpenReportEnd(report, {warm: false});
     }, [report, shouldShowSkeleton]);
 
-    if (isLoadingOnyxValue(reportResult) || !report) {
-        return <ReportActionsSkeletonView />;
-    }
-
-    if (shouldShowSkeleton) {
+    if (isLoadingOnyxValue(reportResult) || !report || !isReportReady || shouldShowSkeleton) {
         return <ReportActionsSkeletonView />;
     }
 
@@ -413,7 +437,6 @@ function ReportActionsView({reportID, onLayout}: ReportActionsViewProps) {
                 onLayout={recordTimeToMeasureItemLayout}
                 sortedReportActions={conciergeSidePanelFilteredReportActions}
                 sortedVisibleReportActions={conciergeSidePanelFilteredVisibleActions}
-                mostRecentIOUReportActionID={mostRecentIOUReportActionID}
                 loadOlderChats={loadOlderChats}
                 loadNewerChats={loadNewerChats}
                 hasNewerActions={hasNewerActions}

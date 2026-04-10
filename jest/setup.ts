@@ -13,7 +13,6 @@ import type Animated from 'react-native-reanimated';
 import 'setimmediate';
 import {TextDecoder, TextEncoder} from 'util';
 import type {RenderInfo} from '@components/FlatList/InvertedFlatList/RenderTaskQueue';
-import * as MockedSecureStore from '@src/libs/MultifactorAuthentication/NativeBiometrics/SecureStore/index.web';
 import '@src/polyfills/PromiseWithResolvers';
 import mockFSLibrary from './setupMockFullstoryLib';
 import setupMockImages from './setupMockImages';
@@ -125,9 +124,6 @@ jest.mock('react-native-fs', () => ({
 jest.mock('react-native-share', () => ({
     default: jest.fn(),
 }));
-
-// Jest has no access to the native secure store module, so we mock it with the web implementation.
-jest.mock('@src/libs/MultifactorAuthentication/NativeBiometrics/SecureStore', () => MockedSecureStore);
 
 jest.mock('react-native-reanimated', () => ({
     ...jest.requireActual<typeof Animated>('react-native-reanimated/mock'),

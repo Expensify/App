@@ -973,4 +973,4 @@ function resolveReportFieldValue(
 
 export {FORMULA_PART_TYPES, compute, parse, hasCircularReferences, resolveReportFieldValue};
 
-export type {FormulaContext, FieldList, MinimalTransaction};
+export type {FormulaContext, FieldList, FormulaPart, MinimalTransaction};
