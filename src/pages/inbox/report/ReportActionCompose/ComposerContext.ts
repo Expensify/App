@@ -4,7 +4,7 @@ import type {BlurEvent, TextInputSelectionChangeEvent, View} from 'react-native'
 import type {Emoji} from '@assets/emojis/types';
 import type {Mention} from '@components/MentionSuggestions';
 import type {FileObject} from '@src/types/utils/Attachment';
-import type {ComposerRef} from './ComposerWithSuggestions';
+import type {ComposerWithSuggestionsRef} from './ComposerWithSuggestions';
 
 type SuggestionsRef = {
     resetSuggestions: () => void;
@@ -39,7 +39,7 @@ type ComposerActions = {
     setValue: (v: string) => void;
     setMenuVisibility: (v: boolean) => void;
     setIsFullComposerAvailable: (v: boolean) => void;
-    setComposerRef: (ref: ComposerRef | null) => void;
+    setComposerRef: (ref: ComposerWithSuggestionsRef | null) => void;
     focus: () => void;
     onBlur: (event: BlurEvent) => void;
     onFocus: () => void;
@@ -58,7 +58,7 @@ type ComposerSendActions = {
 // Frozen — stable refs, set once
 type ComposerMeta = {
     containerRef: RefObject<View | null>;
-    composerRef: RefObject<ComposerRef | null>;
+    composerRef: RefObject<ComposerWithSuggestionsRef | null>;
     suggestionsRef: RefObject<SuggestionsRef | null>;
     actionButtonRef: RefObject<View | HTMLDivElement | null>;
     isNextModalWillOpenRef: RefObject<boolean>;

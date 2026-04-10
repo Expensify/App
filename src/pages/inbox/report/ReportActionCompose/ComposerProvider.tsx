@@ -1,13 +1,11 @@
-import lodashDebounce from 'lodash/debounce';
 import React, {useRef, useState} from 'react';
 import type {View} from 'react-native';
 import {useSharedValue} from 'react-native-reanimated';
 import {scheduleOnUI} from 'react-native-worklets';
-import useHandleExceedMaxCommentLength from '@hooks/useHandleExceedMaxCommentLength';
-import useHandleExceedMaxTaskTitleLength from '@hooks/useHandleExceedMaxTaskTitleLength';
 import useOnyx from '@hooks/useOnyx';
 import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import {chatIncludesConcierge} from '@libs/ReportUtils';
+import {useReportActionActiveEdit} from '@pages/inbox/report/ReportActionEditMessageContext';
 import {setIsComposerFullSize} from '@userActions/Report';
 import {isBlockedFromConcierge as isBlockedFromConciergeUserAction} from '@userActions/User';
 import CONST from '@src/CONST';
@@ -15,8 +13,9 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {FileObject} from '@src/types/utils/Attachment';
 import {ComposerActionsContext, ComposerMetaContext, ComposerSendActionsContext, ComposerSendStateContext, ComposerStateContext, ComposerTextContext} from './ComposerContext';
 import type {SuggestionsRef} from './ComposerContext';
-import type {ComposerRef} from './ComposerWithSuggestions';
+import type {ComposerWithSuggestionsRef} from './ComposerWithSuggestions';
 import useComposerFocus from './useComposerFocus';
+import useDebouncedCommentMaxLengthValidation from './useDebouncedCommentMaxLengthValidation';
 
 const shouldFocusInputOnScreenFocus = canFocusInputOnScreenFocus();
 
@@ -49,38 +48,21 @@ function ComposerProvider({children, reportID}: ComposerProviderProps) {
     const userBlockedFromConcierge = isBlockedFromConciergeUserAction(blockedFromConcierge);
     const isBlockedFromConcierge = includesConcierge && userBlockedFromConcierge;
 
-    const {hasExceededMaxCommentLength, validateCommentMaxLength, setHasExceededMaxCommentLength} = useHandleExceedMaxCommentLength();
-    const {hasExceededMaxTaskTitleLength, validateTaskTitleMaxLength, setHasExceededMaxTitleLength} = useHandleExceedMaxTaskTitleLength();
-
-    let exceededMaxLength: number | null = null;
-    if (hasExceededMaxTaskTitleLength) {
-        exceededMaxLength = CONST.TITLE_CHARACTER_LIMIT;
-    } else if (hasExceededMaxCommentLength) {
-        exceededMaxLength = CONST.MAX_COMMENT_LENGTH;
-    }
+    const {editingReportAction} = useReportActionActiveEdit();
+    const {debouncedCommentMaxLengthValidation, exceededMaxLength, isExceedingMaxLength, isTaskTitle} = useDebouncedCommentMaxLengthValidation({
+        reportID,
+        isEditing: !!editingReportAction,
+    });
 
     const isSendDisabled = isEmpty || isBlockedFromConcierge || !!exceededMaxLength;
 
-    const validateMaxLength = (v: string) => {
-        const taskCommentMatch = v?.match(CONST.REGEX.TASK_TITLE_WITH_OPTIONAL_SHORT_MENTION);
-        if (taskCommentMatch) {
-            const title = taskCommentMatch?.[3] ? taskCommentMatch[3].trim().replaceAll('\n', ' ') : '';
-            setHasExceededMaxCommentLength(false);
-            return validateTaskTitleMaxLength(title);
-        }
-        setHasExceededMaxTitleLength(false);
-        return validateCommentMaxLength(v, {reportID});
-    };
-
-    const debouncedValidate = lodashDebounce(validateMaxLength, CONST.TIMING.COMMENT_LENGTH_DEBOUNCE_TIME, {leading: true});
-
     const containerRef = useRef<View>(null);
     const suggestionsRef = useRef<SuggestionsRef>(null);
-    const composerRef = useRef<ComposerRef | null>(null);
+    const composerRef = useRef<ComposerWithSuggestionsRef | null>(null);
     const actionButtonRef = useRef<View | HTMLDivElement | null>(null);
     const attachmentFileRef = useRef<FileObject | FileObject[] | null>(null);
 
-    const composerRefShared = useSharedValue<Partial<ComposerRef>>({});
+    const composerRefShared = useSharedValue<Partial<ComposerWithSuggestionsRef>>({});
 
     const {isFocused, onBlur, onFocus, focus, onAddActionPressed, onItemSelected, onTriggerAttachmentPicker, isNextModalWillOpenRef} = useComposerFocus({
         composerRef,
@@ -98,7 +80,7 @@ function ComposerProvider({children, reportID}: ComposerProviderProps) {
     };
 
     const handleSendMessage = () => {
-        if (isSendDisabled || !debouncedValidate.flush()) {
+        if (isSendDisabled || !debouncedCommentMaxLengthValidation.flush()) {
             return;
         }
 
@@ -118,7 +100,7 @@ function ComposerProvider({children, reportID}: ComposerProviderProps) {
         });
     };
 
-    const setComposerRef = (ref: ComposerRef | null) => {
+    const setComposerRef = (ref: ComposerWithSuggestionsRef | null) => {
         composerRef.current = ref;
         composerRefShared.set({
             clearWorklet: ref?.clearWorklet,
@@ -129,7 +111,7 @@ function ComposerProvider({children, reportID}: ComposerProviderProps) {
         if (v.length === 0 && isComposerFullSize) {
             setIsComposerFullSize(reportID, false);
         }
-        debouncedValidate(v);
+        debouncedCommentMaxLengthValidation(v);
     };
 
     const text = value;
@@ -143,7 +125,7 @@ function ComposerProvider({children, reportID}: ComposerProviderProps) {
     const composerSendState = {
         isSendDisabled,
         exceededMaxLength,
-        hasExceededMaxTaskTitleLength,
+        hasExceededMaxTaskTitleLength: isTaskTitle && isExceedingMaxLength,
         isBlockedFromConcierge,
     };
 
