@@ -183,9 +183,8 @@ function clear() {
     persistedRequests = [];
     pendingSaveOperations = [];
     knownRequestIDs.clear();
-    pendingOnyxWrites = 0;
     Onyx.set(ONYXKEYS.PERSISTED_ONGOING_REQUESTS, null);
-    return Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, []);
+    return trackOnyxWrite(Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, []));
 }
 
 function getLength(): number {
@@ -442,6 +441,16 @@ function getOngoingRequest(): AnyRequest | null {
     return ongoingRequest;
 }
 
+/**
+ * Reset the pending Onyx write counter. Used ONLY in tests to simulate
+ * a clean state before cross-tab event simulations. In production,
+ * cross-tab updates arrive via storage events which are independent of
+ * the Onyx.set promise lifecycle, so the counter is always 0 at that point.
+ */
+function resetPendingWritesForTest() {
+    pendingOnyxWrites = 0;
+}
+
 export {
     clear,
     save,
@@ -457,4 +466,5 @@ export {
     deleteRequestsByIndices,
     onInitialization,
     onCrossTabRequestsMerged,
+    resetPendingWritesForTest,
 };

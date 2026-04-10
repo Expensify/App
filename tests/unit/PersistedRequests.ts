@@ -266,9 +266,14 @@ describe('PersistedRequests persistence guarantees', () => {
         await waitForBatchedUpdates();
         expect(PersistedRequests.getAll()).toHaveLength(2);
 
+        // Reset the pending write counter before simulating a cross-tab event.
+        // In production, cross-tab updates arrive via storage events which are
+        // independent of Onyx.set promise timing, so the counter is always 0.
+        // In tests, promise resolution timing is unpredictable relative to
+        // Onyx callbacks, so we reset explicitly.
+        PersistedRequests.resetPendingWritesForTest();
+
         // Simulate a cross-tab callback: leader processed requestA and removed it.
-        // After waitForBatchedUpdates, pendingOnyxWrites is 0, so the callback
-        // will reconcile deletions (requestA no longer on disk → removed from memory).
         await Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, [requestB]);
         await waitForBatchedUpdates();
 
