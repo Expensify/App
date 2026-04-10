@@ -208,6 +208,9 @@ type CustomBaseTextInputProps = ForwardedFSClassProps &
         navigation?: Omit<NavigationProp<ReactNavigation.RootParamList>, 'getState'> & {
             getState(): NavigationState | undefined;
         };
+
+        /** Whether the input should be allowed to be focused in landscape mode */
+        shouldAllowFocusInLandscapeMode?: boolean;
     };
 
 type BaseTextInputRef = HTMLFormElement | AnimatedTextInputRef;
