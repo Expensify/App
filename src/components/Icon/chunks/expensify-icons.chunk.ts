@@ -127,6 +127,7 @@ import BillComSquare from '@assets/images/integrationicons/bill-com-icon-square.
 import CertiniaSquare from '@assets/images/integrationicons/certinia-icon-square.svg';
 import CircleSlash from '@assets/images/integrationicons/circle-slash.svg';
 import NetSuiteExport from '@assets/images/integrationicons/export/netsuite-icon.svg';
+import GustoSquare from '@assets/images/integrationicons/gusto-icon-square.svg';
 import QBOExport from '@assets/images/integrationicons/export/qbo-icon.svg';
 import SageIntacctExport from '@assets/images/integrationicons/export/sage-intacct-icon.svg';
 import XeroExport from '@assets/images/integrationicons/export/xero-icon.svg';
@@ -455,6 +456,7 @@ const Expensicons = {
     Workflows,
     Workspace,
     XeroSquare,
+    GustoSquare,
     IntacctSquare: SageIntacctSquare,
     AdvancedApprovalsSquare,
     Zoom,
