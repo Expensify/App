@@ -112,7 +112,7 @@ function MerchantOrDescriptionCell({merchantOrDescription, shouldShowTooltip, sh
                 shouldShowTooltip={shouldShowTooltip}
                 text={localValue}
                 numberOfLines={1}
-                style={shouldUseNarrowLayout ? [styles.lh20, styles.pre, styles.justifyContentCenter, styles.flex1] : [styles.lineHeightXLarge, styles.preWrap]}
+                style={shouldUseNarrowLayout ? [styles.lh20, styles.pre, styles.justifyContentCenter, styles.flex1] : [styles.lineHeightXLarge]}
             />
         </EditableCell>
     );
