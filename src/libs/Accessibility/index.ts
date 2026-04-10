@@ -1,6 +1,7 @@
 import {useCallback, useState, useSyncExternalStore} from 'react';
 import type {LayoutChangeEvent} from 'react-native';
 import {AccessibilityInfo} from 'react-native';
+import isScreenReaderEnabled from './isScreenReaderEnabled';
 import moveAccessibilityFocus from './moveAccessibilityFocus';
 
 type HitSlop = {x: number; y: number};
@@ -13,7 +14,7 @@ function subscribeScreenReader(callback: () => void) {
         callback();
     });
 
-    AccessibilityInfo.isScreenReaderEnabled()
+    isScreenReaderEnabled()
         .then((enabled) => {
             cachedScreenReaderValue = enabled;
             callback();
