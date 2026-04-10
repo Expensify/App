@@ -8,6 +8,8 @@ import FocusTrapForScreens from '@components/FocusTrap/FocusTrapForScreen';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isMobileSafari} from '@libs/Browser';
 import GoogleTagManager from '@libs/GoogleTagManager';
@@ -42,6 +44,9 @@ let signUpEventPublishedForAccountID: number | undefined;
 
 function OnboardingModalNavigator() {
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
+    const insets = useSafeAreaInsets();
+    const safeAreaPadding = StyleUtils.getPlatformSafeAreaPadding(insets);
     const {onboardingIsMediumOrLargerScreenWidth} = useResponsiveLayout();
     const outerViewRef = React.useRef<View>(null);
     const [account, accountMetadata] = useOnyx(ONYXKEYS.ACCOUNT);
@@ -118,7 +123,12 @@ function OnboardingModalNavigator() {
                 <FocusTrapForScreens>
                     <View
                         onClick={(e) => e.stopPropagation()}
-                        style={[styles.maxHeight100Percentage, styles.overflowHidden, styles.OnboardingNavigatorInnerView(onboardingIsMediumOrLargerScreenWidth)]}
+                        style={[
+                            styles.maxHeight100Percentage,
+                            styles.overflowHidden,
+                            styles.OnboardingNavigatorInnerView(onboardingIsMediumOrLargerScreenWidth),
+                            {paddingLeft: safeAreaPadding.paddingLeft, paddingRight: safeAreaPadding.paddingRight},
+                        ]}
                     >
                         <Stack.Navigator
                             screenOptions={defaultScreenOptions}
