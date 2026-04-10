@@ -1126,7 +1126,6 @@ const translations: TranslationDeepObject<typeof en> = {
         flash: 'フラッシュ',
         multiScan: 'マルチスキャン',
         shutter: 'シャッター',
-        flipCamera: 'カメラを反転',
         gallery: 'ギャラリー',
         deleteReceipt: '領収書を削除',
         deleteConfirmation: 'この領収書を削除してもよろしいですか？',
@@ -1604,6 +1603,11 @@ const translations: TranslationDeepObject<typeof en> = {
         failedToAutoApproveViaDEW: (reason: string) => `<a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">ワークスペースルール</a>で承認に失敗しました。${reason}`,
         failedToApproveViaDEW: (reason: string) => `承認に失敗しました。${reason}`,
         cannotDuplicateDistanceExpense: '距離精算はワークスペースごとにレートが異なる可能性があるため、ワークスペース間で複製することはできません。',
+        taxDisabledAlert: {
+            title: '税が無効です',
+            prompt: '経費の詳細を編集したり、この経費から税金を削除したりするには、ワークスペースで税金の追跡を有効にしてください。',
+            confirmText: '税を削除',
+        },
     },
     transactionMerge: {
         listPage: {
@@ -2839,6 +2843,7 @@ ${date} の ${merchant} への ${amount}`,
         workspaceYouMayJoin: (domain: string, email: string) => `${domain} のユーザーがすでにワークスペースを作成しています。${email} に送信されたマジックコードを入力してください。`,
         joinAWorkspace: 'ワークスペースに参加',
         listOfWorkspaces: '参加できるワークスペースの一覧です。今参加しなくても、後からいつでも参加できます。',
+        skipForNow: '今はスキップ',
         workspaceMemberList: (employeeCount: number, policyOwner: string) => `${employeeCount}人のメンバー${employeeCount > 1 ? 's' : ''}・${policyOwner}`,
         whereYouWork: '勤務先はどこですか？',
         errorSelection: '次に進むオプションを選択してください',
@@ -2957,7 +2962,7 @@ ${date} の ${merchant} への ${amount}`,
                 description: dedent(`
                     金額を入力するかレシートをスキャンして、*経費を提出*しましょう。
 
-                    1. ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} ボタンをクリックします。
+                    1. *+* ボタンをクリックします。
                     2. *経費を作成* を選択します。
                     3. 金額を入力するか、レシートをスキャンします。
                     4. 上司のメールアドレスまたは電話番号を追加します。
@@ -2971,7 +2976,7 @@ ${date} の ${merchant} への ${amount}`,
                 description: dedent(`
                     金額を入力するか、領収書をスキャンして*経費を提出*します。
 
-                    1. ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} ボタンをクリックします。
+                    1. *+* ボタンをクリックします。
                     2. *経費を作成* を選択します。
                     3. 金額を入力するか、領収書をスキャンします。
                     4. 詳細を確認します。
@@ -2985,7 +2990,7 @@ ${date} の ${merchant} への ${amount}`,
                 description: dedent(`
                     領収書の有無にかかわらず、どの通貨でも*経費を記録*できます。
 
-                    1. ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} ボタンをクリックします。
+                    1. *+* ボタンをクリックします。
                     2. *経費を作成* を選択します。
                     3. 金額を入力するか、領収書をスキャンします。
                     4. *個人*スペースを選択します。
@@ -3082,7 +3087,7 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
                 description: dedent(`
                     メールアドレスまたは電話番号を使って、誰とでも*チャットを開始*できます。
 
-                    1. ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} ボタンをクリックします。
+                    1. *+* ボタンをクリックします。
                     2. *チャットを開始* を選択します。
                     3. メールアドレスまたは電話番号を入力します。
 
@@ -3096,7 +3101,7 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
                 description: dedent(`
                     1人または複数の人と*経費を分割*しましょう。
 
-                    1. ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} ボタンをクリックします。
+                    1. *+* ボタンをクリックします。
                     2. *チャットを開始*を選択します。
                     3. メールアドレスまたは電話番号を入力します。
                     4. チャット画面でグレーの *+* ボタンをクリックし、*経費の分割*を選択します。
@@ -3120,7 +3125,7 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
                 description: dedent(`
                     レポートの作成方法は次のとおりです：
 
-                    1. ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} ボタンをクリックします。
+                    1. *+* ボタンをクリックします。
                     2. 「レポートを作成」を選択します。
                     3. 「経費を追加」をクリックします。
                     4. 最初の経費を追加します。
@@ -7467,6 +7472,7 @@ ${reportName}
             hold: '保留',
             unhold: '保留を解除',
             reject: '却下',
+            duplicateExpense: ({count}: {count: number}) => `${count === 1 ? '経費を複製' : '経費を一括複製'}`,
             noOptionsAvailable: '選択した経費グループには利用できるオプションがありません。',
         },
         filtersHeader: 'フィルター',
@@ -7877,6 +7883,11 @@ ${reportName}
             'Expensify.org に参加して、世界中の不公正の解消に取り組みましょう。現在実施中の「Teachers Unite」キャンペーンでは、必需の学用品の費用を分担することで、すべての教育者を支援しています。',
         iKnowATeacher: '私は先生を知っています',
         iAmATeacher: '私は教師です',
+        personalKarma: {
+            title: 'パーソナルカルマを有効にする',
+            description: '毎月の支出500ドルごとに1ドルを Expensify.org に寄付します',
+            stopDonationsPrompt: 'Expensify.org への寄付をやめてもよろしいですか？',
+        },
         getInTouch: '素晴らしいです！その方の情報を共有していただければ、こちらからご連絡いたします。',
         introSchoolPrincipal: '学校校長への紹介',
         schoolPrincipalVerifyExpense: 'Expensify.org は、低所得世帯の生徒がより良い学習体験を得られるよう、必要な学用品の費用を分担します。あなたの経費は、校長により確認されます。',

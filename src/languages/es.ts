@@ -1082,7 +1082,6 @@ const translations: TranslationDeepObject<typeof en> = {
         flash: 'flash',
         multiScan: 'escaneo múltiple',
         shutter: 'obturador',
-        flipCamera: 'cambiar cámara',
         gallery: 'galería',
         deleteReceipt: 'Eliminar recibo',
         deleteConfirmation: '¿Estás seguro de que quieres borrar este recibo?',
@@ -1559,6 +1558,11 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         duplicateNonDefaultWorkspacePerDiemError: 'No puedes duplicar gastos de viáticos entre espacios de trabajo porque las tarifas pueden variar entre ellos.',
         cannotDuplicateDistanceExpense: 'No puedes duplicar gastos de distancia entre espacios de trabajo porque las tasas pueden diferir entre espacios de trabajo.',
+        taxDisabledAlert: {
+            title: 'Impuesto deshabilitado',
+            prompt: 'Habilita el seguimiento de impuestos en el espacio de trabajo para editar los detalles del gasto o eliminar el impuesto de este gasto.',
+            confirmText: 'Eliminar impuesto',
+        },
     },
     transactionMerge: {
         listPage: {
@@ -2724,6 +2728,7 @@ ${amount} para ${merchant} - ${date}`,
         workspaceYouMayJoin: (domain, email) => `Alguien de ${domain} ya ha creado un espacio de trabajo. Por favor, introduce el código mágico enviado a ${email}.`,
         joinAWorkspace: 'Unirse a un espacio de trabajo',
         listOfWorkspaces: 'Aquí está la lista de espacios de trabajo a los que puedes unirte. No te preocupes, siempre puedes unirte a ellos más tarde si lo prefieres.',
+        skipForNow: 'Omitir por ahora',
         whereYouWork: '¿Dónde trabajas?',
         errorSelection: 'Selecciona una opción para continuar',
         purpose: {
@@ -2843,7 +2848,7 @@ ${amount} para ${merchant} - ${date}`,
                 description: dedent(`
                     *Envía un gasto* introduciendo una cantidad o escaneando un recibo.
 
-                    1. Haz clic en el botón ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}.
+                    1. Haz clic en el botón *+*.
                     2. Elige *Crear gasto*.
                     3. Introduce una cantidad o escanea un recibo.
                     4. Añade el correo o teléfono de tu jefe.
@@ -2857,7 +2862,7 @@ ${amount} para ${merchant} - ${date}`,
                 description: dedent(`
                     *Envía un gasto* introduciendo una cantidad o escaneando un recibo.
 
-                    1. Haz clic en el botón ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}.
+                    1. Haz clic en el botón *+*.
                     2. Elige *Crear gasto*.
                     3. Introduce una cantidad o escanea un recibo.
                     4. Confirma los detalles.
@@ -2871,7 +2876,7 @@ ${amount} para ${merchant} - ${date}`,
                 description: dedent(`
                     *Organiza un gasto* en cualquier moneda, tengas recibo o no.
 
-                    1. Haz clic en el botón ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}.
+                    1. Haz clic en el botón *+*.
                     2. Elige *Crear gasto*.
                     3. Introduce una cantidad o escanea un recibo.
                     4. Elige tu espacio *personal*.
@@ -2973,7 +2978,7 @@ ${amount} para ${merchant} - ${date}`,
                 description: dedent(`
                     *Inicia un chat* con cualquier persona usando su correo o número.
 
-                    1. Haz clic en el botón ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}.
+                    1. Haz clic en el botón *+*.
                     2. Elige *Iniciar chat*.
                     3. Introduce un correo o teléfono.
 
@@ -2987,7 +2992,7 @@ ${amount} para ${merchant} - ${date}`,
                 description: dedent(`
                     *Divide gastos* con una o más personas.
 
-                    1. Haz clic en el botón ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}.
+                    1. Haz clic en el botón *+*.
                     2. Elige *Iniciar chat*.
                     3. Introduce correos o teléfonos.
                     4. Haz clic en el botón gris *+* en el chat > *Dividir gasto*.
@@ -3012,7 +3017,7 @@ ${amount} para ${merchant} - ${date}`,
                 description: dedent(`
                     Así es como puedes crear un informe:
 
-                    1. Haz clic en el botón ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}.
+                    1. Haz clic en el botón *+*.
                     2. Elige *Crear informe*.
                     3. Haz clic en *Añadir gasto*.
                     4. Añade tu primer gasto.
@@ -7405,6 +7410,7 @@ ${amount} para ${merchant} - ${date}`,
             hold: 'Retener',
             unhold: 'Desbloquear',
             reject: 'Rechazar',
+            duplicateExpense: ({count}: {count: number}) => `Duplicar ${count === 1 ? 'gasto' : 'gastos'}`,
             noOptionsAvailable: 'No hay opciones disponibles para el grupo de gastos seleccionado.',
         },
         filtersHeader: 'Filtros',
@@ -8261,6 +8267,11 @@ ${amount} para ${merchant} - ${date}`,
         joinExpensifyOrg: 'Únete a Expensify.org para eliminar la injusticia en todo el mundo y ayuda a los profesores a dividir sus gastos para las aulas más necesitadas.',
         iKnowATeacher: 'Yo conozco a un profesor',
         iAmATeacher: 'Soy profesor',
+        personalKarma: {
+            title: 'Activar Karma personal',
+            description: 'Dona $1 a Expensify.org por cada $500 que gastes cada mes',
+            stopDonationsPrompt: '¿Seguro que quieres dejar de donar a Expensify.org?',
+        },
         getInTouch: '¡Excelente! Por favor, comparte tu información para que podamos ponernos en contacto con ellos.',
         introSchoolPrincipal: 'Introducción al director del colegio',
         schoolPrincipalVerifyExpense:
