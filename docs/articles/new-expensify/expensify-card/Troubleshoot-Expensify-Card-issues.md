@@ -53,6 +53,17 @@ To check your card’s remaining limit:
 
 Then, click on your card. Your **remaining limit** is displayed under the image of your Expensify Card. 
 
+## Expensify Card is frozen
+
+If your card has been frozen by a workspace admin, all new transactions will be declined until the card is unfrozen. You can check whether your card is frozen by viewing your card details:
+
+- **On web:** Go to **Account > Wallet > Expensify Card** using the navigation tabs on the left.
+- **On mobile:** Go to **Wallet > Expensify Card** using the navigation tabs at the bottom.
+
+If your card is frozen, you'll see a **Frozen** status. You can tap **Ask to unfreeze** to request that an admin unfreeze it, or contact your workspace admin directly.
+
+When a card is frozen or unfrozen, a system message is posted in the workspace chat.
+
 ## Workspace limit has run out
 
 Every workspace has a shared spend limit that affects all cards. If the workspace runs out of available funds or the bank account becomes [locked](https://help.expensify.com/articles/new-expensify/wallet-and-payments/Unlock-a-Business-Bank-Account), all cards may stop working.

@@ -107,6 +107,7 @@ If your physical card hasn't arrived within a week, confirm your mailing address
 Common reasons for Expensify card declines include:
 - **Smart Limit exceeded**: Check your available limit under **Account > Wallet**.
 - **Inactive or disabled card**: Contact your workspace admin to confirm the status of your card.
+- **Frozen card**: Your card may have been frozen by a workspace admin. Check your workspace chat for a system message, or contact your admin to unfreeze it.
 - **Incorrect details**: Double-check the CVC, ZIP code, and expiration date.
 - **Suspicious activity**: You may need to manually approve flagged transactions from your Home page.
 - **Restricted country**: Transactions are blocked in specific regions due to US sanctions.
