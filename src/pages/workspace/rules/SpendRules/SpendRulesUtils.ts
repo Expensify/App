@@ -1,6 +1,6 @@
+import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import {convertToBackendAmount, convertToDisplayString} from '@libs/CurrencyUtils';
 import CONST from '@src/CONST';
-import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import ROUTES from '@src/ROUTES';
 import type {SpendRuleForm} from '@src/types/form';
 
