@@ -8,11 +8,17 @@ function clearOnyxStateBeforeImport(): Promise<void> {
     return Onyx.clear(KEYS_TO_PRESERVE);
 }
 
-function importOnyxCollectionState(collectionsMap: Map<keyof OnyxCollectionValuesMapping, CollectionDataSet<OnyxCollectionKey>>): Promise<void[]> {
-    const collectionPromises = Array.from(collectionsMap.entries()).map(([baseKey, items]) => {
-        return items ? Onyx.setCollection(baseKey, items) : Promise.resolve();
-    });
-    return Promise.all(collectionPromises);
+function importOnyxCollectionState(collectionsMap: Map<keyof OnyxCollectionValuesMapping, CollectionDataSet<OnyxCollectionKey>>): Promise<void> {
+    const allEntries: Record<string, unknown> = {};
+    for (const [, items] of collectionsMap.entries()) {
+        if (items) {
+            Object.assign(allEntries, items);
+        }
+    }
+    if (Object.keys(allEntries).length > 0) {
+        return Onyx.multiSet(allEntries as Partial<OnyxValues>);
+    }
+    return Promise.resolve();
 }
 
 function importOnyxRegularState(state: OnyxState): Promise<void> {

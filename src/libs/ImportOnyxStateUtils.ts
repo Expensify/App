@@ -82,8 +82,8 @@ function importState(transformedState: OnyxState): Promise<void> {
     }
 
     return clearOnyxStateBeforeImport()
-        .then(() => importOnyxCollectionState(collectionsMap))
-        .then(() => importOnyxRegularState(regularState));
+        .then(() => importOnyxRegularState(regularState))
+        .then(() => importOnyxCollectionState(collectionsMap));
 }
 
 export {cleanAndTransformState, importState, transformNumericKeysToArray};
