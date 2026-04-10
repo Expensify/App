@@ -553,9 +553,9 @@ function IOURequestStepDistanceOdometer({
             return hasReadingChanges || hasImageChanges;
         },
         onConfirm: isEditingConfirmation
-            ? () => {
+            ? async () => {
                   backupHandledManually.current = true;
-                  restoreOriginalTransactionFromBackupWithImageCleanup(transactionID, isTransactionDraft);
+                  await restoreOriginalTransactionFromBackupWithImageCleanup(transactionID, isTransactionDraft);
               }
             : undefined,
     });

@@ -5,6 +5,7 @@ import {ModalActions} from '@components/Modal/Global/ModalContext';
 import useBeforeRemove from '@hooks/useBeforeRemove';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useLocalize from '@hooks/useLocalize';
+import Log from '@libs/Log';
 import setNavigationActionToMicrotaskQueue from '@libs/Navigation/helpers/setNavigationActionToMicrotaskQueue';
 import navigateAfterInteraction from '@libs/Navigation/navigateAfterInteraction';
 import navigationRef from '@libs/Navigation/navigationRef';
@@ -42,10 +43,14 @@ function useDiscardChangesConfirmation({getHasUnsavedChanges, onCancel, onVisibi
         }).then((result) => {
             onVisibilityChange?.(false);
             if (result.action === ModalActions.CONFIRM) {
-                if (onConfirm) {
-                    onConfirm?.();
-                }
-                setNavigationActionToMicrotaskQueue(navigateBack);
+                Promise.resolve()
+                    .then(() => onConfirm?.())
+                    .catch((error: unknown) => {
+                        Log.warn('[useDiscardChangesConfirmation] Failed to run onConfirm callback', {error});
+                    })
+                    .finally(() => {
+                        setNavigationActionToMicrotaskQueue(navigateBack);
+                    });
             } else {
                 blockedNavigationAction.current = undefined;
                 shouldNavigateBack.current = false;

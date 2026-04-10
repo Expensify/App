@@ -4,6 +4,7 @@ import {useCallback, useRef, useState} from 'react';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useLocalize from '@hooks/useLocalize';
+import Log from '@libs/Log';
 import navigationRef from '@libs/Navigation/navigationRef';
 import type UseDiscardChangesConfirmationOptions from './types';
 
@@ -46,10 +47,12 @@ function useDiscardChangesConfirmation({getHasUnsavedChanges, onVisibilityChange
                             navigationRef.current?.goBack();
                         }
                     };
-                    if (onConfirm) {
-                        onConfirm?.();
-                    }
-                    confirmNavigation();
+                    Promise.resolve()
+                        .then(() => onConfirm?.())
+                        .catch((error: unknown) => {
+                            Log.warn('[useDiscardChangesConfirmation] Failed to run onConfirm callback', {error});
+                        })
+                        .finally(confirmNavigation);
                 });
             },
             [getHasUnsavedChanges, onVisibilityChange, onConfirm, showConfirmModal, translate],
