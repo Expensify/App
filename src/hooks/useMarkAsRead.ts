@@ -1,6 +1,7 @@
 import {useIsFocused, useRoute} from '@react-navigation/native';
 import {useEffect, useRef, useSyncExternalStore} from 'react';
 import type {RefObject} from 'react';
+import {DeviceEventEmitter} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -50,6 +51,13 @@ function useMarkAsRead({reportID, sortedVisibleReportActions, transactionThreadR
     const lastMessageTime = useRef<string | null>(null);
 
     const lastAction = sortedVisibleReportActions.at(0);
+
+    useEffect(() => {
+        const subscription = DeviceEventEmitter.addListener(`unreadAction_${reportID}`, () => {
+            userActiveSince.current = DateUtils.getDBTime();
+        });
+        return () => subscription.remove();
+    }, [reportID]);
 
     function handleReportChangeMarkAsRead() {
         if (reportID !== prevReportID) {

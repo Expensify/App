@@ -41,6 +41,7 @@ type UseReportActionsScrollParams = {
     shouldFocusToTopOnMount: boolean;
     isOffline: boolean;
     hasOnceLoadedReportActions: boolean;
+    backTo?: string;
     onLayout?: (event: LayoutChangeEvent) => void;
 };
 
@@ -72,6 +73,7 @@ function useReportActionsScroll({
     shouldFocusToTopOnMount,
     isOffline,
     hasOnceLoadedReportActions,
+    backTo,
     onLayout,
 }: UseReportActionsScrollParams): UseReportActionsScrollResult {
     const {scrollOffsetRef} = useContext(ActionListContext);
@@ -280,7 +282,7 @@ function useReportActionsScroll({
 
         if (!hasNewestReportAction) {
             if (!Navigation.getReportRHPActiveRoute()) {
-                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID));
+                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID, undefined, undefined, backTo));
             }
             openReport({reportID, introSelected, betas});
             reportScrollManager.scrollToBottom();
