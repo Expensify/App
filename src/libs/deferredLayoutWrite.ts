@@ -148,6 +148,8 @@ function reserveDeferredWriteChannel(key: string) {
         return;
     }
 
+    flushedWatchKeys.delete(key);
+
     const safetyTimeoutId = setTimeout(() => {
         Log.warn(`[DeferredLayoutWrite] Safety timeout fired for reserved channel "${key}" - the real write was never registered`);
         channels.delete(key);

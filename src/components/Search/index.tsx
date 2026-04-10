@@ -91,9 +91,6 @@ type SearchProps = {
     searchRequestResponseStatusCode?: number | null;
     onContentReady?: () => void;
 
-    /** Pre-rendered content shown on the first frame while hooks initialize and heavy work is deferred. */
-    initialContent?: React.ReactNode;
-
     /** Callback from the parent (SearchPageNarrow) to end submit-expense navigation spans.
      *  Consolidates span-ending logic in one place. Accepts `wasListEmpty` for telemetry attributes. */
     onDestinationVisible?: (wasListEmpty: boolean, source: 'focus' | 'layout') => void;
@@ -223,7 +220,6 @@ function Search({
     onSortPressedCallback,
     searchRequestResponseStatusCode,
     onContentReady,
-    initialContent,
     onDestinationVisible,
 }: SearchProps) {
     const {type, status, sortBy, sortOrder, hash, similarSearchHash, groupBy, view} = queryJSON;
@@ -1418,7 +1414,8 @@ function Search({
             cancelSubmitFollowUpActionSpan();
         }
         didBailToFallbackState.current = true;
-    }, []);
+        onContentReady?.();
+    }, [onContentReady]);
 
     // When the render bails to an error/empty state, the SelectionList never mounts
     // so its onLayout callback (the primary flush site) never fires. This effect
@@ -1504,16 +1501,6 @@ function Search({
     // The SearchPage skeleton (useSearchLoadingState) doesn't cover this case because
     // Search must mount for its onLayout to flush the deferred CreateMoneyRequest API write, which would block the JS thread causing a slowdown on post expense creation navigation
     if (shouldShowRowSkeleton) {
-        if (initialContent) {
-            return (
-                <View
-                    style={styles.flex1}
-                    onLayout={onSkeletonLayout}
-                >
-                    {initialContent}
-                </View>
-            );
-        }
         return (
             <SearchRowSkeleton
                 shouldAnimate

@@ -1,6 +1,6 @@
 import {useFocusEffect, useNavigation, useRoute} from '@react-navigation/native';
 import React, {useCallback, useContext, useEffect, useRef, useState, useTransition} from 'react';
-import {View} from 'react-native';
+import {StyleSheet, View} from 'react-native';
 import Animated, {clamp, useAnimatedScrollHandler, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import {scheduleOnRN} from 'react-native-worklets';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
@@ -166,6 +166,7 @@ function SearchPageNarrow({queryJSON, searchResults, isMobileSelectionModeEnable
     });
     const [isInteractive, setIsInteractive] = useState(!useStaticRendering);
     const [isHeaderInteractive, setIsHeaderInteractive] = useState(!useStaticRendering);
+    const [isSearchReady, setIsSearchReady] = useState(!useStaticRendering);
     const isHeaderInteractiveRef = useRef(isHeaderInteractive);
     const [, startTransition] = useTransition();
     useEffect(() => {
@@ -179,6 +180,10 @@ function SearchPageNarrow({queryJSON, searchResults, isMobileSelectionModeEnable
             setIsHeaderInteractive(true);
         });
     }, [startTransition]);
+
+    const onSearchContentReady = useCallback(() => {
+        setIsSearchReady(true);
+    }, []);
 
     const hadFocusRef = useRef(false);
     const hadLayoutRef = useRef(false);
@@ -246,40 +251,41 @@ function SearchPageNarrow({queryJSON, searchResults, isMobileSelectionModeEnable
     const shouldShowLoadingState = !isOffline && (!isDataLoaded || !!metadata?.isLoading);
     const contentContainerStyle = !isMobileSelectionModeEnabled ? styles.searchListContentContainerStyles : undefined;
 
-    // Single element used in both phases so React.memo sees stable props.
-    // Phase 1: Rendered directly for fast perceived performance.
-    // Phase 2: Passed as initialContent to Search (onLayout is a no-op via the ref guard).
-    // Phase 3: Search transitions to the full FlashList once deferred work completes.
-    const staticListContent = (
-        <SearchStaticList
-            searchResults={searchResults}
-            queryJSON={queryJSON}
-            contentContainerStyle={contentContainerStyle}
-            onLayout={onSearchLayout}
-            onDestinationVisible={endSubmitNavigationSpans}
-        />
+    // Overlay pattern: SearchStaticList renders as an absolute-fill sibling on
+    // top of Search, so its native views are never unmounted by a tree-structure
+    // swap. Search mounts behind the overlay when isInteractive flips, and once
+    // Search signals readiness (onContentReady -> onLayout), the overlay is removed.
+    const showStaticOverlay = useStaticRendering && !isSearchReady;
+
+    const renderStaticSearchList = () => (
+        <>
+            {isInteractive && (
+                <Search
+                    searchResults={searchResults}
+                    queryJSON={queryJSON}
+                    key={queryJSON.hash}
+                    contentContainerStyle={contentContainerStyle}
+                    handleSearch={handleSearchAction}
+                    isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
+                    onSearchListScroll={scrollHandler}
+                    searchRequestResponseStatusCode={searchRequestResponseStatusCode}
+                    onDestinationVisible={endSubmitNavigationSpans}
+                    onContentReady={onSearchContentReady}
+                />
+            )}
+            {showStaticOverlay && (
+                <View style={[StyleSheet.absoluteFill, styles.appBG]}>
+                    <SearchStaticList
+                        searchResults={searchResults}
+                        queryJSON={queryJSON}
+                        contentContainerStyle={contentContainerStyle}
+                        onLayout={onSearchLayout}
+                        onDestinationVisible={endSubmitNavigationSpans}
+                    />
+                </View>
+            )}
+        </>
     );
-
-    const renderStaticSearchList = () => {
-        if (!isInteractive) {
-            return staticListContent;
-        }
-
-        return (
-            <Search
-                searchResults={searchResults}
-                queryJSON={queryJSON}
-                key={queryJSON.hash}
-                contentContainerStyle={contentContainerStyle}
-                handleSearch={handleSearchAction}
-                isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
-                onSearchListScroll={scrollHandler}
-                searchRequestResponseStatusCode={searchRequestResponseStatusCode}
-                initialContent={staticListContent}
-                onDestinationVisible={endSubmitNavigationSpans}
-            />
-        );
-    };
 
     const renderDynamicSearchList = () => {
         if (shouldShowLoadingSkeleton) {
