@@ -32,6 +32,14 @@ function setupSentry(): void {
         // In HybridApp, native SDK is initialized early in Application.onCreate (Android) and
         // AppDelegate (iOS) to capture breadcrumbs during native startup before JS loads.
         autoInitializeNativeSdk: !CONFIG.IS_HYBRID_APP,
+        // We set experimental lifecycle value to enable profiling for whole spans. Without this option profile often is dropped early and we haven't the whole picture
+        // See https://github.com/Expensify/App/issues/87489
+        // eslint-disable-next-line @typescript-eslint/naming-convention
+        _experiments: {
+            profilingOptions: {
+                lifecycle: "trace",
+            }
+        }
     });
 
     Sentry.setTag(CONST.TELEMETRY.TAGS.BUILD_TYPE, CONFIG.IS_HYBRID_APP ? CONST.TELEMETRY.BUILD_TYPE_HYBRID_APP : CONST.TELEMETRY.BUILD_TYPE_STANDALONE);
