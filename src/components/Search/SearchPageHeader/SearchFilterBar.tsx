@@ -49,7 +49,7 @@ function CardDropdown({label, PopoverComponent, sentryLabel}: SearchDropdownProp
     );
 }
 
-function TaxRateDropdowwn({label, PopoverComponent, sentryLabel}: SearchDropdownProps) {
+function TaxRateDropdown({label, PopoverComponent, sentryLabel}: SearchDropdownProps) {
     const taxRateValue = useFilterTaxRateValue();
     return (
         <DropdownButton
@@ -84,7 +84,7 @@ const FILTER_COMPONENT_MAP: Partial<Record<SearchAdvancedFiltersKey, React.Compo
     [FILTER_KEYS.FEED]: CardDropdown,
     [FILTER_KEYS.CARD_ID]: CardDropdown,
 
-    [FILTER_KEYS.TAX_RATE]: TaxRateDropdowwn,
+    [FILTER_KEYS.TAX_RATE]: TaxRateDropdown,
 
     [FILTER_KEYS.IN]: ReportDropdown,
 };
