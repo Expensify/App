@@ -147,8 +147,16 @@ function initSplitExpense(transaction: OnyxEntry<Transaction>, policy?: OnyxEntr
     if (isDistanceRequest(transaction)) {
         // When policy is undefined (e.g. viewing from self-DM), find the correct policy
         // by searching all policies for one that contains the transaction's customUnitID.
+        // If customUnitID is not yet available (e.g. optimistic transaction before server response),
+        // fall back to searching by customUnitRateID.
         const customUnitID = transaction?.comment?.customUnit?.customUnitID;
-        const effectivePolicy = policy ?? (customUnitID ? (Object.values(allPolicies ?? {}).find((p) => p?.customUnits?.[customUnitID]) ?? undefined) : undefined);
+        const customUnitRateID = transaction?.comment?.customUnit?.customUnitRateID;
+        const policyByCustomUnitID = customUnitID ? (Object.values(allPolicies ?? {}).find((p) => p?.customUnits?.[customUnitID]) ?? undefined) : undefined;
+        const policyByCustomUnitRateID =
+            !policyByCustomUnitID && customUnitRateID && customUnitRateID !== CONST.CUSTOM_UNITS.FAKE_P2P_ID
+                ? (Object.values(allPolicies ?? {}).find((p) => Object.values(p?.customUnits ?? {}).some((unit) => !!unit.rates?.[customUnitRateID])) ?? undefined)
+                : undefined;
+        const effectivePolicy = policy ?? policyByCustomUnitID ?? policyByCustomUnitRateID;
         const mileageRate = DistanceRequestUtils.getRate({transaction, policy: effectivePolicy ?? undefined});
         const {unit, rate} = mileageRate;
 

@@ -80,8 +80,17 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
 
     // When currentPolicy is undefined (e.g. viewing from self-DM), find the correct policy
     // by searching all policies for one that contains the transaction's customUnitID.
-    const distanceCustomUnitID = splitExpenseDraftTransaction?.comment?.customUnit?.customUnitID;
-    const effectivePolicy = currentPolicy ?? (distanceCustomUnitID ? (Object.values(allPolicies ?? {}).find((p) => p?.customUnits?.[distanceCustomUnitID]) ?? undefined) : undefined);
+    // Fall back to the original transaction's customUnitID when the edit draft's customUnit
+    // was built without it (e.g. optimistic transaction before server response).
+    // If customUnitID is still not available, fall back to searching by customUnitRateID.
+    const distanceCustomUnitID = splitExpenseDraftTransaction?.comment?.customUnit?.customUnitID ?? transaction?.comment?.customUnit?.customUnitID;
+    const distanceCustomUnitRateID = splitExpenseDraftTransaction?.comment?.customUnit?.customUnitRateID;
+    const policyByCustomUnitID = distanceCustomUnitID ? (Object.values(allPolicies ?? {}).find((p) => p?.customUnits?.[distanceCustomUnitID]) ?? undefined) : undefined;
+    const policyByCustomUnitRateID =
+        !policyByCustomUnitID && distanceCustomUnitRateID && distanceCustomUnitRateID !== CONST.CUSTOM_UNITS.FAKE_P2P_ID
+            ? (Object.values(allPolicies ?? {}).find((p) => Object.values(p?.customUnits ?? {}).some((unit) => !!unit.rates?.[distanceCustomUnitRateID])) ?? undefined)
+            : undefined;
+    const effectivePolicy = currentPolicy ?? policyByCustomUnitID ?? policyByCustomUnitRateID;
 
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${currentReport?.policyID}`);
 
@@ -154,6 +163,16 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
     const rates = DistanceRequestUtils.getMileageRates(effectivePolicy, false, currentRateID);
 
     const currency = splitExpenseDraftTransactionDetails.currency ?? CONST.CURRENCY.USD;
+
+    // Compute the header merchant from current distance and rate when available,
+    // so that a stale stored merchant (e.g. "Pending..." set before the MAP route was calculated)
+    // does not appear in the title. Falls back to the stored merchant otherwise.
+    const merchantToDisplay = useMemo(() => {
+        if (isDistance && distance && rate && unit) {
+            return DistanceRequestUtils.getDistanceMerchant(true, distance, unit, rate, currency, translate, toLocaleDigit, getCurrencySymbol, true);
+        }
+        return splitExpenseDraftTransactionDetails?.merchant ?? '';
+    }, [isDistance, distance, rate, unit, currency, translate, toLocaleDigit, getCurrencySymbol, splitExpenseDraftTransactionDetails?.merchant]);
 
     // For selfDM splits (no workspace policy), don't mark the rate as out-of-policy.
     // getRate already resolves the P2P rate via defaultP2PRate for selfDM transactions.
@@ -240,11 +259,7 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
             <FullPageNotFoundView shouldShow={!reportID || isEmptyObject(splitExpenseDraftTransaction) || !isSplitAvailable}>
                 <View style={[styles.flex1]}>
                     <HeaderWithBackButton
-                        title={translate(
-                            'iou.splitExpenseEditTitle',
-                            convertToDisplayString(currentAmount, splitExpenseDraftTransactionDetails?.currency),
-                            splitExpenseDraftTransactionDetails?.merchant ?? '',
-                        )}
+                        title={translate('iou.splitExpenseEditTitle', convertToDisplayString(currentAmount, splitExpenseDraftTransactionDetails?.currency), merchantToDisplay)}
                         onBackButtonPress={() => Navigation.goBack(backTo)}
                     />
                     <ScrollView>

@@ -76,10 +76,16 @@ function IOURequestStepDistanceRate({
 
     // When editing a distance split from self-DM, policyForTransaction may be undefined because the self-DM
     // report has no policyID. In that case, find the correct policy by searching for the one that contains
-    // the transaction's customUnitID.
+    // the transaction's customUnitID. If customUnitID is not available (e.g. optimistic transaction before
+    // server response), fall back to searching by customUnitRateID.
     const distanceCustomUnitID = currentTransaction?.comment?.customUnit?.customUnitID;
-    const policy =
-        policyForTransaction ?? (isEditingSplit && distanceCustomUnitID ? (Object.values(allPolicies ?? {}).find((p) => p?.customUnits?.[distanceCustomUnitID]) ?? undefined) : undefined);
+    const distanceCustomUnitRateID = currentTransaction?.comment?.customUnit?.customUnitRateID;
+    const policyByCustomUnitID = isEditingSplit && distanceCustomUnitID ? (Object.values(allPolicies ?? {}).find((p) => p?.customUnits?.[distanceCustomUnitID]) ?? undefined) : undefined;
+    const policyByCustomUnitRateID =
+        isEditingSplit && !policyByCustomUnitID && distanceCustomUnitRateID && distanceCustomUnitRateID !== CONST.CUSTOM_UNITS.FAKE_P2P_ID
+            ? (Object.values(allPolicies ?? {}).find((p) => Object.values(p?.customUnits ?? {}).some((unit) => !!unit.rates?.[distanceCustomUnitRateID])) ?? undefined)
+            : undefined;
+    const policy = policyForTransaction ?? policyByCustomUnitID ?? policyByCustomUnitRateID;
     const isDistanceRequest = isDistanceRequestTransactionUtils(currentTransaction);
     const {getCurrencySymbol, getCurrencyDecimals} = useCurrencyListActions();
     const isPolicyExpenseChat = isReportInGroupPolicy(report);
