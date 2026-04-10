@@ -5,11 +5,9 @@ import NumberWithSymbolForm from '@components/NumberWithSymbolForm';
 import type {NumberWithSymbolFormProps} from '@components/NumberWithSymbolForm';
 import ScrollView from '@components/ScrollView';
 import withNavigationFallback from '@components/withNavigationFallback';
-// eslint-disable-next-line no-restricted-imports
-import styles from '@styles/index';
-// eslint-disable-next-line no-restricted-imports
-import {defaultTheme} from '@styles/theme';
 import CONST from '@src/CONST';
+import styles from '@src/styles';
+import {defaultTheme} from '@src/styles/theme';
 
 const defaultStyles = styles(defaultTheme);
 

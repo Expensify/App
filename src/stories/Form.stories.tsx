@@ -15,13 +15,11 @@ import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import NetworkConnection from '@libs/NetworkConnection';
 import {isRequiredFulfilled} from '@libs/ValidationUtils';
-// eslint-disable-next-line no-restricted-imports
-import styles from '@styles/index';
-// eslint-disable-next-line no-restricted-imports
-import {defaultTheme} from '@styles/theme';
 import {clearErrors, setDraftValues, setErrors, setIsLoading} from '@userActions/FormActions';
 import CONST from '@src/CONST';
 import type {OnyxFormValuesMapping} from '@src/ONYXKEYS';
+import styles from '@src/styles';
+import {defaultTheme} from '@src/styles/theme';
 import type {Form} from '@src/types/form';
 import type {Network} from '@src/types/onyx';
 
