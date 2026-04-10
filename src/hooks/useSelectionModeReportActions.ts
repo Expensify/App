@@ -311,7 +311,10 @@ function useSelectionModeReportActions({
         if (isDelegateAccessRestricted) {
             showDelegateNoAccessModal();
         } else if (isAnyTransactionOnHold) {
-            setIsHoldMenuVisible(true);
+            // Defer opening the hold menu until the dropdown popover finishes its dismiss animation,
+            // otherwise the DecisionModal fails to mount on Android.
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
+            InteractionManager.runAfterInteractions(() => setIsHoldMenuVisible(true));
         } else {
             approveMoneyRequest({
                 expenseReport: report,
@@ -347,7 +350,10 @@ function useSelectionModeReportActions({
             showDelegateNoAccessModal();
         } else if (isAnyTransactionOnHold) {
             setSelectedVBBAToPayFromHoldMenu(type === CONST.IOU.PAYMENT_TYPE.VBBA ? methodID : undefined);
-            setIsHoldMenuVisible(true);
+            // Defer opening the hold menu until the dropdown popover finishes its dismiss animation,
+            // otherwise the DecisionModal fails to mount on Android.
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
+            InteractionManager.runAfterInteractions(() => setIsHoldMenuVisible(true));
         } else if (isInvoiceReport) {
             payInvoice({
                 paymentMethodType: type,
@@ -481,7 +487,7 @@ function useSelectionModeReportActions({
     })();
 
     const selectionModeReportLevelActions = (() => {
-        const actions: Array<DropdownOption<string> & Pick<PopoverMenuItem, 'backButtonText' | 'rightIcon' | 'subMenuItems' | 'shouldCallAfterModalHide'>> = [];
+        const actions: Array<DropdownOption<string> & Pick<PopoverMenuItem, 'backButtonText' | 'rightIcon' | 'subMenuItems'>> = [];
         let idx = 0;
         if (hasSubmitAction && !shouldBlockSubmit) {
             actions[idx++] = {
@@ -497,7 +503,6 @@ function useSelectionModeReportActions({
                 icon: expensifyIcons.ThumbsUp,
                 value: CONST.REPORT.PRIMARY_ACTIONS.APPROVE,
                 onSelected: handleApproveSelected,
-                shouldCallAfterModalHide: true,
             };
         }
         if (hasPayAction && !(isOffline && !canAllowSettlement)) {
@@ -509,7 +514,6 @@ function useSelectionModeReportActions({
                 backButtonText: translate('iou.settlePayment', totalAmount),
                 subMenuItems: paymentSubMenuItems,
                 onSelected: handlePaySelected,
-                shouldCallAfterModalHide: true,
             };
         }
         return actions;
