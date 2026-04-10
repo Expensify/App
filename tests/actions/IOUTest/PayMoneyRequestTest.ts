@@ -85,7 +85,6 @@ jest.mock('@libs/PolicyUtils', () => ({
 
 const CARLOS_EMAIL = 'cmartins@expensifail.com';
 const CARLOS_ACCOUNT_ID = 1;
-const JULES_ACCOUNT_ID = 2;
 const RORY_EMAIL = 'rory@expensifail.com';
 const RORY_ACCOUNT_ID = 3;
 
