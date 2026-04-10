@@ -184,7 +184,6 @@ function ReportActionsList({reportID, onLayout}: ReportActionsListProps) {
         shouldFocusToTopOnMount,
         isOffline,
         hasOnceLoadedReportActions: !!reportMetadata?.hasOnceLoadedReportActions,
-        backTo: pagination.backTo,
         onLayout,
     });
 

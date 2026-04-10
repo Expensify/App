@@ -36,13 +36,11 @@ type UseReportActionsPaginationResult = {
     parentReportActionForTransactionThread: ReportAction | undefined;
     isReportTransactionThread: boolean;
     shouldAddCreatedAction: boolean;
-    backTo: string | undefined;
 };
 
 function useReportActionsPagination(reportID: string | undefined): UseReportActionsPaginationResult {
     const route = useRoute<PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
     const reportActionID = route?.params?.reportActionID;
-    const backTo = (route?.params as {backTo?: string} | undefined)?.backTo;
 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const {isOffline} = useNetwork();
@@ -135,7 +133,6 @@ function useReportActionsPagination(reportID: string | undefined): UseReportActi
         parentReportActionForTransactionThread: thread.parentReportActionForTransactionThread,
         isReportTransactionThread: thread.isReportTransactionThread,
         shouldAddCreatedAction,
-        backTo,
     };
 }
 

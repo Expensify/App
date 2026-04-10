@@ -1,3 +1,4 @@
+import {useRoute} from '@react-navigation/native';
 import {useContext, useEffect, useLayoutEffect, useRef, useState} from 'react';
 import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent, ViewToken} from 'react-native';
 import {InteractionManager} from 'react-native';
@@ -41,7 +42,6 @@ type UseReportActionsScrollParams = {
     shouldFocusToTopOnMount: boolean;
     isOffline: boolean;
     hasOnceLoadedReportActions: boolean;
-    backTo?: string;
     onLayout?: (event: LayoutChangeEvent) => void;
 };
 
@@ -73,9 +73,11 @@ function useReportActionsScroll({
     shouldFocusToTopOnMount,
     isOffline,
     hasOnceLoadedReportActions,
-    backTo,
     onLayout,
 }: UseReportActionsScrollParams): UseReportActionsScrollResult {
+    const route = useRoute();
+    const backTo = (route?.params as {backTo?: string} | undefined)?.backTo;
+
     const {scrollOffsetRef} = useContext(ActionListContext);
     const reportScrollManager = useReportScrollManager();
 
