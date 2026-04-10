@@ -1313,9 +1313,9 @@ describe('SubscriptionUtils', () => {
                 },
             };
             // Test with canDowngrade as false (explicitly)
-            expect(shouldCalculateBillNewDot(false, policies)).toBeFalsy();
+            expect(shouldCalculateBillNewDot(testUserAccountID, false, policies)).toBeFalsy();
             // Test with canDowngrade as undefined (defaults to false in the function signature)
-            expect(shouldCalculateBillNewDot(undefined, policies)).toBeFalsy();
+            expect(shouldCalculateBillNewDot(testUserAccountID, undefined, policies)).toBeFalsy();
         });
 
         it('should return false if the user owns zero paid policies', () => {
@@ -1327,7 +1327,7 @@ describe('SubscriptionUtils', () => {
                     type: CONST.POLICY.TYPE.PERSONAL,
                 },
             };
-            expect(shouldCalculateBillNewDot(true, policies)).toBeFalsy();
+            expect(shouldCalculateBillNewDot(testUserAccountID, true, policies)).toBeFalsy();
         });
 
         it('should return false if the user owns more than one paid policy', () => {
@@ -1343,7 +1343,7 @@ describe('SubscriptionUtils', () => {
                     type: CONST.POLICY.TYPE.TEAM,
                 },
             };
-            expect(shouldCalculateBillNewDot(true, policies)).toBeFalsy();
+            expect(shouldCalculateBillNewDot(testUserAccountID, true, policies)).toBeFalsy();
         });
 
         it('should return true if canDowngrade is true and the user owns exactly one paid policy', () => {
@@ -1360,7 +1360,7 @@ describe('SubscriptionUtils', () => {
                     type: CONST.POLICY.TYPE.PERSONAL,
                 },
             };
-            expect(shouldCalculateBillNewDot(true, policies)).toBeTruthy();
+            expect(shouldCalculateBillNewDot(testUserAccountID, true, policies)).toBeTruthy();
         });
 
         it('should return false if the user owns exactly one paid policy but is not the owner', () => {
@@ -1373,7 +1373,7 @@ describe('SubscriptionUtils', () => {
                     type: CONST.POLICY.TYPE.CORPORATE,
                 },
             };
-            expect(shouldCalculateBillNewDot(true, policies)).toBeFalsy();
+            expect(shouldCalculateBillNewDot(testUserAccountID, true, policies)).toBeFalsy();
         });
 
         it('should return true if canDowngrade is true and the single paid policy is a team policy', () => {
@@ -1384,7 +1384,7 @@ describe('SubscriptionUtils', () => {
                     type: CONST.POLICY.TYPE.TEAM,
                 },
             };
-            expect(shouldCalculateBillNewDot(true, policies)).toBeTruthy();
+            expect(shouldCalculateBillNewDot(testUserAccountID, true, policies)).toBeTruthy();
         });
 
         it('should return true if canDowngrade is true and the single paid policy is a corporate policy', () => {
@@ -1395,11 +1395,11 @@ describe('SubscriptionUtils', () => {
                     type: CONST.POLICY.TYPE.CORPORATE,
                 },
             };
-            expect(shouldCalculateBillNewDot(true, policies)).toBeTruthy();
+            expect(shouldCalculateBillNewDot(testUserAccountID, true, policies)).toBeTruthy();
         });
 
         it('should return false when empty policies collection is passed', () => {
-            expect(shouldCalculateBillNewDot(true, {})).toBeFalsy();
+            expect(shouldCalculateBillNewDot(testUserAccountID, true, {})).toBeFalsy();
         });
     });
 
