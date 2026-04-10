@@ -25,7 +25,6 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useNonPersonalCardList from '@hooks/useNonPersonalCardList';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {freezeCard, unfreezeCard} from '@libs/actions/Card';
 import {resetValidateActionCodeSent} from '@libs/actions/User';
