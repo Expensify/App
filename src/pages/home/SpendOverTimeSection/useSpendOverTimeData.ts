@@ -28,7 +28,7 @@ function getSpendOverTimeState(
     queryJSON: SearchQueryJSON | undefined,
     sortedData: GroupedItem[] | undefined,
 ): SpendOverTimeState {
-    if (isOffline && (!sortedData || sortedData.length === 0)) {
+    if (isOffline && (sortedData?.length ?? 0) < 2) {
         return SPEND_OVER_TIME_STATE.OFFLINE;
     }
     if (!isOffline && Object.keys(searchResults?.errors ?? {}).length > 0) {
@@ -112,5 +112,5 @@ function useSpendOverTimeData() {
     };
 }
 
-export {SPEND_OVER_TIME_STATE};
+export {SPEND_OVER_TIME_STATE, getSpendOverTimeState};
 export default useSpendOverTimeData;
