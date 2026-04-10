@@ -147,7 +147,12 @@ const mockReportActions: OnyxTypes.ReportAction[] = [
 
 const renderReportActionsView = (props: {reportID?: string} = {}) => {
     const reportID = props.reportID ?? mockReport.reportID;
-    return render(<ReportActionsView reportID={reportID} />);
+    return render(
+        <ReportActionsView
+            reportID={reportID}
+            archivedReportsIDSet={new Set<string>()}
+        />,
+    );
 };
 
 describe('ReportActionsView', () => {

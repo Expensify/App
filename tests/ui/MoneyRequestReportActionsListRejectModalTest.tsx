@@ -194,7 +194,10 @@ const renderComponent = () => {
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
             <SearchContextProvider>
                 <ScreenWrapper testID="test">
-                    <MoneyRequestReportActionsList reportID={FAKE_REPORT_ID} />
+                    <MoneyRequestReportActionsList
+                        reportID={FAKE_REPORT_ID}
+                        archivedReportsIDSet={new Set<string>()}
+                    />
                 </ScreenWrapper>
             </SearchContextProvider>
         </ComposeProviders>,

@@ -96,6 +96,7 @@ import {
     navigateToDetailsPage,
     shouldBlockSubmitDueToStrictPolicyRules,
 } from '@libs/ReportUtils';
+import type {ArchivedReportsIDSet} from '@libs/SearchUIUtils';
 import shouldPopoverUseScrollView from '@libs/shouldPopoverUseScrollView';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {
@@ -109,7 +110,6 @@ import {
     isPerDiemRequest,
     isTransactionPendingDelete,
 } from '@libs/TransactionUtils';
-import {ActionListContext} from '@pages/inbox/ReportScreenContext';
 import {
     approveMoneyRequest,
     canApproveIOU,
@@ -161,21 +161,25 @@ type MoneyReportHeaderProps = {
 
     /** Method to trigger when pressing close button of the header */
     onBackButtonPress: () => void;
+
+    /** Set of archived report ID keys */
+    archivedReportsIDSet: ArchivedReportsIDSet;
 };
 
-function MoneyReportHeader({reportID, shouldDisplayBackButton = false, onBackButtonPress}: MoneyReportHeaderProps) {
+function MoneyReportHeader({reportID, shouldDisplayBackButton = false, onBackButtonPress, archivedReportsIDSet}: MoneyReportHeaderProps) {
     return (
         <MoneyReportHeaderModals reportID={reportID}>
             <MoneyReportHeaderContent
                 reportID={reportID}
                 shouldDisplayBackButton={shouldDisplayBackButton}
                 onBackButtonPress={onBackButtonPress}
+                archivedReportsIDSet={archivedReportsIDSet}
             />
         </MoneyReportHeaderModals>
     );
 }
 
-function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButton = false, onBackButtonPress}: MoneyReportHeaderProps) {
+function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButton = false, onBackButtonPress, archivedReportsIDSet}: MoneyReportHeaderProps) {
     const [moneyRequestReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDProp}`);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(moneyRequestReport?.policyID)}`);
     const {reportActions: unfilteredReportActions} = usePaginatedReportActions(moneyRequestReport?.reportID);
@@ -406,8 +410,6 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
 
     const isArchivedReport = useReportIsArchived(moneyRequestReport?.reportID);
     const isChatReportArchived = useReportIsArchived(chatReport?.reportID);
-    const {archivedReportsIDSet} = useContext(ActionListContext);
-
     const canMoveSingleExpense = useMemo(() => {
         if (nonPendingDeleteTransactions.length !== 1) {
             return false;

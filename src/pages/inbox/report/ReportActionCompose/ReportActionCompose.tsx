@@ -80,6 +80,7 @@ import {
     isSettled,
     temporary_getMoneyRequestOptions,
 } from '@libs/ReportUtils';
+import type {ArchivedReportsIDSet} from '@libs/SearchUIUtils';
 import {startSpan} from '@libs/telemetry/activeSpans';
 import {getTransactionID, hasReceipt as hasReceiptTransactionUtils} from '@libs/TransactionUtils';
 import {generateAccountID} from '@libs/UserUtils';
@@ -116,6 +117,9 @@ type SuggestionsRef = {
 type ReportActionComposeProps = {
     /** The ID of the report this composer is for */
     reportID: string;
+
+    /** Set of archived report ID keys */
+    archivedReportsIDSet: ArchivedReportsIDSet;
 };
 
 function AgentZeroAwareTypingIndicator({reportID}: {reportID: string}) {
@@ -148,7 +152,7 @@ function getRandomPlaceholder(translate: LocalizedTranslate): string {
 // eslint-disable-next-line import/no-mutable-exports
 let onSubmitAction = noop;
 
-function ReportActionCompose({reportID}: ReportActionComposeProps) {
+function ReportActionCompose({reportID, archivedReportsIDSet}: ReportActionComposeProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate, preferredLocale} = useLocalize();
@@ -228,7 +232,7 @@ function ReportActionCompose({reportID}: ReportActionComposeProps) {
     const [targetReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${effectiveTransactionThreadReportID ?? reportID}`);
     const reportAncestors = useAncestors(report);
     const targetReportAncestors = useAncestors(targetReport);
-    const {scrollOffsetRef, archivedReportsIDSet} = useContext(ActionListContext);
+    const {scrollOffsetRef} = useContext(ActionListContext);
 
     /**
      * Updates the Highlight state of the composer

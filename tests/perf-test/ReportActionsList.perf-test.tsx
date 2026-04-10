@@ -73,7 +73,7 @@ const mockOnLayout = jest.fn();
 const mockOnScroll = jest.fn();
 const mockLoadChats = jest.fn();
 const mockReactionListRef = {current: null};
-const mockActionListContext = {flatListRef: null, scrollPositionRef: {current: {}}, scrollOffsetRef: {current: 0}, archivedReportsIDSet: new Set<string>()};
+const mockActionListContext = {flatListRef: null, scrollPositionRef: {current: {}}, scrollOffsetRef: {current: 0}};
 
 const TEST_USER_ACCOUNT_ID = 1;
 const TEST_USER_LOGIN = 'test@test.com';

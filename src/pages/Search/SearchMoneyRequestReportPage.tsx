@@ -142,7 +142,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
     const {isEditingDisabled, isCurrentReportLoadedFromOnyx} = useIsReportReadyToDisplay(report, reportIDFromRoute, isReportArchived);
 
     const archivedReportsIDSet = useArchivedReportsIDSet();
-    const actionListValue = useActionListContextValue(archivedReportsIDSet);
+    const actionListValue = useActionListContextValue();
 
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
@@ -408,6 +408,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
                                     key={report?.reportID}
                                     onLayout={handleSubmitToDestinationVisibleLayout}
                                     backToRoute={route.params.backTo}
+                                    archivedReportsIDSet={archivedReportsIDSet}
                                 />
                                 <PortalHost name="suggestions" />
                             </DragAndDropProvider>

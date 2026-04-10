@@ -55,7 +55,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         CONST.TELEMETRY.SUBMIT_TO_DESTINATION_VISIBLE_TRIGGER.FOCUS,
     );
 
-    const actionListValue = useActionListContextValue(archivedReportsIDSet);
+    const actionListValue = useActionListContextValue();
 
     return (
         <WideRHPOverlayWrapper shouldWrap={route.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT}>
@@ -75,7 +75,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                             <LinkedActionNotFoundGuard>
                                 <ReportDragAndDropProvider>
                                     <ReportLifecycleHandler reportID={reportIDFromRoute} />
-                                    <ReportHeader />
+                                    <ReportHeader archivedReportsIDSet={archivedReportsIDSet} />
                                     <AccountManagerBanner reportID={reportIDFromRoute} />
                                     <View style={[styles.flex1, styles.flexRow]}>
                                         <WideRHPReceiptPanel />
@@ -84,8 +84,8 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                                                 style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}
                                                 testID="report-actions-view-wrapper"
                                             >
-                                                <ReportActionsList />
-                                                <ReportFooter />
+                                                <ReportActionsList archivedReportsIDSet={archivedReportsIDSet} />
+                                                <ReportFooter archivedReportsIDSet={archivedReportsIDSet} />
                                             </View>
                                         </AgentZeroStatusProvider>
                                     </View>

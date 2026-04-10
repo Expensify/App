@@ -23,6 +23,7 @@ import {
     isClosedExpenseReportWithNoExpenses,
     isCurrentUserTheOnlyParticipant,
 } from '@libs/ReportUtils';
+import type {ArchivedReportsIDSet} from '@libs/SearchUIUtils';
 import {clearAllRelatedReportActionErrors} from '@userActions/ClearReportActionErrors';
 import {
     deleteReportActionDraft,
@@ -73,6 +74,9 @@ type ReportActionItemProps = Omit<
 
     /** Did the user dismiss trying out NewDot? If true, it means they prefer using OldDot */
     isTryNewDotNVPDismissed?: boolean;
+
+    /** Set of archived report ID keys */
+    archivedReportsIDSet?: ArchivedReportsIDSet;
 };
 
 function ReportActionItem({
