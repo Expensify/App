@@ -184,7 +184,7 @@ function SpendRuleCardPage({route}: SpendRuleCardPageProps) {
         Navigation.goBack(parentRoute);
     };
 
-    const headerMessage = getHeaderMessage(listData.length > 0, false, inputValue, countryCode, false);
+    const headerMessage = eligibleCards.length > 0 ? getHeaderMessage(listData.length > 0, false, inputValue, countryCode, false) : '';
 
     return (
         <AccessOrNotFoundWrapper
