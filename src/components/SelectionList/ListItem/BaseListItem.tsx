@@ -31,7 +31,10 @@ function getAccessibilityProps<TItem extends ListItem>({
     isFocused,
     canSelectMultiple,
 }: AccessibilityProps & Pick<BaseListItemProps<TItem>, 'item' | 'isFocused' | 'canSelectMultiple'>) {
-    const accessibilityState = role === CONST.ROLE.CHECKBOX || role === CONST.ROLE.RADIO ? {checked: !!item.isSelected, selected: !!isFocused} : {selected: !!item.isSelected};
+    const accessibilityState =
+        role === CONST.ROLE.CHECKBOX || role === CONST.ROLE.RADIO
+            ? {checked: !!item.isSelected, selected: !!isFocused}
+            : {selected: !!item.isSelected, ...(item.isToggleActive != null && {checked: item.isToggleActive})};
 
     if (accessible === false) {
         return {
@@ -44,10 +47,18 @@ function getAccessibilityProps<TItem extends ListItem>({
 
     const accessibilityLabel = getAccessibilityLabel(item);
 
+    // When the row contains a toggle, use role="switch" so screen readers announce "on"/"off" instead of "checked"/"not checked".
     // For single-select lists, use role="option" with aria-selected so screen readers announce "selected"/"not selected".
     // For multi-select (checkbox/radio), keep existing role and state.
-    const isSelectableOption = !canSelectMultiple && role !== CONST.ROLE.CHECKBOX && role !== CONST.ROLE.RADIO;
-    const effectiveRole = isSelectableOption ? CONST.ROLE.OPTION : role;
+    const isCheckboxOrRadio = role === CONST.ROLE.CHECKBOX || role === CONST.ROLE.RADIO;
+    const hasToggle = item.isToggleActive != null;
+    const isSelectableOption = !hasToggle && !canSelectMultiple && !isCheckboxOrRadio;
+    let effectiveRole = role;
+    if (hasToggle && !isCheckboxOrRadio) {
+        effectiveRole = CONST.ROLE.SWITCH;
+    } else if (isSelectableOption) {
+        effectiveRole = CONST.ROLE.OPTION;
+    }
 
     return {
         role: effectiveRole,

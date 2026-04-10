@@ -145,6 +145,9 @@ type ListItem<K extends string | number = string> = {
 
     /** BCP 47 language tag for screen reader pronunciation (maps to HTML lang attribute on web) */
     lang?: string;
+
+    /** Whether the item's toggle/switch is in the "on" position (used for screen reader accessibility announcements) */
+    isToggleActive?: boolean;
 };
 
 type CommonListItemProps<TItem extends ListItem> = {

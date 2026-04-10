@@ -171,6 +171,7 @@ function WorkspaceTaxesPage({
                 isDisabled: value.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                 pendingAction: value.pendingAction ?? (Object.keys(value.pendingFields ?? {}).length > 0 ? CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE : null),
                 errors: value.errors ?? getLatestErrorFieldForAnyField(value),
+                isToggleActive: !value.isDisabled,
                 rightElement: (
                     <Switch
                         isOn={!value.isDisabled}

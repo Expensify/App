@@ -249,6 +249,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                     enabled: true,
                     required: policyTagList.required,
                     isDisabledCheckbox: isSwitchDisabled,
+                    isToggleActive: hasDependentTags ? undefined : isSwitchEnabled,
                     rightElement: hasDependentTags ? (
                         <ListItemRightCaretWithLabel labelText={translate('workspace.tags.tagCount', {count: Object.keys(policyTagList?.tags ?? {}).length})} />
                     ) : (
@@ -290,6 +291,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                 errors: tag.errors ?? undefined,
                 enabled: tag.enabled,
                 isDisabled: tag.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                isToggleActive: tag.enabled,
                 rightElement: isControlPolicyWithWideLayout ? (
                     <>
                         <View style={glCodeContainerStyle}>

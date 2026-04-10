@@ -235,6 +235,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                 isDisabled,
                 pendingAction: value.pendingAction,
                 errors: value.errors ?? undefined,
+                isToggleActive: value.enabled,
                 rightElement: isControlPolicyWithWideLayout ? (
                     <>
                         <View style={glCodeContainerStyle}>

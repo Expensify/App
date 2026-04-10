@@ -241,6 +241,7 @@ function PolicyDistanceRatesPage({
                         customUnit?.pendingFields?.attributes ??
                         (policy?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD ? policy?.pendingAction : undefined),
                     errors: value.errors ?? undefined,
+                    isToggleActive: !!value?.enabled,
                     rightElement: (
                         <Switch
                             isOn={!!value?.enabled}

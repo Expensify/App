@@ -131,6 +131,7 @@ function ReportFieldsListValuesPage({
                 keyForList: value,
                 isSelected: selectedValues[value] && canSelectMultiple,
                 enabled: !disabledListValues.at(index),
+                isToggleActive: !disabledListValues.at(index),
                 rightElement: (
                     <Switch
                         isOn={!disabledListValues.at(index)}
