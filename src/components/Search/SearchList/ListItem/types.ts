@@ -253,6 +253,9 @@ type TransactionReportGroupListItemType = TransactionGroupListItemType & {groupe
         /** Pre-computed reimbursable spend amount */
         reimbursableSpend?: number;
 
+        /** Whether the amount column should use the wide layout */
+        isAmountColumnWide?: boolean;
+
         /** Pre-computed flag indicating whether all transactions are scanning */
         isAllScanning?: boolean;
 
@@ -356,6 +359,9 @@ type TransactionMonthGroupListItemType = TransactionGroupListItemType & {grouped
 type TransactionWithdrawalIDGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID} & SearchWithdrawalIDGroup & {
         /** Final and formatted "withdrawalID" value used for displaying and sorting */
         formattedWithdrawalID?: string;
+
+        /** Whether any withdrawn date in the current results belongs to a past year */
+        shouldShowYearWithdrawn?: boolean;
     };
 
 type TransactionCategoryGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.CATEGORY} & SearchCategoryGroup & {
@@ -404,8 +410,6 @@ type TransactionListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
     lastPaymentMethod?: OnyxEntry<LastPaymentMethod>;
     /** The user's personal policy ID */
     personalPolicyID?: string;
-    /** Callback to undelete a transaction by its ID */
-    onUndelete?: (transactionID: string) => void;
 };
 
 type TransactionGroupListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
