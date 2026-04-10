@@ -4,7 +4,7 @@ import {deepEqual} from 'fast-equals';
 import mapValues from 'lodash/mapValues';
 import React, {memo, use, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import type {GestureResponderEvent, TextInput} from 'react-native';
-import {InteractionManager, Keyboard, View} from 'react-native';
+import {InteractionManager, Keyboard, View, Platform} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {Emoji} from '@assets/emojis/types';
@@ -69,7 +69,6 @@ import type {OnyxDataWithErrors} from '@libs/ErrorUtils';
 import {getLatestErrorMessageField, isReceiptError} from '@libs/ErrorUtils';
 import focusComposerWithDelay from '@libs/focusComposerWithDelay';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import getPlatform from '@libs/getPlatform';
 import {isReportMessageAttachment} from '@libs/isReportMessageAttachment';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -565,8 +564,6 @@ function PureReportActionItem({
     const {transitionActionSheetState} = ActionSheetAwareScrollView.useActionSheetAwareScrollViewActions();
     const {translate, formatPhoneNumber, localeCompare, formatTravelDate, getLocalDateFromDatetime, datetimeToCalendarTime} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
-    const platform = getPlatform();
-    const isWeb = platform === CONST.PLATFORM.WEB;
     const personalDetail = useCurrentUserPersonalDetails();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const reportID = report?.reportID ?? action?.reportID;
@@ -2122,7 +2119,7 @@ function PureReportActionItem({
                 withoutFocusOnSecondaryInteraction
                 accessibilityLabel={accessibilityLabel}
                 accessibilityHint={translate('accessibilityHints.chatMessage')}
-                accessibilityRole={!isWeb ? CONST.ROLE.BUTTON : undefined}
+                accessibilityRole={Platform.OS !== CONST.PLATFORM.WEB ? CONST.ROLE.BUTTON : undefined}
                 sentryLabel={CONST.SENTRY_LABEL.REPORT.PURE_REPORT_ACTION_ITEM}
             >
                 <Hoverable

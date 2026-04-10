@@ -2,6 +2,8 @@ import React from 'react';
 import FlatList from '@components/FlatList/FlatList';
 import useFlatListScrollKey from '@components/FlatList/hooks/useFlatListScrollKey';
 import useThemeStyles from '@hooks/useThemeStyles';
+import getPlatform from '@libs/getPlatform';
+import CONST from '@src/CONST';
 import CellRendererComponent from './CellRendererComponent';
 import shouldRemoveClippedSubviews from './shouldRemoveClippedSubviews';
 import type {InvertedFlatListProps} from './types';
@@ -42,6 +44,10 @@ function InvertedFlatList<T>({
     });
     const styles = useThemeStyles();
 
+    const platform = getPlatform();
+    const isWeb = platform === CONST.PLATFORM.WEB;
+    const focusToTopOnMount = !isWeb ? shouldFocusToTopOnMount : !shouldFocusToTopOnMount;
+
     return (
         <FlatList<T>
             // eslint-disable-next-line react/jsx-props-no-spreading
@@ -58,7 +64,7 @@ function InvertedFlatList<T>({
             contentContainerStyle={[
                 restProps.contentContainerStyle,
                 restProps.horizontal ? styles.flexRowReverse : styles.flexColumnReverse,
-                !shouldFocusToTopOnMount ? styles.justifyContentEnd : undefined,
+                !focusToTopOnMount ? styles.justifyContentEnd : undefined,
             ]}
         />
     );
