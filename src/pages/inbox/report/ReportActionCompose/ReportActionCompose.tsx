@@ -164,14 +164,12 @@ function ReportActionComposeInner({reportID}: ReportActionComposeProps) {
     const shouldAddOrReplaceReceipt = (isTransactionThreadView || isSingleTransactionView) && canEditReceipt;
     const hasReceipt = hasReceiptTransactionUtils(transaction);
 
-    const shouldDisplayDualDropZone = (() => {
-        const parentReport = getParentReport(report);
-        const isSettledOrApproved = isSettled(report) || isSettled(parentReport) || isReportApproved({report}) || isReportApproved({report: parentReport});
-        const hasMoneyRequestOptions = !!temporary_getMoneyRequestOptions(report, policy, reportParticipantIDs, betas, isReportArchived, isRestrictedToPreferredPolicy).length;
-        const canModifyReceipt = shouldAddOrReplaceReceipt && !isSettledOrApproved;
-        const isRoomOrGroupChat = isChatRoom(report) || isGroupChat(report);
-        return !isRoomOrGroupChat && (canModifyReceipt || hasMoneyRequestOptions) && !isInvoiceReport(report);
-    })();
+    const parentReport = getParentReport(report);
+    const isSettledOrApproved = isSettled(report) || isSettled(parentReport) || isReportApproved({report}) || isReportApproved({report: parentReport});
+    const hasMoneyRequestOptions = !!temporary_getMoneyRequestOptions(report, policy, reportParticipantIDs, betas, isReportArchived, isRestrictedToPreferredPolicy).length;
+    const canModifyReceipt = shouldAddOrReplaceReceipt && !isSettledOrApproved;
+    const isRoomOrGroupChat = isChatRoom(report) || isGroupChat(report);
+    const shouldDisplayDualDropZone = !isRoomOrGroupChat && (canModifyReceipt || hasMoneyRequestOptions) && !isInvoiceReport(report);
 
     const updateShouldShowSuggestionMenuToFalse = () => {
         if (!suggestionsRef.current) {
