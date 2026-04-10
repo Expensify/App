@@ -136,7 +136,7 @@ function Composer({
             readOnly={isDisabled}
             onPaste={pasteFile}
             onClear={onClear}
-            disableFullscreenUI={isInLandscapeMode}
+            disableFullscreenUI
         />
     );
 }
