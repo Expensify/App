@@ -823,10 +823,10 @@ function addActions({
         },
     ];
 
-    const snapshotDataToStore = {
-        [`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]: optimisticReport,
-        [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`]: optimisticReportActions,
-    };
+    // Initializing as an empty typed object to allow dynamic key assignment resolves TypeScript type inference issue
+    const snapshotDataToStore: NullishDeep<SearchResultDataType> = {};
+    snapshotDataToStore[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] = optimisticReport;
+    snapshotDataToStore[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`] = optimisticReportActions;
     const optimisticSnapshotUpdate = buildOptimisticSnapshotData(CONST.SEARCH.DATA_TYPES.CHAT, snapshotDataToStore);
 
     // We are pushing the optimistic report and report actions into the chat snapshot so that the newly sent message appears immediately in "Reports > Chats" while offline.
@@ -5688,7 +5688,13 @@ function deleteAppReport({
     > = [];
     const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_METADATA | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [];
     const failureData: Array<
-        OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.REPORT>
+        OnyxUpdate<
+            | typeof ONYXKEYS.COLLECTION.TRANSACTION
+            | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS
+            | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
+            | typeof ONYXKEYS.COLLECTION.REPORT
+            | typeof ONYXKEYS.COLLECTION.SNAPSHOT
+        >
     > = [];
 
     let selfDMReportID = selfDMReport?.reportID;
@@ -6035,14 +6041,14 @@ function deleteAppReport({
     });
 
     if (hash) {
+        // Initializing as an empty typed object to allow dynamic key assignment resolves TypeScript type inference issue
+        const failureSnapshotData: NullishDeep<SearchResultDataType> = {};
+        failureSnapshotData[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] = {pendingAction: null};
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
-            // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
             key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
             value: {
-                data: {
-                    [`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]: {pendingAction: null},
-                },
+                data: failureSnapshotData,
             },
         });
     }

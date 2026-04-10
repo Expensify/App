@@ -9720,26 +9720,30 @@ function updateMultipleMoneyRequests({
         // new values immediately (the snapshot is the exclusive data source for search
         // result rendering and is not automatically updated by the TRANSACTION write above).
         if (hash) {
+            // Initializing as an empty typed object to allow dynamic key assignment resolves TypeScript type inference issue
+            const optimisticSnapshotData: NullishDeep<SearchResultDataType> = {};
+            optimisticSnapshotData[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] = updatedTransaction;
+            if (optimisticViolationsData && optimisticViolationsData.onyxMethod === Onyx.METHOD.SET) {
+                optimisticSnapshotData[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`] = optimisticViolationsData.value;
+            }
             snapshotOptimisticData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}` as const,
                 value: {
-                    // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
-                    data: {
-                        [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: updatedTransaction,
-                        ...(optimisticViolationsData && {[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`]: optimisticViolationsData.value}),
-                    },
+                    data: optimisticSnapshotData,
                 },
             });
+            // Initializing as an empty typed object to allow dynamic key assignment resolves TypeScript type inference issue
+            const failureSnapshotData: NullishDeep<SearchResultDataType> = {};
+            failureSnapshotData[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] = transaction;
+            if (currentTransactionViolations) {
+                failureSnapshotData[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`] = currentTransactionViolations;
+            }
             snapshotFailureData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}` as const,
                 value: {
-                    // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
-                    data: {
-                        [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: transaction,
-                        ...(currentTransactionViolations && {[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`]: currentTransactionViolations}),
-                    },
+                    data: failureSnapshotData,
                 },
             });
         }
