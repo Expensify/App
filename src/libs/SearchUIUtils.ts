@@ -1848,6 +1848,8 @@ function processTransactionEntry(ctx: PreprocessingContext, transaction: OnyxTyp
         }
     }
 
+    // Optimistic: works when report-action keys precede transaction keys (common case).
+    // resolveExportedYearFlags() re-checks after the export map is fully built.
     if (!ctx.shouldShowYearExported) {
         const exportedAction = transaction.reportID ? ctx.lastExportedActionByReportID.get(transaction.reportID) : undefined;
         if (exportedAction?.created && DateUtils.doesDateBelongToAPastYear(exportedAction.created)) {
@@ -1876,20 +1878,35 @@ function processTransactionEntry(ctx: PreprocessingContext, transaction: OnyxTyp
 }
 
 /**
- * Report entries appear before report-action entries alphabetically, so exported-year
- * flags for reports must be resolved after the export map is fully built.
+ * The export-action map is built inline during processReportActionEntry, but report
+ * and transaction entries may have been iterated before the map was complete.
+ * This post-loop pass re-checks both against the now-complete map.
  */
 function resolveExportedYearFlags(ctx: PreprocessingContext, data: OnyxTypes.SearchResults['data']): void {
     if (ctx.shouldShowYearExported && ctx.shouldShowYearExportedReport) {
         return;
     }
+
     for (const key of ctx.reportKeys) {
+        if (ctx.shouldShowYearExported && ctx.shouldShowYearExportedReport) {
+            return;
+        }
         const item = data[key];
         const exportedAction = ctx.lastExportedActionByReportID.get(item.reportID);
         if (exportedAction?.created && DateUtils.doesDateBelongToAPastYear(exportedAction.created)) {
             ctx.shouldShowYearExported = true;
             ctx.shouldShowYearExportedReport = true;
-            break;
+        }
+    }
+
+    if (!ctx.shouldShowYearExported) {
+        for (const key of ctx.transactionKeys) {
+            const transaction = data[key];
+            const exportedAction = transaction.reportID ? ctx.lastExportedActionByReportID.get(transaction.reportID) : undefined;
+            if (exportedAction?.created && DateUtils.doesDateBelongToAPastYear(exportedAction.created)) {
+                ctx.shouldShowYearExported = true;
+                break;
+            }
         }
     }
 }
@@ -1922,23 +1939,24 @@ function classifyAndPreprocess(data: OnyxTypes.SearchResults['data']): Omit<Prep
 }
 
 /**
- * Checks whether any non-dismissed violations exist that are actionable (hasAny) and
- * whether any of those are visible to the current user (hasVisible).
+ * Checks whether any non-dismissed, actionable violations are visible to the current user.
+ * A violation is "visible" only when it is both actionable (type VIOLATION, or NOTICE/WARNING
+ * with showInReview) AND passes shouldShowViolation for the user's role.
  */
-function computeViolationFlags(
+function hasVisibleViolations(
     report: OnyxEntry<OnyxTypes.Report>,
     allViolations: OnyxCollection<OnyxTypes.TransactionViolation[]>,
     currentUserEmail: string,
     currentUserAccountID: number,
     transactions: OnyxTypes.Transaction[],
     policy: OnyxEntry<OnyxTypes.Policy>,
-): {hasAny: boolean; hasVisible: boolean} {
+): boolean {
     if (!report || !allViolations || !transactions) {
-        return {hasAny: false, hasVisible: false};
+        return false;
     }
 
-    let hasAny = false;
-    let hasVisible = false;
+    let hasActionable = false;
+    let hasUserVisible = false;
 
     for (const transaction of transactions) {
         if (!transaction) {
@@ -1955,25 +1973,25 @@ function computeViolationFlags(
                 continue;
             }
 
-            if (!hasAny) {
+            if (!hasActionable) {
                 const type = violation.type;
                 const showInReview = violation.showInReview ?? false;
                 if (type === CONST.VIOLATION_TYPES.VIOLATION || ((type === CONST.VIOLATION_TYPES.NOTICE || type === CONST.VIOLATION_TYPES.WARNING) && showInReview)) {
-                    hasAny = true;
+                    hasActionable = true;
                 }
             }
 
-            if (!hasVisible && shouldShowViolation(report, policy, violation.name, currentUserEmail, true, transaction)) {
-                hasVisible = true;
+            if (!hasUserVisible && shouldShowViolation(report, policy, violation.name, currentUserEmail, true, transaction)) {
+                hasUserVisible = true;
             }
 
-            if (hasAny && hasVisible) {
-                return {hasAny, hasVisible};
+            if (hasActionable && hasUserVisible) {
+                return true;
             }
         }
     }
 
-    return {hasAny, hasVisible: hasAny && hasVisible};
+    return hasActionable && hasUserVisible;
 }
 
 /**
@@ -2645,7 +2663,7 @@ function getReportSections({
 
                 const shouldShowStatusAsPending = !!isOffline && reportItem?.pendingFields?.nextStep === CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE;
 
-                const {hasVisible: hasVisibleViolationsForReport} = computeViolationFlags(
+                const hasVisibleViolationsForReport = hasVisibleViolations(
                     reportItem,
                     allTransactionViolations ?? allViolations,
                     currentUserEmail,

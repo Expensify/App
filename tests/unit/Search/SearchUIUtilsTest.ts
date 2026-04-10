@@ -5160,30 +5160,32 @@ describe('SearchUIUtils', () => {
             });
         });
 
+        const TEST_QUERY_HASH = 99999;
+        const expenseType: typeof CONST.SEARCH.DATA_TYPES.EXPENSE = CONST.SEARCH.DATA_TYPES.EXPENSE;
+
+        function makeExpenseQueryJSON(status: string | string[]) {
+            return {
+                type: expenseType,
+                status,
+                sortBy: CONST.SEARCH.TABLE_COLUMNS.DATE,
+                sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
+                view: CONST.SEARCH.VIEW.TABLE,
+                hash: TEST_QUERY_HASH,
+                flatFilters: [],
+                inputQuery: 'type:expense' as const,
+                recentSearchHash: TEST_QUERY_HASH,
+                similarSearchHash: TEST_QUERY_HASH,
+                filters: {
+                    operator: CONST.SEARCH.SYNTAX_OPERATORS.AND,
+                    left: CONST.SEARCH.SYNTAX_FILTER_KEYS.TYPE,
+                    right: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                },
+            };
+        }
+
         describe('getTransactionsSections filtering and edge cases', () => {
             const filterTestReportID = 'filter-report-1';
             const filterTestTxID = 'filter-tx-1';
-            const expenseType: typeof CONST.SEARCH.DATA_TYPES.EXPENSE = CONST.SEARCH.DATA_TYPES.EXPENSE;
-
-            function makeExpenseQueryJSON(status: string | string[]) {
-                return {
-                    type: expenseType,
-                    status,
-                    sortBy: CONST.SEARCH.TABLE_COLUMNS.DATE,
-                    sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
-                    view: CONST.SEARCH.VIEW.TABLE,
-                    hash: 99999,
-                    flatFilters: [],
-                    inputQuery: 'type:expense' as const,
-                    recentSearchHash: 99999,
-                    similarSearchHash: 99999,
-                    filters: {
-                        operator: CONST.SEARCH.SYNTAX_OPERATORS.AND,
-                        left: CONST.SEARCH.SYNTAX_FILTER_KEYS.TYPE,
-                        right: CONST.SEARCH.DATA_TYPES.EXPENSE,
-                    },
-                };
-            }
 
             function makeFilterTestData(reportOverrides: Record<string, unknown> = {}, txOverrides: Record<string, unknown> = {}, extraData: Record<string, unknown> = {}) {
                 return {
@@ -5463,27 +5465,6 @@ describe('SearchUIUtils', () => {
         describe('getReportSections filtering and edge cases', () => {
             const rptFilterReportID = 'rpt-filter-report-1';
             const rptFilterTxID = 'rpt-filter-tx-1';
-            const expenseType: typeof CONST.SEARCH.DATA_TYPES.EXPENSE = CONST.SEARCH.DATA_TYPES.EXPENSE;
-
-            function makeExpenseQueryJSON(status: string | string[]) {
-                return {
-                    type: expenseType,
-                    status,
-                    sortBy: CONST.SEARCH.TABLE_COLUMNS.DATE,
-                    sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
-                    view: CONST.SEARCH.VIEW.TABLE,
-                    hash: 99999,
-                    flatFilters: [],
-                    inputQuery: 'type:expense' as const,
-                    recentSearchHash: 99999,
-                    similarSearchHash: 99999,
-                    filters: {
-                        operator: CONST.SEARCH.SYNTAX_OPERATORS.AND,
-                        left: CONST.SEARCH.SYNTAX_FILTER_KEYS.TYPE,
-                        right: CONST.SEARCH.DATA_TYPES.EXPENSE,
-                    },
-                };
-            }
 
             function makeReportFilterTestData(reportOverrides: Record<string, unknown> = {}, txOverrides: Record<string, unknown> = {}, extraData: Record<string, unknown> = {}) {
                 return {
