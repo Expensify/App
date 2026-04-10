@@ -825,6 +825,7 @@ const SCREENS = {
         RULES_PROHIBITED_DEFAULT: 'Rules_Prohibited_Default',
         RULES_MERCHANT_NEW: 'Rules_Merchant_New',
         RULES_SPEND_NEW: 'Rules_Spend_New',
+        RULES_SPEND_EDIT: 'Rules_Spend_Edit',
         RULES_SPEND_CARD: 'Rules_Spend_Card',
         RULES_SPEND_CATEGORY: 'Rules_Spend_Category',
         RULES_SPEND_MAX_AMOUNT: 'Rules_Spend_Max_Amount',
