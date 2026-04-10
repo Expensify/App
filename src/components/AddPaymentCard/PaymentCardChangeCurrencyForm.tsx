@@ -6,7 +6,7 @@ import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import SelectionList from '@components/SelectionList';
-import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
+import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
@@ -132,12 +132,14 @@ function PaymentCardChangeCurrencyForm({changeBillingCurrency, isSecurityCodeReq
         <View style={[styles.mh5, styles.flexGrow1]}>
             <SelectionList
                 data={currencyOptions}
-                ListItem={SingleSelectListItem}
+                ListItem={RadioListItem}
                 onSelectRow={(option) => {
                     selectCurrency(option.value);
                 }}
                 style={{containerStyle: styles.mhn5}}
+                initiallyFocusedItemKey={currency}
                 customListHeader={<PaymentCardCurrencyHeader isSectionList />}
+                shouldStopPropagation
             />
         </View>
     );

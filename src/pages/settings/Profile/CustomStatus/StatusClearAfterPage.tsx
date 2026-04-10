@@ -5,7 +5,7 @@ import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
-import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
+import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
@@ -190,7 +190,7 @@ function StatusClearAfterPage() {
         () => (
             <SelectionList
                 data={statusType}
-                ListItem={SingleSelectListItem}
+                ListItem={RadioListItem}
                 onSelectRow={updateMode}
                 listFooterContent={listFooterContent}
                 confirmButtonOptions={confirmButtonOptions}

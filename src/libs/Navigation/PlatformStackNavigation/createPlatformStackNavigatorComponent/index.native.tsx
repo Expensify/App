@@ -12,6 +12,7 @@ import type {
     PlatformStackNavigatorProps,
     PlatformStackRouterOptions,
 } from '@libs/Navigation/PlatformStackNavigation/types';
+import wrapDescriptorsWithFreeze from './wrapDescriptorsWithFreeze';
 
 function createPlatformStackNavigatorComponent<RouterOptions extends PlatformStackRouterOptions = PlatformStackRouterOptions>(
     displayName: string,
@@ -23,6 +24,7 @@ function createPlatformStackNavigatorComponent<RouterOptions extends PlatformSta
     const useCustomEffects = options?.useCustomEffects ?? (() => undefined);
     const ExtraContent = options?.ExtraContent;
     const NavigationContentWrapper = options?.NavigationContentWrapper;
+    const freezeNonTopScreens = options?.freezeNonTopScreens;
 
     function PlatformNavigator({
         id,
@@ -87,6 +89,8 @@ function createPlatformStackNavigatorComponent<RouterOptions extends PlatformSta
         // Executes custom effects defined in "useCustomEffects" navigator option.
         useCustomEffects(customCodePropsWithCustomState);
 
+        const wrappedDescriptors = freezeNonTopScreens ? wrapDescriptorsWithFreeze(descriptors, state) : descriptors;
+
         const Content = useMemo(
             () => (
                 <NavigationContent>
@@ -94,7 +98,7 @@ function createPlatformStackNavigatorComponent<RouterOptions extends PlatformSta
                         // eslint-disable-next-line react/jsx-props-no-spreading
                         {...props}
                         state={state}
-                        descriptors={descriptors}
+                        descriptors={wrappedDescriptors}
                         navigation={navigation}
                         describe={describe}
                     />
@@ -104,7 +108,7 @@ function createPlatformStackNavigatorComponent<RouterOptions extends PlatformSta
                     )}
                 </NavigationContent>
             ),
-            [NavigationContent, customCodePropsWithCustomState, describe, descriptors, navigation, props, state],
+            [NavigationContent, customCodePropsWithCustomState, describe, wrappedDescriptors, navigation, props, state],
         );
 
         // eslint-disable-next-line react/jsx-props-no-spreading

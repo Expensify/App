@@ -16,7 +16,6 @@ import {createRandomReport} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
-jest.mock('@components/Icon/Expensicons');
 jest.mock('@libs/Navigation/Navigation');
 jest.mock('@hooks/useAnimatedHighlightStyle');
 

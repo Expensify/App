@@ -1,6 +1,7 @@
 import React, {useCallback, useMemo} from 'react';
 import type {ReactNode} from 'react';
 import {View} from 'react-native';
+import type {StyleProp, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Button from '@components/Button';
 import DistanceMapView from '@components/DistanceMapView';
@@ -35,13 +36,16 @@ type DistanceRequestFooterProps = {
 
     /** The policy */
     policy: OnyxEntry<Policy>;
+
+    /** Optional style for the map container */
+    mapContainerStyle?: StyleProp<ViewStyle>;
 };
 
-function DistanceRequestFooter({waypoints, transaction, navigateToWaypointEditPage, policy}: DistanceRequestFooterProps) {
+function DistanceRequestFooter({waypoints, transaction, navigateToWaypointEditPage, policy, mapContainerStyle}: DistanceRequestFooterProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['DotIndicator', 'DotIndicatorUnfilled', 'Location', 'Plus'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['DotIndicator', 'DotIndicatorUnfilled', 'Location', 'Plus']);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
     const activePolicy = usePolicy(activePolicyID);
@@ -110,7 +114,7 @@ function DistanceRequestFooter({waypoints, transaction, navigateToWaypointEditPa
                     />
                 </View>
             )}
-            <View style={styles.mapViewContainer}>
+            <View style={[styles.mapViewContainer, mapContainerStyle]}>
                 <DistanceMapView
                     accessToken={mapboxAccessToken?.token ?? ''}
                     mapPadding={CONST.MAPBOX.PADDING}

@@ -5,7 +5,6 @@ import Icon from '@components/Icon';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import type {PressableWithFeedbackProps} from '@components/Pressable/PressableWithFeedback';
-import SelectionCheckbox from '@components/SelectionList/components/SelectionCheckbox';
 import getAccessibilityLabel from '@components/SelectionList/utils/getAccessibilityLabel';
 import useHover from '@hooks/useHover';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -83,8 +82,9 @@ function BaseListItem<TItem extends ListItem>({
     onFocus = () => {},
     hoverStyle,
     onLongPressRow,
-    shouldUseDefaultRightHandSideCheckmark = false,
-    shouldHighlightSelectedItem = false,
+    testID,
+    shouldUseDefaultRightHandSideCheckmark = true,
+    shouldHighlightSelectedItem = true,
     shouldDisableHoverStyle,
     shouldShowRightCaret = false,
     accessible,
@@ -97,12 +97,34 @@ function BaseListItem<TItem extends ListItem>({
     const {hovered, bind} = useHover();
     const {isMouseDownOnInput} = useMouseState();
     const {setMouseUp} = useMouseActions();
-    const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'Checkmark', 'DotIndicator'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'Checkmark', 'DotIndicator']);
 
     const pressableRef = useRef<View>(null);
 
     // Sync focus on an item
     useSyncFocus(pressableRef, !!isFocused, shouldSyncFocus);
+
+    // List items use role="option" which doesn't natively respond to Enter key presses.
+    // When the list-level keyboard shortcut is disabled (disableKeyboardShortcuts), we handle
+    // Enter activation here at the item level so each row can still be activated individually
+    // without interfering with other focusable controls (e.g. footer inputs) on the same screen.
+    const handleKeyDown = (event: React.KeyboardEvent) => {
+        if (
+            shouldPreventEnterKeySubmit ||
+            accessible === false ||
+            event.key !== CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey ||
+            event.shiftKey ||
+            event.metaKey ||
+            event.ctrlKey ||
+            item.isInteractive === false
+        ) {
+            return;
+        }
+
+        event.preventDefault();
+        onSelectRow(item);
+    };
+
     const handleMouseLeave = (e: React.MouseEvent<Element, MouseEvent>) => {
         bind.onMouseLeave();
         e.stopPropagation();
@@ -121,9 +143,11 @@ function BaseListItem<TItem extends ListItem>({
         return rightHandSideComponent;
     };
 
-    const shouldShowCheckbox = !canSelectMultiple && !rightHandSideComponent && shouldUseDefaultRightHandSideCheckmark;
+    const shouldShowCheckmark = !canSelectMultiple && !!item.isSelected && !rightHandSideComponent && shouldUseDefaultRightHandSideCheckmark;
 
     const shouldShowRBRIndicator = (!item.isSelected || !!item.canShowSeveralIndicators) && !!item.brickRoadIndicator && shouldDisplayRBR;
+
+    const shouldShowHiddenCheckmark = shouldShowRBRIndicator && !shouldShowCheckmark && !!item.canShowSeveralIndicators;
 
     const {role, tabIndex, accessibilityState, accessibleAndAccessibilityLabel} = getAccessibilityProps({
         role: accessibilityRole,
@@ -189,21 +213,19 @@ function BaseListItem<TItem extends ListItem>({
                 {...accessibleAndAccessibilityLabel}
                 accessibilityState={accessibilityState}
                 onMouseLeave={handleMouseLeave}
+                // When the list-level Enter shortcut is disabled (disableKeyboardShortcuts), items with role="option"
+                // won't natively fire click on Enter, so we handle it manually via onKeyDown.
+                onKeyDown={!shouldPreventEnterKeySubmit ? handleKeyDown : undefined}
                 wrapperStyle={pressableWrapperStyle}
+                testID={`${CONST.BASE_LIST_ITEM_TEST_ID}${item.keyForList}`}
             >
                 <View
-                    testID={`${CONST.BASE_LIST_ITEM_TEST_ID}${item.keyForList}`}
-                    accessibilityState={accessibilityState ?? {selected: !!isFocused}}
+                    testID={testID}
                     style={[
                         wrapperStyle,
                         isFocused &&
-                            StyleUtils.getItemBackgroundColorStyle(
-                                shouldHighlightSelectedItem && !!item.isSelected,
-                                !!isFocused,
-                                !!item.isDisabled,
-                                theme.activeComponentBG,
-                                theme.hoverComponentBG,
-                            ),
+                            shouldHighlightSelectedItem &&
+                            StyleUtils.getItemBackgroundColorStyle(!!item.isSelected, !!isFocused, !!item.isDisabled, theme.activeComponentBG, theme.hoverComponentBG),
                     ]}
                     fsClass={forwardedFSClass}
                 >
@@ -219,16 +241,17 @@ function BaseListItem<TItem extends ListItem>({
                         </View>
                     )}
 
-                    {shouldShowCheckbox && (
+                    {(shouldShowCheckmark || shouldShowHiddenCheckmark) && (
                         <View
-                            style={[styles.flexRow, styles.alignItemsCenter, styles.ml3]}
+                            style={[styles.flexRow, styles.alignItemsCenter, styles.ml3, shouldShowHiddenCheckmark ? styles.opacity0 : undefined]}
                             accessible={false}
                         >
-                            <SelectionCheckbox
-                                item={item}
-                                onSelectRow={onSelectRow}
-                                isCircular
-                            />
+                            <View>
+                                <Icon
+                                    src={icons.Checkmark}
+                                    fill={theme.success}
+                                />
+                            </View>
                         </View>
                     )}
 

@@ -1,4 +1,5 @@
 import {filterCardsHiddenFromSearch} from '@selectors/Card';
+import passthroughPolicyTagListSelector from '@selectors/PolicyTagList';
 import {emailSelector} from '@selectors/Session';
 import type {OnyxCollection} from 'react-native-onyx';
 import {getAllTaxRates, isPolicyFeatureEnabled} from '@libs/PolicyUtils';
@@ -307,7 +308,7 @@ function useAdvancedSearchFilters() {
     });
     const taxRates = getAllTaxRates(policies);
     const selectedPolicyCategories = getAllPolicyValues(policyID, ONYXKEYS.COLLECTION.POLICY_CATEGORIES, allPolicyCategories);
-    const [allPolicyTagLists = getEmptyObject<NonNullable<OnyxCollection<PolicyTagLists>>>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
+    const [allPolicyTagLists = getEmptyObject<NonNullable<OnyxCollection<PolicyTagLists>>>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {selector: passthroughPolicyTagListSelector});
     const selectedPolicyTagLists = getAllPolicyValues(policyID, ONYXKEYS.COLLECTION.POLICY_TAGS, allPolicyTagLists);
     const [hasTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {selector: hasTagsSelector});
 
@@ -375,7 +376,7 @@ function useAdvancedSearchFilters() {
                         if (key === CONST.SEARCH.SYNTAX_ROOT_KEYS.VIEW && !shouldDisplayViewFilter) {
                             return;
                         }
-                        if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.ATTENDEE && !(policyDerived?.isAttendeeTrackingEnabled ?? false)) {
+                        if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.ATTENDEE && !(policyDerived?.isAttendeeTrackingEnabled ?? true)) {
                             return;
                         }
                         if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_FIELD && !(policyDerived?.hasReportFields ?? false)) {
