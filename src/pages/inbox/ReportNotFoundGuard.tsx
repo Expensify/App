@@ -1,7 +1,6 @@
 import {useRoute} from '@react-navigation/native';
 import type {ReactNode} from 'react';
 import React, {useEffect} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -16,7 +15,6 @@ import {getParentReportActionDeletionStatus} from '@libs/TransactionNavigationUt
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isLoadingInitialReportActionsSelector} from '@src/selectors/ReportMetaData';
-import type * as OnyxTypes from '@src/types/onyx';
 
 type ReportNotFoundGuardProps = {
     children: ReactNode;
@@ -67,63 +65,42 @@ function ReportNotFoundGuard({children}: ReportNotFoundGuardProps) {
         return children;
     }
 
-    return (
-        <ReportNotFoundInnerGuard
-            report={report}
-            reportIDFromPath={routeParams?.reportID}
-            reportID={reportID}
-            isOptimisticDelete={isOptimisticDelete}
-            isInvalidReportPath={isInvalidReportPath}
-            isLoading={isLoading}
-            isLoadingApp={isLoadingApp}
-            isLoadingReportData={isLoadingReportData}
-            isLoadingInitialReportActions={isLoadingInitialReportActions}
-            isOffline={isOffline}
-            userLeavingStatus={userLeavingStatus}
-            deleteTransactionNavigateBackUrl={deleteTransactionNavigateBackUrl}
-        >
-            {children}
-        </ReportNotFoundInnerGuard>
-    );
+    return <ReportNotFoundInnerGuard reportIDFromPath={routeParams?.reportID}>{children}</ReportNotFoundInnerGuard>;
 }
 
 type ReportNotFoundInnerGuardProps = {
-    report: OnyxEntry<OnyxTypes.Report>;
     reportIDFromPath: string | undefined;
-    reportID: string | undefined;
-    isOptimisticDelete: boolean;
-    isInvalidReportPath: boolean;
-    isLoading: boolean;
-    isLoadingApp: OnyxEntry<boolean>;
-    isLoadingReportData: boolean;
-    isLoadingInitialReportActions: boolean;
-    isOffline: boolean;
-    userLeavingStatus: boolean;
-    deleteTransactionNavigateBackUrl: OnyxEntry<string>;
     children: ReactNode;
 };
 
+/**
+ * Inner guard that mounts only when the "not found" path is plausible.
+ * Re-derives all state from its own hooks (Onyx returns cached values
+ * synchronously, so the extra subscriptions are near-zero cost).
+ */
 // eslint-disable-next-line rulesdir/no-negated-variables
-function ReportNotFoundInnerGuard({
-    report,
-    reportIDFromPath,
-    reportID,
-    isOptimisticDelete,
-    isInvalidReportPath,
-    isLoading,
-    isLoadingApp,
-    isLoadingReportData,
-    isLoadingInitialReportActions,
-    isOffline,
-    userLeavingStatus,
-    deleteTransactionNavigateBackUrl,
-    children,
-}: ReportNotFoundInnerGuardProps) {
+function ReportNotFoundInnerGuard({reportIDFromPath, children}: ReportNotFoundInnerGuardProps) {
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {isOffline} = useNetwork();
 
+    const reportIDFromRoute = getNonEmptyStringOnyxID(reportIDFromPath);
+
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDFromRoute}`);
+    const [userLeavingStatus = false] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_USER_IS_LEAVING_ROOM}${reportIDFromRoute}`);
+    const [isLoadingInitialReportActions = true] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportIDFromRoute}`, {
+        selector: isLoadingInitialReportActionsSelector,
+    });
+    const [isLoadingReportData = true] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA);
+    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
+    const [deleteTransactionNavigateBackUrl] = useOnyx(ONYXKEYS.NVP_DELETE_TRANSACTION_NAVIGATE_BACK_URL);
     const [parentReportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report?.parentReportID}`);
     const parentReportAction = useParentReportAction(report);
+
+    const reportID = report?.reportID;
+    const isOptimisticDelete = report?.statusNum === CONST.REPORT.STATUS_NUM.CLOSED;
+    const isInvalidReportPath = !!reportIDFromPath && !isValidReportIDFromPath(reportIDFromPath);
+    const isLoading = isLoadingApp !== false || isLoadingReportData || (!isOffline && !!isLoadingInitialReportActions);
 
     const {isParentActionMissingAfterLoad, isParentActionDeleted} = getParentReportActionDeletionStatus({
         parentReportID: report?.parentReportID,
