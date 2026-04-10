@@ -1,6 +1,8 @@
 import {emailSelector} from '@selectors/Session';
 import React from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
+import MenuItem from '@components/MenuItem';
+import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useOutstandingReports from '@hooks/useOutstandingReports';
@@ -16,8 +18,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
-import MenuItem from '../MenuItem';
-import MenuItemWithTopDescription from '../MenuItemWithTopDescription';
 
 type ReportDestinationPickerProps = {
     /** The selected participants */

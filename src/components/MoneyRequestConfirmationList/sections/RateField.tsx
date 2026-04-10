@@ -1,5 +1,6 @@
 import React from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
+import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -11,7 +12,6 @@ import type {IOUAction, IOUType} from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Unit} from '@src/types/onyx/Policy';
-import MenuItemWithTopDescription from '../../MenuItemWithTopDescription';
 
 type RateFieldProps = {
     distanceRateName: string | undefined;

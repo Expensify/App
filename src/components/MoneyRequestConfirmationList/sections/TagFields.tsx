@@ -1,6 +1,7 @@
 import React from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
@@ -10,7 +11,6 @@ import type {IOUAction, IOUType} from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
-import MenuItemWithTopDescription from '../../MenuItemWithTopDescription';
 
 type TagVisibilityItem = {
     shouldShow: boolean;

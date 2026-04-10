@@ -1,6 +1,8 @@
 import React from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
+import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -14,8 +16,6 @@ import type {IOUAction, IOUType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
-import MenuItemWithTopDescription from '../../MenuItemWithTopDescription';
-import TextInput from '../../TextInput';
 
 type MerchantFieldProps = {
     isMerchantRequired: boolean | undefined;

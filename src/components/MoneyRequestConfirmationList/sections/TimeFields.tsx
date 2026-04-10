@@ -1,5 +1,6 @@
 import React from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
+import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
@@ -9,7 +10,6 @@ import CONST from '@src/CONST';
 import type {IOUAction, IOUType} from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
-import MenuItemWithTopDescription from '../../MenuItemWithTopDescription';
 
 type TimeFieldsProps = {
     transaction: OnyxEntry<OnyxTypes.Transaction>;

@@ -1,6 +1,8 @@
 import React, {useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
+import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import NumberWithSymbolForm from '@components/NumberWithSymbolForm';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -18,8 +20,6 @@ import type {IOUAction, IOUType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
-import MenuItemWithTopDescription from '../../MenuItemWithTopDescription';
-import NumberWithSymbolForm from '../../NumberWithSymbolForm';
 
 type AmountFieldProps = {
     action: IOUAction;
