@@ -1,4 +1,4 @@
-import {useCallback, useEffect, useState} from 'react';
+import {useCallback, useEffect, useRef, useState} from 'react';
 
 /**
  * Hook for managing inline editing state (text, number fields).
@@ -13,6 +13,7 @@ import {useCallback, useEffect, useState} from 'react';
 function useInlineEditState<T>(canEdit: boolean | undefined, value: T, onSave?: (value: T) => void) {
     const [isEditing, setIsEditing] = useState(false);
     const [localValue, setLocalValue] = useState(value);
+    const hasEndedRef = useRef(false);
 
     // Sync local value when the source-of-truth changes externally
     useEffect(() => {
@@ -20,10 +21,15 @@ function useInlineEditState<T>(canEdit: boolean | undefined, value: T, onSave?: 
     }, [value]);
 
     const startEditing = useCallback(() => {
+        hasEndedRef.current = false;
         setIsEditing(true);
     }, []);
 
     const save = useCallback(() => {
+        if (hasEndedRef.current) {
+            return;
+        }
+        hasEndedRef.current = true;
         if (localValue !== value) {
             onSave?.(localValue);
         }
@@ -34,6 +40,10 @@ function useInlineEditState<T>(canEdit: boolean | undefined, value: T, onSave?: 
     }, [localValue, value, onSave]);
 
     const cancelEditing = useCallback(() => {
+        if (hasEndedRef.current) {
+            return;
+        }
+        hasEndedRef.current = true;
         setLocalValue(value);
         setIsEditing(false);
     }, [value]);

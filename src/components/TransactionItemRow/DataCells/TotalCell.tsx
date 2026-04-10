@@ -4,12 +4,14 @@ import {EditableCell, useInlineEditState} from '@components/Table/EditableCell';
 import type {EditableProps} from '@components/Table/EditableCell';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import TextWithTooltip from '@components/TextWithTooltip';
+import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {convertToBackendAmount, convertToDisplayString, convertToFrontendAmountAsString, getCurrencyDecimals} from '@libs/CurrencyUtils';
 import {parseFloatAnyLocale, roundToTwoDecimalPlaces} from '@libs/NumberUtils';
 import {getTransactionDetails} from '@libs/ReportUtils';
 import {getCurrency as getTransactionCurrency, isScanning} from '@libs/TransactionUtils';
+import CONST from '@src/CONST';
 import type TransactionDataCellProps from './TransactionDataCellProps';
 
 type TotalCellProps = TransactionDataCellProps & EditableProps<number>;
@@ -36,7 +38,11 @@ function TotalCell({shouldShowTooltip, transactionItem, canEdit, onSave}: TotalC
     };
 
     // localValue tracks the frontend-format amount string (e.g. "12.34") while editing
-    const {isEditing, setLocalValue, startEditing, save} = useInlineEditState(canEdit, convertToFrontendAmountAsString(absoluteAmount, currency), handleAmountSave);
+    const {isEditing, setLocalValue, startEditing, save, cancelEditing} = useInlineEditState(
+        canEdit,
+        convertToFrontendAmountAsString(absoluteAmount, getCurrencyDecimals(currency)),
+        handleAmountSave,
+    );
 
     // Ref used to programmatically focus the input when edit mode starts
     const inputRef = useRef<BaseTextInputRef | null>(null);
@@ -55,9 +61,12 @@ function TotalCell({shouldShowTooltip, transactionItem, canEdit, onSave}: TotalC
         return convertToFrontendAmountAsString(amountAsInt, decimals);
     };
 
-    const handleBlur = () => {
-        save();
+    const handleEscape = () => {
+        cancelEditing();
+        inputRef.current?.blur();
     };
+
+    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ESCAPE, handleEscape, {captureOnInputs: true, isActive: isEditing});
 
     const displayContent = (
         <TextWithTooltip
@@ -86,7 +95,7 @@ function TotalCell({shouldShowTooltip, transactionItem, canEdit, onSave}: TotalC
                     shouldRefocusOnScrollViewClick
                     onAmountChange={handleAmountChange}
                     onFormatAmount={onFormatAmount}
-                    onBlur={handleBlur}
+                    onBlur={save}
                     // EditableCell is responsible for the cell's hover and focus styles (border, background).
                     // Suppress MoneyRequestAmountInput's own border and background to avoid visual conflicts.
                     containerStyle={[styles.editableCellInputStyle]}

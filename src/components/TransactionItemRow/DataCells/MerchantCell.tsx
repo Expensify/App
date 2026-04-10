@@ -1,14 +1,16 @@
-import React, {useEffect, useMemo, useRef} from 'react';
+import React, {useMemo, useRef} from 'react';
 import type {TextInput as RNTextInput} from 'react-native';
 import {EditableCell, useInlineEditState} from '@components/Table/EditableCell';
 import type {EditableProps} from '@components/Table/EditableCell/types';
 import TextInput from '@components/TextInput';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import TextWithTooltip from '@components/TextWithTooltip';
+import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {moveSelectionToEnd, scrollToBottom} from '@libs/InputUtils';
 import Parser from '@libs/Parser';
 import StringUtils from '@libs/StringUtils';
+import CONST from '@src/CONST';
 
 type MerchantOrDescriptionCellProps = {
     merchantOrDescription: string;
@@ -28,7 +30,7 @@ function MerchantOrDescriptionCell({merchantOrDescription, shouldShowTooltip, sh
         return StringUtils.lineBreaksToSpaces(Parser.htmlToText(merchantOrDescription));
     }, [merchantOrDescription, isDescription]);
 
-    const {isEditing, localValue, setLocalValue, startEditing, save} = useInlineEditState(canEdit, text, onSave);
+    const {isEditing, localValue, setLocalValue, startEditing, save, cancelEditing} = useInlineEditState(canEdit, text, onSave);
 
     const isMultilineInput = isDescription;
 
@@ -58,30 +60,12 @@ function MerchantOrDescriptionCell({merchantOrDescription, shouldShowTooltip, sh
         });
     };
 
-    // Prevent double-save: pressing Enter can fires onSubmitEditing (on single-line inputs) then
-    // immediately triggers a blur (blurOnSubmit=true by default), which would call save twice.
-    const submitFiredRef = useRef(false);
-
-    // Reset the submit flag when entering edit mode to ensure clean state for each editing session
-    useEffect(() => {
-        if (!isEditing) {
-            return;
-        }
-        submitFiredRef.current = false;
-    }, [isEditing]);
-
-    const handleSubmitEditing = () => {
-        submitFiredRef.current = true;
-        save();
+    const handleEscape = () => {
+        cancelEditing();
+        inputRef.current?.blur();
     };
 
-    const handleBlur = () => {
-        if (submitFiredRef.current) {
-            submitFiredRef.current = false;
-            return;
-        }
-        save();
-    };
+    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ESCAPE, handleEscape, {captureOnInputs: true, isActive: isEditing});
 
     return (
         <EditableCell
@@ -94,8 +78,8 @@ function MerchantOrDescriptionCell({merchantOrDescription, shouldShowTooltip, sh
                     accessibilityLabel={isDescription ? 'Description input' : 'Merchant input'}
                     value={localValue}
                     onChangeText={handleChangeText}
-                    onBlur={handleBlur}
-                    onSubmitEditing={handleSubmitEditing}
+                    onBlur={save}
+                    onSubmitEditing={save}
                     onFocus={handleFocus}
                     autoFocus
                     submitBehavior="blurAndSubmit"
