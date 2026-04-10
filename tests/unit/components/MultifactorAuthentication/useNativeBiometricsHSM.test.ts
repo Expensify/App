@@ -285,7 +285,6 @@ describe('useNativeBiometricsHSM hook', () => {
             expect(onResult).toHaveBeenCalledWith(
                 expect.objectContaining({
                     success: true,
-                    reason: CONST.MULTIFACTOR_AUTHENTICATION.REASON.GENERIC.LOCAL_REGISTRATION_COMPLETE,
                     keyInfo: expect.objectContaining({
                         rawId: 'abc-def_ghi',
                         type: CONST.MULTIFACTOR_AUTHENTICATION.BIOMETRICS_HSM_TYPE,
@@ -345,7 +344,6 @@ describe('useNativeBiometricsHSM hook', () => {
             expect(onResult).toHaveBeenCalledWith(
                 expect.objectContaining({
                     success: true,
-                    reason: VALUES.REASON.CHALLENGE.CHALLENGE_SIGNED,
                     signedChallenge: expect.objectContaining({
                         type: CONST.MULTIFACTOR_AUTHENTICATION.BIOMETRICS_HSM_TYPE,
                     }),
@@ -409,7 +407,7 @@ describe('useNativeBiometricsHSM hook', () => {
             expect(onResult).toHaveBeenCalledWith(
                 expect.objectContaining({
                     success: false,
-                    reason: VALUES.REASON.HSM.CANCELED,
+                    reason: VALUES.REASON.LOCAL_ERRORS.HSM.CANCELED,
                 }),
             );
         });
@@ -437,7 +435,7 @@ describe('useNativeBiometricsHSM hook', () => {
             expect(onResult).toHaveBeenCalledWith(
                 expect.objectContaining({
                     success: false,
-                    reason: VALUES.REASON.HSM.KEY_NOT_FOUND,
+                    reason: VALUES.REASON.LOCAL_ERRORS.HSM.KEY_NOT_FOUND,
                 }),
             );
             expect(mockSignWithOptions).not.toHaveBeenCalled();
@@ -459,7 +457,7 @@ describe('useNativeBiometricsHSM hook', () => {
             expect(onResult).toHaveBeenCalledWith(
                 expect.objectContaining({
                     success: false,
-                    reason: VALUES.REASON.GENERIC.BAD_REQUEST,
+                    reason: VALUES.REASON.CLIENT_ERRORS.BAD_REQUEST,
                 }),
             );
         });
@@ -480,7 +478,7 @@ describe('useNativeBiometricsHSM hook', () => {
             expect(onResult).toHaveBeenCalledWith(
                 expect.objectContaining({
                     success: false,
-                    reason: VALUES.REASON.HSM.GENERIC,
+                    reason: VALUES.REASON.LOCAL_ERRORS.HSM.GENERIC,
                 }),
             );
         });

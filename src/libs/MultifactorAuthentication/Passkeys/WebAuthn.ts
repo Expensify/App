@@ -128,7 +128,7 @@ function extractAAGUID(authData: ArrayBuffer): string | undefined {
 }
 
 function isWebAuthnReason(name: string): name is MultifactorAuthenticationReason {
-    return Object.values<string>(VALUES.REASON.WEBAUTHN).includes(name);
+    return Object.values<string>(VALUES.REASON.LOCAL_ERRORS.WEBAUTHN).includes(name);
 }
 
 type DecodedWebAuthnError = {
@@ -143,7 +143,7 @@ function decodeWebAuthnError(error: unknown): DecodedWebAuthnError {
         return {reason: error.name};
     }
 
-    return {reason: VALUES.REASON.WEBAUTHN.GENERIC, message: getErrorMessage(error)};
+    return {reason: VALUES.REASON.LOCAL_ERRORS.WEBAUTHN.GENERIC, message: getErrorMessage(error)};
 }
 
 export {

@@ -68,7 +68,7 @@ function usePasskeys(): UseBiometricsReturn {
         if (!(credential.response instanceof AuthenticatorAttestationResponse)) {
             await onResult({
                 success: false,
-                reason: VALUES.REASON.WEBAUTHN.UNEXPECTED_RESPONSE,
+                reason: VALUES.REASON.LOCAL_ERRORS.WEBAUTHN.UNEXPECTED_RESPONSE,
             });
             return;
         }
@@ -96,7 +96,6 @@ function usePasskeys(): UseBiometricsReturn {
 
         await onResult({
             success: true,
-            reason: CONST.MULTIFACTOR_AUTHENTICATION.REASON.GENERIC.LOCAL_REGISTRATION_COMPLETE,
             keyInfo: {
                 rawId: credentialId,
                 type: CONST.PASSKEY_CREDENTIAL_TYPE,
@@ -123,7 +122,7 @@ function usePasskeys(): UseBiometricsReturn {
         if (reconciled.length === 0) {
             await onResult({
                 success: false,
-                reason: VALUES.REASON.WEBAUTHN.REGISTRATION_REQUIRED,
+                reason: VALUES.REASON.LOCAL_ERRORS.WEBAUTHN.REGISTRATION_REQUIRED,
             });
             return;
         }
@@ -147,7 +146,7 @@ function usePasskeys(): UseBiometricsReturn {
         if (!(assertion.response instanceof AuthenticatorAssertionResponse)) {
             await onResult({
                 success: false,
-                reason: VALUES.REASON.WEBAUTHN.UNEXPECTED_RESPONSE,
+                reason: VALUES.REASON.LOCAL_ERRORS.WEBAUTHN.UNEXPECTED_RESPONSE,
             });
             return;
         }
@@ -159,7 +158,6 @@ function usePasskeys(): UseBiometricsReturn {
 
         await onResult({
             success: true,
-            reason: VALUES.REASON.CHALLENGE.CHALLENGE_SIGNED,
             signedChallenge: {
                 rawId,
                 type: CONST.PASSKEY_CREDENTIAL_TYPE,
@@ -182,7 +180,7 @@ function usePasskeys(): UseBiometricsReturn {
         haveCredentialsEverBeenConfigured,
         getLocalCredentialID,
         doesDeviceSupportAuthenticationMethod,
-        deviceCheckFailureReason: VALUES.REASON.GENERIC.AUTHENTICATION_TYPE_NOT_SUPPORTED,
+        deviceCheckFailureReason: VALUES.REASON.LOCAL_ERRORS.AUTHENTICATION_TYPE_NOT_SUPPORTED,
         hasLocalCredentials,
         areLocalCredentialsKnownToServer,
         register,

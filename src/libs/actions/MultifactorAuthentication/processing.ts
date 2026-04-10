@@ -61,7 +61,7 @@ async function processScenarioAction(
     if (!params.signedChallenge) {
         return {
             success: false,
-            reason: VALUES.REASON.GENERIC.SIGNATURE_MISSING,
+            reason: VALUES.REASON.LOCAL_ERRORS.SIGNATURE_MISSING,
         };
     }
 

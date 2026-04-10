@@ -193,7 +193,7 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
 
         // 1. Check if there's an error - stop processing
         if (error) {
-            if (error.reason === CONST.MULTIFACTOR_AUTHENTICATION.REASON.BACKEND.REGISTRATION_REQUIRED) {
+            if (error.reason === CONST.MULTIFACTOR_AUTHENTICATION.REASON.CLIENT_ERRORS.REGISTRATION_REQUIRED) {
                 addMFABreadcrumb('Re-registration triggered', {reason: error.reason, httpStatusCode: error.httpStatusCode, message: error.message}, 'warning');
                 clearLocalMFAPublicKeyList();
                 dispatch({type: 'REREGISTER'});
@@ -208,7 +208,7 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
         // 2a. Check if the scenario allows the current authentication method type
         const {allowedAuthenticationMethods = [] as string[]} = scenario;
         if (!allowedAuthenticationMethods.includes(biometrics.deviceVerificationType)) {
-            const reason = CONST.MULTIFACTOR_AUTHENTICATION.REASON.GENERIC.AUTHENTICATION_TYPE_NOT_SUPPORTED;
+            const reason = CONST.MULTIFACTOR_AUTHENTICATION.REASON.LOCAL_ERRORS.AUTHENTICATION_TYPE_NOT_SUPPORTED;
             const message = `Authentication method not allowed (deviceVerificationType: ${biometrics.deviceVerificationType}, allowedMethods: ${allowedAuthenticationMethods.join(', ')})`;
             addMFABreadcrumb(
                 'Authentication method not allowed',
@@ -263,7 +263,13 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
                 const challengeType = getChallengeType(challenge);
                 if (challengeType !== CONST.MULTIFACTOR_AUTHENTICATION.CHALLENGE_TYPE.REGISTRATION) {
                     addMFABreadcrumb('Invalid registration challenge type', {challengeType: challengeType ?? 'unknown'}, 'error');
-                    dispatch({type: 'SET_ERROR', payload: {reason: CONST.MULTIFACTOR_AUTHENTICATION.REASON.BACKEND.INVALID_CHALLENGE_TYPE}});
+                    dispatch({
+                        type: 'SET_ERROR',
+                        payload: {
+                            reason: CONST.MULTIFACTOR_AUTHENTICATION.REASON.LOCAL_ERRORS.UNHANDLED_ERROR,
+                            message: `Invalid registration challenge type: ${challengeType ?? 'unknown'}`,
+                        },
+                    });
                     return;
                 }
 
@@ -283,8 +289,8 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
                     'Biometric registration completed',
                     {
                         success: result.success,
-                        reason: result.reason,
-                        message: result.success ? undefined : result?.message,
+                        reason: result.success ? undefined : result.reason,
+                        message: result.success ? undefined : result.message,
                     },
                     result.success ? 'info' : 'error',
                 );
@@ -365,7 +371,13 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
                 const challengeType = getChallengeType(challenge);
                 if (challengeType !== CONST.MULTIFACTOR_AUTHENTICATION.CHALLENGE_TYPE.AUTHENTICATION) {
                     addMFABreadcrumb('Invalid authorization challenge type', {challengeType: challengeType ?? 'unknown'}, 'error');
-                    dispatch({type: 'SET_ERROR', payload: {reason: CONST.MULTIFACTOR_AUTHENTICATION.REASON.BACKEND.INVALID_CHALLENGE_TYPE}});
+                    dispatch({
+                        type: 'SET_ERROR',
+                        payload: {
+                            reason: CONST.MULTIFACTOR_AUTHENTICATION.REASON.LOCAL_ERRORS.UNHANDLED_ERROR,
+                            message: `Invalid authorization challenge type: ${challengeType ?? 'unknown'}`,
+                        },
+                    });
                     return;
                 }
 
@@ -382,9 +394,9 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
                         'Biometric authorization completed',
                         {
                             success: result.success,
-                            reason: result.reason,
+                            reason: result.success ? undefined : result.reason,
                             authMethod: result.success ? result.authenticationMethod.code : undefined,
-                            message: result.success ? undefined : result?.message,
+                            message: result.success ? undefined : result.message,
                         },
                         result.success ? 'info' : 'error',
                     );
@@ -393,7 +405,10 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
                         // Re-registration may be needed even though we checked credentials above, because:
                         // - The local public key was deleted between the check and authorization
                         // - The server no longer accepts the local public key (not in allowCredentials)
-                        if (result.reason === CONST.MULTIFACTOR_AUTHENTICATION.REASON.HSM.KEY_ACCESS_FAILED || result.reason === CONST.MULTIFACTOR_AUTHENTICATION.REASON.HSM.KEY_NOT_FOUND) {
+                        if (
+                            result.reason === CONST.MULTIFACTOR_AUTHENTICATION.REASON.LOCAL_ERRORS.HSM.KEY_ACCESS_FAILED ||
+                            result.reason === CONST.MULTIFACTOR_AUTHENTICATION.REASON.LOCAL_ERRORS.HSM.KEY_NOT_FOUND
+                        ) {
                             addMFABreadcrumb('Authorization key reset', {reason: result.reason}, 'warning');
                             await biometrics.deleteLocalKeysForAccount();
                             dispatch({type: 'SET_REGISTRATION_COMPLETE', payload: false});
@@ -481,7 +496,7 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
             dispatch({
                 type: 'SET_ERROR',
                 payload: {
-                    reason: CONST.MULTIFACTOR_AUTHENTICATION.REASON.GENERIC.UNHANDLED_ERROR,
+                    reason: CONST.MULTIFACTOR_AUTHENTICATION.REASON.LOCAL_ERRORS.UNHANDLED_ERROR,
                     message: getErrorMessage(error),
                 },
             });
@@ -576,11 +591,11 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
             return;
         }
 
-        addMFABreadcrumb('Flow cancelled', {reason: CONST.MULTIFACTOR_AUTHENTICATION.REASON.GENERIC.CANCELED}, 'warning');
+        addMFABreadcrumb('Flow cancelled', {reason: CONST.MULTIFACTOR_AUTHENTICATION.REASON.LOCAL_ERRORS.CANCELED}, 'warning');
         dispatch({
             type: 'SET_ERROR',
             payload: {
-                reason: CONST.MULTIFACTOR_AUTHENTICATION.REASON.GENERIC.CANCELED,
+                reason: CONST.MULTIFACTOR_AUTHENTICATION.REASON.LOCAL_ERRORS.CANCELED,
             },
         });
     }, [dispatch, state.scenario, state.payload]);

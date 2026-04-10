@@ -23,14 +23,20 @@ const getHttpStatusCategory = (httpStatusCode: number): HttpStatusCategory | und
 
 const httpStatusCategoryIsDefined = (source: ParseHTTPSource, category: HttpStatusCategory): category is keyof ParseHTTPSource => Object.keys(source).some((key) => key === category);
 
-const findMessageInSource = (source: ParseHTTPSource[keyof ParseHTTPSource], message: string | undefined): MultifactorAuthenticationReason => {
-    if (!message) {
-        return VALUES.REASON.GENERIC.UNKNOWN_RESPONSE;
+const getCategoryFallbackReason = (httpStatusCategory: HttpStatusCategory): MultifactorAuthenticationReason => {
+    if (httpStatusCategory === VALUES.HTTP_STATUS.CLIENT_ERROR) {
+        return VALUES.REASON.CLIENT_ERRORS.UNHANDLED;
     }
+    if (httpStatusCategory === VALUES.HTTP_STATUS.SERVER_ERROR) {
+        return VALUES.REASON.SERVER_ERRORS.UNHANDLED;
+    }
+    return VALUES.REASON.LOCAL_ERRORS.UNHANDLED;
+};
 
-    const sourceEntries = Object.entries(source) as Array<[string, MultifactorAuthenticationReason]>;
-    const [, value] = sourceEntries.find(([backendMessage]) => message.endsWith(backendMessage)) ?? [];
-    return value ?? VALUES.REASON.GENERIC.UNKNOWN_RESPONSE;
+const findMessageInSource = (source: Record<string, MultifactorAuthenticationReason>, message: string): MultifactorAuthenticationReason | undefined => {
+    const lowerMessage = message.toLowerCase();
+    const entry = Object.entries(source).find(([backendMessage]) => lowerMessage.endsWith(backendMessage.toLowerCase()));
+    return entry?.[1];
 };
 
 /**
@@ -48,10 +54,20 @@ function parseHttpRequest(
     const httpStatusCode = Number(jsonCode ?? 0);
     const httpStatusCategory = getHttpStatusCategory(httpStatusCode);
 
-    if (!httpStatusCategory || !httpStatusCategoryIsDefined(source, httpStatusCategory)) {
+    if (!httpStatusCategory) {
         return {
             httpStatusCode,
-            reason: VALUES.REASON.GENERIC.UNKNOWN_RESPONSE,
+            reason: VALUES.REASON.LOCAL_ERRORS.UNHANDLED,
+            message,
+        };
+    }
+
+    const fallback = getCategoryFallbackReason(httpStatusCategory);
+
+    if (!httpStatusCategoryIsDefined(source, httpStatusCategory)) {
+        return {
+            httpStatusCode,
+            reason: fallback,
             message,
         };
     }
@@ -66,9 +82,13 @@ function parseHttpRequest(
         };
     }
 
+    if (!message) {
+        return {httpStatusCode, reason: fallback, message};
+    }
+
     return {
         httpStatusCode,
-        reason: findMessageInSource(responseMapEntry, message),
+        reason: findMessageInSource(responseMapEntry, message) ?? fallback,
         message,
     };
 }

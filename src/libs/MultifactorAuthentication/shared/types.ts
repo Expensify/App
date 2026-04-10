@@ -29,9 +29,8 @@ type MultifactorAuthenticationMethodCode = ValueOf<typeof NATIVE_BIOMETRICS_HSM_
 /**
  * Represents the reason for a multifactor authentication response from the backend.
  */
-type MultifactorAuthenticationReason = ValueOf<{
-    [K in keyof typeof VALUES.REASON]: ValueOf<(typeof VALUES.REASON)[K]>;
-}>;
+type DeepLeafValues<T> = T extends Record<string, unknown> ? DeepLeafValues<T[keyof T]> : T;
+type MultifactorAuthenticationReason = DeepLeafValues<typeof VALUES.REASON>;
 
 /**
  * Combined type representing all possible authentication base parameters.
