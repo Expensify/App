@@ -1126,6 +1126,7 @@ const transactionReportGroupListItems = [
         nonReimbursableSpend: -0,
         reimbursableSpend: 5000,
         isAllScanning: false,
+        isAmountColumnWide: false,
         primaryAvatar: adminAvatarIcon,
         secondaryAvatar: policyWorkspaceIcon,
         avatarType: CONST.REPORT_ACTION_AVATARS.TYPE.SUBSCRIPT,
@@ -1240,6 +1241,7 @@ const transactionReportGroupListItems = [
         nonReimbursableSpend: -0,
         reimbursableSpend: 5000,
         isAllScanning: false,
+        isAmountColumnWide: false,
         primaryAvatar: adminAvatarIcon,
         secondaryAvatar: policyWorkspaceIcon,
         avatarType: CONST.REPORT_ACTION_AVATARS.TYPE.SUBSCRIPT,
@@ -1353,6 +1355,7 @@ const transactionReportGroupListItems = [
         nonReimbursableSpend: 0,
         reimbursableSpend: 4400,
         isAllScanning: false,
+        isAmountColumnWide: false,
         primaryAvatar: approverAvatarIcon,
         secondaryAvatar: adminAvatarIcon,
         avatarType: CONST.REPORT_ACTION_AVATARS.TYPE.SUBSCRIPT,
@@ -1541,6 +1544,7 @@ const transactionReportGroupListItems = [
         nonReimbursableSpend: 0,
         reimbursableSpend: 0,
         isAllScanning: false,
+        isAmountColumnWide: false,
         primaryAvatar: adminAvatarIcon,
         secondaryAvatar: policyWorkspaceIcon,
         avatarType: CONST.REPORT_ACTION_AVATARS.TYPE.SUBSCRIPT,
@@ -1710,6 +1714,7 @@ const transactionWithdrawalIDGroupListItems: TransactionWithdrawalIDGroupListIte
         transactions: [],
         transactionsQueryJSON: undefined,
         keyForList: 'group_5',
+        shouldShowYearWithdrawn: true,
     },
     {
         bankName: CONST.BANK_NAMES.CITIBANK,
@@ -1725,6 +1730,7 @@ const transactionWithdrawalIDGroupListItems: TransactionWithdrawalIDGroupListIte
         transactions: [],
         transactionsQueryJSON: undefined,
         keyForList: 'group_30303030',
+        shouldShowYearWithdrawn: true,
     },
 ];
 
@@ -1743,6 +1749,7 @@ const transactionWithdrawalIDGroupListItemsSorted: TransactionWithdrawalIDGroupL
         transactions: [],
         transactionsQueryJSON: undefined,
         keyForList: 'group_5',
+        shouldShowYearWithdrawn: true,
     },
     {
         bankName: CONST.BANK_NAMES.CITIBANK,
@@ -1758,6 +1765,7 @@ const transactionWithdrawalIDGroupListItemsSorted: TransactionWithdrawalIDGroupL
         transactions: [],
         transactionsQueryJSON: undefined,
         keyForList: 'group_30303030',
+        shouldShowYearWithdrawn: true,
     },
 ];
 
