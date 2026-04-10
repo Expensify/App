@@ -98,7 +98,6 @@ import {
     getPolicyName,
     getReasonAndReportActionThatRequiresAttention,
     getReportIDFromLink,
-    getReportMetadata,
     getReportName as getReportNameDeprecated,
     getReportOrDraftReport,
     getReportPreviewMessage,
@@ -8402,45 +8401,6 @@ describe('ReportUtils', () => {
 
             expect(listWithout.map((item) => item?.reportID)).toEqual(['96012']);
             expect(listWith.map((item) => item?.reportID)).toEqual(['96012']);
-        });
-    });
-
-    describe('getReportMetadata cache synchronization', () => {
-        it('should remove only the deleted metadata entry while keeping other report metadata', async () => {
-            const firstReportID = '96111';
-            const secondReportID = '96112';
-            const firstMetadataKey = `${ONYXKEYS.COLLECTION.REPORT_METADATA}${firstReportID}` as OnyxKey;
-            const secondMetadataKey = `${ONYXKEYS.COLLECTION.REPORT_METADATA}${secondReportID}` as OnyxKey;
-
-            await Onyx.merge(firstMetadataKey, {pendingExpenseAction: CONST.EXPENSE_PENDING_ACTION.APPROVE});
-            await Onyx.merge(secondMetadataKey, {pendingExpenseAction: CONST.EXPENSE_PENDING_ACTION.SUBMIT});
-            await waitForBatchedUpdates();
-
-            expect(getReportMetadata(firstReportID)?.pendingExpenseAction).toBe(CONST.EXPENSE_PENDING_ACTION.APPROVE);
-            expect(getReportMetadata(secondReportID)?.pendingExpenseAction).toBe(CONST.EXPENSE_PENDING_ACTION.SUBMIT);
-
-            await Onyx.set(firstMetadataKey, null);
-            await waitForBatchedUpdates();
-
-            expect(getReportMetadata(firstReportID)).toBeUndefined();
-            expect(getReportMetadata(secondReportID)?.pendingExpenseAction).toBe(CONST.EXPENSE_PENDING_ACTION.SUBMIT);
-        });
-
-        it('should update only the changed report metadata entry', async () => {
-            const firstReportID = '96121';
-            const secondReportID = '96122';
-            const firstMetadataKey = `${ONYXKEYS.COLLECTION.REPORT_METADATA}${firstReportID}` as OnyxKey;
-            const secondMetadataKey = `${ONYXKEYS.COLLECTION.REPORT_METADATA}${secondReportID}` as OnyxKey;
-
-            await Onyx.merge(firstMetadataKey, {pendingExpenseAction: CONST.EXPENSE_PENDING_ACTION.APPROVE});
-            await Onyx.merge(secondMetadataKey, {pendingExpenseAction: CONST.EXPENSE_PENDING_ACTION.APPROVE});
-            await waitForBatchedUpdates();
-
-            await Onyx.merge(firstMetadataKey, {pendingExpenseAction: CONST.EXPENSE_PENDING_ACTION.SUBMIT});
-            await waitForBatchedUpdates();
-
-            expect(getReportMetadata(firstReportID)?.pendingExpenseAction).toBe(CONST.EXPENSE_PENDING_ACTION.SUBMIT);
-            expect(getReportMetadata(secondReportID)?.pendingExpenseAction).toBe(CONST.EXPENSE_PENDING_ACTION.APPROVE);
         });
     });
 

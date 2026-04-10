@@ -1194,35 +1194,19 @@ const allReportMetadataKeyValue: Record<string, ReportMetadata> = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT_METADATA,
     waitForCollectionCallback: true,
-    callback: (value, _collectionKey, sourceValue) => {
-        allReportMetadata = value;
-        const metadataUpdates = sourceValue ?? value;
-
-        // If sourceValue is not provided this callback is receiving a full collection snapshot.
-        // Rebuild the cache from scratch to keep it in sync with the current collection state.
-        if (!sourceValue) {
-            for (const reportID of Object.keys(allReportMetadataKeyValue)) {
-                delete allReportMetadataKeyValue[reportID];
-            }
+    callback: (value) => {
+        if (!value) {
+            return;
         }
+        allReportMetadata = value;
 
-        for (const [reportMetadataKey, reportMetadata] of Object.entries(metadataUpdates ?? {})) {
+        for (const [reportID, reportMetadata] of Object.entries(value)) {
             if (!reportMetadata) {
-                const reportID = reportMetadataKey.replace(ONYXKEYS.COLLECTION.REPORT_METADATA, '');
-                if (!reportID) {
-                    continue;
-                }
-
-                delete allReportMetadataKeyValue[reportID];
                 continue;
             }
 
-            const reportID = reportMetadataKey.replace(ONYXKEYS.COLLECTION.REPORT_METADATA, '');
-            if (!reportID) {
-                continue;
-            }
-
-            allReportMetadataKeyValue[reportID] = reportMetadata;
+            const [, id] = reportID.split('_');
+            allReportMetadataKeyValue[id] = reportMetadata;
         }
     },
 });
