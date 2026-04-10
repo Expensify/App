@@ -660,6 +660,7 @@ type ApproveMoneyRequestFunctionParams = {
     full?: boolean;
     onApproved?: () => void;
     ownerBillingGracePeriodEnd: OnyxEntry<number>;
+    delegateEmail: string | undefined;
 };
 
 type SubmitReportFunctionParams = {
@@ -6373,8 +6374,11 @@ function getIOUReportActionWithBadge(
             return false;
         }
         const iouReport = getReportOrDraftReport(action.childReportID);
-        // Only show to the actual payer, exclude admins with bank account access
-        if (canIOUBePaid(iouReport, chatReport, policy, undefined, undefined, undefined, undefined, invoiceReceiverPolicy)) {
+        // Show to the actual payer, or to policy admins via the pay-elsewhere path for negative expenses
+        if (
+            canIOUBePaid(iouReport, chatReport, policy, undefined, undefined, undefined, undefined, invoiceReceiverPolicy) ||
+            canIOUBePaid(iouReport, chatReport, policy, undefined, undefined, true, undefined, invoiceReceiverPolicy)
+        ) {
             actionBadge = CONST.REPORT.ACTION_BADGE.PAY;
             return true;
         }
@@ -6431,6 +6435,7 @@ function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
         full,
         onApproved,
         ownerBillingGracePeriodEnd,
+        delegateEmail,
     } = params;
     if (!expenseReport) {
         return;
@@ -6447,7 +6452,7 @@ function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
     if (hasHeldExpenses && !full && !!expenseReport.unheldTotal) {
         total = expenseReport.unheldTotal;
     }
-    const optimisticApprovedReportAction = buildOptimisticApprovedReportAction(total, expenseReport.currency ?? '', expenseReport.reportID, currentUserAccountIDParam);
+    const optimisticApprovedReportAction = buildOptimisticApprovedReportAction(total, expenseReport.currency ?? '', expenseReport.reportID, currentUserAccountIDParam, delegateEmail);
 
     const isDEWPolicy = hasDynamicExternalWorkflow(policy);
     const shouldAddOptimisticApproveAction = !isDEWPolicy || isOffline();
@@ -9572,6 +9577,7 @@ function updateMultipleMoneyRequests({
         if (changes.taxCode && supportsExpenseFields && canEditField(CONST.EDIT_REQUEST_FIELD.TAX_RATE)) {
             transactionChanges.taxCode = changes.taxCode;
             const taxValue = getTaxValue(transactionPolicy, transaction, changes.taxCode);
+            transactionChanges.taxValue = taxValue;
             const decimals = getCurrencyDecimals(getCurrency(transaction));
             const effectiveAmount = transactionChanges.amount !== undefined ? Math.abs(transactionChanges.amount) : Math.abs(getAmount(transaction));
             const taxAmount = calculateTaxAmount(taxValue, effectiveAmount, decimals);
@@ -9608,6 +9614,9 @@ function updateMultipleMoneyRequests({
         }
         if (transactionChanges.taxCode) {
             updates.taxCode = transactionChanges.taxCode;
+        }
+        if (transactionChanges.taxValue) {
+            updates.taxValue = transactionChanges.taxValue;
         }
         if (transactionChanges.taxAmount !== undefined) {
             updates.taxAmount = transactionChanges.taxAmount;
@@ -9646,6 +9655,7 @@ function updateMultipleMoneyRequests({
             >
         > = [];
         const snapshotOptimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT>> = [];
+        const snapshotSuccessData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT>> = [];
         const snapshotFailureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT>> = [];
 
         // Pending fields for the transaction
@@ -9722,8 +9732,21 @@ function updateMultipleMoneyRequests({
                 value: {
                     // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
                     data: {
-                        [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: updatedTransaction,
+                        [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: {
+                            ...updatedTransaction,
+                            pendingFields,
+                        },
                         ...(optimisticViolationsData && {[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`]: optimisticViolationsData.value}),
+                    },
+                },
+            });
+            snapshotSuccessData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}` as const,
+                value: {
+                    data: {
+                        // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
+                        [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: {pendingFields: clearedPendingFields},
                     },
                 },
             });
@@ -9733,7 +9756,10 @@ function updateMultipleMoneyRequests({
                 value: {
                     // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
                     data: {
-                        [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: transaction,
+                        [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: {
+                            ...transaction,
+                            pendingFields: clearedPendingFields,
+                        },
                         ...(currentTransactionViolations && {[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`]: currentTransactionViolations}),
                     },
                 },
@@ -9899,7 +9925,15 @@ function updateMultipleMoneyRequests({
                     | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
                 >
             >,
-            successData,
+            successData: [...successData, ...snapshotSuccessData] as Array<
+                OnyxUpdate<
+                    | typeof ONYXKEYS.COLLECTION.TRANSACTION
+                    | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS
+                    | typeof ONYXKEYS.COLLECTION.SNAPSHOT
+                    | typeof ONYXKEYS.COLLECTION.REPORT
+                    | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
+                >
+            >,
             failureData: [...failureData, ...snapshotFailureData] as Array<
                 OnyxUpdate<
                     | typeof ONYXKEYS.COLLECTION.TRANSACTION

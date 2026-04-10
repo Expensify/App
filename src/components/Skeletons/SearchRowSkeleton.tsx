@@ -18,6 +18,7 @@ type SearchRowSkeletonProps = {
     gradientOpacityEnabled?: boolean;
     containerStyle?: StyleProp<ViewStyle>;
     reasonAttributes: SkeletonSpanReasonAttributes;
+    isLoadMore?: boolean;
     onLayout?: (event: LayoutChangeEvent) => void;
 };
 
@@ -28,16 +29,19 @@ const leftPaneWidth = variables.sideBarWithLHBWidth + variables.navigationTabBar
 // 12 is the gap between the element and the right button
 const gapWidth = 12;
 
-// 80 is the width of the element itself
-const rightSideElementWidth = 80;
+// 68 is the width of the action button
+const rightSideElementWidth = 68;
 
-// 24 is the padding of the central pane summing two sides
+// 40 is the padding of the central pane summing two sides
 const centralPanePadding = 40;
 
-// 80 is the width of the button on the right side
-const rightButtonWidth = 80;
+// 16 is the width of the right arrow icon + padding
+const rightArrowWidth = 28;
 
-function SearchRowSkeleton({shouldAnimate = true, fixedNumItems, gradientOpacityEnabled = false, containerStyle, reasonAttributes, onLayout}: SearchRowSkeletonProps) {
+// 68 is the width of the action button
+const rightButtonWidth = 68;
+
+function SearchRowSkeleton({shouldAnimate = true, fixedNumItems, gradientOpacityEnabled = false, containerStyle, reasonAttributes, isLoadMore = false, onLayout}: SearchRowSkeletonProps) {
     const styles = useThemeStyles();
     const {windowWidth} = useWindowDimensions();
     const {shouldUseNarrowLayout, isLargeScreenWidth} = useResponsiveLayout();
@@ -123,35 +127,38 @@ function SearchRowSkeleton({shouldAnimate = true, fixedNumItems, gradientOpacity
                 fixedNumItems={fixedNumItems}
                 gradientOpacityEnabled={gradientOpacityEnabled}
                 onLayout={onLayout}
-                itemViewStyle={[styles.highlightBG, styles.mb2, styles.br3, styles.ml5]}
+                itemViewStyle={[styles.highlightBG, styles.mr0]}
+                itemViewHeight={variables.tableRowHeight}
+                itemContainerStyle={styles.borderBottom}
+                style={[styles.mh5, styles.overflowHidden, isLoadMore && styles.searchTableBottomRadius, !isLoadMore && styles.searchTableTopRadius]}
                 renderSkeletonItem={() => (
                     <>
                         <SkeletonRect
                             transform={[{translateX: 12}, {translateY: 12}]}
-                            borderRadius={5}
-                            width={36}
-                            height={40}
+                            borderRadius={variables.componentBorderRadiusSmall}
+                            width={variables.w28}
+                            height={variables.h32}
                         />
                         <SkeletonRect
-                            transform={[{translateX: 60}, {translateY: 28}]}
+                            transform={[{translateX: 52}, {translateY: 24}]}
                             width={30}
                             height={barHeight}
                         />
                         <SkeletonRect
-                            transform={[{translateX: 102}, {translateY: 28}]}
+                            transform={[{translateX: 94}, {translateY: 24}]}
                             width={longBarWidth}
                             height={barHeight}
                         />
                         {isLargeScreenWidth && (
                             <>
                                 <SkeletonRect
-                                    transform={[{translateX: 234}, {translateY: 28}]}
+                                    transform={[{translateX: 226}, {translateY: 24}]}
                                     width={longBarWidth}
                                     height={barHeight}
                                 />
 
                                 <SkeletonRect
-                                    transform={[{translateX: 366}, {translateY: 28}]}
+                                    transform={[{translateX: 358}, {translateY: 24}]}
                                     width={60}
                                     height={barHeight}
                                 />
@@ -160,16 +167,19 @@ function SearchRowSkeleton({shouldAnimate = true, fixedNumItems, gradientOpacity
 
                         <SkeletonRect
                             // We have to calculate this value to make sure the element is aligned to the button on the right side.
-                            transform={[{translateX: windowWidth - leftPaneWidth - rightButtonWidth - gapWidth - centralPanePadding - gapWidth - rightSideElementWidth}, {translateY: 28}]}
-                            width={80}
+                            transform={[
+                                {translateX: windowWidth - leftPaneWidth - rightArrowWidth - rightButtonWidth - gapWidth - centralPanePadding - gapWidth - rightSideElementWidth},
+                                {translateY: 24},
+                            ]}
+                            width={68}
                             height={barHeight}
                         />
 
                         <SkeletonRect
                             // We have to calculate this value to make sure the element is aligned to the right border.
-                            transform={[{translateX: windowWidth - leftPaneWidth - rightSideElementWidth - gapWidth - centralPanePadding}, {translateY: 18}]}
+                            transform={[{translateX: windowWidth - leftPaneWidth - rightArrowWidth - rightSideElementWidth - gapWidth - centralPanePadding}, {translateY: 14}]}
                             borderRadius={15}
-                            width={80}
+                            width={68}
                             height={28}
                         />
                     </>
