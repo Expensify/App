@@ -26,7 +26,6 @@ import type {ReportActions, ReportActionsCollectionDataSet} from '@src/types/ony
 import type Transaction from '@src/types/onyx/Transaction';
 import type {TransactionCollectionDataSet} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import createPersonalDetails from '../../utils/collections/personalDetails';
 import createRandomPolicy from '../../utils/collections/policies';
 import {createRandomReport} from '../../utils/collections/reports';
 import getOnyxValue from '../../utils/getOnyxValue';
