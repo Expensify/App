@@ -8715,10 +8715,6 @@ describe('getCardDescriptionForSearchTable', () => {
         state: 3,
     };
 
-    it('returns an empty string when card is undefined', () => {
-        expect(getCardDescriptionForSearchTable(undefined, undefined, translateLocal)).toBe('');
-    });
-
     it('returns CSV/upload card title from nameValuePairs for UPLOAD bank', () => {
         const card: OnyxTypes.Card = {
             ...baseCompanyCard,
