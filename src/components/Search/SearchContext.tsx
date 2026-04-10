@@ -19,7 +19,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import type {SearchResultsInfo} from '@src/types/onyx/SearchResults';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import {defaultSearchContextData, SearchStateContext} from './SearchStateContextDef';
+import {defaultSearchContextData, SearchStateContext} from './SearchStateContext';
 import type {SearchActionsContextValue, SearchStateContextValue, SelectedTransactions} from './types';
 
 type SearchContextProps = {

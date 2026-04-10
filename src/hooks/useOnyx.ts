@@ -4,7 +4,7 @@ import type {DependencyList} from 'react';
 import {useOnyx as originalUseOnyx} from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry, OnyxKey, OnyxValue, UseOnyxOptions, UseOnyxResult} from 'react-native-onyx';
 import {useIsOnSearch} from '@components/Search/SearchScopeProvider';
-import {SearchStateContext} from '@components/Search/SearchStateContextDef';
+import {SearchStateContext} from '@components/Search/SearchStateContext';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {SearchResults} from '@src/types/onyx';
