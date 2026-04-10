@@ -1,15 +1,15 @@
 ---
 title: How to Duplicate an Expense
-description: Learn how to create a copy of an existing expense in Expensify using the Duplicate option.
-keywords: [New Expensify, duplicate expense, copy expense, duplicate cash expense, duplicate distance expense, duplicate per diem expense, create copy of expense]
-internalScope: Audience is expense submitters. Covers how to duplicate a single cash, distance, or per diem expense. Does not cover duplicate detection, resolving flagged duplicates, or merging expenses.
+description: Learn how to create a copy of one or more expenses in Expensify using the Duplicate expense option, including bulk duplication from the Expenses tab.
+keywords: [New Expensify, duplicate expense, copy expense, duplicate cash expense, duplicate distance expense, duplicate per diem expense, create copy of expense, bulk duplicate, duplicate multiple expenses]
+internalScope: Audience is expense submitters. Covers how to duplicate a single expense and how to bulk-duplicate multiple expenses from the Expenses tab or a report. Does not cover duplicate detection, resolving flagged duplicates, or merging expenses.
 ---
 
 # How to duplicate an expense
 
-You can create a copy of an existing expense using **Duplicate expense**. This generates a new expense on your primary workspace with the same details as the original, including the merchant, amount, category, tags, and tax. The date is set to today and receipt images are not copied.
+You can create a copy of one or more expenses using **Duplicate expense**. This generates new expenses on your primary workspace with the same details as the originals, including the merchant, amount, category, tags, and tax. The date is set to today and receipt images are not copied.
 
-This is useful when you need to create a similar expense quickly without re-entering all the details manually.
+This is useful when you need to create similar expenses quickly without re-entering all the details manually. You can duplicate a single expense or select multiple expenses and duplicate them all at once.
 
 **Note:** Card expenses cannot be duplicated. Only cash, distance, and per diem expenses support duplication.
 
@@ -34,6 +34,25 @@ The duplicate expense is created on your primary workspace with the original exp
 
 <!-- SCREENSHOT:
 WIP here: https://github.com/Expensify/Expensify/issues/616815
+-->
+
+---
+
+## How to duplicate multiple expenses at once
+
+You can select multiple eligible expenses and duplicate them all in one action.
+
+1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Reports > Expenses**.
+2. Long-press an expense (or use the checkbox on web) to enter selection mode.
+3. Select two or more cash, distance, or per diem expenses that you submitted.
+4. Open the bulk actions dropdown and choose **Duplicate expenses**.
+
+Each selected expense is duplicated individually. The same rules apply as for single duplication — card expenses, scanning expenses, per diem expenses without dates, and expenses you did not submit are excluded from selection.
+
+<!-- SCREENSHOT:
+Suggestion: Show the bulk actions dropdown with the "Duplicate expenses" option visible after selecting multiple expenses.
+Location: After step 4.
+Purpose: Helps the user identify the bulk duplicate option in the dropdown.
 -->
 
 ---
@@ -72,7 +91,7 @@ When this restriction applies, Expensify will display a message explaining that 
 
 ## Can I duplicate multiple expenses at once?
 
-No, you can’t duplicate multiple expenses at once. Expenses must be duplicated one at a time.
+Yes. Select two or more eligible expenses from the **Expenses** tab or from within a report, then choose **Duplicate expenses** from the bulk actions dropdown. Each selected expense is duplicated individually with the same rules as single duplication.
 
 ## Can I duplicate a card expense?
 
