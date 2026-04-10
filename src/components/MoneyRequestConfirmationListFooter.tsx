@@ -362,13 +362,13 @@ function MoneyRequestConfirmationListFooter({
     // Capture the thumbnail source on first render (or when the underlying image changes) to
     // avoid a visible source swap (flash) when the thumbnail arrives late for local files.
     const resolvedReceiptImageStr = resolvedReceiptImage != null ? String(resolvedReceiptImage) : undefined;
-    const initialLocalSourceRef = useRef<{source: string | undefined; resolvedImage: string | undefined}>({source: undefined, resolvedImage: undefined});
-    if (isLocalFile && (initialLocalSourceRef.current.source === undefined || initialLocalSourceRef.current.resolvedImage !== resolvedReceiptImageStr)) {
+    const [initialLocalSource, setInitialLocalSource] = useState<{source: string | undefined; resolvedImage: string | undefined}>({source: undefined, resolvedImage: undefined});
+    if (isLocalFile && (initialLocalSource.source === undefined || initialLocalSource.resolvedImage !== resolvedReceiptImageStr)) {
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        initialLocalSourceRef.current = {source: thumbnailUri || resolvedReceiptImageStr || '', resolvedImage: resolvedReceiptImageStr};
+        setInitialLocalSource({source: thumbnailUri || resolvedReceiptImageStr || '', resolvedImage: resolvedReceiptImageStr});
     }
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const effectiveReceiptSource = isLocalFile ? initialLocalSourceRef.current.source || '' : resolvedThumbnail || resolvedReceiptImage || '';
+    const effectiveReceiptSource = isLocalFile ? initialLocalSource.source || '' : resolvedThumbnail || resolvedReceiptImage || '';
 
     // Build the fields array using section components
     const fields: ConfirmationField[] = [
@@ -557,6 +557,7 @@ function MoneyRequestConfirmationListFooter({
                 item: (
                     <TagFields
                         key={`tag_${name}`}
+                        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- index is guaranteed valid from the parent .map() iteration
                         policyTagLists={[policyTagLists.at(index)!]}
                         tagVisibility={tagVisibilityItem ? [tagVisibilityItem] : []}
                         previousTagsVisibility={[previousTagsVisibility.at(index) ?? false]}
