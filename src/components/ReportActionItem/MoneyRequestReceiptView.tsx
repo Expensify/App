@@ -563,7 +563,7 @@ function MoneyRequestReceiptView({
                                                         openPicker({
                                                             onPicked: (files) => {
                                                                 onPickerClosed();
-                                                                validateFiles(files);
+                                                                validateFiles(files, undefined, {isValidatingReceipts: false});
                                                             },
                                                             onCanceled: onPickerClosed,
                                                         });
