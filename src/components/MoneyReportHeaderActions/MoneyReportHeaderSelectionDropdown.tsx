@@ -14,12 +14,12 @@ import MoneyReportHeaderKYCDropdown from '@components/MoneyReportHeaderKYCDropdo
 import {useMoneyReportHeaderModals} from '@components/MoneyReportHeaderModalsContext';
 import {usePaymentAnimationsContext} from '@components/PaymentAnimationsContext';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
+import BulkDuplicateHandler from '@components/Search/BulkDuplicateHandler';
 import {useSearchActionsContext, useSearchStateContext} from '@components/Search/SearchContext';
 import type {PaymentActionParams} from '@components/SettlementButton/types';
 import useActiveAdminPolicies from '@hooks/useActiveAdminPolicies';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import useEnvironment from '@hooks/useEnvironment';
 import useExportActions from '@hooks/useExportActions';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLifecycleActions from '@hooks/useLifecycleActions';
@@ -67,7 +67,6 @@ function MoneyReportHeaderSelectionDropdown({reportID, primaryAction, isReportIn
     };
     const {translate, localeCompare} = useLocalize();
     const {isOffline} = useNetwork();
-    const {isProduction} = useEnvironment();
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const activeAdminPolicies = useActiveAdminPolicies();
@@ -135,6 +134,10 @@ function MoneyReportHeaderSelectionDropdown({reportID, primaryAction, isReportIn
         options: originalSelectedTransactionsOptions,
         handleDeleteTransactions,
         handleDeleteTransactionsWithNavigation,
+        isDuplicateOptionVisible,
+        setDuplicateHandler,
+        allTransactions: allTransactionsForDuplicate,
+        allReports: allReportsForDuplicate,
     } = useSelectedTransactionsActions({
         report: moneyRequestReport,
         reportActions,
@@ -171,7 +174,7 @@ function MoneyReportHeaderSelectionDropdown({reportID, primaryAction, isReportIn
     const hasApproveAction = primaryAction === CONST.REPORT.PRIMARY_ACTIONS.APPROVE || computedSecondaryActions.includes(CONST.REPORT.SECONDARY_ACTIONS.APPROVE);
     const hasPayAction = primaryAction === CONST.REPORT.PRIMARY_ACTIONS.PAY || computedSecondaryActions.includes(CONST.REPORT.SECONDARY_ACTIONS.PAY);
 
-    const checkForNecessaryAction = () => {
+    const checkForNecessaryAction = (paymentMethodType?: PaymentMethodType) => {
         if (isDelegateAccessRestricted) {
             showDelegateNoAccessModal();
             return true;
@@ -180,7 +183,7 @@ function MoneyReportHeaderSelectionDropdown({reportID, primaryAction, isReportIn
             showLockedAccountModal();
             return true;
         }
-        if (!isUserValidated) {
+        if (!isUserValidated && paymentMethodType !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
             handleUnvalidatedAccount(moneyRequestReport);
             return true;
         }
@@ -309,54 +312,52 @@ function MoneyReportHeaderSelectionDropdown({reportID, primaryAction, isReportIn
 
     // Ref writes below are inside onSelected callbacks that only fire on user interaction, never during render.
     /* eslint-disable react-hooks/refs */
-    const selectionModeReportLevelActions: Array<DropdownOption<string> & Pick<PopoverMenuItem, 'backButtonText' | 'rightIcon'>> = isProduction
-        ? []
-        : [
-              ...(hasSubmitAction && !shouldBlockSubmit
-                  ? [
-                        {
-                            text: translate('common.submit'),
-                            icon: expensifyIcons.Send,
-                            value: CONST.REPORT.PRIMARY_ACTIONS.SUBMIT,
-                            onSelected: () => handleSubmitReport(true),
-                        },
-                    ]
-                  : []),
-              ...(hasApproveAction && !isBlockSubmitDueToPreventSelfApproval
-                  ? [
-                        {
-                            text: translate('iou.approve'),
-                            icon: expensifyIcons.ThumbsUp,
-                            value: CONST.REPORT.PRIMARY_ACTIONS.APPROVE,
-                            onSelected: () => {
-                                isSelectionModePaymentRef.current = true;
-                                confirmApproval(true);
-                            },
-                        },
-                    ]
-                  : []),
-              ...(hasPayAction && !(isOffline && !canAllowSettlement)
-                  ? [
-                        {
-                            text: translate('iou.settlePayment', totalAmount),
-                            icon: expensifyIcons.Cash,
-                            value: CONST.REPORT.PRIMARY_ACTIONS.PAY as string,
-                            rightIcon: expensifyIcons.ArrowRight,
-                            backButtonText: translate('iou.settlePayment', totalAmount),
-                            subMenuItems: buildPaymentSubMenuItems((wp) => {
-                                isSelectionModePaymentRef.current = true;
-                                if (checkForNecessaryAction()) {
-                                    return;
-                                }
-                                kycWallRef.current?.continueAction?.({policy: wp});
-                            }),
-                            onSelected: () => {
-                                isSelectionModePaymentRef.current = true;
-                            },
-                        },
-                    ]
-                  : []),
-          ];
+    const selectionModeReportLevelActions: Array<DropdownOption<string> & Pick<PopoverMenuItem, 'backButtonText' | 'rightIcon'>> = [
+        ...(hasSubmitAction && !shouldBlockSubmit
+            ? [
+                  {
+                      text: translate('common.submit'),
+                      icon: expensifyIcons.Send,
+                      value: CONST.REPORT.PRIMARY_ACTIONS.SUBMIT,
+                      onSelected: () => handleSubmitReport(true),
+                  },
+              ]
+            : []),
+        ...(hasApproveAction && !isBlockSubmitDueToPreventSelfApproval
+            ? [
+                  {
+                      text: translate('iou.approve'),
+                      icon: expensifyIcons.ThumbsUp,
+                      value: CONST.REPORT.PRIMARY_ACTIONS.APPROVE,
+                      onSelected: () => {
+                          isSelectionModePaymentRef.current = true;
+                          confirmApproval(true);
+                      },
+                  },
+              ]
+            : []),
+        ...(hasPayAction && !(isOffline && !canAllowSettlement)
+            ? [
+                  {
+                      text: translate('iou.settlePayment', totalAmount),
+                      icon: expensifyIcons.Cash,
+                      value: CONST.REPORT.PRIMARY_ACTIONS.PAY as string,
+                      rightIcon: expensifyIcons.ArrowRight,
+                      backButtonText: translate('iou.settlePayment', totalAmount),
+                      subMenuItems: buildPaymentSubMenuItems((wp) => {
+                          isSelectionModePaymentRef.current = true;
+                          if (checkForNecessaryAction()) {
+                              return;
+                          }
+                          kycWallRef.current?.continueAction?.({policy: wp});
+                      }),
+                      onSelected: () => {
+                          isSelectionModePaymentRef.current = true;
+                      },
+                  },
+              ]
+            : []),
+    ];
 
     const mappedOptions = originalSelectedTransactionsOptions.map((option) => {
         if (option.value === CONST.REPORT.SECONDARY_ACTIONS.DELETE) {
@@ -385,11 +386,12 @@ function MoneyReportHeaderSelectionDropdown({reportID, primaryAction, isReportIn
 
     const popoverUseScrollView = shouldPopoverUseScrollView(selectedTransactionsOptions);
 
-    const hasPayInSelectionMode = allExpensesSelected && hasPayAction;
+    const hasActualPaymentOptions = paymentButtonOptions.some((opt) => Object.values(CONST.IOU.PAYMENT_TYPE).some((type) => type === opt.value));
+    const hasPayInSelectionMode = allExpensesSelected && hasPayAction && hasActualPaymentOptions;
 
     const onSelectionModePaymentSelect = (event: KYCFlowEvent, iouPaymentType: PaymentMethodType, triggerKYCFlow: TriggerKYCFlow) => {
         isSelectionModePaymentRef.current = true;
-        if (checkForNecessaryAction()) {
+        if (checkForNecessaryAction(iouPaymentType)) {
             return;
         }
         selectPaymentType({
@@ -423,32 +425,49 @@ function MoneyReportHeaderSelectionDropdown({reportID, primaryAction, isReportIn
         return null;
     }
 
+    const bulkDuplicateHandler = isDuplicateOptionVisible ? (
+        <BulkDuplicateHandler
+            selectedTransactionsKeys={selectedTransactionIDs}
+            allTransactions={allTransactionsForDuplicate}
+            allReports={allReportsForDuplicate}
+            searchData={undefined}
+            onHandlerReady={setDuplicateHandler}
+            onAfterDuplicate={() => clearSelectedTransactions(true)}
+        />
+    ) : null;
+
     if (hasPayInSelectionMode) {
         return (
-            <MoneyReportHeaderKYCDropdown
-                chatReportID={chatReport?.reportID}
-                iouReport={moneyRequestReport}
-                onPaymentSelect={onSelectionModePaymentSelect}
-                onSuccessfulKYC={selectionModeKYCSuccess}
-                primaryAction={primaryAction}
-                applicableSecondaryActions={selectedTransactionsOptions}
-                customText={translate('workspace.common.selected', {count: selectedTransactionIDs.length})}
-                shouldShowSuccessStyle
-                ref={kycWallRef}
-            />
+            <>
+                {bulkDuplicateHandler}
+                <MoneyReportHeaderKYCDropdown
+                    chatReportID={chatReport?.reportID}
+                    iouReport={moneyRequestReport}
+                    onPaymentSelect={onSelectionModePaymentSelect}
+                    onSuccessfulKYC={selectionModeKYCSuccess}
+                    primaryAction={primaryAction}
+                    applicableSecondaryActions={selectedTransactionsOptions}
+                    customText={translate('workspace.common.selected', {count: selectedTransactionIDs.length})}
+                    shouldShowSuccessStyle
+                    ref={kycWallRef}
+                />
+            </>
         );
     }
 
     return (
-        <ButtonWithDropdownMenu
-            onPress={() => null}
-            options={selectedTransactionsOptions}
-            customText={translate('workspace.common.selected', {count: selectedTransactionIDs.length})}
-            isSplitButton={false}
-            shouldAlwaysShowDropdownMenu
-            shouldPopoverUseScrollView={popoverUseScrollView}
-            wrapperStyle={wrapperStyle}
-        />
+        <>
+            {bulkDuplicateHandler}
+            <ButtonWithDropdownMenu
+                onPress={() => null}
+                options={selectedTransactionsOptions}
+                customText={translate('workspace.common.selected', {count: selectedTransactionIDs.length})}
+                isSplitButton={false}
+                shouldAlwaysShowDropdownMenu
+                shouldPopoverUseScrollView={popoverUseScrollView}
+                wrapperStyle={wrapperStyle}
+            />
+        </>
     );
 }
 
