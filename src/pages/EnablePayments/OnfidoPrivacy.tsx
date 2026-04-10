@@ -78,7 +78,7 @@ function OnfidoPrivacy({walletOnfidoData = DEFAULT_WALLET_ONFIDO_DATA}: OnfidoPr
                 </>
             ) : null}
             {hasAcceptedPrivacyPolicy && isLoading ? (
-                <View style={[StyleSheet.absoluteFillObject, styles.fullScreenLoading, styles.w100]}>
+                <View style={[StyleSheet.absoluteFill, styles.fullScreenLoading, styles.w100]}>
                     <View style={styles.w100}>
                         <ActivityIndicator
                             size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
