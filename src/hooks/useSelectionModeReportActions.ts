@@ -198,7 +198,7 @@ function useSelectionModeReportActions({
             return [];
         }
 
-        const canUseBusinessBankAccount = report?.reportID && !hasRequestFromCurrentAccount(report.reportID, currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID);
+        const canUseBusinessBankAccount = report?.reportID && !hasRequestFromCurrentAccount(report, currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID);
         if (!canUseBusinessBankAccount) {
             return [];
         }

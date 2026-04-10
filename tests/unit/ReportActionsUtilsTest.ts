@@ -1152,12 +1152,12 @@ describe('ReportActionsUtils', () => {
         });
 
         it('should return false for a deleted IOU report action', () => {
-            const result = ReportActionsUtils.hasRequestFromCurrentAccount(deletedIOUReportID, currentUserAccountID);
+            const result = ReportActionsUtils.hasRequestFromCurrentAccount({reportID: deletedIOUReportID} as Report, currentUserAccountID);
             expect(result).toBe(false);
         });
 
         it('should return true for an active IOU report action', () => {
-            const result = ReportActionsUtils.hasRequestFromCurrentAccount(activeIOUReportID, currentUserAccountID);
+            const result = ReportActionsUtils.hasRequestFromCurrentAccount({reportID: activeIOUReportID} as Report, currentUserAccountID);
             expect(result).toBe(true);
         });
 
@@ -1184,7 +1184,7 @@ describe('ReportActionsUtils', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionFromOtherUser.transactionID}`, transactionFromOtherUser);
 
             // Then: should return true
-            let result = ReportActionsUtils.hasRequestFromCurrentAccount(unloadedActionsReportID, currentUserAccountID);
+            let result = ReportActionsUtils.hasRequestFromCurrentAccount(iouReport, currentUserAccountID);
             expect(result).toBe(true);
 
             // When: all transactions from the current user account have been deleted
@@ -1194,8 +1194,34 @@ describe('ReportActionsUtils', () => {
             });
 
             // Then: should return false
-            result = ReportActionsUtils.hasRequestFromCurrentAccount(unloadedActionsReportID, currentUserAccountID);
+            result = ReportActionsUtils.hasRequestFromCurrentAccount(iouReport, currentUserAccountID);
             expect(result).toBe(false);
+        });
+
+        it('should use explicit allReports parameter when provided and reportActions are unloaded', async () => {
+            const unloadedActionsReportID = '6';
+            const iouReport = {
+                type: CONST.REPORT.TYPE.IOU,
+                reportID: unloadedActionsReportID,
+            };
+            const transactionFromCurrentUser = {
+                ...createRandomTransaction(1),
+                reportID: unloadedActionsReportID,
+                amount: -100,
+            };
+            const transactionFromOtherUser = {
+                ...createRandomTransaction(2),
+                reportID: unloadedActionsReportID,
+                amount: 500,
+            };
+
+            // Set up transactions
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionFromCurrentUser.transactionID}`, transactionFromCurrentUser);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionFromOtherUser.transactionID}`, transactionFromOtherUser);
+
+            // Pass report explicitly instead of relying on Onyx state
+            const result = ReportActionsUtils.hasRequestFromCurrentAccount(iouReport, currentUserAccountID);
+            expect(result).toBe(true);
         });
     });
 
