@@ -350,7 +350,6 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
         // If user comes back to the flow we never want to allow him to go through plaid again
         // so we're always showing manual setup with locked numbers he can not change
         setBankAccountSubStep(CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL).then(() => {
-            setShouldShowContinueSetupButton(false);
             const stepToPageName: Record<string, string> = {
                 [CONST.BANK_ACCOUNT.STEP.COUNTRY]: CONST.BANK_ACCOUNT.PAGE_NAMES.COUNTRY,
                 [CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT]: CONST.BANK_ACCOUNT.PAGE_NAMES.BANK_ACCOUNT,
