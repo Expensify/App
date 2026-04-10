@@ -58,6 +58,10 @@ function useGettingStartedItems(): UseGettingStartedItemsResult {
         return emptyResult;
     }
 
+    if (policy.role !== CONST.POLICY.ROLE.ADMIN) {
+        return emptyResult;
+    }
+
     if (!isWithinGettingStartedPeriod(firstDayFreeTrial)) {
         return emptyResult;
     }
@@ -103,14 +107,16 @@ function useGettingStartedItems(): UseGettingStartedItemsResult {
         enableFeature: () => enableCompanyCards(activePolicyID, true, false),
     });
 
-    items.push({
-        key: 'setupRules',
-        label: translate('homePage.gettingStartedSection.setupRules'),
-        isComplete: hasNonDefaultRules(policy),
-        route: ROUTES.WORKSPACE_RULES.getRoute(activePolicyID),
-        isFeatureEnabled: policy.areRulesEnabled,
-        enableFeature: () => enablePolicyRules(policy, true, false),
-    });
+    if (policy.areRulesEnabled) {
+        items.push({
+            key: 'setupRules',
+            label: translate('homePage.gettingStartedSection.setupRules'),
+            isComplete: hasNonDefaultRules(policy),
+            route: ROUTES.WORKSPACE_RULES.getRoute(activePolicyID),
+            isFeatureEnabled: policy.areRulesEnabled,
+            enableFeature: () => enablePolicyRules(policy, true, false),
+        });
+    }
 
     return {shouldShowSection: true, items};
 }
