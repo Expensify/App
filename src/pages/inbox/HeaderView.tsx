@@ -215,16 +215,7 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
 
     // Memoize so trial Onyx values and current user account participate in React updates (shouldShowDiscountBanner is pure).
     const shouldShowDiscount = useMemo(
-        () =>
-            shouldShowDiscountBanner(
-                currentUserAccountID,
-                hasTeam2025Pricing,
-                subscriptionPlan,
-                firstDayFreeTrial,
-                lastDayFreeTrial,
-                userBillingFundID,
-                allPolicies,
-            ) && !isReportArchived,
+        () => shouldShowDiscountBanner(currentUserAccountID, hasTeam2025Pricing, subscriptionPlan, firstDayFreeTrial, lastDayFreeTrial, userBillingFundID, allPolicies) && !isReportArchived,
         [currentUserAccountID, hasTeam2025Pricing, subscriptionPlan, firstDayFreeTrial, lastDayFreeTrial, userBillingFundID, isReportArchived, allPolicies],
     );
 
