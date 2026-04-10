@@ -659,7 +659,7 @@ describe('IOURequestStepConfirmationPageTest', () => {
             expect(transaction?.taxAmount).toBe(909);
         });
 
-        it('should not zero out tax when re-selecting distance rate without reclaimable configured', async () => {
+        it('should zero out tax when re-selecting distance rate without reclaimable configured', async () => {
             const policy = createPolicyWithTaxAndDistance();
             const waypoints = createWaypoints('New York', 'Boston');
 
@@ -751,12 +751,12 @@ describe('IOURequestStepConfirmationPageTest', () => {
 
             await waitForBatchedUpdatesWithAct();
 
-            // Read tax amount - should NOT be zero even though taxClaimablePercentage is not configured
+            // Read tax amount - should be zero since taxClaimablePercentage is not configured
             const transaction = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`);
 
-            // With the fix, taxClaimablePercentage defaults to 1 (100%), so tax should calculate correctly
+            // taxClaimablePercentage defaults to 0, so tax should calculate correctly consistently with how it is calculated in the backend
             expect(transaction?.taxAmount).toBeDefined();
-            expect(transaction?.taxAmount).toBeGreaterThan(0);
+            expect(transaction?.taxAmount).toBe(0);
 
             // Tax code should be taxRate2 (from the distance rate configuration)
             expect(transaction?.taxCode).toBe('taxRate2');

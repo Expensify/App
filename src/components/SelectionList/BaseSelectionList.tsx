@@ -370,6 +370,7 @@ function BaseSelectionList<TItem extends ListItem>({
                 shouldSyncFocus={!isTextInputFocusedRef.current && hasKeyBeenPressed.current}
                 shouldDisableHoverStyle={shouldDisableHoverStyle}
                 shouldShowRightCaret={shouldShowRightCaret}
+                isLastItem={index === data.length - 1}
                 shouldPreventEnterKeySubmit={!disableKeyboardShortcuts}
                 shouldShowRadioButton={shouldShowRadioButton}
             />
@@ -546,6 +547,7 @@ function BaseSelectionList<TItem extends ListItem>({
             canSelectMultiple={canSelectMultiple}
             onSelectAll={handleSelectAll}
             headerStyle={style?.listHeaderWrapperStyle}
+            selectAllTextStyle={style?.listHeaderSelectAllTextStyle}
             shouldShowSelectAllButton={!!onSelectAll}
             shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
         />

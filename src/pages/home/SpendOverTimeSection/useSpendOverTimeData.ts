@@ -25,6 +25,7 @@ function useSpendOverTimeData() {
         if (!queryJSON || isSearchLoading || isOffline) {
             return;
         }
+
         search({
             queryJSON,
             searchKey,
