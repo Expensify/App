@@ -8,7 +8,6 @@ import type {IOUAction, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {OnyxInputOrEntry, Report, ReportAction, ReportActions, Transaction} from '@src/types/onyx';
-import useArchivedReportsIdSet from './useArchivedReportsIDSet';
 import useOnyx from './useOnyx';
 
 /**
@@ -26,7 +25,6 @@ const useShowNotFoundPageInIOUStep = (action: IOUAction, iouType: IOUType, repor
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`);
     const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(transaction?.reportID)}`);
-    const archivedReportsIDSet = useArchivedReportsIdSet();
 
     const reportActionsReportID = useMemo(() => {
         let actionsReportID;
@@ -64,7 +62,7 @@ const useShowNotFoundPageInIOUStep = (action: IOUAction, iouType: IOUType, repor
         } else if (isSplitExpense) {
             shouldShowNotFoundPage = !canEditSplitExpense;
         } else {
-            shouldShowNotFoundPage = !isMoneyRequestAction(reportAction) || !canEditMoneyRequest(reportAction, transaction, false, iouReport, policy, archivedReportsIDSet);
+            shouldShowNotFoundPage = !isMoneyRequestAction(reportAction) || !canEditMoneyRequest(reportAction, transaction, false, iouReport, policy);
         }
     }
 

@@ -4708,7 +4708,6 @@ function canEditMoneyRequest(
     isChatReportArchived = false,
     report?: OnyxInputOrEntry<Report>,
     policy?: OnyxEntry<Policy>,
-    archivedReportsIDSet?: ArchivedReportsIDSet,
 ): boolean {
     const isDeleted = isDeletedAction(reportAction);
 
@@ -4746,9 +4745,6 @@ function canEditMoneyRequest(
     }
 
     const moneyRequestReport = report ?? getReportOrDraftReport(String(moneyRequestReportID));
-    const isCurrentReportArchived = archivedReportsIDSet
-        ? isReportArchivedByID(archivedReportsIDSet, moneyRequestReport?.reportID)
-        : isArchivedReport(allReportNameValuePair?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${moneyRequestReport?.reportID}`]);
 
     const isSubmitted = isProcessingReport(moneyRequestReport);
     if (isIOUReport(moneyRequestReport)) {
@@ -4760,7 +4756,7 @@ function canEditMoneyRequest(
     const isAdmin = reportPolicy?.role === CONST.POLICY.ROLE.ADMIN;
     const isManager = deprecatedCurrentUserAccountID === moneyRequestReport?.managerID;
 
-    if (isInvoiceReport(moneyRequestReport) && (isManager || isChatReportArchived || isCurrentReportArchived)) {
+    if (isInvoiceReport(moneyRequestReport) && (isManager || isChatReportArchived)) {
         return false;
     }
 
@@ -4943,6 +4939,7 @@ function canEditFieldOfMoneyRequest({
     transaction: OnyxEntry<Transaction>;
     report?: OnyxInputOrEntry<Report>;
     policy?: OnyxEntry<Policy>;
+    // TODO: Make this required after all callers are migrated in https://github.com/Expensify/App/issues/66422.
     archivedReportsIDSet?: ArchivedReportsIDSet;
 }): boolean {
     // A list of fields that cannot be edited by anyone, once an expense has been settled
@@ -4959,7 +4956,7 @@ function canEditFieldOfMoneyRequest({
         CONST.EDIT_REQUEST_FIELD.BILLABLE,
     ];
 
-    if (!isMoneyRequestAction(reportAction) || !canEditMoneyRequest(reportAction, transaction, isChatReportArchived, report, policy, archivedReportsIDSet)) {
+    if (!isMoneyRequestAction(reportAction) || !canEditMoneyRequest(reportAction, transaction, isChatReportArchived, report, policy)) {
         return false;
     }
 
@@ -11655,7 +11652,7 @@ function hasForwardedAction(reportID: string): boolean {
     return Object.values(reportActions).some((action) => action?.actionName === CONST.REPORT.ACTIONS.TYPE.FORWARDED);
 }
 
-function isReportOutstanding(iouReport: OnyxInputOrEntry<Report>, policyID: string | undefined, archivedReportsIDSet?: ArchivedReportsIDSet, allowSubmitted = true): boolean {
+function isReportOutstanding(iouReport: OnyxInputOrEntry<Report>, policyID: string | undefined, archivedReportsIDSet: ArchivedReportsIDSet | undefined, allowSubmitted = true): boolean {
     if (
         !iouReport ||
         isEmptyObject(iouReport) ||
@@ -11690,14 +11687,16 @@ function isReportOutstanding(iouReport: OnyxInputOrEntry<Report>, policyID: stri
 function getOutstandingReportsForUser(
     policyID: string | undefined,
     reportOwnerAccountID: number | undefined,
-    reports: OnyxCollection<Report> = allReports,
-    archivedReportsIDSet?: ArchivedReportsIDSet,
+    reports: OnyxCollection<Report> | undefined,
+    archivedReportsIDSet: ArchivedReportsIDSet | undefined,
     allowSubmitted = true,
 ): Array<OnyxEntry<Report>> {
-    if (!reports) {
+    const reportsToCheck = reports ?? allReports;
+
+    if (!reportsToCheck) {
         return [];
     }
-    return Object.values(reports).filter(
+    return Object.values(reportsToCheck).filter(
         (report) =>
             report?.pendingFields?.preview !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE &&
             isReportOutstanding(report, policyID, archivedReportsIDSet, allowSubmitted) &&

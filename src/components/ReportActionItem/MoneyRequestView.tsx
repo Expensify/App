@@ -327,10 +327,7 @@ function MoneyRequestView({
     // Used for non-restricted fields such as: description, category, tag, billable, etc...
     const isReportArchived = useReportIsArchived(transactionThreadReport?.reportID);
     const isEditable = !!canUserPerformWriteActionReportUtils(transactionThreadReport, isReportArchived) && !readonly;
-    const canEdit =
-        isMoneyRequestAction(parentReportAction) &&
-        canEditMoneyRequest(parentReportAction, transaction, isChatReportArchived, moneyRequestReport, policy, archivedReportsIDSet) &&
-        isEditable;
+    const canEdit = isMoneyRequestAction(parentReportAction) && canEditMoneyRequest(parentReportAction, transaction, isChatReportArchived, moneyRequestReport, policy) && isEditable;
     const companyCardPageURL = `${environmentURL}/${ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(transactionThreadReport?.policyID)}`;
     const {personalCardsWithBrokenConnection} = useCardFeedErrors();
     const connectionLink = getBrokenConnectionUrlToFixPersonalCard(personalCardsWithBrokenConnection, environmentURL);
