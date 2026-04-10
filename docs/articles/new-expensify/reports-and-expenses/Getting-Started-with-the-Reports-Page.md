@@ -57,6 +57,8 @@ Each row represents an expense and includes:
 
 **Note:** The bulk action menu appears after selecting at least one expense.
 
+**Note (Mobile):** When all expenses in a report are selected on mobile, the bulk action menu also includes report-level actions such as **Submit**, **Approve**, or **Pay**, depending on the report status and your role. These work the same as the primary action buttons at the top of the report.
+
 ## Steps to Move Expenses Between Reports
 
 1. Select the expenses using checkboxes  
