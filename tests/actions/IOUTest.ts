@@ -23,7 +23,6 @@ import {
     createDistanceRequest,
     getIOUReportActionWithBadge,
     getReportOriginalCreationTimestamp,
-    getReportPreviewAction,
     handleNavigateAfterExpenseCreate,
     initBulkEditDraftTransaction,
     initMoneyRequest,
@@ -53,10 +52,9 @@ import {
 import {putOnHold} from '@libs/actions/IOU/Hold';
 import {completeSplitBill, splitBill, startSplitBill, updateSplitTransactionsFromSplitExpensesFlow} from '@libs/actions/IOU/Split';
 import {requestMoney, trackExpense} from '@libs/actions/IOU/TrackExpense';
-import {updateMoneyRequestAmountAndCurrency} from '@libs/actions/IOU/UpdateMoneyRequest';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 import {createWorkspace, deleteWorkspace, generatePolicyID, setWorkspaceApprovalMode} from '@libs/actions/Policy/Policy';
-import {addComment, createNewReport, deleteReport, notifyNewAction, openReport} from '@libs/actions/Report';
+import {createNewReport, deleteReport, notifyNewAction} from '@libs/actions/Report';
 import {subscribeToUserEvents} from '@libs/actions/User';
 import type {ApiCommand} from '@libs/API/types';
 import {WRITE_COMMANDS} from '@libs/API/types';
@@ -65,7 +63,6 @@ import isReportTopmostSplitNavigator from '@libs/Navigation/helpers/isReportTopm
 import Navigation from '@libs/Navigation/Navigation';
 import {rand64} from '@libs/NumberUtils';
 import {getManagerMcTestParticipant} from '@libs/OptionsListUtils';
-import {getLoginsByAccountIDs} from '@libs/PersonalDetailsUtils';
 // eslint-disable-next-line no-restricted-syntax
 import type * as PolicyUtils from '@libs/PolicyUtils';
 import {
@@ -73,21 +70,12 @@ import {
     getIOUActionForReportID,
     getOriginalMessage,
     getReportActionHtml,
-    getReportActionMessage,
     getReportActionText,
     isActionableTrackExpense,
     isActionOfType,
     isMoneyRequestAction,
 } from '@libs/ReportActionsUtils';
-import type {OptimisticChatReport} from '@libs/ReportUtils';
-import {
-    buildOptimisticIOUReport,
-    buildOptimisticIOUReportAction,
-    buildTransactionThread,
-    createDraftTransactionAndNavigateToParticipantSelector,
-    getReportOrDraftReport,
-    isIOUReport,
-} from '@libs/ReportUtils';
+import {buildOptimisticIOUReport, buildOptimisticIOUReportAction, createDraftTransactionAndNavigateToParticipantSelector, getReportOrDraftReport} from '@libs/ReportUtils';
 import {buildOptimisticTransaction} from '@libs/TransactionUtils';
 import type {IOUAction} from '@src/CONST';
 import CONST from '@src/CONST';
@@ -121,7 +109,6 @@ import createRandomReportAction from '../utils/collections/reportActions';
 import {createRandomReport} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
 import getOnyxValue from '../utils/getOnyxValue';
-import PusherHelper from '../utils/PusherHelper';
 import type {MockFetch} from '../utils/TestHelper';
 import {getGlobalFetchMock, getOnyxData, localeCompare, setPersonalDetails, signInWithTestUser, translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -218,11 +205,6 @@ const RORY_PARTICIPANT: Participant = {notificationPreference: CONST.REPORT.NOTI
 const VIT_EMAIL = 'vit@expensifail.com';
 const VIT_ACCOUNT_ID = 4;
 const VIT_PARTICIPANT: Participant = {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS, role: 'member'};
-
-const TEST_INTRO_SELECTED: IntroSelected = {
-    choice: CONST.ONBOARDING_CHOICES.SUBMIT,
-    isInviteOnboardingComplete: false,
-};
 
 const getTransactionAndExpenseReports = (reportID: string) => {
     const transactionReport = getReportOrDraftReport(reportID);

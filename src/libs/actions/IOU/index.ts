@@ -1,7 +1,6 @@
 /* eslint-disable max-lines */
 import {format} from 'date-fns';
 import {fastMerge} from 'expensify-common';
-import cloneDeep from 'lodash/cloneDeep';
 // eslint-disable-next-line you-dont-need-lodash-underscore/union-by
 import lodashUnionBy from 'lodash/unionBy';
 import {InteractionManager} from 'react-native';
@@ -73,11 +72,8 @@ import {
     getAllReportActions,
     getIOUActionForReportID,
     getIOUActionForTransactionID,
-    getLastVisibleAction,
-    getLastVisibleMessage,
     getOriginalMessage,
     getReportActionHtml,
-    getReportActionMessage,
     getReportActionText,
     hasPendingDEWApprove,
     isCreatedAction,
@@ -113,7 +109,6 @@ import {
     canBeAutoReimbursed,
     canEditFieldOfMoneyRequest,
     canSubmitAndIsAwaitingForCurrentUser,
-    canUserPerformWriteAction as canUserPerformWriteActionReportUtils,
     findSelfDMReportID,
     generateReportID,
     getAllHeldTransactions as getAllHeldTransactionsReportUtils,
