@@ -15,6 +15,7 @@ import type {PaymentActionParams} from '@components/SettlementButton/types';
 import {approveMoneyRequest, canApproveIOU, canIOUBePaid as canIOUBePaidAction, payInvoice, payMoneyRequest, submitReport} from '@libs/actions/IOU';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {search} from '@libs/actions/Search';
+import getPlatform from '@libs/getPlatform';
 import {getTotalAmountForIOUReportPreviewButton} from '@libs/MoneyRequestReportUtils';
 import type {KYCFlowEvent, TriggerKYCFlow} from '@libs/PaymentUtils';
 import {handleUnvalidatedAccount, selectPaymentType} from '@libs/PaymentUtils';
@@ -311,10 +312,7 @@ function useSelectionModeReportActions({
         if (isDelegateAccessRestricted) {
             showDelegateNoAccessModal();
         } else if (isAnyTransactionOnHold) {
-            // Defer opening the hold menu until the dropdown popover finishes its dismiss animation,
-            // otherwise the DecisionModal fails to mount on Android.
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            InteractionManager.runAfterInteractions(() => setIsHoldMenuVisible(true));
+            setIsHoldMenuVisible(true);
         } else {
             approveMoneyRequest({
                 expenseReport: report,
@@ -350,10 +348,13 @@ function useSelectionModeReportActions({
             showDelegateNoAccessModal();
         } else if (isAnyTransactionOnHold) {
             setSelectedVBBAToPayFromHoldMenu(type === CONST.IOU.PAYMENT_TYPE.VBBA ? methodID : undefined);
-            // Defer opening the hold menu until the dropdown popover finishes its dismiss animation,
-            // otherwise the DecisionModal fails to mount on Android.
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            InteractionManager.runAfterInteractions(() => setIsHoldMenuVisible(true));
+            if (getPlatform() === CONST.PLATFORM.IOS) {
+                // On iOS, opening the hold menu immediately can conflict with the popover dismiss animation, so we defer it.
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
+                InteractionManager.runAfterInteractions(() => setIsHoldMenuVisible(true));
+            } else {
+                setIsHoldMenuVisible(true);
+            }
         } else if (isInvoiceReport) {
             payInvoice({
                 paymentMethodType: type,
