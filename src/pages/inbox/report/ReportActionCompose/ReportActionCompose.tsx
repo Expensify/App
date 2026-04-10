@@ -7,6 +7,7 @@ import DragAndDropConsumer from '@components/DragAndDrop/Consumer';
 import DropZoneUI from '@components/DropZone/DropZoneUI';
 import DualDropZone from '@components/DropZone/DualDropZone';
 import ImportedStateIndicator from '@components/ImportedStateIndicator';
+import OfflineIndicator from '@components/OfflineIndicator';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import useAncestors from '@hooks/useAncestors';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -61,11 +62,13 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {FileObject} from '@src/types/utils/Attachment';
+import AgentZeroAwareTypingIndicator from './AgentZeroAwareTypingIndicator';
 import ComposerActionMenu from './ComposerActionMenu';
 import ComposerBox from './ComposerBox';
 import type {SuggestionsRef} from './ComposerContext';
 import {useComposerMeta, useComposerSendState} from './ComposerContext';
 import ComposerEmojiPicker from './ComposerEmojiPicker';
+import ComposerExceededLength from './ComposerExceededLength';
 import ComposerFooter from './ComposerFooter';
 import ComposerInputWrapper from './ComposerInputWrapper';
 import ComposerLocalTime from './ComposerLocalTime';
@@ -83,7 +86,7 @@ function ReportActionComposeInner({reportID}: ReportActionComposeProps) {
     const theme = useTheme();
     const {translate} = useLocalize();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
-    const {isSmallScreenWidth} = useResponsiveLayout();
+    const {isSmallScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
     const {isOffline} = useNetwork();
     const isInSidePanel = useIsInSidePanel();
     const {kickoffWaitingIndicator} = useAgentZeroStatusActions();
@@ -325,7 +328,11 @@ function ReportActionComposeInner({reportID}: ReportActionComposeProps) {
                     <ComposerSendButton />
                 </ComposerBox>
                 {ErrorModal}
-                <ComposerFooter reportID={reportID} />
+                <ComposerFooter>
+                    {!shouldUseNarrowLayout && <OfflineIndicator containerStyles={[styles.chatItemComposeSecondaryRow]} />}
+                    <AgentZeroAwareTypingIndicator reportID={reportID} />
+                    <ComposerExceededLength />
+                </ComposerFooter>
                 {!isSmallScreenWidth && (
                     <View style={[styles.mln5, styles.mrn5]}>
                         <ImportedStateIndicator />
