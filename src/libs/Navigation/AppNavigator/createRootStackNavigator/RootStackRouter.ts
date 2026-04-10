@@ -105,7 +105,7 @@ function handleNavigationGuards(
         let resetRoutes: typeof redirectState.routes = redirectState.routes;
         if (isModalRedirect) {
             const redirectRoute = redirectState.routes.at(-1);
-            const existingFullScreenRoute = state.routes.find((route) => isFullScreenName(route.name));
+            const existingFullScreenRoute = state.routes.findLast((route) => isFullScreenName(route.name));
             // When the current stack already has a fullscreen route (e.g., a deep-linked report),
             // append only the redirect target on top of the existing routes so the user returns
             // to them after the redirect screen is dismissed. Otherwise (fresh app with no stack),
