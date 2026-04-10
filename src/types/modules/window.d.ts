@@ -3,9 +3,6 @@ import type Report from '@src/types/onyx/Report';
 import type Transaction from '@src/types/onyx/Transaction';
 import type {Receipt} from '@src/types/onyx/Transaction';
 
-// eslint-disable-next-line @typescript-eslint/naming-convention, @typescript-eslint/no-unused-vars, no-underscore-dangle
-declare const __GIT_BRANCH__: string;
-
 declare global {
     // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
     interface Window {
@@ -14,6 +11,10 @@ declare global {
         transaction?: Promise<Transaction | undefined>;
         receipt?: Promise<Receipt | undefined>;
     }
+
+    // Injected by webpack DefinePlugin at build time; empty string in non-development builds.
+    // eslint-disable-next-line @typescript-eslint/naming-convention, no-underscore-dangle
+    const __GIT_BRANCH__: string;
 }
 
 // eslint-disable-next-line import/no-anonymous-default-export
