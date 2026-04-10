@@ -6,7 +6,7 @@ import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import TextWithTooltip from '@components/TextWithTooltip';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {convertToBackendAmount, convertToDisplayString, convertToFrontendAmountAsString} from '@libs/CurrencyUtils';
+import {convertToBackendAmount, convertToDisplayString, convertToFrontendAmountAsString, getCurrencyDecimals} from '@libs/CurrencyUtils';
 import {parseFloatAnyLocale, roundToTwoDecimalPlaces} from '@libs/NumberUtils';
 import {getTransactionDetails} from '@libs/ReportUtils';
 import {getCurrency as getTransactionCurrency, isScanning} from '@libs/TransactionUtils';
@@ -50,6 +50,11 @@ function TotalCell({shouldShowTooltip, transactionItem, canEdit, onSave}: TotalC
         setLocalValue(amountString);
     };
 
+    const onFormatAmount = (amountAsInt: number, currencyParam?: string) => {
+        const decimals = getCurrencyDecimals(currencyParam);
+        return convertToFrontendAmountAsString(amountAsInt, decimals);
+    };
+
     const handleBlur = () => {
         save();
     };
@@ -80,6 +85,7 @@ function TotalCell({shouldShowTooltip, transactionItem, canEdit, onSave}: TotalC
                     shouldApplyPaddingToContainer={false}
                     shouldRefocusOnScrollViewClick
                     onAmountChange={handleAmountChange}
+                    onFormatAmount={onFormatAmount}
                     onBlur={handleBlur}
                     // EditableCell is responsible for the cell's hover and focus styles (border, background).
                     // Suppress MoneyRequestAmountInput's own border and background to avoid visual conflicts.
