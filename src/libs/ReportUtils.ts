@@ -162,6 +162,7 @@ import {
     getPolicyNameByID,
     getPolicyRole,
     getRuleApprovers,
+    getSortedTagKeys,
     getSubmitToAccountID,
     hasDependentTags as hasDependentTagsPolicyUtils,
     hasDynamicExternalWorkflow,
@@ -280,6 +281,7 @@ import {
     getRecentTransactions,
     getReimbursable,
     getTag,
+    getTagArrayFromName,
     getTaxAmount,
     getTaxCode,
     getTaxName,
@@ -2073,27 +2075,31 @@ function isAwaitingFirstLevelApproval(report: OnyxEntry<Report>): boolean {
  */
 function pushTransactionViolationsOnyxData(
     onyxData: OnyxData<
-        typeof ONYXKEYS.COLLECTION.POLICY_CATEGORIES | typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.COLLECTION.POLICY_TAGS | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS
+        | typeof ONYXKEYS.COLLECTION.POLICY_CATEGORIES
+        | typeof ONYXKEYS.COLLECTION.POLICY
+        | typeof ONYXKEYS.COLLECTION.POLICY_TAGS
+        | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS
+        | typeof ONYXKEYS.COLLECTION.TRANSACTION
     >,
     policyData: PolicyData,
     policyUpdate: Partial<Policy> = {},
     categoriesUpdate: Record<string, Partial<PolicyCategory>> = {},
     tagListsUpdate: Record<string, Partial<PolicyTagList>> = {},
 ) {
-    const nonInvoiceReportTransactionsAndViolations = policyData.reports.reduce<ReportTransactionsAndViolations[]>((acc, report) => {
+    const nonInvoiceReportItems = policyData.reports.reduce<Array<{report: Report; transactionsAndViolations: ReportTransactionsAndViolations}>>((acc, report) => {
         // Skipping invoice reports since they should not have any category or tag violations
         if (isInvoiceReport(report)) {
             return acc;
         }
         const reportTransactionsAndViolations = policyData.transactionsAndViolations[report.reportID];
         if (!isEmptyObject(reportTransactionsAndViolations) && !isEmptyObject(reportTransactionsAndViolations.transactions)) {
-            acc.push(reportTransactionsAndViolations);
+            acc.push({report, transactionsAndViolations: reportTransactionsAndViolations});
         }
         return acc;
     }, []);
 
-    if (nonInvoiceReportTransactionsAndViolations.length === 0) {
-        return;
+    if (nonInvoiceReportItems.length === 0) {
+        return [];
     }
 
     const updatedTagListsNames = Object.keys(tagListsUpdate);
@@ -2104,7 +2110,7 @@ function pushTransactionViolationsOnyxData(
     const isTagListsUpdateEmpty = updatedTagListsNames.length === 0;
     const isCategoriesUpdateEmpty = updatedCategoriesNames.length === 0;
     if (isPolicyUpdateEmpty && isTagListsUpdateEmpty && isCategoriesUpdateEmpty) {
-        return;
+        return [];
     }
 
     // Merge the existing policy with the optimistic updates
@@ -2164,19 +2170,149 @@ function pushTransactionViolationsOnyxData(
               }, {}),
           };
 
-    const hasDependentTags = hasDependentTagsPolicyUtils(optimisticPolicy, optimisticTagLists);
+    const hasDependentTagsValue = hasDependentTagsPolicyUtils(optimisticPolicy, optimisticTagLists);
+
+    // Compute sole remaining values for auto-selection when a policy value is deleted
+    const enabledCategoryKeys = Object.entries(optimisticCategories)
+        .filter(([, cat]) => cat.enabled && cat.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
+        .map(([key]) => key);
+    const singleRemainingCategory = enabledCategoryKeys.length === 1 ? enabledCategoryKeys.at(0) : undefined;
+
+    const tagListKeys = Object.keys(optimisticTagLists);
+
+    // Single-level tag auto-selection
+    let singleRemainingTag: string | undefined;
+    if (tagListKeys.length === 1) {
+        const tagListName = tagListKeys.at(0) ?? '';
+        const enabledTagKeys = Object.entries(optimisticTagLists[tagListName]?.tags ?? {})
+            .filter(([, tag]) => tag.enabled && tag.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
+            .map(([key]) => key);
+        singleRemainingTag = enabledTagKeys.length === 1 ? enabledTagKeys.at(0) : undefined;
+    }
+
+    // Multi-level tag auto-selection (per level)
+    let perLevelSingleTag: Array<string | undefined> = [];
+    if (tagListKeys.length > 1) {
+        const sortedTagKeys = getSortedTagKeys(optimisticTagLists);
+        perLevelSingleTag = sortedTagKeys.map((key) => {
+            const tags = optimisticTagLists[key]?.tags ?? {};
+            const enabledKeys = Object.entries(tags)
+                .filter(([, tag]) => tag.enabled && tag.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
+                .map(([k]) => k);
+            return enabledKeys.length === 1 ? enabledKeys.at(0) : undefined;
+        });
+    }
+
+    // Tax auto-selection
+    const optimisticTaxes = optimisticPolicy.taxRates?.taxes ?? {};
+    const enabledTaxKeys = Object.entries(optimisticTaxes)
+        .filter(([, tax]) => !tax.isDisabled && tax.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
+        .map(([key]) => key);
+    const singleRemainingTaxCode = enabledTaxKeys.length === 1 ? enabledTaxKeys.at(0) : undefined;
+
+    // Collect auto-selected transaction updates to return to callers for the API request
+    const autoSelections: Array<{transactionID: string; category?: string; tag?: string; taxCode?: string}> = [];
 
     // Iterate through all policy reports to find transactions that need optimistic violations
-    for (const {transactions, violations} of nonInvoiceReportTransactionsAndViolations) {
+    for (const {
+        report,
+        transactionsAndViolations: {transactions, violations},
+    } of nonInvoiceReportItems) {
+        const isEligibleForAutoSelect = isOpenOrProcessingReport(report);
+
         for (const transaction of Object.values(transactions)) {
+            let modifiedTransaction = transaction;
+            const transactionUpdates: Partial<Transaction> = {};
+            const transactionRollback: Partial<Transaction> = {};
+
+            if (isEligibleForAutoSelect) {
+                // Category auto-select: if the transaction's category is out of policy and only one enabled category remains
+                if (singleRemainingCategory && transaction.category && !optimisticCategories[transaction.category]?.enabled) {
+                    transactionUpdates.category = singleRemainingCategory;
+                    transactionRollback.category = transaction.category;
+                }
+
+                // Single-level tag auto-select
+                if (tagListKeys.length === 1 && singleRemainingTag && transaction.tag) {
+                    const tagListName = tagListKeys.at(0) ?? '';
+                    const isTagInPolicy = !!optimisticTagLists[tagListName]?.tags?.[transaction.tag]?.enabled;
+                    if (!isTagInPolicy) {
+                        transactionUpdates.tag = singleRemainingTag;
+                        transactionRollback.tag = transaction.tag;
+                    }
+                }
+
+                // Multi-level tag auto-select
+                if (tagListKeys.length > 1 && transaction.tag) {
+                    const sortedTagKeys = getSortedTagKeys(optimisticTagLists);
+                    const currentTags = getTagArrayFromName(transaction.tag);
+                    let anyTagChanged = false;
+                    const newTags = [...currentTags];
+
+                    for (let i = 0; i < sortedTagKeys.length; i++) {
+                        const currentTag = currentTags.at(i);
+                        if (!currentTag) {
+                            continue;
+                        }
+                        const sortedTagKey = sortedTagKeys.at(i) ?? '';
+                        const levelTags = optimisticTagLists[sortedTagKey]?.tags ?? {};
+                        const isInPolicy = !!levelTags[currentTag]?.enabled;
+                        const singleTag = perLevelSingleTag.at(i);
+                        if (!isInPolicy && singleTag) {
+                            newTags[i] = singleTag;
+                            anyTagChanged = true;
+                        }
+                    }
+
+                    if (anyTagChanged) {
+                        transactionUpdates.tag = newTags.join(CONST.COLON);
+                        transactionRollback.tag = transaction.tag;
+                    }
+                }
+
+                // Tax auto-select: if the transaction's tax code is out of policy and only one enabled tax remains
+                if (singleRemainingTaxCode && transaction.taxCode) {
+                    const isTaxInPolicy = !!optimisticTaxes[transaction.taxCode] && !optimisticTaxes[transaction.taxCode].isDisabled;
+                    if (!isTaxInPolicy) {
+                        transactionUpdates.taxCode = singleRemainingTaxCode;
+                        transactionRollback.taxCode = transaction.taxCode;
+                    }
+                }
+            }
+
+            // If auto-selection modified the transaction, push optimistic transaction updates
+            if (Object.keys(transactionUpdates).length > 0) {
+                modifiedTransaction = {...transaction, ...transactionUpdates};
+
+                onyxData.optimisticData?.push({
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
+                    value: transactionUpdates,
+                });
+
+                onyxData.failureData?.push({
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
+                    value: transactionRollback,
+                });
+
+                // Collect auto-selection data for the API request
+                autoSelections.push({
+                    transactionID: transaction.transactionID,
+                    ...(transactionUpdates.category !== undefined && {category: transactionUpdates.category}),
+                    ...(transactionUpdates.tag !== undefined && {tag: transactionUpdates.tag}),
+                    ...(transactionUpdates.taxCode !== undefined && {taxCode: transactionUpdates.taxCode}),
+                });
+            }
+
             const existingViolations = violations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`];
             const optimisticViolations = ViolationsUtils.getViolationsOnyxData(
-                transaction,
+                modifiedTransaction,
                 existingViolations ?? [],
                 optimisticPolicy,
                 optimisticTagLists,
                 optimisticCategories,
-                hasDependentTags,
+                hasDependentTagsValue,
                 false,
             );
 
@@ -2190,6 +2326,8 @@ function pushTransactionViolationsOnyxData(
             }
         }
     }
+
+    return autoSelections;
 }
 
 /**

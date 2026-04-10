@@ -63,7 +63,11 @@ function PolicyDistanceRateDetailsPage({route}: PolicyDistanceRateDetailsPagePro
 
     const transactionsSelector = useCallback(
         (transactions: OnyxCollection<Transaction>) => {
-            return Object.values(transactions ?? {}).reduce((transactionIDs, transaction) => {
+            const result: {transactionIDs: Set<string>; transactionsAffected: Array<{transactionID: string; customUnitRateID: string}>} = {
+                transactionIDs: new Set<string>(),
+                transactionsAffected: [],
+            };
+            for (const transaction of Object.values(transactions ?? {})) {
                 if (
                     transaction &&
                     transaction.reportID &&
@@ -73,18 +77,23 @@ function PolicyDistanceRateDetailsPage({route}: PolicyDistanceRateDetailsPagePro
                     transaction?.comment?.customUnit?.customUnitRateID &&
                     transaction?.comment?.customUnit?.customUnitRateID === rateID
                 ) {
-                    transactionIDs.add(transaction?.transactionID);
+                    result.transactionIDs.add(transaction.transactionID);
+                    result.transactionsAffected.push({
+                        transactionID: transaction.transactionID,
+                        customUnitRateID: transaction.comment.customUnit.customUnitRateID,
+                    });
                 }
-                return transactionIDs;
-            }, new Set<string>());
+            }
+            return result;
         },
         [customUnitID, rateID, policyReports],
     );
 
-    const [eligibleTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
+    const [eligibleTransactionsData] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
         selector: transactionsSelector,
     });
 
+    const eligibleTransactionIDs = eligibleTransactionsData?.transactionIDs;
     const transactionViolations = useTransactionViolation(eligibleTransactionIDs);
     const icons = useMemoizedLazyExpensifyIcons(['Trashcan']);
 
@@ -130,7 +139,7 @@ function PolicyDistanceRateDetailsPage({route}: PolicyDistanceRateDetailsPagePro
 
     const deleteRate = () => {
         Navigation.goBack();
-        deletePolicyDistanceRates(policyID, customUnit, [rateID], Array.from(eligibleTransactionIDs ?? []), transactionViolations);
+        deletePolicyDistanceRates(policyID, customUnit, [rateID], eligibleTransactionsData?.transactionsAffected ?? [], transactionViolations);
         setIsDeleteModalVisible(false);
     };
 
