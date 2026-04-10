@@ -1,8 +1,10 @@
 import React, {useCallback, useMemo} from 'react';
+import type {ComponentType} from 'react';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import useReimbursementAccountSubmitCallback from '@hooks/useReimbursementAccountSubmitCallback';
+import useSubStep from '@hooks/useSubStep';
+import type {SubStepProps} from '@hooks/useSubStep/types';
 import {getBankAccountIDAsNumber} from '@libs/ReimbursementAccountUtils';
 import getSubStepValues from '@pages/ReimbursementAccount/utils/getSubStepValues';
 import {acceptACHContractForBankAccount} from '@userActions/BankAccounts';
@@ -14,14 +16,12 @@ import ConfirmAgreements from './subSteps/ConfirmAgreements';
 type CompleteVerificationProps = {
     /** Handles back button press */
     onBackButtonPress: () => void;
-
-    /** Handles submit button press (URL-based navigation) */
-    onSubmit?: () => void;
 };
 
 const COMPLETE_VERIFICATION_KEYS = INPUT_IDS.COMPLETE_VERIFICATION;
+const bodyContent: Array<ComponentType<SubStepProps>> = [ConfirmAgreements];
 
-function CompleteVerification({onBackButtonPress, onSubmit}: CompleteVerificationProps) {
+function CompleteVerification({onBackButtonPress}: CompleteVerificationProps) {
     const {translate} = useLocalize();
 
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
@@ -31,7 +31,6 @@ function CompleteVerification({onBackButtonPress, onSubmit}: CompleteVerificatio
     const values = useMemo(() => getSubStepValues(COMPLETE_VERIFICATION_KEYS, reimbursementAccountDraft, reimbursementAccount), [reimbursementAccount, reimbursementAccountDraft]);
     const policyID = reimbursementAccount?.achData?.policyID;
     const bankAccountID = getBankAccountIDAsNumber(reimbursementAccount?.achData);
-    const markSubmitting = useReimbursementAccountSubmitCallback(onSubmit);
 
     const submit = useCallback(() => {
         acceptACHContractForBankAccount(
@@ -44,8 +43,23 @@ function CompleteVerification({onBackButtonPress, onSubmit}: CompleteVerificatio
             policyID,
             policyID ? lastPaymentMethod?.[policyID] : undefined,
         );
-        markSubmitting();
-    }, [bankAccountID, values.isAuthorizedToUseBankAccount, values.certifyTrueInformation, values.acceptTermsAndConditions, policyID, lastPaymentMethod, markSubmitting]);
+    }, [bankAccountID, values.isAuthorizedToUseBankAccount, values.certifyTrueInformation, values.acceptTermsAndConditions, policyID, lastPaymentMethod]);
+
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
+    const {componentToRender: SubStep, isEditing, screenIndex, nextScreen, prevScreen, moveTo, goToTheLastStep} = useSubStep({bodyContent, startFrom: 0, onFinished: submit});
+
+    const handleBackButtonPress = () => {
+        if (isEditing) {
+            goToTheLastStep();
+            return;
+        }
+
+        if (screenIndex === 0) {
+            onBackButtonPress();
+        } else {
+            prevScreen();
+        }
+    };
 
     return (
         <InteractiveStepWrapper
@@ -53,11 +67,15 @@ function CompleteVerification({onBackButtonPress, onSubmit}: CompleteVerificatio
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight
             headerTitle={translate('completeVerificationStep.completeVerification')}
-            handleBackButtonPress={onBackButtonPress}
+            handleBackButtonPress={handleBackButtonPress}
             startStepIndex={6}
             stepNames={CONST.BANK_ACCOUNT.STEP_NAMES}
         >
-            <ConfirmAgreements onNext={submit} />
+            <SubStep
+                isEditing={isEditing}
+                onNext={nextScreen}
+                onMove={moveTo}
+            />
         </InteractiveStepWrapper>
     );
 }
