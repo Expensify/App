@@ -184,7 +184,8 @@ function SpendRuleCardPage({route}: SpendRuleCardPageProps) {
         Navigation.goBack(parentRoute);
     };
 
-    const headerMessage = eligibleCards.length > 0 ? getHeaderMessage(listData.length > 0, false, inputValue, countryCode, false) : '';
+    const hasEligibleCards = eligibleCards.length > 0;
+    const headerMessage = hasEligibleCards ? getHeaderMessage(listData.length > 0, false, inputValue, countryCode, false) : '';
 
     return (
         <AccessOrNotFoundWrapper
@@ -214,12 +215,16 @@ function SpendRuleCardPage({route}: SpendRuleCardPageProps) {
                     />
                     <SelectionList
                         canSelectMultiple
-                        textInputOptions={eligibleCards.length > 0 ? {
-                            headerMessage,
-                            value: inputValue,
-                            label: translate('common.search'),
-                            onChangeText: setInputValue,
-                        } : undefined}
+                        textInputOptions={
+                            hasEligibleCards
+                                ? {
+                                      headerMessage,
+                                      value: inputValue,
+                                      label: translate('common.search'),
+                                      onChangeText: setInputValue,
+                                  }
+                                : undefined
+                        }
                         data={listData}
                         style={{
                             listHeaderWrapperStyle: [styles.pt5, styles.pb2],
@@ -243,7 +248,7 @@ function SpendRuleCardPage({route}: SpendRuleCardPageProps) {
                         }
                         footerContent={
                             <FormAlertWithSubmitButton
-                                buttonText={eligibleCards.length > 0 ? translate('common.save') : translate('common.buttonConfirm')}
+                                buttonText={hasEligibleCards ? translate('common.save') : translate('common.buttonConfirm')}
                                 isAlertVisible={false}
                                 isDisabled={isCardSettingsLoading}
                                 onSubmit={handleSave}
