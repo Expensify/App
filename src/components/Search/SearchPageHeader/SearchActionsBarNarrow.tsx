@@ -1,3 +1,6 @@
+// NOTE: This component has a static twin in SearchPageNarrow/StaticSearchActionsBar.tsx
+// used for fast perceived performance. If you change the UI here, verify the
+// static version still looks visually identical.
 import React from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -33,3 +36,4 @@ function SearchActionsBarNarrow({queryJSON, searchResults, onSort}: SearchAction
 SearchActionsBarNarrow.displayName = 'SearchActionsBarNarrow';
 
 export default SearchActionsBarNarrow;
+export type {SearchActionsBarNarrowProps};

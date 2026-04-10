@@ -1,7 +1,10 @@
+// NOTE: This component has a static twin in SearchPageNarrow/StaticFiltersBar.tsx
+// used for fast perceived performance. If you change the UI here, verify the
+// static version still looks visually identical.
 import React, {useRef} from 'react';
 import {FlatList} from 'react-native';
 import type {SearchQueryJSON} from '@components/Search/types';
-import SearchActionsSkeleton from '@components/Skeletons/SearchActionsSkeleton';
+import SearchFiltersSkeleton from '@components/Skeletons/SearchFiltersSkeleton';
 import type {SearchFilter} from '@libs/SearchUIUtils';
 import shouldAdjustScroll from '@libs/shouldAdjustScroll';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
@@ -41,7 +44,7 @@ function SearchFiltersBarNarrow({queryJSON}: SearchFiltersBarNarrowProps) {
             shouldShowFiltersBarLoading,
         };
         return (
-            <SearchActionsSkeleton
+            <SearchFiltersSkeleton
                 shouldAnimate
                 reasonAttributes={skeletonReasonAttributes}
             />
@@ -68,3 +71,4 @@ function SearchFiltersBarNarrow({queryJSON}: SearchFiltersBarNarrowProps) {
 SearchFiltersBarNarrow.displayName = 'SearchFiltersBarNarrow';
 
 export default SearchFiltersBarNarrow;
+export type {SearchFiltersBarNarrowProps};

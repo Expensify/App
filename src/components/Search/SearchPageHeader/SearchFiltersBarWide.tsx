@@ -1,6 +1,6 @@
 import React from 'react';
 import type {SearchQueryJSON} from '@components/Search/types';
-import SearchActionsSkeleton from '@components/Skeletons/SearchActionsSkeleton';
+import SearchFiltersSkeleton from '@components/Skeletons/SearchFiltersSkeleton';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import SearchFilterBar from './SearchFilterBar';
 import useSearchFiltersBar from './useSearchFiltersBar';
@@ -18,11 +18,11 @@ function SearchFiltersBarWide({queryJSON}: SearchFiltersBarWideProps) {
 
     if (shouldShowFiltersBarLoading) {
         const skeletonReasonAttributes: SkeletonSpanReasonAttributes = {
-            context: 'SearchActionsBarWide',
+            context: 'SearchFiltersBarWide',
             shouldShowFiltersBarLoading,
         };
         return (
-            <SearchActionsSkeleton
+            <SearchFiltersSkeleton
                 shouldAnimate
                 reasonAttributes={skeletonReasonAttributes}
             />

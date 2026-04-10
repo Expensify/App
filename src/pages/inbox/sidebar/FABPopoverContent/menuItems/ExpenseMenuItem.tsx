@@ -23,24 +23,27 @@ function ExpenseMenuItem({reportID}: ExpenseMenuItemProps) {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const icons = useMemoizedLazyExpensifyIcons(['Coins', 'Receipt', 'Cash', 'Transfer', 'MoneyCircle']);
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
-    const {shouldRedirectToExpensifyClassic, showRedirectToExpensifyClassicModal} = useRedirectToExpensifyClassic();
+    const {shouldRedirectToExpensifyClassic, canRedirectToExpensifyClassic, canUseAction, showRedirectToExpensifyClassicModal} = useRedirectToExpensifyClassic();
 
     return (
         <FABFocusableMenuItem
             itemId={ITEM_ID}
+            isVisible={canUseAction}
             pressableTestID={CONST.SENTRY_LABEL.FAB_MENU.CREATE_EXPENSE}
             icon={getIconForAction(CONST.IOU.TYPE.CREATE, icons)}
             title={translate('iou.createExpense')}
             onPress={() =>
                 interceptAnonymousUser(() => {
                     if (shouldRedirectToExpensifyClassic) {
-                        showRedirectToExpensifyClassicModal();
+                        if (canRedirectToExpensifyClassic) {
+                            showRedirectToExpensifyClassicModal();
+                        }
                         return;
                     }
                     startMoneyRequest(CONST.IOU.TYPE.CREATE, reportID, draftTransactionIDs, undefined, undefined, undefined, true);
                 })
             }
-            shouldCallAfterModalHide={shouldRedirectToExpensifyClassic || shouldUseNarrowLayout}
+            shouldCallAfterModalHide={canRedirectToExpensifyClassic || shouldUseNarrowLayout}
         />
     );
 }

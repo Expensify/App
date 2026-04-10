@@ -1,4 +1,5 @@
-import {useNavigationState} from '@react-navigation/native';
+import {useNavigation} from '@react-navigation/core';
+import type {NavigationState} from '@react-navigation/routers';
 import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 // We need direct access to useOnyx from react-native-onyx to avoid circular dependencies in SearchContext
 // eslint-disable-next-line no-restricted-imports
@@ -6,6 +7,7 @@ import {useOnyx} from 'react-native-onyx';
 import useCardFeedsForDisplay from '@hooks/useCardFeedsForDisplay';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import usePreviousDefined from '@hooks/usePreviousDefined';
+import useRootNavigationState from '@hooks/useRootNavigationState';
 import useTodos from '@hooks/useTodos';
 import {getDeepestFocusedScreen} from '@libs/Navigation/Navigation';
 import {isMoneyRequestReport} from '@libs/ReportUtils';
@@ -79,21 +81,22 @@ const defaultSearchActionsContext: SearchActionsContextValue = {
 const SearchStateContext = React.createContext<SearchStateContextValue>(defaultSearchStateContext);
 const SearchActionsContext = React.createContext<SearchActionsContextValue>(defaultSearchActionsContext);
 
-function selectSearchQueryParam(state: Parameters<Parameters<typeof useNavigationState>[0]>[0]) {
+function selectSearchQueryParam(state: NavigationState | undefined) {
     const focused = getDeepestFocusedScreen(state);
     return focused?.name === SCREENS.SEARCH.ROOT ? (focused.params?.q as string | undefined) : undefined;
 }
 
-function selectSearchRawQueryParam(state: Parameters<Parameters<typeof useNavigationState>[0]>[0]) {
+function selectSearchRawQueryParam(state: NavigationState | undefined) {
     const focused = getDeepestFocusedScreen(state);
     return focused?.name === SCREENS.SEARCH.ROOT ? (focused.params?.rawQuery as string | undefined) : undefined;
 }
 
 function SearchContextProvider({children}: SearchContextProps) {
+    const navigation = useNavigation();
     // Extract only the primitive values we need from the focused screen to avoid
     // re-renders from new object references returned by getDeepestFocusedScreen.
-    const queryParam = useNavigationState(selectSearchQueryParam);
-    const rawQueryParam = useNavigationState(selectSearchRawQueryParam);
+    const queryParam = useRootNavigationState((state) => selectSearchQueryParam(state ?? navigation.getState()));
+    const rawQueryParam = useRootNavigationState((state) => selectSearchRawQueryParam(state ?? navigation.getState()));
     const definedQueryParam = usePreviousDefined(queryParam) ?? buildSearchQueryString();
     const currentSearchQueryJSON = useMemo(() => buildSearchQueryJSON(definedQueryParam, rawQueryParam), [definedQueryParam, rawQueryParam]);
 
@@ -172,15 +175,33 @@ function SearchContextProvider({children}: SearchContextProps) {
                     }
                     return item.transactions.every(({keyForList}) => transactionIDs[keyForList]?.isSelected);
                 })
-                .map(({reportID, action = CONST.SEARCH.ACTION_TYPES.VIEW, total = CONST.DEFAULT_NUMBER_ID, policyID, allActions = [action], currency, chatReportID}) => ({
-                    reportID,
-                    action,
-                    total,
-                    policyID,
-                    allActions,
-                    currency,
-                    chatReportID,
-                }));
+                .map(
+                    ({
+                        reportID,
+                        action = CONST.SEARCH.ACTION_TYPES.VIEW,
+                        total = CONST.DEFAULT_NUMBER_ID,
+                        policyID,
+                        allActions = [action],
+                        currency,
+                        chatReportID,
+                        managerID,
+                        ownerAccountID,
+                        parentReportActionID,
+                        parentReportID,
+                    }) => ({
+                        reportID,
+                        action,
+                        total,
+                        policyID,
+                        allActions,
+                        currency,
+                        chatReportID,
+                        managerID,
+                        ownerAccountID,
+                        parentReportActionID,
+                        parentReportID,
+                    }),
+                );
         } else if (data.length && data.every(isTransactionListItemType)) {
             matchingReports = data
                 .filter(({keyForList}) => !!keyForList && transactionIDs[keyForList]?.isSelected)
@@ -196,6 +217,11 @@ function SearchContextProvider({children}: SearchContextProps) {
                         allActions: item.allActions ?? [action],
                         currency: item.currency,
                         chatReportID: item.report?.chatReportID,
+                        managerID: item.report?.managerID,
+                        ownerAccountID: item.report?.ownerAccountID,
+                        parentReportActionID: item.report?.parentReportActionID,
+                        parentReportID: item.report?.parentReportID,
+                        type: item.report?.type,
                     };
                 });
         }

@@ -1,3 +1,6 @@
+// NOTE: This component has a static twin in SearchPageNarrow/StaticSearchTypeMenu.tsx
+// used for fast perceived performance. If you change the UI here, verify the
+// static version still looks visually identical.
 import {useNavigation} from '@react-navigation/native';
 import React, {useRef, useState} from 'react';
 import {View} from 'react-native';
@@ -17,6 +20,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useReportAttributes from '@hooks/useReportAttributes';
 import useSearchTypeMenuSections from '@hooks/useSearchTypeMenuSections';
+import useThemeStyles from '@hooks/useThemeStyles';
 import {setSearchContext} from '@libs/actions/Search';
 import {mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
 import {getAllTaxRates} from '@libs/PolicyUtils';
@@ -33,6 +37,38 @@ type SearchTypeMenuNarrowProps = {
     /** Function to call when a tab is pressed */
     onTabPress?: () => void;
 };
+
+type SearchTypeMenuNarrowContentProps = {
+    tabs: TabSelectorBaseItem[];
+    activeTabKey: string;
+    onActiveTabPress?: (key: string) => void;
+    onTabPress?: (key: string) => void;
+    onLongTabPress?: (key: string) => void;
+    containerRef?: React.RefObject<View | null>;
+    children?: React.ReactNode;
+};
+
+function SearchTypeMenuNarrowContent({tabs, activeTabKey, onActiveTabPress, onTabPress: onTabPressContent, onLongTabPress, containerRef, children}: SearchTypeMenuNarrowContentProps) {
+    const styles = useThemeStyles();
+
+    return (
+        <View
+            ref={containerRef}
+            style={[styles.appBG]}
+        >
+            <TabSelectorContextProvider activeTabKey={activeTabKey}>
+                <TabSelectorBase
+                    tabs={tabs}
+                    activeTabKey={activeTabKey}
+                    onActiveTabPress={onActiveTabPress}
+                    onTabPress={onTabPressContent}
+                    onLongTabPress={onLongTabPress}
+                />
+            </TabSelectorContextProvider>
+            {children}
+        </View>
+    );
+}
 
 function SearchTypeMenuNarrow({queryJSON, onTabPress}: SearchTypeMenuNarrowProps) {
     const {translate} = useLocalize();
@@ -191,16 +227,14 @@ function SearchTypeMenuNarrow({queryJSON, onTabPress}: SearchTypeMenuNarrowProps
     };
 
     return (
-        <View ref={menuAnchorRef}>
-            <TabSelectorContextProvider activeTabKey={activeKey}>
-                <TabSelectorBase
-                    tabs={tabItems}
-                    activeTabKey={activeKey}
-                    onActiveTabPress={handleActiveTabPress}
-                    onTabPress={handleTabPress}
-                    onLongTabPress={handleLongTabPress}
-                />
-            </TabSelectorContextProvider>
+        <SearchTypeMenuNarrowContent
+            tabs={tabItems}
+            activeTabKey={activeKey}
+            onActiveTabPress={handleActiveTabPress}
+            onTabPress={handleTabPress}
+            onLongTabPress={handleLongTabPress}
+            containerRef={menuAnchorRef}
+        >
             <PopoverMenu
                 onClose={() => setSavedSearchToModifyKey(null)}
                 onModalHide={() => setRestoreFocusType(undefined)}
@@ -221,8 +255,10 @@ function SearchTypeMenuNarrow({queryJSON, onTabPress}: SearchTypeMenuNarrowProps
                 shouldEnableNewFocusManagement
                 restoreFocusType={restoreFocusType}
             />
-        </View>
+        </SearchTypeMenuNarrowContent>
     );
 }
 
+export {SearchTypeMenuNarrowContent};
 export default SearchTypeMenuNarrow;
+export type {SearchTypeMenuNarrowProps};

@@ -1,11 +1,12 @@
 import React from 'react';
+import type {OnyxEntry} from 'react-native-onyx';
 import {useCurrencyListActions, useCurrencyListState} from '@components/CurrencyListContextProvider';
-import {filterGroupCurrencySelector} from '@components/Search/selectors/Search';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getGroupCurrencyOptions} from '@libs/SearchUIUtils';
+import {getCurrencyOptions} from '@libs/SearchUIUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {SearchAdvancedFiltersForm} from '@src/types/form';
 import SingleSelectPopup from './SingleSelectPopup';
 import type {SingleSelectItem} from './SingleSelectPopup';
 
@@ -14,12 +15,16 @@ type GroupCurrencyPopupProps = {
     onChange: (item: SingleSelectItem<string> | null) => void;
 };
 
+function filterGroupCurrencySelector(searchAdvancedFiltersForm: OnyxEntry<SearchAdvancedFiltersForm>) {
+    return searchAdvancedFiltersForm?.groupCurrency;
+}
+
 function GroupCurrencyPopup({onChange, closeOverlay}: GroupCurrencyPopupProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {currencyList} = useCurrencyListState();
     const {getCurrencySymbol} = useCurrencyListActions();
-    const groupCurrencyOptions = getGroupCurrencyOptions(currencyList, getCurrencySymbol);
+    const groupCurrencyOptions = getCurrencyOptions(currencyList, getCurrencySymbol);
     const [groupCurrency] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {selector: filterGroupCurrencySelector});
 
     const groupCurrencyValue = groupCurrencyOptions.find((option) => option.value === groupCurrency) ?? null;

@@ -109,7 +109,6 @@ function FeedPopup({updateFilterForm, closeOverlay, isExpanded}: FilterBarPopupP
 
     return (
         <MultiSelectFilterPopup
-            isExpanded={isExpanded}
             closeOverlay={closeOverlay}
             translationKey="search.filters.feed"
             items={feedOptions}
@@ -215,7 +214,7 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON): UseSearchFiltersBarRes
             buildFilterQueryWithSortDefaults(
                 updatedFilterFormValues,
                 {view: searchAdvancedFiltersForm.view, groupBy: searchAdvancedFiltersForm.groupBy},
-                {sortBy: queryJSON.sortBy, sortOrder: queryJSON.sortOrder, limit: queryJSON.limit},
+                {sortBy: queryJSON.sortBy, sortOrder: queryJSON.sortOrder},
             ) ?? '';
         if (!queryString) {
             return;
@@ -251,7 +250,6 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON): UseSearchFiltersBarRes
                 };
                 const hasComponent = (props: PopoverComponentProps) => (
                     <MultiSelectFilterPopup
-                        isExpanded={props.isExpanded}
                         closeOverlay={props.closeOverlay}
                         translationKey="search.has"
                         items={hasOptions}
@@ -270,7 +268,6 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON): UseSearchFiltersBarRes
                 };
                 const isComponent = (props: PopoverComponentProps) => (
                     <MultiSelectFilterPopup
-                        isExpanded={props.isExpanded}
                         closeOverlay={props.closeOverlay}
                         translationKey="search.filters.is"
                         items={isOptions}
@@ -317,7 +314,6 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON): UseSearchFiltersBarRes
                 };
                 const statusComponent = (props: PopoverComponentProps) => (
                     <MultiSelectFilterPopup
-                        isExpanded={props.isExpanded}
                         closeOverlay={props.closeOverlay}
                         translationKey="common.status"
                         items={statusOptions}

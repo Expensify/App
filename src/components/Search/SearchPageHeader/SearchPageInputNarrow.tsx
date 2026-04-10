@@ -1,3 +1,6 @@
+// NOTE: This component has a static twin in SearchPageNarrow/StaticSearchPageInput.tsx
+// used for fast perceived performance. If you change the UI here, verify the
+// static version still looks visually identical.
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
 import Animated from 'react-native-reanimated';
@@ -14,8 +17,9 @@ type SearchPageInputNarrowProps = {
     hideSearchRouterList: () => void;
     onSearchRouterFocus: () => void;
     handleSearch: (value: string) => void;
+    skipSkeleton: boolean;
 };
-function SearchPageInputNarrow({queryJSON, searchRouterListVisible, hideSearchRouterList, onSearchRouterFocus, handleSearch}: SearchPageInputNarrowProps) {
+function SearchPageInputNarrow({queryJSON, searchRouterListVisible, hideSearchRouterList, onSearchRouterFocus, handleSearch, skipSkeleton}: SearchPageInputNarrowProps) {
     const styles = useThemeStyles();
 
     const {
@@ -72,6 +76,7 @@ function SearchPageInputNarrow({queryJSON, searchRouterListVisible, hideSearchRo
                         wrapperFocusedStyle={styles.searchAutocompleteInputResultsFocused}
                         ref={textInputRef}
                         onKeyPress={handleKeyPress}
+                        skipSkeleton={skipSkeleton}
                     />
                 </Animated.View>
             </View>
@@ -93,3 +98,4 @@ function SearchPageInputNarrow({queryJSON, searchRouterListVisible, hideSearchRo
 }
 
 export default SearchPageInputNarrow;
+export type {SearchPageInputNarrowProps};

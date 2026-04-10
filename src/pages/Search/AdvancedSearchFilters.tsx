@@ -597,7 +597,7 @@ function AdvancedSearchFilters() {
             buildFilterQueryWithSortDefaults(
                 searchAdvancedFilters,
                 {view: currentQueryJSON?.view, groupBy: currentQueryJSON?.groupBy},
-                {sortBy: currentQueryJSON?.sortBy, sortOrder: currentQueryJSON?.sortOrder, limit: currentQueryJSON?.limit},
+                {sortBy: currentQueryJSON?.sortBy, sortOrder: currentQueryJSON?.sortOrder},
             ) ?? ''
         );
     }, [searchAdvancedFilters]);
