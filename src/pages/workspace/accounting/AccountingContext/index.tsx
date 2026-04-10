@@ -3,10 +3,10 @@ import type {RefObject} from 'react';
 import type {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import AccountingConnectionConfirmationModal from '@components/AccountingConnectionConfirmationModal';
-import useHasPoliciesConnectedToQBD from '@hooks/useHasPoliciesConnectedToQBD';
 import useHasPoliciesConnectedToSageIntacct from '@hooks/useHasPoliciesConnectedToSageIntacct';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useReusablePoliciesConnectedToQBD from '@hooks/useReusablePoliciesConnectedToQBD';
 import {removePolicyConnection} from '@libs/actions/connections';
 import Navigation from '@libs/Navigation/Navigation';
 import {isControlPolicy} from '@libs/PolicyUtils';
@@ -31,7 +31,7 @@ function AccountingContextProvider({children, policy}: AccountingContextProvider
     const policyID = policy?.id;
     const accountingIcons = useMemoizedLazyExpensifyIcons(['IntacctSquare', 'QBOSquare', 'XeroSquare', 'NetSuiteSquare', 'QBDSquare']);
     const hasPoliciesConnectedToSageIntacct = useHasPoliciesConnectedToSageIntacct();
-    const hasPoliciesConnectedToQBD = useHasPoliciesConnectedToQBD();
+    const {hasReusablePoliciesConnectedToQBD} = useReusablePoliciesConnectedToQBD(policyID);
 
     const startIntegrationFlow = useCallback(
         (newActiveIntegration: ActiveIntegration) => {
@@ -43,7 +43,7 @@ function AccountingContextProvider({children, policy}: AccountingContextProvider
                 newActiveIntegration.name,
                 policyID,
                 translate,
-                {sageIntacct: hasPoliciesConnectedToSageIntacct, qbd: hasPoliciesConnectedToQBD},
+                {sageIntacct: hasPoliciesConnectedToSageIntacct, qbd: hasReusablePoliciesConnectedToQBD},
                 undefined,
                 undefined,
                 newActiveIntegration.integrationToDisconnect,
@@ -63,7 +63,7 @@ function AccountingContextProvider({children, policy}: AccountingContextProvider
                 key: Math.random(),
             });
         },
-        [policy, policyID, translate, hasPoliciesConnectedToSageIntacct, hasPoliciesConnectedToQBD, accountingIcons],
+        [policy, policyID, translate, hasPoliciesConnectedToSageIntacct, hasReusablePoliciesConnectedToQBD, accountingIcons],
     );
 
     const closeConfirmationModal = () => {
@@ -103,7 +103,7 @@ function AccountingContextProvider({children, policy}: AccountingContextProvider
             activeIntegration.name,
             policyID,
             translate,
-            {sageIntacct: hasPoliciesConnectedToSageIntacct, qbd: hasPoliciesConnectedToQBD},
+            {sageIntacct: hasPoliciesConnectedToSageIntacct, qbd: hasReusablePoliciesConnectedToQBD},
             policy,
             activeIntegration.key,
             undefined,
