@@ -1,6 +1,6 @@
 import {getActionFromState} from '@react-navigation/core';
 import type {NavigationContainerRef, NavigationState, PartialState} from '@react-navigation/native';
-import {findFocusedRoute, StackActions} from '@react-navigation/native';
+import {CommonActions, findFocusedRoute} from '@react-navigation/native';
 import findMatchingDynamicSuffix from '@libs/Navigation/helpers/dynamicRoutesUtils/findMatchingDynamicSuffix';
 import {getMatchingFullScreenRoute, isFullScreenName} from '@libs/Navigation/helpers/getAdaptedStateFromPath';
 import getStateFromPath from '@libs/Navigation/helpers/getStateFromPath';
@@ -75,26 +75,6 @@ function isSwitchingTabsWithinTabNavigator(currentState: NavigationState<RootNav
     const targetFullScreenRoute = stateFromPath.routes?.findLast((route) => isFullScreenName(route.name));
 
     return lastFullScreenRoute?.name === NAVIGATORS.TAB_NAVIGATOR && targetFullScreenRoute?.name === NAVIGATORS.TAB_NAVIGATOR;
-}
-
-function isRoutePreloaded(currentState: PlatformStackNavigationState<RootNavigatorParamList>, matchingFullScreenRoute: NavigationPartialRoute) {
-    const activeScreenInMatching = getActiveScreenInRoute(matchingFullScreenRoute);
-
-    const preloadedRoutes = currentState.preloadedRoutes;
-
-    return preloadedRoutes.some((preloadedRoute) => {
-        const isMatchingFullScreenRoute = preloadedRoute.name === matchingFullScreenRoute.name;
-
-        // If the matching fullscreen route does not have an active screen, then we only need to compare the fullscreen route name
-        if (!activeScreenInMatching) {
-            return isMatchingFullScreenRoute;
-        }
-
-        // Compare the active screen of the preloadedRoute and the matchingFullScreenRoute to ensure the preloaded route is accepted when matching subroutes as well
-        const isMatchingLastRoute = preloadedRoute.params && 'screen' in preloadedRoute.params && preloadedRoute.params.screen === activeScreenInMatching;
-
-        return isMatchingFullScreenRoute && isMatchingLastRoute;
-    });
 }
 
 /**
@@ -207,20 +187,26 @@ export default function linkTo(navigation: NavigationContainerRef<RootNavigatorP
     if (shouldCheckFullScreenRouteMatching(action)) {
         const newFocusedRoute = findFocusedRoute(stateFromPath);
         if (newFocusedRoute) {
-            const matchingFullScreenRoute = getMatchingFullScreenRoute(newFocusedRoute);
-
-            const lastFullScreenRoute = currentState.routes.findLast((route) => isFullScreenName(route.name));
-            if (matchingFullScreenRoute && lastFullScreenRoute && shouldChangeToMatchingFullScreen(newFocusedRoute, matchingFullScreenRoute, lastFullScreenRoute as NavigationPartialRoute)) {
-                if (isRoutePreloaded(currentState, matchingFullScreenRoute)) {
-                    navigation.dispatch(StackActions.push(matchingFullScreenRoute.name));
-                } else {
-                    const lastRouteInMatchingFullScreen = matchingFullScreenRoute.state?.routes?.at(-1);
-                    const additionalAction = StackActions.push(matchingFullScreenRoute.name, {
-                        screen: lastRouteInMatchingFullScreen?.name,
-                        params: lastRouteInMatchingFullScreen?.params,
-                    });
-                    navigation.dispatch(additionalAction);
-                }
+            // getMatchingFullScreenRoute returns a TAB_NAVIGATOR wrapper; unwrap it to get the
+            // actual inner tab route (e.g. REPORTS_SPLIT_NAVIGATOR) at the correct index.
+            const matchingTabNavigatorRoute = getMatchingFullScreenRoute(newFocusedRoute);
+            const matchingTabState = matchingTabNavigatorRoute ? getTabState(matchingTabNavigatorRoute) : undefined;
+            const matchingFullScreenRoute = matchingTabState ? (matchingTabState.routes?.at(matchingTabState.index ?? 0) as NavigationPartialRoute | undefined) : undefined;
+            // Full-screen routes only exist inside TAB_NAVIGATOR, so look at the active tab directly.
+            const tabRoute = currentState.routes.findLast((route) => route.name === NAVIGATORS.TAB_NAVIGATOR);
+            const tabState = tabRoute ? getTabState(tabRoute as NavigationPartialRoute) : undefined;
+            const lastFullScreenRoute = tabState?.routes?.at(tabState.index ?? 0) as NavigationPartialRoute | undefined;
+            if (matchingFullScreenRoute && lastFullScreenRoute && shouldChangeToMatchingFullScreen(newFocusedRoute, matchingFullScreenRoute, lastFullScreenRoute)) {
+                // Navigate within the existing TAB_NAVIGATOR (tab switch) rather than pushing a new one.
+                const lastRouteInMatchingFullScreen = matchingFullScreenRoute.state?.routes?.at(-1);
+                const additionalAction = CommonActions.navigate({
+                    name: NAVIGATORS.TAB_NAVIGATOR,
+                    params: {
+                        screen: matchingFullScreenRoute.name,
+                        params: lastRouteInMatchingFullScreen ? {screen: lastRouteInMatchingFullScreen.name, params: lastRouteInMatchingFullScreen.params} : matchingFullScreenRoute.params,
+                    },
+                });
+                navigation.dispatch(additionalAction);
             }
         }
     }
