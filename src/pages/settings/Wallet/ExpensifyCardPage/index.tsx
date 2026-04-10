@@ -155,7 +155,6 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
     const isCardHolder = currentCard?.accountID === session?.accountID;
     const frozenByAccountID = currentCard?.nameValuePairs?.frozen?.byAccountID;
 
-    const {isBetaEnabled} = usePermissions();
     const canManageCardFreeze = isCardHolder && !!currentCard && !isAccountLocked;
 
     const policySelector = useCallback(
