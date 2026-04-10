@@ -205,6 +205,7 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
             <ScrollView
                 style={[styles.flex1, styles.appBG]}
                 contentContainerStyle={styles.flexGrow1}
+                keyboardShouldPersistTaps="handled"
             >
                 <PressableWithoutFeedback
                     onPress={() => {
