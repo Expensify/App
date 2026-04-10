@@ -103,6 +103,9 @@ type TransactionViolationData = {
 
     /** Comment that triggered the violation */
     comment?: string;
+
+    /** Card ID associated with the violation (used to determine if it's a personal or company card) */
+    cardID?: number;
 };
 
 /** Model of a transaction violation */

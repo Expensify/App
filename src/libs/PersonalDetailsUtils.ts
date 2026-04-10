@@ -42,7 +42,6 @@ let youTranslation = '';
 
 Onyx.connect({
     key: ONYXKEYS.ARE_TRANSLATIONS_LOADING,
-    initWithStoredValues: false,
     callback: (value) => {
         if (value ?? true) {
             return;
@@ -153,7 +152,7 @@ function getPersonalDetailByEmail(email: string): PersonalDetails | undefined {
  */
 function getAccountIDsByLogins(logins: string[]): number[] {
     return logins.reduce<number[]>((foundAccountIDs, login) => {
-        const currentDetail = emailToPersonalDetailsCache[login?.toLowerCase()];
+        const currentDetail = getPersonalDetailByEmail(login);
         if (!currentDetail) {
             // generate an account ID because in this case the detail is probably new, so we don't have a real accountID yet
             foundAccountIDs.push(generateAccountID(login));
@@ -424,6 +423,19 @@ const getPhoneNumber = (details: OnyxEntry<PersonalDetails>): string | undefined
 };
 
 /**
+ * Creates a lookup map from an array of PersonalDetails for O(1) access by accountID.
+ * This is useful when you need to look up personal details by accountID multiple times
+ * to avoid O(n) .find() calls in loops.
+ */
+function createPersonalDetailsLookupByAccountID(details: PersonalDetails[]): Record<number, PersonalDetails> {
+    const map: Record<number, PersonalDetails> = {};
+    for (const detail of details) {
+        map[detail.accountID] = detail;
+    }
+    return map;
+}
+
+/**
  * Checks whether any personal details are missing
  */
 function arePersonalDetailsMissing(privatePersonalDetails: OnyxEntry<PrivatePersonalDetails>): boolean {
@@ -435,6 +447,13 @@ function arePersonalDetailsMissing(privatePersonalDetails: OnyxEntry<PrivatePers
         isEmptyObject(privatePersonalDetails?.addresses) ||
         privatePersonalDetails.addresses.length === 0
     );
+}
+
+/**
+ * Checks if the user has a legal first and last name.
+ */
+function areTravelPersonalDetailsMissing(privatePersonalDetails: OnyxEntry<PrivatePersonalDetails>): boolean {
+    return !privatePersonalDetails?.legalFirstName || !privatePersonalDetails?.legalLastName;
 }
 
 export {
@@ -457,4 +476,6 @@ export {
     getLoginByAccountID,
     getPhoneNumber,
     arePersonalDetailsMissing,
+    areTravelPersonalDetailsMissing,
+    createPersonalDetailsLookupByAccountID,
 };

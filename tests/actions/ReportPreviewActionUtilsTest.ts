@@ -3,9 +3,11 @@ import Onyx from 'react-native-onyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 // eslint-disable-next-line no-restricted-syntax
 import type * as PolicyUtils from '@libs/PolicyUtils';
+import {getValidConnectedIntegration} from '@libs/PolicyUtils';
 import getReportPreviewAction from '@libs/ReportPreviewActionUtils';
 // eslint-disable-next-line no-restricted-syntax
 import type * as ReportUtils from '@libs/ReportUtils';
+import {hasOnlyNonReimbursableTransactions} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, Transaction} from '@src/types/onyx';
@@ -35,6 +37,7 @@ jest.mock('@libs/ReportUtils', () => ({
     ...jest.requireActual<typeof ReportUtils>('@libs/ReportUtils'),
     hasAnyViolations: jest.fn().mockReturnValue(false),
     getReportTransactions: jest.fn().mockReturnValue(['mockValue']),
+    hasOnlyNonReimbursableTransactions: jest.fn().mockReturnValue(false),
 }));
 jest.mock('@libs/PolicyUtils', () => ({
     ...jest.requireActual<typeof PolicyUtils>('@libs/PolicyUtils'),
@@ -81,6 +84,7 @@ describe('getReportPreviewAction', () => {
                 policy,
                 transactions: [],
                 bankAccountList: {},
+                reportMetadata: undefined,
             }),
         ).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.ADD_EXPENSE);
     });
@@ -123,6 +127,7 @@ describe('getReportPreviewAction', () => {
                 policy,
                 transactions: [transaction],
                 bankAccountList: {},
+                reportMetadata: undefined,
             }),
         ).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.SUBMIT);
     });
@@ -166,6 +171,7 @@ describe('getReportPreviewAction', () => {
                 policy,
                 transactions: [transaction],
                 bankAccountList: {},
+                reportMetadata: undefined,
             }),
         ).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.SUBMIT);
     });
@@ -209,6 +215,7 @@ describe('getReportPreviewAction', () => {
                 policy,
                 transactions: [transaction],
                 bankAccountList: {},
+                reportMetadata: undefined,
             }),
         ).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW);
     });
@@ -267,6 +274,52 @@ describe('getReportPreviewAction', () => {
                 isSubmittingAnimationRunning: undefined,
                 isDEWSubmitPending: undefined,
                 violationsData: violations,
+                reportMetadata: undefined,
+            }),
+        ).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW);
+    });
+
+    it('canSubmit should return false for expense preview when smartscan failed with missing fields (before violation is written)', async () => {
+        const TRANSACTION_ID = 'TRANSACTION_ID';
+        const report: Report = {
+            ...createRandomReport(REPORT_ID, undefined),
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            isWaitingOnBankAccount: false,
+        };
+
+        const policy = createRandomPolicy(0);
+        policy.autoReportingFrequency = CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE;
+        policy.type = CONST.POLICY.TYPE.CORPORATE;
+        if (policy.harvesting) {
+            policy.harvesting.enabled = false;
+        }
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+
+        const transaction = {
+            transactionID: TRANSACTION_ID,
+            reportID: `${REPORT_ID}`,
+            iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
+            receipt: {state: CONST.IOU.RECEIPT_STATE.SCAN_FAILED},
+            merchant: '',
+        } as unknown as Transaction;
+
+        const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.parentReportID));
+
+        await waitForBatchedUpdatesWithAct();
+
+        expect(
+            getReportPreviewAction({
+                isReportArchived: isReportArchived.current,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                currentUserLogin: CURRENT_USER_EMAIL,
+                report,
+                policy,
+                transactions: [transaction],
+                bankAccountList: {},
+                reportMetadata: undefined,
             }),
         ).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW);
     });
@@ -308,6 +361,7 @@ describe('getReportPreviewAction', () => {
                     policy,
                     transactions: [transaction],
                     bankAccountList: {},
+                    reportMetadata: undefined,
                 }),
             ).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.APPROVE);
         });
@@ -346,6 +400,7 @@ describe('getReportPreviewAction', () => {
                     policy,
                     transactions: [transaction],
                     bankAccountList: {},
+                    reportMetadata: undefined,
                 }),
             ).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW);
         });
@@ -385,6 +440,7 @@ describe('getReportPreviewAction', () => {
                     policy,
                     transactions: [transaction],
                     bankAccountList: {},
+                    reportMetadata: undefined,
                 }),
             ).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW);
         });
@@ -426,6 +482,7 @@ describe('getReportPreviewAction', () => {
                 policy,
                 transactions: [transaction],
                 bankAccountList: {},
+                reportMetadata: undefined,
             }),
         ).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.APPROVE);
     });
@@ -461,6 +518,7 @@ describe('getReportPreviewAction', () => {
                 policy,
                 transactions: [transaction],
                 bankAccountList: {},
+                reportMetadata: undefined,
             }),
         ).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY);
     });
@@ -497,6 +555,88 @@ describe('getReportPreviewAction', () => {
                 policy,
                 transactions: [transaction],
                 bankAccountList: {},
+                reportMetadata: undefined,
+            }),
+        ).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW);
+    });
+
+    it('canPay should return PAY for expense report with only non-reimbursable expenses when payments enabled', async () => {
+        const report = {
+            ...createRandomReport(REPORT_ID, undefined),
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+            statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
+            stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+            total: -100,
+            nonReimbursableTotal: -100,
+            isWaitingOnBankAccount: false,
+        };
+
+        const policy = createRandomPolicy(0);
+        policy.role = CONST.POLICY.ROLE.ADMIN;
+        policy.type = CONST.POLICY.TYPE.CORPORATE;
+        policy.reimbursementChoice = CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES;
+
+        jest.mocked(hasOnlyNonReimbursableTransactions).mockReturnValueOnce(true);
+
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+        const transaction = {
+            reportID: `${REPORT_ID}`,
+        } as unknown as Transaction;
+
+        const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.parentReportID));
+        await waitForBatchedUpdatesWithAct();
+        expect(
+            getReportPreviewAction({
+                isReportArchived: isReportArchived.current,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                currentUserLogin: CURRENT_USER_EMAIL,
+                report,
+                policy,
+                transactions: [transaction],
+                bankAccountList: {},
+                reportMetadata: undefined,
+            }),
+        ).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY);
+    });
+
+    it('canPay should return VIEW for expense report with only non-reimbursable expenses when total is 0', async () => {
+        const report = {
+            ...createRandomReport(REPORT_ID, undefined),
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+            statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
+            stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+            total: 0,
+            nonReimbursableTotal: 0,
+            isWaitingOnBankAccount: false,
+        };
+
+        const policy = createRandomPolicy(0);
+        policy.role = CONST.POLICY.ROLE.ADMIN;
+        policy.type = CONST.POLICY.TYPE.CORPORATE;
+        policy.reimbursementChoice = CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES;
+
+        jest.mocked(hasOnlyNonReimbursableTransactions).mockReturnValueOnce(true);
+        jest.mocked(getValidConnectedIntegration).mockReturnValueOnce(undefined);
+
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+        const transaction = {
+            reportID: `${REPORT_ID}`,
+        } as unknown as Transaction;
+
+        const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.parentReportID));
+        await waitForBatchedUpdatesWithAct();
+        expect(
+            getReportPreviewAction({
+                isReportArchived: isReportArchived.current,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                currentUserLogin: CURRENT_USER_EMAIL,
+                report,
+                policy,
+                transactions: [transaction],
+                bankAccountList: {},
+                reportMetadata: undefined,
             }),
         ).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW);
     });
@@ -537,6 +677,7 @@ describe('getReportPreviewAction', () => {
                 transactions: [transaction],
                 invoiceReceiverPolicy,
                 bankAccountList: {},
+                reportMetadata: undefined,
             }),
         ).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY);
     });
@@ -593,6 +734,7 @@ describe('getReportPreviewAction', () => {
                 transactions: [transaction],
                 bankAccountList: {},
                 invoiceReceiverPolicy,
+                reportMetadata: undefined,
             }),
         ).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW);
     });
@@ -637,6 +779,7 @@ describe('getReportPreviewAction', () => {
                 transactions: [transaction],
                 bankAccountList: {},
                 invoiceReceiverPolicy,
+                reportMetadata: undefined,
             }),
         ).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY);
     });
@@ -676,6 +819,7 @@ describe('getReportPreviewAction', () => {
                 transactions: [transaction],
                 bankAccountList: {},
                 invoiceReceiverPolicy: undefined,
+                reportMetadata: undefined,
             }),
         ).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW);
     });
@@ -709,6 +853,7 @@ describe('getReportPreviewAction', () => {
                 policy,
                 transactions: [transaction],
                 bankAccountList: {},
+                reportMetadata: undefined,
             }),
         ).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.EXPORT_TO_ACCOUNTING);
     });
@@ -749,6 +894,7 @@ describe('getReportPreviewAction', () => {
                 isApprovedAnimationRunning: false,
                 isSubmittingAnimationRunning: false,
                 isDEWSubmitPending: true,
+                reportMetadata: undefined,
             });
 
             // Then it should return VIEW because DEW submission is pending offline
@@ -794,6 +940,7 @@ describe('getReportPreviewAction', () => {
                 isApprovedAnimationRunning: false,
                 isSubmittingAnimationRunning: false,
                 isDEWSubmitPending: false,
+                reportMetadata: undefined,
             });
 
             // Then it should allow SUBMIT because failed submissions can be retried (not VIEW)
@@ -839,10 +986,103 @@ describe('getReportPreviewAction', () => {
                 isApprovedAnimationRunning: false,
                 isSubmittingAnimationRunning: false,
                 isDEWSubmitPending: false,
+                reportMetadata: undefined,
             });
 
             // Then it should not return VIEW because DEW submit did not fail and regular logic applies
             expect(result).not.toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW);
+        });
+    });
+
+    describe('DEW (Dynamic External Workflow) approve pending', () => {
+        it('should return VIEW action when DEW approve is pending and report is SUBMITTED', async () => {
+            // Given a submitted expense report with a DEW policy where approve is pending
+            const report: Report = {
+                ...createRandomReport(REPORT_ID, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                managerID: CURRENT_USER_ACCOUNT_ID,
+                isWaitingOnBankAccount: false,
+            };
+
+            const policy = createRandomPolicy(0);
+            policy.type = CONST.POLICY.TYPE.CORPORATE;
+            policy.approvalMode = CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL;
+            policy.preventSelfApproval = false;
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+            const transaction = {
+                reportID: `${REPORT_ID}`,
+                amount: 100,
+                merchant: 'Test Merchant',
+                created: '2025-01-01',
+            } as unknown as Transaction;
+
+            const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.parentReportID));
+            await waitForBatchedUpdatesWithAct();
+
+            // When getReportPreviewAction is called with reportMetadata indicating DEW approve is pending
+            const result = getReportPreviewAction({
+                isReportArchived: isReportArchived.current,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                currentUserLogin: CURRENT_USER_EMAIL,
+                report,
+                policy,
+                transactions: [transaction],
+                bankAccountList: {},
+                reportMetadata: {
+                    pendingExpenseAction: CONST.EXPENSE_PENDING_ACTION.APPROVE,
+                },
+            });
+
+            // Then it should return VIEW because DEW approval is pending offline
+            expect(result).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW);
+        });
+
+        it('should return APPROVE action when DEW approve is not pending and report is SUBMITTED', async () => {
+            // Given a submitted expense report with a DEW policy where approve is not pending
+            const report: Report = {
+                ...createRandomReport(REPORT_ID, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                managerID: CURRENT_USER_ACCOUNT_ID,
+                isWaitingOnBankAccount: false,
+            };
+
+            const policy = createRandomPolicy(0);
+            policy.type = CONST.POLICY.TYPE.CORPORATE;
+            policy.approvalMode = CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL;
+            policy.preventSelfApproval = false;
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+            const transaction = {
+                reportID: `${REPORT_ID}`,
+                amount: 100,
+                merchant: 'Test Merchant',
+                created: '2025-01-01',
+            } as unknown as Transaction;
+
+            const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.parentReportID));
+            await waitForBatchedUpdatesWithAct();
+
+            // When getReportPreviewAction is called with reportMetadata without pending approve action
+            const result = getReportPreviewAction({
+                isReportArchived: isReportArchived.current,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                currentUserLogin: CURRENT_USER_EMAIL,
+                report,
+                policy,
+                transactions: [transaction],
+                bankAccountList: {},
+                reportMetadata: undefined,
+            });
+
+            // Then it should return APPROVE because DEW approval is not pending
+            expect(result).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.APPROVE);
         });
     });
 });

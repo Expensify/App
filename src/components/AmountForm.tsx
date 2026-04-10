@@ -1,8 +1,9 @@
 import type {ForwardedRef} from 'react';
 import React from 'react';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getCurrencyDecimals, getLocalizedCurrencySymbol} from '@libs/CurrencyUtils';
+import {getLocalizedCurrencySymbol} from '@libs/CurrencyUtils';
 import CONST from '@src/CONST';
 import NumberWithSymbolForm from './NumberWithSymbolForm';
 import type {NumberWithSymbolFormRef} from './NumberWithSymbolForm';
@@ -56,6 +57,9 @@ type AmountFormProps = {
 
     /** Callback when the user presses the submit key (Enter) */
     onSubmitEditing?: () => void;
+
+    /** Callback when the input is focused */
+    onFocus?: () => void;
 } & Pick<BaseTextInputProps, 'autoFocus' | 'autoGrowExtraSpace' | 'autoGrowMarginSide'>;
 
 /**
@@ -78,11 +82,13 @@ function AmountForm({
     autoGrowExtraSpace,
     autoGrowMarginSide,
     onSubmitEditing,
+    onFocus,
     ref,
     numberFormRef,
 }: AmountFormProps) {
     const {preferredLocale} = useLocalize();
     const styles = useThemeStyles();
+    const {getCurrencyDecimals} = useCurrencyListActions();
     const decimals = decimalsProp ?? getCurrencyDecimals(currency);
 
     return (
@@ -117,6 +123,7 @@ function AmountForm({
             autoGrowMarginSide={autoGrowMarginSide}
             onSubmitEditing={onSubmitEditing}
             disabled={disabled}
+            onFocus={onFocus}
         />
     );
 }

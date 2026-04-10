@@ -189,7 +189,7 @@ function PrivateNotesEditPageInternal({route, report, accountID, privateNoteDraf
 }
 
 function PrivateNotesEditPage({report, ...rest}: PrivateNotesEditPageProps) {
-    const [privateNoteDraft, privateNoteDraftMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_NOTES_DRAFT}${report.reportID}`, {canBeMissing: true});
+    const [privateNoteDraft, privateNoteDraftMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_NOTES_DRAFT}${report.reportID}`);
 
     if (isLoadingOnyxValue(privateNoteDraftMetadata)) {
         return null;

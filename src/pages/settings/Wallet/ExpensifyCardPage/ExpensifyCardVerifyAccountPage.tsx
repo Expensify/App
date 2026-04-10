@@ -24,7 +24,7 @@ function ExpensifyCardVerifyAccountPage({route}: ExpensifyCardVerifyAccountPageP
     const {cardID} = route.params;
     const {translate} = useLocalize();
     const [validateError, setValidateError] = useState<Errors>({});
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: false});
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const primaryLogin = account?.primaryLogin ?? '';
     const {setIsCardDetailsLoading, setCardsDetails, setCardsDetailsErrors} = useExpensifyCardActions();
 
@@ -55,14 +55,6 @@ function ExpensifyCardVerifyAccountPage({route}: ExpensifyCardVerifyAccountPageP
                 navigateBack();
             })
             .catch((error: TranslationPaths) => {
-                if (error === 'cardPage.missingPrivateDetails') {
-                    setCardsDetailsErrors((prevState) => ({
-                        ...prevState,
-                        [cardID]: error,
-                    }));
-                    navigateBack();
-                    return;
-                }
                 setValidateError(getMicroSecondOnyxErrorWithTranslationKey(error));
             })
             .finally(() => {

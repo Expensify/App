@@ -1,6 +1,6 @@
 import {PortalProvider} from '@gorhom/portal';
 import * as NativeNavigation from '@react-navigation/native';
-import {act, render, screen} from '@testing-library/react-native';
+import {act, fireEvent, render, screen} from '@testing-library/react-native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 import ComposeProviders from '@components/ComposeProviders';
@@ -9,6 +9,7 @@ import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import OptionsListContextProvider from '@components/OptionListContextProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
+import {openLink} from '@libs/actions/Link';
 import Parser from '@libs/Parser';
 import {getIOUActionForReportID} from '@libs/ReportActionsUtils';
 import PureReportActionItem from '@pages/inbox/report/PureReportActionItem';
@@ -24,6 +25,18 @@ import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct'
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
 
 jest.mock('@react-navigation/native');
+
+type LinkModuleMock = {openLink: typeof openLink} & Record<string, unknown>;
+
+jest.mock('@libs/actions/Link', () => {
+    const actual = jest.requireActual<LinkModuleMock>('@libs/actions/Link');
+    return {
+        ...actual,
+        openLink: jest.fn(),
+    };
+});
+
+jest.mock('@hooks/useCardFeedsForDisplay', () => jest.fn(() => ({defaultCardFeed: null, cardFeedsByPolicy: {}})));
 
 const ACTOR_ACCOUNT_ID = 123456789;
 const actorEmail = 'test@test.com';
@@ -85,15 +98,12 @@ describe('PureReportActionItem', () => {
                     <ScreenWrapper testID="test">
                         <PortalProvider>
                             <PureReportActionItem
-                                allReports={undefined}
-                                policies={undefined}
                                 personalPolicyID={undefined}
+                                currentUserEmail={undefined}
                                 report={undefined}
-                                reportActions={[]}
                                 parentReportAction={undefined}
                                 action={action}
                                 displayAsGroup={false}
-                                isMostRecentIOUReportAction={false}
                                 shouldDisplayNewMarker={false}
                                 index={0}
                                 isFirstVisibleReportAction={false}
@@ -101,7 +111,9 @@ describe('PureReportActionItem', () => {
                                 linkedReport={undefined}
                                 iouReportOfLinkedReport={undefined}
                                 currentUserAccountID={ACTOR_ACCOUNT_ID}
-                                allTransactionDrafts={undefined}
+                                betas={undefined}
+                                draftTransactionIDs={[]}
+                                userBillingGracePeriodEnds={undefined}
                             />
                         </PortalProvider>
                     </ScreenWrapper>
@@ -163,6 +175,25 @@ describe('PureReportActionItem', () => {
             expect(screen.getByText(linkText)).toBeOnTheScreen();
         });
 
+        it('APPROVED action via workspace rules shows Explain when reasoning is present', async () => {
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.APPROVED, {
+                automaticAction: true,
+                reasoning: 'This report met the workspace auto-approval criteria.',
+            });
+            renderItemWithAction(action);
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByText('Explain')).toBeOnTheScreen();
+        });
+
+        it('APPROVED action via workspace rules does not show Explain when reasoning is absent', async () => {
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.APPROVED, {automaticAction: true});
+            renderItemWithAction(action);
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.queryByText('Explain')).not.toBeOnTheScreen();
+        });
+
         it('CREATED_REPORT_FOR_UNAPPROVED_TRANSACTIONS action', async () => {
             const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.CREATED_REPORT_FOR_UNAPPROVED_TRANSACTIONS, {originalID: 'original-report-id'});
             renderItemWithAction(action);
@@ -197,7 +228,7 @@ describe('PureReportActionItem', () => {
             await waitForBatchedUpdatesWithAct();
 
             expect(screen.getByText(actorEmail)).toBeOnTheScreen();
-            expect(screen.getByText(translateLocal('iou.submitted', {}))).toBeOnTheScreen();
+            expect(screen.getByText(translateLocal('iou.submitted'))).toBeOnTheScreen();
         });
 
         it('SUBMITTED action with memo', async () => {
@@ -207,7 +238,7 @@ describe('PureReportActionItem', () => {
             await waitForBatchedUpdatesWithAct();
 
             expect(screen.getByText(actorEmail)).toBeOnTheScreen();
-            expect(screen.getByText(translateLocal('iou.submitted', {memo}))).toBeOnTheScreen();
+            expect(screen.getByText(translateLocal('iou.submitted', memo))).toBeOnTheScreen();
         });
 
         it('SUBMITTED_AND_CLOSED action', async () => {
@@ -216,7 +247,7 @@ describe('PureReportActionItem', () => {
             await waitForBatchedUpdatesWithAct();
 
             expect(screen.getByText(actorEmail)).toBeOnTheScreen();
-            expect(screen.getByText(translateLocal('iou.submitted', {}))).toBeOnTheScreen();
+            expect(screen.getByText(translateLocal('iou.submitted'))).toBeOnTheScreen();
         });
     });
 
@@ -228,6 +259,103 @@ describe('PureReportActionItem', () => {
 
             expect(screen.getByText(actorEmail)).toBeOnTheScreen();
             expect(screen.getByText(Parser.htmlToText(translateLocal('workspaceActions.forcedCorporateUpgrade')))).toBeOnTheScreen();
+        });
+
+        it('UPDATE_CUSTOM_TAX_NAME action', async () => {
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_TAX_NAME, {oldName: 'Sales Tax', newName: 'VAT'});
+            renderItemWithAction(action);
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByText(actorEmail)).toBeOnTheScreen();
+            expect(screen.getByText('changed the custom tax name to "VAT" (previously "Sales Tax")')).toBeOnTheScreen();
+        });
+
+        it('UPDATE_CURRENCY_DEFAULT_TAX action', async () => {
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CURRENCY_DEFAULT_TAX, {oldName: 'Standard Rate', newName: 'Reduced Rate'});
+            renderItemWithAction(action);
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByText(actorEmail)).toBeOnTheScreen();
+            expect(screen.getByText('changed the workspace currency default tax rate to "Reduced Rate" (previously "Standard Rate")')).toBeOnTheScreen();
+        });
+
+        it('UPDATE_FOREIGN_CURRENCY_DEFAULT_TAX action', async () => {
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_FOREIGN_CURRENCY_DEFAULT_TAX, {oldName: 'Foreign Tax (15%)', newName: 'Foreign Tax (10%)'});
+            renderItemWithAction(action);
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByText(actorEmail)).toBeOnTheScreen();
+            expect(screen.getByText('changed the foreign currency default tax rate to "Foreign Tax (10%)" (previously "Foreign Tax (15%)")')).toBeOnTheScreen();
+        });
+
+        it('ADD_CARD_FEED action', async () => {
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_CARD_FEED, {feedName: 'Visa Commercial'});
+            renderItemWithAction(action);
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByText(actorEmail)).toBeOnTheScreen();
+            expect(screen.getByText('added card feed "Visa Commercial"')).toBeOnTheScreen();
+        });
+
+        it('DELETE_CARD_FEED action', async () => {
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_CARD_FEED, {feedName: 'Amex Corporate'});
+            renderItemWithAction(action);
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByText(actorEmail)).toBeOnTheScreen();
+            expect(screen.getByText('removed card feed "Amex Corporate"')).toBeOnTheScreen();
+        });
+
+        it('RENAME_CARD_FEED action', async () => {
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.RENAME_CARD_FEED, {oldName: 'Old Feed', newName: 'New Feed'});
+            renderItemWithAction(action);
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByText(actorEmail)).toBeOnTheScreen();
+            expect(screen.getByText('renamed card feed to "New Feed" (previously "Old Feed")')).toBeOnTheScreen();
+        });
+
+        it('ASSIGN_COMPANY_CARD action', async () => {
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ASSIGN_COMPANY_CARD, {email: 'user@example.com', feedName: 'US Bank', cardLastFour: '1234'});
+            renderItemWithAction(action);
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByText(actorEmail)).toBeOnTheScreen();
+            expect(screen.getByText('assigned user@example.com "US Bank" company card ending in 1234')).toBeOnTheScreen();
+        });
+
+        it('UNASSIGN_COMPANY_CARD action', async () => {
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UNASSIGN_COMPANY_CARD, {email: 'user@example.com', feedName: 'US Bank', cardLastFour: '5678'});
+            renderItemWithAction(action);
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByText(actorEmail)).toBeOnTheScreen();
+            expect(screen.getByText('unassigned user@example.com "US Bank" company card ending in 5678')).toBeOnTheScreen();
+        });
+
+        it('UPDATE_CARD_FEED_LIABILITY action', async () => {
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CARD_FEED_LIABILITY, {
+                feedName: 'Visa Commercial',
+                liabilityType: CONST.TRANSACTION.LIABILITY_TYPE.ALLOW,
+            });
+            renderItemWithAction(action);
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByText(actorEmail)).toBeOnTheScreen();
+            expect(screen.getByText('enabled cardholders to delete card transactions for card feed "Visa Commercial"')).toBeOnTheScreen();
+        });
+
+        it('UPDATE_CARD_FEED_STATEMENT_PERIOD action', async () => {
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CARD_FEED_STATEMENT_PERIOD, {
+                feedName: 'Visa Commercial',
+                statementPeriodEndDay: '15',
+                previousStatementPeriodEndDay: '20',
+            });
+            renderItemWithAction(action);
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByText(actorEmail)).toBeOnTheScreen();
+            expect(screen.getByText('changed card feed "Visa Commercial" statement period end day to "15" (previously "20")')).toBeOnTheScreen();
         });
     });
 
@@ -264,16 +392,13 @@ describe('PureReportActionItem', () => {
                         <ScreenWrapper testID="test">
                             <PortalProvider>
                                 <PureReportActionItem
-                                    allReports={undefined}
                                     personalPolicyID={undefined}
-                                    policies={{testPolicy: dewPolicy as Policy}}
+                                    currentUserEmail={undefined}
                                     policy={dewPolicy as Policy}
                                     report={{reportID: 'testReport', policyID: 'testPolicy'}}
-                                    reportActions={[]}
                                     parentReportAction={undefined}
                                     action={action}
                                     displayAsGroup={false}
-                                    isMostRecentIOUReportAction={false}
                                     shouldDisplayNewMarker={false}
                                     index={0}
                                     isFirstVisibleReportAction={false}
@@ -282,7 +407,9 @@ describe('PureReportActionItem', () => {
                                     iouReportOfLinkedReport={undefined}
                                     reportMetadata={reportMetadata}
                                     currentUserAccountID={ACTOR_ACCOUNT_ID}
-                                    allTransactionDrafts={undefined}
+                                    betas={undefined}
+                                    draftTransactionIDs={[]}
+                                    userBillingGracePeriodEnds={undefined}
                                 />
                             </PortalProvider>
                         </ScreenWrapper>
@@ -324,16 +451,13 @@ describe('PureReportActionItem', () => {
                         <ScreenWrapper testID="test">
                             <PortalProvider>
                                 <PureReportActionItem
-                                    allReports={undefined}
                                     personalPolicyID={undefined}
-                                    policies={{testPolicy: basicPolicy as Policy}}
+                                    currentUserEmail={undefined}
                                     policy={basicPolicy as Policy}
                                     report={{reportID: 'testReport', policyID: 'testPolicy'}}
-                                    reportActions={[]}
                                     parentReportAction={undefined}
                                     action={action}
                                     displayAsGroup={false}
-                                    isMostRecentIOUReportAction={false}
                                     shouldDisplayNewMarker={false}
                                     index={0}
                                     isFirstVisibleReportAction={false}
@@ -341,7 +465,9 @@ describe('PureReportActionItem', () => {
                                     linkedReport={undefined}
                                     iouReportOfLinkedReport={undefined}
                                     currentUserAccountID={ACTOR_ACCOUNT_ID}
-                                    allTransactionDrafts={undefined}
+                                    betas={undefined}
+                                    draftTransactionIDs={[]}
+                                    userBillingGracePeriodEnds={undefined}
                                 />
                             </PortalProvider>
                         </ScreenWrapper>
@@ -352,7 +478,7 @@ describe('PureReportActionItem', () => {
 
             // Then it should display the standard submitted message and not the DEW queued message
             expect(screen.getByText(actorEmail)).toBeOnTheScreen();
-            expect(screen.getByText(translateLocal('iou.submitted', {}))).toBeOnTheScreen();
+            expect(screen.getByText(translateLocal('iou.submitted'))).toBeOnTheScreen();
             expect(screen.queryByText(translateLocal('iou.queuedToSubmitViaDEW'))).not.toBeOnTheScreen();
         });
     });
@@ -396,15 +522,12 @@ describe('PureReportActionItem', () => {
                         <ScreenWrapper testID="test">
                             <PortalProvider>
                                 <PureReportActionItem
-                                    allReports={undefined}
-                                    policies={undefined}
                                     personalPolicyID={undefined}
+                                    currentUserEmail={undefined}
                                     report={report}
-                                    reportActions={[]}
                                     parentReportAction={undefined}
                                     action={action}
                                     displayAsGroup={false}
-                                    isMostRecentIOUReportAction={false}
                                     shouldDisplayNewMarker={false}
                                     index={0}
                                     isFirstVisibleReportAction={false}
@@ -412,7 +535,9 @@ describe('PureReportActionItem', () => {
                                     linkedReport={undefined}
                                     iouReportOfLinkedReport={undefined}
                                     currentUserAccountID={ACTOR_ACCOUNT_ID}
-                                    allTransactionDrafts={undefined}
+                                    betas={undefined}
+                                    draftTransactionIDs={[]}
+                                    userBillingGracePeriodEnds={undefined}
                                 />
                             </PortalProvider>
                         </ScreenWrapper>
@@ -462,15 +587,12 @@ describe('PureReportActionItem', () => {
                         <ScreenWrapper testID="test">
                             <PortalProvider>
                                 <PureReportActionItem
-                                    allReports={undefined}
-                                    policies={undefined}
                                     personalPolicyID={undefined}
+                                    currentUserEmail={undefined}
                                     report={report}
-                                    reportActions={[]}
                                     parentReportAction={undefined}
                                     action={action}
                                     displayAsGroup={false}
-                                    isMostRecentIOUReportAction={false}
                                     shouldDisplayNewMarker={false}
                                     index={0}
                                     isFirstVisibleReportAction={false}
@@ -478,7 +600,9 @@ describe('PureReportActionItem', () => {
                                     linkedReport={undefined}
                                     iouReportOfLinkedReport={undefined}
                                     currentUserAccountID={ACTOR_ACCOUNT_ID}
-                                    allTransactionDrafts={undefined}
+                                    betas={undefined}
+                                    draftTransactionIDs={[]}
+                                    userBillingGracePeriodEnds={undefined}
                                 />
                             </PortalProvider>
                         </ScreenWrapper>
@@ -489,6 +613,157 @@ describe('PureReportActionItem', () => {
 
             // Verify followup buttons are NOT displayed (resolved state)
             expect(screen.queryByText(followupQuestion)).not.toBeOnTheScreen();
+        });
+    });
+
+    describe('Modified expense message', () => {
+        it('clicking the workspace rules link opens the workspace rules URL', async () => {
+            const workspaceRulesUrl = 'https://example.com/workspaces/policy123/rules';
+            const modifiedExpenseMessage = `marked the expense as "billable" via <a href="${workspaceRulesUrl}">workspace rules</a>`;
+
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE, {
+                policyID: 'policy123',
+                policyRulesModifiedFields: {billable: true},
+            });
+
+            const report = {
+                reportID: 'testReport',
+                type: CONST.REPORT.TYPE.CHAT,
+                policyID: 'policy123',
+            };
+
+            render(
+                <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, HTMLEngineProvider]}>
+                    <OptionsListContextProvider>
+                        <ScreenWrapper testID="test">
+                            <PortalProvider>
+                                <PureReportActionItem
+                                    personalPolicyID={undefined}
+                                    currentUserEmail={undefined}
+                                    report={report}
+                                    parentReportAction={undefined}
+                                    action={action}
+                                    displayAsGroup={false}
+                                    shouldDisplayNewMarker={false}
+                                    index={0}
+                                    isFirstVisibleReportAction={false}
+                                    taskReport={undefined}
+                                    linkedReport={undefined}
+                                    iouReportOfLinkedReport={undefined}
+                                    currentUserAccountID={ACTOR_ACCOUNT_ID}
+                                    betas={undefined}
+                                    draftTransactionIDs={[]}
+                                    modifiedExpenseMessage={modifiedExpenseMessage}
+                                    userBillingGracePeriodEnds={undefined}
+                                />
+                            </PortalProvider>
+                        </ScreenWrapper>
+                    </OptionsListContextProvider>
+                </ComposeProviders>,
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            const workspaceRulesLink = screen.getByText('workspace rules');
+            expect(workspaceRulesLink).toBeOnTheScreen();
+
+            fireEvent.press(workspaceRulesLink);
+
+            expect(openLink).toHaveBeenCalledTimes(1);
+            expect(openLink).toHaveBeenCalledWith(workspaceRulesUrl, expect.any(String));
+        });
+    });
+
+    describe('UNREPORTED_TRANSACTION action', () => {
+        const UNREPORTED_FROM_REPORT_ID = '300';
+
+        beforeEach(async () => {
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${UNREPORTED_FROM_REPORT_ID}`, {
+                    reportID: UNREPORTED_FROM_REPORT_ID,
+                    reportName: 'Source Report',
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                });
+            });
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        it('renders without Explain link when action has no reasoning', async () => {
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION, {
+                fromReportID: UNREPORTED_FROM_REPORT_ID,
+            });
+
+            renderItemWithAction(action);
+            await waitForBatchedUpdatesWithAct();
+
+            // The "Explain" link should NOT be present
+            expect(screen.queryByText('Explain')).not.toBeOnTheScreen();
+        });
+
+        it('renders Explain link when action has reasoning', async () => {
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION, {
+                fromReportID: UNREPORTED_FROM_REPORT_ID,
+                reasoning: 'This expense was unreported due to RTER rejection.',
+            });
+
+            renderItemWithAction(action);
+            await waitForBatchedUpdatesWithAct();
+
+            // The "Explain" link should be present
+            expect(screen.getByText('Explain')).toBeOnTheScreen();
+        });
+    });
+
+    describe('MOVED_TRANSACTION action', () => {
+        const FROM_REPORT_ID = '100';
+        const TO_REPORT_ID = '200';
+
+        beforeEach(async () => {
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${FROM_REPORT_ID}`, {
+                    reportID: FROM_REPORT_ID,
+                    reportName: 'Source Report',
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                });
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${TO_REPORT_ID}`, {
+                    reportID: TO_REPORT_ID,
+                    reportName: 'Destination Report',
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                });
+            });
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        it('renders plain message without Explain link when action has no reasoning', async () => {
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION, {
+                fromReportID: FROM_REPORT_ID,
+                toReportID: TO_REPORT_ID,
+            });
+
+            renderItemWithAction(action);
+            await waitForBatchedUpdatesWithAct();
+
+            // The moved transaction message should be displayed
+            expect(screen.getByText(/moved this expense/)).toBeOnTheScreen();
+
+            // The "Explain" link should NOT be present
+            expect(screen.queryByText('Explain')).not.toBeOnTheScreen();
+        });
+
+        it('renders Explain link when action has reasoning', async () => {
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION, {
+                fromReportID: FROM_REPORT_ID,
+                toReportID: TO_REPORT_ID,
+                reasoning: 'This expense violated the max amount rule.',
+            });
+
+            renderItemWithAction(action);
+            await waitForBatchedUpdatesWithAct();
+
+            // The moved transaction message should be displayed
+            expect(screen.getByText(/moved this expense/)).toBeOnTheScreen();
+
+            // The "Explain" link should be present
+            expect(screen.getByText('Explain')).toBeOnTheScreen();
         });
     });
 });

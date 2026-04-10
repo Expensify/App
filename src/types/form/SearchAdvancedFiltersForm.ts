@@ -8,6 +8,7 @@ import type {
     SearchCustomColumnIds,
     SearchDateFilterKeys,
     SearchGroupBy,
+    SearchView,
     SearchWithdrawalType,
 } from '@components/Search/types';
 import CONST from '@src/CONST';
@@ -29,6 +30,7 @@ const AMOUNT_FILTER_KEYS: SearchAmountFilterKeys[] = [CONST.SEARCH.SYNTAX_FILTER
 const FILTER_KEYS = {
     POLICY_ID: 'policyID',
     GROUP_BY: 'groupBy',
+    VIEW: 'view',
     TYPE: 'type',
     STATUS: 'status',
 
@@ -36,31 +38,37 @@ const FILTER_KEYS = {
     DATE_ON: 'dateOn',
     DATE_AFTER: 'dateAfter',
     DATE_BEFORE: 'dateBefore',
+    DATE_RANGE: 'dateRange',
 
     SUBMITTED_NOT: 'submittedNot',
     SUBMITTED_ON: 'submittedOn',
     SUBMITTED_AFTER: 'submittedAfter',
     SUBMITTED_BEFORE: 'submittedBefore',
+    SUBMITTED_RANGE: 'submittedRange',
 
     APPROVED_NOT: 'approvedNot',
     APPROVED_ON: 'approvedOn',
     APPROVED_AFTER: 'approvedAfter',
     APPROVED_BEFORE: 'approvedBefore',
+    APPROVED_RANGE: 'approvedRange',
 
     PAID_NOT: 'paidNot',
     PAID_ON: 'paidOn',
     PAID_AFTER: 'paidAfter',
     PAID_BEFORE: 'paidBefore',
+    PAID_RANGE: 'paidRange',
 
     EXPORTED_NOT: 'exportedNot',
     EXPORTED_ON: 'exportedOn',
     EXPORTED_AFTER: 'exportedAfter',
     EXPORTED_BEFORE: 'exportedBefore',
+    EXPORTED_RANGE: 'exportedRange',
 
     POSTED_NOT: 'postedNot',
     POSTED_ON: 'postedOn',
     POSTED_AFTER: 'postedAfter',
     POSTED_BEFORE: 'postedBefore',
+    POSTED_RANGE: 'postedRange',
 
     WITHDRAWAL_TYPE_NOT: 'withdrawalTypeNot',
     WITHDRAWAL_TYPE: 'withdrawalType',
@@ -69,6 +77,7 @@ const FILTER_KEYS = {
     WITHDRAWN_ON: 'withdrawnOn',
     WITHDRAWN_AFTER: 'withdrawnAfter',
     WITHDRAWN_BEFORE: 'withdrawnBefore',
+    WITHDRAWN_RANGE: 'withdrawnRange',
 
     CURRENCY_NOT: 'currencyNot',
     CURRENCY: 'currency',
@@ -126,6 +135,9 @@ const FILTER_KEYS = {
     EXPORTER_NOT: 'exporterNot',
     EXPORTER: 'exporter',
 
+    EXPORTED_TO_NOT: 'exportedToNot',
+    EXPORTED_TO: 'exportedTo',
+
     IN_NOT: 'inNot',
     IN: 'in',
 
@@ -170,8 +182,8 @@ const FILTER_KEYS = {
     LIMIT: 'limit',
 } as const;
 
-const ALLOWED_TYPE_FILTERS = {
-    [CONST.SEARCH.DATA_TYPES.EXPENSE]: [
+const ALLOWED_TYPE_FILTERS: Record<string, Set<string>> = {
+    [CONST.SEARCH.DATA_TYPES.EXPENSE]: new Set([
         FILTER_KEYS.TYPE,
         FILTER_KEYS.STATUS,
         FILTER_KEYS.FROM,
@@ -247,7 +259,10 @@ const ALLOWED_TYPE_FILTERS = {
         FILTER_KEYS.EXPORTED_BEFORE,
         FILTER_KEYS.EXPORTER,
         FILTER_KEYS.EXPORTER_NOT,
+        FILTER_KEYS.EXPORTED_TO,
+        FILTER_KEYS.EXPORTED_TO_NOT,
         FILTER_KEYS.GROUP_BY,
+        FILTER_KEYS.VIEW,
         FILTER_KEYS.ACTION,
         FILTER_KEYS.ACTION_NOT,
         FILTER_KEYS.HAS,
@@ -267,8 +282,8 @@ const ALLOWED_TYPE_FILTERS = {
         FILTER_KEYS.ATTENDEE_NOT,
         FILTER_KEYS.COLUMNS,
         FILTER_KEYS.LIMIT,
-    ],
-    [CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT]: [
+    ]),
+    [CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT]: new Set([
         FILTER_KEYS.TYPE,
         FILTER_KEYS.STATUS,
         FILTER_KEYS.FROM,
@@ -315,6 +330,8 @@ const ALLOWED_TYPE_FILTERS = {
         FILTER_KEYS.EXPORTED_ON,
         FILTER_KEYS.EXPORTED_NOT,
         FILTER_KEYS.EXPORTER,
+        FILTER_KEYS.EXPORTED_TO,
+        FILTER_KEYS.EXPORTED_TO_NOT,
         FILTER_KEYS.ACTION,
         FILTER_KEYS.ACTION_NOT,
         FILTER_KEYS.WITHDRAWAL_ID,
@@ -323,8 +340,8 @@ const ALLOWED_TYPE_FILTERS = {
         FILTER_KEYS.TITLE_NOT,
         FILTER_KEYS.REPORT_FIELD,
         FILTER_KEYS.COLUMNS,
-    ],
-    [CONST.SEARCH.DATA_TYPES.INVOICE]: [
+    ]),
+    [CONST.SEARCH.DATA_TYPES.INVOICE]: new Set([
         FILTER_KEYS.TYPE,
         FILTER_KEYS.STATUS,
         FILTER_KEYS.FROM,
@@ -407,9 +424,9 @@ const ALLOWED_TYPE_FILTERS = {
         FILTER_KEYS.REPORT_FIELD,
         FILTER_KEYS.TITLE_NOT,
         FILTER_KEYS.COLUMNS,
-    ],
+    ]),
 
-    [CONST.SEARCH.DATA_TYPES.TRIP]: [
+    [CONST.SEARCH.DATA_TYPES.TRIP]: new Set([
         FILTER_KEYS.TYPE,
         FILTER_KEYS.STATUS,
         FILTER_KEYS.FROM,
@@ -473,6 +490,8 @@ const ALLOWED_TYPE_FILTERS = {
         FILTER_KEYS.EXPORTED_BEFORE,
         FILTER_KEYS.EXPORTER,
         FILTER_KEYS.EXPORTER_NOT,
+        FILTER_KEYS.EXPORTED_TO,
+        FILTER_KEYS.EXPORTED_TO_NOT,
         FILTER_KEYS.ACTION,
         FILTER_KEYS.ACTION_NOT,
         FILTER_KEYS.PURCHASE_AMOUNT_EQUAL_TO,
@@ -485,9 +504,9 @@ const ALLOWED_TYPE_FILTERS = {
         FILTER_KEYS.TITLE_NOT,
         FILTER_KEYS.REPORT_FIELD,
         FILTER_KEYS.COLUMNS,
-    ],
+    ]),
 
-    [CONST.SEARCH.DATA_TYPES.CHAT]: [
+    [CONST.SEARCH.DATA_TYPES.CHAT]: new Set([
         FILTER_KEYS.TYPE,
         FILTER_KEYS.FROM,
         FILTER_KEYS.FROM_NOT,
@@ -505,9 +524,9 @@ const ALLOWED_TYPE_FILTERS = {
         FILTER_KEYS.IS_NOT,
         FILTER_KEYS.HAS,
         FILTER_KEYS.HAS_NOT,
-    ],
+    ]),
 
-    [CONST.SEARCH.DATA_TYPES.TASK]: [
+    [CONST.SEARCH.DATA_TYPES.TASK]: new Set([
         FILTER_KEYS.TYPE,
         FILTER_KEYS.STATUS,
         FILTER_KEYS.TITLE,
@@ -524,50 +543,64 @@ const ALLOWED_TYPE_FILTERS = {
         FILTER_KEYS.DATE_NOT,
         FILTER_KEYS.DATE_AFTER,
         FILTER_KEYS.DATE_BEFORE,
-    ],
+    ]),
 };
 
 type SearchAdvancedFiltersKey = ValueOf<typeof FILTER_KEYS> | ReportFieldKey;
+
+type HasFilterValue = ValueOf<typeof CONST.SEARCH.HAS_VALUES>;
+type HasFilterValues = HasFilterValue[];
+type IsFilterValue = ValueOf<typeof CONST.SEARCH.IS_VALUES>;
+type IsFilterValues = IsFilterValue[];
+type BooleanValue = ValueOf<typeof CONST.SEARCH.BOOLEAN>;
+type ExpenseTypeValue = ValueOf<typeof CONST.SEARCH.TRANSACTION_TYPE>;
+type ExpenseTypeValues = ExpenseTypeValue[];
 
 type SearchAdvancedFiltersForm = Form<
     SearchAdvancedFiltersKey,
     {
         [FILTER_KEYS.GROUP_BY]: SearchGroupBy;
+        [FILTER_KEYS.VIEW]: SearchView;
         [FILTER_KEYS.TYPE]: SearchDataTypes;
         [FILTER_KEYS.COLUMNS]: SearchCustomColumnIds[];
 
         [FILTER_KEYS.STATUS]: string[] | string;
 
-        [FILTER_KEYS.DATE_AFTER]: string;
-        [FILTER_KEYS.DATE_BEFORE]: string;
-
         [FILTER_KEYS.DATE_ON]: string;
         [FILTER_KEYS.DATE_NOT]: string;
+        [FILTER_KEYS.DATE_AFTER]: string;
+        [FILTER_KEYS.DATE_BEFORE]: string;
+        [FILTER_KEYS.DATE_RANGE]: string;
 
         [FILTER_KEYS.SUBMITTED_ON]: string;
         [FILTER_KEYS.SUBMITTED_NOT]: string;
         [FILTER_KEYS.SUBMITTED_AFTER]: string;
         [FILTER_KEYS.SUBMITTED_BEFORE]: string;
+        [FILTER_KEYS.SUBMITTED_RANGE]: string;
 
         [FILTER_KEYS.APPROVED_ON]: string;
         [FILTER_KEYS.APPROVED_NOT]: string;
         [FILTER_KEYS.APPROVED_AFTER]: string;
         [FILTER_KEYS.APPROVED_BEFORE]: string;
+        [FILTER_KEYS.APPROVED_RANGE]: string;
 
         [FILTER_KEYS.PAID_ON]: string;
         [FILTER_KEYS.PAID_NOT]: string;
         [FILTER_KEYS.PAID_AFTER]: string;
         [FILTER_KEYS.PAID_BEFORE]: string;
+        [FILTER_KEYS.PAID_RANGE]: string;
 
         [FILTER_KEYS.EXPORTED_ON]: string;
         [FILTER_KEYS.EXPORTED_NOT]: string;
         [FILTER_KEYS.EXPORTED_AFTER]: string;
         [FILTER_KEYS.EXPORTED_BEFORE]: string;
+        [FILTER_KEYS.EXPORTED_RANGE]: string;
 
         [FILTER_KEYS.POSTED_ON]: string;
         [FILTER_KEYS.POSTED_NOT]: string;
         [FILTER_KEYS.POSTED_AFTER]: string;
         [FILTER_KEYS.POSTED_BEFORE]: string;
+        [FILTER_KEYS.POSTED_RANGE]: string;
 
         [FILTER_KEYS.WITHDRAWAL_TYPE]: SearchWithdrawalType;
         [FILTER_KEYS.WITHDRAWAL_TYPE_NOT]: SearchWithdrawalType;
@@ -576,6 +609,7 @@ type SearchAdvancedFiltersForm = Form<
         [FILTER_KEYS.WITHDRAWN_NOT]: string;
         [FILTER_KEYS.WITHDRAWN_AFTER]: string;
         [FILTER_KEYS.WITHDRAWN_BEFORE]: string;
+        [FILTER_KEYS.WITHDRAWN_RANGE]: string;
 
         [FILTER_KEYS.CURRENCY]: string[];
         [FILTER_KEYS.CURRENCY_NOT]: string[];
@@ -617,8 +651,8 @@ type SearchAdvancedFiltersForm = Form<
         [FILTER_KEYS.TAX_RATE]: string[];
         [FILTER_KEYS.TAX_RATE_NOT]: string[];
 
-        [FILTER_KEYS.EXPENSE_TYPE]: string[];
-        [FILTER_KEYS.EXPENSE_TYPE_NOT]: string[];
+        [FILTER_KEYS.EXPENSE_TYPE]: ExpenseTypeValues;
+        [FILTER_KEYS.EXPENSE_TYPE_NOT]: ExpenseTypeValues;
 
         [FILTER_KEYS.TAG]: string[];
         [FILTER_KEYS.TAG_NOT]: string[];
@@ -632,6 +666,9 @@ type SearchAdvancedFiltersForm = Form<
         [FILTER_KEYS.EXPORTER]: string[];
         [FILTER_KEYS.EXPORTER_NOT]: string[];
 
+        [FILTER_KEYS.EXPORTED_TO]: string[];
+        [FILTER_KEYS.EXPORTED_TO_NOT]: string[];
+
         [FILTER_KEYS.TO]: string[];
         [FILTER_KEYS.TO_NOT]: string[];
 
@@ -644,19 +681,19 @@ type SearchAdvancedFiltersForm = Form<
         [FILTER_KEYS.ASSIGNEE]: string[];
         [FILTER_KEYS.ASSIGNEE_NOT]: string[];
 
-        [FILTER_KEYS.REIMBURSABLE]: string;
-        [FILTER_KEYS.REIMBURSABLE_NOT]: string;
+        [FILTER_KEYS.REIMBURSABLE]: BooleanValue;
+        [FILTER_KEYS.REIMBURSABLE_NOT]: BooleanValue;
 
-        [FILTER_KEYS.BILLABLE]: string;
-        [FILTER_KEYS.BILLABLE_NOT]: string;
+        [FILTER_KEYS.BILLABLE]: BooleanValue;
+        [FILTER_KEYS.BILLABLE_NOT]: BooleanValue;
 
         [FILTER_KEYS.ACTION]: string;
         [FILTER_KEYS.ACTION_NOT]: string;
 
-        [FILTER_KEYS.HAS]: string[];
+        [FILTER_KEYS.HAS]: HasFilterValues;
         [FILTER_KEYS.HAS_NOT]: string[];
 
-        [FILTER_KEYS.IS]: string[];
+        [FILTER_KEYS.IS]: IsFilterValues;
         [FILTER_KEYS.IS_NOT]: string[];
 
         [FILTER_KEYS.PURCHASE_AMOUNT_EQUAL_TO]: string;
@@ -673,8 +710,6 @@ type SearchAdvancedFiltersForm = Form<
 
         [FILTER_KEYS.ATTENDEE]: string[];
         [FILTER_KEYS.ATTENDEE_NOT]: string[];
-        [FILTER_KEYS.IS]: string[];
-        [FILTER_KEYS.HAS]: string[];
         [FILTER_KEYS.REPORT_FIELD]: string;
         [FILTER_KEYS.LIMIT]: string;
     } & Record<ReportFieldTextKey, string> &
@@ -682,6 +717,6 @@ type SearchAdvancedFiltersForm = Form<
         Record<ReportFieldNegatedKey, string>
 >;
 
-export type {SearchAdvancedFiltersForm, SearchAdvancedFiltersKey};
+export type {SearchAdvancedFiltersForm, SearchAdvancedFiltersKey, HasFilterValue, HasFilterValues, IsFilterValue, IsFilterValues, ExpenseTypeValue, ExpenseTypeValues};
 export default FILTER_KEYS;
 export {DATE_FILTER_KEYS, ALLOWED_TYPE_FILTERS, FILTER_KEYS, AMOUNT_FILTER_KEYS};

@@ -1,19 +1,25 @@
-import React, {useMemo} from 'react';
+import React, {useEffect, useMemo} from 'react';
 import {View} from 'react-native';
 import Badge from '@components/Badge';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import SearchBar from '@components/SearchBar';
 import Section from '@components/Section';
 import Text from '@components/Text';
-import useEnvironment from '@hooks/useEnvironment';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import usePolicy from '@hooks/usePolicy';
+import useSearchResults from '@hooks/useSearchResults';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {getCleanedTagName} from '@libs/PolicyUtils';
+import Parser from '@libs/Parser';
+import {getCommaSeparatedTagNameWithSanitizedColons} from '@libs/PolicyUtils';
+import tokenizedSearch from '@libs/tokenizedSearch';
+import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {CodingRule} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -42,10 +48,11 @@ function getRuleDescription(rule: CodingRule, translate: ReturnType<typeof useLo
         actions.push(translate('workspace.rules.merchantRules.ruleSummarySubtitleUpdateField', labels.category, getDecodedCategoryName(rule.category)));
     }
     if (rule.tag) {
-        actions.push(translate('workspace.rules.merchantRules.ruleSummarySubtitleUpdateField', labels.tag, getCleanedTagName(rule.tag)));
+        actions.push(translate('workspace.rules.merchantRules.ruleSummarySubtitleUpdateField', labels.tag, getCommaSeparatedTagNameWithSanitizedColons(rule.tag)));
     }
     if (rule.comment) {
-        actions.push(translate('workspace.rules.merchantRules.ruleSummarySubtitleUpdateField', labels.description, rule.comment));
+        const commentMarkdown = Parser.htmlToMarkdown(rule.comment);
+        actions.push(translate('workspace.rules.merchantRules.ruleSummarySubtitleUpdateField', labels.description, commentMarkdown));
     }
     if (rule.tax?.field_id_TAX?.value) {
         actions.push(translate('workspace.rules.merchantRules.ruleSummarySubtitleUpdateField', labels.tax, `${rule.tax.field_id_TAX.name} (${rule.tax.field_id_TAX.value})`));
@@ -65,9 +72,9 @@ function MerchantRulesSection({policyID}: MerchantRulesSectionProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
+    const {isOffline} = useNetwork();
     const policy = usePolicy(policyID);
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Plus']);
-    const {isDevelopment} = useEnvironment();
 
     // Hoist iterator-independent translations to avoid redundant calls in the loop
     const fieldLabels: FieldLabels = useMemo(
@@ -99,16 +106,27 @@ function MerchantRulesSection({policyID}: MerchantRulesSectionProps) {
             });
     }, [codingRules]);
 
-    if (!isDevelopment) {
-        return null;
-    }
+    // Exclude pending-delete rules when online because OfflineWithFeedback hides them visually.
+    // When offline, keep them so OfflineWithFeedback can show strikethrough styling.
+    const visibleRules = useMemo(() => sortedRules.filter((rule) => isOffline || rule.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE), [sortedRules, isOffline]);
+
+    const filterRule = (rule: CodingRule & {ruleID: string}, searchInput: string) => tokenizedSearch([rule], searchInput, () => [rule.filters?.right ?? '']).length > 0;
+
+    const [ruleSearchInput, setRuleSearchInput, filteredRules] = useSearchResults(visibleRules, filterRule);
+
+    useEffect(() => {
+        if (visibleRules.length > CONST.SEARCH_BAR_THRESHOLD) {
+            return;
+        }
+        setRuleSearchInput('');
+    }, [visibleRules.length, setRuleSearchInput]);
 
     const renderTitle = () => (
-        <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1]}>
+        <View style={[styles.flexRow, styles.alignItemsCenter]}>
             <Text style={[styles.textHeadline, styles.cardSectionTitle, styles.accountSettingsSectionTitle, {color: theme.text}]}>{translate('workspace.rules.merchantRules.title')}</Text>
             <Badge
                 text={translate('common.newFeature')}
-                badgeStyles={styles.badgeNewFeature}
+                isCondensed
                 success
             />
         </View>
@@ -120,25 +138,44 @@ function MerchantRulesSection({policyID}: MerchantRulesSectionProps) {
             renderTitle={renderTitle}
             subtitle={translate('workspace.rules.merchantRules.subtitle')}
             subtitleMuted
+            childrenStyles={[styles.gap3]}
         >
             {hasRules && (
-                <View style={[styles.mt3]}>
-                    {sortedRules.map((rule) => {
+                <View style={[styles.mt3, styles.gap2]}>
+                    {visibleRules.length > CONST.SEARCH_BAR_THRESHOLD && (
+                        <SearchBar
+                            label={translate('workspace.rules.merchantRules.findRule')}
+                            inputValue={ruleSearchInput}
+                            onChangeText={setRuleSearchInput}
+                            style={[styles.mt3, styles.mh0]}
+                            shouldShowEmptyState={filteredRules.length === 0}
+                            emptyStateContainerStyle={styles.ph0}
+                        />
+                    )}
+                    {filteredRules.map((rule) => {
                         const merchantName = rule.filters?.right ?? '';
-                        const matchDescription = translate('workspace.rules.merchantRules.ruleSummaryTitle', merchantName);
+                        const isExactMatch = rule.filters?.operator === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO;
+                        const matchDescription = translate('workspace.rules.merchantRules.ruleSummaryTitle', merchantName, isExactMatch);
                         const ruleDescription = getRuleDescription(rule, translate, fieldLabels);
 
                         return (
                             <View key={rule.ruleID}>
-                                <MenuItemWithTopDescription
-                                    description={matchDescription}
-                                    title={ruleDescription}
-                                    wrapperStyle={[styles.sectionMenuItemTopDescription]}
-                                    descriptionTextStyle={[styles.textStrong, styles.themeTextColor, styles.fontSizeNormal]}
-                                    titleStyle={[styles.textLabelSupporting, styles.fontSizeLabel]}
-                                    shouldShowRightIcon
-                                    onPress={() => Navigation.navigate(ROUTES.RULES_MERCHANT_EDIT.getRoute(policyID, rule.ruleID))}
-                                />
+                                <OfflineWithFeedback
+                                    pendingAction={rule.pendingAction}
+                                    errors={rule.errors}
+                                >
+                                    <MenuItemWithTopDescription
+                                        description={matchDescription}
+                                        title={ruleDescription}
+                                        wrapperStyle={[styles.borderedContentCard, styles.ph4, styles.pv4]}
+                                        descriptionTextStyle={[styles.textNormalThemeText]}
+                                        titleStyle={[styles.textLabelSupporting, styles.fontSizeLabel]}
+                                        shouldShowRightIcon
+                                        onPress={() => Navigation.navigate(ROUTES.RULES_MERCHANT_EDIT.getRoute(policyID, rule.ruleID))}
+                                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_ITEM}
+                                        disabled={rule.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}
+                                    />
+                                </OfflineWithFeedback>
                             </View>
                         );
                     })}
@@ -152,6 +189,7 @@ function MerchantRulesSection({policyID}: MerchantRulesSectionProps) {
                 iconWidth={20}
                 style={[styles.sectionMenuItemTopDescription, !hasRules && styles.mt6, styles.mbn3]}
                 onPress={() => Navigation.navigate(ROUTES.RULES_MERCHANT_NEW.getRoute(policyID))}
+                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.ADD_MERCHANT_RULE}
             />
         </Section>
     );

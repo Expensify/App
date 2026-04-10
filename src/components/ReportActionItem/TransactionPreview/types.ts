@@ -1,5 +1,5 @@
 import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import type {ContextMenuAnchor} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
 import type {PersonalDetailsList, Report, ReportAction, Transaction, TransactionViolations} from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
@@ -11,9 +11,6 @@ type TransactionPreviewStyleType = {
 };
 
 type TransactionPreviewProps = {
-    /** All the data of the report collection */
-    allReports: OnyxCollection<Report>;
-
     /** The active reportID linked to the transaction */
     iouReportID: string | undefined;
 
@@ -50,11 +47,6 @@ type TransactionPreviewProps = {
     /** True if the IOU Preview card is hovered */
     isHovered?: boolean;
 
-    /** Whether or not an IOU report contains expenses in a different currency
-     * that are either created or cancelled offline, and thus haven't been converted to the report's currency yet
-     */
-    shouldShowPendingConversionMessage?: boolean;
-
     /** Whether a message is a whisper */
     isWhisper?: boolean;
 
@@ -72,6 +64,12 @@ type TransactionPreviewProps = {
 
     /** In case we want to override context menu action */
     contextAction?: OnyxEntry<ReportAction>;
+
+    /** Whether the item should be highlighted */
+    shouldHighlight?: boolean;
+
+    /** ID of the original report from which the given reportAction is first created */
+    originalReportID?: string;
 };
 
 type TransactionPreviewContentProps = {
@@ -141,6 +139,9 @@ type TransactionPreviewContentProps = {
 
     /** Is this component used during duplicate review flow */
     isReviewDuplicateTransactionPage?: boolean;
+
+    /** Whether the item should be highlighted */
+    shouldHighlight?: boolean;
 };
 
 export type {TransactionPreviewContentProps, TransactionPreviewProps, TransactionPreviewStyleType};

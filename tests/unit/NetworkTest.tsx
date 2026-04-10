@@ -6,6 +6,8 @@ import {sub as dateSubtract} from 'date-fns/sub';
 import type {Mock} from 'jest-mock';
 import type {OnyxEntry} from 'react-native-onyx';
 import MockedOnyx from 'react-native-onyx';
+import ComposeProviders from '@components/ComposeProviders';
+import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import TestToolMenu from '@components/TestToolMenu';
 import {confirmReadyToOpenApp, reconnectApp} from '@libs/actions/App';
 import {resetReauthentication} from '@libs/Middleware/Reauthentication';
@@ -483,14 +485,16 @@ describe('NetworkTests', () => {
 
         // Given an opened test tool menu
         render(
-            <NavigationContainer
-                ref={navigationRef}
-                onReady={() => {
-                    // Navigation is ready, but we still need to handle the timing issue
-                }}
-            >
-                <TestToolMenu />
-            </NavigationContainer>,
+            <ComposeProviders components={[LocaleContextProvider]}>
+                <NavigationContainer
+                    ref={navigationRef}
+                    onReady={() => {
+                        // Navigation is ready, but we still need to handle the timing issue
+                    }}
+                >
+                    <TestToolMenu />
+                </NavigationContainer>
+            </ComposeProviders>,
         );
         expect(screen.getByAccessibilityHint('Force offline')).not.toBeDisabled();
         expect(screen.getByAccessibilityHint('Simulate failing network requests')).not.toBeDisabled();
@@ -504,11 +508,11 @@ describe('NetworkTests', () => {
         expect(screen.getByAccessibilityHint('Simulate poor internet connection')).toBeChecked();
 
         // And the setShouldForceOffline and setShouldFailAllRequests should not be called as the Force offline and Simulate failing network requests toggles are disabled
-        fireEvent.press(screen.getByAccessibilityHint('Force offline'));
+        fireEvent.press(screen.getByAccessibilityHint('Force offline, Locked'));
         await waitForBatchedUpdatesWithAct();
         expect(setShouldForceOfflineSpy).not.toHaveBeenCalled();
 
-        fireEvent.press(screen.getByAccessibilityHint('Simulate failing network requests'));
+        fireEvent.press(screen.getByAccessibilityHint('Simulate failing network requests, Locked'));
         await waitForBatchedUpdatesWithAct();
         expect(setShouldFailAllRequestsSpy).not.toHaveBeenCalled();
     });

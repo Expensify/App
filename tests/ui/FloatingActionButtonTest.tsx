@@ -24,9 +24,6 @@ jest.mock('@components/ProductTrainingContext', () => ({
 jest.mock('@hooks/useResponsiveLayout', () => jest.fn());
 const mockedUseResponsiveLayout = useResponsiveLayout as jest.MockedFunction<typeof useResponsiveLayout>;
 
-// Mock useIsHomeRouteActive to avoid navigation state issues
-jest.mock('@navigation/helpers/useIsHomeRouteActive', () => (): boolean => false);
-
 let mockUseAnimatedStyleUpdater: () => Record<string, unknown>;
 // Silence react-native-reanimated warnings in Jest
 jest.mock('react-native-reanimated', () => {
@@ -101,15 +98,5 @@ describe('FloatingActionButton hover', () => {
         const animatedContainer = screen.getByTestId('fab-animated-container');
 
         expect(animatedContainer).toBeVisible();
-    });
-
-    it('should render regular button if LHB is not visible', () => {
-        mockedUseResponsiveLayout.mockReturnValue({...CONST.NAVIGATION_TESTS.DEFAULT_USE_RESPONSIVE_LAYOUT_VALUE, shouldUseNarrowLayout: true});
-        renderFAB();
-
-        // Get the container by testID
-        const container = screen.getByTestId('fab-container');
-
-        expect(container).toBeVisible();
     });
 });

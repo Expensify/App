@@ -13,7 +13,6 @@ import ValidateLoginPage from '@pages/ValidateLoginPage';
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
 import defaultScreenOptions from './defaultScreenOptions';
-import PublicRightModalNavigator from './Navigators/PublicRightModalNavigator';
 import TestToolsModalNavigator from './Navigators/TestToolsModalNavigator';
 import useRootNavigatorScreenOptions from './useRootNavigatorScreenOptions';
 
@@ -25,9 +24,9 @@ function PublicScreens() {
     const StyleUtils = useStyleUtils();
     return (
         <RootStack.Navigator screenOptions={defaultScreenOptions}>
-            {/* The structure for the HOME route has to be the same in public and auth screens. That's why the name for SignInPage is REPORTS_SPLIT_NAVIGATOR. */}
+            {/* The structure for the HOME route has to be the same in public and auth screens. That's why the name for SignInPage is SCREENS.HOME. */}
             <RootStack.Screen
-                name={NAVIGATORS.REPORTS_SPLIT_NAVIGATOR}
+                name={SCREENS.HOME}
                 options={{
                     ...defaultScreenOptions,
                     // If you want to change this, make sure there aren't any animation bugs when signing out.
@@ -61,11 +60,6 @@ function PublicScreens() {
                 name={SCREENS.SAML_SIGN_IN}
                 options={{gestureEnabled: false}}
                 component={SAMLSignInPage}
-            />
-            <RootStack.Screen
-                name={NAVIGATORS.PUBLIC_RIGHT_MODAL_NAVIGATOR}
-                component={PublicRightModalNavigator}
-                options={rootNavigatorScreenOptions.rightModalNavigator}
             />
             <RootStack.Screen
                 name={NAVIGATORS.TEST_TOOLS_MODAL_NAVIGATOR}

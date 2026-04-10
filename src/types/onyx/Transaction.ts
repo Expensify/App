@@ -1,7 +1,9 @@
 import type {KeysOfUnion, ValueOf} from 'type-fest';
-import type {CreateTrackExpenseParams, IOURequestType, ReplaceReceipt, RequestMoneyInformation, StartSplitBilActionParams} from '@libs/actions/IOU';
+import type {IOURequestType, ReplaceReceipt, RequestMoneyInformation, StartSplitBilActionParams} from '@libs/actions/IOU';
+import type {CreateTrackExpenseParams} from '@libs/actions/IOU/TrackExpense';
 import type CONST from '@src/CONST';
 import type ONYXKEYS from '@src/ONYXKEYS';
+import type {FileObject} from '@src/types/utils/Attachment';
 import type CollectionDataSet from '@src/types/utils/CollectionDataSet';
 import type {Accountant, Attendee, Participant, Split, SplitExpense} from './IOU';
 import type * as OnyxCommon from './OnyxCommon';
@@ -125,6 +127,13 @@ type Comment = {
 
     /** Odometer end reading for distance expenses */
     odometerEnd?: number;
+
+    /** Both image fields are needed only locally because server receives only one merged image as receipt */
+    /** Odometer start image (File object with uri on web, URI string on native) */
+    odometerStartImage?: FileObject | string;
+
+    /** Odometer end image (File object with uri on web, URI string on native) */
+    odometerEndImage?: FileObject | string;
 };
 
 /** Model of transaction custom unit */
@@ -158,6 +167,12 @@ type TransactionCustomUnit = {
 
     /** The unit for the distance/quantity */
     distanceUnit?: Unit;
+
+    /**
+     * The distance in meters from the route Mapbox or Google Maps chose through the user supplied waypoints.
+     * It is used to track when the user has manually increased the distance above the system-calculated route distance.
+     */
+    routeDistanceMeters?: number;
 
     /** Sub Rates for the custom unit */
     subRates?: Array<{
@@ -204,6 +219,9 @@ type Receipt = {
     /** Path of the receipt file */
     source?: ReceiptSource;
 
+    /** Local file URI preserved on the creating device so the remote source from the server does not cause a reload */
+    localSource?: string | null;
+
     /** Name of receipt file */
     filename?: string;
 
@@ -221,6 +239,9 @@ type Receipt = {
 
     /** Receipt is Test Drive testing receipt */
     isTestDriveReceipt?: true;
+
+    /** Local thumbnail URI for fast preview on confirmation page */
+    thumbnail?: string;
 };
 
 /** Model of route */
@@ -248,6 +269,9 @@ type ReceiptError = {
 
     /** Parameters required to retry the failed action */
     retryParams: StartSplitBilActionParams | CreateTrackExpenseParams | RequestMoneyInformation | ReplaceReceipt;
+
+    /** The type of receipt error */
+    error: typeof CONST.IOU.RECEIPT_ERROR;
 };
 
 /** Collection of receipt errors, indexed by a UNIX timestamp of when the error occurred */
@@ -436,14 +460,23 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** The transaction converted amount in report's currency */
         convertedAmount?: number;
 
+        /** The currency conversion rate from the transaction currency to the report currency */
+        currencyConversionRate?: string;
+
         /** The transaction tax amount */
         taxAmount?: number;
+
+        /** The transaction converted tax amount in report's currency */
+        convertedTaxAmount?: number;
 
         /** The transaction tax code */
         taxCode?: string;
 
         /** The transaction tax value */
         taxValue?: string | undefined;
+
+        /** The transaction tax name */
+        taxName?: string;
 
         /** Whether the expense is billable */
         billable?: boolean;
@@ -526,11 +559,17 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** The transaction id */
         transactionID: string;
 
+        /** Selected transaction IDs for bulk edit operations (only used in draft transactions) */
+        selectedTransactionIDs?: string[];
+
         /** The transaction tag */
         tag?: string;
 
         /** Whether the transaction was created globally */
         isFromGlobalCreate?: boolean;
+
+        /** Whether the transaction was created from the FAB, including Global create button, FloatingCameraButton, QuickAction,... */
+        isFromFloatingActionButton?: boolean;
 
         /** The transaction tax rate */
         taxRate?: string | undefined;
@@ -637,6 +676,9 @@ type AdditionalTransactionChanges = {
 
     /** Odometer end reading for distance expenses */
     odometerEnd?: number;
+
+    /** The unit for the distance/quantity */
+    quantity?: number;
 };
 
 /** Model of transaction changes  */

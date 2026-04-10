@@ -1,15 +1,21 @@
 import {
+    accountLockSelector,
     adminAccountIDsSelector,
     adminPendingActionSelector,
     defaultSecurityGroupIDSelector,
     domainEmailSelector,
     domainSettingsPrimaryContactSelector,
+    groupsSelector,
+    isSecurityGroupEntry,
     memberAccountIDsSelector,
+    selectSecurityGroupForAccount,
     technicalContactSettingsSelector,
+    vacationDelegateSelector,
 } from '@selectors/Domain';
 import type {OnyxEntry} from 'react-native-onyx';
 import CONST from '@src/CONST';
-import type {CardFeeds, Domain, DomainPendingActions, DomainSettings} from '@src/types/onyx';
+import type {CardFeeds, Domain, DomainPendingActions, DomainSecurityGroup, DomainSettings} from '@src/types/onyx';
+import type {BaseVacationDelegate} from '@src/types/onyx/VacationDelegate';
 
 describe('domainSelectors', () => {
     const userID1 = 123;
@@ -259,6 +265,25 @@ describe('domainSelectors', () => {
             expect(memberAccountIDsSelector(domain)).toEqual([111]);
         });
 
+        it('Should filter out members with null or undefined permission values', () => {
+            const domain = {
+                [`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}1`]: {
+                    shared: {
+                        // eslint-disable-next-line @typescript-eslint/naming-convention
+                        '100': 'read',
+                        // eslint-disable-next-line @typescript-eslint/naming-convention
+                        '200': null,
+                        // eslint-disable-next-line @typescript-eslint/naming-convention
+                        '300': undefined,
+                        // eslint-disable-next-line @typescript-eslint/naming-convention
+                        '400': 'read',
+                    },
+                },
+            } as unknown as OnyxEntry<Domain>;
+
+            expect(memberAccountIDsSelector(domain).sort()).toEqual([100, 400]);
+        });
+
         it('Should filter out non-numeric shared keys', () => {
             const domain = {
                 [`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}1`]: {
@@ -295,6 +320,241 @@ describe('domainSelectors', () => {
             const domain = {} as OnyxEntry<Domain>;
 
             expect(defaultSecurityGroupIDSelector(domain)).toBeUndefined();
+        });
+    });
+
+    describe('selectSecurityGroupForAccount', () => {
+        it('Should return undefined when domain has no security groups', () => {
+            const domain = {
+                validated: true,
+                accountID: 1,
+                email: 'test@example.com',
+            } as Domain;
+
+            const result = selectSecurityGroupForAccount(123)(domain);
+
+            expect(result).toBeUndefined();
+        });
+
+        it('Should return undefined when account is not in any security group', () => {
+            const securityGroup = {
+                enableRestrictedPrimaryLogin: false,
+                enableRestrictedPolicyCreation: false,
+                shared: {
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    '456': 'read',
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    '789': 'read',
+                },
+            } as DomainSecurityGroup;
+
+            const domain: Domain = {
+                validated: true,
+                accountID: 1,
+                email: 'test@example.com',
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                domain_defaultSecurityGroupID: '1',
+                [`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}1`]: securityGroup,
+            } as unknown as Domain;
+
+            const result = selectSecurityGroupForAccount(123)(domain);
+
+            expect(result).toBeUndefined();
+        });
+
+        it('Should return the security group data when account belongs to a group', () => {
+            /* eslint-disable @typescript-eslint/naming-convention */
+            const group1 = {shared: {'123': 'read', '456': 'read'}, enableRestrictedPrimaryLogin: true, enableRestrictedPolicyCreation: true} as DomainSecurityGroup;
+            const group2 = {shared: {'789': 'read'}, enableRestrictedPrimaryLogin: true, enableRestrictedPolicyCreation: true} as DomainSecurityGroup;
+
+            const key1 = `${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}1`;
+            const key2 = `${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}2`;
+
+            const domain: Domain = {
+                validated: true,
+                accountID: 1,
+                email: 'test@example.com',
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                domain_defaultSecurityGroupID: '1',
+                [key1]: group1,
+                [key2]: group2,
+            } as unknown as Domain;
+
+            const result = selectSecurityGroupForAccount(123)(domain);
+
+            expect(result).toEqual({
+                key: key1,
+                securityGroup: group1,
+            });
+        });
+    });
+
+    describe('isSecurityGroupEntry', () => {
+        it('should return true for a valid security group entry', () => {
+            const entry: [string, unknown] = [`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}123`, {shared: {}}];
+            expect(isSecurityGroupEntry(entry)).toBe(true);
+        });
+
+        it('should return false if the key does not start with the security group prefix', () => {
+            const entry: [string, unknown] = ['invalid_prefix_123', {shared: {}}];
+            expect(isSecurityGroupEntry(entry)).toBe(false);
+        });
+
+        it('should return false if the value is not an object', () => {
+            const entry: [string, unknown] = [`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}123`, 'not an object'];
+            expect(isSecurityGroupEntry(entry)).toBe(false);
+        });
+
+        it('should return false if the value is null', () => {
+            const entry: [string, unknown] = [`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}123`, null];
+            expect(isSecurityGroupEntry(entry)).toBe(false);
+        });
+
+        it('should return false if the value does not have a "shared" property', () => {
+            const entry: [string, unknown] = [`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}123`, {other: {}}];
+            expect(isSecurityGroupEntry(entry)).toBe(false);
+        });
+    });
+
+    describe('groupsSelector', () => {
+        it('Should return an empty array if the domain object is undefined', () => {
+            expect(groupsSelector(undefined)).toEqual([]);
+        });
+
+        it('Should return an empty array if the domain object is empty', () => {
+            const domain = {} as OnyxEntry<Domain>;
+            expect(groupsSelector(domain)).toEqual([]);
+        });
+
+        it('Should return an array of groups when keys start with the security group prefix', () => {
+            const domain = {
+                [`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}123`]: {name: 'Group 1', shared: {}},
+                [`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}456`]: {name: 'Group 2', shared: {}},
+            } as unknown as OnyxEntry<Domain>;
+
+            const expectedGroups = [
+                {id: '123', details: {name: 'Group 1', shared: {}}},
+                {id: '456', details: {name: 'Group 2', shared: {}}},
+            ];
+
+            expect(groupsSelector(domain)).toEqual(expectedGroups);
+        });
+
+        it('Should ignore keys that do not start with the security group prefix', () => {
+            const domain = {
+                [`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}123`]: {name: 'Group 1', shared: {}},
+                [`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}456`]: {name: 'Group 2', shared: null},
+                [`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}789`]: {name: 'Group 3'},
+                otherKey: 'value',
+            } as unknown as OnyxEntry<Domain>;
+
+            const expectedGroups = [{id: '123', details: {name: 'Group 1', shared: {}}}];
+
+            expect(groupsSelector(domain)).toEqual(expectedGroups);
+        });
+    });
+    describe('vacationDelegateSelector', () => {
+        it('Should return undefined if domain is undefined', () => {
+            const selector = vacationDelegateSelector(userID1);
+            expect(selector(undefined)).toBeUndefined();
+        });
+
+        it('Should return the vacation delegate for a specific accountID', () => {
+            const vacationDelegate: BaseVacationDelegate = {
+                delegate: 'delegate@example.com',
+                creator: 'creator@example.com',
+            };
+
+            const domain = {
+                [`${CONST.DOMAIN.PRIVATE_VACATION_DELEGATE_PREFIX}${userID1}`]: vacationDelegate,
+            } as unknown as OnyxEntry<Domain>;
+
+            const selector = vacationDelegateSelector(userID1);
+            expect(selector(domain)).toEqual(vacationDelegate);
+        });
+
+        it('Should return undefined if the vacation delegate for a specific accountID does not exist', () => {
+            const domain = {
+                [`${CONST.DOMAIN.PRIVATE_VACATION_DELEGATE_PREFIX}${userID2}`]: {
+                    delegate: 'other@example.com',
+                },
+            } as unknown as OnyxEntry<Domain>;
+
+            const selector = vacationDelegateSelector(userID1);
+            expect(selector(domain)).toBeUndefined();
+        });
+
+        it('Should return the vacation delegate when it exists but has no properties', () => {
+            const domain = {
+                [`${CONST.DOMAIN.PRIVATE_VACATION_DELEGATE_PREFIX}${userID1}`]: {},
+            } as unknown as OnyxEntry<Domain>;
+
+            const selector = vacationDelegateSelector(userID1);
+            expect(selector(domain)).toEqual({});
+        });
+
+        it('Should return the vacation delegate when only some fields are present', () => {
+            const domain = {
+                [`${CONST.DOMAIN.PRIVATE_VACATION_DELEGATE_PREFIX}${userID1}`]: {
+                    delegate: 'delegate@example.com',
+                },
+            } as unknown as OnyxEntry<Domain>;
+
+            const selector = vacationDelegateSelector(userID1);
+            expect(selector(domain)).toEqual({
+                delegate: 'delegate@example.com',
+            });
+        });
+
+        it('Should ignore keys that do not start with the vacation delegate prefix', () => {
+            const domain = {
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                private_otherPrefix_123: {
+                    delegate: 'wrong@example.com',
+                },
+            } as unknown as OnyxEntry<Domain>;
+
+            const selector = vacationDelegateSelector(userID1);
+            expect(selector(domain)).toBeUndefined();
+        });
+
+        it('Should not be affected by other vacation delegate entries with different accountIDs', () => {
+            const domain = {
+                [`${CONST.DOMAIN.PRIVATE_VACATION_DELEGATE_PREFIX}${userID2}`]: {
+                    delegate: 'delegate@example.com',
+                },
+            } as unknown as OnyxEntry<Domain>;
+
+            const selector = vacationDelegateSelector(userID1);
+            expect(selector(domain)).toBeUndefined();
+        });
+    });
+
+    describe('accountLockSelector', () => {
+        it('Should return lock state for the given account ID', () => {
+            const accountID = 123;
+            const domain = {
+                [`${CONST.DOMAIN.PRIVATE_LOCKED_ACCOUNT_PREFIX}${accountID}`]: true,
+            } as unknown as OnyxEntry<Domain>;
+
+            expect(accountLockSelector(accountID)(domain)).toBe(true);
+        });
+
+        it('Should return false when the lock state is false', () => {
+            const accountID = 123;
+            const domain = {
+                [`${CONST.DOMAIN.PRIVATE_LOCKED_ACCOUNT_PREFIX}${accountID}`]: false,
+            } as unknown as OnyxEntry<Domain>;
+
+            expect(accountLockSelector(accountID)(domain)).toBe(false);
+        });
+
+        it('Should return undefined when the domain object is undefined or account key does not exist', () => {
+            const accountID = 123;
+            const domain = {} as OnyxEntry<Domain>;
+
+            expect(accountLockSelector(accountID)(undefined)).toBeUndefined();
+            expect(accountLockSelector(accountID)(domain)).toBeUndefined();
         });
     });
 });

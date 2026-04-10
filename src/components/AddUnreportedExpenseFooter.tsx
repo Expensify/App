@@ -1,17 +1,17 @@
 import React from 'react';
 import {InteractionManager} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isIOUReport} from '@libs/ReportUtils';
 import Navigation from '@navigation/Navigation';
-import {convertBulkTrackedExpensesToIOU} from '@userActions/IOU';
+import {convertBulkTrackedExpensesToIOU} from '@userActions/IOU/TrackExpense';
 import {changeTransactionsReport} from '@userActions/Transaction';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, PolicyCategories, Report, ReportNextStepDeprecated} from '@src/types/onyx';
+import type {Policy, PolicyCategories, Report, ReportNextStepDeprecated, Transaction} from '@src/types/onyx';
 import Button from './Button';
 import FormHelpMessage from './FormHelpMessage';
 import {usePersonalDetails, useSession} from './OnyxListItemProvider';
@@ -42,31 +42,46 @@ function AddUnreportedExpenseFooter({selectedIds, report, reportToConfirm, repor
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const session = useSession();
     const personalDetails = usePersonalDetails();
-    const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: true});
-    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
-    const [policyRecentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES, {canBeMissing: true});
-    const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE, {canBeMissing: true});
+    const getSelectedTransactions = (allTransactions: OnyxCollection<Transaction>) =>
+        !allTransactions
+            ? {}
+            : Array.from(selectedIds).reduce<Record<string, Transaction>>((acc, id) => {
+                  const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`];
+                  if (transaction) {
+                      acc[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`] = transaction;
+                  }
+                  return acc;
+              }, {});
+    const [selectedTransactions = CONST.EMPTY_OBJECT] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {selector: getSelectedTransactions});
+    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
+    const [policyRecentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES);
+    const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
+    const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`);
 
     const handleConfirm = () => {
         if (selectedIds.size === 0) {
             setErrorMessage(translate('iou.selectUnreportedExpense'));
             return;
         }
+
         Navigation.dismissToSuperWideRHP();
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             if (report && isIOUReport(report)) {
-                convertBulkTrackedExpensesToIOU(
-                    [...selectedIds],
-                    report.reportID,
+                convertBulkTrackedExpensesToIOU({
+                    transactions: Object.values(selectedTransactions),
+                    iouReport: report,
+                    chatReport,
                     isASAPSubmitBetaEnabled,
-                    session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
-                    session?.email ?? '',
+                    currentUserAccountIDParam: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+                    currentUserEmailParam: session?.email ?? '',
                     transactionViolations,
-                    policyRecentlyUsedCurrencies ?? [],
+                    policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
                     quickAction,
                     personalDetails,
-                );
+                    betas,
+                });
             } else {
                 changeTransactionsReport({
                     transactionIDs: [...selectedIds],
@@ -77,7 +92,7 @@ function AddUnreportedExpenseFooter({selectedIds, report, reportToConfirm, repor
                     policy,
                     reportNextStep,
                     policyCategories,
-                    allTransactions,
+                    allTransactions: selectedTransactions,
                 });
             }
         });
