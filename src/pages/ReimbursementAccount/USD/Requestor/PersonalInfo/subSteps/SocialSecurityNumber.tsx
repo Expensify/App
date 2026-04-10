@@ -5,7 +5,7 @@ import SingleFieldStep from '@components/SubStepForms/SingleFieldStep';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useReimbursementAccountStepFormSubmit from '@hooks/useReimbursementAccountStepFormSubmit';
-import type {SubPageProps} from '@hooks/useSubPage/types';
+import type {SubStepProps} from '@hooks/useSubStep/types';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {getFieldRequiredErrors, isValidSSNLastFour} from '@libs/ValidationUtils';
 import CONST from '@src/CONST';
@@ -16,7 +16,7 @@ import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 const PERSONAL_INFO_STEP_KEY = INPUT_IDS.PERSONAL_INFO_STEP;
 const STEP_FIELDS = [PERSONAL_INFO_STEP_KEY.SSN_LAST_4];
 
-function SocialSecurityNumber({onNext, onMove, isEditing}: SubPageProps) {
+function SocialSecurityNumber({onNext, onMove, isEditing}: SubStepProps) {
     const {translate} = useLocalize();
 
     const [reimbursementAccount, reimbursementAccountResult] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
@@ -68,7 +68,6 @@ function SocialSecurityNumber({onNext, onMove, isEditing}: SubPageProps) {
             maxLength={CONST.BANK_ACCOUNT.MAX_LENGTH.SSN}
             enabledWhenOffline
             forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
-            shouldDelayAutoFocus
         />
     );
 }
