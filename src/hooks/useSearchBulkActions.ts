@@ -860,7 +860,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         ],
     );
 
-    // eslint-disable-next-line react-hooks/refs -- invokeDuplicateHandler reads a ref, but only at event-handler time (onSelected), never during render
     const headerButtonsOptions = useMemo(() => {
         if (selectedTransactionsKeys.length === 0 || status == null || !hash) {
             return CONST.EMPTY_ARRAY as unknown as Array<DropdownOption<SearchHeaderOptionValue>>;
@@ -1363,6 +1362,21 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         selectedTransactions,
         queryJSON?.type,
         expensifyIcons,
+        expensifyIcons.Export,
+        expensifyIcons.ArrowRight,
+        expensifyIcons.Table,
+        expensifyIcons.ThumbsUp,
+        expensifyIcons.ThumbsDown,
+        expensifyIcons.Send,
+        expensifyIcons.MoneyBag,
+        expensifyIcons.Stopwatch,
+        expensifyIcons.ArrowCollapse,
+        expensifyIcons.DocumentMerge,
+        expensifyIcons.ArrowSplit,
+        expensifyIcons.Pencil,
+        expensifyIcons.Trashcan,
+        expensifyIcons.Exclamation,
+        expensifyIcons.Workflows,
         translate,
         areAllMatchingItemsSelected,
         isOffline,
@@ -1383,6 +1397,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         currentUserPersonalDetails?.login,
         bankAccountList,
         styles.integrationIcon,
+        styles.textWrap,
         showConfirmModal,
         clearSelectedTransactions,
         handleBasicExport,
@@ -1416,6 +1431,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         amountOwed,
         allTransactions,
         isBetaEnabled,
+        shouldShowBusinessBankAccountOptions,
     ]);
 
     const handleOfflineModalClose = useCallback(() => {
