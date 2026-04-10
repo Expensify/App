@@ -85,6 +85,17 @@ To enable it:
 
 ---
 
+# How to configure Expensify Card Spend Rules
+
+Spend Rules let you control Expensify Card transactions in real time by automatically approving or declining charges based on merchants, spend categories, or maximum amounts. Expensify Cards include built-in protections that always block charges for adult services, ATMs, gambling, and money transfers.
+
+The **Spend** section appears on the Rules page when Expensify Cards are enabled for the workspace.
+
+To learn how to create and manage Spend Rules, see:
+[**Expensify Card Spend Rules**](https://help.expensify.com/articles/new-expensify/workspaces/Expensify-Card-Spend-Rules)
+
+---
+
 # How to configure Expense Report rules
 
 Use these settings to control how entire reports are named, routed, and approved.
