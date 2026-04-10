@@ -297,7 +297,7 @@ function ProfilePage({route}: ProfilePageProps) {
                         )}
                     </ScrollView>
                     {!hasAvatar && isLoading && (
-                        <View style={[StyleSheet.absoluteFill, styles.fullScreenLoading, styles.w100, styles.flex1]}>
+                        <View style={[StyleSheet.absoluteFill, styles.fullScreenLoading]}>
                             <ActivityIndicator
                                 size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                                 reasonAttributes={{context: 'ProfilePage', isLoading}}
