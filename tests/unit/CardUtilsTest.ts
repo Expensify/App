@@ -2344,7 +2344,7 @@ describe('CardUtils', () => {
                 lastUpdated: '',
                 state: 3,
             };
-            const description = getCardDescriptionForSearchTable(card, 'John Doe');
+            const description = getCardDescriptionForSearchTable(card, 'John Doe', translateLocal);
             expect(description).toBe("John Doe's card • 5644");
         });
     });

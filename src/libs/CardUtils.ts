@@ -183,11 +183,11 @@ function getCardDescription(card: Card | undefined, translate: LocalizedTranslat
  * @param displayName
  * @returns string in format %<defaultOrCustomCardName> • <lastFourPAN>%.
  */
-function getCardDescriptionForSearchTable(card?: Card, displayName?: string, translate?: LocalizedTranslate) {
+function getCardDescriptionForSearchTable(card: Card | undefined, displayName: string | undefined, translate: LocalizedTranslate) {
     if (!card) {
         return '';
     }
-    if (translate && isTravelCard(card)) {
+    if (isTravelCard(card)) {
         return translate('cardTransactions.centralInvoicing');
     }
     const isCSVCard = card.bank === CONST.COMPANY_CARD.FEED_BANK_NAME.UPLOAD || card.bank?.includes(CONST.COMPANY_CARD.FEED_BANK_NAME.CSV);

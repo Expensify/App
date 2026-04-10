@@ -8716,7 +8716,7 @@ describe('getCardDescriptionForSearchTable', () => {
     };
 
     it('returns an empty string when card is undefined', () => {
-        expect(getCardDescriptionForSearchTable(undefined)).toBe('');
+        expect(getCardDescriptionForSearchTable(undefined, undefined, translateLocal)).toBe('');
     });
 
     it('returns CSV/upload card title from nameValuePairs for UPLOAD bank', () => {
@@ -8727,7 +8727,7 @@ describe('getCardDescriptionForSearchTable', () => {
                 cardTitle: 'Uploaded spend card',
             } as OnyxTypes.Card['nameValuePairs'],
         };
-        expect(getCardDescriptionForSearchTable(card)).toBe('Uploaded spend card');
+        expect(getCardDescriptionForSearchTable(card, undefined, translateLocal)).toBe('Uploaded spend card');
     });
 
     it('returns CSV card title when bank is CSV feed', () => {
@@ -8739,7 +8739,7 @@ describe('getCardDescriptionForSearchTable', () => {
                 cardTitle: 'Marketing Team Card',
             } as OnyxTypes.Card['nameValuePairs'],
         };
-        expect(getCardDescriptionForSearchTable(card)).toBe('Marketing Team Card');
+        expect(getCardDescriptionForSearchTable(card, undefined, translateLocal)).toBe('Marketing Team Card');
     });
 
     it('falls back to cardName for CSV/upload when cardTitle is missing', () => {
@@ -8748,11 +8748,11 @@ describe('getCardDescriptionForSearchTable', () => {
             bank: CONST.COMPANY_CARD.FEED_BANK_NAME.CSV,
             cardName: 'Fallback CSV label',
         };
-        expect(getCardDescriptionForSearchTable(card)).toBe('Fallback CSV label');
+        expect(getCardDescriptionForSearchTable(card, undefined, translateLocal)).toBe('Fallback CSV label');
     });
 
     it('returns default cardholder label and last four for non-CSV cards when displayName is provided', () => {
-        expect(getCardDescriptionForSearchTable(baseCompanyCard, 'Jane')).toBe(`Jane's card ${CONST.DOT_SEPARATOR} 2554`);
+        expect(getCardDescriptionForSearchTable(baseCompanyCard, 'Jane', translateLocal)).toBe(`Jane's card ${CONST.DOT_SEPARATOR} 2554`);
     });
 
     it('omits the dot separator when lastFourPAN is empty', () => {
@@ -8760,10 +8760,10 @@ describe('getCardDescriptionForSearchTable', () => {
             ...baseCompanyCard,
             lastFourPAN: '',
         };
-        expect(getCardDescriptionForSearchTable(card, 'Jane')).toBe(`Jane's card`);
+        expect(getCardDescriptionForSearchTable(card, 'Jane', translateLocal)).toBe(`Jane's card`);
     });
 
     it('uses only last four with leading separator when displayName is missing (search table card group shape)', () => {
-        expect(getCardDescriptionForSearchTable(baseCompanyCard)).toBe(` ${CONST.DOT_SEPARATOR} 2554`);
+        expect(getCardDescriptionForSearchTable(baseCompanyCard, undefined, translateLocal)).toBe(` ${CONST.DOT_SEPARATOR} 2554`);
     });
 });
