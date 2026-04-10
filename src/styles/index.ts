@@ -2489,6 +2489,20 @@ const staticStyles = (theme: ThemeColors) =>
             borderBottomRightRadius: variables.componentBorderRadiusNormal,
         },
 
+        searchTableTopRadius: {
+            borderTopLeftRadius: variables.componentBorderRadius,
+            borderTopRightRadius: variables.componentBorderRadius,
+        },
+
+        searchTableBottomRadius: {
+            borderBottomLeftRadius: variables.componentBorderRadius,
+            borderBottomRightRadius: variables.componentBorderRadius,
+        },
+
+        searchTableRowHeight: {
+            minHeight: variables.tableRowHeight,
+        },
+
         borderBottom: {
             borderBottomWidth: 1,
             borderColor: theme.border,
@@ -3504,13 +3518,21 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         searchListHeaderContainerStyle: {
-            width: '100%',
             flexDirection: 'row',
             alignItems: 'center',
             ...userSelect.userSelectNone,
             paddingBottom: 12,
-            backgroundColor: theme.appBG,
             justifyContent: 'flex-start',
+        },
+
+        searchListHeaderTableStyle: {
+            backgroundColor: theme.highlightBG,
+            borderTopLeftRadius: variables.componentBorderRadius,
+            borderTopRightRadius: variables.componentBorderRadius,
+            borderBottomWidth: 1,
+            borderColor: theme.border,
+            minHeight: 36,
+            paddingBottom: 8,
         },
 
         groupSearchListTableContainerStyle: {
@@ -4780,6 +4802,11 @@ const staticStyles = (theme: ThemeColors) =>
         listTableHeader: {
             paddingVertical: 12,
             paddingHorizontal: 32,
+        },
+
+        listTableHeaderCompact: {
+            paddingVertical: 8,
+            paddingHorizontal: 12,
         },
 
         tableHeaderIconSpacing: {
