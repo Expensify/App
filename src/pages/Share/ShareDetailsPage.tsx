@@ -221,44 +221,46 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
                     )}
                 </PressableWithoutFeedback>
                 <View style={[styles.ph5, styles.flex1, styles.flexColumn, styles.overflowHidden]}>
-                    <View style={styles.pv3}>
-                        <ScrollView scrollEnabled={false}>
-                            <TextInput
-                                autoFocus={false}
-                                value={message}
-                                scrollEnabled
-                                type="markdown"
-                                autoGrowHeight
-                                maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}
-                                onChangeText={setMessage}
-                                accessibilityLabel={translate('share.messageInputLabel')}
-                                label={translate('share.messageInputLabel')}
-                            />
-                        </ScrollView>
-                    </View>
-                    <PressableWithoutFeedback
-                        onPress={() => {
-                            KeyboardUtils.dismiss();
-                        }}
-                        accessible={false}
-                        sentryLabel={CONST.SENTRY_LABEL.SHARE_DETAIL.DISMISS_KEYBOARD_BUTTON}
-                    >
-                        {shouldShowAttachment && (
-                            <>
-                                <View style={[styles.pt6, styles.pb2]}>
-                                    <Text style={styles.textLabelSupporting}>{translate('common.attachment')}</Text>
-                                </View>
-                                <AttachmentPreview
-                                    source={fileSource ?? ''}
-                                    aspectRatio={currentAttachment?.aspectRatio}
-                                    onPress={showAttachmentModalScreen}
-                                    onLoadError={() => {
-                                        showErrorAlert(translate('attachmentPicker.attachmentError'), translate('attachmentPicker.errorWhileSelectingCorruptedAttachment'));
-                                    }}
+                    <ScrollView contentContainerStyle={styles.flexGrow1}>
+                        <View style={styles.pv3}>
+                            <ScrollView scrollEnabled={false}>
+                                <TextInput
+                                    autoFocus={false}
+                                    value={message}
+                                    scrollEnabled
+                                    type="markdown"
+                                    autoGrowHeight
+                                    maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}
+                                    onChangeText={setMessage}
+                                    accessibilityLabel={translate('share.messageInputLabel')}
+                                    label={translate('share.messageInputLabel')}
                                 />
-                            </>
-                        )}
-                    </PressableWithoutFeedback>
+                            </ScrollView>
+                        </View>
+                        <PressableWithoutFeedback
+                            onPress={() => {
+                                KeyboardUtils.dismiss();
+                            }}
+                            accessible={false}
+                            sentryLabel={CONST.SENTRY_LABEL.SHARE_DETAIL.DISMISS_KEYBOARD_BUTTON}
+                        >
+                            {shouldShowAttachment && (
+                                <>
+                                    <View style={[styles.pt6, styles.pb2]}>
+                                        <Text style={styles.textLabelSupporting}>{translate('common.attachment')}</Text>
+                                    </View>
+                                    <AttachmentPreview
+                                        source={fileSource ?? ''}
+                                        aspectRatio={currentAttachment?.aspectRatio}
+                                        onPress={showAttachmentModalScreen}
+                                        onLoadError={() => {
+                                            showErrorAlert(translate('attachmentPicker.attachmentError'), translate('attachmentPicker.errorWhileSelectingCorruptedAttachment'));
+                                        }}
+                                    />
+                                </>
+                            )}
+                        </PressableWithoutFeedback>
+                    </ScrollView>
                 </View>
                 <FixedFooter style={[styles.pt4]}>
                     <Button
