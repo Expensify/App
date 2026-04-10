@@ -397,6 +397,7 @@ function IOURequestStepParticipants({
             participants,
             iouType,
             initialTransaction,
+            selfDMReportID,
             initialTransactionID,
             reportID,
             waitForKeyboardDismiss,
@@ -404,10 +405,11 @@ function IOURequestStepParticipants({
             isMovingTransactionFromTrackExpense,
             allPolicies,
             policyForMovingExpenses,
+            currentUserPersonalDetails.email,
+            currentUserPersonalDetails.accountID,
             introSelected,
-            backTo,
-            selfDMReportID,
             translate,
+            backTo,
         ],
     );
 
