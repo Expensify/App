@@ -34,9 +34,9 @@ import {
     getSubmitToAccountID,
     hasDynamicExternalWorkflow,
     isCurrentUserMemberOfAnyPolicy,
+    isSubmitAndClose,
     isTimeTrackingEnabled,
 } from '@libs/PolicyUtils';
-import {isSubmitAndClose} from '@libs/PolicyUtils';
 import {
     getActionableMentionWhisperMessage,
     getAddedCardFeedMessage,
