@@ -112,8 +112,15 @@ function KYBDocuments({onBackButtonPress}: KYBDocumentsProps) {
     };
 
     const submit = () => {
+        const params: Record<string, FileObject> = {};
+        for (const [key, files] of Object.entries(uploadedFiles)) {
+            const file = files.at(0);
+            if (file) {
+                params[key] = file;
+            }
+        }
         uploadUserKYBDocs({
-            inputs: JSON.stringify(uploadedFiles),
+            ...params,
             bankAccountID,
         });
     };
@@ -161,6 +168,7 @@ function KYBDocuments({onBackButtonPress}: KYBDocumentsProps) {
                 enabledWhenOffline={false}
                 shouldRenderFooterAboveSubmit
                 footerContent={footer}
+                isLoading={reimbursementAccount?.isUploadingKYBDocuments}
             >
                 <Text style={[styles.textHeadlineLineHeightXXL, styles.mb5]}>{translate('documentsStep.beforeYouGo')}</Text>
                 <Text style={[styles.textSupporting, styles.mb5]}>{translate('documentsStep.verificationFailed')}</Text>
