@@ -148,10 +148,10 @@ function hasCardExpiringSoon(fundList: OnyxEntry<FundList>, billingStatus: OnyxE
 }
 
 /**
- * @param accountID — Session account ID of the current user (used to detect owned paid policies).
+ * @param currentUserAccountID — Session account ID of the current user (used to detect owned paid policies).
  */
 function shouldShowDiscountBanner(
-    accountID: number | undefined,
+    currentUserAccountID: number | undefined,
     hasTeam2025Pricing: boolean,
     subscriptionPlan: ValueOf<typeof CONST.POLICY.TYPE> | null,
     firstDayFreeTrial: string | undefined,
@@ -159,7 +159,7 @@ function shouldShowDiscountBanner(
     userBillingFundID: number | undefined,
     policies: OnyxCollection<Policy>,
 ): boolean {
-    if (!getOwnedPaidPolicies(policies, accountID)?.length) {
+    if (!getOwnedPaidPolicies(policies, currentUserAccountID)?.length) {
         return false;
     }
 
