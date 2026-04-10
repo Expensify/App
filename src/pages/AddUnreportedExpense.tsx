@@ -4,6 +4,7 @@ import AddUnreportedExpenseFooter from '@components/AddUnreportedExpenseFooter';
 import EmptyStateComponent from '@components/EmptyStateComponent';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
+import ScrollView from '@components/ScrollView';
 import SelectionList from '@components/SelectionList';
 import type {ListItem, SelectionListHandle} from '@components/SelectionList/types';
 import UnreportedExpensesSkeleton from '@components/Skeletons/UnreportedExpensesSkeleton';
@@ -278,40 +279,48 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
                 includeSafeAreaPaddingBottom
                 shouldEnablePickerAvoiding={false}
                 testID="NewChatSelectorPage"
+                enableEdgeToEdgeBottomSafeAreaPadding
+                shouldEnableMaxHeight
                 focusTrapSettings={{active: false}}
             >
                 <HeaderWithBackButton
                     title={translate('iou.addUnreportedExpense')}
                     onBackButtonPress={Navigation.goBack}
                 />
-                <EmptyStateComponent
-                    cardStyles={[styles.appBG]}
-                    cardContentStyles={[styles.pb0]}
-                    headerMedia={illustrations.FolderWithPapersAndWatch}
-                    title={translate('iou.emptyStateUnreportedExpenseTitle')}
-                    subtitle={translate('iou.emptyStateUnreportedExpenseSubtitle')}
-                    headerStyles={[styles.emptyStateMoneyRequestReport]}
-                    headerContentStyles={[styles.emptyStateFolderStaticIllustration]}
-                    buttons={[
-                        {
-                            buttonText: translate('iou.createExpense'),
-                            buttonAction: () => {
-                                if (
-                                    report &&
-                                    report.policyID &&
-                                    shouldRestrictUserBillableActions(report.policyID, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, undefined, policy)
-                                ) {
-                                    Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(report.policyID));
-                                    return;
-                                }
-                                interceptAnonymousUser(() => {
-                                    startMoneyRequest(CONST.IOU.TYPE.SUBMIT, reportID, draftTransactionIDs, undefined, false, backToReport);
-                                });
+                <ScrollView
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}
+                >
+                    <EmptyStateComponent
+                        containerStyles={[{minHeight: 0}]}
+                        cardStyles={[styles.appBG]}
+                        cardContentStyles={[styles.pb0]}
+                        headerMedia={illustrations.FolderWithPapersAndWatch}
+                        title={translate('iou.emptyStateUnreportedExpenseTitle')}
+                        subtitle={translate('iou.emptyStateUnreportedExpenseSubtitle')}
+                        headerStyles={[styles.emptyStateMoneyRequestReport]}
+                        headerContentStyles={[styles.emptyStateFolderStaticIllustration]}
+                        buttons={[
+                            {
+                                buttonText: translate('iou.createExpense'),
+                                buttonAction: () => {
+                                    if (
+                                        report &&
+                                        report.policyID &&
+                                        shouldRestrictUserBillableActions(report.policyID, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, undefined, policy)
+                                    ) {
+                                        Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(report.policyID));
+                                        return;
+                                    }
+                                    interceptAnonymousUser(() => {
+                                        startMoneyRequest(CONST.IOU.TYPE.SUBMIT, reportID, draftTransactionIDs, undefined, false, backToReport);
+                                    });
+                                },
+                                success: true,
                             },
-                            success: true,
-                        },
-                    ]}
-                />
+                        ]}
+                    />
+                </ScrollView>
             </ScreenWrapper>
         );
     }
