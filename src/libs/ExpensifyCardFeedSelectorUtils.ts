@@ -1,8 +1,14 @@
-import type {OnyxCollection} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ExpensifyCardSettings, Policy} from '@src/types/onyx';
-import {getFundIdFromSettingsKey, getLinkedPolicyIDsFromExpensifyCardSettings, getPreferredPolicyFromExpensifyCardSettings, isPolicyIDInLinkedExpensifyCardPolicyList} from './CardUtils';
-import {isPolicyAdmin} from './PolicyUtils';
+import {
+    getCardSettings,
+    getFundIdFromSettingsKey,
+    getLinkedPolicyIDsFromExpensifyCardSettings,
+    getPreferredPolicyFromExpensifyCardSettings,
+    isPolicyIDInLinkedExpensifyCardPolicyList,
+} from './CardUtils';
+import {getDescriptionForPolicyDomainCard, isPolicyAdmin} from './PolicyUtils';
 
 type ExpensifyCardFeedEntry = {
     settingsKey: string;
@@ -70,4 +76,15 @@ function partitionExpensifyCardFeedsForSelector(entries: ExpensifyCardFeedEntry[
     return {primary, other};
 }
 
-export {getAdminExpensifyCardFeedEntries, partitionExpensifyCardFeedsForSelector, type ExpensifyCardFeedEntry};
+function getExpensifyCardFeedDescription(cardSettings: OnyxEntry<ExpensifyCardSettings>, policies: OnyxCollection<Policy>): string {
+    const domainName = getCardSettings(cardSettings)?.domainName ?? '';
+    if (domainName) {
+        return getDescriptionForPolicyDomainCard(domainName, policies);
+    }
+    const linkedPolicyIDs = getLinkedPolicyIDsFromExpensifyCardSettings(cardSettings);
+    const preferredPolicyID = getPreferredPolicyFromExpensifyCardSettings(cardSettings);
+    const policyIDForName = linkedPolicyIDs?.length ? linkedPolicyIDs.at(0) : preferredPolicyID;
+    return (policyIDForName && policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyIDForName.toUpperCase()}`]?.name) ?? '';
+}
+
+export {getAdminExpensifyCardFeedEntries, getExpensifyCardFeedDescription, partitionExpensifyCardFeedsForSelector, type ExpensifyCardFeedEntry};

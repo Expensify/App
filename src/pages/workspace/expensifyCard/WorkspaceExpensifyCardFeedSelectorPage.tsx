@@ -21,13 +21,12 @@ import useOnyx from '@hooks/useOnyx';
 import usePrimaryContactMethod from '@hooks/usePrimaryContactMethod';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {clearIssueNewCardFormData, setIssueNewCardStepAndData, updateSelectedExpensifyCardFeed} from '@libs/actions/Card';
-import {getLinkedPolicyIDsFromExpensifyCardSettings, getPreferredPolicyFromExpensifyCardSettings} from '@libs/CardUtils';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import type {ExpensifyCardFeedEntry} from '@libs/ExpensifyCardFeedSelectorUtils';
+import {getExpensifyCardFeedDescription} from '@libs/ExpensifyCardFeedSelectorUtils';
 import {isEmailPublicDomain} from '@libs/LoginUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import {getDescriptionForPolicyDomainCard} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import variables from '@styles/variables';
@@ -84,17 +83,6 @@ function WorkspaceExpensifyCardFeedSelectorPage({route}: WorkspaceExpensifyCardF
 
     const issueCardFundID = getIssueCardFundID();
 
-    const getFeedSelectorRowText = (entry: ExpensifyCardFeedEntry) => {
-        const domainName = entry.settings?.domainName ?? '';
-        if (domainName) {
-            return getDescriptionForPolicyDomainCard(domainName, policies);
-        }
-        const linkedPolicyIDs = getLinkedPolicyIDsFromExpensifyCardSettings(entry.settings);
-        const preferredPolicyID = getPreferredPolicyFromExpensifyCardSettings(entry.settings);
-        const policyIDForName = linkedPolicyIDs?.length ? linkedPolicyIDs.at(0) : preferredPolicyID;
-        return (policyIDForName && policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyIDForName.toUpperCase()}`]?.name) ?? '';
-    };
-
     const handleAddCardPress = () => {
         if (issueCardFundID === undefined) {
             return;
@@ -129,7 +117,7 @@ function WorkspaceExpensifyCardFeedSelectorPage({route}: WorkspaceExpensifyCardF
 
     const toListItem = (entry: ExpensifyCardFeedEntry, isOtherWorkspaceSection: boolean): ExpensifyFeedListItem => ({
         value: entry.fundID,
-        text: getFeedSelectorRowText(entry),
+        text: getExpensifyCardFeedDescription(entry.settings, policies),
         keyForList: entry.fundID.toString(),
         isSelected: entry.fundID === lastSelectedExpensifyCardFeedID,
         isDisabled: isOtherWorkspaceSection && isOffline,
