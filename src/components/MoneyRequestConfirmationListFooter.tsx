@@ -307,18 +307,22 @@ function MoneyRequestConfirmationListFooter({
     const shouldShowMap =
         isDistanceRequest && !isManualDistanceRequest && !isOdometerDistanceRequest && [hasErrors, hasPendingWaypoints, iouType !== CONST.IOU.TYPE.SPLIT, !isReadOnly].some(Boolean);
     const isMovingCurrentTransactionFromTrackExpense = isMovingTransactionFromTrackExpense(action);
-    const taxRates = policy?.taxRates ?? (isMovingCurrentTransactionFromTrackExpense ? undefined : null);
+    const {policyForMovingExpensesID, policyForMovingExpenses, shouldSelectPolicy} = usePolicyForMovingExpenses();
+    const taxRates = policy?.taxRates ?? (isMovingCurrentTransactionFromTrackExpense ? policyForMovingExpenses?.taxRates : null);
     // In Send Money and Split Bill with Scan flow, we don't allow the Merchant or Date to be edited. For distance requests, don't show the merchant as there's already another "Distance" menu item
     const shouldShowDate = shouldShowSmartScanFields || isDistanceRequest;
+    // Determines whether the tax fields can be modified.
+    // The tax fields can only be modified if the component is not in read-only mode
+    // and it is not a distance request.
     const canModifyTaxFields = !isReadOnly && !isDistanceRequest && !isPerDiemRequest;
+    // A flag for showing the billable field
     const shouldShowBillable = policy?.disabledFields?.defaultBillable === false;
     const shouldShowReimbursable =
         (isPolicyExpenseChat || isTrackExpense) && !!policy && policy?.disabledFields?.reimbursable !== true && !isManagedCardTransaction(transaction) && !isTypeInvoice;
+    // Calculate the formatted tax amount based on the transaction's tax amount and the IOU currency code
     const taxAmount = getTaxAmount(transaction, false);
     const formattedTaxAmount = convertToDisplayString(taxAmount, iouCurrencyCode);
-
-    const {policyForMovingExpensesID, policyForMovingExpenses, shouldSelectPolicy} = usePolicyForMovingExpenses();
-    const taxRatesResolved = taxRates ?? (isMovingCurrentTransactionFromTrackExpense ? policyForMovingExpenses?.taxRates : null);
+    // Get the tax rate title based on the policy and transaction
     const taxRateTitleResolved = getTaxRateTitle(policy, transaction, isMovingCurrentTransactionFromTrackExpense, policyForMovingExpenses);
 
     const shouldDisplayDistanceRateError = formError === 'iou.error.invalidRate';
@@ -357,15 +361,14 @@ function MoneyRequestConfirmationListFooter({
 
     // Capture the thumbnail source on first render (or when the underlying image changes) to
     // avoid a visible source swap (flash) when the thumbnail arrives late for local files.
-    // Uses React's "adjusting state during render" pattern instead of a ref to satisfy React Compiler.
     const resolvedReceiptImageStr = resolvedReceiptImage != null ? String(resolvedReceiptImage) : undefined;
-    const [initialLocalSource, setInitialLocalSource] = useState({source: '', resolvedImage: undefined as string | undefined});
-    if (isLocalFile && (initialLocalSource.source === '' || initialLocalSource.resolvedImage !== resolvedReceiptImageStr)) {
+    const initialLocalSourceRef = useRef<{source: string | undefined; resolvedImage: string | undefined}>({source: undefined, resolvedImage: undefined});
+    if (isLocalFile && (initialLocalSourceRef.current.source === undefined || initialLocalSourceRef.current.resolvedImage !== resolvedReceiptImageStr)) {
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        setInitialLocalSource({source: thumbnailUri || resolvedReceiptImageStr || '', resolvedImage: resolvedReceiptImageStr});
+        initialLocalSourceRef.current = {source: thumbnailUri || resolvedReceiptImageStr || '', resolvedImage: resolvedReceiptImageStr};
     }
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const effectiveReceiptSource = isLocalFile ? initialLocalSource.source || '' : resolvedThumbnail || resolvedReceiptImage || '';
+    const effectiveReceiptSource = isLocalFile ? initialLocalSourceRef.current.source || '' : resolvedThumbnail || resolvedReceiptImage || '';
 
     // Build the fields array using section components
     const fields: ConfirmationField[] = [
@@ -376,7 +379,6 @@ function MoneyRequestConfirmationListFooter({
                     action={action}
                     amount={amount}
                     formattedAmount={formattedAmount}
-                    currency={isDistanceRequest ? distanceRateCurrency : (iouCurrencyCode ?? CONST.CURRENCY.USD)}
                     distanceRateCurrency={distanceRateCurrency}
                     iouCurrencyCode={iouCurrencyCode}
                     isDistanceRequest={isDistanceRequest}
@@ -555,7 +557,7 @@ function MoneyRequestConfirmationListFooter({
                 item: (
                     <TagFields
                         key={`tag_${name}`}
-                        policyTagLists={[policyTagLists[index]]}
+                        policyTagLists={[policyTagLists.at(index)!]}
                         tagVisibility={tagVisibilityItem ? [tagVisibilityItem] : []}
                         previousTagsVisibility={[previousTagsVisibility.at(index) ?? false]}
                         tagIndexOffset={index}
@@ -580,7 +582,7 @@ function MoneyRequestConfirmationListFooter({
                 <TaxFields
                     key="tax"
                     taxRateTitle={taxRateTitleResolved}
-                    taxRates={taxRatesResolved}
+                    taxRates={taxRates}
                     formattedTaxAmount={formattedTaxAmount}
                     canModifyTaxFields={canModifyTaxFields}
                     didConfirm={didConfirm}
@@ -600,7 +602,6 @@ function MoneyRequestConfirmationListFooter({
                 <AttendeeField
                     key="attendees"
                     formattedAmountPerAttendee={formattedAmountPerAttendee}
-                    didConfirm={didConfirm}
                     isReadOnly={isReadOnly}
                     transactionID={transactionID}
                     action={action}
@@ -967,7 +968,4 @@ function MoneyRequestConfirmationListFooter({
     );
 }
 
-// memo() is needed because the parent (MoneyRequestConfirmationList) is not compiled by
-// React Compiler (it has an eslint-disable for react-hooks/exhaustive-deps), so the
-// compiler won't auto-memoize this JSX at the call site.
 export default memo(MoneyRequestConfirmationListFooter);

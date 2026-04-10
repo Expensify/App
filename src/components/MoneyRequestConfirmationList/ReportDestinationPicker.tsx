@@ -88,6 +88,8 @@ function ReportDestinationPicker({
     // Per-key report subscriptions instead of full COLLECTION.REPORT
     const [transactionReportEntry] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`);
     const [mainReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+    const iouReportIDFromMain = mainReport?.iouReportID;
+    const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${iouReportIDFromMain}`);
 
     const isUnreported = transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
     const isFromGlobalCreate = !!transaction?.isFromGlobalCreate;
@@ -102,6 +104,10 @@ function ReportDestinationPicker({
         return canSendInvoice(allPolicies, currentUserLogin) && isFromGlobalCreate && !isInvoiceRoomParticipant;
     })();
 
+    /**
+     * We need to check if the transaction report exists first in order to prevent the outstanding reports from being used.
+     * Also we need to check if transaction report exists in outstanding reports in order to show a correct report name.
+     */
     const policyID = selectedParticipants?.at(0)?.policyID;
     const shouldUseTransactionReport = (!!transactionReportEntry && isReportOutstanding(transactionReportEntry, policyID, undefined, false)) || isUnreported;
 
@@ -115,12 +121,12 @@ function ReportDestinationPicker({
         false,
     ).sort((a, b) => localeCompare(a?.reportName?.toLowerCase() ?? '', b?.reportName?.toLowerCase() ?? ''));
 
-    const iouReportID = mainReport?.iouReportID;
-    const outstandingReportID = isPolicyExpenseChat ? (iouReportID ?? availableOutstandingReports.at(0)?.reportID) : reportID;
+    const outstandingReportID = isPolicyExpenseChat ? (iouReportIDFromMain ?? availableOutstandingReports.at(0)?.reportID) : reportID;
 
     const [selectedReportID, selectedReport] = (() => {
         const reportIDToUse = shouldUseTransactionReport ? transaction?.reportID : outstandingReportID;
         if (!reportIDToUse) {
+            // Even if we have no report to use we still need a report id for proper navigation
             return [generateReportID(), undefined] as const;
         }
         // Resolve from already-fetched per-key reports or available outstanding reports
@@ -129,6 +135,8 @@ function ReportDestinationPicker({
             reportToUse = transactionReportEntry;
         } else if (reportIDToUse === reportID) {
             reportToUse = mainReport;
+        } else if (reportIDToUse === iouReportIDFromMain) {
+            reportToUse = iouReport;
         } else {
             reportToUse = availableOutstandingReports.find((r) => r?.reportID === reportIDToUse);
         }
@@ -144,6 +152,8 @@ function ReportDestinationPicker({
     })();
 
     const outstandingReports = useOutstandingReports(undefined, isFromGlobalCreate && !isPerDiemRequest ? undefined : policyID, ownerAccountID, false);
+    // When creating an expense in an individual report, the report field becomes read-only
+    // since the destination is already determined and there's no need to show a selectable list.
     const shouldReportBeEditable = (isUnreported ? outstandingReports.length >= 1 : outstandingReports.length > 1) && !isMoneyRequestReport(reportID);
 
     const shouldShowInvoiceSender = showOnlyInvoiceSender !== false;

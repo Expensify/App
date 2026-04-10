@@ -56,6 +56,7 @@ function MerchantField({
     const iouMerchant = getMerchant(transaction);
     const isMerchantEmpty = !iouMerchant || isMerchantMissing(transaction);
 
+    // Determine if the merchant error should be displayed
     const merchantErrorText = (() => {
         const merchantValue = iouMerchant ?? '';
         const {isValid, byteLength} = isValidInputLength(merchantValue, CONST.MERCHANT_NAME_MAX_BYTES);
@@ -78,6 +79,8 @@ function MerchantField({
             return;
         }
 
+        // When editing a split expense, persist directly to the split draft so that
+        // SplitBillDetailsPage and completeSplitBill read the latest value.
         if (isEditingSplitBill) {
             setDraftSplitTransaction(transactionID, splitDraftTransaction, {merchant: newMerchant});
             return;

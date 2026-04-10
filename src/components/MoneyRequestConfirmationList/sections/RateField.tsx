@@ -62,6 +62,8 @@ function RateField({
         <MenuItemWithTopDescription
             key={translate('common.rate')}
             shouldShowRightIcon={isRateInteractive}
+            // Pass false for isCustomUnitOutOfPolicy because this is the expense creation/edit
+            // confirmation screen where a rate violation is not applicable yet.
             title={DistanceRequestUtils.getRateForExpenseDisplay(distanceRateName, false, unit, rate, distanceRateCurrency, translate, toLocaleDigit, getCurrencySymbol, isOffline)}
             description={translate('common.rate')}
             style={[styles.moneyRequestMenuItem]}

@@ -6,7 +6,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setMoneyRequestAmount} from '@libs/actions/IOU';
-import {convertToBackendAmount, convertToDisplayString, convertToFrontendAmountAsString, getLocalizedCurrencySymbol} from '@libs/CurrencyUtils';
+import {convertToBackendAmount, convertToFrontendAmountAsString, getLocalizedCurrencySymbol} from '@libs/CurrencyUtils';
 import {calculateAmount} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {shouldEnableNegative} from '@libs/ReportUtils';
@@ -25,7 +25,6 @@ type AmountFieldProps = {
     action: IOUAction;
     amount: number;
     formattedAmount: string;
-    currency: string;
     distanceRateCurrency: string;
     iouCurrencyCode: string | undefined;
     isDistanceRequest: boolean;
@@ -49,7 +48,6 @@ function AmountField({
     action,
     amount,
     formattedAmount,
-    currency,
     distanceRateCurrency,
     iouCurrencyCode,
     isDistanceRequest,
@@ -168,6 +166,7 @@ function AmountField({
         if (parsedAmount === null) {
             return;
         }
+        // Edits to the amount from the splits page should reset the split shares.
         if (transaction?.splitShares) {
             resetSplitShares(transaction, parsedAmount);
         }

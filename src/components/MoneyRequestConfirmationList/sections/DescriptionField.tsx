@@ -76,6 +76,10 @@ function DescriptionField({
             return;
         }
 
+        // When editing a split expense, persist directly to the split draft so that
+        // SplitBillDetailsPage and completeSplitBill read the latest value.
+        // Trimming is deferred to submission time, not during keystrokes, to avoid
+        // silently stripping trailing spaces as the user types.
         if (isEditingSplitBill) {
             setDraftSplitTransaction(transactionID, splitDraftTransaction, {comment: newDescription});
             return;

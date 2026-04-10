@@ -14,7 +14,6 @@ import MenuItemWithTopDescription from '../../MenuItemWithTopDescription';
 
 type AttendeeFieldProps = {
     formattedAmountPerAttendee: string;
-    didConfirm: boolean;
     isReadOnly: boolean;
     transactionID: string | undefined;
     action: IOUAction;
@@ -25,18 +24,7 @@ type AttendeeFieldProps = {
     transaction: OnyxEntry<OnyxTypes.Transaction>;
 };
 
-function AttendeeField({
-    formattedAmountPerAttendee,
-    didConfirm,
-    isReadOnly,
-    transactionID,
-    action,
-    iouType,
-    reportID,
-    shouldDisplayAttendeesError,
-    formError,
-    transaction,
-}: AttendeeFieldProps) {
+function AttendeeField({formattedAmountPerAttendee, isReadOnly, transactionID, action, iouType, reportID, shouldDisplayAttendeesError, formError, transaction}: AttendeeFieldProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
