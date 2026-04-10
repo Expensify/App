@@ -97,7 +97,7 @@ If a card reaches its expiration date, it automatically deactivates and declines
 
 ---
 
-## How to freeze or unfreeze an Expensify Card
+# How to freeze or unfreeze an Expensify Card
 
 As a Workspace Admin, you can freeze or unfreeze any card in your workspace without needing to cancel or reissue it.
 
