@@ -21,6 +21,7 @@ import type {OptionData} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import passthroughPolicyTagListSelector from '@src/selectors/PolicyTagList';
+import {sortedActionsSelector} from '@src/selectors/SortedReportActions';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
 import BasePopup from './BasePopup';
 
@@ -58,6 +59,8 @@ function InSelectPopup({closeOverlay, updateFilterForm}: InSelectPopupProps) {
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [inReportIDs] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {selector: inSelector});
+    const [sortedActions] = useOnyx(ONYXKEYS.DERIVED.RAM_ONLY_SORTED_REPORT_ACTIONS, {selector: sortedActionsSelector});
+
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserAccountID = currentUserPersonalDetails.accountID;
     const currentUserEmail = currentUserPersonalDetails.email ?? '';
@@ -98,6 +101,7 @@ function InSelectPopup({closeOverlay, updateFilterForm}: InSelectPopupProps) {
               currentUserEmail,
               personalDetails,
               policyCollection: allPolicies,
+              sortedActions,
           });
 
     const chatOptions = filterAndOrderOptions(defaultOptions, cleanSearchTerm, countryCode, loginList, currentUserEmail, currentUserAccountID, personalDetails, {
