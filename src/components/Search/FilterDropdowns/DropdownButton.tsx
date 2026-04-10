@@ -181,6 +181,7 @@ function DropdownButton({label, value, viewportOffsetTop, PopoverComponent, medi
                 }}
                 shouldSkipRemeasurement
                 shouldDisplayBelowModals
+                shouldWrapModalChildrenInScrollViewIfBottomDockedInLandscapeMode={false}
             >
                 {popoverContent}
             </PopoverWithMeasuredContent>
