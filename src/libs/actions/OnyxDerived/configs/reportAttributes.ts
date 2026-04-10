@@ -265,6 +265,7 @@ export default createOnyxDerivedValueConfig({
                 reportActions,
                 transactionViolations,
                 isReportArchived,
+                allTransactions: transactions,
                 reports,
             });
 
