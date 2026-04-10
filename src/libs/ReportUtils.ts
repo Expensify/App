@@ -11570,7 +11570,7 @@ function hasForwardedAction(reportID: string): boolean {
     return Object.values(reportActions).some((action) => action?.actionName === CONST.REPORT.ACTIONS.TYPE.FORWARDED);
 }
 
-function isReportOutstanding(iouReport: OnyxInputOrEntry<Report>, policyID: string | undefined, archivedReportsIDSet: ArchivedReportsIDSet | undefined, allowSubmitted = true): boolean {
+function isReportOutstanding(iouReport: OnyxInputOrEntry<Report>, policyID: string | undefined, archivedReportsIDSet?: ArchivedReportsIDSet, allowSubmitted = true): boolean {
     if (
         !iouReport ||
         isEmptyObject(iouReport) ||
@@ -11605,14 +11605,16 @@ function isReportOutstanding(iouReport: OnyxInputOrEntry<Report>, policyID: stri
 function getOutstandingReportsForUser(
     policyID: string | undefined,
     reportOwnerAccountID: number | undefined,
-    reports: OnyxCollection<Report> = deprecatedAllReports,
-    archivedReportsIDSet: ArchivedReportsIDSet | undefined,
+    reports?: OnyxCollection<Report>,
+    archivedReportsIDSet?: ArchivedReportsIDSet,
     allowSubmitted = true,
 ): Array<OnyxEntry<Report>> {
-    if (!reports) {
+    const reportsToCheck = reports ?? deprecatedAllReports;
+
+    if (!reportsToCheck) {
         return [];
     }
-    return Object.values(reports).filter(
+    return Object.values(reportsToCheck).filter(
         (report) =>
             report?.pendingFields?.preview !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE &&
             isReportOutstanding(report, policyID, archivedReportsIDSet, allowSubmitted) &&
