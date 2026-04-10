@@ -248,6 +248,7 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
         'IntacctSquare',
         'QBDSquare',
         'CertiniaSquare',
+        'GustoSquare',
         'Feed',
         'Location',
         'ReceiptPlus',
