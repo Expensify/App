@@ -41,6 +41,7 @@
     react-native-pdf sends loadComplete and pageChanged through the same topChange event name. Under Fabric, TopChangeEvent inherited React Native's default coalescing behavior, so pageChanged could replace loadComplete for the same PDF view before JS received it. That broke the onLoadComplete contract for hidden PDF validation renders. Marking the event as non-coalescible preserves both native callbacks in JS without adding an app-level success fallback.
     ```
 
-- Upstream PR/issue: N/A
+- Upstream PR/issue: https://github.com/wonday/react-native-pdf/issues/1009
+- Upstream draft PR: https://github.com/wonday/react-native-pdf/pull/1010
 - E/App issue: https://github.com/Expensify/App/issues/81225
-- PR introducing patch: TBD
+- PR introducing patch: https://github.com/Expensify/App/pull/87416
