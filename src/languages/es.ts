@@ -2307,6 +2307,8 @@ const translations: TranslationDeepObject<typeof en> = {
         getPhysicalCard: 'Obtener tarjeta física',
         reportFraud: 'Reportar fraude con la tarjeta virtual',
         reportTravelFraud: 'Reportar fraude con la tarjeta de viaje',
+        spendRules: 'Reglas de gasto',
+        editSpendRules: 'Editar reglas de gasto',
         reviewTransaction: 'Revisar transacción',
         suspiciousBannerTitle: 'Transacción sospechosa',
         suspiciousBannerDescription: 'Hemos detectado una transacción sospechosa en la tarjeta. Haz click abajo para revisarla.',

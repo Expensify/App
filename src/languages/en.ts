@@ -2492,6 +2492,8 @@ const translations = {
         getPhysicalCard: 'Get physical card',
         reportFraud: 'Report virtual card fraud',
         reportTravelFraud: 'Report travel card fraud',
+        spendRules: 'Spend rules',
+        editSpendRules: 'Edit spend rules',
         reviewTransaction: 'Review transaction',
         suspiciousBannerTitle: 'Suspicious transaction',
         suspiciousBannerDescription: 'We noticed suspicious transactions on your card. Tap below to review.',

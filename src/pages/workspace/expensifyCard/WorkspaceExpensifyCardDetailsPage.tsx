@@ -26,6 +26,8 @@ import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {getSpendRuleFormValuesFromCardRule} from '@libs/actions/Card';
+import {openPolicyExpensifyCardsPage} from '@libs/actions/Policy/Policy';
 import {getAllCardsForWorkspace, getCardHintText, getTranslationKeyForLimitType, isCardFrozen, maskCard} from '@libs/CardUtils';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -36,6 +38,7 @@ import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import Navigation from '@navigation/Navigation';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+import {getSpendRuleSummaryParts} from '@pages/workspace/rules/SpendRules/SpendRulesUtils';
 import variables from '@styles/variables';
 import {deactivateCard as deactivateCardAction, freezeCard as freezeCardAction, openCardDetailsPage, unfreezeCard as unfreezeCardAction} from '@userActions/Card';
 import CONST from '@src/CONST';
@@ -87,7 +90,6 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
     const displayName = getDisplayNameOrDefault(cardholder);
     const translationForLimitType = getTranslationKeyForLimitType(card?.nameValuePairs?.limitType);
     const isAdmin = isPolicyAdmin(policy, session?.email);
-
     const shouldGoBack = useRef(false);
 
     const fetchCardDetails = useCallback(() => {
@@ -95,8 +97,15 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
     }, [cardID]);
 
     const {isOffline} = useNetwork({onReconnect: fetchCardDetails});
-
     useEffect(() => fetchCardDetails(), [fetchCardDetails]);
+
+    useEffect(() => {
+        if (!isAdmin || expensifyCardSettings?.isLoading || expensifyCardSettings?.hasOnceLoaded) {
+            return;
+        }
+
+        openPolicyExpensifyCardsPage(policyID, defaultFundID);
+    }, [defaultFundID, expensifyCardSettings.isLoading, expensifyCardSettings.hasOnceLoaded, isAdmin, policyID]);
 
     const deactivateCard = () => {
         setIsDeactivateModalVisible(false);
@@ -132,6 +141,41 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
     };
 
     const canManageCardFreeze = isBetaEnabled(CONST.BETAS.FREEZE_CARD) && isAdmin && !!card;
+    const matchingSpendRules = useMemo(
+        () =>
+            Object.entries(expensifyCardSettings?.cardRules ?? {}).flatMap(([ruleID, rule]) => {
+                const formValues = getSpendRuleFormValuesFromCardRule(rule);
+                if (!formValues?.cardIDs.includes(cardID)) {
+                    return [];
+                }
+
+                return [{ruleID, formValues}];
+            }),
+        [cardID, expensifyCardSettings?.cardRules],
+    );
+    const spendRulesSummary = useMemo(
+        () =>
+            matchingSpendRules
+                .flatMap(({formValues}) => {
+                    const actionLabel =
+                        formValues.restrictionAction === CONST.SPEND_RULES.ACTION.BLOCK ? translate('workspace.rules.spendRules.block') : translate('workspace.rules.spendRules.allow');
+
+                    return getSpendRuleSummaryParts(formValues, currency, actionLabel, translate).map((part) => `${part.badgeLabel} ${part.text}`);
+                })
+                .join('\n'),
+        [currency, matchingSpendRules, translate],
+    );
+    const spendRulesRoute = useMemo(() => {
+        if (matchingSpendRules.length === 0) {
+            return ROUTES.RULES_SPEND_NEW.getRoute(policyID);
+        }
+
+        if (matchingSpendRules.length === 1) {
+            return ROUTES.RULES_SPEND_EDIT.getRoute(policyID, matchingSpendRules.at(0)?.ruleID ?? ROUTES.NEW);
+        }
+
+        return ROUTES.WORKSPACE_RULES.getRoute(policyID);
+    }, [matchingSpendRules, policyID]);
     const scarfOverlayStyle = useMemo(
         () => ({
             top: 0,
@@ -283,6 +327,16 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
                             }
                         />
                     </OfflineWithFeedback>
+                    {isAdmin && (
+                        <MenuItemWithTopDescription
+                            description={translate('cardPage.spendRules')}
+                            title={spendRulesSummary || translate('cardPage.editSpendRules')}
+                            shouldShowRightIcon
+                            numberOfLinesTitle={0}
+                            titleStyle={styles.flex1}
+                            onPress={() => Navigation.navigate(spendRulesRoute)}
+                        />
+                    )}
                     <MenuItem
                         icon={expensifyIcons.MoneySearch}
                         title={translate('workspace.common.viewTransactions')}
@@ -305,6 +359,12 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
                             title={translate('cardPage.freezeCard')}
                             disabled={isOffline}
                             onPress={handleFreezePress}
+                        />
+                    )}
+                    {isWorkspaceCardRhp && isAdmin && (
+                        <MenuItem
+                            title={translate('cardPage.editSpendRules')}
+                            onPress={() => Navigation.navigate(spendRulesRoute)}
                         />
                     )}
                     <MenuItem
