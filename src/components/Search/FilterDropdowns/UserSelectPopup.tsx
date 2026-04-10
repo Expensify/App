@@ -1,5 +1,7 @@
 import isEmpty from 'lodash/isEmpty';
 import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {View} from 'react-native';
+import Button from '@components/Button';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import SelectionList from '@components/SelectionList';
 import UserSelectionListItem from '@components/SelectionList/ListItem/UserSelectionListItem';
@@ -16,14 +18,10 @@ import {getParticipantsOption} from '@libs/OptionsListUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import BasePopup from './BasePopup';
 
 type UserSelectPopupProps = {
     /** The currently selected users */
     value: string[];
-
-    /** The popup label */
-    label?: string;
 
     /** Function to call to close the overlay when changes are applied */
     closeOverlay: () => void;
@@ -39,7 +37,7 @@ type UserSelectPopupProps = {
     isSearchable?: boolean;
 };
 
-function UserSelectPopup({value, label, closeOverlay, onChange, isSearchable}: UserSelectPopupProps) {
+function UserSelectPopup({value, closeOverlay, onChange, isSearchable}: UserSelectPopupProps) {
     const selectionListRef = useRef<SelectionListHandle<ListItem> | null>(null);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -170,14 +168,7 @@ function UserSelectPopup({value, label, closeOverlay, onChange, isSearchable}: U
     );
 
     return (
-        <BasePopup
-            label={label}
-            onReset={resetChanges}
-            onApply={applyChanges}
-            resetSentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_RESET_USER}
-            applySentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY_USER}
-            style={[styles.getUserSelectionListPopoverHeight(listData.length || 1, windowHeight, shouldUseNarrowLayout, shouldShowSearchInput)]}
-        >
+        <View style={[styles.getUserSelectionListPopoverHeight(listData.length || 1, windowHeight, shouldUseNarrowLayout, shouldShowSearchInput)]}>
             <SelectionList
                 data={listData}
                 ref={selectionListRef}
@@ -190,7 +181,25 @@ function UserSelectPopup({value, label, closeOverlay, onChange, isSearchable}: U
                 shouldShowLoadingPlaceholder={!areOptionsInitialized}
                 onEndReached={onListEndReached}
             />
-        </BasePopup>
+
+            <View style={[styles.flexRow, styles.gap2, styles.mh5, !shouldUseNarrowLayout && styles.mb4]}>
+                <Button
+                    medium
+                    style={[styles.flex1]}
+                    text={translate('common.reset')}
+                    onPress={resetChanges}
+                    sentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_RESET_USER}
+                />
+                <Button
+                    success
+                    medium
+                    style={[styles.flex1]}
+                    text={translate('common.apply')}
+                    onPress={applyChanges}
+                    sentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY_USER}
+                />
+            </View>
+        </View>
     );
 }
 

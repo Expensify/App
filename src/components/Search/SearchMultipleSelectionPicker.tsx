@@ -9,34 +9,28 @@ import {sortOptionsWithEmptyValue} from '@libs/SearchQueryUtils';
 import ROUTES from '@src/ROUTES';
 import SearchFilterPageFooterButtons from './SearchFilterPageFooterButtons';
 
-type SearchMultipleSelectionPickerItem<T> = {
+type SearchMultipleSelectionPickerItem = {
     name: string;
-    value: T;
+    value: string | string[];
     leftElement?: React.ReactNode;
 };
 
-type SearchMultipleSelectionPickerProps<T> = {
-    items: Array<SearchMultipleSelectionPickerItem<T>>;
-    initiallySelectedItems: Array<SearchMultipleSelectionPickerItem<T>> | undefined;
+type SearchMultipleSelectionPickerProps = {
+    items: SearchMultipleSelectionPickerItem[];
+    initiallySelectedItems: SearchMultipleSelectionPickerItem[] | undefined;
     pickerTitle?: string;
-    onSaveSelection: (values: [T] extends [string[]] ? T : T[]) => void;
+    onSaveSelection: (values: string[]) => void;
     shouldShowTextInput?: boolean;
 };
 
-function SearchMultipleSelectionPicker<T extends string | string[]>({
-    items,
-    initiallySelectedItems,
-    pickerTitle,
-    onSaveSelection,
-    shouldShowTextInput = true,
-}: SearchMultipleSelectionPickerProps<T>) {
+function SearchMultipleSelectionPicker({items, initiallySelectedItems, pickerTitle, onSaveSelection, shouldShowTextInput = true}: SearchMultipleSelectionPickerProps) {
     const {translate, localeCompare} = useLocalize();
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
 
     const [selectedItemIDs, setSelectedItemIDs] = useState(() => new Set((initiallySelectedItems ?? []).map((item) => item.value.toString())));
 
     const searchLower = debouncedSearchTerm.toLowerCase();
-    const selectedSectionData: Array<{text: string; keyForList: string; isSelected: boolean; value: T; leftElement?: React.ReactNode}> = [];
+    const selectedSectionData: Array<{text: string; keyForList: string; isSelected: boolean; value: string | string[]; leftElement?: React.ReactNode}> = [];
     const remainingSectionData: typeof selectedSectionData = [];
     for (const item of items) {
         if (!item.name.toLowerCase().includes(searchLower)) {
@@ -66,7 +60,7 @@ function SearchMultipleSelectionPicker<T extends string | string[]>({
               },
           ];
 
-    const onSelectItem = (item: Partial<OptionData & SearchMultipleSelectionPickerItem<T>>) => {
+    const onSelectItem = (item: Partial<OptionData & SearchMultipleSelectionPickerItem>) => {
         if (!item.text || !item.keyForList || !item.value) {
             return;
         }
@@ -87,7 +81,7 @@ function SearchMultipleSelectionPicker<T extends string | string[]>({
     };
 
     const applyChanges = () => {
-        onSaveSelection(items.filter((item) => selectedItemIDs.has(item.value.toString())).flatMap((item) => item.value) as [T] extends [string[]] ? T : T[]);
+        onSaveSelection(items.filter((item) => selectedItemIDs.has(item.value.toString())).flatMap((item) => item.value));
         Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS.getRoute());
     };
 

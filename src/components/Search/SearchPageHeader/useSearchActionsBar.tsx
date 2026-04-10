@@ -21,7 +21,7 @@ import {close} from '@libs/actions/Modal';
 import {openSearchCardFiltersPage} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
 import {buildFilterQueryWithSortDefaults} from '@libs/SearchQueryUtils';
-import {filterValidHasValues, getCurrencyOptions, getFeedOptions, getHasOptions, getStatusOptions, getWithdrawalTypeOptions, mapFiltersFormToLabelValueList} from '@libs/SearchUIUtils';
+import {filterValidHasValues, getFeedOptions, getGroupCurrencyOptions, getHasOptions, getStatusOptions, getWithdrawalTypeOptions, mapFiltersFormToLabelValueList} from '@libs/SearchUIUtils';
 import type {SearchFilter} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -87,7 +87,7 @@ function GroupCurrencyPopup({updateFilterForm, closeOverlay}: FilterBarPopupProp
     const {translate} = useLocalize();
     const {currencyList} = useCurrencyListState();
     const {getCurrencySymbol} = useCurrencyListActions();
-    const groupCurrencyOptions = getCurrencyOptions(currencyList, getCurrencySymbol);
+    const groupCurrencyOptions = getGroupCurrencyOptions(currencyList, getCurrencySymbol);
     const [groupCurrency] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {selector: filterGroupCurrencySelector});
 
     const groupCurrencyValue = groupCurrencyOptions.find((option) => option.value === groupCurrency) ?? null;
@@ -132,6 +132,7 @@ function FeedPopup({updateFilterForm, closeOverlay, isExpanded}: FilterBarPopupP
 
     return (
         <MultiSelectFilterPopup
+            isExpanded={isExpanded}
             closeOverlay={closeOverlay}
             translationKey="search.filters.feed"
             items={feedOptions}
@@ -274,6 +275,7 @@ function useSearchActionsBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEn
                 };
                 const hasComponent = (props: PopoverComponentProps) => (
                     <MultiSelectFilterPopup
+                        isExpanded={props.isExpanded}
                         closeOverlay={props.closeOverlay}
                         translationKey="search.has"
                         items={hasOptions}
@@ -292,6 +294,7 @@ function useSearchActionsBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEn
                 };
                 const isComponent = (props: PopoverComponentProps) => (
                     <MultiSelectFilterPopup
+                        isExpanded={props.isExpanded}
                         closeOverlay={props.closeOverlay}
                         translationKey="search.filters.is"
                         items={isOptions}
@@ -364,6 +367,7 @@ function useSearchActionsBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEn
                 };
                 const statusComponent = (props: PopoverComponentProps) => (
                     <MultiSelectFilterPopup
+                        isExpanded={props.isExpanded}
                         closeOverlay={props.closeOverlay}
                         translationKey="common.status"
                         items={statusOptions}
