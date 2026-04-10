@@ -174,7 +174,7 @@ function WorkspaceCompanyCardsTable({
                   isAssigned,
                   assignedCard,
                   cardholder,
-                  errors: isFeedConnectionBroken ? undefined : assignedCard?.errors,
+                  errors: isFeedConnectionBroken || assignedCard?.pendingFields?.lastScrape ? undefined : assignedCard?.errors,
                   pendingAction: assignedCard?.pendingAction,
                   onDismissError: () => resetFailedWorkspaceCompanyCardUnassignment(domainOrWorkspaceAccountID, bankName, assignedCard?.cardID),
               };
