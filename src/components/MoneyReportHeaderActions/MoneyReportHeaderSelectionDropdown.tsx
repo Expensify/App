@@ -25,6 +25,7 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLifecycleActions from '@hooks/useLifecycleActions';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useReportIsArchived from '@hooks/useReportIsArchived';
 import useOnyx from '@hooks/useOnyx';
 import usePaymentOptions from '@hooks/usePaymentOptions';
 import usePermissions from '@hooks/usePermissions';
@@ -38,7 +39,7 @@ import {handleUnvalidatedAccount, selectPaymentType} from '@libs/PaymentUtils';
 import {sortPoliciesByName} from '@libs/PolicyUtils';
 import {hasRequestFromCurrentAccount} from '@libs/ReportActionsUtils';
 import {getSecondaryReportActions} from '@libs/ReportSecondaryActionUtils';
-import {hasUpdatedTotal, isIOUReport as isIOUReportUtil} from '@libs/ReportUtils';
+import {hasHeldExpenses, hasUpdatedTotal, isIOUReport as isIOUReportUtil} from '@libs/ReportUtils';
 import shouldPopoverUseScrollView from '@libs/shouldPopoverUseScrollView';
 import {isTransactionPendingDelete} from '@libs/TransactionUtils';
 import {canIOUBePaid as canIOUBePaidAction, payMoneyRequest} from '@userActions/IOU';
@@ -95,6 +96,9 @@ function MoneyReportHeaderSelectionDropdown({reportID, primaryAction, isReportIn
     const [invoiceReceiverPolicy] = useOnyx(
         `${ONYXKEYS.COLLECTION.POLICY}${chatReport?.invoiceReceiver && 'policyID' in chatReport.invoiceReceiver ? chatReport.invoiceReceiver.policyID : undefined}`,
     );
+
+    const isChatReportArchived = useReportIsArchived(chatReport?.reportID);
+    const isAnyTransactionOnHold = hasHeldExpenses(moneyRequestReport?.reportID);
 
     const {transactionThreadReportID, reportActions} = useTransactionThreadReport(reportID);
 
@@ -166,7 +170,7 @@ function MoneyReportHeaderSelectionDropdown({reportID, primaryAction, isReportIn
               reportMetadata,
               policies: allPolicies,
               outstandingReportsByPolicyID,
-              isChatReportArchived: false,
+              isChatReportArchived,
           })
         : [];
 
@@ -203,6 +207,16 @@ function MoneyReportHeaderSelectionDropdown({reportID, primaryAction, isReportIn
 
         if (isDelegateAccessRestricted) {
             showDelegateNoAccessModal();
+            return;
+        }
+
+        if (isAnyTransactionOnHold) {
+            openHoldMenu({
+                requestType: CONST.IOU.REPORT_ACTION_TYPE.PAY,
+                paymentType: type,
+                methodID: type === CONST.IOU.PAYMENT_TYPE.VBBA ? methodID : undefined,
+                onConfirm: () => clearSelectedTransactions(true),
+            });
             return;
         }
 
