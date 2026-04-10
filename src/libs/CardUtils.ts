@@ -183,7 +183,7 @@ function getCardDescription(card: Card | undefined, translate: LocalizedTranslat
  * @param displayName
  * @returns string in format %<defaultOrCustomCardName> • <lastFourPAN>%.
  */
-function getCardDescriptionForSearchTable(card: Card, displayName: string | undefined, translate: LocalizedTranslate) {
+function getCardDescriptionForSearchTable(card: Card, translate: LocalizedTranslate, displayName?: string) {
     if (isTravelCard(card)) {
         return translate('cardTransactions.centralInvoicing');
     }

@@ -2327,7 +2327,7 @@ describe('CardUtils', () => {
                     feedCountry: CONST.TRAVEL.PROGRAM_TRAVEL_US,
                 } as Card['nameValuePairs'],
             };
-            const description = getCardDescriptionForSearchTable(card, 'John Doe', translateLocal);
+            const description = getCardDescriptionForSearchTable(card, translateLocal, 'John Doe');
             expect(description).toBe('cardTransactions.centralInvoicing');
         });
 
@@ -2344,7 +2344,7 @@ describe('CardUtils', () => {
                 lastUpdated: '',
                 state: 3,
             };
-            const description = getCardDescriptionForSearchTable(card, 'John Doe', translateLocal);
+            const description = getCardDescriptionForSearchTable(card, translateLocal, 'John Doe');
             expect(description).toBe("John Doe's card • 5644");
         });
     });
