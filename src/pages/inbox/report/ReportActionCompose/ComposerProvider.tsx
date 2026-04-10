@@ -127,6 +127,7 @@ function ComposerProvider({children, reportID}: ComposerProviderProps) {
     };
 
     const onValueChange = (v: string) => {
+        setValue(v);
         if (v.length === 0 && isComposerFullSize) {
             setIsComposerFullSize(reportID, false);
         }
