@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
+import React, {Activity, useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
 import type {ForwardedRef, RefObject} from 'react';
 import {Dimensions, View} from 'react-native';
 import type {Emoji} from '@assets/emojis/types';
@@ -262,17 +262,20 @@ function EmojiPicker({viewportOffsetTop, ref}: EmojiPickerProps) {
             shouldEnableNewFocusManagement
             restoreFocusType={CONST.MODAL.RESTORE_FOCUS_TYPE.DELETE}
             shouldSkipRemeasurement
+            shouldWrapModalChildrenInScrollViewIfBottomDockedInLandscapeMode={false}
         >
             <FocusTrapForModal active={isEmojiPickerVisible}>
-                <View>
-                    <EmojiPickerMenu
-                        onEmojiSelected={selectEmoji}
-                        activeEmoji={activeEmoji.current}
-                        ref={(el) => {
-                            emojiSearchInput.current = el;
-                        }}
-                    />
-                </View>
+                <Activity mode={isEmojiPickerVisible ? 'visible' : 'hidden'}>
+                    <View>
+                        <EmojiPickerMenu
+                            onEmojiSelected={selectEmoji}
+                            activeEmoji={activeEmoji.current}
+                            ref={(el) => {
+                                emojiSearchInput.current = el;
+                            }}
+                        />
+                    </View>
+                </Activity>
             </FocusTrapForModal>
         </PopoverWithMeasuredContent>
     );

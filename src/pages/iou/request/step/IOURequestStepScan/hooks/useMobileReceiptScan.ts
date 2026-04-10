@@ -18,7 +18,7 @@ import {validTransactionDraftIDsSelector} from '@src/selectors/TransactionDraft'
 function useMobileReceiptScan({
     initialTransaction,
     iouType,
-    isMultiScanEnabled = false,
+    isMultiScanEnabled,
     isStartingScan,
     receiptFiles,
     navigateToConfirmationStep,
