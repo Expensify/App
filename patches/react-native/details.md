@@ -151,14 +151,7 @@
 - E/App issue: 🛑
 - PR Introducing Patch: https://github.com/Expensify/App/pull/59738
 
-### [react-native+0.83.1+021+fix-display-contents-not-updating-nodes.patch](react-native+0.83.1+021+fix-display-contents-not-updating-nodes.patch)
-
-- Reason: This patch updates Yoga to correctly update the subtrees of `display: contents` nodes so that they are in sync with their React Native counterparts.
-- Upstream PR/issue: https://github.com/facebook/react-native/pull/52530
-- E/App issue: https://github.com/Expensify/App/issues/65268
-- PR introducing patch: [#65925](https://github.com/Expensify/App/pull/65925)
-
-### [react-native+0.83.1+022+textinput-prevent-focus-on-first-responder.patch](react-native+0.83.1+022+textinput-prevent-focus-on-first-responder.patch)
+### [react-native+0.83.1+021+textinput-prevent-focus-on-first-responder.patch](react-native+0.83.1+021+textinput-prevent-focus-on-first-responder.patch)
 
 - Reason: On iOS, a text input automatically becomes the "first responder" in UIKit's "UIResponder" chain. Once a text input becomes the first responder, it will be automatically focused. (This also causes the keyboard to open)
     - This is not handled by React or React Native, but is rather a native iOS/UIKit behaviour. This patch adds an additional `TextInput` prop (`preventFocusOnFirstResponder`) and a ref method (`preventFocusOnFirstResponderOnce`) to bypass the focus on first responder.
@@ -167,14 +160,14 @@
 - E/App issue: [#54813](https://github.com/Expensify/App/issues/54813)
 - PR Introducing Patch: [#61492](https://github.com/Expensify/App/pull/61492)
 
-### [react-native+0.83.1+023+fix-modal-transparent-navigation-bar.patch](react-native+0.83.1+023+fix-modal-transparent-navigation-bar.patch)
+### [react-native+0.83.1+022+fix-modal-transparent-navigation-bar.patch](react-native+0.83.1+022+fix-modal-transparent-navigation-bar.patch)
 
 - Reason: This patch fixes an issue where it is not possible to enable a transparent navigation bar on Android
 - Upstream PR/issue: 🛑
 - E/App issue: [#69005](https://github.com/Expensify/App/issues/69005)
 - PR introducing patch: [#69004](https://github.com/Expensify/App/pull/69004)
 
-### [react-native+0.83.1+024+restore-interaction-manager.patch](react-native+0.83.1+024+restore-interaction-manager.patch)
+### [react-native+0.83.1+023+restore-interaction-manager.patch](react-native+0.83.1+023+restore-interaction-manager.patch)
 
 - Reason:
 
@@ -190,65 +183,84 @@
 - E/App issue: https://github.com/Expensify/App/issues/71913
 - PR introducing patch: https://github.com/Expensify/App/pull/69535
 
-### [react-native+0.83.1+025+perf-increase-initial-heap-size.patch](react-native+0.83.1+025+perf-increase-initial-heap-size.patch)
+### [react-native+0.83.1+024+perf-increase-initial-heap-size.patch](react-native+0.83.1+024+perf-increase-initial-heap-size.patch)
 
 - Reason: This patch increases the initial heap size of the Hermes runtime. This allows us to disable Hermes Young-Gen Garbage Collection (GC) in a separate patch, which improves initial TTI and app startup time.
 - Upstream PR/issue: This is not intended to be upstreamed, since this is a low-level fix very specific to the Expensify app's requirements.
 - E/App issue: [#76859](https://github.com/Expensify/App/issues/76859)
 - PR introducing patch: [#76154](https://github.com/Expensify/App/pull/76154)
 
-### [react-native+0.83.1+026+perf-disable-hermes-young-gc-before-tti-reached.patch](react-native+0.83.1+026+perf-disable-hermes-young-gc-before-tti-reached.patch)
+### [react-native+0.83.1+025+perf-disable-hermes-young-gc-before-tti-reached.patch](react-native+0.83.1+025+perf-disable-hermes-young-gc-before-tti-reached.patch)
 
 - Reason: This patch disables Hermes Young-Gen Garbage Collection (GC), which improves initial TTI and app startup time, by delaying GC for early allocated memory to the first Old-Gen GC run.
 - Upstream PR/issue: This is not intended to be upstreamed, since this is a low-level fix very specific to the Expensify app's requirements.
 - E/App issue: [#76859](https://github.com/Expensify/App/issues/76859)
 - PR introducing patch: [#76154](https://github.com/Expensify/App/pull/76154)
 
-### [react-native+0.83.1+027+strip-hermes-debug-info.patch](react-native+0.83.1+027+strip-hermes-debug-info.patch)
+### [react-native+0.83.1+026+strip-hermes-debug-info.patch](react-native+0.83.1+026+strip-hermes-debug-info.patch)
 
 - Reason: Always pass `-output-source-map` to `hermesc` for production iOS builds, stripping ~13.4MB of debug metadata from the Hermes bytecode. Previously this flag was only passed when `SOURCEMAP_FILE` was set; if the build environment didn't propagate that variable, debug info remained in the shipped bundle.
 - Upstream PR/issue: This should ideally be the default behavior upstream, but no PR has been filed yet.
 - E/App issue: [#83000](https://github.com/Expensify/App/issues/83000)
 - PR introducing patch: [#83256](https://github.com/Expensify/App/pull/83256)
 
-### [react-native+0.83.1+028+log-soft-exception-if-viewState-not-found.patch](react-native+0.83.1+028+log-soft-exception-if-viewState-not-found.patch)
+### [react-native+0.83.1+027+log-soft-exception-if-viewState-not-found.patch](react-native+0.83.1+027+log-soft-exception-if-viewState-not-found.patch)
 
 - Reason: This patch prevents app crashes by soft-logging the exception when JS try to send events to native views even if they are removed from view hierarchy. The approach follows existing patterns in the same file where similar events are already handled this way and is based on suggestions from other developers in upstream discussions.
 - Upstream PR/issue: [#49077](https://github.com/facebook/react-native/issues/49077) [#7493](https://github.com/software-mansion/react-native-reanimated/issues/7493)
 - E/App issue: [#82611](https://github.com/Expensify/App/issues/82611)
 - PR introducing patch: [#84303](https://github.com/Expensify/App/pull/84303)
 
-### [react-native+0.83.1+029+fix-fetching-files-android.patch](react-native+0.83.1+029+fix-fetching-files-android.patch)
+### [react-native+0.83.1+028+fix-fetching-files-android.patch](react-native+0.83.1+028+fix-fetching-files-android.patch)
 
 - Reason: Fixes fetching files (blobs, file URIs) on Android
 - Upstream PR/issue: https://github.com/facebook/react-native/pull/55706
 - E/App issue: https://github.com/Expensify/App/issues/75120
 - PR Introducing Patch: https://github.com/Expensify/App/pull/79962
 
-### [react-native+0.83.1+030+fix-view-stealing-first-responder.patch](react-native+0.83.1+030+fix-view-stealing-first-responder.patch)
+### [react-native+0.83.1+029+fix-view-stealing-first-responder.patch](react-native+0.83.1+029+fix-view-stealing-first-responder.patch)
 
 - Reason: In RN 0.83, `RCTViewComponentView.canBecomeFirstResponder` unconditionally returns `YES` (added for the `enableImperativeFocus` feature). This causes UIKit to promote parent views to first responder after navigation transitions complete (`_promoteSelfOrDescendantToFirstResponderIfNecessary`), stealing focus from text inputs and triggering an immediate focus→blur cycle. The fix gates `canBecomeFirstResponder` behind the `enableImperativeFocus` feature flag, which defaults to `false`.
 - Upstream PR/issue: https://github.com/facebook/react-native/pull/55908
 - E/App issue: https://github.com/Expensify/App/issues/75120
 - PR Introducing Patch: https://github.com/Expensify/App/pull/79962
 
-### [react-native+0.83.1+031+fix-exif-orientation.patch](react-native+0.83.1+031+fix-exif-orientation.patch)
+### [react-native+0.83.1+030+fix-exif-orientation.patch](react-native+0.83.1+030+fix-exif-orientation.patch)
 
 - Reason: In RN 0.83, PR [#54127](https://github.com/facebook/react-native/pull/54127) changed `RCTDecodeImageWithData` to use `CGImageSourceCreateImageAtIndex` instead of `CGImageSourceCreateThumbnailAtIndex` for full-size images (to fix memory crashes with large images). However, `CGImageSourceCreateImageAtIndex` does NOT apply EXIF orientation transform to pixels, unlike the previous thumbnail API which used `kCGImageSourceCreateThumbnailWithTransform`. The code still hardcodes `UIImageOrientationUp`, so EXIF orientation is silently lost. This causes camera-captured images (which have EXIF orientation metadata) to appear rotated when processed by `expo-image-manipulator`. The fix reads the EXIF orientation from image properties and passes it to `UIImage` for the full-size code path.
 - Upstream PR/issue: https://github.com/facebook/react-native/pull/55934
 - E/App issue: https://github.com/Expensify/App/issues/75120
 - PR Introducing Patch: https://github.com/Expensify/App/pull/79962
 
-### [react-native+0.83.1+032+fix-hermes-sampling-profiler-disable.patch](react-native+0.83.1+032+fix-hermes-sampling-profiler-disable.patch)
+### [react-native+0.83.1+031+fix-hermes-sampling-profiler-disable.patch](react-native+0.83.1+031+fix-hermes-sampling-profiler-disable.patch)
 
 - Reason: Fixes a copy-paste bug in `HermesSamplingProfiler::registerNatives()` where the JNI `"disable"` method was mapped to `HermesSamplingProfiler::enable` instead of `::disable`. This caused Sentry (or any caller of `HermesSamplingProfiler.disable()`) to call `enable()` again, corrupting the sampling thread state and leading to a `SIGABRT` crash (`invalid pthread_t passed to pthread_kill` in the `hermes-sampling` thread).
 - Upstream PR/issue: https://github.com/facebook/react-native/issues/56120
 - E/App issue: [#77171](https://github.com/Expensify/App/issues/77171)
 - PR introducing patch: [#84708](https://github.com/Expensify/App/pull/84708)
 
-### [react-native+0.83.1+033+fix-hermes-sampling-profiler-pthread-kill-crash.patch](react-native+0.83.1+033+fix-hermes-sampling-profiler-pthread-kill-crash.patch)
+### [react-native+0.83.1+032+fix-hermes-sampling-profiler-pthread-kill-crash.patch](react-native+0.83.1+032+fix-hermes-sampling-profiler-pthread-kill-crash.patch)
 
 - Reason: On Android (Bionic libc), `pthread_kill` with an invalid `pthread_t` (e.g., thread has exited) calls `abort()` instead of returning `ESRCH` like glibc. The Hermes sampling profiler's timer thread sends `SIGPROF` via `pthread_kill` to registered runtime threads at ~100Hz. If a runtime's thread exits while profiling is active (e.g., during HybridApp transitions or background/foreground), the stale `pthread_t` triggers `SIGABRT: invalid pthread_t passed to pthread_kill`. This patch adds a `doLast` hook to the `unzipHermes` Gradle task that modifies `SamplingProfilerPosix.cpp` after Hermes source extraction, replacing `pthread_kill` with the `tgkill` syscall on Android, which safely returns `ESRCH` for dead threads. A kernel thread ID (`currentTid_`) is stored alongside the `pthread_t` and kept in sync via `setRuntimeThread()`. The Gradle hook approach is necessary because `unzipHermes` downloads fresh Hermes source, overwriting any direct source patches.
 - Upstream PR/issue: 🛑
 - E/App issue: [#77171](https://github.com/Expensify/App/issues/77171)
 - PR introducing patch: [#84708](https://github.com/Expensify/App/pull/84708)
+
+### [react-native+0.83.1+033+fix-display-contents-dirty-flag.patch](react-native+0.83.1+033+fix-display-contents-dirty-flag.patch)
+
+- Reason: When a child node has `display: contents`, Yoga may reuse cached layout results from a previous pass even though the subtree has changed. This patch marks the parent yoga node as dirty when it encounters a child with `display: contents`, ensuring Yoga re-visits and recalculates the layout for that subtree instead of skipping it.
+- Upstream PR/issue: 🛑
+- E/App issue: https://github.com/Expensify/App/issues/85877
+- PR introducing patch: 🛑
+
+### [react-native+0.83.1+034+fix-fabric-collapsed-accessibility-announcement.patch](react-native+0.83.1+034+fix-fabric-collapsed-accessibility-announcement.patch)
+
+- Reason: Fixes a Fabric regression where VoiceOver on iOS only announces "expanded" but never "collapsed" for elements with `accessibilityState.expanded`. In `RCTViewComponentView.mm`, the code uses `value_or(false)` which skips the announcement entirely when `expanded` is `false`. This patch changes the logic to use `has_value()` and correctly announce both "expanded" and "collapsed" states, matching the old architecture (Paper) behavior.
+- Upstream PR/issue: https://github.com/facebook/react-native/issues/56296
+- E/App issue: [#76929](https://github.com/Expensify/App/issues/76929)
+
+### [react-native+0.83.1+035+fix-pressability-new-arch.patch](react-native+0.83.1+035+fix-pressability-new-arch.patch)
+
+- Reason: Fixes an Android-specific issue (reproducible on certain Samsung models) where `onPress` events do not trigger for `Pressable` components when used inside a `Tooltip`. The root cause is that in the new architecture, `Pressability.measure()` reads stale layout information from the shadow tree instead of the actual native view hierarchy. This patch introduces a new `measureAsyncOnUI` method that measures the view asynchronously using the native layout hierarchy on the UI thread, bypassing stale shadow tree data.
+- Upstream PR/issue: [facebook/react-native#51835](https://github.com/facebook/react-native/pull/51835)
+- E/App issue: [#59953](https://github.com/Expensify/App/issues/59953)

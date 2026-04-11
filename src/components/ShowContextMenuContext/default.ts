@@ -8,6 +8,7 @@ const defaultShowContextMenuStateContextValue: ShowContextMenuStateContextType =
     transactionThreadReport: undefined,
     isDisabled: true,
     shouldDisplayContextMenu: true,
+    originalReportID: undefined,
 };
 
 const defaultShowContextMenuActionsContextValue: ShowContextMenuActionsContextType = {

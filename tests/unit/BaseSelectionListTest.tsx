@@ -1,4 +1,5 @@
 import {act, fireEvent, render, screen, waitFor} from '@testing-library/react-native';
+import type ReactNative from 'react-native';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import BaseSelectionList from '@components/SelectionList/BaseSelectionList';
 import BaseListItem from '@components/SelectionList/ListItem/BaseListItem';
@@ -7,6 +8,14 @@ import type {ListItem} from '@components/SelectionList/types';
 import type Navigation from '@libs/Navigation/Navigation';
 import colors from '@styles/theme/colors';
 import CONST from '@src/CONST';
+
+// FlashList requires layout events to render items; mock it with FlatList for tests
+jest.mock('@shopify/flash-list', () => {
+    const RN = jest.requireActual<typeof ReactNative>('react-native');
+    return {
+        FlashList: RN.FlatList,
+    };
+});
 
 type BaseSelectionListSections<TItem extends ListItem> = {
     data: TItem[];

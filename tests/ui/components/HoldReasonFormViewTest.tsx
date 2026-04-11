@@ -8,7 +8,7 @@ jest.mock('@src/hooks/useResponsiveLayout');
 jest.mock('@react-navigation/native', () => ({
     createNavigationContainerRef: jest.fn(),
     useIsFocused: () => true,
-    useNavigation: () => ({navigate: jest.fn(), addListener: jest.fn(), goBack: jest.fn()}),
+    useNavigation: () => ({navigate: jest.fn(), addListener: jest.fn(), goBack: jest.fn(), isFocused: () => true}),
     useFocusEffect: jest.fn(),
     usePreventRemove: jest.fn(),
 }));

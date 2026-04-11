@@ -69,10 +69,9 @@ function EditReportFieldPage({route}: EditReportFieldPageProps) {
     const session = useSession();
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const hasViolations = hasViolationsReportUtils(report?.reportID, transactionViolations, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, session?.email ?? '');
-    const [reportViolations] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_VIOLATIONS}${reportID}`);
     const {translate} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
-    const icons = useMemoizedLazyExpensifyIcons(['Trashcan'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Trashcan']);
     const isReportFieldTitle = isReportFieldOfTypeTitle(reportField);
     const reportFieldsEnabled = ((isPaidGroupPolicyExpenseReport(report) || isInvoiceReport(report)) && !!policy?.areReportFieldsEnabled) || isReportFieldTitle;
     const hasOtherViolations =
@@ -143,7 +142,6 @@ function EditReportFieldPage({route}: EditReportFieldPageProps) {
                     email: session?.email ?? '',
                     hasViolationsParam: hasViolations,
                     recentlyUsedReportFields,
-                    reportViolations,
                     bankAccountList,
                     shouldFixViolations: hasOtherViolations ?? false,
                 });

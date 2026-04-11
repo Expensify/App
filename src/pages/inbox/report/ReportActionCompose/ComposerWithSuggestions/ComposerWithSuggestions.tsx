@@ -22,6 +22,7 @@ import Composer from '@components/Composer';
 import type {CustomSelectionChangeEvent, TextSelection} from '@components/Composer/types';
 import {useWideRHPState} from '@components/WideRHPContextProvider';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useIsInSidePanel from '@hooks/useIsInSidePanel';
 import useKeyboardState from '@hooks/useKeyboardState';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -42,7 +43,6 @@ import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 import getPlatform from '@libs/getPlatform';
 import {addKeyDownPressListener, removeKeyDownPressListener} from '@libs/KeyboardShortcut/KeyDownPressListener';
 import {detectAndRewritePaste} from '@libs/MarkdownLinkHelpers';
-import NavigationFocusManager from '@libs/NavigationFocusManager';
 import Parser from '@libs/Parser';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import {isValidReportIDFromPath, shouldAutoFocusOnKeyPress} from '@libs/ReportUtils';
@@ -264,6 +264,7 @@ function ComposerWithSuggestions({
     const mobileInputScrollPosition = useRef(0);
     const cursorPositionValue = useSharedValue({x: 0, y: 0});
     const tag = useSharedValue(-1);
+    const isInSidePanel = useIsInSidePanel();
     const [draftComment = ''] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`);
     const [value, setValue] = useState(() => {
         if (draftComment) {
@@ -685,12 +686,24 @@ function ComposerWithSuggestions({
     }, [focus, route.key, shouldAutoFocus, shouldDelayAutoFocus]);
 
     /**
+     * Tracks whether there is a composer input inside the side panel on the screen.
+     */
+    const handleSidePanelFocus = useCallback(() => {
+        if (!isInSidePanel) {
+            ReportActionComposeFocusManager.sidePanelComposerRef.current = null;
+        } else {
+            ReportActionComposeFocusManager.sidePanelComposerRef.current = textInputRef.current;
+        }
+    }, [isInSidePanel]);
+
+    /**
      * Set focus callback
      * @param shouldTakeOverFocus - Whether this composer should gain focus priority
      */
     const setUpComposeFocusManager = useCallback(
         (shouldTakeOverFocus = false) => {
             ReportActionComposeFocusManager.onComposerFocus((shouldFocusForNonBlurInputOnTapOutside = false) => {
+                handleSidePanelFocus();
                 if ((!willBlurTextInputOnTapOutside && !shouldFocusForNonBlurInputOnTapOutside) || !isFocused || !isSidePanelHiddenOrLargeScreen) {
                     return;
                 }
@@ -698,7 +711,7 @@ function ComposerWithSuggestions({
                 focus(true);
             }, shouldTakeOverFocus);
         },
-        [focus, isFocused, isSidePanelHiddenOrLargeScreen],
+        [focus, isFocused, isSidePanelHiddenOrLargeScreen, handleSidePanelFocus],
     );
 
     /**
@@ -798,6 +811,11 @@ function ComposerWithSuggestions({
             return;
         }
 
+        // Do not focus side panels composer if it wasn't focused before
+        if (isInSidePanel && !ReportActionComposeFocusManager.sidePanelComposerRef.current) {
+            return;
+        }
+
         // Do not focus the composer if the Side Panel is visible
         if (!isSidePanelHiddenOrLargeScreen) {
             return;
@@ -810,26 +828,12 @@ function ComposerWithSuggestions({
             return;
         }
 
-        // Skip auto-focus for keyboard navigation returns
-        // This allows FocusTrapForScreen to restore focus to the original element
-        // Must check BOTH scenarios:
-        //   - Screen focus change (!prevIsFocused) - e.g., navigating between screens
-        //   - Modal/RHP close (!!prevIsModalVisible) - e.g., closing RHP overlay
-        // Note: RHP doesn't change isFocused, it triggers prevIsModalVisible change
-        const isScreenFocusChange = !prevIsFocused;
-        const isModalClose = !!prevIsModalVisible;
-        if ((isScreenFocusChange || isModalClose) && NavigationFocusManager.wasRecentKeyboardInteraction()) {
-            NavigationFocusManager.clearKeyboardInteractionFlag();
-            return;
-        }
-
         if (editFocused) {
             inputFocusChange(false);
             return;
         }
-
         focus(true);
-    }, [focus, prevIsFocused, editFocused, prevIsModalVisible, isFocused, modal?.isVisible, isNextModalWillOpenRef, shouldAutoFocus, isSidePanelHiddenOrLargeScreen]);
+    }, [focus, prevIsFocused, editFocused, prevIsModalVisible, isFocused, modal?.isVisible, isNextModalWillOpenRef, shouldAutoFocus, isSidePanelHiddenOrLargeScreen, isInSidePanel]);
 
     useEffect(() => {
         // Scrolls the composer to the bottom and sets the selection to the end, so that longer drafts are easier to edit
@@ -928,10 +932,10 @@ function ComposerWithSuggestions({
     );
 
     const handleFocus = useCallback(() => {
-        // The last composer that had focus should re-gain focus
-        setUpComposeFocusManager(true);
+        handleSidePanelFocus();
+        setUpComposeFocusManager(!isInSidePanel);
         onFocus();
-    }, [onFocus, setUpComposeFocusManager]);
+    }, [onFocus, setUpComposeFocusManager, handleSidePanelFocus, isInSidePanel]);
 
     // When using the suggestions box (Suggestions) we need to imperatively
     // set the cursor to the end of the suggestion/mention after it's selected.

@@ -7,7 +7,7 @@ import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isIOUReport} from '@libs/ReportUtils';
 import Navigation from '@navigation/Navigation';
-import {convertBulkTrackedExpensesToIOU} from '@userActions/IOU';
+import {convertBulkTrackedExpensesToIOU} from '@userActions/IOU/TrackExpense';
 import {changeTransactionsReport} from '@userActions/Transaction';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -36,7 +36,7 @@ type AddUnreportedExpenseFooterProps = {
 };
 
 function AddUnreportedExpenseFooter({selectedIds, report, reportToConfirm, reportNextStep, policy, policyCategories, errorMessage, setErrorMessage}: AddUnreportedExpenseFooterProps) {
-    const {translate, toLocaleDigit} = useLocalize();
+    const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
@@ -82,7 +82,6 @@ function AddUnreportedExpenseFooter({selectedIds, report, reportToConfirm, repor
                     quickAction,
                     personalDetails,
                     betas,
-                    bankAccountList,
                 });
             } else {
                 changeTransactionsReport({
@@ -95,8 +94,6 @@ function AddUnreportedExpenseFooter({selectedIds, report, reportToConfirm, repor
                     reportNextStep,
                     policyCategories,
                     allTransactions: selectedTransactions,
-                    translate,
-                    toLocaleDigit,
                     bankAccountList,
                 });
             }

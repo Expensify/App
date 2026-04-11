@@ -8,8 +8,10 @@ import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
+import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -34,6 +36,7 @@ type ReportParticipantDetailsPageProps = WithReportOrNotFoundProps & PlatformSta
 
 function ReportParticipantDetails({report, route}: ReportParticipantDetailsPageProps) {
     const icons = useMemoizedLazyExpensifyIcons(['RemoveMembers', 'Info']);
+    const isInLandscapeMode = useIsInLandscapeMode();
     const styles = useThemeStyles();
     const {formatPhoneNumber, translate} = useLocalize();
     const StyleUtils = useStyleUtils();
@@ -75,7 +78,7 @@ function ReportParticipantDetails({report, route}: ReportParticipantDetailsPageP
                 title={displayName}
                 onBackButtonPress={() => Navigation.goBack(backTo)}
             />
-            <View style={[styles.containerWithSpaceBetween, styles.pointerEventsBoxNone, styles.justifyContentStart]}>
+            <ScrollView contentContainerStyle={[!isInLandscapeMode && [styles.containerWithSpaceBetween, styles.justifyContentStart], styles.pointerEventsBoxNone]}>
                 <View style={[styles.avatarSectionWrapper, styles.pb0]}>
                     <Avatar
                         containerStyles={[styles.avatarXLarge, styles.mv5, styles.noOutline]}
@@ -136,7 +139,7 @@ function ReportParticipantDetails({report, route}: ReportParticipantDetailsPageP
                         shouldShowRightIcon
                     />
                 </View>
-            </View>
+            </ScrollView>
         </ScreenWrapper>
     );
 }

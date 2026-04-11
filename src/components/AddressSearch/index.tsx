@@ -49,12 +49,17 @@ function isPlaceMatchForSearch(search: string, place: PredefinedPlace): boolean 
 // VirtualizedList component with a VirtualizedList-backed instead
 LogBox.ignoreLogs(['VirtualizedLists should never be nested']);
 
-function AddressSearchListEmptyComponent({searchValue}: {searchValue: string}) {
+function AddressSearchListEmptyComponent({searchValue, onEmptyChange}: {searchValue: string; onEmptyChange: (isEmpty: boolean) => void}) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const noResultsFoundText = translate('common.noResultsFound');
 
     useDebouncedAccessibilityAnnouncement(noResultsFoundText, true, searchValue);
+
+    useEffect(() => {
+        onEmptyChange(true);
+        return () => onEmptyChange(false);
+    }, [onEmptyChange]);
 
     return (
         <Text
@@ -63,6 +68,22 @@ function AddressSearchListEmptyComponent({searchValue}: {searchValue: string}) {
         >
             {noResultsFoundText}
         </Text>
+    );
+}
+
+function AddressSearchListLoader({onLoadingChange}: {onLoadingChange: (isLoading: boolean) => void}) {
+    const styles = useThemeStyles();
+    const reasonAttributes: SkeletonSpanReasonAttributes = {context: 'AddressSearch.listLoader'};
+
+    useEffect(() => {
+        onLoadingChange(true);
+        return () => onLoadingChange(false);
+    }, [onLoadingChange]);
+
+    return (
+        <View style={[styles.pv4]}>
+            <ActivityIndicator reasonAttributes={reasonAttributes} />
+        </View>
     );
 }
 
@@ -112,9 +133,18 @@ function AddressSearch({
     const [searchValue, setSearchValue] = useState('');
     const [locationErrorCode, setLocationErrorCode] = useState<GeolocationErrorCodeType>(null);
     const [isFetchingCurrentLocation, setIsFetchingCurrentLocation] = useState(false);
+    const [isLoadingResults, setIsLoadingResults] = useState(false);
+    const [isListEmpty, setIsListEmpty] = useState(false);
     const shouldTriggerGeolocationCallbacks = useRef(true);
     const [shouldHidePredefinedPlaces, setShouldHidePredefinedPlaces] = useState(false);
     const containerRef = useRef<View>(null);
+
+    useDebouncedAccessibilityAnnouncement(
+        translate('common.suggestionsAvailableFor', searchValue.trim()),
+        displayListViewBorder && isTyping && !isLoadingResults && !isListEmpty,
+        searchValue,
+    );
+
     const query = useMemo(
         () => ({
             language: preferredLocale,
@@ -345,16 +375,14 @@ function AddressSearch({
         return predefinedPlaces?.filter((predefinedPlace) => isPlaceMatchForSearch(searchValue, predefinedPlace)) ?? [];
     }, [predefinedPlaces, searchValue, shouldHidePredefinedPlaces]);
 
-    const listEmptyComponent = isTyping ? <AddressSearchListEmptyComponent searchValue={searchValue} /> : undefined;
+    const listEmptyComponent = isTyping ? (
+        <AddressSearchListEmptyComponent
+            searchValue={searchValue}
+            onEmptyChange={setIsListEmpty}
+        />
+    ) : undefined;
 
-    const listLoader = useMemo(() => {
-        const reasonAttributes: SkeletonSpanReasonAttributes = {context: 'AddressSearch.listLoader'};
-        return (
-            <View style={[styles.pv4]}>
-                <ActivityIndicator reasonAttributes={reasonAttributes} />
-            </View>
-        );
-    }, [styles.pv4]);
+    const listLoader = useMemo(() => <AddressSearchListLoader onLoadingChange={setIsLoadingResults} />, []);
 
     const fetchingLocationReasonAttributes: SkeletonSpanReasonAttributes = {
         context: 'AddressSearch.isFetchingCurrentLocation',
@@ -500,7 +528,7 @@ function AddressSearch({
                 </View>
             </ScrollView>
             {isFetchingCurrentLocation && (
-                <View style={[StyleSheet.absoluteFillObject, styles.fullScreenLoading, styles.w100]}>
+                <View style={[StyleSheet.absoluteFill, styles.fullScreenLoading, styles.w100]}>
                     <ActivityIndicator
                         size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                         reasonAttributes={fetchingLocationReasonAttributes}

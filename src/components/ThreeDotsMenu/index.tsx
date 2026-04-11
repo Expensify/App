@@ -16,11 +16,11 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {isMobile} from '@libs/Browser';
-import NavigationFocusManager from '@libs/NavigationFocusManager';
 import type {AnchorPosition} from '@styles/index';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import KeyboardUtils from '@src/utils/keyboard';
 import type ThreeDotsMenuProps from './types';
 
 function ThreeDotsMenu({
@@ -56,7 +56,6 @@ function ThreeDotsMenu({
     const [restoreFocusType, setRestoreFocusType] = useState<BaseModalProps['restoreFocusType']>();
     const [position, setPosition] = useState<AnchorPosition>();
     const buttonRef = useRef<View>(null);
-    const wasOpenedViaKeyboardRef = useRef(false);
     const {translate} = useLocalize();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['ThreeDots']);
     const isBehindModal = modal?.willAlertModalBecomeVisible && !modal?.isPopover && !shouldOverlay;
@@ -70,7 +69,6 @@ function ThreeDotsMenu({
             return;
         }
         setPopupMenuVisible(false);
-        wasOpenedViaKeyboardRef.current = false;
     }, []);
 
     const {calculatePopoverPosition} = usePopoverPosition();
@@ -87,23 +85,31 @@ function ThreeDotsMenu({
         hideProductTrainingTooltip?.();
         buttonRef.current?.blur();
 
-        // Capture keyboard state BEFORE menu opens
-        // NavigationFocusManager sets flag on Enter/Space keydown (capture phase)
-        wasOpenedViaKeyboardRef.current = NavigationFocusManager.wasRecentKeyboardInteraction();
-        if (wasOpenedViaKeyboardRef.current) {
-            NavigationFocusManager.clearKeyboardInteractionFlag();
-        }
-
-        if (getMenuPosition) {
-            getMenuPosition?.().then((value) => {
-                setPosition(value);
-                showPopoverMenu();
-            });
-        } else {
-            showPopoverMenu();
-        }
-
+        // Dismiss the keyboard before opening the menu so the menu doesn't
+        // render while the keyboard is still animating closed (which creates
+        // a blank-space flash on mobile web).
         onIconPress?.();
+
+        const openMenu = () => {
+            if (getMenuPosition) {
+                getMenuPosition?.().then((value) => {
+                    setPosition(value);
+                    showPopoverMenu();
+                });
+            } else {
+                showPopoverMenu();
+            }
+        };
+
+        // On mobile web, wait for the keyboard to fully close before opening the menu.
+        // KeyboardUtils.dismiss() uses visualViewport to detect keyboard state and resolves
+        // immediately if the keyboard is not open. On desktop, call openMenu() synchronously
+        // to preserve the original behavior (avoids async microtask deferral on desktop Chrome).
+        if (isMobile()) {
+            KeyboardUtils.dismiss().then(openMenu);
+        } else {
+            openMenu();
+        }
     };
 
     useImperativeHandle(threeDotsMenuRef as React.RefObject<{hidePopoverMenu: () => void; isPopupMenuVisible: boolean; onThreeDotsPress: () => void}> | undefined, () => ({
@@ -152,18 +158,6 @@ function ThreeDotsMenu({
                     <PressableWithoutFeedback
                         onPress={onThreeDotsPress}
                         disabled={disabled}
-                        onKeyDown={(e: React.KeyboardEvent) => {
-                            // When nested inside another pressable (e.g., workspace row), keyboard activation
-                            // propagates to the parent due to role="presentation". We intercept Enter/Space
-                            // to open the menu directly. Double activation is prevented by blur() in
-                            // onThreeDotsPress() which moves focus away before RNW's keyup handler fires.
-                            if (!isNested || (e.key !== 'Enter' && e.key !== ' ')) {
-                                return;
-                            }
-                            e.stopPropagation();
-                            e.preventDefault();
-                            onThreeDotsPress();
-                        }}
                         onMouseDown={(e) => {
                             /* Keep the focus state on mWeb like we did on the native apps. */
                             if (!isMobile()) {
@@ -201,7 +195,6 @@ function ThreeDotsMenu({
                 anchorRef={buttonRef}
                 shouldEnableNewFocusManagement
                 restoreFocusType={restoreFocusType}
-                wasOpenedViaKeyboard={wasOpenedViaKeyboardRef.current}
             />
         </>
     );
