@@ -183,7 +183,8 @@ function ReportActionsList({
     const {translate} = useLocalize();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['UpArrow']);
     const {windowHeight} = useWindowDimensions();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth -- need isSmallScreenWidth to fix tab order in desktop RHP
+    const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
 
     const {getLocalDateFromDatetime} = useLocalize();
     const {isOffline, lastOfflineAt, lastOnlineAt} = useNetworkWithOfflineStatus();
@@ -221,10 +222,8 @@ function ReportActionsList({
     const isMoneyRequestOrInvoiceReport = useMemo(() => isMoneyRequestReport(report) || isInvoiceReport(report), [report]);
     const shouldFocusToTopOnMount = useMemo(() => isTransactionThreadReport || isMoneyRequestOrInvoiceReport, [isMoneyRequestOrInvoiceReport, isTransactionThreadReport]);
 
-    // Render CREATED action above InvertedFlatList to fix keyboard tab order in transaction threads.
-    // Only extract on wide screens — on narrow screens the extracted element overflows the container.
-    const createdAction =
-        isTransactionThreadReport && !shouldUseNarrowLayout ? sortedVisibleReportActions.find((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) : undefined;
+    // Extract CREATED action above InvertedFlatList to fix keyboard tab order (desktop only).
+    const createdAction = isTransactionThreadReport && !isSmallScreenWidth ? sortedVisibleReportActions.find((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) : undefined;
     const listData = createdAction ? sortedVisibleReportActions.filter((action) => action.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED) : sortedVisibleReportActions;
 
     const topReportAction = sortedVisibleReportActions.at(-1);
@@ -871,11 +870,14 @@ function ReportActionsList({
                 style={[styles.flex1, !shouldShowReportRecipientLocalTime && !hideComposer ? styles.pb4 : {}]}
                 fsClass={reportActionsListFSClass}
             >
-                {createdAction &&
-                    renderItem({
-                        item: createdAction,
-                        index: sortedVisibleReportActions.indexOf(createdAction),
-                    } as ListRenderItemInfo<OnyxTypes.ReportAction>)}
+                {!!createdAction && (
+                    <View style={[styles.flexShrink1, styles.overflowAuto]}>
+                        {renderItem({
+                            item: createdAction,
+                            index: sortedVisibleReportActions.indexOf(createdAction),
+                        } as ListRenderItemInfo<OnyxTypes.ReportAction>)}
+                    </View>
+                )}
                 {shouldScrollToEndAfterLayout && topReportAction ? renderTopReportActions() : undefined}
                 <InvertedFlatList
                     accessibilityLabel={translate('sidebarScreen.listOfChatMessages')}
