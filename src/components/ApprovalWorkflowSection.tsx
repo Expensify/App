@@ -1,5 +1,5 @@
 import {Str} from 'expensify-common';
-import React, {useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -40,21 +40,14 @@ function ApprovalWorkflowSection({approvalWorkflow, onPress, currency = CONST.CU
     const approverTitle = (index: number) =>
         approvalWorkflow.approvers.length > 1 ? `${toLocaleOrdinal(index + 1, true)} ${translate('workflowsPage.approver').toLowerCase()}` : `${translate('workflowsPage.approver')}`;
 
-    const sortedMembers = useMemo(
-        () => (approvalWorkflow.isDefault ? [] : sortAlphabetically(approvalWorkflow.members, 'displayName', localeCompare)),
-        [approvalWorkflow.isDefault, approvalWorkflow.members, localeCompare],
-    );
+    const sortedMembers = approvalWorkflow.isDefault ? [] : sortAlphabetically(approvalWorkflow.members, 'displayName', localeCompare);
 
     const members = approvalWorkflow.isDefault ? translate('workspace.common.everyone') : sortedMembers.map((m) => Str.removeSMSDomain(m.displayName)).join(', ');
 
-    const memberPills = useMemo(
-        () =>
-            sortedMembers.map((m) => ({
-                avatar: m.avatar,
-                displayName: m.displayName,
-            })),
-        [sortedMembers],
-    );
+    const memberPills = sortedMembers.map((m) => ({
+        avatar: m.avatar,
+        displayName: m.displayName,
+    }));
     return (
         <PressableWithoutFeedback
             accessibilityRole="button"

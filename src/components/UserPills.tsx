@@ -1,4 +1,4 @@
-import React, {useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -33,24 +33,15 @@ function UserPills({users, maxVisible = DEFAULT_MAX_VISIBLE}: UserPillsProps) {
     const {translate} = useLocalize();
 
     // "+1 more" edge case: if only 1 user would be hidden, show it instead of "+1 more"
-    const visibleUsers = useMemo(() => {
-        if (users.length <= maxVisible + 1) {
-            return users;
-        }
-        return users.slice(0, maxVisible);
-    }, [users, maxVisible]);
-
+    const visibleUsers = users.length <= maxVisible + 1 ? users : users.slice(0, maxVisible);
     const hiddenCount = users.length - visibleUsers.length;
-
-    const hiddenNames = useMemo(() => {
-        if (hiddenCount <= 0) {
-            return '';
-        }
-        return users
-            .slice(visibleUsers.length)
-            .map((u) => u.displayName)
-            .join(', ');
-    }, [users, visibleUsers.length, hiddenCount]);
+    const hiddenNames =
+        hiddenCount > 0
+            ? users
+                  .slice(visibleUsers.length)
+                  .map((u) => u.displayName)
+                  .join(', ')
+            : '';
 
     return (
         <View style={[styles.flexRow, styles.flexWrap, styles.userPillsContainer]}>
