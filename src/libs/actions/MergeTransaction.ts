@@ -63,8 +63,7 @@ function getStoredTargetTransactionThreadReportID(transaction: Transaction | und
         return undefined;
     }
 
-    const candidateThreadReportID =
-        targetTransactionThreadReportCandidate?.transactionID === transaction.transactionID ? targetTransactionThreadReportCandidate.threadReportID : undefined;
+    const candidateThreadReportID = targetTransactionThreadReportCandidate?.transactionID === transaction.transactionID ? targetTransactionThreadReportCandidate.threadReportID : undefined;
 
     return candidateThreadReportID ?? transaction.transactionThreadReportID ?? getTransactionThreadReportID(transaction);
 }

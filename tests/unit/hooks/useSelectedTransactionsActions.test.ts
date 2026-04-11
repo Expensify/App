@@ -890,17 +890,10 @@ describe('useSelectedTransactionsActions', () => {
 
         mergeOption?.onSelected?.();
 
-        expect(setupMergeTransactionDataAndNavigate).toHaveBeenCalledWith(
-            transaction.transactionID,
-            [transaction],
-            mockLocalCompare,
-            mockGetCurrencyDecimals,
-            [],
-            false,
-            false,
-            undefined,
-            {transactionID: transaction.transactionID, threadReportID: transaction.transactionThreadReportID},
-        );
+        expect(setupMergeTransactionDataAndNavigate).toHaveBeenCalledWith(transaction.transactionID, [transaction], mockLocalCompare, mockGetCurrencyDecimals, [], false, false, undefined, {
+            transactionID: transaction.transactionID,
+            threadReportID: transaction.transactionThreadReportID,
+        });
     });
 
     it('should pass isOnSearch=true for search-origin report checkbox merge', async () => {
@@ -936,24 +929,17 @@ describe('useSelectedTransactionsActions', () => {
         );
 
         await waitFor(() => {
-            const mergeOption = result.current.options.find((option) => option.value === 'MERGE');
+            const mergeOption = result.current.options.find((option) => option.value === CONST.REPORT.SELECTED_TRANSACTIONS_BULK_ACTION_TYPES.MERGE);
             expect(mergeOption).toBeDefined();
         });
 
-        const mergeOption = result.current.options.find((option) => option.value === 'MERGE');
+        const mergeOption = result.current.options.find((option) => option.value === CONST.REPORT.SELECTED_TRANSACTIONS_BULK_ACTION_TYPES.MERGE);
         mergeOption?.onSelected?.();
 
-        expect(setupMergeTransactionDataAndNavigate).toHaveBeenCalledWith(
-            transaction.transactionID,
-            [transaction],
-            mockLocalCompare,
-            mockGetCurrencyDecimals,
-            [],
-            false,
-            true,
-            undefined,
-            {transactionID: transaction.transactionID, threadReportID: transaction.transactionThreadReportID},
-        );
+        expect(setupMergeTransactionDataAndNavigate).toHaveBeenCalledWith(transaction.transactionID, [transaction], mockLocalCompare, mockGetCurrencyDecimals, [], false, true, undefined, {
+            transactionID: transaction.transactionID,
+            threadReportID: transaction.transactionThreadReportID,
+        });
     });
 
     it('should use reportActions childReportID as the merge override when transaction thread metadata is missing', async () => {
@@ -997,11 +983,11 @@ describe('useSelectedTransactionsActions', () => {
         );
 
         await waitFor(() => {
-            const mergeOption = result.current.options.find((option) => option.value === 'MERGE');
+            const mergeOption = result.current.options.find((option) => option.value === CONST.REPORT.SELECTED_TRANSACTIONS_BULK_ACTION_TYPES.MERGE);
             expect(mergeOption).toBeDefined();
         });
 
-        const mergeOption = result.current.options.find((option) => option.value === 'MERGE');
+        const mergeOption = result.current.options.find((option) => option.value === CONST.REPORT.SELECTED_TRANSACTIONS_BULK_ACTION_TYPES.MERGE);
         mergeOption?.onSelected?.();
 
         expect(createTransactionThreadReport).not.toHaveBeenCalled();
@@ -1047,25 +1033,18 @@ describe('useSelectedTransactionsActions', () => {
         );
 
         await waitFor(() => {
-            const mergeOption = result.current.options.find((option) => option.value === 'MERGE');
+            const mergeOption = result.current.options.find((option) => option.value === CONST.REPORT.SELECTED_TRANSACTIONS_BULK_ACTION_TYPES.MERGE);
             expect(mergeOption).toBeDefined();
         });
 
-        const mergeOption = result.current.options.find((option) => option.value === 'MERGE');
+        const mergeOption = result.current.options.find((option) => option.value === CONST.REPORT.SELECTED_TRANSACTIONS_BULK_ACTION_TYPES.MERGE);
         mergeOption?.onSelected?.();
 
         expect(createTransactionThreadReport).toHaveBeenCalled();
-        expect(setupMergeTransactionDataAndNavigate).toHaveBeenCalledWith(
+        expect(setupMergeTransactionDataAndNavigate).toHaveBeenCalledWith(transactionID, [transaction], mockLocalCompare, mockGetCurrencyDecimals, [], false, true, undefined, {
             transactionID,
-            [transaction],
-            mockLocalCompare,
-            mockGetCurrencyDecimals,
-            [],
-            false,
-            true,
-            undefined,
-            {transactionID, threadReportID: createdThreadReportID},
-        );
+            threadReportID: createdThreadReportID,
+        });
     });
 
     it('should preserve snapshot thread metadata when selected search-origin transactions are merged', async () => {
@@ -1121,11 +1100,11 @@ describe('useSelectedTransactionsActions', () => {
         );
 
         await waitFor(() => {
-            const mergeOption = result.current.options.find((option) => option.value === 'MERGE');
+            const mergeOption = result.current.options.find((option) => option.value === CONST.REPORT.SELECTED_TRANSACTIONS_BULK_ACTION_TYPES.MERGE);
             expect(mergeOption).toBeDefined();
         });
 
-        const mergeOption = result.current.options.find((option) => option.value === 'MERGE');
+        const mergeOption = result.current.options.find((option) => option.value === CONST.REPORT.SELECTED_TRANSACTIONS_BULK_ACTION_TYPES.MERGE);
         mergeOption?.onSelected?.();
 
         expect(setupMergeTransactionDataAndNavigate).toHaveBeenCalledWith(
@@ -1178,11 +1157,11 @@ describe('useSelectedTransactionsActions', () => {
         );
 
         await waitFor(() => {
-            const mergeOption = result.current.options.find((option) => option.value === 'MERGE');
+            const mergeOption = result.current.options.find((option) => option.value === CONST.REPORT.SELECTED_TRANSACTIONS_BULK_ACTION_TYPES.MERGE);
             expect(mergeOption).toBeDefined();
         });
 
-        const mergeOption = result.current.options.find((option) => option.value === 'MERGE');
+        const mergeOption = result.current.options.find((option) => option.value === CONST.REPORT.SELECTED_TRANSACTIONS_BULK_ACTION_TYPES.MERGE);
         mergeOption?.onSelected?.();
 
         expect(createTransactionThreadReport).not.toHaveBeenCalled();
