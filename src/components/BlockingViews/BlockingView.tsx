@@ -179,6 +179,6 @@ function BlockingView({
         </View>
     );
 }
-// Test account 
+// Testing account
 export type {BlockingViewProps};
 export default BlockingView;
