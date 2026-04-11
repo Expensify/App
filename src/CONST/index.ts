@@ -3671,8 +3671,14 @@ const CONST = {
                 microsoftDynamics: 'Microsoft Dynamics',
                 other: 'Other',
             },
+            get ACCOUNTING_CONNECTION_NAMES() {
+                return [this.NAME.QBO, this.NAME.QBD, this.NAME.XERO, this.NAME.NETSUITE, this.NAME.SAGE_INTACCT, this.NAME.CERTINIA] as const;
+            },
+            get HR_CONNECTION_NAMES() {
+                return [this.NAME.GUSTO] as const;
+            },
             get EXPORTED_TO_INTEGRATION_DISPLAY_NAMES(): string[] {
-                return Object.values(this.NAME).map((name) => this.NAME_USER_FRIENDLY[name as keyof typeof this.NAME_USER_FRIENDLY]);
+                return this.ACCOUNTING_CONNECTION_NAMES.map((name) => this.NAME_USER_FRIENDLY[name as keyof typeof this.NAME_USER_FRIENDLY]);
             },
             CORPORATE: ['quickbooksDesktop', 'netsuite', 'intacct', 'oracle', 'sap', 'microsoftDynamics', 'other'],
             AUTH_HELP_LINKS: {
