@@ -758,6 +758,7 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
             clearSelectedTransactions,
             ownerBillingGracePeriodEnd,
             delegateEmail,
+            bankAccountList,
         ],
     );
 
@@ -1958,6 +1959,7 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
             amountOwed,
             ownerBillingGracePeriodEnd,
             delegateEmail,
+            bankAccountList,
         ],
     );
 
@@ -2009,7 +2011,6 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
             translate,
             selectedTransactionIDs.length,
             kycWallRef,
-            bankAccountList,
             popoverUseScrollView,
         ],
     );

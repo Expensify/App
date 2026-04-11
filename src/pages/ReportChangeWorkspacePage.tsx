@@ -114,19 +114,19 @@ function ReportChangeWorkspacePage({report, route}: ReportChangeWorkspacePagePro
                     bankAccountList,
                 });
             } else {
-                changeReportPolicy(
+                changeReportPolicy({
                     report,
                     parentReport,
                     policy,
-                    session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
-                    session?.email ?? '',
-                    hasViolations,
+                    accountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+                    email: session?.email ?? '',
+                    hasViolationsParam: hasViolations,
                     isChangePolicyTrainingModalDismissed,
                     isASAPSubmitBetaEnabled,
                     reportNextStep,
                     isReportLastVisibleArchived,
                     bankAccountList,
-                );
+                });
             }
         },
         [
@@ -147,6 +147,7 @@ function ReportChangeWorkspacePage({report, route}: ReportChangeWorkspacePagePro
             isASAPSubmitBetaEnabled,
             reportNextStep,
             isChangePolicyTrainingModalDismissed,
+            bankAccountList,
         ],
     );
 

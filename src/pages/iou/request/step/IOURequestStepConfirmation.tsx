@@ -696,7 +696,6 @@ function IOURequestStepConfirmation({
             quickAction,
             betas,
             personalDetails,
-            bankAccountList,
         ],
     );
 

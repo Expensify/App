@@ -235,6 +235,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
             betas,
             allPolicyTags,
             personalDetails,
+            bankAccountList,
         ],
     );
 

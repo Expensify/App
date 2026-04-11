@@ -498,17 +498,12 @@ function SettlementButton({
             } else {
                 approveMoneyRequest({
                     expenseReport: iouReport,
-
                     policy,
                     currentUserAccountIDParam: accountID,
-
                     currentUserEmailParam: email ?? '',
-
                     hasViolations,
-
                     isASAPSubmitBetaEnabled,
                     expenseReportCurrentNextStepDeprecated: iouReportNextStep,
-
                     betas,
                     userBillingGracePeriodEnds,
                     amountOwed,
