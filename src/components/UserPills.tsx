@@ -16,6 +16,9 @@ type UserPillData = {
 
     /** Account ID for proper avatar rendering */
     accountID?: number;
+
+    /** Email/login for tooltip subtitle */
+    email?: string;
 };
 
 type UserPillsProps = {
@@ -51,6 +54,7 @@ function UserPills({users, maxVisible = DEFAULT_MAX_VISIBLE}: UserPillsProps) {
                     avatar={user.avatar}
                     displayName={user.displayName}
                     accountID={user.accountID}
+                    email={user.email}
                 />
             ))}
             {hiddenCount > 0 && (

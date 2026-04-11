@@ -1173,6 +1173,7 @@ function MoneyRequestConfirmationListFooter({
                 <MenuItemWithTopDescription
                     key="attendees"
                     shouldShowRightIcon={!isReadOnly}
+                    accessibilityLabel={iouAttendees?.map((a) => a?.displayName ?? a?.login).join(', ')}
                     description={`${translate('iou.attendees')} ${
                         iouAttendees?.length && iouAttendees.length > 1 && formattedAmountPerAttendee ? `\u00B7 ${formattedAmountPerAttendee} ${translate('common.perPerson')}` : ''
                     }`}
@@ -1183,6 +1184,7 @@ function MoneyRequestConfirmationListFooter({
                                     avatar: a?.avatarUrl,
                                     displayName: a?.displayName ?? a?.login ?? a?.email ?? '',
                                     accountID: a?.accountID,
+                                    email: a?.email ?? a?.login,
                                 }))}
                             />
                         ) : undefined

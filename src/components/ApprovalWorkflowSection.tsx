@@ -47,6 +47,7 @@ function ApprovalWorkflowSection({approvalWorkflow, onPress, currency = CONST.CU
     const memberPills = sortedMembers.map((m) => ({
         avatar: m.avatar,
         displayName: m.displayName,
+        email: m.email,
     }));
     return (
         <PressableWithoutFeedback
@@ -117,6 +118,7 @@ function ApprovalWorkflowSection({approvalWorkflow, onPress, currency = CONST.CU
                                 <UserPill
                                     avatar={approver.avatar}
                                     displayName={approver.displayName}
+                                    email={approver.email}
                                 />
                             }
                             helperText={getApprovalLimitDescription({approver, currency, translate, personalDetailsByEmail})}
