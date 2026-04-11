@@ -9,10 +9,18 @@ import {isPersonalCard} from '@libs/CardUtils';
 import {getDecodedCategoryName, isCategoryMissing} from '@libs/CategoryUtils';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
+import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {isReceiptError} from '@libs/ErrorUtils';
 import {getCurrentUserEmail} from '@libs/Network/NetworkStore';
 import Parser from '@libs/Parser';
-import {getDistanceRateCustomUnitRate, getPerDiemRateCustomUnitRate, getSortedTagKeys, isDefaultTagName, isTaxTrackingEnabled} from '@libs/PolicyUtils';
+import {
+    getDistanceRateCustomUnitRate,
+    getPerDiemRateCustomUnitRate,
+    getSortedTagKeys,
+    isAttendeeTrackingEnabled as isAttendeeTrackingEnabledForPolicy,
+    isDefaultTagName,
+    isTaxTrackingEnabled,
+} from '@libs/PolicyUtils';
 import {isCurrentUserSubmitter} from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import {hasValidModifiedAmount, isViolationDismissed, shouldShowViolation} from '@libs/TransactionUtils';
@@ -20,8 +28,22 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Card, CardList, Policy, PolicyCategories, PolicyTagLists, PolicyTags, Report, ReportAction, Transaction, TransactionViolation, ViolationName} from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
+import type {Unit} from '@src/types/onyx/Policy';
 import type {ReceiptError, ReceiptErrors} from '@src/types/onyx/Transaction';
 import type ViolationFixParams from './types';
+
+type ViolationTranslationParams = {
+    violation: TransactionViolation;
+    translate: LocaleContextProps['translate'];
+    canEdit?: boolean;
+    tags?: PolicyTagLists;
+    companyCardPageURL?: string;
+    connectionLink?: string;
+    card?: Card;
+    isMarkAsCash?: boolean;
+    routeDistanceMeters?: number;
+    distanceUnit?: Unit;
+};
 
 /**
  * Filters out receiptRequired violation when itemizedReceiptRequired is also present.
@@ -213,10 +235,10 @@ function getTagViolationsForMultiLevelTags(
  */
 function getTagViolationMessagesForMultiLevelTags(tagName: string | undefined, errorIndexes: number[], tags: PolicyTagLists, translate: LocaleContextProps['translate']): string {
     if (isEmpty(errorIndexes) || isEmpty(tags)) {
-        return translate('violations.someTagLevelsRequired', {tagName});
+        return translate('violations.someTagLevelsRequired', tagName);
     }
     const tagsWithIndexes = keyBy(Object.values(tags), 'orderWeight');
-    return errorIndexes.map((i) => translate('violations.someTagLevelsRequired', {tagName: tagsWithIndexes[i]?.name})).join('. ');
+    return errorIndexes.map((i) => translate('violations.someTagLevelsRequired', tagsWithIndexes[i]?.name)).join('. ');
 }
 
 /**
@@ -496,7 +518,7 @@ const ViolationsUtils = {
             !isInvoiceTransaction && policyCategories?.[categoryName ?? '']?.areCommentsRequired && !updatedTransaction.comment?.comment && isControlPolicy && policy?.areRulesEnabled;
         const rawAttendees = updatedTransaction.modifiedAttendees ?? updatedTransaction.comment?.attendees;
         const attendees = Array.isArray(rawAttendees) ? rawAttendees : [];
-        const isAttendeeTrackingEnabled = policy.isAttendeeTrackingEnabled ?? false;
+        const isAttendeeTrackingEnabled = isAttendeeTrackingEnabledForPolicy(policy);
         // Filter out the owner/creator when checking attendance count - expense is valid if at least one non-owner attendee is present
         const ownerAccountID = iouReport?.ownerAccountID;
         // Calculate attendees minus owner. When ownerAccountID is known, filter by accountID.
@@ -640,11 +662,14 @@ const ViolationsUtils = {
             newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.MISSING_ATTENDEES});
         }
 
-        if (isPolicyTrackTaxEnabled && !hasTaxOutOfPolicyViolation && !isTaxInPolicy) {
+        const hasTransactionTaxData = !!updatedTransaction.taxCode || !!updatedTransaction.taxValue || !!updatedTransaction.taxAmount;
+        const shouldAddTaxOutOfPolicy = isPolicyTrackTaxEnabled ? !isTaxInPolicy : hasTransactionTaxData;
+
+        if (!hasTaxOutOfPolicyViolation && shouldAddTaxOutOfPolicy) {
             newTransactionViolations.push({name: CONST.VIOLATIONS.TAX_OUT_OF_POLICY, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true});
         }
 
-        if (isPolicyTrackTaxEnabled && hasTaxOutOfPolicyViolation && isTaxInPolicy) {
+        if (hasTaxOutOfPolicyViolation && !shouldAddTaxOutOfPolicy) {
             newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.TAX_OUT_OF_POLICY});
         }
         return {
@@ -661,16 +686,8 @@ const ViolationsUtils = {
      * possible values could be either translation keys that resolve to  strings or translation keys that resolve to
      * functions.
      */
-    getViolationTranslation(
-        violation: TransactionViolation,
-        translate: LocaleContextProps['translate'],
-        canEdit = true,
-        tags?: PolicyTagLists,
-        companyCardPageURL?: string,
-        connectionLink?: string,
-        card?: Card,
-        isMarkAsCash?: boolean,
-    ): string {
+    getViolationTranslation(params: ViolationTranslationParams): string {
+        const {violation, translate, canEdit = true, tags, companyCardPageURL, connectionLink, card, isMarkAsCash, routeDistanceMeters, distanceUnit} = params;
         const {
             brokenBankConnection = false,
             isAdmin = false,
@@ -727,6 +744,11 @@ const ViolationsUtils = {
                 return translate('violations.modifiedAmount', {type, displayPercentVariance: violation.data?.displayPercentVariance});
             case 'modifiedDate':
                 return translate('violations.modifiedDate');
+            case 'increasedDistance': {
+                const distance = routeDistanceMeters ?? 0;
+                const formattedRouteDistance = distance > 0 && distanceUnit ? DistanceRequestUtils.getDistanceForDisplayLabel(distance, distanceUnit) : undefined;
+                return translate('violations.increasedDistance', {formattedRouteDistance});
+            }
             case 'nonExpensiworksExpense':
                 return translate('violations.nonExpensiworksExpense');
             case 'overAutoApprovalLimit':
@@ -744,7 +766,7 @@ const ViolationsUtils = {
             case 'receiptNotSmartScanned':
                 return translate('violations.receiptNotSmartScanned');
             case 'receiptRequired':
-                return translate('violations.receiptRequired', {formattedLimit, category: getDecodedCategoryName(category ?? '')});
+                return translate('violations.receiptRequired', formattedLimit, getDecodedCategoryName(category ?? ''));
             case 'itemizedReceiptRequired':
                 return translate('violations.itemizedReceiptRequired', formattedLimit);
             case 'customRules':
@@ -754,7 +776,8 @@ const ViolationsUtils = {
                 if (cardID !== undefined && cardID !== null && card) {
                     isPersonalCardViolation = !!isPersonalCard(card);
                 }
-                return translate('violations.rter', {
+                return translate(
+                    'violations.rter',
                     brokenBankConnection,
                     isAdmin,
                     isTransactionOlderThan7Days,
@@ -762,20 +785,20 @@ const ViolationsUtils = {
                     rterType,
                     companyCardPageURL,
                     connectionLink,
-                    isPersonalCard: isPersonalCardViolation,
+                    isPersonalCardViolation,
                     isMarkAsCash,
-                });
+                );
             }
             case 'smartscanFailed':
                 return translate('violations.smartscanFailed', {canEdit});
             case 'someTagLevelsRequired':
                 return getTagViolationMessagesForMultiLevelTags(tagName, errorIndexes, tags ?? {}, translate);
             case 'tagOutOfPolicy':
-                return translate('violations.tagOutOfPolicy', {tagName});
+                return translate('violations.tagOutOfPolicy', tagName);
             case 'taxAmountChanged':
                 return translate('violations.taxAmountChanged');
             case 'taxOutOfPolicy':
-                return translate('violations.taxOutOfPolicy', {taxName});
+                return translate('violations.taxOutOfPolicy', taxName);
             case 'taxRateChanged':
                 return translate('violations.taxRateChanged');
             case 'taxRequired':
@@ -785,9 +808,7 @@ const ViolationsUtils = {
             case 'companyCardRequired':
                 return translate('violations.companyCardRequired');
             case CONST.VIOLATIONS.PROHIBITED_EXPENSE:
-                return translate('violations.prohibitedExpense', {
-                    prohibitedExpenseTypes: violation.data?.prohibitedExpenseRule ?? [],
-                });
+                return translate('violations.prohibitedExpense', violation.data?.prohibitedExpenseRule ?? []);
             case CONST.VIOLATIONS.RECEIPT_GENERATED_WITH_AI:
                 return translate('violations.receiptGeneratedWithAI');
             case CONST.VIOLATIONS.NO_ROUTE:
@@ -829,7 +850,17 @@ const ViolationsUtils = {
             ...filteredViolations.map((violation) => {
                 const cardID = violation?.data?.cardID;
                 const card = cardID ? cardList?.[cardID] : undefined;
-                const message = ViolationsUtils.getViolationTranslation(violation, translate, true, tags, companyCardPageURL, connectionLink, card, isMarkAsCash);
+                const message = ViolationsUtils.getViolationTranslation({
+                    violation,
+                    translate,
+                    tags,
+                    companyCardPageURL,
+                    connectionLink,
+                    card,
+                    isMarkAsCash,
+                    routeDistanceMeters: transaction?.comment?.customUnit?.routeDistanceMeters,
+                    distanceUnit: transaction?.comment?.customUnit?.distanceUnit,
+                });
                 if (!message) {
                     return;
                 }
@@ -877,6 +908,6 @@ const ViolationsUtils = {
 };
 
 export {getIsViolationFixed};
-export type {ViolationFixParams};
+export type {ViolationFixParams, ViolationTranslationParams};
 export default ViolationsUtils;
 export {filterReceiptViolations};

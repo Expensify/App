@@ -1,6 +1,5 @@
-import {hasSeenTourSelector, tryNewDotOnyxSelector} from '@selectors/Onboarding';
+import {hasSeenTourSelector} from '@selectors/Onboarding';
 import React from 'react';
-import useIsPaidPolicyAdmin from '@hooks/useIsPaidPolicyAdmin';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -18,11 +17,8 @@ function TestDriveMenuItem() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
-    const icons = useMemoizedLazyExpensifyIcons(['Binoculars'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Binoculars']);
     const [hasSeenTour = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
-    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT, {selector: tryNewDotOnyxSelector});
-    const isUserPaidPolicyMember = useIsPaidPolicyAdmin();
     const isVisible = !hasSeenTour;
 
     return (
@@ -34,7 +30,7 @@ function TestDriveMenuItem() {
             iconStyles={styles.popoverIconCircle}
             iconFill={theme.icon}
             title={translate('testDrive.quickAction.takeATwoMinuteTestDrive')}
-            onPress={() => interceptAnonymousUser(() => startTestDrive(introSelected, tryNewDot?.hasBeenAddedToNudgeMigration ?? false, isUserPaidPolicyMember))}
+            onPress={() => interceptAnonymousUser(() => startTestDrive())}
         />
     );
 }

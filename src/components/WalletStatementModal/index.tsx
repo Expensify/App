@@ -1,4 +1,5 @@
-import React, {useState} from 'react';
+import {hasSeenTourSelector} from '@selectors/Onboarding';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import useOnyx from '@hooks/useOnyx';
@@ -15,14 +16,25 @@ function WalletStatementModal({statementPageURL}: WalletStatementProps) {
 
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
+    const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const navigateRef = useRef<(event: MessageEvent<WalletStatementMessage>) => void>(null);
+
     /**
      * Handles in-app navigation for iframe links
      */
-    const navigate = (event: MessageEvent<WalletStatementMessage>) => {
-        const {data} = event;
-        const {type, url} = data || {};
-        handleWalletStatementNavigation(conciergeReportID, introSelected, session?.accountID, type, url);
-    };
+    const navigate = useCallback(
+        (event: MessageEvent<WalletStatementMessage>) => {
+            const {data} = event;
+            const {type, url} = data || {};
+            handleWalletStatementNavigation(conciergeReportID, introSelected, session?.accountID, isSelfTourViewed, betas, type, url);
+        },
+        [conciergeReportID, introSelected, session?.accountID, isSelfTourViewed, betas],
+    );
+
+    useEffect(() => {
+        navigateRef.current = navigate;
+    }, [navigate]);
 
     return (
         <>
@@ -41,7 +53,7 @@ function WalletStatementModal({statementPageURL}: WalletStatementProps) {
 
                         // We listen to a message sent from the iframe to the parent component when a link is clicked.
                         // This lets us handle navigation in the app, outside of the iframe.
-                        window.onmessage = navigate;
+                        window.onmessage = (event: MessageEvent<WalletStatementMessage>) => navigateRef.current?.(event);
                     }}
                 />
             </View>

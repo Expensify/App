@@ -1,3 +1,4 @@
+import {hasSeenTourSelector} from '@selectors/Onboarding';
 import {getReportActionsForReportIDs} from '@selectors/ReportAction';
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
@@ -189,6 +190,7 @@ function ReportActionItemParentAction({
 
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
 
     return (
         <View style={[styles.pRelative]}>
@@ -199,7 +201,7 @@ function ReportActionItemParentAction({
                     report?.errorFields?.createChatThread ?? (report?.errorFields?.createChat ? getMicroSecondOnyxErrorWithTranslationKey('report.genericCreateReportFailureMessage') : null)
                 }
                 errorRowStyles={[styles.ml10, styles.mr2]}
-                onClose={() => navigateToConciergeChatAndDeleteReport(report?.reportID, conciergeReportID, currentUserAccountID, introSelected, undefined, true)}
+                onClose={() => navigateToConciergeChatAndDeleteReport(report?.reportID, conciergeReportID, currentUserAccountID, introSelected, isSelfTourViewed, allBetas, undefined, true)}
             >
                 {ancestors.map((ancestor) => {
                     const {report: ancestorReport, reportAction: ancestorReportAction} = ancestor;
@@ -224,7 +226,9 @@ function ReportActionItemParentAction({
                             pendingAction={ancestorReport?.pendingFields?.addWorkspaceRoom ?? ancestorReport?.pendingFields?.createChat}
                             errors={ancestorReport?.errorFields?.addWorkspaceRoom ?? ancestorReport?.errorFields?.createChat}
                             errorRowStyles={[styles.ml10, styles.mr2]}
-                            onClose={() => navigateToConciergeChatAndDeleteReport(ancestorReport.reportID, conciergeReportID, currentUserAccountID, introSelected)}
+                            onClose={() =>
+                                navigateToConciergeChatAndDeleteReport(ancestorReport.reportID, conciergeReportID, currentUserAccountID, introSelected, isSelfTourViewed, allBetas)
+                            }
                         >
                             {shouldDisplayThreadDivider && (
                                 <ThreadDivider
@@ -243,7 +247,6 @@ function ReportActionItemParentAction({
                                 transactionThreadReport={transactionThreadReport}
                                 action={ancestorReportAction}
                                 displayAsGroup={false}
-                                isMostRecentIOUReportAction={false}
                                 shouldDisplayNewMarker={ancestor.shouldDisplayNewMarker}
                                 index={index}
                                 isFirstVisibleReportAction={isFirstVisibleReportAction}

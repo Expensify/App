@@ -6,7 +6,7 @@ const DefaultSuccessScreen = createScreenWithDefaults(
     SuccessScreenBase,
     {
         headerTitle: 'multifactorAuthentication.biometricsTest.biometricsAuthentication',
-        illustration: 'OpenPadlock',
+        illustration: 'OpenPadlockGreen',
         iconWidth: variables.openPadlockWidth,
         iconHeight: variables.openPadlockHeight,
         title: 'multifactorAuthentication.biometricsTest.authenticationSuccessful',

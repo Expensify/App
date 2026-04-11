@@ -3,6 +3,7 @@ import {useCallback, useEffect, useRef, useState} from 'react';
 import type {RefObject} from 'react';
 import type {TextInput} from 'react-native';
 import {InteractionManager} from 'react-native';
+import Accessibility from '@libs/Accessibility';
 import ComposerFocusManager from '@libs/ComposerFocusManager';
 import {moveSelectionToEnd, scrollToBottom} from '@libs/InputUtils';
 import isWindowReadyToFocus from '@libs/isWindowReadyToFocus';
@@ -11,6 +12,7 @@ import type {RootNavigatorParamList} from '@libs/Navigation/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {useSplashScreenState} from '@src/SplashScreenStateContext';
+import useIsInLandscapeMode from './useIsInLandscapeMode';
 import useOnyx from './useOnyx';
 import useSidePanelState from './useSidePanelState';
 
@@ -24,6 +26,8 @@ export default function useAutoFocusInput(isMultiline = false): UseAutoFocusInpu
     const [isScreenTransitionEnded, setIsScreenTransitionEnded] = useState(false);
     const [modal] = useOnyx(ONYXKEYS.MODAL);
     const isPopoverVisible = modal?.willAlertModalBecomeVisible && modal?.isPopover;
+    const isInLandscapeMode = useIsInLandscapeMode();
+    const isScreenReaderEnabled = Accessibility.useScreenReaderStatus();
 
     const {splashScreenState} = useSplashScreenState();
     const navigation = useNavigation<PlatformStackNavigationProp<RootNavigatorParamList>>();
@@ -40,7 +44,15 @@ export default function useAutoFocusInput(isMultiline = false): UseAutoFocusInpu
     }, []);
 
     useEffect(() => {
-        if (!isScreenTransitionEnded || !isInputInitialized || !inputRef.current || splashScreenState !== CONST.BOOT_SPLASH_STATE.HIDDEN || isPopoverVisible) {
+        if (
+            isScreenReaderEnabled ||
+            !isScreenTransitionEnded ||
+            !isInputInitialized ||
+            !inputRef.current ||
+            splashScreenState !== CONST.BOOT_SPLASH_STATE.HIDDEN ||
+            isPopoverVisible ||
+            isInLandscapeMode
+        ) {
             return;
         }
         // eslint-disable-next-line @typescript-eslint/no-deprecated
@@ -55,7 +67,7 @@ export default function useAutoFocusInput(isMultiline = false): UseAutoFocusInpu
         return () => {
             focusTaskHandle.cancel();
         };
-    }, [isMultiline, isScreenTransitionEnded, isInputInitialized, splashScreenState, isPopoverVisible]);
+    }, [isScreenReaderEnabled, isMultiline, isScreenTransitionEnded, isInputInitialized, splashScreenState, isPopoverVisible, isInLandscapeMode]);
 
     useFocusEffect(
         useCallback(() => {

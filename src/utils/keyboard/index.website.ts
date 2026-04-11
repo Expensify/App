@@ -67,13 +67,10 @@ const dismiss = (shouldSkipSafari = false): Promise<void> => {
 };
 
 const dismissKeyboardAndExecute = (cb: () => void): Promise<void> => {
-    return new Promise((resolve) => {
-        // This fixes a bug specific to native apps on Android < 16
-        // For web it just executes callback
-        // https://github.com/Expensify/App/issues/70692
-        cb();
-        resolve();
-    });
+    // This fixes a bug specific to native apps on Android < 16
+    // For web it just executes callback
+    // https://github.com/Expensify/App/issues/70692
+    return Promise.resolve().then(cb);
 };
 
 const utils = {dismiss, dismissKeyboardAndExecute, subscribeKeyboardVisibilityChange};
