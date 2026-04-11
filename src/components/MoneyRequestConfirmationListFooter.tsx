@@ -80,6 +80,7 @@ import ReceiptImage from './ReceiptImage';
 import {ShowContextMenuActionsContext, ShowContextMenuStateContext} from './ShowContextMenuContext';
 import Text from './Text';
 import TextInput from './TextInput';
+import UserPills from './UserPills';
 
 type MoneyRequestConfirmationListFooterProps = {
     /** The action to perform */
@@ -1172,10 +1173,20 @@ function MoneyRequestConfirmationListFooter({
                 <MenuItemWithTopDescription
                     key="attendees"
                     shouldShowRightIcon={!isReadOnly}
-                    title={iouAttendees?.map((item) => item?.displayName ?? item?.login).join(', ')}
                     description={`${translate('iou.attendees')} ${
                         iouAttendees?.length && iouAttendees.length > 1 && formattedAmountPerAttendee ? `\u00B7 ${formattedAmountPerAttendee} ${translate('common.perPerson')}` : ''
                     }`}
+                    titleComponent={
+                        Array.isArray(iouAttendees) ? (
+                            <UserPills
+                                users={iouAttendees.map((a) => ({
+                                    avatar: a?.avatarUrl,
+                                    displayName: a?.displayName ?? a?.login ?? a?.email ?? '',
+                                    accountID: a?.accountID,
+                                }))}
+                            />
+                        ) : undefined
+                    }
                     style={[styles.moneyRequestMenuItem]}
                     titleStyle={styles.flex1}
                     onPress={() => {
@@ -1186,7 +1197,6 @@ function MoneyRequestConfirmationListFooter({
                         Navigation.navigate(ROUTES.MONEY_REQUEST_ATTENDEE.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRoute()));
                     }}
                     interactive={!isReadOnly}
-                    shouldRenderAsHTML
                     brickRoadIndicator={shouldDisplayAttendeesError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                     errorText={shouldDisplayAttendeesError ? translate(formError) : ''}
                     sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.ATTENDEES_FIELD}
