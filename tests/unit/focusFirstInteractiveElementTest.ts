@@ -36,17 +36,54 @@ function simulateEnter() {
     document.dispatchEvent(new KeyboardEvent('keydown', {key: 'Enter', bubbles: true}));
 }
 
+function simulateSpace() {
+    document.dispatchEvent(new KeyboardEvent('keydown', {key: ' ', bubbles: true}));
+}
+
 afterEach(() => {
     document.body.innerHTML = '';
 });
 
 describe('focusFirstInteractiveElement', () => {
-    describe('guard conditions', () => {
-        it('returns false when container is null', () => {
+    describe('when Tab was used (should focus)', () => {
+        beforeEach(() => {
+            simulateTab();
+        });
+
+        it('should focus the first button with focusVisible: true', () => {
+            const button = document.createElement('button');
+            const container = createContainer(button);
+            const spy = jest.spyOn(button, 'focus');
+
+            expect(focusFirstInteractiveElement(container)).toBe(true);
+            expect(spy).toHaveBeenCalledWith({preventScroll: true, focusVisible: true});
+        });
+
+        it('should focus after Tab → Enter', () => {
+            simulateEnter();
+            const button = document.createElement('button');
+            const container = createContainer(button);
+            const spy = jest.spyOn(button, 'focus');
+
+            expect(focusFirstInteractiveElement(container)).toBe(true);
+            expect(spy).toHaveBeenCalledWith({preventScroll: true, focusVisible: true});
+        });
+
+        it('should focus after Tab → Space', () => {
+            simulateSpace();
+            const button = document.createElement('button');
+            const container = createContainer(button);
+            const spy = jest.spyOn(button, 'focus');
+
+            expect(focusFirstInteractiveElement(container)).toBe(true);
+            expect(spy).toHaveBeenCalledWith({preventScroll: true, focusVisible: true});
+        });
+
+        it('should not focus when container is null', () => {
             expect(focusFirstInteractiveElement(null)).toBe(false);
         });
 
-        it('returns false when another element already has focus', () => {
+        it('should not focus when another element already has focus', () => {
             const input = document.createElement('input');
             document.body.appendChild(input);
             input.focus();
@@ -58,117 +95,70 @@ describe('focusFirstInteractiveElement', () => {
             expect(spy).not.toHaveBeenCalled();
         });
 
-        it('returns false when container has no focusable elements', () => {
+        it('should not focus when container has no focusable elements', () => {
             const container = createContainer(document.createElement('div'));
 
             expect(focusFirstInteractiveElement(container)).toBe(false);
         });
     });
 
-    describe('Tab navigation (focusVisible: true)', () => {
-        beforeEach(() => {
-            simulateTab();
-        });
-
-        it('focuses with focusVisible: true after Tab', () => {
-            const button = document.createElement('button');
-            const container = createContainer(button);
-            const spy = jest.spyOn(button, 'focus');
-
-            expect(focusFirstInteractiveElement(container)).toBe(true);
-            expect(spy).toHaveBeenCalledWith({preventScroll: true, focusVisible: true});
-        });
-
-        it('preserves flag through Enter', () => {
-            simulateEnter();
-            const button = document.createElement('button');
-            const container = createContainer(button);
-            const spy = jest.spyOn(button, 'focus');
-
-            focusFirstInteractiveElement(container);
-            expect(spy).toHaveBeenCalledWith({preventScroll: true, focusVisible: true});
-        });
-
-        it('preserves flag through Space', () => {
-            document.dispatchEvent(new KeyboardEvent('keydown', {key: ' ', bubbles: true}));
-            const button = document.createElement('button');
-            const container = createContainer(button);
-            const spy = jest.spyOn(button, 'focus');
-
-            focusFirstInteractiveElement(container);
-            expect(spy).toHaveBeenCalledWith({preventScroll: true, focusVisible: true});
-        });
-    });
-
-    describe('form interaction (focusVisible: false)', () => {
-        beforeEach(() => {
+    describe('when Tab was NOT used (should skip focus)', () => {
+        it('should skip after typing', () => {
             simulateTab();
             simulateTyping();
-        });
-
-        it('clears flag after typing', () => {
             const button = document.createElement('button');
             const container = createContainer(button);
             const spy = jest.spyOn(button, 'focus');
 
-            focusFirstInteractiveElement(container);
-            expect(spy).toHaveBeenCalledWith({preventScroll: true, focusVisible: false});
+            expect(focusFirstInteractiveElement(container)).toBe(false);
+            expect(spy).not.toHaveBeenCalled();
         });
 
-        it('Enter after typing preserves false', () => {
+        it('should skip after typing → Enter', () => {
+            simulateTab();
+            simulateTyping();
             simulateEnter();
             const button = document.createElement('button');
             const container = createContainer(button);
             const spy = jest.spyOn(button, 'focus');
 
-            focusFirstInteractiveElement(container);
-            expect(spy).toHaveBeenCalledWith({preventScroll: true, focusVisible: false});
+            expect(focusFirstInteractiveElement(container)).toBe(false);
+            expect(spy).not.toHaveBeenCalled();
         });
-    });
 
-    describe('mouse resets flag', () => {
-        beforeEach(() => {
+        it('should skip after mousedown', () => {
             simulateTab();
             simulateMouse();
-        });
-
-        it('focuses with focusVisible: false after mousedown', () => {
             const button = document.createElement('button');
             const container = createContainer(button);
             const spy = jest.spyOn(button, 'focus');
 
-            focusFirstInteractiveElement(container);
-            expect(spy).toHaveBeenCalledWith({preventScroll: true, focusVisible: false});
+            expect(focusFirstInteractiveElement(container)).toBe(false);
+            expect(spy).not.toHaveBeenCalled();
         });
-    });
 
-    describe('page load (no interaction)', () => {
-        beforeEach(() => {
+        it('should skip on page load (no interaction)', () => {
             simulateMouse();
-        });
-
-        it('focuses with focusVisible: false', () => {
             const button = document.createElement('button');
             const container = createContainer(button);
             const spy = jest.spyOn(button, 'focus');
 
-            focusFirstInteractiveElement(container);
-            expect(spy).toHaveBeenCalledWith({preventScroll: true, focusVisible: false});
+            expect(focusFirstInteractiveElement(container)).toBe(false);
+            expect(spy).not.toHaveBeenCalled();
         });
     });
 
-    describe('aria-hidden filtering', () => {
+    describe('element filtering', () => {
         beforeEach(() => {
             simulateTab();
         });
 
-        it('skips elements inside aria-hidden containers', () => {
+        it('should skip elements inside aria-hidden containers', () => {
             const hiddenDiv = document.createElement('div');
             hiddenDiv.setAttribute('aria-hidden', 'true');
             const hiddenButton = document.createElement('button');
             hiddenDiv.appendChild(hiddenButton);
             const visibleButton = document.createElement('button');
-            visibleButton.setAttribute('aria-label', 'Visible');
             const container = createContainer(hiddenDiv, visibleButton);
             const hiddenSpy = jest.spyOn(hiddenButton, 'focus');
             const visibleSpy = jest.spyOn(visibleButton, 'focus');
@@ -178,95 +168,16 @@ describe('focusFirstInteractiveElement', () => {
             expect(visibleSpy).toHaveBeenCalled();
         });
 
-        it('returns false when all focusable elements are aria-hidden', () => {
+        it('should return false when all elements are aria-hidden', () => {
             const hiddenDiv = document.createElement('div');
             hiddenDiv.setAttribute('aria-hidden', 'true');
-            const hiddenButton = document.createElement('button');
-            hiddenDiv.appendChild(hiddenButton);
+            hiddenDiv.appendChild(document.createElement('button'));
             const container = createContainer(hiddenDiv);
 
             expect(focusFirstInteractiveElement(container)).toBe(false);
         });
-    });
 
-    describe('focusable element selection', () => {
-        beforeEach(() => {
-            simulateTab();
-        });
-
-        it('finds elements with role="button"', () => {
-            const div = document.createElement('div');
-            div.setAttribute('role', 'button');
-            div.setAttribute('tabindex', '0');
-            const container = createContainer(div);
-            const spy = jest.spyOn(div, 'focus');
-
-            focusFirstInteractiveElement(container);
-            expect(spy).toHaveBeenCalled();
-        });
-
-        it('finds elements with role="link"', () => {
-            const div = document.createElement('div');
-            div.setAttribute('role', 'link');
-            div.setAttribute('tabindex', '0');
-            const container = createContainer(div);
-            const spy = jest.spyOn(div, 'focus');
-
-            focusFirstInteractiveElement(container);
-            expect(spy).toHaveBeenCalled();
-        });
-
-        it('finds input elements', () => {
-            const input = document.createElement('input');
-            const container = createContainer(input);
-            const spy = jest.spyOn(input, 'focus');
-
-            focusFirstInteractiveElement(container);
-            expect(spy).toHaveBeenCalled();
-        });
-
-        it('finds textarea elements', () => {
-            const textarea = document.createElement('textarea');
-            const container = createContainer(textarea);
-            const spy = jest.spyOn(textarea, 'focus');
-
-            focusFirstInteractiveElement(container);
-            expect(spy).toHaveBeenCalled();
-        });
-
-        it('finds select elements', () => {
-            const select = document.createElement('select');
-            const container = createContainer(select);
-            const spy = jest.spyOn(select, 'focus');
-
-            focusFirstInteractiveElement(container);
-            expect(spy).toHaveBeenCalled();
-        });
-
-        it('finds link elements', () => {
-            const link = document.createElement('a');
-            link.setAttribute('href', '#');
-            const container = createContainer(link);
-            const spy = jest.spyOn(link, 'focus');
-
-            focusFirstInteractiveElement(container);
-            expect(spy).toHaveBeenCalled();
-        });
-
-        it('skips elements with tabindex="-1"', () => {
-            const skipDiv = document.createElement('div');
-            skipDiv.setAttribute('tabindex', '-1');
-            const button = document.createElement('button');
-            const container = createContainer(skipDiv, button);
-            const skipSpy = jest.spyOn(skipDiv, 'focus');
-            const buttonSpy = jest.spyOn(button, 'focus');
-
-            focusFirstInteractiveElement(container);
-            expect(skipSpy).not.toHaveBeenCalled();
-            expect(buttonSpy).toHaveBeenCalled();
-        });
-
-        it('skips disabled elements', () => {
+        it('should skip disabled elements', () => {
             const disabledButton = document.createElement('button');
             disabledButton.disabled = true;
             const enabledButton = document.createElement('button');
@@ -279,7 +190,7 @@ describe('focusFirstInteractiveElement', () => {
             expect(enabledSpy).toHaveBeenCalled();
         });
 
-        it('skips elements with aria-disabled="true"', () => {
+        it('should skip elements with aria-disabled="true"', () => {
             const ariaDisabledButton = document.createElement('button');
             ariaDisabledButton.setAttribute('aria-disabled', 'true');
             const enabledButton = document.createElement('button');
@@ -290,6 +201,79 @@ describe('focusFirstInteractiveElement', () => {
             focusFirstInteractiveElement(container);
             expect(disabledSpy).not.toHaveBeenCalled();
             expect(enabledSpy).toHaveBeenCalled();
+        });
+
+        it('should skip elements with tabindex="-1"', () => {
+            const skipDiv = document.createElement('div');
+            skipDiv.setAttribute('tabindex', '-1');
+            const button = document.createElement('button');
+            const container = createContainer(skipDiv, button);
+            const skipSpy = jest.spyOn(skipDiv, 'focus');
+            const buttonSpy = jest.spyOn(button, 'focus');
+
+            focusFirstInteractiveElement(container);
+            expect(skipSpy).not.toHaveBeenCalled();
+            expect(buttonSpy).toHaveBeenCalled();
+        });
+    });
+
+    describe('selector coverage', () => {
+        beforeEach(() => {
+            simulateTab();
+        });
+
+        it('should find button', () => {
+            const el = document.createElement('button');
+            const spy = jest.spyOn(el, 'focus');
+            focusFirstInteractiveElement(createContainer(el));
+            expect(spy).toHaveBeenCalled();
+        });
+
+        it('should find link (a[href])', () => {
+            const el = document.createElement('a');
+            el.setAttribute('href', '#');
+            const spy = jest.spyOn(el, 'focus');
+            focusFirstInteractiveElement(createContainer(el));
+            expect(spy).toHaveBeenCalled();
+        });
+
+        it('should find input', () => {
+            const el = document.createElement('input');
+            const spy = jest.spyOn(el, 'focus');
+            focusFirstInteractiveElement(createContainer(el));
+            expect(spy).toHaveBeenCalled();
+        });
+
+        it('should find textarea', () => {
+            const el = document.createElement('textarea');
+            const spy = jest.spyOn(el, 'focus');
+            focusFirstInteractiveElement(createContainer(el));
+            expect(spy).toHaveBeenCalled();
+        });
+
+        it('should find select', () => {
+            const el = document.createElement('select');
+            const spy = jest.spyOn(el, 'focus');
+            focusFirstInteractiveElement(createContainer(el));
+            expect(spy).toHaveBeenCalled();
+        });
+
+        it('should find [role="button"]', () => {
+            const el = document.createElement('div');
+            el.setAttribute('role', 'button');
+            el.setAttribute('tabindex', '0');
+            const spy = jest.spyOn(el, 'focus');
+            focusFirstInteractiveElement(createContainer(el));
+            expect(spy).toHaveBeenCalled();
+        });
+
+        it('should find [role="link"]', () => {
+            const el = document.createElement('div');
+            el.setAttribute('role', 'link');
+            el.setAttribute('tabindex', '0');
+            const spy = jest.spyOn(el, 'focus');
+            focusFirstInteractiveElement(createContainer(el));
+            expect(spy).toHaveBeenCalled();
         });
     });
 });

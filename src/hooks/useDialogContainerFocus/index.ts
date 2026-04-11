@@ -30,7 +30,7 @@ if (typeof document !== 'undefined') {
 
 /** @returns true if an element was focused, false otherwise. */
 function focusFirstInteractiveElement(container: HTMLElement | null): boolean {
-    if (!container || (document.activeElement && document.activeElement !== document.body)) {
+    if (!hadTabNavigation || !container || (document.activeElement && document.activeElement !== document.body)) {
         return false;
     }
     const targets = container.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR);
@@ -38,7 +38,7 @@ function focusFirstInteractiveElement(container: HTMLElement | null): boolean {
     if (!target) {
         return false;
     }
-    target.focus({preventScroll: true, focusVisible: hadTabNavigation} as FocusOptions);
+    target.focus({preventScroll: true, focusVisible: true} as FocusOptions);
     return true;
 }
 
