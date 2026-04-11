@@ -2118,7 +2118,9 @@ function getPolicyDocumentSourceURL(policyDocumentURL: string | undefined, polic
     }
 
     return addEncryptedAuthTokenToURL(
-        `${getApiRoot({shouldUseSecure: false})}api/GetPolicyDocument?policyID=${policyID}&v=${encodeURIComponent(policyDocumentURL)}`,
+        // Each PDF upload gets a unique S3 key, so policyDocumentURL changes on every replacement.
+        // Encoding it as cacheBuster ensures the full streaming URL is also unique, preventing stale browser/pdfjs cache.
+        `${getApiRoot({shouldUseSecure: false})}api/GetPolicyDocument?policyID=${policyID}&cacheBuster=${encodeURIComponent(policyDocumentURL)}`,
         encryptedAuthToken,
         true,
     );
