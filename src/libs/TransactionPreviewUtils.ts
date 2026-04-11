@@ -2,6 +2,7 @@ import truncate from 'lodash/truncate';
 import type {OnyxEntry} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -455,6 +456,56 @@ function createTransactionPreviewConditionals({
     };
 }
 
+/**
+ * Lightweight check for whether a transaction has any RBR (Red Brick Road) indicator.
+ * Evaluates transaction-level signals only (violations, hold, missing fields, receipt errors)
+ * without requiring heavy report/policy context.
+ */
+function transactionHasRBR(transaction: OnyxEntry<OnyxTypes.Transaction>, violations: OnyxTypes.TransactionViolations): boolean {
+    if (!transaction) {
+        return false;
+    }
+
+    // Check for violation-type or warning-type violations
+    const hasViolationOrWarning = violations?.some((v) => v.type === CONST.VIOLATION_TYPES.VIOLATION || v.type === CONST.VIOLATION_TYPES.WARNING);
+    if (hasViolationOrWarning) {
+        return true;
+    }
+
+    // Check if transaction is on hold
+    if (isOnHold(transaction)) {
+        return true;
+    }
+
+    // Check if transaction has missing required fields (missing merchant/amount)
+    if (isMerchantMissing(transaction) || isAmountMissing(transaction)) {
+        return true;
+    }
+
+    // Check if transaction has receipt error
+    if (hasReceiptError(transaction)) {
+        return true;
+    }
+
+    return false;
+}
+
+/**
+ * Compare two transactions by their RBR (Red Brick Road) status.
+ * Transactions with RBR indicators are sorted before those without.
+ * Returns 0 when both transactions have the same RBR status.
+ */
+function compareByRBR(a: OnyxTypes.Transaction, b: OnyxTypes.Transaction, violations: Record<string, OnyxTypes.TransactionViolations | undefined> | undefined): number {
+    const aViolations = violations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${a.transactionID}`] ?? [];
+    const bViolations = violations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${b.transactionID}`] ?? [];
+    const aHasRBR = transactionHasRBR(a, aViolations);
+    const bHasRBR = transactionHasRBR(b, bViolations);
+    if (aHasRBR === bHasRBR) {
+        return 0;
+    }
+    return aHasRBR ? -1 : 1;
+}
+
 export {
     getReviewNavigationRoute,
     getIOUPayerAndReceiver,
@@ -463,5 +514,7 @@ export {
     getViolationTranslatePath,
     getUniqueActionErrorsForTransaction,
     formatLastFourPAN,
+    transactionHasRBR,
+    compareByRBR,
 };
 export type {TranslationPathOrText};
