@@ -16,6 +16,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getTransactionsForMerging, setupMergeTransactionData, setupMergeTransactionDataAndNavigate} from '@libs/actions/MergeTransaction';
+import type {TargetTransactionThreadReportCandidate} from '@libs/actions/MergeTransaction';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import {fillMissingReceiptSource} from '@libs/MergeTransactionUtils';
 import {getTransactionReportName, isIOUReport} from '@libs/ReportUtils';
@@ -160,6 +161,12 @@ function MergeTransactionsListContent({transactionID, mergeTransaction, isOnSear
         }
 
         const reports = targetTransactionReport && sourceTransactionReport ? [targetTransactionReport, sourceTransactionReport] : undefined;
+        const targetTransactionThreadReportCandidate: TargetTransactionThreadReportCandidate | undefined = mergeTransaction?.targetTransactionThreadReportID
+            ? {
+                  transactionID: mergeTransaction?.targetTransactionID ?? transactionID,
+                  threadReportID: mergeTransaction.targetTransactionThreadReportID,
+              }
+            : undefined;
         setupMergeTransactionDataAndNavigate(
             transactionID,
             [targetTransaction, sourceTransaction],
@@ -169,7 +176,7 @@ function MergeTransactionsListContent({transactionID, mergeTransaction, isOnSear
             true,
             isOnSearch,
             [targetTransactionPolicy, sourceTransactionPolicy],
-            mergeTransaction?.targetTransactionThreadReportID,
+            targetTransactionThreadReportCandidate,
         );
     };
 

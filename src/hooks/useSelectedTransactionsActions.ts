@@ -7,6 +7,7 @@ import {useSearchActionsContext, useSearchStateContext} from '@components/Search
 import {initBulkEditDraftTransaction} from '@libs/actions/IOU';
 import {unholdRequest} from '@libs/actions/IOU/Hold';
 import {setupMergeTransactionDataAndNavigate} from '@libs/actions/MergeTransaction';
+import type {TargetTransactionThreadReportCandidate} from '@libs/actions/MergeTransaction';
 import {createTransactionThreadReport, exportReportToCSV} from '@libs/actions/Report';
 import {getExportTemplates, handlePreventSearchAPI} from '@libs/actions/Search';
 import initSplitExpense from '@libs/actions/SplitExpenses';
@@ -474,6 +475,13 @@ function useSelectedTransactionsActions({
                             }
                         }
 
+                        const targetTransactionThreadReportCandidate: TargetTransactionThreadReportCandidate | undefined = targetTransactionThreadReportIDOverride
+                            ? {
+                                  transactionID,
+                                  threadReportID: targetTransactionThreadReportIDOverride,
+                              }
+                            : undefined;
+
                         setupMergeTransactionDataAndNavigate(
                             transactionID,
                             selectedTransactionsList,
@@ -483,7 +491,7 @@ function useSelectedTransactionsActions({
                             false,
                             isOnSearch,
                             selectedTransactionsList.length > 1 ? [policy, policy] : undefined,
-                            targetTransactionThreadReportIDOverride,
+                            targetTransactionThreadReportCandidate,
                         );
                     },
                 });

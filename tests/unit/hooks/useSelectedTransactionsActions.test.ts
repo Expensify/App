@@ -899,7 +899,7 @@ describe('useSelectedTransactionsActions', () => {
             false,
             false,
             undefined,
-            transaction.transactionThreadReportID,
+            {transactionID: transaction.transactionID, threadReportID: transaction.transactionThreadReportID},
         );
     });
 
@@ -952,7 +952,7 @@ describe('useSelectedTransactionsActions', () => {
             false,
             true,
             undefined,
-            transaction.transactionThreadReportID,
+            {transactionID: transaction.transactionID, threadReportID: transaction.transactionThreadReportID},
         );
     });
 
@@ -1005,7 +1005,10 @@ describe('useSelectedTransactionsActions', () => {
         mergeOption?.onSelected?.();
 
         expect(createTransactionThreadReport).not.toHaveBeenCalled();
-        expect(setupMergeTransactionDataAndNavigate).toHaveBeenCalledWith(transactionID, [transaction], mockLocalCompare, mockGetCurrencyDecimals, [], false, true, undefined, childReportID);
+        expect(setupMergeTransactionDataAndNavigate).toHaveBeenCalledWith(transactionID, [transaction], mockLocalCompare, mockGetCurrencyDecimals, [], false, true, undefined, {
+            transactionID,
+            threadReportID: childReportID,
+        });
     });
 
     it('should create a thread and use its reportID as the merge override when no thread metadata exists', async () => {
@@ -1061,7 +1064,7 @@ describe('useSelectedTransactionsActions', () => {
             false,
             true,
             undefined,
-            createdThreadReportID,
+            {transactionID, threadReportID: createdThreadReportID},
         );
     });
 
@@ -1134,7 +1137,7 @@ describe('useSelectedTransactionsActions', () => {
             false,
             true,
             undefined,
-            threadReportID,
+            {transactionID, threadReportID},
         );
     });
 

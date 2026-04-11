@@ -11,6 +11,7 @@ import {useSearchActionsContext, useSearchStateContext} from '@components/Search
 import type {BulkPaySelectionData, PaymentData, SearchQueryJSON} from '@components/Search/types';
 import {unholdRequest} from '@libs/actions/IOU/Hold';
 import {setupMergeTransactionDataAndNavigate} from '@libs/actions/MergeTransaction';
+import type {TargetTransactionThreadReportCandidate} from '@libs/actions/MergeTransaction';
 import {createTransactionThreadReport, deleteAppReport, markAsManuallyExported, moveIOUReportToPolicy, moveIOUReportToPolicyAndInviteSubmitter} from '@libs/actions/Report';
 import {
     approveMoneyRequestOnSearch,
@@ -1305,6 +1306,13 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                                 targetTransactionThreadReportIDOverride = createdThreadReport?.reportID;
                             }
 
+                            const targetTransactionThreadReportCandidate: TargetTransactionThreadReportCandidate | undefined = targetTransactionThreadReportIDOverride
+                                ? {
+                                      transactionID,
+                                      threadReportID: targetTransactionThreadReportIDOverride,
+                                  }
+                                : undefined;
+
                             setupMergeTransactionDataAndNavigate(
                                 transactionID,
                                 searchedTransactions,
@@ -1314,7 +1322,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                                 false,
                                 true,
                                 undefined,
-                                targetTransactionThreadReportIDOverride,
+                                targetTransactionThreadReportCandidate,
                             );
                         },
                     });
