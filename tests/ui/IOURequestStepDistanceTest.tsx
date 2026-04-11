@@ -59,10 +59,12 @@ jest.mock('@libs/actions/IOU', () => {
         requestMoney: jest.fn(() => ({iouReport: undefined})),
         trackExpense: jest.fn(),
         createDistanceRequest: jest.fn(),
-        updateMoneyRequestDistance: jest.fn(),
-        setMoneyRequestDistance: jest.fn(),
     };
 });
+
+jest.mock('@libs/actions/IOU/UpdateMoneyRequest', () => ({
+    updateMoneyRequestDistance: jest.fn(),
+}));
 
 jest.mock('@libs/actions/IOU/MoneyRequest', () => ({
     handleMoneyRequestStepDistanceNavigation: jest.fn(),
@@ -337,7 +339,7 @@ describe('IOURequestStepDistance - draft transactions coverage', () => {
 });
 
 describe('IOURequestStepDistance - submitManualDistance', () => {
-    const {updateMoneyRequestDistance} = jest.requireMock<typeof IOU>('@libs/actions/IOU');
+    const {updateMoneyRequestDistance} = jest.requireMock<{updateMoneyRequestDistance: jest.Mock}>('@libs/actions/IOU/UpdateMoneyRequest');
 
     beforeAll(() => {
         Onyx.init({
