@@ -84,6 +84,7 @@ const signUpWithTestUser = () => {
 
 const report = createRandomReport(1, undefined);
 const parentReportAction = createRandomReportAction(1);
+const archivedReportsIDSet = new Set<string>();
 
 beforeEach(() => {
     // Initialize the network key for OfflineWithFeedback
@@ -115,6 +116,7 @@ function ReportActionsListWrapper() {
                             loadOlderChats={mockLoadChats}
                             loadNewerChats={mockLoadChats}
                             transactionThreadReport={report}
+                            archivedReportsIDSet={archivedReportsIDSet}
                         />
                     </ActionListContext.Provider>
                 </ReactionListContext.Provider>
