@@ -441,18 +441,6 @@ function SettlementButton({
                     },
                     value: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
                 };
-                // Test cases:
-                // Sign up as a new user, complete until interested feature, make sure new WS is created
-                // Delete the WS
-                // Go to self DM, track new distance, in confirm page, press Rate, press Upgrade
-                // Delete the WS
-                // Make sure the account personal currency is not supported (not USD, AUD, etc.)
-                // From another account that has a workspace with USD currency, send an invoice
-                // Press Pay > Pay as business > Mark as paid
-                // Delete the WS
-                // From another account that has a workspace with USD currency, send an invoice again
-                // Change the account personal currency to USD
-                // Press Pay > Pay as business > Add a bank account
                 return [
                     ...(showPayViaExpensifyOptions ? getPaymentSubItems(payAsBusiness) : []),
                     ...(showPayViaExpensifyOptions && isPolicyCurrencySupported ? [addBankAccountItem] : []),
