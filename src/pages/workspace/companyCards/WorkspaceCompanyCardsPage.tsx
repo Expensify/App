@@ -64,12 +64,12 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
     const isLoading = !isOffline && (!allCardFeeds || (isFeedAdded && isLoadingOnyxValue(cardListMetadata)));
 
     useEffect(() => {
-        if (isOffline) {
+        if (isOffline || allCardFeeds) {
             return;
         }
 
         loadPolicyCompanyCardsPage();
-    }, [loadPolicyCompanyCardsPage, isOffline]);
+    }, [loadPolicyCompanyCardsPage, isOffline, allCardFeeds]);
 
     const loadPolicyCompanyCardsFeed = useCallback(() => {
         if (isLoading || !bankName || isFeedPending || isOffline) {
