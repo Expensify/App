@@ -5,7 +5,6 @@ import * as API from '@libs/API';
 import type {ApproveMoneyRequestParams, ReopenReportParams, RetractReportParams, SubmitReportParams, UnapproveExpenseReportParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
-import Navigation from '@libs/Navigation/Navigation';
 import {isOffline} from '@libs/Network/NetworkStore';
 // eslint-disable-next-line @typescript-eslint/no-deprecated
 import {buildNextStepNew, buildOptimisticNextStep} from '@libs/NextStepUtils';
@@ -58,7 +57,6 @@ import {
 } from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -73,11 +71,8 @@ type ApproveMoneyRequestFunctionParams = {
     isASAPSubmitBetaEnabled: boolean;
     expenseReportCurrentNextStepDeprecated: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>;
     betas: OnyxEntry<OnyxTypes.Beta[]>;
-    userBillingGracePeriodEnds: OnyxCollection<OnyxTypes.BillingGraceEndPeriod>;
-    amountOwed: OnyxEntry<number>;
     full?: boolean;
     onApproved?: () => void;
-    ownerBillingGracePeriodEnd: OnyxEntry<number>;
     delegateEmail: string | undefined;
 };
 
@@ -89,10 +84,7 @@ type SubmitReportFunctionParams = {
     hasViolations: boolean;
     isASAPSubmitBetaEnabled: boolean;
     expenseReportCurrentNextStepDeprecated: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>;
-    userBillingGracePeriodEnds: OnyxCollection<OnyxTypes.BillingGraceEndPeriod>;
-    amountOwed: OnyxEntry<number>;
     onSubmitted?: () => void;
-    ownerBillingGracePeriodEnd: OnyxEntry<number>;
     delegateEmail: string | undefined;
 };
 
@@ -310,22 +302,8 @@ function getReportOriginalCreationTimestamp(expenseReport?: OnyxEntry<OnyxTypes.
 }
 
 function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
-    const {
-        expenseReport,
-        policy,
-        currentUserAccountIDParam,
-        currentUserEmailParam,
-        hasViolations,
-        isASAPSubmitBetaEnabled,
-        expenseReportCurrentNextStepDeprecated,
-        betas,
-        userBillingGracePeriodEnds,
-        amountOwed,
-        full,
-        onApproved,
-        ownerBillingGracePeriodEnd,
-        delegateEmail,
-    } = params;
+    const {expenseReport, policy, currentUserAccountIDParam, currentUserEmailParam, hasViolations, isASAPSubmitBetaEnabled, expenseReportCurrentNextStepDeprecated, betas, full, onApproved} =
+        params;
     if (!expenseReport) {
         return;
     }
@@ -1211,11 +1189,7 @@ function submitReport({
     hasViolations,
     isASAPSubmitBetaEnabled,
     expenseReportCurrentNextStepDeprecated,
-    userBillingGracePeriodEnds,
-    amountOwed,
     onSubmitted,
-    ownerBillingGracePeriodEnd,
-    delegateEmail,
 }: SubmitReportFunctionParams) {
     if (!expenseReport) {
         return;

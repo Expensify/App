@@ -31,7 +31,6 @@ import isReportOpenInSuperWideRHP from '@libs/Navigation/helpers/isReportOpenInS
 import isReportTopmostSplitNavigator from '@libs/Navigation/helpers/isReportTopmostSplitNavigator';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
-import {isOffline} from '@libs/Network/NetworkStore';
 // eslint-disable-next-line @typescript-eslint/no-deprecated
 import {buildNextStepNew, buildOptimisticNextStep} from '@libs/NextStepUtils';
 import {roundToTwoDecimalPlaces} from '@libs/NumberUtils';
@@ -40,7 +39,7 @@ import revokeOdometerImageUri from '@libs/OdometerImageUtils';
 import {getManagerMcTestParticipant, getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
 import {getCustomUnitID} from '@libs/PerDiemRequestUtils';
 import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
-import {getDistanceRateCustomUnit, hasDependentTags, hasDynamicExternalWorkflow, isPaidGroupPolicy, isPolicyAdmin, isSubmitAndClose} from '@libs/PolicyUtils';
+import {getDistanceRateCustomUnit, hasDependentTags, isPaidGroupPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
 import {
     getAllReportActions,
     getIOUActionForTransactionID,
@@ -48,7 +47,6 @@ import {
     getReportActionHtml,
     getReportActionText,
     isCreatedAction,
-    isDeletedAction,
     isMoneyRequestAction,
     isReportPreviewAction,
 } from '@libs/ReportActionsUtils';
@@ -66,13 +64,10 @@ import {
     buildOptimisticModifiedExpenseReportAction,
     buildOptimisticMoneyRequestEntities,
     buildOptimisticReportPreview,
-    canBeAutoReimbursed,
     canEditFieldOfMoneyRequest,
     findSelfDMReportID,
     generateReportID,
-    getAllHeldTransactions as getAllHeldTransactionsReportUtils,
     getChatByParticipants,
-    getMoneyRequestSpendBreakdown,
     getOutstandingChildRequest,
     getParsedComment,
     getReportNotificationPreference,
@@ -80,31 +75,23 @@ import {
     getReportTransactions,
     getTransactionDetails,
     hasHeldExpenses as hasHeldExpensesReportUtils,
-    hasOnlyNonReimbursableTransactions,
     hasOutstandingChildRequest,
     hasViolations as hasViolationsReportUtils,
-    isArchivedReport,
     isDeprecatedGroupDM,
     isExpenseReport,
     isGroupChat,
     isIndividualInvoiceRoom,
     isInvoiceReport as isInvoiceReportReportUtils,
     isInvoiceRoom,
-    isIOUReport,
     isMoneyRequestReport as isMoneyRequestReportReportUtils,
     isOneOnOneChat,
     isOneTransactionReport,
     isOneTransactionThread,
-    isOpenExpenseReport as isOpenExpenseReportReportUtils,
-    isOpenInvoiceReport as isOpenInvoiceReportReportUtils,
     isOptimisticPersonalDetail,
-    isPayAtEndExpenseReport as isPayAtEndExpenseReportReportUtils,
     isPolicyExpenseChat as isPolicyExpenseChatReportUtil,
     isProcessingReport,
-    isReportApproved,
     isSelectedManagerMcTest,
     isSelfDM,
-    isSettled,
     isTestTransactionReport,
     populateOptimisticReportFormula,
     shouldCreateNewMoneyRequestReport as shouldCreateNewMoneyRequestReportReportUtils,

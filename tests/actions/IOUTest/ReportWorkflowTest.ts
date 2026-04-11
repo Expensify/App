@@ -21,8 +21,7 @@ import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 import {createWorkspace, deleteWorkspace, generatePolicyID, setWorkspaceApprovalMode} from '@libs/actions/Policy/Policy';
 // eslint-disable-next-line no-restricted-syntax
 import type * as PolicyUtils from '@libs/PolicyUtils';
-import {getAllReportActions, getOriginalMessage} from '@libs/ReportActionsUtils';
-import {getReportOrDraftReport} from '@libs/ReportUtils';
+import {getOriginalMessage} from '@libs/ReportActionsUtils';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
@@ -47,7 +46,7 @@ import {createRandomReport} from '../../utils/collections/reports';
 import createRandomTransaction from '../../utils/collections/transaction';
 import getOnyxValue from '../../utils/getOnyxValue';
 import type {MockFetch} from '../../utils/TestHelper';
-import {getGlobalFetchMock, getOnyxData, localeCompare, setPersonalDetails, signInWithTestUser, translateLocal} from '../../utils/TestHelper';
+import {getGlobalFetchMock, getOnyxData, localeCompare} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../../utils/waitForBatchedUpdatesWithAct';
 
@@ -95,6 +94,9 @@ jest.mock('@libs/deferredLayoutWrite', () => ({
 }));
 jest.mock('@hooks/useCardFeedsForDisplay', () => jest.fn(() => ({defaultCardFeed: null, cardFeedsByPolicy: {}})));
 
+const RORY_EMAIL = 'rory@expensifail.com';
+const RORY_ACCOUNT_ID = 3;
+
 jest.mock('@libs/PolicyUtils', () => ({
     ...jest.requireActual<typeof PolicyUtils>('@libs/PolicyUtils'),
     isPaidGroupPolicy: jest.fn().mockReturnValue(true),
@@ -103,25 +105,9 @@ jest.mock('@libs/PolicyUtils', () => ({
 
 const CARLOS_EMAIL = 'cmartins@expensifail.com';
 const CARLOS_ACCOUNT_ID = 1;
-const CARLOS_PARTICIPANT: Participant = {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS, role: 'member'};
-const JULES_EMAIL = 'jules@expensifail.com';
-const JULES_ACCOUNT_ID = 2;
-const RORY_EMAIL = 'rory@expensifail.com';
-const RORY_ACCOUNT_ID = 3;
-const RORY_PARTICIPANT: Participant = {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS, role: 'admin'};
-const VIT_EMAIL = 'vit@expensifail.com';
-const VIT_ACCOUNT_ID = 4;
 
 OnyxUpdateManager();
 describe('actions/IOU/ReportWorkflow', () => {
-    const currentUserPersonalDetails: CurrentUserPersonalDetails = {
-        ...createPersonalDetails(RORY_ACCOUNT_ID),
-        login: RORY_EMAIL,
-        email: RORY_EMAIL,
-        displayName: RORY_EMAIL,
-        avatar: 'https://example.com/avatar.jpg',
-    };
-
     beforeAll(() => {
         Onyx.init({
             keys: ONYXKEYS,
