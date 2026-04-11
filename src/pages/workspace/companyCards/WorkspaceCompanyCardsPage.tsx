@@ -53,11 +53,6 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
     }, [policy?.employeeList]);
 
     const loadPolicyCompanyCardsPage = useCallback(() => {
-        // Skip the API call when workspaceAccountID is 0 -- Onyx discards writes to collection keys with member ID '0'.
-        if (domainOrWorkspaceAccountID === CONST.DEFAULT_NUMBER_ID) {
-            return;
-        }
-
         const emailList = Object.keys(getMemberAccountIDsForWorkspace(employeeListRef.current));
         openPolicyCompanyCardsPage(policyID, domainOrWorkspaceAccountID, emailList, translate);
     }, [domainOrWorkspaceAccountID, policyID, translate]);
