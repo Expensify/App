@@ -222,7 +222,9 @@ function ReportActionsList({
     const shouldFocusToTopOnMount = useMemo(() => isTransactionThreadReport || isMoneyRequestOrInvoiceReport, [isMoneyRequestOrInvoiceReport, isTransactionThreadReport]);
 
     // Render CREATED action above InvertedFlatList to fix keyboard tab order in transaction threads.
-    const createdAction = isTransactionThreadReport ? sortedVisibleReportActions.find((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) : undefined;
+    // Only extract on wide screens — on narrow screens the extracted element overflows the container.
+    const createdAction =
+        isTransactionThreadReport && !shouldUseNarrowLayout ? sortedVisibleReportActions.find((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) : undefined;
     const listData = createdAction ? sortedVisibleReportActions.filter((action) => action.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED) : sortedVisibleReportActions;
 
     const topReportAction = sortedVisibleReportActions.at(-1);
