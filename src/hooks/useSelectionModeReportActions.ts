@@ -46,6 +46,7 @@ import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import useActiveAdminPolicies from './useActiveAdminPolicies';
 import useConfirmPendingRTERAndProceed from './useConfirmPendingRTERAndProceed';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
+import useDefaultWorkspaceName from './useDefaultWorkspaceName';
 import {useMemoizedLazyExpensifyIcons} from './useLazyAsset';
 import useLocalize from './useLocalize';
 import useNonReimbursablePaymentModal from './useNonReimbursablePaymentModal';
@@ -57,7 +58,6 @@ import usePolicy from './usePolicy';
 import useReportIsArchived from './useReportIsArchived';
 import useSearchShouldCalculateTotals from './useSearchShouldCalculateTotals';
 import useStrictPolicyRules from './useStrictPolicyRules';
-import useDefaultWorkspaceName from './useDefaultWorkspaceName';
 
 type UseSelectionModeReportActionsParams = {
     report: OnyxEntry<OnyxTypes.Report>;
