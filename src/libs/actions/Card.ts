@@ -1572,7 +1572,7 @@ function combineSpendRuleASTNodes(nodes: ExpensifyCardRuleFilter[], operator: Va
     return remainingNodes.reduce<ExpensifyCardRuleFilter>((accumulator, node) => ({left: accumulator, operator, right: node}), firstNode);
 }
 
-function buildSpendRuleAST(spendRuleValues: SpendRuleForm): ExpensifyCardRule | undefined {
+function buildSpendRuleAST(spendRuleValues: SpendRuleForm, existingCreated?: string): ExpensifyCardRule | undefined {
     const cardIDs = spendRuleValues.cardIDs ?? [];
     if (cardIDs.length === 0) {
         return undefined;
@@ -1643,7 +1643,7 @@ function buildSpendRuleAST(spendRuleValues: SpendRuleForm): ExpensifyCardRule | 
     }
 
     return {
-        created: DateUtils.getDBTime(),
+        created: existingCreated ?? DateUtils.getDBTime(),
         action: spendRuleValues.restrictionAction ?? CONST.SPEND_RULES.ACTION.ALLOW,
         filters,
     };
@@ -1709,9 +1709,9 @@ function getSpendRuleFormValuesFromCardRule(cardRule: ExpensifyCardRule): SpendR
     return formValues;
 }
 
-function setExpensifyCardRule(domainAccountID: number, cardRuleID: string, spendRuleValues: SpendRuleForm) {
+function setExpensifyCardRule(domainAccountID: number, cardRuleID: string, spendRuleValues: SpendRuleForm, existingRule?: ExpensifyCardRule) {
     const ruleID = cardRuleID;
-    const ruleAST = buildSpendRuleAST(spendRuleValues);
+    const ruleAST = buildSpendRuleAST(spendRuleValues, existingRule?.created);
     if (!ruleAST) {
         return;
     }
@@ -1733,8 +1733,9 @@ function setExpensifyCardRule(domainAccountID: number, cardRuleID: string, spend
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${domainAccountID}`,
             value: {
+                hasOnceLoaded: true,
                 cardRules: {
-                    [ruleID]: null,
+                    [ruleID]: existingRule ?? null,
                 },
             },
         },
@@ -1744,6 +1745,43 @@ function setExpensifyCardRule(domainAccountID: number, cardRuleID: string, spend
         domainAccountID,
         cardRuleID: ruleID,
         cardRuleValue: JSON.stringify(ruleAST),
+    };
+
+    API.write(WRITE_COMMANDS.SET_EXPENSIFY_CARD_RULE, parameters, {optimisticData, failureData});
+}
+
+function deleteExpensifyCardRule(domainAccountID: number, cardRuleID: string, existingRule?: ExpensifyCardRule) {
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${domainAccountID}`,
+            value: {
+                hasOnceLoaded: true,
+                cardRules: {
+                    [cardRuleID]: null,
+                },
+            },
+        },
+    ];
+
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS>> = existingRule
+        ? [
+              {
+                  onyxMethod: Onyx.METHOD.MERGE,
+                  key: `${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${domainAccountID}`,
+                  value: {
+                      cardRules: {
+                          [cardRuleID]: existingRule,
+                      },
+                  },
+              },
+          ]
+        : [];
+
+    const parameters: SetExpensifyCardRuleParams = {
+        domainAccountID,
+        cardRuleID,
+        cardRuleValue: '',
     };
 
     API.write(WRITE_COMMANDS.SET_EXPENSIFY_CARD_RULE, parameters, {optimisticData, failureData});
@@ -1850,6 +1888,7 @@ export {
     clearIssueNewCardFormData,
     setDraftInviteAccountID,
     resolveFraudAlert,
+    deleteExpensifyCardRule,
     setExpensifyCardRule,
     getSpendRuleFormValuesFromCardRule,
 };

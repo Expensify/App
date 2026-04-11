@@ -321,20 +321,10 @@ function getCustomUnitsForDuplication(
         return undefined;
     }
 
-    const getUnitWithoutPendingDeleteRates = (customUnit: CustomUnit | undefined) => {
-        if (!customUnit) {
-            return undefined;
-        }
-        return {
-            ...customUnit,
-            rates: Object.fromEntries(Object.entries(customUnit.rates).filter(([, rate]) => rate.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)),
-        };
-    };
-
-    const distanceCustomUnit = getUnitWithoutPendingDeleteRates(Object.values(customUnits).find((customUnit) => customUnit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE));
-    const perDiemUnit = getUnitWithoutPendingDeleteRates(Object.values(customUnits).find((customUnit) => customUnit.name === CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL));
-
     if (isDistanceRatesOptionSelected && isPerDiemOptionSelected) {
+        const distanceCustomUnit = Object.values(customUnits).find((customUnit) => customUnit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE);
+        const perDiemUnit = Object.values(customUnits).find((customUnit) => customUnit.name === CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL);
+
         if (!perDiemUnit || !distanceCustomUnit || !perDiemCustomUnitID || !distanceCustomUnitID) {
             return undefined;
         }
@@ -343,12 +333,14 @@ function getCustomUnitsForDuplication(
     }
 
     if (isDistanceRatesOptionSelected && distanceCustomUnitID) {
+        const distanceCustomUnit = Object.values(customUnits).find((customUnit) => customUnit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE);
         if (!distanceCustomUnit) {
             return undefined;
         }
         return {[distanceCustomUnitID]: distanceCustomUnit};
     }
 
+    const perDiemUnit = Object.values(customUnits).find((customUnit) => customUnit.name === CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL);
     if (!perDiemUnit || !perDiemCustomUnitID) {
         return undefined;
     }
@@ -693,6 +685,25 @@ function hasCustomCategories(policyCategories: OnyxEntry<PolicyCategories>): boo
     const defaultCategoryNames = new Set<string>(Object.values(CONST.POLICY.DEFAULT_CATEGORIES));
 
     return Object.values(policyCategories).some((category) => category && category.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && !defaultCategoryNames.has(category.name));
+}
+
+/**
+ * Checks if a policy has any non-default rules configured.
+ * Defaults are: no approval/expense/coding rules and no custom rules text.
+ */
+function hasNonDefaultRules(policy: OnyxEntry<Policy>): boolean {
+    if (!policy) {
+        return false;
+    }
+
+    const hasCustomRules = !!policy.customRules && policy.customRules.trim().length > 0;
+
+    const {rules} = policy;
+    const hasApprovalRules = !!rules?.approvalRules && rules.approvalRules.length > 0;
+    const hasExpenseRules = !!rules?.expenseRules && rules.expenseRules.length > 0;
+    const hasCodingRules = !!rules?.codingRules && Object.keys(rules.codingRules).length > 0;
+
+    return hasCustomRules || hasApprovalRules || hasExpenseRules || hasCodingRules;
 }
 
 /**
@@ -2093,6 +2104,7 @@ export {
     getTagLists,
     hasTags,
     hasCustomCategories,
+    hasNonDefaultRules,
     getTaxByID,
     getUnitRateValue,
     getRateDisplayValue,
