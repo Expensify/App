@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useEffect} from 'react';
 import type {ReactNode} from 'react';
 import type {OnyxCollection} from 'react-native-onyx';
 import type {PopoverComponentProps} from '@components/Search/FilterDropdowns/DropdownButton';
@@ -18,9 +18,10 @@ import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {close} from '@libs/actions/Modal';
+import {openSearchCardFiltersPage} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
 import {buildFilterQueryWithSortDefaults} from '@libs/SearchQueryUtils';
-import {filterValidHasValues, getFeedOptions, getGroupCurrencyOptions, getHasOptions, getStatusOptions, getWithdrawalTypeOptions, mapFiltersFormToLabelValueList} from '@libs/SearchUIUtils';
+import {filterValidHasValues, getCurrencyOptions, getFeedOptions, getHasOptions, getStatusOptions, getWithdrawalTypeOptions, mapFiltersFormToLabelValueList} from '@libs/SearchUIUtils';
 import type {SearchFilter} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -86,7 +87,7 @@ function GroupCurrencyPopup({updateFilterForm, closeOverlay}: FilterBarPopupProp
     const {translate} = useLocalize();
     const {currencyList} = useCurrencyListState();
     const {getCurrencySymbol} = useCurrencyListActions();
-    const groupCurrencyOptions = getGroupCurrencyOptions(currencyList, getCurrencySymbol);
+    const groupCurrencyOptions = getCurrencyOptions(currencyList, getCurrencySymbol);
     const [groupCurrency] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {selector: filterGroupCurrencySelector});
 
     const groupCurrencyValue = groupCurrencyOptions.find((option) => option.value === groupCurrency) ?? null;
@@ -104,18 +105,30 @@ function GroupCurrencyPopup({updateFilterForm, closeOverlay}: FilterBarPopupProp
     );
 }
 
-function FeedPopup({updateFilterForm, closeOverlay}: FilterBarPopupProps) {
+function FeedPopup({updateFilterForm, closeOverlay, isExpanded}: FilterBarPopupProps) {
+    const {isOffline} = useNetwork();
     const {translate, localeCompare} = useLocalize();
     const feedKeysWithCards = useFeedKeysWithAssignedCards();
+
     const [feed] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {selector: filterFeedSelector});
     const [personalAndWorkspaceCards] = useOnyx(ONYXKEYS.DERIVED.PERSONAL_AND_WORKSPACE_CARD_LIST);
     const [allFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER);
+    const [areCardsLoaded] = useOnyx(ONYXKEYS.IS_SEARCH_FILTERS_CARD_DATA_LOADED);
+
+    useEffect(() => {
+        if (isOffline || !isExpanded) {
+            return;
+        }
+        openSearchCardFiltersPage();
+    }, [isOffline, isExpanded]);
 
     const updateFeedFilterForm = (items: Array<MultiSelectItem<string>>) => {
         updateFilterForm({feed: items.map((item) => item.value)});
     };
+
     const feedOptions = getFeedOptions(allFeeds, personalAndWorkspaceCards, translate, localeCompare, feedKeysWithCards);
     const feedValue = feed ? feedOptions.filter((option) => feed.includes(option.value)) : [];
+    const shouldShowLoadingState = !areCardsLoaded && !isOffline;
 
     return (
         <MultiSelectFilterPopup
@@ -123,6 +136,7 @@ function FeedPopup({updateFilterForm, closeOverlay}: FilterBarPopupProps) {
             translationKey="search.filters.feed"
             items={feedOptions}
             value={feedValue}
+            loading={shouldShowLoadingState}
             onChangeCallback={updateFeedFilterForm}
         />
     );
@@ -167,16 +181,19 @@ function makeDateFilterItem(
     on: string | undefined,
     after: string | undefined,
     before: string | undefined,
+    range: string | undefined,
     updateFilterForm: (v: Partial<SearchAdvancedFiltersForm>) => void,
 ): FilterItem {
     const value = {
         [CONST.SEARCH.DATE_MODIFIERS.ON]: on,
         [CONST.SEARCH.DATE_MODIFIERS.AFTER]: after,
         [CONST.SEARCH.DATE_MODIFIERS.BEFORE]: before,
+        [CONST.SEARCH.DATE_MODIFIERS.RANGE]: range,
     };
     return {
         PopoverComponent: (props) => (
             <DatePickerFilterPopup
+                isExpanded={props.isExpanded}
                 closeOverlay={props.closeOverlay}
                 filterKey={filterKey}
                 value={value}
@@ -224,7 +241,7 @@ function useSearchActionsBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEn
             buildFilterQueryWithSortDefaults(
                 updatedFilterFormValues,
                 {view: searchAdvancedFiltersForm.view, groupBy: searchAdvancedFiltersForm.groupBy},
-                {sortBy: queryJSON.sortBy, sortOrder: queryJSON.sortOrder, limit: queryJSON.limit},
+                {sortBy: queryJSON.sortBy, sortOrder: queryJSON.sortOrder},
             ) ?? '';
         if (!queryString) {
             return;
@@ -239,8 +256,9 @@ function useSearchActionsBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEn
         switch (filterKey) {
             case FILTER_KEYS.GROUP_CURRENCY:
                 return {
-                    PopoverComponent: ({closeOverlay}) => (
+                    PopoverComponent: ({closeOverlay, isExpanded}) => (
                         <GroupCurrencyPopup
+                            isExpanded={isExpanded}
                             updateFilterForm={updateFilterForm}
                             closeOverlay={closeOverlay}
                         />
@@ -285,8 +303,9 @@ function useSearchActionsBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEn
             }
             case FILTER_KEYS.FEED: {
                 return {
-                    PopoverComponent: ({closeOverlay}) => (
+                    PopoverComponent: ({closeOverlay, isExpanded}) => (
                         <FeedPopup
+                            isExpanded={isExpanded}
                             updateFilterForm={updateFilterForm}
                             closeOverlay={closeOverlay}
                         />
@@ -304,6 +323,7 @@ function useSearchActionsBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEn
                     searchAdvancedFiltersForm.postedOn,
                     searchAdvancedFiltersForm.postedAfter,
                     searchAdvancedFiltersForm.postedBefore,
+                    searchAdvancedFiltersForm.postedRange,
                     updateFilterForm,
                 );
             case FILTER_KEYS.WITHDRAWAL_TYPE: {
@@ -331,6 +351,7 @@ function useSearchActionsBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEn
                     searchAdvancedFiltersForm.withdrawnOn,
                     searchAdvancedFiltersForm.withdrawnAfter,
                     searchAdvancedFiltersForm.withdrawnBefore,
+                    searchAdvancedFiltersForm.withdrawnRange,
                     updateFilterForm,
                 );
             case FILTER_KEYS.STATUS: {
@@ -362,6 +383,7 @@ function useSearchActionsBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEn
                     searchAdvancedFiltersForm.dateOn,
                     searchAdvancedFiltersForm.dateAfter,
                     searchAdvancedFiltersForm.dateBefore,
+                    searchAdvancedFiltersForm.dateRange,
                     updateFilterForm,
                 );
             case FILTER_KEYS.FROM: {
@@ -377,8 +399,9 @@ function useSearchActionsBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEn
             }
             case FILTER_KEYS.POLICY_ID:
                 return {
-                    PopoverComponent: ({closeOverlay}) => (
+                    PopoverComponent: ({closeOverlay, isExpanded}) => (
                         <WorkspacePopup
+                            isExpanded={isExpanded}
                             policyIDQuery={queryJSON.policyID}
                             updateFilterForm={updateFilterForm}
                             closeOverlay={closeOverlay}
