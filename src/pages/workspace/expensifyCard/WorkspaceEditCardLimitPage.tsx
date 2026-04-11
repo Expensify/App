@@ -8,13 +8,14 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useCurrencyForExpensifyCard from '@hooks/useCurrencyForExpensifyCard';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useDefaultFundID from '@hooks/useDefaultFundID';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updateExpensifyCardLimit} from '@libs/actions/Card';
 import {filterInactiveCards} from '@libs/CardUtils';
-import {convertToDisplayString, convertToFrontendAmountAsString} from '@libs/CurrencyUtils';
+import {convertToFrontendAmountAsString} from '@libs/CurrencyUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getFieldRequiredErrors} from '@libs/ValidationUtils';
 import Navigation from '@navigation/Navigation';
@@ -35,6 +36,7 @@ type WorkspaceEditCardLimitPageProps = PlatformStackScreenProps<
 
 function WorkspaceEditCardLimitPage({route}: WorkspaceEditCardLimitPageProps) {
     const {policyID, cardID, backTo} = route.params;
+    const {convertToDisplayString} = useCurrencyListActions();
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
     const styles = useThemeStyles();
