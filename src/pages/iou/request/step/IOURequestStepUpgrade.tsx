@@ -7,7 +7,6 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import WorkspaceConfirmationForm from '@components/WorkspaceConfirmationForm';
 import type {WorkspaceConfirmationSubmitFunctionParams} from '@components/WorkspaceConfirmationForm';
-import useActivePolicy from '@hooks/useActivePolicy';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDefaultWorkspaceName from '@hooks/useDefaultWorkspaceName';
 import useHasActiveAdminPolicies from '@hooks/useHasActiveAdminPolicies';
@@ -63,10 +62,10 @@ function IOURequestStepUpgrade({
     const isReporting = upgradePath === CONST.UPGRADE_PATHS.REPORTS;
     const platform = getPlatform();
     const isWeb = platform === CONST.PLATFORM.WEB;
-    const activePolicy = useActivePolicy();
     const {isRestrictedPolicyCreation} = usePreferredPolicy();
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
 
     const feature = Object.values(CONST.UPGRADE_FEATURE_INTRO_MAPPING)
@@ -170,7 +169,7 @@ function IOURequestStepUpgrade({
             adminParticipant,
             hasOutstandingChildRequest: false,
             introSelected,
-            activePolicy,
+            activePolicyID,
             currentUserAccountIDParam: currentUserPersonalDetails.accountID,
             currentUserEmailParam: currentUserPersonalDetails.email ?? '',
             onboardingPurposeSelected,
@@ -198,7 +197,7 @@ function IOURequestStepUpgrade({
             file: params.avatarFile as File,
             engagementChoice: CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE,
             introSelected,
-            activePolicy,
+            activePolicyID,
             currentUserAccountIDParam: currentUserPersonalDetails.accountID,
             currentUserEmailParam: currentUserPersonalDetails.email ?? '',
             onboardingPurposeSelected,
