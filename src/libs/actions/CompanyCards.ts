@@ -250,9 +250,11 @@ function addNewCompanyCardsFeed(
     const parameters: RequestFeedSetupParams = {
         policyID,
         feedType,
-        feedDetails: Object.entries(feedDetails)
-            .map(([key, value]) => `${key}: ${value}`)
-            .join(', '),
+        feedDetails: feedDetails
+            ? Object.entries(feedDetails)
+                  .map(([key, value]) => `${key}: ${value}`)
+                  .join(', ')
+            : '',
         statementPeriodEnd,
         statementPeriodEndDay,
     };
