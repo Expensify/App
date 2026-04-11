@@ -1,5 +1,6 @@
 import type {CONST as COMMON_CONST} from 'expensify-common';
 import type {ValueOf} from 'type-fest';
+import type {GustoSyncResult} from '@libs/API/types';
 import type CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import type * as OnyxTypes from '.';
@@ -1345,6 +1346,24 @@ type SageIntacctConnectionsConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
     SageIntacctOfflineStateKeys | keyof SageIntacctSyncConfig | keyof SageIntacctAutoSyncConfig | keyof SageIntacctExportConfig
 >;
 
+/** Gusto connection data */
+type GustoConnectionData = Record<string, never>;
+
+/** Gusto connection config */
+type GustoConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
+    {
+        /** Gusto approval mode */
+        approvalMode: ValueOf<typeof CONST.GUSTO.APPROVAL_MODE> | null;
+
+        /** Workspace member who acts as the final approver */
+        finalApprover: string | null;
+
+        /** Collections of form field errors */
+        errorFields?: OnyxCommon.ErrorFields;
+    },
+    'approvalMode' | 'finalApprover'
+>;
+
 /**
  * Data imported from QuickBooks Desktop.
  */
@@ -1477,7 +1496,7 @@ type Connections = {
     [CONST.POLICY.CONNECTIONS.NAME.CERTINIA]: Connection<Record<string, never>, Record<string, never>>;
 
     /** Gusto integration connection */
-    [CONST.POLICY.CONNECTIONS.NAME.GUSTO]: Connection<Record<string, never>, Record<string, never>>;
+    [CONST.POLICY.CONNECTIONS.NAME.GUSTO]: Connection<GustoConnectionData, GustoConnectionConfig>;
 };
 
 /** All integration connections, including unsupported ones */
@@ -2036,6 +2055,9 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Whether the Company Cards feature is enabled */
         areCompanyCardsEnabled?: boolean;
 
+        /** Whether the HR feature is enabled */
+        isHREnabled?: boolean;
+
         /** The verified bank account linked to the policy */
         achAccount?: ACHAccount;
 
@@ -2133,6 +2155,9 @@ type PolicyConnectionSyncProgress = {
 
     /** Timestamp of the connection */
     timestamp: string;
+
+    /** Optional result payload shown after a completed sync */
+    result?: GustoSyncResult;
 };
 
 export default Policy;
