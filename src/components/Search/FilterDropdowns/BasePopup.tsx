@@ -5,8 +5,8 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Text from '@components/Text';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import type {ModalHeadingRef} from './DropdownButton';
 import ActionButtons from './ActionButtons';
+import type {ModalHeadingRef} from './DropdownButton';
 
 type BasePopupProps = React.PropsWithChildren & {
     label?: string;
