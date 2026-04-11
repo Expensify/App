@@ -109,20 +109,9 @@ import {
     isPerDiemRequest,
     isTransactionPendingDelete,
 } from '@libs/TransactionUtils';
-import {
-    approveMoneyRequest,
-    canApproveIOU,
-    cancelPayment,
-    canIOUBePaid as canIOUBePaidAction,
-    payInvoice,
-    payMoneyRequest,
-    reopenReport,
-    retractReport,
-    startMoneyRequest,
-    submitReport,
-    unapproveExpenseReport,
-} from '@userActions/IOU';
+import {cancelPayment, payInvoice, payMoneyRequest, startMoneyRequest} from '@userActions/IOU';
 import {getNavigationUrlOnMoneyRequestDelete} from '@userActions/IOU/DeleteMoneyRequest';
+import {approveMoneyRequest, canApproveIOU, canIOUBePaid as canIOUBePaidAction, reopenReport, retractReport, submitReport, unapproveExpenseReport} from '@userActions/IOU/ReportWorkflow';
 import {setDeleteTransactionNavigateBackUrl} from '@userActions/Report';
 import {markPendingRTERTransactionsAsCash} from '@userActions/Transaction';
 import CONST from '@src/CONST';

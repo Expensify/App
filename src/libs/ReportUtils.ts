@@ -86,20 +86,10 @@ import type {FileObject} from '@src/types/utils/Attachment';
 import {isEmptyObject, isEmptyValueObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
 import {getBankAccountFromID} from './actions/BankAccounts';
-import {
-    canApproveIOU,
-    canIOUBePaid,
-    canSubmitReport,
-    createDraftTransaction,
-    getIOUReportActionWithBadge,
-    setMoneyRequestParticipants,
-    setMoneyRequestParticipantsFromReport,
-    setMoneyRequestReportID,
-    startDistanceRequest,
-    startMoneyRequest,
-} from './actions/IOU';
+import {createDraftTransaction, setMoneyRequestParticipants, setMoneyRequestParticipantsFromReport, setMoneyRequestReportID, startDistanceRequest, startMoneyRequest} from './actions/IOU';
 import type {IOURequestType} from './actions/IOU';
 import {unholdRequest} from './actions/IOU/Hold';
+import {canApproveIOU, canIOUBePaid, canSubmitReport, getIOUReportActionWithBadge} from './actions/IOU/ReportWorkflow';
 import {createDraftWorkspace} from './actions/Policy/Policy';
 import {hasCreditBankAccount} from './actions/ReimbursementAccount/store';
 import {openUnreportedExpense} from './actions/Report';
