@@ -59,16 +59,8 @@ import {rand64} from '@libs/NumberUtils';
 import {getManagerMcTestParticipant} from '@libs/OptionsListUtils';
 // eslint-disable-next-line no-restricted-syntax
 import type * as PolicyUtils from '@libs/PolicyUtils';
-import {
-    getAllReportActions,
-    getIOUActionForReportID,
-    getOriginalMessage,
-    isActionableTrackExpense,
-    isActionOfType,
-    isMoneyRequestAction,
-} from '@libs/ReportActionsUtils';
+import {getAllReportActions, getIOUActionForReportID, getOriginalMessage, isActionableTrackExpense, isActionOfType, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {buildOptimisticIOUReportAction, createDraftTransactionAndNavigateToParticipantSelector, getReportOrDraftReport} from '@libs/ReportUtils';
-import {buildOptimisticTransaction} from '@libs/TransactionUtils';
 import type {IOUAction} from '@src/CONST';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
