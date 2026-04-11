@@ -16,7 +16,7 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {getReportFieldKey} from '@libs/ReportUtils';
 import {isRequiredFulfilled} from '@libs/ValidationUtils';
-import {getReportFieldInitialValue} from '@libs/WorkspaceReportFieldUtils';
+import {getReportFieldInitialValue, getUnsupportedReportFieldFormulaParts} from '@libs/WorkspaceReportFieldUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
@@ -74,6 +74,15 @@ function ReportFieldsInitialValuePage({
                 hasCircularReferences(formInitialValue, reportField?.name, policy?.fieldList)
             ) {
                 errors[INPUT_IDS.INITIAL_VALUE] = translate('workspace.reportFields.circularReferenceError');
+            }
+
+            if ((reportField?.type === CONST.REPORT_FIELD_TYPES.TEXT || reportField?.type === CONST.REPORT_FIELD_TYPES.FORMULA) && !!formInitialValue && !errors[INPUT_IDS.INITIAL_VALUE]) {
+                const unsupportedFormulaParts = getUnsupportedReportFieldFormulaParts(formInitialValue);
+                if (unsupportedFormulaParts.length > 0) {
+                    errors[INPUT_IDS.INITIAL_VALUE] = translate('workspace.reportFields.unsupportedFormulaValueError', {
+                        value: unsupportedFormulaParts.join(', '),
+                    });
+                }
             }
 
             if (reportField?.type === CONST.REPORT_FIELD_TYPES.LIST && availableListValuesLength > 0 && !isRequiredFulfilled(formInitialValue)) {
