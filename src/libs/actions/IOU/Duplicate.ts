@@ -1033,7 +1033,7 @@ function bulkDuplicateExpenses({
             existingIOUReport: optimisticIOUReport,
         });
 
-        if (!optimisticIOUReport && result?.iouReport) {
+        if (result?.iouReport) {
             optimisticIOUReport = result.iouReport;
         }
 
