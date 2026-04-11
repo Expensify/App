@@ -132,18 +132,17 @@ function TransactionPreviewContent({
     const isMarkAsCash = parentReport && currentUserLogin ? isMarkAsCashActionForTransaction(currentUserLogin, parentReport, violations, policy) : false;
 
     const violationMessage = firstViolation
-        ? ViolationsUtils.getViolationTranslation(
-              firstViolation,
+        ? ViolationsUtils.getViolationTranslation({
+              violation: firstViolation,
               translate,
               canEdit,
-              undefined,
               companyCardPageURL,
               connectionLink,
               card,
               isMarkAsCash,
-              transaction?.comment?.customUnit?.routeDistanceMeters,
-              transaction?.comment?.customUnit?.distanceUnit,
-          )
+              routeDistanceMeters: transaction?.comment?.customUnit?.routeDistanceMeters,
+              distanceUnit: transaction?.comment?.customUnit?.distanceUnit,
+          })
         : undefined;
 
     const previewText = useMemo(
