@@ -27,7 +27,7 @@ import type Locale from '@src/types/onyx/Locale';
 import type {OnyxData} from '@src/types/onyx/Request';
 import {setShouldForceOffline} from './Network';
 import {getAll, rollbackOngoingRequest, save} from './PersistedRequests';
-import {createDraftInitialWorkspace, createWorkspace, generatePolicyID, newGenerateDefaultWorkspaceName} from './Policy/Policy';
+import {createDraftInitialWorkspace, createWorkspace, generateDefaultWorkspaceName, generatePolicyID} from './Policy/Policy';
 
 type PolicyParamsForOpenOrReconnect = {
     policyIDList: string[];
@@ -673,7 +673,7 @@ function createWorkspaceWithPolicyDraft(params: CreateWorkspaceWithPolicyDraftPa
 type SavePolicyDraftByNewWorkspaceParams = {
     isSelfTourViewed: boolean | undefined;
     policyID?: string;
-    policyName?: string;
+    policyName: string;
     policyOwnerEmail?: string;
     makeMeAdmin?: boolean;
     currency?: string;
@@ -784,7 +784,7 @@ function setUpPoliciesAndNavigate(
             introSelected,
             currency,
             policyOwnerEmail,
-            policyName: policyName || newGenerateDefaultWorkspaceName(policyOwnerEmail, lastWorkspaceNumber, translate),
+            policyName: policyName || generateDefaultWorkspaceName(policyOwnerEmail, lastWorkspaceNumber, translate),
             transitionFromOldDot: true,
             makeMeAdmin,
             activePolicyID,

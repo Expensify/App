@@ -14,6 +14,7 @@ import isSidePanelReportSupported from '@components/SidePanel/isSidePanelReportS
 import Text from '@components/Text';
 import useArchivedReportsIdSet from '@hooks/useArchivedReportsIdSet';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDefaultWorkspaceName from '@hooks/useDefaultWorkspaceName';
 import useHasActiveAdminPolicies from '@hooks/useHasActiveAdminPolicies';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -65,6 +66,7 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
     const [conciergeReportID = ''] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const archivedReportsIdSet = useArchivedReportsIdSet();
     const hasActiveAdminPolicies = useHasActiveAdminPolicies();
+    const defaultWorkspaceName = useDefaultWorkspaceName();
 
     const paidGroupPolicy = Object.values(allPolicies ?? {}).find((policy) => isPaidGroupPolicy(policy) && isPolicyAdmin(policy, session?.email));
     const {isOffline} = useNetwork();
@@ -194,7 +196,7 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
                 ? createWorkspace({
                       policyOwnerEmail: undefined,
                       makeMeAdmin: true,
-                      policyName: '',
+                      policyName: defaultWorkspaceName,
                       policyID: generatePolicyID(),
                       engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
                       currency: currentUserPersonalDetails?.localCurrencyCode ?? '',
@@ -284,6 +286,7 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
         conciergeReportID,
         betas,
         hasActiveAdminPolicies,
+        defaultWorkspaceName,
     ]);
 
     // Create items for enabled features

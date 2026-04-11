@@ -960,7 +960,7 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
         const workspaceData = buildPolicyData({
             policyOwnerEmail: undefined,
             makeMeAdmin: policy?.makeMeAdmin,
-            policyName: policy?.name,
+            policyName: policy?.name ?? '',
             policyID: policy?.id,
             expenseReportId: chatReport?.reportID,
             engagementChoice: CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE,

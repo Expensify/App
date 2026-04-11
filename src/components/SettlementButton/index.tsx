@@ -17,6 +17,7 @@ import RenderHTML from '@components/RenderHTML';
 import useActiveAdminPolicies from '@hooks/useActiveAdminPolicies';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDefaultWorkspaceName from '@hooks/useDefaultWorkspaceName';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -107,6 +108,7 @@ function SettlementButton({
     const {isOffline} = useNetwork();
     const policy = usePolicy(policyID);
     const {accountID, email} = useCurrentUserPersonalDetails();
+    const defaultWorkspaceName = useDefaultWorkspaceName();
 
     // The app would crash due to subscribing to the entire report collection if chatReportID is an empty string. So we should have a fallback ID here.
     // eslint-disable-next-line rulesdir/no-default-id-values
@@ -422,6 +424,7 @@ function SettlementButton({
                     betas,
                     isSelfTourViewed,
                     hasActiveAdminPolicies: !!activeAdminPolicies.length,
+                    policyName: defaultWorkspaceName,
                 }).policyID;
             };
 
@@ -438,6 +441,18 @@ function SettlementButton({
                     },
                     value: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
                 };
+                // Test cases:
+                // Sign up as a new user, complete until interested feature, make sure new WS is created
+                // Delete the WS
+                // Go to self DM, track new distance, in confirm page, press Rate, press Upgrade
+                // Delete the WS
+                // Make sure the account personal currency is not supported (not USD, AUD, etc.)
+                // From another account that has a workspace with USD currency, send an invoice
+                // Press Pay > Pay as business > Mark as paid
+                // Delete the WS
+                // From another account that has a workspace with USD currency, send an invoice again
+                // Change the account personal currency to USD
+                // Press Pay > Pay as business > Add a bank account
                 return [
                     ...(showPayViaExpensifyOptions ? getPaymentSubItems(payAsBusiness) : []),
                     ...(showPayViaExpensifyOptions && isPolicyCurrencySupported ? [addBankAccountItem] : []),

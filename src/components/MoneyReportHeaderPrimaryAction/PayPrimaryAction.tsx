@@ -6,6 +6,7 @@ import {useSearchStateContext} from '@components/Search/SearchContext';
 import AnimatedSettlementButton from '@components/SettlementButton/AnimatedSettlementButton';
 import type {PaymentActionParams} from '@components/SettlementButton/types';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDefaultWorkspaceName from '@hooks/useDefaultWorkspaceName';
 import useNetwork from '@hooks/useNetwork';
 import useNonReimbursablePaymentModal from '@hooks/useNonReimbursablePaymentModal';
 import useOnyx from '@hooks/useOnyx';
@@ -46,6 +47,7 @@ function PayPrimaryAction({reportID, chatReportID, isPaidAnimationRunning, isApp
     const {accountID, email} = useCurrentUserPersonalDetails();
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
+    const defaultWorkspaceName = useDefaultWorkspaceName();
 
     const {moneyRequestReport, chatReport, transaction} = useTransactionThreadData(reportID, chatReportID);
 
@@ -126,6 +128,7 @@ function PayPrimaryAction({reportID, chatReportID, isPaidAnimationRunning, isApp
                 activePolicy,
                 betas,
                 isSelfTourViewed,
+                defaultWorkspaceName,
             });
         } else {
             startAnimation();

@@ -158,6 +158,7 @@ describe('GoogleTagManagerTest', () => {
     test('workspace_created', async () => {
         // When we run the createWorkspace action a few times
         createWorkspace({
+            policyName: '',
             introSelected: undefined,
             currentUserAccountIDParam: 123456,
             activePolicyID: undefined,
@@ -168,6 +169,7 @@ describe('GoogleTagManagerTest', () => {
         });
         await waitForBatchedUpdatesWithAct();
         createWorkspace({
+            policyName: '',
             currentUserAccountIDParam: 123456,
             activePolicyID: undefined,
             currentUserEmailParam: 'test@test.com',
@@ -178,6 +180,7 @@ describe('GoogleTagManagerTest', () => {
         });
         await waitForBatchedUpdatesWithAct();
         createWorkspace({
+            policyName: '',
             currentUserAccountIDParam: 123456,
             activePolicyID: undefined,
             currentUserEmailParam: 'test@test.com',

@@ -548,7 +548,8 @@ function MoneyRequestConfirmationListFooter({
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const effectiveReceiptSource = isLocalFile ? initialLocalSourceRef.current.source || '' : resolvedThumbnail || resolvedReceiptImage || '';
 
-    const shouldNavigateToUpgradePath = !policyForMovingExpensesID && !shouldSelectPolicy;
+    const shouldNavigateToUpgradePath = true && !shouldSelectPolicy;
+    console.log('nav?', policyForMovingExpensesID, shouldSelectPolicy)
     // Time requests appear as regular expenses after they're created, with editable amount and merchant, not hours and rate
     const shouldShowTimeRequestFields = isTimeRequest && action === CONST.IOU.ACTION.CREATE;
 

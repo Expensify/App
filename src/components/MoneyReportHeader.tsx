@@ -14,6 +14,7 @@ import useConfirmPendingRTERAndProceed from '@hooks/useConfirmPendingRTERAndProc
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
+import useDefaultWorkspaceName from '@hooks/useDefaultWorkspaceName';
 import useDeleteTransactions from '@hooks/useDeleteTransactions';
 import useDuplicateTransactionsAndViolations from '@hooks/useDuplicateTransactionsAndViolations';
 import useExportAgainModal from '@hooks/useExportAgainModal';
@@ -266,6 +267,7 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
     const draftTransactionIDs = Object.keys(transactionDrafts ?? {});
 
     const {translate, localeCompare} = useLocalize();
+    const defaultWorkspaceName = useDefaultWorkspaceName();
     const exportTemplates = useMemo(
         () => getExportTemplates(integrationsExportTemplates ?? [], csvExportLayouts ?? {}, translate, policy),
         [integrationsExportTemplates, csvExportLayouts, policy, translate],
@@ -609,6 +611,7 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
                     activePolicy,
                     betas,
                     isSelfTourViewed,
+                    defaultWorkspaceName,
                 });
                 if (isFromSelectionMode) {
                     clearSelectedTransactions(true);
@@ -683,6 +686,7 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
             clearSelectedTransactions,
             amountOwed,
             ownerBillingGracePeriodEnd,
+            defaultWorkspaceName,
         ],
     );
 

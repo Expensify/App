@@ -6,6 +6,7 @@ import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/
 import AnimatedSettlementButton from '@components/SettlementButton/AnimatedSettlementButton';
 import type {PaymentActionParams} from '@components/SettlementButton/types';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDefaultWorkspaceName from '@hooks/useDefaultWorkspaceName';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useParticipantsInvoiceReport from '@hooks/useParticipantsInvoiceReport';
@@ -18,6 +19,7 @@ import {
     hasOnlyNonReimbursableTransactions,
     hasUpdatedTotal,
     hasViolations as hasViolationsReportUtils,
+    isIndividualInvoiceRoom,
     isInvoiceReport as isInvoiceReportUtils,
 } from '@libs/ReportUtils';
 import {approveMoneyRequest, canIOUBePaid as canIOUBePaidIOUActions, payInvoice, payMoneyRequest} from '@userActions/IOU';
@@ -65,6 +67,7 @@ function PayActionButton({
     const {isBetaEnabled} = usePermissions();
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
+    const defaultWorkspaceName = useDefaultWorkspaceName();
 
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const activePolicy = usePolicy(activePolicyID);
@@ -146,23 +149,25 @@ function PayActionButton({
             onHoldMenuOpen(CONST.IOU.REPORT_ACTION_TYPE.PAY, type, shouldShowPayButton);
         } else if (chatReport && iouReport) {
             if (isInvoiceReportUtils(iouReport)) {
-                startAnimation();
-                payInvoice({
-                    paymentMethodType: type,
-                    chatReport,
-                    invoiceReport: iouReport,
-                    invoiceReportCurrentNextStepDeprecated: iouReportNextStep,
-                    introSelected,
-                    currentUserAccountIDParam: currentUserAccountID,
-                    currentUserEmailParam: currentUserEmail,
-                    payAsBusiness,
-                    existingB2BInvoiceReport,
-                    methodID,
-                    paymentMethod,
-                    activePolicy,
-                    betas,
-                    isSelfTourViewed,
-                });
+                console.log('paying invoice', isIndividualInvoiceRoom(chatReport), payAsBusiness,activePolicy )
+                // startAnimation();
+                // payInvoice({
+                //     paymentMethodType: type,
+                //     chatReport,
+                //     invoiceReport: iouReport,
+                //     invoiceReportCurrentNextStepDeprecated: iouReportNextStep,
+                //     introSelected,
+                //     currentUserAccountIDParam: currentUserAccountID,
+                //     currentUserEmailParam: currentUserEmail,
+                //     payAsBusiness,
+                //     existingB2BInvoiceReport,
+                //     methodID,
+                //     paymentMethod,
+                //     activePolicy,
+                //     betas,
+                //     isSelfTourViewed,
+                //     defaultWorkspaceName,
+                // });
             } else {
                 payMoneyRequest({
                     paymentType: type,
