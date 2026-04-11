@@ -387,7 +387,7 @@ function getPolicyBrickRoadIndicatorStatus(policy: OnyxEntry<Policy>, isConnecti
         shouldShowEmployeeListError(policy) ||
         shouldShowCustomUnitsError(policy) ||
         shouldShowPolicyErrorFields(policy) ||
-        shouldShowSyncError(policy, isConnectionInProgress) ||
+        shouldShowSyncError(policy, isConnectionInProgress, getAccountingConnectionNames()) ||
         shouldShowQBOReimbursableExportDestinationAccountError(policy)
     ) {
         return CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
