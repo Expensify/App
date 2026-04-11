@@ -173,6 +173,9 @@ function shouldShowBulkDuplicateOption({
         }
 
         if (isDistanceRequest(transaction) && reportID) {
+            if (reportID === CONST.REPORT.UNREPORTED_REPORT_ID && activePolicyExpenseChat) {
+                return false;
+            }
             const chatReportID = report?.chatReportID ?? report?.parentReportID;
             const chatReport = chatReportID
                 ? ((searchData?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`] as Report | undefined) ?? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`])
