@@ -11,6 +11,7 @@ import ScrollView from '@components/ScrollView';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
 import useConfirmModal from '@hooks/useConfirmModal';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useEnvironment from '@hooks/useEnvironment';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -28,7 +29,6 @@ import {
     getCategoryDefaultTaxRate,
     getDecodedCategoryName,
 } from '@libs/CategoryUtils';
-import {convertToDisplayString} from '@libs/CurrencyUtils';
 import {getLatestErrorMessageField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -57,6 +57,7 @@ function CategorySettingsPage({
 }: CategorySettingsPageProps) {
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
+    const {convertToDisplayString} = useCurrencyListActions();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Trashcan']);
     const {showConfirmModal} = useConfirmModal();
     const policyData = usePolicyData(policyID);
