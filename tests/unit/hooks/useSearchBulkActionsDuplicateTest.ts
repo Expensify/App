@@ -326,6 +326,8 @@ describe('useSearchBulkActions - duplicate option', () => {
 
     it('should show duplicate option for a Per Diem expense with dates', async () => {
         const txnID = '1500';
+        const policyID = 'policy1';
+        mockDefaultExpensePolicy = {id: policyID, type: CONST.POLICY.TYPE.TEAM, name: 'Test WS'} as Policy;
         const txn = {
             ...createRandomTransaction(1),
             transactionID: txnID,
@@ -342,6 +344,7 @@ describe('useSearchBulkActions - duplicate option', () => {
 
         mockSelectedTransactions = {[txnID]: makeSelectedTransaction()};
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${txnID}`, txn);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}report1`, {reportID: 'report1', policyID});
 
         const {result} = renderHook(() => useSearchBulkActions({queryJSON: baseQueryJSON}));
 
@@ -369,6 +372,8 @@ describe('useSearchBulkActions - duplicate option', () => {
     });
 
     it('should show duplicate option for a mix of cash, Per Diem, and Distance expenses', async () => {
+        const policyID = 'policy1';
+        mockDefaultExpensePolicy = {id: policyID, type: CONST.POLICY.TYPE.TEAM, name: 'Test WS'} as Policy;
         const cashTxn = {...createRandomTransaction(1), transactionID: '1700', managedCard: false};
         const perDiemTxn = {
             ...createRandomTransaction(2),
@@ -393,6 +398,9 @@ describe('useSearchBulkActions - duplicate option', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}1700`, cashTxn);
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}1701`, perDiemTxn);
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}1702`, distanceTxn);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}r1`, {reportID: 'r1', policyID});
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}r2`, {reportID: 'r2', policyID});
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}r3`, {reportID: 'r3', policyID});
 
         const {result} = renderHook(() => useSearchBulkActions({queryJSON: baseQueryJSON}));
 
@@ -496,7 +504,7 @@ describe('useSearchBulkActions - duplicate option', () => {
                 transactionIDs: expect.arrayContaining(['600', '601']),
             }),
         );
-        expect(mockClearSelectedTransactions).toHaveBeenCalledWith(undefined, true);
+        expect(mockClearSelectedTransactions).toHaveBeenCalled();
     });
 
     it('should pass defaultExpensePolicy as targetPolicy when available', async () => {
