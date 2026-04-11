@@ -57,23 +57,17 @@ jest.mock('@components/ProductTrainingContext', () => ({
     useProductTrainingContext: () => [false],
 }));
 
+/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return */
 jest.mock('@libs/Navigation/OnyxTabNavigator', () => {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const React2 = require('react');
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
-    const OnyxTabNavigator = ({children}: {children: React.ReactNode}) => React2.createElement(React2.Fragment, null, children);
-    const TopTab = {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
-        Screen: ({children}: {children: () => React.ReactNode}) => React2.createElement(React2.Fragment, null, typeof children === 'function' ? children() : children),
-    };
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
-    const TabScreenWithFocusTrapWrapper = ({children}: {children: React.ReactNode}) => React2.createElement(React2.Fragment, null, children);
+    const ReactMock = require('react');
     return {
         // eslint-disable-next-line @typescript-eslint/naming-convention
         __esModule: true,
-        default: OnyxTabNavigator,
-        TopTab,
-        TabScreenWithFocusTrapWrapper,
+        default: ({children}: {children: React.ReactNode}) => ReactMock.createElement(ReactMock.Fragment, null, children),
+        TopTab: {
+            Screen: ({children}: {children: () => React.ReactNode}) => ReactMock.createElement(ReactMock.Fragment, null, typeof children === 'function' ? children() : children),
+        },
+        TabScreenWithFocusTrapWrapper: ({children}: {children: React.ReactNode}) => ReactMock.createElement(ReactMock.Fragment, null, children),
     };
 });
 

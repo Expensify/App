@@ -1,10 +1,13 @@
-import React from 'react';
+import {useFocusEffect} from '@react-navigation/native';
+import React, {useCallback, useRef} from 'react';
 import Button from '@components/Button';
 import NumberWithSymbolForm from '@components/NumberWithSymbolForm';
 import type {NumberWithSymbolFormRef} from '@components/NumberWithSymbolForm';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {Unit} from '@src/types/onyx/Policy';
@@ -22,12 +25,27 @@ type DistanceManualTabContentProps = {
 function DistanceManualTabContent({currentDistance, distanceUnit, onSubmit, manualFormError, onInputChange, manualTextInputRef, manualNumberFormRef}: DistanceManualTabContentProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {isExtraSmallScreenHeight} = useResponsiveLayout();
+    const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+    useFocusEffect(
+        useCallback(() => {
+            focusTimeoutRef.current = setTimeout(() => manualTextInputRef.current?.focus(), CONST.ANIMATED_TRANSITION);
+            return () => {
+                if (!focusTimeoutRef.current) {
+                    return;
+                }
+                clearTimeout(focusTimeoutRef.current);
+            };
+        }, [manualTextInputRef]),
+    );
 
     return (
         <NumberWithSymbolForm
             ref={manualTextInputRef}
             numberFormRef={manualNumberFormRef}
             value={currentDistance?.toString()}
+            shouldUseDynamicFontSize
             onInputChange={onInputChange}
             decimals={CONST.DISTANCE_DECIMAL_PLACES}
             symbol={distanceUnit}
@@ -45,11 +63,13 @@ function DistanceManualTabContent({currentDistance, distanceUnit, onSubmit, manu
                     success
                     allowBubble={false}
                     pressOnEnter
-                    large
-                    style={[styles.w100, styles.mt5]}
+                    medium={isExtraSmallScreenHeight}
+                    large={!isExtraSmallScreenHeight}
+                    style={[styles.w100, canUseTouchScreen() ? styles.mt5 : styles.mt0]}
                     onPress={onSubmit}
                     text={translate('common.save')}
-                    sentryLabel={CONST.SENTRY_LABEL.IOU_REQUEST_STEP.DISTANCE_NEXT_BUTTON}
+                    testID="next-button"
+                    sentryLabel={CONST.SENTRY_LABEL.IOU_REQUEST_STEP.DISTANCE_MANUAL_NEXT_BUTTON}
                 />
             }
         />
