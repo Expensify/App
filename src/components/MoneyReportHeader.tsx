@@ -1374,6 +1374,11 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
             value: CONST.REPORT.SECONDARY_ACTIONS.RECEIVED_PAYMENT,
             sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.RECEIVED_PAYMENT,
             onSelected: async () => {
+                if (isDelegateAccessRestricted) {
+                    showDelegateNoAccessModal();
+                    return;
+                }
+
                 const result = await showConfirmModal({
                     title: translate('iou.confirmPaymentReceived'),
                     prompt: translate('iou.receivedPaymentConfirmation'),
@@ -1382,11 +1387,6 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
                 });
 
                 if (result.action !== ModalActions.CONFIRM) {
-                    return;
-                }
-
-                if (isDelegateAccessRestricted) {
-                    showDelegateNoAccessModal();
                     return;
                 }
 

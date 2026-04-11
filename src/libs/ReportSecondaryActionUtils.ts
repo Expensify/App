@@ -52,6 +52,7 @@ import {
     canRejectReportAction,
     canUserPerformWriteAction as canUserPerformWriteActionReportUtils,
     doesReportContainRequestsFromMultipleUsers,
+    getMoneyRequestSpendBreakdown,
     getTransactionDetails,
     hasExportError as hasExportErrorUtils,
     hasOnlyHeldExpenses,
@@ -441,6 +442,11 @@ function isCancelPaymentAction(
 
 function isReceivedPaymentAction(report: Report, reportActions: ReportAction[] = [], policy?: Policy): boolean {
     if (!isExpenseReportUtils(report) || !isCurrentUserSubmitter(report)) {
+        return false;
+    }
+
+    const {reimbursableSpend} = getMoneyRequestSpendBreakdown(report);
+    if (reimbursableSpend <= 0) {
         return false;
     }
 
