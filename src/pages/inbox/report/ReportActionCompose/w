@@ -1,0 +1,63 @@
+## Proposal
+### Please re-state the problem that we are trying to solve in this issue.
+The first mention (User A) is removed after adding the second mention.
+When a user adds an @mention for User A, moves the cursor to the beginning of the message (before that mention), and then adds an @mention for User B, the first mention (User A) is removed. Only the second mention (User B) remains in the composer. Only the second mention remains.
+### What is the root cause of that problem?
+When a second mention is inserted at the beginning of text that already starts with a mention, the replacement range is computed too broadly.
+The bug is in `insertSelectedMention` inside `SuggestionMention.tsx`. When a suggestion is selected, the function rebuilds the composer string by slicing `value` into three parts: everything before the `@` sign, the new mention code, and everything after the original typed token. The "after" slice is computed using `getOriginalMentionText`, which scans forward from `atSignIndex` until it hits a `MENTION_BREAKER` character.
+`getOriginalMentionText()` uses `MENTION_BREAKER`, and `MENTION_BREAKER` does not break on `@`. So for a value like `@b@userA `, the original mention text becomes `@b@userA` instead of only `@b`.
+https://github.com/Expensify/App/blob/00ddfe502e9421db04431d68a68f62bdbdec5ede/src/pages/inbox/report/ReportActionCompose/SuggestionMention.tsx#L195-L210
+https://github.com/Expensify/App/blob/b51e63c92c19fc67ee3df597a148e12355580572/src/pages/inbox/report/ReportActionCompose/SuggestionMention.tsx#L208-L210
+The `MENTION_BREAKER` regex matches whitespace, newlines, and certain punctuation — but crucially **`@` is not a breaker**, because `@` is valid inside email-style mentions like `user@domain.com`.
+https://github.com/Expensify/App/blob/b51e63c92c19fc67ee3df597a148e12355580572/src/CONST/index.ts#L4278-L4280
+https://github.com/Expensify/App/blob/00ddfe502e9421db04431d68a68f62bdbdec5ede/src/pages/inbox/report/ReportActionCompose/SuggestionMention.tsx#L241-L243
+Then `insertSelectedMention()` uses:
+When the user moves the cursor to position 0 and types `@UserB`, the value becomes `@UserB@UserA@example.com` with no space between the two tokens (since the existing mention begins immediately where the cursor was placed). `getOriginalMentionText` scans from position 0 and finds no mention breaker until the space after the existing mention, so it returns the entire combined string `"@UserB@UserA@example.com"` as the token to replace. `Math.max` then picks this longer length over the typed prefix length, causing `commentAfterMention` to slice past the existing User A mention entirely — deleting it.
+https://github.com/Expensify/App/blob/b51e63c92c19fc67ee3df597a148e12355580572/src/pages/inbox/report/ReportActionCompose/SuggestionMention.tsx#L241-L243
+### What changes do you think we should make in order to solve the problem?
+`Math.max(mentionToReplace.length, suggestionValues.mentionPrefix.length + suggestionValues.prefixType.length)` picks the longer span (`@b@userA`), so the existing mention (User A) is consumed and removed.
+In `insertSelectedMention`, after computing `mentionToReplace` from `getOriginalMentionText`, check whether the portion of that string that lies beyond what the user actually typed starts with a new `@` or `#` token. If it does, and that portion is not part of the selected mention code itself, clip `mentionToReplace` back to only the typed length. This ensures the adjacent mention is treated as a separate entity and preserved in `commentAfterMention`.
+### What changes do you think we should make in order to solve the problem?
+https://github.com/Expensify/App/blob/00ddfe502e9421db04431d68a68f62bdbdec5ede/src/pages/inbox/report/ReportActionCompose/SuggestionMention.tsx#L241-L243 https://github.com/Expensify/App/blob/b51e63c92c19fc67ee3df597a148e12355580572/src/pages/inbox/report/ReportActionCompose/SuggestionMention.tsx#L224-L243
+```typescript
+const typedLength = suggestionValues.mentionPrefix.length + suggestionValues.prefixType.length; const originalMention = getOriginalMentionText(value, suggestionValues.atSignIndex, StringUtils.countWhiteSpaces(suggestionValues.mentionPrefix));
+if (mentionToReplace.length > typedLength) {
+const textAfterCursor = mentionToReplace.slice(typedLength); // Limit replacement to the currently typed mention token when another mention starts immediately after it.
+if (textAfterCursor.startsWith('@') || textAfterCursor.startsWith('#')) { const typedMentionToken = `${suggestionValues.prefixType}${suggestionValues.mentionPrefix}`;
+if (!mentionCode.toLowerCase().includes(textAfterCursor.toLowerCase())) { let mentionToReplace = originalMention;
+mentionToReplace = mentionToReplace.slice(0, typedLength); if (typedMentionToken.length > 0 && mentionToReplace.startsWith(typedMentionToken)) {
+} const nextMentionOffset = mentionToReplace.slice(typedMentionToken.length).search(/[@#]/);
+} if (nextMentionOffset !== -1) {
+} mentionToReplace = mentionToReplace.slice(0, typedMentionToken.length + nextMentionOffset);
+}
+const commentAfterMention = value.slice( }
+suggestionValues.atSignIndex + Math.max(mentionToReplace.length, typedLength),
+); let trailingDot = '';
+``` if (suggestionValues.prefixType === '@' && suggestionValues.mentionPrefix.endsWith('.')) {
+trailingDot = mentionToReplace.match(CONST.REGEX.TRAILING_DOTS)?.[0] ?? '';
+### Demo mentionToReplace = mentionToReplace.slice(0, mentionToReplace.length - trailingDot.length);
+https://github.com/user-attachments/assets/96160da5-f629-41d1-aba0-65e9e3ebc1df }
+const commentAfterMention = value.slice(
+suggestionValues.atSignIndex + Math.max(mentionToReplace.length, suggestionValues.mentionPrefix.length + suggestionValues.prefixType.length),
+);
+```
+This keeps replacement scoped to the active mention being typed, so inserting User B at the start does not delete adjacent existing mention tokens (User A).
+https://github.com/Expensify/App/blob/b51e63c92c19fc67ee3df597a148e12355580572/tests/unit/SuggestionMentionTest.tsx#L164-L246
+```typescript
+it('keeps existing mention when inserting a new mention at the beginning of the message', async () => {
+mockPersonalDetails = {};
+mockPersonalDetails[2] = {
+accountID: 2,
+login: 'bob@example.com',
+firstName: 'Bob',
+lastName: 'Tester',
+};
+const updateComment = jest.fn();
+const {setSelection} = renderSuggestionMention('@b@usera@example.com ', updateComment, {start: 2, end: 2});
+await waitFor(() => expect(mockMentionSuggestionsSpy).toHaveBeenCalled());
+const {onSelect} = getLastMentionSuggestionsProps();
+act(() => onSelect(0));
+expect(updateComment).toHaveBeenCalledWith('@bob@example.com @usera@example.com ', true);
+expect(setSelection).toHaveBeenCalledWith({start: 17, end: 17});
+});
+```

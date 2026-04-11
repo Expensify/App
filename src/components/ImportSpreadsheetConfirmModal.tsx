@@ -45,7 +45,8 @@ function ImportSpreadsheetConfirmModal({isVisible, closeImportPageAndModal, onMo
             closeImportPageAndModal();
         });
 
-        // We don't need the callbacks as dependencies.
+        // We don't need the callbacks as dependencies as they are unstable
+        // references that cause an infinite re-render loop.
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isVisible, titleText, promptText, spreadsheet?.importFinalModal, shouldHandleNavigationBack]);
 
