@@ -947,7 +947,11 @@ function hasDynamicExternalWorkflow(policy: OnyxEntry<Policy>): boolean {
  * `hasSupportedOnlyOnOldDotIntegration` detects connections that are supported only on OldDot.
  */
 function hasAccountingConnections(policy: OnyxEntry<Policy>) {
-    return !!getCurrentConnectionName(policy) || hasSupportedOnlyOnOldDotIntegration(policy) || hasUnsupportedIntegration(policy);
+    return !!getCurrentConnectionName(policy) || hasSupportedOnlyOnOldDotIntegration(policy);
+}
+
+function hasAccountingFeatureConnection(policy: OnyxEntry<Policy>) {
+    return hasAccountingConnections(policy) || hasUnsupportedIntegration(policy);
 }
 
 function getPolicyEmployeeListByIdWithoutCurrentUser(policies: OnyxCollection<Pick<Policy, 'employeeList'>>, currentPolicyID?: string, currentUserAccountID?: number) {
@@ -1037,7 +1041,7 @@ function isPolicyFeatureEnabled(policy: OnyxEntry<Policy>, featureName: PolicyFe
         return !!policy?.tax?.trackingEnabled;
     }
     if (featureName === CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED) {
-        return policy?.[featureName] ? !!policy?.[featureName] : hasAccountingConnections(policy);
+        return policy?.[featureName] ? !!policy?.[featureName] : hasAccountingFeatureConnection(policy);
     }
     if (featureName === CONST.POLICY.MORE_FEATURES.ARE_RECEIPT_PARTNERS_ENABLED) {
         return policy?.receiptPartners?.enabled ?? false;
@@ -2133,6 +2137,7 @@ export {
     getUnitRateValue,
     getRateDisplayValue,
     goBackFromInvalidPolicy,
+    hasAccountingFeatureConnection,
     hasAccountingConnections,
     shouldShowSyncError,
     shouldShowCustomUnitsError,
