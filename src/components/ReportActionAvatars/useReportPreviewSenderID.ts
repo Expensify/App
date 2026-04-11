@@ -6,7 +6,7 @@ import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViol
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getAllNonDeletedTransactions} from '@libs/MoneyRequestReportUtils';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
-import {getIOUActionForTransactionID, getOriginalMessage, isMoneyRequestAction, isSentMoneyReportAction} from '@libs/ReportActionsUtils';
+import {getIOUActionForTransactionID, getOriginalMessage, isDeletedParentAction, isMoneyRequestAction, isSentMoneyReportAction} from '@libs/ReportActionsUtils';
 import {isDM, isIOUReport} from '@libs/ReportUtils';
 import {isScanRequest} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
@@ -55,6 +55,26 @@ function getTransactionDirectionSign(transaction: Transaction): number | undefin
     return undefined;
 }
 
+function isExplicitlyDeletedIOUAction(iouAction: ReportAction): boolean {
+    const originalMessage = getOriginalMessage(iouAction) as OriginalMessageIOU | undefined;
+
+    if (originalMessage?.deleted) {
+        return true;
+    }
+
+    if (isDeletedParentAction(iouAction)) {
+        return true;
+    }
+
+    const message = iouAction.message;
+
+    if (Array.isArray(message)) {
+        return message.some((fragment) => !!fragment?.deleted);
+    }
+
+    return !!message?.deleted;
+}
+
 type GetReportPreviewSenderIDParams = {
     iouReport: OnyxEntry<Report>;
     action: OnyxEntry<ReportAction>;
@@ -72,11 +92,13 @@ function getReportPreviewSenderID({iouReport, action, chatReport, iouActions, tr
         return currentUserAccountID;
     }
 
-    const loadedTransactionCount = transactions?.length ?? 0;
-    const childMoneyRequestCount = action?.childMoneyRequestCount ?? 0;
+    const activeIOUActions =
+        iouActions?.filter((iouAction) => {
+            return !isExplicitlyDeletedIOUAction(iouAction);
+        }) ?? [];
     const uniqueIOUActionActorMap = new Map<string, number>();
 
-    for (const iouAction of iouActions ?? []) {
+    for (const iouAction of activeIOUActions) {
         const iouTransactionID = (getOriginalMessage(iouAction) as OriginalMessageIOU | undefined)?.IOUTransactionID;
 
         if (!iouTransactionID || iouAction.actorAccountID === undefined) {
@@ -86,18 +108,9 @@ function getReportPreviewSenderID({iouReport, action, chatReport, iouActions, tr
         uniqueIOUActionActorMap.set(iouTransactionID, iouAction.actorAccountID);
     }
 
-    const hasCompleteActorCoverageFromIOUActions = childMoneyRequestCount > 0 && uniqueIOUActionActorMap.size >= childMoneyRequestCount;
-    const areAllChildRequestsCreatedByOneActor = new Set(uniqueIOUActionActorMap.values()).size < 2;
-
-    // After refresh, the report preview action can arrive before all child transactions hydrate.
-    // In that partial state, making a single-avatar decision is unsafe unless IOU actions already prove
-    // that every child request belongs to the same actor.
-    if (childMoneyRequestCount > loadedTransactionCount && (!hasCompleteActorCoverageFromIOUActions || !areAllChildRequestsCreatedByOneActor)) {
-        return undefined;
-    }
-    const transactionActorAccountIDs = transactions?.map((transaction) => getIOUActionForTransactionID(iouActions ?? [], transaction.transactionID)?.actorAccountID);
+    const transactionActorAccountIDs = transactions?.map((transaction) => getIOUActionForTransactionID(activeIOUActions, transaction.transactionID)?.actorAccountID);
     const hasActorAccountIDForEachTransaction =
-        !!iouActions?.length && !!transactionActorAccountIDs && transactionActorAccountIDs.length > 0 && transactionActorAccountIDs.every((accountID) => accountID !== undefined);
+        activeIOUActions.length > 0 && !!transactionActorAccountIDs && transactionActorAccountIDs.length > 0 && transactionActorAccountIDs.every((accountID) => accountID !== undefined);
 
     // 1. Use actorAccountID when it is available for every transaction. Otherwise, fall back to known transaction direction only.
     if (hasActorAccountIDForEachTransaction) {
@@ -138,13 +151,13 @@ function getReportPreviewSenderID({iouReport, action, chatReport, iouActions, tr
     }
 
     // If the action is a 'Send Money' flow, it will only have one transaction, but the person who sent the money is the child manager account, not the child owner account.
-    const isSendMoneyFlowBasedOnActions = !!iouActions && iouActions.every(isSentMoneyReportAction);
+    const isSendMoneyFlowBasedOnActions = activeIOUActions.length > 0 && activeIOUActions.every(isSentMoneyReportAction);
     // This is used only if there are no IOU actions in the Onyx
     // eslint-disable-next-line rulesdir/no-negated-variables
     const isSendMoneyFlowBasedOnTransactions =
         !!action && action.childMoneyRequestCount === 0 && transactions?.length === 1 && (chatReport ? isDM(chatReport) : policy?.type === CONST.POLICY.TYPE.PERSONAL);
 
-    const isSendMoneyFlow = !!iouActions && iouActions?.length > 0 ? isSendMoneyFlowBasedOnActions : isSendMoneyFlowBasedOnTransactions;
+    const isSendMoneyFlow = activeIOUActions.length > 0 ? isSendMoneyFlowBasedOnActions : isSendMoneyFlowBasedOnTransactions;
 
     const singleAvatarAccountID = isSendMoneyFlow ? action?.childManagerAccountID : action?.childOwnerAccountID;
 
