@@ -149,25 +149,24 @@ function PayActionButton({
             onHoldMenuOpen(CONST.IOU.REPORT_ACTION_TYPE.PAY, type, shouldShowPayButton);
         } else if (chatReport && iouReport) {
             if (isInvoiceReportUtils(iouReport)) {
-                console.log('paying invoice', isIndividualInvoiceRoom(chatReport), payAsBusiness,activePolicy )
-                // startAnimation();
-                // payInvoice({
-                //     paymentMethodType: type,
-                //     chatReport,
-                //     invoiceReport: iouReport,
-                //     invoiceReportCurrentNextStepDeprecated: iouReportNextStep,
-                //     introSelected,
-                //     currentUserAccountIDParam: currentUserAccountID,
-                //     currentUserEmailParam: currentUserEmail,
-                //     payAsBusiness,
-                //     existingB2BInvoiceReport,
-                //     methodID,
-                //     paymentMethod,
-                //     activePolicy,
-                //     betas,
-                //     isSelfTourViewed,
-                //     defaultWorkspaceName,
-                // });
+                startAnimation();
+                payInvoice({
+                    paymentMethodType: type,
+                    chatReport,
+                    invoiceReport: iouReport,
+                    invoiceReportCurrentNextStepDeprecated: iouReportNextStep,
+                    introSelected,
+                    currentUserAccountIDParam: currentUserAccountID,
+                    currentUserEmailParam: currentUserEmail,
+                    payAsBusiness,
+                    existingB2BInvoiceReport,
+                    methodID,
+                    paymentMethod,
+                    activePolicy,
+                    betas,
+                    isSelfTourViewed,
+                    defaultWorkspaceName,
+                });
             } else {
                 payMoneyRequest({
                     paymentType: type,
