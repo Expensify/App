@@ -31,6 +31,7 @@ function buildPolicy(overrides: Partial<Policy> = {}): Policy {
         ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM, 'Test Workspace'),
         id: POLICY_ID,
         pendingAction: undefined,
+        role: CONST.POLICY.ROLE.ADMIN,
         areCompanyCardsEnabled: false,
         areRulesEnabled: false,
         connections: undefined,
@@ -416,7 +417,19 @@ describe('useGettingStartedItems', () => {
     });
 
     describe('row 4 - Set up spend rules', () => {
-        it('should always be shown', async () => {
+        it('should be shown when areRulesEnabled is true', async () => {
+            await setupManageTeamScenario({
+                accounting: CONST.POLICY.CONNECTIONS.NAME.QBO,
+                policy: {areRulesEnabled: true},
+            });
+
+            const {result} = renderHook(() => useGettingStartedItems());
+
+            const rulesItem = result.current.items.find((item) => item.key === 'setupRules');
+            expect(rulesItem).toBeDefined();
+        });
+
+        it('should not be shown when areRulesEnabled is false', async () => {
             await setupManageTeamScenario({
                 accounting: CONST.POLICY.CONNECTIONS.NAME.QBO,
                 policy: {areRulesEnabled: false},
@@ -425,7 +438,7 @@ describe('useGettingStartedItems', () => {
             const {result} = renderHook(() => useGettingStartedItems());
 
             const rulesItem = result.current.items.find((item) => item.key === 'setupRules');
-            expect(rulesItem).toBeDefined();
+            expect(rulesItem).toBeUndefined();
         });
 
         it('should have isFeatureEnabled=true when rules feature is enabled', async () => {
@@ -440,7 +453,7 @@ describe('useGettingStartedItems', () => {
             expect(rulesItem?.isFeatureEnabled).toBe(true);
         });
 
-        it('should have isFeatureEnabled=false when rules feature is not enabled', async () => {
+        it('should not be included in items when rules feature is not enabled', async () => {
             await setupManageTeamScenario({
                 accounting: CONST.POLICY.CONNECTIONS.NAME.QBO,
                 policy: {areRulesEnabled: false},
@@ -449,7 +462,7 @@ describe('useGettingStartedItems', () => {
             const {result} = renderHook(() => useGettingStartedItems());
 
             const rulesItem = result.current.items.find((item) => item.key === 'setupRules');
-            expect(rulesItem?.isFeatureEnabled).toBe(false);
+            expect(rulesItem).toBeUndefined();
         });
 
         it('should navigate to workspace rules route', async () => {
@@ -540,7 +553,7 @@ describe('useGettingStartedItems', () => {
             expect(keys).toEqual(['createWorkspace', 'customizeCategories', 'linkCompanyCards', 'setupRules']);
         });
 
-        it('should always contain all four rows even when optional features are disabled', async () => {
+        it('should contain three rows when areRulesEnabled is false', async () => {
             await setupManageTeamScenario({
                 accounting: CONST.POLICY.CONNECTIONS.NAME.QBO,
                 policy: {areCompanyCardsEnabled: false, areRulesEnabled: false},
@@ -549,7 +562,7 @@ describe('useGettingStartedItems', () => {
             const {result} = renderHook(() => useGettingStartedItems());
 
             const keys = result.current.items.map((item) => item.key);
-            expect(keys).toEqual(['createWorkspace', 'connectAccounting', 'linkCompanyCards', 'setupRules']);
+            expect(keys).toEqual(['createWorkspace', 'connectAccounting', 'linkCompanyCards']);
         });
     });
 
