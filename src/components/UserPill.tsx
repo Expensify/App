@@ -27,7 +27,7 @@ function UserPill({avatar, displayName, accountID, email}: UserPillProps) {
 
     return (
         <UserDetailsTooltip
-            accountID={accountID ?? 0}
+            accountID={accountID ?? CONST.DEFAULT_NUMBER_ID}
             fallbackUserDetails={{
                 avatar,
                 displayName: Str.removeSMSDomain(displayName),
