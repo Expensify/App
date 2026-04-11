@@ -57,6 +57,7 @@ import usePolicy from './usePolicy';
 import useReportIsArchived from './useReportIsArchived';
 import useSearchShouldCalculateTotals from './useSearchShouldCalculateTotals';
 import useStrictPolicyRules from './useStrictPolicyRules';
+import useDefaultWorkspaceName from './useDefaultWorkspaceName';
 
 type UseSelectionModeReportActionsParams = {
     report: OnyxEntry<OnyxTypes.Report>;
@@ -117,6 +118,7 @@ function useSelectionModeReportActions({
     );
     const existingB2BInvoiceReport = useParticipantsInvoiceReport(activePolicyID, CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS, chatReport?.policyID);
     const activeAdminPolicies = useActiveAdminPolicies();
+    const defaultWorkspaceName = useDefaultWorkspaceName();
 
     const isChatReportArchived = useReportIsArchived(chatReport?.reportID);
     const {showNonReimbursablePaymentErrorModal, shouldBlockDirectPayment} = useNonReimbursablePaymentModal(report, transactions);
@@ -371,6 +373,7 @@ function useSelectionModeReportActions({
                 activePolicy,
                 betas,
                 isSelfTourViewed,
+                defaultWorkspaceName,
             });
             clearSelectedTransactions(true);
             turnOffMobileSelectionMode();
