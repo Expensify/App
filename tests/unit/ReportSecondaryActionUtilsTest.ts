@@ -1367,7 +1367,7 @@ describe('getSecondaryAction', () => {
             role: CONST.POLICY.ROLE.USER,
         } as unknown as Policy;
 
-        jest.spyOn(ReportUtils, 'getMoneyRequestSpendBreakdown').mockReturnValueOnce({
+        jest.spyOn(ReportUtils, 'getMoneyRequestSpendBreakdown').mockReturnValue({
             totalDisplaySpend: 100,
             reimbursableSpend: 100,
             nonReimbursableSpend: 0,
@@ -1400,7 +1400,7 @@ describe('getSecondaryAction', () => {
             role: CONST.POLICY.ROLE.USER,
         } as unknown as Policy;
 
-        jest.spyOn(ReportUtils, 'getMoneyRequestSpendBreakdown').mockReturnValueOnce({
+        jest.spyOn(ReportUtils, 'getMoneyRequestSpendBreakdown').mockReturnValue({
             totalDisplaySpend: 100,
             reimbursableSpend: 0,
             nonReimbursableSpend: 100,
@@ -1433,7 +1433,7 @@ describe('getSecondaryAction', () => {
             role: CONST.POLICY.ROLE.ADMIN,
         } as unknown as Policy;
 
-        jest.spyOn(ReportUtils, 'getMoneyRequestSpendBreakdown').mockReturnValueOnce({
+        jest.spyOn(ReportUtils, 'getMoneyRequestSpendBreakdown').mockReturnValue({
             totalDisplaySpend: 100,
             reimbursableSpend: 100,
             nonReimbursableSpend: 0,
@@ -1467,13 +1467,13 @@ describe('getSecondaryAction', () => {
         } as unknown as Policy;
         const reportAction = {
             actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
-            message: {
+            originalMessage: {
                 type: CONST.IOU.REPORT_ACTION_TYPE.PAY,
                 paymentType: CONST.IOU.PAYMENT_TYPE.VBBA,
             },
         } as unknown as ReportAction;
 
-        jest.spyOn(ReportUtils, 'getMoneyRequestSpendBreakdown').mockReturnValueOnce({
+        jest.spyOn(ReportUtils, 'getMoneyRequestSpendBreakdown').mockReturnValue({
             totalDisplaySpend: 100,
             reimbursableSpend: 100,
             nonReimbursableSpend: 0,
@@ -1507,13 +1507,13 @@ describe('getSecondaryAction', () => {
         } as unknown as Policy;
         const reportAction = {
             actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
-            message: {
+            originalMessage: {
                 type: CONST.IOU.REPORT_ACTION_TYPE.PAY,
                 paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
             },
         } as unknown as ReportAction;
 
-        jest.spyOn(ReportUtils, 'getMoneyRequestSpendBreakdown').mockReturnValueOnce({
+        jest.spyOn(ReportUtils, 'getMoneyRequestSpendBreakdown').mockReturnValue({
             totalDisplaySpend: 100,
             reimbursableSpend: 100,
             nonReimbursableSpend: 0,
