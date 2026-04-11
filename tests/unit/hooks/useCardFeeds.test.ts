@@ -2,11 +2,16 @@
 import {renderHook, waitFor} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 import useCardFeeds from '@hooks/useCardFeeds';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 const policyID = 'TEST_POLICY_123';
 const domainID = 12345678;
+
+// Real feed names that are already in the spell-check dictionary
+const oldStyleFeed = CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX_FILE_DOWNLOAD;
+const oauthFeed = CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX_DIRECT;
 
 describe('useCardFeeds', () => {
     beforeAll(() => {
@@ -25,16 +30,16 @@ describe('useCardFeeds', () => {
                 settings: {
                     companyCards: {
                         // Old-style feed linking the domain to this policy — no cards, will be filtered by the gray zone rule
-                        'americanexpressfd.us': {preferredPolicy: policyID, liabilityType: 'corporate'},
+                        [oldStyleFeed]: {preferredPolicy: policyID, liabilityType: 'corporate'},
                         // Active OAuth feed with no preferredPolicy — should appear because domainID matches effectiveWorkspaceAccountID
-                        'oauth.testbank.com': {preferredPolicy: '', liabilityType: 'corporate'},
+                        [oauthFeed]: {preferredPolicy: '', liabilityType: 'corporate'},
                     },
                     oAuthAccountDetails: {
-                        'oauth.testbank.com': {credentials: 'xxxx', expiration: 9999999999, accountList: ['Card 1']},
+                        [oauthFeed]: {credentials: 'xxxx', expiration: 9999999999, accountList: ['Card 1']},
                     },
                 },
             });
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${domainID}_oauth.testbank.com`, {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${domainID}_${oauthFeed}`, {
                 '123': {cardID: 123, cardName: 'Card 1'},
             });
             await waitForBatchedUpdates();
@@ -45,7 +50,7 @@ describe('useCardFeeds', () => {
             await waitFor(() => {
                 const [workspaceFeeds] = result.current;
                 const feedKeys = Object.keys(workspaceFeeds ?? {});
-                expect(feedKeys.some((key) => key.includes('oauth.testbank.com'))).toBe(true);
+                expect(feedKeys.some((key) => key.includes(oauthFeed))).toBe(true);
                 expect(Object.values(workspaceFeeds ?? {}).every((feed) => feed.domainID === domainID)).toBe(true);
             });
         });
@@ -55,14 +60,14 @@ describe('useCardFeeds', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${domainID}`, {
                 settings: {
                     companyCards: {
-                        'oauth.testbank.com': {preferredPolicy: '', liabilityType: 'corporate'},
+                        [oauthFeed]: {preferredPolicy: '', liabilityType: 'corporate'},
                     },
                     oAuthAccountDetails: {
-                        'oauth.testbank.com': {credentials: 'xxxx', expiration: 9999999999, accountList: ['Card 1']},
+                        [oauthFeed]: {credentials: 'xxxx', expiration: 9999999999, accountList: ['Card 1']},
                     },
                 },
             });
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${domainID}_oauth.testbank.com`, {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${domainID}_${oauthFeed}`, {
                 '123': {cardID: 123, cardName: 'Card 1'},
             });
             await waitForBatchedUpdates();
@@ -82,14 +87,14 @@ describe('useCardFeeds', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${domainID}`, {
                 settings: {
                     companyCards: {
-                        'oauth.testbank.com': {preferredPolicy: '', liabilityType: 'corporate'},
+                        [oauthFeed]: {preferredPolicy: '', liabilityType: 'corporate'},
                     },
                     oAuthAccountDetails: {
-                        'oauth.testbank.com': {credentials: 'xxxx', expiration: 9999999999, accountList: ['Card 1']},
+                        [oauthFeed]: {credentials: 'xxxx', expiration: 9999999999, accountList: ['Card 1']},
                     },
                 },
             });
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${domainID}_oauth.testbank.com`, {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${domainID}_${oauthFeed}`, {
                 '123': {cardID: 123, cardName: 'Card 1'},
             });
             await waitForBatchedUpdates();
@@ -99,9 +104,8 @@ describe('useCardFeeds', () => {
 
             await waitFor(() => {
                 const [workspaceFeeds] = result.current;
-                // Feeds from domainID 12345678 should not appear when workspaceAccountID is 99999999
                 const feedKeys = Object.keys(workspaceFeeds ?? {});
-                expect(feedKeys.some((key) => key.includes('oauth.testbank.com'))).toBe(false);
+                expect(feedKeys.some((key) => key.includes(oauthFeed))).toBe(false);
             });
         });
     });
