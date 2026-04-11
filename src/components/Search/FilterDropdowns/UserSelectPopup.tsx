@@ -1,12 +1,9 @@
 import isEmpty from 'lodash/isEmpty';
 import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {View} from 'react-native';
-import Button from '@components/Button';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import SelectionList from '@components/SelectionList';
 import UserSelectionListItem from '@components/SelectionList/ListItem/UserSelectionListItem';
 import type {ListItem, SelectionListHandle} from '@components/SelectionList/types';
-import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -20,10 +17,11 @@ import type {OptionData} from '@libs/ReportUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import BasePopup from './BasePopup';
 import type {ModalHeadingRef} from './DropdownButton';
 
 type UserSelectPopupProps = {
-    /** The label to show when in an overlay on mobile */
+    /** The popup label */
     label?: string;
 
     /** The currently selected users */
@@ -166,7 +164,7 @@ function UserSelectPopup({label, value, closeOverlay, onChange, isSearchable, mo
     }, [debouncedSearchTerm, selectedOptionsForDisplay.length, availableOptions.personalDetails.length, availableOptions.recentReports.length]);
 
     const shouldShowSearchInput = isSearchable ?? totalOptionsCount >= CONST.STANDARD_LIST_ITEM_LIMIT;
-    const headingHeightOffset = shouldUseNarrowLayout && !!label ? variables.lineHeightLarge + 8 : 0;
+    const headingHeightOffset = shouldUseNarrowLayout && !!label ? variables.lineHeightLarge + 16 : 0;
     const popoverHeightStyle = styles.getUserSelectionListPopoverHeight(listData.length || 1, windowHeight, shouldUseNarrowLayout, shouldShowSearchInput);
 
     const textInputOptions = useMemo(
@@ -184,54 +182,32 @@ function UserSelectPopup({label, value, closeOverlay, onChange, isSearchable, mo
     );
 
     return (
-        <View
+        <BasePopup
+            label={label}
+            onReset={resetChanges}
+            onApply={applyChanges}
+            resetSentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_RESET_USER}
+            applySentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY_USER}
             style={[
                 popoverHeightStyle,
                 headingHeightOffset > 0 && {
                     height: popoverHeightStyle.height + headingHeightOffset,
                 },
             ]}
+            modalHeadingRef={modalHeadingRef}
         >
-            {shouldUseNarrowLayout && !!label && (
-                <Text
-                    ref={modalHeadingRef}
-                    tabIndex={-1}
-                    style={[styles.textLabel, styles.textSupporting, styles.ph5, styles.pv1]}
-                >
-                    {label}
-                </Text>
-            )}
             <SelectionList
                 data={listData}
                 ref={selectionListRef}
                 textInputOptions={textInputOptions}
                 canSelectMultiple
                 ListItem={UserSelectionListItem}
-                style={{containerStyle: [!shouldUseNarrowLayout && styles.pt4], listStyle: styles.pb2}}
                 onSelectRow={selectUser}
                 isLoadingNewOptions={isLoadingNewOptions}
                 shouldShowLoadingPlaceholder={!areOptionsInitialized}
                 onEndReached={onListEndReached}
             />
-
-            <View style={[styles.flexRow, styles.gap2, styles.mh5, !shouldUseNarrowLayout && styles.mb4]}>
-                <Button
-                    medium
-                    style={[styles.flex1]}
-                    text={translate('common.reset')}
-                    onPress={resetChanges}
-                    sentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_RESET_USER}
-                />
-                <Button
-                    success
-                    medium
-                    style={[styles.flex1]}
-                    text={translate('common.apply')}
-                    onPress={applyChanges}
-                    sentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY_USER}
-                />
-            </View>
-        </View>
+        </BasePopup>
     );
 }
 

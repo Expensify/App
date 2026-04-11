@@ -1,26 +1,26 @@
 import React, {useCallback, useMemo, useState} from 'react';
+import type {ReactNode} from 'react';
 import {View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
-import Button from '@components/Button';
 import SelectionList from '@components/SelectionList';
 import MultiSelectListItem from '@components/SelectionList/ListItem/MultiSelectListItem';
 import type {ListItem} from '@components/SelectionList/ListItem/types';
-import Text from '@components/Text';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import CONST from '@src/CONST';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
+import BasePopup from './BasePopup';
 import type {ModalHeadingRef} from './DropdownButton';
 
 type MultiSelectItem<T> = {
     text: string;
     value: T;
     icons?: Icon[];
+    leftElement?: ReactNode;
 };
 
 type MultiSelectPopupProps<T> = {
@@ -56,9 +56,6 @@ function MultiSelectPopup<T extends string>({label, loading, value, items, close
     const theme = useTheme();
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-
-    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
-    const {isSmallScreenWidth} = useResponsiveLayout();
     const {windowHeight} = useWindowDimensions();
     const [selectedItems, setSelectedItems] = useState(value);
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
@@ -70,6 +67,7 @@ function MultiSelectPopup<T extends string>({label, loading, value, items, close
             keyForList: item.value,
             isSelected: !!selectedItems.find((i) => i.value === item.value),
             icons: item.icons,
+            leftElement: item.leftElement,
         }));
     }, [items, selectedItems, isSearchable, debouncedSearchTerm]);
 
@@ -78,17 +76,17 @@ function MultiSelectPopup<T extends string>({label, loading, value, items, close
     const updateSelectedItems = useCallback(
         (item: ListItem) => {
             if (item.isSelected) {
-                setSelectedItems(selectedItems.filter((i) => i.value !== item.keyForList));
+                setSelectedItems((prev) => prev.filter((i) => i.value !== item.keyForList));
                 return;
             }
 
             const newItem = items.find((i) => i.value === item.keyForList);
 
             if (newItem) {
-                setSelectedItems([...selectedItems, newItem]);
+                setSelectedItems((prev) => [...prev, newItem]);
             }
         },
-        [items, selectedItems],
+        [items],
     );
 
     const applyChanges = useCallback(() => {
@@ -114,17 +112,14 @@ function MultiSelectPopup<T extends string>({label, loading, value, items, close
     const reasonAttributes: SkeletonSpanReasonAttributes = {context: 'MultiSelectPopupDataLoading'};
 
     return (
-        <View style={[!isSmallScreenWidth && styles.pv4, styles.gap2]}>
-            {isSmallScreenWidth && (
-                <Text
-                    ref={modalHeadingRef}
-                    tabIndex={-1}
-                    style={[styles.textLabel, styles.textSupporting, styles.ph5, styles.pv1]}
-                >
-                    {label}
-                </Text>
-            )}
-
+        <BasePopup
+            label={label}
+            onReset={resetChanges}
+            onApply={applyChanges}
+            resetSentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_RESET_MULTI_SELECT}
+            applySentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY_MULTI_SELECT}
+            modalHeadingRef={modalHeadingRef}
+        >
             <View style={[styles.getSelectionListPopoverHeight(listData.length || 1, windowHeight, isSearchable ?? false)]}>
                 {!!loading && (
                     <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter]}>
@@ -146,25 +141,7 @@ function MultiSelectPopup<T extends string>({label, loading, value, items, close
                     />
                 )}
             </View>
-
-            <View style={[styles.flexRow, styles.gap2, styles.ph5]}>
-                <Button
-                    medium
-                    style={[styles.flex1]}
-                    text={translate('common.reset')}
-                    onPress={resetChanges}
-                    sentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_RESET_MULTI_SELECT}
-                />
-                <Button
-                    success
-                    medium
-                    style={[styles.flex1]}
-                    text={translate('common.apply')}
-                    onPress={applyChanges}
-                    sentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY_MULTI_SELECT}
-                />
-            </View>
-        </View>
+        </BasePopup>
     );
 }
 

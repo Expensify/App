@@ -5,10 +5,9 @@ import MenuItemList from '@components/MenuItemList';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
-import useAdminPoliciesConnectedToQBD from '@hooks/useAdminPoliciesConnectedToQBD';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import useOnyx from '@hooks/useOnyx';
+import useReusablePoliciesConnectedToQBD from '@hooks/useReusablePoliciesConnectedToQBD';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {copyExistingPolicyConnection} from '@libs/actions/connections';
 import Navigation from '@libs/Navigation/Navigation';
@@ -28,13 +27,12 @@ function QuickbooksDesktopExistingConnectionsPage({route}: QuickbooksDesktopExis
     const {translate, datetimeToRelative, getLocalDateFromDatetime} = useLocalize();
     const styles = useThemeStyles();
     const icons = useMemoizedLazyExpensifyIcons(['LinkCopy']);
-    const policiesConnectedToQBD = useAdminPoliciesConnectedToQBD();
-    const [connectionSyncProgressCollection] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS);
     const policyID: string = route.params.policyID;
+    const {connectionSyncProgressCollection, reusablePoliciesConnectedToQBD} = useReusablePoliciesConnectedToQBD(policyID);
 
     const menuItems = useMemo(
         () =>
-            policiesConnectedToQBD.map((policy) => {
+            reusablePoliciesConnectedToQBD.map((policy) => {
                 const syncProgress = connectionSyncProgressCollection?.[`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policy.id}`];
                 const lastSuccessfulSyncDate = getIntegrationLastSuccessfulDate(getLocalDateFromDatetime, policy.connections?.quickbooksDesktop, syncProgress);
                 const date = lastSuccessfulSyncDate ? datetimeToRelative(lastSuccessfulSyncDate) : undefined;
@@ -54,7 +52,7 @@ function QuickbooksDesktopExistingConnectionsPage({route}: QuickbooksDesktopExis
                     },
                 };
             }),
-        [policiesConnectedToQBD, connectionSyncProgressCollection, policyID, translate, datetimeToRelative, getLocalDateFromDatetime],
+        [reusablePoliciesConnectedToQBD, connectionSyncProgressCollection, policyID, translate, datetimeToRelative, getLocalDateFromDatetime],
     );
 
     return (

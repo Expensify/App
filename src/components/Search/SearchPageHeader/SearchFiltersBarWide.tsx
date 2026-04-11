@@ -49,7 +49,7 @@ function SearchFiltersBarWide({queryJSON, isMobileSelectionModeEnabled}: SearchF
     }
 
     return (
-        <View style={[shouldShowSelectedDropdown && styles.ph5, styles.mb2, styles.searchFiltersBarContainer, styles.gap5]}>
+        <View style={[shouldShowSelectedDropdown && styles.ph5, styles.mb4, styles.searchFiltersBarContainer, styles.gap5]}>
             {shouldShowSelectedDropdown ? (
                 <SearchBulkActionsButton queryJSON={queryJSON} />
             ) : (
