@@ -19,7 +19,6 @@ import {
     hasOnlyNonReimbursableTransactions,
     hasUpdatedTotal,
     hasViolations as hasViolationsReportUtils,
-    isIndividualInvoiceRoom,
     isInvoiceReport as isInvoiceReportUtils,
 } from '@libs/ReportUtils';
 import {approveMoneyRequest, canIOUBePaid as canIOUBePaidIOUActions, payInvoice, payMoneyRequest} from '@userActions/IOU';
