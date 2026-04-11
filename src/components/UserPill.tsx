@@ -22,7 +22,7 @@ function UserPill({avatar, displayName, accountID}: UserPillProps) {
     const styles = useThemeStyles();
 
     return (
-        <View style={[styles.flexRow, styles.alignItemsCenter, styles.userPill]}>
+        <View style={[styles.flexRow, styles.alignItemsCenter, styles.alignSelfStart, styles.userPill]}>
             <Avatar
                 source={avatar}
                 size={CONST.AVATAR_SIZE.MENTION_ICON}

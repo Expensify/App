@@ -5512,7 +5512,11 @@ const staticStyles = (theme: ThemeColors) =>
 
         userPill: {
             gap: 4,
-            paddingRight: 4,
+            paddingHorizontal: 6,
+            paddingVertical: 2,
+            borderWidth: 1,
+            borderColor: theme.border,
+            borderRadius: variables.componentBorderRadiusLarge,
         },
 
         userPillText: {
