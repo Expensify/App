@@ -1449,20 +1449,29 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.RULES_SPEND_NEW]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.RULES_SPEND_EDIT]: {
+        policyID: string;
+        ruleID: string;
+    };
     [SCREENS.WORKSPACE.RULES_SPEND_CARD]: {
         policyID: string;
+        ruleID: string;
     };
     [SCREENS.WORKSPACE.RULES_SPEND_CATEGORY]: {
         policyID: string;
+        ruleID: string;
     };
     [SCREENS.WORKSPACE.RULES_SPEND_MAX_AMOUNT]: {
         policyID: string;
+        ruleID: string;
     };
     [SCREENS.WORKSPACE.RULES_SPEND_MERCHANTS]: {
         policyID: string;
+        ruleID: string;
     };
     [SCREENS.WORKSPACE.RULES_SPEND_MERCHANT_EDIT]: {
         policyID: string;
+        ruleID: string;
         merchantIndex: string;
     };
     [SCREENS.WORKSPACE.RULES_MERCHANT_MERCHANT_TO_MATCH]: {
@@ -2217,6 +2226,7 @@ type NewTaskNavigatorParamList = {
 
 type TeachersUniteNavigatorParamList = {
     [SCREENS.SAVE_THE_WORLD.ROOT]: undefined;
+    [SCREENS.SAVE_THE_WORLD.ADD_PAYMENT_CARD]: undefined;
     [SCREENS.I_KNOW_A_TEACHER]: undefined;
     [SCREENS.INTRO_SCHOOL_PRINCIPAL]: undefined;
     [SCREENS.I_AM_A_TEACHER]: undefined;

@@ -436,6 +436,10 @@ describe('MergeTransactionUtils', () => {
                 tag: 'Same Tag',
                 billable: false,
                 attendees: [],
+                taxCode: undefined,
+                taxName: '',
+                taxPolicyID: undefined,
+                taxValue: undefined,
             });
         });
 

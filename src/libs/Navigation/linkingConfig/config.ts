@@ -1246,6 +1246,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.RULES_SPEND_NEW]: {
                             path: ROUTES.RULES_SPEND_NEW.route,
                         },
+                        [SCREENS.WORKSPACE.RULES_SPEND_EDIT]: {
+                            path: ROUTES.RULES_SPEND_EDIT.route,
+                        },
                         [SCREENS.WORKSPACE.RULES_SPEND_CARD]: {
                             path: ROUTES.RULES_SPEND_CARD.route,
                         },
@@ -1623,6 +1626,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                 },
                 [SCREENS.RIGHT_MODAL.TEACHERS_UNITE]: {
                     screens: {
+                        [SCREENS.SAVE_THE_WORLD.ADD_PAYMENT_CARD]: ROUTES.SETTINGS_SAVE_THE_WORLD_ADD_PAYMENT_CARD,
                         [SCREENS.I_KNOW_A_TEACHER]: ROUTES.I_KNOW_A_TEACHER,
                         [SCREENS.INTRO_SCHOOL_PRINCIPAL]: ROUTES.INTRO_SCHOOL_PRINCIPAL,
                         [SCREENS.I_AM_A_TEACHER]: ROUTES.I_AM_A_TEACHER,

@@ -231,11 +231,6 @@ function getMergeableDataAndConflictFields(
         const isTargetValueEmpty = isEmptyMergeValue(targetValue);
         const isSourceValueEmpty = isEmptyMergeValue(sourceValue);
 
-        // Temporarily skip merging tax value if either policy has tax tracking disabled until we handle in https://github.com/Expensify/App/issues/83157
-        if (field === 'taxValue' && (!targetTransactionPolicy?.tax?.trackingEnabled || !sourceTransactionPolicy?.tax?.trackingEnabled)) {
-            continue;
-        }
-
         if (field === 'amount') {
             // If target transaction is a card or split expense, always preserve the target transaction's amount and currency
             // Card takes precedence over split expense
