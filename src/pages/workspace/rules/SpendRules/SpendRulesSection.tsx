@@ -28,7 +28,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {SpendRuleForm} from '@src/types/form';
-import getTruncatedSpendRuleSummary from './SpendRuleSummaryUtils';
+import {getTruncatedSpendRuleSummary} from './SpendRulesUtils';
 
 type SpendRulesSectionProps = {
     policyID: string;
@@ -258,7 +258,8 @@ function SpendRulesSection({policyID}: SpendRulesSectionProps) {
                         }
                         accessibilityLabel={`${rule.summaryParts.map((part) => `${part.badgeLabel}. ${part.text}`).join('. ')}. ${rule.cardSummary}`}
                         sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.SPEND_RULE_ITEM}
-                        interactive={false}
+                        shouldShowRightIcon
+                        onPress={() => Navigation.navigate(ROUTES.RULES_SPEND_EDIT.getRoute(policyID, rule.ruleID))}
                     />
                 ))
             )}
