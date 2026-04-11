@@ -947,7 +947,7 @@ function hasDynamicExternalWorkflow(policy: OnyxEntry<Policy>): boolean {
  * `hasSupportedOnlyOnOldDotIntegration` detects connections that are supported only on OldDot.
  */
 function hasAccountingConnections(policy: OnyxEntry<Policy>) {
-    return !!getCurrentConnectionName(policy) || hasSupportedOnlyOnOldDotIntegration(policy);
+    return !!getCurrentConnectionName(policy) || hasSupportedOnlyOnOldDotIntegration(policy) || hasUnsupportedIntegration(policy);
 }
 
 function getPolicyEmployeeListByIdWithoutCurrentUser(policies: OnyxCollection<Pick<Policy, 'employeeList'>>, currentPolicyID?: string, currentUserAccountID?: number) {
