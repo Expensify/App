@@ -1332,12 +1332,24 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         }
 
         if (isDuplicateOptionVisible) {
+            const exceedsBulkDuplicateLimit = selectedTransactionsKeys.length > CONST.SEARCH.BULK_DUPLICATE_LIMIT;
             options.push({
                 text: translate('search.bulkActions.duplicateExpense', {count: selectedTransactionsKeys.length}),
                 icon: expensifyIcons.ExpenseCopy,
                 value: CONST.SEARCH.BULK_ACTION_TYPES.DUPLICATE,
                 shouldCloseModalOnSelect: true,
-                onSelected: invokeDuplicateHandler,
+                onSelected: () => {
+                    if (exceedsBulkDuplicateLimit) {
+                        showConfirmModal({
+                            title: translate('common.duplicateExpense'),
+                            prompt: translate('iou.bulkDuplicateLimit'),
+                            confirmText: translate('common.buttonConfirm'),
+                            shouldShowCancelButton: false,
+                        });
+                        return;
+                    }
+                    invokeDuplicateHandler();
+                },
             });
         }
 

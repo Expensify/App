@@ -1,6 +1,7 @@
 import {useCallback, useMemo, useRef, useState} from 'react';
 import {DeviceEventEmitter} from 'react-native';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
+import useConfirmModal from '@components/ConfirmModal/useConfirmModal';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import {useSearchActionsContext, useSearchStateContext} from '@components/Search/SearchContext';
@@ -153,6 +154,7 @@ function useSelectedTransactionsActions({
     const hasTransactionsFromMultipleOwners = hasUnknownOwner ? knownOwnerIDs.size > 0 || selectedTransactionIDs.length > 1 : knownOwnerIDs.size > 1;
 
     const {translate, localeCompare} = useLocalize();
+    const {showConfirmModal} = useConfirmModal();
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
 
     const selectedTransactionsForDuplicate = useMemo(() => {
@@ -475,13 +477,25 @@ function useSelectedTransactionsActions({
         }
 
         if (isDuplicateOptionVisible) {
+            const exceedsBulkDuplicateLimit = selectedTransactionIDs.length > CONST.SEARCH.BULK_DUPLICATE_LIMIT;
             // eslint-disable-next-line react-hooks/refs -- invokeDuplicateHandler reads a ref, but only at event-handler time (onSelected), never during render
             options.push({
                 text: translate('search.bulkActions.duplicateExpense', {count: selectedTransactionIDs.length}),
                 icon: expensifyIcons.ExpenseCopy,
                 value: DUPLICATE,
                 shouldCloseModalOnSelect: true,
-                onSelected: invokeDuplicateHandler,
+                onSelected: () => {
+                    if (exceedsBulkDuplicateLimit) {
+                        showConfirmModal({
+                            title: translate('common.duplicateExpense'),
+                            prompt: translate('iou.bulkDuplicateLimit'),
+                            confirmText: translate('common.buttonConfirm'),
+                            shouldShowCancelButton: false,
+                        });
+                        return;
+                    }
+                    invokeDuplicateHandler();
+                },
             });
         }
 

@@ -7533,6 +7533,7 @@ const CONST = {
             SPLIT: 'split',
             DUPLICATE: 'duplicate',
         },
+        BULK_DUPLICATE_LIMIT: 50,
         TRANSACTION_TYPE: {
             CASH: 'cash',
             CARD: 'card',
