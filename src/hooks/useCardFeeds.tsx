@@ -27,6 +27,8 @@ const useCardFeeds = (policyID: string | undefined): [CombinedCardFeeds | undefi
     const feedKeysWithCards = useFeedKeysWithAssignedCards();
     const defaultFeed = allFeeds?.[`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`];
 
+    // When workspaceAccountID is 0, find the domain ID by looking for a feed linked to this policy.
+    // This handles domain-based card accounts where no workspace account exists yet.
     let effectiveWorkspaceAccountID = workspaceAccountID;
     if (workspaceAccountID === CONST.DEFAULT_NUMBER_ID && policyID && allFeeds) {
         const linkedDomainEntry = Object.entries(allFeeds).find(([onyxKey, feeds]) => {
