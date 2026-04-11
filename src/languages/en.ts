@@ -337,6 +337,7 @@ const translations = {
         letsStart: `Let's start`,
         showMore: 'Show more',
         showLess: 'Show less',
+        plusMore: ({count}: {count: number}) => `+${count} more`,
         merchant: 'Merchant',
         change: 'Change',
         category: 'Category',
