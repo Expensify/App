@@ -119,7 +119,7 @@ function ExpenseSettlementButton({
                         value: CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT,
                         description: account.description,
                         onSelected: () => {
-                            if (checkForNecessaryAction()) {
+                            if (checkForNecessaryAction(CONST.IOU.PAYMENT_TYPE.VBBA)) {
                                 return;
                             }
                             onPress({

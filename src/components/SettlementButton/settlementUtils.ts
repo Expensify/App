@@ -55,7 +55,7 @@ function buildHandlePaymentSelection({
     lastPaymentPolicy,
     selectPaymentType,
 }: {
-    checkForNecessaryAction: () => boolean;
+    checkForNecessaryAction: (paymentMethodType?: PaymentMethodType) => boolean;
     activeAdminPolicies: Policy[];
     businessBankAccountOptions: BankAccountMenuItem[] | undefined;
     policyIDKey: string;
@@ -63,16 +63,16 @@ function buildHandlePaymentSelection({
     selectPaymentType: (event: KYCFlowEvent, iouPaymentType: PaymentMethodType) => void;
 }) {
     return (event: GestureResponderEvent | KeyboardEvent | undefined, selectedOption: string, triggerKYCFlow: (params: ContinueActionParams) => void) => {
-        if (checkForNecessaryAction()) {
-            return;
-        }
-
         const {paymentType, policyFromPaymentMethod, policyFromContext, shouldSelectPaymentMethod} = getActivePaymentType(
             selectedOption,
             activeAdminPolicies,
             businessBankAccountOptions,
             policyIDKey,
         );
+
+        if (checkForNecessaryAction(paymentType as PaymentMethodType)) {
+            return;
+        }
         const isPayingWithMethod = paymentType !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE;
 
         if ((!!policyFromPaymentMethod || shouldSelectPaymentMethod) && (isPayingWithMethod || !!policyFromPaymentMethod)) {

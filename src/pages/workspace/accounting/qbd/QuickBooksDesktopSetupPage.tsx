@@ -140,7 +140,7 @@ function RequireQuickBooksDesktopModal({route}: RequireQuickBooksDesktopModalPro
             <HeaderWithBackButton
                 title={translate('workspace.qbd.qbdSetup')}
                 shouldShowBackButton
-                onBackButtonPress={() => Navigation.dismissModal()}
+                onBackButtonPress={() => Navigation.goBack()}
             />
             {hasResultOfFetchingSetupLink ? children : <FullPageOfflineBlockingView addBottomSafeAreaPadding>{children}</FullPageOfflineBlockingView>}
         </ScreenWrapper>

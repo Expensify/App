@@ -19,6 +19,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Policy} from '@src/types/onyx';
+import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 
 /**
  * Guards payment actions behind authorization checks: delegate access, locked account,
@@ -46,7 +47,7 @@ function usePaymentGuard(chatReportID: string, reportID: string | undefined, pol
 
     const isBankAccountLocked = policy?.achAccount?.state === CONST.BANK_ACCOUNT.STATE.LOCKED;
 
-    const checkForNecessaryAction = () => {
+    const checkForNecessaryAction = (paymentMethodType?: PaymentMethodType) => {
         if (isDelegateAccessRestricted) {
             showDelegateNoAccessModal();
             return true;
@@ -57,7 +58,7 @@ function usePaymentGuard(chatReportID: string, reportID: string | undefined, pol
             return true;
         }
 
-        if (!isUserValidated) {
+        if (!isUserValidated && paymentMethodType !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
             handleUnvalidatedUserNavigation(chatReportID, reportID);
             return true;
         }

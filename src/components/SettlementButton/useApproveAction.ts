@@ -1,3 +1,4 @@
+import {delegateEmailSelector} from '@selectors/Account';
 import type {OnyxCollection} from 'react-native-onyx';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -38,6 +39,7 @@ function useApproveAction({iouReport, policyID, formattedAmount, shouldDisableAp
     const transactionViolationsSelector = (violations: OnyxCollection<TransactionViolation[]>) => hasViolationsReportUtils(iouReport?.reportID, violations, accountID, email ?? '');
     const [hasViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {selector: transactionViolationsSelector});
 
+    const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
 
@@ -65,6 +67,7 @@ function useApproveAction({iouReport, policyID, formattedAmount, shouldDisableAp
                 amountOwed,
                 ownerBillingGracePeriodEnd,
                 full: false,
+                delegateEmail,
             });
         }
     };

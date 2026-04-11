@@ -14,11 +14,12 @@ import {isIndividualInvoiceRoom as isIndividualInvoiceRoomUtil} from '@libs/Repo
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type {PaymentActionParams} from './types';
 
 type InvoicePaymentOptionsParams = {
     data: ReturnType<typeof useSettlementData>;
-    checkForNecessaryAction: () => boolean;
+    checkForNecessaryAction: (paymentMethodType?: PaymentMethodType) => boolean;
     onPress: (params: PaymentActionParams) => void;
     formattedAmount: string;
     lastPaymentMethod: string | undefined;
@@ -64,7 +65,7 @@ function useInvoicePaymentOptions({data, checkForNecessaryAction, onPress, forma
             icon: formattedPaymentMethod?.icon,
             shouldUpdateSelectedIndex: true,
             onSelected: () => {
-                if (checkForNecessaryAction()) {
+                if (checkForNecessaryAction(CONST.IOU.PAYMENT_TYPE.EXPENSIFY)) {
                     return;
                 }
                 onPress({
@@ -127,7 +128,7 @@ function useInvoicePaymentOptions({data, checkForNecessaryAction, onPress, forma
                     value: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
                     shouldUpdateSelectedIndex: true,
                     onSelected: () => {
-                        if (checkForNecessaryAction()) {
+                        if (checkForNecessaryAction(CONST.IOU.PAYMENT_TYPE.ELSEWHERE)) {
                             return;
                         }
                         onPress({paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE, payAsBusiness});
