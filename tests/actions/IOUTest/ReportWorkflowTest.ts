@@ -39,7 +39,6 @@ import type Transaction from '@src/types/onyx/Transaction';
 import type {InvoiceTestData} from '../../data/Invoice';
 import * as InvoiceData from '../../data/Invoice';
 import currencyList from '../../unit/currencyList.json';
-import createPersonalDetails from '../../utils/collections/personalDetails';
 import createRandomPolicy from '../../utils/collections/policies';
 import createRandomReportAction from '../../utils/collections/reportActions';
 import {createRandomReport} from '../../utils/collections/reports';
