@@ -41,6 +41,7 @@ function ReportParticipantDetails({report, route}: ReportParticipantDetailsPageP
     const {formatPhoneNumber, translate} = useLocalize();
     const StyleUtils = useStyleUtils();
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report?.reportID}`);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
     const [isRemoveMemberConfirmModalVisible, setIsRemoveMemberConfirmModalVisible] = React.useState(false);
@@ -56,7 +57,7 @@ function ReportParticipantDetails({report, route}: ReportParticipantDetailsPageP
     const isSelectedMemberCurrentUser = accountID === currentUserPersonalDetails?.accountID;
     const removeUser = () => {
         setIsRemoveMemberConfirmModalVisible(false);
-        removeFromGroupChat(report, [accountID]);
+        removeFromGroupChat(report, [accountID], reportMetadata);
         Navigation.goBack(backTo);
     };
 

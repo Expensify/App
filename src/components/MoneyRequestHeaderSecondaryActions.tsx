@@ -126,6 +126,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
 
     // Collection Onyx subscriptions (isolated here to prevent parent header re-renders)
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
+    const [allReportMetadata] = useOnyx(ONYXKEYS.COLLECTION.REPORT_METADATA);
     const [transactionDrafts] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftsSelector});
 
     // NVP subscriptions
@@ -433,6 +434,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
                             isChatIOUReportArchived,
                             allTransactionViolationsParam: allTransactionViolations,
                             currentUserAccountID: accountID,
+                            allReportMetadata,
                         });
                     } else {
                         // eslint-disable-next-line @typescript-eslint/no-deprecated

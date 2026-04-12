@@ -67,6 +67,7 @@ import type {
     Policy,
     Report,
     ReportAction,
+    ReportMetadata,
     ReportNameValuePairs,
     Transaction,
     TransactionViolations,
@@ -127,6 +128,7 @@ type BulkDeleteReportsParams = {
     bankAccountList: OnyxEntry<BankAccountList>;
     transactions?: OnyxCollection<Transaction>;
     allReportNameValuePairs: OnyxCollection<ReportNameValuePairs>;
+    allReportMetadata?: OnyxCollection<ReportMetadata>;
 };
 
 function handleActionButtonPress({
@@ -907,6 +909,7 @@ function bulkDeleteReports({
     bankAccountList,
     transactions,
     allReportNameValuePairs,
+    allReportMetadata,
 }: BulkDeleteReportsParams) {
     const transactionIDList: string[] = [];
     const reportIDList: string[] = [];
@@ -966,6 +969,7 @@ function bulkDeleteReports({
             allTransactionViolationsParam: transactionsViolations,
             currentUserAccountID: currentUserAccountIDParam,
             currentUserEmail: currentUserEmailParam,
+            allReportMetadata,
         });
     }
 
@@ -980,6 +984,7 @@ function bulkDeleteReports({
                 reportTransactions,
                 allTransactionViolations: transactionsViolations,
                 bankAccountList,
+                allReportMetadata,
             });
         }
     }
@@ -1148,6 +1153,7 @@ function rejectMoneyRequestInBulk(
     currentUserAccountIDParam: number,
     betas: OnyxEntry<Beta[]>,
     hash?: number,
+    allReportMetadata?: OnyxCollection<ReportMetadata>,
 ) {
     const optimisticData: Array<RejectMoneyRequestData['optimisticData'][number] | OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT>> = [];
     const finallyData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT>> = [];
@@ -1166,7 +1172,7 @@ function rejectMoneyRequestInBulk(
         }
     > = {};
     for (const transactionID of transactionIDs) {
-        const data = prepareRejectMoneyRequestData(transactionID, reportID, comment, policy, currentUserAccountIDParam, betas, undefined, true);
+        const data = prepareRejectMoneyRequestData(transactionID, reportID, comment, policy, currentUserAccountIDParam, betas, {allReportMetadata}, true);
         if (data) {
             optimisticData.push(...data.optimisticData);
             successData.push(...data.successData);
@@ -1202,6 +1208,7 @@ function rejectMoneyRequestsOnSearch(
     allReports: OnyxCollection<Report>,
     currentUserAccountIDParam: number,
     betas: OnyxEntry<Beta[]>,
+    allReportMetadata?: OnyxCollection<ReportMetadata>,
 ) {
     const transactionIDs = Object.keys(selectedTransactions);
 
@@ -1234,12 +1241,12 @@ function rejectMoneyRequestsOnSearch(
         const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
         const isPolicyDelayedSubmissionEnabled = policy ? isDelayedSubmissionEnabled(policy) : false;
         if (isPolicyDelayedSubmissionEnabled && areAllExpensesSelected) {
-            rejectMoneyRequestInBulk(reportID, comment, policy, selectedTransactionIDs, currentUserAccountIDParam, betas, hash);
+            rejectMoneyRequestInBulk(reportID, comment, policy, selectedTransactionIDs, currentUserAccountIDParam, betas, hash, allReportMetadata);
         } else {
             // Share a single destination ID across all rejections from the same source report
             const sharedRejectedToReportID = generateReportID();
             for (const transactionID of selectedTransactionIDs) {
-                rejectMoneyRequest(transactionID, reportID, comment, policy, currentUserAccountIDParam, betas, {sharedRejectedToReportID});
+                rejectMoneyRequest(transactionID, reportID, comment, policy, currentUserAccountIDParam, betas, {sharedRejectedToReportID, allReportMetadata});
             }
         }
         if (isSingleReport && areAllExpensesSelected && !isPolicyDelayedSubmissionEnabled) {

@@ -90,6 +90,7 @@ function PayActionButton({
     );
 
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
+    const [allReportMetadata] = useOnyx(ONYXKEYS.COLLECTION.REPORT_METADATA);
 
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const existingB2BInvoiceReport = useParticipantsInvoiceReport(activePolicyID, CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS, chatReport?.policyID);
@@ -128,6 +129,7 @@ function PayActionButton({
                 full: true,
                 onApproved: startApprovedAnimation,
                 delegateEmail,
+                allReportMetadata,
             });
         }
     };
@@ -179,6 +181,7 @@ function PayActionButton({
                     amountOwed,
                     ownerBillingGracePeriodEnd,
                     onPaid: startAnimation,
+                    allReportMetadata,
                 });
             }
         }

@@ -148,7 +148,7 @@ function RoomMembersPage({report, policy}: RoomMembersPageProps) {
      */
     const removeUsers = useCallback(() => {
         if (report) {
-            removeFromRoom(report, selectedMembers);
+            removeFromRoom(report, selectedMembers, reportMetadata);
         }
         setSearchValue('');
         // eslint-disable-next-line @typescript-eslint/no-deprecated
@@ -156,7 +156,7 @@ function RoomMembersPage({report, policy}: RoomMembersPageProps) {
             setSelectedMembers([]);
             clearUserSearchPhrase();
         });
-    }, [report, selectedMembers, setSearchValue, setSelectedMembers]);
+    }, [report, reportMetadata, selectedMembers, setSearchValue, setSelectedMembers]);
 
     const showRemoveMembersModal = useCallback(async () => {
         const {action} = await showConfirmModal({
@@ -335,9 +335,9 @@ function RoomMembersPage({report, policy}: RoomMembersPageProps) {
 
     const dismissError = useCallback(
         (item: ListItem) => {
-            clearAddRoomMemberError(report.reportID, String(item.accountID));
+            clearAddRoomMemberError(report.reportID, String(item.accountID), reportMetadata);
         },
-        [report.reportID],
+        [report.reportID, reportMetadata],
     );
 
     const isPolicyEmployee = useMemo(() => isPolicyEmployeeUtils(report.policyID, policy), [report?.policyID, policy]);

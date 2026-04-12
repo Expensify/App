@@ -197,6 +197,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
+    const [allReportMetadata] = useOnyx(ONYXKEYS.COLLECTION.REPORT_METADATA);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {showConfirmModal} = useConfirmModal();
     const isPolicyAdmin = useMemo(() => isPolicyAdminUtil(policy), [policy]);
@@ -332,13 +333,32 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
 
     const leaveChat = useCallback(() => {
         if (isRootGroupChat) {
-            leaveGroupChat(report, quickAction?.chatReportID?.toString() === report.reportID, currentUserPersonalDetails.accountID, conciergeReportID, introSelected, betas);
+            leaveGroupChat(
+                report,
+                quickAction?.chatReportID?.toString() === report.reportID,
+                currentUserPersonalDetails.accountID,
+                conciergeReportID,
+                introSelected,
+                betas,
+                allReportMetadata,
+            );
             return;
         }
 
         const isWorkspaceMemberLeavingWorkspaceRoom = isWorkspaceMemberLeavingWorkspaceRoomUtil(report, isPolicyEmployee, isPolicyAdmin);
-        leaveRoom(report, currentUserPersonalDetails.accountID, conciergeReportID, introSelected, betas, isWorkspaceMemberLeavingWorkspaceRoom);
-    }, [isRootGroupChat, isPolicyEmployee, isPolicyAdmin, quickAction?.chatReportID, report, currentUserPersonalDetails.accountID, conciergeReportID, introSelected, betas]);
+        leaveRoom(report, currentUserPersonalDetails.accountID, conciergeReportID, introSelected, betas, isWorkspaceMemberLeavingWorkspaceRoom, allReportMetadata);
+    }, [
+        isRootGroupChat,
+        isPolicyEmployee,
+        isPolicyAdmin,
+        quickAction?.chatReportID,
+        report,
+        currentUserPersonalDetails.accountID,
+        conciergeReportID,
+        introSelected,
+        betas,
+        allReportMetadata,
+    ]);
 
     const showLastMemberLeavingModal = useCallback(async () => {
         const {action} = await showConfirmModal({
@@ -574,7 +594,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                 icon: expensifyIcons.Exit,
                 isAnonymousAction: true,
                 action: () => {
-                    if (getParticipantsAccountIDsForDisplay(report, false, true).length === 1 && isRootGroupChat) {
+                    if (getParticipantsAccountIDsForDisplay(report, false, true, false, reportMetadata).length === 1 && isRootGroupChat) {
                         showLastMemberLeavingModal();
                         return;
                     }
@@ -642,6 +662,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
         amountOwed,
         ownerBillingGracePeriodEnd,
         iouTransaction,
+        reportMetadata,
     ]);
 
     const displayNamesWithTooltips = useMemo(() => {
@@ -890,7 +911,17 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
 
     const deleteTransaction = useCallback(() => {
         if (caseID === CASES.DEFAULT) {
-            deleteTask(report, parentReport, isReportArchived, currentUserPersonalDetails.accountID, hasOutstandingChildTask, parentReportAction, conciergeReportID, ancestors);
+            deleteTask(
+                report,
+                parentReport,
+                isReportArchived,
+                currentUserPersonalDetails.accountID,
+                hasOutstandingChildTask,
+                parentReportAction,
+                conciergeReportID,
+                ancestors,
+                allReportMetadata,
+            );
             return;
         }
 
@@ -915,6 +946,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                 isChatIOUReportArchived,
                 allTransactionViolationsParam: allTransactionViolations,
                 currentUserAccountID: currentUserPersonalDetails.accountID,
+                allReportMetadata,
             });
         } else if (iouTransactionID) {
             deleteTransactions([iouTransactionID], duplicateTransactions, duplicateTransactionViolations, undefined, isSingleTransactionView);
@@ -943,6 +975,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
         deleteTransactions,
         removeTransaction,
         conciergeReportID,
+        allReportMetadata,
     ]);
 
     // Where to navigate back to after deleting the transaction and its report.

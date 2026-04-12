@@ -144,13 +144,14 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     const [invitedEmailsToAccountIDsDraft] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${route.params.policyID.toString()}`);
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
     const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [allReportMetadata] = useOnyx(ONYXKEYS.COLLECTION.REPORT_METADATA);
     const currentUserAccountID = Number(session?.accountID);
     const selectionListRef = useRef<SelectionListHandle<MemberOption>>(null);
     const isFocused = useIsFocused();
     const policyID = route.params.policyID;
     const illustrations = useMemoizedLazyIllustrations(['ReceiptWrangler']);
 
-    const ownerDetails = personalDetails?.[policy?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID] ?? ({} as PersonalDetails);
+    const ownerDetails = useMemo(() => personalDetails?.[policy?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID] ?? ({} as PersonalDetails), [personalDetails, policy?.ownerAccountID]);
     const {approvalWorkflows} = useMemo(
         () =>
             convertPolicyEmployeesToApprovalWorkflows({
@@ -228,7 +229,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
      * Remove selected users from the workspace
      * Please see https://github.com/Expensify/App/blob/main/README.md#Security for more details
      */
-    const removeUsers = () => {
+    const removeUsers = useCallback(() => {
         // Check if any of the members are approvers
         const hasApprovers = selectedEmployees.some((email) => isPolicyApprover(policy, email));
 
@@ -263,9 +264,9 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             setSelectedEmployees([]);
-            removeMembers(policy, selectedEmployees, policyMemberEmailsToAccountIDs);
+            removeMembers(policy, selectedEmployees, policyMemberEmailsToAccountIDs, allReportMetadata);
         });
-    };
+    }, [allReportMetadata, approvalWorkflows, ownerDetails, personalDetails, policy, policyMemberEmailsToAccountIDs, selectedEmployees, setSelectedEmployees]);
 
     /**
      * Show the modal to confirm removal of the selected members

@@ -61,6 +61,7 @@ function BaseOnboardingWorkspaceInvite({shouldUseNativeStyles}: BaseOnboardingWo
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const [allReportMetadata] = useOnyx(ONYXKEYS.COLLECTION.REPORT_METADATA);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const session = useSession();
     const {isBetaEnabled} = usePermissions();
@@ -150,6 +151,7 @@ function BaseOnboardingWorkspaceInvite({shouldUseNativeStyles}: BaseOnboardingWo
             // Onboarding tasks would show in Concierge instead of admins room for testing accounts, we should open where onboarding tasks are located
             // See https://github.com/Expensify/App/issues/57167 for more details
             (session?.email ?? '').includes('+'),
+            allReportMetadata,
         );
     };
 
@@ -174,7 +176,16 @@ function BaseOnboardingWorkspaceInvite({shouldUseNativeStyles}: BaseOnboardingWo
             invitedEmailsToAccountIDs[login] = Number(accountID);
         }
         const policyMemberAccountIDs = Object.values(getMemberAccountIDsForWorkspace(policy?.employeeList, false, false));
-        addMembersToWorkspace(invitedEmailsToAccountIDs, `${welcomeNoteSubject}\n\n${welcomeNote}`, policy, policyMemberAccountIDs, CONST.POLICY.ROLE.USER, formatPhoneNumber, undefined);
+        addMembersToWorkspace(
+            invitedEmailsToAccountIDs,
+            `${welcomeNoteSubject}\n\n${welcomeNote}`,
+            policy,
+            policyMemberAccountIDs,
+            CONST.POLICY.ROLE.USER,
+            formatPhoneNumber,
+            undefined,
+            allReportMetadata,
+        );
         completeOnboarding(true);
     };
 

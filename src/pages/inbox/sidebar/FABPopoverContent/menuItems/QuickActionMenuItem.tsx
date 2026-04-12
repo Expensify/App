@@ -47,6 +47,7 @@ function QuickActionMenuItem({reportID}: QuickActionMenuItemProps) {
     const [policyChats = getEmptyArray<OnyxTypes.Report>()] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: workspaceChatsSelector});
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
     const [quickActionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${quickAction?.chatReportID}`);
+    const [allReportMetadata] = useOnyx(ONYXKEYS.COLLECTION.REPORT_METADATA);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [lastDistanceExpenseType] = useOnyx(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE);
     const [allBetas] = useOnyx(ONYXKEYS.BETAS);
@@ -159,6 +160,7 @@ function QuickActionMenuItem({reportID}: QuickActionMenuItemProps) {
                             currentUserAccountID: currentUserPersonalDetails.accountID,
                             draftTransactionIDs,
                             isFromFloatingActionButton: true,
+                            allReportMetadata,
                         });
                     })
                 }

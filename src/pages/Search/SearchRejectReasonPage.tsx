@@ -27,6 +27,7 @@ function SearchRejectReasonPage({route}: SearchRejectReasonPageProps) {
     const {reportID} = route.params ?? {};
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+    const [allReportMetadata] = useOnyx(ONYXKEYS.COLLECTION.REPORT_METADATA);
     const {translate} = useLocalize();
 
     const [betas] = useOnyx(ONYXKEYS.BETAS);
@@ -51,7 +52,16 @@ function SearchRejectReasonPage({route}: SearchRejectReasonPageProps) {
                 return;
             }
 
-            const urlToNavigateBack = rejectMoneyRequestsOnSearch(currentSearchHash, selectedTransactionsForReject, comment, allPolicies, allReports, currentUserAccountID, betas);
+            const urlToNavigateBack = rejectMoneyRequestsOnSearch(
+                currentSearchHash,
+                selectedTransactionsForReject,
+                comment,
+                allPolicies,
+                allReports,
+                currentUserAccountID,
+                betas,
+                allReportMetadata,
+            );
             if (route.name === SCREENS.SEARCH.MONEY_REQUEST_REPORT_REJECT_TRANSACTIONS) {
                 clearSelectedTransactions(true);
             } else {
@@ -67,6 +77,7 @@ function SearchRejectReasonPage({route}: SearchRejectReasonPageProps) {
             clearSelectedTransactions,
             allPolicies,
             allReports,
+            allReportMetadata,
             route.name,
             selectedTransactionsForReject,
             isDelegateAccessRestricted,

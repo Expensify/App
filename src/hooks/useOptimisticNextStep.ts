@@ -75,7 +75,7 @@ function useOptimisticNextStep(reportID: string | undefined) {
                 optimisticNextStep = buildOptimisticNextStepForDEWOffline();
             }
         } else if (moneyRequestReport?.statusNum === CONST.REPORT.STATUS_NUM.SUBMITTED) {
-            const gbrResult = getReasonAndReportActionThatRequiresAttention(moneyRequestReport, undefined, isArchivedReport);
+            const gbrResult = getReasonAndReportActionThatRequiresAttention(moneyRequestReport, undefined, isArchivedReport, reportMetadata);
             const hasDEWApproveFailed = gbrResult?.reason === CONST.REQUIRES_ATTENTION_REASONS.HAS_DEW_APPROVE_FAILED;
             const isCurrentUserTheApprover = moneyRequestReport?.managerID === accountID;
             if (hasDEWApproveFailed && isCurrentUserTheApprover) {

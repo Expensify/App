@@ -1,5 +1,6 @@
 import React, {useState} from 'react';
 import useArchivedReportsIdSet from '@hooks/useArchivedReportsIdSet';
+import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import createSplitNavigator from '@libs/Navigation/AppNavigator/createSplitNavigator';
 import FreezeWrapper from '@libs/Navigation/AppNavigator/FreezeWrapper';
@@ -12,6 +13,7 @@ import type {AuthScreensParamList, ReportsSplitNavigatorParamList} from '@libs/N
 import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import type NAVIGATORS from '@src/NAVIGATORS';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type ReactComponentModule from '@src/types/utils/ReactComponentModule';
@@ -29,6 +31,7 @@ function ReportsSplitNavigator({route}: PlatformStackScreenProps<AuthScreensPara
     const splitNavigatorScreenOptions = useSplitNavigatorScreenOptions();
     const archivedReportsIdSet = useArchivedReportsIdSet();
     const isOpenOnAdminRoom = shouldOpenOnAdminRoom();
+    const [allReportMetadata] = useOnyx(ONYXKEYS.COLLECTION.REPORT_METADATA);
 
     const [initialReportID] = useState(() => {
         // Deep links and REPORT_WITH_ID navigation pass the reportID in nested params,
@@ -51,7 +54,7 @@ function ReportsSplitNavigator({route}: PlatformStackScreenProps<AuthScreensPara
             return '';
         }
 
-        const initialReport = ReportUtils.findLastAccessedReport(!isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS), isOpenOnAdminRoom, undefined, archivedReportsIdSet);
+        const initialReport = ReportUtils.findLastAccessedReport(!isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS), isOpenOnAdminRoom, undefined, archivedReportsIdSet, allReportMetadata);
         // eslint-disable-next-line rulesdir/no-default-id-values
         return initialReport?.reportID ?? '';
     });

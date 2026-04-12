@@ -12,6 +12,7 @@ import type {
     PolicyTagLists,
     ReportActions,
     ReportAttributesDerivedValue,
+    ReportMetadata,
     ReportNameValuePairs,
     Transaction,
     TransactionViolation,
@@ -153,7 +154,6 @@ import {
     getPolicyName,
     getReceiptUploadErrorReason,
     getReportDescription,
-    getReportMetadata,
     getReportNotificationPreference,
     getReportParticipantsTitle,
     getReportSubtitlePrefix,
@@ -697,6 +697,7 @@ function getOptionData({
     reportAttributesDerived,
     policyTags,
     currentUserLogin,
+    reportMetadata,
 }: {
     report: OnyxEntry<Report>;
     oneTransactionThreadReport: OnyxEntry<Report>;
@@ -721,6 +722,7 @@ function getOptionData({
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'];
     policyTags?: OnyxEntry<PolicyTagLists>;
     currentUserLogin: string;
+    reportMetadata?: OnyxEntry<ReportMetadata>;
 }): OptionData | undefined {
     // When a user signs out, Onyx is cleared. Due to the lazy rendering with a virtual list, it's possible for
     // this method to be called after the Onyx data has been cleared out. In that case, it's fine to do
@@ -761,8 +763,7 @@ function getOptionData({
         isDeletedParentAction: false,
         isConciergeChat: false,
     };
-    const reportMetadata = getReportMetadata(report?.reportID);
-    const participantAccountIDs = getParticipantsAccountIDsForDisplay(report);
+    const participantAccountIDs = getParticipantsAccountIDsForDisplay(report, false, false, false, reportMetadata);
     const participantAccountIDsExcludeCurrentUser = excludeParticipantsForDisplay(participantAccountIDs, report.participants ?? {}, reportMetadata, {shouldExcludeCurrentUser: true});
     const participantPersonalDetailListExcludeCurrentUser = Object.values(getPersonalDetailsForAccountIDs(participantAccountIDsExcludeCurrentUser, personalDetails));
 

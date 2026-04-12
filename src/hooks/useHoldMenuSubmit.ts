@@ -37,6 +37,7 @@ function useHoldMenuSubmit({moneyRequestReport, chatReport, requestType, payment
     const policy = usePolicy(moneyRequestReport?.policyID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [allReportMetadata] = useOnyx(ONYXKEYS.COLLECTION.REPORT_METADATA);
     const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [moneyRequestReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${moneyRequestReport?.reportID}`);
@@ -82,6 +83,7 @@ function useHoldMenuSubmit({moneyRequestReport, chatReport, requestType, payment
                 full,
                 onApproved: animationCallback,
                 delegateEmail,
+                allReportMetadata,
             });
         } else if (chatReport && paymentType) {
             payMoneyRequest({
@@ -101,6 +103,7 @@ function useHoldMenuSubmit({moneyRequestReport, chatReport, requestType, payment
                 ownerBillingGracePeriodEnd,
                 methodID,
                 onPaid: animationCallback,
+                allReportMetadata,
             });
         }
         onClose();

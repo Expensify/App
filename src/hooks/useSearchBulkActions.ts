@@ -200,6 +200,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     const {accountID} = currentUserPersonalDetails;
     const allTransactions = useAllTransactions();
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+    const [allReportMetadata] = useOnyx(ONYXKEYS.COLLECTION.REPORT_METADATA);
     const [allReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
     const {filteredReportActions: policyExpenseChatReportActions} = useAllPolicyExpenseChatReportActions();
     const [allReportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
@@ -587,6 +588,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                             allTransactionViolations,
                             bankAccountList,
                             hash,
+                            allReportMetadata,
                         });
                     }
                 } else {
@@ -604,6 +606,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                         bankAccountList,
                         transactions,
                         allReportNameValuePairs,
+                        allReportMetadata,
                     });
                 }
                 clearSelectedTransactions();
@@ -623,6 +626,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         clearSelectedTransactions,
         transactions,
         allReports,
+        allReportMetadata,
         selfDMReport,
         currentUserPersonalDetails?.email,
         currentUserPersonalDetails?.accountID,

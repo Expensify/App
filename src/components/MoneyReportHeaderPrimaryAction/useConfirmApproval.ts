@@ -25,6 +25,7 @@ function useConfirmApproval(reportID: string | undefined, startApprovedAnimation
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
+    const [allReportMetadata] = useOnyx(ONYXKEYS.COLLECTION.REPORT_METADATA);
     const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
 
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
@@ -56,6 +57,7 @@ function useConfirmApproval(reportID: string | undefined, startApprovedAnimation
                 full: true,
                 onApproved: startApprovedAnimation,
                 delegateEmail,
+                allReportMetadata,
             });
         }
     };

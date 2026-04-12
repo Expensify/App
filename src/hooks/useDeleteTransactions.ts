@@ -46,6 +46,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
     const [iouReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${getNonEmptyStringOnyxID(report?.reportID)}`);
     const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {selector: passthroughPolicyTagListSelector});
     const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [allReportMetadata] = useOnyx(ONYXKEYS.COLLECTION.REPORT_METADATA);
     const {isBetaEnabled} = usePermissions();
     const archivedReportsIdSet = useArchivedReportsIdSet();
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
@@ -202,6 +203,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
                     allTransactionViolationsParam: transactionViolations,
                     currentUserAccountID: currentUserPersonalDetails.accountID,
                     currentUserEmail: currentUserPersonalDetails.email ?? '',
+                    allReportMetadata,
                 });
                 deletedTransactionIDs.push(transactionID);
                 if (action.childReportID) {
@@ -215,6 +217,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
             allPolicyRecentlyUsedCategories,
             allReportNameValuePairs,
             allReports,
+            allReportMetadata,
             allSnapshots,
             allTransactions,
             archivedReportsIdSet,

@@ -33,6 +33,7 @@ type NewTaskPageProps = PlatformStackScreenProps<NewTaskNavigatorParamList, type
 
 function NewTaskPage({route}: NewTaskPageProps) {
     const [task] = useOnyx(ONYXKEYS.TASK);
+    const [assigneeChatReportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${task?.assigneeChatReport?.reportID}`);
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
@@ -106,6 +107,7 @@ function NewTaskPage({route}: NewTaskPageProps) {
             currentUserEmail: currentUserPersonalDetails.email ?? '',
             assigneeAccountID: task.assigneeAccountID,
             assigneeChatReport: task.assigneeChatReport,
+            assigneeChatReportMetadata,
             policyID: parentReport?.policyID,
             isCreatedUsingMarkdown: false,
             quickAction,

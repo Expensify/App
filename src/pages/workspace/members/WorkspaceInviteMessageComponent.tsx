@@ -68,6 +68,7 @@ function WorkspaceInviteMessageComponent({
     const {translate, formatPhoneNumber} = useLocalize();
     const [formData, formDataResult] = useOnyx(ONYXKEYS.FORMS.WORKSPACE_INVITE_MESSAGE_FORM_DRAFT);
     const [allPersonalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const [allReportMetadata] = useOnyx(ONYXKEYS.COLLECTION.REPORT_METADATA);
 
     const [welcomeNote, setWelcomeNote] = useState<string>();
 
@@ -157,6 +158,7 @@ function WorkspaceInviteMessageComponent({
             workspaceInviteRoleDraft,
             formatPhoneNumber,
             shouldShowApproverRow ? validatedApprover : undefined,
+            allReportMetadata,
         );
         setWorkspaceInviteMessageDraft(policyID, welcomeNote ?? null);
         clearDraftValues(ONYXKEYS.FORMS.WORKSPACE_INVITE_MESSAGE_FORM);

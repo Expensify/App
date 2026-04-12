@@ -49,6 +49,7 @@ type DeleteMoneyRequestFunctionParams = {
     allTransactionViolationsParam: OnyxCollection<OnyxTypes.TransactionViolations>;
     currentUserAccountID: number;
     currentUserEmail: string;
+    allReportMetadata?: OnyxCollection<OnyxTypes.ReportMetadata>;
 };
 
 /**
@@ -643,6 +644,7 @@ function deleteMoneyRequest({
     allTransactionViolationsParam,
     currentUserAccountID,
     currentUserEmail,
+    allReportMetadata,
 }: DeleteMoneyRequestFunctionParams) {
     if (!transactionID) {
         return;
@@ -726,7 +728,15 @@ function deleteMoneyRequest({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport?.reportID}`,
             value: {
-                hasOutstandingChildRequest: hasOutstandingChildRequest(chatReport, updatedIOUReport, currentUserEmail, currentUserAccountID, allTransactionViolationsParam, undefined),
+                hasOutstandingChildRequest: hasOutstandingChildRequest(
+                    chatReport,
+                    updatedIOUReport,
+                    currentUserEmail,
+                    currentUserAccountID,
+                    allTransactionViolationsParam,
+                    undefined,
+                    allReportMetadata,
+                ),
             },
         });
     }
@@ -745,7 +755,15 @@ function deleteMoneyRequest({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport?.reportID}`,
                 value: {
-                    hasOutstandingChildRequest: hasOutstandingChildRequest(chatReport, iouReport?.reportID, currentUserEmail, currentUserAccountID, allTransactionViolationsParam, undefined),
+                    hasOutstandingChildRequest: hasOutstandingChildRequest(
+                        chatReport,
+                        iouReport?.reportID,
+                        currentUserEmail,
+                        currentUserAccountID,
+                        allTransactionViolationsParam,
+                        undefined,
+                        allReportMetadata,
+                    ),
                     iouReportID: null,
                     ...optimisticLastReportData,
                 },
