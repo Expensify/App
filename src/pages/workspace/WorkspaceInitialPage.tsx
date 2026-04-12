@@ -136,7 +136,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
     const shouldShowProtectedItems = isPolicyAdmin(policy, login);
     const shouldDisplayLHB = !shouldUseNarrowLayout;
 
-    const accountingConnectionNames = [...CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES];
+    const accountingConnectionNames = CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES;
     const hasSyncError = shouldShowSyncError(policy, isConnectionInProgress(connectionSyncProgress, policy), accountingConnectionNames);
     const hasMembersError = shouldShowEmployeeListError(policy);
     const hasPolicyCategoryError = hasPolicyCategoriesError(policyCategories);

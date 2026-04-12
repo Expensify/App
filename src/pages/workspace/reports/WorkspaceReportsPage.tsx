@@ -71,7 +71,7 @@ function WorkspaceReportFieldsPage({
     const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policyID}`);
     const isSyncInProgress = isConnectionInProgress(connectionSyncProgress, policy);
     const syncingAccountingIntegration = CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES.find((connectionName) => connectionName === connectionSyncProgress?.connectionName);
-    const hasSyncError = shouldShowSyncError(policy, isSyncInProgress, [...CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES]);
+    const hasSyncError = shouldShowSyncError(policy, isSyncInProgress, CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES);
     const connectedIntegration = getConnectedIntegration(policy) ?? syncingAccountingIntegration;
     const isConnectionVerified = connectedIntegration && !isConnectionUnverified(policy, connectedIntegration);
     const currentConnectionName = getCurrentConnectionName(policy);

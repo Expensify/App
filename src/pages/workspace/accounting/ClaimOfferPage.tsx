@@ -54,7 +54,7 @@ function ClaimOfferPage({route, policy}: ClaimOfferPageProps) {
     const {isUberConnected} = useGetReceiptPartnersIntegrationData(policyID);
     const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policyID}`);
 
-    const accountingIntegrations = [...CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES];
+    const accountingIntegrations = CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES;
     const syncingAccountingIntegration = accountingIntegrations.find((integrationName) => integrationName === connectionSyncProgress?.connectionName);
     const connectedIntegration = getConnectedIntegration(policy, accountingIntegrations) ?? syncingAccountingIntegration;
 

@@ -10,21 +10,6 @@ import type UpdateBeneficialOwnersForBankAccountParams from './parameters/Update
 
 type ApiRequestType = ValueOf<typeof CONST.API_REQUEST_TYPE>;
 
-type GustoSyncResultUser = {
-    email: string;
-    displayName?: string;
-};
-
-type GustoSyncSkippedResultUser = GustoSyncResultUser & {
-    reason: string;
-};
-
-type GustoSyncResult = {
-    added?: GustoSyncResultUser[];
-    removed?: GustoSyncResultUser[];
-    skipped?: GustoSyncSkippedResultUser[];
-};
-
 const WRITE_COMMANDS = {
     IMPORT_CSV_TRANSACTIONS: 'ImportCSVTransactions',
     CLEAN_POLICY_TAGS: 'ClearPolicyTags',
@@ -1456,4 +1441,4 @@ type CommandOfType<TRequestType extends ApiRequestType> = TRequestType extends t
       ? ReadCommand
       : SideEffectRequestCommand;
 
-export type {ApiCommand, ApiRequestType, ApiRequestCommandParameters, CommandOfType, GustoSyncResult, GustoSyncResultUser, ReadCommand, SideEffectRequestCommand, WriteCommand};
+export type {ApiCommand, ApiRequestType, ApiRequestCommandParameters, CommandOfType, ReadCommand, SideEffectRequestCommand, WriteCommand};

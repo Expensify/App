@@ -1,6 +1,6 @@
 import type {CONST as COMMON_CONST} from 'expensify-common';
 import type {ValueOf} from 'type-fest';
-import type {GustoSyncResult} from '@libs/API/types';
+import type {GustoSyncResult} from '@libs/API/GustoSyncResult';
 import type CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import type * as OnyxTypes from '.';

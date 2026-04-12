@@ -105,7 +105,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
     const accountingIcons = useMemoizedLazyExpensifyIcons(['IntacctSquare', 'QBOSquare', 'XeroSquare', 'NetSuiteSquare', 'QBDSquare']);
     const illustrations = useMemoizedLazyIllustrations(['Accounting']);
 
-    const accountingIntegrations = [...CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES];
+    const accountingIntegrations = CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES;
     const syncingAccountingIntegration = accountingIntegrations.find((integration) => integration === connectionSyncProgress?.connectionName);
     const connectedIntegration = getConnectedIntegration(policy, accountingIntegrations) ?? syncingAccountingIntegration;
     const synchronizationError = connectedIntegration && getSynchronizationErrorMessage(policy, connectedIntegration, isSyncInProgress, translate, styles);

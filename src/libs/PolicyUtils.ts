@@ -167,7 +167,7 @@ function hasPolicyCategoriesError(policyCategories: OnyxEntry<PolicyCategories>)
 /**
  * Checks if the policy had a sync error.
  */
-function shouldShowSyncError(policy: OnyxEntry<Policy>, isSyncInProgress: boolean, connectionNames?: ConnectionName[]): boolean {
+function shouldShowSyncError(policy: OnyxEntry<Policy>, isSyncInProgress: boolean, connectionNames?: readonly ConnectionName[]): boolean {
     const connectionsToCheck = connectionNames ?? (Object.keys(policy?.connections ?? {}) as ConnectionName[]);
     return isPolicyAdmin(policy) && connectionsToCheck.some((connection) => !!hasSynchronizationErrorMessage(policy, connection, isSyncInProgress));
 }
@@ -1705,11 +1705,11 @@ function isGustoConnected(policy?: OnyxEntry<Policy>) {
     return !!policy?.connections?.gusto;
 }
 
-function getConnectedIntegration(policy: Policy | undefined, connectionNames: ConnectionName[] = getAccountingConnectionNames()) {
+function getConnectedIntegration(policy: Policy | undefined, connectionNames: readonly ConnectionName[] = getAccountingConnectionNames()) {
     return connectionNames.find((integration) => !!policy?.connections?.[integration]);
 }
 
-function getValidConnectedIntegration(policy: Policy | undefined, connectionNames: ConnectionName[] = getAccountingConnectionNames()) {
+function getValidConnectedIntegration(policy: Policy | undefined, connectionNames: readonly ConnectionName[] = getAccountingConnectionNames()) {
     return connectionNames.find((integration) => !!policy?.connections?.[integration] && !isConnectionUnverified(policy, integration));
 }
 

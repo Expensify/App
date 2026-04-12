@@ -53,7 +53,7 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
-    const accountingIntegrations = [...CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES];
+    const accountingIntegrations = CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES;
     const connectedIntegration = getAllValidConnectedIntegration(policy, accountingIntegrations);
 
     const customUnit = getDistanceRateCustomUnit(policy);
