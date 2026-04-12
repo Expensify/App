@@ -252,7 +252,6 @@ const CONST = {
     POPOVER_DROPDOWN_MAX_HEIGHT: 416,
     POPOVER_MENU_MAX_HEIGHT: 496,
     POPOVER_MENU_MAX_HEIGHT_MOBILE: 432,
-    MOVE_SELECTED_ITEMS_TO_TOP_OF_LIST_THRESHOLD: 8,
     POPOVER_DATE_WIDTH: 338,
     POPOVER_DATE_RANGE_WIDTH: 672,
     POPOVER_DATE_MAX_HEIGHT: 366,
@@ -1199,6 +1198,7 @@ const CONST = {
     BULK_UPLOAD_HELP_URL: 'https://help.expensify.com/articles/new-expensify/reports-and-expenses/Create-an-Expense#option-4-bulk-upload-receipts-desktop-only',
     ENCRYPTION_AND_SECURITY_HELP_URL: 'https://help.expensify.com/articles/new-expensify/settings/Encryption-and-Data-Security',
     PLAN_TYPES_AND_PRICING_HELP_URL: 'https://help.expensify.com/articles/new-expensify/billing-and-subscriptions/Plan-types-and-pricing',
+    PERSONAL_AND_CORPORATE_KARMA_HELP_URL: 'https://help.expensify.com/articles/expensify-classic/expensify-billing/Personal-and-Corporate-Karma',
     COLLECT_UPGRADE_HELP_URL: 'https://help.expensify.com/Hidden/collect-upgrade',
     MERGE_ACCOUNT_HELP_URL: 'https://help.expensify.com/articles/new-expensify/settings/Merge-Accounts',
     CONNECT_A_BUSINESS_BANK_ACCOUNT_HELP_URL: 'https://help.expensify.com/articles/new-expensify/expenses-&-payments/Connect-a-Business-Bank-Account',
@@ -1370,6 +1370,14 @@ const CONST = {
             MERGE: 'merge',
             DUPLICATE: 'duplicate',
             MOVE_EXPENSE: 'moveExpense',
+        },
+        SELECTED_TRANSACTIONS_BULK_ACTION_TYPES: {
+            HOLD: 'hold',
+            UNHOLD: 'unhold',
+            MOVE: 'move',
+            MERGE: 'merge',
+            SPLIT: 'split',
+            DUPLICATE: 'duplicate',
         },
         ADD_EXPENSE_OPTIONS: {
             CREATE_NEW_EXPENSE: 'createNewExpense',
@@ -3630,6 +3638,7 @@ const CONST = {
                 NETSUITE: 'netsuite',
                 SAGE_INTACCT: 'intacct',
                 CERTINIA: 'certinia',
+                GUSTO: 'gusto',
             },
             SUPPORTED_ONLY_ON_OLDDOT: {
                 FINANCIALFORCE: 'financialForce',
@@ -3644,6 +3653,7 @@ const CONST = {
                 SAGE_INTACCT: 'sage-intacct',
                 QBD: 'quickbooks-desktop',
                 CERTINIA: 'certinia',
+                GUSTO: 'gusto',
             },
             NAME_USER_FRIENDLY: {
                 netsuite: 'NetSuite',
@@ -3653,6 +3663,7 @@ const CONST = {
                 intacct: 'Sage Intacct',
                 financialForce: 'FinancialForce',
                 certinia: 'Certinia',
+                gusto: 'Gusto',
                 billCom: 'Bill.com',
                 zenefits: 'Zenefits',
                 sap: 'SAP',
@@ -6591,6 +6602,7 @@ const CONST = {
         RHP_HOME_PAGE: 'rhpHomePage',
         CONTROL: 'control',
     },
+    ONBOARDING_JOINABLE_WORKSPACES_LIMIT: 5,
     ACTIONABLE_TRACK_EXPENSE_WHISPER_MESSAGE: 'What would you like to do with this expense?',
     ONBOARDING_ACCOUNTING_MAPPING,
 
@@ -7354,6 +7366,7 @@ const CONST = {
 
     PNR_STATUS: {
         CANCELLED: 'CANCELLED',
+        CANCELLED_STATUS: 'CANCELLED_STATUS',
         VOIDED: 'VOIDED',
     },
 
@@ -7459,6 +7472,7 @@ const CONST = {
             REJECT: 'reject',
             CHANGE_REPORT: 'changeReport',
             SPLIT: 'split',
+            DUPLICATE: 'duplicate',
         },
         TRANSACTION_TYPE: {
             CASH: 'cash',
@@ -8783,8 +8797,10 @@ const CONST = {
             FILTER_FROM: 'Search-FilterFrom',
             FILTER_WORKSPACE: 'Search-FilterWorkspace',
             FILTER_GROUP_BY: 'Search-FilterGroupBy',
+            FILTER_SORT_BY: 'Search-FilterSortBy',
             FILTER_GROUP_CURRENCY: 'Search-FilterGroupCurrency',
             FILTER_VIEW: 'Search-FilterView',
+            FILTER_LIMIT: 'Search-FilterLimit',
             FILTER_FEED: 'Search-FilterFeed',
             FILTER_POSTED: 'Search-FilterPosted',
             FILTER_WITHDRAWN: 'Search-FilterWithdrawn',
@@ -8807,10 +8823,19 @@ const CONST = {
             FILTER_POPUP_APPLY_MULTI_SELECT: 'Search-FilterPopupApplyMultiSelect',
             FILTER_POPUP_RESET_TEXT_INPUT: 'Search-FilterPopupResetTextInput',
             FILTER_POPUP_APPLY_TEXT_INPUT: 'Search-FilterPopupApplyTextInput',
+            FILTER_POPUP_RESET_AMOUNT: 'Search-FilterPopupResetAmount',
+            FILTER_POPUP_APPLY_AMOUNT: 'Search-FilterPopupApplyAmount',
+            FILTER_POPUP_SAVE_AMOUNT: 'Search-FilterPopupSaveAmount',
             FILTER_POPUP_RESET_DATE: 'Search-FilterPopupResetDate',
             FILTER_POPUP_APPLY_DATE: 'Search-FilterPopupApplyDate',
             FILTER_POPUP_RESET_USER: 'Search-FilterPopupResetUser',
             FILTER_POPUP_APPLY_USER: 'Search-FilterPopupApplyUser',
+            FILTER_POPUP_RESET_REPORT: 'Search-FilterPopupResetReport',
+            FILTER_POPUP_APPLY_REPORT: 'Search-FilterPopupApplyReport',
+            FILTER_POPUP_RESET_REPORT_FIELD: 'Search-FilterPopupResetReportField',
+            FILTER_POPUP_APPLY_REPORT_FIELD: 'Search-FilterPopupApplyReportField',
+            FILTER_POPUP_RESET_CARD: 'Search-FilterPopupResetCard',
+            FILTER_POPUP_APPLY_CARD: 'Search-FilterPopupApplyCard',
             TRANSACTION_LIST_ITEM_CHECKBOX: 'Search-TransactionListItemCheckbox',
             EXPANDED_TRANSACTION_ROW: 'Search-ExpandedTransactionRow',
             EXPANDED_TRANSACTION_ROW_CHECKBOX: 'Search-ExpandedTransactionRowCheckbox',
@@ -9039,6 +9064,7 @@ const CONST = {
         },
         HOME_PAGE: {
             WIDGET_ITEM: 'HomePage-WidgetItem',
+            GETTING_STARTED_ROW: 'HomePage-GettingStartedRow',
         },
         CALENDAR_PICKER: {
             YEAR_PICKER: 'CalendarPicker-YearPicker',
