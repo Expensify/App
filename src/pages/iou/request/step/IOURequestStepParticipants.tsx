@@ -403,6 +403,7 @@ function IOURequestStepParticipants({
             introSelected,
             backTo,
             selfDMReportID,
+            currentUserPersonalDetails.email,
             translate,
         ],
     );

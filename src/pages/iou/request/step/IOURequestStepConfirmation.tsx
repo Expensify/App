@@ -785,6 +785,7 @@ function IOURequestStepConfirmation({
             report,
             isDraftPolicy,
             action,
+            currentUserPersonalDetails.email,
             currentUserPersonalDetails.login,
             currentUserPersonalDetails.accountID,
             policy,

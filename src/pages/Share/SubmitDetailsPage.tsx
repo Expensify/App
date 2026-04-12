@@ -177,6 +177,7 @@ function SubmitDetailsPage({
                 betas,
                 draftTransactionIDs,
                 isSelfTourViewed,
+                defaultWorkspaceName: undefined,
             });
         } else {
             const existingTransactionID = getExistingTransactionID(transaction.linkedTrackedExpenseReportAction);

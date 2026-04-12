@@ -107,7 +107,7 @@ function SettlementButton({
     const {translate, localeCompare} = useLocalize();
     const {isOffline} = useNetwork();
     const policy = usePolicy(policyID);
-    const {accountID, email} = useCurrentUserPersonalDetails();
+    const {accountID, email = ''} = useCurrentUserPersonalDetails();
     const lastWorkspaceNumber = useLastWorkspaceNumber();
 
     // The app would crash due to subscribing to the entire report collection if chatReportID is an empty string. So we should have a fallback ID here.
@@ -168,7 +168,7 @@ function SettlementButton({
     const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const isPayInvoiceViaExpensifyBetaEnabled = isBetaEnabled(CONST.BETAS.PAY_INVOICE_VIA_EXPENSIFY);
-    const hasViolations = hasViolationsReportUtils(iouReport?.reportID, transactionViolations, accountID, email ?? '');
+    const hasViolations = hasViolationsReportUtils(iouReport?.reportID, transactionViolations, accountID, email);
 
     const isInvoiceReport = (!isEmptyObject(iouReport) && isInvoiceReportUtil(iouReport)) || false;
 
@@ -416,7 +416,6 @@ function SettlementButton({
                     return activePolicy.id;
                 }
 
-                const email = currentUserPersonalDetails.email ?? '';
                 return createWorkspace({
                     introSelected,
                     activePolicyID,
