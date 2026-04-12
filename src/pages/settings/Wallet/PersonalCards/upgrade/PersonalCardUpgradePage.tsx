@@ -4,6 +4,7 @@ import type {OnyxCollection} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
+import useActivePolicy from '@hooks/useActivePolicy';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useHasActiveAdminPolicies from '@hooks/useHasActiveAdminPolicies';
 import useLocalize from '@hooks/useLocalize';
@@ -31,11 +32,11 @@ function PersonalCardUpgradePage() {
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [lastPaymentMethod] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD);
-    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
 
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {accountID, email = ''} = currentUserPersonalDetails;
+    const activePolicy = useActivePolicy();
     const hasActiveAdminPolicies = useHasActiveAdminPolicies();
 
     const lastWorkspaceNumberWithEmailSelector = (policies: OnyxCollection<Policy>) => lastWorkspaceNumberSelector(policies, email);
@@ -51,7 +52,7 @@ function PersonalCardUpgradePage() {
             makeMeAdmin: false,
             policyID,
             lastUsedPaymentMethod: lastPaymentMethod?.[policyID] as LastPaymentMethodType,
-            activePolicyID,
+            activePolicy,
             currentUserAccountIDParam: accountID,
             currentUserEmailParam: email,
             shouldCreateControlPolicy: false,

@@ -419,7 +419,7 @@ function SettlementButton({
                 const email = currentUserPersonalDetails.email ?? '';
                 return createWorkspace({
                     introSelected,
-                    activePolicyID,
+                    activePolicy,
                     currentUserAccountIDParam: currentUserPersonalDetails.accountID,
                     currentUserEmailParam: email,
                     betas,

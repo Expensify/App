@@ -198,7 +198,7 @@ type BuildPolicyDataOptions = {
     adminParticipant?: Participant;
     hasOutstandingChildRequest?: boolean;
     introSelected: OnyxEntry<IntroSelected>;
-    activePolicyID?: string;
+    activePolicy: OnyxEntry<Policy>;
     currentUserAccountIDParam: number;
     currentUserEmailParam: string;
     allReportsParam?: OnyxCollection<Report>;
@@ -249,22 +249,6 @@ type SetWorkspaceApprovalModeAdditionalData = {
     transactionViolations?: OnyxCollection<TransactionViolations>;
     betas?: Beta[];
 };
-
-const deprecatedAllPolicies: OnyxCollection<Policy> = {};
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.POLICY,
-    callback: (val, key) => {
-        if (!key) {
-            return;
-        }
-        if (val === null || val === undefined) {
-            delete deprecatedAllPolicies[key];
-            return;
-        }
-
-        deprecatedAllPolicies[key] = val;
-    },
-});
 
 let deprecatedAllReportActions: OnyxCollection<ReportActions>;
 Onyx.connect({
@@ -2367,7 +2351,7 @@ function buildPolicyData(options: BuildPolicyDataOptions): OnyxData<BuildPolicyD
         adminParticipant,
         hasOutstandingChildRequest = true,
         introSelected,
-        activePolicyID,
+        activePolicy,
         currentUserAccountIDParam,
         currentUserEmailParam,
         allReportsParam,
@@ -2403,7 +2387,7 @@ function buildPolicyData(options: BuildPolicyDataOptions): OnyxData<BuildPolicyD
         engagementChoice === CONST.ONBOARDING_CHOICES.LOOKING_AROUND ||
         engagementChoice === CONST.ONBOARDING_CHOICES.PERSONAL_SPEND ||
         engagementChoice === CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE;
-    const shouldSetCreatedPolicyAsActive = !activePolicyID || deprecatedAllPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`]?.type === CONST.POLICY.TYPE.PERSONAL;
+    const shouldSetCreatedPolicyAsActive = !activePolicy?.id || activePolicy?.type === CONST.POLICY.TYPE.PERSONAL;
 
     // Determine workspace type based on selected features or user reported integration
     const isCorporateFeature = featuresMap?.some((feature) => !feature.enabledByDefault && feature.enabled && feature.requiresUpdate) ?? false;
@@ -2756,7 +2740,7 @@ function buildPolicyData(options: BuildPolicyDataOptions): OnyxData<BuildPolicyD
         failureData.push({
             onyxMethod: Onyx.METHOD.SET,
             key: ONYXKEYS.NVP_ACTIVE_POLICY_ID,
-            value: activePolicyID ?? null,
+            value: activePolicy?.id ?? null,
         });
     }
 
@@ -6714,15 +6698,6 @@ function enablePolicyAutoReimbursementLimit(
     });
 }
 
-function clearAllPolicies() {
-    if (!deprecatedAllPolicies) {
-        return;
-    }
-    for (const key of Object.keys(deprecatedAllPolicies)) {
-        delete deprecatedAllPolicies[key];
-    }
-}
-
 function updateInvoiceCompanyName(policyID: string, companyName: string, currentCompanyName: string | undefined) {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
@@ -7052,7 +7027,6 @@ export {
     openPolicyEditCardLimitTypePage,
     requestExpensifyCardLimitIncrease,
     hasInvoicingDetails,
-    clearAllPolicies,
     enablePolicyRules,
     setPolicyDefaultReportTitle,
     clearQBDErrorField,

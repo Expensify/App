@@ -564,7 +564,7 @@ type CreateWorkspaceWithPolicyDraftParams = {
     file?: File;
     routeToNavigateAfterCreate?: Route;
     lastUsedPaymentMethod?: OnyxTypes.LastPaymentMethodType;
-    activePolicyID: string | undefined;
+    activePolicy: OnyxEntry<OnyxTypes.Policy>;
     currentUserAccountIDParam: number;
     currentUserEmailParam: string;
     shouldCreateControlPolicy?: boolean;
@@ -589,7 +589,7 @@ function createWorkspaceWithPolicyDraftAndNavigateToIt(params: CreateWorkspaceWi
         file,
         routeToNavigateAfterCreate,
         lastUsedPaymentMethod,
-        activePolicyID,
+        activePolicy,
         currentUserAccountIDParam,
         currentUserEmailParam,
         shouldCreateControlPolicy,
@@ -616,7 +616,7 @@ function createWorkspaceWithPolicyDraftAndNavigateToIt(params: CreateWorkspaceWi
             file,
             lastUsedPaymentMethod,
             introSelected,
-            activePolicyID,
+            activePolicy,
             currentUserAccountIDParam,
             currentUserEmailParam,
             allReportsParam: allReports,
@@ -640,7 +640,7 @@ function createWorkspaceWithPolicyDraft(params: CreateWorkspaceWithPolicyDraftPa
         currency,
         file,
         lastUsedPaymentMethod,
-        activePolicyID,
+        activePolicy,
         currentUserAccountIDParam,
         currentUserEmailParam,
         shouldCreateControlPolicy,
@@ -659,7 +659,7 @@ function createWorkspaceWithPolicyDraft(params: CreateWorkspaceWithPolicyDraftPa
         file,
         lastUsedPaymentMethod,
         introSelected,
-        activePolicyID,
+        activePolicy,
         currentUserAccountIDParam,
         currentUserEmailParam,
         allReportsParam: allReports,
@@ -680,7 +680,7 @@ type SavePolicyDraftByNewWorkspaceParams = {
     file?: File;
     lastUsedPaymentMethod?: OnyxTypes.LastPaymentMethodType;
     introSelected: OnyxEntry<OnyxTypes.IntroSelected>;
-    activePolicyID?: string;
+    activePolicy: OnyxEntry<OnyxTypes.Policy>;
     currentUserAccountIDParam: number;
     currentUserEmailParam: string;
     allReportsParam: OnyxCollection<OnyxTypes.Report>;
@@ -702,7 +702,7 @@ function savePolicyDraftByNewWorkspace({
     file,
     lastUsedPaymentMethod,
     introSelected,
-    activePolicyID,
+    activePolicy,
     currentUserAccountIDParam,
     currentUserEmailParam,
     allReportsParam,
@@ -722,7 +722,7 @@ function savePolicyDraftByNewWorkspace({
         file,
         lastUsedPaymentMethod,
         introSelected,
-        activePolicyID,
+        activePolicy,
         currentUserAccountIDParam,
         currentUserEmailParam,
         allReportsParam,
@@ -753,7 +753,7 @@ function setUpPoliciesAndNavigate(
     session: OnyxEntry<OnyxTypes.Session>,
     introSelected: OnyxEntry<OnyxTypes.IntroSelected>,
     currency: string,
-    activePolicyID: string | undefined,
+    activePolicy: OnyxEntry<OnyxTypes.Policy>,
     isSelfTourViewed: boolean | undefined,
     betas: OnyxEntry<OnyxTypes.Beta[]>,
     hasActiveAdminPolicies: boolean,
@@ -787,7 +787,7 @@ function setUpPoliciesAndNavigate(
             policyName: policyName || generateDefaultWorkspaceName(policyOwnerEmail, lastWorkspaceNumber, translate),
             transitionFromOldDot: true,
             makeMeAdmin,
-            activePolicyID,
+            activePolicy,
             currentUserAccountIDParam: currentSessionData.accountID ?? CONST.DEFAULT_NUMBER_ID,
             currentUserEmailParam: currentSessionData.email ?? '',
             isSelfTourViewed,

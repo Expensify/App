@@ -11,6 +11,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {lastWorkspaceNumberSelector} from '@src/selectors/Policy';
 import type {OnboardingPurpose, Policy} from '@src/types/onyx';
+import useActivePolicy from './useActivePolicy';
 import useArchivedReportsIdSet from './useArchivedReportsIdSet';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useHasActiveAdminPolicies from './useHasActiveAdminPolicies';
@@ -46,13 +47,13 @@ function useAutoCreateTrackWorkspace() {
     );
     const [hasPaidGroupAdminPolicy] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: paidGroupPolicySelector});
     const [lastWorkspaceNumber] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: lastWorkspaceNumberWithEmailSelector});
-    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [conciergeChatReportID = ''] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [onboardingValues] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const archivedReportsIdSet = useArchivedReportsIdSet();
     const {isBetaEnabled} = usePermissions();
     const {translate, formatPhoneNumber} = useLocalize();
+    const activePolicy = useActivePolicy();
     const {isRestrictedPolicyCreation} = usePreferredPolicy();
     const hasActiveAdminPolicies = useHasActiveAdminPolicies();
     const {onboardingMessages} = useOnboardingMessages();
@@ -82,7 +83,7 @@ function useAutoCreateTrackWorkspace() {
                       file: undefined,
                       shouldAddOnboardingTasks: false,
                       introSelected,
-                      activePolicyID,
+                      activePolicy,
                       currentUserAccountIDParam: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
                       currentUserEmailParam: session?.email ?? '',
                       shouldAddGuideWelcomeMessage: false,
@@ -130,7 +131,7 @@ function useAutoCreateTrackWorkspace() {
             onboardingAdminsChatReportID,
             currentUserPersonalDetails.localCurrencyCode,
             introSelected,
-            activePolicyID,
+            activePolicy,
             isSelfTourViewed,
             onboardingMessages,
             betas,
