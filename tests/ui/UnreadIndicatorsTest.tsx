@@ -763,7 +763,6 @@ describe('Unread Indicators', () => {
             betas: [CONST.BETAS.ALL],
             draftTransactionIDs: [fakeTransaction.transactionID],
             isSelfTourViewed: false,
-            
         });
         await waitForBatchedUpdates();
 

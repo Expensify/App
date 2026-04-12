@@ -214,7 +214,6 @@ describe('actions/IOU/TrackExpense', () => {
                 betas: [CONST.BETAS.ALL],
                 draftTransactionIDs: [fakeTransaction.transactionID],
                 isSelfTourViewed: false,
-                
             });
             await waitForBatchedUpdates();
             await mockFetch?.resume?.();
@@ -319,7 +318,6 @@ describe('actions/IOU/TrackExpense', () => {
                 betas: [CONST.BETAS.ALL],
                 draftTransactionIDs: [],
                 isSelfTourViewed: false,
-                
             });
             await waitForBatchedUpdates();
             await mockFetch?.resume?.();
@@ -409,7 +407,6 @@ describe('actions/IOU/TrackExpense', () => {
                 betas: [CONST.BETAS.ALL],
                 draftTransactionIDs: [transaction.transactionID],
                 isSelfTourViewed: false,
-                
             });
             await waitForBatchedUpdates();
 
@@ -466,7 +463,6 @@ describe('actions/IOU/TrackExpense', () => {
                 betas: [CONST.BETAS.ALL],
                 draftTransactionIDs: [],
                 isSelfTourViewed: false,
-                
             });
             await waitForBatchedUpdates();
 
@@ -551,7 +547,6 @@ describe('actions/IOU/TrackExpense', () => {
                 betas: [CONST.BETAS.ALL],
                 draftTransactionIDs: [transaction.transactionID],
                 isSelfTourViewed: false,
-                
             });
             await waitForBatchedUpdates();
 
@@ -608,7 +603,6 @@ describe('actions/IOU/TrackExpense', () => {
                 betas: [CONST.BETAS.ALL],
                 draftTransactionIDs: [],
                 isSelfTourViewed: false,
-                
             });
             await waitForBatchedUpdates();
 
@@ -676,7 +670,6 @@ describe('actions/IOU/TrackExpense', () => {
                 betas: [CONST.BETAS.ALL],
                 draftTransactionIDs: [],
                 isSelfTourViewed: false,
-                
             };
         }
 
@@ -897,7 +890,6 @@ describe('actions/IOU/TrackExpense', () => {
                 draftTransactionIDs: [],
                 betas: [CONST.BETAS.ALL],
                 isSelfTourViewed: false,
-                
             });
             await waitForBatchedUpdates();
 
@@ -990,7 +982,6 @@ describe('actions/IOU/TrackExpense', () => {
                 betas: [CONST.BETAS.ALL],
                 draftTransactionIDs: [],
                 isSelfTourViewed: false,
-                
             });
             await waitForBatchedUpdates();
 
@@ -1266,7 +1257,6 @@ describe('actions/IOU/TrackExpense', () => {
             trackExpense({
                 ...getDefaultTrackExpenseParams(selfDMReport, {amount: 9000, merchant: 'Tour Not Viewed Merchant'}),
                 isSelfTourViewed: false,
-                
             });
             await waitForBatchedUpdates();
 
@@ -1322,7 +1312,6 @@ describe('actions/IOU/TrackExpense', () => {
                 quickAction: undefined,
                 betas: [CONST.BETAS.ALL],
                 isSelfTourViewed: true,
-                
             });
 
             // Then the result should contain valid track expense data
@@ -1369,7 +1358,6 @@ describe('actions/IOU/TrackExpense', () => {
                 quickAction: undefined,
                 betas: [CONST.BETAS.ALL],
                 isSelfTourViewed: false,
-                
             });
 
             // Then the result should contain valid track expense data
@@ -1418,7 +1406,6 @@ describe('actions/IOU/TrackExpense', () => {
                 quickAction: undefined,
                 betas: [CONST.BETAS.ALL],
                 isSelfTourViewed: true,
-                
             });
 
             // Then result should be valid
@@ -1458,7 +1445,6 @@ describe('actions/IOU/TrackExpense', () => {
                 quickAction: undefined,
                 betas: [CONST.BETAS.ALL],
                 isSelfTourViewed: false,
-                
             });
 
             expect(resultWithoutTourViewed).toBeDefined();
@@ -1541,7 +1527,6 @@ describe('actions/IOU/TrackExpense', () => {
                 betas: [CONST.BETAS.ALL],
                 draftTransactionIDs: [],
                 isSelfTourViewed: false,
-                
             });
             await waitForBatchedUpdates();
 

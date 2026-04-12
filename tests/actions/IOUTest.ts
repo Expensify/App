@@ -1829,7 +1829,6 @@ describe('actions/IOU', () => {
                 betas: [CONST.BETAS.ALL],
                 draftTransactionIDs: [],
                 isSelfTourViewed: false,
-                
             });
             await waitForBatchedUpdates();
 
@@ -2355,7 +2354,6 @@ describe('actions/IOU', () => {
                 betas: [CONST.BETAS.ALL],
                 draftTransactionIDs: [],
                 isSelfTourViewed: false,
-                
             });
             await waitForBatchedUpdates();
 
@@ -8057,7 +8055,6 @@ describe('actions/IOU', () => {
                 betas: [CONST.BETAS.ALL],
                 draftTransactionIDs: [],
                 isSelfTourViewed: false,
-                
             });
 
             await waitForBatchedUpdates();
@@ -10402,7 +10399,6 @@ describe('actions/IOU', () => {
                 betas: [CONST.BETAS.ALL],
                 draftTransactionIDs: [],
                 isSelfTourViewed: false,
-                
             });
             await getOnyxData({
                 key: ONYXKEYS.COLLECTION.TRANSACTION,
