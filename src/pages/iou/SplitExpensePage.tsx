@@ -84,8 +84,20 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     const [draftTransaction, draftTransactionMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
     const isLoadingDraftTransaction = isLoadingOnyxValue(draftTransactionMetadata);
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
-    const draftTransactionReport = getReportOrDraftReport(draftTransaction?.reportID, undefined, undefined, undefined, allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${draftTransaction?.reportID}`]);
-    const parentTransactionReport = getReportOrDraftReport(draftTransactionReport?.parentReportID, undefined, undefined, undefined, allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${draftTransactionReport?.parentReportID}`]);
+    const draftTransactionReport = getReportOrDraftReport(
+        draftTransaction?.reportID,
+        undefined,
+        undefined,
+        undefined,
+        allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${draftTransaction?.reportID}`],
+    );
+    const parentTransactionReport = getReportOrDraftReport(
+        draftTransactionReport?.parentReportID,
+        undefined,
+        undefined,
+        undefined,
+        allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${draftTransactionReport?.parentReportID}`],
+    );
     const expenseReport = draftTransactionReport?.type === CONST.REPORT.TYPE.EXPENSE ? draftTransactionReport : parentTransactionReport;
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getNonEmptyStringOnyxID(expenseReport?.policyID)}`);
     const [expenseReportPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(expenseReport?.policyID)}`);

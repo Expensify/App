@@ -155,7 +155,9 @@ function IOURequestStepAmount({
         // When editing, report is the transaction thread. We need to get the actual chat report.
         // Transaction thread's chatReportID points to the IOU/expense report,
         // and the IOU/expense report's chatReportID points to the actual chat.
-        const iouOrExpenseReport = report?.chatReportID ? getReportOrDraftReport(report.chatReportID, undefined, undefined, undefined, allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report.chatReportID}`]) : undefined;
+        const iouOrExpenseReport = report?.chatReportID
+            ? getReportOrDraftReport(report.chatReportID, undefined, undefined, undefined, allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report.chatReportID}`])
+            : undefined;
         if (iouOrExpenseReport && isMoneyRequestReport(iouOrExpenseReport) && iouOrExpenseReport.chatReportID) {
             return getReportOrDraftReport(iouOrExpenseReport.chatReportID, undefined, undefined, undefined, allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${iouOrExpenseReport.chatReportID}`]);
         }
@@ -351,7 +353,10 @@ function IOURequestStepAmount({
 
                 // Preserve user's participant selection to avoid forcing them back to default workspace.
                 const iouReportID = transaction?.reportID;
-                const selectedReport = iouReportID === CONST.REPORT.UNREPORTED_REPORT_ID ? selfDMReport : getReportOrDraftReport(iouReportID, undefined, undefined, undefined, allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`]);
+                const selectedReport =
+                    iouReportID === CONST.REPORT.UNREPORTED_REPORT_ID
+                        ? selfDMReport
+                        : getReportOrDraftReport(iouReportID, undefined, undefined, undefined, allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`]);
                 const navigationIOUType = isSelfDM(selectedReport) ? CONST.IOU.TYPE.TRACK : CONST.IOU.TYPE.SUBMIT;
                 const chatReportID = selectedReport?.chatReportID ?? selectedReport?.reportID;
 
