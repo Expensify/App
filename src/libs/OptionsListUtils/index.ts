@@ -1536,14 +1536,13 @@ function createFilteredOptionList(
     options: {
         maxRecentReports?: number;
         includeP2P?: boolean;
-        searchTerm?: string;
+        isSearching?: boolean;
         betas?: OnyxEntry<Beta[]>;
     } = {},
     policyTags?: OnyxCollection<PolicyTagLists>,
     visibleReportActionsData: VisibleReportActionsDerivedValue = {},
 ) {
-    const {maxRecentReports = 500, includeP2P = true, searchTerm = ''} = options;
-    const isSearching = !!searchTerm?.trim();
+    const {maxRecentReports = 500, includeP2P = true, isSearching = false} = options;
     const reportMapForAccountIDs: Record<number, Report> = {};
 
     // Step 1: Pre-filter reports to avoid processing thousands
