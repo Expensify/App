@@ -82,7 +82,14 @@ function IOURequestStepDistanceGPS({
     const currentUserAccountIDParam = currentUserPersonalDetails.accountID;
     const currentUserEmailParam = currentUserPersonalDetails.login ?? '';
 
-    const shouldUseDefaultExpensePolicy = shouldUseDefaultExpensePolicyUtil(currentUserAccountIDParam, iouType, defaultExpensePolicy, amountOwed, userBillingGracePeriodEnds, ownerBillingGracePeriodEnd);
+    const shouldUseDefaultExpensePolicy = shouldUseDefaultExpensePolicyUtil(
+        currentUserAccountIDParam,
+        iouType,
+        defaultExpensePolicy,
+        amountOwed,
+        userBillingGracePeriodEnds,
+        ownerBillingGracePeriodEnd,
+    );
 
     const unit = DistanceRequestUtils.getRate({transaction, policy: shouldUseDefaultExpensePolicy ? defaultExpensePolicy : policy}).unit;
 

@@ -1619,9 +1619,9 @@ describe('MoneyRequest', () => {
                 isPolicyExpenseChatEnabled: true,
             };
 
-            expect(shouldUseDefaultExpensePolicy(currentUserAccountID,CONST.IOU.TYPE.SUBMIT, policy, 0, undefined, undefined)).toBe(false);
-            expect(shouldUseDefaultExpensePolicy(currentUserAccountID,CONST.IOU.TYPE.TRACK, policy, 0, undefined, undefined)).toBe(false);
-            expect(shouldUseDefaultExpensePolicy(currentUserAccountID,CONST.IOU.TYPE.SPLIT, policy, 0, undefined, undefined)).toBe(false);
+            expect(shouldUseDefaultExpensePolicy(currentUserAccountID, CONST.IOU.TYPE.SUBMIT, policy, 0, undefined, undefined)).toBe(false);
+            expect(shouldUseDefaultExpensePolicy(currentUserAccountID, CONST.IOU.TYPE.TRACK, policy, 0, undefined, undefined)).toBe(false);
+            expect(shouldUseDefaultExpensePolicy(currentUserAccountID, CONST.IOU.TYPE.SPLIT, policy, 0, undefined, undefined)).toBe(false);
         });
 
         it('should return false when policy is not a paid group policy', () => {
@@ -1631,7 +1631,7 @@ describe('MoneyRequest', () => {
                 isPolicyExpenseChatEnabled: true,
             };
 
-            expect(shouldUseDefaultExpensePolicy(currentUserAccountID,CONST.IOU.TYPE.CREATE, policy, 0, undefined, undefined)).toBe(false);
+            expect(shouldUseDefaultExpensePolicy(currentUserAccountID, CONST.IOU.TYPE.CREATE, policy, 0, undefined, undefined)).toBe(false);
         });
 
         it('should return false when isPolicyExpenseChatEnabled is false', () => {
