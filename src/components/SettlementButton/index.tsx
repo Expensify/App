@@ -17,7 +17,7 @@ import RenderHTML from '@components/RenderHTML';
 import useActiveAdminPolicies from '@hooks/useActiveAdminPolicies';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import useDefaultWorkspaceName from '@hooks/useDefaultWorkspaceName';
+import useLastWorkspaceNumber from '@hooks/useLastWorkspaceNumber';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -25,7 +25,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {createWorkspace, isCurrencySupportedForDirectReimbursement, isCurrencySupportedForGlobalReimbursement} from '@libs/actions/Policy/Policy';
+import {createWorkspace, generateDefaultWorkspaceName, isCurrencySupportedForDirectReimbursement, isCurrencySupportedForGlobalReimbursement} from '@libs/actions/Policy/Policy';
 import {navigateToBankAccountRoute} from '@libs/actions/ReimbursementAccount';
 import {getLastPolicyBankAccountID, getLastPolicyPaymentMethod} from '@libs/actions/Search';
 import {isBankAccountPartiallySetup} from '@libs/BankAccountUtils';
@@ -108,7 +108,7 @@ function SettlementButton({
     const {isOffline} = useNetwork();
     const policy = usePolicy(policyID);
     const {accountID, email} = useCurrentUserPersonalDetails();
-    const defaultWorkspaceName = useDefaultWorkspaceName();
+    const lastWorkspaceNumber = useLastWorkspaceNumber();
 
     // The app would crash due to subscribing to the entire report collection if chatReportID is an empty string. So we should have a fallback ID here.
     // eslint-disable-next-line rulesdir/no-default-id-values
@@ -416,15 +416,16 @@ function SettlementButton({
                     return activePolicy.id;
                 }
 
+                const email = currentUserPersonalDetails.email ?? '';
                 return createWorkspace({
                     introSelected,
                     activePolicyID,
                     currentUserAccountIDParam: currentUserPersonalDetails.accountID,
-                    currentUserEmailParam: currentUserPersonalDetails.email ?? '',
+                    currentUserEmailParam: email,
                     betas,
                     isSelfTourViewed,
                     hasActiveAdminPolicies: !!activeAdminPolicies.length,
-                    policyName: defaultWorkspaceName,
+                    policyName: generateDefaultWorkspaceName(email, lastWorkspaceNumber, translate),
                 }).policyID;
             };
 

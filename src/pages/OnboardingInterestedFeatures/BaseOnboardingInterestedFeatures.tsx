@@ -14,8 +14,8 @@ import isSidePanelReportSupported from '@components/SidePanel/isSidePanelReportS
 import Text from '@components/Text';
 import useArchivedReportsIdSet from '@hooks/useArchivedReportsIdSet';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import useDefaultWorkspaceName from '@hooks/useDefaultWorkspaceName';
 import useHasActiveAdminPolicies from '@hooks/useHasActiveAdminPolicies';
+import useLastWorkspaceNumber from '@hooks/useLastWorkspaceNumber';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -25,7 +25,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {createWorkspace, generatePolicyID} from '@libs/actions/Policy/Policy';
+import {createWorkspace, generateDefaultWorkspaceName, generatePolicyID} from '@libs/actions/Policy/Policy';
 import {completeOnboarding} from '@libs/actions/Report';
 import {setOnboardingAdminsChatReportID, setOnboardingPolicyID} from '@libs/actions/Welcome';
 import Log from '@libs/Log';
@@ -66,7 +66,7 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
     const [conciergeReportID = ''] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const archivedReportsIdSet = useArchivedReportsIdSet();
     const hasActiveAdminPolicies = useHasActiveAdminPolicies();
-    const defaultWorkspaceName = useDefaultWorkspaceName();
+    const lastWorkspaceNumber = useLastWorkspaceNumber();
 
     const paidGroupPolicy = Object.values(allPolicies ?? {}).find((policy) => isPaidGroupPolicy(policy) && isPolicyAdmin(policy, session?.email));
     const {isOffline} = useNetwork();
@@ -190,13 +190,14 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
                 enabled: selectedFeatures.includes(feature.id),
             }));
 
+            const email = currentUserPersonalDetails.email ?? '';
             // We need `adminsChatReportID` for `completeOnboarding`, but at the same time, we don't want to call `createWorkspace` more than once.
             // If we have already created a workspace, we want to reuse the `onboardingAdminsChatReportID` and `onboardingPolicyID`.
             const {adminsChatReportID, policyID} = shouldCreateWorkspace
                 ? createWorkspace({
                       policyOwnerEmail: undefined,
                       makeMeAdmin: true,
-                      policyName: defaultWorkspaceName,
+                      policyName: generateDefaultWorkspaceName(email, lastWorkspaceNumber, translate),
                       policyID: generatePolicyID(),
                       engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
                       currency: currentUserPersonalDetails?.localCurrencyCode ?? '',
@@ -208,7 +209,7 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
                       introSelected,
                       activePolicyID,
                       currentUserAccountIDParam: currentUserPersonalDetails.accountID,
-                      currentUserEmailParam: currentUserPersonalDetails.email ?? '',
+                      currentUserEmailParam: email,
                       shouldAddGuideWelcomeMessage: false,
                       betas,
                       isSelfTourViewed,
@@ -286,7 +287,8 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
         conciergeReportID,
         betas,
         hasActiveAdminPolicies,
-        defaultWorkspaceName,
+        lastWorkspaceNumber,
+        translate,
     ]);
 
     // Create items for enabled features
