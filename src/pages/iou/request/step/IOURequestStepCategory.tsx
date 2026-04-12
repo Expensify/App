@@ -59,7 +59,7 @@ function IOURequestStepCategory({
     const requestType = getRequestType(transaction);
     const isPerDiemRequest = requestType === CONST.IOU.REQUEST_TYPE.PER_DIEM;
     const [transactionReportOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(transaction?.reportID)}`);
-    const transactionReport = getReportOrDraftReport(transactionReportOnyx);
+    const transactionReport = getReportOrDraftReport(transaction?.reportID, undefined, undefined, undefined, transactionReportOnyx);
     const report = reportReal ?? reportDraft ?? transactionReport;
     const policyIdReal = getIOURequestPolicyID(transaction, reportReal ?? transactionReport);
     const policyIdDraft = getIOURequestPolicyID(transaction, reportDraft);

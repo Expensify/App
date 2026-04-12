@@ -11313,27 +11313,28 @@ describe('ReportUtils', () => {
             expect(result).toEqual(mockOnyxReport);
         });
 
-        test('returns Report object directly when passed instead of string reportID', async () => {
+        test('returns explicit report param instead of Onyx state when 5th param is provided', async () => {
             const explicitReport: Report = {
                 ...createRandomReport(mockReportIDIndex, undefined),
                 reportName: 'Explicit Report',
                 type: CONST.REPORT.TYPE.CHAT,
             };
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${mockReportID}`, mockOnyxReport);
-            const result = getReportOrDraftReport(explicitReport);
+            const result = getReportOrDraftReport(mockReportID, undefined, undefined, undefined, explicitReport);
             expect(result).toEqual(explicitReport);
             expect(result).not.toEqual(mockOnyxReport);
         });
 
-        test('falls back to Onyx state when string reportID is passed', async () => {
+        test('falls back to Onyx state when 5th param is undefined', async () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${mockReportID}`, mockOnyxReport);
-            const result = getReportOrDraftReport(mockReportID);
+            const result = getReportOrDraftReport(mockReportID, undefined, undefined, undefined, undefined);
             expect(result).toEqual(mockOnyxReport);
         });
 
-        test('returns undefined when undefined is passed and no Onyx state', () => {
-            const result = getReportOrDraftReport(undefined);
-            expect(result).toBeUndefined();
+        test('still finds draft report when 5th param is undefined', async () => {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${mockReportID}`, mockDraftReport);
+            const result = getReportOrDraftReport(mockReportID, undefined, undefined, undefined, undefined);
+            expect(result).toEqual(mockDraftReport);
         });
     });
 

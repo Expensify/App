@@ -61,7 +61,7 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
     const {removeTransaction, setSelectedTransactions} = useSearchActionsContext();
-    const reportOrDraftReport = getReportOrDraftReport(allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportIDFromRoute}`]);
+    const reportOrDraftReport = getReportOrDraftReport(reportIDFromRoute, undefined, undefined, undefined, allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportIDFromRoute}`]);
     const [iouActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportOrDraftReport?.parentReportID}`, {selector: getIOUActionsSelector});
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isCreateReport = action === CONST.IOU.ACTION.CREATE;
@@ -105,7 +105,7 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
         if (!transaction) {
             return;
         }
-        const reportOrDraftReportFromValue = getReportOrDraftReport(allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${item.value}`]);
+        const reportOrDraftReportFromValue = getReportOrDraftReport(item.value, undefined, undefined, undefined, allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${item.value}`]);
         const participants = [
             {
                 selected: true,

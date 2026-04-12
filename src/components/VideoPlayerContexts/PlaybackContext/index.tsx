@@ -53,7 +53,7 @@ function PlaybackContextProvider({children}: ChildrenProps) {
                 return;
             }
 
-            const report = getReportOrDraftReport(allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]);
+            const report = getReportOrDraftReport(reportID, undefined, undefined, undefined, allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]);
             const isReportAChatThread = isChatThread(report);
             let reportIDtoSet;
             if (isReportAChatThread) {

@@ -1142,7 +1142,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                     setClipboardMessage(displayMessage);
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.CREATED_REPORT_FOR_UNAPPROVED_TRANSACTIONS)) {
                     const {originalID} = getOriginalMessage(reportAction) ?? {};
-                    const originalReportOfUnapprovedTransaction = getReportOrDraftReport(allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${originalID}`]);
+                    const originalReportOfUnapprovedTransaction = getReportOrDraftReport(originalID, undefined, undefined, undefined, allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${originalID}`]);
                     const reportName = getReportName(originalReportOfUnapprovedTransaction);
                     const displayMessage = getCreatedReportForUnapprovedTransactionsMessage(
                         originalID,

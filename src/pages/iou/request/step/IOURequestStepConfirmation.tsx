@@ -204,7 +204,7 @@ function IOURequestStepConfirmation({
      * to ensure proper navigation after expense creation.
      */
     const [transactionReportOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(transaction?.reportID)}`);
-    const transactionReport = getReportOrDraftReport(transactionReportOnyx);
+    const transactionReport = getReportOrDraftReport(transaction?.reportID, undefined, undefined, undefined, transactionReportOnyx);
     const reportWithDraftFallback = useMemo(() => reportReal ?? reportDraft, [reportDraft, reportReal]);
     const canUseReport = !(isProcessingReport(transactionReport) && !policyReal?.harvesting?.enabled) && isReportOutstanding(transactionReport, policyReal?.id, undefined, false);
 

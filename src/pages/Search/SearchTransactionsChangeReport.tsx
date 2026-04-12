@@ -90,7 +90,7 @@ function SearchTransactionsChangeReport() {
             return undefined;
         }
 
-        const report = getReportOrDraftReport(allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportIDWithOwner}`]);
+        const report = getReportOrDraftReport(reportIDWithOwner, undefined, undefined, undefined, allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportIDWithOwner}`]);
         return report?.ownerAccountID;
     }, [selectedTransactions, selectedTransactionsKeys, allReports]);
     const targetOwnerPersonalDetails = useMemo(() => getPersonalDetailsForAccountID(targetOwnerAccountID, personalDetails) as PersonalDetails, [personalDetails, targetOwnerAccountID]);

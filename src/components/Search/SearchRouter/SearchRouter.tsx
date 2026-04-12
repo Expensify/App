@@ -101,7 +101,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                 return undefined;
             }
             let reportForContextualSearch = recentReports.find((option) => option.reportID === contextualReportID);
-            const reportForContextualSearchReport = getReportOrDraftReport(reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportForContextualSearch?.reportID}`]);
+            const reportForContextualSearchReport = getReportOrDraftReport(reportForContextualSearch?.reportID, undefined, undefined, undefined, reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportForContextualSearch?.reportID}`]);
             const reportAction = getReportAction(reportForContextualSearchReport?.parentReportID, reportForContextualSearchReport?.parentReportActionID);
             const shouldParserToHTML = reportAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT;
             if (!reportForContextualSearch) {

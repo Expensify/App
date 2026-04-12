@@ -65,7 +65,7 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
     const originalTransaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transaction?.comment?.originalTransactionID)}`];
 
     const [reportOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportID)}`);
-    const report = getReportOrDraftReport(reportOnyx);
+    const report = getReportOrDraftReport(reportID, undefined, undefined, undefined, reportOnyx);
     const currentReport = report ?? currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportID)}`];
 
     const policy = usePolicy(currentReport?.policyID);
