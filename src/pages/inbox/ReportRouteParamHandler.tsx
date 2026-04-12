@@ -1,5 +1,6 @@
 import {useFocusEffect, useNavigation, useRoute} from '@react-navigation/native';
 import useArchivedReportsIdSet from '@hooks/useArchivedReportsIdSet';
+import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
@@ -8,6 +9,7 @@ import {findLastAccessedReport} from '@libs/ReportUtils';
 import {isNumeric} from '@libs/ValidationUtils';
 import type {ReportsSplitNavigatorParamList, RightModalNavigatorParamList} from '@navigation/types';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 
 type ReportScreenRoute =
@@ -23,6 +25,7 @@ function ReportRouteParamHandler() {
     const navigation = useNavigation();
     const {isBetaEnabled} = usePermissions();
     const archivedReportsIdSet = useArchivedReportsIdSet();
+    const [allReportMetadata] = useOnyx(ONYXKEYS.COLLECTION.REPORT_METADATA);
 
     useFocusEffect(() => {
         // Don't update if there is a reportID in the params already
@@ -40,6 +43,7 @@ function ReportRouteParamHandler() {
             'openOnAdminRoom' in route.params && !!route.params.openOnAdminRoom,
             undefined,
             archivedReportsIdSet,
+            allReportMetadata,
         )?.reportID;
 
         // It's possible that reports aren't fully loaded yet

@@ -89,6 +89,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
     const [shouldSwitchPositionIfOverflow, setShouldSwitchPositionIfOverflow] = useState(false);
     const [isWithoutOverlay, setIsWithoutOverlay] = useState<boolean>(true);
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
+    const [allReportMetadata] = useOnyx(ONYXKEYS.COLLECTION.REPORT_METADATA);
     const [visibleReportActionsData] = useOnyx(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS);
 
     const contentRef = useRef<View>(null);
@@ -367,6 +368,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
                     isChatIOUReportArchived,
                     allTransactionViolationsParam: allTransactionViolations,
                     currentUserAccountID,
+                    allReportMetadata,
                 });
             } else if (originalMessage?.IOUTransactionID) {
                 deleteTransactions([originalMessage.IOUTransactionID], duplicateTransactions, duplicateTransactionViolations, undefined);
@@ -381,6 +383,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
                 allTransactionViolations,
                 bankAccountList,
                 hash: currentSearchHash,
+                allReportMetadata,
             });
         } else if (reportAction) {
             // eslint-disable-next-line @typescript-eslint/no-deprecated
@@ -419,6 +422,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
         bankAccountList,
         isOriginalReportArchived,
         visibleReportActionsData,
+        allReportMetadata,
     ]);
 
     const hideDeleteModal = () => {

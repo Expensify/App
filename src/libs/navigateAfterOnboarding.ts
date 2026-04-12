@@ -1,5 +1,7 @@
+import type {OnyxCollection} from 'react-native-onyx';
 import {handleRHPVariantNavigation, shouldOpenRHPVariant} from '@components/SidePanel/RHPVariantTest';
 import ROUTES from '@src/ROUTES';
+import type {ReportMetadata} from '@src/types/onyx';
 import {setDisableDismissOnEscape} from './actions/Modal';
 import shouldOpenOnAdminRoom from './Navigation/helpers/shouldOpenOnAdminRoom';
 import Navigation from './Navigation/Navigation';
@@ -19,6 +21,7 @@ function getReportIDAfterOnboarding(
     onboardingPolicyID?: string,
     onboardingAdminsChatReportID?: string,
     shouldPreventOpenAdminRoom = false,
+    allReportMetadata?: OnyxCollection<ReportMetadata>,
 ): string | undefined {
     // When hasCompletedGuidedSetupFlow is true, OnboardingModalNavigator in AuthScreen is removed from the navigation stack.
     // On small screens, this removal redirects navigation to HOME. Dismissing the modal doesn't work properly,
@@ -30,7 +33,7 @@ function getReportIDAfterOnboarding(
         return undefined;
     }
 
-    const lastAccessedReport = findLastAccessedReport(!canUseDefaultRooms, shouldOpenOnAdminRoom() && !shouldPreventOpenAdminRoom, undefined, archivedReportsIdSet);
+    const lastAccessedReport = findLastAccessedReport(!canUseDefaultRooms, shouldOpenOnAdminRoom() && !shouldPreventOpenAdminRoom, undefined, archivedReportsIdSet, allReportMetadata);
     const lastAccessedReportID = lastAccessedReport?.reportID;
 
     // When the user goes through the onboarding flow, a workspace can be created if the user selects specific options. The user should be taken to the #admins room for that workspace because it is the most natural place for them to start their experience in the app.
@@ -50,6 +53,7 @@ function navigateAfterOnboarding(
     onboardingPolicyID?: string,
     onboardingAdminsChatReportID?: string,
     shouldPreventOpenAdminRoom = false,
+    allReportMetadata?: OnyxCollection<ReportMetadata>,
 ) {
     setDisableDismissOnEscape(false);
 
@@ -66,6 +70,7 @@ function navigateAfterOnboarding(
         onboardingPolicyID,
         onboardingAdminsChatReportID,
         shouldPreventOpenAdminRoom,
+        allReportMetadata,
     );
     if (reportID) {
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID));
@@ -83,6 +88,7 @@ function navigateAfterOnboardingWithMicrotaskQueue(
     onboardingPolicyID?: string,
     onboardingAdminsChatReportID?: string,
     shouldPreventOpenAdminRoom = false,
+    allReportMetadata?: OnyxCollection<ReportMetadata>,
 ) {
     Navigation.dismissModal();
     Navigation.setNavigationActionToMicrotaskQueue(() => {
@@ -94,6 +100,7 @@ function navigateAfterOnboardingWithMicrotaskQueue(
             onboardingPolicyID,
             onboardingAdminsChatReportID,
             shouldPreventOpenAdminRoom,
+            allReportMetadata,
         );
     });
 }

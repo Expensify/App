@@ -572,6 +572,7 @@ type PayMoneyRequestFunctionParams = {
     ownerBillingGracePeriodEnd?: OnyxEntry<number>;
     methodID?: number;
     onPaid?: () => void;
+    allReportMetadata?: OnyxCollection<OnyxTypes.ReportMetadata>;
 };
 
 type ApproveMoneyRequestFunctionParams = {
@@ -589,6 +590,7 @@ type ApproveMoneyRequestFunctionParams = {
     onApproved?: () => void;
     ownerBillingGracePeriodEnd: OnyxEntry<number>;
     delegateEmail: string | undefined;
+    allReportMetadata?: OnyxCollection<OnyxTypes.ReportMetadata>;
 };
 
 type SubmitReportFunctionParams = {
@@ -4937,6 +4939,7 @@ function getPayMoneyRequestParams({
     iouReportCurrentNextStepDeprecated,
     betas,
     isSelfTourViewed,
+    allReportMetadata,
 }: {
     initialChatReport: OnyxTypes.Report;
     iouReport: OnyxEntry<OnyxTypes.Report>;
@@ -4956,6 +4959,7 @@ function getPayMoneyRequestParams({
     iouReportCurrentNextStepDeprecated: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>;
     betas: OnyxEntry<OnyxTypes.Beta[]>;
     isSelfTourViewed: boolean | undefined;
+    allReportMetadata?: OnyxCollection<OnyxTypes.ReportMetadata>;
 }): PayMoneyRequestData {
     const isInvoiceReport = isInvoiceReportReportUtils(iouReport);
     let payerPolicyID = activePolicy?.id;
@@ -5059,7 +5063,15 @@ function getPayMoneyRequestParams({
     const optimisticChatReport = {
         ...chatReport,
         lastReadTime: DateUtils.getDBTime(),
-        hasOutstandingChildRequest: hasOutstandingChildRequest(chatReport, iouReport?.reportID, deprecatedCurrentUserEmail, currentUserAccountIDParam, allTransactionViolations, undefined),
+        hasOutstandingChildRequest: hasOutstandingChildRequest(
+            chatReport,
+            iouReport?.reportID,
+            deprecatedCurrentUserEmail,
+            currentUserAccountIDParam,
+            allTransactionViolations,
+            undefined,
+            allReportMetadata,
+        ),
         iouReportID: null,
         lastMessageText: getReportActionText(optimisticIOUReportAction),
         lastMessageHtml: getReportActionHtml(optimisticIOUReportAction),
@@ -5514,6 +5526,7 @@ function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
         onApproved,
         ownerBillingGracePeriodEnd,
         delegateEmail,
+        allReportMetadata,
     } = params;
     if (!expenseReport) {
         return;
@@ -5631,6 +5644,7 @@ function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
                     currentUserAccountIDParam,
                     allTransactionViolations,
                     undefined,
+                    allReportMetadata,
                 ),
             },
         });
@@ -6952,6 +6966,7 @@ function payMoneyRequest(params: PayMoneyRequestFunctionParams) {
         ownerBillingGracePeriodEnd,
         methodID,
         onPaid,
+        allReportMetadata,
     } = params;
     if (chatReport.policyID && shouldRestrictUserBillableActions(chatReport.policyID, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed)) {
         Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(chatReport.policyID));
@@ -6976,6 +6991,7 @@ function payMoneyRequest(params: PayMoneyRequestFunctionParams) {
         betas,
         isSelfTourViewed,
         bankAccountID: paymentType === CONST.IOU.PAYMENT_TYPE.VBBA ? methodID : undefined,
+        allReportMetadata,
     });
 
     // For now, we need to call the PayMoneyRequestWithWallet API since PayMoneyRequest was not updated to work with

@@ -91,7 +91,7 @@ export default createOnyxDerivedValueConfig({
         ONYXKEYS.CONCIERGE_REPORT_ID,
     ],
     compute: (
-        [reports, preferredLocale, transactionViolations, reportActions, reportNameValuePairs, transactions, personalDetails, session, policies, policyTags],
+        [reports, preferredLocale, transactionViolations, reportActions, reportNameValuePairs, transactions, personalDetails, session, policies, policyTags, allReportMetadata],
         {currentValue, sourceValues},
     ) => {
         // Check if display names changed when personal details are updated
@@ -267,6 +267,7 @@ export default createOnyxDerivedValueConfig({
                 isReportArchived,
                 allTransactions: transactions,
                 reports,
+                allReportMetadata,
             });
 
             const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
@@ -307,6 +308,7 @@ export default createOnyxDerivedValueConfig({
                           policies,
                           transactions,
                           allReportNameValuePairs: reportNameValuePairs,
+                          allReportMetadata,
                           personalDetailsList: personalDetails,
                           reportActions,
                           currentUserAccountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,

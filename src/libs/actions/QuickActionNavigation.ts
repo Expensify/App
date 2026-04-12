@@ -1,6 +1,7 @@
+import type {OnyxCollection} from 'react-native-onyx';
 import {generateReportID} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
-import type {PersonalDetails} from '@src/types/onyx';
+import type {PersonalDetails, ReportMetadata} from '@src/types/onyx';
 import type {DistanceExpenseType} from '@src/types/onyx/IOU';
 import type {QuickActionName} from '@src/types/onyx/QuickAction';
 import type QuickAction from '@src/types/onyx/QuickAction';
@@ -17,6 +18,7 @@ type NavigateToQuickActionParams = {
     currentUserAccountID: number;
     draftTransactionIDs: string[] | undefined;
     isFromFloatingActionButton?: boolean;
+    allReportMetadata?: OnyxCollection<ReportMetadata>;
 };
 
 function getQuickActionRequestType(action: QuickActionName | undefined, lastDistanceExpenseType?: DistanceExpenseType): IOURequestType | undefined {
@@ -41,7 +43,17 @@ function getQuickActionRequestType(action: QuickActionName | undefined, lastDist
 }
 
 function navigateToQuickAction(params: NavigateToQuickActionParams) {
-    const {isValidReport, quickAction, selectOption, lastDistanceExpenseType, targetAccountPersonalDetails, currentUserAccountID, draftTransactionIDs, isFromFloatingActionButton} = params;
+    const {
+        isValidReport,
+        quickAction,
+        selectOption,
+        lastDistanceExpenseType,
+        targetAccountPersonalDetails,
+        currentUserAccountID,
+        draftTransactionIDs,
+        isFromFloatingActionButton,
+        allReportMetadata,
+    } = params;
     const reportID = isValidReport && quickAction?.chatReportID ? quickAction?.chatReportID : generateReportID();
     const requestType = getQuickActionRequestType(quickAction?.action, lastDistanceExpenseType);
 
@@ -60,7 +72,7 @@ function navigateToQuickAction(params: NavigateToQuickActionParams) {
             selectOption(() => startMoneyRequest(CONST.IOU.TYPE.PAY, reportID, draftTransactionIDs, undefined, true, undefined, isFromFloatingActionButton), false);
             break;
         case CONST.QUICK_ACTIONS.ASSIGN_TASK:
-            selectOption(() => startOutCreateTaskQuickAction(currentUserAccountID, isValidReport ? reportID : '', targetAccountPersonalDetails), false);
+            selectOption(() => startOutCreateTaskQuickAction(currentUserAccountID, isValidReport ? reportID : '', targetAccountPersonalDetails, allReportMetadata), false);
             break;
         case CONST.QUICK_ACTIONS.TRACK_MANUAL:
         case CONST.QUICK_ACTIONS.TRACK_SCAN:

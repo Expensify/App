@@ -145,7 +145,6 @@ import {
     getReportFieldKey,
     getReportLastMessage,
     getReportLastVisibleActionCreated,
-    getReportMetadata,
     getReportNotificationPreference,
     getReportOrDraftReport,
     getReportPreviewMessage,
@@ -216,6 +215,7 @@ import type {
     ReportAction,
     ReportActionReactions,
     ReportAttributesDerivedValue,
+    ReportMetadata,
     ReportNextStepDeprecated,
     ReportUserIsTyping,
     Transaction,
@@ -3930,9 +3930,9 @@ function clearCreateChatError(
     introSelected: OnyxEntry<IntroSelected>,
     currentUserAccountID: number,
     betas: OnyxEntry<Beta[]>,
+    reportMetadata: OnyxEntry<ReportMetadata>,
 ) {
-    const metaData = getReportMetadata(report?.reportID);
-    const isOptimisticReport = metaData?.isOptimisticReport;
+    const isOptimisticReport = reportMetadata?.isOptimisticReport;
     if (report?.errorFields?.createChat && !isOptimisticReport) {
         clearReportFieldKeyErrors(report.reportID, 'createChat');
         return;
@@ -4290,8 +4290,9 @@ function navigateToMostRecentReport(
     currentUserAccountID: number,
     introSelected: OnyxEntry<IntroSelected>,
     betas: OnyxEntry<Beta[]>,
+    allReportMetadata?: OnyxCollection<ReportMetadata>,
 ) {
-    const lastAccessedReportID = findLastAccessedReport(false, false, currentReport?.reportID)?.reportID;
+    const lastAccessedReportID = findLastAccessedReport(false, false, currentReport?.reportID, undefined, allReportMetadata)?.reportID;
 
     if (lastAccessedReportID) {
         // Check if route exists for super wide RHP vs regular full screen report
@@ -4316,8 +4317,8 @@ function navigateToMostRecentReport(
     }
 }
 
-function getMostRecentReportID(currentReport: OnyxEntry<Report>, conciergeReportID: string | undefined) {
-    const lastAccessedReportID = findLastAccessedReport(false, false, currentReport?.reportID)?.reportID;
+function getMostRecentReportID(currentReport: OnyxEntry<Report>, conciergeReportID: string | undefined, allReportMetadata?: OnyxCollection<ReportMetadata>) {
+    const lastAccessedReportID = findLastAccessedReport(false, false, currentReport?.reportID, undefined, allReportMetadata)?.reportID;
     return lastAccessedReportID ?? conciergeReportID;
 }
 
@@ -4342,6 +4343,7 @@ function leaveGroupChat(
     conciergeReportID: string | undefined,
     introSelected: OnyxEntry<IntroSelected>,
     betas: OnyxEntry<Beta[]>,
+    allReportMetadata?: OnyxCollection<ReportMetadata>,
 ) {
     const reportID = report.reportID;
     // Use merge instead of set to avoid deleting the report too quickly, which could cause a brief "not found" page to appear.
@@ -4389,7 +4391,7 @@ function leaveGroupChat(
         },
     ];
 
-    navigateToMostRecentReport(report, conciergeReportID, currentUserAccountID, introSelected, betas);
+    navigateToMostRecentReport(report, conciergeReportID, currentUserAccountID, introSelected, betas, allReportMetadata);
     API.write(WRITE_COMMANDS.LEAVE_GROUP_CHAT, {reportID}, {optimisticData, successData, failureData});
 }
 
@@ -4401,6 +4403,7 @@ function leaveRoom(
     introSelected: OnyxEntry<IntroSelected>,
     betas: OnyxEntry<Beta[]>,
     isWorkspaceMemberLeavingWorkspaceRoom = false,
+    allReportMetadata?: OnyxCollection<ReportMetadata>,
 ) {
     const reportID = report.reportID;
     const isChatThread = isChatThreadReportUtils(report);
@@ -4505,12 +4508,16 @@ function leaveRoom(
         return;
     }
     // In other cases, the report is deleted and we should move the user to another report.
-    navigateToMostRecentReport(report, conciergeReportID, currentUserAccountID, introSelected, betas);
+    navigateToMostRecentReport(report, conciergeReportID, currentUserAccountID, introSelected, betas, allReportMetadata);
 }
 
-function buildInviteToRoomOnyxData(report: Report, inviteeEmailsToAccountIDs: InvitedEmailsToAccountIDs, formatPhoneNumber: LocaleContextProps['formatPhoneNumber']) {
+function buildInviteToRoomOnyxData(
+    report: Report,
+    inviteeEmailsToAccountIDs: InvitedEmailsToAccountIDs,
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
+    reportMetadata?: OnyxEntry<ReportMetadata>,
+) {
     const reportID = report.reportID;
-    const reportMetadata = getReportMetadata(reportID);
     const isGroupChat = isGroupChatReportUtils(report);
 
     const defaultNotificationPreference = getDefaultNotificationPreferenceForReport(report);
@@ -4607,8 +4614,18 @@ function buildInviteToRoomOnyxData(report: Report, inviteeEmailsToAccountIDs: In
 }
 
 /** Invites people to a room */
-function inviteToRoom(report: Report, inviteeEmailsToAccountIDs: InvitedEmailsToAccountIDs, formatPhoneNumber: LocaleContextProps['formatPhoneNumber']) {
-    const {optimisticData, successData, failureData, isGroupChat, inviteeEmails, newAccountIDs} = buildInviteToRoomOnyxData(report, inviteeEmailsToAccountIDs, formatPhoneNumber);
+function inviteToRoom(
+    report: Report,
+    inviteeEmailsToAccountIDs: InvitedEmailsToAccountIDs,
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
+    reportMetadata: OnyxEntry<ReportMetadata>,
+) {
+    const {optimisticData, successData, failureData, isGroupChat, inviteeEmails, newAccountIDs} = buildInviteToRoomOnyxData(
+        report,
+        inviteeEmailsToAccountIDs,
+        formatPhoneNumber,
+        reportMetadata,
+    );
 
     if (isGroupChat) {
         const parameters: InviteToGroupChatParams = {
@@ -4638,8 +4655,7 @@ function inviteToRoomAction(report: Report, ancestors: Ancestor[], inviteeEmails
     addComment({report, notifyReportID: report.reportID, ancestors, text: inviteeEmails.map((login) => `@${login}`).join(' '), timezoneParam, currentUserAccountID, shouldPlaySound: false});
 }
 
-function clearAddRoomMemberError(reportID: string, invitedAccountID: string) {
-    const reportMetadata = getReportMetadata(reportID);
+function clearAddRoomMemberError(reportID: string, invitedAccountID: string, reportMetadata: OnyxEntry<ReportMetadata>) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
         participants: {
             [invitedAccountID]: null,
@@ -4695,16 +4711,20 @@ function updateGroupChatMemberRoles(reportID: string, accountIDList: number[], r
 }
 
 /** Invites people to a group chat */
-function inviteToGroupChat(report: Report, inviteeEmailsToAccountIDs: InvitedEmailsToAccountIDs, formatPhoneNumber: LocaleContextProps['formatPhoneNumber']) {
-    inviteToRoom(report, inviteeEmailsToAccountIDs, formatPhoneNumber);
+function inviteToGroupChat(
+    report: Report,
+    inviteeEmailsToAccountIDs: InvitedEmailsToAccountIDs,
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
+    reportMetadata: OnyxEntry<ReportMetadata>,
+) {
+    inviteToRoom(report, inviteeEmailsToAccountIDs, formatPhoneNumber, reportMetadata);
 }
 
 /** Removes people from a room
  *  Please see https://github.com/Expensify/App/blob/main/README.md#Security for more details
  */
-function removeFromRoom(report: Report, targetAccountIDs: number[]) {
+function removeFromRoom(report: Report, targetAccountIDs: number[], reportMetadata: OnyxEntry<ReportMetadata>) {
     const reportID = report.reportID;
-    const reportMetadata = getReportMetadata(reportID);
 
     const removeParticipantsData: Record<number, null> = {};
     for (const accountID of targetAccountIDs) {
@@ -4769,8 +4789,8 @@ function removeFromRoom(report: Report, targetAccountIDs: number[]) {
     API.write(WRITE_COMMANDS.REMOVE_FROM_ROOM, parameters, {optimisticData, failureData, successData});
 }
 
-function removeFromGroupChat(report: Report, accountIDList: number[]) {
-    removeFromRoom(report, accountIDList);
+function removeFromGroupChat(report: Report, accountIDList: number[], reportMetadata: OnyxEntry<ReportMetadata>) {
+    removeFromRoom(report, accountIDList, reportMetadata);
 }
 
 function optimisticReportLastData(
@@ -5644,6 +5664,7 @@ type DeleteAppReportProps = {
     allTransactionViolations: OnyxCollection<TransactionViolations>;
     bankAccountList: OnyxEntry<BankAccountList>;
     hash?: number;
+    allReportMetadata?: OnyxCollection<ReportMetadata>;
 };
 
 /** Deletes a report and un-reports all transactions on the report along with its reportActions, any linked reports and any linked IOU report actions. */
@@ -5656,6 +5677,7 @@ function deleteAppReport({
     allTransactionViolations,
     bankAccountList,
     hash,
+    allReportMetadata,
 }: DeleteAppReportProps) {
     if (!report?.reportID) {
         Log.warn('[Report] deleteAppReport called with no reportID');
@@ -6021,6 +6043,7 @@ function deleteAppReport({
                     currentUserAccountIDParam,
                     allTransactionViolations,
                     bankAccountList,
+                    allReportMetadata,
                 ),
             },
         });

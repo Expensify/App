@@ -42,13 +42,14 @@ function InviteReportParticipantsPage({report}: InviteReportParticipantsPageProp
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
+    const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report?.reportID}`);
     const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
 
     // Any existing participants and Expensify emails should not be eligible for invitation
     const excludedUsers: Record<string, boolean> = {
         ...CONST.EXPENSIFY_EMAILS_OBJECT,
     };
-    const participantsAccountIDs = getParticipantsAccountIDsForDisplay(report, false, true);
+    const participantsAccountIDs = getParticipantsAccountIDsForDisplay(report, false, true, false, reportMetadata);
     const loginsByAccountIDs = getLoginsByAccountIDs(participantsAccountIDs);
     for (const login of loginsByAccountIDs) {
         excludedUsers[login] = true;
@@ -113,7 +114,7 @@ function InviteReportParticipantsPage({report}: InviteReportParticipantsPageProp
     };
 
     const reportID = report.reportID;
-    const reportName = getGroupChatName(formatPhoneNumber, undefined, true, report);
+    const reportName = getGroupChatName(formatPhoneNumber, undefined, true, report, reportMetadata);
 
     const goBack = () => {
         Navigation.goBack(ROUTES.REPORT_PARTICIPANTS.getRoute(reportID, route.params.backTo));
@@ -132,7 +133,7 @@ function InviteReportParticipantsPage({report}: InviteReportParticipantsPageProp
             }
             invitedEmailsToAccountIDs[login] = accountID;
         }
-        inviteToGroupChat(report, invitedEmailsToAccountIDs, formatPhoneNumber);
+        inviteToGroupChat(report, invitedEmailsToAccountIDs, formatPhoneNumber, reportMetadata);
         goBack();
     };
 

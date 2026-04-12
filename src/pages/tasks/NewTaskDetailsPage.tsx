@@ -30,6 +30,7 @@ type NewTaskDetailsPageProps = PlatformStackScreenProps<NewTaskNavigatorParamLis
 
 function NewTaskDetailsPage({route}: NewTaskDetailsPageProps) {
     const [task] = useOnyx(ONYXKEYS.TASK);
+    const [assigneeChatReportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${task?.assigneeChatReport?.reportID}`);
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${task?.parentReportID}`, undefined, [task?.parentReportID]);
     const ancestors = useAncestors(parentReport);
@@ -82,6 +83,7 @@ function NewTaskDetailsPage({route}: NewTaskDetailsPageProps) {
                 currentUserEmail: currentUserPersonalDetails.email ?? '',
                 assigneeAccountID: task.assigneeAccountID,
                 assigneeChatReport: task.assigneeChatReport,
+                assigneeChatReportMetadata,
                 policyID: CONST.POLICY.OWNER_EMAIL_FAKE,
                 isCreatedUsingMarkdown: false,
                 quickAction,

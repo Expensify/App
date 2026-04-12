@@ -127,7 +127,6 @@ import {
     getPolicyName,
     getReimbursementDeQueuedOrCanceledActionMessage,
     getReimbursementQueuedActionMessage,
-    getReportMetadata,
     getReportOrDraftReport,
     getTransactionReportName,
     getUnreportedTransactionMessage,
@@ -165,6 +164,7 @@ type ComputeReportName = {
     policies?: OnyxCollection<Policy>;
     transactions?: OnyxCollection<Transaction>;
     allReportNameValuePairs?: OnyxCollection<ReportNameValuePairs>;
+    allReportMetadata?: OnyxCollection<ReportMetadata>;
     allPolicyTags?: OnyxCollection<PolicyTagLists>;
     personalDetailsList?: PersonalDetailsList;
     reportActions?: OnyxCollection<ReportActions>;
@@ -252,7 +252,7 @@ function getGroupChatName(
         return report.reportName;
     }
 
-    const reportMetadata = reportMetadataParam ?? getReportMetadata(report?.reportID);
+    const reportMetadata = reportMetadataParam;
 
     const pendingMemberAccountIDs = new Set(
         reportMetadata?.pendingChatMembers?.filter((member) => member.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).map((member) => member.accountID),
@@ -861,6 +861,7 @@ function computeReportName({
     policies,
     transactions,
     allReportNameValuePairs,
+    allReportMetadata,
     personalDetailsList,
     reportActions,
     currentUserAccountID,
@@ -905,6 +906,7 @@ function computeReportName({
             policies,
             transactions,
             allReportNameValuePairs,
+            allReportMetadata,
             personalDetailsList,
             reportActions,
             currentUserAccountID,
@@ -946,7 +948,7 @@ function computeReportName({
     }
 
     if (isGroupChat(report)) {
-        return getGroupChatName(formatPhoneNumberPhoneUtils, undefined, true, report) ?? '';
+        return getGroupChatName(formatPhoneNumberPhoneUtils, undefined, true, report, allReportMetadata?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report.reportID}`]) ?? '';
     }
 
     let formattedName: string | undefined;

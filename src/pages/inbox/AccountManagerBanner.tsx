@@ -23,6 +23,7 @@ function AccountManagerBanner({reportID}: AccountManagerBannerProps) {
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportID)}`);
     const [accountManagerReportID] = useOnyx(ONYXKEYS.ACCOUNT_MANAGER_REPORT_ID);
     const [accountManagerReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(accountManagerReportID)}`);
+    const [accountManagerReportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${getNonEmptyStringOnyxID(accountManagerReportID)}`);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [isBannerVisible, setIsBannerVisible] = useState(true);
 
@@ -30,7 +31,7 @@ function AccountManagerBanner({reportID}: AccountManagerBannerProps) {
         return null;
     }
 
-    const participants = getParticipantsAccountIDsForDisplay(accountManagerReport, false, true);
+    const participants = getParticipantsAccountIDsForDisplay(accountManagerReport, false, true, false, accountManagerReportMetadata);
     const participantPersonalDetails = getPersonalDetailsForAccountIDs([participants?.at(0) ?? -1], personalDetails);
     const participantPersonalDetail = Object.values(participantPersonalDetails).at(0);
     const displayName = getDisplayNameOrDefault(participantPersonalDetail);

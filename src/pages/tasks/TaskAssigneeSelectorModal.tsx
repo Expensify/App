@@ -41,6 +41,7 @@ function TaskAssigneeSelectorModal() {
     const {translate} = useLocalize();
     const backTo = route.params?.backTo;
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+    const [allReportMetadata] = useOnyx(ONYXKEYS.COLLECTION.REPORT_METADATA);
     const [task] = useOnyx(ONYXKEYS.TASK);
     const [isSearchingForReports] = useOnyx(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS);
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
@@ -166,7 +167,10 @@ function TaskAssigneeSelectorModal() {
                     report.reportID,
                     undefined, // passing null as report because for editing task the report will be task details report page not the actual report where task was created
                     isCurrentUser({...option, accountID: option?.accountID ?? CONST.DEFAULT_NUMBER_ID, login: option?.login ?? ''}, loginList, currentUserEmail),
+                    false,
+                    allReportMetadata,
                 );
+                const assigneeChatReportMetadata = assigneeChatReport?.reportID ? allReportMetadata?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${assigneeChatReport.reportID}`] : undefined;
                 // Pass through the selected assignee
                 editTaskAssignee({
                     report,
@@ -179,6 +183,7 @@ function TaskAssigneeSelectorModal() {
                     delegateEmail,
                     assigneeAccountID: option?.accountID,
                     assigneeChatReport,
+                    assigneeChatReportMetadata,
                     isOptimisticReport,
                 });
             }
@@ -194,6 +199,8 @@ function TaskAssigneeSelectorModal() {
                 task?.shareDestination ?? '',
                 undefined, // passing null as report is null in this condition
                 isCurrentUser({...option, accountID: option?.accountID ?? CONST.DEFAULT_NUMBER_ID, login: option?.login ?? undefined}, loginList, currentUserEmail),
+                false,
+                allReportMetadata,
             );
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             InteractionManager.runAfterInteractions(() => {

@@ -74,6 +74,7 @@ function OptionRowLHNData({
 
     // Per-item NVP subscription instead of collection-level subscription in parent
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`);
+    const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`);
 
     const parentReportAction = fullReport?.parentReportActionID ? parentReportActions?.[fullReport.parentReportActionID] : undefined;
 
@@ -154,6 +155,7 @@ function OptionRowLHNData({
         reportAttributesDerived,
         policyTags,
         currentUserLogin: login ?? '',
+        reportMetadata,
     });
 
     // For single-sender IOUs, trim to the sender's avatar to match the header.

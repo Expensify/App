@@ -260,6 +260,7 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
     ]);
     const [lastDistanceExpenseType] = useOnyx(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE);
     const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${moneyRequestReport?.reportID}`);
+    const [allReportMetadata] = useOnyx(ONYXKEYS.COLLECTION.REPORT_METADATA);
     const [transactionDrafts] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {
         selector: validTransactionDraftsSelector,
     });
@@ -638,6 +639,7 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
                         }
                         startAnimation();
                     },
+                    allReportMetadata,
                 });
                 if (currentSearchQueryJSON && !isOffline) {
                     search({
@@ -683,6 +685,7 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
             clearSelectedTransactions,
             amountOwed,
             ownerBillingGracePeriodEnd,
+            allReportMetadata,
         ],
     );
 
@@ -732,6 +735,7 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
                         startApprovedAnimation();
                     },
                     delegateEmail,
+                    allReportMetadata,
                 });
                 if (skipAnimation) {
                     clearSelectedTransactions(true);
@@ -757,6 +761,7 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
             clearSelectedTransactions,
             ownerBillingGracePeriodEnd,
             delegateEmail,
+            allReportMetadata,
         ],
     );
 
@@ -1705,6 +1710,7 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
                             allTransactionViolations,
                             bankAccountList,
                             hash: currentSearchHash,
+                            allReportMetadata,
                         });
                     });
                 });

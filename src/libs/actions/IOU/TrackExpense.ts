@@ -206,6 +206,7 @@ type DeleteTrackExpenseParams = {
     isChatIOUReportArchived: boolean | undefined;
     allTransactionViolationsParam: OnyxCollection<OnyxTypes.TransactionViolations>;
     currentUserAccountID: number;
+    allReportMetadata?: OnyxCollection<OnyxTypes.ReportMetadata>;
 };
 
 type BuildOnyxDataForTrackExpenseParams = {
@@ -2660,6 +2661,7 @@ function deleteTrackExpense({
     isChatIOUReportArchived,
     allTransactionViolationsParam,
     currentUserAccountID,
+    allReportMetadata,
 }: DeleteTrackExpenseParams) {
     if (!chatReportID || !transactionID) {
         return;
@@ -2690,6 +2692,7 @@ function deleteTrackExpense({
             allTransactionViolationsParam,
             currentUserAccountID,
             currentUserEmail: getCurrentUserEmail(),
+            allReportMetadata,
         });
         return urlToNavigateBack;
     }

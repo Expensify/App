@@ -179,7 +179,7 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
 
     const removeUsers = () => {
         const accountIDsToRemove = selectedMembers.filter((id) => id !== currentUserAccountID);
-        removeFromGroupChat(report, accountIDsToRemove);
+        removeFromGroupChat(report, accountIDsToRemove, reportMetadata);
         setSearchValue('');
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {

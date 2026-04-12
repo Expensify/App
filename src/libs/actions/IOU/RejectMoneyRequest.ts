@@ -1,4 +1,4 @@
-import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
 import type {MarkTransactionViolationAsResolvedParams, RejectExpenseReportParams, RejectMoneyRequestParams, SetNameValuePairParams} from '@libs/API/parameters';
@@ -106,7 +106,7 @@ function prepareRejectMoneyRequestData(
     policy: OnyxEntry<OnyxTypes.Policy>,
     currentUserAccountIDParam: number,
     betas: OnyxEntry<OnyxTypes.Beta[]>,
-    options?: {sharedRejectedToReportID?: string},
+    options?: {sharedRejectedToReportID?: string; allReportMetadata?: OnyxCollection<OnyxTypes.ReportMetadata>},
     shouldUseBulkAction?: boolean,
 ): RejectMoneyRequestData | undefined {
     const allTransactions = getAllTransactions();
@@ -722,6 +722,7 @@ function prepareRejectMoneyRequestData(
             currentUserAccountIDParam,
             allTransactionViolations,
             undefined,
+            options?.allReportMetadata,
         );
 
         if (policyExpenseChat.hasOutstandingChildRequest !== shouldHaveOutstandingChildRequest) {
@@ -876,7 +877,7 @@ function rejectMoneyRequest(
     policy: OnyxEntry<OnyxTypes.Policy>,
     currentUserAccountIDParam: number,
     betas: OnyxEntry<OnyxTypes.Beta[]>,
-    options?: {sharedRejectedToReportID?: string},
+    options?: {sharedRejectedToReportID?: string; allReportMetadata?: OnyxCollection<OnyxTypes.ReportMetadata>},
 ): Route | undefined {
     const data = prepareRejectMoneyRequestData(transactionID, reportID, comment, policy, currentUserAccountIDParam, betas, options);
     if (!data) {

@@ -28,6 +28,7 @@ function DeepLinkHandler({onInitialUrl}: DeepLinkHandlerProps) {
     const linkingChangeListener = useRef<NativeEventSubscription | null>(null);
 
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+    const [allReportMetadata] = useOnyx(ONYXKEYS.COLLECTION.REPORT_METADATA);
     const [, sessionMetadata] = useOnyx(ONYXKEYS.SESSION);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
@@ -50,7 +51,7 @@ function DeepLinkHandler({onInitialUrl}: DeepLinkHandlerProps) {
                 if (introSelected === undefined) {
                     Log.info('[Deep link] introSelected is undefined when processing initial URL', false, {url});
                 }
-                openReportFromDeepLink(url, allReports, isAuthenticated, conciergeReportID, introSelected, isSelfTourViewed, betas);
+                openReportFromDeepLink(url, allReports, isAuthenticated, conciergeReportID, introSelected, isSelfTourViewed, betas, allReportMetadata);
             } else {
                 Report.doneCheckingPublicRoom();
             }
@@ -67,13 +68,13 @@ function DeepLinkHandler({onInitialUrl}: DeepLinkHandlerProps) {
                 Log.info('[Deep link] introSelected is undefined when processing URL change', false, {url: state.url});
             }
             const isCurrentlyAuthenticated = hasAuthToken();
-            openReportFromDeepLink(state.url, allReports, isCurrentlyAuthenticated, conciergeReportID, introSelected, isSelfTourViewed, betas);
+            openReportFromDeepLink(state.url, allReports, isCurrentlyAuthenticated, conciergeReportID, introSelected, isSelfTourViewed, betas, allReportMetadata);
         });
 
         return () => {
             linkingChangeListener.current?.remove();
         };
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- intentionally excluding allReports, isAuthenticated, and onInitialUrl to avoid re-triggering deep link handling on every report update
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- intentionally excluding allReports, allReportMetadata, isAuthenticated, and onInitialUrl to avoid re-triggering deep link handling on every report update
     }, [sessionMetadata?.status, conciergeReportID, introSelected, isSelfTourViewedMetadata, betas]);
 
     return null;

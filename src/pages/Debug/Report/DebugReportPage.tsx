@@ -56,6 +56,7 @@ function DebugReportPage({
     const StyleUtils = useStyleUtils();
     const theme = useTheme();
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+    const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`);
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`);
     const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
@@ -85,7 +86,7 @@ function DebugReportPage({
 
         const shouldDisplayViolations = !!getViolatingReportIDForRBRInLHN(report, transactionViolations);
         const hasViolations = !!shouldDisplayViolations;
-        const {reason: reasonGBR, reportAction: reportActionGBR} = DebugUtils.getReasonAndReportActionForGBRInLHNRow(report, isReportArchived) ?? {};
+        const {reason: reasonGBR, reportAction: reportActionGBR} = DebugUtils.getReasonAndReportActionForGBRInLHNRow(report, isReportArchived, reportMetadata) ?? {};
         const {reason: reasonRBR, reportAction: reportActionRBR} =
             DebugUtils.getReasonAndReportActionForRBRInLHNRow(
                 report,
@@ -153,7 +154,20 @@ function DebugReportPage({
                         : undefined,
             },
         ];
-    }, [report, transactionViolations, isReportArchived, chatReport, reportActions, transactions, reportAttributes?.reportErrors, betas, priorityMode, draftComment, translate]);
+    }, [
+        report,
+        reportMetadata,
+        transactionViolations,
+        isReportArchived,
+        chatReport,
+        reportActions,
+        transactions,
+        reportAttributes?.reportErrors,
+        betas,
+        priorityMode,
+        draftComment,
+        translate,
+    ]);
 
     const icons = useMemoizedLazyExpensifyIcons(['Eye']);
 
