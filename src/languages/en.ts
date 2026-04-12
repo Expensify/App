@@ -44,6 +44,7 @@ import type {
     StepCounterParams,
     SyncStageNameConnectionsParams,
     UnshareParams,
+    UnsupportedFormulaValueErrorParams,
     UpdatedBudgetParams,
     UpdatedPolicyApprovalRuleParams,
     UpdatedPolicyCategoryMaxAmountNoReceiptParams,
@@ -1079,6 +1080,14 @@ const translations = {
                 fireworksTitle: 'All caught up',
                 fireworksDescription: 'Upcoming to-dos will appear here.',
             },
+        },
+        gettingStartedSection: {
+            title: 'Getting started',
+            createWorkspace: 'Create a workspace',
+            connectAccounting: ({integrationName}: {integrationName: string}) => `Connect to ${integrationName}`,
+            customizeCategories: 'Customize accounting categories',
+            linkCompanyCards: 'Link company cards',
+            setupRules: 'Set up spend rules',
         },
         upcomingTravel: 'Upcoming travel',
         upcomingTravelSection: {
@@ -3029,7 +3038,7 @@ const translations = {
                 description: dedent(`
                     *Submit an expense* by entering an amount or scanning a receipt.
 
-                    1. Click the ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} button.
+                    1. Click the *+* button.
                     2. Choose *Create expense*.
                     3. Enter an amount or scan a receipt.
                     4. Add your boss's email or phone number.
@@ -3043,7 +3052,7 @@ const translations = {
                 description: dedent(`
                     *Submit an expense* by entering an amount or scanning a receipt.
 
-                    1. Click the ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} button.
+                    1. Click the *+* button.
                     2. Choose *Create expense*.
                     3. Enter an amount or scan a receipt.
                     4. Confirm details.
@@ -3057,7 +3066,7 @@ const translations = {
                 description: dedent(`
                     *Track an expense* in any currency, whether you have a receipt or not.
 
-                    1. Click the ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} button.
+                    1. Click the *+* button.
                     2. Choose *Create expense*.
                     3. Enter an amount or scan a receipt.
                     4. Choose your *personal* space.
@@ -3162,7 +3171,7 @@ const translations = {
                 description: dedent(`
                     *Start a chat* with anyone using their email or phone number.
 
-                    1. Click the ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} button.
+                    1. Click the *+* button.
                     2. Choose *Start chat*.
                     3. Enter an email or phone number.
 
@@ -3177,7 +3186,7 @@ const translations = {
                 description: dedent(`
                     *Split expenses* with one or more people.
 
-                    1. Click the ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} button.
+                    1. Click the *+* button.
                     2. Choose *Start chat*.
                     3. Enter emails or phone numbers.
                     4. Click the grey *+* button in the chat > *Split expense*.
@@ -3203,7 +3212,7 @@ const translations = {
                 description: dedent(`
                     Here's how to create a report:
 
-                    1. Click the ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} button.
+                    1. Click the *+* button.
                     2. Choose *Create report*.
                     3. Click *Add expense*.
                     4. Add your first expense.
@@ -3284,6 +3293,7 @@ const translations = {
             dateShouldBeBefore: (dateString: string) => `Date should be before ${dateString}`,
             dateShouldBeAfter: (dateString: string) => `Date should be after ${dateString}`,
             hasInvalidCharacter: 'Name can only include Latin characters',
+            cannotIncludeCommaOrSemicolon: 'Name cannot contain a comma or semicolon',
             incorrectZipFormat: (zipFormat?: string) => `Incorrect zip code format${zipFormat ? ` Acceptable format: ${zipFormat}` : ''}`,
             invalidPhoneNumber: `Please ensure the phone number is valid (e.g. ${CONST.EXAMPLE_PHONE_NUMBER})`,
         },
@@ -5722,6 +5732,7 @@ const translations = {
             reportFieldNameRequiredError: 'Please enter a report field name',
             reportFieldTypeRequiredError: 'Please choose a report field type',
             circularReferenceError: "This field can't refer to itself. Please update.",
+            unsupportedFormulaValueError: ({value}: UnsupportedFormulaValueErrorParams) => `Formula field ${value} not recognized`,
             reportFieldInitialValueRequiredError: 'Please choose a report field initial value',
             genericFailureMessage: 'An error occurred while updating the report field. Please try again.',
         },
@@ -6783,10 +6794,13 @@ const translations = {
                     description: `Expensify always declines these charges:\n\n  • Adult services\n  • ATMs\n  • Gambling\n  • Money transfers\n\nAdd more spend rules to protect company cash flow.`,
                 },
                 addSpendRule: 'Add spend rule',
+                editRuleTitle: 'Edit rule',
                 cardPageTitle: 'Card',
                 cardsSectionTitle: 'Cards',
                 chooseCards: 'Choose cards',
                 saveRule: 'Save rule',
+                deleteRule: 'Delete rule',
+                deleteRuleConfirmation: 'Are you sure you want to delete this rule?',
                 allow: 'Allow',
                 spendRuleSectionTitle: 'Spend rule',
                 restrictionType: 'Restriction type',

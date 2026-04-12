@@ -1167,10 +1167,6 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             path: ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.route,
                             exact: true,
                         },
-                        [SCREENS.REIMBURSEMENT_ACCOUNT_USD]: {
-                            path: ROUTES.BANK_ACCOUNT_USD_SETUP.route,
-                            exact: true,
-                        },
                         [SCREENS.REIMBURSEMENT_ACCOUNT_NON_USD]: {
                             path: ROUTES.BANK_ACCOUNT_NON_USD_SETUP.route,
                             exact: true,
@@ -1247,6 +1243,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         },
                         [SCREENS.WORKSPACE.RULES_SPEND_NEW]: {
                             path: ROUTES.RULES_SPEND_NEW.route,
+                        },
+                        [SCREENS.WORKSPACE.RULES_SPEND_EDIT]: {
+                            path: ROUTES.RULES_SPEND_EDIT.route,
                         },
                         [SCREENS.WORKSPACE.RULES_SPEND_CARD]: {
                             path: ROUTES.RULES_SPEND_CARD.route,

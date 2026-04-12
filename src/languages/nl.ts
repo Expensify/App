@@ -56,6 +56,7 @@ import type {
     StepCounterParams,
     SyncStageNameConnectionsParams,
     UnshareParams,
+    UnsupportedFormulaValueErrorParams,
     UpdatedBudgetParams,
     UpdatedPolicyApprovalRuleParams,
     UpdatedPolicyCategoryMaxAmountNoReceiptParams,
@@ -1042,6 +1043,14 @@ const translations: TranslationDeepObject<typeof en> = {
                 other: (pluralCount: number) => `Resterende tijd: ${pluralCount} dagen`,
             }),
         },
+        gettingStartedSection: {
+            title: 'Aan de slag',
+            createWorkspace: 'Maak een werkruimte',
+            connectAccounting: ({integrationName}: {integrationName: string}) => `Verbind met ${integrationName}`,
+            customizeCategories: 'Boekhoudcategorieën aanpassen',
+            linkCompanyCards: 'Bedrijfspassen koppelen',
+            setupRules: 'Uitgavenregels instellen',
+        },
     },
     allSettingsScreen: {
         subscription: 'Abonnement',
@@ -1695,8 +1704,6 @@ const translations: TranslationDeepObject<typeof en> = {
         backdropLabel: 'Modale achtergrond',
     },
     nextStep: {
-        // All nextStep.message functions share a common positional signature (actor, actorType, eta, etaType) for type compatibility, so unused params are expected
-        /* eslint-disable @typescript-eslint/no-unused-vars */
         message: {
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_ADD_TRANSACTIONS]: (
                 actor: string,
@@ -1704,8 +1711,6 @@ const translations: TranslationDeepObject<typeof en> = {
                 _eta?: string,
                 _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
             ) => {
-                // Disabling the default-case lint rule here is actually safer as this forces us to make the switch cases exhaustive
-                // eslint-disable-next-line default-case
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
                         return `Wacht tot <strong>jij</strong> uitgaven toevoegt.`;
@@ -1721,8 +1726,6 @@ const translations: TranslationDeepObject<typeof en> = {
                 _eta?: string,
                 _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
             ) => {
-                // Disabling the default-case lint rule here is actually safer as this forces us to make the switch cases exhaustive
-                // eslint-disable-next-line default-case
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
                         return `Er wordt gewacht tot <strong>jij</strong> declaraties indient.`;
@@ -1744,8 +1747,6 @@ const translations: TranslationDeepObject<typeof en> = {
                 _eta?: string,
                 _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
             ) => {
-                // Disabling the default-case lint rule here is actually safer as this forces us to make the switch cases exhaustive
-                // eslint-disable-next-line default-case
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
                         return `Er wordt gewacht tot <strong>jij</strong> een bankrekening toevoegt.`;
@@ -1765,8 +1766,6 @@ const translations: TranslationDeepObject<typeof en> = {
                 if (eta) {
                     formattedETA = etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? `op de ${eta} van elke maand` : ` ${eta}`;
                 }
-                // Disabling the default-case lint rule here is actually safer as this forces us to make the switch cases exhaustive
-                // eslint-disable-next-line default-case
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
                         return `Wachten tot <strong>jouw</strong> uitgaven automatisch worden ingediend${formattedETA}.`;
@@ -1782,8 +1781,6 @@ const translations: TranslationDeepObject<typeof en> = {
                 _eta?: string,
                 _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
             ) => {
-                // Disabling the default-case lint rule here is actually safer as this forces us to make the switch cases exhaustive
-                // eslint-disable-next-line default-case
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
                         return `We wachten op <strong>jou</strong> om de problemen op te lossen.`;
@@ -1799,8 +1796,6 @@ const translations: TranslationDeepObject<typeof en> = {
                 _eta?: string,
                 _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
             ) => {
-                // Disabling the default-case lint rule here is actually safer as this forces us to make the switch cases exhaustive
-                // eslint-disable-next-line default-case
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
                         return `Wacht tot <strong>jij</strong> de onkosten goedkeurt.`;
@@ -1816,8 +1811,6 @@ const translations: TranslationDeepObject<typeof en> = {
                 _eta?: string,
                 _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
             ) => {
-                // Disabling the default-case lint rule here is actually safer as this forces us to make the switch cases exhaustive
-                // eslint-disable-next-line default-case
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
                         return `We wachten op <strong>jou</strong> om dit rapport te exporteren.`;
@@ -1833,8 +1826,6 @@ const translations: TranslationDeepObject<typeof en> = {
                 _eta?: string,
                 _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
             ) => {
-                // Disabling the default-case lint rule here is actually safer as this forces us to make the switch cases exhaustive
-                // eslint-disable-next-line default-case
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
                         return `Wacht tot <strong>jij</strong> onkosten betaalt.`;
@@ -1850,8 +1841,6 @@ const translations: TranslationDeepObject<typeof en> = {
                 _eta?: string,
                 _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
             ) => {
-                // Disabling the default-case lint rule here is actually safer as this forces us to make the switch cases exhaustive
-                // eslint-disable-next-line default-case
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
                         return `Wachten tot <strong>je</strong> klaar bent met het instellen van een zakelijke bankrekening.`;
@@ -2986,7 +2975,7 @@ ${amount} voor ${merchant} - ${date}`,
                 description: dedent(`
                     *Dien een uitgave in* door een bedrag in te voeren of een bon te scannen.
 
-                    1. Klik op de knop ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}.
+                    1. Klik op de knop *+*.
                     2. Kies *Uitgave maken*.
                     3. Voer een bedrag in of scan een bon.
                     4. Voeg het e-mailadres of telefoonnummer van je manager toe.
@@ -3000,7 +2989,7 @@ ${amount} voor ${merchant} - ${date}`,
                 description: dedent(`
                     *Dien een uitgave in* door een bedrag in te voeren of een bon te scannen.
 
-                    1. Klik op de knop ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}.
+                    1. Klik op de knop *+*.
                     2. Kies *Uitgave maken*.
                     3. Voer een bedrag in of scan een bon.
                     4. Bevestig de details.
@@ -3014,7 +3003,7 @@ ${amount} voor ${merchant} - ${date}`,
                 description: dedent(`
                     *Volg een uitgave* in elke valuta, of je nu een bon hebt of niet.
 
-                    1. Klik op de knop ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}.
+                    1. Klik op de knop *+*.
                     2. Kies *Uitgave maken*.
                     3. Voer een bedrag in of scan een bon.
                     4. Kies je *persoonlijke* ruimte.
@@ -3111,7 +3100,7 @@ ${amount} voor ${merchant} - ${date}`,
                 description: dedent(`
                     *Start een chat* met iedereen via hun e-mailadres of telefoonnummer.
 
-                    1. Klik op de knop ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}.
+                    1. Klik op de knop *+*.
                     2. Kies *Chat starten*.
                     3. Voer een e-mailadres of telefoonnummer in.
 
@@ -3125,7 +3114,7 @@ ${amount} voor ${merchant} - ${date}`,
                 description: dedent(`
                     *Kosten splitsen* met één of meer personen.
 
-                    1. Klik op de knop ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}.
+                    1. Klik op de knop *+*.
                     2. Kies *Chat starten*.
                     3. Voer e-mailadressen of telefoonnummers in.
                     4. Klik in de chat op de grijze knop *+* > *Kosten splitsen*.
@@ -3149,7 +3138,7 @@ ${amount} voor ${merchant} - ${date}`,
                 description: dedent(`
                     Zo maak je een rapport:
 
-                    1. Klik op de knop ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}.
+                    1. Klik op de knop *+*.
                     2. Kies *Rapport maken*.
                     3. Klik op *Uitgave toevoegen*.
                     4. Voeg je eerste uitgave toe.
@@ -3230,6 +3219,7 @@ ${amount} voor ${merchant} - ${date}`,
             dateShouldBeBefore: (dateString: string) => `Datum moet vóór ${dateString} zijn`,
             dateShouldBeAfter: (dateString: string) => `Datum moet na ${dateString} liggen`,
             hasInvalidCharacter: 'Naam mag alleen Latijnse letters bevatten',
+            cannotIncludeCommaOrSemicolon: 'Naam mag geen komma of puntkomma bevatten',
             incorrectZipFormat: (zipFormat?: string) => `Ongeldig postcodeformaat${zipFormat ? `Acceptabel formaat: ${zipFormat}` : ''}`,
             invalidPhoneNumber: `Zorg ervoor dat het telefoonnummer geldig is (bijv. ${CONST.EXAMPLE_PHONE_NUMBER})`,
         },
@@ -5706,6 +5696,7 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
             reportFieldNameRequiredError: 'Voer een naam voor een rapportveld in',
             reportFieldTypeRequiredError: 'Kies een veldtype voor het rapport',
             circularReferenceError: 'Dit veld kan niet naar zichzelf verwijzen. Werk het alsjeblieft bij.',
+            unsupportedFormulaValueError: ({value}: UnsupportedFormulaValueErrorParams) => `Formuleveld ${value} niet herkend`,
             reportFieldInitialValueRequiredError: 'Kies een beginwaarde voor een rapportveld',
             genericFailureMessage: 'Er is een fout opgetreden bij het bijwerken van het rapportveld. Probeer het opnieuw.',
         },
@@ -6846,6 +6837,9 @@ Voeg meer bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                     [CONST.SPEND_RULES.CATEGORIES.TRANSIT_AND_RIDESHARE]: 'Openbaar vervoer en ritdiensten',
                     [CONST.SPEND_RULES.CATEGORIES.TRAVEL_AGENCIES]: 'Reisbureaus',
                 },
+                editRuleTitle: 'Regel bewerken',
+                deleteRule: 'Regel verwijderen',
+                deleteRuleConfirmation: 'Weet je zeker dat je deze regel wilt verwijderen?',
             },
         },
         planTypePage: {
@@ -7345,8 +7339,6 @@ Voeg meer bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         updatedDefaultTitle: (newDefaultTitle: string, oldDefaultTitle: string) => `heeft aangepaste rapportnaamformule gewijzigd in "${newDefaultTitle}" (voorheen "${oldDefaultTitle}")`,
         updatedOwnership: (oldOwnerEmail: string, oldOwnerName: string, policyName: string) => `heeft het eigendom van ${policyName} overgenomen van ${oldOwnerName} (${oldOwnerEmail})`,
         updatedAutoHarvesting: (enabled: boolean) => `${enabled ? 'ingeschakeld' : 'uitgeschakeld'} gepland indienen`,
-        // This function requires 11 params to match the budget notification data model; reducing further would hurt readability
-        // eslint-disable-next-line @typescript-eslint/max-params
         updatedIndividualBudgetNotification: (
             budgetAmount: string,
             budgetFrequency: string,

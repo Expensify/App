@@ -278,7 +278,7 @@ function SettlementButton({
     };
 
     const canUseWallet = !isExpenseReport && !isInvoiceReport && isCurrencySupportedForGlobalReimbursement(currency as CurrencyType);
-    const canUseBusinessBankAccount = isExpenseReport || (isIOUReport(iouReport) && reportID && !hasRequestFromCurrentAccount(reportID, accountID ?? CONST.DEFAULT_NUMBER_ID));
+    const canUseBusinessBankAccount = isExpenseReport || (isIOUReport(iouReport) && reportID && !hasRequestFromCurrentAccount(iouReport, accountID ?? CONST.DEFAULT_NUMBER_ID));
     const canUsePersonalBankAccount = shouldShowPersonalBankAccountOption || isIOUReport(iouReport);
     const isPersonalOnlyOption = canUsePersonalBankAccount && !canUseBusinessBankAccount;
 
