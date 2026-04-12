@@ -169,14 +169,12 @@ function SubmitDetailsPage({
                 isASAPSubmitBetaEnabled,
                 currentUserAccountIDParam: currentUserPersonalDetails.accountID,
                 currentUserEmailParam: currentUserPersonalDetails.login ?? '',
-                activePolicy: undefined,
                 introSelected,
                 quickAction,
                 recentWaypoints,
                 betas,
                 draftTransactionIDs,
                 isSelfTourViewed,
-                hasActiveAdminPolicies: undefined,
             });
         } else {
             const existingTransactionID = getExistingTransactionID(transaction.linkedTrackedExpenseReportAction);

@@ -225,13 +225,11 @@ describe('GoogleTagManagerTest', () => {
             currentUserAccountIDParam: accountID,
             currentUserEmailParam: 'test@test.com',
             introSelected: undefined,
-            activePolicy: undefined,
             quickAction: undefined,
             recentWaypoints,
             betas: [CONST.BETAS.ALL],
             draftTransactionIDs: [],
             isSelfTourViewed: false,
-            hasActiveAdminPolicies: false,
         });
 
         await waitForBatchedUpdatesWithAct();

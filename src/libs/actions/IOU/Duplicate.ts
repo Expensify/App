@@ -753,13 +753,11 @@ function duplicateExpenseTransaction({
             report: undefined,
             isDraftPolicy: false,
             introSelected,
-            activePolicy: undefined,
             quickAction,
             recentWaypoints,
             betas,
             draftTransactionIDs,
             isSelfTourViewed,
-            hasActiveAdminPolicies: undefined,
         };
         return trackExpense(trackExpenseParams);
     }

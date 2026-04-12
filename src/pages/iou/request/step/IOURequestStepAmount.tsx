@@ -300,13 +300,11 @@ function IOURequestStepAmount({
                         currentUserAccountIDParam,
                         currentUserEmailParam,
                         introSelected,
-                        activePolicy: undefined,
                         quickAction,
                         recentWaypoints,
                         betas,
                         draftTransactionIDs,
                         isSelfTourViewed,
-                        hasActiveAdminPolicies: undefined,
                     });
                     return;
                 }

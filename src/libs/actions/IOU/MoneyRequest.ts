@@ -239,13 +239,11 @@ function createTransaction({
                 currentUserAccountIDParam: currentUserAccountID,
                 currentUserEmailParam: currentUserEmail ?? '',
                 introSelected,
-                activePolicy: undefined,
                 quickAction,
                 draftTransactionIDs,
                 recentWaypoints,
                 betas,
                 isSelfTourViewed,
-                hasActiveAdminPolicies: undefined,
             });
         } else {
             const existingTransactionID = getExistingTransactionID(transaction?.linkedTrackedExpenseReportAction);
@@ -708,13 +706,11 @@ function handleMoneyRequestStepDistanceNavigation({
                     currentUserAccountIDParam: currentUserAccountID,
                     currentUserEmailParam: currentUserLogin ?? '',
                     introSelected,
-                    activePolicy: undefined,
                     quickAction,
                     draftTransactionIDs,
                     recentWaypoints,
                     betas,
                     isSelfTourViewed,
-                    hasActiveAdminPolicies: undefined,
                 });
                 return;
             }

@@ -186,11 +186,11 @@ type GetTrackExpenseInformationParams = {
     currentUserAccountIDParam: number;
     currentUserEmailParam: string;
     introSelected: OnyxEntry<OnyxTypes.IntroSelected>;
-    activePolicy: OnyxEntry<OnyxTypes.Policy>;
+    activePolicy?: OnyxEntry<OnyxTypes.Policy>;
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
     betas: OnyxEntry<OnyxTypes.Beta[]>;
     isSelfTourViewed: boolean;
-    hasActiveAdminPolicies: boolean | undefined;
+    hasActiveAdminPolicies?: boolean;
 };
 
 type DeleteTrackExpenseParams = {

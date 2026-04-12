@@ -208,13 +208,11 @@ describe('actions/IOU/TrackExpense', () => {
                 currentUserAccountIDParam: RORY_ACCOUNT_ID,
                 currentUserEmailParam: RORY_EMAIL,
                 introSelected: undefined,
-                activePolicy: undefined,
                 quickAction: undefined,
                 recentWaypoints,
                 betas: [CONST.BETAS.ALL],
                 draftTransactionIDs: [fakeTransaction.transactionID],
                 isSelfTourViewed: false,
-                hasActiveAdminPolicies: false,
             });
             await waitForBatchedUpdates();
             await mockFetch?.resume?.();
@@ -313,13 +311,11 @@ describe('actions/IOU/TrackExpense', () => {
                 currentUserAccountIDParam: RORY_ACCOUNT_ID,
                 currentUserEmailParam: RORY_EMAIL,
                 introSelected: undefined,
-                activePolicy: undefined,
                 quickAction: undefined,
                 recentWaypoints,
                 betas: [CONST.BETAS.ALL],
                 draftTransactionIDs: [],
                 isSelfTourViewed: false,
-                hasActiveAdminPolicies: false,
             });
             await waitForBatchedUpdates();
             await mockFetch?.resume?.();
@@ -403,13 +399,11 @@ describe('actions/IOU/TrackExpense', () => {
                 currentUserAccountIDParam: RORY_ACCOUNT_ID,
                 currentUserEmailParam: RORY_EMAIL,
                 introSelected: undefined,
-                activePolicy: undefined,
                 quickAction: undefined,
                 recentWaypoints,
                 betas: [CONST.BETAS.ALL],
                 draftTransactionIDs: [transaction.transactionID],
                 isSelfTourViewed: false,
-                hasActiveAdminPolicies: false,
             });
             await waitForBatchedUpdates();
 
@@ -460,13 +454,11 @@ describe('actions/IOU/TrackExpense', () => {
                 currentUserAccountIDParam: RORY_ACCOUNT_ID,
                 currentUserEmailParam: RORY_EMAIL,
                 introSelected: undefined,
-                activePolicy: undefined,
                 quickAction: undefined,
                 recentWaypoints,
                 betas: [CONST.BETAS.ALL],
                 draftTransactionIDs: [],
                 isSelfTourViewed: false,
-                hasActiveAdminPolicies: false,
             });
             await waitForBatchedUpdates();
 
@@ -545,13 +537,11 @@ describe('actions/IOU/TrackExpense', () => {
                 currentUserAccountIDParam: RORY_ACCOUNT_ID,
                 currentUserEmailParam: RORY_EMAIL,
                 introSelected: undefined,
-                activePolicy: undefined,
                 quickAction: undefined,
                 recentWaypoints,
                 betas: [CONST.BETAS.ALL],
                 draftTransactionIDs: [transaction.transactionID],
                 isSelfTourViewed: false,
-                hasActiveAdminPolicies: false,
             });
             await waitForBatchedUpdates();
 
@@ -602,13 +592,11 @@ describe('actions/IOU/TrackExpense', () => {
                 currentUserAccountIDParam: RORY_ACCOUNT_ID,
                 currentUserEmailParam: RORY_EMAIL,
                 introSelected: undefined,
-                activePolicy: undefined,
                 quickAction: undefined,
                 recentWaypoints,
                 betas: [CONST.BETAS.ALL],
                 draftTransactionIDs: [],
                 isSelfTourViewed: false,
-                hasActiveAdminPolicies: false,
             });
             await waitForBatchedUpdates();
 
@@ -670,13 +658,11 @@ describe('actions/IOU/TrackExpense', () => {
                 currentUserAccountIDParam: RORY_ACCOUNT_ID,
                 currentUserEmailParam: RORY_EMAIL,
                 introSelected: undefined,
-                activePolicy: undefined,
                 quickAction: undefined,
                 recentWaypoints: [],
                 betas: [CONST.BETAS.ALL],
                 draftTransactionIDs: [],
                 isSelfTourViewed: false,
-                hasActiveAdminPolicies: undefined,
             };
         }
 
@@ -891,13 +877,11 @@ describe('actions/IOU/TrackExpense', () => {
                 currentUserAccountIDParam: RORY_ACCOUNT_ID,
                 currentUserEmailParam: RORY_EMAIL,
                 introSelected: undefined,
-                activePolicy: undefined,
                 quickAction: undefined,
                 recentWaypoints: [],
                 draftTransactionIDs: [],
                 betas: [CONST.BETAS.ALL],
                 isSelfTourViewed: false,
-                hasActiveAdminPolicies: false,
             });
             await waitForBatchedUpdates();
 
@@ -984,13 +968,11 @@ describe('actions/IOU/TrackExpense', () => {
                 currentUserAccountIDParam: RORY_ACCOUNT_ID,
                 currentUserEmailParam: RORY_EMAIL,
                 introSelected: undefined,
-                activePolicy: undefined,
                 quickAction: undefined,
                 recentWaypoints: [],
                 betas: [CONST.BETAS.ALL],
                 draftTransactionIDs: [],
                 isSelfTourViewed: false,
-                hasActiveAdminPolicies: false,
             });
             await waitForBatchedUpdates();
 
@@ -1317,11 +1299,9 @@ describe('actions/IOU/TrackExpense', () => {
                 currentUserAccountIDParam: RORY_ACCOUNT_ID,
                 currentUserEmailParam: RORY_EMAIL,
                 introSelected: undefined,
-                activePolicy: undefined,
                 quickAction: undefined,
                 betas: [CONST.BETAS.ALL],
                 isSelfTourViewed: true,
-                hasActiveAdminPolicies: undefined,
             });
 
             // Then the result should contain valid track expense data
@@ -1364,11 +1344,9 @@ describe('actions/IOU/TrackExpense', () => {
                 currentUserAccountIDParam: RORY_ACCOUNT_ID,
                 currentUserEmailParam: RORY_EMAIL,
                 introSelected: undefined,
-                activePolicy: undefined,
                 quickAction: undefined,
                 betas: [CONST.BETAS.ALL],
                 isSelfTourViewed: false,
-                hasActiveAdminPolicies: undefined,
             });
 
             // Then the result should contain valid track expense data
@@ -1413,11 +1391,9 @@ describe('actions/IOU/TrackExpense', () => {
                 currentUserAccountIDParam: RORY_ACCOUNT_ID,
                 currentUserEmailParam: RORY_EMAIL,
                 introSelected: undefined,
-                activePolicy: undefined,
                 quickAction: undefined,
                 betas: [CONST.BETAS.ALL],
                 isSelfTourViewed: true,
-                hasActiveAdminPolicies: undefined,
             });
 
             // Then result should be valid
@@ -1453,11 +1429,9 @@ describe('actions/IOU/TrackExpense', () => {
                 currentUserAccountIDParam: RORY_ACCOUNT_ID,
                 currentUserEmailParam: RORY_EMAIL,
                 introSelected: undefined,
-                activePolicy: undefined,
                 quickAction: undefined,
                 betas: [CONST.BETAS.ALL],
                 isSelfTourViewed: false,
-                hasActiveAdminPolicies: undefined,
             });
 
             expect(resultWithoutTourViewed).toBeDefined();
@@ -1534,13 +1508,11 @@ describe('actions/IOU/TrackExpense', () => {
                 currentUserAccountIDParam: RORY_ACCOUNT_ID,
                 currentUserEmailParam: RORY_EMAIL,
                 introSelected: undefined,
-                activePolicy: undefined,
                 quickAction: undefined,
                 recentWaypoints,
                 betas: [CONST.BETAS.ALL],
                 draftTransactionIDs: [],
                 isSelfTourViewed: false,
-                hasActiveAdminPolicies: false,
             });
             await waitForBatchedUpdates();
 
