@@ -4999,6 +4999,8 @@ function getPayMoneyRequestParams({
             companySize: introSelected?.companySize as OnboardingCompanySize,
             betas,
             isSelfTourViewed,
+            // hasActiveAdminPolicies is only needed if lastUsedPaymentMethod is passed
+            hasActiveAdminPolicies: undefined,
         });
         const {adminsChatReportID, adminsCreatedReportActionID, expenseChatReportID, expenseCreatedReportActionID, customUnitRateID, customUnitID, ownerEmail, policyName} = params;
 

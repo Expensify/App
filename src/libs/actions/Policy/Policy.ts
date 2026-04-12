@@ -209,12 +209,12 @@ type BuildPolicyDataOptions = {
     // TODO: Make it required once we complete refactoring the buildPolicyData function to use isSelfTourViewed. Refactor issue: https://github.com/Expensify/App/issues/66424
     isSelfTourViewed?: boolean;
     betas: OnyxEntry<Beta[]>;
+    hasActiveAdminPolicies: boolean | undefined;
 };
 
 // TODO: Remove this type once we complete refactoring the buildPolicyData function to use isSelfTourViewed. Refactor issue: https://github.com/Expensify/App/issues/66424
 type CreateWorkspaceDataOptions = Omit<BuildPolicyDataOptions, 'isSelfTourViewed'> & {
     isSelfTourViewed: boolean | undefined;
-    hasActiveAdminPolicies: boolean;
 };
 
 type DuplicatePolicyDataOptions = {
@@ -2377,6 +2377,7 @@ function buildPolicyData(options: BuildPolicyDataOptions): OnyxData<BuildPolicyD
         type,
         isSelfTourViewed,
         betas,
+        hasActiveAdminPolicies,
     } = options;
 
     const {customUnits, customUnitID, customUnitRateID, outputCurrency} = buildOptimisticDistanceRateCustomUnits(currency);
@@ -2771,7 +2772,7 @@ function buildPolicyData(options: BuildPolicyDataOptions): OnyxData<BuildPolicyD
         successData.push(...optimisticCategoriesData.successData);
     }
 
-    if (getAdminPolicies().length === 0 && lastUsedPaymentMethod) {
+    if (!hasActiveAdminPolicies && lastUsedPaymentMethod) {
         for (const report of Object.values(allReportsParam ?? {})) {
             if (report?.type !== CONST.REPORT.TYPE.IOU) {
                 continue;
@@ -6140,12 +6141,6 @@ function setPolicyAttendeeTrackingEnabled(policyID: string, isAttendeeTrackingEn
     };
 
     API.write(WRITE_COMMANDS.SET_POLICY_ATTENDEE_TRACKING_ENABLED, parameters, onyxData);
-}
-
-function getAdminPolicies(): Policy[] {
-    return Object.values(deprecatedAllPolicies ?? {}).filter<Policy>(
-        (policy): policy is Policy => !!policy && policy.role === CONST.POLICY.ROLE.ADMIN && policy.type !== CONST.POLICY.TYPE.PERSONAL,
-    );
 }
 
 /**
