@@ -103,9 +103,11 @@ function ImportedCategoriesPage({route}: ImportedCategoriesPageProps) {
         const categories = categoriesNames?.slice(containsHeader ? 1 : 0).map((name, index) => {
             const categoryAlreadyExists = policyCategories?.[name];
             const existingGLCodeOrDefault = categoryAlreadyExists?.['GL Code'] ?? '';
+            const enabledValue = categoriesEnabledColumn !== -1 ? categoriesEnabled?.[containsHeader ? index + 1 : index]?.toString().toLowerCase() : 'true';
+
             return {
                 name,
-                enabled: categoriesEnabledColumn !== -1 ? categoriesEnabled?.[containsHeader ? index + 1 : index] === 'true' : true,
+                enabled: enabledValue === 'true',
                 // eslint-disable-next-line @typescript-eslint/naming-convention
                 'GL Code': categoriesGLCodeColumn !== -1 ? (categoriesGLCode?.[containsHeader ? index + 1 : index] ?? '') : existingGLCodeOrDefault,
             };
