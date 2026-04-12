@@ -1,3 +1,5 @@
+import {useEffect, useEffectEvent} from 'react';
+import DateUtils from '@libs/DateUtils';
 import {updateAutomaticTimezone} from '@userActions/PersonalDetails';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isActingAsDelegateSelector} from '@src/selectors/Account';
@@ -17,19 +19,20 @@ const useAutoUpdateTimezone = () => {
         }
         const currentTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone as SelectedTimezone;
         const hasValidCurrentTimezone = typeof currentTimezone === 'string' && currentTimezone.trim().length > 0;
+        const proposedTimezone = DateUtils.formatToSupportedTimezone({
+            automatic: true,
+            selected: currentTimezone,
+        });
 
-        if (hasValidCurrentTimezone && timezone?.automatic && timezone?.selected !== currentTimezone) {
-            updateAutomaticTimezone(
-                {
-                    automatic: true,
-                    selected: currentTimezone,
-                },
-                currentUserPersonalDetails.accountID,
-                timezone,
-            );
+        if (hasValidCurrentTimezone && timezone?.automatic && timezone?.selected !== proposedTimezone.selected) {
+            updateAutomaticTimezone(proposedTimezone, currentUserPersonalDetails.accountID);
         }
     };
+    const updateTimezoneEvent = useEffectEvent(updateTimezone);
     useAppFocusEvent(updateTimezone);
+    useEffect(() => {
+        updateTimezoneEvent();
+    }, []);
 };
 
 export default useAutoUpdateTimezone;

@@ -55,7 +55,6 @@ function TimezoneInitialPage({currentUserPersonalDetails}: TimezoneInitialPagePr
                                         selected: isAutomatic && !isEmptyObject(currentTimezone) ? currentTimezone : timezone.selected,
                                     },
                                     currentUserPersonalDetails.accountID,
-                                    timezone,
                                 );
                             }}
                         />

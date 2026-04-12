@@ -286,15 +286,12 @@ function updateAddress(addresses: Address[], street: string, street2: string, ci
  * Updates timezone's 'automatic' setting, and updates
  * selected timezone if set to automatically update.
  */
-function updateAutomaticTimezone(timezone: Timezone, currentUserAccountID: number, currentTimezone: Timezone | undefined) {
+function updateAutomaticTimezone(timezone: Timezone, currentUserAccountID: number) {
     if (!currentUserAccountID) {
         return;
     }
 
     const formattedTimezone = DateUtils.formatToSupportedTimezone(timezone);
-    if (formattedTimezone.selected === currentTimezone?.selected && formattedTimezone.automatic === currentTimezone?.automatic) {
-        return;
-    }
     const parameters: UpdateAutomaticTimezoneParams = {
         timezone: JSON.stringify(formattedTimezone),
     };
