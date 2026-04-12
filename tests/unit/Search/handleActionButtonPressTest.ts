@@ -328,7 +328,6 @@ describe('handleActionButtonPress', () => {
             ownerBillingGracePeriodEnd: undefined,
             userBillingGracePeriodEnds: undefined,
             currentUserAccountID: undefined,
-            amountOwed: undefined,
         });
         expect(goToItem).toHaveBeenCalledTimes(1);
     });
@@ -346,7 +345,6 @@ describe('handleActionButtonPress', () => {
             ownerBillingGracePeriodEnd: undefined,
             userBillingGracePeriodEnds: undefined,
             currentUserAccountID: undefined,
-            amountOwed: undefined,
         });
         expect(goToItem).toHaveBeenCalledTimes(0);
     });
