@@ -4,10 +4,10 @@ import {InteractionManager, View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
-import ConfirmModal from '@components/ConfirmModal';
 import DecisionModal from '@components/DecisionModal';
 import GenericEmptyStateComponent from '@components/EmptyStateComponent/GenericEmptyStateComponent';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -17,6 +17,7 @@ import type {ListItem} from '@components/SelectionList/ListItem/types';
 import SelectionListWithModal from '@components/SelectionListWithModal';
 import Text from '@components/Text';
 import useCleanupSelectedOptions from '@hooks/useCleanupSelectedOptions';
+import useConfirmModal from '@hooks/useConfirmModal';
 import useGenericEmptyStateIllustration from '@hooks/useGenericEmptyStateIllustration';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -28,6 +29,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchBackPress from '@hooks/useSearchBackPress';
 import useSearchResults from '@hooks/useSearchResults';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
 import {convertAmountToDisplayString} from '@libs/CurrencyUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
@@ -35,6 +37,7 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
 import {getPerDiemCustomUnit} from '@libs/PolicyUtils';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import tokenizedSearch from '@libs/tokenizedSearch';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import {turnOffMobileSelectionMode} from '@userActions/MobileSelectionMode';
@@ -118,13 +121,13 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
-    const [isOfflineModalVisible, setIsOfflineModalVisible] = useState(false);
+    const {showConfirmModal} = useConfirmModal();
     const [selectedPerDiem, setSelectedPerDiem] = useState<SubRateData[]>([]);
-    const [deletePerDiemConfirmModalVisible, setDeletePerDiemConfirmModalVisible] = useState(false);
     const [isDownloadFailureModalVisible, setIsDownloadFailureModalVisible] = useState(false);
     const policyID = route.params.policyID;
     const backTo = route.params?.backTo;
     const policy = usePolicy(policyID);
+    useWorkspaceDocumentTitle(policy?.name, 'workspace.common.perDiem');
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
     const illustrations = useMemoizedLazyIllustrations(['PerDiem']);
@@ -259,9 +262,19 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
         Navigation.navigate(ROUTES.WORKSPACE_PER_DIEM_DETAILS.getRoute(policyID, rate.rateID, rate.subRateID));
     };
 
+    const showOfflineModal = useCallback(() => {
+        close(() => {
+            showConfirmModal({
+                title: translate('common.youAppearToBeOffline'),
+                prompt: translate('common.thisFeatureRequiresInternet'),
+                confirmText: translate('common.buttonConfirm'),
+                shouldShowCancelButton: false,
+            });
+        });
+    }, [showConfirmModal, translate]);
+
     const handleDeletePerDiemRates = () => {
         deleteWorkspacePerDiemRates(policyID, customUnit, selectedPerDiem);
-        setDeletePerDiemConfirmModalVisible(false);
 
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
@@ -286,7 +299,7 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
             text: translate('spreadsheet.importSpreadsheet'),
             onSelected: () => {
                 if (isOffline) {
-                    close(() => setIsOfflineModalVisible(true));
+                    showOfflineModal();
                     return;
                 }
                 Navigation.navigate(ROUTES.WORKSPACE_PER_DIEM_IMPORT.getRoute(policyID));
@@ -299,7 +312,7 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
                 text: translate('spreadsheet.downloadCSV'),
                 onSelected: () => {
                     if (isOffline) {
-                        close(() => setIsOfflineModalVisible(true));
+                        showOfflineModal();
                         return;
                     }
                     close(() =>
@@ -318,6 +331,7 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
 
         return menuItems;
     }, [
+        showOfflineModal,
         policy?.areCategoriesEnabled,
         policyCategories,
         translate,
@@ -338,7 +352,18 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
                 icon: expensifyIcons.Trashcan,
                 text: translate('workspace.perDiem.deleteRates', {count: selectedPerDiem.length}),
                 value: CONST.POLICY.BULK_ACTION_TYPES.DELETE,
-                onSelected: () => setDeletePerDiemConfirmModalVisible(true),
+                onSelected: async () => {
+                    const {action} = await showConfirmModal({
+                        title: translate('workspace.perDiem.deletePerDiemRate'),
+                        prompt: translate('workspace.perDiem.areYouSureDelete', {count: selectedPerDiem.length}),
+                        confirmText: translate('common.delete'),
+                        cancelText: translate('common.cancel'),
+                        danger: true,
+                    });
+                    if (action === ModalActions.CONFIRM) {
+                        handleDeletePerDiemRates();
+                    }
+                },
             });
 
             return (
@@ -373,6 +398,7 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
     };
 
     const isLoading = !isOffline && customUnit === undefined;
+    const reasonAttributes: SkeletonSpanReasonAttributes = {context: 'WorkspacePerDiemPage', isOffline, isCustomUnitUndefined: customUnit === undefined};
 
     useEffect(() => {
         if (isMobileSelectionModeEnabled) {
@@ -415,6 +441,7 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
         >
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
+                shouldEnableMaxHeight
                 style={[styles.defaultModalContainer]}
                 testID="WorkspacePerDiemPage"
                 shouldShowOfflineIndicatorInWideScreen
@@ -443,22 +470,13 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
                 >
                     {!shouldUseNarrowLayout && getHeaderButtons()}
                 </HeaderWithBackButton>
-                <ConfirmModal
-                    isVisible={deletePerDiemConfirmModalVisible}
-                    onConfirm={handleDeletePerDiemRates}
-                    onCancel={() => setDeletePerDiemConfirmModalVisible(false)}
-                    title={translate('workspace.perDiem.deletePerDiemRate')}
-                    prompt={translate('workspace.perDiem.areYouSureDelete', {count: selectedPerDiem.length})}
-                    confirmText={translate('common.delete')}
-                    cancelText={translate('common.cancel')}
-                    danger
-                />
                 {shouldUseNarrowLayout && <View style={[styles.pl5, styles.pr5]}>{getHeaderButtons()}</View>}
                 {(!hasVisibleSubRates || isLoading) && headerContent}
                 {isLoading && (
                     <ActivityIndicator
                         size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                         style={[styles.flex1]}
+                        reasonAttributes={reasonAttributes}
                     />
                 )}
                 {hasVisibleSubRates && !isLoading && (
@@ -496,7 +514,7 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
                                     buttonText: translate('spreadsheet.importSpreadsheet'),
                                     buttonAction: () => {
                                         if (isOffline) {
-                                            setIsOfflineModalVisible(true);
+                                            showOfflineModal();
                                             return;
                                         }
                                         Navigation.navigate(ROUTES.WORKSPACE_PER_DIEM_IMPORT.getRoute(policyID));
@@ -507,16 +525,6 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
                         />
                     </ScrollView>
                 )}
-                <ConfirmModal
-                    isVisible={isOfflineModalVisible}
-                    onConfirm={() => setIsOfflineModalVisible(false)}
-                    title={translate('common.youAppearToBeOffline')}
-                    prompt={translate('common.thisFeatureRequiresInternet')}
-                    confirmText={translate('common.buttonConfirm')}
-                    shouldShowCancelButton={false}
-                    onCancel={() => setIsOfflineModalVisible(false)}
-                    shouldHandleNavigationBack
-                />
                 <DecisionModal
                     title={translate('common.downloadFailedTitle')}
                     prompt={translate('common.downloadFailedDescription')}

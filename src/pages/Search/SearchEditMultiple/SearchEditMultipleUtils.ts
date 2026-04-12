@@ -2,7 +2,7 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
 import {getTagArrayFromName} from '@libs/TransactionUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, Report, ReportActions, Transaction} from '@src/types/onyx';
+import type {Policy, Report, ReportActions, SearchResults, Transaction} from '@src/types/onyx';
 
 /**
  * Returns the longest common dependent tag prefix for the provided transactions.
@@ -60,4 +60,57 @@ function getTransactionEditContext(
     return {transaction, report, reportAction, transactionPolicy};
 }
 
-export {getCommonDependentTag, getTransactionEditContext};
+/**
+ * After a hard refresh, transaction/report/reportAction data may only exist in the search snapshot,
+ * not in the main Onyx collections. These helpers fill gaps from the snapshot so bulk edit can work.
+ */
+function withSnapshotTransactions(onyxTransactions: OnyxCollection<Transaction> | undefined, snapshotData: SearchResults['data'] | undefined): OnyxCollection<Transaction> | undefined {
+    if (!snapshotData) {
+        return onyxTransactions;
+    }
+    const merged = {...onyxTransactions};
+    for (const key of Object.keys(snapshotData)) {
+        if (!key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION)) {
+            continue;
+        }
+        const typedKey = key as `${typeof ONYXKEYS.COLLECTION.TRANSACTION}${string}`;
+        if (!merged[typedKey]) {
+            merged[typedKey] = snapshotData[typedKey] ?? null;
+        }
+    }
+    return merged;
+}
+
+function withSnapshotReportActions(onyxReportActions: OnyxCollection<ReportActions> | undefined, snapshotData: SearchResults['data'] | undefined): OnyxCollection<ReportActions> | undefined {
+    if (!snapshotData) {
+        return onyxReportActions;
+    }
+    const merged = {...onyxReportActions};
+    for (const key of Object.keys(snapshotData)) {
+        if (!key.startsWith(ONYXKEYS.COLLECTION.REPORT_ACTIONS)) {
+            continue;
+        }
+        const typedKey = key as `${typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS}${string}`;
+        merged[typedKey] = {...(snapshotData[typedKey] ?? {}), ...(merged[typedKey] ?? {})};
+    }
+    return merged;
+}
+
+function withSnapshotReports(onyxReports: OnyxCollection<Report> | undefined, snapshotData: SearchResults['data'] | undefined): OnyxCollection<Report> | undefined {
+    if (!snapshotData) {
+        return onyxReports;
+    }
+    const merged = {...onyxReports};
+    for (const key of Object.keys(snapshotData)) {
+        if (!key.startsWith(ONYXKEYS.COLLECTION.REPORT) || key.startsWith(ONYXKEYS.COLLECTION.REPORT_ACTIONS)) {
+            continue;
+        }
+        const typedKey = key as `${typeof ONYXKEYS.COLLECTION.REPORT}${string}`;
+        if (!merged[typedKey]) {
+            merged[typedKey] = snapshotData[typedKey] ?? null;
+        }
+    }
+    return merged;
+}
+
+export {getCommonDependentTag, getTransactionEditContext, withSnapshotTransactions, withSnapshotReportActions, withSnapshotReports};

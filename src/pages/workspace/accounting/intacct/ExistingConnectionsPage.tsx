@@ -5,11 +5,11 @@ import MenuItemList from '@components/MenuItemList';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
+import useAdminPoliciesConnectedToSageIntacct from '@hooks/useAdminPoliciesConnectedToSageIntacct';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {copyExistingPolicyConnection} from '@libs/actions/connections';
-import {getAdminPoliciesConnectedToSageIntacct} from '@libs/actions/Policy/Policy';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -24,8 +24,8 @@ type ExistingConnectionsPageProps = PlatformStackScreenProps<SettingsNavigatorPa
 function ExistingConnectionsPage({route}: ExistingConnectionsPageProps) {
     const {translate, datetimeToRelative} = useLocalize();
     const styles = useThemeStyles();
-    const icons = useMemoizedLazyExpensifyIcons(['LinkCopy'] as const);
-    const policiesConnectedToSageIntacct = getAdminPoliciesConnectedToSageIntacct();
+    const icons = useMemoizedLazyExpensifyIcons(['LinkCopy']);
+    const policiesConnectedToSageIntacct = useAdminPoliciesConnectedToSageIntacct();
     const policyID: string = route.params.policyID;
 
     const menuItems = policiesConnectedToSageIntacct.map((policy) => {

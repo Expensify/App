@@ -8,14 +8,18 @@
  */
 const SCENARIO_NAMES = {
     BIOMETRICS_TEST: 'BIOMETRICS-TEST',
+    SET_PIN_ORDER_CARD: 'SET-PIN-ORDER-CARD',
     AUTHORIZE_TRANSACTION: 'AUTHORIZE-TRANSACTION',
+    REVEAL_PIN: 'REVEAL-PIN',
+    CHANGE_PIN: 'CHANGE-PIN',
 } as const;
 
 /**
  * Prompt identifiers for multifactor authentication scenarios.
  */
 const PROMPT_NAMES = {
-    BIOMETRICS: 'biometrics',
-};
+    BIOMETRICS_HSM: 'biometrics',
+    PASSKEYS: 'passkeys',
+} as const;
 
 export {SCENARIO_NAMES, PROMPT_NAMES};

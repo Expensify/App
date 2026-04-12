@@ -5,9 +5,9 @@ import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import {SearchActionsContext, SearchStateContext} from '@components/Search/SearchContext';
+import MerchantListItemHeader from '@components/Search/SearchList/ListItem/MerchantListItemHeader';
+import type {TransactionMerchantGroupListItemType} from '@components/Search/SearchList/ListItem/types';
 import type {SearchActionsContextValue, SearchColumnType, SearchStateContextValue} from '@components/Search/types';
-import MerchantListItemHeader from '@components/SelectionListWithSections/Search/MerchantListItemHeader';
-import type {TransactionMerchantGroupListItemType} from '@components/SelectionListWithSections/types';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -23,10 +23,10 @@ const mockedUseResponsiveLayout = useResponsiveLayout as jest.MockedFunction<typ
 // Mock search context with all required SearchContextStateValue and SearchContextActionsValue fields
 const mockSearchStateContext = {
     currentSearchHash: 12345,
-    currentRecentSearchHash: 12345,
     currentSearchKey: undefined,
     currentSearchQueryJSON: undefined,
     currentSearchResults: undefined,
+    currentSelectedTransactionReportID: undefined,
     selectedReports: [],
     selectedTransactionIDs: [],
     selectedTransactions: {},
@@ -36,18 +36,19 @@ const mockSearchStateContext = {
     lastSearchType: undefined,
     areAllMatchingItemsSelected: false,
     shouldShowSelectAllMatchingItems: false,
-    shouldShowFiltersBarLoading: false,
+    shouldShowActionsBarLoading: false,
     shouldUseLiveData: false,
+    currentSimilarSearchHash: -1,
+    suggestedSearches: {} as SearchStateContextValue['suggestedSearches'],
 } satisfies SearchStateContextValue;
 
 const mockSearchActionsContext = {
     setLastSearchType: jest.fn(),
-    setCurrentSearchHashAndKey: jest.fn(),
-    setCurrentSearchQueryJSON: jest.fn(),
+    setCurrentSelectedTransactionReportID: jest.fn(),
     setSelectedTransactions: jest.fn(),
     removeTransaction: jest.fn(),
     clearSelectedTransactions: jest.fn(),
-    setShouldShowFiltersBarLoading: jest.fn(),
+    setShouldShowActionsBarLoading: jest.fn(),
     setShouldShowSelectAllMatchingItems: jest.fn(),
     selectAllMatchingItems: jest.fn(),
     setShouldResetSearchQuery: jest.fn(),
@@ -122,6 +123,7 @@ describe('MerchantListItemHeader', () => {
             isSmallScreen: true,
             isInNarrowPaneModal: false,
             onboardingIsMediumOrLargerScreenWidth: false,
+            isInLandscapeMode: false,
         });
     });
 
@@ -276,6 +278,7 @@ describe('MerchantListItemHeader', () => {
                 isSmallScreen: false,
                 isInNarrowPaneModal: false,
                 onboardingIsMediumOrLargerScreenWidth: true,
+                isInLandscapeMode: false,
             });
         });
 

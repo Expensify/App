@@ -35,6 +35,12 @@ const HybridAppModule: HybridAppModuleType = {
     signOutFromOldDot() {
         ReactNativeHybridApp.signOutFromOldDot();
     },
+    startSignOut() {
+        ReactNativeHybridApp.startSignOut();
+    },
+    cancelSignOut() {
+        ReactNativeHybridApp.cancelSignOut();
+    },
     clearOldDotAfterSignOut() {
         ReactNativeHybridApp.clearOldDotAfterSignOut();
     },

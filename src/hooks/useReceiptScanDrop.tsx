@@ -1,3 +1,5 @@
+import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
+import React, {useMemo} from 'react';
 import {setTransactionReport} from '@libs/actions/Transaction';
 import {navigateToParticipantPage} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -5,7 +7,8 @@ import {hasOnlyPersonalPolicies as hasOnlyPersonalPoliciesUtil, isPaidGroupPolic
 import {generateReportID, getPolicyExpenseChat, isSelfDM} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import type {ReceiptFile} from '@pages/iou/request/step/IOURequestStepScan/types';
-import {initMoneyRequest, setMoneyRequestParticipantsFromReport, setMoneyRequestReceipt} from '@userActions/IOU';
+import {initMoneyRequest, setMoneyRequestParticipantsFromReport} from '@userActions/IOU';
+import {setMoneyRequestReceipt} from '@userActions/IOU/Receipt';
 import {buildOptimisticTransactionAndCreateDraft} from '@userActions/TransactionEdit';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -20,24 +23,25 @@ import useSelfDMReport from './useSelfDMReport';
 
 /**
  * Encapsulates the receipt scan drag-and-drop logic used by SearchPage and HomePage.
- * Returns the drop handler, PDF validation component, and error modal needed for drag-and-drop receipt scanning.
+ * Returns the drop handler and sibling-safe auxiliary UI needed for receipt scanning.
  */
 function useReceiptScanDrop() {
     const isAnonymousUser = useIsAnonymousUser();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const selfDMReport = useSelfDMReport();
-    const [userBillingGraceEndPeriods] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
+    const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
+    const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
+    const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const [hasOnlyPersonalPolicies = false] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: hasOnlyPersonalPoliciesUtil});
     const [currentDate] = useOnyx(ONYXKEYS.CURRENT_DATE);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`);
     const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
     const [personalPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${personalPolicyID}`);
-    const [draftTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT);
+    const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
 
-    const newReportID = generateReportID();
-    const [newReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${newReportID}`);
-    const [newParentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${newReport?.parentReportID}`);
+    // Memoize the new report ID to avoid re-generating it on every render and cause the hook to change, which leads to performance issues.
+    const newReportID = useMemo(() => generateReportID(), []);
 
     const saveFileAndInitMoneyRequest = (files: FileObject[]) => {
         const initialTransaction = initMoneyRequest({
@@ -45,13 +49,13 @@ function useReceiptScanDrop() {
             isFromFloatingActionButton: true,
             reportID: newReportID,
             personalPolicy,
+            report: undefined,
+            parentReport: undefined,
             newIouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
-            report: newReport,
-            parentReport: newParentReport,
             currentDate,
             currentUserPersonalDetails,
             hasOnlyPersonalPolicies,
-            draftTransactions,
+            draftTransactionIDs,
         });
 
         const newReceiptFiles: ReceiptFile[] = [];
@@ -75,7 +79,11 @@ function useReceiptScanDrop() {
             setMoneyRequestReceipt(transactionID, source, file.name ?? '', true, file.type);
         }
 
-        if (isPaidGroupPolicy(activePolicy) && activePolicy?.isPolicyExpenseChatEnabled && !shouldRestrictUserBillableActions(activePolicy.id, userBillingGraceEndPeriods)) {
+        if (
+            isPaidGroupPolicy(activePolicy) &&
+            activePolicy?.isPolicyExpenseChatEnabled &&
+            !shouldRestrictUserBillableActions(activePolicy.id, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, activePolicy)
+        ) {
             const shouldAutoReport = !!activePolicy?.autoReporting || !!personalPolicy?.autoReporting;
             const report = shouldAutoReport ? getPolicyExpenseChat(currentUserPersonalDetails.accountID, activePolicy?.id) : selfDMReport;
             const transactionReportID = isSelfDM(report) ? CONST.REPORT.UNREPORTED_REPORT_ID : report?.reportID;
@@ -115,7 +123,14 @@ function useReceiptScanDrop() {
         validateFiles(files, Array.from(e.dataTransfer?.items ?? []));
     };
 
-    return {initScanRequest, PDFValidationComponent, ErrorModal, isDragDisabled: isAnonymousUser};
+    const auxiliaryUI = (
+        <>
+            {PDFValidationComponent}
+            {ErrorModal}
+        </>
+    );
+
+    return {initScanRequest, auxiliaryUI, isDragDisabled: isAnonymousUser};
 }
 
 export default useReceiptScanDrop;

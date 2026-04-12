@@ -17,7 +17,7 @@ type Selector<T> = (state: NavigationState | undefined) => T;
 function useRootNavigationState<T>(selector: Selector<T>): T {
     const [result, setResult] = useState<T>(() => {
         if (!navigationRef.isReady()) {
-            Log.warn('[src/hooks/useRootNavigationState.ts] NavigationRef is not ready. Returning selector value with undefined.');
+            Log.hmmm('[src/hooks/useRootNavigationState.ts] NavigationRef is not ready. Returning selector value with undefined.');
             return selector(undefined);
         }
         return selector(navigationRef.getRootState());

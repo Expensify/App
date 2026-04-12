@@ -11,13 +11,15 @@ import Text from '@components/Text';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useShouldSuppressConciergeIndicators from '@hooks/useShouldSuppressConciergeIndicators';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import type {ReasoningEntry} from '@libs/ConciergeReasoningStore';
 import DateUtils from '@libs/DateUtils';
 import Parser from '@libs/Parser';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
+import type {ReasoningEntry} from '@pages/inbox/AgentZeroStatusContext';
+import {useAgentZeroStatus} from '@pages/inbox/AgentZeroStatusContext';
 import ReportActionItemMessageHeaderSender from '@pages/inbox/report/ReportActionItemMessageHeaderSender';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -30,15 +32,37 @@ type ConciergeThinkingMessageProps = {
 
     /** The report action if available */
     action?: OnyxEntry<ReportAction>;
-
-    /** Reasoning history to display */
-    reasoningHistory?: ReasoningEntry[];
-
-    /** Status label text */
-    statusLabel?: string;
 };
 
-function ConciergeThinkingMessage({report, action, reasoningHistory, statusLabel}: ConciergeThinkingMessageProps) {
+function ConciergeThinkingMessage({report, action}: ConciergeThinkingMessageProps) {
+    const {isProcessing, reasoningHistory, statusLabel} = useAgentZeroStatus();
+    const shouldSuppress = useShouldSuppressConciergeIndicators(report?.reportID);
+
+    if (!isProcessing || shouldSuppress) {
+        return null;
+    }
+
+    return (
+        <ConciergeThinkingMessageContent
+            report={report}
+            action={action}
+            reasoningHistory={reasoningHistory}
+            statusLabel={statusLabel}
+        />
+    );
+}
+
+function ConciergeThinkingMessageContent({
+    report,
+    action,
+    reasoningHistory,
+    statusLabel,
+}: {
+    report: OnyxEntry<Report>;
+    action?: OnyxEntry<ReportAction>;
+    reasoningHistory: ReasoningEntry[];
+    statusLabel: string;
+}) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
@@ -132,6 +156,7 @@ function ConciergeThinkingMessage({report, action, reasoningHistory, statusLabel
                         reportID={report?.reportID}
                         chatReportID={report?.chatReportID ?? report?.reportID}
                         action={action}
+                        accountIDs={[CONST.ACCOUNT_ID.CONCIERGE]}
                     />
                 </OfflineWithFeedback>
             </View>
