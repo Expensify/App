@@ -237,6 +237,71 @@ describe('getReportPreviewSenderID', () => {
         expect(result).toBeUndefined();
     });
 
+    it('returns childOwnerAccountID when a deleted expense keeps childMoneyRequestCount stale', () => {
+        const result = getReportPreviewSenderID({
+            ...baseParams,
+            iouReport: makeIOUReport({transactionCount: 1}),
+            action: makeAction({childMoneyRequestCount: 2}),
+            iouActions: [
+                makeIOUAction(CONST.IOU.REPORT_ACTION_TYPE.CREATE, {
+                    actorAccountID: 10,
+                    originalMessage: {
+                        type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                        IOUTransactionID: 'tr-active',
+                        amount: 100,
+                        currency: 'USD',
+                    },
+                }),
+                makeIOUAction(CONST.IOU.REPORT_ACTION_TYPE.CREATE, {
+                    actorAccountID: 20,
+                    originalMessage: {
+                        type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                        IOUTransactionID: 'tr-deleted',
+                        amount: 100,
+                        currency: 'USD',
+                        deleted: '2026-04-11 07:12:23.697',
+                    },
+                    message: [{type: 'COMMENT', text: 'Deleted expense', deleted: '2026-04-11 07:12:23.697'}],
+                }),
+            ],
+            transactions: [makeTransaction(100, 'user@test.com', {transactionID: 'tr-active'})],
+        });
+
+        expect(result).toBe(OWNER_ACCOUNT_ID);
+    });
+
+    it('returns childOwnerAccountID when iouReport.transactionCount is lower than stale childMoneyRequestCount after deletion', () => {
+        const result = getReportPreviewSenderID({
+            ...baseParams,
+            iouReport: makeIOUReport({transactionCount: 1}),
+            action: makeAction({childMoneyRequestCount: 5}),
+            iouActions: [
+                makeIOUAction(CONST.IOU.REPORT_ACTION_TYPE.CREATE, {
+                    actorAccountID: 10,
+                    originalMessage: {
+                        type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                        IOUTransactionID: 'tr-active',
+                        amount: 100,
+                        currency: 'USD',
+                    },
+                }),
+                makeIOUAction(CONST.IOU.REPORT_ACTION_TYPE.CREATE, {
+                    actorAccountID: 20,
+                    originalMessage: {
+                        type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                        deleted: '2026-04-12 04:48:48.212',
+                        amount: 100,
+                        currency: 'USD',
+                    },
+                    message: [{type: 'COMMENT', text: '', deleted: '2026-04-12 04:48:48.212'}],
+                }),
+            ],
+            transactions: [makeTransaction(100, 'user@test.com', {transactionID: 'tr-active'})],
+        });
+
+        expect(result).toBe(OWNER_ACCOUNT_ID);
+    });
+
     it('returns undefined for multi-sender: multiple attendees', () => {
         // Two transactions with different attendees (different emails resolve to different accountIDs)
         // Since getPersonalDetailByEmail returns undefined in test (no Onyx), attendeesIDs will be filtered out

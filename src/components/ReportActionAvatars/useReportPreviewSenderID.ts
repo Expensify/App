@@ -92,6 +92,9 @@ function getReportPreviewSenderID({iouReport, action, chatReport, iouActions, tr
         return currentUserAccountID;
     }
 
+    const loadedTransactionCount = transactions?.length ?? 0;
+    const childMoneyRequestCount = action?.childMoneyRequestCount ?? 0;
+    const activeMoneyRequestCount = iouReport?.transactionCount ?? childMoneyRequestCount;
     const activeIOUActions =
         iouActions?.filter((iouAction) => {
             return !isExplicitlyDeletedIOUAction(iouAction);
@@ -106,6 +109,17 @@ function getReportPreviewSenderID({iouReport, action, chatReport, iouActions, tr
         }
 
         uniqueIOUActionActorMap.set(iouTransactionID, iouAction.actorAccountID);
+    }
+
+    const hasCompleteActionCoverage = activeMoneyRequestCount > 0 && uniqueIOUActionActorMap.size >= activeMoneyRequestCount;
+    const areAllActiveChildRequestsCreatedByOneActor = new Set(uniqueIOUActionActorMap.values()).size < 2;
+    const canInferFromIOUActionsDuringPartialHydration = loadedTransactionCount > 0 && hasCompleteActionCoverage && activeIOUActions.length > 0 && areAllActiveChildRequestsCreatedByOneActor;
+
+    // After refresh, the preview action can hydrate before all active child transactions.
+    // Avoid collapsing to one avatar unless the available IOU actions already prove the remaining
+    // active requests all belong to the same sender.
+    if (activeMoneyRequestCount > loadedTransactionCount && !canInferFromIOUActionsDuringPartialHydration) {
+        return undefined;
     }
 
     const transactionActorAccountIDs = transactions?.map((transaction) => getIOUActionForTransactionID(activeIOUActions, transaction.transactionID)?.actorAccountID);
