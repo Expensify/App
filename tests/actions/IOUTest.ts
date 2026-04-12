@@ -7538,6 +7538,7 @@ describe('actions/IOU', () => {
 
         beforeEach(async () => {
             jest.clearAllMocks();
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls -- Spying on API.write to assert payload fields sent by submitReport.
             jest.spyOn(API, 'write');
             await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
                 [DELEGATE_ACCOUNT_ID]: {
