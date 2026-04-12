@@ -6,6 +6,7 @@ import {isPaidGroupPolicy} from './PolicyUtils';
 import {shouldRestrictUserBillableActions} from './SubscriptionUtils';
 
 function shouldUseDefaultExpensePolicy(
+    currentUserAccountID: number | undefined,
     iouType: IOUType,
     defaultExpensePolicy: OnyxInputOrEntry<Policy>,
     amountOwed: OnyxEntry<number>,
@@ -16,7 +17,7 @@ function shouldUseDefaultExpensePolicy(
         iouType === CONST.IOU.TYPE.CREATE &&
         isPaidGroupPolicy(defaultExpensePolicy) &&
         defaultExpensePolicy?.isPolicyExpenseChatEnabled &&
-        !shouldRestrictUserBillableActions(defaultExpensePolicy.id, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed)
+        !shouldRestrictUserBillableActions(currentUserAccountID, defaultExpensePolicy.id, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed)
     );
 }
 

@@ -186,6 +186,7 @@ function ReportPreviewActionButton({
                     shouldAlwaysShowDropdownMenu
                     customText={translate('iou.addExpense')}
                     options={getAddExpenseDropdownOptions({
+                        currentUserAccountID: currentUserDetails.accountID,
                         translate,
                         icons: expensifyIcons,
                         iouReportID: iouReport?.reportID,

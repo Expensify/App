@@ -15030,6 +15030,7 @@ describe('ReportUtils', () => {
 
         it('should return exactly 3 dropdown options', () => {
             const result = getAddExpenseDropdownOptions({
+                currentUserAccountID,
                 translate: mockTranslate,
                 icons: mockIcons,
                 iouReportID: mockIouReportID,
@@ -15044,6 +15045,7 @@ describe('ReportUtils', () => {
 
         it('should return options with correct values', () => {
             const result = getAddExpenseDropdownOptions({
+                currentUserAccountID,
                 translate: mockTranslate,
                 icons: mockIcons,
                 iouReportID: mockIouReportID,
@@ -15060,6 +15062,7 @@ describe('ReportUtils', () => {
 
         it('should return options with correct translated text', () => {
             const result = getAddExpenseDropdownOptions({
+                currentUserAccountID,
                 translate: mockTranslate,
                 icons: mockIcons,
                 iouReportID: mockIouReportID,
@@ -15076,6 +15079,7 @@ describe('ReportUtils', () => {
 
         it('should return options with correct sentry labels', () => {
             const result = getAddExpenseDropdownOptions({
+                currentUserAccountID,
                 translate: mockTranslate,
                 icons: mockIcons,
                 iouReportID: mockIouReportID,
@@ -15095,6 +15099,7 @@ describe('ReportUtils', () => {
             mockPolicy.type = CONST.POLICY.TYPE.CORPORATE;
             const amountOwed = 100;
             const result = getAddExpenseDropdownOptions({
+                currentUserAccountID,
                 translate: mockTranslate,
                 icons: mockIcons,
                 iouReportID: mockIouReportID,
@@ -15115,6 +15120,7 @@ describe('ReportUtils', () => {
             const mockPolicy = createRandomPolicy(0);
             mockPolicy.type = CONST.POLICY.TYPE.CORPORATE;
             const result = getAddExpenseDropdownOptions({
+                currentUserAccountID,
                 translate: mockTranslate,
                 icons: mockIcons,
                 iouReportID: mockIouReportID,
@@ -15134,6 +15140,7 @@ describe('ReportUtils', () => {
 
         it('should handle undefined iouReportID in CREATE_NEW_EXPENSE and TRACK_DISTANCE_EXPENSE onSelected', () => {
             const result = getAddExpenseDropdownOptions({
+                currentUserAccountID,
                 translate: mockTranslate,
                 icons: mockIcons,
                 iouReportID: undefined,
@@ -15153,6 +15160,7 @@ describe('ReportUtils', () => {
 
         it('should handle undefined policy gracefully', () => {
             const result = getAddExpenseDropdownOptions({
+                currentUserAccountID,
                 translate: mockTranslate,
                 icons: mockIcons,
                 iouReportID: mockIouReportID,
@@ -15172,6 +15180,7 @@ describe('ReportUtils', () => {
         it('should accept amountOwed as a number parameter', () => {
             const amountOwed = 500;
             const result = getAddExpenseDropdownOptions({
+                currentUserAccountID,
                 translate: mockTranslate,
                 icons: mockIcons,
                 iouReportID: mockIouReportID,
@@ -15187,6 +15196,7 @@ describe('ReportUtils', () => {
 
         it('should use the provided icons for Location and ReceiptPlus', () => {
             const result = getAddExpenseDropdownOptions({
+                currentUserAccountID,
                 translate: mockTranslate,
                 icons: mockIcons,
                 iouReportID: mockIouReportID,
@@ -15518,6 +15528,7 @@ describe('ReportUtils', () => {
 
         it('should return 3 dropdown options with correct values', () => {
             const options = getAddExpenseDropdownOptions({
+                currentUserAccountID,
                 translate: mockTranslate,
                 icons: mockIcons,
                 iouReportID,
@@ -15537,6 +15548,7 @@ describe('ReportUtils', () => {
         describe('CREATE_NEW_EXPENSE', () => {
             it('should return early when iouReportID is undefined', () => {
                 const options = getAddExpenseDropdownOptions({
+                    currentUserAccountID,
                     translate: mockTranslate,
                     icons: mockIcons,
                     iouReportID: undefined,
@@ -15568,6 +15580,7 @@ describe('ReportUtils', () => {
                 };
 
                 const options = getAddExpenseDropdownOptions({
+                    currentUserAccountID,
                     translate: mockTranslate,
                     icons: mockIcons,
                     iouReportID,
@@ -15600,6 +15613,7 @@ describe('ReportUtils', () => {
                 };
 
                 const options = getAddExpenseDropdownOptions({
+                    currentUserAccountID,
                     translate: mockTranslate,
                     icons: mockIcons,
                     iouReportID,
@@ -15626,6 +15640,7 @@ describe('ReportUtils', () => {
                 await waitForBatchedUpdates();
 
                 const options = getAddExpenseDropdownOptions({
+                    currentUserAccountID,
                     translate: mockTranslate,
                     icons: mockIcons,
                     iouReportID,

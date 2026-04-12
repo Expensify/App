@@ -180,6 +180,7 @@ function MoneyRequestReportTransactionList({
     const addExpenseDropdownOptions = useMemo(
         () =>
             getAddExpenseDropdownOptions({
+                currentUserAccountID: currentUserDetails.accountID,
                 translate,
                 icons: expensifyIcons,
                 iouReportID: report?.reportID,
@@ -190,7 +191,7 @@ function MoneyRequestReportTransactionList({
                 ownerBillingGracePeriodEnd,
                 lastDistanceExpenseType,
             }),
-        [translate, expensifyIcons, report?.reportID, policy, userBillingGracePeriodEnds, amountOwed, lastDistanceExpenseType, ownerBillingGracePeriodEnd, draftTransactionIDs],
+        [translate, expensifyIcons, report?.reportID, policy, userBillingGracePeriodEnds, amountOwed, lastDistanceExpenseType, ownerBillingGracePeriodEnd, draftTransactionIDs, currentUserDetails.accountID],
     );
 
     const hasPendingAction = useMemo(() => {

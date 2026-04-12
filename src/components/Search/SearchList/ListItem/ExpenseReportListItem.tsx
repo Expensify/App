@@ -144,6 +144,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
             onDelegateAccessRestricted: showDelegateNoAccessModal,
             personalPolicyID,
             ownerBillingGracePeriodEnd,
+            currentUserAccountID: currentUserDetails.accountID,
         });
     }, [
         currentSearchHash,
@@ -158,6 +159,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
         isDelegateAccessRestricted,
         showDelegateNoAccessModal,
         ownerBillingGracePeriodEnd,
+        currentUserDetails.accountID,
     ]);
 
     const handleCheckboxPress = useCallback(() => {

@@ -456,7 +456,6 @@ function doesUserHavePaymentCardAdded(userBillingFundID: number | undefined): bo
  * Whether the user's billable actions should be restricted.
  */
 function shouldRestrictUserBillableActions(
-    // TODO: Change to currentUserAccountID once other PR is merged
     accountID: number | undefined,
     policyID: string,
     ownerBillingGracePeriodEnd: OnyxEntry<number>,
