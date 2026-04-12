@@ -2419,7 +2419,11 @@ function getReportSections({
             }
 
             if (shouldShow) {
-                const reportPendingAction = reportItem?.pendingAction ?? reportItem?.pendingFields?.total ?? reportItem?.pendingFields?.preview;
+                const reportPendingAction =
+                    reportItem?.pendingAction ??
+                    (reportItem?.pendingFields?.preview === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE
+                        ? reportItem.pendingFields.preview
+                        : reportItem?.pendingFields?.total ?? reportItem?.pendingFields?.preview);
                 const shouldShowBlankTo = !reportItem || isOpenExpenseReport(reportItem);
                 const reportMetadata = allReportMetadata?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportItem.reportID}`] ?? {};
                 const allReportTransactions = transactionsByReportID.get(reportItem.reportID) ?? [];
