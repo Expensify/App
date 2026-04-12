@@ -757,12 +757,13 @@ describe('Unread Indicators', () => {
             currentUserAccountIDParam: USER_A_ACCOUNT_ID,
             currentUserEmailParam: USER_A_EMAIL,
             introSelected: undefined,
-            activePolicyID: undefined,
+            activePolicy: undefined,
             quickAction: undefined,
             recentWaypoints,
             betas: [CONST.BETAS.ALL],
             draftTransactionIDs: [fakeTransaction.transactionID],
             isSelfTourViewed: false,
+            hasActiveAdminPolicies: false,
         });
         await waitForBatchedUpdates();
 

@@ -14,10 +14,12 @@ import MoneyRequestConfirmationList from '@components/MoneyRequestConfirmationLi
 import {usePersonalDetails, usePolicyCategories} from '@components/OnyxListItemProvider';
 import PrevNextButtons from '@components/PrevNextButtons';
 import ScreenWrapper from '@components/ScreenWrapper';
+import useActivePolicy from '@hooks/useActivePolicy';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useFetchRoute from '@hooks/useFetchRoute';
 import useFilesValidation from '@hooks/useFilesValidation';
+import useHasActiveAdminPolicies from '@hooks/useHasActiveAdminPolicies';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -177,7 +179,6 @@ function IOURequestStepConfirmation({
     const [optimisticTransaction, optimisticTransactionResult] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${getNonEmptyStringOnyxID(currentTransactionID)}`);
     const isLoadingCurrentTransaction = isLoadingOnyxValue(existingTransactionResult, optimisticTransactionResult);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const transaction = useMemo(
         () => (!isLoadingCurrentTransaction ? (optimisticTransaction ?? existingTransaction) : undefined),
         [existingTransaction, optimisticTransaction, isLoadingCurrentTransaction],
@@ -226,6 +227,8 @@ function IOURequestStepConfirmation({
         return reportWithDraftFallback;
     }, [isUnreported, shouldUseTransactionReport, transactionReport, reportWithDraftFallback, isTransactionReportDifferentFromRoute]);
 
+    const hasActiveAdminPolicies = useHasActiveAdminPolicies();
+    const activePolicy = useActivePolicy();
     const {policy} = usePolicyForTransaction({
         transaction: initialTransaction,
         reportPolicyID: realPolicyID ?? draftPolicyID,
@@ -762,12 +765,13 @@ function IOURequestStepConfirmation({
                     currentUserAccountIDParam: currentUserPersonalDetails.accountID,
                     currentUserEmailParam: currentUserPersonalDetails.login ?? '',
                     introSelected,
-                    activePolicyID,
+                    activePolicy,
                     quickAction,
                     recentWaypoints,
                     betas,
                     draftTransactionIDs,
                     isSelfTourViewed,
+                    hasActiveAdminPolicies,
                 });
             }
         },
@@ -793,12 +797,13 @@ function IOURequestStepConfirmation({
             gpsDraftDetails,
             isASAPSubmitBetaEnabled,
             introSelected,
-            activePolicyID,
+            activePolicy,
             quickAction,
             recentWaypoints,
             betas,
             draftTransactionIDs,
             isSelfTourViewed,
+            hasActiveAdminPolicies,
         ],
     );
 

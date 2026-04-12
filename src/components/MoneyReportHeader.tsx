@@ -864,7 +864,6 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
                     optimisticIOUReportID,
                     isASAPSubmitBetaEnabled,
                     introSelected,
-                    activePolicyID,
                     quickAction,
                     policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
                     isSelfTourViewed,
@@ -883,7 +882,6 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
         },
         [
             activePolicyExpenseChat,
-            activePolicyID,
             allPolicyCategories,
             transactionDrafts,
             defaultExpensePolicy,

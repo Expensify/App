@@ -231,6 +231,7 @@ describe('GoogleTagManagerTest', () => {
             betas: [CONST.BETAS.ALL],
             draftTransactionIDs: [],
             isSelfTourViewed: false,
+            hasActiveAdminPolicies: false,
         });
 
         await waitForBatchedUpdatesWithAct();

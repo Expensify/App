@@ -1169,7 +1169,6 @@ describe('MoneyRequest', () => {
             expect(TrackExpense.trackExpense).toHaveBeenCalledWith({
                 report: baseParams.report,
                 isDraftPolicy: false,
-                activePolicyID: undefined,
                 introSelected: undefined,
                 isSelfTourViewed: false,
                 participantParams: {
