@@ -30,9 +30,10 @@ import DateUtils from '@libs/DateUtils';
 import {registerDeferredWrite} from '@libs/deferredLayoutWrite';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {getMicroSecondOnyxErrorObject, getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
-import {isLocalFile} from '@libs/fileDownload/FileUtils';
+import {base64ToFile, convertFileObjectOrUriToBase64DataURL, isLocalFile} from '@libs/fileDownload/FileUtils';
 import type {MinimalTransaction} from '@libs/Formula';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
+import getPlatform from '@libs/getPlatform';
 import {getGPSRoutes, getGPSWaypoints} from '@libs/GPSDraftDetailsUtils';
 import {calculateAmount as calculateIOUAmount, formatCurrentUserToAttendee, updateIOUOwnerAndTotal} from '@libs/IOUUtils';
 import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
@@ -48,7 +49,7 @@ import {isOffline} from '@libs/Network/NetworkStore';
 import {buildNextStepNew, buildOptimisticNextStep} from '@libs/NextStepUtils';
 import {roundToTwoDecimalPlaces} from '@libs/NumberUtils';
 import * as NumberUtils from '@libs/NumberUtils';
-import revokeOdometerImageUri from '@libs/OdometerImageUtils';
+import revokeOdometerImageUri, {getOdometerImageUri} from '@libs/OdometerImageUtils';
 import {getManagerMcTestParticipant, getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
 import {getCustomUnitID} from '@libs/PerDiemRequestUtils';
 import {getAccountIDsByLogins} from '@libs/PersonalDetailsUtils';
@@ -215,6 +216,13 @@ import type RequestMoneyParticipantParams from './types/RequestMoneyParticipantP
 import type {GPSPoint} from './types/TrackExpenseTransactionParams';
 
 type IOURequestType = ValueOf<typeof CONST.IOU.REQUEST_TYPE>;
+
+type SaveOdometerDraftParams = {
+    startReading?: number;
+    endReading?: number;
+    startImage?: FileObject | string | null;
+    endImage?: FileObject | string | null;
+};
 
 type OneOnOneIOUReport = OnyxTypes.Report | undefined | null;
 
@@ -1371,6 +1379,110 @@ function setCustomUnitID(transactionID: string, customUnitID: string) {
 
 function setMoneyRequestDistance(transactionID: string, distanceAsFloat: number, isDraft: boolean, distanceUnit: Unit) {
     Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {comment: {customUnit: {quantity: distanceAsFloat, distanceUnit}}});
+}
+
+function clearOdometerDraft() {
+    Onyx.set(ONYXKEYS.ODOMETER_DRAFT, null);
+}
+
+async function serializeOdometerDraftImage(image: FileObject | string | null | undefined): Promise<string | undefined> {
+    if (!image) {
+        return undefined;
+    }
+
+    const imageURI = getOdometerImageUri(image);
+    if (!imageURI) {
+        return undefined;
+    }
+
+    if (getPlatform() !== CONST.PLATFORM.WEB) {
+        return imageURI;
+    }
+
+    try {
+        return await convertFileObjectOrUriToBase64DataURL(typeof image === 'string' ? image : image);
+    } catch (error) {
+        Log.warn('Failed to serialize odometer draft image to base64', {error});
+        return imageURI;
+    }
+}
+
+function deserializeOdometerDraftImage(image: string | undefined, transactionID: string, imageType: OdometerImageType): FileObject | string | undefined {
+    if (!image) {
+        return undefined;
+    }
+
+    if (getPlatform() !== CONST.PLATFORM.WEB || !image.startsWith('data:')) {
+        return image;
+    }
+
+    try {
+        const file = base64ToFile(image, `odometer-${imageType}-${transactionID}.png`);
+        return {
+            uri: file.uri,
+            name: file.name,
+            type: file.type,
+            size: file.size,
+        };
+    } catch (error) {
+        Log.warn('Failed to deserialize odometer draft image from base64', {error});
+        return image;
+    }
+}
+
+async function saveOdometerDraft({startReading, endReading, startImage, endImage}: SaveOdometerDraftParams): Promise<void> {
+    const [serializedStartImage, serializedEndImage] = await Promise.all([serializeOdometerDraftImage(startImage), serializeOdometerDraftImage(endImage)]);
+    const hasDraftData = startReading !== undefined || endReading !== undefined || !!serializedStartImage || !!serializedEndImage;
+
+    if (!hasDraftData) {
+        clearOdometerDraft();
+        return;
+    }
+
+    const odometerDraft: OnyxTypes.OdometerDraft = {
+        ...(startReading !== undefined && {odometerStartReading: startReading}),
+        ...(endReading !== undefined && {odometerEndReading: endReading}),
+        ...(serializedStartImage && {odometerStartImage: serializedStartImage}),
+        ...(serializedEndImage && {odometerEndImage: serializedEndImage}),
+    };
+
+    Onyx.set(ONYXKEYS.ODOMETER_DRAFT, odometerDraft);
+}
+
+function hydrateOdometerDraftToTransaction(transactionID: string, isDraft: boolean, odometerDraft: OnyxEntry<OnyxTypes.OdometerDraft>): Partial<Comment> | undefined {
+    if (!odometerDraft) {
+        return;
+    }
+
+    const commentUpdate: Partial<Comment> = {};
+
+    if (odometerDraft.odometerStartReading !== undefined) {
+        commentUpdate.odometerStart = odometerDraft.odometerStartReading;
+    }
+
+    if (odometerDraft.odometerEndReading !== undefined) {
+        commentUpdate.odometerEnd = odometerDraft.odometerEndReading;
+    }
+
+    const startImage = deserializeOdometerDraftImage(odometerDraft.odometerStartImage, transactionID, CONST.IOU.ODOMETER_IMAGE_TYPE.START);
+    if (startImage !== undefined) {
+        commentUpdate.odometerStartImage = startImage;
+    }
+
+    const endImage = deserializeOdometerDraftImage(odometerDraft.odometerEndImage, transactionID, CONST.IOU.ODOMETER_IMAGE_TYPE.END);
+    if (endImage !== undefined) {
+        commentUpdate.odometerEndImage = endImage;
+    }
+
+    if (Object.keys(commentUpdate).length === 0) {
+        return;
+    }
+
+    Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
+        comment: commentUpdate,
+    });
+
+    return commentUpdate;
 }
 
 /**
@@ -4257,7 +4369,13 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
         : receipt;
 
     let parameters: CreateDistanceRequestParams;
-    let onyxData: OnyxData<BuildOnyxDataForMoneyRequestKeys | typeof ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE | typeof ONYXKEYS.NVP_RECENT_WAYPOINTS | typeof ONYXKEYS.GPS_DRAFT_DETAILS>;
+    let onyxData: OnyxData<
+        | BuildOnyxDataForMoneyRequestKeys
+        | typeof ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE
+        | typeof ONYXKEYS.NVP_RECENT_WAYPOINTS
+        | typeof ONYXKEYS.GPS_DRAFT_DETAILS
+        | typeof ONYXKEYS.ODOMETER_DRAFT
+    >;
     let distanceIouReport: OnyxInputValue<OnyxTypes.Report> = null;
     const sanitizedWaypoints = !isManualDistanceRequest ? sanitizeWaypointsForAPI(validWaypoints) : null;
     if (iouType === CONST.IOU.TYPE.SPLIT) {
@@ -4444,6 +4562,14 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
             gpsCoordinates,
             shouldDeferAutoSubmit,
         };
+    }
+
+    if (odometerStart !== undefined || odometerEnd !== undefined) {
+        onyxData?.successData?.push({
+            onyxMethod: Onyx.METHOD.SET,
+            key: ONYXKEYS.ODOMETER_DRAFT,
+            value: null,
+        });
     }
 
     const recentServerValidatedWaypoints = recentWaypoints.filter((item) => !item.pendingAction);
@@ -8177,6 +8303,7 @@ export {
     canIOUBePaid,
     canCancelPayment,
     clearMoneyRequest,
+    clearOdometerDraft,
     createDistanceRequest,
     createDraftTransaction,
     getIOURequestPolicyID,
@@ -8202,8 +8329,10 @@ export {
     setMoneyRequestDescription,
     setMoneyRequestDistance,
     setMoneyRequestDistanceRate,
+    saveOdometerDraft,
     setMoneyRequestOdometerReading,
     setMoneyRequestOdometerImage,
+    hydrateOdometerDraftToTransaction,
     removeMoneyRequestOdometerImage,
     setMoneyRequestMerchant,
     setMoneyRequestParticipants,
