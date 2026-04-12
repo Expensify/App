@@ -1667,11 +1667,10 @@ describe('MoneyRequest', () => {
                 ...fakePolicy,
                 type: CONST.POLICY.TYPE.TEAM,
                 isPolicyExpenseChatEnabled: true,
-                ownerAccountID: TEST_USER_ACCOUNT_ID,
+                ownerAccountID: currentUserAccountID,
             };
             const pastDate = Math.floor(Date.now() / 1000) - 86400 * 30;
 
-            await Onyx.set(ONYXKEYS.SESSION, {accountID: TEST_USER_ACCOUNT_ID});
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
 
             expect(shouldUseDefaultExpensePolicy(currentUserAccountID, CONST.IOU.TYPE.CREATE, policy, 100, undefined, pastDate)).toBe(false);

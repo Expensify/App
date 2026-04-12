@@ -230,7 +230,7 @@ describe('PaymentUtils', () => {
 
             selectPaymentType(params);
 
-            expect(mockShouldRestrict).toHaveBeenCalledWith(1, testPolicyID, 999, params.userBillingGracePeriodEnds, 42, testPolicy);
+            expect(mockShouldRestrict).toHaveBeenCalledWith(1, testPolicyID, 999, params.userBillingGracePeriodEnds, 42);
         });
 
         it('should trigger KYC flow for EXPENSIFY payment type when user is validated', () => {
@@ -328,7 +328,7 @@ describe('PaymentUtils', () => {
 
             selectPaymentType(params);
 
-            expect(mockShouldRestrict).toHaveBeenCalledWith(1, testPolicyID, undefined, params.userBillingGracePeriodEnds, undefined, testPolicy);
+            expect(mockShouldRestrict).toHaveBeenCalledWith(1, testPolicyID, undefined, params.userBillingGracePeriodEnds, undefined);
         });
     });
 
