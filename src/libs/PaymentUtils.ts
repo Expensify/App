@@ -258,16 +258,12 @@ const selectPaymentType = (params: SelectPaymentTypeParams) => {
         } else {
             approveMoneyRequest({
                 expenseReport: iouReport,
-
                 policy,
                 currentUserAccountIDParam: currentAccountID,
                 currentUserEmailParam: currentEmail,
-
                 hasViolations,
-
                 isASAPSubmitBetaEnabled,
                 expenseReportCurrentNextStepDeprecated: iouReportNextStep,
-
                 betas,
                 userBillingGracePeriodEnds,
                 amountOwed,

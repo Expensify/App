@@ -33,6 +33,15 @@ describe('libs/NextStepUtils', () => {
             outputCurrency: CONST.CURRENCY.USD,
             isPolicyExpenseChatEnabled: true,
             reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
+            achAccount: {
+                bankAccountID: 1234,
+                accountNumber: '123456789',
+                routingNumber: '011000015',
+                addressName: 'Test Business',
+                bankName: 'Test Bank',
+                reimburser: currentUserEmail,
+                state: CONST.BANK_ACCOUNT.STATE.OPEN,
+            },
         };
         const optimisticNextStep: ReportNextStepDeprecated = {
             type: 'neutral',
@@ -674,6 +683,44 @@ describe('libs/NextStepUtils', () => {
                 });
             });
 
+            test('self review without valid bank account shows bank account setup message', () => {
+                const originalAchAccount = policy.achAccount;
+                policy.achAccount = undefined;
+                optimisticNextStep.icon = CONST.NEXT_STEP.ICONS.HOURGLASS;
+
+                optimisticNextStep.message = [
+                    {
+                        text: 'Waiting for ',
+                    },
+                    {
+                        text: 'an admin',
+                    },
+                    {
+                        text: ' to ',
+                    },
+                    {
+                        text: 'finish setting up a business bank account.',
+                    },
+                ];
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
+                const result = buildNextStepNew({
+                    report,
+                    policy,
+                    currentUserAccountIDParam: currentUserAccountID,
+                    currentUserEmailParam: currentUserEmail,
+                    hasViolations: false,
+                    isASAPSubmitBetaEnabled: false,
+                    predictedNextStatus: CONST.REPORT.STATUS_NUM.APPROVED,
+                    shouldFixViolations: false,
+                    isUnapprove: false,
+                    isReopen: false,
+                });
+
+                expect(result).toMatchObject(optimisticNextStep);
+
+                policy.achAccount = originalAchAccount;
+            });
+
             test('another reviewer', () => {
                 report.managerID = strangeAccountID;
                 optimisticNextStep.icon = CONST.NEXT_STEP.ICONS.HOURGLASS;
@@ -1039,6 +1086,50 @@ describe('libs/NextStepUtils', () => {
 
                     expect(result).toMatchObject(optimisticNextStep);
                 });
+            });
+
+            test('payer without valid bank account shows bank account setup message', () => {
+                const originalAchAccount = policy.achAccount;
+                policy.achAccount = undefined;
+                optimisticNextStep.icon = CONST.NEXT_STEP.ICONS.HOURGLASS;
+
+                optimisticNextStep.message = [
+                    {
+                        text: 'Waiting for ',
+                    },
+                    {
+                        text: 'an admin',
+                    },
+                    {
+                        text: ' to ',
+                    },
+                    {
+                        text: 'finish setting up a business bank account.',
+                    },
+                ];
+
+                const originalState = {stateNum: report.stateNum, statusNum: report.statusNum};
+                report.stateNum = CONST.REPORT.STATE_NUM.APPROVED;
+                report.statusNum = CONST.REPORT.STATUS_NUM.APPROVED;
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
+                const result = buildNextStepNew({
+                    report,
+                    policy,
+                    currentUserAccountIDParam: currentUserAccountID,
+                    currentUserEmailParam: currentUserEmail,
+                    hasViolations: false,
+                    isASAPSubmitBetaEnabled: false,
+                    predictedNextStatus: CONST.REPORT.STATUS_NUM.APPROVED,
+                    shouldFixViolations: false,
+                    isUnapprove: false,
+                    isReopen: false,
+                });
+
+                expect(result).toMatchObject(optimisticNextStep);
+
+                report.stateNum = originalState.stateNum;
+                report.statusNum = originalState.statusNum;
+                policy.achAccount = originalAchAccount;
             });
 
             describe('it generates an optimistic nextStep once a report has been paid', () => {

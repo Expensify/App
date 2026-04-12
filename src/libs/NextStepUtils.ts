@@ -489,7 +489,7 @@ function buildNextStepNew(params: BuildNextStepNewParams): ReportNextStepDepreca
     const reimburserAccountID = getReimburserAccountID(policy);
     const hasValidAccount =
         (!!policy?.achAccount?.accountNumber && policy?.achAccount?.state === CONST.BANK_ACCOUNT.STATE.OPEN) ||
-        (policy?.reimbursementChoice !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES && !doesPolicyHavePartiallySetupBankAccount(bankAccountList, policy?.id ?? ''));
+        (policy?.reimbursementChoice !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES && policy?.id && !doesPolicyHavePartiallySetupBankAccount(bankAccountList, policy.id));
     const type: ReportNextStepDeprecated['type'] = 'neutral';
     let optimisticNextStep: ReportNextStepDeprecated | null;
 
