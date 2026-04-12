@@ -1,5 +1,6 @@
 import useOnyx from '@hooks/useOnyx';
 import {isCard, isCardPendingActivate, isCardPendingIssue, isCardWithPotentialFraud, isExpensifyCard} from '@libs/CardUtils';
+import {getUnresolvedCardFraudAlertAction} from '@libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Card} from '@src/types/onyx';
 
@@ -19,7 +20,10 @@ function useTimeSensitiveCards() {
             continue;
         }
 
-        if (isCardWithPotentialFraud(card) && card.nameValuePairs?.possibleFraud?.fraudAlertReportID) {
+        const fraudAlertReportID = card.nameValuePairs?.possibleFraud?.fraudAlertReportID;
+        const hasUnresolvedFraudAction = !!fraudAlertReportID && !!getUnresolvedCardFraudAlertAction(String(fraudAlertReportID));
+
+        if (isCardWithPotentialFraud(card) && !!fraudAlertReportID && hasUnresolvedFraudAction) {
             cardsWithFraud.push(card);
         }
 
