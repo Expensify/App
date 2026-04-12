@@ -164,7 +164,9 @@ function convertPolicyEmployeesToApprovalWorkflows({policy, personalDetails, fir
             };
         }
 
-        approvalWorkflows[submitsTo].members.push(member);
+        if (pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+            approvalWorkflows[submitsTo].members.push(member);
+        }
         // Only propagate ADD/UPDATE pending actions to the workflow, not DELETE
         // When a member is being deleted from the workspace, their DELETE pending action
         // should not affect the workflow's display state (e.g., strikethrough styling)

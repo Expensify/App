@@ -67,9 +67,11 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
                     return null;
                 }
 
-                if (!isDefault && policy?.preventSelfApproval && membersEmail?.includes(email) && visibleSelectedApproverEmail !== email) {
+                if (employee.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
                     return null;
                 }
+
+                if (!isDefault && policy?.preventSelfApproval && membersEmail?.includes(email) && visibleSelectedApproverEmail !== email) {
 
                 // Do not allow the same email to be added twice
                 const isEmailAlreadyInApprovers = approversFromWorkflow?.some((approver, index) => approver?.email === email && index !== approverIndex);

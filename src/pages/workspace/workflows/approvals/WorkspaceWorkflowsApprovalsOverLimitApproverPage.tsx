@@ -58,9 +58,11 @@ function WorkspaceWorkflowsApprovalsOverLimitApproverPage({policy, personalDetai
                     return null;
                 }
 
-                if (!isDefault && policy?.preventSelfApproval && membersEmail?.includes(email)) {
+                if (employee.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
                     return null;
                 }
+
+                if (!isDefault && policy?.preventSelfApproval && membersEmail?.includes(email)) {
 
                 if (email === currentApproverEmail) {
                     return null;
