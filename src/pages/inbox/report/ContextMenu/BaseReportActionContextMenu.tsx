@@ -181,6 +181,7 @@ function BaseReportActionContextMenu({
     const transactionID = getLinkedTransactionID(reportAction);
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`);
     const [isDebugModeEnabled] = useOnyx(ONYXKEYS.IS_DEBUG_MODE_ENABLED);
+    const [allReportsForContextMenu] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${getNonEmptyStringOnyxID(reportID)}`);
     const [harvestReport] = useOnyx(
@@ -416,6 +417,7 @@ function BaseReportActionContextMenu({
                             bankAccountList,
                             isOffline,
                             conciergeReportID,
+                            allReports: allReportsForContextMenu,
                         };
 
                         if ('renderContent' in contextAction) {

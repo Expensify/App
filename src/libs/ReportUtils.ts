@@ -1281,17 +1281,21 @@ function getChatType(report: OnyxInputOrEntry<Report> | Participant): ValueOf<ty
 }
 
 /**
- * Get the report or draft report given a reportID
+ * Get the report or draft report given a reportID or Report object.
+ * Prefer passing a Report object (e.g. from useOnyx) instead of a string reportID.
+ * A string reportID falls back to the deprecated module-level Onyx variable
+ * and should only be used by callers that have not yet been migrated.
  */
 function getReportOrDraftReport(
-    reportID: string | undefined,
+    reportIDOrReport: Report | string | undefined,
     searchReports?: Array<OnyxEntry<Report>>,
     fallbackReport?: Report,
     reportDrafts?: OnyxCollection<Report>,
-    report?: OnyxEntry<Report>,
 ): OnyxEntry<Report> {
+    const isReport = typeof reportIDOrReport === 'object' && reportIDOrReport !== null;
+    const reportID = isReport ? reportIDOrReport.reportID : reportIDOrReport;
     const searchReport = searchReports?.find((searchItem) => searchItem?.reportID === reportID);
-    const onyxReport = report ?? deprecatedAllReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+    const onyxReport = isReport ? reportIDOrReport : deprecatedAllReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
     return searchReport ?? onyxReport ?? (reportDrafts ?? allReportsDraft)?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${reportID}`] ?? fallbackReport;
 }
 

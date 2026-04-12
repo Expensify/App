@@ -393,7 +393,7 @@ function SearchAutocompleteList({
         }
 
         const nextStyledRecentReports = recentReportsOptions.map((option) => {
-            const report = getReportOrDraftReport(option.reportID);
+            const report = getReportOrDraftReport(reports?.[`${ONYXKEYS.COLLECTION.REPORT}${option.reportID}`]);
             const reportAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
             const shouldParserToHTML = !!reportAction && reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT;
             const shouldParseAlternateText = report?.lastActionType !== CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT;
@@ -471,6 +471,7 @@ function SearchAutocompleteList({
         translate,
         isLoadingOptions,
         isRecentSearchesDataLoaded,
+        reports,
     ]);
 
     const sectionItemText = sections?.at(1)?.data?.[0]?.text ?? '';

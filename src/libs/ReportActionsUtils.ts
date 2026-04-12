@@ -2428,7 +2428,7 @@ function hasRequestFromCurrentAccount(report: OnyxEntry<Report>, currentAccountI
     const reportActions = Object.values(getAllReportActions(reportID));
     if (reportActions.length === 0) {
         // In case the reportActions of the report have not been loaded, we will check based on the transactions.
-        const resolvedReport = getReportOrDraftReport(reportID, undefined, undefined, undefined, report);
+        const resolvedReport = getReportOrDraftReport(report);
         return doesReportContainRequestsFromMultipleUsers(resolvedReport, true);
     }
 

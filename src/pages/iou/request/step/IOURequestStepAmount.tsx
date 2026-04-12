@@ -87,6 +87,7 @@ function IOURequestStepAmount({
     const isReportArchived = useReportIsArchived(report?.reportID);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
+    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
     const [parentReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
@@ -154,14 +155,14 @@ function IOURequestStepAmount({
         // When editing, report is the transaction thread. We need to get the actual chat report.
         // Transaction thread's chatReportID points to the IOU/expense report,
         // and the IOU/expense report's chatReportID points to the actual chat.
-        const iouOrExpenseReport = report?.chatReportID ? getReportOrDraftReport(report.chatReportID) : undefined;
+        const iouOrExpenseReport = report?.chatReportID ? getReportOrDraftReport(allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report.chatReportID}`]) : undefined;
         if (iouOrExpenseReport && isMoneyRequestReport(iouOrExpenseReport) && iouOrExpenseReport.chatReportID) {
-            return getReportOrDraftReport(iouOrExpenseReport.chatReportID);
+            return getReportOrDraftReport(allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${iouOrExpenseReport.chatReportID}`]);
         }
 
         // Fallback to the passed report if we can't traverse
         return report;
-    }, [isEditing, report]);
+    }, [isEditing, report, allReports]);
 
     useFocusEffect(
         useCallback(() => {
@@ -350,7 +351,7 @@ function IOURequestStepAmount({
 
                 // Preserve user's participant selection to avoid forcing them back to default workspace.
                 const iouReportID = transaction?.reportID;
-                const selectedReport = iouReportID === CONST.REPORT.UNREPORTED_REPORT_ID ? selfDMReport : getReportOrDraftReport(iouReportID);
+                const selectedReport = iouReportID === CONST.REPORT.UNREPORTED_REPORT_ID ? selfDMReport : getReportOrDraftReport(allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`]);
                 const navigationIOUType = isSelfDM(selectedReport) ? CONST.IOU.TYPE.TRACK : CONST.IOU.TYPE.SUBMIT;
                 const chatReportID = selectedReport?.chatReportID ?? selectedReport?.reportID;
 

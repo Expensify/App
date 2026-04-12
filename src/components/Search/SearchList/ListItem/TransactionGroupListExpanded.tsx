@@ -65,6 +65,7 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [visibleColumns] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {selector: columnsSelector});
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
+    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
 
     const transactionsSnapshotMetadata = transactionsSnapshot?.search;
 
@@ -101,8 +102,8 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
     const selectRow = onSelectRow as (item: TItem, transactionPreviewData?: TransactionPreviewData) => void;
     const getTransactionPreviewData = (transactionItem: TransactionListItemType): TransactionPreviewData => {
         const parentReportAction = getReportAction(transactionItem?.reportID, transactionItem?.reportAction?.reportActionID);
-        const parentReport = getReportOrDraftReport(transactionItem?.reportID);
-        const transactionThreadReport = getReportOrDraftReport(transactionItem?.reportAction?.childReportID);
+        const parentReport = getReportOrDraftReport(allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionItem?.reportID}`]);
+        const transactionThreadReport = getReportOrDraftReport(allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionItem?.reportAction?.childReportID}`]);
         const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionItem?.transactionID)}`];
 
         return {

@@ -43,7 +43,8 @@ function SplitExpenseCreateDateRagePage({route}: SplitExpenseCreateDateRagePageP
     const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`];
     const originalTransaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transaction?.comment?.originalTransactionID)}`];
 
-    const report = getReportOrDraftReport(reportID);
+    const [reportOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportID)}`);
+    const report = getReportOrDraftReport(reportOnyx);
     const currentReport = report ?? currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportID)}`];
 
     const policy = usePolicy(currentReport?.policyID);

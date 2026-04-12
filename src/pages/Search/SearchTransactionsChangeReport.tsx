@@ -90,9 +90,9 @@ function SearchTransactionsChangeReport() {
             return undefined;
         }
 
-        const report = getReportOrDraftReport(reportIDWithOwner);
+        const report = getReportOrDraftReport(allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportIDWithOwner}`]);
         return report?.ownerAccountID;
-    }, [selectedTransactions, selectedTransactionsKeys]);
+    }, [selectedTransactions, selectedTransactionsKeys, allReports]);
     const targetOwnerPersonalDetails = useMemo(() => getPersonalDetailsForAccountID(targetOwnerAccountID, personalDetails) as PersonalDetails, [personalDetails, targetOwnerAccountID]);
     const createReportForPolicy = (shouldDismissEmptyReportsConfirmation?: boolean) => {
         const optimisticReport = createNewReport(

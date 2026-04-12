@@ -218,6 +218,7 @@ import type WithSentryLabel from '@src/types/utils/SentryLabel';
 import KeyboardUtils from '@src/utils/keyboard';
 import type {ContextMenuAnchor} from './ReportActionContextMenu';
 import {hideContextMenu, showDeleteModal} from './ReportActionContextMenu';
+import ONYXKEYS from '@src/ONYXKEYS';
 
 /** Gets the HTML version of the message in an action */
 function getActionHtml(reportAction: OnyxInputOrEntry<ReportAction>): string {
@@ -308,6 +309,7 @@ type ContextMenuActionPayload = {
     bankAccountList: OnyxEntry<BankAccountList>;
     isOffline: boolean;
     conciergeReportID: string | undefined;
+    allReports?: OnyxCollection<ReportType>;
 };
 
 type OnPress = (closePopover: boolean, payload: ContextMenuActionPayload, selection?: string, reportID?: string, draftMessage?: string) => void;
@@ -809,6 +811,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                 currentUserPersonalDetails,
                 bankAccountList,
                 conciergeReportID,
+                allReports,
             },
         ) => {
             const isReportPreviewAction = isReportPreviewActionReportActionsUtils(reportAction);
@@ -1139,7 +1142,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                     setClipboardMessage(displayMessage);
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.CREATED_REPORT_FOR_UNAPPROVED_TRANSACTIONS)) {
                     const {originalID} = getOriginalMessage(reportAction) ?? {};
-                    const originalReportOfUnapprovedTransaction = getReportOrDraftReport(originalID);
+                    const originalReportOfUnapprovedTransaction = getReportOrDraftReport(allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${originalID}`]);
                     const reportName = getReportName(originalReportOfUnapprovedTransaction);
                     const displayMessage = getCreatedReportForUnapprovedTransactionsMessage(
                         originalID,

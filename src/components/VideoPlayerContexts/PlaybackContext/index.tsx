@@ -1,8 +1,10 @@
 import type {VideoPlayer, VideoPlayerStatus, VideoView} from 'expo-video';
 import React, {useCallback, useContext, useEffect, useRef, useState} from 'react';
 import type {View} from 'react-native';
+import useOnyx from '@hooks/useOnyx';
 import {getReportOrDraftReport, isChatThread} from '@libs/ReportUtils';
 import Navigation from '@navigation/Navigation';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import type {ProtectedCurrentRouteReportID} from './playbackContextReportIDUtils';
 import {findURLInReportOrAncestorAttachments, getCurrentRouteReportID, NO_REPORT_ID, NO_REPORT_ID_IN_PARAMS, normalizeReportID} from './playbackContextReportIDUtils';
@@ -21,6 +23,7 @@ function PlaybackContextProvider({children}: ChildrenProps) {
     const [shareVersion, setShareVersion] = useState(0);
     const mountedVideoPlayersRef = useRef<string[]>([]);
     const playerStatus = useRef<VideoPlayerStatus>('loading');
+    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
 
     const resetContextProperties = () => {
         setSharedElement(null);
@@ -50,7 +53,7 @@ function PlaybackContextProvider({children}: ChildrenProps) {
                 return;
             }
 
-            const report = getReportOrDraftReport(reportID);
+            const report = getReportOrDraftReport(allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]);
             const isReportAChatThread = isChatThread(report);
             let reportIDtoSet;
             if (isReportAChatThread) {
@@ -67,7 +70,7 @@ function PlaybackContextProvider({children}: ChildrenProps) {
             setCurrentlyPlayingURL(url);
             currentlyPlayingURLRef.current = url;
         },
-        [video],
+        [video, allReports],
     );
 
     const updatePlayerStatus = useCallback((newStatus: VideoPlayerStatus) => {
