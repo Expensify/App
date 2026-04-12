@@ -814,6 +814,7 @@ const ROUTES = {
     },
 
     SETTINGS_SAVE_THE_WORLD: 'settings/teachersunite',
+    SETTINGS_SAVE_THE_WORLD_ADD_PAYMENT_CARD: 'settings/teachersunite/add-payment-card',
 
     NEW: 'new',
     NEW_CHAT: 'new/chat',
@@ -3003,25 +3004,29 @@ const ROUTES = {
         route: 'workspaces/:policyID/rules/spend-rules/new',
         getRoute: (policyID: string) => `workspaces/${policyID}/rules/spend-rules/new` as const,
     },
+    RULES_SPEND_EDIT: {
+        route: 'workspaces/:policyID/rules/spend-rules/:ruleID',
+        getRoute: (policyID: string, ruleID: string) => `workspaces/${policyID}/rules/spend-rules/${ruleID}` as const,
+    },
     RULES_SPEND_CARD: {
-        route: 'workspaces/:policyID/rules/spend-rules/new/card',
-        getRoute: (policyID: string) => `workspaces/${policyID}/rules/spend-rules/new/card` as const,
+        route: 'workspaces/:policyID/rules/spend-rules/:ruleID/card',
+        getRoute: (policyID: string, ruleID?: string) => `workspaces/${policyID}/rules/spend-rules/${ruleID ?? ROUTES.NEW}/card` as const,
     },
     RULES_SPEND_CATEGORY: {
-        route: 'workspaces/:policyID/rules/spend-rules/new/category',
-        getRoute: (policyID: string) => `workspaces/${policyID}/rules/spend-rules/new/category` as const,
+        route: 'workspaces/:policyID/rules/spend-rules/:ruleID/category',
+        getRoute: (policyID: string, ruleID?: string) => `workspaces/${policyID}/rules/spend-rules/${ruleID ?? ROUTES.NEW}/category` as const,
     },
     RULES_SPEND_MAX_AMOUNT: {
-        route: 'workspaces/:policyID/rules/spend-rules/new/max-amount',
-        getRoute: (policyID: string) => `workspaces/${policyID}/rules/spend-rules/new/max-amount` as const,
+        route: 'workspaces/:policyID/rules/spend-rules/:ruleID/max-amount',
+        getRoute: (policyID: string, ruleID?: string) => `workspaces/${policyID}/rules/spend-rules/${ruleID ?? ROUTES.NEW}/max-amount` as const,
     },
     RULES_SPEND_MERCHANTS: {
-        route: 'workspaces/:policyID/rules/spend-rules/new/merchants',
-        getRoute: (policyID: string) => `workspaces/${policyID}/rules/spend-rules/new/merchants` as const,
+        route: 'workspaces/:policyID/rules/spend-rules/:ruleID/merchants',
+        getRoute: (policyID: string, ruleID?: string) => `workspaces/${policyID}/rules/spend-rules/${ruleID ?? ROUTES.NEW}/merchants` as const,
     },
     RULES_SPEND_MERCHANT_EDIT: {
-        route: 'workspaces/:policyID/rules/spend-rules/new/merchants/:merchantIndex',
-        getRoute: (policyID: string, merchantIndex: string) => `workspaces/${policyID}/rules/spend-rules/new/merchants/${merchantIndex}` as const,
+        route: 'workspaces/:policyID/rules/spend-rules/:ruleID/merchants/:merchantIndex',
+        getRoute: (policyID: string, ruleID: string, merchantIndex: string) => `workspaces/${policyID}/rules/spend-rules/${ruleID}/merchants/${merchantIndex}` as const,
     },
     RULES_MERCHANT_MERCHANT_TO_MATCH: {
         route: 'workspaces/:policyID/rules/merchant-rules/:ruleID/merchant-to-match',

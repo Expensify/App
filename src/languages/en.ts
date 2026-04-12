@@ -44,6 +44,7 @@ import type {
     StepCounterParams,
     SyncStageNameConnectionsParams,
     UnshareParams,
+    UnsupportedFormulaValueErrorParams,
     UpdatedBudgetParams,
     UpdatedPolicyApprovalRuleParams,
     UpdatedPolicyCategoryMaxAmountNoReceiptParams,
@@ -1080,6 +1081,14 @@ const translations = {
                 fireworksDescription: 'Upcoming to-dos will appear here.',
             },
         },
+        gettingStartedSection: {
+            title: 'Getting started',
+            createWorkspace: 'Create a workspace',
+            connectAccounting: ({integrationName}: {integrationName: string}) => `Connect to ${integrationName}`,
+            customizeCategories: 'Customize accounting categories',
+            linkCompanyCards: 'Link company cards',
+            setupRules: 'Set up spend rules',
+        },
         upcomingTravel: 'Upcoming travel',
         upcomingTravelSection: {
             flightTo: ({destination}: {destination: string}) => `Flight to ${destination}`,
@@ -1199,7 +1208,6 @@ const translations = {
         flash: 'flash',
         multiScan: 'multi-scan',
         shutter: 'shutter',
-        flipCamera: 'flip camera',
         gallery: 'gallery',
         deleteReceipt: 'Delete receipt',
         deleteConfirmation: 'Are you sure you want to delete this receipt?',
@@ -1672,6 +1680,11 @@ const translations = {
         },
         duplicateNonDefaultWorkspacePerDiemError: "You can't duplicate per diem expenses across workspaces because the rates may differ between workspaces.",
         cannotDuplicateDistanceExpense: "You can't duplicate distance expenses across workspaces because the rates may differ between workspaces.",
+        taxDisabledAlert: {
+            title: 'Tax disabled',
+            prompt: 'Enable tax tracking on the workspace to edit the expense details or delete the tax from this expense.',
+            confirmText: 'Delete tax',
+        },
     },
     transactionMerge: {
         listPage: {
@@ -2904,6 +2917,7 @@ const translations = {
         workspaceYouMayJoin: (domain: string, email: string) => `Someone from ${domain} has already created a workspace. Please enter the magic code sent to ${email}.`,
         joinAWorkspace: 'Join a workspace',
         listOfWorkspaces: "Here's the list of workspaces you can join. Don't worry, you can always join them later if you prefer.",
+        skipForNow: 'Skip for now',
         workspaceMemberList: (employeeCount: number, policyOwner: string) => `${employeeCount} member${employeeCount > 1 ? 's' : ''} • ${policyOwner}`,
         whereYouWork: 'Where do you work?',
         errorSelection: 'Select an option to move forward',
@@ -3024,7 +3038,7 @@ const translations = {
                 description: dedent(`
                     *Submit an expense* by entering an amount or scanning a receipt.
 
-                    1. Click the ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} button.
+                    1. Click the *+* button.
                     2. Choose *Create expense*.
                     3. Enter an amount or scan a receipt.
                     4. Add your boss's email or phone number.
@@ -3038,7 +3052,7 @@ const translations = {
                 description: dedent(`
                     *Submit an expense* by entering an amount or scanning a receipt.
 
-                    1. Click the ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} button.
+                    1. Click the *+* button.
                     2. Choose *Create expense*.
                     3. Enter an amount or scan a receipt.
                     4. Confirm details.
@@ -3052,7 +3066,7 @@ const translations = {
                 description: dedent(`
                     *Track an expense* in any currency, whether you have a receipt or not.
 
-                    1. Click the ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} button.
+                    1. Click the *+* button.
                     2. Choose *Create expense*.
                     3. Enter an amount or scan a receipt.
                     4. Choose your *personal* space.
@@ -3157,7 +3171,7 @@ const translations = {
                 description: dedent(`
                     *Start a chat* with anyone using their email or phone number.
 
-                    1. Click the ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} button.
+                    1. Click the *+* button.
                     2. Choose *Start chat*.
                     3. Enter an email or phone number.
 
@@ -3172,7 +3186,7 @@ const translations = {
                 description: dedent(`
                     *Split expenses* with one or more people.
 
-                    1. Click the ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} button.
+                    1. Click the *+* button.
                     2. Choose *Start chat*.
                     3. Enter emails or phone numbers.
                     4. Click the grey *+* button in the chat > *Split expense*.
@@ -3198,7 +3212,7 @@ const translations = {
                 description: dedent(`
                     Here's how to create a report:
 
-                    1. Click the ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} button.
+                    1. Click the *+* button.
                     2. Choose *Create report*.
                     3. Click *Add expense*.
                     4. Add your first expense.
@@ -3279,6 +3293,7 @@ const translations = {
             dateShouldBeBefore: (dateString: string) => `Date should be before ${dateString}`,
             dateShouldBeAfter: (dateString: string) => `Date should be after ${dateString}`,
             hasInvalidCharacter: 'Name can only include Latin characters',
+            cannotIncludeCommaOrSemicolon: 'Name cannot contain a comma or semicolon',
             incorrectZipFormat: (zipFormat?: string) => `Incorrect zip code format${zipFormat ? ` Acceptable format: ${zipFormat}` : ''}`,
             invalidPhoneNumber: `Please ensure the phone number is valid (e.g. ${CONST.EXAMPLE_PHONE_NUMBER})`,
         },
@@ -5717,6 +5732,7 @@ const translations = {
             reportFieldNameRequiredError: 'Please enter a report field name',
             reportFieldTypeRequiredError: 'Please choose a report field type',
             circularReferenceError: "This field can't refer to itself. Please update.",
+            unsupportedFormulaValueError: ({value}: UnsupportedFormulaValueErrorParams) => `Formula field ${value} not recognized`,
             reportFieldInitialValueRequiredError: 'Please choose a report field initial value',
             genericFailureMessage: 'An error occurred while updating the report field. Please try again.',
         },
@@ -6778,10 +6794,13 @@ const translations = {
                     description: `Expensify always declines these charges:\n\n  • Adult services\n  • ATMs\n  • Gambling\n  • Money transfers\n\nAdd more spend rules to protect company cash flow.`,
                 },
                 addSpendRule: 'Add spend rule',
+                editRuleTitle: 'Edit rule',
                 cardPageTitle: 'Card',
                 cardsSectionTitle: 'Cards',
                 chooseCards: 'Choose cards',
                 saveRule: 'Save rule',
+                deleteRule: 'Delete rule',
+                deleteRuleConfirmation: 'Are you sure you want to delete this rule?',
                 allow: 'Allow',
                 spendRuleSectionTitle: 'Spend rule',
                 restrictionType: 'Restriction type',
@@ -7539,6 +7558,7 @@ const translations = {
             hold: 'Hold',
             unhold: 'Remove hold',
             reject: 'Reject',
+            duplicateExpense: ({count}: {count: number}) => `Duplicate ${count === 1 ? 'expense' : 'expenses'}`,
             noOptionsAvailable: 'No options available for the selected group of expenses.',
         },
         filtersHeader: 'Filters',
@@ -7945,6 +7965,11 @@ const translations = {
             'Join Expensify.org in eliminating injustice around the world. The current "Teachers Unite" campaign supports educators everywhere by splitting the costs of essential school supplies.',
         iKnowATeacher: 'I know a teacher',
         iAmATeacher: 'I am a teacher',
+        personalKarma: {
+            title: 'Enable Personal Karma',
+            description: 'Donate $1 to Expensify.org for every $500 you spend each month',
+            stopDonationsPrompt: 'Are you sure you want to stop donating to Expensify.org?',
+        },
         getInTouch: 'Excellent! Please share their information so we can get in touch with them.',
         introSchoolPrincipal: 'Intro to your school principal',
         schoolPrincipalVerifyExpense:
