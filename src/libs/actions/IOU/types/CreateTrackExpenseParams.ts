@@ -32,6 +32,7 @@ type CreateTrackExpenseParams = {
     betas: OnyxEntry<OnyxTypes.Beta[]>;
     draftTransactionIDs: string[] | undefined;
     isSelfTourViewed: boolean;
+    defaultWorkspaceName: string | undefined;
 };
 
 export type {CreateTrackExpenseParams, TrackExpenseAccountantParams};

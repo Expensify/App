@@ -18,6 +18,7 @@ import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useFetchRoute from '@hooks/useFetchRoute';
 import useFilesValidation from '@hooks/useFilesValidation';
+import useLastWorkspaceNumber from '@hooks/useLastWorkspaceNumber';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -33,6 +34,7 @@ import usePrivateIsArchivedMap from '@hooks/usePrivateIsArchivedMap';
 import useReportAttributes from '@hooks/useReportAttributes';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {generateDefaultWorkspaceName} from '@libs/actions/Policy/Policy';
 import {completeTestDriveTask} from '@libs/actions/Task';
 import {isMobileSafari} from '@libs/Browser';
 import {getCurrencySymbol} from '@libs/CurrencyUtils';
@@ -162,6 +164,7 @@ function IOURequestStepConfirmation({
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const personalDetails = usePersonalDetails();
     const allPolicyCategories = usePolicyCategories();
+    const lastWorkspaceNumber = useLastWorkspaceNumber();
 
     const [transactions] = useOptimisticDraftTransactions(initialTransaction);
     const hasMultipleTransactions = transactions.length > 1;
@@ -712,6 +715,7 @@ function IOURequestStepConfirmation({
                     !!item.linkedTrackedExpenseReportID && privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${item.linkedTrackedExpenseReportID}`];
                 const itemDistance = isManualDistanceRequest || isOdometerDistanceRequest || isGPSDistanceRequest ? (item.comment?.customUnit?.quantity ?? undefined) : undefined;
 
+                const email = currentUserPersonalDetails.email ?? '';
                 trackExpenseIOUActions({
                     report,
                     isDraftPolicy,
@@ -760,7 +764,7 @@ function IOURequestStepConfirmation({
                     shouldHandleNavigation: index === transactions.length - 1,
                     isASAPSubmitBetaEnabled,
                     currentUserAccountIDParam: currentUserPersonalDetails.accountID,
-                    currentUserEmailParam: currentUserPersonalDetails.login ?? '',
+                    currentUserEmailParam: email,
                     introSelected,
                     activePolicyID,
                     quickAction,
@@ -768,6 +772,7 @@ function IOURequestStepConfirmation({
                     betas,
                     draftTransactionIDs,
                     isSelfTourViewed,
+                    defaultWorkspaceName: generateDefaultWorkspaceName(email, lastWorkspaceNumber, translate),
                 });
             }
         },
@@ -799,6 +804,8 @@ function IOURequestStepConfirmation({
             betas,
             draftTransactionIDs,
             isSelfTourViewed,
+            lastWorkspaceNumber,
+            translate,
         ],
     );
 

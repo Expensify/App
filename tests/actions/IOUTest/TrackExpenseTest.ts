@@ -214,6 +214,7 @@ describe('actions/IOU/TrackExpense', () => {
                 betas: [CONST.BETAS.ALL],
                 draftTransactionIDs: [fakeTransaction.transactionID],
                 isSelfTourViewed: false,
+                defaultWorkspaceName: undefined,
             });
             await waitForBatchedUpdates();
             await mockFetch?.resume?.();
@@ -318,6 +319,7 @@ describe('actions/IOU/TrackExpense', () => {
                 betas: [CONST.BETAS.ALL],
                 draftTransactionIDs: [],
                 isSelfTourViewed: false,
+                defaultWorkspaceName: undefined,
             });
             await waitForBatchedUpdates();
             await mockFetch?.resume?.();
@@ -407,6 +409,7 @@ describe('actions/IOU/TrackExpense', () => {
                 betas: [CONST.BETAS.ALL],
                 draftTransactionIDs: [transaction.transactionID],
                 isSelfTourViewed: false,
+                defaultWorkspaceName: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -463,6 +466,7 @@ describe('actions/IOU/TrackExpense', () => {
                 betas: [CONST.BETAS.ALL],
                 draftTransactionIDs: [],
                 isSelfTourViewed: false,
+                defaultWorkspaceName: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -547,6 +551,7 @@ describe('actions/IOU/TrackExpense', () => {
                 betas: [CONST.BETAS.ALL],
                 draftTransactionIDs: [transaction.transactionID],
                 isSelfTourViewed: false,
+                defaultWorkspaceName: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -603,6 +608,7 @@ describe('actions/IOU/TrackExpense', () => {
                 betas: [CONST.BETAS.ALL],
                 draftTransactionIDs: [],
                 isSelfTourViewed: false,
+                defaultWorkspaceName: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -670,6 +676,7 @@ describe('actions/IOU/TrackExpense', () => {
                 betas: [CONST.BETAS.ALL],
                 draftTransactionIDs: [],
                 isSelfTourViewed: false,
+                defaultWorkspaceName: undefined,
             };
         }
 
@@ -890,6 +897,7 @@ describe('actions/IOU/TrackExpense', () => {
                 draftTransactionIDs: [],
                 betas: [CONST.BETAS.ALL],
                 isSelfTourViewed: false,
+                defaultWorkspaceName: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -982,6 +990,7 @@ describe('actions/IOU/TrackExpense', () => {
                 betas: [CONST.BETAS.ALL],
                 draftTransactionIDs: [],
                 isSelfTourViewed: false,
+                defaultWorkspaceName: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -1257,6 +1266,7 @@ describe('actions/IOU/TrackExpense', () => {
             trackExpense({
                 ...getDefaultTrackExpenseParams(selfDMReport, {amount: 9000, merchant: 'Tour Not Viewed Merchant'}),
                 isSelfTourViewed: false,
+                defaultWorkspaceName: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -1312,6 +1322,7 @@ describe('actions/IOU/TrackExpense', () => {
                 quickAction: undefined,
                 betas: [CONST.BETAS.ALL],
                 isSelfTourViewed: true,
+                defaultWorkspaceName: undefined,
             });
 
             // Then the result should contain valid track expense data
@@ -1358,6 +1369,7 @@ describe('actions/IOU/TrackExpense', () => {
                 quickAction: undefined,
                 betas: [CONST.BETAS.ALL],
                 isSelfTourViewed: false,
+                defaultWorkspaceName: undefined,
             });
 
             // Then the result should contain valid track expense data
@@ -1406,6 +1418,7 @@ describe('actions/IOU/TrackExpense', () => {
                 quickAction: undefined,
                 betas: [CONST.BETAS.ALL],
                 isSelfTourViewed: true,
+                defaultWorkspaceName: undefined,
             });
 
             // Then result should be valid
@@ -1445,6 +1458,7 @@ describe('actions/IOU/TrackExpense', () => {
                 quickAction: undefined,
                 betas: [CONST.BETAS.ALL],
                 isSelfTourViewed: false,
+                defaultWorkspaceName: undefined,
             });
 
             expect(resultWithoutTourViewed).toBeDefined();
@@ -1527,6 +1541,7 @@ describe('actions/IOU/TrackExpense', () => {
                 betas: [CONST.BETAS.ALL],
                 draftTransactionIDs: [],
                 isSelfTourViewed: false,
+                defaultWorkspaceName: undefined,
             });
             await waitForBatchedUpdates();
 

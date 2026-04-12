@@ -1760,6 +1760,7 @@ describe('actions/IOU', () => {
                 betas: [CONST.BETAS.ALL],
                 draftTransactionIDs: [],
                 isSelfTourViewed: false,
+                defaultWorkspaceName: undefined,
             });
 
             mockFetch?.resume?.();
@@ -1829,6 +1830,7 @@ describe('actions/IOU', () => {
                 betas: [CONST.BETAS.ALL],
                 draftTransactionIDs: [],
                 isSelfTourViewed: false,
+                defaultWorkspaceName: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -2354,6 +2356,7 @@ describe('actions/IOU', () => {
                 betas: [CONST.BETAS.ALL],
                 draftTransactionIDs: [],
                 isSelfTourViewed: false,
+                defaultWorkspaceName: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -8055,6 +8058,7 @@ describe('actions/IOU', () => {
                 betas: [CONST.BETAS.ALL],
                 draftTransactionIDs: [],
                 isSelfTourViewed: false,
+                defaultWorkspaceName: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -10399,6 +10403,7 @@ describe('actions/IOU', () => {
                 betas: [CONST.BETAS.ALL],
                 draftTransactionIDs: [],
                 isSelfTourViewed: false,
+                defaultWorkspaceName: undefined,
             });
             await getOnyxData({
                 key: ONYXKEYS.COLLECTION.TRANSACTION,

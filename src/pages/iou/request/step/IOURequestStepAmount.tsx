@@ -307,6 +307,7 @@ function IOURequestStepAmount({
                         betas,
                         draftTransactionIDs,
                         isSelfTourViewed,
+                        defaultWorkspaceName: undefined,
                     });
                     return;
                 }
