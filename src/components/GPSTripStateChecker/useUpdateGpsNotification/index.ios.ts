@@ -7,6 +7,7 @@ import shouldUseDefaultExpensePolicyUtil from '@libs/shouldUseDefaultExpensePoli
 import {shouldUpdateGpsNotificationUnit, updateGpsTripNotificationLanguage, updateGpsTripNotificationUnit} from '@pages/iou/request/step/IOURequestStepDistanceGPS/GPSNotifications';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {accountIDSelector} from '@src/selectors/Session';
 
 function useUpdateGpsNotification() {
     useUpdateGpsNotificationOnLanguageChange();
@@ -35,13 +36,21 @@ function useUpdateGpsNotificationOnLanguageChange() {
 function useUpdateGpsNotificationOnUnitChange() {
     const {translate} = useLocalize();
 
+    const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`);
 
     const defaultExpensePolicy = useDefaultExpensePolicy();
-    const shouldUseDefaultExpensePolicy = shouldUseDefaultExpensePolicyUtil(CONST.IOU.TYPE.CREATE, defaultExpensePolicy, amountOwed, userBillingGracePeriodEnds, ownerBillingGracePeriodEnd);
+    const shouldUseDefaultExpensePolicy = shouldUseDefaultExpensePolicyUtil(
+        accountID,
+        CONST.IOU.TYPE.CREATE,
+        defaultExpensePolicy,
+        amountOwed,
+        userBillingGracePeriodEnds,
+        ownerBillingGracePeriodEnd,
+    );
 
     const unit = DistanceRequestUtils.getRate({transaction, policy: shouldUseDefaultExpensePolicy ? defaultExpensePolicy : undefined}).unit;
 
