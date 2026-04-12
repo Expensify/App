@@ -121,7 +121,6 @@ function SearchActionsBarCreateButton() {
         policyID: defaultChatEnabledPolicyID,
         policyName: defaultChatEnabledPolicy?.name ?? '',
         onConfirm: handleCreateWorkspaceReport,
-        shouldHandleNavigationBack: false,
     });
 
     const hideCreateMenu = useCallback(() => setIsCreateMenuActive(false), []);
