@@ -15094,9 +15094,10 @@ describe('ReportUtils', () => {
             expect(result.at(2)?.sentryLabel).toBe(CONST.SENTRY_LABEL.MORE_MENU.ADD_EXPENSE_UNREPORTED);
         });
 
-        it('should pass amountOwed to shouldRestrictUserBillableActions when onSelected is called', () => {
+        it('should pass amountOwed and policy through to shouldRestrictUserBillableActions when onSelected is called', () => {
             const mockPolicy = createRandomPolicy(0);
             mockPolicy.type = CONST.POLICY.TYPE.CORPORATE;
+            mockPolicy.ownerAccountID = currentUserAccountID;
             const amountOwed = 100;
             const result = getAddExpenseDropdownOptions({
                 currentUserAccountID,

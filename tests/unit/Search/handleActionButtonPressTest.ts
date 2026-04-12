@@ -327,6 +327,8 @@ describe('handleActionButtonPress', () => {
             personalPolicyID: undefined,
             ownerBillingGracePeriodEnd: undefined,
             userBillingGracePeriodEnds: undefined,
+            currentUserAccountID: undefined,
+            amountOwed: undefined,
         });
         expect(goToItem).toHaveBeenCalledTimes(1);
     });
@@ -343,6 +345,8 @@ describe('handleActionButtonPress', () => {
             personalPolicyID: undefined,
             ownerBillingGracePeriodEnd: undefined,
             userBillingGracePeriodEnds: undefined,
+            currentUserAccountID: undefined,
+            amountOwed: undefined,
         });
         expect(goToItem).toHaveBeenCalledTimes(0);
     });
@@ -366,6 +370,7 @@ describe('handleBulkPayItemSelected', () => {
         userBillingGracePeriodEnds: undefined,
         businessBankAccountOptions: undefined,
         ownerBillingGracePeriodEnd: undefined,
+        currentUserAccountID: ownerAccountID,
     };
 
     beforeEach(async () => {
