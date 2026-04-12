@@ -456,6 +456,8 @@ function doesUserHavePaymentCardAdded(userBillingFundID: number | undefined): bo
  * Whether the user's billable actions should be restricted.
  */
 function shouldRestrictUserBillableActions(
+    // TODO: Change to currentUserAccountID once other PR is merged
+    accountID: number | undefined,
     policyID: string,
     ownerBillingGracePeriodEnd: OnyxEntry<number>,
     userBillingGracePeriodEnds: OnyxCollection<BillingGraceEndPeriod>,
@@ -482,13 +484,7 @@ function shouldRestrictUserBillableActions(
 
     // If it reached here it means that the user is actually the workspace's owner.
     // We should restrict the workspace's owner actions if it's past its grace period end date and it's owing some amount.
-    if (
-        isPolicyOwner(policy, currentUserAccountID) &&
-        ownerBillingGracePeriodEnd &&
-        amountOwed !== undefined &&
-        amountOwed > 0 &&
-        isAfter(currentDate, fromUnixTime(ownerBillingGracePeriodEnd))
-    ) {
+    if (isPolicyOwner(policy, accountID) && ownerBillingGracePeriodEnd && amountOwed !== undefined && amountOwed > 0 && isAfter(currentDate, fromUnixTime(ownerBillingGracePeriodEnd))) {
         return true;
     }
 

@@ -1000,6 +1000,7 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
     const addExpenseDropdownOptions = useMemo(
         () =>
             getAddExpenseDropdownOptions({
+                currentUserAccountID: accountID,
                 translate,
                 icons: expensifyIcons,
                 iouReportID: moneyRequestReport?.reportID,
@@ -1010,7 +1011,18 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
                 ownerBillingGracePeriodEnd,
                 lastDistanceExpenseType,
             }),
-        [moneyRequestReport?.reportID, policy, userBillingGracePeriodEnds, amountOwed, lastDistanceExpenseType, expensifyIcons, translate, ownerBillingGracePeriodEnd, draftTransactionIDs],
+        [
+            moneyRequestReport?.reportID,
+            policy,
+            userBillingGracePeriodEnds,
+            amountOwed,
+            lastDistanceExpenseType,
+            expensifyIcons,
+            translate,
+            ownerBillingGracePeriodEnd,
+            draftTransactionIDs,
+            accountID,
+        ],
     );
 
     const exportSubmenuOptions: Record<string, DropdownOption<string>> = useMemo(() => {
@@ -1786,7 +1798,7 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
                 if (!moneyRequestReport?.reportID) {
                     return;
                 }
-                if (policy && shouldRestrictUserBillableActions(policy.id, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, policy)) {
+                if (policy && shouldRestrictUserBillableActions(accountID, policy.id, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, policy)) {
                     Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
                     return;
                 }

@@ -111,7 +111,7 @@ function QuickActionMenuItem({reportID}: QuickActionMenuItemProps) {
         if (
             shouldRestrictAction &&
             quickActionReportPolicyID &&
-            shouldRestrictUserBillableActions(quickActionReportPolicyID, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed)
+            shouldRestrictUserBillableActions(session?.accountID, quickActionReportPolicyID, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed)
         ) {
             Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(quickActionReportPolicyID));
             return;
@@ -189,7 +189,7 @@ function QuickActionMenuItem({reportID}: QuickActionMenuItemProps) {
                 interceptAnonymousUser(() => {
                     if (
                         policyChatForActivePolicy?.policyID &&
-                        shouldRestrictUserBillableActions(policyChatForActivePolicy.policyID, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed)
+                        shouldRestrictUserBillableActions(session?.accountID, policyChatForActivePolicy.policyID, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed)
                     ) {
                         Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policyChatForActivePolicy.policyID));
                         return;

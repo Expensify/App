@@ -175,14 +175,30 @@ function QuickCreationActionsBar() {
 
                 if (
                     !workspaceIDForReportCreation ||
-                    (shouldRestrictUserBillableActions(workspaceIDForReportCreation, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, undefined, defaultChatEnabledPolicy) &&
+                    (shouldRestrictUserBillableActions(
+                        session?.accountID,
+                        workspaceIDForReportCreation,
+                        ownerBillingGracePeriodEnd,
+                        userBillingGracePeriodEnds,
+                        undefined,
+                        defaultChatEnabledPolicy,
+                    ) &&
                         groupPoliciesWithChatEnabled.length > 1)
                 ) {
                     Navigation.navigate(ROUTES.NEW_REPORT_WORKSPACE_SELECTION.getRoute());
                     return;
                 }
 
-                if (!shouldRestrictUserBillableActions(workspaceIDForReportCreation, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, undefined, defaultChatEnabledPolicy)) {
+                if (
+                    !shouldRestrictUserBillableActions(
+                        session?.accountID,
+                        workspaceIDForReportCreation,
+                        ownerBillingGracePeriodEnd,
+                        userBillingGracePeriodEnds,
+                        undefined,
+                        defaultChatEnabledPolicy,
+                    )
+                ) {
                     if (shouldShowEmptyReportConfirmationForDefaultChatEnabledPolicy) {
                         openCreateReportConfirmation();
                     } else {
@@ -205,6 +221,7 @@ function QuickCreationActionsBar() {
             shouldShowEmptyReportConfirmationForDefaultChatEnabledPolicy,
             openCreateReportConfirmation,
             handleCreateWorkspaceReport,
+            session?.accountID,
         ],
     );
 
