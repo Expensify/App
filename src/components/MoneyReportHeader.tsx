@@ -1031,7 +1031,7 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
                     exportReportToCSV(
                         {
                             reportID: moneyRequestReport.reportID,
-                            transactionIDList: transactionIDs,
+                            transactionIDList: [],
                         },
                         showDownloadErrorModal,
                         translate,
