@@ -248,7 +248,6 @@ function createTransaction({
                 recentWaypoints,
                 betas,
                 isSelfTourViewed,
-                defaultWorkspaceName: undefined,
             });
         } else {
             const existingTransactionID = getExistingTransactionID(transaction?.linkedTrackedExpenseReportAction);
@@ -721,7 +720,6 @@ function handleMoneyRequestStepDistanceNavigation({
                     recentWaypoints,
                     betas,
                     isSelfTourViewed,
-                    defaultWorkspaceName: undefined,
                 });
                 return;
             }

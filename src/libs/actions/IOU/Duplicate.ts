@@ -761,7 +761,6 @@ function duplicateExpenseTransaction({
             betas,
             draftTransactionIDs,
             isSelfTourViewed,
-            defaultWorkspaceName: undefined,
         };
         return trackExpense(trackExpenseParams);
     }

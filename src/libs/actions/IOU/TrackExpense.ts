@@ -190,7 +190,7 @@ type GetTrackExpenseInformationParams = {
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
     betas: OnyxEntry<OnyxTypes.Beta[]>;
     isSelfTourViewed: boolean;
-    defaultWorkspaceName: string | undefined;
+    defaultWorkspaceName?: string;
 };
 
 type DeleteTrackExpenseParams = {
