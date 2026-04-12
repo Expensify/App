@@ -796,7 +796,7 @@ function buildNextStepNew(params: BuildNextStepNewParams): ReportNextStepDepreca
             let bankAccountSetupActorMessage: Message;
             if (policy?.ownerAccountID === currentUserAccountIDParam) {
                 bankAccountSetupActorMessage = {text: 'you', type: 'strong', clickToCopyText: currentUserEmailParam ?? ''};
-            } else if (reimburserAccountID === -1) {
+            } else if (reimburserAccountID === -1 || !policy?.ownerAccountID) {
                 bankAccountSetupActorMessage = {text: 'an admin'};
             } else {
                 bankAccountSetupActorMessage = {text: getDisplayNameForParticipant({accountID: policy?.ownerAccountID, formatPhoneNumber: formatPhoneNumberPhoneUtils}), type: 'strong'};
