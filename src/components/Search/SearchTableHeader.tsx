@@ -547,6 +547,7 @@ function SearchTableHeader({
             sortBy={sortBy}
             sortOrder={sortOrder}
             shouldRemoveTotalColumnFlex={!!groupBy !== !!isExpenseReportView}
+            isActionColumnWide={type === CONST.SEARCH.DATA_TYPES.TASK}
             // Don't butt up against the 'select all' checkbox if present
             containerStyles={canSelectMultiple && [styles.pl3]}
             onSortPress={(columnName, order) => {
