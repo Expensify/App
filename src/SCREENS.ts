@@ -935,7 +935,7 @@ const SCREENS = {
         INVITE: 'RoomMembers_Invite',
         DETAILS: 'RoomMember_Details',
     },
-    DYNAMIC_FLAG_COMMENT: 'Dynamic_Flag_Comment',
+    FLAG_COMMENT_ROOT: 'FlagComment_Root',
     REIMBURSEMENT_ACCOUNT: 'ReimbursementAccount',
     REIMBURSEMENT_ACCOUNT_NON_USD: 'Reimbursement_Account_Non_USD',
     REIMBURSEMENT_ACCOUNT_ENTER_SIGNER_INFO: 'Reimbursement_Account_Signer_Info',

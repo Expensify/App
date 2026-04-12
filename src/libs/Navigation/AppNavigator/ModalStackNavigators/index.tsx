@@ -965,7 +965,7 @@ const WalletStatementStackNavigator = createModalStackNavigator<WalletStatementN
 });
 
 const FlagCommentStackNavigator = createModalStackNavigator<FlagCommentNavigatorParamList>({
-    [SCREENS.DYNAMIC_FLAG_COMMENT]: () => require<ReactComponentModule>('../../../../pages/DynamicFlagCommentPage').default,
+    [SCREENS.FLAG_COMMENT_ROOT]: () => require<ReactComponentModule>('../../../../pages/FlagCommentPage').default,
 });
 
 const EditRequestStackNavigator = createModalStackNavigator<EditRequestNavigatorParamList>({
