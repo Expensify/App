@@ -723,6 +723,7 @@ function WalletPage() {
                                         containerStyle={styles.hoveredComponentBG}
                                         shouldShowRightIcon
                                         icon={illustrations.VerticalCreditCards}
+                                        displayInDefaultIconColor
                                         wrapperStyle={styles.sectionMenuItemTopDescription}
                                         title={translate('personalCard.lookingForCompanyCards')}
                                         description={translate('personalCard.lookingForCompanyCardsDescription')}
