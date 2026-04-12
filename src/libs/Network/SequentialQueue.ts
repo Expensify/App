@@ -24,7 +24,16 @@ import type OnyxRequest from '@src/types/onyx/Request';
 import type {AnyOnyxUpdate, AnyRequest, ConflictData} from '@src/types/onyx/Request';
 import {isOffline, onReconnection} from './NetworkStore';
 
+// Commands that create visible report actions whose server-assigned timestamps may differ from client timestamps
+const OUTGOING_MESSAGE_COMMANDS: ReadonlySet<string> = new Set([WRITE_COMMANDS.ADD_COMMENT, WRITE_COMMANDS.ADD_ATTACHMENT, WRITE_COMMANDS.ADD_TEXT_AND_ATTACHMENT]);
+
+// Tracks report IDs that had offline outgoing message commands successfully processed during the current flush cycle.
+// When an offline ReadNewestAction targets one of these reports, its stale lastReadTime is refreshed to cover
+// the server-assigned timestamps on those messages, preventing the report from incorrectly appearing unread.
+const reportsWithOfflineSentMessages = new Set<string>();
+
 let shouldFailAllRequests: boolean;
+let networkTimeSkew = 0;
 // Use connectWithoutView since this is for network data and don't affect to any UI
 Onyx.connectWithoutView({
     key: ONYXKEYS.NETWORK,
@@ -33,6 +42,7 @@ Onyx.connectWithoutView({
             return;
         }
         shouldFailAllRequests = !!network.shouldFailAllRequests;
+        networkTimeSkew = network?.timeSkew ?? 0;
     },
 });
 
@@ -156,6 +166,33 @@ function process(): Promise<void> {
         persistWhenOngoing: requestToProcess.persistWhenOngoing ?? false,
     });
 
+    // When offline messages were sent for a report and then ReadNewestAction was queued while still offline,
+    // the lastReadTime captured at that offline moment becomes stale. The server assigns new timestamps to the
+    // offline-sent messages during replay, which end up later than the stale lastReadTime, causing the report
+    // to incorrectly appear as unread. Refresh lastReadTime to current time so it covers the server-assigned
+    // timestamps. Only do this when the same report had offline messages earlier in this flush cycle to avoid
+    // auto-reading messages from other users in reports where the user didn't send anything offline.
+    if (
+        requestToProcess.command === WRITE_COMMANDS.READ_NEWEST_ACTION &&
+        requestToProcess.initiatedOffline &&
+        typeof requestToProcess.data?.reportID === 'string' &&
+        reportsWithOfflineSentMessages.has(requestToProcess.data.reportID)
+    ) {
+        const now = networkTimeSkew > 0 ? new Date(Date.now() + networkTimeSkew) : new Date();
+        // Inline the DB time format conversion to avoid importing DateUtils, which would create a circular dependency
+        // (SequentialQueue → DateUtils → Localize → memoize → memoize/stats → Log → Network → SequentialQueue)
+        const refreshedLastReadTime = now.toISOString().replace('T', ' ').replace('Z', '');
+        Log.info('[SequentialQueue] Refreshing stale lastReadTime for offline ReadNewestAction', false, {
+            reportID: requestToProcess.data.reportID,
+            originalLastReadTime: requestToProcess.data.lastReadTime,
+            refreshedLastReadTime,
+        });
+        requestToProcess.data = {
+            ...requestToProcess.data,
+            lastReadTime: refreshedLastReadTime,
+        };
+    }
+
     // Set the current request to a promise awaiting its processing so that getCurrentRequest can be used to take some action after the current request has processed.
     currentRequestPromise = processWithMiddleware(requestToProcess, true)
         .then((response) => {
@@ -177,6 +214,12 @@ function process(): Promise<void> {
                 remainingRequests: getAllPersistedRequests().length,
             });
             endPersistedRequestAndRemoveFromQueue(requestToProcess);
+
+            // Track reports that had offline outgoing messages so we can refresh lastReadTime
+            // for any subsequent offline ReadNewestAction targeting the same report in this flush cycle.
+            if (requestToProcess.initiatedOffline && OUTGOING_MESSAGE_COMMANDS.has(requestToProcess.command) && typeof requestToProcess.data?.reportID === 'string') {
+                reportsWithOfflineSentMessages.add(requestToProcess.data.reportID);
+            }
 
             if (requestToProcess.queueFlushedData) {
                 Log.info('[SequentialQueue] Will store queueFlushedData.', false, {
@@ -316,6 +359,7 @@ function flush(shouldResetPromise = true) {
     });
 
     isSequentialQueueRunning = true;
+    reportsWithOfflineSentMessages.clear();
 
     if (shouldResetPromise) {
         // Reset the isReadyPromise so that the queue will be flushed as soon as the request is finished
