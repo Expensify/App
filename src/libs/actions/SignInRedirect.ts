@@ -6,7 +6,6 @@ import CONFIG from '@src/CONFIG';
 import type {OnyxKey} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {resetSignInFlow} from './HybridApp';
-import {clearAllPolicies} from './Policy/Policy';
 
 let currentIsOffline: boolean | undefined;
 let currentShouldForceOffline: boolean | undefined;
@@ -86,7 +85,6 @@ function clearStorageAndRedirect(errorMessage?: string): Promise<void> {
             resetSignInFlow();
             HybridAppModule.signOutFromOldDot();
         }
-        clearAllPolicies();
 
         // When logging out from imported state, reset shouldForceOffline to false and clear the imported state flag
         // so the user can log back in

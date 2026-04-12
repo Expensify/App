@@ -18,6 +18,7 @@ import useDeleteTransactions from '@hooks/useDeleteTransactions';
 import useDuplicateTransactionsAndViolations from '@hooks/useDuplicateTransactionsAndViolations';
 import useExportAgainModal from '@hooks/useExportAgainModal';
 import useGetIOUReportFromReportAction from '@hooks/useGetIOUReportFromReportAction';
+import useLastWorkspaceNumber from '@hooks/useLastWorkspaceNumber';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
@@ -46,6 +47,7 @@ import {duplicateReport as duplicateReportAction, duplicateExpenseTransaction as
 import {openOldDotLink} from '@libs/actions/Link';
 import {setupMergeTransactionDataAndNavigate} from '@libs/actions/MergeTransaction';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
+import {generateDefaultWorkspaceName} from '@libs/actions/Policy/Policy';
 import {deleteAppReport, exportReportToCSV, exportReportToPDF, exportToIntegration, markAsManuallyExported} from '@libs/actions/Report';
 import {getExportTemplates, queueExportSearchWithTemplate, search} from '@libs/actions/Search';
 import initSplitExpense from '@libs/actions/SplitExpenses';
@@ -266,6 +268,7 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
     const draftTransactionIDs = Object.keys(transactionDrafts ?? {});
 
     const {translate, localeCompare} = useLocalize();
+    const lastWorkspaceNumber = useLastWorkspaceNumber();
     const exportTemplates = useMemo(
         () => getExportTemplates(integrationsExportTemplates ?? [], csvExportLayouts ?? {}, translate, policy),
         [integrationsExportTemplates, csvExportLayouts, policy, translate],
@@ -609,6 +612,7 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
                     activePolicy,
                     betas,
                     isSelfTourViewed,
+                    defaultWorkspaceName: generateDefaultWorkspaceName(email ?? '', lastWorkspaceNumber, translate),
                 });
                 if (isFromSelectionMode) {
                     clearSelectedTransactions(true);
@@ -683,6 +687,8 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
             clearSelectedTransactions,
             amountOwed,
             ownerBillingGracePeriodEnd,
+            lastWorkspaceNumber,
+            translate,
         ],
     );
 
@@ -858,7 +864,6 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
                     optimisticIOUReportID,
                     isASAPSubmitBetaEnabled,
                     introSelected,
-                    activePolicyID,
                     quickAction,
                     policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
                     isSelfTourViewed,
@@ -877,7 +882,6 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
         },
         [
             activePolicyExpenseChat,
-            activePolicyID,
             allPolicyCategories,
             transactionDrafts,
             defaultExpensePolicy,

@@ -158,9 +158,10 @@ describe('GoogleTagManagerTest', () => {
     test('workspace_created', async () => {
         // When we run the createWorkspace action a few times
         createWorkspace({
+            policyName: '',
             introSelected: undefined,
             currentUserAccountIDParam: 123456,
-            activePolicyID: undefined,
+            activePolicy: undefined,
             currentUserEmailParam: 'test@test.com',
             isSelfTourViewed: false,
             betas: undefined,
@@ -168,8 +169,9 @@ describe('GoogleTagManagerTest', () => {
         });
         await waitForBatchedUpdatesWithAct();
         createWorkspace({
+            policyName: '',
             currentUserAccountIDParam: 123456,
-            activePolicyID: undefined,
+            activePolicy: undefined,
             currentUserEmailParam: 'test@test.com',
             introSelected: undefined,
             isSelfTourViewed: false,
@@ -178,8 +180,9 @@ describe('GoogleTagManagerTest', () => {
         });
         await waitForBatchedUpdatesWithAct();
         createWorkspace({
+            policyName: '',
             currentUserAccountIDParam: 123456,
-            activePolicyID: undefined,
+            activePolicy: undefined,
             currentUserEmailParam: 'test@test.com',
             introSelected: undefined,
             isSelfTourViewed: false,
@@ -222,7 +225,6 @@ describe('GoogleTagManagerTest', () => {
             currentUserAccountIDParam: accountID,
             currentUserEmailParam: 'test@test.com',
             introSelected: undefined,
-            activePolicyID: undefined,
             quickAction: undefined,
             recentWaypoints,
             betas: [CONST.BETAS.ALL],

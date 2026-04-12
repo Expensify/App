@@ -1,23 +1,23 @@
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import React, {useState} from 'react';
-import type {OnyxCollection} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
+import useActivePolicy from '@hooks/useActivePolicy';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useHasActiveAdminPolicies from '@hooks/useHasActiveAdminPolicies';
+import useLastWorkspaceNumber from '@hooks/useLastWorkspaceNumber';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@navigation/Navigation';
 import {createWorkspaceWithPolicyDraft} from '@userActions/App';
-import {generatePolicyID, newGenerateDefaultWorkspaceName} from '@userActions/Policy/Policy';
+import {generateDefaultWorkspaceName, generatePolicyID} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import {lastWorkspaceNumberSelector} from '@src/selectors/Policy';
-import type {LastPaymentMethodType, Policy} from '@src/types/onyx';
+import type {LastPaymentMethodType} from '@src/types/onyx';
 import UpgradeConfirmation from './UpgradeConfirmation';
 import UpgradeIntro from './UpgradeIntro';
 
@@ -31,27 +31,25 @@ function PersonalCardUpgradePage() {
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [lastPaymentMethod] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD);
-    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
 
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {accountID, email = ''} = currentUserPersonalDetails;
+    const activePolicy = useActivePolicy();
     const hasActiveAdminPolicies = useHasActiveAdminPolicies();
-
-    const lastWorkspaceNumberWithEmailSelector = (policies: OnyxCollection<Policy>) => lastWorkspaceNumberSelector(policies, email);
-    const [lastWorkspaceNumber] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: lastWorkspaceNumberWithEmailSelector});
+    const lastWorkspaceNumber = useLastWorkspaceNumber();
 
     const onUpgrade = () => {
         createWorkspaceWithPolicyDraft({
             introSelected,
-            policyName: newGenerateDefaultWorkspaceName(email, lastWorkspaceNumber, translate),
+            policyName: generateDefaultWorkspaceName(email, lastWorkspaceNumber, translate),
             currency: currentUserPersonalDetails.localCurrencyCode ?? CONST.CURRENCY.USD,
             policyOwnerEmail: '',
             transitionFromOldDot: false,
             makeMeAdmin: false,
             policyID,
             lastUsedPaymentMethod: lastPaymentMethod?.[policyID] as LastPaymentMethodType,
-            activePolicyID,
+            activePolicy,
             currentUserAccountIDParam: accountID,
             currentUserEmailParam: email,
             shouldCreateControlPolicy: false,

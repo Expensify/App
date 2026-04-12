@@ -1,6 +1,5 @@
 /* eslint-disable max-lines */
 import {PUBLIC_DOMAINS_SET, Str} from 'expensify-common';
-import escapeRegExp from 'lodash/escapeRegExp';
 import type {OnyxCollection, OnyxCollectionInputValue, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {TupleToUnion, ValueOf} from 'type-fest';
@@ -83,7 +82,7 @@ import {createFile} from '@libs/fileDownload/FileUtils';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import GoogleTagManager from '@libs/GoogleTagManager';
 // eslint-disable-next-line @typescript-eslint/no-deprecated
-import {translate, translateLocal} from '@libs/Localize';
+import {translateLocal} from '@libs/Localize';
 import Log from '@libs/Log';
 import {buildNextStepNew} from '@libs/NextStepUtils';
 import * as NumberUtils from '@libs/NumberUtils';
@@ -185,7 +184,7 @@ type PolicyCashExpenseMode = ValueOf<typeof CONST.POLICY.CASH_EXPENSE_REIMBURSEM
 type BuildPolicyDataOptions = {
     policyOwnerEmail?: string;
     makeMeAdmin?: boolean;
-    policyName?: string;
+    policyName: string;
     policyID?: string;
     expenseReportId?: string;
     engagementChoice?: OnboardingPurpose;
@@ -199,7 +198,7 @@ type BuildPolicyDataOptions = {
     adminParticipant?: Participant;
     hasOutstandingChildRequest?: boolean;
     introSelected: OnyxEntry<IntroSelected>;
-    activePolicyID?: string;
+    activePolicy: OnyxEntry<Policy>;
     currentUserAccountIDParam: number;
     currentUserEmailParam: string;
     allReportsParam?: OnyxCollection<Report>;
@@ -210,12 +209,12 @@ type BuildPolicyDataOptions = {
     // TODO: Make it required once we complete refactoring the buildPolicyData function to use isSelfTourViewed. Refactor issue: https://github.com/Expensify/App/issues/66424
     isSelfTourViewed?: boolean;
     betas: OnyxEntry<Beta[]>;
+    hasActiveAdminPolicies: boolean | undefined;
 };
 
 // TODO: Remove this type once we complete refactoring the buildPolicyData function to use isSelfTourViewed. Refactor issue: https://github.com/Expensify/App/issues/66424
 type CreateWorkspaceDataOptions = Omit<BuildPolicyDataOptions, 'isSelfTourViewed'> & {
     isSelfTourViewed: boolean | undefined;
-    hasActiveAdminPolicies: boolean;
 };
 
 type DuplicatePolicyDataOptions = {
@@ -250,22 +249,6 @@ type SetWorkspaceApprovalModeAdditionalData = {
     transactionViolations?: OnyxCollection<TransactionViolations>;
     betas?: Beta[];
 };
-
-const deprecatedAllPolicies: OnyxCollection<Policy> = {};
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.POLICY,
-    callback: (val, key) => {
-        if (!key) {
-            return;
-        }
-        if (val === null || val === undefined) {
-            delete deprecatedAllPolicies[key];
-            return;
-        }
-
-        deprecatedAllPolicies[key] = val;
-    },
-});
 
 let deprecatedAllReportActions: OnyxCollection<ReportActions>;
 Onyx.connect({
@@ -2186,7 +2169,7 @@ function getDisplayNameForWorkspace(email: string, displayNameOverride?: string)
 /**
  * Generate a policy name based on an email and the last workspace number.
  */
-function newGenerateDefaultWorkspaceName(email: string, lastWorkspaceNumber: number | undefined, localeTranslate: LocalizedTranslate, displayNameOverride?: string): string {
+function generateDefaultWorkspaceName(email: string, lastWorkspaceNumber: number | undefined, localeTranslate: LocalizedTranslate, displayNameOverride?: string): string {
     const emailParts = email.split('@');
     if (!emailParts || emailParts.length !== 2) {
         return '';
@@ -2201,64 +2184,6 @@ function newGenerateDefaultWorkspaceName(email: string, lastWorkspaceNumber: num
     const displayNameForWorkspace = getDisplayNameForWorkspace(email, displayNameOverride);
 
     return localeTranslate('workspace.new.workspaceName', displayNameForWorkspace, lastWorkspaceNumber !== undefined ? lastWorkspaceNumber + 1 : undefined);
-}
-
-/**
- * Generate a policy name based on an email and policy list.
- * @param [email] the email to base the workspace name on. If not passed, will use the logged-in user's email instead
- */
-function generateDefaultWorkspaceName(email = '', displayNameOverride?: string): string {
-    const emailParts = email ? email.split('@') : deprecatedSessionEmail.split('@');
-    if (!emailParts || emailParts.length !== 2) {
-        return '';
-    }
-    const username = emailParts.at(0) ?? '';
-    const domain = emailParts.at(1) ?? '';
-    const userDetails = PersonalDetailsUtils.getPersonalDetailByEmail(email || deprecatedSessionEmail);
-    const displayName = displayNameOverride?.trim() ?? userDetails?.displayName?.trim();
-    let displayNameForWorkspace = '';
-
-    if (!PUBLIC_DOMAINS_SET.has(domain.toLowerCase())) {
-        displayNameForWorkspace = Str.UCFirst(domain.split('.').at(0) ?? '');
-    } else if (displayName) {
-        displayNameForWorkspace = Str.UCFirst(displayName);
-    } else if (PUBLIC_DOMAINS_SET.has(domain.toLowerCase())) {
-        displayNameForWorkspace = Str.UCFirst(username);
-    } else {
-        displayNameForWorkspace = userDetails?.phoneNumber ?? '';
-    }
-
-    const isSMSDomain = `@${domain}` === CONST.SMS.DOMAIN;
-    if (isSMSDomain) {
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        displayNameForWorkspace = translateLocal('workspace.new.myGroupWorkspace', {});
-    }
-
-    if (isEmptyObject(deprecatedAllPolicies)) {
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        return isSMSDomain ? translateLocal('workspace.new.myGroupWorkspace', {}) : translateLocal('workspace.new.workspaceName', displayNameForWorkspace);
-    }
-
-    // find default named workspaces and increment the last number
-    const escapedName = escapeRegExp(displayNameForWorkspace);
-    const workspaceTranslations = Object.values(CONST.LOCALES)
-        .map((lang) => translate(lang, 'workspace.common.workspace'))
-        .join('|');
-
-    const workspaceRegex = isSMSDomain ? new RegExp(`^${escapedName}\\s*(\\d+)?$`, 'i') : new RegExp(`^(?=.*${escapedName})(?:.*(?:${workspaceTranslations})\\s*(\\d+)?)`, 'i');
-
-    const workspaceNumbers = Object.values(deprecatedAllPolicies)
-        .map((policy) => workspaceRegex.exec(policy?.name ?? ''))
-        .filter(Boolean) // Remove null matches
-        .map((match) => Number(match?.[1] ?? '0'));
-    const lastWorkspaceNumber = workspaceNumbers.length > 0 ? Math.max(...workspaceNumbers) : undefined;
-
-    if (isSMSDomain) {
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        return translateLocal('workspace.new.myGroupWorkspace', {workspaceNumber: lastWorkspaceNumber !== undefined ? lastWorkspaceNumber + 1 : undefined});
-    }
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    return translateLocal('workspace.new.workspaceName', displayNameForWorkspace, lastWorkspaceNumber !== undefined ? lastWorkspaceNumber + 1 : undefined);
 }
 
 /**
@@ -2412,7 +2337,7 @@ function buildPolicyData(options: BuildPolicyDataOptions): OnyxData<BuildPolicyD
     const {
         policyOwnerEmail = '',
         makeMeAdmin = false,
-        policyName = '',
+        policyName,
         policyID = generatePolicyID(),
         expenseReportId,
         engagementChoice,
@@ -2426,7 +2351,7 @@ function buildPolicyData(options: BuildPolicyDataOptions): OnyxData<BuildPolicyD
         adminParticipant,
         hasOutstandingChildRequest = true,
         introSelected,
-        activePolicyID,
+        activePolicy,
         currentUserAccountIDParam,
         currentUserEmailParam,
         allReportsParam,
@@ -2436,8 +2361,8 @@ function buildPolicyData(options: BuildPolicyDataOptions): OnyxData<BuildPolicyD
         type,
         isSelfTourViewed,
         betas,
+        hasActiveAdminPolicies,
     } = options;
-    const workspaceName = policyName || generateDefaultWorkspaceName(policyOwnerEmail);
 
     const {customUnits, customUnitID, customUnitRateID, outputCurrency} = buildOptimisticDistanceRateCustomUnits(currency);
 
@@ -2451,7 +2376,7 @@ function buildPolicyData(options: BuildPolicyDataOptions): OnyxData<BuildPolicyD
         expenseReportActionData,
         expenseCreatedReportActionID,
         pendingChatMembers,
-    } = ReportUtils.buildOptimisticWorkspaceChats(policyID, workspaceName, expenseReportId);
+    } = ReportUtils.buildOptimisticWorkspaceChats(policyID, policyName, expenseReportId);
 
     const optimisticCategoriesData = buildOptimisticPolicyCategories(policyID, Object.values(CONST.POLICY.DEFAULT_CATEGORIES));
     const optimisticMccGroupData = buildOptimisticMccGroup();
@@ -2462,7 +2387,7 @@ function buildPolicyData(options: BuildPolicyDataOptions): OnyxData<BuildPolicyD
         engagementChoice === CONST.ONBOARDING_CHOICES.LOOKING_AROUND ||
         engagementChoice === CONST.ONBOARDING_CHOICES.PERSONAL_SPEND ||
         engagementChoice === CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE;
-    const shouldSetCreatedPolicyAsActive = !activePolicyID || deprecatedAllPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`]?.type === CONST.POLICY.TYPE.PERSONAL;
+    const shouldSetCreatedPolicyAsActive = !activePolicy?.id || activePolicy?.type === CONST.POLICY.TYPE.PERSONAL;
 
     // Determine workspace type based on selected features or user reported integration
     const isCorporateFeature = featuresMap?.some((feature) => !feature.enabledByDefault && feature.enabled && feature.requiresUpdate) ?? false;
@@ -2495,7 +2420,7 @@ function buildPolicyData(options: BuildPolicyDataOptions): OnyxData<BuildPolicyD
             value: {
                 id: policyID,
                 type: workspaceType,
-                name: workspaceName,
+                name: policyName,
                 role: CONST.POLICY.ROLE.ADMIN,
                 owner: policyOwnerEmail || currentUserEmailParam,
                 ownerAccountID: policyOwnerEmail ? (PersonalDetailsUtils.getPersonalDetailByEmail(policyOwnerEmail)?.accountID ?? currentUserAccountIDParam) : currentUserAccountIDParam,
@@ -2815,7 +2740,7 @@ function buildPolicyData(options: BuildPolicyDataOptions): OnyxData<BuildPolicyD
         failureData.push({
             onyxMethod: Onyx.METHOD.SET,
             key: ONYXKEYS.NVP_ACTIVE_POLICY_ID,
-            value: activePolicyID ?? null,
+            value: activePolicy?.id ?? null,
         });
     }
 
@@ -2831,7 +2756,7 @@ function buildPolicyData(options: BuildPolicyDataOptions): OnyxData<BuildPolicyD
         successData.push(...optimisticCategoriesData.successData);
     }
 
-    if (getAdminPolicies().length === 0 && lastUsedPaymentMethod) {
+    if (!hasActiveAdminPolicies && lastUsedPaymentMethod) {
         for (const report of Object.values(allReportsParam ?? {})) {
             if (report?.type !== CONST.REPORT.TYPE.IOU) {
                 continue;
@@ -2869,7 +2794,7 @@ function buildPolicyData(options: BuildPolicyDataOptions): OnyxData<BuildPolicyD
         expenseChatReportID,
         ownerEmail: policyOwnerEmail,
         makeMeAdmin,
-        policyName: workspaceName,
+        policyName,
         type: workspaceType,
         adminsCreatedReportActionID,
         expenseCreatedReportActionID,
@@ -3949,7 +3874,7 @@ function createWorkspaceFromIOUPayment(
 
     // Generate new variables for the policy
     const policyID = generatePolicyID();
-    const workspaceName = newGenerateDefaultWorkspaceName(currentUserEmail, lastWorkspaceNumber, localeTranslate);
+    const workspaceName = generateDefaultWorkspaceName(currentUserEmail, lastWorkspaceNumber, localeTranslate);
     const employeeAccountID = iouReport?.ownerAccountID;
     const {customUnits, customUnitID, customUnitRateID} = buildOptimisticDistanceRateCustomUnits(iouReport?.currency ?? currentUserLocalCurrency);
     const oldPersonalPolicyID = iouReport?.policyID;
@@ -6202,12 +6127,6 @@ function setPolicyAttendeeTrackingEnabled(policyID: string, isAttendeeTrackingEn
     API.write(WRITE_COMMANDS.SET_POLICY_ATTENDEE_TRACKING_ENABLED, parameters, onyxData);
 }
 
-function getAdminPolicies(): Policy[] {
-    return Object.values(deprecatedAllPolicies ?? {}).filter<Policy>(
-        (policy): policy is Policy => !!policy && policy.role === CONST.POLICY.ROLE.ADMIN && policy.type !== CONST.POLICY.TYPE.PERSONAL,
-    );
-}
-
 /**
  * Call the API to set default report title pattern for the given policy
  * @param policyID - id of the policy to apply the naming pattern to
@@ -6779,15 +6698,6 @@ function enablePolicyAutoReimbursementLimit(
     });
 }
 
-function clearAllPolicies() {
-    if (!deprecatedAllPolicies) {
-        return;
-    }
-    for (const key of Object.keys(deprecatedAllPolicies)) {
-        delete deprecatedAllPolicies[key];
-    }
-}
-
 function updateInvoiceCompanyName(policyID: string, companyName: string, currentCompanyName: string | undefined) {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
@@ -7050,7 +6960,6 @@ export {
     clearDeleteWorkspaceError,
     setWorkspaceDefaultSpendCategory,
     getDisplayNameForWorkspace,
-    newGenerateDefaultWorkspaceName,
     generateDefaultWorkspaceName,
     updateGeneralSettings,
     deleteWorkspaceAvatar,
@@ -7118,7 +7027,6 @@ export {
     openPolicyEditCardLimitTypePage,
     requestExpensifyCardLimitIncrease,
     hasInvoicingDetails,
-    clearAllPolicies,
     enablePolicyRules,
     setPolicyDefaultReportTitle,
     clearQBDErrorField,

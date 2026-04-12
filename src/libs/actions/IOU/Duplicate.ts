@@ -644,7 +644,6 @@ type DuplicateExpenseTransactionParams = {
     optimisticIOUReportID: string;
     isASAPSubmitBetaEnabled: boolean;
     introSelected: OnyxEntry<OnyxTypes.IntroSelected>;
-    activePolicyID: string | undefined;
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
     policyRecentlyUsedCurrencies: string[];
     isSelfTourViewed: boolean;
@@ -668,7 +667,6 @@ function duplicateExpenseTransaction({
     optimisticIOUReportID,
     isASAPSubmitBetaEnabled,
     introSelected,
-    activePolicyID,
     quickAction,
     policyRecentlyUsedCurrencies,
     isSelfTourViewed,
@@ -755,7 +753,6 @@ function duplicateExpenseTransaction({
             report: undefined,
             isDraftPolicy: false,
             introSelected,
-            activePolicyID,
             quickAction,
             recentWaypoints,
             betas,
@@ -947,7 +944,6 @@ type BulkDuplicateExpensesParams = {
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
     isASAPSubmitBetaEnabled: boolean;
     introSelected: OnyxEntry<OnyxTypes.IntroSelected>;
-    activePolicyID: string | undefined;
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
     policyRecentlyUsedCurrencies: string[];
     isSelfTourViewed: boolean;
@@ -968,7 +964,6 @@ function bulkDuplicateExpenses({
     personalDetails,
     isASAPSubmitBetaEnabled,
     introSelected,
-    activePolicyID,
     quickAction,
     policyRecentlyUsedCurrencies,
     isSelfTourViewed,
@@ -1007,7 +1002,6 @@ function bulkDuplicateExpenses({
             optimisticIOUReportID,
             isASAPSubmitBetaEnabled,
             introSelected,
-            activePolicyID,
             quickAction,
             policyRecentlyUsedCurrencies,
             isSelfTourViewed,

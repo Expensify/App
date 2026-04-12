@@ -26,12 +26,13 @@ type CreateTrackExpenseParams = {
     currentUserAccountIDParam: number;
     currentUserEmailParam: string;
     introSelected: OnyxEntry<OnyxTypes.IntroSelected>;
-    activePolicyID: string | undefined;
+    activePolicy?: OnyxEntry<OnyxTypes.Policy>;
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
     recentWaypoints: OnyxEntry<OnyxTypes.RecentWaypoint[]>;
     betas: OnyxEntry<OnyxTypes.Beta[]>;
     draftTransactionIDs: string[] | undefined;
     isSelfTourViewed: boolean;
+    hasActiveAdminPolicies?: boolean;
 };
 
 export type {CreateTrackExpenseParams, TrackExpenseAccountantParams};
