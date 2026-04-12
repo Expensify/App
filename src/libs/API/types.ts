@@ -1441,4 +1441,4 @@ type CommandOfType<TRequestType extends ApiRequestType> = TRequestType extends t
       ? ReadCommand
       : SideEffectRequestCommand;
 
-export type {ApiCommand, ApiRequestType, ApiRequestCommandParameters, CommandOfType, ReadCommand, SideEffectRequestCommand, WriteCommand};
+export type {ApiCommand, ApiRequestType, ApiRequestCommandParameters, CommandOfType, WriteCommand, ReadCommand, SideEffectRequestCommand};
