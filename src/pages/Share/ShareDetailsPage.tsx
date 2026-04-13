@@ -13,7 +13,6 @@ import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useAncestors from '@hooks/useAncestors';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -48,7 +47,6 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
     const {reportOrAccountID} = route.params;
 
     const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar']);
-    const isInLandscapeMode = useIsInLandscapeMode();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [unknownUserDetails] = useOnyx(ONYXKEYS.SHARE_UNKNOWN_USER_DETAILS);
