@@ -1452,20 +1452,29 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.RULES_SPEND_NEW]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.RULES_SPEND_EDIT]: {
+        policyID: string;
+        ruleID: string;
+    };
     [SCREENS.WORKSPACE.RULES_SPEND_CARD]: {
         policyID: string;
+        ruleID: string;
     };
     [SCREENS.WORKSPACE.RULES_SPEND_CATEGORY]: {
         policyID: string;
+        ruleID: string;
     };
     [SCREENS.WORKSPACE.RULES_SPEND_MAX_AMOUNT]: {
         policyID: string;
+        ruleID: string;
     };
     [SCREENS.WORKSPACE.RULES_SPEND_MERCHANTS]: {
         policyID: string;
+        ruleID: string;
     };
     [SCREENS.WORKSPACE.RULES_SPEND_MERCHANT_EDIT]: {
         policyID: string;
+        ruleID: string;
         merchantIndex: string;
     };
     [SCREENS.WORKSPACE.RULES_MERCHANT_MERCHANT_TO_MATCH]: {
@@ -2270,14 +2279,6 @@ type ReimbursementAccountNavigatorParamList = {
         policyID?: string;
         bankAccountID?: string;
         subStep?: typeof CONST.BANK_ACCOUNT.STEP.COUNTRY;
-    };
-    [SCREENS.REIMBURSEMENT_ACCOUNT_USD]: {
-        page?: string;
-        subPage?: string;
-        action?: 'edit';
-        policyID?: string;
-        // eslint-disable-next-line no-restricted-syntax -- backTo is a temporary param will be removed after https://github.com/Expensify/App/issues/73825 is done
-        backTo?: Routes;
     };
     [SCREENS.REIMBURSEMENT_ACCOUNT_NON_USD]: {
         page?: string;
