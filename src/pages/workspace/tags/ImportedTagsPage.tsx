@@ -105,7 +105,7 @@ function ImportedTagsPage({route}: ImportedTagsPageProps) {
             const existingGLCodeOrDefault = tagAlreadyExists?.['GL Code'] ?? '';
             return {
                 name,
-                enabled: tagsEnabledColumn !== -1 ? tagsEnabled?.[containsHeader ? index + 1 : index] === 'true' : true,
+                enabled: tagsEnabledColumn !== -1 ? tagsEnabled?.[containsHeader ? index + 1 : index]?.toString().toLowerCase() === 'true' : true,
                 // eslint-disable-next-line @typescript-eslint/naming-convention
                 'GL Code': tagsGLCodeColumn !== -1 ? (tagsGLCode?.[containsHeader ? index + 1 : index] ?? '') : existingGLCodeOrDefault,
             };
