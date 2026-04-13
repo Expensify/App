@@ -7,7 +7,9 @@ describe('checkReactCompilerCompliance', () => {
                 return <div>Hello</div>;
             }
         `;
-        expect(checkReactCompilerCompliance(source, 'MyComponent.tsx')).toBe('compiled');
+        const result = checkReactCompilerCompliance(source, 'MyComponent.tsx');
+        expect(result.status).toBe('compiled');
+        expect(result.errors).toEqual([]);
     });
 
     it('returns compiled for a hook that compiles', () => {
@@ -18,20 +20,29 @@ describe('checkReactCompilerCompliance', () => {
                 return value;
             }
         `;
-        expect(checkReactCompilerCompliance(source, 'useMyHook.ts')).toBe('compiled');
+        const result = checkReactCompilerCompliance(source, 'useMyHook.ts');
+        expect(result.status).toBe('compiled');
+        expect(result.errors).toEqual([]);
     });
 
-    it('returns failed for a component with a Rules of React violation', () => {
+    it('returns failed with error details for a component with a Rules of React violation', () => {
         const source = `
-            import {useState} from 'react';
-            function BadComponent({condition}) {
-                if (condition) {
-                    const [value] = useState(0);
-                }
-                return <div>Bad</div>;
-            }
-        `;
-        expect(checkReactCompilerCompliance(source, 'BadComponent.tsx')).toBe('failed');
+import {useState} from 'react';
+function BadComponent({condition}) {
+    if (condition) {
+        const [value] = useState(0);
+    }
+    return <div>Bad</div>;
+}
+        `.trim();
+        const result = checkReactCompilerCompliance(source, 'BadComponent.tsx');
+        expect(result.status).toBe('failed');
+        expect(result.errors.length).toBeGreaterThan(0);
+
+        const error = result.errors.at(0);
+        expect(error.reason).toContain('Hooks must always be called in a consistent order');
+        expect(error.loc).toBeDefined();
+        expect(error.loc?.start.line).toBeGreaterThan(0);
     });
 
     it('returns no-components for a plain utility file', () => {
@@ -43,7 +54,9 @@ describe('checkReactCompilerCompliance', () => {
                 return a - b;
             }
         `;
-        expect(checkReactCompilerCompliance(source, 'mathUtils.ts')).toBe('no-components');
+        const result = checkReactCompilerCompliance(source, 'mathUtils.ts');
+        expect(result.status).toBe('no-components');
+        expect(result.errors).toEqual([]);
     });
 
     it('returns no-components for a types-only file', () => {
@@ -58,6 +71,24 @@ describe('checkReactCompilerCompliance', () => {
                 language: string;
             }
         `;
-        expect(checkReactCompilerCompliance(source, 'types.ts')).toBe('no-components');
+        const result = checkReactCompilerCompliance(source, 'types.ts');
+        expect(result.status).toBe('no-components');
+        expect(result.errors).toEqual([]);
+    });
+
+    it('includes function location in error details', () => {
+        const source = `
+import {useState} from 'react';
+function BadComponent({condition}) {
+    if (condition) {
+        const [value] = useState(0);
+    }
+    return <div>Bad</div>;
+}
+        `.trim();
+        const result = checkReactCompilerCompliance(source, 'BadComponent.tsx');
+        expect(result.errors.length).toBeGreaterThan(0);
+        expect(result.errors.at(0).fnLoc).toBeDefined();
+        expect(result.errors.at(0).fnLoc?.start.line).toBe(2);
     });
 });

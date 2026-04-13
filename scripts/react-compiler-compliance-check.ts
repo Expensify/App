@@ -20,17 +20,46 @@ import {log, error as logError, info as logInfo, success as logSuccess, warn as 
 // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-unsafe-assignment
 const ReactCompilerConfig = require('../config/babel/reactCompilerConfig');
 
-type CompilationResult = 'compiled' | 'failed' | 'no-components';
+type SourceLocation = {
+    start: {line: number; column: number};
+    end: {line: number; column: number};
+};
+
+type CompilerError = {
+    reason: string;
+    severity: string;
+    loc?: SourceLocation;
+    fnLoc?: SourceLocation;
+};
+
+type CompilationResult = {
+    status: 'compiled' | 'failed' | 'no-components';
+    errors: CompilerError[];
+};
+
+type CompilerLogEvent = {
+    kind: string;
+    fnLoc?: SourceLocation;
+    fnName?: string;
+    detail?: {
+        severity?: string;
+        reason?: string;
+        loc?: SourceLocation;
+    };
+};
 
 const FILE_EXTENSIONS = ['.ts', '.tsx'];
 
+const IS_CI = process.env.CI === 'true';
+
 /**
  * Check if a source string compiles with React Compiler.
- * Returns a three-state result indicating compilation success, failure, or no React code found.
+ * Returns the compilation status and any errors with their details.
  */
 function checkReactCompilerCompliance(source: string, filename: string): CompilationResult {
     let hasError = false;
     let hasSuccess = false;
+    const errors: CompilerError[] = [];
 
     try {
         transformSync(source, {
@@ -50,9 +79,17 @@ function checkReactCompilerCompliance(source: string, filename: string): Compila
                         panicThreshold: 'none',
                         noEmit: true,
                         logger: {
-                            logEvent(_filename: string, event: {kind: string}) {
+                            logEvent(_filename: string, event: CompilerLogEvent) {
                                 if (event.kind === 'CompileError') {
                                     hasError = true;
+                                    if (event.detail?.reason) {
+                                        errors.push({
+                                            reason: event.detail.reason,
+                                            severity: event.detail.severity ?? 'Error',
+                                            loc: event.detail.loc,
+                                            fnLoc: event.fnLoc,
+                                        });
+                                    }
                                 }
                                 if (event.kind === 'CompileSuccess') {
                                     hasSuccess = true;
@@ -63,17 +100,42 @@ function checkReactCompilerCompliance(source: string, filename: string): Compila
                 ],
             ],
         });
-    } catch {
+    } catch (e) {
         hasError = true;
+        errors.push({
+            reason: e instanceof Error ? e.message : String(e),
+            severity: 'Error',
+        });
     }
 
     if (hasError) {
-        return 'failed';
+        return {status: 'failed', errors};
     }
     if (hasSuccess) {
-        return 'compiled';
+        return {status: 'compiled', errors: []};
     }
-    return 'no-components';
+    return {status: 'no-components', errors: []};
+}
+
+function formatErrorLocation(filename: string, error: CompilerError): string {
+    const loc = error.loc ?? error.fnLoc;
+    if (loc) {
+        return `${filename}:${loc.start.line}:${loc.start.column}`;
+    }
+    return filename;
+}
+
+function printErrors(filename: string, errors: CompilerError[]): void {
+    if (IS_CI) {
+        console.log(`::group::${filename} (${errors.length} error${errors.length === 1 ? '' : 's'})`);
+    }
+    for (const error of errors) {
+        const location = formatErrorLocation(filename, error);
+        logError(`    ${location}: ${error.reason}`);
+    }
+    if (IS_CI) {
+        console.log('::endgroup::');
+    }
 }
 
 /**
@@ -93,12 +155,13 @@ function checkFiles(inputs: string[], verbose: boolean): boolean {
         const source = fs.readFileSync(file, 'utf8');
         const result = checkReactCompilerCompliance(source, file);
 
-        switch (result) {
+        switch (result.status) {
             case 'compiled':
                 logSuccess(`COMPILED ${file}`);
                 break;
             case 'failed':
                 logError(`FAILED   ${file}`);
+                printErrors(file, result.errors);
                 hasFailure = true;
                 break;
             case 'no-components':
@@ -131,7 +194,7 @@ async function checkChangedFiles(remote: string, verbose: boolean): Promise<bool
 
     logInfo(`Checking ${reactFiles.length} changed React files...`);
 
-    const failures: Array<{file: string; reason: string}> = [];
+    const failures: Array<{file: string; reason: string; errors: CompilerError[]}> = [];
 
     for (const {filename, status, previousFilename} of reactFiles) {
         const absolutePath = path.resolve(filename);
@@ -143,47 +206,44 @@ async function checkChangedFiles(remote: string, verbose: boolean): Promise<bool
         const result = checkReactCompilerCompliance(source, absolutePath);
 
         if (status === 'added') {
-            if (result === 'failed') {
-                failures.push({file: filename, reason: 'New file contains components/hooks that fail to compile with React Compiler'});
+            if (result.status === 'failed') {
+                failures.push({file: filename, reason: 'New file contains components/hooks that fail to compile with React Compiler', errors: result.errors});
                 logError(`FAILED   ${filename} (new file must compile)`);
+                printErrors(filename, result.errors);
             } else if (verbose) {
-                const label = result === 'compiled' ? 'COMPILED' : 'SKIPPED ';
+                const label = result.status === 'compiled' ? 'COMPILED' : 'SKIPPED ';
                 logSuccess(`${label} ${filename}`);
             }
             continue;
         }
 
         // Modified or renamed files: check for regression
-        if (result === 'failed') {
-            let mainResult: CompilationResult = 'no-components';
+        if (result.status === 'failed') {
+            let mainStatus: CompilationResult['status'] = 'no-components';
             const mainPath = previousFilename ?? filename;
             try {
                 const mainSource = Git.show('origin/main', mainPath);
-                mainResult = checkReactCompilerCompliance(mainSource, mainPath);
+                mainStatus = checkReactCompilerCompliance(mainSource, mainPath).status;
             } catch {
-                mainResult = 'no-components';
+                mainStatus = 'no-components';
             }
 
-            if (mainResult === 'compiled') {
-                failures.push({file: filename, reason: 'File compiled on main but fails to compile on this branch (regression)'});
+            if (mainStatus === 'compiled') {
+                failures.push({file: filename, reason: 'File compiled on main but fails to compile on this branch (regression)', errors: result.errors});
                 logError(`FAILED   ${filename} (regression: compiled on main)`);
+                printErrors(filename, result.errors);
             } else if (verbose) {
                 logWarn(`WARNING  ${filename} (fails to compile, but also failed on main)`);
             }
         } else if (verbose) {
-            const label = result === 'compiled' ? 'COMPILED' : 'SKIPPED ';
+            const label = result.status === 'compiled' ? 'COMPILED' : 'SKIPPED ';
             logSuccess(`${label} ${filename}`);
         }
     }
 
     log();
     if (failures.length > 0) {
-        logError(`React Compiler compliance check failed with ${failures.length} error(s):`);
-        log();
-        for (const {file, reason} of failures) {
-            logError(`  ${file}`);
-            logInfo(`    ${reason}`);
-        }
+        logError(`React Compiler compliance check failed with ${failures.length} error(s).`);
         log();
         logInfo('See contributingGuides/REACT_COMPILER.md for help fixing these errors.');
         return false;
@@ -260,4 +320,4 @@ if (require.main === module) {
 }
 
 export {checkReactCompilerCompliance};
-export type {CompilationResult};
+export type {CompilationResult, CompilerError};
