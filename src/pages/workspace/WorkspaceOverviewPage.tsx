@@ -62,7 +62,7 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import {
     getConnectionExporters,
-    getPolicyDocumentSourceURL,
+    getRulesDocumentSourceURL,
     getUserFriendlyWorkspaceType,
     goBackFromInvalidPolicy,
     isPendingDeletePolicy,
@@ -196,9 +196,9 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     const [isLeaveModalOpen, setIsLeaveModalOpen] = useState(false);
     const [session] = useOnyx(ONYXKEYS.SESSION);
 
-    const policyDocumentSourceURL = useMemo(
-        () => getPolicyDocumentSourceURL(policy?.policyDocumentURL, policyID, session?.encryptedAuthToken ?? ''),
-        [policy?.policyDocumentURL, policyID, session?.encryptedAuthToken],
+    const rulesDocumentSourceURL = useMemo(
+        () => getRulesDocumentSourceURL(policy?.rulesDocumentURL, policyID, session?.encryptedAuthToken ?? ''),
+        [policy?.rulesDocumentURL, policyID, session?.encryptedAuthToken],
     );
 
     const personalDetails = usePersonalDetails();
@@ -449,7 +449,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                         if (!policyID || !files.length) {
                             return;
                         }
-                        updateWorkspaceRulesDocument(policyID, files.at(0) as File, policy?.policyDocumentURL);
+                        updateWorkspaceRulesDocument(policyID, files.at(0) as File, policy?.rulesDocumentURL);
                     },
                 });
             },
@@ -458,10 +458,10 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
             text: translate('common.remove'),
             icon: expensifyIcons.Trashcan,
             onSelected: () => {
-                if (!policyID || !policy?.policyDocumentURL) {
+                if (!policyID || !policy?.rulesDocumentURL) {
                     return;
                 }
-                deleteWorkspaceRulesDocument(policyID, policy.policyDocumentURL);
+                deleteWorkspaceRulesDocument(policyID, policy.rulesDocumentURL);
             },
         },
     ];
@@ -807,11 +807,11 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                         subtitleTextStyles={[styles.textNormal, styles.colorMuted, styles.mr5]}
                         containerStyles={shouldUseNarrowLayout ? styles.p5 : styles.p8}
                     >
-                        <OfflineWithFeedback pendingAction={policy?.pendingFields?.policyDocumentURL}>
+                        <OfflineWithFeedback pendingAction={policy?.pendingFields?.rulesDocumentURL}>
                             <Text style={[styles.mutedTextLabel, styles.mb2]}>{translate('workspace.rules.customRules.policyDocument')}</Text>
                             <AttachmentPicker acceptedFileTypes={['pdf']}>
                                 {({openPicker}) => {
-                                    if (policy?.policyDocumentURL) {
+                                    if (policy?.rulesDocumentURL) {
                                         return (
                                             <View style={[styles.flexRow, styles.alignItemsStart]}>
                                                 <PressableWithoutFeedback
@@ -826,7 +826,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                                                     style={[styles.border, styles.borderRadiusComponentLarge, styles.overflowHidden, {width: 200, height: 260}]}
                                                 >
                                                     <PDFThumbnail
-                                                        previewSourceURL={policyDocumentSourceURL}
+                                                        previewSourceURL={rulesDocumentSourceURL}
                                                         style={{width: 200, height: 260}}
                                                     />
                                                 </PressableWithoutFeedback>
@@ -854,7 +854,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                                                         if (!policyID || !files.length) {
                                                             return;
                                                         }
-                                                        updateWorkspaceRulesDocument(policyID, files.at(0) as File, policy?.policyDocumentURL);
+                                                        updateWorkspaceRulesDocument(policyID, files.at(0) as File, policy?.rulesDocumentURL);
                                                     },
                                                 });
                                             }}

@@ -2107,20 +2107,20 @@ function sortPoliciesByName(policies: Policy[], localeCompare: (a: string, b: st
  * The stored URL (which contains a unique timestamp per upload) is appended as a version
  * parameter so the browser treats each replacement as a distinct resource.
  */
-function getPolicyDocumentSourceURL(policyDocumentURL: string | undefined, policyID: string | undefined, encryptedAuthToken: string): string {
-    if (!policyDocumentURL || !policyID) {
+function getRulesDocumentSourceURL(rulesDocumentURL: string | undefined, policyID: string | undefined, encryptedAuthToken: string): string {
+    if (!rulesDocumentURL || !policyID) {
         return '';
     }
 
-    const isLocalFile = policyDocumentURL.startsWith('blob:') || policyDocumentURL.startsWith('file:');
+    const isLocalFile = rulesDocumentURL.startsWith('blob:') || rulesDocumentURL.startsWith('file:');
     if (isLocalFile) {
-        return policyDocumentURL;
+        return rulesDocumentURL;
     }
 
     return addEncryptedAuthTokenToURL(
-        // Each PDF upload gets a unique S3 key, so policyDocumentURL changes on every replacement.
+        // Each PDF upload gets a unique S3 key, so rulesDocumentURL changes on every replacement.
         // Encoding it as cacheBuster ensures the full streaming URL is also unique, preventing stale browser/pdfjs cache.
-        `${getApiRoot({shouldUseSecure: false})}api/GetPolicyDocument?policyID=${policyID}&cacheBuster=${encodeURIComponent(policyDocumentURL)}`,
+        `${getApiRoot({shouldUseSecure: false})}api/GetPolicyDocument?policyID=${policyID}&cacheBuster=${encodeURIComponent(rulesDocumentURL)}`,
         encryptedAuthToken,
         true,
     );
@@ -2308,7 +2308,7 @@ export {
     isPolicyTaxEnabled,
     sortPoliciesByName,
     isPolicyApprover,
-    getPolicyDocumentSourceURL,
+    getRulesDocumentSourceURL,
 };
 
 export type {MemberEmailsToAccountIDs};

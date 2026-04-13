@@ -2005,7 +2005,7 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         customRules?: string;
 
         /** URL of the workspace rules PDF document stored in a private S3 bucket */
-        policyDocumentURL?: string;
+        rulesDocumentURL?: string;
 
         /** ReportID of the admins room for this workspace - This should be a string, we are keeping the number for backward compatibility */
         chatReportIDAdmins?: string | number;

@@ -1,7 +1,7 @@
 import React, {useMemo} from 'react';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
-import {getPolicyDocumentSourceURL} from '@libs/PolicyUtils';
+import {getRulesDocumentSourceURL} from '@libs/PolicyUtils';
 import type {AttachmentModalBaseContentProps} from '@pages/media/AttachmentModalScreen/AttachmentModalBaseContent/types';
 import AttachmentModalContainer from '@pages/media/AttachmentModalScreen/AttachmentModalContainer';
 import type {AttachmentModalScreenProps} from '@pages/media/AttachmentModalScreen/types';
@@ -18,24 +18,24 @@ function WorkspaceDocumentModalContent({navigation, route}: AttachmentModalScree
     const policyKeysLength = Object.keys(policy ?? {}).length;
 
     // eslint-disable-next-line rulesdir/no-negated-variables
-    const shouldShowNotFoundPage = (policyKeysLength === 0 && !isLoadingApp) || !policy?.policyDocumentURL;
+    const shouldShowNotFoundPage = (policyKeysLength === 0 && !isLoadingApp) || !policy?.rulesDocumentURL;
     const isLoading = policyKeysLength === 0 && !!isLoadingApp;
 
-    const policyDocumentSourceURL = useMemo(
-        () => getPolicyDocumentSourceURL(policy?.policyDocumentURL, policyID, session?.encryptedAuthToken ?? ''),
-        [policy?.policyDocumentURL, policyID, session?.encryptedAuthToken],
+    const rulesDocumentSourceURL = useMemo(
+        () => getRulesDocumentSourceURL(policy?.rulesDocumentURL, policyID, session?.encryptedAuthToken ?? ''),
+        [policy?.rulesDocumentURL, policyID, session?.encryptedAuthToken],
     );
 
     const contentProps = useMemo<AttachmentModalBaseContentProps>(
         () => ({
-            source: policyDocumentSourceURL,
+            source: rulesDocumentSourceURL,
             headerTitle: policy?.name ?? '',
             originalFileName: `${policyID}-policy-document.pdf`,
             shouldShowNotFoundPage,
             isLoading,
             shouldCloseOnSwipeDown: true,
         }),
-        [policyDocumentSourceURL, policy?.name, policyID, shouldShowNotFoundPage, isLoading],
+        [rulesDocumentSourceURL, policy?.name, policyID, shouldShowNotFoundPage, isLoading],
     );
 
     return (

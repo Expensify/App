@@ -154,8 +154,8 @@ const WRITE_COMMANDS = {
     ADD_MEMBERS_TO_WORKSPACE: 'AddMembersToWorkspace',
     UPDATE_WORKSPACE_AVATAR: 'UpdateWorkspaceAvatar',
     DELETE_WORKSPACE_AVATAR: 'DeleteWorkspaceAvatar',
-    UPDATE_WORKSPACE_RULES_DOCUMENT: 'UpdateWorkspaceRulesDocument',
-    DELETE_WORKSPACE_RULES_DOCUMENT: 'DeleteWorkspaceRulesDocument',
+    UPDATE_POLICY_RULES_DOCUMENT: 'UpdatePolicyRulesDocument',
+    DELETE_POLICY_RULES_DOCUMENT: 'DeletePolicyRulesDocument',
     UPDATE_WORKSPACE_GENERAL_SETTINGS: 'UpdateWorkspaceGeneralSettings',
     UPDATE_WORKSPACE_DESCRIPTION: 'UpdateWorkspaceDescription',
     UPDATE_WORKSPACE_CLIENT_ID: 'UpdateWorkspaceClientID',
@@ -722,8 +722,8 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.ADD_MEMBERS_TO_WORKSPACE]: Parameters.AddMembersToWorkspaceParams;
     [WRITE_COMMANDS.UPDATE_WORKSPACE_AVATAR]: Parameters.UpdateWorkspaceAvatarParams;
     [WRITE_COMMANDS.DELETE_WORKSPACE_AVATAR]: Parameters.DeleteWorkspaceAvatarParams;
-    [WRITE_COMMANDS.UPDATE_WORKSPACE_RULES_DOCUMENT]: Parameters.UpdateWorkspaceRulesDocumentParams;
-    [WRITE_COMMANDS.DELETE_WORKSPACE_RULES_DOCUMENT]: Parameters.DeleteWorkspaceRulesDocumentParams;
+    [WRITE_COMMANDS.UPDATE_POLICY_RULES_DOCUMENT]: Parameters.UpdatePolicyRulesDocumentParams;
+    [WRITE_COMMANDS.DELETE_POLICY_RULES_DOCUMENT]: Parameters.DeletePolicyRulesDocumentParams;
     [WRITE_COMMANDS.UPDATE_WORKSPACE_GENERAL_SETTINGS]: Parameters.UpdateWorkspaceGeneralSettingsParams;
     [WRITE_COMMANDS.UPDATE_WORKSPACE_DESCRIPTION]: Parameters.UpdateWorkspaceDescriptionParams;
     [WRITE_COMMANDS.UPDATE_WORKSPACE_CLIENT_ID]: Parameters.UpdateWorkspaceClientIDParams;

@@ -14,9 +14,9 @@ import type {
     ChangePolicyUberBillingAccountPageParams,
     CreateWorkspaceFromIOUPaymentParams,
     CreateWorkspaceParams,
+    DeletePolicyRulesDocumentParams,
     DeleteWorkspaceAvatarParams,
     DeleteWorkspaceParams,
-    DeleteWorkspaceRulesDocumentParams,
     DisablePolicyApprovalsParams,
     DisablePolicyBillableModeParams,
     DowngradeToTeamParams,
@@ -67,11 +67,11 @@ import type {
     UpdateInvoiceCompanyNameParams,
     UpdateInvoiceCompanyWebsiteParams,
     UpdatePolicyAddressParams,
+    UpdatePolicyRulesDocumentParams,
     UpdateWorkspaceAvatarParams,
     UpdateWorkspaceClientIDParams,
     UpdateWorkspaceDescriptionParams,
     UpdateWorkspaceGeneralSettingsParams,
-    UpdateWorkspaceRulesDocumentParams,
     UpgradeToCorporateParams,
 } from '@libs/API/parameters';
 import type SetPolicyCashExpenseModeParams from '@libs/API/parameters/SetPolicyCashExpenseModeParams';
@@ -1815,12 +1815,12 @@ function updateWorkspaceRulesDocument(policyID: string, file: File, currentDocum
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
-                policyDocumentURL: file.uri,
+                rulesDocumentURL: file.uri,
                 errorFields: {
-                    policyDocumentURL: null,
+                    rulesDocumentURL: null,
                 },
                 pendingFields: {
-                    policyDocumentURL: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    rulesDocumentURL: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                 },
             },
         },
@@ -1831,7 +1831,7 @@ function updateWorkspaceRulesDocument(policyID: string, file: File, currentDocum
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 pendingFields: {
-                    policyDocumentURL: null,
+                    rulesDocumentURL: null,
                 },
             },
         },
@@ -1841,18 +1841,18 @@ function updateWorkspaceRulesDocument(policyID: string, file: File, currentDocum
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
-                policyDocumentURL: currentDocumentURL ?? '',
-                errorFields: {policyDocumentURL: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
+                rulesDocumentURL: currentDocumentURL ?? '',
+                errorFields: {rulesDocumentURL: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
             },
         },
     ];
 
-    const params: UpdateWorkspaceRulesDocumentParams = {
+    const params: UpdatePolicyRulesDocumentParams = {
         policyID,
         file,
     };
 
-    API.write(WRITE_COMMANDS.UPDATE_WORKSPACE_RULES_DOCUMENT, params, {optimisticData, finallyData, failureData});
+    API.write(WRITE_COMMANDS.UPDATE_POLICY_RULES_DOCUMENT, params, {optimisticData, finallyData, failureData});
 }
 
 function deleteWorkspaceRulesDocument(policyID: string, currentDocumentURL: string) {
@@ -1861,12 +1861,12 @@ function deleteWorkspaceRulesDocument(policyID: string, currentDocumentURL: stri
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
-                policyDocumentURL: '',
+                rulesDocumentURL: '',
                 errorFields: {
-                    policyDocumentURL: null,
+                    rulesDocumentURL: null,
                 },
                 pendingFields: {
-                    policyDocumentURL: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    rulesDocumentURL: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                 },
             },
         },
@@ -1877,7 +1877,7 @@ function deleteWorkspaceRulesDocument(policyID: string, currentDocumentURL: stri
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 pendingFields: {
-                    policyDocumentURL: null,
+                    rulesDocumentURL: null,
                 },
             },
         },
@@ -1887,15 +1887,15 @@ function deleteWorkspaceRulesDocument(policyID: string, currentDocumentURL: stri
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
-                policyDocumentURL: currentDocumentURL,
-                errorFields: {policyDocumentURL: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
+                rulesDocumentURL: currentDocumentURL,
+                errorFields: {rulesDocumentURL: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
             },
         },
     ];
 
-    const params: DeleteWorkspaceRulesDocumentParams = {policyID};
+    const params: DeletePolicyRulesDocumentParams = {policyID};
 
-    API.write(WRITE_COMMANDS.DELETE_WORKSPACE_RULES_DOCUMENT, params, {optimisticData, finallyData, failureData});
+    API.write(WRITE_COMMANDS.DELETE_POLICY_RULES_DOCUMENT, params, {optimisticData, finallyData, failureData});
 }
 
 /**
