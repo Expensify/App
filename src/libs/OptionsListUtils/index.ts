@@ -2531,6 +2531,19 @@ function getValidOptions(
         };
 
         const filteringFunction = (report: SearchOption<Report>) => {
+            if (excludeHidden) {
+                if (report.isThread) {
+                    if (report.notificationPreference === CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN) {
+                        return false;
+                    }
+                } else {
+                    const participant = report.item?.participants?.[currentUserAccountID];
+                    if (participant?.notificationPreference === CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN) {
+                        return false;
+                    }
+                }
+            }
+
             const policy = policiesCollection?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
             if (!isSearchTermsFound(report)) {
                 return false;
@@ -2695,19 +2708,6 @@ function getValidOptions(
                 personalDetail.brickRoadIndicator = shouldShowGBR ? CONST.BRICK_ROAD_INDICATOR_STATUS.INFO : '';
             }
         }
-    }
-
-    if (excludeHidden) {
-        recentReportOptions = recentReportOptions.filter((option) => {
-            // For threads, use the resolved notificationPreference (original behavior)
-            if (option.isThread) {
-                return option.notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
-            }
-            // For non-thread reports (e.g., workspace rooms), check the current user's explicit
-            // participant entry to avoid filtering reports where the user simply isn't a participant
-            const participant = option.item?.participants?.[currentUserAccountID];
-            return participant?.notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
-        });
     }
 
     let userToInvite: SearchOptionData | null = null;
