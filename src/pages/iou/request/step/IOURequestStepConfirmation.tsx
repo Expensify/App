@@ -35,7 +35,9 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isMobileSafari} from '@libs/Browser';
 import DateUtils from '@libs/DateUtils';
+import {reserveDeferredWriteChannel} from '@libs/deferredLayoutWrite';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
+import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {
     isMovingTransactionFromTrackExpense as isMovingTransactionFromTrackExpenseIOUUtils,
@@ -43,6 +45,8 @@ import {
     shouldShowReceiptEmptyState,
     shouldUseTransactionDraft,
 } from '@libs/IOUUtils';
+import isReportTopmostSplitNavigator from '@libs/Navigation/helpers/isReportTopmostSplitNavigator';
+import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import navigateAfterInteraction from '@libs/Navigation/navigateAfterInteraction';
 import Navigation from '@libs/Navigation/Navigation';
 import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
@@ -55,6 +59,8 @@ import {
     isReportOutstanding,
     isSelectedManagerMcTest,
 } from '@libs/ReportUtils';
+import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
+import {setPendingSubmitFollowUpAction} from '@libs/telemetry/submitFollowUpAction';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {
     getDefaultTaxCode,
@@ -306,6 +312,7 @@ function IOURequestStepConfirmation({
     const isPolicyExpenseChat = useMemo(() => participants?.some((participant) => participant.isPolicyExpenseChat), [participants]);
     const shouldGenerateTransactionThreadReport = !isBetaEnabled(CONST.BETAS.NO_OPTIMISTIC_TRANSACTION_THREADS);
     const formHasBeenSubmitted = useRef(false);
+    const isFromGlobalCreate = !!(transaction?.isFromGlobalCreate ?? transaction?.isFromFloatingActionButton);
 
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
 
@@ -317,6 +324,53 @@ function IOURequestStepConfirmation({
 
     const odometerStartImage = transaction?.comment?.odometerStartImage;
     const odometerEndImage = transaction?.comment?.odometerEndImage;
+
+    // Pre-insert is only useful for flows whose submit ends in handleNavigateAfterExpenseCreate
+    // (which navigates to Search). Flows that use dismissModalAndOpenReportInInboxTab (PAY,
+    // SPLIT-from-global-create, per-diem self-DM track) navigate to a specific report instead,
+    // so pre-inserting Search would leave a stale route in the stack.
+    const canPreInsertSearch = iouType !== CONST.IOU.TYPE.PAY && iouType !== CONST.IOU.TYPE.SPLIT && !(isPerDiemRequest && iouType === CONST.IOU.TYPE.TRACK);
+
+    const hasPreInsertFired = useRef(false);
+    const isTransactionReady = !!transaction;
+
+    useEffect(() => {
+        if (
+            hasPreInsertFired.current ||
+            !isTransactionReady ||
+            !getIsNarrowLayout() ||
+            !isFromGlobalCreate ||
+            !canPreInsertSearch ||
+            isReportTopmostSplitNavigator() ||
+            isSearchTopmostFullScreenRoute()
+        ) {
+            return;
+        }
+
+        hasPreInsertFired.current = true;
+
+        const type = iouType === CONST.IOU.TYPE.INVOICE ? CONST.SEARCH.DATA_TYPES.INVOICE : CONST.SEARCH.DATA_TYPES.EXPENSE;
+        const queryString = buildCannedSearchQuery({type});
+        const searchRoute = ROUTES.SEARCH_ROOT.getRoute({query: queryString});
+
+        const timer = setTimeout(() => {
+            Navigation.preInsertFullscreenUnderRHP(searchRoute);
+        }, CONST.PRE_INSERT_FULLSCREEN_DELAY);
+
+        return () => {
+            clearTimeout(timer);
+
+            if (!Navigation.getIsFullscreenPreInsertedUnderRHP() || formHasBeenSubmitted.current) {
+                return;
+            }
+
+            Navigation.removePreInsertedFullscreenIfNeeded();
+        };
+        // isFromGlobalCreate, iouType, and canPreInsertSearch are stable for the lifetime of
+        // this screen instance. isTransactionReady may flip from false to true once, which
+        // re-triggers the effect so the pre-insert fires even when the transaction loads late.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isTransactionReady]);
 
     const navigateBack = useCallback(() => {
         if (backTo) {
@@ -480,13 +534,29 @@ function IOURequestStepConfirmation({
             }
         }
 
-        requestAnimationFrame(() => {
-            createTransaction(listOfParticipants);
-            // Keep the pre-submit loading state visible for one more paint so the spinner appears before navigation work starts.
+        // Fast path: the Search page was pre-inserted under the RHP (see useEffect above).
+        // Dismiss the RHP immediately so the user sees the Search page, then run the
+        // heavy createTransaction work in the next frame - "dismiss first, compute later".
+        // Reserve the deferred write channel synchronously so that the Search component
+        // always sees hasDeferredWrite=true on mount (on iOS, rAF fires after
+        // startTransition resolves, so without the reservation Search would mount first).
+        if (Navigation.getIsFullscreenPreInsertedUnderRHP()) {
+            setPendingSubmitFollowUpAction(CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.NAVIGATE_TO_SEARCH);
+            Navigation.clearFullscreenPreInsertedFlag();
+            reserveDeferredWriteChannel(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
+            Navigation.dismissModal();
             requestAnimationFrame(() => {
+                createTransaction(listOfParticipants);
                 setIsConfirming(false);
             });
-        });
+        } else {
+            requestAnimationFrame(() => {
+                createTransaction(listOfParticipants);
+                requestAnimationFrame(() => {
+                    setIsConfirming(false);
+                });
+            });
+        }
     };
 
     /**
