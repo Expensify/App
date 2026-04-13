@@ -7,6 +7,8 @@ import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import type {PressableWithFeedbackProps} from '@components/Pressable/PressableWithFeedback';
 import SelectionButton from '@components/SelectionList/components/SelectionButton';
 import getAccessibilityLabel from '@components/SelectionList/utils/getAccessibilityLabel';
+import {getItemRole} from '@components/SelectionList/utils/getItemRole';
+import {getSelectableState} from '@components/SelectionList/utils/getSelectableState';
 import useHover from '@hooks/useHover';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import {useMouseActions, useMouseState} from '@hooks/useMouseContext';
@@ -14,6 +16,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useSyncFocus from '@hooks/useSyncFocus';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {getBrowser, isMobile} from '@libs/Browser';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {BaseListItemProps, ListItem} from './types';
@@ -22,6 +25,7 @@ type AccessibilityProps = Pick<PressableWithFeedbackProps, 'accessible' | 'role'
 
 type CalculatedAccessibilityProps = Pick<PressableWithFeedbackProps, 'role' | 'tabIndex' | 'accessibilityState'> & {
     accessibleAndAccessibilityLabel: Pick<PressableWithFeedbackProps, 'accessible' | 'accessibilityLabel'>;
+    ariaCurrent: boolean | undefined;
 };
 
 function getAccessibilityProps<TItem extends ListItem>({
@@ -32,7 +36,14 @@ function getAccessibilityProps<TItem extends ListItem>({
     isFocused,
     canSelectMultiple,
 }: AccessibilityProps & Pick<BaseListItemProps<TItem>, 'item' | 'isFocused' | 'canSelectMultiple'>) {
-    const accessibilityState = role === CONST.ROLE.CHECKBOX || role === CONST.ROLE.RADIO ? {checked: !!item.isSelected, selected: !!isFocused} : {selected: !!item.isSelected};
+    // For single-select lists, use role="option" with aria-selected so screen readers announce "selected"/"not selected".
+    // For multi-select (checkbox/radio), keep existing role and state.
+    const isSelectableOption = !canSelectMultiple && role !== CONST.ROLE.CHECKBOX && role !== CONST.ROLE.RADIO;
+    const effectiveRole = getItemRole(role, isSelectableOption);
+
+    const isCheckableRole = effectiveRole === CONST.ROLE.CHECKBOX || effectiveRole === CONST.ROLE.RADIO;
+    const accessibilityState = isCheckableRole ? {checked: !!item.isSelected, selected: !!isFocused} : getSelectableState(!!item.isSelected);
+    const ariaCurrent = !isCheckableRole && item.isSelected && getBrowser() === CONST.BROWSER.CHROME && !isMobile() ? true : undefined;
 
     if (accessible === false) {
         return {
@@ -40,21 +51,18 @@ function getAccessibilityProps<TItem extends ListItem>({
             tabIndex: -1,
             accessibilityState,
             accessibleAndAccessibilityLabel: {accessible: false},
+            ariaCurrent,
         } satisfies CalculatedAccessibilityProps;
     }
 
     const accessibilityLabel = getAccessibilityLabel(item);
-
-    // For single-select lists, use role="option" with aria-selected so screen readers announce "selected"/"not selected".
-    // For multi-select (checkbox/radio), keep existing role and state.
-    const isSelectableOption = !canSelectMultiple && role !== CONST.ROLE.CHECKBOX && role !== CONST.ROLE.RADIO;
-    const effectiveRole = isSelectableOption ? CONST.ROLE.OPTION : role;
 
     return {
         role: effectiveRole,
         tabIndex,
         accessibilityState,
         accessibleAndAccessibilityLabel: {accessible: undefined, accessibilityLabel},
+        ariaCurrent,
     } satisfies CalculatedAccessibilityProps;
 }
 
@@ -100,7 +108,6 @@ function BaseListItem<TItem extends ListItem>({
     const {isMouseDownOnInput} = useMouseState();
     const {setMouseUp} = useMouseActions();
     const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'Checkmark', 'DotIndicator']);
-
     const pressableRef = useRef<View>(null);
 
     // Sync focus on an item
@@ -147,7 +154,7 @@ function BaseListItem<TItem extends ListItem>({
 
     const shouldShowRBRIndicator = (!item.isSelected || !!item.canShowSeveralIndicators) && !!item.brickRoadIndicator && shouldDisplayRBR;
 
-    const {role, tabIndex, accessibilityState, accessibleAndAccessibilityLabel} = getAccessibilityProps({
+    const {role, tabIndex, accessibilityState, accessibleAndAccessibilityLabel, ariaCurrent} = getAccessibilityProps({
         role: accessibilityRole,
         accessible,
         tabIndex: item.tabIndex,
@@ -210,6 +217,7 @@ function BaseListItem<TItem extends ListItem>({
                 // eslint-disable-next-line react/jsx-props-no-spreading -- we can't pass those props here on their own because this Component expects a discriminated Union
                 {...accessibleAndAccessibilityLabel}
                 accessibilityState={accessibilityState}
+                aria-current={ariaCurrent}
                 onMouseLeave={handleMouseLeave}
                 // When the list-level Enter shortcut is disabled (disableKeyboardShortcuts), items with role="option"
                 // won't natively fire click on Enter, so we handle it manually via onKeyDown.
