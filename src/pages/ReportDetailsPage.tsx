@@ -1,4 +1,5 @@
 import {StackActions} from '@react-navigation/native';
+import {delegateEmailSelector} from '@selectors/Account';
 import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
 import React, {useCallback, useEffect, useMemo} from 'react';
 import {InteractionManager, View} from 'react-native';
@@ -197,6 +198,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
+    const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {showConfirmModal} = useConfirmModal();
     const isPolicyAdmin = useMemo(() => isPolicyAdminUtil(policy), [policy]);
@@ -547,7 +549,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                     isAnonymousAction: false,
                     action: callFunctionIfActionIsAllowed(() => {
                         Navigation.goBack(backTo);
-                        reopenTask(report, parentReport, currentUserPersonalDetails?.accountID);
+                        reopenTask(report, parentReport, currentUserPersonalDetails?.accountID, delegateEmail);
                     }),
                 });
             }
@@ -648,6 +650,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
         amountOwed,
         ownerBillingGracePeriodEnd,
         iouTransaction,
+        delegateEmail,
     ]);
 
     const displayNamesWithTooltips = useMemo(() => {
@@ -896,7 +899,17 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
 
     const deleteTransaction = useCallback(() => {
         if (caseID === CASES.DEFAULT) {
-            deleteTask(report, parentReport, isReportArchived, currentUserPersonalDetails.accountID, hasOutstandingChildTask, parentReportAction, conciergeReportID, ancestors);
+            deleteTask(
+                report,
+                parentReport,
+                isReportArchived,
+                currentUserPersonalDetails.accountID,
+                hasOutstandingChildTask,
+                parentReportAction,
+                conciergeReportID,
+                delegateEmail,
+                ancestors,
+            );
             return;
         }
 
@@ -949,6 +962,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
         deleteTransactions,
         removeTransaction,
         conciergeReportID,
+        delegateEmail,
     ]);
 
     // Where to navigate back to after deleting the transaction and its report.
