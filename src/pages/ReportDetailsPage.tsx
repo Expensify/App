@@ -21,7 +21,7 @@ import ReportActionAvatars from '@components/ReportActionAvatars';
 import RoomHeaderAvatars from '@components/RoomHeaderAvatars';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
-import {useSearchActionsContext, useSearchStateContext} from '@components/Search/SearchContext';
+import {useSearchActionsContext} from '@components/Search/SearchContext';
 import {SUPER_WIDE_RIGHT_MODALS} from '@components/WideRHPContextProvider/WIDE_RIGHT_MODALS';
 import useActivePolicy from '@hooks/useActivePolicy';
 import useAncestors from '@hooks/useAncestors';
@@ -44,6 +44,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getBase62ReportID from '@libs/getBase62ReportID';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportDetailsNavigatorParamList, RightModalNavigatorParamList} from '@libs/Navigation/types';
@@ -109,7 +110,8 @@ import {
 } from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
 import {isDemoTransaction} from '@libs/TransactionUtils';
-import {deleteTrackExpense, getNavigationUrlAfterTrackExpenseDelete, getNavigationUrlOnMoneyRequestDelete} from '@userActions/IOU';
+import {getNavigationUrlOnMoneyRequestDelete} from '@userActions/IOU/DeleteMoneyRequest';
+import {deleteTrackExpense, getNavigationUrlAfterTrackExpenseDelete} from '@userActions/IOU/TrackExpense';
 import {
     clearAvatarErrors,
     clearPolicyRoomNameErrors,
@@ -126,7 +128,7 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
@@ -165,9 +167,9 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Users', 'Gear', 'Send', 'Folder', 'UserPlus', 'Pencil', 'Checkmark', 'Building', 'Exit', 'Bug', 'Camera', 'Trashcan']);
     const backTo = route.params.backTo;
 
-    const [userBillingGraceEndPeriods] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
+    const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
-    const [ownerBillingGraceEndPeriod] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
+    const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report.chatReportID}`);
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
@@ -182,7 +184,6 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
     const [reportActionsForOriginalReportID] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`);
 
     const {removeTransaction} = useSearchActionsContext();
-    const {currentSearchHash} = useSearchStateContext();
 
     const transactionThreadReportID = useMemo(() => getOneTransactionThreadReportID(report, chatReport, reportActions ?? [], isOffline), [reportActions, isOffline, report, chatReport]);
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
@@ -462,12 +463,14 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                         introSelected,
                         draftTransactionIDs,
                         activePolicy,
-                        userBillingGraceEndPeriods,
+                        userBillingGracePeriodEnds,
                         amountOwed,
-                        ownerBillingGraceEndPeriod,
+                        ownerBillingGracePeriodEnd,
                         isRestrictedToPreferredPolicy,
                         preferredPolicyID,
                         transaction: iouTransaction,
+                        currentUserAccountID: currentUserPersonalDetails.accountID,
+                        currentUserEmail: currentUserPersonalDetails.email ?? '',
                     });
                 },
             });
@@ -486,10 +489,12 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                             introSelected,
                             draftTransactionIDs,
                             activePolicy,
-                            userBillingGraceEndPeriods,
+                            userBillingGracePeriodEnds,
                             amountOwed,
-                            ownerBillingGraceEndPeriod,
+                            ownerBillingGracePeriodEnd,
                             transaction: iouTransaction,
+                            currentUserAccountID: currentUserPersonalDetails.accountID,
+                            currentUserEmail: currentUserPersonalDetails.email ?? '',
                         });
                     },
                 });
@@ -507,10 +512,12 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                             introSelected,
                             draftTransactionIDs,
                             activePolicy,
-                            userBillingGraceEndPeriods,
+                            userBillingGracePeriodEnds,
                             amountOwed,
-                            ownerBillingGraceEndPeriod,
+                            ownerBillingGracePeriodEnd,
                             transaction: iouTransaction,
+                            currentUserAccountID: currentUserPersonalDetails.accountID,
+                            currentUserEmail: currentUserPersonalDetails.email ?? '',
                         });
                     },
                 });
@@ -637,9 +644,9 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
         activePolicy,
         parentReport,
         reportActionsForOriginalReportID,
-        userBillingGraceEndPeriods,
+        userBillingGracePeriodEnds,
         amountOwed,
-        ownerBillingGraceEndPeriod,
+        ownerBillingGracePeriodEnd,
         iouTransaction,
     ]);
 
@@ -826,7 +833,9 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                     furtherDetails={chatRoomSubtitle && !isGroupChat ? additionalRoomDetails : ''}
                     furtherDetailsNumberOfLines={isWorkspaceChat ? 0 : undefined}
                     furtherDetailsStyle={isWorkspaceChat ? [styles.textAlignCenter, styles.breakWord] : undefined}
-                    onPress={() => Navigation.navigate(ROUTES.REPORT_SETTINGS_NAME.getRoute(report.reportID, backTo))}
+                    onPress={() => {
+                        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.REPORT_SETTINGS_NAME.path));
+                    }}
                     numberOfLinesTitle={isThread ? 2 : 0}
                     shouldBreakWord
                 />
@@ -914,7 +923,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                 currentUserAccountID: currentUserPersonalDetails.accountID,
             });
         } else if (iouTransactionID) {
-            deleteTransactions([iouTransactionID], duplicateTransactions, duplicateTransactionViolations, currentSearchHash, isSingleTransactionView);
+            deleteTransactions([iouTransactionID], duplicateTransactions, duplicateTransactionViolations, undefined, isSingleTransactionView);
             removeTransaction(iouTransactionID);
         }
     }, [
@@ -938,7 +947,6 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
         isChatIOUReportArchived,
         allTransactionViolations,
         deleteTransactions,
-        currentSearchHash,
         removeTransaction,
         conciergeReportID,
     ]);

@@ -59,7 +59,7 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
     const {didScreenTransitionEnd} = useScreenWrapperTransitionStatus();
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
-    const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false});
+    const [isSearchingForReports] = useOnyx(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS);
     const {options, areOptionsInitialized} = useOptionsList({
         shouldInitialize: didScreenTransitionEnd,
     });
@@ -72,6 +72,7 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
     const currentUserEmail = currentUserPersonalDetails.email ?? '';
     const currentUserAccountID = currentUserPersonalDetails.accountID;
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const privateIsArchivedMap = usePrivateIsArchivedMap();
 
     useEffect(() => {
@@ -94,6 +95,7 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
             loginList,
             currentUserAccountID,
             currentUserEmail,
+            conciergeReportID,
             {
                 betas,
                 excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
@@ -123,6 +125,7 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
         countryCode,
         currentUserAccountID,
         currentUserEmail,
+        conciergeReportID,
         personalDetails,
     ]);
 
@@ -198,15 +201,7 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
                     const isPolicyExpenseChat = participant?.isPolicyExpenseChat ?? false;
                     const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${userToInviteExpenseReport?.reportID}`];
                     return isPolicyExpenseChat
-                        ? getPolicyExpenseReportOption(
-                              participant,
-                              privateIsArchived,
-                              currentUserAccountID,
-                              personalDetails,
-                              userToInviteExpenseReport,
-                              userToInviteExpenseReportPolicy,
-                              reportAttributesDerived,
-                          )
+                        ? getPolicyExpenseReportOption(participant, privateIsArchived, personalDetails, userToInviteExpenseReport, userToInviteExpenseReportPolicy, reportAttributesDerived)
                         : getParticipantsOption(participant, personalDetails);
                 }),
                 sectionIndex: 3,

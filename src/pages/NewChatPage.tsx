@@ -76,8 +76,9 @@ function useOptions(reportAttributesDerived: ReportAttributesDerivedValue['repor
     const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT);
     const allPersonalDetails = usePersonalDetails();
     const isScreenFocusedRef = useIsFocusedRef();
-    const [sortedActions] = useOnyx(ONYXKEYS.DERIVED.SORTED_REPORT_ACTIONS, {selector: sortedActionsSelector});
+    const [sortedActions] = useOnyx(ONYXKEYS.DERIVED.RAM_ONLY_SORTED_REPORT_ACTIONS, {selector: sortedActionsSelector});
     const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {selector: passthroughPolicyTagListSelector});
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
 
     const {
         options: listOptions,
@@ -90,7 +91,7 @@ function useOptions(reportAttributesDerived: ReportAttributesDerivedValue['repor
         includeP2P: true,
         batchSize: 100,
         enablePagination: true,
-        searchTerm: debouncedSearchTerm,
+        isSearching: !!debouncedSearchTerm.trim(),
         betas,
     });
 
@@ -111,6 +112,7 @@ function useOptions(reportAttributesDerived: ReportAttributesDerivedValue['repor
         loginList,
         currentUserAccountID,
         currentUserEmail,
+        conciergeReportID,
         {
             betas: betas ?? [],
             includeSelfDM: true,
@@ -173,7 +175,6 @@ function useOptions(reportAttributesDerived: ReportAttributesDerivedValue['repor
                           personalDetails: allPersonalDetails,
                           loginList,
                           currentUserEmail: personalData.email ?? '',
-                          currentUserAccountID: personalData.accountID,
                       });
                   if (participantOption) {
                       result.push({
@@ -247,7 +248,7 @@ function NewChatPage({ref}: NewChatPageProps) {
     const currentUserAccountID = personalData.accountID;
     const {top} = useSafeAreaInsets();
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
-    const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false});
+    const [isSearchingForReports] = useOnyx(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});

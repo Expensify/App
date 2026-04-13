@@ -1,5 +1,5 @@
 import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
-import {useCallback, useContext, useMemo, useRef} from 'react';
+import {useCallback, useContext, useRef} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import useFilesValidation from '@hooks/useFilesValidation';
 import useLocalize from '@hooks/useLocalize';
@@ -11,7 +11,8 @@ import {isSelfDM} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import Navigation from '@navigation/Navigation';
 import AttachmentModalContext from '@pages/media/AttachmentModalScreen/AttachmentModalContext';
-import {initMoneyRequest, replaceReceipt, setMoneyRequestParticipantsFromReport, setMoneyRequestReceipt} from '@userActions/IOU';
+import {initMoneyRequest, setMoneyRequestParticipantsFromReport} from '@userActions/IOU';
+import {replaceReceipt, setMoneyRequestReceipt} from '@userActions/IOU/Receipt';
 import {buildOptimisticTransactionAndCreateDraft} from '@userActions/TransactionEdit';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -54,11 +55,11 @@ function useAttachmentUploadValidation({
 }: AttachmentUploadValidationProps) {
     const {translate} = useLocalize();
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policy?.id}`);
-    const [ownerBillingGraceEndPeriod] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
+    const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
+    const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const personalPolicy = usePersonalPolicy();
-    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
-    const [userBillingGraceEndPeriods] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
-    const hasOnlyPersonalPolicies = useMemo(() => hasOnlyPersonalPoliciesUtil(allPolicies), [allPolicies]);
+    const [hasOnlyPersonalPolicies = true] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: hasOnlyPersonalPoliciesUtil});
+    const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
 
     const reportAttachmentsContext = useContext(AttachmentModalContext);
@@ -184,7 +185,7 @@ function useAttachmentUploadValidation({
 
     const onReceiptDropped = useCallback(
         (e: DragEvent) => {
-            if (policy && shouldRestrictUserBillableActions(policy.id, ownerBillingGraceEndPeriod, userBillingGraceEndPeriods)) {
+            if (policy && shouldRestrictUserBillableActions(policy.id, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed)) {
                 Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
                 return;
             }
@@ -205,7 +206,7 @@ function useAttachmentUploadValidation({
             attachmentUploadType.current = 'receipt';
             validateFiles(files, items, {isValidatingReceipts: true});
         },
-        [policy, userBillingGraceEndPeriods, ownerBillingGraceEndPeriod, shouldAddOrReplaceReceipt, transactionID, validateFiles],
+        [policy, userBillingGracePeriodEnds, ownerBillingGracePeriodEnd, shouldAddOrReplaceReceipt, transactionID, validateFiles, amountOwed],
     );
 
     return {

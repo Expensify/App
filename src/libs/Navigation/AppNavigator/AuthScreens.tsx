@@ -29,7 +29,6 @@ import type {AuthScreensParamList} from '@libs/Navigation/types';
 import ConnectionCompletePage from '@pages/ConnectionCompletePage';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import RequireTwoFactorAuthenticationOverlay from '@pages/RequireTwoFactorAuthenticationOverlay';
-import WorkspacesListPage from '@pages/workspace/WorkspacesListPage';
 import * as Modal from '@userActions/Modal';
 import CONST from '@src/CONST';
 import '@src/libs/subscribeToFullReconnect';
@@ -39,7 +38,7 @@ import type ReactComponentModule from '@src/types/utils/ReactComponentModule';
 import attachmentModalScreenOptions from './attachmentModalScreenOptions';
 import AuthScreensInitHandler from './AuthScreensInitHandler';
 import createRootStackNavigator from './createRootStackNavigator';
-import {screensWithEnteringAnimation, workspaceOrDomainSplitsWithoutEnteringAnimation} from './createRootStackNavigator/GetStateForActionHandlers';
+import {screensWithEnteringAnimation} from './createRootStackNavigator/GetStateForActionHandlers';
 import defaultScreenOptions from './defaultScreenOptions';
 import DelegatorConnectGuard from './DelegatorConnectGate';
 import hideKeyboardOnSwipe from './hideKeyboardOnSwipe';
@@ -49,7 +48,6 @@ import ExplanationModalNavigator from './Navigators/ExplanationModalNavigator';
 import FeatureTrainingModalNavigator from './Navigators/FeatureTrainingModalNavigator';
 import MigratedUserWelcomeModalNavigator from './Navigators/MigratedUserWelcomeModalNavigator';
 import OnboardingModalNavigator from './Navigators/OnboardingModalNavigator';
-import RightModalNavigator from './Navigators/RightModalNavigator';
 import TestDriveModalNavigator from './Navigators/TestDriveModalNavigator';
 import TestToolsModalNavigator from './Navigators/TestToolsModalNavigator';
 import TestDriveDemoNavigator from './TestDriveDemoNavigator';
@@ -70,9 +68,9 @@ const loadWorkspaceJoinUser = () => require<ReactComponentModule>('@pages/worksp
 const loadSearchRouterPage = () => require<ReactComponentModule>('../../../components/Search/SearchRouter/SearchRouterPage').default;
 const loadReportSplitNavigator = () => require<ReactComponentModule>('./Navigators/ReportsSplitNavigator').default;
 const loadSettingsSplitNavigator = () => require<ReactComponentModule>('./Navigators/SettingsSplitNavigator').default;
-const loadWorkspaceSplitNavigator = () => require<ReactComponentModule>('./Navigators/WorkspaceSplitNavigator').default;
-const loadDomainSplitNavigator = () => require<ReactComponentModule>('./Navigators/DomainSplitNavigator').default;
+const loadWorkspaceNavigator = () => require<ReactComponentModule>('./Navigators/WorkspaceNavigator').default;
 const loadSearchNavigator = () => require<ReactComponentModule>('./Navigators/SearchFullscreenNavigator').default;
+const loadRightModalNavigator = () => require<ReactComponentModule>('./Navigators/RightModalNavigator').default;
 
 const RootStack = createRootStackNavigator<AuthScreensParamList>();
 
@@ -127,30 +125,6 @@ function AuthScreens() {
         };
     }, [theme]);
 
-    // Animation is disabled when navigating to the sidebar screen
-    const getWorkspaceOrDomainSplitNavigatorOptions = ({route}: {route: RouteProp<AuthScreensParamList>}) => {
-        // We don't need to do anything special for the wide screen.
-        if (!shouldUseNarrowLayout) {
-            return rootNavigatorScreenOptions.splitNavigator;
-        }
-
-        // On the narrow screen, we want to animate this navigator if it is opened from the settings split.
-        // If it is opened from other tab, we don't want to animate it on the entry.
-        // There is a hook inside the workspace navigator that changes animation to SLIDE_FROM_RIGHT after entering.
-        // This way it can be animated properly when going back to the settings split.
-        const animationEnabled = !workspaceOrDomainSplitsWithoutEnteringAnimation.has(route.key);
-
-        return {
-            ...rootNavigatorScreenOptions.splitNavigator,
-            animation: animationEnabled ? Animations.SLIDE_FROM_RIGHT : Animations.NONE,
-            gestureEnabled: true,
-            web: {
-                ...rootNavigatorScreenOptions.splitNavigator.web,
-                cardStyleInterpolator: (props: StackCardInterpolationProps) => modalCardStyleInterpolator({props, isFullScreenModal: true, animationEnabled}),
-            },
-        };
-    };
-
     // Animation is enabled when navigating to any screen different than split sidebar screen
     const getFullscreenNavigatorOptions = ({route}: {route: RouteProp<AuthScreensParamList>}) => {
         // We don't need to do anything special for the wide screen.
@@ -192,11 +166,9 @@ function AuthScreens() {
                         persistentScreens={[
                             NAVIGATORS.REPORTS_SPLIT_NAVIGATOR,
                             NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR,
-                            NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR,
-                            NAVIGATORS.DOMAIN_SPLIT_NAVIGATOR,
+                            NAVIGATORS.WORKSPACE_NAVIGATOR,
                             NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR,
                             NAVIGATORS.RIGHT_MODAL_NAVIGATOR,
-                            SCREENS.WORKSPACES_LIST,
                             SCREENS.HOME,
                             SCREENS.SEARCH.ROOT,
                         ]}
@@ -223,14 +195,9 @@ function AuthScreens() {
                             getComponent={loadSearchNavigator}
                         />
                         <RootStack.Screen
-                            name={NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR}
-                            options={getWorkspaceOrDomainSplitNavigatorOptions}
-                            getComponent={loadWorkspaceSplitNavigator}
-                        />
-                        <RootStack.Screen
-                            name={NAVIGATORS.DOMAIN_SPLIT_NAVIGATOR}
-                            options={getWorkspaceOrDomainSplitNavigatorOptions}
-                            getComponent={loadDomainSplitNavigator}
+                            name={NAVIGATORS.WORKSPACE_NAVIGATOR}
+                            options={getFullscreenNavigatorOptions}
+                            getComponent={loadWorkspaceNavigator}
                         />
                         <RootStack.Screen
                             name={SCREENS.VALIDATE_LOGIN}
@@ -241,11 +208,6 @@ function AuthScreens() {
                             }}
                             listeners={fullScreenListeners}
                             getComponent={loadValidateLoginPage}
-                        />
-                        <RootStack.Screen
-                            name={SCREENS.WORKSPACES_LIST}
-                            options={rootNavigatorScreenOptions.fullScreenTabPage}
-                            component={WorkspacesListPage}
                         />
                         <RootStack.Screen
                             name={SCREENS.TRANSITION_BETWEEN_APPS}
@@ -333,7 +295,7 @@ function AuthScreens() {
                         <RootStack.Screen
                             name={NAVIGATORS.RIGHT_MODAL_NAVIGATOR}
                             options={rootNavigatorScreenOptions.rightModalNavigator}
-                            component={RightModalNavigator}
+                            getComponent={loadRightModalNavigator}
                             listeners={modalScreenListenersWithCancelSearch}
                         />
                         <RootStack.Screen

@@ -148,7 +148,7 @@ describe('SidebarUtils', () => {
             const MOCK_TRANSACTION_VIOLATIONS: OnyxCollection<TransactionViolation[]> = {};
 
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(MOCK_REPORT?.reportID));
-            const reportErrors = getAllReportErrors(MOCK_REPORT, MOCK_REPORT_ACTIONS);
+            const reportErrors = getAllReportErrors(MOCK_REPORT, MOCK_REPORT_ACTIONS, MOCK_TRANSACTIONS);
             const {reason} =
                 SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad(
                     MOCK_REPORT,
@@ -216,7 +216,7 @@ describe('SidebarUtils', () => {
 
             // Simulate how components determined if a report is archived by using this hook
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(MOCK_REPORT?.reportID));
-            const reportErrors = getAllReportErrors(MOCK_REPORT, MOCK_REPORT_ACTIONS);
+            const reportErrors = getAllReportErrors(MOCK_REPORT, MOCK_REPORT_ACTIONS, MOCK_TRANSACTIONS);
             const {reason} =
                 SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad(
                     MOCK_REPORT,
@@ -244,7 +244,7 @@ describe('SidebarUtils', () => {
             const MOCK_REPORT_ACTIONS: OnyxEntry<ReportActions> = {};
             const MOCK_TRANSACTIONS = {};
             const MOCK_TRANSACTION_VIOLATIONS: OnyxCollection<TransactionViolation[]> = {};
-            const reportErrors = getAllReportErrors(MOCK_REPORT, MOCK_REPORT_ACTIONS);
+            const reportErrors = getAllReportErrors(MOCK_REPORT, MOCK_REPORT_ACTIONS, MOCK_TRANSACTIONS);
             // Simulate how components determined if a report is archived by using this hook
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(MOCK_REPORT?.reportID));
             const {reason} =
@@ -287,7 +287,7 @@ describe('SidebarUtils', () => {
             };
             const MOCK_TRANSACTIONS = {};
             const MOCK_TRANSACTION_VIOLATIONS: OnyxCollection<TransactionViolation[]> = {};
-            const reportErrors = getAllReportErrors(MOCK_REPORT, MOCK_REPORT_ACTIONS);
+            const reportErrors = getAllReportErrors(MOCK_REPORT, MOCK_REPORT_ACTIONS, MOCK_TRANSACTIONS);
             // Simulate how components determined if a report is archived by using this hook
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(MOCK_REPORT?.reportID));
             const {reportAction} =
@@ -512,7 +512,7 @@ describe('SidebarUtils', () => {
 
             // When: Checking for RBR on the chat report
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(chatReport?.reportID));
-            const reportErrors = getAllReportErrors(chatReport, MOCK_REPORT_ACTIONS);
+            const reportErrors = getAllReportErrors(chatReport, MOCK_REPORT_ACTIONS, MOCK_TRANSACTIONS);
 
             const result = SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad(
                 chatReport,
@@ -1652,6 +1652,286 @@ describe('SidebarUtils', () => {
             expect(result?.alternateText).toBe('changed the foreign currency default tax rate to "Foreign Tax (10%)" (previously "Foreign Tax (15%)")');
         });
 
+        it('returns the correct alternate text for ADD_CARD_FEED action', async () => {
+            const report: Report = {
+                ...createRandomReport(4, 'policyAdmins'),
+                participants: {'18921695': {notificationPreference: 'always'}},
+            };
+            const lastAction: ReportAction = {
+                ...createRandomReportAction(2),
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_CARD_FEED,
+                originalMessage: {feedName: 'Visa Commercial'},
+            };
+            const reportActions: ReportActions = {[lastAction.reportActionID]: lastAction};
+            await act(async () => {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, reportActions);
+            });
+
+            const result = SidebarUtils.getOptionData({
+                report,
+                reportAttributes: undefined,
+                reportNameValuePairs: {},
+                personalDetails: {},
+                policy: undefined,
+                invoiceReceiverPolicy: undefined,
+                parentReportAction: undefined,
+                conciergeReportID: '',
+                oneTransactionThreadReport: undefined,
+                card: undefined,
+                translate: translateLocal,
+                localeCompare,
+                lastAction,
+                lastActionReport: undefined,
+                isReportArchived: undefined,
+                currentUserAccountID: 0,
+                currentUserLogin: CURRENT_USER_LOGIN,
+                reportAttributesDerived: undefined,
+            });
+
+            expect(result?.alternateText).toBe('added card feed "Visa Commercial"');
+        });
+
+        it('returns the correct alternate text for DELETE_CARD_FEED action', async () => {
+            const report: Report = {
+                ...createRandomReport(4, 'policyAdmins'),
+                participants: {'18921695': {notificationPreference: 'always'}},
+            };
+            const lastAction: ReportAction = {
+                ...createRandomReportAction(2),
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_CARD_FEED,
+                originalMessage: {feedName: 'Amex Corporate'},
+            };
+            const reportActions: ReportActions = {[lastAction.reportActionID]: lastAction};
+            await act(async () => {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, reportActions);
+            });
+
+            const result = SidebarUtils.getOptionData({
+                report,
+                reportAttributes: undefined,
+                reportNameValuePairs: {},
+                personalDetails: {},
+                policy: undefined,
+                invoiceReceiverPolicy: undefined,
+                parentReportAction: undefined,
+                conciergeReportID: '',
+                oneTransactionThreadReport: undefined,
+                card: undefined,
+                translate: translateLocal,
+                localeCompare,
+                lastAction,
+                lastActionReport: undefined,
+                isReportArchived: undefined,
+                currentUserAccountID: 0,
+                currentUserLogin: CURRENT_USER_LOGIN,
+                reportAttributesDerived: undefined,
+            });
+
+            expect(result?.alternateText).toBe('removed card feed "Amex Corporate"');
+        });
+
+        it('returns the correct alternate text for RENAME_CARD_FEED action', async () => {
+            const report: Report = {
+                ...createRandomReport(4, 'policyAdmins'),
+                participants: {'18921695': {notificationPreference: 'always'}},
+            };
+            const lastAction: ReportAction = {
+                ...createRandomReportAction(2),
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.RENAME_CARD_FEED,
+                originalMessage: {oldName: 'Old Feed', newName: 'New Feed'},
+            };
+            const reportActions: ReportActions = {[lastAction.reportActionID]: lastAction};
+            await act(async () => {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, reportActions);
+            });
+
+            const result = SidebarUtils.getOptionData({
+                report,
+                reportAttributes: undefined,
+                reportNameValuePairs: {},
+                personalDetails: {},
+                policy: undefined,
+                invoiceReceiverPolicy: undefined,
+                parentReportAction: undefined,
+                conciergeReportID: '',
+                oneTransactionThreadReport: undefined,
+                card: undefined,
+                translate: translateLocal,
+                localeCompare,
+                lastAction,
+                lastActionReport: undefined,
+                isReportArchived: undefined,
+                currentUserAccountID: 0,
+                currentUserLogin: CURRENT_USER_LOGIN,
+                reportAttributesDerived: undefined,
+            });
+
+            expect(result?.alternateText).toBe('renamed card feed to "New Feed" (previously "Old Feed")');
+        });
+
+        it('returns the correct alternate text for ASSIGN_COMPANY_CARD action', async () => {
+            const report: Report = {
+                ...createRandomReport(4, 'policyAdmins'),
+                participants: {'18921695': {notificationPreference: 'always'}},
+            };
+            const lastAction: ReportAction = {
+                ...createRandomReportAction(2),
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ASSIGN_COMPANY_CARD,
+                originalMessage: {email: 'user@example.com', feedName: 'US Bank', cardLastFour: '1234'},
+            };
+            const reportActions: ReportActions = {[lastAction.reportActionID]: lastAction};
+            await act(async () => {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, reportActions);
+            });
+
+            const result = SidebarUtils.getOptionData({
+                report,
+                reportAttributes: undefined,
+                reportNameValuePairs: {},
+                personalDetails: {},
+                policy: undefined,
+                invoiceReceiverPolicy: undefined,
+                parentReportAction: undefined,
+                conciergeReportID: '',
+                oneTransactionThreadReport: undefined,
+                card: undefined,
+                translate: translateLocal,
+                localeCompare,
+                lastAction,
+                lastActionReport: undefined,
+                isReportArchived: undefined,
+                currentUserAccountID: 0,
+                currentUserLogin: CURRENT_USER_LOGIN,
+                reportAttributesDerived: undefined,
+            });
+
+            expect(result?.alternateText).toBe('assigned user@example.com "US Bank" company card ending in 1234');
+        });
+
+        it('returns the correct alternate text for UNASSIGN_COMPANY_CARD action', async () => {
+            const report: Report = {
+                ...createRandomReport(4, 'policyAdmins'),
+                participants: {'18921695': {notificationPreference: 'always'}},
+            };
+            const lastAction: ReportAction = {
+                ...createRandomReportAction(2),
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UNASSIGN_COMPANY_CARD,
+                originalMessage: {email: 'user@example.com', feedName: 'US Bank', cardLastFour: '5678'},
+            };
+            const reportActions: ReportActions = {[lastAction.reportActionID]: lastAction};
+            await act(async () => {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, reportActions);
+            });
+
+            const result = SidebarUtils.getOptionData({
+                report,
+                reportAttributes: undefined,
+                reportNameValuePairs: {},
+                personalDetails: {},
+                policy: undefined,
+                invoiceReceiverPolicy: undefined,
+                parentReportAction: undefined,
+                conciergeReportID: '',
+                oneTransactionThreadReport: undefined,
+                card: undefined,
+                translate: translateLocal,
+                localeCompare,
+                lastAction,
+                lastActionReport: undefined,
+                isReportArchived: undefined,
+                currentUserAccountID: 0,
+                currentUserLogin: CURRENT_USER_LOGIN,
+                reportAttributesDerived: undefined,
+            });
+
+            expect(result?.alternateText).toBe('unassigned user@example.com "US Bank" company card ending in 5678');
+        });
+
+        it('returns the correct alternate text for UPDATE_CARD_FEED_LIABILITY action', async () => {
+            const report: Report = {
+                ...createRandomReport(4, 'policyAdmins'),
+                participants: {'18921695': {notificationPreference: 'always'}},
+            };
+            const lastAction: ReportAction = {
+                ...createRandomReportAction(2),
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CARD_FEED_LIABILITY,
+                originalMessage: {feedName: 'Visa Commercial', liabilityType: CONST.TRANSACTION.LIABILITY_TYPE.ALLOW},
+            };
+            const reportActions: ReportActions = {[lastAction.reportActionID]: lastAction};
+            await act(async () => {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, reportActions);
+            });
+
+            const result = SidebarUtils.getOptionData({
+                report,
+                reportAttributes: undefined,
+                reportNameValuePairs: {},
+                personalDetails: {},
+                policy: undefined,
+                invoiceReceiverPolicy: undefined,
+                parentReportAction: undefined,
+                conciergeReportID: '',
+                oneTransactionThreadReport: undefined,
+                card: undefined,
+                translate: translateLocal,
+                localeCompare,
+                lastAction,
+                lastActionReport: undefined,
+                isReportArchived: undefined,
+                currentUserAccountID: 0,
+                currentUserLogin: CURRENT_USER_LOGIN,
+                reportAttributesDerived: undefined,
+            });
+
+            expect(result?.alternateText).toBe('enabled cardholders to delete card transactions for card feed "Visa Commercial"');
+        });
+
+        it('returns the correct alternate text for UPDATE_CARD_FEED_STATEMENT_PERIOD action', async () => {
+            const report: Report = {
+                ...createRandomReport(4, 'policyAdmins'),
+                participants: {'18921695': {notificationPreference: 'always'}},
+            };
+            const lastAction: ReportAction = {
+                ...createRandomReportAction(2),
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CARD_FEED_STATEMENT_PERIOD,
+                originalMessage: {feedName: 'Visa Commercial', statementPeriodEndDay: '15', previousStatementPeriodEndDay: '20'},
+            };
+            const reportActions: ReportActions = {[lastAction.reportActionID]: lastAction};
+            await act(async () => {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, reportActions);
+            });
+
+            const result = SidebarUtils.getOptionData({
+                report,
+                reportAttributes: undefined,
+                reportNameValuePairs: {},
+                personalDetails: {},
+                policy: undefined,
+                invoiceReceiverPolicy: undefined,
+                parentReportAction: undefined,
+                conciergeReportID: '',
+                oneTransactionThreadReport: undefined,
+                card: undefined,
+                translate: translateLocal,
+                localeCompare,
+                lastAction,
+                lastActionReport: undefined,
+                isReportArchived: undefined,
+                currentUserAccountID: 0,
+                currentUserLogin: CURRENT_USER_LOGIN,
+                reportAttributesDerived: undefined,
+            });
+
+            expect(result?.alternateText).toBe('changed card feed "Visa Commercial" statement period end day to "15" (previously "20")');
+        });
+
         it('returns @Hidden as an alternate text if the last action mentioned account has no name', async () => {
             // When a report has last action with mention of an account that has no name
             const report: Report = {
@@ -2650,7 +2930,7 @@ describe('SidebarUtils', () => {
                     currentUserLogin: CURRENT_USER_LOGIN,
                 });
 
-                const reportPreviewMessage = getReportPreviewMessage(iouReport, iouAction, true, true, null, true, lastReportPreviewAction);
+                const reportPreviewMessage = getReportPreviewMessage(iouReport, undefined, iouAction, true, true, null, true, lastReportPreviewAction);
                 expect(result?.alternateText).toBe(`${getLastActorDisplayName({accountID: managerID}, managerID)}: ${reportPreviewMessage}`);
             });
 
@@ -2752,7 +3032,7 @@ describe('SidebarUtils', () => {
                     currentUserLogin: CURRENT_USER_LOGIN,
                 });
 
-                const reportPreviewMessage = getReportPreviewMessage(iouReport, iouAction, true, true, null, true, lastReportPreviewAction);
+                const reportPreviewMessage = getReportPreviewMessage(iouReport, undefined, iouAction, true, true, null, true, lastReportPreviewAction);
                 expect(result?.alternateText).toBe(reportPreviewMessage);
             });
         });
