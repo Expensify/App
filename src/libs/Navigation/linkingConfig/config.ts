@@ -1163,10 +1163,6 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             path: ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.route,
                             exact: true,
                         },
-                        [SCREENS.REIMBURSEMENT_ACCOUNT_USD]: {
-                            path: ROUTES.BANK_ACCOUNT_USD_SETUP.route,
-                            exact: true,
-                        },
                         [SCREENS.REIMBURSEMENT_ACCOUNT_NON_USD]: {
                             path: ROUTES.BANK_ACCOUNT_NON_USD_SETUP.route,
                             exact: true,
@@ -1243,6 +1239,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         },
                         [SCREENS.WORKSPACE.RULES_SPEND_NEW]: {
                             path: ROUTES.RULES_SPEND_NEW.route,
+                        },
+                        [SCREENS.WORKSPACE.RULES_SPEND_EDIT]: {
+                            path: ROUTES.RULES_SPEND_EDIT.route,
                         },
                         [SCREENS.WORKSPACE.RULES_SPEND_CARD]: {
                             path: ROUTES.RULES_SPEND_CARD.route,
@@ -1448,6 +1447,11 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.REPORT_SETTINGS.COLUMNS]: {
                             path: ROUTES.REPORT_SETTINGS_COLUMNS.route,
                         },
+                    },
+                },
+                [SCREENS.RIGHT_MODAL.CHRONOS_SCHEDULE_OOO]: {
+                    screens: {
+                        [SCREENS.CHRONOS_SCHEDULE_OOO_ROOT]: ROUTES.CHRONOS_SCHEDULE_OOO.route,
                     },
                 },
                 [SCREENS.RIGHT_MODAL.SETTINGS_CATEGORIES]: {

@@ -1445,20 +1445,29 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.RULES_SPEND_NEW]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.RULES_SPEND_EDIT]: {
+        policyID: string;
+        ruleID: string;
+    };
     [SCREENS.WORKSPACE.RULES_SPEND_CARD]: {
         policyID: string;
+        ruleID: string;
     };
     [SCREENS.WORKSPACE.RULES_SPEND_CATEGORY]: {
         policyID: string;
+        ruleID: string;
     };
     [SCREENS.WORKSPACE.RULES_SPEND_MAX_AMOUNT]: {
         policyID: string;
+        ruleID: string;
     };
     [SCREENS.WORKSPACE.RULES_SPEND_MERCHANTS]: {
         policyID: string;
+        ruleID: string;
     };
     [SCREENS.WORKSPACE.RULES_SPEND_MERCHANT_EDIT]: {
         policyID: string;
+        ruleID: string;
         merchantIndex: string;
     };
     [SCREENS.WORKSPACE.RULES_MERCHANT_MERCHANT_TO_MATCH]: {
@@ -1728,6 +1737,12 @@ type ReportDescriptionNavigatorParamList = {
         reportID: string;
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
         backTo?: Routes;
+    };
+};
+
+type ChronosScheduleOOONavigatorParamList = {
+    [SCREENS.CHRONOS_SCHEDULE_OOO_ROOT]: {
+        reportID: string;
     };
 };
 
@@ -2264,14 +2279,6 @@ type ReimbursementAccountNavigatorParamList = {
         bankAccountID?: string;
         subStep?: typeof CONST.BANK_ACCOUNT.STEP.COUNTRY;
     };
-    [SCREENS.REIMBURSEMENT_ACCOUNT_USD]: {
-        page?: string;
-        subPage?: string;
-        action?: 'edit';
-        policyID?: string;
-        // eslint-disable-next-line no-restricted-syntax -- backTo is a temporary param will be removed after https://github.com/Expensify/App/issues/73825 is done
-        backTo?: Routes;
-    };
     [SCREENS.REIMBURSEMENT_ACCOUNT_NON_USD]: {
         page?: string;
         subPage?: string;
@@ -2465,6 +2472,7 @@ type RightModalNavigatorParamList = {
     [SCREENS.RIGHT_MODAL.EXPENSIFY_CARD]: NavigatorScreenParams<SettingsNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.DOMAIN_CARD]: NavigatorScreenParams<SettingsNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.REPORT_DESCRIPTION]: NavigatorScreenParams<ReportDescriptionNavigatorParamList>;
+    [SCREENS.RIGHT_MODAL.CHRONOS_SCHEDULE_OOO]: NavigatorScreenParams<ChronosScheduleOOONavigatorParamList>;
     [SCREENS.RIGHT_MODAL.PARTICIPANTS]: NavigatorScreenParams<ParticipantsNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.ROOM_MEMBERS]: NavigatorScreenParams<RoomMembersNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.MONEY_REQUEST]: NavigatorScreenParams<MoneyRequestNavigatorParamList>;
@@ -3285,6 +3293,7 @@ export type {
     ConnectExistingBankAccountNavigatorParamList,
     NewReportWorkspaceSelectionNavigatorParamList,
     ReportDescriptionNavigatorParamList,
+    ChronosScheduleOOONavigatorParamList,
     ReportDetailsNavigatorParamList,
     ReportChangeWorkspaceNavigatorParamList,
     ReportSettingsNavigatorParamList,

@@ -16,7 +16,6 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
 import useDeleteTransactions from '@hooks/useDeleteTransactions';
 import useDuplicateTransactionsAndViolations from '@hooks/useDuplicateTransactionsAndViolations';
-import useEnvironment from '@hooks/useEnvironment';
 import useExportAgainModal from '@hooks/useExportAgainModal';
 import useGetIOUReportFromReportAction from '@hooks/useGetIOUReportFromReportAction';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -110,20 +109,10 @@ import {
     isPerDiemRequest,
     isTransactionPendingDelete,
 } from '@libs/TransactionUtils';
-import {
-    approveMoneyRequest,
-    canApproveIOU,
-    cancelPayment,
-    canIOUBePaid as canIOUBePaidAction,
-    getNavigationUrlOnMoneyRequestDelete,
-    payInvoice,
-    payMoneyRequest,
-    reopenReport,
-    retractReport,
-    startMoneyRequest,
-    submitReport,
-    unapproveExpenseReport,
-} from '@userActions/IOU';
+import {startMoneyRequest} from '@userActions/IOU';
+import {getNavigationUrlOnMoneyRequestDelete} from '@userActions/IOU/DeleteMoneyRequest';
+import {cancelPayment, payInvoice, payMoneyRequest} from '@userActions/IOU/PayMoneyRequest';
+import {approveMoneyRequest, canApproveIOU, canIOUBePaid as canIOUBePaidAction, reopenReport, retractReport, submitReport, unapproveExpenseReport} from '@userActions/IOU/ReportWorkflow';
 import {setDeleteTransactionNavigateBackUrl} from '@userActions/Report';
 import {markPendingRTERTransactionsAsCash} from '@userActions/Transaction';
 import CONST from '@src/CONST';
@@ -249,6 +238,7 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
         'IntacctSquare',
         'QBDSquare',
         'CertiniaSquare',
+        'GustoSquare',
         'Feed',
         'Location',
         'ReceiptPlus',
@@ -266,7 +256,6 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
     const draftTransactionIDs = Object.keys(transactionDrafts ?? {});
 
     const {translate, localeCompare} = useLocalize();
-    const {isProduction} = useEnvironment();
     const exportTemplates = useMemo(
         () => getExportTemplates(integrationsExportTemplates ?? [], csvExportLayouts ?? {}, translate, policy),
         [integrationsExportTemplates, csvExportLayouts, policy, translate],
@@ -344,6 +333,7 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
+    const isBulkSubmitApprovePayBetaEnabled = isBetaEnabled(CONST.BETAS.BULK_SUBMIT_APPROVE_PAY);
     const hasViolations = hasViolationsReportUtils(moneyRequestReport?.reportID, allTransactionViolations, accountID, email ?? '');
     const hasCustomUnitOutOfPolicyViolation = hasCustomUnitOutOfPolicyViolationTransactionUtils(transactionViolations);
     const isPerDiemRequestOnNonDefaultWorkspace = isPerDiemRequest(transaction) && defaultExpensePolicy?.id !== policy?.id;
@@ -965,7 +955,7 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
             return [];
         }
 
-        const canUseBusinessBankAccount = moneyRequestReport?.reportID && !hasRequestFromCurrentAccount(moneyRequestReport.reportID, accountID ?? CONST.DEFAULT_NUMBER_ID);
+        const canUseBusinessBankAccount = moneyRequestReport?.reportID && !hasRequestFromCurrentAccount(moneyRequestReport, accountID ?? CONST.DEFAULT_NUMBER_ID);
         if (!canUseBusinessBankAccount) {
             return [];
         }
@@ -1200,7 +1190,7 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
     );
 
     const selectionModeReportLevelActions = useMemo(() => {
-        if (isProduction) {
+        if (!isBulkSubmitApprovePayBetaEnabled) {
             return [];
         }
         const actions: Array<DropdownOption<string> & Pick<PopoverMenuItem, 'backButtonText' | 'rightIcon'>> = [];
@@ -1244,7 +1234,7 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
         }
         return actions;
     }, [
-        isProduction,
+        isBulkSubmitApprovePayBetaEnabled,
         hasSubmitAction,
         shouldBlockSubmit,
         hasApproveAction,
@@ -1912,7 +1902,8 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
     const shouldShowSelectedTransactionsButton = !!selectedTransactionsOptions.length && !transactionThreadReportID;
     const popoverUseScrollView = shouldPopoverUseScrollView(selectedTransactionsOptions);
 
-    const hasPayInSelectionMode = allExpensesSelected && hasPayAction;
+    const hasActualPaymentOptions = paymentButtonOptions.some((opt) => Object.values(CONST.IOU.PAYMENT_TYPE).some((type) => type === opt.value));
+    const hasPayInSelectionMode = allExpensesSelected && hasPayAction && hasActualPaymentOptions;
 
     const makePaymentSelectHandler = useCallback(
         (fromSelectionMode: boolean) => (event: KYCFlowEvent, iouPaymentType: PaymentMethodType, triggerKYCFlow: TriggerKYCFlow) => {
