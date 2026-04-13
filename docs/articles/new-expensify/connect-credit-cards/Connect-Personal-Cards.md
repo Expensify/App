@@ -52,10 +52,10 @@ If you proceed with the upgrade:
 ---
 
 # FAQ
-## How can I check if my bank or card issuer is supported?
+
 ## How can I check if my bank or card issuer is supported/ 
 Expensify supports most major banks and card issuers worldwide. [Learn how to check which banks are supported in Expensify](/articles/new-expensify/connect-credit-cards/Check-Supported-Banks)
-Expensify supports most major banks and card issuers worldwide. [Check which banks are supported in Expensify](/articles/new-expensify/connect-credit-cards/Check-Supported-Banks.md)
+Expensify supports most major banks and card issuers worldwide. [Check which banks are supported in Expensify](/articles/new-expensify/connect-credit-cards/Check-Supported-Banks)
 
 ## How many personal cards can I connect for free?
 
