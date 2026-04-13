@@ -26,7 +26,6 @@ import Navigation from '@navigation/Navigation';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import variables from '@styles/variables';
 import {clearCardErrorField, syncCard, unassignCard} from '@userActions/Card';
-import {openOldDotLink} from '@userActions/Link';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -150,7 +149,7 @@ function PersonalCardDetailsPage({route}: PersonalCardDetailsPageProps) {
                             />
                             <Button
                                 text={translate('personalCard.fixCard')}
-                                onPress={() => openOldDotLink(CONST.OLDDOT_URLS.SETTINGS_WALLET_URL)}
+                                onPress={() => Navigation.navigate(ROUTES.SETTINGS_WALLET_PERSONAL_CARD_FIX_CONNECTION.getRoute(cardID))}
                                 isDisabled={isOffline || card?.isLoadingLastUpdated}
                                 style={styles.mb0}
                             />
