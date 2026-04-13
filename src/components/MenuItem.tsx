@@ -114,6 +114,9 @@ type MenuItemBaseProps = ForwardedFSClassProps &
         /** Styles to apply on the title wrapper */
         titleWrapperStyle?: StyleProp<ViewStyle>;
 
+        /** Styles to apply on the inner row containing the icon and text content */
+        innerContainerStyle?: StyleProp<ViewStyle>;
+
         /** Any additional styles to apply on the outer element */
         containerStyle?: StyleProp<ViewStyle>;
 
@@ -479,6 +482,7 @@ function MenuItem({
     style,
     wrapperStyle,
     titleWrapperStyle,
+    innerContainerStyle,
     outerWrapperStyle,
     containerStyle,
     titleStyle,
@@ -864,7 +868,14 @@ function MenuItem({
                                                         </Text>
                                                     </View>
                                                 )}
-                                                <View style={[styles.flexRow, styles.pointerEventsAuto, disabled && !shouldUseDefaultCursorWhenDisabled && styles.cursorDisabled]}>
+                                                <View
+                                                    style={[
+                                                        styles.flexRow,
+                                                        styles.pointerEventsAuto,
+                                                        disabled && !shouldUseDefaultCursorWhenDisabled && styles.cursorDisabled,
+                                                        innerContainerStyle,
+                                                    ]}
+                                                >
                                                     {!!leftComponent && <View style={[styles.mr3]}>{leftComponent}</View>}
                                                     {/* eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing */}
                                                     {isIDPassed && (

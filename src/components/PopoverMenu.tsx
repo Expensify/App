@@ -376,9 +376,10 @@ function BasePopoverMenu({
                 icon={expensifyIcons.BackArrow}
                 iconFill={(isHovered) => (isHovered ? theme.iconHovered : theme.icon)}
                 style={hasBackButtonText ? styles.pv0 : undefined}
-                additionalIconStyles={[{width: variables.iconSizeSmall, height: variables.iconSizeSmall}, styles.opacitySemiTransparent, styles.mr1]}
-                iconStyles={!isSmallScreenWidth ? [{width: 20}] : undefined}
-                wrapperStyle={!isSmallScreenWidth ? [{height: 52, paddingHorizontal: 20, paddingVertical: 4, alignItems: 'center'}] : undefined}
+                additionalIconStyles={[{width: 20, height: 20}, styles.opacitySemiTransparent, styles.mr1]}
+                iconStyles={[{width: 20, height: 20}]}
+                wrapperStyle={[styles.ph5, styles.pv3]}
+                innerContainerStyle={styles.alignItemsCenter}
                 title={backButtonTitle}
                 accessibilityLabel={`${translate('common.goBack')}, ${backButtonTitle}`}
                 titleStyle={hasBackButtonText ? styles.createMenuHeaderText : undefined}
