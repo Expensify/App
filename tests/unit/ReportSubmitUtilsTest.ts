@@ -1,5 +1,5 @@
 import Onyx from 'react-native-onyx';
-import {canSubmitReport} from '@libs/actions/IOU';
+import {canSubmitReport} from '@libs/actions/IOU/ReportWorkflow';
 import {canSubmitAndIsAwaitingForCurrentUser, shouldCurrentUserSubmitReport} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';

@@ -20,8 +20,8 @@ import {
     hasViolations as hasViolationsReportUtils,
     isInvoiceReport as isInvoiceReportUtils,
 } from '@libs/ReportUtils';
-import {approveMoneyRequest, canIOUBePaid as canIOUBePaidIOUActions} from '@userActions/IOU';
 import {payInvoice, payMoneyRequest} from '@userActions/IOU/PayMoneyRequest';
+import {approveMoneyRequest as canIOUBePaidIOUActions} from '@userActions/IOU/ReportWorkflow';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';

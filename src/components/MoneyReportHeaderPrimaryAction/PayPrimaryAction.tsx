@@ -24,8 +24,8 @@ import {
     isInvoiceReport as isInvoiceReportUtil,
 } from '@libs/ReportUtils';
 import {isExpensifyCardTransaction, isPending} from '@libs/TransactionUtils';
-import {canApproveIOU, canIOUBePaid as canIOUBePaidAction} from '@userActions/IOU';
 import {payInvoice, payMoneyRequest} from '@userActions/IOU/PayMoneyRequest';
+import {canApproveIOU as canIOUBePaidAction} from '@userActions/IOU/ReportWorkflow';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
