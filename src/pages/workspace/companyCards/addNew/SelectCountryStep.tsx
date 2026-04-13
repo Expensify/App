@@ -132,6 +132,7 @@ function SelectCountryStep({policyID}: CountryStepProps) {
                 initiallyFocusedItemKey={initiallyFocusedCountry}
                 disableMaintainingScrollPosition
                 shouldSingleExecuteRowSelect
+                shouldUpdateFocusedIndex
                 shouldScrollToFocusedIndex={false}
                 shouldScrollToFocusedIndexOnMount={false}
                 addBottomSafeAreaPadding
