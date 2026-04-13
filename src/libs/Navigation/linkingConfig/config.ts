@@ -817,9 +817,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.EXPENSIFY_CARD_LIMIT]: {
                             path: ROUTES.WORKSPACE_EXPENSIFY_CARD_LIMIT.route,
                         },
-                        [SCREENS.WORKSPACE.EXPENSIFY_CARD_ISSUE_NEW]: {
-                            path: ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW.route,
-                        },
+                        [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW]: DYNAMIC_ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW.path,
                         [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_CONFIRM_MAGIC_CODE]: DYNAMIC_ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_CONFIRM_MAGIC_CODE.path,
                         [SCREENS.WORKSPACE.EXPENSIFY_CARD_NAME]: {
                             path: ROUTES.WORKSPACE_EXPENSIFY_CARD_NAME.route,

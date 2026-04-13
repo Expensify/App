@@ -114,9 +114,8 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
             showDelegateNoAccessModal();
             return;
         }
-        const activeRoute = Navigation.getActiveRoute();
         setIssueNewCardStepAndData({policyID, isChangeAssigneeDisabled: false});
-        Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW.getRoute(policyID, activeRoute));
+        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW.path));
     };
 
     const secondaryActions = useMemo(

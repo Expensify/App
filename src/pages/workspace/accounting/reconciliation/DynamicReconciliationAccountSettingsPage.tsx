@@ -98,7 +98,7 @@ function DynamicReconciliationAccountSettingsPage({route}: DynamicReconciliation
                 <RenderHTML
                     html={translate(
                         'workspace.accounting.chooseReconciliationAccount.settlementAccountReconciliation',
-                        `${environmentURL}/${createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_EXPENSIFY_CARD_SETTINGS_ACCOUNT.path)}`,
+                        `${environmentURL}${createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_EXPENSIFY_CARD_SETTINGS_ACCOUNT.path)}`,
                         settlementAccountEnding,
                     )}
                 />

@@ -3,6 +3,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import ScreenWrapper from '@components/ScreenWrapper';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useOnyx from '@hooks/useOnyx';
 import {startIssueNewCardFlow} from '@libs/actions/Card';
 import Navigation from '@libs/Navigation/Navigation';
@@ -13,6 +14,7 @@ import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPol
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {IssueNewCard, IssueNewCardStep} from '@src/types/onyx/Card';
 import AssigneeStep from './AssigneeStep';
@@ -23,7 +25,7 @@ import InviteNewMemberStep from './InviteNewMemberStep';
 import LimitTypeStep from './LimitTypeStep';
 import SetExpiryOptionsStep from './SetExpiryOptionsStep';
 
-type IssueNewCardPageProps = WithPolicyAndFullscreenLoadingProps & PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.EXPENSIFY_CARD_ISSUE_NEW>;
+type IssueNewCardPageProps = WithPolicyAndFullscreenLoadingProps & PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW>;
 
 function getStartStepIndex(issueNewCard: OnyxEntry<IssueNewCard>): number {
     if (!issueNewCard) {
@@ -48,7 +50,7 @@ function IssueNewCardPage({policy, route}: IssueNewCardPageProps) {
     const policyID = policy?.id;
     const [issueNewCard] = useOnyx(`${ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD}${policyID}`, {initWithStoredValues: false});
     const {currentStep} = issueNewCard ?? {};
-    const backTo = route?.params?.backTo;
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW.path);
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
 
     const stepNames = useMemo(() => {
@@ -137,7 +139,7 @@ function IssueNewCardPage({policy, route}: IssueNewCardPageProps) {
             >
                 <DelegateNoAccessWrapper
                     accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.SUBMITTER]}
-                    onBackButtonPress={() => Navigation.goBack(backTo)}
+                    onBackButtonPress={() => Navigation.goBack(backPath)}
                 />
             </ScreenWrapper>
         );

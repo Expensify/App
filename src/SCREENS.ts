@@ -694,7 +694,7 @@ const SCREENS = {
         EXPENSIFY_CARD: 'Workspace_ExpensifyCard',
         EXPENSIFY_CARD_DETAILS: 'Workspace_ExpensifyCard_Details',
         EXPENSIFY_CARD_LIMIT: 'Workspace_ExpensifyCard_Limit',
-        EXPENSIFY_CARD_ISSUE_NEW: 'Workspace_ExpensifyCard_New',
+        DYNAMIC_WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW: 'Dynamic_Workspace_ExpensifyCard_New',
         DYNAMIC_WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_CONFIRM_MAGIC_CODE: 'Dynamic_Workspace_ExpensifyCard_IssueNew_ConfirmMagicCode',
         EXPENSIFY_CARD_NAME: 'Workspace_ExpensifyCard_Name',
         DYNAMIC_WORKSPACE_EXPENSIFY_CARD_SELECT_FEED: 'Dynamic_Workspace_ExpensifyCard_Select_Feed',
