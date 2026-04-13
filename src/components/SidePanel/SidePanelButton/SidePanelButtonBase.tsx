@@ -2,6 +2,7 @@ import React from 'react';
 import Icon from '@components/Icon';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import Tooltip from '@components/Tooltip';
+import useIsInConciergeChat from '@hooks/useIsInConciergeChat';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useSidePanelActions from '@hooks/useSidePanelActions';
@@ -18,8 +19,9 @@ function SidePanelButtonBase({style}: SidePanelButtonProps) {
     const {shouldHideHelpButton} = useSidePanelState();
     const {openSidePanel} = useSidePanelActions();
     const {ConciergeAvatar} = useMemoizedLazyExpensifyIcons(['ConciergeAvatar']);
+    const isInConciergeChat = useIsInConciergeChat();
 
-    if (shouldHideHelpButton) {
+    if (shouldHideHelpButton || isInConciergeChat) {
         return null;
     }
 
