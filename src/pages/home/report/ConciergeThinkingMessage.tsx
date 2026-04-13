@@ -156,6 +156,7 @@ function ConciergeThinkingMessageContent({
                         reportID={report?.reportID}
                         chatReportID={report?.chatReportID ?? report?.reportID}
                         action={action}
+                        accountIDs={[CONST.ACCOUNT_ID.CONCIERGE]}
                     />
                 </OfflineWithFeedback>
             </View>

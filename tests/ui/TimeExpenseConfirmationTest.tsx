@@ -80,7 +80,11 @@ jest.mock('@libs/Navigation/Navigation', () => {
     return {
         navigate: jest.fn(),
         goBack: jest.fn(),
+        dismissModal: jest.fn(),
         dismissModalWithReport: jest.fn(),
+        getIsFullscreenPreInsertedUnderRHP: jest.fn(() => false),
+        clearFullscreenPreInsertedFlag: jest.fn(),
+        revealRouteBeforeDismissingModal: jest.fn(),
         navigationRef: mockRef,
     };
 });
@@ -278,8 +282,15 @@ describe('TimeExpenseConfirmationTest', () => {
             renderConfirmation(CONST.IOU.ACTION.SUBMIT);
             await waitForBatchedUpdatesWithAct();
 
-            // Merchant is shown for non-CREATE actions
-            expect(screen.getByTestId('menu-item-Merchant')).toBeDefined();
+            const merchantRow = screen.queryByTestId('menu-item-Merchant');
+
+            // In the new manual expense flow, merchant is rendered as a text input instead of a menu item.
+            if (merchantRow) {
+                expect(merchantRow).toBeDefined();
+            } else {
+                const merchantInput = screen.getByLabelText('Merchant');
+                expect(merchantInput).toBeDefined();
+            }
 
             // Hours and Rate are only shown during CREATE
             expect(screen.queryByTestId('menu-item-Hours')).toBeNull();
