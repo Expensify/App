@@ -1,7 +1,7 @@
 import {delegateEmailSelector, isUserValidatedSelector} from '@selectors/Account';
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import truncate from 'lodash/truncate';
-import React, {useContext} from 'react';
+import React, {useContext, useEffect} from 'react';
 import {InteractionManager} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import type {ButtonWithDropdownMenuRef} from '@components/ButtonWithDropdownMenu/types';
@@ -21,6 +21,7 @@ import useHoldRejectActions from '@hooks/useHoldRejectActions';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLifecycleActions from '@hooks/useLifecycleActions';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useNonReimbursablePaymentModal from '@hooks/useNonReimbursablePaymentModal';
 import useOnyx from '@hooks/useOnyx';
 import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
@@ -100,6 +101,7 @@ function MoneyReportHeaderSecondaryActions({reportID, primaryAction, isReportInS
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {login: currentUserLogin, accountID, email} = currentUserPersonalDetails;
 
+    const {isOffline} = useNetwork();
     const activePolicy = usePolicy(activePolicyID);
 
     const {isBetaEnabled} = usePermissions();
@@ -108,6 +110,8 @@ function MoneyReportHeaderSecondaryActions({reportID, primaryAction, isReportInS
     const {transactions: reportTransactions, violations} = useTransactionsAndViolationsForReport(moneyRequestReport?.reportID);
     const nonPendingDeleteTransactions = Object.values(reportTransactions).filter((t) => t.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
     const allTransactions = Object.values(reportTransactions);
+    const singleTransaction = nonPendingDeleteTransactions.length === 1 ? nonPendingDeleteTransactions.at(0) : undefined;
+    const [originalTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(singleTransaction?.comment?.originalTransactionID)}`);
 
     const {reportActions: unfilteredReportActions} = usePaginatedReportActions(moneyRequestReport?.reportID);
     const reportActions = getFilteredReportActionsForReportView(unfilteredReportActions);
@@ -188,13 +192,13 @@ function MoneyReportHeaderSecondaryActions({reportID, primaryAction, isReportInS
                     startAnimation();
                 },
             });
-            if (currentSearchQueryJSON) {
+            if (currentSearchQueryJSON && !isOffline) {
                 search({
                     searchKey: currentSearchKey,
                     shouldCalculateTotals,
                     offset: 0,
                     queryJSON: currentSearchQueryJSON,
-                    isOffline: false,
+                    isOffline,
                     isLoading: !!currentSearchResults?.search?.isLoading,
                 });
             }
@@ -268,7 +272,15 @@ function MoneyReportHeaderSecondaryActions({reportID, primaryAction, isReportInS
         },
     });
 
-    const {actions: expenseActions, handleOptionsMenuHide} = useExpenseActions({reportID, isReportInSearch, backTo});
+    const {actions: expenseActions, handleOptionsMenuHide, isDuplicateReportActive, wasDuplicateReportTriggeredRef} = useExpenseActions({reportID, isReportInSearch, backTo});
+
+    useEffect(() => {
+        if (!isDuplicateReportActive || !wasDuplicateReportTriggeredRef.current) {
+            return;
+        }
+        wasDuplicateReportTriggeredRef.current = false;
+        dropdownMenuRef?.current?.setIsMenuVisible(false);
+    }, [isDuplicateReportActive, wasDuplicateReportTriggeredRef, dropdownMenuRef]);
 
     const holdRejectActions = useHoldRejectActions({
         reportID,
@@ -278,6 +290,7 @@ function MoneyReportHeaderSecondaryActions({reportID, primaryAction, isReportInS
 
     const {exportActionEntries} = useExportActions({
         reportID,
+        policy,
         onPDFModalOpen: openPDFDownload,
     });
 
@@ -289,7 +302,7 @@ function MoneyReportHeaderSecondaryActions({reportID, primaryAction, isReportInS
               report: moneyRequestReport,
               chatReport,
               reportTransactions: nonPendingDeleteTransactions,
-              originalTransaction: undefined,
+              originalTransaction,
               violations,
               bankAccountList,
               policy,

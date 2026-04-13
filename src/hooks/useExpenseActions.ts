@@ -74,7 +74,7 @@ type UseExpenseActionsReturn = {
     addExpenseDropdownOptions: Array<DropdownOption<string>>;
     handleOptionsMenuHide: () => void;
     isDuplicateReportActive: boolean;
-    wasDuplicateReportTriggered: React.RefObject<boolean>;
+    wasDuplicateReportTriggeredRef: React.RefObject<boolean>;
 };
 
 function useExpenseActions({reportID, isReportInSearch = false, backTo}: UseExpenseActionsParams): UseExpenseActionsReturn {
@@ -171,10 +171,10 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo}: UseExpe
 
     // Duplicate report throttle
     const [isDuplicateReportActive, temporarilyDisableDuplicateReportAction] = useThrottledButtonState();
-    const wasDuplicateReportTriggered = useRef(false);
+    const wasDuplicateReportTriggeredRef = useRef(false);
 
     const handleOptionsMenuHide = () => {
-        wasDuplicateReportTriggered.current = false;
+        wasDuplicateReportTriggeredRef.current = false;
     };
 
     // The dropdown ref is owned by the caller (orchestrator) — we close the menu by calling into it.
@@ -360,7 +360,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo}: UseExpe
                 }
 
                 temporarilyDisableDuplicateReportAction();
-                wasDuplicateReportTriggered.current = true;
+                wasDuplicateReportTriggeredRef.current = true;
 
                 const isSourcePolicyValid = !!policy && isPolicyAccessible(policy, currentUserLogin ?? '');
                 const targetPolicyForDuplicate = isSourcePolicyValid ? policy : defaultExpensePolicy;
@@ -476,7 +476,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo}: UseExpe
                             isChatIOUReportArchived,
                             false,
                         );
-                        const deleteNavigateBackUrl = goBackRoute ?? Navigation.getActiveRoute();
+                        const deleteNavigateBackUrl = goBackRoute ?? backTo ?? Navigation.getActiveRoute();
                         setDeleteTransactionNavigateBackUrl(deleteNavigateBackUrl);
                         if (goBackRoute) {
                             navigateOnDeleteExpense(goBackRoute);
@@ -548,7 +548,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo}: UseExpe
         addExpenseDropdownOptions,
         handleOptionsMenuHide,
         isDuplicateReportActive,
-        wasDuplicateReportTriggered,
+        wasDuplicateReportTriggeredRef,
     };
 }
 

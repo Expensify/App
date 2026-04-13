@@ -1,3 +1,4 @@
+import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
@@ -13,6 +14,7 @@ import {getSecondaryExportReportActions} from '@libs/ReportSecondaryActionUtils'
 import {getIntegrationIcon, isExported as isExportedUtils} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type * as OnyxTypes from '@src/types/onyx';
 import useConfirmModal from './useConfirmModal';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useDecisionModal from './useDecisionModal';
@@ -22,12 +24,12 @@ import useLocalize from './useLocalize';
 import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
 import usePaginatedReportActions from './usePaginatedReportActions';
-import usePolicy from './usePolicy';
 import useThemeStyles from './useThemeStyles';
 import useTransactionsAndViolationsForReport from './useTransactionsAndViolationsForReport';
 
 type UseExportActionsParams = {
     reportID: string | undefined;
+    policy?: OnyxEntry<OnyxTypes.Policy>;
     onPDFModalOpen?: () => void;
 };
 
@@ -39,13 +41,12 @@ type UseExportActionsReturn = {
     showDownloadErrorModal: () => void;
 };
 
-function useExportActions({reportID, onPDFModalOpen}: UseExportActionsParams): UseExportActionsReturn {
+function useExportActions({reportID, policy, onPDFModalOpen}: UseExportActionsParams): UseExportActionsReturn {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const styles = useThemeStyles();
 
     const [moneyRequestReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportID)}`);
-    const policy = usePolicy(moneyRequestReport?.policyID);
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [integrationsExportTemplates] = useOnyx(ONYXKEYS.NVP_INTEGRATION_SERVER_EXPORT_TEMPLATES);
     const [csvExportLayouts] = useOnyx(ONYXKEYS.NVP_CSV_EXPORT_LAYOUTS);

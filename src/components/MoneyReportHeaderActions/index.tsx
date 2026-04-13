@@ -13,16 +13,9 @@ import useTransactionThreadReport from '@hooks/useTransactionThreadReport';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Route} from '@src/ROUTES';
 import MoneyReportHeaderSecondaryActions from './MoneyReportHeaderSecondaryActions';
 import MoneyReportHeaderSelectionDropdown from './MoneyReportHeaderSelectionDropdown';
-
-type MoneyReportHeaderActionsProps = {
-    reportID: string | undefined;
-    primaryAction: ValueOf<typeof CONST.REPORT.PRIMARY_ACTIONS> | ValueOf<typeof CONST.REPORT.TRANSACTION_PRIMARY_ACTIONS> | '';
-    isReportInSearch?: boolean;
-    backTo?: Route;
-};
+import type {MoneyReportHeaderActionsProps} from './types';
 
 /**
  * Narrow the wide primaryAction union to what report-level secondary actions accept.

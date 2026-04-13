@@ -1,5 +1,5 @@
 import {useRoute} from '@react-navigation/native';
-import React, {useEffect, useRef} from 'react';
+import React, {useEffect} from 'react';
 import {View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
@@ -9,7 +9,6 @@ import useReportPrimaryAction from '@hooks/useReportPrimaryAction';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useResponsiveLayoutOnWideRHP from '@hooks/useResponsiveLayoutOnWideRHP';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useThrottledButtonState from '@hooks/useThrottledButtonState';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
@@ -19,7 +18,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import type {ButtonWithDropdownMenuRef} from './ButtonWithDropdownMenu/types';
 import HeaderLoadingBar from './HeaderLoadingBar';
 import HeaderWithBackButton from './HeaderWithBackButton';
 import MoneyReportHeaderActions from './MoneyReportHeaderActions';
@@ -77,18 +75,6 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
     const transactions = Object.values(reportTransactions);
 
     const styles = useThemeStyles();
-
-    const [isDuplicateReportActive] = useThrottledButtonState();
-    const dropdownMenuRef = useRef<ButtonWithDropdownMenuRef>(null);
-    const wasDuplicateReportTriggered = useRef(false);
-
-    useEffect(() => {
-        if (!isDuplicateReportActive || !wasDuplicateReportTriggered.current) {
-            return;
-        }
-        wasDuplicateReportTriggered.current = false;
-        dropdownMenuRef.current?.setIsMenuVisible(false);
-    }, [isDuplicateReportActive]);
 
     const {isWideRHPDisplayedOnWideLayout, isSuperWideRHPDisplayedOnWideLayout} = useResponsiveLayoutOnWideRHP();
 
