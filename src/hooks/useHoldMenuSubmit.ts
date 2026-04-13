@@ -1,8 +1,10 @@
+import {delegateEmailSelector} from '@selectors/Account';
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import {hasOnlyNonReimbursableTransactions, hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
-import {approveMoneyRequest, payMoneyRequest} from '@userActions/IOU';
+import {approveMoneyRequest} from '@userActions/IOU';
+import {payMoneyRequest} from '@userActions/IOU/PayMoneyRequest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -36,6 +38,7 @@ function useHoldMenuSubmit({moneyRequestReport, chatReport, requestType, payment
     const policy = usePolicy(moneyRequestReport?.policyID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [moneyRequestReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${moneyRequestReport?.reportID}`);
     const {isBetaEnabled} = usePermissions();
@@ -79,6 +82,7 @@ function useHoldMenuSubmit({moneyRequestReport, chatReport, requestType, payment
                 ownerBillingGracePeriodEnd,
                 full,
                 onApproved: animationCallback,
+                delegateEmail,
             });
         } else if (chatReport && paymentType) {
             payMoneyRequest({
