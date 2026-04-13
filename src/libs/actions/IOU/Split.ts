@@ -1563,8 +1563,6 @@ function updateSplitTransactions({
                 // For revert, the original transaction amount is restored via getMoneyRequestInformation,
                 // not via getUpdateMoneyRequestParams. The remaining split child's amount is incorrectly
                 // signed for selfDM children (reportID="0" causes getTransactionDetails to negate it).
-                // Remove it so getUpdateMoneyRequestParams doesn't generate a wrong MODIFIEDEXPENSE or
-                // set a negative modifiedAmount on the restored original transaction.
                 delete transactionChanges.amount;
                 delete transactionChanges.currency;
                 // Ensure moneyRequestInformationOnyxData is applied even if transactionChanges is now empty.
