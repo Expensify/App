@@ -1,0 +1,234 @@
+/* eslint-disable @typescript-eslint/naming-convention */
+import {PortalProvider} from '@gorhom/portal';
+import {fireEvent, render, screen, waitFor} from '@testing-library/react-native';
+import React from 'react';
+import type {GestureResponderEvent} from 'react-native';
+import Onyx from 'react-native-onyx';
+import ChronosTimerHeaderButton from '@components/ChronosTimerHeaderButton';
+import ComposeProviders from '@components/ComposeProviders';
+import {LocaleContextProvider} from '@components/LocaleContextProvider';
+import OnyxListItemProvider from '@components/OnyxListItemProvider';
+import CONST from '@src/CONST';
+import type {Report} from '@src/types/onyx';
+import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
+
+const mockAddComment = jest.fn();
+jest.mock('@userActions/Report', () => ({
+    addComment: (...args: unknown[]): void => {
+        mockAddComment(...args);
+    },
+}));
+
+const mockNavigate = jest.fn();
+jest.mock('@libs/Navigation/Navigation', () => ({
+    navigate: (...args: unknown[]): void => {
+        mockNavigate(...args);
+    },
+    isTopmostRouteModalScreen: () => false,
+}));
+
+jest.mock('@userActions/Session', () => ({
+    callFunctionIfActionIsAllowed: (fn: () => void) => fn,
+}));
+
+jest.mock('@libs/ReportUtils', () => ({
+    canUserPerformWriteAction: () => true,
+    canWriteInReport: () => true,
+}));
+
+jest.mock('@libs/ChronosUtils', () => ({
+    isChronosTimerRunningFromVisibleActions: () => false,
+}));
+
+jest.mock('@libs/ReportActionsUtils', () => ({
+    getSortedReportActionsForDisplay: () => [],
+}));
+
+jest.mock('@hooks/useAncestors', () => ({
+    __esModule: true,
+    default: () => [],
+}));
+
+jest.mock('@hooks/useIsInSidePanel', () => ({
+    __esModule: true,
+    default: () => false,
+}));
+
+jest.mock('@hooks/useReportIsArchived', () => ({
+    __esModule: true,
+    default: () => false,
+}));
+
+jest.mock('@hooks/useCurrentUserPersonalDetails', () => ({
+    __esModule: true,
+    default: () => ({accountID: 12345, timezone: {automatic: true, selected: 'America/Los_Angeles'}}),
+}));
+
+type PopoverMenuItem = {
+    text: string;
+    onSelected?: () => void;
+};
+
+type PopoverMenuProps = {
+    isVisible: boolean;
+    menuItems: PopoverMenuItem[];
+    onClose: () => void;
+    onItemSelected?: (item: PopoverMenuItem, index: number, event?: GestureResponderEvent | KeyboardEvent) => void;
+};
+
+/**
+ * A simplified PopoverMenu that renders menu items as pressable elements
+ * and directly invokes onSelected, bypassing the modal animation lifecycle.
+ */
+jest.mock('@components/PopoverMenu', () => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const {View, Text, TouchableOpacity} = jest.requireActual('react-native');
+    function MockPopoverMenu({isVisible, menuItems, onClose, onItemSelected}: PopoverMenuProps) {
+        if (!isVisible) {
+            return null;
+        }
+        return (
+            <View>
+                {menuItems.map((item: PopoverMenuItem, index: number) => (
+                    <TouchableOpacity
+                        key={item.text}
+                        accessibilityRole="menuitem"
+                        testID={`PopoverMenuItem-${item.text}`}
+                        onPress={() => {
+                            onItemSelected?.(item, index);
+                            item.onSelected?.();
+                            onClose();
+                        }}
+                    >
+                        <Text>{item.text}</Text>
+                    </TouchableOpacity>
+                ))}
+            </View>
+        );
+    }
+    MockPopoverMenu.displayName = 'PopoverMenu';
+    return MockPopoverMenu;
+});
+
+const TEST_REPORT_ID = '123456789';
+
+const mockReport: Report = {
+    reportID: TEST_REPORT_ID,
+    reportName: 'Chronos Test',
+    type: CONST.REPORT.TYPE.CHAT,
+} as Report;
+
+/**
+ * Finds the dropdown arrow button (the split button with expanded accessibility state).
+ */
+function getDropdownArrowButton() {
+    const buttons = screen.getAllByRole('button');
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+    const dropdownButton = buttons.find((btn) => btn.props.accessibilityState?.expanded !== undefined);
+    if (!dropdownButton) {
+        throw new Error('Could not find dropdown arrow button');
+    }
+    return dropdownButton;
+}
+
+function renderComponent() {
+    return render(
+        <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, PortalProvider]}>
+            <ChronosTimerHeaderButton report={mockReport} />
+        </ComposeProviders>,
+    );
+}
+
+describe('ChronosTimerHeaderButton', () => {
+    beforeEach(async () => {
+        await Onyx.clear();
+        await waitForBatchedUpdates();
+        jest.clearAllMocks();
+    });
+
+    it('renders the Start Timer button', async () => {
+        renderComponent();
+        await waitForBatchedUpdates();
+
+        expect(screen.getByText('Start Timer')).toBeOnTheScreen();
+    });
+
+    it('calls addComment when the main Start Timer button is pressed', async () => {
+        renderComponent();
+        await waitForBatchedUpdates();
+
+        const startTimerButton = screen.getByText('Start Timer');
+        fireEvent.press(startTimerButton);
+        await waitForBatchedUpdates();
+
+        expect(mockAddComment).toHaveBeenCalledTimes(1);
+        expect(mockAddComment).toHaveBeenCalledWith(
+            expect.objectContaining({
+                report: mockReport,
+                text: CONST.CHRONOS.TIMER_COMMAND.START,
+            }),
+        );
+    });
+
+    it('shows both Start Timer and Schedule OOO options in the dropdown menu', async () => {
+        renderComponent();
+        await waitForBatchedUpdates();
+
+        // Open the dropdown menu
+        fireEvent.press(getDropdownArrowButton());
+        await waitForBatchedUpdates();
+
+        // Both options should be visible in the popover
+        await waitFor(() => {
+            expect(screen.getByTestId('PopoverMenuItem-Start Timer')).toBeOnTheScreen();
+            expect(screen.getByTestId('PopoverMenuItem-Schedule OOO')).toBeOnTheScreen();
+        });
+    });
+
+    it('calls addComment when Start Timer is selected from the dropdown menu', async () => {
+        renderComponent();
+        await waitForBatchedUpdates();
+
+        // Open the dropdown menu
+        fireEvent.press(getDropdownArrowButton());
+        await waitForBatchedUpdates();
+
+        // Wait for the popover menu to appear
+        await waitFor(() => {
+            expect(screen.getByTestId('PopoverMenuItem-Start Timer')).toBeOnTheScreen();
+        });
+
+        // Press the "Start Timer" menu item in the dropdown
+        fireEvent.press(screen.getByTestId('PopoverMenuItem-Start Timer'));
+        await waitForBatchedUpdates();
+
+        expect(mockAddComment).toHaveBeenCalledTimes(1);
+        expect(mockAddComment).toHaveBeenCalledWith(
+            expect.objectContaining({
+                report: mockReport,
+                text: CONST.CHRONOS.TIMER_COMMAND.START,
+            }),
+        );
+    });
+
+    it('navigates to Schedule OOO when the option is selected from dropdown', async () => {
+        renderComponent();
+        await waitForBatchedUpdates();
+
+        // Open the dropdown menu
+        fireEvent.press(getDropdownArrowButton());
+        await waitForBatchedUpdates();
+
+        // Wait for the popover menu to appear
+        await waitFor(() => {
+            expect(screen.getByTestId('PopoverMenuItem-Schedule OOO')).toBeOnTheScreen();
+        });
+
+        // Press the "Schedule OOO" menu item
+        fireEvent.press(screen.getByTestId('PopoverMenuItem-Schedule OOO'));
+        await waitForBatchedUpdates();
+
+        expect(mockNavigate).toHaveBeenCalledTimes(1);
+        expect(mockNavigate).toHaveBeenCalledWith(`r/${TEST_REPORT_ID}/chronos/schedule-ooo`);
+    });
+});
