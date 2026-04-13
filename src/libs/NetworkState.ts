@@ -9,6 +9,7 @@ import Log from './Log';
 let hasRadio = true;
 let sustainedFailuresActive = false;
 let shouldForceOffline = false;
+let failAllRequests = false;
 let simulatedOffline = false;
 let lastOfflineAt: string | undefined;
 
@@ -136,6 +137,29 @@ function setForceOffline(force: boolean) {
         // and fires onReachabilityRestored(). Without this, prevIsInternetReachable
         // is already true (we track real state during force-offline) so the listener
         // sees true→true and skips reconnect.
+        prevIsInternetReachable = null;
+        NetInfo.refresh();
+    }
+}
+
+/**
+ * Called when shouldFailAllRequests changes in Onyx (test tool).
+ * When turned off, clears the artificial sustained failures that
+ * FailureTracking middleware accumulated and triggers recovery.
+ * Unlike real outages (where NetInfo detects recovery via Ping),
+ * shouldFailAllRequests only affects requests through HttpUtils —
+ * NetInfo's own Ping stays healthy, so no reachability transition
+ * ever fires. We must clear sustained failures explicitly.
+ */
+function setFailAllRequests(failAll: boolean) {
+    failAllRequests = failAll;
+    Log.info(`[NetworkState] shouldFailAllRequests set to ${failAll}`);
+
+    if (!failAll && sustainedFailuresActive) {
+        sustainedFailuresActive = false;
+        resetFailureCounters();
+        updateState();
+
         prevIsInternetReachable = null;
         NetInfo.refresh();
     }
@@ -299,6 +323,9 @@ Onyx.connectWithoutView({
             if (shouldForceOffline) {
                 setForceOffline(false);
             }
+            if (failAllRequests) {
+                setFailAllRequests(false);
+            }
             return;
         }
 
@@ -309,6 +336,11 @@ Onyx.connectWithoutView({
         const currentShouldForceOffline = !!network.shouldForceOffline;
         if (currentShouldForceOffline !== shouldForceOffline) {
             setForceOffline(currentShouldForceOffline);
+        }
+
+        const currentFailAllRequests = !!network.shouldFailAllRequests;
+        if (currentFailAllRequests !== failAllRequests) {
+            setFailAllRequests(currentFailAllRequests);
         }
     },
 });
@@ -322,4 +354,16 @@ function refresh() {
     NetInfo.refresh();
 }
 
-export {getIsOffline, getLastOfflineAt, subscribe, onReachabilityConfirmed, setHasRadio, setSustainedFailures, setForceOffline, getDBTimeWithSkew, refresh, simulatePoorConnection};
+export {
+    getIsOffline,
+    getLastOfflineAt,
+    subscribe,
+    onReachabilityConfirmed,
+    setHasRadio,
+    setSustainedFailures,
+    setForceOffline,
+    setFailAllRequests,
+    getDBTimeWithSkew,
+    refresh,
+    simulatePoorConnection,
+};

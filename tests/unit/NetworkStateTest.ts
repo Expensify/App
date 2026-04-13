@@ -3,6 +3,7 @@ import {
     getIsOffline,
     getLastOfflineAt,
     onReachabilityConfirmed,
+    setFailAllRequests,
     setForceOffline,
     setHasRadio,
     setSustainedFailures,
@@ -251,6 +252,52 @@ describe('NetworkState', () => {
             listener.mockClear();
             setForceOffline(false);
             expect(listener).toHaveBeenCalledTimes(1);
+
+            unsubscribe();
+        });
+    });
+
+    describe('setFailAllRequests', () => {
+        test('turning off clears sustained failures and restores online', () => {
+            setSustainedFailures(true);
+            expect(getIsOffline()).toBe(true);
+
+            setFailAllRequests(false);
+            expect(getIsOffline()).toBe(false);
+        });
+
+        test('turning off triggers listener when sustained failures were active', () => {
+            setSustainedFailures(true);
+
+            const listener = jest.fn();
+            const unsubscribe = subscribe(listener);
+
+            setFailAllRequests(false);
+            expect(listener).toHaveBeenCalledTimes(1);
+
+            unsubscribe();
+        });
+
+        test('turning off with no sustained failures does not trigger listener', () => {
+            expect(getIsOffline()).toBe(false);
+
+            const listener = jest.fn();
+            const unsubscribe = subscribe(listener);
+
+            setFailAllRequests(false);
+            expect(listener).not.toHaveBeenCalled();
+            expect(getIsOffline()).toBe(false);
+
+            unsubscribe();
+        });
+
+        test('turning on does not directly change offline state', () => {
+            const listener = jest.fn();
+            const unsubscribe = subscribe(listener);
+
+            setFailAllRequests(true);
+            expect(getIsOffline()).toBe(false);
+            expect(listener).not.toHaveBeenCalled();
 
             unsubscribe();
         });
