@@ -15,16 +15,12 @@ function TotalCell({shouldShowTooltip, transactionItem, reportCurrency: reportCu
     let amount = getTransactionDetails(transactionItem)?.amount;
     let currency = getTransactionCurrency(transactionItem);
 
-    // For foreign-currency transactions, show the converted amount in the report/group currency.
-    // Report layout: convertedAmount is in policy.outputCurrency (reportCurrencyProp).
-    // Search page: groupAmount is in groupCurrency.
-    // Each amount source must be paired with its own currency.
+    // Report layout: for foreign-currency transactions, show the converted amount in the
+    // policy's output currency (reportCurrencyProp). Only applies when the transaction's
+    // display currency differs from the output currency.
     if (transactionItem.convertedAmount && reportCurrencyProp && currency !== reportCurrencyProp) {
         amount = Math.abs(transactionItem.convertedAmount);
         currency = reportCurrencyProp;
-    } else if (transactionItem.groupAmount && transactionItem.groupCurrency && currency !== transactionItem.groupCurrency) {
-        amount = Math.abs(transactionItem.groupAmount);
-        currency = transactionItem.groupCurrency;
     }
 
     let amountToDisplay = convertToDisplayString(amount, currency);

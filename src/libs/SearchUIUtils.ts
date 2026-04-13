@@ -4732,11 +4732,11 @@ function getColumnsToShow({
                 columns[CONST.SEARCH.TABLE_COLUMNS.CARD] = true;
             }
 
-            if (transaction.taxCode) {
+            // If the transaction has any tax info (code, value, or amount),
+            // show both TAX_RATE and TAX_AMOUNT columns. Zero is valid tax data.
+            const hasTaxInfo = !!transaction.taxCode || transaction.taxAmount != null || (transaction.taxValue !== undefined && transaction.taxValue !== '');
+            if (hasTaxInfo) {
                 columns[CONST.SEARCH.TABLE_COLUMNS.TAX_RATE] = true;
-            }
-
-            if (transaction.taxAmount) {
                 columns[CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT] = true;
             }
 
