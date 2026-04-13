@@ -24,7 +24,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {hasDeferredWrite} from '@libs/deferredLayoutWrite';
 import Navigation from '@libs/Navigation/Navigation';
 import {getReportStatusColorStyle, getReportStatusTranslation, isOneTransactionReport} from '@libs/ReportUtils';
-import {createAndOpenSearchTransactionThread, getSections, getSortedSections, getValidGroupBy, isCorrectSearchUserName} from '@libs/SearchUIUtils';
+import {createAndOpenSearchTransactionThread, getSections, getSortedSections, getValidGroupBy} from '@libs/SearchUIUtils';
 import {getPendingSubmitFollowUpAction} from '@libs/telemetry/submitFollowUpAction';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
@@ -132,11 +132,7 @@ function SearchStaticList({searchResults, queryJSON, contentContainerStyle, onLa
             return null;
         }
 
-        const hasFromSender = !!item.from?.accountID && !!item.from?.displayName;
-        const hasToRecipient = !!item.to?.accountID && !!item.to?.displayName;
         const participantFromDisplayName = item.formattedFrom ?? item.from?.displayName ?? '';
-        const participantToDisplayName = item.formattedTo ?? item.to?.displayName ?? '';
-        const shouldShowToRecipient = hasFromSender && hasToRecipient && !!item.to?.accountID && !!isCorrectSearchUserName(participantToDisplayName);
         const shouldShowUserInfo = !!item.from;
         const isFirstItem = index === 0;
         const isLastItem = index === sortedData.length - 1;
@@ -168,16 +164,16 @@ function SearchStaticList({searchResults, queryJSON, contentContainerStyle, onLa
                         <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.gap2]}>
                             {shouldShowUserInfo && (
                                 <UserInfoCellsWithArrow
-                                    shouldShowToRecipient={shouldShowToRecipient}
+                                    shouldShowToRecipient={false}
                                     participantFrom={item.from}
                                     participantFromDisplayName={participantFromDisplayName}
-                                    participantToDisplayName={participantToDisplayName}
+                                    participantToDisplayName=""
                                     participantTo={item.to}
                                     avatarSize={CONST.AVATAR_SIZE.MID_SUBSCRIPT}
                                     style={[styles.flexRow, styles.alignItemsCenter, styles.gap1]}
                                     infoCellsTextStyle={styles.mutedNormalTextLabel}
                                     infoCellsAvatarStyle={styles.pr1}
-                                    fromRecipientStyle={!shouldShowToRecipient ? styles.mw100 : undefined}
+                                    fromRecipientStyle={styles.mw100}
                                     shouldUseArrowIcon={false}
                                 />
                             )}
