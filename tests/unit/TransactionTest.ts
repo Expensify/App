@@ -44,6 +44,11 @@ function generateTransaction(values: Partial<Transaction> = {}): Transaction {
     return {...baseValues, ...values};
 }
 
+const CURRENT_USER_ID = 1;
+const FAKE_NEW_REPORT_ID = '2';
+const FAKE_OLD_REPORT_ID = '3';
+const FAKE_SELF_DM_REPORT_ID = '4';
+
 function generateIOUAction(transaction: Transaction, reportID: string): ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> {
     return {
         reportActionID: rand64(),
@@ -59,11 +64,6 @@ function generateIOUAction(transaction: Transaction, reportID: string): ReportAc
         },
     };
 }
-
-const CURRENT_USER_ID = 1;
-const FAKE_NEW_REPORT_ID = '2';
-const FAKE_OLD_REPORT_ID = '3';
-const FAKE_SELF_DM_REPORT_ID = '4';
 
 const newReport = {
     reportID: FAKE_NEW_REPORT_ID,
@@ -1007,8 +1007,8 @@ describe('Transaction', () => {
 
                 const sourceReportKey = `${ONYXKEYS.COLLECTION.REPORT}${sourceExpenseReport.reportID}` as const;
                 const destinationReportKey = `${ONYXKEYS.COLLECTION.REPORT}${destinationExpenseReport.reportID}` as const;
-                const updatedSourceReport = (await getOnyxValue(sourceReportKey)) as OnyxEntry<Report>;
-                const updatedDestinationReport = (await getOnyxValue(destinationReportKey)) as OnyxEntry<Report>;
+                const updatedSourceReport = await getOnyxValue(sourceReportKey);
+                const updatedDestinationReport = await getOnyxValue(destinationReportKey);
 
                 expect(updatedSourceReport?.total).toBe(sourceExpenseReport.total);
                 expect(updatedDestinationReport?.total).toBe(destinationExpenseReport.total);
