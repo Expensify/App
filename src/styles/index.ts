@@ -5511,8 +5511,8 @@ const staticStyles = (theme: ThemeColors) =>
 
         userPill: {
             gap: 4,
-            paddingLeft: 4,
-            paddingRight: 8,
+            paddingLeft: 5,
+            paddingRight: 7,
             paddingVertical: 3,
             marginTop: 4,
             marginBottom: 4,
