@@ -20,6 +20,7 @@ function BaseSelectListItem<TItem extends ListItem>({
     isAlternateTextMultilineSupported = false,
     alternateTextNumberOfLines = 2,
     titleNumberOfLines = 2,
+    canSelectMultiple,
     onFocus,
     shouldSyncFocus,
     wrapperStyle,
@@ -45,6 +46,7 @@ function BaseSelectListItem<TItem extends ListItem>({
             onDismissError={onDismissError}
             shouldPreventEnterKeySubmit={shouldPreventEnterKeySubmit}
             rightHandSideComponent={rightHandSideComponent}
+            canSelectMultiple={canSelectMultiple}
             keyForList={item.keyForList}
             onFocus={onFocus}
             shouldSyncFocus={shouldSyncFocus}
