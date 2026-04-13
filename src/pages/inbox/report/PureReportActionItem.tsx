@@ -1037,12 +1037,14 @@ function PureReportActionItem({
             }
 
             const cardID = getOriginalMessage(action)?.cardID;
+            const card = cardID ? cardList?.[cardID] : undefined;
+            const possibleFraud = card?.nameValuePairs?.possibleFraud ?? null;
             return [
                 {
                     text: translate('cardPage.cardFraudAlert.confirmButtonText'),
                     key: `${action.reportActionID}-cardFraudAlert-confirm`,
                     onPress: () => {
-                        resolveFraudAlert(cardID, false, reportID, action?.reportActionID);
+                        resolveFraudAlert(cardID, false, reportID, action?.reportActionID, possibleFraud);
                     },
                     isPrimary: true,
                 },
@@ -1050,7 +1052,7 @@ function PureReportActionItem({
                     text: translate('cardPage.cardFraudAlert.reportFraudButtonText'),
                     key: `${action.reportActionID}-cardFraudAlert-reportFraud`,
                     onPress: () => {
-                        resolveFraudAlert(cardID, true, reportID, action?.reportActionID);
+                        resolveFraudAlert(cardID, true, reportID, action?.reportActionID, possibleFraud);
                     },
                 },
             ];
@@ -1160,6 +1162,7 @@ function PureReportActionItem({
         activePolicy,
         report,
         originalReport,
+        cardList,
         personalPolicyID,
         userBillingGracePeriodEnds,
         amountOwed,
