@@ -202,7 +202,7 @@ type PopoverMenuContentProps = {
     addBottomSafeAreaPadding?: boolean;
 };
 
-function PoppoverMenuContent({shouldUseScrollView, contentContainerStyle, children, addBottomSafeAreaPadding}: PopoverMenuContentProps): React.JSX.Element {
+function PopoverMenuContent({shouldUseScrollView, contentContainerStyle, children, addBottomSafeAreaPadding}: PopoverMenuContentProps): React.JSX.Element {
     const bottomSafeAreaPaddingStyle = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding});
 
     if (shouldUseScrollView) {
@@ -654,7 +654,7 @@ function BasePopoverMenu({
                     onLayout={onLayout}
                     style={[restMenuContainerStyle, restContainerStyles, isWeb ? styles.flex1 : styles.flexGrow1]}
                 >
-                    <PoppoverMenuContent
+                    <PopoverMenuContent
                         shouldUseScrollView={shouldUseScrollView}
                         contentContainerStyle={[scrollViewPaddingStyles, restScrollContainerStyle]}
                         addBottomSafeAreaPadding={enableEdgeToEdgeBottomSafeAreaPadding}
@@ -662,7 +662,7 @@ function BasePopoverMenu({
                         {renderHeaderText()}
                         {enteredSubMenuIndexes.length > 0 && renderBackButtonItem()}
                         {renderedMenuItems}
-                    </PoppoverMenuContent>
+                    </PopoverMenuContent>
                 </View>
             </FocusTrapForModal>
         </PopoverWithMeasuredContent>
