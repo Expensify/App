@@ -115,7 +115,8 @@ function init() {
                 } else if (dependencyOnyxKey === ONYXKEYS.NVP_PREFERRED_LOCALE) {
                     // Special case for locale, we want to recompute derived values when the locale change actually loads.
                     Onyx.connectWithoutView({
-                        key: ONYXKEYS.RAM_ONLY_ARE_TRANSLATIONS_LOADING,
+                        key: ONYXKEYS.ARE_TRANSLATIONS_LOADING,
+                        initWithStoredValues: false,
                         callback: (value) => {
                             if (value ?? true) {
                                 Log.info(`[OnyxDerived] translations are still loading, not recomputing derived value for ${key}`);
