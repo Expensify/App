@@ -5136,6 +5136,7 @@ ${amount} para ${merchant} - ${date}`,
             chooseCard: 'Elige una tarjeta',
             chooseCardFor: (assignee) => `Elige una tarjeta para <strong>${assignee}</strong>. ¿No encuentras la tarjeta que buscas? <concierge-link>Avísanos.</concierge-link>`,
             noAvailableCards: 'No hay tarjetas activas en este feed',
+            noAvailableCardsSubtitle: 'Edita una regla de tarjeta existente para hacer cambios',
             somethingMightBeBroken:
                 '<muted-text><centered-text>O algo podría estar roto. De cualquier manera, si tienes alguna pregunta, <concierge-link>contacta a Concierge</concierge-link>.</centered-text></muted-text>',
             chooseTransactionStartDate: 'Elige una fecha de inicio de transacciones',

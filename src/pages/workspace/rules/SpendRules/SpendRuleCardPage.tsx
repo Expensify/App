@@ -84,7 +84,7 @@ function SpendRuleCardPage({route}: SpendRuleCardPageProps) {
     const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${defaultFundID}_${CONST.EXPENSIFY_CARD.BANK}`, {selector: filterInactiveCards});
     const [expensifyCardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${defaultFundID}`);
     const [spendRuleForm] = useOnyx(ONYXKEYS.FORMS.SPEND_RULE_FORM);
-    const illustrations = useMemoizedLazyIllustrations(['Telescope']);
+    const illustrations = useMemoizedLazyIllustrations(['HandCard']);
     const themeIllustrations = useThemeIllustrations();
     const companyCardFeedIcons = useCompanyCardFeedIcons();
 
@@ -235,10 +235,13 @@ function SpendRuleCardPage({route}: SpendRuleCardPageProps) {
                         shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
                         listEmptyContent={
                             <BlockingView
-                                icon={illustrations.Telescope}
-                                iconWidth={variables.emptyListIconWidth}
-                                iconHeight={variables.emptyListIconHeight}
+                                icon={illustrations.HandCard}
+                                iconWidth={variables.iconSection}
+                                iconHeight={variables.iconSection}
                                 title={inputValue.trim() ? translate('common.noResultsFound') : translate('workspace.companyCards.noAvailableCards')}
+                                titleStyles={styles.mb2}
+                                subtitle={translate('workspace.companyCards.noAvailableCardsSubtitle')}
+                                subtitleStyle={styles.textSupporting}
                             />
                         }
                         footerContent={
