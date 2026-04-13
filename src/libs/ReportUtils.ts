@@ -24,6 +24,7 @@ import type {TransactionWithOptionalSearchFields} from '@components/TransactionI
 import type PolicyData from '@hooks/usePolicyData/types';
 import type {PolicyTagList} from '@pages/workspace/tags/types';
 import type {ThemeColors} from '@styles/theme/types';
+import {canApproveIOU, canIOUBePaid, canSubmitReport, getIOUReportActionWithBadge} from '@userActions/IOU/ReportWorkflow';
 import type {IOUAction, IOUType, OnboardingAccounting} from '@src/CONST';
 import CONST, {TASK_TO_FEATURE} from '@src/CONST';
 import type {ParentNavigationSummaryParams} from '@src/languages/params';
@@ -86,18 +87,7 @@ import type {FileObject} from '@src/types/utils/Attachment';
 import {isEmptyObject, isEmptyValueObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
 import {getBankAccountFromID} from './actions/BankAccounts';
-import {
-    canApproveIOU,
-    canIOUBePaid,
-    canSubmitReport,
-    createDraftTransaction,
-    getIOUReportActionWithBadge,
-    setMoneyRequestParticipants,
-    setMoneyRequestParticipantsFromReport,
-    setMoneyRequestReportID,
-    startDistanceRequest,
-    startMoneyRequest,
-} from './actions/IOU';
+import {createDraftTransaction, setMoneyRequestParticipants, setMoneyRequestParticipantsFromReport, setMoneyRequestReportID, startDistanceRequest, startMoneyRequest} from './actions/IOU';
 import type {IOURequestType} from './actions/IOU';
 import {unholdRequest} from './actions/IOU/Hold';
 import {createDraftWorkspace} from './actions/Policy/Policy';
@@ -4572,7 +4562,7 @@ function getReportFieldKey(reportFieldId: string | undefined) {
 /**
  * Get the report fields attached to the policy given policyID
  */
-function getReportFieldsByPolicyID(policyID: string | undefined): Policy['fieldList'] {
+function getReportFieldsByPolicyID(policyID: string | undefined): Record<string, PolicyReportField> {
     if (!policyID) {
         return {};
     }
@@ -7805,6 +7795,7 @@ function updateReportPreview(
 function buildOptimisticTaskReportAction(
     taskReportID: string,
     actionName: typeof CONST.REPORT.ACTIONS.TYPE.TASK_COMPLETED | typeof CONST.REPORT.ACTIONS.TYPE.TASK_REOPENED | typeof CONST.REPORT.ACTIONS.TYPE.TASK_CANCELLED,
+    delegateEmailParam: string | undefined,
     message = '',
     actorAccountID = deprecatedCurrentUserAccountID,
     createdOffset = 0,
@@ -7816,7 +7807,9 @@ function buildOptimisticTaskReportAction(
         html: message,
         whisperedTo: [],
     };
-    const delegateAccountDetails = getPersonalDetailByEmail(delegateEmail);
+    // Falls back to module-level delegateEmail (from Onyx.connect) for callers not yet migrated; will be removed in https://github.com/Expensify/App/issues/66417
+    const effectiveDelegateEmail = delegateEmailParam ?? delegateEmail;
+    const delegateAccountDetails = effectiveDelegateEmail ? getPersonalDetailByEmail(effectiveDelegateEmail) : undefined;
 
     return {
         actionName,
@@ -7951,6 +7944,7 @@ function buildOptimisticGroupChatReport(
     participantAccountIDs: number[],
     reportName: string,
     avatarUri: string,
+    currentUserAccountID: number,
     optimisticReportID?: string,
     notificationPreference?: NotificationPreference,
 ) {
@@ -7961,6 +7955,7 @@ function buildOptimisticGroupChatReport(
         notificationPreference,
         avatarUrl: avatarUri,
         optimisticReportID,
+        currentUserAccountID,
     });
 }
 
@@ -11354,9 +11349,16 @@ function canLeaveChat(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, isRe
     );
 }
 
-function createDraftWorkspaceAndNavigateToConfirmationScreen(introSelected: OnyxEntry<IntroSelected>, transactionID: string, actionName: IOUAction, workspaceName: string): void {
+function createDraftWorkspaceAndNavigateToConfirmationScreen(
+    introSelected: OnyxEntry<IntroSelected>,
+    transactionID: string,
+    actionName: IOUAction,
+    workspaceName: string,
+    currentUserAccountID: number,
+    currentUserEmail: string,
+): void {
     const isCategorizing = actionName === CONST.IOU.ACTION.CATEGORIZE;
-    const {expenseChatReportID, policyID, policyName} = createDraftWorkspace(introSelected, workspaceName, deprecatedCurrentUserEmail);
+    const {expenseChatReportID, policyID, policyName} = createDraftWorkspace(introSelected, workspaceName, currentUserAccountID, currentUserEmail);
     setMoneyRequestParticipants(transactionID, [
         {
             selected: true,
@@ -11388,6 +11390,8 @@ type CreateDraftTransactionParams = {
     isRestrictedToPreferredPolicy?: boolean;
     preferredPolicyID?: string;
     transaction: OnyxEntry<Transaction>;
+    currentUserAccountID: number;
+    currentUserEmail: string;
 };
 
 function createDraftTransactionAndNavigateToParticipantSelector({
@@ -11403,6 +11407,8 @@ function createDraftTransactionAndNavigateToParticipantSelector({
     isRestrictedToPreferredPolicy = false,
     preferredPolicyID,
     transaction,
+    currentUserAccountID,
+    currentUserEmail,
 }: CreateDraftTransactionParams): void {
     const transactionID = transaction?.transactionID;
     if (!transactionID || !reportID) {
@@ -11547,7 +11553,7 @@ function createDraftTransactionAndNavigateToParticipantSelector({
         return;
     }
 
-    return createDraftWorkspaceAndNavigateToConfirmationScreen(introSelected, transactionID, actionName, '');
+    return createDraftWorkspaceAndNavigateToConfirmationScreen(introSelected, transactionID, actionName, '', currentUserAccountID, currentUserEmail);
 }
 
 /**
@@ -11927,7 +11933,8 @@ function prepareOnboardingOnyxData({
             }
 
             const completedTaskReportAction = isTaskAutoCompleted
-                ? buildOptimisticTaskReportAction(currentTask.reportID, CONST.REPORT.ACTIONS.TYPE.TASK_COMPLETED, 'marked as complete', actorAccountID, 2)
+                ? // Will be refactored in next PR; full restructure tracked in https://github.com/Expensify/App/issues/66417
+                  buildOptimisticTaskReportAction(currentTask.reportID, CONST.REPORT.ACTIONS.TYPE.TASK_COMPLETED, undefined, 'marked as complete', actorAccountID, 2)
                 : null;
             if (task.type === CONST.ONBOARDING_TASK_TYPE.CREATE_WORKSPACE) {
                 createWorkspaceTaskReportID = currentTask.reportID;

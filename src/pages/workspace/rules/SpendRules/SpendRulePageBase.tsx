@@ -116,7 +116,7 @@ function SpendRulePageBase({policyID, ruleID, titleKey, testID}: SpendRulePageBa
                 }
                 const accountID = card.accountID ?? CONST.DEFAULT_NUMBER_ID;
                 const displayName = getDisplayNameOrDefault(personalDetails?.[accountID], '', false);
-                return getCardDescriptionForSearchTable(card, displayName || undefined) || id;
+                return getCardDescriptionForSearchTable(card, translate, displayName || undefined) || id;
             }),
             (summary, count) => translate('workspace.rules.spendRules.summaryMoreCount', {summary, count}),
         );

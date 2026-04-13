@@ -45,7 +45,7 @@ import {handleUnvalidatedUserNavigation, useSettlementButtonPaymentMethods} from
 import shouldPopoverUseScrollView from '@libs/shouldPopoverUseScrollView';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {pressLockedBankAccount, setPersonalBankAccountContinueKYCOnSuccess} from '@userActions/BankAccounts';
-import {approveMoneyRequest} from '@userActions/IOU';
+import {approveMoneyRequest} from '@userActions/IOU/ReportWorkflow';
 import {navigateToConciergeChat} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';

@@ -56,6 +56,7 @@ import type {
     StepCounterParams,
     SyncStageNameConnectionsParams,
     UnshareParams,
+    UnsupportedFormulaValueErrorParams,
     UpdatedBudgetParams,
     UpdatedPolicyApprovalRuleParams,
     UpdatedPolicyCategoryMaxAmountNoReceiptParams,
@@ -1016,8 +1017,6 @@ const translations: TranslationDeepObject<typeof en> = {
                 sunglassesDescription: 'È il momento di rilassarti, ma resta in attesa di ciò che arriva!',
                 f1FlagsTitle: 'Tutto a posto',
                 f1FlagsDescription: 'Hai completato tutte le attività in sospeso.',
-                fireworksTitle: 'Tutto a posto',
-                fireworksDescription: 'Le prossime attività appariranno qui.',
             },
         },
         upcomingTravel: 'Prossimi viaggi',
@@ -1371,6 +1370,44 @@ const translations: TranslationDeepObject<typeof en> = {
         paidWithExpensify: (payer?: string) => `${payer ? `${payer} ` : ''}pagato con portafoglio`,
         automaticallyPaidWithExpensify: (payer?: string) =>
             `${payer ? `${payer} ` : ''}pagato con Expensify tramite le <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">regole dello spazio di lavoro</a>`,
+        reimbursedThisReport: 'ha rimborsato questo resoconto',
+        paidThisBill: 'ha pagato questa fattura',
+        reimbursedOnBehalfOf: (actor: string) => `per conto di ${actor}`,
+        reimbursedFromBankAccount: (debitBankAccount: string) => `dal conto bancario che termina con ${debitBankAccount}`,
+        reimbursedSubmitterAddedBankAccount: (submitter: string) => `${submitter} ha aggiunto un conto bancario, rimuovendo il blocco sul resoconto. Il rimborso è stato avviato`,
+        reimbursedWithFastACH: ({
+            isCurrentUser,
+            submitterLogin,
+            creditBankAccount,
+            expectedDate,
+        }: {
+            isCurrentUser: boolean;
+            submitterLogin: string;
+            creditBankAccount: string;
+            expectedDate: string;
+        }) =>
+            isCurrentUser
+                ? `. Il denaro è in arrivo sul tuo ${creditBankAccount ? `conto bancario che termina con ${creditBankAccount}` : 'conto'}. Rimborso previsto per il ${expectedDate}.`
+                : `. Il denaro è in arrivo sul conto bancario di ${submitterLogin}${creditBankAccount ? ` che termina con ${creditBankAccount}` : ''}. Rimborso previsto per il ${expectedDate}.`,
+        reimbursedWithCheck: ' tramite assegno.',
+        reimbursedWithStripeConnect: ({
+            isCurrentUser,
+            submitterLogin,
+            creditBankAccount,
+            isCard,
+        }: {
+            isCurrentUser: boolean;
+            submitterLogin: string;
+            creditBankAccount: string;
+            isCard: boolean;
+        }) => {
+            const paymentMethod = isCard ? 'carta' : 'conto bancario';
+            return isCurrentUser
+                ? `. Il denaro è in arrivo sul tuo ${creditBankAccount ? `conto bancario che termina con ${creditBankAccount}` : 'conto'} (pagato tramite ${paymentMethod}). Questo potrebbe richiedere fino a 10 giorni lavorativi.`
+                : `. Il denaro è in arrivo sul conto bancario di ${submitterLogin}${creditBankAccount ? ` che termina con ${creditBankAccount}` : ''} (pagato tramite ${paymentMethod}). Potrebbero volerci fino a 10 giorni lavorativi.`;
+        },
+        reimbursedWithACH: ({creditBankAccount, expectedDate}: {creditBankAccount?: string; expectedDate?: string}) =>
+            ` con accredito diretto (ACH)${creditBankAccount ? ` al conto bancario che termina con ${creditBankAccount}.` : '. '}${expectedDate ? `Il rimborso dovrebbe essere completato entro il ${expectedDate}.` : 'In genere richiede 4-5 giorni lavorativi.'}`,
         noReimbursableExpenses: 'Questo rendiconto contiene un importo non valido',
         pendingConversionMessage: 'Il totale verrà aggiornato quando torni online',
         changedTheExpense: 'ha modificato la spesa',
@@ -5236,7 +5273,7 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
             chooseCard: 'Scegli una carta',
             chooseCardFor: (assignee: string) =>
                 `Scegli una carta per <strong>${assignee}</strong>. Non riesci a trovare la carta che stai cercando? <concierge-link>Facci sapere.</concierge-link>`,
-            noActiveCards: 'Nessuna carta attiva in questo feed',
+            noAvailableCards: 'Tutte le carte hanno già una regola',
             somethingMightBeBroken:
                 '<muted-text><centered-text>Oppure potrebbe esserci un problema. In ogni caso, se hai domande, <concierge-link>contatta Concierge</concierge-link>.</centered-text></muted-text>',
             chooseTransactionStartDate: 'Scegli una data di inizio transazione',
@@ -5270,6 +5307,7 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
             },
             deletedCard: 'Carta eliminata',
             assignNewCards: {title: 'Assegna nuove carte', description: 'Ottieni le ultime carte da assegnare dalla tua banca'},
+            noAvailableCardsSubtitle: 'Modifica una regola della carta esistente per apportare modifiche',
         },
         expensifyCard: {
             issueAndManageCards: 'Emetti e gestisci le tue Carte Expensify',
@@ -5713,6 +5751,7 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
             reportFieldNameRequiredError: 'Inserisci un nome per il campo del report',
             reportFieldTypeRequiredError: 'Scegli un tipo di campo del report',
             circularReferenceError: 'Questo campo non può fare riferimento a se stesso. Aggiorna per favore.',
+            unsupportedFormulaValueError: ({value}: UnsupportedFormulaValueErrorParams) => `Campo formula ${value} non riconosciuto`,
             reportFieldInitialValueRequiredError: 'Scegli un valore iniziale per il campo del resoconto',
             genericFailureMessage: 'Si è verificato un errore durante l’aggiornamento del campo del report. Riprova.',
         },
@@ -8000,6 +8039,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
         personalCard: 'Carta personale',
         companyCard: 'Carta aziendale',
         expensifyCard: 'Carta Expensify',
+        centralInvoicing: 'Fatturazione centralizzata',
     },
     distance: {
         addStop: 'Aggiungi fermata',

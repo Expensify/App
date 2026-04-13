@@ -164,6 +164,9 @@ function getCardDescription(card: Card | undefined, translate: LocalizedTranslat
     if (!card) {
         return '';
     }
+    if (isTravelCard(card)) {
+        return translate('cardTransactions.centralInvoicing');
+    }
     const isCSVCard = card.bank === CONST.COMPANY_CARD.FEED_BANK_NAME.UPLOAD || card.bank?.includes(CONST.COMPANY_CARD.FEED_BANK_NAME.CSV);
     if (isCSVCard) {
         return card.nameValuePairs?.cardTitle ?? card.cardName ?? '';
@@ -180,9 +183,9 @@ function getCardDescription(card: Card | undefined, translate: LocalizedTranslat
  * @param displayName
  * @returns string in format %<defaultOrCustomCardName> • <lastFourPAN>%.
  */
-function getCardDescriptionForSearchTable(card?: Card, displayName?: string) {
-    if (!card) {
-        return '';
+function getCardDescriptionForSearchTable(card: Card, translate: LocalizedTranslate, displayName?: string) {
+    if (isTravelCard(card)) {
+        return translate('cardTransactions.centralInvoicing');
     }
     const isCSVCard = card.bank === CONST.COMPANY_CARD.FEED_BANK_NAME.UPLOAD || card.bank?.includes(CONST.COMPANY_CARD.FEED_BANK_NAME.CSV);
     if (isCSVCard) {
