@@ -2538,7 +2538,7 @@ function getValidOptions(
                     }
                 } else {
                     const participant = report.item?.participants?.[currentUserAccountID];
-                    if (participant?.notificationPreference === CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN) {
+                    if (participant && isHiddenForCurrentUser(participant.notificationPreference)) {
                         return false;
                     }
                 }
