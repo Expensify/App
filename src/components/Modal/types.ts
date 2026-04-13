@@ -20,7 +20,7 @@ type WindowState = {
     shouldGoBack: boolean;
 };
 
-type BaseModalProps = Omit<Partial<ReanimatedModalProps>, 'style'> &
+type BaseModalProps = Partial<ReanimatedModalProps> &
     ForwardedFSClassProps & {
         /** Decides whether the modal should cover fullscreen. FullScreen modal has backdrop */
         fullscreen?: boolean;
