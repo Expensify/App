@@ -124,7 +124,7 @@ function useSelectionModeReportActions({
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Send', 'ThumbsUp', 'Cash', 'ArrowRight', 'Building'] as const);
 
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
-    const isSelectionModeReportActionsBetaEnabled = isBetaEnabled(CONST.BETAS.SELECTION_MODE_REPORT_ACTIONS);
+    const isBulkSubmitApprovePayBetaEnabled = isBetaEnabled(CONST.BETAS.BULK_SUBMIT_APPROVE_PAY);
 
     const currentUserEmail = session?.email;
     const hasViolations = hasViolationsReportUtils(report?.reportID, allTransactionViolations, currentUserAccountID, currentUserEmail ?? '');
@@ -489,7 +489,7 @@ function useSelectionModeReportActions({
     })();
 
     const selectionModeReportLevelActions = (() => {
-        if (!isSelectionModeReportActionsBetaEnabled) {
+        if (!isBulkSubmitApprovePayBetaEnabled) {
             return [];
         }
         const actions: Array<DropdownOption<string> & Pick<PopoverMenuItem, 'backButtonText' | 'rightIcon' | 'subMenuItems'>> = [];
