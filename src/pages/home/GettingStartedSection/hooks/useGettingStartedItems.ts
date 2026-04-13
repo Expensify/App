@@ -4,7 +4,7 @@ import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import {hasCompanyCardFeeds} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {hasAccountingConnections, hasCustomCategories, hasNonDefaultRules, isPaidGroupPolicy, isPendingDeletePolicy} from '@libs/PolicyUtils';
+import {hasAccountingConnections, hasCustomCategories, hasNonDefaultRules, isPaidGroupPolicy, isPendingDeletePolicy, isPolicyAdmin} from '@libs/PolicyUtils';
 import isWithinGettingStartedPeriod from '@pages/home/GettingStartedSection/utils/isWithinGettingStartedPeriod';
 import {enablePolicyCategories} from '@userActions/Policy/Category';
 import {enableCompanyCards, enablePolicyConnections, enablePolicyRules} from '@userActions/Policy/Policy';
@@ -58,6 +58,10 @@ function useGettingStartedItems(): UseGettingStartedItemsResult {
         return emptyResult;
     }
 
+    if (!isPolicyAdmin(policy)) {
+        return emptyResult;
+    }
+
     if (!isWithinGettingStartedPeriod(firstDayFreeTrial)) {
         return emptyResult;
     }
@@ -103,14 +107,16 @@ function useGettingStartedItems(): UseGettingStartedItemsResult {
         enableFeature: () => enableCompanyCards(activePolicyID, true, false),
     });
 
-    items.push({
-        key: 'setupRules',
-        label: translate('homePage.gettingStartedSection.setupRules'),
-        isComplete: hasNonDefaultRules(policy),
-        route: ROUTES.WORKSPACE_RULES.getRoute(activePolicyID),
-        isFeatureEnabled: policy.areRulesEnabled,
-        enableFeature: () => enablePolicyRules(policy, true, false),
-    });
+    if (policy.areRulesEnabled) {
+        items.push({
+            key: 'setupRules',
+            label: translate('homePage.gettingStartedSection.setupRules'),
+            isComplete: hasNonDefaultRules(policy),
+            route: ROUTES.WORKSPACE_RULES.getRoute(activePolicyID),
+            isFeatureEnabled: policy.areRulesEnabled,
+            enableFeature: () => enablePolicyRules(policy, true, false),
+        });
+    }
 
     return {shouldShowSection: true, items};
 }

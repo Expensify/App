@@ -1,6 +1,6 @@
 import type {ForwardedRef, RefObject} from 'react';
-import React, {useContext, useEffect, useMemo, useRef, useState} from 'react';
-import type {OnyxCollection} from 'react-native-onyx';
+import React, {useEffect, useMemo, useRef, useState} from 'react';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import {OptionsListStateContext, useOptionsList} from '@components/OptionListContextProvider';
 import OptionsListSkeletonView from '@components/OptionsListSkeletonView';
@@ -14,6 +14,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useDebounce from '@hooks/useDebounce';
 import useDebouncedAccessibilityAnnouncement from '@hooks/useDebouncedAccessibilityAnnouncement';
 import useFeedKeysWithAssignedCards from '@hooks/useFeedKeysWithAssignedCards';
+import useFilteredOptions from '@hooks/useFilteredOptions';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -81,6 +82,11 @@ const defaultListOptions = {
     personalDetails: [],
     currentUserOption: null,
     categoryOptions: [],
+};
+
+const emptyOptionList = {
+    reports: [],
+    personalDetails: [],
 };
 
 const setPerformanceTimersEnd = () => {
@@ -155,7 +161,7 @@ function SearchAutocompleteList({
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['History', 'MagnifyingGlass']);
     const taxRates = useMemo(() => getAllTaxRates(policies), [policies]);
 
-    const {options, areOptionsInitialized} = useOptionsList();
+    const {options: listOptions, isLoading: isLoadingOptions} = useFilteredOptions({enabled: true, isSearching: !!autocompleteQueryValue.trim(), betas: betas ?? []});
 
     const isRecentSearchesDataLoaded = !isLoadingOnyxValue(recentSearchesMetadata);
 
@@ -165,7 +171,6 @@ function SearchAutocompleteList({
         };
     }, []);
 
-    const {areOptionsInitialized: contextAreOptionsInitialized} = useContext(OptionsListStateContext);
     const coldStartAttributeSet = useRef(false);
     useEffect(() => {
         if (coldStartAttributeSet.current) {
@@ -173,17 +178,17 @@ function SearchAutocompleteList({
         }
         const parentSpan = getSpan(CONST.TELEMETRY.SPAN_OPEN_SEARCH_ROUTER);
         if (parentSpan) {
-            parentSpan.setAttribute(CONST.TELEMETRY.ATTRIBUTE_COLD_START, !contextAreOptionsInitialized);
+            parentSpan.setAttribute(CONST.TELEMETRY.ATTRIBUTE_COLD_START, isLoadingOptions);
             coldStartAttributeSet.current = true;
         }
-    }, [contextAreOptionsInitialized]);
+    }, [isLoadingOptions]);
 
     const searchOptions = useMemo(() => {
-        if (!areOptionsInitialized) {
+        if (listOptions === null) {
             return defaultListOptions;
         }
         return getSearchOptions({
-            options,
+            options: listOptions,
             draftComments,
             nvpDismissedProductTraining,
             betas: betas ?? [],
@@ -281,7 +286,7 @@ function SearchAutocompleteList({
         autocompleteQueryValue,
         allCards,
         allFeeds,
-        options,
+        options: listOptions ?? emptyOptionList,
         draftComments,
         nvpDismissedProductTraining,
         betas,
@@ -377,7 +382,7 @@ function SearchAutocompleteList({
     const reasonAttributes: SkeletonSpanReasonAttributes = {
         context: 'SearchAutocompleteList',
         isRecentSearchesDataLoaded,
-        areOptionsInitialized,
+        isLoadingOptions,
     };
 
     /* Sections generation */
@@ -424,9 +429,16 @@ function SearchAutocompleteList({
             } as AutocompleteListItem;
         });
 
-        if (areOptionsInitialized) {
+        if (!isLoadingOptions) {
             pushSection({
                 title: autocompleteQueryValue.trim() === '' ? translate('search.recentChats') : undefined,
+                data: nextStyledRecentReports,
+                sectionIndex: sectionIndex++,
+            });
+        } else if (autocompleteQueryValue.trim() !== '' && nextStyledRecentReports.length > 0) {
+            // When options aren't fully initialized but we have a search query with available results,
+            // render them immediately so they're selectable instead of hiding the section entirely.
+            pushSection({
                 data: nextStyledRecentReports,
                 sectionIndex: sectionIndex++,
             });
@@ -443,7 +455,7 @@ function SearchAutocompleteList({
                         reasonAttributes={{
                             context: 'SearchAutocompleteList',
                             isRecentSearchesDataLoaded,
-                            areOptionsInitialized,
+                            isLoadingOptions,
                         }}
                     />
                 ),
@@ -478,7 +490,7 @@ function SearchAutocompleteList({
         searchQueryItem,
         styles,
         translate,
-        areOptionsInitialized,
+        isLoadingOptions,
         isRecentSearchesDataLoaded,
     ]);
 
@@ -520,13 +532,13 @@ function SearchAutocompleteList({
     // because useState(initialFocusedIndex) in useArrowKeyFocusManager only reads the initial value.
     // Imperatively focus the first recent report once options become available (desktop only).
     useEffect(() => {
-        if (shouldUseNarrowLayout || !areOptionsInitialized || hasSetInitialFocusRef.current || firstRecentReportFlatIndex === -1) {
+        if (shouldUseNarrowLayout || isLoadingOptions || hasSetInitialFocusRef.current || firstRecentReportFlatIndex === -1) {
             return;
         }
         hasSetInitialFocusRef.current = true;
 
         innerListRef.current?.updateAndScrollToFocusedIndex(firstRecentReportFlatIndex, false);
-    }, [areOptionsInitialized, firstRecentReportFlatIndex, shouldUseNarrowLayout]);
+    }, [isLoadingOptions, firstRecentReportFlatIndex, shouldUseNarrowLayout]);
 
     useEffect(() => {
         const targetText = autocompleteQueryValue;
