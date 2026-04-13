@@ -290,6 +290,7 @@ function SearchPageNarrow({queryJSON, searchResults, isMobileSelectionModeEnable
                     searchRequestResponseStatusCode={searchRequestResponseStatusCode}
                     onDestinationVisible={endSubmitNavigationSpans}
                     onContentReady={onSearchContentReady}
+                    hasFilterBars={hasFilterBars}
                 />
             )}
             {showStaticOverlay && (
