@@ -1,6 +1,8 @@
 import type {VideoPlayer, VideoPlayerStatus, VideoView} from 'expo-video';
 import type {RefObject} from 'react';
 import type {View} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
+import type {Report} from '@src/types/onyx';
 
 /**
  * Callback type for reporting the current playback status.
@@ -83,11 +85,11 @@ type PlaybackStateContextValues = {
  */
 type PlaybackActionsContextValues = {
     /**
-     * Updates the currently tracked video URL and associated report ID.
+     * Updates the currently tracked video URL and associated report.
      * @param url The new video URL.
-     * @param reportID The new report ID.
+     * @param report The new report.
      */
-    updateCurrentURLAndReportID: (url: string | undefined, reportID: string | undefined) => void;
+    updateCurrentURLAndReportID: (url: string | undefined, report: OnyxEntry<Report>) => void;
 
     /**
      * Updates shared video player elements across different parts of the UI.
