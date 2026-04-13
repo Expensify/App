@@ -620,6 +620,10 @@ function getCompanyFeeds(cardFeeds: OnyxEntry<CombinedCardFeeds>, shouldFilterOu
     );
 }
 
+function hasCompanyCardFeeds(cardFeeds: OnyxEntry<CombinedCardFeeds>): boolean {
+    return Object.keys(getCompanyFeeds(cardFeeds, true, true)).length > 0;
+}
+
 function getBankName(feedType: CardFeedWithNumber | CardFeedWithDomainID): string {
     const cacheKey = feedType ?? '';
     const cached = getBankNameCache.get(cacheKey);
@@ -685,9 +689,14 @@ function getCustomOrFormattedFeedName(
 /**
  * Check if a card feed exists in the card feeds collection.
  */
-function doesCardFeedExist(feed: CompanyCardFeed | undefined, cardFeeds: OnyxCollection<CardFeeds> | undefined): boolean {
+function doesCardFeedExist(feed: CardFeed | undefined, cardFeeds: OnyxCollection<CardFeeds> | undefined): boolean {
     if (!feed || !cardFeeds) {
         return false;
+    }
+
+    // Expensify Cards are a native card product, not a third-party feed that can be disconnected
+    if (feed === CONST.EXPENSIFY_CARD.BANK) {
+        return true;
     }
 
     for (const feedData of Object.values(cardFeeds)) {
@@ -1635,6 +1644,7 @@ export {
     isSelectedFeedExpired,
     isTravelCard,
     getCompanyFeeds,
+    hasCompanyCardFeeds,
     isPersonalCardBrokenConnection,
     isCustomFeed,
     isCSVFeedOrExpensifyCard,
