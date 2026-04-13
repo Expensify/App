@@ -1,6 +1,7 @@
 import React from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
+import MentionReportContext from '@components/HTMLEngineProvider/HTMLRenderers/MentionReportRenderer/MentionReportContext';
 import type {ActionableItem} from '@components/ReportActionItem/ActionableItemButtons';
 import ActionableItemButtons from '@components/ReportActionItem/ActionableItemButtons';
 import useReportIsArchived from '@hooks/useReportIsArchived';
@@ -20,6 +21,7 @@ type ConfirmWhisperContentProps = {
 function ConfirmWhisperContent({action, reportID, originalReportID, report, originalReport}: ConfirmWhisperContentProps) {
     const reportActionReport = originalReport ?? report;
     const isOriginalReportArchived = useReportIsArchived(originalReportID);
+    const mentionReportContextValue = {currentReportID: report?.reportID, exactlyMatch: true};
 
     const buttons: ActionableItem[] = [
         {
@@ -32,18 +34,20 @@ function ConfirmWhisperContent({action, reportID, originalReportID, report, orig
     ];
 
     return (
-        <View>
-            <ReportActionItemMessage
-                action={action}
-                reportID={reportID}
-                displayAsGroup
-            />
-            <ActionableItemButtons
-                items={buttons}
-                shouldUseLocalization
-                layout="horizontal"
-            />
-        </View>
+        <MentionReportContext.Provider value={mentionReportContextValue}>
+            <View>
+                <ReportActionItemMessage
+                    action={action}
+                    reportID={reportID}
+                    displayAsGroup
+                />
+                <ActionableItemButtons
+                    items={buttons}
+                    shouldUseLocalization
+                    layout="horizontal"
+                />
+            </View>
+        </MentionReportContext.Provider>
     );
 }
 

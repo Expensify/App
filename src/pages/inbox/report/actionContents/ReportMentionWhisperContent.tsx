@@ -2,6 +2,7 @@ import React from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+import MentionReportContext from '@components/HTMLEngineProvider/HTMLRenderers/MentionReportRenderer/MentionReportContext';
 import type {ActionableItem} from '@components/ReportActionItem/ActionableItemButtons';
 import ActionableItemButtons from '@components/ReportActionItem/ActionableItemButtons';
 import {getOriginalMessage} from '@libs/ReportActionsUtils';
@@ -26,6 +27,7 @@ type ReportMentionWhisperContentProps = {
 function ReportMentionWhisperContent({action, reportID, report, originalReport, isReportArchived, resolveActionableReportMentionWhisper}: ReportMentionWhisperContentProps) {
     const reportActionReport = originalReport ?? report;
     const resolution = getOriginalMessage(action)?.resolution;
+    const mentionReportContextValue = {currentReportID: report?.reportID, exactlyMatch: true};
 
     const buttons: ActionableItem[] = resolution
         ? []
@@ -44,20 +46,22 @@ function ReportMentionWhisperContent({action, reportID, report, originalReport, 
           ];
 
     return (
-        <View>
-            <ReportActionItemMessage
-                action={action}
-                reportID={reportID}
-                displayAsGroup
-            />
-            {buttons.length > 0 && (
-                <ActionableItemButtons
-                    items={buttons}
-                    shouldUseLocalization
-                    layout="horizontal"
+        <MentionReportContext.Provider value={mentionReportContextValue}>
+            <View>
+                <ReportActionItemMessage
+                    action={action}
+                    reportID={reportID}
+                    displayAsGroup
                 />
-            )}
-        </View>
+                {buttons.length > 0 && (
+                    <ActionableItemButtons
+                        items={buttons}
+                        shouldUseLocalization
+                        layout="horizontal"
+                    />
+                )}
+            </View>
+        </MentionReportContext.Provider>
     );
 }
 
