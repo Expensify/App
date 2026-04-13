@@ -5507,13 +5507,14 @@ const staticStyles = (theme: ThemeColors) =>
 
         userPillsContainer: {
             gap: 4,
-            paddingTop: 4,
         },
 
         userPill: {
             gap: 4,
-            paddingHorizontal: 6,
-            paddingVertical: 2,
+            paddingLeft: 6,
+            paddingRight: 8,
+            paddingVertical: 4,
+            marginTop: 4,
             borderWidth: 1,
             borderColor: theme.border,
             borderRadius: variables.componentBorderRadiusLarge,
