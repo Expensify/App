@@ -13,6 +13,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setAddNewPersonalCardStepAndData} from '@libs/actions/PersonalCards';
+import getPlaidOAuthReceivedRedirectURI from '@libs/getPlaidOAuthReceivedRedirectURI';
 import KeyboardShortcut from '@libs/KeyboardShortcut';
 import Log from '@libs/Log';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
@@ -29,13 +30,14 @@ type PlaidLinkContentProps = {
     plaidLinkToken?: string;
     plaidDataErrorMessage: string;
     plaidData?: PlaidData;
+    receivedRedirectURI?: string;
     onSuccess: (args: {publicToken: string; metadata: PlaidLinkOnSuccessMetadata | LinkSuccessMetadata}) => void;
     onError: (error: ErrorEvent | null) => void;
     onEvent: (eventName: string) => void;
     onExit: () => void;
 };
 
-function PlaidLinkContent({plaidLinkToken, plaidDataErrorMessage, plaidData, onSuccess, onError, onEvent, onExit}: PlaidLinkContentProps) {
+function PlaidLinkContent({plaidLinkToken, plaidDataErrorMessage, plaidData, receivedRedirectURI, onSuccess, onError, onEvent, onExit}: PlaidLinkContentProps) {
     const styles = useThemeStyles();
 
     if (plaidLinkToken) {
@@ -46,6 +48,7 @@ function PlaidLinkContent({plaidLinkToken, plaidDataErrorMessage, plaidData, onS
                 onError={onError}
                 onEvent={onEvent}
                 onExit={onExit}
+                receivedRedirectURI={receivedRedirectURI}
             />
         );
     }
@@ -198,6 +201,7 @@ function PlaidConnectionStep({feed, onExit}: {feed?: CompanyCardFeedWithDomainID
                         plaidLinkToken={plaidLinkToken}
                         plaidDataErrorMessage={plaidDataErrorMessage}
                         plaidData={plaidData}
+                        receivedRedirectURI={getPlaidOAuthReceivedRedirectURI()}
                         onSuccess={handlePlaidLinkSuccess}
                         onError={handlePlaidLinkError}
                         onEvent={handlePlaidLinkEvent}
