@@ -996,6 +996,10 @@ const ROUTES = {
         route: 'r/:reportID/settings/columns',
         getRoute: (reportID: string) => `r/${reportID}/settings/columns` as const,
     },
+    CHRONOS_SCHEDULE_OOO: {
+        route: 'r/:reportID/chronos/schedule-ooo',
+        getRoute: (reportID: string) => `r/${reportID}/chronos/schedule-ooo` as const,
+    },
     SPLIT_BILL_DETAILS: {
         route: 'r/:reportID/split/:reportActionID',
         getRoute: (reportID: string | undefined, reportActionID: string, backTo?: string) => {
