@@ -25,6 +25,7 @@ import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import SCREENS, {PROTECTED_SCREENS} from '@src/SCREENS';
 import type {Account, SidePanel} from '@src/types/onyx';
+import {clearPreInsertedOriginalTabRoute, getPreInsertedOriginalTabRoute} from './AppNavigator/createRootStackNavigator/GetStateForActionHandlers';
 import getInitialSplitNavigatorState from './AppNavigator/createSplitNavigator/getInitialSplitNavigatorState';
 import originalCloseRHPFlow from './helpers/closeRHPFlow';
 import findMatchingDynamicSuffix from './helpers/dynamicRoutesUtils/findMatchingDynamicSuffix';
@@ -1022,7 +1023,10 @@ function preInsertFullscreenUnderRHP(route: Route) {
     });
 
     const stateAfter = navigationRef.current.getRootState();
-    if (stateAfter.routes.length === routeCountBefore && stateAfter.routes.at(-1)?.key === lastKeyBefore) {
+    // When the target is a tab (no push), route count and the top key are unchanged.
+    // Check the stored original route to detect a successful tab-switch pre-insertion.
+    const wasTabSwitched = !!getPreInsertedOriginalTabRoute();
+    if (!wasTabSwitched && stateAfter.routes.length === routeCountBefore && stateAfter.routes.at(-1)?.key === lastKeyBefore) {
         Log.hmmm(`[Navigation] preInsertFullscreenUnderRHP dispatch was ignored`, {route});
         return;
     }
@@ -1040,6 +1044,7 @@ function getIsFullscreenPreInsertedUnderRHP() {
 function clearFullscreenPreInsertedFlag() {
     isFullscreenPreInsertedUnderRHP = false;
     preInsertedFullscreenRouteName = undefined;
+    clearPreInsertedOriginalTabRoute();
 }
 
 /**
@@ -1076,7 +1081,31 @@ function removePreInsertedFullscreenIfNeeded() {
         return;
     }
 
-    // RHP already dismissed - the pre-inserted fullscreen is now the topmost route; pop it.
+    // RHP already dismissed. For the tab-switch path, jump back to the original tab.
+    // For the push path, pop the pre-inserted route directly.
+    const originalTabRoute = getPreInsertedOriginalTabRoute();
+    if (originalTabRoute) {
+        clearPreInsertedOriginalTabRoute();
+        const originalTabState = originalTabRoute.state as NavigationState | undefined;
+        const originalFocusedTabIndex = originalTabState?.index ?? 0;
+        const originalTabName = originalTabState?.routes?.[originalFocusedTabIndex]?.name;
+        if (originalTabName) {
+            requestAnimationFrame(() => {
+                const currentState = navigationRef.getRootState();
+                const tabNavRoute = currentState?.routes.find((r) => r.name === NAVIGATORS.TAB_NAVIGATOR);
+                if (!tabNavRoute?.state?.key) {
+                    return;
+                }
+                navigationRef.current?.dispatch({
+                    ...TabActions.jumpTo(originalTabName),
+                    target: tabNavRoute.state.key,
+                });
+            });
+        }
+        return;
+    }
+
+    // Push path: the pre-inserted fullscreen is now the topmost route; pop it.
     // Deferred to the next frame to avoid dispatching during a React commit.
     // Capture the route key now so the rAF callback can match on identity, not just name.
     const targetRouteKey = rootState.routes.at(-1)?.key;
