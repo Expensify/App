@@ -2,11 +2,11 @@ import {setYear} from 'date-fns';
 import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
+import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setDraftValues} from '@userActions/FormActions';
 import CONST from '@src/CONST';
-import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import CalendarPicker from './CalendarPicker';
 import type {DatePickerProps} from './types';
 
