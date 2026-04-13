@@ -60,7 +60,6 @@ function RateField({
 
     return (
         <MenuItemWithTopDescription
-            key={translate('common.rate')}
             shouldShowRightIcon={isRateInteractive}
             // Pass false for isCustomUnitOutOfPolicy because this is the expense creation/edit
             // confirmation screen where a rate violation is not applicable yet.

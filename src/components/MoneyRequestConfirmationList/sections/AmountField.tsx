@@ -29,12 +29,11 @@ type AmountFieldProps = {
     iouCurrencyCode: string | undefined;
     isDistanceRequest: boolean;
     isNewManualExpenseFlowEnabled: boolean;
-    isAmountFieldDisabled: boolean;
-    shouldShowAmountRequiredError: boolean;
     didConfirm: boolean;
     isReadOnly: boolean;
     shouldShowTimeRequestFields: boolean;
     shouldDisplayFieldError: boolean;
+    formError: string;
     transaction: OnyxEntry<OnyxTypes.Transaction>;
     transactionID: string | undefined;
     iouType: Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>;
@@ -52,12 +51,11 @@ function AmountField({
     iouCurrencyCode,
     isDistanceRequest,
     isNewManualExpenseFlowEnabled,
-    isAmountFieldDisabled,
-    shouldShowAmountRequiredError,
     didConfirm,
     isReadOnly,
     shouldShowTimeRequestFields,
     shouldDisplayFieldError,
+    formError,
     transaction,
     transactionID,
     iouType,
@@ -74,6 +72,9 @@ function AmountField({
     const [currentUserAccountID] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.accountID});
 
     const [isCurrencyPickerVisible, setIsCurrencyPickerVisible] = useState(false);
+
+    const isAmountFieldDisabled = didConfirm || isReadOnly || shouldShowTimeRequestFields || isDistanceRequest;
+    const shouldShowAmountRequiredError = formError === 'common.error.invalidAmount';
 
     const effectiveCurrency = isDistanceRequest ? distanceRateCurrency : (iouCurrencyCode ?? CONST.CURRENCY.USD);
     const decimals = getCurrencyDecimals(effectiveCurrency);
@@ -209,7 +210,6 @@ function AmountField({
                 </View>
             ) : (
                 <MenuItemWithTopDescription
-                    key={translate('iou.amount')}
                     shouldShowRightIcon={!isReadOnly && !isDistanceRequest && !shouldShowTimeRequestFields}
                     title={formattedAmount}
                     description={translate('iou.amount')}

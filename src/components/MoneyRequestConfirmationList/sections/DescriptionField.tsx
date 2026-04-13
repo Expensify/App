@@ -89,7 +89,7 @@ function DescriptionField({
     };
 
     return (
-        <View key={translate('common.description')}>
+        <View>
             <ShowContextMenuStateContext.Provider value={contextMenuStateValue}>
                 <ShowContextMenuActionsContext.Provider value={contextMenuActionsValue}>
                     <MentionReportContext.Provider value={mentionReportContextValue}>

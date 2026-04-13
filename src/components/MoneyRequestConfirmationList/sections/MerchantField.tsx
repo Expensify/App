@@ -106,7 +106,6 @@ function MerchantField({
 
     return (
         <MenuItemWithTopDescription
-            key={translate('common.merchant')}
             shouldShowRightIcon={!isReadOnly}
             title={isMerchantEmpty ? '' : iouMerchant}
             description={translate('common.merchant')}

@@ -12,15 +12,10 @@ import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 
-type TagVisibilityItem = {
-    shouldShow: boolean;
-    isTagRequired: boolean;
-};
-
 type TagFieldsProps = {
-    policyTagLists: Array<ValueOf<OnyxTypes.PolicyTagLists>>;
-    tagVisibility: TagVisibilityItem[];
-    previousTagsVisibility: boolean[];
+    policyTagList: ValueOf<OnyxTypes.PolicyTagLists>;
+    isTagRequired: boolean;
+    previousShouldShow: boolean;
     transaction: OnyxEntry<OnyxTypes.Transaction>;
     didConfirm: boolean;
     isReadOnly: boolean;
@@ -32,14 +27,14 @@ type TagFieldsProps = {
     shouldDisplayTagError: boolean;
     formError: string;
 
-    /** The starting index offset for tag lists, used to compute the correct global tag index for navigation and display */
-    tagIndexOffset?: number;
+    /** The global tag index used for navigation and display */
+    tagIndex: number;
 };
 
 function TagFields({
-    policyTagLists,
-    tagVisibility,
-    previousTagsVisibility,
+    policyTagList,
+    isTagRequired,
+    previousShouldShow,
     transaction,
     didConfirm,
     isReadOnly,
@@ -50,52 +45,35 @@ function TagFields({
     reportActionID,
     shouldDisplayTagError,
     formError,
-    tagIndexOffset = 0,
+    tagIndex,
 }: TagFieldsProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
     return (
-        <>
-            {policyTagLists.map(({name}, index) => {
-                const globalIndex = tagIndexOffset + index;
-                const tagVisibilityItem = tagVisibility.at(index);
-                const isTagRequired = tagVisibilityItem?.isTagRequired ?? false;
-                const shouldShow = tagVisibilityItem?.shouldShow ?? false;
-                const prevShouldShow = previousTagsVisibility.at(index) ?? false;
-
-                if (!shouldShow) {
-                    return null;
+        <MenuItemWithTopDescription
+            highlighted={!getTagForDisplay(transaction, tagIndex) && !previousShouldShow}
+            shouldShowRightIcon={!isReadOnly}
+            title={getTagForDisplay(transaction, tagIndex)}
+            description={policyTagList.name}
+            shouldShowBasicTitle
+            shouldShowDescriptionOnTop
+            numberOfLinesTitle={2}
+            onPress={() => {
+                if (!transactionID) {
+                    return;
                 }
 
-                return (
-                    <MenuItemWithTopDescription
-                        highlighted={shouldShow && !getTagForDisplay(transaction, globalIndex) && !prevShouldShow}
-                        key={name}
-                        shouldShowRightIcon={!isReadOnly}
-                        title={getTagForDisplay(transaction, globalIndex)}
-                        description={name}
-                        shouldShowBasicTitle
-                        shouldShowDescriptionOnTop
-                        numberOfLinesTitle={2}
-                        onPress={() => {
-                            if (!transactionID) {
-                                return;
-                            }
-
-                            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_TAG.getRoute(action, iouType, globalIndex, transactionID, reportID, Navigation.getActiveRoute(), reportActionID));
-                        }}
-                        style={[styles.moneyRequestMenuItem]}
-                        brickRoadIndicator={shouldDisplayTagError && !!getTagForDisplay(transaction, globalIndex) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                        errorText={shouldDisplayTagError && !!getTagForDisplay(transaction, globalIndex) ? translate(formError as TranslationPaths) : ''}
-                        disabled={didConfirm}
-                        interactive={!isReadOnly}
-                        rightLabel={isTagRequired ? translate('common.required') : ''}
-                        sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.TAG_FIELD}
-                    />
-                );
-            })}
-        </>
+                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_TAG.getRoute(action, iouType, tagIndex, transactionID, reportID, Navigation.getActiveRoute(), reportActionID));
+            }}
+            style={[styles.moneyRequestMenuItem]}
+            brickRoadIndicator={shouldDisplayTagError && !!getTagForDisplay(transaction, tagIndex) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+            errorText={shouldDisplayTagError && !!getTagForDisplay(transaction, tagIndex) ? translate(formError as TranslationPaths) : ''}
+            disabled={didConfirm}
+            interactive={!isReadOnly}
+            rightLabel={isTagRequired ? translate('common.required') : ''}
+            sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.TAG_FIELD}
+        />
     );
 }
 

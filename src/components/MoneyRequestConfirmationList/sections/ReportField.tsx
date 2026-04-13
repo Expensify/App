@@ -1,7 +1,5 @@
-import {emailSelector} from '@selectors/Session';
 import React from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
-import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -9,9 +7,8 @@ import useOutstandingReports from '@hooks/useOutstandingReports';
 import useReportAttributes from '@hooks/useReportAttributes';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
-import {canSendInvoice} from '@libs/PolicyUtils';
 import {getReportName} from '@libs/ReportNameUtils';
-import {generateReportID, getDefaultWorkspaceAvatar, getOutstandingReportsForUser, isMoneyRequestReport, isReportOutstanding} from '@libs/ReportUtils';
+import {generateReportID, getOutstandingReportsForUser, isMoneyRequestReport, isReportOutstanding} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import type {IOUAction, IOUType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -19,21 +16,9 @@ import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 
-type ReportDestinationPickerProps = {
+type ReportFieldProps = {
     /** The selected participants */
     selectedParticipants: Participant[];
-
-    /** Flag indicating if it is an invoice type */
-    isTypeInvoice: boolean;
-
-    /** Flag indicating if it is a policy expense chat */
-    isPolicyExpenseChat: boolean;
-
-    /** Flag indicating if it is read-only */
-    isReadOnly: boolean;
-
-    /** Flag indicating if the confirmation is done */
-    didConfirm: boolean;
 
     /** The type of the IOU */
     iouType: Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>;
@@ -56,34 +41,17 @@ type ReportDestinationPickerProps = {
     /** Flag indicating if it is a per diem request */
     isPerDiemRequest: boolean;
 
-    /** Whether to show only the invoice sender field (true) or only the report field (false). When undefined, shows both. */
-    showOnlyInvoiceSender?: boolean;
+    /** Flag indicating if it is a policy expense chat */
+    isPolicyExpenseChat: boolean;
 };
 
-function ReportDestinationPicker({
-    selectedParticipants,
-    isTypeInvoice,
-    isPolicyExpenseChat,
-    isReadOnly,
-    didConfirm,
-    iouType,
-    reportID,
-    reportActionID,
-    action,
-    transactionID,
-    transaction,
-    isPerDiemRequest,
-    showOnlyInvoiceSender,
-}: ReportDestinationPickerProps) {
+function ReportField({selectedParticipants, iouType, reportID, reportActionID, action, transactionID, transaction, isPerDiemRequest, isPolicyExpenseChat}: ReportFieldProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
 
-    // canSendInvoice needs the full policy collection to check all admin workspaces
-    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const reportAttributes = useReportAttributes();
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
     const [outstandingReportsByPolicyID] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID);
-    const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
 
     // Per-key report subscriptions instead of full COLLECTION.REPORT
     const [transactionReportEntry] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`);
@@ -93,16 +61,6 @@ function ReportDestinationPicker({
 
     const isUnreported = transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
     const isFromGlobalCreate = !!transaction?.isFromGlobalCreate;
-
-    const senderWorkspace = (() => {
-        const senderWorkspaceParticipant = selectedParticipants.find((participant) => participant.isSender);
-        return allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${senderWorkspaceParticipant?.policyID}`];
-    })();
-
-    const canUpdateSenderWorkspace = (() => {
-        const isInvoiceRoomParticipant = selectedParticipants.some((participant) => participant.isInvoiceRoom);
-        return canSendInvoice(allPolicies, currentUserLogin) && isFromGlobalCreate && !isInvoiceRoomParticipant;
-    })();
 
     /**
      * We need to check if the transaction report exists first in order to prevent the outstanding reports from being used.
@@ -156,57 +114,24 @@ function ReportDestinationPicker({
     // since the destination is already determined and there's no need to show a selectable list.
     const shouldReportBeEditable = (isUnreported ? outstandingReports.length >= 1 : outstandingReports.length > 1) && !isMoneyRequestReport(reportID);
 
-    const shouldShowInvoiceSender = showOnlyInvoiceSender !== false;
-    const shouldShowReportField = showOnlyInvoiceSender !== true;
-
     return (
-        <>
-            {isTypeInvoice && shouldShowInvoiceSender && (
-                <MenuItem
-                    key={translate('workspace.invoices.sendFrom')}
-                    avatarID={senderWorkspace?.id}
-                    shouldShowRightIcon={!isReadOnly && canUpdateSenderWorkspace}
-                    title={senderWorkspace?.name}
-                    icon={senderWorkspace?.avatarURL ? senderWorkspace?.avatarURL : getDefaultWorkspaceAvatar(senderWorkspace?.name)}
-                    iconType={CONST.ICON_TYPE_WORKSPACE}
-                    description={translate('workspace.common.workspace')}
-                    label={translate('workspace.invoices.sendFrom')}
-                    isLabelHoverable={false}
-                    interactive={!isReadOnly && canUpdateSenderWorkspace}
-                    onPress={() => {
-                        if (!transaction?.transactionID) {
-                            return;
-                        }
-                        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_SEND_FROM.getRoute(iouType, transaction?.transactionID, reportID, Navigation.getActiveRoute()));
-                    }}
-                    style={styles.moneyRequestMenuItem}
-                    labelStyle={styles.mt2}
-                    titleStyle={styles.flex1}
-                    disabled={didConfirm}
-                    sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.SEND_FROM_FIELD}
-                />
-            )}
-            {isPolicyExpenseChat && shouldShowReportField && (
-                <MenuItemWithTopDescription
-                    key={translate('common.report')}
-                    shouldShowRightIcon={shouldReportBeEditable}
-                    title={reportName}
-                    description={translate('common.report')}
-                    style={[styles.moneyRequestMenuItem]}
-                    titleStyle={styles.flex1}
-                    onPress={() => {
-                        if (!transactionID || !selectedReportID) {
-                            return;
-                        }
-                        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_REPORT.getRoute(action, iouType, transactionID, selectedReportID, Navigation.getActiveRoute(), reportActionID));
-                    }}
-                    interactive={shouldReportBeEditable}
-                    shouldRenderAsHTML
-                    sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.REPORT_FIELD}
-                />
-            )}
-        </>
+        <MenuItemWithTopDescription
+            shouldShowRightIcon={shouldReportBeEditable}
+            title={reportName}
+            description={translate('common.report')}
+            style={[styles.moneyRequestMenuItem]}
+            titleStyle={styles.flex1}
+            onPress={() => {
+                if (!transactionID || !selectedReportID) {
+                    return;
+                }
+                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_REPORT.getRoute(action, iouType, transactionID, selectedReportID, Navigation.getActiveRoute(), reportActionID));
+            }}
+            interactive={shouldReportBeEditable}
+            shouldRenderAsHTML
+            sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.REPORT_FIELD}
+        />
     );
 }
 
-export default ReportDestinationPicker;
+export default ReportField;

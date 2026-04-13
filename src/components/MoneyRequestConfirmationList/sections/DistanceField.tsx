@@ -47,7 +47,6 @@ function DistanceField({
 
     return (
         <MenuItemWithTopDescription
-            key={translate('common.distance')}
             shouldShowRightIcon={!isReadOnly && !isGPSDistanceRequest}
             title={DistanceRequestUtils.getDistanceForDisplay(hasRoute, distance, unit, rate, translate, undefined, isManualDistanceRequest)}
             description={translate('common.distance')}

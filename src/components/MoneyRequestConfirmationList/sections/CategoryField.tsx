@@ -66,7 +66,6 @@ function CategoryField({
 
     return (
         <MenuItemWithTopDescription
-            key={translate('common.category')}
             shouldShowRightIcon={!isReadOnly}
             title={decodedCategoryName}
             description={translate('common.category')}

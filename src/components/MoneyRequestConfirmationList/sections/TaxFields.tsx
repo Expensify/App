@@ -1,8 +1,12 @@
 import React from 'react';
+import type {OnyxEntry} from 'react-native-onyx';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {convertToDisplayString} from '@libs/CurrencyUtils';
+import {isMovingTransactionFromTrackExpense} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import {getTaxAmount, getTaxRateTitle} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import type {IOUAction, IOUType} from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -10,9 +14,10 @@ import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 
 type TaxFieldsProps = {
-    taxRateTitle: string;
-    taxRates: OnyxTypes.TaxRatesWithDefault | undefined | null;
-    formattedTaxAmount: string;
+    policy: OnyxEntry<OnyxTypes.Policy>;
+    policyForMovingExpenses: OnyxEntry<OnyxTypes.Policy>;
+    transaction: OnyxEntry<OnyxTypes.Transaction>;
+    iouCurrencyCode: string | undefined;
     canModifyTaxFields: boolean;
     didConfirm: boolean;
     transactionID: string | undefined;
@@ -24,9 +29,10 @@ type TaxFieldsProps = {
 };
 
 function TaxFields({
-    taxRateTitle,
-    taxRates,
-    formattedTaxAmount,
+    policy,
+    policyForMovingExpenses,
+    transaction,
+    iouCurrencyCode,
     canModifyTaxFields,
     didConfirm,
     transactionID,
@@ -38,6 +44,12 @@ function TaxFields({
 }: TaxFieldsProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+
+    const isMovingCurrentTransactionFromTrackExpense = isMovingTransactionFromTrackExpense(action);
+    const taxRates = policy?.taxRates ?? (isMovingCurrentTransactionFromTrackExpense ? policyForMovingExpenses?.taxRates : null);
+    const taxAmount = getTaxAmount(transaction, false);
+    const formattedTaxAmount = convertToDisplayString(taxAmount, iouCurrencyCode);
+    const taxRateTitle = getTaxRateTitle(policy, transaction, isMovingCurrentTransactionFromTrackExpense, policyForMovingExpenses);
 
     return (
         <>
