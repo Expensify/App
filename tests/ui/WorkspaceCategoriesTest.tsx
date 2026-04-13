@@ -139,8 +139,8 @@ describe('WorkspaceCategories', () => {
         });
 
         // Select categories to delete by clicking their checkboxes
-        fireEvent.press(screen.getByTestId(`TableListItemCheckbox-${FIRST_CATEGORY}`));
-        fireEvent.press(screen.getByTestId(`TableListItemCheckbox-${SECOND_CATEGORY}`));
+        fireEvent.press(screen.getByRole('checkbox', {name: FIRST_CATEGORY}));
+        fireEvent.press(screen.getByRole('checkbox', {name: SECOND_CATEGORY}));
 
         const dropdownMenuButtonTestID = 'WorkspaceCategoriesPage-header-dropdown-menu-button';
 
@@ -245,8 +245,8 @@ describe('WorkspaceCategories', () => {
         });
 
         // Select categories to delete by clicking their checkboxes
-        fireEvent.press(screen.getByTestId(`TableListItemCheckbox-${FIRST_CATEGORY}`));
-        fireEvent.press(screen.getByTestId(`TableListItemCheckbox-${SECOND_CATEGORY}`));
+        fireEvent.press(screen.getByRole('checkbox', {name: FIRST_CATEGORY}));
+        fireEvent.press(screen.getByRole('checkbox', {name: SECOND_CATEGORY}));
 
         const dropdownMenuButtonTestID = 'WorkspaceCategoriesPage-header-dropdown-menu-button';
 

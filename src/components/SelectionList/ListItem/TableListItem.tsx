@@ -1,7 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
 import ReportActionAvatars from '@components/ReportActionAvatars';
-import ListSelectionButton from '@components/SelectionList/components/ListSelectionButton';
 import TextWithTooltip from '@components/TextWithTooltip';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -25,8 +24,8 @@ function TableListItem<TItem extends ListItem>({
     onLongPressRow,
     shouldSyncFocus,
     titleContainerStyles,
-    shouldShowSelectionButton,
-    selectionButtonPosition = 'right',
+    shouldShowSelectionButton = canSelectMultiple,
+    selectionButtonPosition = CONST.SELECTION_BUTTON_POSITION.LEFT,
     shouldShowRightCaret,
     errorRowStyles,
 }: TableListItemProps<TItem>) {
@@ -43,11 +42,6 @@ function TableListItem<TItem extends ListItem>({
 
     const focusedBackgroundColor = styles.sidebarLinkActive.backgroundColor;
     const hoveredBackgroundColor = styles.sidebarLinkHover?.backgroundColor ? styles.sidebarLinkHover.backgroundColor : theme.sidebar;
-
-    // TableListItem renders its own custom left-side checkbox (with special styling,
-    // testID, and shouldStopMouseDownPropagation). For the right side, it delegates
-    // to BaseListItem's standard rendering.
-    const hasCustomLeftCheckbox = !!shouldShowSelectionButton && selectionButtonPosition === 'left';
 
     return (
         <BaseListItem
@@ -80,24 +74,11 @@ function TableListItem<TItem extends ListItem>({
             shouldSyncFocus={shouldSyncFocus}
             hoverStyle={item.isSelected && styles.activeComponentBG}
             shouldShowRightCaret={shouldShowRightCaret}
-            shouldShowSelectionButton={!hasCustomLeftCheckbox && shouldShowSelectionButton}
+            shouldShowSelectionButton={shouldShowSelectionButton}
             selectionButtonPosition={selectionButtonPosition}
         >
             {(hovered) => (
                 <>
-                    {hasCustomLeftCheckbox && (
-                        <ListSelectionButton
-                            role={canSelectMultiple ? CONST.ROLE.CHECKBOX : CONST.ROLE.RADIO}
-                            item={item}
-                            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                            disabled={isDisabled || item.isDisabledCheckbox}
-                            onSelectRow={onCheckboxPress ?? onSelectRow}
-                            shouldStopMouseDownPropagation
-                            style={[item.cursorStyle, styles.p5, styles.mln5, styles.mhv5, styles.mrn2]}
-                            containerStyle={[StyleUtils.getMultiselectListStyles(!!item.isSelected, !!item.isDisabled), item.cursorStyle]}
-                            testID={`TableListItemCheckbox-${item.text}`}
-                        />
-                    )}
                     {!!item.accountID && (
                         <ReportActionAvatars
                             accountIDs={[item.accountID]}
@@ -137,7 +118,5 @@ function TableListItem<TItem extends ListItem>({
         </BaseListItem>
     );
 }
-
-TableListItem.displayName = 'TableListItem';
 
 export default TableListItem;

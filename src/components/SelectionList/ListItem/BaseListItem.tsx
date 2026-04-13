@@ -99,7 +99,7 @@ function BaseListItem<TItem extends ListItem>({
     accessibilityRole = getButtonRole(true),
     forwardedFSClass,
     shouldShowSelectionButton = false,
-    selectionButtonPosition = 'right',
+    selectionButtonPosition = CONST.SELECTION_BUTTON_POSITION.RIGHT,
 }: BaseListItemProps<TItem>) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -240,7 +240,7 @@ function BaseListItem<TItem extends ListItem>({
                     ]}
                     fsClass={forwardedFSClass}
                 >
-                    {shouldShowSelectionButton && selectionButtonPosition === 'left' && (
+                    {shouldShowSelectionButton && selectionButtonPosition === CONST.SELECTION_BUTTON_POSITION.LEFT && (
                         <ListSelectionButton
                             role={canSelectMultiple ? CONST.ROLE.CHECKBOX : CONST.ROLE.RADIO}
                             item={item}
@@ -263,7 +263,7 @@ function BaseListItem<TItem extends ListItem>({
                         </View>
                     )}
 
-                    {shouldShowSelectionButton && selectionButtonPosition === 'right' && (
+                    {shouldShowSelectionButton && selectionButtonPosition === CONST.SELECTION_BUTTON_POSITION.RIGHT && (
                         <ListSelectionButton
                             role={canSelectMultiple ? CONST.ROLE.CHECKBOX : CONST.ROLE.RADIO}
                             item={item}

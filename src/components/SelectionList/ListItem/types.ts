@@ -241,7 +241,7 @@ type ListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
     shouldShowSelectionButton?: boolean;
 
     /** Which side of the row to render the selection button on */
-    selectionButtonPosition?: 'left' | 'right';
+    selectionButtonPosition?: ValueOf<typeof CONST.SELECTION_BUTTON_POSITION>;
 
     /** Additional styles to apply to text */
     style?: StyleProp<TextStyle>;
@@ -351,7 +351,7 @@ type BaseListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> &
         shouldShowSelectionButton?: boolean;
 
         /** Which side of the row to render the selection button on */
-        selectionButtonPosition?: 'left' | 'right';
+        selectionButtonPosition?: ValueOf<typeof CONST.SELECTION_BUTTON_POSITION>;
     };
 
 type SplitListItemType = ListItem &

@@ -41,7 +41,7 @@ function ListSelectionButton<TItem extends ListItem>({
     disabled,
     style,
     containerStyle,
-    shouldStopMouseDownPropagation,
+    shouldStopMouseDownPropagation = true,
     testID,
 }: ListSelectionButtonProps<TItem>) {
     return (

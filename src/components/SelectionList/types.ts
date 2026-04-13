@@ -2,7 +2,9 @@ import type {ReactElement, Ref} from 'react';
 import type {GestureResponderEvent, InputModeOptions, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import type {TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
+import type CONST from '@src/CONST';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
+import type {ValueOf} from 'type-fest';
 import type {ListItem, ValidListItem} from './ListItem/types';
 import type {SelectionListWithSectionsHandle, SelectionListWithSectionsProps} from './SelectionListWithSections/types';
 
@@ -123,7 +125,7 @@ type BaseSelectionListProps<TItem extends ListItem> = {
     shouldShowSelectionButton?: boolean;
 
     /** Which side of the row to render the selection button on */
-    selectionButtonPosition?: 'left' | 'right';
+    selectionButtonPosition?: ValueOf<typeof CONST.SELECTION_BUTTON_POSITION>;
 };
 
 /**

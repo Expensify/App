@@ -161,8 +161,8 @@ describe('WorkspaceTags', () => {
             expect(screen.getByText(SECOND_TAG)).toBeOnTheScreen();
         });
 
-        fireEvent.press(screen.getByTestId(`TableListItemCheckbox-${FIRST_TAG}`));
-        fireEvent.press(screen.getByTestId(`TableListItemCheckbox-${SECOND_TAG}`));
+        fireEvent.press(screen.getByRole('checkbox', {name: FIRST_TAG}));
+        fireEvent.press(screen.getByRole('checkbox', {name: SECOND_TAG}));
 
         const dropdownMenuButtonTestID = 'WorkspaceTagsPage-header-dropdown-menu-button';
 
