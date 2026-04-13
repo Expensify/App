@@ -7953,6 +7953,7 @@ function buildOptimisticGroupChatReport(
     participantAccountIDs: number[],
     reportName: string,
     avatarUri: string,
+    currentUserAccountID: number,
     optimisticReportID?: string,
     notificationPreference?: NotificationPreference,
 ) {
@@ -7963,6 +7964,7 @@ function buildOptimisticGroupChatReport(
         notificationPreference,
         avatarUrl: avatarUri,
         optimisticReportID,
+        currentUserAccountID,
     });
 }
 
@@ -11356,9 +11358,16 @@ function canLeaveChat(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, isRe
     );
 }
 
-function createDraftWorkspaceAndNavigateToConfirmationScreen(introSelected: OnyxEntry<IntroSelected>, transactionID: string, actionName: IOUAction, workspaceName: string): void {
+function createDraftWorkspaceAndNavigateToConfirmationScreen(
+    introSelected: OnyxEntry<IntroSelected>,
+    transactionID: string,
+    actionName: IOUAction,
+    workspaceName: string,
+    currentUserAccountID: number,
+    currentUserEmail: string,
+): void {
     const isCategorizing = actionName === CONST.IOU.ACTION.CATEGORIZE;
-    const {expenseChatReportID, policyID, policyName} = createDraftWorkspace(introSelected, workspaceName, deprecatedCurrentUserEmail);
+    const {expenseChatReportID, policyID, policyName} = createDraftWorkspace(introSelected, workspaceName, currentUserAccountID, currentUserEmail);
     setMoneyRequestParticipants(transactionID, [
         {
             selected: true,
@@ -11390,6 +11399,8 @@ type CreateDraftTransactionParams = {
     isRestrictedToPreferredPolicy?: boolean;
     preferredPolicyID?: string;
     transaction: OnyxEntry<Transaction>;
+    currentUserAccountID: number;
+    currentUserEmail: string;
 };
 
 function createDraftTransactionAndNavigateToParticipantSelector({
@@ -11405,6 +11416,8 @@ function createDraftTransactionAndNavigateToParticipantSelector({
     isRestrictedToPreferredPolicy = false,
     preferredPolicyID,
     transaction,
+    currentUserAccountID,
+    currentUserEmail,
 }: CreateDraftTransactionParams): void {
     const transactionID = transaction?.transactionID;
     if (!transactionID || !reportID) {
@@ -11549,7 +11562,7 @@ function createDraftTransactionAndNavigateToParticipantSelector({
         return;
     }
 
-    return createDraftWorkspaceAndNavigateToConfirmationScreen(introSelected, transactionID, actionName, '');
+    return createDraftWorkspaceAndNavigateToConfirmationScreen(introSelected, transactionID, actionName, '', currentUserAccountID, currentUserEmail);
 }
 
 /**
