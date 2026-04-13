@@ -5511,10 +5511,11 @@ const staticStyles = (theme: ThemeColors) =>
 
         userPill: {
             gap: 4,
-            paddingLeft: 6,
+            paddingLeft: 4,
             paddingRight: 8,
-            paddingVertical: 4,
+            paddingVertical: 3,
             marginTop: 4,
+            marginBottom: 4,
             borderWidth: 1,
             borderColor: theme.border,
             borderRadius: variables.componentBorderRadiusLarge,
