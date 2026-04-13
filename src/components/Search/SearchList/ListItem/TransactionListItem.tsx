@@ -73,6 +73,7 @@ function TransactionListItem<TItem extends ListItem>({
     // This matches MoneyRequestView's approach via usePolicyForMovingExpenses()
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
+    const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
 
     // Use report's policyID as fallback when transaction doesn't have policyID directly
     // Use active policy as final fallback for SelfDM (tracking expenses)
@@ -179,6 +180,7 @@ function TransactionListItem<TItem extends ListItem>({
             onDelegateAccessRestricted: showDelegateNoAccessModal,
             personalPolicyID,
             ownerBillingGracePeriodEnd,
+            amountOwed,
         });
     };
 
