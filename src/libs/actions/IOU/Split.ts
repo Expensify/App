@@ -1421,10 +1421,7 @@ function updateSplitTransactions({
 
         if (isReverseSplitOperation) {
             requestMoneyInformation.transactionParams = {
-                amount: splitExpense.amount ?? 0,
-                // modifiedAmount is required so getMoneyRequestInformation picks Math.abs(modifiedAmount) for
-                // iouActionAmount instead of the already-negated `amount`. Without it the IOU action message
-                // (and MoneyRequestView) displays the amount with a leading minus sign for selfDM reverts.
+                amount: Math.abs(originalTransaction?.amount ?? 0),
                 modifiedAmount: splitExpense.amount ?? 0,
                 currency: originalTransactionDetails?.currency ?? CONST.CURRENCY.USD,
                 created: splitExpense.created,
@@ -1563,6 +1560,15 @@ function updateSplitTransactions({
 
             if (isReverseSplitOperation) {
                 delete transactionChanges.transactionID;
+                // For revert, the original transaction amount is restored via getMoneyRequestInformation,
+                // not via getUpdateMoneyRequestParams. The remaining split child's amount is incorrectly
+                // signed for selfDM children (reportID="0" causes getTransactionDetails to negate it).
+                // Remove it so getUpdateMoneyRequestParams doesn't generate a wrong MODIFIEDEXPENSE or
+                // set a negative modifiedAmount on the restored original transaction.
+                delete transactionChanges.amount;
+                delete transactionChanges.currency;
+                // Ensure moneyRequestInformationOnyxData is applied even if transactionChanges is now empty.
+                hasChanges = true;
             }
 
             if (Object.keys(transactionChanges).length > 0) {

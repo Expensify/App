@@ -3134,6 +3134,97 @@ describe('getSecondaryTransactionThreadActions', () => {
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SPLIT)).toBe(false);
     });
 
+    it('includes the SPLIT option when parentReport is a selfDM report (unreported expense)', () => {
+        const selfDMReport = {
+            reportID: REPORT_ID,
+            chatType: CONST.REPORT.CHAT_TYPE.SELF_DM,
+        } as unknown as Report;
+
+        const transaction = {
+            transactionID: 'TRANSACTION_ID',
+            status: CONST.TRANSACTION.STATUS.POSTED,
+            amount: 10,
+            merchant: 'Merchant',
+            date: '2025-01-01',
+        } as unknown as Transaction;
+
+        const policy = {} as unknown as Policy;
+
+        const result = getSecondaryTransactionThreadActions({
+            currentUserLogin: EMPLOYEE_EMAIL,
+            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            parentReport: selfDMReport,
+            reportTransaction: transaction,
+            reportAction: actionR14932,
+            originalTransaction: {} as Transaction,
+            policy,
+        });
+        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SPLIT)).toBe(true);
+    });
+
+    it('includes the SPLIT option when grandParentReport is a selfDM report (transaction thread inside selfDM)', () => {
+        // parentReport is a transaction thread (not selfDM, not expense report)
+        const transactionThreadReport = {
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.IOU,
+        } as unknown as Report;
+
+        const selfDMReport = {
+            reportID: 999,
+            chatType: CONST.REPORT.CHAT_TYPE.SELF_DM,
+        } as unknown as Report;
+
+        const transaction = {
+            transactionID: 'TRANSACTION_ID',
+            status: CONST.TRANSACTION.STATUS.POSTED,
+            amount: 10,
+            merchant: 'Merchant',
+            date: '2025-01-01',
+        } as unknown as Transaction;
+
+        const policy = {} as unknown as Policy;
+
+        const result = getSecondaryTransactionThreadActions({
+            currentUserLogin: EMPLOYEE_EMAIL,
+            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            parentReport: transactionThreadReport,
+            reportTransaction: transaction,
+            reportAction: actionR14932,
+            originalTransaction: {} as Transaction,
+            policy,
+            grandParentReport: selfDMReport,
+        });
+        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SPLIT)).toBe(true);
+    });
+
+    it('does not include the SPLIT option when parentReport is not selfDM and not an expense report', () => {
+        const nonExpenseReport = {
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.IOU,
+        } as unknown as Report;
+
+        const transaction = {
+            transactionID: 'TRANSACTION_ID',
+            status: CONST.TRANSACTION.STATUS.POSTED,
+            amount: 10,
+            merchant: 'Merchant',
+            date: '2025-01-01',
+        } as unknown as Transaction;
+
+        const policy = {} as unknown as Policy;
+
+        const result = getSecondaryTransactionThreadActions({
+            currentUserLogin: EMPLOYEE_EMAIL,
+            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            parentReport: nonExpenseReport,
+            reportTransaction: transaction,
+            reportAction: actionR14932,
+            originalTransaction: {} as Transaction,
+            policy,
+        });
+        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SPLIT)).toBe(false);
+    });
+
     it('includes MOVE_EXPENSE option for transaction thread when user can move expense', () => {
         const parentReport = {
             reportID: REPORT_ID,
