@@ -962,8 +962,6 @@ const translations: TranslationDeepObject<typeof en> = {
                 sunglassesDescription: '¡Hora de relajarse, pero mantente atento a lo que viene!',
                 f1FlagsTitle: 'Todo al día',
                 f1FlagsDescription: 'Has completado todas las tareas pendientes.',
-                fireworksTitle: 'Todo al día',
-                fireworksDescription: 'Las próximas tareas aparecerán aquí.',
             },
         },
         gettingStartedSection: {
@@ -1309,6 +1307,44 @@ const translations: TranslationDeepObject<typeof en> = {
         paidWithExpensify: (payer) => `${payer ? `${payer} ` : ''}pagó con la billetera`,
         automaticallyPaidWithExpensify: (payer) =>
             `${payer ? `${payer} ` : ''}pagó con Expensify via <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">reglas del espacio de trabajo</a>`,
+        reimbursedThisReport: 'reembolsó este informe',
+        paidThisBill: 'pagó esta factura',
+        reimbursedOnBehalfOf: (actor: string) => `en nombre de ${actor}`,
+        reimbursedFromBankAccount: (debitBankAccount: string) => `desde la cuenta bancaria terminada en ${debitBankAccount}`,
+        reimbursedSubmitterAddedBankAccount: (submitter: string) => `${submitter} añadió una cuenta bancaria, quitando el informe de espera. El reembolso se ha iniciado`,
+        reimbursedWithFastACH: ({
+            isCurrentUser,
+            submitterLogin,
+            creditBankAccount,
+            expectedDate,
+        }: {
+            isCurrentUser: boolean;
+            submitterLogin: string;
+            creditBankAccount: string;
+            expectedDate: string;
+        }) =>
+            isCurrentUser
+                ? `. El dinero está en camino a tu${creditBankAccount ? ` cuenta bancaria terminada en ${creditBankAccount}` : ' cuenta'}. Se estima que el reembolso se completará el ${expectedDate}.`
+                : `. El dinero está en camino a la cuenta bancaria de ${submitterLogin}${creditBankAccount ? ` terminada en ${creditBankAccount}` : ''}. Se estima que el reembolso se completará el ${expectedDate}.`,
+        reimbursedWithCheck: ' mediante cheque.',
+        reimbursedWithStripeConnect: ({
+            isCurrentUser,
+            submitterLogin,
+            creditBankAccount,
+            isCard,
+        }: {
+            isCurrentUser: boolean;
+            submitterLogin: string;
+            creditBankAccount: string;
+            isCard: boolean;
+        }) => {
+            const paymentMethod = isCard ? 'tarjeta' : 'cuenta bancaria';
+            return isCurrentUser
+                ? `. El dinero está en camino a tu${creditBankAccount ? ` cuenta bancaria terminada en ${creditBankAccount}` : ' cuenta'} (pagado mediante ${paymentMethod}). Esto puede tardar hasta 10 días hábiles.`
+                : `. El dinero está en camino a la cuenta bancaria de ${submitterLogin}${creditBankAccount ? ` terminada en ${creditBankAccount}` : ''} (pagado mediante ${paymentMethod}). Esto puede tardar hasta 10 días hábiles.`;
+        },
+        reimbursedWithACH: ({creditBankAccount, expectedDate}: {creditBankAccount?: string; expectedDate?: string}) =>
+            ` con depósito directo (ACH)${creditBankAccount ? ` a la cuenta bancaria terminada en ${creditBankAccount}. ` : '. '}${expectedDate ? `Se estima que el reembolso se completará para el ${expectedDate}.` : 'Esto generalmente toma de 4 a 5 días hábiles.'}`,
         noReimbursableExpenses: 'El importe de este informe no es válido',
         pendingConversionMessage: 'El total se actualizará cuando estés online',
         changedTheExpense: 'cambió el gasto',
@@ -5099,7 +5135,8 @@ ${amount} para ${merchant} - ${date}`,
             chooseTheCardholder: 'Elige el titular de la tarjeta',
             chooseCard: 'Elige una tarjeta',
             chooseCardFor: (assignee) => `Elige una tarjeta para <strong>${assignee}</strong>. ¿No encuentras la tarjeta que buscas? <concierge-link>Avísanos.</concierge-link>`,
-            noActiveCards: 'No hay tarjetas activas en este feed',
+            noAvailableCards: 'No hay tarjetas activas en este feed',
+            noAvailableCardsSubtitle: 'Edita una regla de tarjeta existente para hacer cambios',
             somethingMightBeBroken:
                 '<muted-text><centered-text>O algo podría estar roto. De cualquier manera, si tienes alguna pregunta, <concierge-link>contacta a Concierge</concierge-link>.</centered-text></muted-text>',
             chooseTransactionStartDate: 'Elige una fecha de inicio de transacciones',
@@ -7706,6 +7743,21 @@ ${amount} para ${merchant} - ${date}`,
         oooEventSummaryPartialDay: (summary, timePeriod, date) => `${summary} de ${timePeriod} del ${date}`,
         startTimer: 'Iniciar temporizador',
         stopTimer: 'Detener temporizador',
+        scheduleOOO: 'Programar ausencia',
+        scheduleOOOTitle: 'Programar fuera de oficina',
+        date: 'Fecha',
+        time: 'Hora (formato de 24 horas)',
+        durationAmount: 'Duración',
+        durationUnit: 'Unidad',
+        reason: 'Motivo',
+        workingPercentage: 'Porcentaje de trabajo',
+        dateRequired: 'La fecha es obligatoria.',
+        invalidTimeFormat: 'Ingresa una hora válida (ej., 14:30).',
+        enterANumber: 'Ingresa un número.',
+        hour: 'horas',
+        day: 'días',
+        week: 'semanas',
+        month: 'meses',
     },
     footer: {
         features: 'Características',
@@ -8310,6 +8362,7 @@ ${amount} para ${merchant} - ${date}`,
         personalCard: 'Tarjeta personal',
         companyCard: 'Tarjeta corporativa',
         expensifyCard: 'Tarjeta Expensify',
+        centralInvoicing: 'Facturación centralizada',
     },
     distance: {
         addStop: 'Añadir parada',

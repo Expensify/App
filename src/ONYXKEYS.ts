@@ -887,6 +887,8 @@ const ONYXKEYS = {
         ONBOARDING_WORKSPACE_DETAILS_FORM_DRAFT: 'onboardingWorkspaceDetailsFormDraft',
         ROOM_NAME_FORM: 'roomNameForm',
         ROOM_NAME_FORM_DRAFT: 'roomNameFormDraft',
+        CHRONOS_SCHEDULE_OOO_FORM: 'chronosScheduleOOOForm',
+        CHRONOS_SCHEDULE_OOO_FORM_DRAFT: 'chronosScheduleOOOFormDraft',
         REPORT_DESCRIPTION_FORM: 'reportDescriptionForm',
         REPORT_DESCRIPTION_FORM_DRAFT: 'reportDescriptionFormDraft',
         LEGAL_NAME_FORM: 'legalNameForm',
@@ -1116,6 +1118,7 @@ type OnyxFormValuesMapping = {
     [ONYXKEYS.FORMS.DISPLAY_NAME_FORM]: FormTypes.DisplayNameForm;
     [ONYXKEYS.FORMS.ONBOARDING_PERSONAL_DETAILS_FORM]: FormTypes.DisplayNameForm;
     [ONYXKEYS.FORMS.ROOM_NAME_FORM]: FormTypes.RoomNameForm;
+    [ONYXKEYS.FORMS.CHRONOS_SCHEDULE_OOO_FORM]: FormTypes.ChronosScheduleOOOForm;
     [ONYXKEYS.FORMS.REPORT_DESCRIPTION_FORM]: FormTypes.ReportDescriptionForm;
     [ONYXKEYS.FORMS.LEGAL_NAME_FORM]: FormTypes.LegalNameForm;
     [ONYXKEYS.FORMS.WORKSPACE_INVITE_MESSAGE_FORM]: FormTypes.WorkspaceInviteMessageForm;

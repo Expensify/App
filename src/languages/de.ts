@@ -1017,8 +1017,6 @@ const translations: TranslationDeepObject<typeof en> = {
                 sunglassesDescription: 'Zeit zum Entspannen, aber bleiben Sie gespannt auf das, was kommt!',
                 f1FlagsTitle: 'Alles erledigt',
                 f1FlagsDescription: 'Sie haben alle offenen Aufgaben abgeschlossen.',
-                fireworksTitle: 'Alles erledigt',
-                fireworksDescription: 'Anstehende Aufgaben erscheinen hier.',
             },
         },
         upcomingTravel: 'Bevorstehende Reisen',
@@ -1373,6 +1371,45 @@ const translations: TranslationDeepObject<typeof en> = {
         paidWithExpensify: (payer?: string) => `${payer ? `${payer} ` : ''}mit Wallet bezahlt`,
         automaticallyPaidWithExpensify: (payer?: string) =>
             `${payer ? `${payer} ` : ''}mit Expensify über <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">Workspace-Regeln</a> bezahlt`,
+        reimbursedThisReport: 'diesen Bericht erstattet',
+        paidThisBill: 'diese Rechnung bezahlt',
+        reimbursedOnBehalfOf: (actor: string) => `im Namen von ${actor}`,
+        reimbursedFromBankAccount: (debitBankAccount: string) => `vom Bankkonto mit der Endung ${debitBankAccount}`,
+        reimbursedSubmitterAddedBankAccount: (submitter: string) =>
+            `${submitter} hat ein Bankkonto hinzugefügt und den Bericht aus der Warteschleife genommen. Die Erstattung wurde eingeleitet`,
+        reimbursedWithFastACH: ({
+            isCurrentUser,
+            submitterLogin,
+            creditBankAccount,
+            expectedDate,
+        }: {
+            isCurrentUser: boolean;
+            submitterLogin: string;
+            creditBankAccount: string;
+            expectedDate: string;
+        }) =>
+            isCurrentUser
+                ? `. Das Geld ist auf dem Weg zu Ihrem ${creditBankAccount ? `Bankkonto mit der Endung ${creditBankAccount}` : 'Konto'}. Die Erstattung wird voraussichtlich bis zum ${expectedDate} abgeschlossen.`
+                : `. Das Geld ist auf dem Weg zum Bankkonto von ${submitterLogin}${creditBankAccount ? ` mit der Endung ${creditBankAccount}` : ''}. Die Erstattung wird voraussichtlich am ${expectedDate} abgeschlossen.`,
+        reimbursedWithCheck: ' per Scheck.',
+        reimbursedWithStripeConnect: ({
+            isCurrentUser,
+            submitterLogin,
+            creditBankAccount,
+            isCard,
+        }: {
+            isCurrentUser: boolean;
+            submitterLogin: string;
+            creditBankAccount: string;
+            isCard: boolean;
+        }) => {
+            const paymentMethod = isCard ? 'Karte' : 'Bankkonto';
+            return isCurrentUser
+                ? `. Das Geld ist auf dem Weg zu Ihrem ${creditBankAccount ? `Bankkonto mit der Endung ${creditBankAccount}` : 'Konto'} (bezahlt über ${paymentMethod}). Dies kann bis zu 10 Werktage dauern.`
+                : `. Das Geld ist auf dem Weg zum Bankkonto von ${submitterLogin}${creditBankAccount ? ` mit der Endung ${creditBankAccount}` : ''} (bezahlt über ${paymentMethod}). Dies kann bis zu 10 Werktage dauern.`;
+        },
+        reimbursedWithACH: ({creditBankAccount, expectedDate}: {creditBankAccount?: string; expectedDate?: string}) =>
+            ` mit Direkteinzahlung (ACH)${creditBankAccount ? ` auf das Bankkonto mit der Endziffer ${creditBankAccount}.` : '. '}${expectedDate ? `Die Rückerstattung wird voraussichtlich bis zum ${expectedDate} abgeschlossen sein.` : 'Dies dauert in der Regel 4–5 Werktage.'}`,
         noReimbursableExpenses: 'Dieser Bericht enthält einen ungültigen Betrag',
         pendingConversionMessage: 'Die Gesamtsumme wird aktualisiert, sobald du wieder online bist',
         changedTheExpense: 'hat die Ausgabe geändert',
@@ -5254,7 +5291,7 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             chooseTheCardholder: 'Wähle den Karteninhaber',
             chooseCard: 'Wähle eine Karte',
             chooseCardFor: (assignee: string) => `Wähle eine Karte für <strong>${assignee}</strong>. Du findest die gesuchte Karte nicht? <concierge-link>Gib uns Bescheid.</concierge-link>`,
-            noActiveCards: 'Keine aktiven Karten in diesem Feed',
+            noAvailableCards: 'Alle Karten haben bereits eine Regel',
             somethingMightBeBroken:
                 '<muted-text><centered-text>Oder es ist etwas kaputt. Wie auch immer, wenn du Fragen hast, <concierge-link>wende dich einfach an Concierge</concierge-link>.</centered-text></muted-text>',
             chooseTransactionStartDate: 'Wähle ein Startdatum für Transaktionen',
@@ -5290,6 +5327,7 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             },
             deletedCard: 'Gelöschte Karte',
             assignNewCards: {title: 'Neue Karten zuweisen', description: 'Holen Sie die neuesten Karten zum Zuweisen von Ihrer Bank'},
+            noAvailableCardsSubtitle: 'Bearbeiten Sie eine bestehende Kartenregel, um Änderungen vorzunehmen',
         },
         expensifyCard: {
             issueAndManageCards: 'Geben Sie Expensify Karten aus und verwalten Sie sie',
@@ -7868,6 +7906,21 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         oooEventSummaryPartialDay: (summary: string, timePeriod: string, date: string) => `${summary} von ${timePeriod} am ${date}`,
         startTimer: 'Timer starten',
         stopTimer: 'Timer stoppen',
+        scheduleOOO: 'Abwesenheit planen',
+        scheduleOOOTitle: 'Abwesenheit planen',
+        date: 'Datum',
+        time: 'Zeit (24-Stunden-Format)',
+        durationAmount: 'Dauer',
+        durationUnit: 'Einheit',
+        reason: 'Grund',
+        workingPercentage: 'Arbeitsprozentsatz',
+        dateRequired: 'Datum ist erforderlich.',
+        invalidTimeFormat: 'Bitte geben Sie eine gültige Uhrzeit im 24‑Stunden-Format ein (z. B. 14:30).',
+        enterANumber: 'Bitte geben Sie eine Zahl ein.',
+        hour: 'Stunden',
+        day: 'Tage',
+        week: 'Wochen',
+        month: 'Monate',
     },
     footer: {
         features: 'Funktionen',
@@ -8013,6 +8066,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         personalCard: 'Private Karte',
         companyCard: 'Firmenkarte',
         expensifyCard: 'Expensify Karte',
+        centralInvoicing: 'Zentrale Rechnungsstellung',
     },
     distance: {
         addStop: 'Stopp hinzufügen',

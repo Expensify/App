@@ -1020,8 +1020,6 @@ const translations: TranslationDeepObject<typeof en> = {
                 sunglassesDescription: 'Temps de se détendre, mais restez à l’affût de ce qui arrive !',
                 f1FlagsTitle: 'Tout est à jour',
                 f1FlagsDescription: 'Vous avez terminé toutes les tâches en cours.',
-                fireworksTitle: 'Tout est à jour',
-                fireworksDescription: 'Les prochaines tâches apparaîtront ici.',
             },
         },
         upcomingTravel: 'Voyages à venir',
@@ -1376,6 +1374,44 @@ const translations: TranslationDeepObject<typeof en> = {
         paidWithExpensify: (payer?: string) => `${payer ? `${payer} ` : ''}payé avec le portefeuille`,
         automaticallyPaidWithExpensify: (payer?: string) =>
             `${payer ? `${payer} ` : ''}payé avec Expensify via les <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">règles de l’espace de travail</a>`,
+        reimbursedThisReport: 'a remboursé cette note de frais',
+        paidThisBill: 'a payé cette facture',
+        reimbursedOnBehalfOf: (actor: string) => `au nom de ${actor}`,
+        reimbursedFromBankAccount: (debitBankAccount: string) => `à partir du compte bancaire se terminant par ${debitBankAccount}`,
+        reimbursedSubmitterAddedBankAccount: (submitter: string) => `${submitter} a ajouté un compte bancaire, retirant la note de frais de la mise en attente. Le remboursement est lancé`,
+        reimbursedWithFastACH: ({
+            isCurrentUser,
+            submitterLogin,
+            creditBankAccount,
+            expectedDate,
+        }: {
+            isCurrentUser: boolean;
+            submitterLogin: string;
+            creditBankAccount: string;
+            expectedDate: string;
+        }) =>
+            isCurrentUser
+                ? `. L’argent est en route vers votre ${creditBankAccount ? `compte bancaire se terminant par ${creditBankAccount}` : 'compte'}. Remboursement estimé pour être terminé le ${expectedDate}.`
+                : `. L’argent est en route vers le compte bancaire de ${submitterLogin}${creditBankAccount ? ` se terminant par ${creditBankAccount}` : ''}. Remboursement estimé pour le ${expectedDate}.`,
+        reimbursedWithCheck: ' par chèque.',
+        reimbursedWithStripeConnect: ({
+            isCurrentUser,
+            submitterLogin,
+            creditBankAccount,
+            isCard,
+        }: {
+            isCurrentUser: boolean;
+            submitterLogin: string;
+            creditBankAccount: string;
+            isCard: boolean;
+        }) => {
+            const paymentMethod = isCard ? 'carte' : 'compte bancaire';
+            return isCurrentUser
+                ? `. L’argent est en route vers votre ${creditBankAccount ? `compte bancaire se terminant par ${creditBankAccount}` : 'compte'} (payé via ${paymentMethod}). Cela peut prendre jusqu’à 10 jours ouvrables.`
+                : `. L’argent est en route vers le compte bancaire de ${submitterLogin}${creditBankAccount ? ` se terminant par ${creditBankAccount}` : ''} (payé via ${paymentMethod}). Cela peut prendre jusqu’à 10 jours ouvrés.`;
+        },
+        reimbursedWithACH: ({creditBankAccount, expectedDate}: {creditBankAccount?: string; expectedDate?: string}) =>
+            ` par dépôt direct (ACH)${creditBankAccount ? ` vers le compte bancaire se terminant par ${creditBankAccount}.` : '. '}${expectedDate ? `Le remboursement devrait être terminé d'ici le ${expectedDate}.` : 'Cela prend généralement 4 à 5 jours ouvrables.'}`,
         noReimbursableExpenses: 'Cette note de frais a un montant non valide',
         pendingConversionMessage: 'Le total sera mis à jour quand vous serez de nouveau en ligne',
         changedTheExpense: 'a modifié la dépense',
@@ -5264,7 +5300,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             chooseCard: 'Choisir une carte',
             chooseCardFor: (assignee: string) =>
                 `Choisissez une carte pour <strong>${assignee}</strong>. Vous ne trouvez pas la carte que vous cherchez ? <concierge-link>Dites-le-nous.</concierge-link>`,
-            noActiveCards: 'Aucune carte active dans ce flux',
+            noAvailableCards: 'Toutes les cartes ont déjà une règle',
             somethingMightBeBroken:
                 '<muted-text><centered-text>Ou quelque chose est peut-être cassé. Dans tous les cas, si vous avez des questions, il vous suffit de <concierge-link>contacter Concierge</concierge-link>.</centered-text></muted-text>',
             chooseTransactionStartDate: 'Choisissez une date de début de transaction',
@@ -5300,6 +5336,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             },
             deletedCard: 'Carte supprimée',
             assignNewCards: {title: 'Assigner de nouvelles cartes', description: 'Obtenez les dernières cartes à assigner depuis votre banque'},
+            noAvailableCardsSubtitle: 'Modifier une règle de carte existante pour effectuer des changements',
         },
         expensifyCard: {
             issueAndManageCards: 'Émettre et gérer vos Cartes Expensify',
@@ -7891,6 +7928,21 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         oooEventSummaryPartialDay: (summary: string, timePeriod: string, date: string) => `${summary} du ${timePeriod} le ${date}`,
         startTimer: 'Démarrer le minuteur',
         stopTimer: 'Arrêter le minuteur',
+        scheduleOOO: 'Planifier une absence',
+        scheduleOOOTitle: 'Planifier une absence du bureau',
+        date: 'Date',
+        time: 'Heure (format 24 heures)',
+        durationAmount: 'Durée',
+        durationUnit: 'Unité',
+        reason: 'Raison',
+        workingPercentage: 'Pourcentage de travail',
+        dateRequired: 'La date est obligatoire.',
+        invalidTimeFormat: 'Veuillez entrer une heure valide au format 24 heures (par ex. 14:30).',
+        enterANumber: 'Veuillez saisir un nombre.',
+        hour: 'heures',
+        day: 'jours',
+        week: 'semaines',
+        month: 'mois',
     },
     footer: {
         features: 'Fonctionnalités',
@@ -8036,6 +8088,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         personalCard: 'Carte personnelle',
         companyCard: 'Carte d’entreprise',
         expensifyCard: 'Carte Expensify',
+        centralInvoicing: 'Facturation centralisée',
     },
     distance: {
         addStop: 'Ajouter un arrêt',
