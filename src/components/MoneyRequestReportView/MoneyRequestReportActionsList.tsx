@@ -74,6 +74,7 @@ import {
     isHarvestCreatedExpenseReport,
     isUnread,
 } from '@libs/ReportUtils';
+import type {ArchivedReportsIDSet} from '@libs/SearchUIUtils';
 import shouldPopoverUseScrollView from '@libs/shouldPopoverUseScrollView';
 import markOpenReportEnd from '@libs/telemetry/markOpenReportEnd';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
@@ -117,9 +118,12 @@ type MoneyRequestReportListProps = {
 
     /** Callback executed on layout */
     onLayout?: (event: LayoutChangeEvent) => void;
+
+    /** Set of archived report ID keys */
+    archivedReportsIDSet: ArchivedReportsIDSet;
 };
 
-function MoneyRequestReportActionsList({reportID: reportIDProp, onLayout}: MoneyRequestReportListProps) {
+function MoneyRequestReportActionsList({reportID: reportIDProp, onLayout, archivedReportsIDSet}: MoneyRequestReportListProps) {
     const styles = useThemeStyles();
     const {translate, getLocalDateFromDatetime} = useLocalize();
     const {isOffline, lastOfflineAt, lastOnlineAt} = useNetworkWithOfflineStatus();
@@ -801,6 +805,7 @@ function MoneyRequestReportActionsList({reportID: reportIDProp, onLayout}: Money
                     isTryNewDotNVPDismissed={isTryNewDotNVPDismissed}
                     reportNameValuePairsOrigin={reportNameValuePairs?.origin}
                     reportNameValuePairsOriginalID={reportNameValuePairs?.originalID}
+                    archivedReportsIDSet={archivedReportsIDSet}
                 />
             );
         },
@@ -822,6 +827,7 @@ function MoneyRequestReportActionsList({reportID: reportIDProp, onLayout}: Money
             isReportArchived,
             reportNameValuePairs?.origin,
             reportNameValuePairs?.originalID,
+            archivedReportsIDSet,
         ],
     );
 

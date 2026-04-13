@@ -5,6 +5,7 @@ import {View} from 'react-native';
 import ScreenWrapper from '@components/ScreenWrapper';
 import WideRHPOverlayWrapper from '@components/WideRHPOverlayWrapper';
 import useActionListContextValue from '@hooks/useActionListContextValue';
+import useArchivedReportsIDSet from '@hooks/useArchivedReportsIDSet';
 import {useCurrentReportIDState} from '@hooks/useCurrentReportID';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSubmitToDestinationVisible from '@hooks/useSubmitToDestinationVisible';
@@ -45,6 +46,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     const {currentReportID: currentReportIDValue} = useCurrentReportIDState();
     const viewportOffsetTop = useViewportOffsetTop();
     const isTopMostReportId = currentReportIDValue === reportIDFromRoute;
+    const archivedReportsIDSet = useArchivedReportsIDSet();
     const screenWrapperStyle: ViewStyle[] = [styles.appContent, styles.flex1, {marginTop: viewportOffsetTop}];
 
     useSubmitToDestinationVisible(
@@ -73,7 +75,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                             <LinkedActionNotFoundGuard>
                                 <ReportDragAndDropProvider>
                                     <ReportLifecycleHandler reportID={reportIDFromRoute} />
-                                    <ReportHeader />
+                                    <ReportHeader archivedReportsIDSet={archivedReportsIDSet} />
                                     <AccountManagerBanner reportID={reportIDFromRoute} />
                                     <View style={[styles.flex1, styles.flexRow]}>
                                         <WideRHPReceiptPanel />
@@ -82,8 +84,8 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                                                 style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}
                                                 testID="report-actions-view-wrapper"
                                             >
-                                                <ReportActionsList />
-                                                <ReportFooter />
+                                                <ReportActionsList archivedReportsIDSet={archivedReportsIDSet} />
+                                                <ReportFooter archivedReportsIDSet={archivedReportsIDSet} />
                                             </View>
                                         </AgentZeroStatusProvider>
                                     </View>

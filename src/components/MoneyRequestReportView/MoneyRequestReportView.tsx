@@ -26,6 +26,7 @@ import navigationRef from '@libs/Navigation/navigationRef';
 import {getFilteredReportActionsForReportView, getOneTransactionThreadReportID} from '@libs/ReportActionsUtils';
 import {getReportOfflinePendingActionAndErrors, isReportTransactionThread} from '@libs/ReportUtils';
 import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
+import type {ArchivedReportsIDSet} from '@libs/SearchUIUtils';
 import {cancelSpan} from '@libs/telemetry/activeSpans';
 import markOpenReportEnd from '@libs/telemetry/markOpenReportEnd';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
@@ -58,6 +59,9 @@ type MoneyRequestReportViewProps = {
 
     /** Callback executed on layout */
     onLayout?: (event: LayoutChangeEvent) => void;
+
+    /** Set of archived report ID keys */
+    archivedReportsIDSet: ArchivedReportsIDSet;
 };
 
 function goBackFromSearchMoneyRequest() {
@@ -104,7 +108,7 @@ function InitialLoadingSkeleton({styles, onLayout, reasonAttributes}: {styles: T
     );
 }
 
-function MoneyRequestReportView({report, reportMetadata, shouldDisplayReportFooter, backToRoute, onLayout}: MoneyRequestReportViewProps) {
+function MoneyRequestReportView({report, reportMetadata, shouldDisplayReportFooter, backToRoute, onLayout, archivedReportsIDSet}: MoneyRequestReportViewProps) {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
 
@@ -181,6 +185,7 @@ function MoneyRequestReportView({report, reportMetadata, shouldDisplayReportFoot
                 <MoneyReportHeader
                     reportID={report?.reportID}
                     shouldDisplayBackButton
+                    archivedReportsIDSet={archivedReportsIDSet}
                     onBackButtonPress={() => {
                         if (!backToRoute) {
                             goBackFromSearchMoneyRequest();
@@ -190,7 +195,7 @@ function MoneyRequestReportView({report, reportMetadata, shouldDisplayReportFoot
                     }}
                 />
             ),
-        [backToRoute, isTransactionThreadView, report?.reportID],
+        [archivedReportsIDSet, backToRoute, isTransactionThreadView, report?.reportID],
     );
 
     // We need to cancel telemetry span when user leaves the screen before full report data is loaded
@@ -234,7 +239,7 @@ function MoneyRequestReportView({report, reportMetadata, shouldDisplayReportFoot
             <View style={styles.flex1}>
                 <ReportHeaderSkeletonView reasonAttributes={loadingAppReasonAttributes} />
                 <ReportActionsSkeletonView />
-                {shouldDisplayReportFooter ? <ReportFooter /> : null}
+                {shouldDisplayReportFooter ? <ReportFooter archivedReportsIDSet={archivedReportsIDSet} /> : null}
             </View>
         );
     }
@@ -276,16 +281,18 @@ function MoneyRequestReportView({report, reportMetadata, shouldDisplayReportFoot
                             <MoneyRequestReportActionsList
                                 reportID={reportID}
                                 onLayout={onLayout}
+                                archivedReportsIDSet={archivedReportsIDSet}
                             />
                         ) : (
                             <ReportActionsView
                                 reportID={reportID}
                                 onLayout={onLayout}
+                                archivedReportsIDSet={archivedReportsIDSet}
                             />
                         )}
                         {shouldDisplayReportFooter ? (
                             <>
-                                <ReportFooter />
+                                <ReportFooter archivedReportsIDSet={archivedReportsIDSet} />
                                 <PortalHost name="suggestions" />
                             </>
                         ) : null}

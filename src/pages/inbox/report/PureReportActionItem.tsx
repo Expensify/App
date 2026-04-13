@@ -232,6 +232,7 @@ import {
     isTaskReport,
     shouldDisplayThreadReplies as shouldDisplayThreadRepliesUtils,
 } from '@libs/ReportUtils';
+import type {ArchivedReportsIDSet} from '@libs/SearchUIUtils';
 import SelectionScraper from '@libs/SelectionScraper';
 import shouldRenderAddPaymentCard from '@libs/shouldRenderAppPaymentCard';
 import {ReactionListContext} from '@pages/inbox/ReportScreenContext';
@@ -485,7 +486,12 @@ type PureReportActionItemProps = {
 
     /** The billing grace end period's shared NVP collection */
     userBillingGracePeriodEnds: OnyxCollection<OnyxTypes.BillingGraceEndPeriod>;
+
+    /** Set of archived report ID keys */
+    archivedReportsIDSet?: ArchivedReportsIDSet;
 };
+
+const EMPTY_ARCHIVED_REPORTS_ID_SET: ArchivedReportsIDSet = new Set<string>();
 
 // This is equivalent to returning a negative boolean in normal functions, but we can keep the element return type
 // If the child was rendered using RenderHTML and an empty html string, it has an empty prop called html
@@ -555,6 +561,7 @@ function PureReportActionItem({
     reportNameValuePairsOriginalID,
     reportMetadata,
     userBillingGracePeriodEnds,
+    archivedReportsIDSet = EMPTY_ARCHIVED_REPORTS_ID_SET,
 }: PureReportActionItemProps) {
     const isConciergeGreeting = action.reportActionID === CONST.CONCIERGE_GREETING_ACTION_ID;
     const shouldDisplayContextMenuValue = shouldDisplayContextMenu && !isConciergeGreeting;
@@ -2022,9 +2029,19 @@ function PureReportActionItem({
                 transactionID={transactionID}
                 draftMessage={draftMessage}
                 shouldHideThreadDividerLine={shouldHideThreadDividerLine}
+                archivedReportsIDSet={archivedReportsIDSet}
             />
         );
-    }, [contextMenuStateValue, contextMenuActionsValue, parentReportAction, parentReport, draftMessage, shouldHideThreadDividerLine, parentReportActionForTransactionThread]);
+    }, [
+        contextMenuStateValue,
+        contextMenuActionsValue,
+        parentReportAction,
+        parentReport,
+        draftMessage,
+        shouldHideThreadDividerLine,
+        parentReportActionForTransactionThread,
+        archivedReportsIDSet,
+    ]);
 
     if (action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED && !isHarvestCreatedExpenseReport) {
         return createdActionContent;

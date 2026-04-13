@@ -72,7 +72,8 @@ beforeAll(() =>
 const mockOnLayout = jest.fn();
 const mockOnScroll = jest.fn();
 const mockLoadChats = jest.fn();
-const mockRef = {current: null, flatListRef: null, scrollPositionRef: {current: {}}, scrollOffsetRef: {current: 0}};
+const mockReactionListRef = {current: null};
+const mockActionListContext = {flatListRef: null, scrollPositionRef: {current: {}}, scrollOffsetRef: {current: 0}};
 
 const TEST_USER_ACCOUNT_ID = 1;
 const TEST_USER_LOGIN = 'test@test.com';
@@ -83,6 +84,7 @@ const signUpWithTestUser = () => {
 
 const report = createRandomReport(1, undefined);
 const parentReportAction = createRandomReportAction(1);
+const archivedReportsIDSet = new Set<string>();
 
 beforeEach(() => {
     // Initialize the network key for OfflineWithFeedback
@@ -100,8 +102,8 @@ function ReportActionsListWrapper() {
     return (
         <NavigationContainer ref={navigationRef}>
             <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, AttachmentModalContextProvider]}>
-                <ReactionListContext.Provider value={mockRef}>
-                    <ActionListContext.Provider value={mockRef}>
+                <ReactionListContext.Provider value={mockReactionListRef}>
+                    <ActionListContext.Provider value={mockActionListContext}>
                         <ReportActionsList
                             parentReportAction={parentReportAction}
                             parentReportActionForTransactionThread={undefined}
@@ -114,6 +116,7 @@ function ReportActionsListWrapper() {
                             loadOlderChats={mockLoadChats}
                             loadNewerChats={mockLoadChats}
                             transactionThreadReport={report}
+                            archivedReportsIDSet={archivedReportsIDSet}
                         />
                     </ActionListContext.Provider>
                 </ReactionListContext.Provider>

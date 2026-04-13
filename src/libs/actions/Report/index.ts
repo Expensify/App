@@ -167,6 +167,7 @@ import {
     prepareOnboardingOnyxData,
 } from '@libs/ReportUtils';
 import {buildOptimisticSnapshotData, getCurrentSearchQueryJSON} from '@libs/SearchQueryUtils';
+import type {ArchivedReportsIDSet} from '@libs/SearchUIUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import {getAmount, getCurrency, hasValidModifiedAmount, isOnHold, recalculateUnreportedTransactionDetails, shouldClearConvertedAmount} from '@libs/TransactionUtils';
 import addTrailingForwardSlash from '@libs/UrlUtils';
@@ -4297,8 +4298,9 @@ function navigateToMostRecentReport(
     currentUserAccountID: number,
     introSelected: OnyxEntry<IntroSelected>,
     betas: OnyxEntry<Beta[]>,
+    archivedReportsIDSet?: ArchivedReportsIDSet,
 ) {
-    const lastAccessedReportID = findLastAccessedReport(false, false, currentReport?.reportID)?.reportID;
+    const lastAccessedReportID = findLastAccessedReport(false, false, currentReport?.reportID, archivedReportsIDSet)?.reportID;
 
     if (lastAccessedReportID) {
         // Check if route exists for super wide RHP vs regular full screen report
@@ -4323,8 +4325,8 @@ function navigateToMostRecentReport(
     }
 }
 
-function getMostRecentReportID(currentReport: OnyxEntry<Report>, conciergeReportID: string | undefined) {
-    const lastAccessedReportID = findLastAccessedReport(false, false, currentReport?.reportID)?.reportID;
+function getMostRecentReportID(currentReport: OnyxEntry<Report>, conciergeReportID: string | undefined, archivedReportsIDSet?: ArchivedReportsIDSet) {
+    const lastAccessedReportID = findLastAccessedReport(false, false, currentReport?.reportID, archivedReportsIDSet)?.reportID;
     return lastAccessedReportID ?? conciergeReportID;
 }
 

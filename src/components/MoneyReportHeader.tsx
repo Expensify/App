@@ -96,6 +96,7 @@ import {
     navigateToDetailsPage,
     shouldBlockSubmitDueToStrictPolicyRules,
 } from '@libs/ReportUtils';
+import type {ArchivedReportsIDSet} from '@libs/SearchUIUtils';
 import shouldPopoverUseScrollView from '@libs/shouldPopoverUseScrollView';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {
@@ -149,21 +150,25 @@ type MoneyReportHeaderProps = {
 
     /** Method to trigger when pressing close button of the header */
     onBackButtonPress: () => void;
+
+    /** Set of archived report ID keys */
+    archivedReportsIDSet: ArchivedReportsIDSet;
 };
 
-function MoneyReportHeader({reportID, shouldDisplayBackButton = false, onBackButtonPress}: MoneyReportHeaderProps) {
+function MoneyReportHeader({reportID, shouldDisplayBackButton = false, onBackButtonPress, archivedReportsIDSet}: MoneyReportHeaderProps) {
     return (
         <MoneyReportHeaderModals reportID={reportID}>
             <MoneyReportHeaderContent
                 reportID={reportID}
                 shouldDisplayBackButton={shouldDisplayBackButton}
                 onBackButtonPress={onBackButtonPress}
+                archivedReportsIDSet={archivedReportsIDSet}
             />
         </MoneyReportHeaderModals>
     );
 }
 
-function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButton = false, onBackButtonPress}: MoneyReportHeaderProps) {
+function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButton = false, onBackButtonPress, archivedReportsIDSet}: MoneyReportHeaderProps) {
     const [moneyRequestReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDProp}`);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(moneyRequestReport?.policyID)}`);
     const {reportActions: unfilteredReportActions} = usePaginatedReportActions(moneyRequestReport?.reportID);
@@ -396,7 +401,6 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
 
     const isArchivedReport = useReportIsArchived(moneyRequestReport?.reportID);
     const isChatReportArchived = useReportIsArchived(chatReport?.reportID);
-
     const canMoveSingleExpense = useMemo(() => {
         if (nonPendingDeleteTransactions.length !== 1) {
             return false;
@@ -414,12 +418,13 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
             isChatReportArchived,
             outstandingReportsByPolicyID,
             transaction: transactionToMove,
+            archivedReportsIDSet,
         });
 
         const canUserPerformWriteAction = canUserPerformWriteActionReportUtils(moneyRequestReport, isChatReportArchived);
 
         return canMoveExpense && canUserPerformWriteAction;
-    }, [nonPendingDeleteTransactions, reportActions, isChatReportArchived, outstandingReportsByPolicyID, moneyRequestReport]);
+    }, [nonPendingDeleteTransactions, reportActions, isChatReportArchived, outstandingReportsByPolicyID, moneyRequestReport, archivedReportsIDSet]);
 
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${moneyRequestReport?.reportID}`);
     const getCanIOUBePaid = useCallback(
@@ -1138,6 +1143,7 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
             policies,
             outstandingReportsByPolicyID,
             isChatReportArchived,
+            archivedReportsIDSet,
         });
     }, [
         moneyRequestReport,
@@ -1155,6 +1161,7 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
         isChatReportArchived,
         bankAccountList,
         outstandingReportsByPolicyID,
+        archivedReportsIDSet,
     ]);
 
     const secondaryExportActions = useMemo(() => {

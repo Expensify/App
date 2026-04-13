@@ -57,6 +57,7 @@ TestHelper.setupGlobalFetchMock();
 const defaultReport = LHNTestUtils.getFakeReport();
 const defaultProps: ReportActionComposeProps = {
     reportID: defaultReport.reportID,
+    archivedReportsIDSet: new Set<string>(),
 };
 
 const renderReportActionCompose = (props?: Partial<ReportActionComposeProps>) => {
