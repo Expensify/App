@@ -45,7 +45,8 @@ import {getSecondaryReportActions} from '@libs/ReportSecondaryActionUtils';
 import {hasHeldExpenses, hasUpdatedTotal, isInvoiceReport as isInvoiceReportUtil, isIOUReport as isIOUReportUtil} from '@libs/ReportUtils';
 import shouldPopoverUseScrollView from '@libs/shouldPopoverUseScrollView';
 import {isTransactionPendingDelete} from '@libs/TransactionUtils';
-import {canIOUBePaid as canIOUBePaidAction, payInvoice, payMoneyRequest} from '@userActions/IOU';
+import {canIOUBePaid as canIOUBePaidAction} from '@userActions/IOU';
+import {payInvoice, payMoneyRequest} from '@userActions/IOU/PayMoneyRequest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -300,7 +301,7 @@ function MoneyReportHeaderSelectionDropdown({reportID, primaryAction, isReportIn
     });
 
     const hasPersonalPaymentOption = paymentButtonOptions.some((opt) => opt.value === CONST.IOU.PAYMENT_TYPE.EXPENSIFY);
-    const canUseBusinessBankAccount = !!moneyRequestReport?.reportID && !hasRequestFromCurrentAccount(moneyRequestReport.reportID, accountID ?? CONST.DEFAULT_NUMBER_ID);
+    const canUseBusinessBankAccount = !!moneyRequestReport?.reportID && !hasRequestFromCurrentAccount(moneyRequestReport, accountID ?? CONST.DEFAULT_NUMBER_ID);
     const workspacePolicyOptions =
         isIOUReportUtil(moneyRequestReport) && hasPersonalPaymentOption && activeAdminPolicies.length && canUseBusinessBankAccount
             ? sortPoliciesByName(activeAdminPolicies, localeCompare)

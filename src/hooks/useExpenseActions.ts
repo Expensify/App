@@ -38,7 +38,8 @@ import {
     isPerDiemRequest,
     isTransactionPendingDelete,
 } from '@libs/TransactionUtils';
-import {getNavigationUrlOnMoneyRequestDelete, startMoneyRequest} from '@userActions/IOU';
+import {startMoneyRequest} from '@userActions/IOU';
+import {getNavigationUrlOnMoneyRequestDelete} from '@userActions/IOU/DeleteMoneyRequest';
 import {setDeleteTransactionNavigateBackUrl} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';

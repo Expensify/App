@@ -79,6 +79,7 @@ function useExportActions({reportID, onPDFModalOpen}: UseExportActionsParams): U
         'IntacctSquare',
         'QBDSquare',
         'CertiniaSquare',
+        'GustoSquare',
         'ArrowRight',
     ]);
 

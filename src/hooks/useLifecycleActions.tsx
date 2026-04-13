@@ -19,7 +19,8 @@ import {
     shouldBlockSubmitDueToStrictPolicyRules,
 } from '@libs/ReportUtils';
 import {hasAnyPendingRTERViolation as hasAnyPendingRTERViolationTransactionUtils} from '@libs/TransactionUtils';
-import {approveMoneyRequest, cancelPayment, reopenReport, retractReport, submitReport, unapproveExpenseReport} from '@userActions/IOU';
+import {approveMoneyRequest, reopenReport, retractReport, submitReport, unapproveExpenseReport} from '@userActions/IOU';
+import {cancelPayment} from '@userActions/IOU/PayMoneyRequest';
 import {markPendingRTERTransactionsAsCash} from '@userActions/Transaction';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';

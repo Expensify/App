@@ -50,7 +50,8 @@ import {
     isIOUReport as isIOUReportUtil,
     navigateToDetailsPage,
 } from '@libs/ReportUtils';
-import {canApproveIOU, canIOUBePaid as canIOUBePaidAction, payInvoice, payMoneyRequest} from '@userActions/IOU';
+import {canApproveIOU, canIOUBePaid as canIOUBePaidAction} from '@userActions/IOU';
+import {payInvoice, payMoneyRequest} from '@userActions/IOU/PayMoneyRequest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
@@ -229,7 +230,7 @@ function MoneyReportHeaderSecondaryActions({reportID, primaryAction, isReportInS
     const activeAdminPolicies = useActiveAdminPolicies();
 
     const hasPersonalPaymentOption = paymentButtonOptions.some((opt) => opt.value === CONST.IOU.PAYMENT_TYPE.EXPENSIFY);
-    const canUseBusinessBankAccount = !!moneyRequestReport?.reportID && !hasRequestFromCurrentAccount(moneyRequestReport.reportID, accountID ?? CONST.DEFAULT_NUMBER_ID);
+    const canUseBusinessBankAccount = !!moneyRequestReport?.reportID && !hasRequestFromCurrentAccount(moneyRequestReport, accountID ?? CONST.DEFAULT_NUMBER_ID);
     const workspacePolicyOptions =
         isIOUReportUtil(moneyRequestReport) && hasPersonalPaymentOption && activeAdminPolicies.length && canUseBusinessBankAccount
             ? sortPoliciesByName(activeAdminPolicies, localeCompare)
