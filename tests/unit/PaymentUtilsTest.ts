@@ -1,7 +1,7 @@
 import type {OnyxEntry} from 'react-native-onyx';
 import type {BankAccountMenuItem} from '@components/Search/types';
 import {setPersonalBankAccountContinueKYCOnSuccess} from '@libs/actions/BankAccounts';
-import {approveMoneyRequest} from '@libs/actions/IOU';
+import {approveMoneyRequest} from '@libs/actions/IOU/ReportWorkflow';
 import Navigation from '@libs/Navigation/Navigation';
 import {getActivePaymentType, getBusinessBankAccountOptions, handleUnvalidatedAccount, selectPaymentType} from '@libs/PaymentUtils';
 import type {SelectPaymentTypeParams} from '@libs/PaymentUtils';
@@ -28,7 +28,7 @@ jest.mock('@libs/actions/BankAccounts', () => ({
     setPersonalBankAccountContinueKYCOnSuccess: jest.fn(),
 }));
 
-jest.mock('@libs/actions/IOU', () => ({
+jest.mock('@libs/actions/IOU/ReportWorkflow', () => ({
     approveMoneyRequest: jest.fn(),
 }));
 
@@ -198,6 +198,7 @@ describe('PaymentUtils', () => {
             userBillingGracePeriodEnds: undefined,
             amountOwed: 0,
             ownerBillingGracePeriodEnd: undefined,
+            delegateEmail: undefined,
         };
 
         beforeEach(() => {
@@ -279,6 +280,7 @@ describe('PaymentUtils', () => {
                 amountOwed: 42,
                 ownerBillingGracePeriodEnd: 999,
                 full: true,
+                delegateEmail: undefined,
             });
         });
 
@@ -300,6 +302,7 @@ describe('PaymentUtils', () => {
                 amountOwed: undefined,
                 ownerBillingGracePeriodEnd: undefined,
                 full: true,
+                delegateEmail: undefined,
             });
         });
 

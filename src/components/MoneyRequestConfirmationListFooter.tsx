@@ -1,7 +1,6 @@
 import {accountIDSelector, emailSelector} from '@selectors/Session';
 import {format} from 'date-fns';
 import {Str} from 'expensify-common';
-import {deepEqual} from 'fast-equals';
 import React, {memo, useCallback, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {LayoutChangeEvent} from 'react-native';
@@ -540,13 +539,14 @@ function MoneyRequestConfirmationListFooter({
     // For local files: use the pre-generated thumbnail if it was ready by first render.
     // If the thumbnail arrives late we keep showing the full-res image to avoid a
     // visible source swap (flash).  For remote files: existing behavior unchanged.
-    const initialLocalSourceRef = useRef<string | undefined>(undefined);
-    if (isLocalFile && initialLocalSourceRef.current === undefined) {
+    const resolvedReceiptImageStr = resolvedReceiptImage != null ? String(resolvedReceiptImage) : undefined;
+    const initialLocalSourceRef = useRef<{source: string | undefined; resolvedImage: string | undefined}>({source: undefined, resolvedImage: undefined});
+    if (isLocalFile && (initialLocalSourceRef.current.source === undefined || initialLocalSourceRef.current.resolvedImage !== resolvedReceiptImageStr)) {
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        initialLocalSourceRef.current = thumbnailUri || String(resolvedReceiptImage ?? '') || '';
+        initialLocalSourceRef.current = {source: thumbnailUri || resolvedReceiptImageStr || '', resolvedImage: resolvedReceiptImageStr};
     }
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const effectiveReceiptSource = isLocalFile ? initialLocalSourceRef.current || '' : resolvedThumbnail || resolvedReceiptImage || '';
+    const effectiveReceiptSource = isLocalFile ? initialLocalSourceRef.current.source || '' : resolvedThumbnail || resolvedReceiptImage || '';
 
     const shouldNavigateToUpgradePath = !policyForMovingExpensesID && !shouldSelectPolicy;
     // Time requests appear as regular expenses after they're created, with editable amount and merchant, not hours and rate
@@ -1625,52 +1625,4 @@ function MoneyRequestConfirmationListFooter({
     );
 }
 
-export default memo(
-    MoneyRequestConfirmationListFooter,
-    (prevProps, nextProps) =>
-        prevProps.action === nextProps.action &&
-        prevProps.distanceRateCurrency === nextProps.distanceRateCurrency &&
-        prevProps.didConfirm === nextProps.didConfirm &&
-        prevProps.distance === nextProps.distance &&
-        prevProps.formattedAmount === nextProps.formattedAmount &&
-        prevProps.formError === nextProps.formError &&
-        prevProps.hasRoute === nextProps.hasRoute &&
-        prevProps.iouCategory === nextProps.iouCategory &&
-        prevProps.iouComment === nextProps.iouComment &&
-        prevProps.iouCreated === nextProps.iouCreated &&
-        prevProps.iouCurrencyCode === nextProps.iouCurrencyCode &&
-        prevProps.iouIsBillable === nextProps.iouIsBillable &&
-        prevProps.iouMerchant === nextProps.iouMerchant &&
-        prevProps.iouType === nextProps.iouType &&
-        prevProps.isCategoryRequired === nextProps.isCategoryRequired &&
-        prevProps.isDistanceRequest === nextProps.isDistanceRequest &&
-        prevProps.isMerchantEmpty === nextProps.isMerchantEmpty &&
-        prevProps.isMerchantRequired === nextProps.isMerchantRequired &&
-        prevProps.isPolicyExpenseChat === nextProps.isPolicyExpenseChat &&
-        prevProps.isReadOnly === nextProps.isReadOnly &&
-        prevProps.isTypeInvoice === nextProps.isTypeInvoice &&
-        prevProps.onToggleBillable === nextProps.onToggleBillable &&
-        prevProps.policy === nextProps.policy &&
-        prevProps.policyTagLists === nextProps.policyTagLists &&
-        prevProps.rate === nextProps.rate &&
-        prevProps.receiptFilename === nextProps.receiptFilename &&
-        prevProps.receiptPath === nextProps.receiptPath &&
-        prevProps.reportActionID === nextProps.reportActionID &&
-        prevProps.reportID === nextProps.reportID &&
-        // eslint-disable-next-line rulesdir/no-deep-equal-in-memo -- selectedParticipants is derived with .map() which creates new array references
-        deepEqual(prevProps.selectedParticipants, nextProps.selectedParticipants) &&
-        prevProps.shouldDisplayFieldError === nextProps.shouldDisplayFieldError &&
-        prevProps.shouldDisplayReceipt === nextProps.shouldDisplayReceipt &&
-        prevProps.shouldShowCategories === nextProps.shouldShowCategories &&
-        prevProps.shouldShowMerchant === nextProps.shouldShowMerchant &&
-        prevProps.shouldShowSmartScanFields === nextProps.shouldShowSmartScanFields &&
-        prevProps.shouldShowTax === nextProps.shouldShowTax &&
-        prevProps.transaction === nextProps.transaction &&
-        prevProps.transactionID === nextProps.transactionID &&
-        prevProps.unit === nextProps.unit &&
-        prevProps.showMoreFields === nextProps.showMoreFields &&
-        prevProps.isTimeRequest === nextProps.isTimeRequest &&
-        prevProps.iouTimeCount === nextProps.iouTimeCount &&
-        prevProps.iouTimeRate === nextProps.iouTimeRate &&
-        prevProps.isLoadingReceipt === nextProps.isLoadingReceipt,
-);
+export default memo(MoneyRequestConfirmationListFooter);
