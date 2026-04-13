@@ -37,9 +37,11 @@ import {completeTestDriveTask} from '@libs/actions/Task';
 import {isMobileSafari} from '@libs/Browser';
 import {getCurrencySymbol} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
+import {reserveDeferredWriteChannel} from '@libs/deferredLayoutWrite';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import getCurrentPosition from '@libs/getCurrentPosition';
+import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getGPSCoordinates} from '@libs/GPSDraftDetailsUtils';
 import {
@@ -50,6 +52,8 @@ import {
     shouldUseTransactionDraft,
 } from '@libs/IOUUtils';
 import Log from '@libs/Log';
+import isReportTopmostSplitNavigator from '@libs/Navigation/helpers/isReportTopmostSplitNavigator';
+import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import navigateAfterInteraction from '@libs/Navigation/navigateAfterInteraction';
 import Navigation from '@libs/Navigation/Navigation';
 import {rand64, roundToTwoDecimalPlaces} from '@libs/NumberUtils';
@@ -64,9 +68,11 @@ import {
     isReportOutstanding,
     isSelectedManagerMcTest,
 } from '@libs/ReportUtils';
+import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import {endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
 import getSubmitExpenseScenario from '@libs/telemetry/getSubmitExpenseScenario';
 import markSubmitExpenseEnd from '@libs/telemetry/markSubmitExpenseEnd';
+import {setPendingSubmitFollowUpAction} from '@libs/telemetry/submitFollowUpAction';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {
     getDefaultTaxCode,
@@ -359,6 +365,7 @@ function IOURequestStepConfirmation({
     const isPolicyExpenseChat = useMemo(() => participants?.some((participant) => participant.isPolicyExpenseChat), [participants]);
     const shouldGenerateTransactionThreadReport = !isBetaEnabled(CONST.BETAS.NO_OPTIMISTIC_TRANSACTION_THREADS);
     const formHasBeenSubmitted = useRef(false);
+    const isFromGlobalCreate = !!(transaction?.isFromGlobalCreate ?? transaction?.isFromFloatingActionButton);
 
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
 
@@ -370,6 +377,53 @@ function IOURequestStepConfirmation({
 
     const odometerStartImage = transaction?.comment?.odometerStartImage;
     const odometerEndImage = transaction?.comment?.odometerEndImage;
+
+    // Pre-insert is only useful for flows whose submit ends in handleNavigateAfterExpenseCreate
+    // (which navigates to Search). Flows that use dismissModalAndOpenReportInInboxTab (PAY,
+    // SPLIT-from-global-create, per-diem self-DM track) navigate to a specific report instead,
+    // so pre-inserting Search would leave a stale route in the stack.
+    const canPreInsertSearch = iouType !== CONST.IOU.TYPE.PAY && iouType !== CONST.IOU.TYPE.SPLIT && !(isPerDiemRequest && iouType === CONST.IOU.TYPE.TRACK);
+
+    const hasPreInsertFired = useRef(false);
+    const isTransactionReady = !!transaction;
+
+    useEffect(() => {
+        if (
+            hasPreInsertFired.current ||
+            !isTransactionReady ||
+            !getIsNarrowLayout() ||
+            !isFromGlobalCreate ||
+            !canPreInsertSearch ||
+            isReportTopmostSplitNavigator() ||
+            isSearchTopmostFullScreenRoute()
+        ) {
+            return;
+        }
+
+        hasPreInsertFired.current = true;
+
+        const type = iouType === CONST.IOU.TYPE.INVOICE ? CONST.SEARCH.DATA_TYPES.INVOICE : CONST.SEARCH.DATA_TYPES.EXPENSE;
+        const queryString = buildCannedSearchQuery({type});
+        const searchRoute = ROUTES.SEARCH_ROOT.getRoute({query: queryString});
+
+        const timer = setTimeout(() => {
+            Navigation.preInsertFullscreenUnderRHP(searchRoute);
+        }, CONST.PRE_INSERT_FULLSCREEN_DELAY);
+
+        return () => {
+            clearTimeout(timer);
+
+            if (!Navigation.getIsFullscreenPreInsertedUnderRHP() || formHasBeenSubmitted.current) {
+                return;
+            }
+
+            Navigation.removePreInsertedFullscreenIfNeeded();
+        };
+        // isFromGlobalCreate, iouType, and canPreInsertSearch are stable for the lifetime of
+        // this screen instance. isTransactionReady may flip from false to true once, which
+        // re-triggers the effect so the pre-insert fires even when the transaction loads late.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isTransactionReady]);
 
     const navigateBack = useCallback(() => {
         if (backTo) {
@@ -914,45 +968,6 @@ function IOURequestStepConfirmation({
 
             formHasBeenSubmitted.current = true;
 
-            const hasReceiptFiles = Object.values(receiptFiles).some((receipt) => !!receipt);
-            const isFromGlobalCreate = transaction?.isFromGlobalCreate ?? transaction?.isFromFloatingActionButton ?? false;
-
-            const scenario = getSubmitExpenseScenario({
-                iouType,
-                isDistanceRequest,
-                isMovingTransactionFromTrackExpense,
-                isUnreported,
-                isCategorizingTrackExpense,
-                isSharingTrackExpense,
-                isPerDiemRequest,
-                isFromGlobalCreate,
-                hasReceiptFiles,
-            });
-
-            const submitSpanAttributes = {
-                [CONST.TELEMETRY.ATTRIBUTE_SCENARIO]: scenario,
-                [CONST.TELEMETRY.ATTRIBUTE_HAS_RECEIPT]: hasReceiptFiles,
-                [CONST.TELEMETRY.ATTRIBUTE_IS_FROM_GLOBAL_CREATE]: isFromGlobalCreate,
-                [CONST.TELEMETRY.ATTRIBUTE_IOU_TYPE]: iouType,
-                [CONST.TELEMETRY.ATTRIBUTE_IOU_REQUEST_TYPE]: requestType ?? 'unknown',
-            };
-
-            startSpan(CONST.TELEMETRY.SPAN_SUBMIT_EXPENSE, {
-                name: 'submit-expense',
-                op: CONST.TELEMETRY.SPAN_SUBMIT_EXPENSE,
-                attributes: submitSpanAttributes,
-            });
-
-            startSpan(CONST.TELEMETRY.SPAN_SUBMIT_TO_DESTINATION_VISIBLE, {
-                name: 'submit-to-destination-visible',
-                op: CONST.TELEMETRY.SPAN_SUBMIT_TO_DESTINATION_VISIBLE,
-                attributes: submitSpanAttributes,
-            });
-
-            // IMPORTANT: Every branch below must call markSubmitExpenseEnd() after dispatching the expense action.
-            // The submit follow-up action span above is ended by the target screen (ReportScreen, Search, etc.) or by runAfterInteractions for dismiss_modal_only.
-            // This ensures the telemetry span started above is always closed, including inside async getCurrentPosition callbacks.
-            // If missed, the impact is benign (an orphaned Sentry span), but it pollutes telemetry data.
             if (iouType !== CONST.IOU.TYPE.TRACK && isDistanceRequest && !isMovingTransactionFromTrackExpense && !isUnreported) {
                 createDistanceRequest(iouType === CONST.IOU.TYPE.SPLIT ? splitParticipants : selectedParticipants, trimmedComment);
                 markSubmitExpenseEnd();
@@ -1192,7 +1207,6 @@ function IOURequestStepConfirmation({
             submitPerDiemExpense,
             policyRecentlyUsedCurrencies,
             reportID,
-            requestType,
             betas,
             participantsPolicyTags,
             personalDetails,
@@ -1278,6 +1292,40 @@ function IOURequestStepConfirmation({
     // To prevent the component from rendering with the wrong currency, we show a loading indicator until the correct currency is set.
     const isLoading = !!transaction?.originalCurrency;
 
+    const startSubmitSpans = () => {
+        const hasReceiptFiles = Object.values(receiptFiles).some((receipt) => !!receipt);
+        // Re-derive from transaction inside the callback so telemetry captures the value
+        // at submission time, not at render time (transaction is mutable Onyx state).
+        const isFromGlobalCreateForTelemetry = !!(transaction?.isFromGlobalCreate ?? transaction?.isFromFloatingActionButton);
+        const scenario = getSubmitExpenseScenario({
+            iouType,
+            isDistanceRequest,
+            isMovingTransactionFromTrackExpense,
+            isUnreported,
+            isCategorizingTrackExpense,
+            isSharingTrackExpense,
+            isPerDiemRequest,
+            isFromGlobalCreate: isFromGlobalCreateForTelemetry,
+            hasReceiptFiles,
+        });
+        const submitSpanAttributes = {
+            [CONST.TELEMETRY.ATTRIBUTE_SCENARIO]: scenario,
+            [CONST.TELEMETRY.ATTRIBUTE_HAS_RECEIPT]: hasReceiptFiles,
+            [CONST.TELEMETRY.ATTRIBUTE_IS_FROM_GLOBAL_CREATE]: isFromGlobalCreateForTelemetry,
+            [CONST.TELEMETRY.ATTRIBUTE_IOU_TYPE]: iouType,
+            [CONST.TELEMETRY.ATTRIBUTE_IOU_REQUEST_TYPE]: requestType ?? 'unknown',
+        };
+
+        startSpan(CONST.TELEMETRY.SPAN_SUBMIT_EXPENSE, {
+            name: 'submit-expense',
+            op: CONST.TELEMETRY.SPAN_SUBMIT_EXPENSE,
+        })?.setAttributes(submitSpanAttributes);
+        startSpan(CONST.TELEMETRY.SPAN_SUBMIT_TO_DESTINATION_VISIBLE, {
+            name: 'submit-to-destination-visible',
+            op: CONST.TELEMETRY.SPAN_SUBMIT_TO_DESTINATION_VISIBLE,
+        })?.setAttributes(submitSpanAttributes);
+    };
+
     const onConfirm = (listOfParticipants: Participant[]) => {
         setIsConfirming(true);
         setSelectedParticipantList(listOfParticipants);
@@ -1294,13 +1342,31 @@ function IOURequestStepConfirmation({
             }
         }
 
-        requestAnimationFrame(() => {
-            createTransaction(listOfParticipants);
-            // Keep the pre-submit loading state visible for one more paint so the spinner appears before navigation work starts.
+        startSubmitSpans();
+
+        // Fast path: the Search page was pre-inserted under the RHP (see useEffect above).
+        // Dismiss the RHP immediately so the user sees the Search page, then run the
+        // heavy createTransaction work in the next frame - "dismiss first, compute later".
+        // Reserve the deferred write channel synchronously so that the Search component
+        // always sees hasDeferredWrite=true on mount (on iOS, rAF fires after
+        // startTransition resolves, so without the reservation Search would mount first).
+        if (Navigation.getIsFullscreenPreInsertedUnderRHP()) {
+            setPendingSubmitFollowUpAction(CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.NAVIGATE_TO_SEARCH);
+            Navigation.clearFullscreenPreInsertedFlag();
+            reserveDeferredWriteChannel(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
+            Navigation.dismissModal();
             requestAnimationFrame(() => {
+                createTransaction(listOfParticipants);
                 setIsConfirming(false);
             });
-        });
+        } else {
+            requestAnimationFrame(() => {
+                createTransaction(listOfParticipants);
+                requestAnimationFrame(() => {
+                    setIsConfirming(false);
+                });
+            });
+        }
     };
 
     /**
@@ -1477,11 +1543,13 @@ function IOURequestStepConfirmation({
                             startPermissionFlow={startLocationPermissionFlow}
                             resetPermissionFlow={() => setStartLocationPermissionFlow(false)}
                             onGrant={() => {
+                                startSubmitSpans();
                                 navigateAfterInteraction(() => {
                                     createTransaction(selectedParticipantList, true);
                                 });
                             }}
                             onDeny={() => {
+                                startSubmitSpans();
                                 updateLastLocationPermissionPrompt();
                                 navigateAfterInteraction(() => {
                                     createTransaction(selectedParticipantList, false);
@@ -1509,11 +1577,8 @@ function IOURequestStepConfirmation({
                         shouldDisplayReceipt={!isMovingTransactionFromTrackExpense && (!isDistanceRequest || isManualDistanceRequest || isOdometerDistanceRequest) && !isPerDiemRequest}
                         isPolicyExpenseChat={isPolicyExpenseChat}
                         policyID={policyID}
-                        isDistanceRequest={isDistanceRequest}
-                        isManualDistanceRequest={isManualDistanceRequest}
                         isOdometerDistanceRequest={isOdometerDistanceRequest}
                         isLoadingReceipt={isStitchingReceipt}
-                        isGPSDistanceRequest={isGPSDistanceRequest}
                         isPerDiemRequest={isPerDiemRequest}
                         shouldShowSmartScanFields={shouldShowSmartScanFields}
                         action={action}
