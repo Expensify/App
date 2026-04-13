@@ -56,7 +56,7 @@ function useChartLabelLayout({
     const measurements = useChartLabelMeasurements(data, fontMgr, fontSize);
 
     // Phase 2: layout decisions + label truncation.
-    // Memoized on all geometry inputs so truncatedLabels and truncatedLabelWidths have stable
+    // Memoized on all geometry inputs so labelMaxWidths and truncatedLabelWidths have stable
     // references between re-renders where only unrelated state changes.
     return useMemo(() => {
         if (!fontMgr || !measurements || tickSpacing <= 0 || labelAreaWidth <= 0) {

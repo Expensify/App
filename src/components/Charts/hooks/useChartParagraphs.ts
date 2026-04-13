@@ -4,9 +4,9 @@ import type {ParagraphWithWidth} from '@components/Charts/types';
 import {buildChartParagraph} from '@components/Charts/utils';
 
 /**
- * Builds Skia paragraphs for the given labels, memoized by the string *values* of the labels
- * (not their array reference). Re-runs only when the label content, font, color, or layout
- * width actually changes — not when the parent passes a new array reference with the same strings.
+ * Builds and lays out Skia paragraphs for the given labels.
+ * Memoized via useMemo — re-runs when the labels array reference, font, color, or layout width change.
+ * Returns an empty array until fontMgr is available.
  */
 function useChartParagraphs(labels: string[], fontMgr: SkTypefaceFontProvider | null, fontSize: number, labelColor: string, layoutWidth: number): ParagraphWithWidth[] {
     return useMemo((): ParagraphWithWidth[] => {
