@@ -65,4 +65,5 @@ const createDynamicRoute = (dynamicRouteSuffixWithParams: string): Route => {
     const activeRoute = Navigation.getActiveRoute();
     return combinePathAndSuffix(activeRoute, dynamicRouteSuffixWithParams);
 };
+
 export default createDynamicRoute;

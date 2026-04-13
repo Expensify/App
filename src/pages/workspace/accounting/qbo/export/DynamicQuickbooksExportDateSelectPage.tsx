@@ -39,7 +39,7 @@ function DynamicQuickbooksExportDateSelectPage({policy}: WithPolicyConnectionsPr
     const exportDate = useMemo(() => qboConfig?.exportDate, [qboConfig?.exportDate]);
 
     const goBack = useCallback(() => {
-        Navigation.goBack(backPath || ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT.getRoute(policyID));
+        Navigation.goBack(backPath);
     }, [policyID, backPath]);
 
     const selectExportDate = useCallback(
