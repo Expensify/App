@@ -9,3 +9,7 @@ github_username:  expensify
 exclude:
   - README.md
   - GUIDELINES.md
+  - Gemfile
+  - Gemfile.lock
+  - package.json
+  - package-lock.json

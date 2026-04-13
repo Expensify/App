@@ -66,7 +66,7 @@ jobs:
         # JS is better at handling JSON: https://stackoverflow.com/questions/72953526/github-actions-how-to-pass-tojson-result-to-shell-commands
       - name: Check if this deploy was triggered by a cherry-pick
         id: isCherryPick
-        uses: actions/github-script@e7aeb8c663f696059ebb5f9ab1425ed2ef511bdb
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
         with:
           script: |
             const commitMessages = context.payload.commits.map((commit) => commit.message);
