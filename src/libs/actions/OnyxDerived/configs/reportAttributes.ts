@@ -185,6 +185,7 @@ export default createOnyxDerivedValueConfig({
         if (useIncrementalUpdates) {
             // if there are report-related updates, iterate over the updates
             if (updates.length > 0 || !!transactionsUpdates || !!transactionViolationsUpdates || !!policyTagsUpdates) {
+                dataToIterate = [];
                 if (updates.length > 0) {
                     dataToIterate = prepareReportKeys(updates);
 
@@ -235,7 +236,7 @@ export default createOnyxDerivedValueConfig({
                 return currentValue ?? {reports: {}, locale: null};
             }
         }
-
+        
         const reportAttributes = dataToIterate.reduce<ReportAttributesDerivedValue['reports']>(
             (acc, key) => {
                 // source value sends partial data, so we need an entire report object to do computations
