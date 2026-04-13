@@ -1,10 +1,10 @@
 import type {ReactElement, Ref} from 'react';
 import type {GestureResponderEvent, InputModeOptions, StyleProp, TextStyle, ViewStyle} from 'react-native';
+import type {ValueOf} from 'type-fest';
 import type {TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import type CONST from '@src/CONST';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
-import type {ValueOf} from 'type-fest';
 import type {ListItem, ValidListItem} from './ListItem/types';
 import type {SelectionListWithSectionsHandle, SelectionListWithSectionsProps} from './SelectionListWithSections/types';
 
