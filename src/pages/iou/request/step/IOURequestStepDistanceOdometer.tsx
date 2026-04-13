@@ -472,7 +472,7 @@ function IOURequestStepDistanceOdometer({
             op: CONST.TELEMETRY.SPAN_ODOMETER_TO_CONFIRMATION,
             attributes: {
                 [CONST.TELEMETRY.ATTRIBUTE_IOU_TYPE]: iouType,
-                [CONST.TELEMETRY.ATTRIBUTE_HAS_RECEIPT]: !!(odometerStartImage || odometerEndImage),
+                [CONST.TELEMETRY.ATTRIBUTE_HAS_RECEIPT]: !!(odometerStartImage ?? odometerEndImage),
             },
         });
 
