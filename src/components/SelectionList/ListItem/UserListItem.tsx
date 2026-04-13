@@ -40,7 +40,7 @@ function UserListItem<TItem extends ListItem>({
     pressableStyle,
     forwardedFSClass,
     shouldDisableHoverStyle,
-    shouldShowSelectionButton,
+    shouldShowSelectionButton = true,
     selectionButtonPosition,
 }: UserListItemProps<TItem>) {
     const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'Checkmark']);
