@@ -6409,6 +6409,7 @@ function setPolicyPreventSelfApproval(
                 continue;
             }
 
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             const nextStepDeprecated = buildNextStepNew({
                 report,
                 policy,
