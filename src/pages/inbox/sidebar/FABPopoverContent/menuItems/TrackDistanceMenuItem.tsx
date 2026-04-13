@@ -23,18 +23,21 @@ function TrackDistanceMenuItem({reportID}: TrackDistanceMenuItemProps) {
     const icons = useMemoizedLazyExpensifyIcons(['Location']);
     const [lastDistanceExpenseType] = useOnyx(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE);
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
-    const {shouldRedirectToExpensifyClassic, showRedirectToExpensifyClassicModal} = useRedirectToExpensifyClassic();
+    const {shouldRedirectToExpensifyClassic, canRedirectToExpensifyClassic, canUseAction, showRedirectToExpensifyClassicModal} = useRedirectToExpensifyClassic();
 
     return (
         <FABFocusableMenuItem
             itemId={ITEM_ID}
+            isVisible={canUseAction}
             pressableTestID={CONST.SENTRY_LABEL.FAB_MENU.TRACK_DISTANCE}
             icon={icons.Location}
             title={translate('iou.trackDistance')}
             onPress={() =>
                 interceptAnonymousUser(() => {
                     if (shouldRedirectToExpensifyClassic) {
-                        showRedirectToExpensifyClassicModal();
+                        if (canRedirectToExpensifyClassic) {
+                            showRedirectToExpensifyClassicModal();
+                        }
                         return;
                     }
                     // Start the flow to start tracking a distance request

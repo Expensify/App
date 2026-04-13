@@ -114,6 +114,22 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
     const styles = useThemeStyles();
     const {sidePanelOffset} = useSidePanelState();
 
+    // When a fullscreen route is pre-inserted under the RHP, disable the slide-out animation
+    // so the dismiss reveals the destination instantly. If the pre-insert is later cleaned up
+    // (user backs out without submitting), restore the default animation for that session.
+    useEffect(() => {
+        const disableSub = DeviceEventEmitter.addListener(CONST.MODAL_EVENTS.DISABLE_RHP_ANIMATION, () => {
+            navigation.setOptions({animation: Animations.NONE});
+        });
+        const restoreSub = DeviceEventEmitter.addListener(CONST.MODAL_EVENTS.RESTORE_RHP_ANIMATION, () => {
+            navigation.setOptions({animation: Animations.SLIDE_FROM_RIGHT});
+        });
+        return () => {
+            disableSub.remove();
+            restoreSub.remove();
+        };
+    }, [navigation]);
+
     // Animation should be disabled when we open the wide rhp from the narrow one.
     // When the wide rhp page is opened as first one, it will be animated with the entire RightModalNavigator.
     const animationEnabledOnSearchReport = superWideRHPRouteKeys.length > 0 || isSmallScreenWidth;
