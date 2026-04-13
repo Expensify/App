@@ -14040,6 +14040,8 @@ describe('ReportUtils', () => {
                 userBillingGracePeriodEnds: undefined,
                 amountOwed: 0,
                 transaction: undefined,
+                currentUserAccountID,
+                currentUserEmail,
             });
 
             expect(Navigation.navigate).not.toHaveBeenCalled();
@@ -14079,6 +14081,8 @@ describe('ReportUtils', () => {
                     amountOwed: 1,
                     ownerBillingGracePeriodEnd: pastGracePeriod,
                     transaction,
+                    currentUserAccountID,
+                    currentUserEmail,
                 });
 
                 // Then it should navigate to the restricted action page
@@ -14114,6 +14118,8 @@ describe('ReportUtils', () => {
                     userBillingGracePeriodEnds,
                     amountOwed: 0,
                     transaction,
+                    currentUserAccountID,
+                    currentUserEmail,
                 });
 
                 // Then it should navigate to the restricted action page
@@ -14152,6 +14158,8 @@ describe('ReportUtils', () => {
                     userBillingGracePeriodEnds: undefined,
                     amountOwed: 0,
                     transaction,
+                    currentUserAccountID,
+                    currentUserEmail,
                 });
 
                 // Then it should navigate to the category step
@@ -14192,6 +14200,8 @@ describe('ReportUtils', () => {
                     userBillingGracePeriodEnds: undefined,
                     amountOwed: 0,
                     transaction,
+                    currentUserAccountID,
+                    currentUserEmail,
                 });
 
                 // Then it should automatically pick the available policy and navigate to the category step
@@ -14219,6 +14229,8 @@ describe('ReportUtils', () => {
                     userBillingGracePeriodEnds: undefined,
                     amountOwed: 0,
                     transaction,
+                    currentUserAccountID,
+                    currentUserEmail,
                 });
 
                 // Then it should navigate to the upgrade page because no policies were found to categorize with
@@ -14267,6 +14279,8 @@ describe('ReportUtils', () => {
                     userBillingGracePeriodEnds: undefined,
                     amountOwed: 0,
                     transaction,
+                    currentUserAccountID,
+                    currentUserEmail,
                 });
 
                 // Then it should navigate to the upgrade page because it's ambiguous which policy to use
@@ -14311,6 +14325,8 @@ describe('ReportUtils', () => {
                     userBillingGracePeriodEnds: undefined,
                     amountOwed: 0,
                     transaction,
+                    currentUserAccountID,
+                    currentUserEmail,
                 });
 
                 // Then it should log a warning and not navigate
@@ -14355,6 +14371,8 @@ describe('ReportUtils', () => {
                     amountOwed: 0,
                     ownerBillingGracePeriodEnd: pastGracePeriod,
                     transaction,
+                    currentUserAccountID,
+                    currentUserEmail,
                 });
 
                 // Then it should NOT navigate to restricted action page, but to category step
@@ -14391,6 +14409,8 @@ describe('ReportUtils', () => {
                     amountOwed: 50,
                     ownerBillingGracePeriodEnd: pastGracePeriod,
                     transaction,
+                    currentUserAccountID,
+                    currentUserEmail,
                 });
 
                 // Then it should navigate to restricted action page
