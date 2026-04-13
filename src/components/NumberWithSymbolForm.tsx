@@ -557,7 +557,7 @@ function NumberWithSymbolForm({
             <>
                 <ScrollView
                     contentContainerStyle={[styles.flexGrow1, styles.flexRow]}
-                    style={[styles.flexGrow0]}
+                    style={[styles.flex1, styles.ph5]}
                 >
                     <View style={[styles.justifyContentCenter, styles.alignItemsCenter, styles.numberWithSymbolFormInputContainerLandscape]}>
                         <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentCenter]}>{textInputComponent}</View>
@@ -587,11 +587,18 @@ function NumberWithSymbolForm({
                                 />
                             )}
                         </View>
+                        {!!errorText && (
+                            <FormHelpMessage
+                                style={[styles.ph5, styles.w100]}
+                                isError
+                                message={errorText}
+                            />
+                        )}
                     </View>
 
                     {shouldShowBigNumberPad ? (
                         <View
-                            style={[styles.flex1]}
+                            style={[styles.flex1, styles.justifyContentCenter]}
                             id={NUM_PAD_CONTAINER_VIEW_ID}
                         >
                             {shouldShowBigNumberPad ? (
