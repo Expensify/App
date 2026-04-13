@@ -5300,7 +5300,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             chooseCard: 'Choisir une carte',
             chooseCardFor: (assignee: string) =>
                 `Choisissez une carte pour <strong>${assignee}</strong>. Vous ne trouvez pas la carte que vous cherchez ? <concierge-link>Dites-le-nous.</concierge-link>`,
-            noActiveCards: 'Aucune carte active dans ce flux',
+            noAvailableCards: 'Toutes les cartes ont déjà une règle',
             somethingMightBeBroken:
                 '<muted-text><centered-text>Ou quelque chose est peut-être cassé. Dans tous les cas, si vous avez des questions, il vous suffit de <concierge-link>contacter Concierge</concierge-link>.</centered-text></muted-text>',
             chooseTransactionStartDate: 'Choisissez une date de début de transaction',
@@ -5336,6 +5336,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             },
             deletedCard: 'Carte supprimée',
             assignNewCards: {title: 'Assigner de nouvelles cartes', description: 'Obtenez les dernières cartes à assigner depuis votre banque'},
+            noAvailableCardsSubtitle: 'Modifier une règle de carte existante pour effectuer des changements',
         },
         expensifyCard: {
             issueAndManageCards: 'Émettre et gérer vos Cartes Expensify',
