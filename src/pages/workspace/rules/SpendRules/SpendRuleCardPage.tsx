@@ -37,6 +37,7 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Card, ExpensifyCardSettings, WorkspaceCardsList} from '@src/types/onyx';
 import type {ExpensifyCardRule} from '@src/types/onyx/ExpensifyCardSettings';
+import {getParentRoute} from './SpendRulesUtils';
 
 type ExpensifyCardListItem = ListItem &
     AdditionalCardProps & {
@@ -45,13 +46,16 @@ type ExpensifyCardListItem = ListItem &
 
 type SpendRuleCardPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_SPEND_CARD>;
 
-function getCardIDsWithSpendRules(cardRules: Record<string, ExpensifyCardRule> | undefined): Set<number> {
+function getCardIDsWithSpendRules(cardRules: Record<string, ExpensifyCardRule> | undefined, currentRuleID?: string): Set<number> {
     const cardIDs = new Set<number>();
     if (!cardRules) {
         return cardIDs;
     }
 
-    for (const rule of Object.values(cardRules)) {
+    for (const [ruleID, rule] of Object.entries(cardRules)) {
+        if (ruleID === currentRuleID) {
+            continue;
+        }
         const formValues = getSpendRuleFormValuesFromCardRule(rule);
         for (const cardID of formValues?.cardIDs ?? []) {
             const numericCardID = Number(cardID);
@@ -64,14 +68,14 @@ function getCardIDsWithSpendRules(cardRules: Record<string, ExpensifyCardRule> |
     return cardIDs;
 }
 
-function getEligibleCards(cardsList: OnyxEntry<WorkspaceCardsList>, expensifyCardSettings: ExpensifyCardSettings) {
+function getEligibleCards(cardsList: OnyxEntry<WorkspaceCardsList>, expensifyCardSettings: ExpensifyCardSettings, currentRuleID?: string) {
     const {cardList, ...cards} = cardsList ?? {};
-    const cardIDsWithSpendRules = getCardIDsWithSpendRules(expensifyCardSettings?.cardRules);
+    const cardIDsWithSpendRules = getCardIDsWithSpendRules(expensifyCardSettings?.cardRules, currentRuleID);
     return Object.values(cards).filter((card: Card) => !cardIDsWithSpendRules.has(card.cardID));
 }
 
 function SpendRuleCardPage({route}: SpendRuleCardPageProps) {
-    const {policyID} = route.params;
+    const {policyID, ruleID} = route.params;
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const defaultFundID = useDefaultFundID(policyID);
@@ -92,6 +96,8 @@ function SpendRuleCardPage({route}: SpendRuleCardPageProps) {
         }, [spendRuleForm?.cardIDs]),
     );
 
+    const parentRoute = getParentRoute(policyID, ruleID);
+
     const {isOffline} = useNetwork({
         onReconnect: () => {
             openPolicyExpensifyCardsPage(policyID, defaultFundID);
@@ -99,7 +105,7 @@ function SpendRuleCardPage({route}: SpendRuleCardPageProps) {
     });
 
     const isCardSettingsLoading = !isOffline && (!expensifyCardSettings || expensifyCardSettings.isLoading) && !expensifyCardSettings?.hasOnceLoaded;
-    const eligibleCards = expensifyCardSettings ? getEligibleCards(cardsList, expensifyCardSettings) : [];
+    const eligibleCards = expensifyCardSettings ? getEligibleCards(cardsList, expensifyCardSettings, ruleID === ROUTES.NEW ? undefined : ruleID) : [];
 
     const filterCard = (card: Card, searchInput: string) => filterCardsByPersonalDetails(card, searchInput, personalDetails);
     const sortCards = (cards: Card[]) => sortCardsByCardholderName(cards, personalDetails, localeCompare);
@@ -127,8 +133,13 @@ function SpendRuleCardPage({route}: SpendRuleCardPageProps) {
     });
 
     useEffect(() => {
+        // We already load the card settings in when the section is mounted, so we don't load it again here.
+        // We only need to load it if the user is navigated directly to this page and the card settings are not already loaded.
+        if (!expensifyCardSettings || expensifyCardSettings?.isLoading || expensifyCardSettings?.hasOnceLoaded) {
+            return;
+        }
         openPolicyExpensifyCardsPage(policyID, defaultFundID);
-    }, [defaultFundID, policyID]);
+    }, [defaultFundID, expensifyCardSettings, policyID]);
 
     const toggleCard = (item: ExpensifyCardListItem) => {
         setSelectedCardIDs((prev) => {
@@ -170,7 +181,7 @@ function SpendRuleCardPage({route}: SpendRuleCardPageProps) {
         }
 
         updateDraftSpendRule({cardIDs: validSelectedCardIDs});
-        Navigation.goBack(ROUTES.RULES_SPEND_NEW.getRoute(policyID));
+        Navigation.goBack(parentRoute);
     };
 
     const headerMessage = getHeaderMessage(listData.length > 0, false, inputValue, countryCode, false);
@@ -199,7 +210,7 @@ function SpendRuleCardPage({route}: SpendRuleCardPageProps) {
                 >
                     <HeaderWithBackButton
                         title={translate('workspace.rules.spendRules.cardPageTitle')}
-                        onBackButtonPress={() => Navigation.goBack(ROUTES.RULES_SPEND_NEW.getRoute(policyID))}
+                        onBackButtonPress={() => Navigation.goBack(parentRoute)}
                     />
                     <SelectionList
                         canSelectMultiple
