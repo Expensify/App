@@ -2,7 +2,7 @@ import {Str} from 'expensify-common';
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import Avatar from '@components/Avatar';
-import SelectionButton from '@components/SelectionList/components/SelectionButton';
+import ListSelectionButton from '@components/SelectionList/components/ListSelectionButton';
 import TextWithTooltip from '@components/TextWithTooltip';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
@@ -100,7 +100,7 @@ function UserSelectionListItem<TItem extends ListItem>({
                     )}
                 </View>
 
-                <SelectionButton
+                <ListSelectionButton
                     role={CONST.ROLE.CHECKBOX}
                     item={item}
                     onSelectRow={onCheckboxPress ?? onSelectRow}

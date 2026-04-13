@@ -1,11 +1,10 @@
 import React from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
-import Checkbox from '@components/Checkbox';
+import SelectionButton from '@components/SelectionButton';
 import type {ListItem} from '@components/SelectionList/ListItem/types';
-import variables from '@styles/variables';
 import CONST from '@src/CONST';
 
-type SelectionButtonProps<TItem extends ListItem> = {
+type ListSelectionButtonProps<TItem extends ListItem> = {
     /** Whether the button renders as a radio button (circular) or checkbox (square) */
     role: typeof CONST.ROLE.CHECKBOX | typeof CONST.ROLE.RADIO;
 
@@ -24,7 +23,7 @@ type SelectionButtonProps<TItem extends ListItem> = {
     /** Additional styles */
     style?: StyleProp<ViewStyle>;
 
-    /** Additional styles for the container */
+    /** Additional styles for the checkbox/radio indicator */
     containerStyle?: StyleProp<ViewStyle>;
 
     /** Whether to stop mouse down event propagation */
@@ -34,7 +33,7 @@ type SelectionButtonProps<TItem extends ListItem> = {
     testID?: string;
 };
 
-function SelectionButton<TItem extends ListItem>({
+function ListSelectionButton<TItem extends ListItem>({
     role,
     item,
     onSelectRow,
@@ -44,11 +43,10 @@ function SelectionButton<TItem extends ListItem>({
     containerStyle,
     shouldStopMouseDownPropagation,
     testID,
-}: SelectionButtonProps<TItem>) {
+}: ListSelectionButtonProps<TItem>) {
     return (
-        <Checkbox
+        <SelectionButton
             shouldSelectOnPressEnter
-            containerBorderRadius={role === CONST.ROLE.RADIO ? variables.componentBorderRadiusCircle : undefined}
             role={role}
             accessibilityLabel={accessibilityLabel ?? item.text ?? ''}
             isChecked={item.isSelected}
@@ -63,4 +61,4 @@ function SelectionButton<TItem extends ListItem>({
     );
 }
 
-export default SelectionButton;
+export default ListSelectionButton;

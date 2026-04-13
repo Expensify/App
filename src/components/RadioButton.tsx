@@ -1,7 +1,6 @@
 import React from 'react';
-import variables from '@styles/variables';
 import CONST from '@src/CONST';
-import Checkbox from './Checkbox';
+import SelectionButton from './SelectionButton';
 
 type RadioButtonProps = {
     /** Whether radioButton is checked */
@@ -25,14 +24,13 @@ type RadioButtonProps = {
 
 function RadioButton({isChecked, onPress, accessibilityLabel, hasError = false, disabled = false, accessible}: RadioButtonProps) {
     return (
-        <Checkbox
+        <SelectionButton
             isChecked={isChecked}
             onPress={onPress}
             accessibilityLabel={accessibilityLabel}
             hasError={hasError}
             disabled={disabled}
             accessible={accessible}
-            containerBorderRadius={variables.componentBorderRadiusCircle}
             role={CONST.ROLE.RADIO}
             sentryLabel={CONST.SENTRY_LABEL.RADIO_BUTTON.BUTTON}
             shouldSelectOnPressEnter

@@ -43,7 +43,7 @@ function GettingStartedRow({item}: GettingStartedRowProps) {
                     {item.isComplete ? (
                         <View
                             style={[
-                                StyleUtils.getCheckboxContainerStyle(variables.iconSizeNormal, variables.componentBorderRadiusSmall),
+                                StyleUtils.getSelectionButtonContainerStyle(variables.iconSizeNormal, variables.componentBorderRadiusSmall),
                                 {backgroundColor: theme.icon, borderColor: theme.icon},
                             ]}
                         >

@@ -1,7 +1,7 @@
 import React from 'react';
 import {View} from 'react-native';
 import Badge from '@components/Badge';
-import SelectionButton from '@components/SelectionList/components/SelectionButton';
+import ListSelectionButton from '@components/SelectionList/components/ListSelectionButton';
 import TextWithTooltip from '@components/TextWithTooltip';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -39,7 +39,7 @@ function TravelDomainListItem<TItem extends ListItem>({
         >
             <>
                 <View style={[styles.flexRow, styles.alignItemsCenter]}>
-                    <SelectionButton
+                    <ListSelectionButton
                         role={CONST.ROLE.RADIO}
                         item={item}
                         onSelectRow={onCheckboxPress ?? onSelectRow}

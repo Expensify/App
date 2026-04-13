@@ -1,7 +1,7 @@
 import React from 'react';
 import {View} from 'react-native';
 import ReportActionAvatars from '@components/ReportActionAvatars';
-import SelectionButton from '@components/SelectionList/components/SelectionButton';
+import ListSelectionButton from '@components/SelectionList/components/ListSelectionButton';
 import TextWithTooltip from '@components/TextWithTooltip';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -86,7 +86,7 @@ function TableListItem<TItem extends ListItem>({
             {(hovered) => (
                 <>
                     {hasCustomLeftCheckbox && (
-                        <SelectionButton
+                        <ListSelectionButton
                             role={canSelectMultiple ? CONST.ROLE.CHECKBOX : CONST.ROLE.RADIO}
                             item={item}
                             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing

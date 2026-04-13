@@ -5,7 +5,7 @@ import Icon from '@components/Icon';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import type {PressableWithFeedbackProps} from '@components/Pressable/PressableWithFeedback';
-import SelectionButton from '@components/SelectionList/components/SelectionButton';
+import ListSelectionButton from '@components/SelectionList/components/ListSelectionButton';
 import getAccessibilityLabel from '@components/SelectionList/utils/getAccessibilityLabel';
 import {getItemRole} from '@components/SelectionList/utils/getItemRole';
 import {getSelectableState} from '@components/SelectionList/utils/getSelectableState';
@@ -241,7 +241,7 @@ function BaseListItem<TItem extends ListItem>({
                     fsClass={forwardedFSClass}
                 >
                     {shouldShowSelectionButton && selectionButtonPosition === 'left' && (
-                        <SelectionButton
+                        <ListSelectionButton
                             role={canSelectMultiple ? CONST.ROLE.CHECKBOX : CONST.ROLE.RADIO}
                             item={item}
                             onSelectRow={onCheckboxPress ?? onSelectRow}
@@ -264,7 +264,7 @@ function BaseListItem<TItem extends ListItem>({
                     )}
 
                     {shouldShowSelectionButton && selectionButtonPosition === 'right' && (
-                        <SelectionButton
+                        <ListSelectionButton
                             role={canSelectMultiple ? CONST.ROLE.CHECKBOX : CONST.ROLE.RADIO}
                             item={item}
                             onSelectRow={onCheckboxPress ?? onSelectRow}
