@@ -19,13 +19,13 @@ import useConfirmModal from '@hooks/useConfirmModal';
 import useCreateEmptyReportConfirmation from '@hooks/useCreateEmptyReportConfirmation';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useHasEmptyReportsForPolicy from '@hooks/useHasEmptyReportsForPolicy';
+import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import useSearchTypeMenuSections from '@hooks/useSearchTypeMenuSections';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import {startMoneyRequest} from '@libs/actions/IOU';
 import {openOldDotLink} from '@libs/actions/Link';
 import {createNewReport} from '@libs/actions/Report';
@@ -130,7 +130,7 @@ function EmptySearchViewContent({
 }: EmptySearchViewContentProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const {windowHeight} = useWindowDimensions();
+    const isInLandscapeMode = useIsInLandscapeMode();
 
     const illustrations = useMemoizedLazyIllustrations(['EmptyStateTravel']);
     const {showConfirmModal} = useConfirmModal();
@@ -443,13 +443,14 @@ function EmptySearchViewContent({
     return (
         <Animated.ScrollView
             showsVerticalScrollIndicator={false}
-            contentContainerStyle={[styles.flexGrow1, styles.flexShrink0, contentContainerStyle, {minHeight: windowHeight}]}
-            scrollEventThrottle={CONST.MIN_SMOOTH_SCROLL_EVENT_THROTTLE}
+            contentContainerStyle={[styles.flexGrow1, styles.flexShrink0, contentContainerStyle]}
+            scrollEventThrottle={CONST.TIMING.MIN_SMOOTH_SCROLL_EVENT_THROTTLE}
             onScroll={onScroll}
         >
             <GenericEmptyStateComponent
                 headerMedia={content.headerMedia}
                 headerStyles={styles.emptyStateCardIllustrationContainer}
+                minModalHeight={isInLandscapeMode ? 0 : undefined}
                 title={content.title}
                 titleStyles={content.titleStyles}
                 subtitle={content.subtitle}

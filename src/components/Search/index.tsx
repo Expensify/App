@@ -1546,27 +1546,15 @@ function Search({
         !isAnyVisibleActionLoading
     ) {
         cancelNavigationSpans();
-        if (isInLandscapeMode) {
-            return (
-                <View style={[styles.flex1]}>
-                    <EmptySearchView
-                        similarSearchHash={similarSearchHash}
-                        type={type}
-                        hasResults={searchResults?.search?.hasResults}
-                        queryJSON={queryJSON}
-                        onScroll={onSearchListScroll}
-                        contentContainerStyle={shouldUseNarrowLayout ? styles.searchListContentContainerStyles : styles.mt3}
-                    />
-                </View>
-            );
-        }
         return (
-            <View style={[shouldUseNarrowLayout ? styles.searchListContentContainerStyles : styles.mt3, styles.flex1]}>
+            <View style={[styles.flex1, isInLandscapeMode ? undefined : [shouldUseNarrowLayout ? styles.searchListContentContainerStyles : styles.mt3]]}>
                 <EmptySearchView
                     similarSearchHash={similarSearchHash}
                     type={type}
                     hasResults={searchResults?.search?.hasResults}
                     queryJSON={queryJSON}
+                    onScroll={isInLandscapeMode ? onSearchListScroll : undefined}
+                    contentContainerStyle={isInLandscapeMode ? styles.searchListContentContainerStyles : undefined}
                 />
             </View>
         );
