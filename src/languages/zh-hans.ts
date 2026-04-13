@@ -5131,7 +5131,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             chooseTheCardholder: '选择持卡人',
             chooseCard: '选择一张卡片',
             chooseCardFor: (assignee: string) => `为 <strong>${assignee}</strong> 选择一张卡片。找不到需要的卡片？<concierge-link>告诉我们。</concierge-link>`,
-            noActiveCards: '此订阅源中没有可用的卡片',
+            noActiveCards: '此信息源中没有活动卡片',
             somethingMightBeBroken:
                 '<muted-text><centered-text>或者可能出了点问题。不管怎样，如果你有任何疑问，请<concierge-link>联系 Concierge</concierge-link>。</centered-text></muted-text>',
             chooseTransactionStartDate: '选择交易开始日期',
@@ -6668,8 +6668,8 @@ ${reportName}
                 confirmErrorApplyAtLeastOneSpendRule: '至少应用一条支出规则',
                 categories: '类别',
                 merchants: '商家',
-                noAvailableCards: '所有卡片都已有规则',
-                noAvailableCardsSubtitle: '编辑现有卡规则以进行更改',
+                noAvailableCards: '所有卡片已具有规则',
+                noAvailableCardsSubtitle: '编辑现有的卡片规则以进行更改',
                 max: '最大',
                 categoryOptions: {
                     [CONST.SPEND_RULES.CATEGORIES.AIRLINES]: '航空公司',

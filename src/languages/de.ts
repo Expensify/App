@@ -6884,7 +6884,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 categories: 'Kategorien',
                 merchants: 'Händler',
                 noAvailableCards: 'Alle Karten haben bereits eine Regel',
-                noAvailableCardsSubtitle: 'Bearbeiten Sie eine bestehende Kartenregel, um Änderungen vorzunehmen',
+                noAvailableCardsSubtitle: 'Bearbeiten Sie eine vorhandene Kartenregel, um Änderungen vorzunehmen',
                 max: 'Max',
                 categoryOptions: {
                     [CONST.SPEND_RULES.CATEGORIES.AIRLINES]: 'Fluggesellschaften',

@@ -6906,7 +6906,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 categories: 'Catégories',
                 merchants: 'Commerçants',
                 noAvailableCards: 'Toutes les cartes ont déjà une règle',
-                noAvailableCardsSubtitle: 'Modifier une règle de carte existante pour effectuer des changements',
+                noAvailableCardsSubtitle: 'Modifier une règle de carte existante pour apporter des changements',
                 max: 'Max',
                 categoryOptions: {
                     [CONST.SPEND_RULES.CATEGORIES.AIRLINES]: 'Compagnies aériennes',

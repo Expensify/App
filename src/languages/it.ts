@@ -6869,7 +6869,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                 categories: 'Categorie',
                 merchants: 'Esercenti',
                 noAvailableCards: 'Tutte le carte hanno già una regola',
-                noAvailableCardsSubtitle: 'Modifica una regola della carta esistente per apportare modifiche',
+                noAvailableCardsSubtitle: 'Modifica una regola carta esistente per apportare modifiche',
                 max: 'Massimo',
                 categoryOptions: {
                     [CONST.SPEND_RULES.CATEGORIES.AIRLINES]: 'Compagnie aeree',
