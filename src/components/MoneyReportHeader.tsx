@@ -343,6 +343,7 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
+    const isSelectionModeReportActionsBetaEnabled = isBetaEnabled(CONST.BETAS.SELECTION_MODE_REPORT_ACTIONS);
     const hasViolations = hasViolationsReportUtils(moneyRequestReport?.reportID, allTransactionViolations, accountID, email ?? '');
     const hasCustomUnitOutOfPolicyViolation = hasCustomUnitOutOfPolicyViolationTransactionUtils(transactionViolations);
     const isPerDiemRequestOnNonDefaultWorkspace = isPerDiemRequest(transaction) && defaultExpensePolicy?.id !== policy?.id;
@@ -1199,6 +1200,9 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
     );
 
     const selectionModeReportLevelActions = useMemo(() => {
+        if (!isSelectionModeReportActionsBetaEnabled) {
+            return [];
+        }
         const actions: Array<DropdownOption<string> & Pick<PopoverMenuItem, 'backButtonText' | 'rightIcon'>> = [];
         if (hasSubmitAction && !shouldBlockSubmit) {
             actions.push({
@@ -1240,6 +1244,7 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
         }
         return actions;
     }, [
+        isSelectionModeReportActionsBetaEnabled,
         hasSubmitAction,
         shouldBlockSubmit,
         hasApproveAction,
