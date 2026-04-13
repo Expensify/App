@@ -38,6 +38,7 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
+import {getHumanAgentAccountIDFromReportAction} from '@libs/ReportActionsUtils';
 import {getReportName} from '@libs/ReportNameUtils';
 import {
     canJoinChat,
@@ -155,6 +156,8 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
     const statusColorForInvoiceReport = isParentInvoiceAndIsChatThread ? getReportStatusColorStyle(theme, reportHeaderData?.stateNum, reportHeaderData?.statusNum) : {};
     const isParentReportHeaderDataArchived = useReportIsArchived(reportHeaderData?.parentReportID);
     const parentNavigationSubtitleData = getParentNavigationSubtitle(parentNavigationReport, policy, conciergeReportID, isParentReportHeaderDataArchived);
+    const humanAgentAccountID = getHumanAgentAccountIDFromReportAction(parentReportAction);
+    const humanAgentName = humanAgentAccountID ? personalDetails?.[humanAgentAccountID]?.displayName : undefined;
     const reportDescription = Parser.htmlToText(getReportDescription(report));
     const policyName = getPolicyName({report, returnEmptyIfNotFound: true});
     const policyDescription = getPolicyDescriptionText(policy);
@@ -339,6 +342,7 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
                                                 parentReportID={parentNavigationReport?.parentReportID}
                                                 parentReportActionID={isParentOneTransactionThread ? undefined : parentNavigationReport?.parentReportActionID}
                                                 pressableStyles={[styles.alignSelfStart, styles.mw100]}
+                                                humanAgentName={humanAgentName}
                                             />
                                         )}
                                         {shouldShowSubtitle() && (
