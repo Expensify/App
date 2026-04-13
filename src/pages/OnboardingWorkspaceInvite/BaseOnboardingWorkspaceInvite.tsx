@@ -174,7 +174,15 @@ function BaseOnboardingWorkspaceInvite({shouldUseNativeStyles}: BaseOnboardingWo
             invitedEmailsToAccountIDs[login] = Number(accountID);
         }
         const policyMemberAccountIDs = Object.values(getMemberAccountIDsForWorkspace(policy?.employeeList, false, false));
-        addMembersToWorkspace(invitedEmailsToAccountIDs, `${welcomeNoteSubject}\n\n${welcomeNote}`, policy, policyMemberAccountIDs, CONST.POLICY.ROLE.USER, formatPhoneNumber, undefined);
+        addMembersToWorkspace(
+            invitedEmailsToAccountIDs,
+            `${welcomeNoteSubject}\n\n${welcomeNote}`,
+            policy,
+            policyMemberAccountIDs,
+            CONST.POLICY.ROLE.USER,
+            formatPhoneNumber,
+            currentUserPersonalDetails.accountID,
+        );
         completeOnboarding(true);
     };
 

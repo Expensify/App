@@ -282,6 +282,7 @@ describe('actions/Policy', () => {
             const policyID = Policy.generatePolicyID();
 
             const options = {
+                currentUserAccountID: ESH_ACCOUNT_ID,
                 policyName: POLICY_NAME,
                 policyID: fakePolicy.id,
                 targetPolicyID: policyID,
@@ -474,6 +475,7 @@ describe('actions/Policy', () => {
             const policyID = Policy.generatePolicyID();
 
             const options = {
+                currentUserAccountID: ESH_ACCOUNT_ID,
                 policyName: 'Distance Disabled Workspace',
                 policyID: fakePolicy.id,
                 targetPolicyID: policyID,
