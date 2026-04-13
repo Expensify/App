@@ -33,8 +33,10 @@ import {isDistanceRequest, isTransactionPendingDelete} from '@src/libs/Transacti
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {CardList, MergeTransaction, Policy, PolicyCategories, PolicyTagLists, Report, ReportNextStepDeprecated, Transaction, TransactionViolations} from '@src/types/onyx';
-import {getCleanUpTransactionThreadReportOnyxData, getDeleteTrackExpenseInformation, getUpdateMoneyRequestParams, getUpdateTrackExpenseParams} from './IOU';
+import {getUpdateMoneyRequestParams, getUpdateTrackExpenseParams} from './IOU';
 import type {UpdateMoneyRequestData, UpdateMoneyRequestDataKeys} from './IOU';
+import {getCleanUpTransactionThreadReportOnyxData} from './IOU/DeleteMoneyRequest';
+import {getDeleteTrackExpenseInformation} from './IOU/TrackExpense';
 
 /**
  * Setup merge transaction data for merging flow
@@ -507,6 +509,7 @@ function mergeTransactionRequest({
                 transactionThreadID: sourceTransactionThreadReportID,
                 shouldDeleteTransactionThread,
                 reportAction: sourceIouAction,
+                currentUserAccountID: currentUserAccountIDParam,
             });
             optimisticSourceReportActionData.push(...cleanUpSourceTransactionThreadReportOnyxData.optimisticData);
             successSourceReportActionData.push(...cleanUpSourceTransactionThreadReportOnyxData.successData);

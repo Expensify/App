@@ -886,7 +886,7 @@ const transactionsListItems = [
     },
     {
         action: 'approve',
-        allActions: ['approve'],
+        allActions: ['approve', 'changeApprover'],
         amount: -5000,
         report: report2,
         policy,
@@ -1126,6 +1126,7 @@ const transactionReportGroupListItems = [
         nonReimbursableSpend: -0,
         reimbursableSpend: 5000,
         isAllScanning: false,
+        isAmountColumnWide: false,
         primaryAvatar: adminAvatarIcon,
         secondaryAvatar: policyWorkspaceIcon,
         avatarType: CONST.REPORT_ACTION_AVATARS.TYPE.SUBSCRIPT,
@@ -1195,7 +1196,7 @@ const transactionReportGroupListItems = [
         groupedBy: 'expense-report',
         accountID: 18439984,
         action: 'approve',
-        allActions: ['approve'],
+        allActions: ['approve', 'changeApprover'],
         chatReportID: '1706144653204915',
         created: '2024-12-21 13:05:20',
         submitted: '2024-12-21 13:05:20',
@@ -1240,6 +1241,7 @@ const transactionReportGroupListItems = [
         nonReimbursableSpend: -0,
         reimbursableSpend: 5000,
         isAllScanning: false,
+        isAmountColumnWide: false,
         primaryAvatar: adminAvatarIcon,
         secondaryAvatar: policyWorkspaceIcon,
         avatarType: CONST.REPORT_ACTION_AVATARS.TYPE.SUBSCRIPT,
@@ -1247,7 +1249,7 @@ const transactionReportGroupListItems = [
         transactions: [
             {
                 action: 'approve',
-                allActions: ['approve'],
+                allActions: ['approve', 'changeApprover'],
                 report: report2,
                 policy,
                 reportAction: reportAction2,
@@ -1353,6 +1355,7 @@ const transactionReportGroupListItems = [
         nonReimbursableSpend: 0,
         reimbursableSpend: 4400,
         isAllScanning: false,
+        isAmountColumnWide: false,
         primaryAvatar: approverAvatarIcon,
         secondaryAvatar: adminAvatarIcon,
         avatarType: CONST.REPORT_ACTION_AVATARS.TYPE.SUBSCRIPT,
@@ -1541,6 +1544,7 @@ const transactionReportGroupListItems = [
         nonReimbursableSpend: 0,
         reimbursableSpend: 0,
         isAllScanning: false,
+        isAmountColumnWide: false,
         primaryAvatar: adminAvatarIcon,
         secondaryAvatar: policyWorkspaceIcon,
         avatarType: CONST.REPORT_ACTION_AVATARS.TYPE.SUBSCRIPT,
@@ -1710,6 +1714,7 @@ const transactionWithdrawalIDGroupListItems: TransactionWithdrawalIDGroupListIte
         transactions: [],
         transactionsQueryJSON: undefined,
         keyForList: 'group_5',
+        shouldShowYearWithdrawn: true,
     },
     {
         bankName: CONST.BANK_NAMES.CITIBANK,
@@ -1725,6 +1730,7 @@ const transactionWithdrawalIDGroupListItems: TransactionWithdrawalIDGroupListIte
         transactions: [],
         transactionsQueryJSON: undefined,
         keyForList: 'group_30303030',
+        shouldShowYearWithdrawn: true,
     },
 ];
 
@@ -1743,6 +1749,7 @@ const transactionWithdrawalIDGroupListItemsSorted: TransactionWithdrawalIDGroupL
         transactions: [],
         transactionsQueryJSON: undefined,
         keyForList: 'group_5',
+        shouldShowYearWithdrawn: true,
     },
     {
         bankName: CONST.BANK_NAMES.CITIBANK,
@@ -1758,6 +1765,7 @@ const transactionWithdrawalIDGroupListItemsSorted: TransactionWithdrawalIDGroupL
         transactions: [],
         transactionsQueryJSON: undefined,
         keyForList: 'group_30303030',
+        shouldShowYearWithdrawn: true,
     },
 ];
 
@@ -7525,7 +7533,6 @@ describe('SearchUIUtils', () => {
         });
 
         test('Should fallback to childReportID from IOU action when transaction thread report is not in Onyx', async () => {
-            (createTransactionThreadReport as jest.Mock).mockReset();
             const childReportID = 'child-thread-456';
             // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
             const multiTransactionItem = transactionsListItems.at(2) as TransactionListItemType;

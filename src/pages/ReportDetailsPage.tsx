@@ -21,7 +21,7 @@ import ReportActionAvatars from '@components/ReportActionAvatars';
 import RoomHeaderAvatars from '@components/RoomHeaderAvatars';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
-import {useSearchActionsContext, useSearchStateContext} from '@components/Search/SearchContext';
+import {useSearchActionsContext} from '@components/Search/SearchContext';
 import {SUPER_WIDE_RIGHT_MODALS} from '@components/WideRHPContextProvider/WIDE_RIGHT_MODALS';
 import useActivePolicy from '@hooks/useActivePolicy';
 import useAncestors from '@hooks/useAncestors';
@@ -110,7 +110,8 @@ import {
 } from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
 import {isDemoTransaction} from '@libs/TransactionUtils';
-import {deleteTrackExpense, getNavigationUrlAfterTrackExpenseDelete, getNavigationUrlOnMoneyRequestDelete} from '@userActions/IOU';
+import {getNavigationUrlOnMoneyRequestDelete} from '@userActions/IOU/DeleteMoneyRequest';
+import {deleteTrackExpense, getNavigationUrlAfterTrackExpenseDelete} from '@userActions/IOU/TrackExpense';
 import {
     clearAvatarErrors,
     clearPolicyRoomNameErrors,
@@ -183,7 +184,6 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
     const [reportActionsForOriginalReportID] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`);
 
     const {removeTransaction} = useSearchActionsContext();
-    const {currentSearchHash} = useSearchStateContext();
 
     const transactionThreadReportID = useMemo(() => getOneTransactionThreadReportID(report, chatReport, reportActions ?? [], isOffline), [reportActions, isOffline, report, chatReport]);
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
@@ -469,6 +469,8 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                         isRestrictedToPreferredPolicy,
                         preferredPolicyID,
                         transaction: iouTransaction,
+                        currentUserAccountID: currentUserPersonalDetails.accountID,
+                        currentUserEmail: currentUserPersonalDetails.email ?? '',
                     });
                 },
             });
@@ -491,6 +493,8 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                             amountOwed,
                             ownerBillingGracePeriodEnd,
                             transaction: iouTransaction,
+                            currentUserAccountID: currentUserPersonalDetails.accountID,
+                            currentUserEmail: currentUserPersonalDetails.email ?? '',
                         });
                     },
                 });
@@ -512,6 +516,8 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                             amountOwed,
                             ownerBillingGracePeriodEnd,
                             transaction: iouTransaction,
+                            currentUserAccountID: currentUserPersonalDetails.accountID,
+                            currentUserEmail: currentUserPersonalDetails.email ?? '',
                         });
                     },
                 });
@@ -917,7 +923,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                 currentUserAccountID: currentUserPersonalDetails.accountID,
             });
         } else if (iouTransactionID) {
-            deleteTransactions([iouTransactionID], duplicateTransactions, duplicateTransactionViolations, currentSearchHash, isSingleTransactionView);
+            deleteTransactions([iouTransactionID], duplicateTransactions, duplicateTransactionViolations, undefined, isSingleTransactionView);
             removeTransaction(iouTransactionID);
         }
     }, [
@@ -941,7 +947,6 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
         isChatIOUReportArchived,
         allTransactionViolations,
         deleteTransactions,
-        currentSearchHash,
         removeTransaction,
         conciergeReportID,
     ]);

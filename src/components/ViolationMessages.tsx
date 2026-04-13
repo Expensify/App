@@ -48,18 +48,17 @@ export default function ViolationMessages({
                 const card = cardID ? cardList?.[cardID] : undefined;
                 return [
                     violation.name,
-                    ViolationsUtils.getViolationTranslation(
+                    ViolationsUtils.getViolationTranslation({
                         violation,
                         translate,
                         canEdit,
-                        undefined,
                         companyCardPageURL,
                         connectionLink,
                         card,
                         isMarkAsCash,
                         routeDistanceMeters,
                         distanceUnit,
-                    ),
+                    }),
                 ];
             }),
         [canEdit, translate, filteredViolations, companyCardPageURL, connectionLink, cardList, isMarkAsCash, routeDistanceMeters, distanceUnit],

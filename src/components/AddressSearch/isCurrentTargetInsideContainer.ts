@@ -1,4 +1,3 @@
-import type {ReadOnlyNode} from 'react-native';
 import type {IsCurrentTargetInsideContainerType} from './types';
 
 const isCurrentTargetInsideContainer: IsCurrentTargetInsideContainerType = (event, containerRef) => {
@@ -9,7 +8,7 @@ const isCurrentTargetInsideContainer: IsCurrentTargetInsideContainerType = (even
         return false;
     }
 
-    return !!containerRef.current.contains(event.relatedTarget as Node & ReadOnlyNode);
+    return !!containerRef.current.contains(event.relatedTarget as never);
 };
 
 export default isCurrentTargetInsideContainer;
