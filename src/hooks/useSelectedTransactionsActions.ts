@@ -42,7 +42,6 @@ import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useDefaultExpensePolicy from './useDefaultExpensePolicy';
 import useDeleteTransactions from './useDeleteTransactions';
 import useDuplicateTransactionsAndViolations from './useDuplicateTransactionsAndViolations';
-import useEnvironment from './useEnvironment';
 import {useMemoizedLazyExpensifyIcons} from './useLazyAsset';
 import useLocalize from './useLocalize';
 import useNetworkWithOfflineStatus from './useNetworkWithOfflineStatus';
@@ -113,7 +112,6 @@ function useSelectedTransactionsActions({
     const {deleteTransactions} = useDeleteTransactions({report, reportActions, policy});
     const {login, accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const defaultExpensePolicy = useDefaultExpensePolicy();
-    const {isProduction} = useEnvironment();
 
     const selectedTransactionsList = selectedTransactionIDs.reduce((acc, transactionID) => {
         const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
@@ -170,7 +168,6 @@ function useSelectedTransactionsActions({
 
     const isDuplicateOptionVisible = useMemo(
         () =>
-            !isProduction &&
             shouldShowBulkDuplicateOption({
                 selectedTransactionsKeys: selectedTransactionIDs,
                 selectedTransactions: selectedTransactionsForDuplicate,
@@ -184,7 +181,6 @@ function useSelectedTransactionsActions({
                 searchData: undefined,
             }),
         [
-            isProduction,
             selectedTransactionIDs,
             selectedTransactionsForDuplicate,
             allTransactions,
