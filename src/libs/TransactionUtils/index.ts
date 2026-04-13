@@ -1587,7 +1587,7 @@ function shouldShowBrokenConnectionViolationInternal(brokenConnectionViolations:
         return true;
     }
 
-    return isProcessingReport(report) && isInstantSubmitEnabled(policy);
+    return isProcessingReport(report);
 }
 
 /**
