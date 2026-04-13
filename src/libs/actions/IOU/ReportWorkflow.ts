@@ -1,14 +1,11 @@
 /* eslint-disable max-lines */
-import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import * as API from '@libs/API';
 import type {ApproveMoneyRequestParams, ReopenReportParams, RetractReportParams, SubmitReportParams, UnapproveExpenseReportParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
-import {convertToDisplayString} from '@libs/CurrencyUtils';
-import DateUtils from '@libs/DateUtils';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
-import * as Localize from '@libs/Localize';
 import Navigation from '@libs/Navigation/Navigation';
 import {isOffline} from '@libs/Network/NetworkStore';
 // eslint-disable-next-line @typescript-eslint/no-deprecated
@@ -16,25 +13,20 @@ import {buildNextStepNew, buildOptimisticNextStep} from '@libs/NextStepUtils';
 import {getAccountIDsByLogins} from '@libs/PersonalDetailsUtils';
 import {arePaymentsEnabled, getSubmitToAccountID, hasDynamicExternalWorkflow, isPaidGroupPolicy, isPolicyAdmin, isSubmitAndClose} from '@libs/PolicyUtils';
 import {getAllReportActions, getReportActionHtml, getReportActionText, hasPendingDEWApprove, isCreatedAction, isDeletedAction} from '@libs/ReportActionsUtils';
-import type {TransactionDetails} from '@libs/ReportUtils';
 import {
     buildOptimisticApprovedReportAction,
-    buildOptimisticCreatedReportForUnapprovedAction,
     buildOptimisticReopenedReportAction,
     buildOptimisticRetractedReportAction,
     buildOptimisticSubmittedReportAction,
     buildOptimisticUnapprovedReportAction,
     canBeAutoReimbursed,
     canSubmitAndIsAwaitingForCurrentUser,
-    findSelfDMReportID,
     getAllHeldTransactions as getAllHeldTransactionsReportUtils,
     getApprovalChain,
     getMoneyRequestSpendBreakdown,
     getNextApproverAccountID,
-    getOutstandingChildRequest,
     getReportOrDraftReport,
     getReportTransactions,
-    getTransactionDetails,
     hasHeldExpenses as hasHeldExpensesReportUtils,
     hasOnlyNonReimbursableTransactions,
     hasOutstandingChildRequest,
@@ -45,46 +37,32 @@ import {
     isIOUReport,
     isOpenExpenseReport as isOpenExpenseReportReportUtils,
     isOpenInvoiceReport as isOpenInvoiceReportReportUtils,
-    isOpenReport,
     isPayAtEndExpenseReport as isPayAtEndExpenseReportReportUtils,
     isPayer as isPayerReportUtils,
     isProcessingReport,
     isReportApproved,
     isReportManager,
     isSettled,
-    isTestTransactionReport,
-    shouldEnableNegative,
-    updateReportPreview,
 } from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
-import {endSubmitFollowUpActionSpan, setPendingSubmitFollowUpAction} from '@libs/telemetry/submitFollowUpAction';
 import {
     allHavePendingRTERViolation,
-    getAmount,
-    getCurrency,
     hasAnyTransactionWithoutRTERViolation,
     hasDuplicateTransactions,
+    isDuplicate,
     hasSmartScanFailedWithMissingFields,
     hasSubmissionBlockingViolations,
     isOnHold,
     isPending,
     isPendingCardOrScanningTransaction,
     isScanning,
-    removeTransactionFromDuplicateTransactionViolation,
 } from '@libs/TransactionUtils';
-import {optimisticReportLastData} from '@userActions/Report';
-import type {IOUAction} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
-import type {Participant} from '@src/types/onyx/IOU';
-import type {ErrorFields, PendingAction} from '@src/types/onyx/OnyxCommon';
-import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
-import type {ReportNextStep} from '@src/types/onyx/Report';
 import type ReportAction from '@src/types/onyx/ReportAction';
-import type {OnyxData} from '@src/types/onyx/Request';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {
     getAllReportActionsFromIOU,
@@ -92,11 +70,7 @@ import {
     getAllTransactionViolations,
     getCurrentUserEmail,
     getReportFromHoldRequestsOnyxData,
-    getReportPreviewAction,
-    getSearchOnyxUpdate,
     getUserAccountID,
-    hasOutstandingChildRequest as hasOutstandingChildRequestIndex,
-    shouldOptimisticallyUpdateSearch,
 } from '.';
 
 type ApproveMoneyRequestFunctionParams = {

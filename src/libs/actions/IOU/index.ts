@@ -37,16 +37,14 @@ import * as NumberUtils from '@libs/NumberUtils';
 import revokeOdometerImageUri from '@libs/OdometerImageUtils';
 import {getManagerMcTestParticipant} from '@libs/OptionsListUtils';
 import {getCustomUnitID} from '@libs/PerDiemRequestUtils';
-import {getAccountIDsByLogins} from '@libs/PersonalDetailsUtils';
 import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
-import {getDistanceRateCustomUnit, hasDependentTags, isPaidGroupPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
+import {getDistanceRateCustomUnit, hasDependentTags, isPaidGroupPolicy} from '@libs/PolicyUtils';
 import {
     getAllReportActions,
     getIOUActionForTransactionID,
     getOriginalMessage,
     getReportActionHtml,
     getReportActionText,
-    isCreatedAction,
     isMoneyRequestAction,
     isReportPreviewAction,
 } from '@libs/ReportActionsUtils';
@@ -71,9 +69,7 @@ import {
     getParsedComment,
     getReportNotificationPreference,
     getReportOrDraftReport,
-    getReportTransactions,
     getTransactionDetails,
-    hasHeldExpenses as hasHeldExpensesReportUtils,
     hasOutstandingChildRequest,
     hasViolations as hasViolationsReportUtils,
     isDeprecatedGroupDM,
@@ -99,7 +95,6 @@ import {
 import {buildCannedSearchQuery, buildSearchQueryJSON, buildSearchQueryString, getCurrentSearchQueryJSON} from '@libs/SearchQueryUtils';
 import {getSuggestedSearches} from '@libs/SearchUIUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
-import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {getSpan, startSpan} from '@libs/telemetry/activeSpans';
 import {endSubmitFollowUpActionSpan, setPendingSubmitFollowUpAction} from '@libs/telemetry/submitFollowUpAction';
 import {
@@ -117,7 +112,6 @@ import {
     isManualDistanceRequest as isManualDistanceRequestTransactionUtils,
     isOdometerDistanceRequest as isOdometerDistanceRequestTransactionUtils,
     isOnHold,
-    isPending,
     isPerDiemRequest as isPerDiemRequestTransactionUtils,
     isScanning,
     isScanRequest as isScanRequestTransactionUtils,
