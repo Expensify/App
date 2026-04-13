@@ -34,7 +34,7 @@ function getSubmitExpenseScenario({
     if (iouType !== CONST.IOU.TYPE.TRACK && isOdometerRequest && !isMovingTransactionFromTrackExpense && !isUnreported) {
         return SUBMIT_EXPENSE_SCENARIO.ODOMETER;
     }
-    if (iouType !== CONST.IOU.TYPE.TRACK && isDistanceRequest && !isMovingTransactionFromTrackExpense && !isUnreported) {
+    if (iouType !== CONST.IOU.TYPE.TRACK && isDistanceRequest && !isOdometerRequest && !isMovingTransactionFromTrackExpense && !isUnreported) {
         return SUBMIT_EXPENSE_SCENARIO.DISTANCE;
     }
     if (iouType === CONST.IOU.TYPE.SPLIT) {

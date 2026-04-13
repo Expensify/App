@@ -2020,8 +2020,6 @@ const CONST = {
         ATTRIBUTE_PLATFORM: 'platform',
         ATTRIBUTE_IS_MULTI_SCAN: 'is_multi_scan',
         ATTRIBUTE_ODOMETER_IMAGE_TYPE: 'odometer_image_type',
-        ATTRIBUTE_ODOMETER_IMAGE_COUNT: 'odometer_image_count',
-        ATTRIBUTE_ODOMETER_STITCH_METHOD: 'odometer_stitch_method',
         /** Follow-up action after expense submit (action-based; used as submit_follow_up_action in span). */
         SUBMIT_FOLLOW_UP_ACTION: {
             DISMISS_MODAL_AND_OPEN_REPORT: 'dismiss_modal_and_open_report',

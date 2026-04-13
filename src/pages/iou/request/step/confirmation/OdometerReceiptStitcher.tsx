@@ -87,9 +87,6 @@ function OdometerReceiptStitcher({
         startSpan(CONST.TELEMETRY.SPAN_ODOMETER_IMAGE_STITCH, {
             name: CONST.TELEMETRY.SPAN_ODOMETER_IMAGE_STITCH,
             op: CONST.TELEMETRY.SPAN_ODOMETER_IMAGE_STITCH,
-            attributes: {
-                [CONST.TELEMETRY.ATTRIBUTE_ODOMETER_IMAGE_COUNT]: 2,
-            },
         });
 
         stitchOdometerImages(odometerStartImage, odometerEndImage)
