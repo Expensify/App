@@ -38,11 +38,12 @@ The app uses a two-layer detection model to determine connectivity status. Each 
 
 A **hard stop** means the app considers itself offline. When at least one trigger is active, the hard stop is ON. When all triggers are cleared, the hard stop is OFF.
 
-Four triggers can activate a hard stop:
+Five triggers can activate a hard stop:
 
 | Trigger | Source | Meaning |
 |---|---|---|
 | `noRadioActive` | OS radio detection | Device has no network interface (airplane mode, WiFi off) |
+| `internetUnreachable` | NetInfo reachability polling | `api/Ping` failed — server unreachable despite connected radio |
 | `sustainedFailuresActive` | Failure tracker | Requests have been failing consistently |
 | `shouldForceOffline` | Debug tool | Manually forced offline via TestToolMenu |
 | `simulatedOffline` | Test tool | Poor connection simulator toggling offline randomly |
@@ -72,11 +73,31 @@ This layer uses `@react-native-community/netinfo` to detect whether the device h
 
 ### Reachability tracking
 
-The NetInfo listener also tracks `isInternetReachable` transitions. Only a `false` → `true` transition triggers `onReachabilityRestored()`. The initial event on subscribe (`undefined` → `true`) and indeterminate transitions (`null` → `true`) are **not** treated as recoveries — they indicate "we just started listening and things are fine," not an actual outage recovery. This prevents duplicate `openApp()`/`reconnectApp()` calls on boot.
+The NetInfo listener tracks `isInternetReachable` transitions in both directions:
+
+- **`true` → `false`** — `api/Ping` failed. Sets the `internetUnreachable` hard stop. This covers the case where a device has a connected radio (WiFi on) but no actual internet (e.g., router has no WAN, captive portal, DNS failure). Without this, an idle user would never see the offline indicator because no API requests are failing.
+- **`false` → `true`** and **`null` → `true`** — `api/Ping` succeeded after a previous failure. Triggers `onReachabilityRestored()` which clears all hard stops and fires reconnect listeners.
+- **`undefined` → `true`** — the initial event on subscribe, delivering current state. This is **not** treated as a recovery to prevent duplicate `openApp()`/`reconnectApp()` calls on boot.
 
 **Platform behavior:**
 
-We configure `useNativeReachability: false` so that NetInfo uses JS fetch polling (`api/Ping`) on **all platforms** instead of trusting native OS reachability. This aligns behavior across web and mobile. NetInfo's default polling intervals apply (60s when reachable, 5s when unreachable). Recovery is detected when Ping succeeds and `isInternetReachable` flips to `true`.
+We configure `useNativeReachability: false` so that NetInfo uses JS fetch polling (`api/Ping`) on **all platforms** instead of trusting native OS reachability. This aligns behavior across web and mobile. NetInfo's default polling intervals apply (60s when reachable, 5s when unreachable).
+
+### Why `useNativeReachability: false` is required
+
+With `useNativeReachability: false`, NetInfo determines `isInternetReachable` by polling `api/Ping` via a real `fetch()` request — making it a genuine request outcome, consistent with the design principle that "request outcomes are the authority."
+
+If `useNativeReachability` were set to `true`, NetInfo would use native OS reachability heuristics instead of JS polling. The `isInternetReachable` value would no longer represent a real request outcome and should NOT be used as an offline trigger. The `internetUnreachable` hard stop depends on this configuration.
+
+How `isConnected` vs `isInternetReachable` are determined per platform (with `useNativeReachability: false`):
+
+| Platform | `isConnected` source | `isInternetReachable` source |
+|---|---|---|
+| Web | `navigator.onLine` | JS `fetch(api/Ping)` |
+| iOS | `SCNetworkReachability` flags | JS `fetch(api/Ping)` |
+| Android | `NetworkCapabilities` transport type | JS `fetch(api/Ping)` |
+
+Note: Android's native module computes its own `isInternetReachable` via `NET_CAPABILITY_VALIDATED`, but the JS `InternetReachability.update()` gate discards it when `useNativeReachability: false`. iOS doesn't send `isInternetReachable` from native at all. See the NetInfo source files `internetReachability.ts`, `nativeModule.web.ts`, `ConnectivityReceiver.java`, and `RNCNetInfo.mm` for implementation details.
 
 ## Layer 2: Sustained Failure Detection
 
@@ -112,6 +133,7 @@ One successful request resets everything — it proves the server is reachable a
 
 ```
 hasRadio                — set by NetInfo listener (Layer 1), inverted: !hasRadio = noRadio hard stop
+internetUnreachable     — set by NetInfo listener when isInternetReachable transitions true→false
 sustainedFailuresActive — set by FailureTracker (Layer 2)
 shouldForceOffline      — set by debug tools (Onyx NETWORK key)
 simulatedOffline        — set by poor connection simulator
@@ -122,7 +144,7 @@ simulatedOffline        — set by poor connection simulator
 `getIsOffline()` derives the offline status:
 
 ```typescript
-const offline = !hasRadio || sustainedFailuresActive || shouldForceOffline || simulatedOffline;
+const offline = !hasRadio || internetUnreachable || sustainedFailuresActive || shouldForceOffline || simulatedOffline;
 ```
 
 `updateState()` notifies all subscribers when the state changes. `Reconnect.ts` subscribes and calls `SequentialQueue.flush()` on offline→online transitions. `SequentialQueue` reads `getIsOffline()` synchronously for its guard checks but does not own the transition subscription.

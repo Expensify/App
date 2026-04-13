@@ -6,6 +6,7 @@ import {
     setFailAllRequests,
     setForceOffline,
     setHasRadio,
+    setInternetUnreachable,
     setSustainedFailures,
     simulatePoorConnection,
     subscribe,
@@ -18,6 +19,7 @@ jest.mock('@src/libs/Log');
 describe('NetworkState', () => {
     beforeEach(() => {
         setHasRadio(true);
+        setInternetUnreachable(false);
         setSustainedFailures(false);
         setForceOffline(false);
         simulatePoorConnection(false);
@@ -40,6 +42,11 @@ describe('NetworkState', () => {
 
         test('returns true when force offline is set', () => {
             setForceOffline(true);
+            expect(getIsOffline()).toBe(true);
+        });
+
+        test('returns true when internet is unreachable', () => {
+            setInternetUnreachable(true);
             expect(getIsOffline()).toBe(true);
         });
 
@@ -176,6 +183,42 @@ describe('NetworkState', () => {
             const unsubscribe = subscribe(listener);
 
             setHasRadio(false);
+            expect(listener).not.toHaveBeenCalled();
+
+            unsubscribe();
+        });
+    });
+
+    describe('setInternetUnreachable — transitions', () => {
+        test('false to true triggers listener', () => {
+            const listener = jest.fn();
+            const unsubscribe = subscribe(listener);
+
+            setInternetUnreachable(true);
+            expect(listener).toHaveBeenCalledTimes(1);
+            expect(getIsOffline()).toBe(true);
+
+            unsubscribe();
+        });
+
+        test('true to false triggers listener', () => {
+            setInternetUnreachable(true);
+
+            const listener = jest.fn();
+            const unsubscribe = subscribe(listener);
+
+            setInternetUnreachable(false);
+            expect(listener).toHaveBeenCalledTimes(1);
+            expect(getIsOffline()).toBe(false);
+
+            unsubscribe();
+        });
+
+        test('setting same value does not trigger listener', () => {
+            const listener = jest.fn();
+            const unsubscribe = subscribe(listener);
+
+            setInternetUnreachable(false);
             expect(listener).not.toHaveBeenCalled();
 
             unsubscribe();

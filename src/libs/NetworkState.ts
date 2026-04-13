@@ -10,6 +10,7 @@ let hasRadio = true;
 let sustainedFailuresActive = false;
 let shouldForceOffline = false;
 let failAllRequests = false;
+let internetUnreachable = false;
 let simulatedOffline = false;
 let lastOfflineAt: string | undefined;
 
@@ -28,7 +29,7 @@ const reconnectListeners = new Set<() => void>();
 onSustainedFailureChange((active) => setSustainedFailures(active));
 
 function getIsOffline(): boolean {
-    return !hasRadio || sustainedFailuresActive || shouldForceOffline || simulatedOffline;
+    return !hasRadio || internetUnreachable || sustainedFailuresActive || shouldForceOffline || simulatedOffline;
 }
 
 function getLastOfflineAt(): string | undefined {
@@ -94,6 +95,24 @@ function setHasRadio(connected: boolean) {
         updateState();
     } else if (!hadRadio && hasRadio) {
         Log.info('[NetworkState] NO_RADIO cleared — OS reports radio is back');
+        updateState();
+    }
+}
+
+/**
+ * Called by the NetInfo listener when isInternetReachable transitions to false.
+ * With useNativeReachability:false, this means api/Ping failed — a real request outcome,
+ * not an OS heuristic. See contributingGuides/NETWORK_STATE_DETECTION.md for details.
+ */
+function setInternetUnreachable(unreachable: boolean) {
+    const wasUnreachable = internetUnreachable;
+    internetUnreachable = unreachable;
+
+    if (!wasUnreachable && unreachable) {
+        Log.info('[NetworkState] Hard stop: INTERNET_UNREACHABLE — api/Ping reports server unreachable');
+        updateState();
+    } else if (wasUnreachable && !unreachable) {
+        Log.info('[NetworkState] INTERNET_UNREACHABLE cleared');
         updateState();
     }
 }
@@ -172,6 +191,7 @@ function setFailAllRequests(failAll: boolean) {
 function onReachabilityRestored() {
     Log.info('[NetworkState] Internet reachability restored — clearing hard stops');
     hasRadio = true;
+    internetUnreachable = false;
     sustainedFailuresActive = false;
     resetFailureCounters();
     updateState();
@@ -281,6 +301,13 @@ function configureAndSubscribe() {
         // when shouldForceOffline is turned off. Only gate the reconnect side effect.
         setHasRadio(radio);
 
+        // When isInternetReachable transitions to false, api/Ping failed — go offline.
+        // Guard against undefined (initial event) and null (indeterminate) — only
+        // react to a confirmed true→false transition.
+        if (state.isInternetReachable === false && prevIsInternetReachable === true) {
+            setInternetUnreachable(true);
+        }
+
         // Treat false→true and null→true as genuine recovery. Both mean NetInfo previously
         // lost reachability (false = confirmed unreachable, null = lost track during outage)
         // and has now confirmed it's back. Only block undefined→true — that's the initial
@@ -360,6 +387,7 @@ export {
     subscribe,
     onReachabilityConfirmed,
     setHasRadio,
+    setInternetUnreachable,
     setSustainedFailures,
     setForceOffline,
     setFailAllRequests,
