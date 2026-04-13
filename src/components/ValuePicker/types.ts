@@ -54,10 +54,7 @@ type ValueSelectorModalProps = {
 type ValueSelectionListProps = Pick<
     ValueSelectorModalProps,
     'items' | 'selectedItem' | 'onItemSelected' | 'shouldShowTooltips' | 'addBottomSafeAreaPadding' | 'disableKeyboardShortcuts' | 'alternateNumberOfSupportedLines'
-> & {
-    /** Whether the parent modal is visible */
-    isVisible?: boolean;
-};
+>;
 
 type ValuePickerProps = ForwardedFSClassProps & {
     /** Item to display */
