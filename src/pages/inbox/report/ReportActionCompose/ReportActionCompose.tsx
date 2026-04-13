@@ -20,6 +20,7 @@ import type {Mention} from '@components/MentionSuggestions';
 import OfflineIndicator from '@components/OfflineIndicator';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
+import {useSearchStateContext} from '@components/Search/SearchContext';
 import useAncestors from '@hooks/useAncestors';
 import {useCurrentReportIDState} from '@hooks/useCurrentReportID';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -402,6 +403,7 @@ function ReportActionCompose({reportID}: ReportActionComposeProps) {
     }, [updateShouldShowSuggestionMenuToFalse]);
 
     const {currentReportID, currentRHPReportID} = useCurrentReportIDState();
+    const {selectedTransactions, selectedReports} = useSearchStateContext();
 
     /**
      * Add a new comment to this chat
@@ -488,6 +490,26 @@ function ReportActionCompose({reportID}: ReportActionComposeProps) {
 
                 const isConciergeSidePanel = conciergeReportID === reportID && isInSidePanel;
                 const contextReportID = isConciergeSidePanel ? (currentRHPReportID ?? currentReportID ?? undefined) : undefined;
+                const selectedTransactionIDsForContext =
+                    isConciergeSidePanel && !isEmptyObject(selectedTransactions)
+                        ? Object.entries(selectedTransactions)
+                              .filter(([, info]) => info.isSelected)
+                              .map(([id]) => id)
+                        : undefined;
+                const selectedReportIDsForContext =
+                    isConciergeSidePanel && selectedReports.length > 0 ? selectedReports.map((r) => r.reportID).filter((id): id is string => !!id) : undefined;
+                let sidePanelContext: OnyxTypes.SidePanelContext | undefined;
+                if (contextReportID) {
+                    sidePanelContext = {
+                        reportID: contextReportID,
+                        selectedTransactionIDs: selectedTransactionIDsForContext?.length ? selectedTransactionIDsForContext : undefined,
+                    };
+                } else if (selectedTransactionIDsForContext?.length) {
+                    sidePanelContext = {selectedTransactionIDs: selectedTransactionIDsForContext};
+                } else if (selectedReportIDsForContext?.length) {
+                    sidePanelContext = {selectedReportIDs: selectedReportIDsForContext};
+                }
+
                 addComment({
                     report: targetReport,
                     notifyReportID: reportID,
@@ -498,7 +520,7 @@ function ReportActionCompose({reportID}: ReportActionComposeProps) {
                     shouldPlaySound: true,
                     isInSidePanel,
                     reportActionID: optimisticReportActionID,
-                    sidePanelContext: contextReportID ? {reportID: contextReportID} : undefined,
+                    sidePanelContext,
                 });
             }
         },
@@ -520,6 +542,8 @@ function ReportActionCompose({reportID}: ReportActionComposeProps) {
             currentReportID,
             currentRHPReportID,
             conciergeReportID,
+            selectedTransactions,
+            selectedReports,
         ],
     );
 
