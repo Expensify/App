@@ -36,7 +36,7 @@ function DynamicSageIntacctPreferredExporterPage({policy}: WithPolicyProps) {
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_PREFERRED_EXPORTER.path);
 
     const goBack = useCallback(() => {
-        Navigation.goBack(backPath || (policyID && ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_EXPORT.getRoute(policyID)));
+        Navigation.goBack(backPath);
     }, [policyID, backPath]);
 
     const data: CardListItem[] = useMemo(() => {

@@ -146,7 +146,7 @@ function DynamicSageIntacctNonReimbursableExpensesPage({policy}: WithPolicyConne
             displayName="DynamicSageIntacctNonReimbursableExpensesPage"
             headerTitle="workspace.accounting.exportCompanyCard"
             title="workspace.sageIntacct.nonReimbursableExpenses.description"
-            onBackButtonPress={() => Navigation.goBack(backPath || (policyID && ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_EXPORT.getRoute(policyID)))}
+            onBackButtonPress={() => Navigation.goBack(backPath)}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}

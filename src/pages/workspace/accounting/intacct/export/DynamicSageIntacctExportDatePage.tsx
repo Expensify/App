@@ -39,8 +39,8 @@ function DynamicSageIntacctExportDatePage({policy}: WithPolicyProps) {
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_EXPORT_DATE.path);
 
     const goBack = useCallback(() => {
-        Navigation.goBack(backPath || (policyID && ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_EXPORT.getRoute(policyID)));
-    }, [policyID, backPath]);
+        Navigation.goBack(backPath);
+    }, [backPath]);
 
     const headerContent = useMemo(
         () => (

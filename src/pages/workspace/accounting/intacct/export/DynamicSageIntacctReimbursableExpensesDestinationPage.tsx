@@ -36,8 +36,8 @@ function DynamicSageIntacctReimbursableExpensesDestinationPage({policy}: WithPol
     }));
 
     const goBack = useCallback(() => {
-        Navigation.goBack(backPath || (policyID && (`workspaces/${policyID}/accounting/sage-intacct/export/reimbursable` as const)));
-    }, [backPath, policyID]);
+        Navigation.goBack(backPath);
+    }, [backPath]);
 
     const selectDestination = useCallback(
         (row: MenuListItem) => {
