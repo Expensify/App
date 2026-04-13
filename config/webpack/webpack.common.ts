@@ -1,4 +1,5 @@
 import {sentryWebpackPlugin} from '@sentry/webpack-plugin';
+import {execSync} from 'child_process';
 import {CleanWebpackPlugin} from 'clean-webpack-plugin';
 import CopyPlugin from 'copy-webpack-plugin';
 import dotenv from 'dotenv';
@@ -13,7 +14,6 @@ import {fileURLToPath} from 'url';
 import webpack from 'webpack';
 import type {Configuration, WebpackPluginInstance} from 'webpack';
 import {BundleAnalyzerPlugin} from 'webpack-bundle-analyzer';
-import Git from '../../scripts/utils/Git';
 // Storybook 10 loads TS files directly and requires .ts extension for ESM imports
 // @ts-expect-error -- Can't use .ts extensions without allowImportingTsExtensions in tsconfig
 // eslint-disable-next-line import/extensions
@@ -30,7 +30,15 @@ const dirname = path.dirname(filename);
 
 dotenv.config();
 
-const localBranchName = Git.getCurrentBranchName();
+function getCurrentBranchName(): string {
+    try {
+        return execSync('git rev-parse --abbrev-ref HEAD', {encoding: 'utf-8'}).trim();
+    } catch {
+        return '';
+    }
+}
+
+const localBranchName = getCurrentBranchName();
 
 type Options = {
     rel: string;
