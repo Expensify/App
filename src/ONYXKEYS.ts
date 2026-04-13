@@ -227,6 +227,9 @@ const ONYXKEYS = {
     /** Store the state of the subscription */
     NVP_PRIVATE_SUBSCRIPTION: 'nvp_private_subscription',
 
+    /** Store the state of Personal Karma donations */
+    NVP_PERSONAL_OFFSETS: 'nvp_expensify_enablePersonalOffsets',
+
     /** Store the applied Expensify promo code */
     NVP_PRIVATE_PROMO_CODE: 'nvp_private_promoCode',
 
@@ -392,6 +395,9 @@ const ONYXKEYS = {
 
     /** Set when we are loading fresh subscription/billing data from the server */
     IS_LOADING_SUBSCRIPTION_DATA: 'isLoadingSubscriptionData',
+
+    /** Set while UpdatePersonalKarma is in flight (optimistic UI for Save The World toggle) */
+    IS_PENDING_UPDATE_PERSONAL_KARMA: 'isPendingUpdatePersonalKarma',
 
     /** Set whether we are loading the search filters card data */
     IS_SEARCH_FILTERS_CARD_DATA_LOADED: 'isSearchFiltersCardDataLoaded',
@@ -1379,6 +1385,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.NVP_DISMISSED_REFERRAL_BANNERS]: OnyxTypes.DismissedReferralBanners;
     [ONYXKEYS.NVP_HAS_SEEN_TRACK_TRAINING]: boolean;
     [ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION]: OnyxTypes.PrivateSubscription;
+    [ONYXKEYS.NVP_PERSONAL_OFFSETS]: boolean;
     [ONYXKEYS.NVP_PRIVATE_PROMO_CODE]: string | null;
     [ONYXKEYS.NVP_PRIVATE_PROMO_DISCOUNT]: OnyxTypes.PrivatePromoDiscount | null;
     [ONYXKEYS.NVP_PRIVATE_PROMO_CODE_VALID_BILLING_CYCLES]: number | null;
@@ -1409,6 +1416,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.IS_LOADING_POLICY_CODING_RULES_PREVIEW]: boolean;
     [ONYXKEYS.IS_SEARCH_FILTERS_CARD_DATA_LOADED]: boolean;
     [ONYXKEYS.IS_LOADING_SUBSCRIPTION_DATA]: boolean;
+    [ONYXKEYS.IS_PENDING_UPDATE_PERSONAL_KARMA]: boolean;
     [ONYXKEYS.IS_SEARCH_PAGE_DATA_LOADED]: boolean;
     [ONYXKEYS.IS_LOADING_REPORT_DATA]: boolean;
     [ONYXKEYS.IS_TEST_TOOLS_MODAL_OPEN]: boolean;
