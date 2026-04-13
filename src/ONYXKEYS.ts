@@ -272,8 +272,8 @@ const ONYXKEYS = {
     /** ID associated with the payment card added by the user. */
     NVP_BILLING_FUND_ID: 'nvp_expensify_billingFundID',
 
-    /** The user’s freebie credits balance (in cents). */
-    NVP_PRIVATE_FREEBIE_CREDITS: ‘nvp_private_freebieCredits’,
+    /** The user's freebie credits balance (in cents). */
+    NVP_PRIVATE_FREEBIE_CREDITS: 'nvp_private_freebieCredits',
 
     /** The amount owed by the workspace’s owner. */
     NVP_PRIVATE_AMOUNT_OWED: ‘nvp_private_amountOwed’,
