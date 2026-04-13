@@ -1579,7 +1579,7 @@ function getQueryWithUpdatedValues(query: string, shouldSkipAmountConversion = f
     const standardizedQuery = traverseAndUpdatedQuery(queryJSON, computeNodeValue);
     const rawFilterList = getRawFilterListFromQuery(query);
     const hasInFilter = rawFilterList?.some((filter) => !filter.isDefault && filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.IN) ?? false;
-    const hasExplicitType = rawFilterList?.some((filter) => !filter.isDefault && filter.key === CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE) ?? false;
+    const hasExplicitType = rawFilterList?.some((filter) => filter.key === CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE) ?? false;
 
     if (hasInFilter && !hasExplicitType) {
         standardizedQuery.type = CONST.SEARCH.DATA_TYPES.CHAT;
