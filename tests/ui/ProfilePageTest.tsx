@@ -26,6 +26,7 @@ jest.mock('@libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
     goBack: jest.fn(),
     getActiveRoute: jest.fn(() => ''),
+    getTopmostReportId: jest.fn(() => undefined),
 }));
 
 jest.mock('@react-navigation/native', () => {
@@ -35,6 +36,8 @@ jest.mock('@react-navigation/native', () => {
         useRoute: jest.fn(() => ({params: {}})),
         createNavigationContainerRef: () => ({
             getState: () => jest.fn(),
+            isReady: () => false,
+            addListener: () => () => {},
         }),
         usePreventRemove: jest.fn(),
     };
