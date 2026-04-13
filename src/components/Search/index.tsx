@@ -281,14 +281,12 @@ function Search({
 
     const {isOffline} = useNetwork();
     const prevIsOffline = usePrevious(isOffline);
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const styles = useThemeStyles();
-    // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout for enabling the selection mode on small screens only
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
-    const {isSmallScreenWidth, isLargeScreenWidth} = useResponsiveLayout();
+    const {shouldUseNarrowLayout, isSmallScreenWidth, isLargeScreenWidth} = useResponsiveLayout();
+    const styles = useThemeStyles();
     const navigation = useNavigation<PlatformStackNavigationProp<SearchFullscreenNavigatorParamList>>();
     const isFocused = useIsFocused();
-    const {markReportIDAsExpense} = useWideRHPActions();
+    const {markReportIDAsExpense, markReportIDAsMultiTransactionExpense, unmarkReportIDAsMultiTransactionExpense} = useWideRHPActions();
     const {
         currentSearchHash,
         currentSearchKey,
@@ -321,7 +319,6 @@ function Search({
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
 
     const isExpenseReportType = type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
-    const {markReportIDAsMultiTransactionExpense, unmarkReportIDAsMultiTransactionExpense} = useWideRHPActions();
 
     const archivedReportsIdSet = useArchivedReportsIdSet();
 
@@ -1445,6 +1442,47 @@ function Search({
     // dep-free useEffect above — see comment on didBailToFallbackState.
     didBailToFallbackState.current = false;
 
+    const isAnyVisibleActionLoading = useMemo(
+        () => filteredData.some((item) => 'reportID' in item && item.reportID && isActionLoadingSet.has(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${item.reportID}`)),
+        [filteredData, isActionLoadingSet],
+    );
+
+    const visibleDataLength = useMemo(() => filteredData.filter((item) => item.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isOffline).length, [filteredData, isOffline]);
+
+    const yearIndicators = useMemo(
+        () =>
+            searchResults?.data
+                ? shouldShowYearUtil(searchResults.data, isExpenseReportType ?? false, undefined, type === CONST.SEARCH.DATA_TYPES.EXPENSE)
+                : {
+                      shouldShowYearCreated: false,
+                      shouldShowYearSubmitted: false,
+                      shouldShowYearApproved: false,
+                      shouldShowYearPosted: false,
+                      shouldShowYearExported: false,
+                      shouldShowYearWithdrawn: false,
+                  },
+        [searchResults?.data, isExpenseReportType, type],
+    );
+
+    const amountIndicators = useMemo(
+        () => (searchResults?.data ? getWideAmountIndicators(searchResults.data) : {shouldShowAmountInWideColumn: false, shouldShowTaxAmountInWideColumn: false}),
+        [searchResults?.data],
+    );
+
+    const onSortPress = useCallback(
+        (column: SearchColumnType, order: SortOrder) => {
+            clearSelectedTransactions();
+            const newQuery = buildSearchQueryString({
+                ...queryJSON,
+                sortBy: column,
+                sortOrder: order,
+            });
+            onSortPressedCallback?.();
+            navigation.setParams({q: newQuery, rawQuery: undefined});
+        },
+        [clearSelectedTransactions, queryJSON, onSortPressedCallback, navigation],
+    );
+
     // This is a performance optimization for the submit-expense->search path only.
     // The SearchPage skeleton (useSearchLoadingState) doesn't cover this case because
     // Search must mount for its onLayout to flush the deferred CreateMoneyRequest API write, which would block the JS thread causing a slowdown on post expense creation navigation
@@ -1495,8 +1533,6 @@ function Search({
             </View>
         );
     }
-    const isAnyVisibleActionLoading = filteredData.some((item) => 'reportID' in item && item.reportID && isActionLoadingSet.has(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${item.reportID}`));
-    const visibleDataLength = filteredData.filter((item) => item.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isOffline).length;
     // Guard: don't render the empty view while the data is transiently empty.
     // - shouldDeferHeavySearchWork: skeleton is still showing, data hasn't been computed yet.
     // - showPendingExpensePlaceholder: deferred write hasn't produced the optimistic item yet.
@@ -1522,23 +1558,8 @@ function Search({
         );
     }
 
-    const onSortPress = (column: SearchColumnType, order: SortOrder) => {
-        clearSelectedTransactions();
-        const newQuery = buildSearchQueryString({
-            ...queryJSON,
-            sortBy: column,
-            sortOrder: order,
-        });
-        onSortPressedCallback?.();
-        // We want to explicitly clear stale rawQuery since it's only used for manually typed-in queries.
-        navigation.setParams({q: newQuery, rawQuery: undefined});
-    };
-
-    const {shouldShowYearCreated, shouldShowYearSubmitted, shouldShowYearApproved, shouldShowYearPosted, shouldShowYearExported} = shouldShowYearUtil(
-        searchResults?.data,
-        isExpenseReportType ?? false,
-    );
-    const {shouldShowAmountInWideColumn, shouldShowTaxAmountInWideColumn} = getWideAmountIndicators(searchResults?.data);
+    const {shouldShowYearCreated, shouldShowYearSubmitted, shouldShowYearApproved, shouldShowYearPosted, shouldShowYearExported, shouldShowYearWithdrawn} = yearIndicators;
+    const {shouldShowAmountInWideColumn, shouldShowTaxAmountInWideColumn} = amountIndicators;
     const shouldShowTableHeader = isLargeScreenWidth && !isChat;
     const tableHeaderVisible = canSelectMultiple || shouldShowTableHeader;
 
@@ -1617,10 +1638,12 @@ function Search({
                                     shouldShowYearApproved={shouldShowYearApproved}
                                     shouldShowYearPosted={shouldShowYearPosted}
                                     shouldShowYearExported={shouldShowYearExported}
+                                    shouldShowYearWithdrawn={shouldShowYearWithdrawn}
                                     isAmountColumnWide={shouldShowAmountInWideColumn}
                                     isTaxAmountColumnWide={shouldShowTaxAmountInWideColumn}
                                     shouldShowSorting
                                     groupBy={validGroupBy}
+                                    isExpenseReportView={isExpenseReportType}
                                 />
                             </View>
                         )
@@ -1639,6 +1662,7 @@ function Search({
                                 shouldAnimate
                                 fixedNumItems={shouldShowLoadingMoreItems ? 5 : 1}
                                 reasonAttributes={showPendingExpensePlaceholder ? pendingExpenseReasonAttributes : loadMoreSkeletonReasonAttributes}
+                                isLoadMore
                             />
                         ) : undefined
                     }
