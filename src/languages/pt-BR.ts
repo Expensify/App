@@ -1283,6 +1283,7 @@ const translations: TranslationDeepObject<typeof en> = {
         receiptStatusText: 'Só você pode ver este recibo enquanto ele está sendo digitalizado. Volte mais tarde ou insira os detalhes agora.',
         receiptScanningFailed: 'Falha ao escanear o recibo. Insira os detalhes manualmente.',
         transactionPendingDescription: 'Transação pendente. Pode levar alguns dias para ser lançada.',
+        allTransactionsPendingNextStep: 'Todas as transações estão pendentes. Você não pode enviar este relatório até que sejam lançadas. Isso pode levar alguns dias.',
         companyInfo: 'Informações da empresa',
         companyInfoDescription: 'Precisamos de mais alguns detalhes antes que você possa enviar sua primeira fatura.',
         yourCompanyName: 'Nome da sua empresa',
@@ -1465,6 +1466,8 @@ const translations: TranslationDeepObject<typeof en> = {
             manySplitsProvided: `O número máximo de divisões permitido é ${CONST.IOU.SPLITS_LIMIT}.`,
             dateRangeExceedsMaxDays: `O intervalo de datas não pode exceder ${CONST.IOU.SPLITS_LIMIT} dias.`,
             stitchOdometerImagesFailed: 'Falha ao combinar imagens do hodômetro. Tente novamente mais tarde.',
+            unableToSubmitReport: 'Não é possível enviar o relatório',
+            allTransactionsPendingDescription: 'Você não pode enviar este relatório porque todas as transações estão pendentes. Pode levar alguns dias para serem lançadas.',
             nonReimbursablePayment: 'Não é possível pagar via Expensify',
             nonReimbursablePaymentDescription: (isMultiple?: boolean) =>
                 isMultiple

@@ -1244,6 +1244,7 @@ const translations: TranslationDeepObject<typeof en> = {
         receiptStatusText: '扫描期间只有你自己能看到这张收据。稍后再来查看，或立即输入详细信息。',
         receiptScanningFailed: '收据扫描失败。请手动输入详细信息。',
         transactionPendingDescription: '交易待处理。入账可能需要几天时间。',
+        allTransactionsPendingNextStep: '所有交易均待处理。在入账之前，您无法提交此报告。这可能需要几天时间。',
         companyInfo: '公司信息',
         companyInfoDescription: '在您发送第一张发票之前，我们还需要一些详细信息。',
         yourCompanyName: '您的公司名称',
@@ -1425,6 +1426,8 @@ const translations: TranslationDeepObject<typeof en> = {
             manySplitsProvided: `允许的最大拆分数为 ${CONST.IOU.SPLITS_LIMIT}。`,
             dateRangeExceedsMaxDays: `日期范围不能超过 ${CONST.IOU.SPLITS_LIMIT} 天。`,
             stitchOdometerImagesFailed: '合并里程表图片失败。请稍后重试。',
+            unableToSubmitReport: '无法提交报告',
+            allTransactionsPendingDescription: '您无法提交此报告，因为所有交易均待处理。入账可能需要几天时间。',
             nonReimbursablePayment: '无法通过 Expensify 付款',
             nonReimbursablePaymentDescription: (isMultiple?: boolean) =>
                 isMultiple ? '一个或多个所选报告没有可报销的费用。请再次检查费用，或手动将其标记为已支付。' : '该报告没有可报销的费用。请再次检查费用，或手动将其标记为已支付。',
