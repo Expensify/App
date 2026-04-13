@@ -1,7 +1,7 @@
-import useOnyx from '@hooks/useOnyx';
-import useRootNavigationState from '@hooks/useRootNavigationState';
 import Navigation from '@libs/Navigation/Navigation';
 import ONYXKEYS from '@src/ONYXKEYS';
+import useOnyx from './useOnyx';
+import useRootNavigationState from './useRootNavigationState';
 
 /**
  * Returns true when the topmost report in the navigation stack is the Concierge chat.
