@@ -1,6 +1,6 @@
 import {useIsFocused} from '@react-navigation/native';
 import {accountIDSelector} from '@selectors/Session';
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {Activity, useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import AttachmentPicker from '@components/AttachmentPicker';
@@ -161,6 +161,7 @@ function AttachmentPickerWithMenuItems({
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`);
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
+    const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const [lastDistanceExpenseType] = useOnyx(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE);
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
     const {isProduction} = useEnvironment();
@@ -184,7 +185,7 @@ function AttachmentPickerWithMenuItems({
                 shouldRestrictAction &&
                 policy &&
                 policy.type !== CONST.POLICY.TYPE.PERSONAL &&
-                shouldRestrictUserBillableActions(policy.id, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds)
+                shouldRestrictUserBillableActions(policy.id, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed)
             ) {
                 Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
                 return;
@@ -192,7 +193,7 @@ function AttachmentPickerWithMenuItems({
 
             onSelected();
         },
-        [policy, userBillingGracePeriodEnds, ownerBillingGracePeriodEnd],
+        [policy, userBillingGracePeriodEnds, ownerBillingGracePeriodEnd, amountOwed],
     );
 
     const {openCreateReportConfirmation} = useCreateEmptyReportConfirmation({
@@ -531,37 +532,39 @@ function AttachmentPickerWithMenuItems({
                                 )}
                             </View>
                         </View>
-                        <PopoverMenu
-                            animationInTiming={menuItems.length * 50}
-                            // The menu should close 2/3 of the time it took to open
-                            animationOutTiming={menuItems.length * 50 * 0.66}
-                            isVisible={isMenuVisible && isFocused}
-                            onClose={onPopoverMenuClose}
-                            onItemSelected={(item, index) => {
-                                setMenuVisibility(false);
-                                onItemSelected();
+                        <Activity mode={isMenuVisible && isFocused ? 'visible' : 'hidden'}>
+                            <PopoverMenu
+                                animationInTiming={menuItems.length * 50}
+                                // The menu should close 2/3 of the time it took to open
+                                animationOutTiming={menuItems.length * 50 * 0.66}
+                                isVisible={isMenuVisible && isFocused}
+                                onClose={onPopoverMenuClose}
+                                onItemSelected={(item, index) => {
+                                    setMenuVisibility(false);
+                                    onItemSelected();
 
-                                // In order for the file picker to open dynamically, the click
-                                // function must be called from within a event handler that was initiated
-                                // by the user on Safari.
-                                if (index === menuItems.length - 1) {
-                                    if (isSafari()) {
-                                        triggerAttachmentPicker();
-                                        return;
+                                    // In order for the file picker to open dynamically, the click
+                                    // function must be called from within a event handler that was initiated
+                                    // by the user on Safari.
+                                    if (index === menuItems.length - 1) {
+                                        if (isSafari()) {
+                                            triggerAttachmentPicker();
+                                            return;
+                                        }
+                                        close(() => {
+                                            triggerAttachmentPicker();
+                                        });
                                     }
-                                    close(() => {
-                                        triggerAttachmentPicker();
-                                    });
-                                }
-                            }}
-                            anchorPosition={popoverAnchorPosition ?? {horizontal: 0, vertical: 0}}
-                            anchorAlignment={{
-                                horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
-                                vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
-                            }}
-                            menuItems={menuItems}
-                            anchorRef={actionButtonRef}
-                        />
+                                }}
+                                anchorPosition={popoverAnchorPosition ?? {horizontal: 0, vertical: 0}}
+                                anchorAlignment={{
+                                    horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
+                                    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
+                                }}
+                                menuItems={menuItems}
+                                anchorRef={actionButtonRef}
+                            />
+                        </Activity>
                     </>
                 );
             }}
