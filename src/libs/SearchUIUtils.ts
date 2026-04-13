@@ -3,6 +3,7 @@
 import {addDays, endOfMonth, format, parse, startOfMonth, startOfYear, subDays, subMonths} from 'date-fns';
 import type {TextStyle, ViewStyle} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import {transaction} from 'tests/data/Invoice';
 import type {ValueOf} from 'type-fest';
 import type {CurrencyListActionsContextType} from '@components/CurrencyListContextProvider';
 import type {ExpensifyIconName} from '@components/Icon/ExpensifyIconLoader';
@@ -171,6 +172,8 @@ import {
 import StringUtils from './StringUtils';
 import {getIOUPayerAndReceiver} from './TransactionPreviewUtils';
 import {
+    getAmount,
+    getAttendees,
     getCategory,
     getDescription,
     getExchangeRate,
@@ -3447,6 +3450,31 @@ function getSortedTransactionData(
         });
     }
 
+    if (sortBy === CONST.SEARCH.TABLE_COLUMNS.ATTENDEES) {
+        return data.sort((a, b) => {
+            const aValue = getAttendees(a, undefined).length;
+            const bValue = getAttendees(b, undefined).length;
+            return compareValues(aValue, bValue, sortOrder, sortBy, localeCompare);
+        });
+    }
+
+    if (sortBy === CONST.SEARCH.TABLE_COLUMNS.TOTAL_PER_ATTENDEE) {
+        const getTotalPerAttendee = (t: TransactionListItemType) => {
+            const attendeesCount = getAttendees(t, undefined).length;
+            if (!attendeesCount) {
+                return 0;
+            }
+            const totalAmount = getAmount(t, t.report?.type === CONST.REPORT.TYPE.EXPENSE);
+            return totalAmount / attendeesCount;
+        };
+
+        return data.sort((a, b) => {
+            const aValue = getTotalPerAttendee(a);
+            const bValue = getTotalPerAttendee(b);
+            return compareValues(aValue, bValue, sortOrder, sortBy, localeCompare);
+        });
+    }
+
     if (!sortingProperty) {
         return data;
     }
@@ -4763,8 +4791,6 @@ function getColumnsToShow({
               [CONST.SEARCH.TABLE_COLUMNS.MERCHANT]: false,
               [CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION]: false,
               [CONST.SEARCH.TABLE_COLUMNS.CATEGORY]: false,
-              [CONST.SEARCH.TABLE_COLUMNS.ATTENDEES]: false,
-              [CONST.SEARCH.TABLE_COLUMNS.TOTAL_PER_ATTENDEE]: false,
               [CONST.SEARCH.TABLE_COLUMNS.TAG]: false,
               [CONST.SEARCH.TABLE_COLUMNS.CARD]: false,
               [CONST.SEARCH.TABLE_COLUMNS.TAX_RATE]: false,
@@ -4793,8 +4819,6 @@ function getColumnsToShow({
               [CONST.SEARCH.TABLE_COLUMNS.POLICY_NAME]: false,
               [CONST.SEARCH.TABLE_COLUMNS.CARD]: false,
               [CONST.SEARCH.TABLE_COLUMNS.CATEGORY]: false,
-              [CONST.SEARCH.TABLE_COLUMNS.ATTENDEES]: false,
-              [CONST.SEARCH.TABLE_COLUMNS.TOTAL_PER_ATTENDEE]: false,
               [CONST.SEARCH.TABLE_COLUMNS.TAG]: false,
               [CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE]: false,
               [CONST.SEARCH.TABLE_COLUMNS.BILLABLE]: false,
@@ -4976,18 +5000,8 @@ function getColumnsToShow({
         for (const item of data) {
             updateColumns(item);
         }
-        if (shouldShowAttendees(CONST.IOU.TYPE.SUBMIT, policy)) {
-            columns[CONST.SEARCH.TABLE_COLUMNS.ATTENDEES] = true;
-            columns[CONST.SEARCH.TABLE_COLUMNS.TOTAL_PER_ATTENDEE] = true;
-        }
     } else {
         for (const key of Object.keys(data)) {
-            if (isPolicyEntry(key)) {
-                if (shouldShowAttendees(CONST.IOU.TYPE.SUBMIT, data[key])) {
-                    columns[CONST.SEARCH.TABLE_COLUMNS.ATTENDEES] = true;
-                    columns[CONST.SEARCH.TABLE_COLUMNS.TOTAL_PER_ATTENDEE] = true;
-                }
-            }
             if (!isTransactionEntry(key)) {
                 continue;
             }
@@ -5013,6 +5027,8 @@ function getColumnsToShow({
             CONST.SEARCH.TABLE_COLUMNS.REPORT_ID,
             CONST.SEARCH.TABLE_COLUMNS.TITLE,
             CONST.SEARCH.TABLE_COLUMNS.ACTION,
+            CONST.SEARCH.TABLE_COLUMNS.ATTENDEES,
+            CONST.SEARCH.TABLE_COLUMNS.TOTAL_PER_ATTENDEE,
         ]);
 
         return customResult.filter((col) => nonDataColumns.has(col) || columns[col]);
