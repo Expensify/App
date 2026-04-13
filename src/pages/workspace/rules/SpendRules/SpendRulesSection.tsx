@@ -19,7 +19,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getSpendRuleFormValuesFromCardRule} from '@libs/actions/Card';
 import {openPolicyExpensifyCardsPage} from '@libs/actions/Policy/Policy';
-import {filterInactiveCards, getCardDescriptionForSearchTable, getSelectedCardsSharedCurrency, isCard} from '@libs/CardUtils';
+import {filterInactiveCards, getCardDescriptionForSearchTable, getSelectedCardsSharedCurrency} from '@libs/CardUtils';
 import {convertToBackendAmount, convertToDisplayString} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
@@ -124,10 +124,7 @@ function SpendRulesSection({policyID}: SpendRulesSectionProps) {
                 return undefined;
             }
             const actionLabel = formValues.restrictionAction === CONST.SPEND_RULES.ACTION.BLOCK ? blockLabel : allowLabel;
-            const activeCardIDs = formValues.cardIDs.filter((cardID) => {
-                const card = cardsList?.[cardID];
-                return card && isCard(card);
-            });
+            const activeCardIDs = formValues.cardIDs.filter((cardID) => !!cardsList?.[cardID]);
             if (activeCardIDs.length === 0) {
                 return undefined;
             }
@@ -135,7 +132,7 @@ function SpendRulesSection({policyID}: SpendRulesSectionProps) {
             const cardSummary = getTruncatedSpendRuleSummary(
                 activeCardIDs.map((cardID) => {
                     const card = cardsList?.[cardID];
-                    if (!card || !isCard(card)) {
+                    if (!card) {
                         return cardID;
                     }
 
