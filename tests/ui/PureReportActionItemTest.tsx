@@ -617,6 +617,40 @@ describe('PureReportActionItem', () => {
         });
     });
 
+    describe('Reimbursed actions', () => {
+        it('REIMBURSED action from OldDot should display the message', async () => {
+            // Given a REIMBURSED action without isNewDot flag (created from OldDot)
+            const action = {
+                reportActionID: '12345',
+                actorAccountID: ACTOR_ACCOUNT_ID,
+                created: '2025-07-12 09:03:17.653',
+                actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSED,
+                automatic: false,
+                shouldShow: true,
+                avatar: '',
+                person: [{type: 'TEXT', style: 'strong', text: 'Concierge'}],
+                message: [{type: 'COMMENT', html: 'Reimbursed via ACH', text: 'Reimbursed via ACH'}],
+                originalMessage: {},
+            } as ReportAction;
+
+            renderItemWithAction(action);
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the action message should be displayed
+            expect(screen.getByText('Reimbursed via ACH')).toBeOnTheScreen();
+        });
+
+        it('MARKED_REIMBURSED action from OldDot should display the message', async () => {
+            // Given a MARKED_REIMBURSED action without isNewDot flag (created from OldDot)
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED, {});
+            renderItemWithAction(action);
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the action message should be displayed
+            expect(screen.getByText(translateLocal('iou.paidElsewhere', {}))).toBeOnTheScreen();
+        });
+    });
+
     describe('Modified expense message', () => {
         it('clicking the workspace rules link opens the workspace rules URL', async () => {
             const workspaceRulesUrl = 'https://example.com/workspaces/policy123/rules';
