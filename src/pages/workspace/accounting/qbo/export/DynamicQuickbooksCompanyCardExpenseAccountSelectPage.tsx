@@ -59,7 +59,11 @@ function DynamicQuickbooksCompanyCardExpenseAccountSelectPage({policy}: WithPoli
     }, [qboConfig?.nonReimbursableExpensesAccount, creditCards, bankAccounts, qboConfig?.nonReimbursableExpensesExportDestination, accountPayable]);
 
     const goBack = useCallback(() => {
-        Navigation.goBack(backPath || (policyID && ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_ACCOUNT.getRoute(policyID)));
+        Navigation.goBack(
+            backPath ||
+                (policyID &&
+                    `${ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT.getRoute(policyID)}/${DYNAMIC_ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_ACCOUNT.path}`),
+        );
     }, [policyID, backPath]);
 
     const selectExportAccount = useCallback(
