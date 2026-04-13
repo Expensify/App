@@ -22,6 +22,7 @@ import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePolicyData from '@hooks/usePolicyData';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchBackPress from '@hooks/useSearchBackPress';
 import useSearchResults from '@hooks/useSearchResults';
@@ -69,6 +70,7 @@ function WorkspaceTaxesPage({
     const {translate, localeCompare} = useLocalize();
     const [selectedTaxesIDs, setSelectedTaxesIDs] = useState<string[]>([]);
     const {showConfirmModal} = useConfirmModal();
+    const policyData = usePolicyData(policyID);
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
     const defaultExternalID = policy?.taxRates?.defaultExternalID;
     const foreignTaxDefault = policy?.taxRates?.foreignTaxDefault;
@@ -243,16 +245,16 @@ function WorkspaceTaxesPage({
     };
 
     const deleteTaxes = useCallback(() => {
-        if (!policy?.id) {
+        if (!policyData.policy?.id) {
             return;
         }
-        deletePolicyTaxes(policy, selectedTaxesIDs, localeCompare);
+        deletePolicyTaxes(policyData, selectedTaxesIDs, localeCompare);
 
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             setSelectedTaxesIDs([]);
         });
-    }, [policy, selectedTaxesIDs, localeCompare]);
+    }, [policyData, selectedTaxesIDs, localeCompare]);
 
     const toggleTaxes = useCallback(
         (isEnabled: boolean) => {

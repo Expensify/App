@@ -1,11 +1,17 @@
+import {renderHook} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
+import OnyxListItemProvider from '@components/OnyxListItemProvider';
+import usePolicyData from '@hooks/usePolicyData';
+import type PolicyData from '@hooks/usePolicyData/types';
 import {createPolicyTax, deletePolicyTaxes, renamePolicyTax, setPolicyTaxCode, setPolicyTaxesEnabled, updatePolicyTaxValue} from '@libs/actions/TaxRate';
 import CONST from '@src/CONST';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import * as Policy from '@src/libs/actions/Policy/Policy';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy as PolicyType, TaxRate} from '@src/types/onyx';
+import type {Policy as PolicyType, TaxRate, Transaction, TransactionViolation} from '@src/types/onyx';
 import createRandomPolicy from '../utils/collections/policies';
+import {createExpenseReport} from '../utils/collections/reports';
+import createRandomTransaction from '../utils/collections/transaction';
 import * as TestHelper from '../utils/TestHelper';
 import type {MockFetch} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -33,6 +39,14 @@ describe('actions/PolicyTax', () => {
             },
         },
     };
+    const createPolicyData = (policy: PolicyType): PolicyData => ({
+        policy,
+        categories: {},
+        tags: {},
+        reports: [],
+        transactionsAndViolations: {},
+    });
+
     beforeAll(() => {
         Onyx.init({
             keys: ONYXKEYS,
@@ -704,7 +718,7 @@ describe('actions/PolicyTax', () => {
             const taxID = 'id_TAX_RATE_1';
 
             mockFetch?.pause?.();
-            deletePolicyTaxes(fakePolicy, [taxID], TestHelper.localeCompare);
+            deletePolicyTaxes(createPolicyData(fakePolicy), [taxID], TestHelper.localeCompare);
             return waitForBatchedUpdates()
                 .then(
                     () =>
@@ -758,7 +772,7 @@ describe('actions/PolicyTax', () => {
                 },
             };
             mockFetch?.pause?.();
-            deletePolicyTaxes(fakePolicyWithForeignTaxDefault, [taxID], TestHelper.localeCompare);
+            deletePolicyTaxes(createPolicyData(fakePolicyWithForeignTaxDefault), [taxID], TestHelper.localeCompare);
             return waitForBatchedUpdates()
                 .then(
                     () =>
@@ -805,7 +819,7 @@ describe('actions/PolicyTax', () => {
             const taxID = 'id_TAX_RATE_1';
 
             mockFetch?.pause?.();
-            deletePolicyTaxes(fakePolicy, [taxID], TestHelper.localeCompare);
+            deletePolicyTaxes(createPolicyData(fakePolicy), [taxID], TestHelper.localeCompare);
             return waitForBatchedUpdates()
                 .then(
                     () =>
@@ -849,6 +863,175 @@ describe('actions/PolicyTax', () => {
                             });
                         }),
                 );
+        });
+
+        it('remaps transaction tax code when a matching-value tax still exists', async () => {
+            const taxIDToDelete = 'id_TAX_RATE_1';
+            const replacementTaxID = 'id_TAX_REPLACEMENT';
+            const reportID = '111';
+            const transactionID = '222';
+            const transactionKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}` as `${typeof ONYXKEYS.COLLECTION.TRANSACTION}${string}`;
+            const transactionViolationsKey = `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}` as `${typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${string}`;
+
+            const policyWithMatchingTax: PolicyType = {
+                ...fakePolicy,
+                tax: {trackingEnabled: true},
+                taxRates: {
+                    ...CONST.DEFAULT_TAX,
+                    defaultExternalID: replacementTaxID,
+                    taxes: {
+                        ...CONST.DEFAULT_TAX.taxes,
+                        [taxIDToDelete]: {
+                            name: 'Old Tax',
+                            value: '5%',
+                        },
+                        [replacementTaxID]: {
+                            name: 'New Tax',
+                            value: '5%',
+                        },
+                    },
+                },
+            };
+
+            const report = {
+                ...createExpenseReport(Number(reportID)),
+                reportID,
+                policyID: policyWithMatchingTax.id,
+                type: CONST.REPORT.TYPE.EXPENSE,
+            };
+            const transaction: Transaction = {
+                ...createRandomTransaction(Number(transactionID)),
+                transactionID,
+                reportID,
+                taxCode: taxIDToDelete,
+                taxValue: '5%',
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyWithMatchingTax.id}`, policyWithMatchingTax);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
+            await Onyx.set(transactionKey, transaction);
+            await Onyx.set(transactionViolationsKey, []);
+            await Onyx.set(ONYXKEYS.DERIVED.REPORT_TRANSACTIONS_AND_VIOLATIONS, {
+                [reportID]: {
+                    transactions: {
+                        [transactionID]: transaction,
+                    },
+                    violations: {
+                        [transactionViolationsKey]: [],
+                    },
+                },
+            });
+            await waitForBatchedUpdates();
+
+            const {result: policyDataResult} = renderHook(() => usePolicyData(policyWithMatchingTax.id), {wrapper: OnyxListItemProvider});
+
+            mockFetch?.pause?.();
+            deletePolicyTaxes(policyDataResult.current, [taxIDToDelete], TestHelper.localeCompare);
+            await waitForBatchedUpdates();
+
+            let optimisticTransaction: Transaction | undefined;
+            await TestHelper.getOnyxData({
+                key: transactionKey,
+                callback: (value) => {
+                    optimisticTransaction = value;
+                },
+            });
+
+            let optimisticViolations: TransactionViolation[] | null | undefined;
+            await TestHelper.getOnyxData({
+                key: transactionViolationsKey,
+                callback: (value) => {
+                    optimisticViolations = value;
+                },
+            });
+
+            expect(optimisticTransaction?.taxCode).toBe(replacementTaxID);
+            expect(optimisticViolations?.some((violation) => violation.name === CONST.VIOLATIONS.TAX_OUT_OF_POLICY)).toBe(false);
+
+            await mockFetch?.resume?.();
+            await waitForBatchedUpdates();
+        });
+
+        it('keeps deleted tax code and adds violation when no matching-value tax exists', async () => {
+            const taxIDToDelete = 'id_TAX_RATE_1';
+            const reportID = '333';
+            const transactionID = '444';
+            const transactionKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}` as `${typeof ONYXKEYS.COLLECTION.TRANSACTION}${string}`;
+            const transactionViolationsKey = `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}` as `${typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${string}`;
+
+            const policyWithoutMatchingTax: PolicyType = {
+                ...fakePolicy,
+                tax: {trackingEnabled: true},
+                taxRates: {
+                    ...CONST.DEFAULT_TAX,
+                    defaultExternalID: 'id_TAX_EXEMPT',
+                    taxes: {
+                        ...CONST.DEFAULT_TAX.taxes,
+                        [taxIDToDelete]: {
+                            name: 'Old Tax',
+                            value: '5%',
+                        },
+                    },
+                },
+            };
+
+            const report = {
+                ...createExpenseReport(Number(reportID)),
+                reportID,
+                policyID: policyWithoutMatchingTax.id,
+                type: CONST.REPORT.TYPE.EXPENSE,
+            };
+            const transaction: Transaction = {
+                ...createRandomTransaction(Number(transactionID)),
+                transactionID,
+                reportID,
+                taxCode: taxIDToDelete,
+                taxValue: '5%',
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyWithoutMatchingTax.id}`, policyWithoutMatchingTax);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
+            await Onyx.set(transactionKey, transaction);
+            await Onyx.set(transactionViolationsKey, []);
+            await Onyx.set(ONYXKEYS.DERIVED.REPORT_TRANSACTIONS_AND_VIOLATIONS, {
+                [reportID]: {
+                    transactions: {
+                        [transactionID]: transaction,
+                    },
+                    violations: {
+                        [transactionViolationsKey]: [],
+                    },
+                },
+            });
+            await waitForBatchedUpdates();
+
+            const {result: policyDataResult} = renderHook(() => usePolicyData(policyWithoutMatchingTax.id), {wrapper: OnyxListItemProvider});
+
+            mockFetch?.pause?.();
+            deletePolicyTaxes(policyDataResult.current, [taxIDToDelete], TestHelper.localeCompare);
+            await waitForBatchedUpdates();
+
+            let optimisticTransaction: Transaction | undefined;
+            await TestHelper.getOnyxData({
+                key: transactionKey,
+                callback: (value) => {
+                    optimisticTransaction = value;
+                },
+            });
+
+            let optimisticViolations: TransactionViolation[] | null | undefined;
+            await TestHelper.getOnyxData({
+                key: transactionViolationsKey,
+                callback: (value) => {
+                    optimisticViolations = value;
+                },
+            });
+
+            expect(optimisticTransaction?.taxCode).toBe(taxIDToDelete);
+            expect(optimisticViolations?.some((violation) => violation.name === CONST.VIOLATIONS.TAX_OUT_OF_POLICY)).toBe(true);
+
+            await mockFetch?.resume?.();
+            await waitForBatchedUpdates();
         });
     });
     describe('SetPolicyTaxCode', () => {
