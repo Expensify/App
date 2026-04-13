@@ -786,7 +786,7 @@ function TransactionItemRow({
                             transaction={transactionItem}
                             violations={violations}
                             report={report}
-                            containerStyles={[styles.mt2, styles.minHeight4]}
+                            containerStyles={[styles.mt3, styles.minHeight4]}
                             missingFieldError={missingFieldError}
                             transactionThreadReportID={transactionThreadReportID}
                             shouldUseNarrowLayout
