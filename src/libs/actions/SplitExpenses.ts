@@ -6,7 +6,7 @@ import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTop
 import Navigation from '@libs/Navigation/Navigation';
 import {rand64} from '@libs/NumberUtils';
 import {getTransactionDetails, isOpenReport, isSelfDM} from '@libs/ReportUtils';
-import {buildOptimisticTransaction, getChildTransactions, getOriginalTransactionWithSplitInfo, isDistanceRequest} from '@libs/TransactionUtils';
+import {buildOptimisticTransaction, getChildTransactions, getOriginalTransactionWithSplitInfo, isDistanceRequest, isExpenseUnreported} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -149,11 +149,13 @@ function initSplitExpense(transaction: OnyxEntry<Transaction>, policy?: OnyxEntr
         // by searching all policies for one that contains the transaction's customUnitID.
         // If customUnitID is not yet available (e.g. optimistic transaction before server response),
         // fall back to searching by customUnitRateID.
+        // Skip the lookup entirely for unreported or P2P expenses — their rate should resolve via the P2P default.
         const customUnitID = transaction?.comment?.customUnit?.customUnitID;
         const customUnitRateID = transaction?.comment?.customUnit?.customUnitRateID;
-        const policyByCustomUnitID = customUnitID ? (Object.values(allPolicies ?? {}).find((p) => p?.customUnits?.[customUnitID]) ?? undefined) : undefined;
+        const isP2POrUnreported = customUnitRateID === CONST.CUSTOM_UNITS.FAKE_P2P_ID || isExpenseUnreported(transaction);
+        const policyByCustomUnitID = !isP2POrUnreported && customUnitID ? (Object.values(allPolicies ?? {}).find((p) => p?.customUnits?.[customUnitID]) ?? undefined) : undefined;
         const policyByCustomUnitRateID =
-            !policyByCustomUnitID && customUnitRateID && customUnitRateID !== CONST.CUSTOM_UNITS.FAKE_P2P_ID
+            !isP2POrUnreported && !policyByCustomUnitID && customUnitRateID
                 ? (Object.values(allPolicies ?? {}).find((p) => Object.values(p?.customUnits ?? {}).some((unit) => !!unit.rates?.[customUnitRateID])) ?? undefined)
                 : undefined;
         const effectivePolicy = policy ?? policyByCustomUnitID ?? policyByCustomUnitRateID;

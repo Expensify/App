@@ -59,6 +59,7 @@ import {
     getTransactionType,
     isCustomUnitRateIDForP2P,
     isDistanceRequest,
+    isExpenseUnreported,
     isManagedCardTransaction,
     isPerDiemRequest,
 } from '@libs/TransactionUtils';
@@ -120,11 +121,13 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     // by searching all policies for one that contains the transaction's customUnitID.
     // If customUnitID is not yet available (e.g. optimistic transaction before server response),
     // fall back to searching by customUnitRateID.
+    // Skip the lookup entirely for unreported or P2P expenses — their rate should resolve via the P2P default.
     const distanceCustomUnitID = transaction?.comment?.customUnit?.customUnitID;
     const distanceCustomUnitRateID = transaction?.comment?.customUnit?.customUnitRateID;
-    const policyByCustomUnitID = distanceCustomUnitID ? (Object.values(allPolicies ?? {}).find((p) => p?.customUnits?.[distanceCustomUnitID]) ?? undefined) : undefined;
+    const isP2POrUnreported = distanceCustomUnitRateID === CONST.CUSTOM_UNITS.FAKE_P2P_ID || isExpenseUnreported(transaction);
+    const policyByCustomUnitID = !isP2POrUnreported && distanceCustomUnitID ? (Object.values(allPolicies ?? {}).find((p) => p?.customUnits?.[distanceCustomUnitID]) ?? undefined) : undefined;
     const policyByCustomUnitRateID =
-        !policyByCustomUnitID && distanceCustomUnitRateID && distanceCustomUnitRateID !== CONST.CUSTOM_UNITS.FAKE_P2P_ID
+        !isP2POrUnreported && !policyByCustomUnitID && distanceCustomUnitRateID
             ? (Object.values(allPolicies ?? {}).find((p) => Object.values(p?.customUnits ?? {}).some((unit) => !!unit.rates?.[distanceCustomUnitRateID])) ?? undefined)
             : undefined;
     const effectivePolicy = currentPolicy ?? policyByCustomUnitID ?? policyByCustomUnitRateID;

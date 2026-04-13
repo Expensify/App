@@ -78,11 +78,14 @@ function IOURequestStepDistanceRate({
     // report has no policyID. In that case, find the correct policy by searching for the one that contains
     // the transaction's customUnitID. If customUnitID is not available (e.g. optimistic transaction before
     // server response), fall back to searching by customUnitRateID.
+    // Skip the lookup entirely for unreported or P2P expenses — their rate should resolve via the P2P default.
     const distanceCustomUnitID = currentTransaction?.comment?.customUnit?.customUnitID;
     const distanceCustomUnitRateID = currentTransaction?.comment?.customUnit?.customUnitRateID;
-    const policyByCustomUnitID = isEditingSplit && distanceCustomUnitID ? (Object.values(allPolicies ?? {}).find((p) => p?.customUnits?.[distanceCustomUnitID]) ?? undefined) : undefined;
+    const isP2POrUnreported = distanceCustomUnitRateID === CONST.CUSTOM_UNITS.FAKE_P2P_ID || isExpenseUnreported(currentTransaction);
+    const policyByCustomUnitID =
+        isEditingSplit && !isP2POrUnreported && distanceCustomUnitID ? (Object.values(allPolicies ?? {}).find((p) => p?.customUnits?.[distanceCustomUnitID]) ?? undefined) : undefined;
     const policyByCustomUnitRateID =
-        isEditingSplit && !policyByCustomUnitID && distanceCustomUnitRateID && distanceCustomUnitRateID !== CONST.CUSTOM_UNITS.FAKE_P2P_ID
+        isEditingSplit && !isP2POrUnreported && !policyByCustomUnitID && distanceCustomUnitRateID
             ? (Object.values(allPolicies ?? {}).find((p) => Object.values(p?.customUnits ?? {}).some((unit) => !!unit.rates?.[distanceCustomUnitRateID])) ?? undefined)
             : undefined;
     const policy = policyForTransaction ?? policyByCustomUnitID ?? policyByCustomUnitRateID;

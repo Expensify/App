@@ -36,7 +36,7 @@ import {isSplitAction} from '@libs/ReportSecondaryActionUtils';
 import type {TransactionDetails} from '@libs/ReportUtils';
 import {getParsedComment, getReportOrDraftReport, getTransactionDetails} from '@libs/ReportUtils';
 import {getTagVisibility, hasEnabledTags} from '@libs/TagsOptionsListUtils';
-import {getDistanceInMeters, getRateID, getTag, getTagForDisplay, isDistanceRequest, isManualDistanceRequest, isOdometerDistanceRequest} from '@libs/TransactionUtils';
+import {getDistanceInMeters, getRateID, getTag, getTagForDisplay, isDistanceRequest, isExpenseUnreported, isManualDistanceRequest, isOdometerDistanceRequest} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -83,11 +83,13 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
     // Fall back to the original transaction's customUnitID when the edit draft's customUnit
     // was built without it (e.g. optimistic transaction before server response).
     // If customUnitID is still not available, fall back to searching by customUnitRateID.
+    // Skip the lookup entirely for unreported or P2P expenses — their rate should resolve via the P2P default.
     const distanceCustomUnitID = splitExpenseDraftTransaction?.comment?.customUnit?.customUnitID ?? transaction?.comment?.customUnit?.customUnitID;
     const distanceCustomUnitRateID = splitExpenseDraftTransaction?.comment?.customUnit?.customUnitRateID;
-    const policyByCustomUnitID = distanceCustomUnitID ? (Object.values(allPolicies ?? {}).find((p) => p?.customUnits?.[distanceCustomUnitID]) ?? undefined) : undefined;
+    const isP2POrUnreported = distanceCustomUnitRateID === CONST.CUSTOM_UNITS.FAKE_P2P_ID || isExpenseUnreported(transaction);
+    const policyByCustomUnitID = !isP2POrUnreported && distanceCustomUnitID ? (Object.values(allPolicies ?? {}).find((p) => p?.customUnits?.[distanceCustomUnitID]) ?? undefined) : undefined;
     const policyByCustomUnitRateID =
-        !policyByCustomUnitID && distanceCustomUnitRateID && distanceCustomUnitRateID !== CONST.CUSTOM_UNITS.FAKE_P2P_ID
+        !isP2POrUnreported && !policyByCustomUnitID && distanceCustomUnitRateID
             ? (Object.values(allPolicies ?? {}).find((p) => Object.values(p?.customUnits ?? {}).some((unit) => !!unit.rates?.[distanceCustomUnitRateID])) ?? undefined)
             : undefined;
     const effectivePolicy = currentPolicy ?? policyByCustomUnitID ?? policyByCustomUnitRateID;

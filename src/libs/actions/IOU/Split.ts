@@ -2040,7 +2040,7 @@ function updateSplitTransactions({
             return acc;
         }, []);
 
-        if (deletedSplitSnapshotKeys.length > 0) {
+        if (deletedSplitSnapshotKeys.length > 0 || newSelfDMSplitTransactions.length > 0) {
             const snapshotKeysToUpdate = new Set<`${typeof ONYXKEYS.COLLECTION.SNAPSHOT}${string}`>();
             const currentSearchHash = searchContext?.currentSearchHash;
             const activeGroupSearchHashes = searchContext?.activeGroupSearchHashes ?? [];
@@ -2055,34 +2055,42 @@ function updateSplitTransactions({
                 }
             }
 
-            const relevantSnapshotKeys = Array.from(snapshotKeysToUpdate).filter((snapshotKey) => {
-                const snapshot = allSnapshots?.[snapshotKey];
-                if (!snapshot?.data) {
-                    return false;
-                }
-
-                return deletedSplitSnapshotKeys.some((deletedSplitSnapshotKey) => Object.hasOwn(snapshot.data, deletedSplitSnapshotKey));
-            });
-
             const originalSnapshotTransactionKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}` as const;
             const revertedOriginalTransactionUpdate = [...(onyxData.optimisticData ?? [])].reverse().find((update) => {
                 return update.key === originalSnapshotTransactionKey && update.value && typeof update.value === 'object' && 'reportID' in update.value;
             });
             const revertedOriginalTransaction = revertedOriginalTransactionUpdate?.value as OnyxTypes.Transaction | undefined;
 
-            for (const snapshotKey of relevantSnapshotKeys) {
+            for (const snapshotKey of snapshotKeysToUpdate) {
                 const previousSnapshotData = allSnapshots?.[snapshotKey]?.data;
+                if (!previousSnapshotData) {
+                    continue;
+                }
+
                 const optimisticSnapshotData: Partial<Record<`${typeof ONYXKEYS.COLLECTION.TRANSACTION}${string}`, OnyxTypes.Transaction | null>> = {};
                 const failureSnapshotData: Partial<Record<`${typeof ONYXKEYS.COLLECTION.TRANSACTION}${string}`, OnyxTypes.Transaction | null>> = {};
 
-                for (const deletedSplitSnapshotKey of deletedSplitSnapshotKeys) {
-                    optimisticSnapshotData[deletedSplitSnapshotKey] = null;
-                    failureSnapshotData[deletedSplitSnapshotKey] = previousSnapshotData?.[deletedSplitSnapshotKey] ?? null;
+                const hasSplitKeys = deletedSplitSnapshotKeys.some((key) => Object.hasOwn(previousSnapshotData, key));
+                if (hasSplitKeys) {
+                    for (const deletedSplitSnapshotKey of deletedSplitSnapshotKeys) {
+                        optimisticSnapshotData[deletedSplitSnapshotKey] = null;
+                        failureSnapshotData[deletedSplitSnapshotKey] = previousSnapshotData[deletedSplitSnapshotKey] ?? null;
+                    }
+
+                    if (revertedOriginalTransaction) {
+                        optimisticSnapshotData[originalSnapshotTransactionKey] = revertedOriginalTransaction;
+                        failureSnapshotData[originalSnapshotTransactionKey] = previousSnapshotData[originalSnapshotTransactionKey] ?? null;
+                    }
+                } else {
+                    // Snapshot doesn't contain the split children — inject the restored original transaction so it appears in Reports > Expenses.
+                    for (const tx of newSelfDMSplitTransactions) {
+                        optimisticSnapshotData[`${ONYXKEYS.COLLECTION.TRANSACTION}${tx.transactionID}`] = tx;
+                        failureSnapshotData[`${ONYXKEYS.COLLECTION.TRANSACTION}${tx.transactionID}`] = null;
+                    }
                 }
 
-                if (revertedOriginalTransaction) {
-                    optimisticSnapshotData[originalSnapshotTransactionKey] = revertedOriginalTransaction;
-                    failureSnapshotData[originalSnapshotTransactionKey] = previousSnapshotData?.[originalSnapshotTransactionKey] ?? null;
+                if (Object.keys(optimisticSnapshotData).length === 0) {
+                    continue;
                 }
 
                 onyxData.optimisticData?.push({
@@ -2394,31 +2402,6 @@ function updateSplitTransactions({
                     },
                 },
             );
-        }
-
-        // For selfDM revert, add the restored original transaction to the snapshot so it appears in Reports > Expenses.
-        // The newSelfDMSplitTransactions array holds the optimistic reverted transaction built in the loop above,
-        // but the snapshot update block for this array is inside !isReverseSplitOperation, so we handle it here.
-        if (newSelfDMSplitTransactions.length > 0) {
-            const optimisticSnapshotData: Record<string, OnyxTypes.Transaction> = {};
-            const failureSnapshotData: Record<string, null> = {};
-            for (const tx of newSelfDMSplitTransactions) {
-                optimisticSnapshotData[`${ONYXKEYS.COLLECTION.TRANSACTION}${tx.transactionID}`] = tx;
-                failureSnapshotData[`${ONYXKEYS.COLLECTION.TRANSACTION}${tx.transactionID}`] = null;
-            }
-
-            // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
-            onyxData.optimisticData?.push({
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${searchContext?.currentSearchHash}`,
-                value: {data: optimisticSnapshotData},
-            });
-
-            onyxData.failureData?.push({
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${searchContext?.currentSearchHash}`,
-                value: {data: failureSnapshotData},
-            });
         }
     }
 
