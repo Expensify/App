@@ -72,7 +72,7 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
 
     const {groupPreFilter, groupOptions, selectedGroup, handleGroupChange, dropdownLabel, groups} = useDomainGroupFilter(domainAccountID);
 
-    const groupPopoverComponent = ({closeOverlay}: PopoverComponentProps) => (
+    const groupPopoverComponent = ({closeOverlay, isExpanded}: PopoverComponentProps) => (
         <SingleSelectPopup
             label={translate('common.group')}
             items={groupOptions}
@@ -81,6 +81,7 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
             onChange={handleGroupChange}
             defaultValue={groupOptions.at(0)?.value}
             selectionListStyle={{listItemWrapperStyle: {minHeight: 40}}}
+            keepListMounted={isExpanded}
         />
     );
 
