@@ -209,7 +209,7 @@ const POLICY_CHANGE_LOG_RESOLVERS: Record<string, ResolverFn> = {
 const HANDLED_POLICY_CHANGE_LOG_ACTIONS = new Set<string>(Object.keys(POLICY_CHANGE_LOG_RESOLVERS));
 
 function isHandledPolicyChangeLogAction(action: OnyxTypes.ReportAction): boolean {
-    return action.actionName in POLICY_CHANGE_LOG_RESOLVERS;
+    return HANDLED_POLICY_CHANGE_LOG_ACTIONS.has(action.actionName);
 }
 
 type PolicyChangeLogContentProps = {
