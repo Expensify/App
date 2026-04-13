@@ -11,8 +11,8 @@ import isSearchTopmostFullScreenRoute from './isSearchTopmostFullScreenRoute';
 import setNavigationActionToMicrotaskQueue from './setNavigationActionToMicrotaskQueue';
 
 /**
- * Dismisses the expense creation modal and navigates to the report containing the expense.
- * Handles multiple layout contexts: super-wide RHP, wide RHP (single/multi-transaction), search page, and default.
+ * After finishing the action in RHP from the Inbox tab, besides dismissing the modal, we should open the report.
+ * If the action is done from the report RHP, then we just want to dismiss the money request flow screens.
  */
 function dismissModalAndOpenReportInInboxTab(reportID: string | undefined, isInvoice: boolean | undefined, hasMultipleTransactions: boolean) {
     const rootState = navigationRef.getRootState();

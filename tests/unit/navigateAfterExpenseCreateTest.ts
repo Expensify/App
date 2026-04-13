@@ -40,6 +40,8 @@ jest.mock('@libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
     revealRouteBeforeDismissingModal: jest.fn(),
     isNavigationReady: jest.fn(() => Promise.resolve()),
+    getIsFullscreenPreInsertedUnderRHP: jest.fn(() => false),
+    clearFullscreenPreInsertedFlag: jest.fn(),
     navigationRef: {
         getRootState: jest.fn(() => ({
             routes: [],
@@ -141,5 +143,21 @@ describe('navigateAfterExpenseCreate', () => {
         });
 
         expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SEARCH_ROOT.getRoute({query: 'type:invoice'}), {forceReplace: true});
+    });
+
+    it('should use pre-insert fast path on narrow layout when fullscreen is pre-inserted', () => {
+        mockGetIsNarrowLayout.mockReturnValue(true);
+        (Navigation.getIsFullscreenPreInsertedUnderRHP as jest.Mock).mockReturnValueOnce(true);
+
+        navigateAfterExpenseCreate({
+            activeReportID: 'report-123',
+            transactionID: 'txn-1',
+            isFromGlobalCreate: true,
+            hasMultipleTransactions: false,
+        });
+
+        expect(Navigation.clearFullscreenPreInsertedFlag).toHaveBeenCalled();
+        expect(Navigation.dismissModal).toHaveBeenCalled();
+        expect(Navigation.navigate).not.toHaveBeenCalled();
     });
 });

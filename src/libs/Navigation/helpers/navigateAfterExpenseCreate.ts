@@ -1,4 +1,5 @@
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
+import Log from '@libs/Log';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import {buildCannedSearchQuery, getCurrentSearchQueryJSON} from '@libs/SearchQueryUtils';
 import {setPendingSubmitFollowUpAction} from '@libs/telemetry/submitFollowUpAction';
@@ -19,9 +20,11 @@ type NavigateAfterExpenseCreateParams = {
 };
 
 /**
- * Navigates to the appropriate screen after an expense is created.
- * - If not from global create, on the inbox tab, or no transactionID: dismisses modal and opens the report.
- * - If from global create and not on inbox: navigates to Search (Expenses or Invoices).
+ * Helper to navigate after an expense is created in order to standardize the post‑creation experience
+ * when creating an expense from the global create button.
+ * If the expense is created from the global create button then:
+ * - If it is created on the inbox tab, it will open the chat report containing that expense.
+ * - If it is created elsewhere, it will navigate to Reports > Expense and highlight the newly created expense.
  */
 function navigateAfterExpenseCreate({activeReportID, transactionID, isFromGlobalCreate, isInvoice, hasMultipleTransactions}: NavigateAfterExpenseCreateParams) {
     const isUserOnInbox = isReportTopmostSplitNavigator();
@@ -50,8 +53,19 @@ function navigateAfterExpenseCreate({activeReportID, transactionID, isFromGlobal
 
     const queryString = buildCannedSearchQuery({type});
     const navigateToSearch = () => {
-        if (getIsNarrowLayout()) {
-            Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: queryString}), {forceReplace: true});
+        // On the fast path, onConfirm already cleared the flag and dismissed the modal,
+        // so this branch is only reached on the slow path (user submitted before the
+        // 300ms pre-insert timer fired).
+        if (getIsNarrowLayout() && Navigation.getIsFullscreenPreInsertedUnderRHP()) {
+            Navigation.clearFullscreenPreInsertedFlag();
+            Navigation.dismissModal();
+        } else if (getIsNarrowLayout()) {
+            const isRHPStillOnTop = navigationRef.getRootState()?.routes?.at(-1)?.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR;
+            if (!alreadyOnSearchRoot || !isSameSearchType || isRHPStillOnTop) {
+                Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: queryString}), {forceReplace: true});
+            } else {
+                Log.info('[IOU] navigateToSearch: already on matching Search root with RHP dismissed — no-op');
+            }
         } else {
             Navigation.revealRouteBeforeDismissingModal(ROUTES.SEARCH_ROOT.getRoute({query: queryString}));
         }
