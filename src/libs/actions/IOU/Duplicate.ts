@@ -661,6 +661,7 @@ type DuplicateExpenseTransactionParams = {
     shouldPlaySound?: boolean;
     shouldDeferAutoSubmit?: boolean;
     existingIOUReport?: OnyxEntry<OnyxTypes.Report>;
+    optimisticReportPreviewActionID?: string;
 };
 
 function duplicateExpenseTransaction({
@@ -686,6 +687,7 @@ function duplicateExpenseTransaction({
     shouldPlaySound = true,
     shouldDeferAutoSubmit = false,
     existingIOUReport,
+    optimisticReportPreviewActionID: externalReportPreviewActionID,
 }: DuplicateExpenseTransactionParams) {
     if (!transaction) {
         return;
@@ -704,7 +706,7 @@ function duplicateExpenseTransaction({
         optimisticChatReportID,
         optimisticCreatedReportActionID: NumberUtils.rand64(),
         optimisticIOUReportID,
-        optimisticReportPreviewActionID: NumberUtils.rand64(),
+        optimisticReportPreviewActionID: externalReportPreviewActionID ?? NumberUtils.rand64(),
         participantParams: {
             payeeAccountID: userAccountID,
             payeeEmail: currentUserEmail,
@@ -988,6 +990,7 @@ function bulkDuplicateExpenses({
 
     const optimisticChatReportID = generateReportID();
     const optimisticIOUReportID = generateReportID();
+    const sharedReportPreviewActionID = NumberUtils.rand64();
 
     // After the first iteration creates a new optimistic IOU report, subsequent
     // iterations must know its ID so getMoneyRequestInformation can find and
@@ -1031,6 +1034,7 @@ function bulkDuplicateExpenses({
             shouldPlaySound: false,
             shouldDeferAutoSubmit: !isLastExpense,
             existingIOUReport: optimisticIOUReport,
+            optimisticReportPreviewActionID: sharedReportPreviewActionID,
         });
 
         if (result?.iouReport) {
