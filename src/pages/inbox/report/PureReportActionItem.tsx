@@ -125,7 +125,6 @@ import {
     isMessageDeleted,
     isMoneyRequestAction,
     isPendingRemove,
-    isPolicyChangeLogAction,
     isReimbursementDeQueuedOrCanceledAction,
     isReimbursementQueuedAction,
     isRejectedAction,
@@ -186,7 +185,7 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type {JoinWorkspaceResolution} from '@src/types/onyx/OriginalMessage';
 import {isEmptyObject, isEmptyValueObject} from '@src/types/utils/EmptyObject';
-import PolicyChangeLogContent from './actionContents/PolicyChangeLogContent';
+import PolicyChangeLogContent, {isHandledPolicyChangeLogAction} from './actionContents/PolicyChangeLogContent';
 import {RestrictedReadOnlyContextMenuActions} from './ContextMenu/ContextMenuActions';
 import MiniReportActionContextMenu from './ContextMenu/MiniReportActionContextMenu';
 import type {ContextMenuAnchor} from './ContextMenu/ReportActionContextMenu';
@@ -1404,7 +1403,7 @@ function PureReportActionItem({
             }
         } else if (isRejectedAction(action)) {
             children = <ReportActionItemBasicMessage message={translate('iou.rejectedThisReport')} />;
-        } else if (isPolicyChangeLogAction(action)) {
+        } else if (isHandledPolicyChangeLogAction(action)) {
             children = (
                 <PolicyChangeLogContent
                     action={action}
