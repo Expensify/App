@@ -357,7 +357,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
         leaveChat();
     }, [showConfirmModal, translate, leaveChat]);
 
-    const shouldShowLeaveButton = canLeaveChat(report, policy, !!reportNameValuePairs?.private_isArchived);
+    const shouldShowLeaveButton = canLeaveChat(report, policy, currentUserPersonalDetails?.accountID, !!reportNameValuePairs?.private_isArchived);
     const shouldShowGoToWorkspace = shouldShowPolicy(policy, false, currentUserPersonalDetails?.email) && !policy?.isJoinRequestPending;
 
     const reportForHeader = useMemo(() => getReportForHeader(report), [report]);
@@ -853,7 +853,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
     const fieldKey = getReportFieldKey(titleField?.fieldID);
     const isFieldDisabled = isReportFieldDisabled(report, titleField, policy);
 
-    const shouldShowEditableTitleField = caseID !== CASES.MONEY_REQUEST && canEditReportTitle(report, policy);
+    const shouldShowEditableTitleField = caseID !== CASES.MONEY_REQUEST && canEditReportTitle(report, policy, currentUserPersonalDetails?.accountID);
 
     const nameSectionFurtherDetailsContent = (
         <ParentNavigationSubtitle
