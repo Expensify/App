@@ -20,7 +20,9 @@ import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigat
 import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
 import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import {isSearchDataLoaded} from '@libs/SearchUIUtils';
+import {endSubmitFollowUpActionSpan, getPendingSubmitFollowUpAction} from '@libs/telemetry/submitFollowUpAction';
 import Navigation from '@navigation/Navigation';
+import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {SearchResults} from '@src/types/onyx';
@@ -58,6 +60,19 @@ function SearchPageWide({
     const {shouldUseLiveData} = useSearchStateContext();
     const {saveScrollOffset} = useContext(ScrollOffsetContext);
     const receiptDropTargetRef = useRef<View>(null);
+
+    // Wide layout doesn't need the focus+layout dual-gate (pre-insert is narrow-only),
+    // but the callback signature must match onDestinationVisible's type.
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const endSubmitNavigationSpans = useCallback((wasListEmpty: boolean, _source: 'focus' | 'layout') => {
+        const pending = getPendingSubmitFollowUpAction();
+        if (pending && pending.followUpAction !== CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_AND_OPEN_REPORT) {
+            endSubmitFollowUpActionSpan(pending.followUpAction, undefined, {
+                [CONST.TELEMETRY.ATTRIBUTE_IS_WARM]: true,
+                [CONST.TELEMETRY.ATTRIBUTE_WAS_LIST_EMPTY]: wasListEmpty,
+            });
+        }
+    }, []);
 
     const scrollHandler = useCallback(
         (e: NativeSyntheticEvent<NativeScrollEvent>) => {
@@ -130,6 +145,7 @@ function SearchPageWide({
                                     onSearchListScroll={scrollHandler}
                                     onSortPressedCallback={onSortPressedCallback}
                                     searchRequestResponseStatusCode={searchRequestResponseStatusCode}
+                                    onDestinationVisible={endSubmitNavigationSpans}
                                 />
                             )}
                             {shouldShowFooter && (

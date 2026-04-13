@@ -2788,6 +2788,7 @@ function getCardSections(
                             cardName: cardGroup.cardName,
                             lastFourPAN: cardGroup.lastFourPAN,
                         } as OnyxTypes.Card,
+                        translate,
                         personalDetails?.displayName,
                     );
                     cardDescriptionByCardID.set(cardGroup.cardID, formattedCardName);

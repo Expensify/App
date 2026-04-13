@@ -1354,6 +1354,44 @@ const translations: TranslationDeepObject<typeof en> = {
         paidWithExpensify: (payer?: string) => `${payer ? `${payer} ` : ''}ウォレットで支払い済み`,
         automaticallyPaidWithExpensify: (payer?: string) =>
             `${payer ? `${payer} ` : ''}は<a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">ワークスペースルール</a>経由でExpensifyにより支払われました`,
+        reimbursedThisReport: 'このレポートを精算しました',
+        paidThisBill: 'この請求書を支払いました',
+        reimbursedOnBehalfOf: (actor: string) => `${actor}に代わって`,
+        reimbursedFromBankAccount: (debitBankAccount: string) => `末尾が ${debitBankAccount} の銀行口座から`,
+        reimbursedSubmitterAddedBankAccount: (submitter: string) => `${submitter} さんが銀行口座を追加し、レポートの保留を解除しました。払い戻しを開始しました。`,
+        reimbursedWithFastACH: ({
+            isCurrentUser,
+            submitterLogin,
+            creditBankAccount,
+            expectedDate,
+        }: {
+            isCurrentUser: boolean;
+            submitterLogin: string;
+            creditBankAccount: string;
+            expectedDate: string;
+        }) =>
+            isCurrentUser
+                ? `. ${creditBankAccount ? `預金口座（末尾番号 ${creditBankAccount}）` : 'アカウント'} にお金を送金中です。払い戻しは ${expectedDate} に完了する見込みです。`
+                : `. ${submitterLogin} さんへの${creditBankAccount ? `預金口座（末尾番号 ${creditBankAccount}）` : 'アカウント'}への送金中です。払い戻しの完了予定日は ${expectedDate} です。`,
+        reimbursedWithCheck: '小切手で',
+        reimbursedWithStripeConnect: ({
+            isCurrentUser,
+            submitterLogin,
+            creditBankAccount,
+            isCard,
+        }: {
+            isCurrentUser: boolean;
+            submitterLogin: string;
+            creditBankAccount: string;
+            isCard: boolean;
+        }) => {
+            const paymentMethod = isCard ? 'カード' : '銀行口座';
+            return isCurrentUser
+                ? `. ${paymentMethod}で支払われた資金が、お客様の${creditBankAccount ? `預金口座（末尾番号 ${creditBankAccount}）` : 'アカウント'}に向けて送金中です。最大で10営業日かかる場合があります。`
+                : `. ${submitterLogin} さんの ${creditBankAccount ? `預金口座（末尾番号 ${creditBankAccount}）` : 'アカウント'} へ送金中です（${paymentMethod} で支払われます）。最大 10 営業日かかる場合があります。`;
+        },
+        reimbursedWithACH: ({creditBankAccount, expectedDate}: {creditBankAccount?: string; expectedDate?: string}) =>
+            `直接入金（ACH）で${creditBankAccount ? `${creditBankAccount}で終わる銀行口座へ。` : '. '}${expectedDate ? `払戻しは${expectedDate}までに完了する見込みです。` : '通常、営業日で4～5日かかります。'}`,
         noReimbursableExpenses: 'このレポートには無効な金額が含まれています',
         pendingConversionMessage: 'オンラインに戻ると合計が更新されます',
         changedTheExpense: '経費を変更しました',
@@ -7909,6 +7947,7 @@ ${reportName}
         personalCard: '個人のカード',
         companyCard: '会社カード',
         expensifyCard: 'Expensify カード',
+        centralInvoicing: '集中請求',
     },
     distance: {
         addStop: '経由地を追加',

@@ -1369,6 +1369,44 @@ const translations: TranslationDeepObject<typeof en> = {
         paidWithExpensify: (payer?: string) => `${payer ? `${payer} ` : ''}zapłacono z portfela`,
         automaticallyPaidWithExpensify: (payer?: string) =>
             `${payer ? `${payer} ` : ''}zapłacono przez Expensify za pomocą <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">reguł przestrzeni roboczej</a>`,
+        reimbursedThisReport: 'zwrócił(-a) koszty z tego raportu',
+        paidThisBill: 'zapłacił(a) ten rachunek',
+        reimbursedOnBehalfOf: (actor: string) => `w imieniu ${actor}`,
+        reimbursedFromBankAccount: (debitBankAccount: string) => `z konta bankowego kończącego się na ${debitBankAccount}`,
+        reimbursedSubmitterAddedBankAccount: (submitter: string) => `${submitter} dodał konto bankowe, zdejmując raport z wstrzymania. Zwrot został zainicjowany`,
+        reimbursedWithFastACH: ({
+            isCurrentUser,
+            submitterLogin,
+            creditBankAccount,
+            expectedDate,
+        }: {
+            isCurrentUser: boolean;
+            submitterLogin: string;
+            creditBankAccount: string;
+            expectedDate: string;
+        }) =>
+            isCurrentUser
+                ? `. Pieniądze są w drodze na twoje ${creditBankAccount ? `konto bankowe kończące się na ${creditBankAccount}` : 'konto'}. Zwrot kosztów powinien zostać zrealizowany do ${expectedDate}.`
+                : `. Przelew jest w drodze na konto bankowe ${submitterLogin}${creditBankAccount ? ` kończące się na ${creditBankAccount}` : ''}. Zwrot kosztów powinien zostać zrealizowany do ${expectedDate}.`,
+        reimbursedWithCheck: ' czekiem.',
+        reimbursedWithStripeConnect: ({
+            isCurrentUser,
+            submitterLogin,
+            creditBankAccount,
+            isCard,
+        }: {
+            isCurrentUser: boolean;
+            submitterLogin: string;
+            creditBankAccount: string;
+            isCard: boolean;
+        }) => {
+            const paymentMethod = isCard ? 'karta' : 'konto bankowe';
+            return isCurrentUser
+                ? `. Pieniądze są w drodze na twoje ${creditBankAccount ? `konto bankowe kończące się na ${creditBankAccount}` : 'konto'} (zapłacono przez ${paymentMethod}). Może to potrwać do 10 dni roboczych.`
+                : `. Pieniądze są w drodze na konto bankowe ${submitterLogin}${creditBankAccount ? ` kończące się na ${creditBankAccount}` : ''} (zapłacono przez ${paymentMethod}). Może to potrwać do 10 dni roboczych.`;
+        },
+        reimbursedWithACH: ({creditBankAccount, expectedDate}: {creditBankAccount?: string; expectedDate?: string}) =>
+            ` z wpłatą bezpośrednią (ACH)${creditBankAccount ? ` na konto bankowe kończące się na ${creditBankAccount}.` : '. '}${expectedDate ? `Zwrot kosztów powinien zostać zrealizowany do ${expectedDate}.` : 'To zazwyczaj zajmuje 4–5 dni roboczych.'}`,
         noReimbursableExpenses: 'Ten raport ma nieprawidłową kwotę',
         pendingConversionMessage: 'Suma zaktualizuje się, gdy wrócisz do trybu online',
         changedTheExpense: 'zmienił(a) wydatek',
@@ -7973,6 +8011,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
         personalCard: 'Karta osobista',
         companyCard: 'Karta firmowa',
         expensifyCard: 'Karta Expensify',
+        centralInvoicing: 'Centralne fakturowanie',
     },
     distance: {
         addStop: 'Dodaj przystanek',
