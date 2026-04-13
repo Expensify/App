@@ -598,7 +598,7 @@ function getButtonVariantStyles(styles: ThemeStyles): ButtonVariantStyles {
         normal: {
             success: styles.buttonSuccess,
             danger: styles.buttonDanger,
-            link: styles.bgTransparent,
+            link: {},
         },
         disabled: {
             success: [styles.buttonOpacityDisabled],

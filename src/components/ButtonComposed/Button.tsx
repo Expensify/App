@@ -150,9 +150,9 @@ function Button({
             shouldRemoveBorderRadius ? borderRadiusStyles[shouldRemoveBorderRadius] : undefined,
             styles.alignItemsStretch,
             innerStyles,
-            buttonVariantStyles,
+            variant === 'link' && styles.bgTransparent,
         ],
-        [styles, buttonVariantStyles, shouldRemoveBorderRadius, buttonSizeStyle, innerStyles, borderRadiusStyles],
+        [styles.button, styles.alignItemsStretch, styles.bgTransparent, buttonSizeStyle, buttonVariantStyles, shouldRemoveBorderRadius, borderRadiusStyles, innerStyles, variant],
     );
 
     const buttonContainerStyles = useMemo<StyleProp<ViewStyle>>(
