@@ -6,7 +6,7 @@ import SingleFieldStep from '@components/SubStepForms/SingleFieldStep';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useReimbursementAccountStepFormSubmit from '@hooks/useReimbursementAccountStepFormSubmit';
-import type {SubPageProps} from '@hooks/useSubPage/types';
+import type {SubStepProps} from '@hooks/useSubStep/types';
 import {getDefaultCompanyWebsite} from '@libs/BankAccountUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {getFieldRequiredErrors, isValidWebsite} from '@libs/ValidationUtils';
@@ -19,7 +19,7 @@ import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 const COMPANY_WEBSITE_KEY = INPUT_IDS.BUSINESS_INFO_STEP.COMPANY_WEBSITE;
 const STEP_FIELDS = [COMPANY_WEBSITE_KEY];
 
-function WebsiteBusiness({onNext, onMove, isEditing}: SubPageProps) {
+function WebsiteBusiness({onNext, onMove, isEditing}: SubStepProps) {
     const {translate} = useLocalize();
     const [reimbursementAccount, reimbursementAccountResult] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const isLoadingReimbursementAccount = isLoadingOnyxValue(reimbursementAccountResult);
@@ -74,7 +74,6 @@ function WebsiteBusiness({onNext, onMove, isEditing}: SubPageProps) {
             defaultValue={defaultCompanyWebsite}
             inputMode={CONST.INPUT_MODE.URL}
             shouldShowHelpLinks={false}
-            shouldDelayAutoFocus
         />
     );
 }

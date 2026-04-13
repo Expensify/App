@@ -8,7 +8,7 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useReimbursementAccountStepFormSubmit from '@hooks/useReimbursementAccountStepFormSubmit';
-import type {SubPageProps} from '@hooks/useSubPage/types';
+import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {getFieldRequiredErrors, isValidDate, isValidPastDate} from '@libs/ValidationUtils';
@@ -19,7 +19,7 @@ import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 const COMPANY_INCORPORATION_DATE_KEY = INPUT_IDS.BUSINESS_INFO_STEP.INCORPORATION_DATE;
 const STEP_FIELDS = [COMPANY_INCORPORATION_DATE_KEY];
 
-function IncorporationDateBusiness({onNext, isEditing}: SubPageProps) {
+function IncorporationDateBusiness({onNext, isEditing}: SubStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
