@@ -140,6 +140,8 @@ const KEYS_TO_PRESERVE: OnyxKey[] = [
     ONYXKEYS.IS_DEBUG_MODE_ENABLED,
     ONYXKEYS.COLLECTION.PASSKEY_CREDENTIALS,
     ONYXKEYS.COLLECTION.DEVICE_BIOMETRICS,
+    ONYXKEYS.STASHED_SESSION,
+    ONYXKEYS.STASHED_CREDENTIALS,
 
     // Preserve IS_USING_IMPORTED_STATE so that when the app restarts (especially in HybridApp mode),
     // we know if we're in imported state mode and should skip API calls that would cause infinite loading
@@ -600,7 +602,7 @@ function createWorkspaceWithPolicyDraftAndNavigateToIt(params: CreateWorkspaceWi
     } = params;
 
     const policyIDWithDefault = policyID || generatePolicyID();
-    createDraftInitialWorkspace(introSelected, policyName, policyIDWithDefault, makeMeAdmin, currency, file, type);
+    createDraftInitialWorkspace(introSelected, policyName, currentUserAccountIDParam, currentUserEmailParam, policyIDWithDefault, makeMeAdmin, currency, file, type);
     Navigation.isNavigationReady().then(() => {
         if (transitionFromOldDot) {
             // We must call goBack() to remove the /transition route from history
@@ -649,7 +651,7 @@ function createWorkspaceWithPolicyDraft(params: CreateWorkspaceWithPolicyDraftPa
         hasActiveAdminPolicies,
     } = params;
 
-    createDraftInitialWorkspace(introSelected, policyName, policyID, makeMeAdmin, currency, file);
+    createDraftInitialWorkspace(introSelected, policyName, currentUserAccountIDParam, currentUserEmailParam, policyID, makeMeAdmin, currency, file);
     savePolicyDraftByNewWorkspace({
         policyID,
         policyName,
