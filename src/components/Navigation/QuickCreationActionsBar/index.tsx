@@ -20,7 +20,7 @@ import {startDistanceRequest, startMoneyRequest} from '@libs/actions/IOU';
 import {openOldDotLink} from '@libs/actions/Link';
 import {createNewReport} from '@libs/actions/Report';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
-import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
+import getCreateReportRoute, {getReportsRootRoute} from '@libs/Navigation/helpers/getCreateReportRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {openTravelDotLink} from '@libs/openTravelDotLink';
 import Permissions from '@libs/Permissions';
@@ -119,12 +119,11 @@ function QuickCreationActionsBar() {
                 false,
                 shouldDismissEmptyReportsConfirmation,
             );
+            // Navigate to the Reports page first so getCreateReportRoute() resolves against
+            // the Search/Reports fullscreen context before opening the created report modal.
+            Navigation.navigate(getReportsRootRoute());
             Navigation.setNavigationActionToMicrotaskQueue(() => {
-                Navigation.navigate(
-                    isSearchTopmostFullScreenRoute()
-                        ? ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: createdReportID, backTo: Navigation.getActiveRoute()})
-                        : ROUTES.REPORT_WITH_ID.getRoute(createdReportID, undefined, undefined, Navigation.getActiveRoute()),
-                );
+                Navigation.navigate(getCreateReportRoute({reportID: createdReportID}));
             });
         },
         [currentUserPersonalDetails, hasViolations, defaultChatEnabledPolicy, isASAPSubmitBetaEnabled, allBetas],
@@ -179,7 +178,12 @@ function QuickCreationActionsBar() {
                     (shouldRestrictUserBillableActions(workspaceIDForReportCreation, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, undefined, defaultChatEnabledPolicy) &&
                         groupPoliciesWithChatEnabled.length > 1)
                 ) {
-                    Navigation.navigate(ROUTES.NEW_REPORT_WORKSPACE_SELECTION.getRoute());
+                    // Navigate to the Reports page first so workspace selection continues from
+                    // the Search/Reports fullscreen context before opening the created report modal.
+                    Navigation.navigate(getReportsRootRoute());
+                    Navigation.setNavigationActionToMicrotaskQueue(() => {
+                        Navigation.navigate(ROUTES.NEW_REPORT_WORKSPACE_SELECTION.getRoute());
+                    });
                     return;
                 }
 
