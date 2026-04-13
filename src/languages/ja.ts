@@ -5224,7 +5224,7 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             chooseCard: 'カードを選択',
             chooseCardFor: (assignee: string) =>
                 `<strong>${assignee}</strong> に割り当てるカードを選択してください。お探しのカードが見つかりませんか？<concierge-link>お知らせください。</concierge-link>`,
-            noAvailableCards: 'このフィードには有効なカードがありません',
+            noAvailableCards: 'すべてのカードにはすでにルールがあります',
             somethingMightBeBroken:
                 '<muted-text><centered-text>もしくは不具合が発生している可能性があります。いずれにせよ、ご不明な点があれば、<concierge-link>Concierge にお問い合わせください</concierge-link>。</centered-text></muted-text>',
             chooseTransactionStartDate: '取引の開始日を選択',
@@ -5258,6 +5258,7 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             },
             deletedCard: '削除されたカード',
             assignNewCards: {title: '新しいカードを割り当てる', description: '銀行から割り当て可能な最新のカードを取得します'},
+            noAvailableCardsSubtitle: '既存のカードルールを編集して変更します',
         },
         expensifyCard: {
             issueAndManageCards: 'Expensify カードを発行して管理する',
