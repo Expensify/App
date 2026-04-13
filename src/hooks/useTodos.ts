@@ -3,6 +3,7 @@
 import {useOnyx} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {searchPoliciesSelector} from '@src/selectors/Policy';
 import type {PersonalDetailsList, Policy, Report, ReportActions, ReportNameValuePairs, SearchResults, Transaction, TransactionViolations} from '@src/types/onyx';
 
 type TodoSearchResultsData = SearchResults['data'];
@@ -114,7 +115,7 @@ function buildSearchResultsData(
 }
 
 export default function useTodos() {
-    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: searchPoliciesSelector});
     const [allReportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
     const [allReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);

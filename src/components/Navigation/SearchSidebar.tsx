@@ -26,7 +26,7 @@ function SearchSidebar({state}: SearchSidebarProps) {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const route = state.routes.at(-1);
-    const {lastSearchType, currentSearchResults, currentSearchQueryJSON} = useSearchStateContext();
+    const {currentSearchResults, currentSearchQueryJSON} = useSearchStateContext();
     const {setLastSearchType} = useSearchActionsContext();
 
     const searchType = currentSearchResults?.search?.type;
@@ -38,7 +38,8 @@ function SearchSidebar({state}: SearchSidebarProps) {
         }
 
         setLastSearchType(searchType);
-    }, [lastSearchType, setLastSearchType, searchType]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- setLastSearchType is stable; removed lastSearchType to avoid circular re-fire
+    }, [setLastSearchType, searchType]);
 
     const shouldShowLoadingState = route?.name === SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT ? false : !isOffline && !!isSearchLoading;
 
