@@ -12,7 +12,6 @@ import useTodos from '@hooks/useTodos';
 import {getDeepestFocusedScreen} from '@libs/Navigation/Navigation';
 import {isMoneyRequestReport} from '@libs/ReportUtils';
 import {buildSearchQueryJSON, buildSearchQueryString} from '@libs/SearchQueryUtils';
-import type {SearchKey, SearchTypeMenuItem} from '@libs/SearchUIUtils';
 import {getSuggestedSearches, isTodoSearch, isTransactionListItemType, isTransactionReportGroupListItemType} from '@libs/SearchUIUtils';
 import {hasValidModifiedAmount} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
@@ -20,7 +19,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import type {SearchResultsInfo} from '@src/types/onyx/SearchResults';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import type {SearchActionsContextValue, SearchContextData, SearchStateContextValue, SelectedTransactions} from './types';
+import {defaultSearchContextData, SearchStateContext} from './SearchStateContext';
+import type {SearchActionsContextValue, SearchStateContextValue, SelectedTransactions} from './types';
 
 type SearchContextProps = {
     children: React.ReactNode;
@@ -40,32 +40,6 @@ const defaultSearchInfo: SearchResultsInfo = {
     currency: '',
 };
 
-const defaultSearchContextData: SearchContextData = {
-    currentSearchKey: undefined,
-    currentSearchQueryJSON: undefined,
-    currentSearchResults: undefined,
-    currentSelectedTransactionReportID: undefined,
-    selectedTransactions: {},
-    selectedTransactionIDs: [],
-    selectedReports: [],
-    isOnSearch: false,
-    shouldTurnOffSelectionMode: false,
-    shouldResetSearchQuery: false,
-    currentSearchHash: -1,
-    currentSimilarSearchHash: -1,
-    suggestedSearches: {} as Record<SearchKey, SearchTypeMenuItem>,
-};
-
-const defaultSearchStateContext: SearchStateContextValue = {
-    ...defaultSearchContextData,
-    lastSearchType: undefined,
-    areAllMatchingItemsSelected: false,
-    shouldShowSelectAllMatchingItems: false,
-    shouldShowActionsBarLoading: false,
-    currentSearchResults: undefined,
-    shouldUseLiveData: false,
-};
-
 const defaultSearchActionsContext: SearchActionsContextValue = {
     setLastSearchType: () => {},
     setCurrentSelectedTransactionReportID: () => {},
@@ -78,7 +52,6 @@ const defaultSearchActionsContext: SearchActionsContextValue = {
     setShouldResetSearchQuery: () => {},
 };
 
-const SearchStateContext = React.createContext<SearchStateContextValue>(defaultSearchStateContext);
 const SearchActionsContext = React.createContext<SearchActionsContextValue>(defaultSearchActionsContext);
 
 function selectSearchQueryParam(state: NavigationState | undefined) {
