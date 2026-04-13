@@ -1020,8 +1020,6 @@ const translations: TranslationDeepObject<typeof en> = {
                 sunglassesDescription: 'Temps de se détendre, mais restez à l’affût de ce qui arrive !',
                 f1FlagsTitle: 'Tout est à jour',
                 f1FlagsDescription: 'Vous avez terminé toutes les tâches en cours.',
-                fireworksTitle: 'Tout est à jour',
-                fireworksDescription: 'Les prochaines tâches apparaîtront ici.',
             },
         },
         upcomingTravel: 'Voyages à venir',

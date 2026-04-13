@@ -1017,8 +1017,6 @@ const translations: TranslationDeepObject<typeof en> = {
                 sunglassesDescription: 'Czas się zrelaksować, ale wypatruj tego, co nadchodzi!',
                 f1FlagsTitle: 'Wszystko nadrobione',
                 f1FlagsDescription: 'Ukończyłeś wszystkie zaległe zadania.',
-                fireworksTitle: 'Wszystko nadrobione',
-                fireworksDescription: 'Nadchodzące zadania pojawią się tutaj.',
             },
         },
         upcomingTravel: 'Nadchodząca podróż',

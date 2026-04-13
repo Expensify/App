@@ -983,8 +983,6 @@ const translations: TranslationDeepObject<typeof en> = {
                 sunglassesDescription: '是时候放松一下了，但请留意接下来的动态！',
                 f1FlagsTitle: '全部完成',
                 f1FlagsDescription: '你已完成所有未完成的待办事项。',
-                fireworksTitle: '全部完成',
-                fireworksDescription: '即将到来的待办事项将显示在此处。',
             },
         },
         upcomingTravel: '即将出行',
