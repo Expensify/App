@@ -8038,6 +8038,7 @@ const translations = {
         personalCard: 'Personal card',
         companyCard: 'Company card',
         expensifyCard: 'Expensify Card',
+        centralInvoicing: 'Central invoicing',
     },
     distance: {
         addStop: 'Add stop',

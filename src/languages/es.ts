@@ -8353,6 +8353,7 @@ ${amount} para ${merchant} - ${date}`,
         personalCard: 'Tarjeta personal',
         companyCard: 'Tarjeta corporativa',
         expensifyCard: 'Tarjeta Expensify',
+        centralInvoicing: 'Facturación centralizada',
     },
     distance: {
         addStop: 'Añadir parada',
