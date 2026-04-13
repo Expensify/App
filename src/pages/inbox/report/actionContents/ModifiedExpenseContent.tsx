@@ -7,20 +7,20 @@ import {getForReportAction, getMovedReportID} from '@libs/ModifiedExpenseMessage
 import ReportActionItemMessageWithExplain from '@pages/inbox/report/ReportActionItemMessageWithExplain';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, Report, ReportAction} from '@src/types/onyx';
+import type {Report, ReportAction} from '@src/types/onyx';
 
 type ModifiedExpenseContentProps = {
     action: ReportAction;
     report: OnyxEntry<Report>;
     childReport: OnyxEntry<Report>;
     originalReport: OnyxEntry<Report>;
-    policy: OnyxEntry<Policy>;
     currentUserEmail: string | undefined;
 };
 
-function ModifiedExpenseContent({action, report, childReport, originalReport, policy, currentUserEmail}: ModifiedExpenseContentProps) {
+function ModifiedExpenseContent({action, report, childReport, originalReport, currentUserEmail}: ModifiedExpenseContentProps) {
     const {translate} = useLocalize();
     const {policyForMovingExpensesID} = usePolicyForMovingExpenses();
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`);
 
     // When expense is moved from self-DM to workspace, policyID is temporarily OWNER_EMAIL_FAKE.
     // Fall back to policyForMovingExpensesID (actual destination workspace) for correct tag list.

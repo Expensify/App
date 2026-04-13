@@ -779,6 +779,14 @@ describe('PureReportActionItem', () => {
         it('MODIFIED_EXPENSE with policyRulesModifiedFields renders billable message and workspace rules link', async () => {
             const policyID = 'policy123';
 
+            // Set up policy in Onyx so ModifiedExpenseContent self-subscribes to it
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+                    id: policyID,
+                    name: 'Test Policy',
+                });
+            });
+
             const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE, {
                 policyID,
                 policyRulesModifiedFields: {billable: true},
@@ -812,7 +820,6 @@ describe('PureReportActionItem', () => {
                                     betas={undefined}
                                     draftTransactionIDs={[]}
                                     userBillingGracePeriodEnds={undefined}
-                                    policy={{id: policyID} as Policy}
                                 />
                             </PortalProvider>
                         </ScreenWrapper>
