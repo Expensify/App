@@ -25,6 +25,7 @@ import {
     getDistanceRateCustomUnit,
     getDistanceRateCustomUnitRate,
     getTaxByID,
+    isAttendeeTrackingEnabled as isAttendeeTrackingEnabledForPolicy,
     isInstantSubmitEnabled,
     isMultiLevelTags as isMultiLevelTagsPolicyUtils,
     isPolicyAdmin,
@@ -596,9 +597,7 @@ function shouldShowAttendees(iouType: IOUType, policy: OnyxEntry<Policy>): boole
         return false;
     }
 
-    // For backwards compatibility with Expensify Classic, we assume that Attendee Tracking is enabled by default on
-    // Control policies if the policy does not contain the attribute
-    return policy?.isAttendeeTrackingEnabled ?? true;
+    return isAttendeeTrackingEnabledForPolicy(policy);
 }
 
 /**
@@ -1117,22 +1116,6 @@ function getOriginalCurrencyForDisplay(transaction: Pick<Transaction, 'originalC
  */
 function isFetchingWaypointsFromServer(transaction: OnyxInputOrEntry<Transaction>): boolean {
     return !!transaction?.pendingFields?.waypoints;
-}
-
-/**
- * Verify that the transaction is in Self DM or is an original split transaction and that its distance rate is invalid.
- */
-function isUnreportedAndHasInvalidDistanceRateTransaction(transaction: OnyxInputOrEntry<Transaction>, policy: OnyxEntry<Policy>) {
-    if (transaction && isDistanceRequest(transaction)) {
-        const {rate} = DistanceRequestUtils.getRate({transaction, policy});
-        const isUnreportedExpense = !transaction.reportID || transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID || String(transaction.reportID) === CONST.REPORT.SPLIT_REPORT_ID;
-
-        if (isUnreportedExpense && !rate) {
-            return true;
-        }
-    }
-
-    return false;
 }
 
 /**
@@ -1686,8 +1669,6 @@ function shouldShowViolation(
     const isSubmitter = isCurrentUserSubmitter(iouReport);
     const isPolicyMember = isPolicyMemberPolicyUtils(policy, currentUserEmail);
     const isReportOpen = isOpenExpenseReport(iouReport);
-    const isAttendeeTrackingEnabled = policy?.isAttendeeTrackingEnabled ?? false;
-
     if (violationName === CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE) {
         return isSubmitter || isPolicyAdmin(policy);
     }
@@ -1705,7 +1686,7 @@ function shouldShowViolation(
     }
 
     if (violationName === CONST.VIOLATIONS.MISSING_ATTENDEES) {
-        return isAttendeeTrackingEnabled;
+        return isAttendeeTrackingEnabledForPolicy(policy);
     }
 
     if (violationName === CONST.VIOLATIONS.MISSING_CATEGORY && isCategoryBeingAnalyzed(transaction)) {
@@ -2941,7 +2922,6 @@ export {
     createUnreportedExpenses,
     isDemoTransaction,
     shouldShowViolation,
-    isUnreportedAndHasInvalidDistanceRateTransaction,
     hasTransactionBeenRejected,
     isExpenseSplit,
     getAttendeesListDisplayString,
