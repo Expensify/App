@@ -302,8 +302,19 @@ function getReportOriginalCreationTimestamp(expenseReport?: OnyxEntry<OnyxTypes.
 }
 
 function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
-    const {expenseReport, policy, currentUserAccountIDParam, currentUserEmailParam, hasViolations, isASAPSubmitBetaEnabled, expenseReportCurrentNextStepDeprecated, betas, full, onApproved} =
-        params;
+    const {
+        expenseReport,
+        policy,
+        currentUserAccountIDParam,
+        currentUserEmailParam,
+        hasViolations,
+        isASAPSubmitBetaEnabled,
+        expenseReportCurrentNextStepDeprecated,
+        betas,
+        full,
+        onApproved,
+        delegateEmail,
+    } = params;
     if (!expenseReport) {
         return;
     }
@@ -1189,6 +1200,7 @@ function submitReport({
     hasViolations,
     isASAPSubmitBetaEnabled,
     expenseReportCurrentNextStepDeprecated,
+    delegateEmail,
     onSubmitted,
 }: SubmitReportFunctionParams) {
     if (!expenseReport) {

@@ -109,9 +109,9 @@ import {
     isPerDiemRequest,
     isTransactionPendingDelete,
 } from '@libs/TransactionUtils';
-import {cancelPayment, payInvoice, payMoneyRequest, startMoneyRequest} from '@userActions/IOU';
 import {getNavigationUrlOnMoneyRequestDelete} from '@userActions/IOU/DeleteMoneyRequest';
-import {approveMoneyRequest, canApproveIOU, canIOUBePaid as canIOUBePaidAction, reopenReport, retractReport, submitReport, unapproveExpenseReport} from '@userActions/IOU/ReportWorkflow';
+import {cancelPayment, payInvoice, payMoneyRequest} from '@userActions/IOU/PayMoneyRequest';
+import {unapproveExpenseReport} from '@userActions/IOU/ReportWorkflow';
 import {setDeleteTransactionNavigateBackUrl} from '@userActions/Report';
 import {markPendingRTERTransactionsAsCash} from '@userActions/Transaction';
 import CONST from '@src/CONST';
@@ -525,7 +525,7 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
             return false;
         }
         return !canIOUBePaid && getCanIOUBePaid(true);
-    }, [canIOUBePaid, getCanIOUBePaid, reportHasOnlyNonReimbursableTransactions]);
+    }, [getCanIOUBePaid, reportHasOnlyNonReimbursableTransactions]);
 
     const shouldShowPayButton = isPaidAnimationRunning || canIOUBePaid || onlyShowPayElsewhere || (reportHasOnlyNonReimbursableTransactions && (moneyRequestReport?.total ?? 0) !== 0);
 
