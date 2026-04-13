@@ -10,6 +10,7 @@ import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import {createNewReport} from '@libs/actions/Report';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
+import getCreateReportRoute, {getReportsRootRoute} from '@libs/Navigation/helpers/getCreateReportRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {getDefaultChatEnabledPolicy, isPaidGroupPolicy, shouldShowPolicy} from '@libs/PolicyUtils';
 import {hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
@@ -24,7 +25,6 @@ import ROUTES from '@src/ROUTES';
 import {sessionEmailAndAccountIDSelector} from '@src/selectors/Session';
 import type * as OnyxTypes from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import getCreateReportRoute from '@libs/Navigation/helpers/getCreateReportRoute';
 
 const ITEM_ID = CONST.FAB_MENU_ITEM_IDS.CREATE_REPORT;
 
@@ -99,9 +99,11 @@ function CreateReportMenuItem() {
             false,
             shouldDismissEmptyReportsConfirmation,
         );
+        // Navigate to the Reports page first so getCreateReportRoute() resolves against
+        // the Search/Reports fullscreen context before opening the created report modal.
+        Navigation.navigate(getReportsRootRoute());
         Navigation.setNavigationActionToMicrotaskQueue(() => {
-          Navigation.navigate(getCreateReportRoute({reportID: createdReportID, shouldUseNarrowLayout}), {forceReplace: isReportInSearch});
-
+            Navigation.navigate(getCreateReportRoute({reportID: createdReportID, shouldUseNarrowLayout}), {forceReplace: isReportInSearch});
         });
     };
 
@@ -136,7 +138,12 @@ function CreateReportMenuItem() {
                         (shouldRestrictUserBillableActions(workspaceIDForReportCreation, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed) &&
                             groupPoliciesWithChatEnabled.length > 1)
                     ) {
-                        Navigation.navigate(ROUTES.NEW_REPORT_WORKSPACE_SELECTION.getRoute());
+                        // Navigate to the Reports page first so workspace selection continues from
+                        // the Search/Reports fullscreen context before opening the created report modal.
+                        Navigation.navigate(getReportsRootRoute());
+                        Navigation.setNavigationActionToMicrotaskQueue(() => {
+                            Navigation.navigate(ROUTES.NEW_REPORT_WORKSPACE_SELECTION.getRoute());
+                        });
                         return;
                     }
 

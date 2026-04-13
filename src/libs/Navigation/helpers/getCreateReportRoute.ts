@@ -1,6 +1,7 @@
 import Navigation from '@libs/Navigation/Navigation';
 import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import CONST from '@src/CONST';
+import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import isHomeTopmostFullScreenRoute from './isHomeTopmostFullScreenRoute';
 import isSearchTopmostFullScreenRoute from './isSearchTopmostFullScreenRoute';
@@ -16,7 +17,7 @@ function getReportsRootRoute() {
     });
 }
 
-function getCreateReportRoute({reportID, shouldUseNarrowLayout = false}: GetCreateReportRouteParams): string {
+function getCreateReportRoute({reportID}: GetCreateReportRouteParams): Route {
     const activeRoute = Navigation.getActiveRoute();
 
     if (isSearchTopmostFullScreenRoute()) {
@@ -34,3 +35,4 @@ function getCreateReportRoute({reportID, shouldUseNarrowLayout = false}: GetCrea
 }
 
 export default getCreateReportRoute;
+export {getReportsRootRoute};
