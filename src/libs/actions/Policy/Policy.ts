@@ -3099,13 +3099,15 @@ function createDraftWorkspace(
     return params;
 }
 
-function buildOptimisticDuplicatePolicy(sourcePolicy: Policy, policyOptions: DuplicatePolicyDataOptions) {
+function buildOptimisticDuplicatePolicy(sourcePolicy: Policy, policyOptions: DuplicatePolicyDataOptions & {distanceCustomUnitID: string; perDiemCustomUnitID: string}) {
     const {
         policyName: duplicatedPolicyName = '',
         targetPolicyID: duplicatedPolicyID,
         file: duplicatedPolicyFile,
         parts: duplicatedParts,
         localCurrency: duplicatedLocalCurrency,
+        distanceCustomUnitID: duplicatedDistanceCustomUnitID,
+        perDiemCustomUnitID: duplicatedPerDiemCustomUnitID,
     } = policyOptions;
 
     const isMemberFeatureSelected = duplicatedParts?.people;
@@ -3122,8 +3124,6 @@ function buildOptimisticDuplicatePolicy(sourcePolicy: Policy, policyOptions: Dup
     const isTravelFeatureSelected = duplicatedParts?.travel;
     const isCodingRulesFeatureSelected = duplicatedParts?.codingRules;
     const duplicatedOutputCurrency = isOverviewFeatureSelected ? sourcePolicy?.outputCurrency : duplicatedLocalCurrency;
-    const {customUnitID: duplicatedDistanceCustomUnitID} = buildOptimisticDistanceRateCustomUnits(duplicatedOutputCurrency);
-    const duplicatedPerDiemCustomUnitID = generateCustomUnitID();
 
     const filterPendingDeleteData = <T>(data?: Record<string, T>): Record<string, T> | undefined =>
         data
@@ -3240,7 +3240,7 @@ function buildDuplicatePolicyData(policy: Policy, options: DuplicatePolicyDataOp
         {
             onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.POLICY}${targetPolicyID}`,
-            value: buildOptimisticDuplicatePolicy(policy, {...options, targetPolicyID}),
+            value: buildOptimisticDuplicatePolicy(policy, {...options, targetPolicyID, distanceCustomUnitID, perDiemCustomUnitID}),
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
