@@ -125,7 +125,7 @@ function ButtonWithIcons({
                     primaryText={text}
                     secondLineText={secondLineText}
                     hoverStyle={textHoverStyles}
-                    textStyle={textStyles}
+                    textStyle={[!!iconLeft && styles.textAlignLeft, textStyles]}
                     primaryTextNumberOfLines={textNumberOfLines}
                 />
             ) : (
