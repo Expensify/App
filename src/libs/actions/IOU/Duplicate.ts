@@ -11,6 +11,7 @@ import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import {getExistingTransactionID} from '@libs/IOUUtils';
 import * as NumberUtils from '@libs/NumberUtils';
 import Parser from '@libs/Parser';
+import {isPolicyAccessible} from '@libs/PolicyUtils';
 import {getIOUActionForReportID, getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {
     buildOptimisticCreatedReportAction,
@@ -1033,5 +1034,99 @@ function bulkDuplicateExpenses({
     playSound(SOUNDS.DONE);
 }
 
-export {getIOUActionForTransactions, mergeDuplicates, resolveDuplicates, duplicateExpenseTransaction, bulkDuplicateExpenses, duplicateReport};
-export type {DuplicateExpenseTransactionParams, BulkDuplicateExpensesParams, DuplicateReportParams};
+type BulkDuplicateReportsParams = {
+    reportIDs: string[];
+    allReports: NonNullable<OnyxCollection<OnyxTypes.Report>>;
+    allPolicies: OnyxCollection<OnyxTypes.Policy>;
+    allPolicyCategories: OnyxCollection<OnyxTypes.PolicyCategories>;
+    allPolicyTags: OnyxCollection<OnyxTypes.PolicyTagLists>;
+    defaultExpensePolicy: OnyxEntry<OnyxTypes.Policy>;
+    activePolicyExpenseChat: OnyxEntry<OnyxTypes.Report>;
+    ownerPersonalDetails: CurrentUserPersonalDetails;
+    currentUserLogin: string;
+    isASAPSubmitBetaEnabled: boolean;
+    betas: OnyxEntry<OnyxTypes.Beta[]>;
+    personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
+    quickAction: OnyxEntry<OnyxTypes.QuickAction>;
+    policyRecentlyUsedCurrencies: string[];
+    draftTransactionIDs: string[];
+    isSelfTourViewed: boolean;
+    transactionViolations: OnyxCollection<OnyxTypes.TransactionViolation[]>;
+    translate: LocalizedTranslate;
+    recentWaypoints: OnyxEntry<OnyxTypes.RecentWaypoint[]>;
+};
+
+function bulkDuplicateReports({
+    reportIDs,
+    allReports,
+    allPolicies,
+    allPolicyCategories,
+    allPolicyTags,
+    defaultExpensePolicy,
+    activePolicyExpenseChat,
+    ownerPersonalDetails,
+    currentUserLogin,
+    isASAPSubmitBetaEnabled,
+    betas,
+    personalDetails,
+    quickAction,
+    policyRecentlyUsedCurrencies,
+    draftTransactionIDs,
+    isSelfTourViewed,
+    transactionViolations,
+    translate,
+    recentWaypoints,
+}: BulkDuplicateReportsParams) {
+    const allTransactionsMap = getAllTransactions();
+    const transactionsByReportID = new Map<string, OnyxTypes.Transaction[]>();
+    for (const transaction of Object.values(allTransactionsMap ?? {})) {
+        if (!transaction || !transaction.reportID || transaction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+            continue;
+        }
+        const list = transactionsByReportID.get(transaction.reportID) ?? [];
+        list.push(transaction);
+        transactionsByReportID.set(transaction.reportID, list);
+    }
+
+    for (const reportID of reportIDs) {
+        const report = allReports[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+        if (!report) {
+            continue;
+        }
+
+        const reportPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
+        const isSourcePolicyValid = !!reportPolicy && isPolicyAccessible(reportPolicy, currentUserLogin);
+        const targetPolicy = isSourcePolicyValid ? reportPolicy : defaultExpensePolicy;
+        const chatReportID = report.chatReportID ?? report.parentReportID;
+        const chatReport = chatReportID ? allReports[`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`] : undefined;
+        const parentChatReport = isSourcePolicyValid && chatReport ? chatReport : activePolicyExpenseChat;
+        const targetPolicyCategories = allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${targetPolicy?.id}`] ?? {};
+        const targetPolicyTags = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${targetPolicy?.id}`] ?? {};
+
+        const reportTransactions = transactionsByReportID.get(reportID) ?? [];
+
+        duplicateReport({
+            sourceReport: report,
+            sourceReportTransactions: reportTransactions,
+            sourceReportName: report.reportName ?? '',
+            targetPolicy: targetPolicy ?? undefined,
+            targetPolicyCategories,
+            targetPolicyTags,
+            parentChatReport,
+            ownerPersonalDetails,
+            isASAPSubmitBetaEnabled,
+            betas,
+            personalDetails,
+            quickAction,
+            policyRecentlyUsedCurrencies,
+            draftTransactionIDs,
+            isSelfTourViewed,
+            transactionViolations,
+            translate,
+            recentWaypoints,
+        });
+    }
+}
+
+export {getIOUActionForTransactions, mergeDuplicates, resolveDuplicates, duplicateExpenseTransaction, bulkDuplicateExpenses, duplicateReport, bulkDuplicateReports};
+export type {DuplicateExpenseTransactionParams, BulkDuplicateExpensesParams, DuplicateReportParams, BulkDuplicateReportsParams};

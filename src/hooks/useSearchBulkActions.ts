@@ -35,7 +35,7 @@ import {setNameValuePair} from '@libs/actions/User';
 import {getTransactionsAndReportsFromSearch} from '@libs/MergeTransactionUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getConnectedIntegration} from '@libs/PolicyUtils';
-import {getSecondaryExportReportActions, isMergeActionForSelectedTransactions} from '@libs/ReportSecondaryActionUtils';
+import {getSecondaryExportReportActions, isDuplicateReportAction, isMergeActionForSelectedTransactions} from '@libs/ReportSecondaryActionUtils';
 import {
     canEditMultipleTransactions,
     getIntegrationIcon,
@@ -260,6 +260,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         'MoneyBag',
         'ArrowSplit',
         'ExpenseCopy',
+        'ReportCopy',
         'QBOSquare',
         'XeroSquare',
         'NetSuiteSquare',
@@ -860,6 +861,28 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         ],
     );
 
+    const duplicateReportHandlerRef = useRef<() => void>(() => {});
+    const setDuplicateReportHandler = useCallback((handler: () => void) => {
+        duplicateReportHandlerRef.current = handler;
+    }, []);
+    const invokeDuplicateReportHandler = useCallback(() => {
+        duplicateReportHandlerRef.current();
+    }, []);
+
+    const isDuplicateReportOptionVisible = useMemo(() => {
+        if (!isExpenseReportType || !defaultExpensePolicy || selectedReports.length === 0) {
+            return false;
+        }
+
+        return selectedReports.every((report) => {
+            if (!report.reportID) {
+                return false;
+            }
+            const fullReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`];
+            return !!fullReport && isDuplicateReportAction(fullReport);
+        });
+    }, [isExpenseReportType, defaultExpensePolicy, selectedReports, allReports]);
+
     const headerButtonsOptions = useMemo(() => {
         if (selectedTransactionsKeys.length === 0 || status == null || !hash) {
             return CONST.EMPTY_ARRAY as unknown as Array<DropdownOption<SearchHeaderOptionValue>>;
@@ -1337,6 +1360,16 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             });
         }
 
+        if (isDuplicateReportOptionVisible) {
+            options.push({
+                text: translate('search.bulkActions.duplicateReport', {count: selectedReports.length}),
+                icon: expensifyIcons.ReportCopy,
+                value: CONST.SEARCH.BULK_ACTION_TYPES.DUPLICATE_REPORT,
+                shouldCloseModalOnSelect: true,
+                onSelected: invokeDuplicateReportHandler,
+            });
+        }
+
         if (shouldShowDeleteOption(selectedTransactions, currentSearchResults?.data, selectedReports, queryJSON?.type)) {
             options.push({
                 icon: expensifyIcons.Trashcan,
@@ -1390,6 +1423,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         expensifyIcons.Trashcan,
         expensifyIcons.Exclamation,
         expensifyIcons.Workflows,
+        expensifyIcons.ReportCopy,
         translate,
         areAllMatchingItemsSelected,
         isOffline,
@@ -1431,6 +1465,8 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         firstTransactionPolicy,
         isDuplicateOptionVisible,
         invokeDuplicateHandler,
+        isDuplicateReportOptionVisible,
+        invokeDuplicateReportHandler,
         isExpenseReportType,
         handleDeleteSelectedTransactions,
         theme.icon,
@@ -1500,6 +1536,8 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         dismissRejectModalBasedOnAction,
         isDuplicateOptionVisible,
         setDuplicateHandler,
+        isDuplicateReportOptionVisible,
+        setDuplicateReportHandler,
         allTransactions,
         allReports,
         searchData: currentSearchResults?.data,
