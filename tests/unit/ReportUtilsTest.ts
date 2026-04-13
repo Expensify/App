@@ -42,6 +42,7 @@ import {
     buildOptimisticCreatedReportForUnapprovedAction,
     buildOptimisticEmptyReport,
     buildOptimisticExpenseReport,
+    buildOptimisticGroupChatReport,
     buildOptimisticInvoiceReport,
     buildOptimisticIOUReportAction,
     buildOptimisticReportPreview,
@@ -6737,6 +6738,43 @@ describe('ReportUtils', () => {
         });
     });
 
+    describe('buildOptimisticGroupChatReport', () => {
+        it('should create a group chat report with correct properties', () => {
+            const avatarUri = 'https://example.com/avatar.png';
+            const reportID = 'custom-report-id-123';
+            const result = buildOptimisticGroupChatReport([1, 2, 3], 'My Group Chat', avatarUri, 1, reportID);
+
+            expect(result.chatType).toBe(CONST.REPORT.CHAT_TYPE.GROUP);
+            expect(result.reportName).toBe('My Group Chat');
+            expect(result.avatarUrl).toBe(avatarUri);
+            expect(result.reportID).toBe(reportID);
+        });
+
+        it('should assign ADMIN role to currentUserAccountID and MEMBER to others', () => {
+            const currentUser = 100;
+            const participantIDs = [currentUser, 200, 300];
+            const result = buildOptimisticGroupChatReport(participantIDs, 'Group', '', currentUser);
+
+            expect(result.participants?.[currentUser]?.role).toBe(CONST.REPORT.ROLE.ADMIN);
+            expect(result.participants?.[200]?.role).toBe(CONST.REPORT.ROLE.MEMBER);
+            expect(result.participants?.[300]?.role).toBe(CONST.REPORT.ROLE.MEMBER);
+            const participantKeys = Object.keys(result.participants ?? {}).map(Number);
+            expect(participantKeys).toEqual(expect.arrayContaining(participantIDs));
+            expect(participantKeys).toHaveLength(participantIDs.length);
+        });
+
+        it('should apply the provided notificationPreference', () => {
+            const result = buildOptimisticGroupChatReport([1, 2], 'Group', '', 1, undefined, CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN);
+            expect(result.participants?.[1]?.notificationPreference).toBe(CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN);
+            expect(result.participants?.[2]?.notificationPreference).toBe(CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN);
+        });
+
+        it('should default notificationPreference to ALWAYS when not provided', () => {
+            const result = buildOptimisticGroupChatReport([1, 2], 'Group', '', 1);
+            expect(result.participants?.[1]?.notificationPreference).toBe(CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS);
+        });
+    });
+
     describe('getWorkspaceNameUpdatedMessage', () => {
         it('return the encoded workspace name updated message', () => {
             const action = {
@@ -10036,15 +10074,15 @@ describe('ReportUtils', () => {
             };
             const context = createFormulaContext(reportWithNaNTotal, mockPolicy);
             const result = compute('{report:total}', context);
-            // NaN gets formatted as "NaN" by formatAmount, which is a non-empty value
-            expect(result).toBe('NaN');
+            // NaN gets formatted as "$NaN" by convertToDisplayString, which is a non-empty value
+            expect(result).toBe('$NaN');
         });
 
         it('should replace {report:total} with formatted amount', () => {
             const context = createFormulaContext(mockReport, mockPolicy);
             const result = compute('{report:total}', context);
             // compute uses convertToDisplayString which includes currency symbol
-            expect(result).toBe('50.00');
+            expect(result).toBe('$50.00');
         });
 
         it('should replace {report:id} with base62 report ID', () => {
@@ -10058,7 +10096,7 @@ describe('ReportUtils', () => {
             const context = createFormulaContext(mockReport, mockPolicy);
             const result = compute(formula, context);
             const expectedId = getBase62ReportID(Number(mockReport.reportID));
-            expect(result).toBe(`Report ${expectedId} has total 50.00`);
+            expect(result).toBe(`Report ${expectedId} has total $50.00`);
         });
 
         it('should handle undefined total by falling back to original definition', () => {
@@ -10081,8 +10119,8 @@ describe('ReportUtils', () => {
             const context = createFormulaContext(reportWithNaNTotal, mockPolicy);
             const expectedId = getBase62ReportID(Number(mockReport.reportID));
             const result = compute(formula, context);
-            // NaN gets formatted as "NaN" which is a non-empty value
-            expect(result).toBe(`ID: ${expectedId}, Total: NaN, Type: Expense Report`);
+            // NaN gets formatted as "$NaN" which is a non-empty value
+            expect(result).toBe(`ID: ${expectedId}, Total: $NaN, Type: Expense Report`);
         });
 
         it('should handle missing total gracefully', () => {
@@ -14002,6 +14040,8 @@ describe('ReportUtils', () => {
                 userBillingGracePeriodEnds: undefined,
                 amountOwed: 0,
                 transaction: undefined,
+                currentUserAccountID,
+                currentUserEmail,
             });
 
             expect(Navigation.navigate).not.toHaveBeenCalled();
@@ -14041,6 +14081,8 @@ describe('ReportUtils', () => {
                     amountOwed: 1,
                     ownerBillingGracePeriodEnd: pastGracePeriod,
                     transaction,
+                    currentUserAccountID,
+                    currentUserEmail,
                 });
 
                 // Then it should navigate to the restricted action page
@@ -14076,6 +14118,8 @@ describe('ReportUtils', () => {
                     userBillingGracePeriodEnds,
                     amountOwed: 0,
                     transaction,
+                    currentUserAccountID,
+                    currentUserEmail,
                 });
 
                 // Then it should navigate to the restricted action page
@@ -14114,6 +14158,8 @@ describe('ReportUtils', () => {
                     userBillingGracePeriodEnds: undefined,
                     amountOwed: 0,
                     transaction,
+                    currentUserAccountID,
+                    currentUserEmail,
                 });
 
                 // Then it should navigate to the category step
@@ -14154,6 +14200,8 @@ describe('ReportUtils', () => {
                     userBillingGracePeriodEnds: undefined,
                     amountOwed: 0,
                     transaction,
+                    currentUserAccountID,
+                    currentUserEmail,
                 });
 
                 // Then it should automatically pick the available policy and navigate to the category step
@@ -14181,6 +14229,8 @@ describe('ReportUtils', () => {
                     userBillingGracePeriodEnds: undefined,
                     amountOwed: 0,
                     transaction,
+                    currentUserAccountID,
+                    currentUserEmail,
                 });
 
                 // Then it should navigate to the upgrade page because no policies were found to categorize with
@@ -14229,6 +14279,8 @@ describe('ReportUtils', () => {
                     userBillingGracePeriodEnds: undefined,
                     amountOwed: 0,
                     transaction,
+                    currentUserAccountID,
+                    currentUserEmail,
                 });
 
                 // Then it should navigate to the upgrade page because it's ambiguous which policy to use
@@ -14273,6 +14325,8 @@ describe('ReportUtils', () => {
                     userBillingGracePeriodEnds: undefined,
                     amountOwed: 0,
                     transaction,
+                    currentUserAccountID,
+                    currentUserEmail,
                 });
 
                 // Then it should log a warning and not navigate
@@ -14317,6 +14371,8 @@ describe('ReportUtils', () => {
                     amountOwed: 0,
                     ownerBillingGracePeriodEnd: pastGracePeriod,
                     transaction,
+                    currentUserAccountID,
+                    currentUserEmail,
                 });
 
                 // Then it should NOT navigate to restricted action page, but to category step
@@ -14353,6 +14409,8 @@ describe('ReportUtils', () => {
                     amountOwed: 50,
                     ownerBillingGracePeriodEnd: pastGracePeriod,
                     transaction,
+                    currentUserAccountID,
+                    currentUserEmail,
                 });
 
                 // Then it should navigate to restricted action page
