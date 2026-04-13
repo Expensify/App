@@ -37,7 +37,7 @@ function ButtonText({children, numberOfLines = 1, style, hoverStyle}: ButtonText
     const variantTextStyles = {
         success: styles.buttonSuccessText,
         danger: styles.buttonDangerText,
-        link: [styles.fontWeightNormal, styles.fontSizeLabel, styles.link, isHovered && StyleUtils.getColorStyle(theme.linkHover)],
+        link: [styles.fontWeightNormal, styles.fontSizeLabel],
     };
 
     return (
@@ -53,6 +53,7 @@ function ButtonText({children, numberOfLines = 1, style, hoverStyle}: ButtonText
                 variant ? variantTextStyles[variant] : undefined,
                 isHovered && hoverStyle,
                 style,
+                variant === 'link' && [styles.link, isHovered && StyleUtils.getColorStyle(theme.linkHover)],
             ]}
             dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
         >
