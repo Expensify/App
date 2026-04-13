@@ -126,6 +126,13 @@ type BaseModalProps = Partial<ReanimatedModalProps> &
         shouldDisplayBelowModals?: boolean;
 
         /**
+         * Internal accessibility handshake for bottom-docked popovers on native mobile.
+         * When `false`, dismiss controls stay hidden from accessibility until the caller enables them.
+         * When `true` or `undefined`, dismiss controls are exposed to accessibility.
+         */
+        shouldEnableBottomDockedDismissAccessibility?: boolean;
+
+        /**
          * Whether the modal should wrap the children in a scroll view if it is a bottom docked modal in landscape mode.
          * Defaults to true.
          */

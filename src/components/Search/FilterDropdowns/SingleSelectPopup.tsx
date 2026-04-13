@@ -10,6 +10,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import CONST from '@src/CONST';
 import BasePopup from './BasePopup';
+import type {ModalHeadingRef} from './DropdownButton';
 
 type SingleSelectItem<T> = {
     text: string;
@@ -45,6 +46,9 @@ type SingleSelectPopupProps<T> = {
 
     /** Custom styles for the SelectionList */
     selectionListStyle?: SelectionListStyle;
+
+    /** Visible heading target for modal initial focus */
+    modalHeadingRef?: ModalHeadingRef;
 };
 
 function SingleSelectPopup<T extends string>({
@@ -58,6 +62,7 @@ function SingleSelectPopup<T extends string>({
     defaultValue,
     style,
     selectionListStyle,
+    modalHeadingRef,
 }: SingleSelectPopupProps<T>) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -132,6 +137,7 @@ function SingleSelectPopup<T extends string>({
             resetSentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_RESET_SINGLE_SELECT}
             applySentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY_SINGLE_SELECT}
             style={style}
+            modalHeadingRef={modalHeadingRef}
         >
             <View style={[styles.getSelectionListPopoverHeight(options.length || 1, windowHeight, isSearchable ?? false)]}>
                 <SelectionList

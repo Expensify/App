@@ -6,6 +6,7 @@ import ScrollView from '@components/ScrollView';
 import DatePresetFilterBase from '@components/Search/FilterComponents/DatePresetFilterBase';
 import type {SearchDatePresetFilterBaseHandle} from '@components/Search/FilterComponents/DatePresetFilterBase';
 import ActionButtons from '@components/Search/FilterDropdowns/ActionButtons';
+import type {ModalHeadingRef} from '@components/Search/FilterDropdowns/DropdownButton';
 import type {SearchDatePreset} from '@components/Search/types';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
@@ -39,9 +40,12 @@ type DateSelectPopupProps = {
 
     /** Function to set the popover width dynamically */
     setPopoverWidth?: (width: number | undefined) => void;
+
+    /** Visible heading target for modal initial focus */
+    modalHeadingRef?: ModalHeadingRef;
 };
 
-function DateSelectPopup({label, value, presets, style, closeOverlay, onChange, setPopoverWidth}: DateSelectPopupProps) {
+function DateSelectPopup({label, value, presets, style, closeOverlay, onChange, setPopoverWidth, modalHeadingRef}: DateSelectPopupProps) {
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
 
@@ -194,7 +198,15 @@ function DateSelectPopup({label, value, presets, style, closeOverlay, onChange, 
 
     return (
         <View style={[mobileContainerStyle, style]}>
-            {!selectedDateModifier && !!label && <Text style={mobileLabelStyle}>{label}</Text>}
+            {!selectedDateModifier && !!label && (
+                <Text
+                    ref={modalHeadingRef}
+                    tabIndex={-1}
+                    style={mobileLabelStyle}
+                >
+                    {label}
+                </Text>
+            )}
             <ScrollView
                 ref={scrollViewRef}
                 keyboardShouldPersistTaps="handled"

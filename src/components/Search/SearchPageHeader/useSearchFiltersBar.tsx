@@ -307,9 +307,10 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEn
         Navigation.navigate(ROUTES.SEARCH_COLUMNS);
     };
 
-    const typeComponent = ({closeOverlay}: PopoverComponentProps) => (
+    const typeComponent = ({closeOverlay, modalHeadingRef}: PopoverComponentProps) => (
         <SingleSelectPopup
             label={translate('common.type')}
+            modalHeadingRef={modalHeadingRef}
             value={type}
             items={typeOptions}
             closeOverlay={closeOverlay}
@@ -317,9 +318,10 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEn
         />
     );
 
-    const groupByComponent = ({closeOverlay}: PopoverComponentProps) => (
+    const groupByComponent = ({closeOverlay, modalHeadingRef}: PopoverComponentProps) => (
         <GroupByPopup
             label={translate('search.display.groupBy')}
+            modalHeadingRef={modalHeadingRef}
             sections={groupBySections}
             value={groupBy}
             closeOverlay={closeOverlay}
@@ -334,9 +336,10 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEn
         />
     );
 
-    const viewComponent = ({closeOverlay}: PopoverComponentProps) => (
+    const viewComponent = ({closeOverlay, modalHeadingRef}: PopoverComponentProps) => (
         <SingleSelectPopup
             label={translate('search.view.label')}
+            modalHeadingRef={modalHeadingRef}
             items={viewOptions}
             value={viewValue}
             closeOverlay={closeOverlay}
@@ -344,9 +347,10 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEn
         />
     );
 
-    const groupCurrencyComponent = ({closeOverlay}: PopoverComponentProps) => (
+    const groupCurrencyComponent = ({closeOverlay, modalHeadingRef}: PopoverComponentProps) => (
         <SingleSelectPopup
             label={translate('common.groupCurrency')}
+            modalHeadingRef={modalHeadingRef}
             items={groupCurrencyOptions}
             value={groupCurrency}
             closeOverlay={closeOverlay}
@@ -363,6 +367,7 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEn
         <FeedFilterPopup
             isExpanded={props.isExpanded}
             closeOverlay={props.closeOverlay}
+            modalHeadingRef={props.modalHeadingRef}
             items={feedOptions}
             value={feed}
             onChangeCallback={updateFeedFilterForm}
@@ -374,6 +379,7 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEn
             isExpanded={props.isExpanded}
             closeOverlay={props.closeOverlay}
             setPopoverWidth={props.setPopoverWidth}
+            modalHeadingRef={props.modalHeadingRef}
             filterKey={CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE}
             value={date}
             translationKey="common.date"
@@ -386,6 +392,7 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEn
             isExpanded={props.isExpanded}
             closeOverlay={props.closeOverlay}
             setPopoverWidth={props.setPopoverWidth}
+            modalHeadingRef={props.modalHeadingRef}
             filterKey={CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED}
             value={posted}
             translationKey="search.filters.posted"
@@ -398,6 +405,7 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEn
             isExpanded={props.isExpanded}
             closeOverlay={props.closeOverlay}
             setPopoverWidth={props.setPopoverWidth}
+            modalHeadingRef={props.modalHeadingRef}
             filterKey={CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWN}
             value={withdrawn}
             translationKey="search.filters.withdrawn"
@@ -405,9 +413,10 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEn
         />
     );
 
-    const withdrawalTypeComponent = ({closeOverlay}: PopoverComponentProps) => (
+    const withdrawalTypeComponent = ({closeOverlay, modalHeadingRef}: PopoverComponentProps) => (
         <SingleSelectPopup
             label={translate('search.withdrawalType')}
+            modalHeadingRef={modalHeadingRef}
             items={withdrawalTypeOptions}
             value={withdrawalType}
             closeOverlay={closeOverlay}
@@ -422,6 +431,7 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEn
     const statusComponent = (props: PopoverComponentProps) => (
         <MultiSelectFilterPopup
             closeOverlay={props.closeOverlay}
+            modalHeadingRef={props.modalHeadingRef}
             translationKey="common.status"
             items={statusOptions}
             value={status}
@@ -435,6 +445,7 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEn
     const hasComponent = (props: PopoverComponentProps) => (
         <MultiSelectFilterPopup
             closeOverlay={props.closeOverlay}
+            modalHeadingRef={props.modalHeadingRef}
             translationKey="search.has"
             items={hasOptions}
             value={has}
@@ -448,6 +459,7 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEn
     const isComponent = (props: PopoverComponentProps) => (
         <MultiSelectFilterPopup
             closeOverlay={props.closeOverlay}
+            modalHeadingRef={props.modalHeadingRef}
             translationKey="search.filters.is"
             items={isOptions}
             value={is}
@@ -455,11 +467,13 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEn
         />
     );
 
-    const userPickerComponent = ({closeOverlay}: PopoverComponentProps) => {
+    const userPickerComponent = ({closeOverlay, modalHeadingRef}: PopoverComponentProps) => {
         const value = searchAdvancedFiltersForm.from ?? [];
 
         return (
             <UserSelectPopup
+                label={translate('common.from')}
+                modalHeadingRef={modalHeadingRef}
                 value={value}
                 closeOverlay={closeOverlay}
                 onChange={(selectedUsers) => updateFilterForm({from: selectedUsers})}
@@ -471,9 +485,10 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEn
         updateFilterForm({policyID: items.map((item) => item.value)});
     };
 
-    const workspaceComponent = ({closeOverlay}: PopoverComponentProps) => (
+    const workspaceComponent = ({closeOverlay, modalHeadingRef}: PopoverComponentProps) => (
         <MultiSelectPopup
             label={translate('workspace.common.workspace')}
+            modalHeadingRef={modalHeadingRef}
             items={workspaceOptions}
             value={selectedWorkspaceOptions}
             closeOverlay={closeOverlay}

@@ -1,10 +1,11 @@
 import React from 'react';
+import type {PopoverComponentProps} from '@components/Search/FilterDropdowns/DropdownButton';
 import type {MultiSelectItem} from '@components/Search/FilterDropdowns/MultiSelectPopup';
 import MultiSelectPopup from '@components/Search/FilterDropdowns/MultiSelectPopup';
 import useLocalize from '@hooks/useLocalize';
 import type {TranslationPaths} from '@src/languages/types';
 
-type MultiSelectFilterPopupProps<T extends string> = {
+type MultiSelectFilterPopupProps<T extends string> = Pick<PopoverComponentProps, 'modalHeadingRef'> & {
     loading?: boolean;
     translationKey: TranslationPaths;
     items: Array<MultiSelectItem<T>>;
@@ -14,11 +15,12 @@ type MultiSelectFilterPopupProps<T extends string> = {
     isSearchable?: boolean;
 };
 
-function MultiSelectFilterPopup<T extends string>({closeOverlay, loading, translationKey, items, value, onChangeCallback, isSearchable}: MultiSelectFilterPopupProps<T>) {
+function MultiSelectFilterPopup<T extends string>({closeOverlay, loading, translationKey, items, value, onChangeCallback, isSearchable, modalHeadingRef}: MultiSelectFilterPopupProps<T>) {
     const {translate} = useLocalize();
     return (
         <MultiSelectPopup
             label={translate(translationKey)}
+            modalHeadingRef={modalHeadingRef}
             items={items}
             value={value}
             loading={loading}

@@ -83,7 +83,7 @@ function typeOptionsPoliciesSelector(policies: OnyxCollection<Policy>): OnyxColl
     return result;
 }
 
-function GroupCurrencyPopup({updateFilterForm, closeOverlay}: FilterBarPopupProps) {
+function GroupCurrencyPopup({updateFilterForm, closeOverlay, modalHeadingRef}: FilterBarPopupProps) {
     const {translate} = useLocalize();
     const {currencyList} = useCurrencyListState();
     const {getCurrencySymbol} = useCurrencyListActions();
@@ -95,6 +95,7 @@ function GroupCurrencyPopup({updateFilterForm, closeOverlay}: FilterBarPopupProp
     return (
         <SingleSelectPopup
             label={translate('common.groupCurrency')}
+            modalHeadingRef={modalHeadingRef}
             items={groupCurrencyOptions}
             value={groupCurrencyValue}
             closeOverlay={closeOverlay}
@@ -105,7 +106,7 @@ function GroupCurrencyPopup({updateFilterForm, closeOverlay}: FilterBarPopupProp
     );
 }
 
-function FeedPopup({updateFilterForm, closeOverlay, isExpanded}: FilterBarPopupProps) {
+function FeedPopup({updateFilterForm, closeOverlay, isExpanded, modalHeadingRef}: FilterBarPopupProps) {
     const {isOffline} = useNetwork();
     const {translate, localeCompare} = useLocalize();
     const feedKeysWithCards = useFeedKeysWithAssignedCards();
@@ -133,6 +134,7 @@ function FeedPopup({updateFilterForm, closeOverlay, isExpanded}: FilterBarPopupP
     return (
         <MultiSelectFilterPopup
             closeOverlay={closeOverlay}
+            modalHeadingRef={modalHeadingRef}
             translationKey="search.filters.feed"
             items={feedOptions}
             value={feedValue}
@@ -142,7 +144,7 @@ function FeedPopup({updateFilterForm, closeOverlay, isExpanded}: FilterBarPopupP
     );
 }
 
-function WorkspacePopup({policyIDQuery, updateFilterForm, closeOverlay}: FilterBarPopupProps & {policyIDQuery: string[] | undefined}) {
+function WorkspacePopup({policyIDQuery, updateFilterForm, closeOverlay, modalHeadingRef}: FilterBarPopupProps & {policyIDQuery: string[] | undefined}) {
     const {translate} = useLocalize();
     const {workspaces, shouldShowWorkspaceSearchInput} = useAdvancedSearchFilters();
     const [policyID] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {selector: filterPolicyIDSelector});
@@ -165,6 +167,7 @@ function WorkspacePopup({policyIDQuery, updateFilterForm, closeOverlay}: FilterB
     return (
         <MultiSelectPopup
             label={translate('workspace.common.workspace')}
+            modalHeadingRef={modalHeadingRef}
             items={workspaceOptions}
             value={selectedWorkspaceOptions}
             closeOverlay={closeOverlay}
@@ -195,6 +198,7 @@ function makeDateFilterItem(
             <DatePickerFilterPopup
                 isExpanded={props.isExpanded}
                 closeOverlay={props.closeOverlay}
+                modalHeadingRef={props.modalHeadingRef}
                 filterKey={filterKey}
                 value={value}
                 translationKey={translationKey}
@@ -256,11 +260,12 @@ function useSearchActionsBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEn
         switch (filterKey) {
             case FILTER_KEYS.GROUP_CURRENCY:
                 return {
-                    PopoverComponent: ({closeOverlay, isExpanded}) => (
+                    PopoverComponent: ({closeOverlay, isExpanded, modalHeadingRef}) => (
                         <GroupCurrencyPopup
                             isExpanded={isExpanded}
                             updateFilterForm={updateFilterForm}
                             closeOverlay={closeOverlay}
+                            modalHeadingRef={modalHeadingRef}
                         />
                     ),
                     sentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER_GROUP_CURRENCY,
@@ -275,6 +280,7 @@ function useSearchActionsBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEn
                 const hasComponent = (props: PopoverComponentProps) => (
                     <MultiSelectFilterPopup
                         closeOverlay={props.closeOverlay}
+                        modalHeadingRef={props.modalHeadingRef}
                         translationKey="search.has"
                         items={hasOptions}
                         value={has}
@@ -293,6 +299,7 @@ function useSearchActionsBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEn
                 const isComponent = (props: PopoverComponentProps) => (
                     <MultiSelectFilterPopup
                         closeOverlay={props.closeOverlay}
+                        modalHeadingRef={props.modalHeadingRef}
                         translationKey="search.filters.is"
                         items={isOptions}
                         value={is}
@@ -303,11 +310,12 @@ function useSearchActionsBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEn
             }
             case FILTER_KEYS.FEED: {
                 return {
-                    PopoverComponent: ({closeOverlay, isExpanded}) => (
+                    PopoverComponent: ({closeOverlay, isExpanded, modalHeadingRef}) => (
                         <FeedPopup
                             isExpanded={isExpanded}
                             updateFilterForm={updateFilterForm}
                             closeOverlay={closeOverlay}
+                            modalHeadingRef={modalHeadingRef}
                         />
                     ),
                     sentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER_FEED,
@@ -330,9 +338,10 @@ function useSearchActionsBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEn
                 const withdrawalType = searchAdvancedFiltersForm[filterKey];
                 const withdrawalTypeOptions = getWithdrawalTypeOptions(translate);
                 const withdrawalTypeValue = withdrawalTypeOptions.find((option) => option.value === withdrawalType) ?? null;
-                const withdrawalTypeComponent = ({closeOverlay}: PopoverComponentProps) => (
+                const withdrawalTypeComponent = ({closeOverlay, modalHeadingRef}: PopoverComponentProps) => (
                     <SingleSelectPopup
                         label={translate('search.withdrawalType')}
+                        modalHeadingRef={modalHeadingRef}
                         items={withdrawalTypeOptions}
                         value={withdrawalTypeValue}
                         closeOverlay={closeOverlay}
@@ -365,6 +374,7 @@ function useSearchActionsBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEn
                 const statusComponent = (props: PopoverComponentProps) => (
                     <MultiSelectFilterPopup
                         closeOverlay={props.closeOverlay}
+                        modalHeadingRef={props.modalHeadingRef}
                         translationKey="common.status"
                         items={statusOptions}
                         value={statusValue}
@@ -388,8 +398,10 @@ function useSearchActionsBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEn
                 );
             case FILTER_KEYS.FROM: {
                 const from = searchAdvancedFiltersForm[filterKey];
-                const userPickerComponent = ({closeOverlay}: PopoverComponentProps) => (
+                const userPickerComponent = ({closeOverlay, modalHeadingRef}: PopoverComponentProps) => (
                     <UserSelectPopup
+                        label={translate('common.from')}
+                        modalHeadingRef={modalHeadingRef}
                         value={from ?? []}
                         closeOverlay={closeOverlay}
                         onChange={(selectedUsers) => updateFilterForm({from: selectedUsers})}
@@ -399,12 +411,13 @@ function useSearchActionsBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEn
             }
             case FILTER_KEYS.POLICY_ID:
                 return {
-                    PopoverComponent: ({closeOverlay, isExpanded}) => (
+                    PopoverComponent: ({closeOverlay, isExpanded, modalHeadingRef}) => (
                         <WorkspacePopup
                             isExpanded={isExpanded}
                             policyIDQuery={queryJSON.policyID}
                             updateFilterForm={updateFilterForm}
                             closeOverlay={closeOverlay}
+                            modalHeadingRef={modalHeadingRef}
                         />
                     ),
                     sentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER_WORKSPACE,

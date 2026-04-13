@@ -61,6 +61,7 @@ function SearchFiltersBarWide({queryJSON, isMobileSelectionModeEnabled}: SearchF
                                 label={item.label}
                                 value={item.value}
                                 PopoverComponent={item.PopoverComponent}
+                                shouldDelayBottomDockedDismissAccessibility
                                 sentryLabel={item.sentryLabel}
                             />
                         ))}

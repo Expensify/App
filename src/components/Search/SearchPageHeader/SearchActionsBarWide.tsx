@@ -29,38 +29,35 @@ type SearchActionsBarWideProps = {
 
 type SearchDropdownProps = Omit<DropdownButtonProps, 'viewportOffsetTop'>;
 
-function FromDropdown({label, value, PopoverComponent, sentryLabel}: SearchDropdownProps) {
+function FromDropdown({value, ...rest}: SearchDropdownProps) {
     const fromValue = useFilterFromValue(value);
     return (
         <DropdownButton
-            label={label}
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...rest}
             value={fromValue ?? []}
-            PopoverComponent={PopoverComponent}
-            sentryLabel={sentryLabel}
         />
     );
 }
 
-function WorkspaceDropdown({label, value, PopoverComponent, sentryLabel}: SearchDropdownProps) {
+function WorkspaceDropdown({value, ...rest}: SearchDropdownProps) {
     const workspaceValue = useFilterWorkspaceValue(value);
     return (
         <DropdownButton
-            label={label}
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...rest}
             value={workspaceValue ?? []}
-            PopoverComponent={PopoverComponent}
-            sentryLabel={sentryLabel}
         />
     );
 }
 
-function FeedDropdown({label, value, PopoverComponent, sentryLabel}: SearchDropdownProps) {
+function FeedDropdown({value, ...rest}: SearchDropdownProps) {
     const feedValue = useFilterFeedValue(value);
     return (
         <DropdownButton
-            label={label}
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...rest}
             value={feedValue}
-            PopoverComponent={PopoverComponent}
-            sentryLabel={sentryLabel}
         />
     );
 }
@@ -111,6 +108,7 @@ function SearchActionsBarWide({queryJSON, searchResults, handleSearch, onSort}: 
                                     label={item.label}
                                     value={item.value}
                                     PopoverComponent={item.PopoverComponent}
+                                    shouldDelayBottomDockedDismissAccessibility
                                     sentryLabel={item.sentryLabel}
                                 />
                             );

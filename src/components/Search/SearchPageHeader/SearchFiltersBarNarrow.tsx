@@ -43,6 +43,7 @@ function SearchFiltersBarNarrow({queryJSON, isMobileSelectionModeEnabled}: Searc
             label={item.label}
             value={item.value}
             PopoverComponent={item.PopoverComponent}
+            shouldDelayBottomDockedDismissAccessibility
             sentryLabel={item.sentryLabel}
         />
     );
