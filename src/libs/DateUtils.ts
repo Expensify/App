@@ -23,6 +23,7 @@ import {
     isThisYear,
     isValid,
     parse,
+    parseISO,
     set,
     startOfDay,
     startOfMonth,
@@ -842,7 +843,7 @@ function getFormattedTransportDateAndHour(date: Date): {date: string; hour: stri
 function getFormattedCancellationDate(isoDateString: string): string {
     // Strip timezone offset (e.g., +07:00, -04:00, Z) to treat the date/time as venue-local
     const naiveDateString = isoDateString.replace(/([+-]\d{2}:\d{2}|Z)$/, '');
-    const date = new Date(naiveDateString);
+    const date = parseISO(naiveDateString);
     if (isThisYear(date)) {
         return format(date, 'EEEE, MMM d h:mm a');
     }
