@@ -1,18 +1,23 @@
-import React from 'react';
+import React, {useCallback} from 'react';
+import type {OnyxCollection} from 'react-native-onyx';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Section from '@components/Section';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getWorkflowApprovalsUnavailable, isControlPolicy} from '@libs/PolicyUtils';
+import {shouldBlockSubmitDueToPreventSelfApproval} from '@libs/ReportUtils';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 import {enableAutoApprovalOptions, enablePolicyAutoReimbursementLimit, setPolicyPreventSelfApproval} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {Report} from '@src/types/onyx';
 
 type ExpenseReportRulesSectionProps = {
     policyID: string;
@@ -26,6 +31,23 @@ function ExpenseReportRulesSection({policyID}: ExpenseReportRulesSectionProps) {
     const workflowApprovalsUnavailable = getWorkflowApprovalsUnavailable(policy);
     const autoPayApprovedReportsUnavailable =
         !policy?.areWorkflowsEnabled || policy?.reimbursementChoice !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES || !policy?.achAccount?.bankAccountID;
+
+    const reportSelector = useCallback(
+        (reports: OnyxCollection<Report>) => {
+            return Object.values(reports ?? {}).filter((report) => report?.policyID === policyID && shouldBlockSubmitDueToPreventSelfApproval(report, policy));
+        },
+        [policy, policyID],
+    );
+
+    const [reportIsBlockingDueToPreventSelfApproval] = useOnyx(
+        ONYXKEYS.COLLECTION.REPORT,
+        {
+            selector: reportSelector,
+        },
+        [reportSelector],
+    );
+
+    const [reportNextSteps] = useOnyx(ONYXKEYS.COLLECTION.NEXT_STEP);
 
     const renderFallbackSubtitle = ({featureName, variant = 'unlock'}: {featureName: string; variant?: 'unlock' | 'enable'}) => {
         const moreFeaturesLink = `${environmentURL}/${ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID)}`;
@@ -55,7 +77,7 @@ function ExpenseReportRulesSection({policyID}: ExpenseReportRulesSectionProps) {
                     return;
                 }
 
-                setPolicyPreventSelfApproval(policyID, isEnabled, policy?.preventSelfApproval);
+                setPolicyPreventSelfApproval(policy, isEnabled, policy?.preventSelfApproval, reportIsBlockingDueToPreventSelfApproval, reportNextSteps);
             },
         },
         {

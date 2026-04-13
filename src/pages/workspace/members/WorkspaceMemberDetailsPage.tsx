@@ -168,7 +168,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
         const remainingEmployeeCount = previousEmployeesCount - 1;
         if (remainingEmployeeCount === 1 && policy?.preventSelfApproval) {
             // We can't let the "Prevent Self Approvals" enabled if there's only one workspace user
-            setPolicyPreventSelfApproval(policyID, false, policy.preventSelfApproval);
+            setPolicyPreventSelfApproval(policy, false, policy.preventSelfApproval);
         }
     };
 
