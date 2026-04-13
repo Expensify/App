@@ -834,16 +834,12 @@ function getFormattedTransportDateAndHour(date: Date): {date: string; hour: stri
 
 /**
  * Returns a formatted cancellation date.
- * Accepts an ISO 8601 string and strips the timezone offset before parsing,
- * so the venue-local date/time is displayed as-is without device timezone conversion.
  * Dates are formatted as follows:
  * 1. When the date refers to the current year: Wednesday, Mar 17 8:00 AM
  * 2. When the date refers not to the current year: Wednesday, Mar 17, 2023 8:00 AM
  */
 function getFormattedCancellationDate(isoDateString: string): string {
-    // Strip timezone offset (e.g., +07:00, -04:00, Z) to treat the date/time as venue-local
-    const naiveDateString = isoDateString.replace(/([+-]\d{2}:\d{2}|Z)$/, '');
-    const date = parseISO(naiveDateString);
+    const date = parseISO(isoDateString);
     if (isThisYear(date)) {
         return format(date, 'EEEE, MMM d h:mm a');
     }
