@@ -8489,6 +8489,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                 confirm: 'Elimina area(e) di lavoro e esegui il downgrade',
             },
             viewPaymentHistory: 'Visualizza cronologia pagamenti',
+            creditsBalance: ({amount}: {amount: string}) => `Hai ${amount} in crediti Expensify`,
         },
         yourPlan: {
             title: 'Il tuo piano',

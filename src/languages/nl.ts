@@ -8464,6 +8464,7 @@ Voeg meer bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 confirm: 'Werkruimte(s) verwijderen en downgraden',
             },
             viewPaymentHistory: 'Betalingsgeschiedenis bekijken',
+            creditsBalance: ({amount}: {amount: string}) => `Je hebt ${amount} aan Expensify-tegoed`,
         },
         yourPlan: {
             title: 'Uw abonnement',

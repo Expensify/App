@@ -8522,7 +8522,8 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 full: 'Obtenir un remboursement est facile, il vous suffit de rétrograder votre compte avant votre prochaine date de facturation et vous recevrez un remboursement. <br /> <br /> Attention : rétrograder votre compte signifie que votre (vos) espace(s) de travail sera (seront) supprimé(s). Cette action est irréversible, mais vous pouvez toujours créer un nouvel espace de travail si vous changez d’avis.',
                 confirm: 'Supprimer l’(les) espace(s) de travail et rétrograder',
             },
-            viewPaymentHistory: 'Voir l’historique des paiements',
+            viewPaymentHistory: ‘Voir l’historique des paiements’,
+            creditsBalance: ({amount}: {amount: string}) => `Vous avez ${amount} en crédits Expensify`,
         },
         yourPlan: {
             title: 'Votre offre',

@@ -8692,6 +8692,7 @@ ${amount} para ${merchant} - ${date}`,
                 confirm: 'Eliminar y bajar de categoría',
             },
             viewPaymentHistory: 'Ver historial de pagos',
+            creditsBalance: ({amount}: {amount: string}) => `Tienes ${amount} en créditos de Expensify`,
         },
         yourPlan: {
             title: 'Tu plan',

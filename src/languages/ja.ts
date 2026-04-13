@@ -8382,6 +8382,7 @@ ${reportName}
                 confirm: 'ワークスペースを削除してダウングレード',
             },
             viewPaymentHistory: '支払い履歴を表示',
+            creditsBalance: ({amount}: {amount: string}) => `Expensifyクレジットが${amount}あります`,
         },
         yourPlan: {
             title: 'あなたのプラン',

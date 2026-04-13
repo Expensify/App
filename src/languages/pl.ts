@@ -8449,6 +8449,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
                 confirm: 'Usuń przestrzeń(e) roboczą(e) i zdegraduj plan',
             },
             viewPaymentHistory: 'Wyświetl historię płatności',
+            creditsBalance: ({amount}: {amount: string}) => `Masz ${amount} w kredytach Expensify`,
         },
         yourPlan: {
             title: 'Twój plan',

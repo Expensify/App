@@ -8457,6 +8457,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                 confirm: 'Excluir espaço(s) de trabalho e rebaixar',
             },
             viewPaymentHistory: 'Ver histórico de pagamentos',
+            creditsBalance: ({amount}: {amount: string}) => `Você tem ${amount} em créditos Expensify`,
         },
         yourPlan: {
             title: 'Seu plano',

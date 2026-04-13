@@ -8222,6 +8222,7 @@ ${reportName}
                 confirm: '删除工作区并降级',
             },
             viewPaymentHistory: '查看付款记录',
+            creditsBalance: ({amount}: {amount: string}) => `您有 ${amount} 的 Expensify 积分`,
         },
         yourPlan: {
             title: '您的方案',
