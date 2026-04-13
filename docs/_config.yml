@@ -15,7 +15,7 @@ defaults:
       layout: "default"
       image: /assets/images/og-preview-image.png
 
-exclude: [README.md, TEMPLATE.md, vendor]
+exclude: [README.md, TEMPLATE.md, vendor, Gemfile, Gemfile.lock]
 
 plugins:
   - jekyll-seo-tag
