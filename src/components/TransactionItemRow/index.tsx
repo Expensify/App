@@ -789,6 +789,7 @@ function TransactionItemRow({
                             containerStyles={[styles.mt2, styles.minHeight4]}
                             missingFieldError={missingFieldError}
                             transactionThreadReportID={transactionThreadReportID}
+                            shouldUseNarrowLayout
                         />
                     )}
                     {shouldRenderChatBubbleCell && (

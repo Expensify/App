@@ -219,7 +219,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
                         width={12}
                         height={12}
                     />
-                    <Text style={[styles.textMicro, styles.textDanger]}>{translate('iou.rejectReport.rejectedReportMessage')}</Text>
+                    <Text style={[isLargeScreenWidth ? styles.textMicro : styles.mutedNormalTextLabel, styles.textDanger]}>{translate('iou.rejectReport.rejectedReportMessage')}</Text>
                 </View>
             );
         }
@@ -235,7 +235,9 @@ function ExpenseReportListItem<TItem extends ListItem>({
                     width={12}
                     height={12}
                 />
-                <Text style={[styles.textMicro, styles.textDanger]}>{translate('reportViolations.reportContainsExpensesWithViolations')}</Text>
+                <Text style={[isLargeScreenWidth ? styles.textMicro : styles.mutedNormalTextLabel, styles.textDanger]}>
+                    {translate('reportViolations.reportContainsExpensesWithViolations')}
+                </Text>
             </View>
         );
     }, [
@@ -247,7 +249,9 @@ function ExpenseReportListItem<TItem extends ListItem>({
         styles.mt2,
         styles.mr1,
         styles.textMicro,
+        styles.mutedNormalTextLabel,
         styles.textDanger,
+        isLargeScreenWidth,
         expensifyIcons.DotIndicator,
         theme.danger,
         translate,
