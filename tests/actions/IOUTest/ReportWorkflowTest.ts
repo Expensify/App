@@ -1,12 +1,10 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import {renderHook} from '@testing-library/react-native';
-import {format} from 'date-fns';
 import Onyx from 'react-native-onyx';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {OnyxEntry, OnyxMultiSetInput} from 'react-native-onyx';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import useReportWithTransactionsAndViolations from '@hooks/useReportWithTransactionsAndViolations';
-import {getReportPreviewAction} from '@libs/actions/IOU';
 import {
     approveMoneyRequest,
     canApproveIOU,
@@ -22,14 +20,7 @@ import {
 import {requestMoney} from '@libs/actions/IOU/TrackExpense';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 import {createWorkspace, deleteWorkspace, generatePolicyID, setWorkspaceApprovalMode} from '@libs/actions/Policy/Policy';
-import {addComment, createNewReport, notifyNewAction, openReport} from '@libs/actions/Report';
-import {subscribeToUserEvents} from '@libs/actions/User';
-import {WRITE_COMMANDS} from '@libs/API/types';
 import Navigation from '@libs/Navigation/Navigation';
-import {getAllReportActions, getOriginalMessage, getReportActionText, isMoneyRequestAction} from '@libs/ReportActionsUtils';
-import type {OptimisticChatReport} from '@libs/ReportUtils';
-import {buildOptimisticIOUReportAction, getReportOrDraftReport, isIOUReport} from '@libs/ReportUtils';
-import type {IOUAction} from '@src/CONST';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
@@ -37,27 +28,22 @@ import * as API from '@src/libs/API';
 import DateUtils from '@src/libs/DateUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {IntroSelected, LastSelectedDistanceRates, PersonalDetailsList, Policy, PolicyTagLists, RecentlyUsedTags, Report, ReportNameValuePairs, SearchResults} from '@src/types/onyx';
-import type {Attendee, Participant as IOUParticipant} from '@src/types/onyx/IOU';
-import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
-import type {Participant} from '@src/types/onyx/Report';
+import type {Policy, Report, ReportNameValuePairs} from '@src/types/onyx';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import type {ReportActions} from '@src/types/onyx/ReportAction';
+import type {OnyxData} from '@src/types/onyx/Request';
 import type Transaction from '@src/types/onyx/Transaction';
-import {toCollectionDataSet} from '@src/types/utils/CollectionDataSet';
+import type {InvoiceTestData} from '../../data/Invoice';
 import * as InvoiceData from '../../data/Invoice';
-import createPersonalDetails from '../../utils/collections/personalDetails';
 import createRandomPolicy from '../../utils/collections/policies';
 import createRandomReportAction from '../../utils/collections/reportActions';
 import {createRandomReport} from '../../utils/collections/reports';
 import createRandomTransaction from '../../utils/collections/transaction';
 import getOnyxValue from '../../utils/getOnyxValue';
-import PusherHelper from '../../utils/PusherHelper';
 import type {MockFetch} from '../../utils/TestHelper';
-import {getGlobalFetchMock, getOnyxData, localeCompare, setPersonalDetails, signInWithTestUser, translateLocal} from '../../utils/TestHelper';
+import {getGlobalFetchMock, getOnyxData, localeCompare} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../../utils/waitForBatchedUpdatesWithAct';
-import waitForNetworkPromises from '../../utils/waitForNetworkPromises';
 
 const topMostReportID = '23423423';
 jest.mock('@src/libs/Navigation/Navigation', () => ({
@@ -107,11 +93,6 @@ const RORY_EMAIL = 'rory@expensifail.com';
 const RORY_ACCOUNT_ID = 3;
 const CARLOS_EMAIL = 'cmartins@expensifail.com';
 const CARLOS_ACCOUNT_ID = 1;
-
-const TEST_INTRO_SELECTED: IntroSelected = {
-    choice: CONST.ONBOARDING_CHOICES.SUBMIT,
-    isInviteOnboardingComplete: false,
-};
 
 OnyxUpdateManager();
 
