@@ -109,19 +109,6 @@ describe('computeSplitWarningMessage', () => {
     });
 
     describe('mixed-sign splits (some negative, positive total)', () => {
-        it('returns "greater" warning when difference > 0', () => {
-            // total = 1000, splits = [800, -100] → sum = 700, but split -100 is opposite sign
-            // hasMixedSignSplits = true, difference = 700 - 1000 = -300 → Less
-            const result = computeSplitWarningMessage({
-                splitExpenses: [makeSplit(800, 'a'), makeSplit(-100, 'b')],
-                transactionDetailsAmount: 1000,
-                currency,
-                translate: translate as never,
-            });
-            // difference = -300 < 0 → Less
-            expect(result).toContain(LESS);
-        });
-
         it('returns "less" warning when difference < 0 (mixed sign, sum under total)', () => {
             // total = 1000, splits = [600, -200] → sum = 400, difference = -600 < 0 → Less
             const result = computeSplitWarningMessage({
