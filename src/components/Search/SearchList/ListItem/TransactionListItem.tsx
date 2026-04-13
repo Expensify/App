@@ -56,6 +56,7 @@ function TransactionListItem<TItem extends ListItem>({
     lastPaymentMethod,
     personalPolicyID,
     isLastItem,
+    isFirstItem,
 }: TransactionListItemProps<TItem>) {
     const transactionItem = item as unknown as TransactionListItemType;
     const styles = useThemeStyles();
@@ -105,7 +106,8 @@ function TransactionListItem<TItem extends ListItem>({
 
     const pressableStyle = [
         styles.transactionListItemStyle,
-        !isLargeScreenWidth && styles.pt3,
+        !isLargeScreenWidth && styles.p4,
+        !isLargeScreenWidth && styles.noBorderRadius,
         item.isSelected && styles.activeComponentBG,
         isLargeScreenWidth
             ? {
@@ -118,7 +120,7 @@ function TransactionListItem<TItem extends ListItem>({
     ];
 
     const animatedHighlightStyle = useAnimatedHighlightStyle({
-        borderRadius: StyleUtils.getSearchTableHighlightBorderRadius(isLargeScreenWidth),
+        borderRadius: 0,
         shouldHighlight: item?.shouldAnimateInHighlight ?? false,
         highlightColor: theme.messageHighlightBG,
         backgroundColor: theme.highlightBG,
@@ -207,12 +209,14 @@ function TransactionListItem<TItem extends ListItem>({
                 ]}
                 onFocus={onFocus}
                 wrapperStyle={[
-                    !isLargeScreenWidth && styles.mb2,
                     styles.mh5,
                     styles.flex1,
                     animatedHighlightStyle,
                     styles.userSelectNone,
                     isLargeScreenWidth && isLastItem && [styles.searchTableBottomRadius, styles.overflowHidden],
+                    !isLargeScreenWidth && isFirstItem && styles.searchTableTopRadius,
+                    !isLargeScreenWidth && isLastItem && [styles.searchTableBottomRadius, styles.overflowHidden],
+                    !isLargeScreenWidth && !isLastItem && styles.borderBottom,
                 ]}
             >
                 {({hovered}) => (
@@ -220,10 +224,7 @@ function TransactionListItem<TItem extends ListItem>({
                         {!isLargeScreenWidth && (
                             <UserInfoAndActionButtonRow
                                 item={transactionItem}
-                                handleActionButtonPress={handleActionButtonPress}
                                 shouldShowUserInfo={!!transactionItem?.from}
-                                isInMobileSelectionMode={shouldUseNarrowLayout && !!canSelectMultiple}
-                                isDisabledItem={!!isDisabled}
                             />
                         )}
                         <TransactionItemRow
@@ -248,7 +249,7 @@ function TransactionListItem<TItem extends ListItem>({
                             taxAmountColumnSize={taxAmountColumnSize}
                             shouldShowCheckbox={!!canSelectMultiple}
                             checkboxSentryLabel={CONST.SENTRY_LABEL.SEARCH.TRANSACTION_LIST_ITEM_CHECKBOX}
-                            style={[styles.p3, styles.pv2, shouldUseNarrowLayout ? styles.pt2 : isLargeScreenWidth && styles.noBorderRadius]}
+                            style={[styles.p3, styles.pv2, shouldUseNarrowLayout ? [styles.p0, styles.pt3] : isLargeScreenWidth && styles.noBorderRadius]}
                             violations={transactionViolations}
                             onArrowRightPress={() => onSelectRow(item, transactionPreviewData)}
                             isHover={hovered}

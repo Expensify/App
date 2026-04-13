@@ -2,57 +2,43 @@
 // (src/components/Search/SearchStaticList.tsx) used for fast perceived
 // performance. If you change the UI here, verify the static version still
 // looks visually identical.
-import React from 'react';
+import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
-import useOnyx from '@hooks/useOnyx';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import StatusBadge from '@components/StatusBadge';
+import useLocalize from '@hooks/useLocalize';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {getReportStatusColorStyle, getReportStatusTranslation} from '@libs/ReportUtils';
 import {isCorrectSearchUserName} from '@libs/SearchUIUtils';
-import variables from '@styles/variables';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
-import {isActionLoadingSelector} from '@src/selectors/ReportMetaData';
-import ActionCell from './ActionCell';
 import type {TransactionListItemType, TransactionReportGroupListItemType} from './types';
 import UserInfoCellsWithArrow from './UserInfoCellsWithArrow';
 
 function UserInfoAndActionButtonRow({
     item,
-    handleActionButtonPress,
     shouldShowUserInfo,
     containerStyles,
-    isInMobileSelectionMode,
-    isDisabledItem = false,
 }: {
     item: TransactionReportGroupListItemType | TransactionListItemType;
-    handleActionButtonPress: () => void;
     shouldShowUserInfo: boolean;
     containerStyles?: StyleProp<ViewStyle>;
-    isInMobileSelectionMode: boolean;
-    isDisabledItem?: boolean;
 }) {
     const styles = useThemeStyles();
-    const {isLargeScreenWidth} = useResponsiveLayout();
+    const theme = useTheme();
+    const {translate} = useLocalize();
     const transactionItem = item as unknown as TransactionListItemType;
-    const [isActionLoading] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${transactionItem.reportID}`, {selector: isActionLoadingSelector});
+    const stateNum = transactionItem.report?.stateNum;
+    const statusNum = transactionItem.report?.statusNum;
+    const statusText = useMemo(() => getReportStatusTranslation({stateNum, statusNum, translate}), [stateNum, statusNum, translate]);
+    const reportStatusColorStyle = useMemo(() => getReportStatusColorStyle(theme, stateNum, statusNum), [theme, stateNum, statusNum]);
     const hasFromSender = !!item?.from && !!item?.from?.accountID && !!item?.from?.displayName;
     const hasToRecipient = !!item?.to && !!item?.to?.accountID && !!item?.to?.displayName;
     const participantFromDisplayName = item.formattedFrom ?? item?.from?.displayName ?? '';
     const participantToDisplayName = item.formattedTo ?? item?.to?.displayName ?? '';
     const shouldShowToRecipient = hasFromSender && hasToRecipient && !!item?.to?.accountID && !!isCorrectSearchUserName(participantToDisplayName);
     return (
-        <View
-            style={[
-                styles.pt0,
-                styles.flexRow,
-                styles.alignItemsCenter,
-                shouldShowUserInfo ? styles.justifyContentBetween : styles.justifyContentEnd,
-                styles.gap2,
-                styles.ph3,
-                containerStyles,
-            ]}
-        >
+        <View style={[styles.pt0, styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.gap2, containerStyles]}>
             {shouldShowUserInfo && (
                 <UserInfoCellsWithArrow
                     shouldShowToRecipient={shouldShowToRecipient}
@@ -60,7 +46,7 @@ function UserInfoAndActionButtonRow({
                     participantFromDisplayName={participantFromDisplayName}
                     participantToDisplayName={participantToDisplayName}
                     participantTo={item?.to}
-                    avatarSize={!isLargeScreenWidth ? CONST.AVATAR_SIZE.SMALL_SUBSCRIPT : CONST.AVATAR_SIZE.MID_SUBSCRIPT}
+                    avatarSize={CONST.AVATAR_SIZE.SMALL_SUBSCRIPT}
                     style={[styles.flexRow, styles.alignItemsCenter, styles.gap1]}
                     infoCellsTextStyle={{lineHeight: 14}}
                     infoCellsAvatarStyle={styles.pr1}
@@ -68,20 +54,13 @@ function UserInfoAndActionButtonRow({
                     shouldUseArrowIcon={false}
                 />
             )}
-            <View style={[{width: isLargeScreenWidth ? variables.w68 : variables.w72}, styles.alignItemsEnd]}>
-                <ActionCell
-                    action={item.action}
-                    goToItem={handleActionButtonPress}
-                    isSelected={item.isSelected}
-                    isLoading={isActionLoading}
-                    policyID={item.policyID}
-                    reportID={item.reportID}
-                    hash={item.hash}
-                    amount={(item as TransactionListItemType)?.amount ?? (item as TransactionReportGroupListItemType)?.total}
-                    extraSmall={!isLargeScreenWidth}
-                    shouldDisablePointerEvents={isInMobileSelectionMode || isDisabledItem}
+            {!!statusText && !!reportStatusColorStyle && (
+                <StatusBadge
+                    text={statusText}
+                    backgroundColor={reportStatusColorStyle.backgroundColor}
+                    textColor={reportStatusColorStyle.textColor}
                 />
-            </View>
+            )}
         </View>
     );
 }

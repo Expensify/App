@@ -23,11 +23,11 @@ import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {isCategoryMissing} from '@libs/CategoryUtils';
+import {getDecodedCategoryName, isCategoryMissing} from '@libs/CategoryUtils';
 import getBase62ReportID from '@libs/getBase62ReportID';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
 import {getReportName} from '@libs/ReportNameUtils';
-import {isExpenseReport, isIOUReport, isSettled} from '@libs/ReportUtils';
+import {isExpenseReport, isSettled} from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
 import {
     getAmount,
@@ -205,7 +205,6 @@ function TransactionItemRow({
     const StyleUtils = useStyleUtils();
     const theme = useTheme();
     const isLargeScreenWidth = isLargeScreenWidthProp ?? !shouldUseNarrowLayout;
-    const hasCategoryOrTag = !isCategoryMissing(transactionItem?.category) || !!transactionItem.tag;
     const createdAt = getTransactionCreated(transactionItem);
     const expensicons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -687,11 +686,13 @@ function TransactionItemRow({
         return columns?.includes(CONST.SEARCH.TABLE_COLUMNS.COMMENTS) ?? false;
     }, [columns]);
 
+    const categoryForDisplay = isCategoryMissing(transactionItem?.category) ? '' : getDecodedCategoryName(transactionItem?.category ?? '');
+
     if (shouldUseNarrowLayout) {
         return (
             <>
                 <View
-                    style={[styles.expenseWidgetRadius, bgActiveStyles, styles.justifyContentEvenly, style, styles.overflowHidden]}
+                    style={[bgActiveStyles, styles.justifyContentEvenly, style]}
                     testID="transaction-item-row"
                 >
                     <View style={[styles.flexRow]}>
@@ -716,43 +717,46 @@ function TransactionItemRow({
                             shouldUseNarrowLayout={shouldUseNarrowLayout}
                         />
                         <View style={[styles.flex2, styles.flexColumn, styles.justifyContentEvenly]}>
-                            <View style={[styles.flexRow, styles.alignItemsCenter, styles.minHeight5, styles.maxHeight5]}>
-                                <DateCell
-                                    date={createdAt}
-                                    showTooltip={shouldShowTooltip}
-                                    isLargeScreenWidth={!shouldUseNarrowLayout}
-                                />
-                                <Text style={[styles.textMicroSupporting]}> • </Text>
-                                <TypeCell
-                                    transactionItem={transactionItem}
-                                    shouldShowTooltip={shouldShowTooltip}
-                                    shouldUseNarrowLayout={shouldUseNarrowLayout}
-                                />
-                                {!merchantOrDescription && (
-                                    <View style={[styles.mlAuto]}>
-                                        <TotalCell
-                                            transactionItem={transactionItem}
-                                            shouldShowTooltip={shouldShowTooltip}
-                                            shouldUseNarrowLayout={shouldUseNarrowLayout}
-                                        />
-                                    </View>
-                                )}
-                            </View>
-                            {!!merchantOrDescription && (
-                                <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.gap2]}>
+                            <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.gap2]}>
+                                {merchantOrDescription ? (
                                     <MerchantOrDescriptionCell
                                         merchantOrDescription={merchantOrDescription}
                                         shouldShowTooltip={shouldShowTooltip}
                                         shouldUseNarrowLayout={shouldUseNarrowLayout}
                                         isDescription={!merchant}
                                     />
-                                    <TotalCell
-                                        transactionItem={transactionItem}
-                                        shouldShowTooltip={shouldShowTooltip}
-                                        shouldUseNarrowLayout={shouldUseNarrowLayout}
+                                ) : null}
+                                <TotalCell
+                                    transactionItem={transactionItem}
+                                    shouldShowTooltip={shouldShowTooltip}
+                                    shouldUseNarrowLayout={shouldUseNarrowLayout}
+                                />
+                            </View>
+                            <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween]}>
+                                <View style={[styles.flexRow, styles.alignItemsCenter, styles.flexShrink1]}>
+                                    <DateCell
+                                        date={createdAt}
+                                        showTooltip={shouldShowTooltip}
+                                        isLargeScreenWidth={false}
                                     />
+                                    {!!categoryForDisplay && (
+                                        <>
+                                            <Text style={[styles.textSupporting, {fontSize: variables.fontSizeLabel}]}> • </Text>
+                                            <Text
+                                                numberOfLines={1}
+                                                style={[styles.textSupporting, {fontSize: variables.fontSizeLabel}, styles.flexShrink1]}
+                                            >
+                                                {categoryForDisplay}
+                                            </Text>
+                                        </>
+                                    )}
                                 </View>
-                            )}
+                                <TypeCell
+                                    transactionItem={transactionItem}
+                                    shouldShowTooltip={shouldShowTooltip}
+                                    shouldUseNarrowLayout={shouldUseNarrowLayout}
+                                />
+                            </View>
                         </View>
                         {!!shouldShowArrowRightOnNarrowLayout && (
                             <View style={[styles.justifyContentEnd, styles.alignItemsEnd, styles.mbHalf, styles.ml1]}>
@@ -777,41 +781,23 @@ function TransactionItemRow({
                             </View>
                         )}
                     </View>
-                    <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsStart]}>
-                        <View style={[styles.flexColumn, styles.flex1]}>
-                            {hasCategoryOrTag && !isIOUReport(report) && (
-                                <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2, styles.mt2, styles.minHeight4]}>
-                                    <CategoryCell
-                                        transactionItem={transactionItem}
-                                        shouldShowTooltip={shouldShowTooltip}
-                                        shouldUseNarrowLayout={shouldUseNarrowLayout}
-                                    />
-                                    <TagCell
-                                        transactionItem={transactionItem}
-                                        shouldShowTooltip={shouldShowTooltip}
-                                        shouldUseNarrowLayout={shouldUseNarrowLayout}
-                                    />
-                                </View>
-                            )}
-                            {shouldShowErrors && (
-                                <TransactionItemRowRBR
-                                    transaction={transactionItem}
-                                    violations={violations}
-                                    report={report}
-                                    containerStyles={[styles.mt2, styles.minHeight4]}
-                                    missingFieldError={missingFieldError}
-                                    transactionThreadReportID={transactionThreadReportID}
-                                />
-                            )}
-                        </View>
-                        {shouldRenderChatBubbleCell && (
-                            <ChatBubbleCell
-                                transaction={transactionItem}
-                                containerStyles={[styles.mt2]}
-                                isInSingleTransactionReport={isInSingleTransactionReport}
-                            />
-                        )}
-                    </View>
+                    {shouldShowErrors && (
+                        <TransactionItemRowRBR
+                            transaction={transactionItem}
+                            violations={violations}
+                            report={report}
+                            containerStyles={[styles.mt2, styles.minHeight4]}
+                            missingFieldError={missingFieldError}
+                            transactionThreadReportID={transactionThreadReportID}
+                        />
+                    )}
+                    {shouldRenderChatBubbleCell && (
+                        <ChatBubbleCell
+                            transaction={transactionItem}
+                            containerStyles={[styles.mt2]}
+                            isInSingleTransactionReport={isInSingleTransactionReport}
+                        />
+                    )}
                 </View>
                 {!!shouldShowBottomBorder && (
                     <View style={bgActiveStyles}>

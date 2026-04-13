@@ -215,7 +215,7 @@ function ReportListItemHeader<TItem extends ListItem>({
     const styles = useThemeStyles();
     const theme = useTheme();
     const {currentSearchHash, currentSearchKey, currentSearchResults: snapshot} = useSearchStateContext();
-    const {isLargeScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
+    const {isLargeScreenWidth} = useResponsiveLayout();
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const thereIsFromAndTo = !!reportItem?.from && !!reportItem?.to;
     const showUserInfo = (reportItem.type === CONST.REPORT.TYPE.IOU && thereIsFromAndTo) || (reportItem.type === CONST.REPORT.TYPE.EXPENSE && !!reportItem?.from);
@@ -252,10 +252,8 @@ function ReportListItemHeader<TItem extends ListItem>({
         <View style={[styles.pv1Half]}>
             <UserInfoAndActionButtonRow
                 item={reportItem}
-                handleActionButtonPress={handleOnButtonPress}
                 shouldShowUserInfo={showUserInfo}
                 containerStyles={[styles.pr3, styles.mb2]}
-                isInMobileSelectionMode={shouldUseNarrowLayout && !!canSelectMultiple}
             />
             <HeaderFirstRow
                 report={reportItem}
