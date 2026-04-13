@@ -112,7 +112,7 @@ const DYNAMIC_ROUTES = {
         entryScreens: [SCREENS.REPORT_SETTINGS.ROOT],
     },
     NETSUITE_AUTO_SYNC: {
-        path: 'autosync',
+        path: 'netsuite-autosync',
         entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_ADVANCED, SCREENS.WORKSPACE.ACCOUNTING.CARD_RECONCILIATION],
     },
     NETSUITE_ACCOUNTING_METHOD: {
