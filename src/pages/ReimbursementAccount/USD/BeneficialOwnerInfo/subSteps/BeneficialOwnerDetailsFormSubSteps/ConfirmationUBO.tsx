@@ -2,13 +2,13 @@ import React from 'react';
 import ConfirmationStep from '@components/SubStepForms/ConfirmationStep';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import type {SubPageProps} from '@hooks/useSubPage/types';
-import {getLatestErrorMessage} from '@libs/ErrorUtils';
+import type {SubStepProps} from '@hooks/useSubStep/types';
+import * as ErrorUtils from '@libs/ErrorUtils';
 import getValuesForBeneficialOwner from '@pages/ReimbursementAccount/USD/utils/getValuesForBeneficialOwner';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
-type ConfirmationUBOProps = SubPageProps & {beneficialOwnerBeingModifiedID: string};
+type ConfirmationUBOProps = SubStepProps & {beneficialOwnerBeingModifiedID: string};
 
 const UBO_STEP_INDEXES = CONST.REIMBURSEMENT_ACCOUNT.SUBSTEP_INDEX.UBO;
 
@@ -19,7 +19,7 @@ function ConfirmationUBO({onNext, onMove, isEditing, beneficialOwnerBeingModifie
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
 
     const values = getValuesForBeneficialOwner(beneficialOwnerBeingModifiedID, reimbursementAccountDraft);
-    const error = reimbursementAccount ? getLatestErrorMessage(reimbursementAccount) : '';
+    const error = reimbursementAccount ? ErrorUtils.getLatestErrorMessage(reimbursementAccount) : '';
 
     const summaryItems = [
         {
