@@ -49,6 +49,7 @@ function CountrySelection() {
     }, [personalPolicy?.outputCurrency, country]);
 
     const [selectedCountry, setSelectedCountry] = useState<string>(initialCountry);
+    const [countryListInstanceID, setCountryListInstanceID] = useState(0);
     const [shouldShowError, setShouldShowError] = useState(false);
 
     const onCountrySelected = (countryChecked: string) => {
@@ -64,11 +65,13 @@ function CountrySelection() {
         clearReimbursementAccount();
         clearReimbursementAccountDraft();
         updateReimbursementAccountDraft({country: selectedCountry as Country, currency: CONST.BBA_COUNTRY_CURRENCY_MAP[selectedCountry]});
+        setCountryListInstanceID((currentInstanceID) => currentInstanceID + 1);
         navigateToBankAccountRoute({backTo: ROUTES.SETTINGS_BANK_ACCOUNT_PURPOSE});
     };
 
     return (
         <CountrySelectionList
+            key={countryListInstanceID}
             selectedCountry={selectedCountry}
             countries={CONST.BBA_SUPPORTED_COUNTRIES}
             onCountrySelected={onCountrySelected}
