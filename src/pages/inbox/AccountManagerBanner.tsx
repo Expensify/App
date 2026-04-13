@@ -1,3 +1,4 @@
+import {personalDetailsSelector} from '@selectors/PersonalDetails';
 import React, {useState} from 'react';
 import Banner from '@components/Banner';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -8,6 +9,7 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {getParticipantsAccountIDsForDisplay, isConciergeChatReport} from '@libs/ReportUtils';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
@@ -22,9 +24,9 @@ function AccountManagerBanner({reportID}: AccountManagerBannerProps) {
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportID)}`);
     const [accountManagerReportID] = useOnyx(ONYXKEYS.ACCOUNT_MANAGER_REPORT_ID);
     const [accountManagerReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(accountManagerReportID)}`);
-    const accountManagerAccountID = getParticipantsAccountIDsForDisplay(accountManagerReport, false, true)?.at(0) ?? -1;
+    const accountManagerAccountID = getParticipantsAccountIDsForDisplay(accountManagerReport, false, true)?.at(0) ?? CONST.DEFAULT_MISSING_ID;
     const [participantPersonalDetail] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-        selector: (details) => details?.[accountManagerAccountID],
+        selector: personalDetailsSelector(accountManagerAccountID),
     });
     const [isBannerVisible, setIsBannerVisible] = useState(true);
 
