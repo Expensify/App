@@ -76,7 +76,7 @@ function SearchPageInputWide({queryJSON, handleSearch}: SearchPageInputWideProps
                     onSearchQueryChange={onSearchQueryChange}
                     isFullWidth
                     inputStyle={isAutocompleteListVisible ? undefined : styles.fontSizeLabel}
-                    inputContainerStyle={isAutocompleteListVisible ? styles.ph3 : styles.ph2}
+                    inputContainerStyle={isAutocompleteListVisible ? undefined : styles.ph2}
                     touchableInputWrapperStyle={isAutocompleteListVisible ? undefined : styles.searchPageInputWideTouchableWrapper}
                     onSubmit={() => {
                         const focusedOption = listRef.current?.getFocusedOption();
