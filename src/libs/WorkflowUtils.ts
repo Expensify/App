@@ -14,7 +14,7 @@ import type PolicyEmployee from '@src/types/onyx/PolicyEmployee';
 import type {PolicyEmployeeList} from '@src/types/onyx/PolicyEmployee';
 import {isBankAccountPartiallySetup} from './BankAccountUtils';
 import {convertToDisplayString} from './CurrencyUtils';
-import {getDefaultApprover, isExpensifyTeam} from './PolicyUtils';
+import {getDefaultApprover, isExpensifyTeam, shouldFilterExpensifyTeam} from './PolicyUtils';
 
 const INITIAL_APPROVAL_WORKFLOW: ApprovalWorkflowOnyx = {
     members: [],
@@ -144,10 +144,7 @@ function convertPolicyEmployeesToApprovalWorkflows({policy, personalDetails, fir
     const employees = policy?.employeeList ?? {};
     const defaultApprover = getDefaultApprover(policy);
     const approvalWorkflows: Record<string, ApprovalWorkflow> = {};
-    const policyOwner = policy?.owner;
-
-    // Determine if we should filter out Expensify team members (only for non-Expensify customers)
-    const shouldFilterOutExpensifyTeam = !!policyOwner && !!currentUserLogin && !isExpensifyTeam(policyOwner) && !isExpensifyTeam(currentUserLogin);
+    const shouldFilterOutExpensifyTeam = shouldFilterExpensifyTeam(policy?.owner, currentUserLogin);
 
     // Keep track of used approver emails to display hints in the UI
     const usedApproverEmails = new Set<string>();

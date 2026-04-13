@@ -11,7 +11,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
-import {getMemberAccountIDsForWorkspace, isExpensifyTeam} from '@libs/PolicyUtils';
+import {getMemberAccountIDsForWorkspace, isExpensifyTeam, shouldFilterExpensifyTeam} from '@libs/PolicyUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import MemberRightIcon from '@pages/workspace/MemberRightIcon';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
@@ -45,8 +45,7 @@ function WorkspaceWorkflowsApprovalsOverLimitApproverPage({policy, personalDetai
 
     const currentApproverEmail = currentApprover?.email;
 
-    // Hide internal Expensify team members (SRAMs/guides) from non-Expensify customers, matching the workflows table filtering.
-    const shouldFilterOutExpensifyTeam = !!policy?.owner && !!currentUserPersonalDetails?.login && !isExpensifyTeam(policy.owner) && !isExpensifyTeam(currentUserPersonalDetails.login);
+    const shouldFilterOutExpensifyTeam = shouldFilterExpensifyTeam(policy?.owner, currentUserPersonalDetails?.login);
 
     const allApprovers: SelectionListApprover[] = (() => {
         if (isApprovalWorkflowLoading || !employeeList) {

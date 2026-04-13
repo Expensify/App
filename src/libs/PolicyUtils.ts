@@ -480,6 +480,11 @@ function isExpensifyTeam(email: string | undefined): boolean {
     return emailDomain === CONST.EXPENSIFY_PARTNER_NAME || emailDomain === CONST.EMAIL.GUIDES_DOMAIN;
 }
 
+/** Whether Expensify team members should be hidden from the given policy/user combination. */
+function shouldFilterExpensifyTeam(policyOwner: string | undefined, currentUserLogin: string | undefined): boolean {
+    return !!policyOwner && !!currentUserLogin && !isExpensifyTeam(policyOwner) && !isExpensifyTeam(currentUserLogin);
+}
+
 /**
  * Checks if the current user is of the role "user" on the policy.
  */
@@ -2089,6 +2094,7 @@ export {
     shouldShowTaxRateError,
     isControlOnAdvancedApprovalMode,
     isExpensifyTeam,
+    shouldFilterExpensifyTeam,
     isDeletedPolicyEmployee,
     isInstantSubmitEnabled,
     isDelayedSubmissionEnabled,
