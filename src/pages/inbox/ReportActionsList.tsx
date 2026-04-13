@@ -1,5 +1,6 @@
 import {useRoute} from '@react-navigation/native';
-import React from 'react';
+import React, {useEffect, useState} from 'react';
+import Animated, {FadeIn} from 'react-native-reanimated';
 import MoneyRequestReportActionsList from '@components/MoneyRequestReportView/MoneyRequestReportActionsList';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
 import useNetwork from '@hooks/useNetwork';
@@ -45,15 +46,38 @@ function ReportActionsList() {
     const shouldWaitForTransactions = shouldWaitForTransactionsUtil(report, reportTransactions, reportMetadata, isOffline);
     const shouldDisplayMoneyRequestActionsList = isMoneyRequestOrInvoiceReport && shouldDisplayReportTableView(report, reportTransactions);
 
-    if (!report || shouldWaitForTransactions) {
+    // Defer the heavy content render by one frame so the skeleton paints first.
+    // This gives the user immediate visual feedback on navigation instead of a
+    // blank screen while the JS thread processes the full component tree.
+    const [isDeferred, setIsDeferred] = useState(true);
+    useEffect(() => {
+        const raf = requestAnimationFrame(() => setIsDeferred(false));
+        return () => cancelAnimationFrame(raf);
+    }, []);
+
+    if (!report || shouldWaitForTransactions || isDeferred) {
         return <ReportActionsSkeletonView />;
     }
 
     if (shouldDisplayMoneyRequestActionsList) {
-        return <MoneyRequestReportActionsList reportID={report.reportID} />;
+        return (
+            <Animated.View
+                entering={FadeIn}
+                style={{flex: 1}}
+            >
+                <MoneyRequestReportActionsList reportID={report.reportID} />
+            </Animated.View>
+        );
     }
 
-    return <ReportActionsView reportID={report.reportID} />;
+    return (
+        <Animated.View
+            entering={FadeIn}
+            style={{flex: 1}}
+        >
+            <ReportActionsView reportID={report.reportID} />
+        </Animated.View>
+    );
 }
 
 export default ReportActionsList;
