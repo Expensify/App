@@ -1017,8 +1017,6 @@ const translations: TranslationDeepObject<typeof en> = {
                 sunglassesDescription: 'Zeit zum Entspannen, aber bleiben Sie gespannt auf das, was kommt!',
                 f1FlagsTitle: 'Alles erledigt',
                 f1FlagsDescription: 'Sie haben alle offenen Aufgaben abgeschlossen.',
-                fireworksTitle: 'Alles erledigt',
-                fireworksDescription: 'Anstehende Aufgaben erscheinen hier.',
             },
         },
         upcomingTravel: 'Bevorstehende Reisen',

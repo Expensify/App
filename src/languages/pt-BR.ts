@@ -1015,8 +1015,6 @@ const translations: TranslationDeepObject<typeof en> = {
                 sunglassesDescription: 'Hora de relaxar, mas fique atento ao que vem por aí!',
                 f1FlagsTitle: 'Tudo em dia',
                 f1FlagsDescription: 'Você concluiu todas as tarefas pendentes.',
-                fireworksTitle: 'Tudo em dia',
-                fireworksDescription: 'As próximas tarefas aparecerão aqui.',
             },
         },
         upcomingTravel: 'Próximas viagens',
