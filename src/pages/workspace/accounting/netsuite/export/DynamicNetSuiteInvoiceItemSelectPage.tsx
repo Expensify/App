@@ -3,6 +3,7 @@ import BlockingView from '@components/BlockingViews/BlockingView';
 import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import type {SelectorType} from '@components/SelectionScreen';
 import SelectionScreen from '@components/SelectionScreen';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -15,28 +16,32 @@ import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import variables from '@styles/variables';
 import {clearNetSuiteErrorField} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 
-function NetSuiteInvoiceItemSelectPage({policy}: WithPolicyConnectionsProps) {
+function DynamicNetSuiteInvoiceItemSelectPage({policy}: WithPolicyConnectionsProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const illustrations = useMemoizedLazyIllustrations(['Telescope']);
 
     const policyID = policy?.id;
-
     const config = policy?.connections?.netsuite?.options.config;
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.POLICY_ACCOUNTING_NETSUITE_INVOICE_ITEM_SELECT.path);
     const netsuiteInvoiceItemOptions = useMemo<SelectorType[]>(() => getNetSuiteInvoiceItemOptions(policy ?? undefined, config?.invoiceItem), [config?.invoiceItem, policy]);
 
     const initiallyFocusedOptionKey = useMemo(() => netsuiteInvoiceItemOptions?.find((mode) => mode.isSelected)?.keyForList, [netsuiteInvoiceItemOptions]);
+
+    const goBack = useCallback(() => {
+        Navigation.goBack(backPath);
+    }, [backPath]);
 
     const updateInvoiceItem = useCallback(
         ({value}: SelectorType) => {
             if (config?.invoiceItem !== value && policyID) {
                 updateNetSuiteInvoiceItem(policyID, value, config?.invoiceItem);
             }
-            Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_INVOICE_ITEM_PREFERENCE_SELECT.getRoute(policyID), {compareParams: false});
+            goBack();
         },
-        [policyID, config?.invoiceItem],
+        [policyID, config?.invoiceItem, goBack],
     );
 
     const listEmptyContent = useMemo(
@@ -58,12 +63,12 @@ function NetSuiteInvoiceItemSelectPage({policy}: WithPolicyConnectionsProps) {
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
-            displayName="NetSuiteInvoiceItemSelectPage"
+            displayName="DynamicNetSuiteInvoiceItemSelectPage"
             data={netsuiteInvoiceItemOptions}
             listItem={RadioListItem}
             onSelectRow={updateInvoiceItem}
             initiallyFocusedOptionKey={initiallyFocusedOptionKey}
-            onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_INVOICE_ITEM_PREFERENCE_SELECT.getRoute(policyID), {compareParams: false})}
+            onBackButtonPress={goBack}
             title="workspace.netsuite.invoiceItem.label"
             listEmptyContent={listEmptyContent}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.NETSUITE}
@@ -76,4 +81,4 @@ function NetSuiteInvoiceItemSelectPage({policy}: WithPolicyConnectionsProps) {
     );
 }
 
-export default withPolicyConnections(NetSuiteInvoiceItemSelectPage);
+export default withPolicyConnections(DynamicNetSuiteInvoiceItemSelectPage);
