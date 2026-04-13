@@ -1,8 +1,8 @@
 import type {NavigatorScreenParams} from '@react-navigation/native';
 import {useFocusEffect} from '@react-navigation/native';
-import React, {useCallback, useMemo, useRef} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 // eslint-disable-next-line no-restricted-imports
-import {Animated, InteractionManager} from 'react-native';
+import {Animated, DeviceEventEmitter, InteractionManager} from 'react-native';
 import {DialogLabelProvider} from '@components/DialogLabelContext';
 import NoDropZone from '@components/DragAndDrop/NoDropZone';
 import {MultifactorAuthenticationContextProviders} from '@components/MultifactorAuthentication/Context';
