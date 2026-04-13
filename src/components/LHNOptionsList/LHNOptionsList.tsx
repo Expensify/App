@@ -98,8 +98,8 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
     );
 
     const extraData = useMemo(
-        () => [reports, reportAttributes, policy, personalDetails, data.length, optionMode, isOffline],
-        [reports, reportAttributes, policy, personalDetails, data.length, optionMode, isOffline],
+        () => [reports, reportAttributes, policy, personalDetails, conciergeReportID, data.length, optionMode, isOffline],
+        [reports, reportAttributes, policy, personalDetails, conciergeReportID, data.length, optionMode, isOffline],
     );
 
     const previousOptionMode = usePrevious(optionMode);
