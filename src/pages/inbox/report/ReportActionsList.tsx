@@ -98,9 +98,6 @@ type ReportActionsListProps = {
     /** Sorted actions that should be visible to the user */
     sortedVisibleReportActions: OnyxTypes.ReportAction[];
 
-    /** The ID of the most recent IOU report action connected with the shown report */
-    mostRecentIOUReportActionID?: string | null;
-
     /** Callback executed on list layout */
     onLayout: (event: LayoutChangeEvent) => void;
 
@@ -166,7 +163,6 @@ function ReportActionsList({
     sortedReportActions,
     sortedVisibleReportActions,
     onScroll,
-    mostRecentIOUReportActionID = '',
     loadNewerChats,
     loadOlderChats,
     onLayout,
@@ -716,7 +712,6 @@ function ReportActionsList({
                             !isConsecutiveChronosAutomaticTimerAction(sortedVisibleReportActions, index, chatIncludesChronosWithID(reportAction?.reportID), isOffline) &&
                             isConsecutiveActionMadeByPreviousActor(sortedVisibleReportActions, index, isOffline)
                         }
-                        mostRecentIOUReportActionID={mostRecentIOUReportActionID}
                         shouldHideThreadDividerLine={shouldHideThreadDividerLine}
                         shouldDisplayNewMarker={reportAction.reportActionID === unreadMarkerReportActionID}
                         shouldDisplayReplyDivider={sortedVisibleReportActions.length > 1}
@@ -743,7 +738,6 @@ function ReportActionsList({
             transactionThreadReport,
             linkedReportActionID,
             sortedVisibleReportActions,
-            mostRecentIOUReportActionID,
             shouldHideThreadDividerLine,
             unreadMarkerReportActionID,
             firstVisibleReportActionID,
