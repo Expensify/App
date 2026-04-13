@@ -1,4 +1,5 @@
 /* eslint-disable rulesdir/no-deep-equal-in-memo */
+import {useNavigation} from '@react-navigation/native';
 import {deepEqual} from 'fast-equals';
 import mapValues from 'lodash/mapValues';
 import React, {memo, use, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
@@ -57,9 +58,10 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {cleanUpMoneyRequest} from '@libs/actions/IOU';
+import {cleanUpMoneyRequest} from '@libs/actions/IOU/DeleteMoneyRequest';
 import {resolveSuggestedFollowup} from '@libs/actions/Report/SuggestedFollowup';
 import {isPersonalCardBrokenConnection} from '@libs/CardUtils';
+import {isChronosOOOListAction} from '@libs/ChronosUtils';
 import ControlSelection from '@libs/ControlSelection';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
@@ -69,6 +71,8 @@ import focusComposerWithDelay from '@libs/focusComposerWithDelay';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {isReportMessageAttachment} from '@libs/isReportMessageAttachment';
 import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {ReportsSplitNavigatorParamList} from '@libs/Navigation/types';
 import {getBankAccountLastFourDigits} from '@libs/PaymentUtils';
 import Permissions from '@libs/Permissions';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
@@ -116,6 +120,7 @@ import {
     getPolicyChangeLogMaxExpenseAmountMessage,
     getPolicyChangeLogMaxExpenseAmountNoReceiptMessage,
     getPolicyChangeLogUpdateEmployee,
+    getReimbursedMessage,
     getReimburserUpdateMessage,
     getRemovedCardFeedMessage,
     getRemovedConnectionMessage,
@@ -182,7 +187,6 @@ import {
     isActionOfType,
     isCardBrokenConnectionAction,
     isCardIssuedAction,
-    isChronosOOOListAction,
     isConciergeCategoryOptions,
     isConciergeDescriptionOptions,
     isCreatedTaskReportAction,
@@ -250,6 +254,7 @@ import {isBlockedFromConcierge} from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type {JoinWorkspaceResolution} from '@src/types/onyx/OriginalMessage';
@@ -303,9 +308,6 @@ type PureReportActionItemProps = {
 
     /** Should the comment have the appearance of being grouped with the previous comment? */
     displayAsGroup: boolean;
-
-    /** Is this the most recent IOU Action? */
-    isMostRecentIOUReportAction: boolean;
 
     /** Should we display the new marker on top of the comment? */
     shouldDisplayNewMarker: boolean;
@@ -503,7 +505,6 @@ function PureReportActionItem({
     linkedReportActionID,
     displayAsGroup,
     index,
-    isMostRecentIOUReportAction,
     parentReportAction,
     shouldDisplayNewMarker,
     shouldHideThreadDividerLine = false,
@@ -633,17 +634,21 @@ function PureReportActionItem({
         currentSearchHash = searchContextCurrentSearchHash;
     }
 
+    const navigation = useNavigation<PlatformStackNavigationProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
     const dismissError = useCallback(() => {
         const transactionID = isMoneyRequestAction(action) ? getOriginalMessage(action)?.IOUTransactionID : undefined;
         if (isSendingMoney && transactionID && reportID) {
             cleanUpMoneyRequest(transactionID, action, reportID, report, chatReport, undefined, originalReportID, true);
             return;
         }
+        if (action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD && isReportActionLinked) {
+            navigation.setParams({reportActionID: ''});
+        }
         if (transactionID) {
             clearError(transactionID);
         }
         clearAllRelatedReportActionErrors(reportID, action, originalReportID);
-    }, [action, isSendingMoney, reportID, clearAllRelatedReportActionErrors, report, chatReport, clearError, originalReportID]);
+    }, [action, isSendingMoney, reportID, clearAllRelatedReportActionErrors, originalReportID, isReportActionLinked, report, chatReport, clearError, navigation]);
 
     const showDismissReceiptErrorModal = useCallback(async () => {
         const result = await showConfirmModal({
@@ -972,6 +977,8 @@ function PureReportActionItem({
                             isRestrictedToPreferredPolicy,
                             preferredPolicyID,
                             transaction: trackExpenseTransaction,
+                            currentUserAccountID: personalDetail.accountID,
+                            currentUserEmail: personalDetail.email ?? '',
                         });
                     },
                 },
@@ -994,6 +1001,8 @@ function PureReportActionItem({
                                 amountOwed,
                                 ownerBillingGracePeriodEnd,
                                 transaction: trackExpenseTransaction,
+                                currentUserAccountID: personalDetail.accountID,
+                                currentUserEmail: personalDetail.email ?? '',
                             });
                         },
                     },
@@ -1012,6 +1021,8 @@ function PureReportActionItem({
                                 amountOwed,
                                 ownerBillingGracePeriodEnd,
                                 transaction: trackExpenseTransaction,
+                                currentUserAccountID: personalDetail.accountID,
+                                currentUserEmail: personalDetail.email ?? '',
                             });
                         },
                     },
@@ -1188,7 +1199,6 @@ function PureReportActionItem({
                     requestReportID={iouReportID}
                     reportID={reportID}
                     action={action}
-                    isMostRecentIOUReportAction={isMostRecentIOUReportAction}
                     isHovered={hovered}
                     contextMenuAnchor={popoverAnchorRef.current}
                     checkIfContextMenuActive={toggleContextMenuFromActiveReportAction}
@@ -1448,8 +1458,9 @@ function PureReportActionItem({
                 }
             }
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED)) {
-            const isFromNewDot = getOriginalMessage(action)?.isNewDot ?? false;
-            children = isFromNewDot ? emptyHTML : <ReportActionItemBasicMessage message={getMarkedReimbursedMessage(translate, action)} />;
+            children = <ReportActionItemBasicMessage message={getMarkedReimbursedMessage(translate, action)} />;
+        } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.REIMBURSED)) {
+            children = <ReportActionItemBasicMessage message={getReimbursedMessage(translate, action, report, currentUserAccountID)} />;
         } else if (isUnapprovedAction(action)) {
             children = <ReportActionItemBasicMessage message={translate('iou.unapproved')} />;
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.FORWARDED)) {
@@ -1515,7 +1526,13 @@ function PureReportActionItem({
                 </ReportActionItemBasicMessage>
             );
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION) {
-            children = <UnreportedTransactionAction action={action as OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION>} />;
+            children = (
+                <UnreportedTransactionAction
+                    action={action as OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION>}
+                    childReport={childReport}
+                    originalReport={originalReport}
+                />
+            );
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.MERGED_WITH_CASH_TRANSACTION) {
             children = <ReportActionItemBasicMessage message={translate('systemMessage.mergedWithCashTransaction')} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.CARD_FROZEN || action.actionName === CONST.REPORT.ACTIONS.TYPE.CARD_UNFROZEN) {
@@ -2211,7 +2228,6 @@ export default memo(PureReportActionItem, (prevProps, nextProps) => {
     return (
         prevProps.personalPolicyID === nextProps.personalPolicyID &&
         prevProps.displayAsGroup === nextProps.displayAsGroup &&
-        prevProps.isMostRecentIOUReportAction === nextProps.isMostRecentIOUReportAction &&
         prevProps.shouldDisplayNewMarker === nextProps.shouldDisplayNewMarker &&
         deepEqual(prevProps.action, nextProps.action) &&
         deepEqual(prevProps.report?.pendingFields, nextProps.report?.pendingFields) &&
