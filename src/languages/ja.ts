@@ -7942,6 +7942,7 @@ ${reportName}
         personalCard: '個人のカード',
         companyCard: '会社カード',
         expensifyCard: 'Expensify カード',
+        centralInvoicing: '集中請求',
     },
     distance: {
         addStop: '経由地を追加',
