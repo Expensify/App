@@ -2314,9 +2314,15 @@ function readNewestAction(reportID: string | undefined, hasOnceLoadedReportActio
         return;
     }
 
-    // Do not try to mark the report as read if the report has not been loaded and shared with the user
+    // Do not try to mark the report as read if the report has not been loaded and shared with the user.
+    // However, if report actions already exist in Onyx (e.g., delivered via Pusher), the report is
+    // clearly shared with the user and we can proceed with marking it as read.
     if (!hasOnceLoadedReportActions) {
-        return;
+        const reportActions = allReportActions?.[reportID];
+        const hasReportActions = !!reportActions && Object.keys(reportActions).length > 0;
+        if (!hasReportActions) {
+            return;
+        }
     }
 
     const lastReadTime = NetworkConnection.getDBTimeWithSkew();
