@@ -716,7 +716,7 @@ function TransactionItemRow({
                             style={styles.mr3}
                             shouldUseNarrowLayout={shouldUseNarrowLayout}
                         />
-                        <View style={[styles.flex2, styles.flexColumn, styles.justifyContentEvenly]}>
+                        <View style={[styles.flex2, styles.flexColumn, styles.gap1]}>
                             <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.gap2]}>
                                 {merchantOrDescription ? (
                                     <MerchantOrDescriptionCell
