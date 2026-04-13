@@ -236,7 +236,7 @@ export default createOnyxDerivedValueConfig({
                 return currentValue ?? {reports: {}, locale: null};
             }
         }
-        
+
         const reportAttributes = dataToIterate.reduce<ReportAttributesDerivedValue['reports']>(
             (acc, key) => {
                 // source value sends partial data, so we need an entire report object to do computations
