@@ -1156,8 +1156,15 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         permissionView: {
-            paddingVertical: 108,
-            paddingHorizontal: 61,
+            paddingVertical: variables.permissionViewPaddingVertical,
+            paddingHorizontal: variables.permissionViewPaddingHorizontal,
+            alignItems: 'center',
+            justifyContent: 'center',
+        },
+
+        permissionViewLandscape: {
+            paddingVertical: variables.permissionViewPaddingVerticalLandscape,
+            paddingHorizontal: variables.permissionViewPaddingHorizontal,
             alignItems: 'center',
             justifyContent: 'center',
         },
@@ -2482,6 +2489,20 @@ const staticStyles = (theme: ThemeColors) =>
             borderBottomRightRadius: variables.componentBorderRadiusNormal,
         },
 
+        searchTableTopRadius: {
+            borderTopLeftRadius: variables.componentBorderRadius,
+            borderTopRightRadius: variables.componentBorderRadius,
+        },
+
+        searchTableBottomRadius: {
+            borderBottomLeftRadius: variables.componentBorderRadius,
+            borderBottomRightRadius: variables.componentBorderRadius,
+        },
+
+        searchTableRowHeight: {
+            minHeight: variables.tableRowHeight,
+        },
+
         borderBottom: {
             borderBottomWidth: 1,
             borderColor: theme.border,
@@ -3497,13 +3518,21 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         searchListHeaderContainerStyle: {
-            width: '100%',
             flexDirection: 'row',
             alignItems: 'center',
             ...userSelect.userSelectNone,
             paddingBottom: 12,
-            backgroundColor: theme.appBG,
             justifyContent: 'flex-start',
+        },
+
+        searchListHeaderTableStyle: {
+            backgroundColor: theme.highlightBG,
+            borderTopLeftRadius: variables.componentBorderRadius,
+            borderTopRightRadius: variables.componentBorderRadius,
+            borderBottomWidth: 1,
+            borderColor: theme.border,
+            minHeight: 36,
+            paddingBottom: 8,
         },
 
         groupSearchListTableContainerStyle: {
@@ -4773,6 +4802,11 @@ const staticStyles = (theme: ThemeColors) =>
         listTableHeader: {
             paddingVertical: 12,
             paddingHorizontal: 32,
+        },
+
+        listTableHeaderCompact: {
+            paddingVertical: 8,
+            paddingHorizontal: 12,
         },
 
         tableHeaderIconSpacing: {
@@ -6240,6 +6274,14 @@ const dynamicStyles = (theme: ThemeColors) =>
             marginBottom: shouldUseNarrowLayout ? 8 : 20,
         }),
 
+        getSafeAreaPressablePosition: (safeAreaPosition: 'right' | 'left', width: number): ViewStyle => ({
+            position: 'absolute',
+            [safeAreaPosition]: 0,
+            top: 0,
+            bottom: 0,
+            width,
+        }),
+
         getSelectionListPopoverHeight: (itemCount: number, windowHeight: number, isSearchable: boolean) => {
             const SEARCHBAR_HEIGHT = isSearchable ? 52 : 0;
             const SEARCHBAR_PADDING = isSearchable ? 12 : 0;
@@ -6490,15 +6532,9 @@ const plainStyles = (theme: ThemeColors) =>
                 width: '100%',
             }) satisfies ViewStyle,
 
-        homePageLeftColumn: (shouldUseNarrowLayout: boolean) =>
-            shouldUseNarrowLayout
-                ? ({width: '100%', flexDirection: 'column', gap: 20} satisfies ViewStyle)
-                : ({flex: 7, flexBasis: '58.333%', maxWidth: variables.homePageLeftColumnMaxWidth, flexDirection: 'column', gap: 20} satisfies ViewStyle),
+        homePageLeftColumn: {flex: 7, flexBasis: '58.333%', maxWidth: variables.homePageLeftColumnMaxWidth, flexDirection: 'column', gap: 20} satisfies ViewStyle,
 
-        homePageRightColumn: (shouldUseNarrowLayout: boolean) =>
-            shouldUseNarrowLayout
-                ? ({width: '100%', flexDirection: 'column', gap: 20} satisfies ViewStyle)
-                : ({flex: 5, flexBasis: '41.667%', maxWidth: variables.homePageRightColumnMaxWidth, flexDirection: 'column', gap: 20} satisfies ViewStyle),
+        homePageRightColumn: {flex: 5, flexBasis: '41.667%', maxWidth: variables.homePageRightColumnMaxWidth, flexDirection: 'column', gap: 20} satisfies ViewStyle,
     }) satisfies Styles;
 
 const styles = (theme: ThemeColors) =>
