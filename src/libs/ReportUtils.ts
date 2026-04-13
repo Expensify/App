@@ -1281,10 +1281,7 @@ function getChatType(report: OnyxInputOrEntry<Report> | Participant): ValueOf<ty
 }
 
 /**
- * Get the report or draft report given a reportID.
- * Prefer passing the report via the 5th param (e.g. from useOnyx) to bypass the
- * deprecated module-level Onyx variable. Callers that have not yet been migrated
- * can omit it and the function falls back to deprecatedAllReports.
+ * Get the report or draft report given a reportID
  */
 function getReportOrDraftReport(
     reportID: string | undefined,
