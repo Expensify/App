@@ -5,7 +5,7 @@ import useOnyx from './useOnyx';
 import usePrevious from './usePrevious';
 
 export default function useMobileSelectionMode(onTurnOffSelectionMode = () => {}) {
-    const [isSelectionModeEnabled = false] = useOnyx(ONYXKEYS.MOBILE_SELECTION_MODE, {initWithStoredValues: false, canBeMissing: true});
+    const [isSelectionModeEnabled = false] = useOnyx(ONYXKEYS.MOBILE_SELECTION_MODE, {initWithStoredValues: false});
     const initialSelectionModeValueRef = useRef(isSelectionModeEnabled);
     const prevIsSelectionModeEnabled = usePrevious(isSelectionModeEnabled);
 

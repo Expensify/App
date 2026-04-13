@@ -14,6 +14,8 @@ import {
     handleOpenDomainSplitAction,
     handleOpenWorkspaceSplitAction,
     handlePushFullscreenAction,
+    handleRemoveFullscreenUnderRHP,
+    handleReplaceFullscreenUnderRHP,
     handleReplaceReportsSplitNavigatorAction,
     handleToggleSidePanelWithHistoryAction,
 } from './GetStateForActionHandlers';
@@ -24,7 +26,9 @@ import type {
     OpenWorkspaceSplitActionType,
     PreloadActionType,
     PushActionType,
+    RemoveFullscreenUnderRHPActionType,
     ReplaceActionType,
+    ReplaceFullscreenUnderRHPActionType,
     RootStackNavigatorAction,
     RootStackNavigatorRouterOptions,
     ToggleSidePanelWithHistoryActionType,
@@ -48,6 +52,14 @@ function isReplaceAction(action: RootStackNavigatorAction): action is ReplaceAct
 
 function isDismissModalAction(action: RootStackNavigatorAction): action is DismissModalActionType {
     return action.type === CONST.NAVIGATION.ACTION_TYPE.DISMISS_MODAL;
+}
+
+function isReplaceFullscreenUnderRHPAction(action: RootStackNavigatorAction): action is ReplaceFullscreenUnderRHPActionType {
+    return action.type === CONST.NAVIGATION.ACTION_TYPE.REPLACE_FULLSCREEN_UNDER_RHP;
+}
+
+function isRemoveFullscreenUnderRHPAction(action: RootStackNavigatorAction): action is RemoveFullscreenUnderRHPActionType {
+    return action.type === CONST.NAVIGATION.ACTION_TYPE.REMOVE_FULLSCREEN_UNDER_RHP;
 }
 
 function isToggleSidePanelWithHistoryAction(action: RootStackNavigatorAction): action is ToggleSidePanelWithHistoryActionType {
@@ -143,6 +155,14 @@ function RootStackRouter(options: RootStackNavigatorRouterOptions) {
 
             if (isDismissModalAction(action)) {
                 return handleDismissModalAction(state, configOptions, stackRouter);
+            }
+
+            if (isReplaceFullscreenUnderRHPAction(action)) {
+                return handleReplaceFullscreenUnderRHP(state, action, configOptions, stackRouter);
+            }
+
+            if (isRemoveFullscreenUnderRHPAction(action)) {
+                return handleRemoveFullscreenUnderRHP(state, action, configOptions, stackRouter);
             }
 
             if (isReplaceAction(action) && action.payload.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR) {

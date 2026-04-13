@@ -14,7 +14,7 @@ import type {FrequentlyUsedEmoji, Locale} from '@src/types/onyx';
 import type {ReportActionReaction, UsersReactions} from '@src/types/onyx/ReportActionReactions';
 import type IconAsset from '@src/types/utils/IconAsset';
 import {isSafari} from './Browser';
-import type EmojiTrie from './EmojiTrie';
+import type {getEmojiTrie as getEmojiTrieType} from './EmojiTrie';
 import memoize from './memoize';
 
 type HeaderIndices = {code: string; index: number; icon: IconAsset};
@@ -22,7 +22,7 @@ type EmojiSpacer = {code: string; spacer: boolean};
 type EmojiPickerListItem = EmojiSpacer | Emoji | HeaderEmoji;
 type EmojiPickerList = EmojiPickerListItem[];
 type ReplacedEmoji = {text: string; emojis: Emoji[]; cursorPosition?: number};
-type EmojiTrieModule = {default: typeof EmojiTrie};
+type EmojiTrieModule = {getEmojiTrie: typeof getEmojiTrieType};
 type TextWithEmoji = {
     text: string;
     isEmoji: boolean;
@@ -220,6 +220,10 @@ function isFirstLetterEmoji(message: string): boolean {
  * Validates that this message contains only emojis
  */
 function containsOnlyEmojis(message: string): boolean {
+    if (!message) {
+        return false;
+    }
+
     const trimmedMessage = Str.replaceAll(message.replaceAll(' ', ''), '\n', '');
     const match = trimmedMessage.match(CONST.REGEX.ALL_EMOJIS);
 
@@ -387,11 +391,10 @@ function getAddedEmojis(currentEmojis: Emoji[], formerEmojis: Emoji[]): Emoji[] 
  * If we're on mobile, we also add a space after the emoji granted there's no text after it.
  */
 function replaceEmojis(text: string, preferredSkinTone: OnyxEntry<number | string> = CONST.EMOJI_DEFAULT_SKIN_TONE, locale: Locale = CONST.LOCALES.DEFAULT): ReplacedEmoji {
-    // emojisTrie is importing the emoji JSON file on the app starting and we want to avoid it
-    const emojisTrie = require<EmojiTrieModule>('./EmojiTrie').default;
+    const {getEmojiTrie} = require<EmojiTrieModule>('./EmojiTrie');
 
     const normalizedLocale = locale && isFullySupportedLocale(locale) ? locale : CONST.LOCALES.EN;
-    const trie = emojisTrie[normalizedLocale];
+    const trie = getEmojiTrie(normalizedLocale);
     if (!trie) {
         return {text, emojis: []};
     }
@@ -406,7 +409,7 @@ function replaceEmojis(text: string, preferredSkinTone: OnyxEntry<number | strin
     const codeBlockRanges = parseExpensiMark(text);
     const replacements: Array<{position: number; shortcode: string; replacement: string; name: string}> = [];
     const shortcodeSearchPositions: Record<string, number> = {};
-    const englishTrie = normalizedLocale !== CONST.LOCALES.DEFAULT ? emojisTrie[CONST.LOCALES.DEFAULT] : null;
+    const englishTrie = normalizedLocale !== CONST.LOCALES.DEFAULT ? getEmojiTrie(CONST.LOCALES.DEFAULT) : null;
 
     for (const emoji of emojiData) {
         const name = emoji.slice(1, -1);
@@ -488,11 +491,10 @@ function replaceAndExtractEmojis(text: string, preferredSkinTone: OnyxEntry<numb
  * @param [limit] - matching emojis limit
  */
 function suggestEmojis(text: string, locale: Locale = CONST.LOCALES.DEFAULT, limit: number = CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_SUGGESTIONS): Emoji[] | undefined {
-    // emojisTrie is importing the emoji JSON file on the app starting and we want to avoid it
-    const emojisTrie = require<EmojiTrieModule>('./EmojiTrie').default;
+    const {getEmojiTrie} = require<EmojiTrieModule>('./EmojiTrie');
 
     const normalizedLocale = locale && isFullySupportedLocale(locale) ? locale : CONST.LOCALES.EN;
-    const trie = emojisTrie[normalizedLocale];
+    const trie = getEmojiTrie(normalizedLocale);
     if (!trie) {
         return [];
     }
@@ -690,7 +692,7 @@ function splitTextWithEmojis(text = ''): TextWithEmoji[] {
     do {
         regexResult = emojisRegex.exec(text);
 
-        if (regexResult?.indices) {
+        if (regexResult?.indices?.[0]) {
             const matchIndexStart = regexResult.indices[0][0];
             const matchIndexEnd = regexResult.indices[0][1];
 
@@ -755,36 +757,52 @@ function containsOnlyCustomEmoji(text?: string): boolean {
 }
 
 /**
- * Insert ZWNJ (Zero-Width Non-Joiner) between digits and emojis to prevent Safari's automatic keycap sequence bug.
+ * Insert Variation Selector 15 (FE0E) between digits/symbols and emojis to prevent Safari's automatic keycap sequence bug.
  *
- * Safari has a browser-specific behavior where it automatically converts a digit immediately followed by an emoji
- * into a Unicode keycap sequence (e.g., "1" + "😄" becomes "1️⃣"). This happens at the browser's input handling level
- * before React can process the text, causing character corruption or unexpected joining.
+ * Safari has a browser-specific behavior where it automatically converts a digit or symbol (#, *)
+ * immediately followed by an emoji into a Unicode keycap sequence (e.g., "1" + "😄" becomes "1️⃣").
+ * This happens at the browser's input handling level before React can process the text,
+ * causing character corruption or unexpected joining.
  *
- * The ZWNJ character (U+200C) is a non-printing Unicode character that prevents the formation of ligatures or
- * unwanted character joining. By inserting it between digits and emojis, we break Safari's automatic keycap
- * sequence detection, ensuring the text displays correctly.
+ * FE0E (Variation Selector 15) is a non-printing Unicode character that forces text presentation.
+ * Unlike ZWNJ (U+200C) which has Grapheme_Cluster_Break=Control and creates a separate grapheme cluster
+ * (causing cursor navigation and deletion issues), FE0E has Grapheme_Cluster_Break=Extend which makes it
+ * attach to the preceding character as part of the same grapheme cluster. This means:
+ * - No invisible extra cursor stops between digit and emoji
+ * - Backspace correctly deletes the digit (not an invisible character)
+ * - Arrow keys move smoothly past the digit-emoji boundary
  *
- * Example: "234😄" becomes "234\u200C😄" (ZWNJ is invisible but prevents Safari's corruption)
+ * Example: "234😄" becomes "234\uFE0E😄" (FE0E is invisible but prevents Safari's corruption)
  */
-function insertZWNJBetweenDigitAndEmoji(input: string): string {
+function insertTextVSBetweenDigitAndEmoji(input: string): string {
     if (!isSafari()) {
         return input;
     }
-    return input.replaceAll(CONST.REGEX.DIGIT_FOLLOWED_BY_EMOJI, '$1\u200C$2');
+
+    // Fix corrupted key caps that Safari created (key cap followed by emoji indicates corruption)
+    let result = input.replaceAll(CONST.REGEX.CORRUPTED_KEYCAP_FOLLOWED_BY_EMOJI, '$1\uFE0E$2');
+    // Insert FE0E between digit/symbol and emoji (the main fix to prevent corruption)
+    result = result.replaceAll(CONST.REGEX.DIGIT_OR_SYMBOL_FOLLOWED_BY_EMOJI, '$1\uFE0E$2');
+
+    return result;
 }
 
 /**
- * Calculate the ZWNJ offset for cursor position adjustment.
- * Returns the number of ZWNJ characters inserted before the cursor position.
+ * Calculate the text VS (FE0E) offset for cursor position adjustment.
+ * Returns the number of FE0E characters that would be inserted before the cursor position.
  */
-function getZWNJCursorOffset(text: string, cursorPosition: number | undefined | null): number {
+function getTextVSCursorOffset(text: string, cursorPosition: number | undefined | null): number {
     if (!isSafari() || cursorPosition === undefined || cursorPosition === null) {
         return 0;
     }
-    const textBeforeCursor = text.substring(0, cursorPosition);
-    const textWithZWNJBeforeCursor = insertZWNJBetweenDigitAndEmoji(textBeforeCursor);
-    return textWithZWNJBeforeCursor.length - textBeforeCursor.length;
+
+    const beforeCursor = text.substring(0, cursorPosition);
+
+    let processed = beforeCursor;
+    processed = processed.replaceAll(CONST.REGEX.CORRUPTED_KEYCAP_FOLLOWED_BY_EMOJI, '$1\uFE0E$2');
+    processed = processed.replaceAll(CONST.REGEX.DIGIT_OR_SYMBOL_FOLLOWED_BY_EMOJI, '$1\uFE0E$2');
+
+    return processed.length - beforeCursor.length;
 }
 
 export type {HeaderIndices, EmojiPickerList, EmojiPickerListItem};
@@ -814,8 +832,8 @@ export {
     containsCustomEmoji,
     containsOnlyCustomEmoji,
     processFrequentlyUsedEmojis,
-    insertZWNJBetweenDigitAndEmoji,
-    getZWNJCursorOffset,
+    insertTextVSBetweenDigitAndEmoji,
+    getTextVSCursorOffset,
     isPositionInsideCodeBlock,
     getEmojiCodeForInsertion,
 };

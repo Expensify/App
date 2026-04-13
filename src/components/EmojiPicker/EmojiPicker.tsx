@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
+import React, {Activity, useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
 import type {ForwardedRef, RefObject} from 'react';
 import {Dimensions, View} from 'react-native';
 import type {Emoji} from '@assets/emojis/types';
@@ -7,6 +7,7 @@ import FocusTrapForModal from '@components/FocusTrap/FocusTrapForModal';
 import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import withViewportOffsetTop from '@components/withViewportOffsetTop';
+import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -22,7 +23,6 @@ import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManag
 import {close} from '@userActions/Modal';
 import CONST from '@src/CONST';
 import KeyboardUtils from '@src/utils/keyboard';
-import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import EmojiPickerMenu from './EmojiPickerMenu';
 
 const DEFAULT_ANCHOR_ORIGIN = {
@@ -265,18 +265,20 @@ function EmojiPicker({viewportOffsetTop, ref}: EmojiPickerProps) {
             shouldEnableNewFocusManagement
             restoreFocusType={CONST.MODAL.RESTORE_FOCUS_TYPE.DELETE}
             shouldSkipRemeasurement
-            enableEdgeToEdgeBottomSafeAreaPadding
+            shouldWrapModalChildrenInScrollViewIfBottomDockedInLandscapeMode={false}
         >
             <FocusTrapForModal active={isEmojiPickerVisible}>
-                <View style={bottomSafeAreaPaddingStyle}>
-                    <EmojiPickerMenu
-                        onEmojiSelected={selectEmoji}
-                        activeEmoji={activeEmoji.current}
-                        ref={(el) => {
-                            emojiSearchInput.current = el;
-                        }}
-                    />
-                </View>
+                <Activity mode={isEmojiPickerVisible ? 'visible' : 'hidden'}>
+                    <View style={bottomSafeAreaPaddingStyle}>
+                        <EmojiPickerMenu
+                            onEmojiSelected={selectEmoji}
+                            activeEmoji={activeEmoji.current}
+                            ref={(el) => {
+                                emojiSearchInput.current = el;
+                            }}
+                        />
+                    </View>
+                </Activity>
             </FocusTrapForModal>
         </PopoverWithMeasuredContent>
     );

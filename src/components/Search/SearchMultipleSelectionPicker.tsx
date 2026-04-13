@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useState} from 'react';
 import MultiSelectListItem from '@components/SelectionList/ListItem/MultiSelectListItem';
 import SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
 import useDebouncedState from '@hooks/useDebouncedState';
@@ -9,85 +9,85 @@ import {sortOptionsWithEmptyValue} from '@libs/SearchQueryUtils';
 import ROUTES from '@src/ROUTES';
 import SearchFilterPageFooterButtons from './SearchFilterPageFooterButtons';
 
-type SearchMultipleSelectionPickerItem = {
+type SearchMultipleSelectionPickerItem<T> = {
     name: string;
-    value: string | string[];
+    value: T;
+    leftElement?: React.ReactNode;
 };
 
-type SearchMultipleSelectionPickerProps = {
-    items: SearchMultipleSelectionPickerItem[];
-    initiallySelectedItems: SearchMultipleSelectionPickerItem[] | undefined;
+type SearchMultipleSelectionPickerProps<T> = {
+    items: Array<SearchMultipleSelectionPickerItem<T>>;
+    initiallySelectedItems: Array<SearchMultipleSelectionPickerItem<T>> | undefined;
     pickerTitle?: string;
-    onSaveSelection: (values: string[]) => void;
+    onSaveSelection: (values: [T] extends [string[]] ? T : T[]) => void;
     shouldShowTextInput?: boolean;
 };
 
-function SearchMultipleSelectionPicker({items, initiallySelectedItems, pickerTitle, onSaveSelection, shouldShowTextInput = true}: SearchMultipleSelectionPickerProps) {
+function SearchMultipleSelectionPicker<T extends string | string[]>({
+    items,
+    initiallySelectedItems,
+    pickerTitle,
+    onSaveSelection,
+    shouldShowTextInput = true,
+}: SearchMultipleSelectionPickerProps<T>) {
     const {translate, localeCompare} = useLocalize();
-
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
-    const [selectedItems, setSelectedItems] = useState<SearchMultipleSelectionPickerItem[]>(initiallySelectedItems ?? []);
 
-    useEffect(() => {
-        setSelectedItems(initiallySelectedItems ?? []);
-    }, [initiallySelectedItems]);
+    const [selectedItemIDs, setSelectedItemIDs] = useState(() => new Set((initiallySelectedItems ?? []).map((item) => item.value.toString())));
 
-    const selectedItemsSection = selectedItems
-        .filter((item) => item?.name.toLowerCase().includes(debouncedSearchTerm?.toLowerCase()))
-        .sort((a, b) => sortOptionsWithEmptyValue(a.value.toString(), b.value.toString(), localeCompare))
-        .map((item) => ({
-            text: item.name,
-            keyForList: item.name,
-            isSelected: true,
-            value: item.value,
-        }));
+    const searchLower = debouncedSearchTerm.toLowerCase();
+    const selectedSectionData: Array<{text: string; keyForList: string; isSelected: boolean; value: T; leftElement?: React.ReactNode}> = [];
+    const remainingSectionData: typeof selectedSectionData = [];
+    for (const item of items) {
+        if (!item.name.toLowerCase().includes(searchLower)) {
+            continue;
+        }
+        const isSelected = selectedItemIDs.has(item.value.toString());
+        (isSelected ? selectedSectionData : remainingSectionData).push({text: item.name, keyForList: item.name, isSelected, value: item.value, leftElement: item.leftElement});
+    }
 
-    const remainingItemsSection = items
-        .filter(
-            (item) =>
-                !selectedItems.some((selectedItem) => selectedItem.value.toString() === item.value.toString()) && item?.name?.toLowerCase().includes(debouncedSearchTerm?.toLowerCase()),
-        )
-        .sort((a, b) => sortOptionsWithEmptyValue(a.value.toString(), b.value.toString(), localeCompare))
-        .map((item) => ({
-            text: item.name,
-            keyForList: item.name,
-            isSelected: false,
-            value: item.value,
-        }));
+    const sortByValue = (a: {value: string | string[]}, b: {value: string | string[]}) => sortOptionsWithEmptyValue(a.value.toString(), b.value.toString(), localeCompare);
+    selectedSectionData.sort(sortByValue);
+    remainingSectionData.sort(sortByValue);
 
-    const noResultsFound = !selectedItemsSection.length && !remainingItemsSection.length;
+    const noResultsFound = !selectedSectionData.length && !remainingSectionData.length;
     const sections = noResultsFound
         ? []
         : [
               {
                   title: undefined,
-                  data: selectedItemsSection,
+                  data: selectedSectionData,
                   sectionIndex: 0,
               },
               {
                   title: pickerTitle,
-                  data: remainingItemsSection,
+                  data: remainingSectionData,
                   sectionIndex: 1,
               },
           ];
 
-    const onSelectItem = (item: Partial<OptionData & SearchMultipleSelectionPickerItem>) => {
+    const onSelectItem = (item: Partial<OptionData & SearchMultipleSelectionPickerItem<T>>) => {
         if (!item.text || !item.keyForList || !item.value) {
             return;
         }
-        if (item.isSelected) {
-            setSelectedItems(selectedItems?.filter((selectedItem) => selectedItem.name !== item.keyForList));
-        } else {
-            setSelectedItems([...(selectedItems ?? []), {name: item.text, value: item.value}]);
-        }
+        const id = item.value.toString();
+        setSelectedItemIDs((prev) => {
+            const next = new Set(prev);
+            if (item.isSelected) {
+                next.delete(id);
+            } else {
+                next.add(id);
+            }
+            return next;
+        });
     };
 
     const resetChanges = () => {
-        setSelectedItems([]);
+        setSelectedItemIDs(new Set());
     };
 
     const applyChanges = () => {
-        onSaveSelection(selectedItems.map((item) => item.value).flat());
+        onSaveSelection(items.filter((item) => selectedItemIDs.has(item.value.toString())).flatMap((item) => item.value) as [T] extends [string[]] ? T : T[]);
         Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS.getRoute());
     };
 
@@ -104,7 +104,7 @@ function SearchMultipleSelectionPicker({items, initiallySelectedItems, pickerTit
             shouldShowTextInput={shouldShowTextInput}
             textInputOptions={textInputOptions}
             onSelectRow={onSelectItem}
-            showLoadingPlaceholder={!noResultsFound}
+            shouldShowLoadingPlaceholder={!noResultsFound}
             shouldStopPropagation
             shouldShowTooltips
             canSelectMultiple

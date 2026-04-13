@@ -7,18 +7,16 @@ import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import ScrollOffsetContextProvider from '@components/ScrollOffsetContextProvider';
 import SearchList from '@components/Search/SearchList';
+import type {SearchListItem} from '@components/Search/SearchList/ListItem/types';
 import type {SearchColumnType, SearchQueryJSON} from '@components/Search/types';
-import type {SearchListItem} from '@components/SelectionListWithSections/types';
 import Text from '@components/Text';
 import ThemeProvider from '@components/ThemeProvider';
-import ThemeStylesProvider from '@components/ThemeStylesProvider';
+import ThemeStylesProvider from '@components/ThemeStylesContextProvider';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import * as TestHelper from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 import wrapOnyxWithWaitForBatchedUpdates from '../../utils/wrapOnyxWithWaitForBatchedUpdates';
-
-jest.mock('@components/Icon/Expensicons');
 
 jest.mock('@hooks/useLocalize', () =>
     jest.fn(() => ({

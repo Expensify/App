@@ -54,7 +54,7 @@ For detailed setup instructions for each platform, see the following guides:
    ```sh
    Access to fetch at 'https://www.expensify.com/api/BeginSignIn' from origin 'http://localhost:8080' has been blocked by CORS policy
    ```
-   You probably have a misconfigured `.env` file - remove it (`rm .env`) and try again
+   You probably have a misconfigured `.env` file - remove it (`rm .env`) and try again.
 
 **Note:** Expensify engineers that will be testing with the API in your local dev environment please refer to [these additional instructions](https://stackoverflow.com/c/expensify/questions/7699/7700).
 
@@ -80,8 +80,6 @@ variables referenced here get updated since your local `.env` file is ignored.
    see [PERFORMANCE.md](contributingGuides/PERFORMANCE.md#performance-metrics-opt-in-on-local-release-builds) for more information
 - `ONYX_METRICS` (optional) - Set this to `true` to capture even more performance metrics and see them in Flipper
    see [React-Native-Onyx#benchmarks](https://github.com/Expensify/react-native-onyx#benchmarks) for more information
-- `E2E_TESTING` (optional) - This needs to be set to `true` when running the e2e tests for performance regression testing.
-   This happens usually automatically, read [this](tests/e2e/README.md) for more information
 
 > If your changes to .env aren't having an effect, try `rm -rf .rock`, then re-run `npm run ios` or `npm run android`
 

@@ -7,7 +7,7 @@ import useOnyx from './useOnyx';
 const policyWorkspaceAccountIDSelector = (policy: OnyxEntry<Policy>) => policy?.workspaceAccountID;
 
 function useWorkspaceAccountID(policyID: string | undefined) {
-    const [workspaceAccountID = CONST.DEFAULT_NUMBER_ID] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {selector: policyWorkspaceAccountIDSelector, canBeMissing: true});
+    const [workspaceAccountID = CONST.DEFAULT_NUMBER_ID] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {selector: policyWorkspaceAccountIDSelector});
 
     return workspaceAccountID;
 }

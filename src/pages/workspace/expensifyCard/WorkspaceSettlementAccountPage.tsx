@@ -15,7 +15,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {getRouteParamForConnection} from '@libs/AccountingUtils';
 import {openPolicyAccountingPage} from '@libs/actions/PolicyConnections';
 import {getLastFourDigits} from '@libs/BankAccountUtils';
-import {getEligibleBankAccountsForCard, getEligibleBankAccountsForUkEuCard} from '@libs/CardUtils';
+import {getCardProgramKey, getCardSettings, getEligibleBankAccountsForCard, getEligibleBankAccountsForUkEuCard} from '@libs/CardUtils';
+import Log from '@libs/Log';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getDomainNameForPolicy} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
@@ -24,7 +25,7 @@ import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import {updateSettlementAccount as updateSettlementAccountCard} from '@userActions/Card';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {BankName} from '@src/types/onyx/Bank';
 import type {ConnectionName} from '@src/types/onyx/Policy';
@@ -42,16 +43,18 @@ function WorkspaceSettlementAccountPage({route}: WorkspaceSettlementAccountPageP
     const policyID = route.params?.policyID;
     const defaultFundID = useDefaultFundID(policyID);
 
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: true});
-    const [bankAccountsList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
-    const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${defaultFundID}`, {canBeMissing: true});
-    const [continuousReconciliation] = useOnyx(`${ONYXKEYS.COLLECTION.EXPENSIFY_CARD_USE_CONTINUOUS_RECONCILIATION}${defaultFundID}`, {canBeMissing: true});
-    const [reconciliationConnection] = useOnyx(`${ONYXKEYS.COLLECTION.EXPENSIFY_CARD_CONTINUOUS_RECONCILIATION_CONNECTION}${defaultFundID}`, {canBeMissing: true});
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+    const [bankAccountsList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
+    const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${defaultFundID}`);
+    const programKey = getCardProgramKey(cardSettings);
+    const settings = getCardSettings(cardSettings, programKey);
+    const [continuousReconciliation] = useOnyx(`${ONYXKEYS.COLLECTION.EXPENSIFY_CARD_USE_CONTINUOUS_RECONCILIATION}${defaultFundID}`);
+    const [reconciliationConnection] = useOnyx(`${ONYXKEYS.COLLECTION.EXPENSIFY_CARD_CONTINUOUS_RECONCILIATION_CONNECTION}${defaultFundID}`);
     const isUkEuCurrencySupported = useExpensifyCardUkEuSupported(policyID);
 
-    const paymentBankAccountID = cardSettings?.paymentBankAccountID;
-    const paymentBankAccountNumberFromCardSettings = cardSettings?.paymentBankAccountNumber;
-    const paymentBankAccountAddressName = cardSettings?.paymentBankAccountAddressName;
+    const paymentBankAccountID = settings?.paymentBankAccountID;
+    const paymentBankAccountNumberFromCardSettings = settings?.paymentBankAccountNumber;
+    const paymentBankAccountAddressName = settings?.paymentBankAccountAddressName;
     const paymentBankAccountNumber = bankAccountsList?.[paymentBankAccountID?.toString() ?? '']?.accountData?.accountNumber ?? paymentBankAccountNumberFromCardSettings ?? '';
 
     const getEligibleBankAccounts = () => {
@@ -62,7 +65,7 @@ function WorkspaceSettlementAccountPage({route}: WorkspaceSettlementAccountPageP
     };
     const eligibleBankAccounts = getEligibleBankAccounts();
 
-    const domainName = cardSettings?.domainName ?? getDomainNameForPolicy(policyID);
+    const domainName = settings?.domainName ?? getDomainNameForPolicy(policyID);
     const hasActiveAccountingConnection = !!(policy?.connections && Object.keys(policy.connections).length > 0);
 
     const fetchPolicyAccountingData = useCallback(() => {
@@ -106,7 +109,11 @@ function WorkspaceSettlementAccountPage({route}: WorkspaceSettlementAccountPageP
     const listOptions: BankAccountListItem[] = eligibleBankAccountsOptions.length > 0 ? eligibleBankAccountsOptions : [fallbackBankAccountOption];
 
     const handleSelectAccount = (value: number) => {
-        updateSettlementAccountCard(domainName, defaultFundID, policyID, value, paymentBankAccountID);
+        if (!programKey) {
+            Log.alert('[WorkspaceSettlementAccountPage] handleSelectAccount called without a detected card program key');
+            return;
+        }
+        updateSettlementAccountCard(domainName, defaultFundID, policyID, programKey, value, paymentBankAccountID);
         Navigation.goBack();
     };
 
@@ -122,7 +129,7 @@ function WorkspaceSettlementAccountPage({route}: WorkspaceSettlementAccountPageP
                         <RenderHTML
                             html={translate(
                                 'workspace.expensifyCard.settlementAccountInfo',
-                                `${environmentURL}/${ROUTES.WORKSPACE_ACCOUNTING_RECONCILIATION_ACCOUNT_SETTINGS.getRoute(policyID, connectionParam, Navigation.getActiveRoute())}`,
+                                `${environmentURL}/${ROUTES.WORKSPACE_ACCOUNTING_CARD_RECONCILIATION.getRoute(policyID, connectionParam)}/${DYNAMIC_ROUTES.WORKSPACE_ACCOUNTING_RECONCILIATION_ACCOUNT_SETTINGS.path}`,
                                 `${CONST.MASKED_PAN_PREFIX}${getLastFourDigits(paymentBankAccountNumber)}`,
                             )}
                         />

@@ -8,7 +8,7 @@ const isCurrentTargetInsideContainer: IsCurrentTargetInsideContainerType = (even
         return false;
     }
 
-    return !!containerRef.current.contains(event.relatedTarget as Node);
+    return !!containerRef.current.contains(event.relatedTarget as never);
 };
 
 export default isCurrentTargetInsideContainer;

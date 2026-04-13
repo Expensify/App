@@ -87,6 +87,7 @@ function ImageWithLoading({
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...rest}
                 style={[styles.w100, styles.h100, style]}
+                resizeMode={resizeMode}
                 onLoadStart={() => {
                     if (isLoadedRef.current ?? isLoading) {
                         return;

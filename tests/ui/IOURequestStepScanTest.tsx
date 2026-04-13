@@ -1,5 +1,5 @@
 import {NavigationContainer} from '@react-navigation/native';
-import {act, render} from '@testing-library/react-native';
+import {act, fireEvent, render, screen} from '@testing-library/react-native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -52,6 +52,7 @@ jest.mock('@hooks/useFilesValidation', () => {
 
 jest.mock('react-native-vision-camera', () => ({
     useCameraDevice: jest.fn(() => null),
+    useCameraFormat: jest.fn(() => null),
 }));
 
 function createMinimalReport(reportID: string, policyID: string): Report {
@@ -151,7 +152,7 @@ describe('IOURequestStepScan', () => {
 
         expect(triggerFileSelection).not.toBeNull();
 
-        const replacementFile = {name: 'replacement-receipt.png', type: 'image/png', size: 100} as FileObject;
+        const replacementFile = {name: 'replacement-receipt.png', type: 'image/png', size: 100, uri: 'file://replacement-receipt.png'} as FileObject;
         await act(async () => {
             if (!triggerFileSelection) {
                 return;
@@ -171,6 +172,34 @@ describe('IOURequestStepScan', () => {
         const POLICY_ID = 'policy-1';
         const TRANSACTION_ID_1 = '101';
 
+        render(
+            <OnyxListItemProvider>
+                <LocaleContextProvider>
+                    <NavigationContainer>
+                        <IOURequestStepScan
+                            route={
+                                {
+                                    key: 'StepScan2',
+                                    name: SCREENS.MONEY_REQUEST.CREATE,
+                                    params: {
+                                        action: CONST.IOU.ACTION.CREATE,
+                                        iouType: CONST.IOU.TYPE.SUBMIT,
+                                        reportID: REPORT_ID,
+                                        transactionID: TRANSACTION_ID_1,
+                                        pageIndex: 0,
+                                    },
+                                } as unknown as PlatformStackScreenProps<MoneyRequestNavigatorParamList, typeof SCREENS.MONEY_REQUEST.CREATE>['route']
+                            }
+                            navigation={{} as never}
+                        />
+                    </NavigationContainer>
+                </LocaleContextProvider>
+            </OnyxListItemProvider>,
+        );
+
+        await waitForBatchedUpdatesWithAct();
+        fireEvent.press(screen.getByLabelText('multi-scan'));
+        await waitForBatchedUpdates();
         const transaction1 = createRandomTransaction(1);
         transaction1.reportID = REPORT_ID;
         transaction1.transactionID = TRANSACTION_ID_1;
@@ -182,39 +211,9 @@ describe('IOURequestStepScan', () => {
         });
         await waitForBatchedUpdates();
 
-        render(
-            <OnyxListItemProvider>
-                <LocaleContextProvider>
-                    <NavigationContainer>
-                        <IOURequestStepScan
-                            route={
-                                {
-                                    key: 'StepScan2',
-                                    name: SCREENS.MONEY_REQUEST.STEP_SCAN,
-                                    params: {
-                                        action: CONST.IOU.ACTION.CREATE,
-                                        iouType: CONST.IOU.TYPE.SUBMIT,
-                                        reportID: REPORT_ID,
-                                        transactionID: TRANSACTION_ID_1,
-                                        pageIndex: 0,
-                                    },
-                                } as unknown as PlatformStackScreenProps<MoneyRequestNavigatorParamList, typeof SCREENS.MONEY_REQUEST.STEP_SCAN>['route']
-                            }
-                            navigation={{} as never}
-                            isMultiScanEnabled
-                            isStartingScan
-                            setIsMultiScanEnabled={jest.fn()}
-                        />
-                    </NavigationContainer>
-                </LocaleContextProvider>
-            </OnyxListItemProvider>,
-        );
-
-        await waitForBatchedUpdatesWithAct();
-
         expect(triggerFileSelection).not.toBeNull();
 
-        const secondFile = {name: 'second-receipt.png', type: 'image/png', size: 200} as FileObject;
+        const secondFile = {name: 'second-receipt.png', type: 'image/png', size: 200, uri: 'file://second-receipt.png'} as FileObject;
         await act(async () => {
             if (!triggerFileSelection) {
                 return;

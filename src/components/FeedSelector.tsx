@@ -32,10 +32,10 @@ type Props = {
 function FeedSelector({onFeedSelect, CardFeedIcon, feedName, supportingText, shouldShowRBR = false, isLoading = false}: Props) {
     const styles = useThemeStyles();
     const theme = useTheme();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['DotIndicator'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['DotIndicator']);
 
     if (isLoading) {
-        return <SearchInputSelectionSkeleton />;
+        return <SearchInputSelectionSkeleton reasonAttributes={{context: 'FeedSelector', isLoading}} />;
     }
 
     return (
@@ -44,6 +44,7 @@ function FeedSelector({onFeedSelect, CardFeedIcon, feedName, supportingText, sho
             wrapperStyle={styles.flexShrink1}
             style={[styles.flexRow, styles.alignItemsCenter, styles.gap3]}
             accessibilityLabel={feedName ?? ''}
+            sentryLabel="FeedSelector"
         >
             {CardFeedIcon}
 

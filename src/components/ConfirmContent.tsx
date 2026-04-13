@@ -3,6 +3,7 @@ import React from 'react';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useTheme from '@hooks/useTheme';
@@ -13,7 +14,6 @@ import type IconAsset from '@src/types/utils/IconAsset';
 import Button from './Button';
 import Header from './Header';
 import Icon from './Icon';
-import {Close} from './Icon/Expensicons';
 import ImageSVG from './ImageSVG';
 import {PressableWithoutFeedback} from './Pressable';
 import Text from './Text';
@@ -98,6 +98,9 @@ type ConfirmContentProps = {
     /** Styles for the image */
     imageStyles?: StyleProp<ViewStyle>;
 
+    /** Whether to fit the image to the container */
+    shouldFitImageToContainer?: boolean;
+
     /** Whether the modal is visible */
     isVisible: boolean;
 
@@ -130,6 +133,7 @@ function ConfirmContent({
     shouldShowDismissIcon = false,
     image,
     imageStyles,
+    shouldFitImageToContainer = false,
     titleContainerStyles,
     shouldReverseStackedButtons = false,
     isVisible,
@@ -139,6 +143,7 @@ function ConfirmContent({
     const {translate} = useLocalize();
     const theme = useTheme();
     const {isOffline} = useNetwork();
+    const icons = useMemoizedLazyExpensifyIcons(['Close']);
     const bottomSafeAreaPaddingStyle = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding: true});
 
     const isCentered = shouldCenterContent;
@@ -148,10 +153,11 @@ function ConfirmContent({
             {!!image && (
                 <View style={imageStyles}>
                     <ImageSVG
-                        contentFit="contain"
+                        contentFit={shouldFitImageToContainer ? 'cover' : 'contain'}
                         src={image}
                         height={CONST.CONFIRM_CONTENT_SVG_SIZE.HEIGHT}
-                        width={CONST.CONFIRM_CONTENT_SVG_SIZE.WIDTH}
+                        width={shouldFitImageToContainer ? '100%' : CONST.CONFIRM_CONTENT_SVG_SIZE.WIDTH}
+                        preserveAspectRatio={shouldFitImageToContainer ? 'xMidYMid slice' : undefined}
                         style={styles.alignSelfCenter}
                     />
                 </View>
@@ -165,10 +171,11 @@ function ConfirmContent({
                                 onPress={onCancel}
                                 role={CONST.ROLE.BUTTON}
                                 accessibilityLabel={translate('common.close')}
+                                sentryLabel={CONST.SENTRY_LABEL.CONFIRM_CONTENT.DISMISS_BUTTON}
                             >
                                 <Icon
                                     fill={theme.icon}
-                                    src={Close}
+                                    src={icons.Close}
                                 />
                             </PressableWithoutFeedback>
                         </Tooltip>
@@ -206,7 +213,7 @@ function ConfirmContent({
                             />
                         )}
                         <Button
-                            success={success}
+                            success={shouldShowCancelButton && !danger ? success : false}
                             danger={danger}
                             style={shouldReverseStackedButtons ? styles.mt3 : styles.mt4}
                             onPress={onConfirm}
@@ -237,7 +244,7 @@ function ConfirmContent({
                             />
                         )}
                         <Button
-                            success={success}
+                            success={shouldShowCancelButton && !danger ? success : false}
                             danger={danger}
                             style={[styles.flex1]}
                             onPress={onConfirm}

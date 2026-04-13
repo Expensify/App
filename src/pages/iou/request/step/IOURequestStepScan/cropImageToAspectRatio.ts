@@ -1,7 +1,10 @@
+import {ImageManipulator, SaveFormat} from 'expo-image-manipulator';
 import ImageSize from 'react-native-image-size';
 import type {Orientation} from 'react-native-vision-camera';
 import cropOrRotateImage from '@libs/cropOrRotateImage';
 import getDeviceOrientationAwareImageSize from '@libs/cropOrRotateImage/getDeviceOrientationAwareImageSize';
+import {JPEG_QUALITY} from '@libs/fileDownload/FileUtils';
+import Log from '@libs/Log';
 import type {FileObject} from '@src/types/utils/Attachment';
 
 type ImageObject = {
@@ -78,5 +81,23 @@ function cropImageToAspectRatio(
         .catch(() => image);
 }
 
+const THUMBNAIL_MAX_WIDTH = 512;
+/**
+ * Generate a low-resolution thumbnail from an image URI.
+ * Used on native to avoid decoding the full 12MP camera photo on the confirmation page.
+ * 256px is sufficient for the confirmation screen preview and decodes ~4x faster than 512px.
+ */
+function generateThumbnail(sourceUri: string, maxWidth = THUMBNAIL_MAX_WIDTH): Promise<string | undefined> {
+    return ImageManipulator.manipulate(sourceUri)
+        .resize({width: maxWidth})
+        .renderAsync()
+        .then((image) => image.saveAsync({compress: JPEG_QUALITY, format: SaveFormat.JPEG}))
+        .then((result) => result.uri)
+        .catch((error) => {
+            Log.warn(`Failed to generate thumbnail: ${error}`);
+            return undefined;
+        });
+}
+
 export type {ImageObject};
-export {calculateCropRect, cropImageToAspectRatio};
+export {calculateCropRect, cropImageToAspectRatio, generateThumbnail};

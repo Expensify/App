@@ -7,12 +7,12 @@ import {ImageBehaviorContextProvider} from '@components/Image/ImageBehaviorConte
 import MoneyRequestConfirmationList from '@components/MoneyRequestConfirmationList';
 import MoneyRequestHeaderStatusBar from '@components/MoneyRequestHeaderStatusBar';
 import ScreenWrapper from '@components/ScreenWrapper';
-import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import useReportAttributes from '@hooks/useReportAttributes';
+import useReportIsArchived from '@hooks/useReportIsArchived';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {completeSplitBill, setDraftSplitTransaction} from '@libs/actions/IOU/Split';
@@ -21,19 +21,10 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SplitDetailsNavigatorParamList} from '@libs/Navigation/types';
 import {getParticipantsOption, getPolicyExpenseReportOption} from '@libs/OptionsListUtils';
-import Parser from '@libs/Parser';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
-import {getTransactionDetails, isPolicyExpenseChat} from '@libs/ReportUtils';
+import {isPolicyExpenseChat} from '@libs/ReportUtils';
 import type {OptionData} from '@libs/ReportUtils';
-import {
-    areRequiredFieldsEmpty,
-    hasReceipt,
-    isDistanceRequest as isDistanceRequestUtil,
-    isGPSDistanceRequest as isGPSDistanceRequestUtil,
-    isManualDistanceRequest as isManualDistanceRequestUtil,
-    isMapDistanceRequest as isMapDistanceRequestUtil,
-    isScanning,
-} from '@libs/TransactionUtils';
+import {areRequiredFieldsEmpty, hasReceipt, isDistanceRequest as isDistanceRequestUtil, isMapDistanceRequest as isMapDistanceRequestUtil, isScanning} from '@libs/TransactionUtils';
 import withReportAndReportActionOrNotFound from '@pages/inbox/report/withReportAndReportActionOrNotFound';
 import type {WithReportAndReportActionOrNotFoundProps} from '@pages/inbox/report/withReportAndReportActionOrNotFound';
 import variables from '@styles/variables';
@@ -51,28 +42,29 @@ function SplitBillDetailsPage({route, report, reportAction}: SplitBillDetailsPag
     const theme = useTheme();
     const {isBetaEnabled} = usePermissions();
     const icons = useMemoizedLazyExpensifyIcons(['ReceiptScan']);
-    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-
     const reportID = report?.reportID;
     const originalMessage = reportAction && isMoneyRequestAction(reportAction) ? getOriginalMessage(reportAction) : undefined;
     const IOUTransactionID = originalMessage?.IOUTransactionID;
     const participantAccountIDs = originalMessage?.participantAccountIDs ?? [];
 
-    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(IOUTransactionID)}`, {canBeMissing: true});
-    const [draftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${IOUTransactionID}`, {canBeMissing: true});
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: true});
-    const [transactionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`, {canBeMissing: true});
-    const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE, {canBeMissing: true});
-    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
+    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(IOUTransactionID)}`);
+    const [draftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${IOUTransactionID}`);
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const [transactionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`);
+    const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
+    const [session] = useOnyx(ONYXKEYS.SESSION);
     const reportAttributesDerived = useReportAttributes();
-    const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
+    const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`);
+    const privateIsArchived = useReportIsArchived(reportID);
+
     // In case this is workspace split expense, we manually add the workspace as the second participant of the split expense
     // because we don't save any accountID in the report action's originalMessage other than the payee's accountID
     let participants: Array<Participant | OptionData>;
     if (isPolicyExpenseChat(report)) {
         participants = [
             getParticipantsOption({accountID: participantAccountIDs.at(0), selected: true, reportID: ''}, personalDetails),
-            getPolicyExpenseReportOption({...report, selected: true, reportID}, currentUserPersonalDetails.accountID, personalDetails, reportAttributesDerived),
+            getPolicyExpenseReportOption({...report, selected: true, reportID}, privateIsArchived, personalDetails, report, policy, reportAttributesDerived),
         ];
     } else {
         participants = participantAccountIDs.map((accountID) => getParticipantsOption({accountID, selected: true, reportID: ''}, personalDetails));
@@ -85,23 +77,11 @@ function SplitBillDetailsPage({route, report, reportAction}: SplitBillDetailsPag
     const isDistanceRequest = isDistanceRequestUtil(transaction);
     const isEditingSplitBill =
         session?.accountID === actorAccountID && (areRequiredFieldsEmpty(transaction, transactionReport) || (transaction?.amount === 0 && !hasReceipt(transaction))) && !isDistanceRequest;
-    const isManualDistanceRequest = isManualDistanceRequestUtil(transaction);
-    const isGPSDistanceRequest = isGPSDistanceRequestUtil(transaction);
     const isMapDistanceRequest = isMapDistanceRequestUtil(transaction);
     const [isConfirmed, setIsConfirmed] = useState(false);
 
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
-    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
-    const {
-        amount: splitAmount,
-        currency: splitCurrency,
-        comment: splitComment,
-        merchant: splitMerchant,
-        created: splitCreated,
-        category: splitCategory,
-        billable: splitBillable,
-    } = getTransactionDetails(isEditingSplitBill && draftTransaction ? draftTransaction : transaction) ?? {};
-
+    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const onConfirm = useCallback(() => {
         setIsConfirmed(true);
         completeSplitBill(
@@ -113,9 +93,10 @@ function SplitBillDetailsPage({route, report, reportAction}: SplitBillDetailsPag
             quickAction,
             transactionViolations,
             betas,
+            personalDetails,
             session?.email,
         );
-    }, [reportID, reportAction, draftTransaction, session?.accountID, session?.email, isASAPSubmitBetaEnabled, quickAction, transactionViolations, betas]);
+    }, [reportID, reportAction, draftTransaction, session?.accountID, session?.email, isASAPSubmitBetaEnabled, quickAction, transactionViolations, betas, personalDetails]);
 
     return (
         <ScreenWrapper testID="SplitBillDetailsPage">
@@ -146,22 +127,12 @@ function SplitBillDetailsPage({route, report, reportAction}: SplitBillDetailsPag
                             <MoneyRequestConfirmationList
                                 payeePersonalDetails={payeePersonalDetails}
                                 selectedParticipants={participantsExcludingPayee}
-                                iouAmount={splitAmount ?? 0}
-                                iouCurrencyCode={splitCurrency}
-                                iouComment={Parser.htmlToMarkdown(splitComment ?? '')}
-                                iouCreated={splitCreated}
                                 shouldDisplayReceipt
-                                iouMerchant={splitMerchant}
-                                iouCategory={splitCategory}
-                                iouIsBillable={splitBillable}
                                 iouType={CONST.IOU.TYPE.SPLIT}
                                 isReadOnly={!isEditingSplitBill}
                                 shouldShowSmartScanFields
                                 receiptPath={transaction?.receipt?.source}
                                 receiptFilename={transaction?.receipt?.filename}
-                                isDistanceRequest={isDistanceRequest}
-                                isManualDistanceRequest={isManualDistanceRequest}
-                                isGPSDistanceRequest={isGPSDistanceRequest}
                                 isEditingSplitBill={isEditingSplitBill}
                                 hasSmartScanFailed={hasSmartScanFailed}
                                 reportID={reportID}

@@ -1,5 +1,5 @@
-import type {ComponentType, FocusEvent, Key, ReactNode, Ref, RefObject} from 'react';
-import type {GestureResponderEvent, StyleProp, SubmitBehavior, TextInputSubmitEditingEvent, ViewStyle} from 'react-native';
+import type {ComponentRef, ComponentType, FocusEvent, Key, ReactNode, Ref, RefObject} from 'react';
+import type {GestureResponderEvent, HostComponent, InputModeOptions, KeyboardTypeOptions, StyleProp, SubmitBehavior, TextInputSubmitEditingEvent, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import type AddPlaidBankAccount from '@components/AddPlaidBankAccount';
 import type AddressSearch from '@components/AddressSearch';
@@ -125,6 +125,9 @@ type InputComponentBaseProps<TValue extends ValueTypeKey = ValueTypeKey> = Input
     submitBehavior?: SubmitBehavior;
     shouldSubmitForm?: boolean;
     uncontrolled?: boolean;
+    inputMode?: InputModeOptions;
+    keyboardType?: KeyboardTypeOptions;
+    getNativeRef?: () => ComponentRef<HostComponent<unknown>> & RefObject<HTMLOrSVGElement>;
 };
 
 type FormOnyxValues<TFormID extends OnyxFormKey = OnyxFormKey> = Omit<OnyxValues[TFormID], keyof BaseForm>;
@@ -189,10 +192,28 @@ type FormRef<TFormID extends OnyxFormKey = OnyxFormKey> = {
     resetErrors: () => void;
     resetFormFieldError: (fieldID: keyof Form) => void;
     submit: () => void;
+    scrollToEnd: () => void;
+};
+
+type FormWrapperRef = {
+    scrollToEnd: () => void;
 };
 
 type InputRefs = Record<string, RefObject<InputComponentBaseProps>>;
 
 type FormInputErrors<TFormID extends OnyxFormKey = OnyxFormKey> = Partial<Record<FormOnyxKeys<TFormID>, string | undefined>>;
 
-export type {FormProps, ValidInputs, InputComponentValueProps, FormValue, ValueTypeKey, FormOnyxValues, FormOnyxKeys, FormInputErrors, InputRefs, InputComponentBaseProps, FormRef};
+export type {
+    FormProps,
+    ValidInputs,
+    InputComponentValueProps,
+    FormValue,
+    ValueTypeKey,
+    FormOnyxValues,
+    FormOnyxKeys,
+    FormInputErrors,
+    InputRefs,
+    InputComponentBaseProps,
+    FormRef,
+    FormWrapperRef,
+};

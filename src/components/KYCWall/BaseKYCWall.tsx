@@ -1,18 +1,20 @@
+import {hasSeenTourSelector} from '@selectors/Onboarding';
 import React, {useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
 import {Dimensions} from 'react-native';
 import type {EmitterSubscription, View} from 'react-native';
 import AddPaymentMethodMenu from '@components/AddPaymentMethodMenu';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
+import useAllPolicyExpenseChatReportActions from '@hooks/useAllPolicyExpenseChatReportActions';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useParentReportAction from '@hooks/useParentReportAction';
 import useReportTransactions from '@hooks/useReportTransactions';
 import {openPersonalBankAccountSetupView} from '@libs/actions/BankAccounts';
-import {completePaymentOnboarding, savePreferredPaymentMethod} from '@libs/actions/IOU';
+import {completePaymentOnboarding, savePreferredPaymentMethod} from '@libs/actions/IOU/PayMoneyRequest';
 import {navigateToBankAccountRoute} from '@libs/actions/ReimbursementAccount';
 import {moveIOUReportToPolicy, moveIOUReportToPolicyAndInviteSubmitter} from '@libs/actions/Report';
-import {isBankAccountPartiallySetup} from '@libs/BankAccountUtils';
+import {doesPolicyHavePartiallySetupBankAccount} from '@libs/BankAccountUtils';
 import getClickedTargetLocation from '@libs/getClickedTargetLocation';
 import Log from '@libs/Log';
 import setNavigationActionToMicrotaskQueue from '@libs/Navigation/helpers/setNavigationActionToMicrotaskQueue';
@@ -25,6 +27,7 @@ import {setKYCWallSource} from '@userActions/Wallet';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import {lastWorkspaceNumberSelector} from '@src/selectors/Policy';
 import type {BankAccountList, Policy} from '@src/types/onyx';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
 import viewRef from '@src/types/utils/viewRef';
@@ -55,22 +58,27 @@ function KYCWall({
     shouldShowPersonalBankAccountOption = false,
     ref,
 }: KYCWallProps) {
-    const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET, {canBeMissing: true});
-    const [walletTerms] = useOnyx(ONYXKEYS.WALLET_TERMS, {canBeMissing: true});
-    const [fundList] = useOnyx(ONYXKEYS.FUND_LIST, {canBeMissing: true});
-    const [bankAccountList = getEmptyObject<BankAccountList>()] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
-    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`, {canBeMissing: true});
-    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
-    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
-    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: true});
+    const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET);
+    const [walletTerms] = useOnyx(ONYXKEYS.WALLET_TERMS);
+    const [fundList] = useOnyx(ONYXKEYS.FUND_LIST);
+    const [bankAccountList = getEmptyObject<BankAccountList>()] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
+    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`);
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
+    const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
 
-    const {formatPhoneNumber} = useLocalize();
+    const {formatPhoneNumber, translate} = useLocalize();
     const currentUserDetails = useCurrentUserPersonalDetails();
+    const currentUserAccountID = currentUserDetails.accountID;
     const currentUserEmail = currentUserDetails.email ?? '';
+    const localCurrency = currentUserDetails.localCurrencyCode ?? CONST.CURRENCY.USD;
     const reportPreviewAction = useParentReportAction(iouReport);
     const personalDetails = usePersonalDetails();
     const employeeEmail = personalDetails?.[iouReport?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID]?.login ?? '';
     const reportTransactions = useReportTransactions(iouReport?.reportID);
+    const {filteredReportActions} = useAllPolicyExpenseChatReportActions();
     const anchorRef = useRef<HTMLDivElement | View>(null);
     const transferBalanceButtonRef = useRef<HTMLDivElement | View | null>(null);
 
@@ -81,7 +89,7 @@ function KYCWall({
         anchorPositionHorizontal: 0,
     });
 
-    const [lastPaymentMethod] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD, {canBeMissing: true});
+    const [lastPaymentMethod] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD);
 
     const getAnchorPosition = useCallback(
         (domRect: DomRect): AnchorPosition => {
@@ -136,7 +144,7 @@ function KYCWall({
                 if (iouReport && isIOUReport(iouReport)) {
                     const adminPolicy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policy?.id}`];
                     if (adminPolicy) {
-                        const inviteResult = moveIOUReportToPolicyAndInviteSubmitter(iouReport, adminPolicy, formatPhoneNumber, reportTransactions);
+                        const inviteResult = moveIOUReportToPolicyAndInviteSubmitter(iouReport, adminPolicy, formatPhoneNumber, filteredReportActions, reportTransactions);
                         if (inviteResult?.policyExpenseChatReportID) {
                             setNavigationActionToMicrotaskQueue(() => {
                                 Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(inviteResult.policyExpenseChatReportID));
@@ -162,12 +170,23 @@ function KYCWall({
                         return;
                     }
 
+                    const lastWorkspaceNumber = lastWorkspaceNumberSelector(policies, currentUserEmail);
                     const {policyID, workspaceChatReportID, reportPreviewReportActionID, adminsChatReportID} =
-                        createWorkspaceFromIOUPayment(iouReport, reportPreviewAction, currentUserEmail, employeeEmail) ?? {};
+                        createWorkspaceFromIOUPayment(
+                            iouReport,
+                            reportPreviewAction,
+                            currentUserAccountID,
+                            currentUserEmail,
+                            employeeEmail,
+                            conciergeReportID,
+                            localCurrency,
+                            lastWorkspaceNumber,
+                            translate,
+                        ) ?? {};
                     if (policyID && iouReport?.policyID) {
                         savePreferredPaymentMethod(iouReport.policyID, policyID, CONST.LAST_PAYMENT_METHOD.IOU, lastPaymentMethod?.[iouReport?.policyID]);
                     }
-                    completePaymentOnboarding(CONST.PAYMENT_SELECTED.BBA, introSelected, adminsChatReportID, policyID);
+                    completePaymentOnboarding(CONST.PAYMENT_SELECTED.BBA, introSelected, isSelfTourViewed, betas, adminsChatReportID, policyID);
                     if (workspaceChatReportID) {
                         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(workspaceChatReportID, reportPreviewReportActionID));
                     }
@@ -177,11 +196,12 @@ function KYCWall({
                     return;
                 }
 
-                // If user has a setup in progress for we redirect to the flow where setup can be finished
-                // Setup is in progress in 2 cases:
-                // - account already present on policy is partially setup
-                // - account is being connected 'on the spot' while trying to pay for an expense (it won't be linked to policy yet but will appear as reimbursementAccount)
-                if (policy !== undefined && (isBankAccountPartiallySetup(policy?.achAccount?.state) || isBankAccountPartiallySetup(reimbursementAccount?.achData?.state))) {
+                // If user has a locked account we exit early
+                if (policy !== undefined && policy?.achAccount?.state === CONST.BANK_ACCOUNT.STATE.LOCKED) {
+                    return;
+                }
+
+                if (policy?.id !== undefined && doesPolicyHavePartiallySetupBankAccount(bankAccountList, policy.id)) {
                     navigateToBankAccountRoute({policyID: policy.id});
                     return;
                 }
@@ -201,17 +221,23 @@ function KYCWall({
             onSelectPaymentMethod,
             iouReport,
             addDebitCardRoute,
-            reimbursementAccount?.achData?.state,
             addBankAccountRoute,
             chatReport,
             policies,
             reportPreviewAction,
+            currentUserAccountID,
             currentUserEmail,
             employeeEmail,
-            reportTransactions,
             introSelected,
             formatPhoneNumber,
+            translate,
+            reportTransactions,
+            filteredReportActions,
             lastPaymentMethod,
+            isSelfTourViewed,
+            betas,
+            conciergeReportID,
+            localCurrency,
         ],
     );
 

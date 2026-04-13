@@ -10,6 +10,7 @@ import type ApprovalWorkflow from '@src/types/onyx/ApprovalWorkflow';
 import type {PersonalDetailsList} from '@src/types/onyx/PersonalDetails';
 import type PersonalDetails from '@src/types/onyx/PersonalDetails';
 import type Policy from '@src/types/onyx/Policy';
+import type PolicyEmployee from '@src/types/onyx/PolicyEmployee';
 import type {PolicyEmployeeList} from '@src/types/onyx/PolicyEmployee';
 import {isBankAccountPartiallySetup} from './BankAccountUtils';
 import {convertToDisplayString} from './CurrencyUtils';
@@ -80,6 +81,16 @@ function calculateApprovers({employees, firstEmail, personalDetailsByEmail}: Get
     return approvers;
 }
 
+/** Build a Member from a policy employee using personal details for avatar/displayName */
+function buildMemberFromEmployee(employee: PolicyEmployee, personalDetailsByEmail: PersonalDetailsList, email: string): Member {
+    return {
+        email,
+        avatar: personalDetailsByEmail[email]?.avatar,
+        displayName: personalDetailsByEmail[email]?.displayName ?? email,
+        pendingFields: employee.pendingFields,
+    };
+}
+
 type PolicyConversionParams = {
     /** Policy data containing employees and approver information */
     policy: OnyxEntry<Policy>;
@@ -114,20 +125,23 @@ function convertPolicyEmployeesToApprovalWorkflows({policy, personalDetails, fir
     // Keep track of used approver emails to display hints in the UI
     const usedApproverEmails = new Set<string>();
     const personalDetailsByEmail = lodashMapKeys(personalDetails, (value, key) => value?.login ?? key);
+    const availableMembers: Member[] = [];
 
-    // Add each employee to the appropriate workflow
     for (const employee of Object.values(employees)) {
         const {email, submitsTo, pendingAction} = employee;
-        if (!email || !submitsTo || !employees[submitsTo]) {
+        if (!email) {
             continue;
         }
 
-        const member: Member = {
-            email,
-            avatar: personalDetailsByEmail[email]?.avatar,
-            displayName: personalDetailsByEmail[email]?.displayName ?? email,
-            pendingFields: employee.pendingFields,
-        };
+        const member = buildMemberFromEmployee(employee, personalDetailsByEmail, email);
+
+        if (pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+            availableMembers.push(member);
+        }
+
+        if (!submitsTo || !employees[submitsTo]) {
+            continue;
+        }
 
         if (!approvalWorkflows[submitsTo]) {
             const approvers = calculateApprovers({employees, firstEmail: submitsTo, personalDetailsByEmail});
@@ -182,8 +196,10 @@ function convertPolicyEmployeesToApprovalWorkflows({policy, personalDetails, fir
         });
     }
 
-    const availableMembers =
-        policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.BASIC ? sortedApprovalWorkflows?.flatMap((workflow) => workflow.members) : (sortedApprovalWorkflows.at(0)?.members ?? []);
+    // availableMembers built in loop above: all employees with email, excluding pending delete.
+    // Includes members with orphaned submitsTo/forwardsTo so admins can fix chains from Expenses From picker.
+    // See https://github.com/Expensify/Expensify/issues/598876
+    availableMembers.sort((a, b) => localeCompare(a.displayName ?? a.email, b.displayName ?? b.email));
 
     return {approvalWorkflows: sortedApprovalWorkflows, usedApproverEmails: [...usedApproverEmails], availableMembers};
 }
@@ -375,13 +391,69 @@ function updateWorkflowDataOnApproverRemoval({approvalWorkflows, removedApprover
             }
 
             const hasOverLimitToRemovedApprover = workflow.approvers.some((item) => item.overLimitForwardsTo === removedApproverEmail);
-            if (hasOverLimitToRemovedApprover) {
+            const isMultiApproverWithRemovedInList = isMultipleApprovers && workflow.approvers.some((item) => item.email === removedApproverEmail);
+            if (hasOverLimitToRemovedApprover && !isMultiApproverWithRemovedInList) {
                 const approversWithClearedOverLimit = workflow.approvers.map((item) =>
                     item.overLimitForwardsTo === removedApproverEmail ? {...item, overLimitForwardsTo: '', approvalLimit: null} : item,
                 );
                 return {
                     ...workflow,
                     approvers: approversWithClearedOverLimit,
+                };
+            }
+
+            if (isMultiApproverWithRemovedInList) {
+                const removedApproverIndex = workflow.approvers.findIndex((item) => item.email === removedApproverEmail);
+
+                const updateApprovers = workflow.approvers.slice(0, removedApproverIndex);
+                const updateApproversHasOwner = updateApprovers.some((approver) => approver.email === ownerEmail);
+
+                // If the removed approver is the first in the list, keep the remaining chain
+                if (removedApproverIndex === 0) {
+                    const remainingApprovers = workflow.approvers
+                        .slice(1)
+                        .map((item) => (item.overLimitForwardsTo === removedApproverEmail ? {...item, overLimitForwardsTo: '', approvalLimit: null} : item));
+                    return {
+                        ...workflow,
+                        approvers: remainingApprovers,
+                    };
+                }
+
+                // If the owner is already in the approvers list, return the workflow with the updated approvers
+                // but still clear overLimitForwardsTo if it points to the removed member
+                if (updateApproversHasOwner) {
+                    const approversWithClearedOverLimit = updateApprovers.map((item) =>
+                        item.overLimitForwardsTo === removedApproverEmail ? {...item, overLimitForwardsTo: '', approvalLimit: null} : item,
+                    );
+                    return {
+                        ...workflow,
+                        approvers: approversWithClearedOverLimit,
+                    };
+                }
+
+                // Update forwardsTo and overLimitForwardsTo if necessary and prepare the new approver object
+                const updatedApprovers = updateApprovers.map((item) => {
+                    let updatedItem = item;
+                    if (item.forwardsTo === removedApproverEmail) {
+                        updatedItem = {...updatedItem, forwardsTo: ownerEmail};
+                    }
+                    if (item.overLimitForwardsTo === removedApproverEmail) {
+                        updatedItem = {...updatedItem, overLimitForwardsTo: '', approvalLimit: null};
+                    }
+                    return updatedItem;
+                });
+
+                const newApprover = {
+                    email: ownerEmail ?? '',
+                    forwardsTo: undefined,
+                    avatar: ownerDetails?.avatar ?? '',
+                    displayName: ownerDetails?.displayName ?? '',
+                    isCircularReference: workflow.approvers.at(removedApproverIndex)?.isCircularReference,
+                };
+
+                return {
+                    ...workflow,
+                    approvers: [...updatedApprovers, newApprover],
                 };
             }
 
@@ -558,6 +630,15 @@ function getOpenConnectedToPolicyBusinessBankAccounts(bankAccountList: BankAccou
     });
 }
 
+/**
+ * Combine workflow members with available members, deduplicating by email.
+ */
+function mergeWorkflowMembersWithAvailableMembers(workflowMembers: Member[], allAvailableMembers: Member[]): Member[] {
+    const memberEmails = new Set(workflowMembers.map((m) => m.email));
+    const additionalMembers = allAvailableMembers.filter((m) => !memberEmails.has(m.email));
+    return [...workflowMembers, ...additionalMembers];
+}
+
 export {
     calculateApprovers,
     convertPolicyEmployeesToApprovalWorkflows,
@@ -566,5 +647,6 @@ export {
     getEligibleExistingBusinessBankAccounts,
     getOpenConnectedToPolicyBusinessBankAccounts,
     INITIAL_APPROVAL_WORKFLOW,
+    mergeWorkflowMembersWithAvailableMembers,
     updateWorkflowDataOnApproverRemoval,
 };

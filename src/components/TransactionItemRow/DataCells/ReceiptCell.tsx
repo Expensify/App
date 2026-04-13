@@ -1,5 +1,5 @@
 import {Str} from 'expensify-common';
-import React from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 import type {ViewStyle} from 'react-native';
 import ReceiptImage from '@components/ReceiptImage';
@@ -16,13 +16,26 @@ import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
 import variables from '@styles/variables';
 import type {Transaction} from '@src/types/onyx';
 
-function ReceiptCell({transactionItem, isSelected, style}: {transactionItem: Transaction; isSelected: boolean; style?: ViewStyle}) {
+function ReceiptCell({transactionItem, isSelected, style, shouldUseNarrowLayout}: {transactionItem: Transaction; isSelected: boolean; style?: ViewStyle; shouldUseNarrowLayout?: boolean}) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+    const isLargeScreenWidth = !shouldUseNarrowLayout;
     const icons = useMemoizedLazyExpensifyIcons(['Receipt']);
     const backgroundStyles = isSelected ? StyleUtils.getBackgroundColorStyle(theme.buttonHoveredBG) : StyleUtils.getBackgroundColorStyle(theme.border);
     const {hovered, bind} = useHover();
+    // Lazily mount ReceiptPreview on first hover and keep it mounted afterward.
+    // ReceiptPreview handles its own visibility via debounced state, so keeping it
+    // mounted avoids re-creating the portal and reloading images on subsequent hovers.
+    const [shouldMountPreview, setShouldMountPreview] = useState(false);
+
+    const handleMouseEnter = () => {
+        if (!shouldMountPreview) {
+            setShouldMountPreview(true);
+        }
+        bind.onMouseEnter();
+    };
+
     const isMissingReceiptSource = !hasReceiptSource(transactionItem);
     const isEReceipt = transactionItem.hasEReceipt && isMissingReceiptSource;
     const isPerDiem = isPerDiemRequest(transactionItem) && isMissingReceiptSource;
@@ -44,13 +57,13 @@ function ReceiptCell({transactionItem, isSelected, style}: {transactionItem: Tra
     return (
         <View
             style={[
-                StyleUtils.getWidthAndHeightStyle(variables.h36, variables.w40),
+                StyleUtils.getWidthAndHeightStyle(isLargeScreenWidth ? variables.w28 : variables.h36, isLargeScreenWidth ? variables.h32 : variables.w40),
                 StyleUtils.getBorderRadiusStyle(variables.componentBorderRadiusSmall),
                 styles.overflowHidden,
                 backgroundStyles,
                 style,
             ]}
-            onMouseEnter={bind.onMouseEnter}
+            onMouseEnter={handleMouseEnter}
             onMouseLeave={bind.onMouseLeave}
         >
             <ReceiptImage
@@ -71,12 +84,14 @@ function ReceiptCell({transactionItem, isSelected, style}: {transactionItem: Tra
                 shouldUseInitialObjectPosition
                 isPerDiemRequest={isPerDiem}
             />
-            <ReceiptPreview
-                source={previewSource}
-                hovered={hovered}
-                isEReceipt={!!isEReceipt}
-                transactionItem={transactionItem}
-            />
+            {shouldMountPreview && (
+                <ReceiptPreview
+                    source={previewSource}
+                    hovered={hovered}
+                    isEReceipt={!!isEReceipt}
+                    transactionItem={transactionItem}
+                />
+            )}
         </View>
     );
 }

@@ -76,8 +76,8 @@ function StatusClearAfterPage() {
     const {translate} = useLocalize();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const clearAfter = currentUserPersonalDetails.status?.clearAfter ?? '';
-    const [customStatus] = useOnyx(ONYXKEYS.CUSTOM_STATUS_DRAFT, {canBeMissing: true});
-    const [statusDraftCustomClearAfterDate] = useOnyx(ONYXKEYS.STATUS_DRAFT_CUSTOM_CLEAR_AFTER_DATE, {canBeMissing: true});
+    const [customStatus] = useOnyx(ONYXKEYS.CUSTOM_STATUS_DRAFT);
+    const [statusDraftCustomClearAfterDate] = useOnyx(ONYXKEYS.STATUS_DRAFT_CUSTOM_CLEAR_AFTER_DATE);
 
     const draftClearAfter = customStatus?.clearAfter ?? '';
     const [draftPeriod, setDraftPeriod] = useState(() => getSelectedStatusType(draftClearAfter || clearAfter));

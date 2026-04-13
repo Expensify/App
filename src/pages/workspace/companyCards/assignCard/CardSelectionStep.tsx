@@ -45,15 +45,15 @@ function CardSelectionStep({route}: CardSelectionStepProps) {
     const companyCardFeedIcons = useCompanyCardFeedIcons();
     const lazyIllustrations = useMemoizedLazyIllustrations(['BrokenMagnifyingGlass']);
     const [searchText, setSearchText] = useState('');
-    const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD, {canBeMissing: false});
+    const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD);
     const [list] = useCardsList(feed);
-    const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, {canBeMissing: false});
+    const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST);
     const [cardFeeds] = useCardFeeds(policyID);
     const plaidUrl = getPlaidInstitutionIconUrl(feed);
 
     const isEditing = assignCard?.isEditing;
     const assigneeDisplayName = Str.removeSMSDomain(getPersonalDetailByEmail(assignCard?.cardToAssign?.email ?? '')?.displayName ?? '');
-    const filteredCardList = getFilteredCardList(list, cardFeeds?.[feed]?.accountList, workspaceCardFeeds);
+    const filteredCardList = getFilteredCardList(list, cardFeeds?.[feed]?.accountList, workspaceCardFeeds, feed);
 
     const [cardSelected, setCardSelected] = useState(assignCard?.cardToAssign?.encryptedCardNumber ?? '');
     const [shouldShowError, setShouldShowError] = useState(false);
@@ -166,7 +166,7 @@ function CardSelectionStep({route}: CardSelectionStepProps) {
                         width={116}
                         height={168}
                     />
-                    <Text style={[styles.textHeadlineLineHeightXXL, styles.mt3]}>{translate('workspace.companyCards.noActiveCards')}</Text>
+                    <Text style={[styles.textHeadlineLineHeightXXL, styles.mt3]}>{translate('workspace.companyCards.noAvailableCards')}</Text>
                     <View style={[styles.renderHTML, styles.flexRow, styles.ph5, styles.mv3]}>
                         <RenderHTML html={translate('workspace.companyCards.somethingMightBeBroken')} />
                     </View>
@@ -180,7 +180,7 @@ function CardSelectionStep({route}: CardSelectionStepProps) {
                     textInputOptions={textInputOptions}
                     customListHeaderContent={customListHeader}
                     shouldScrollToFocusedIndex={false}
-                    showListEmptyContent={false}
+                    shouldShowListEmptyContent={false}
                     addBottomSafeAreaPadding
                     shouldUpdateFocusedIndex
                     footerContent={

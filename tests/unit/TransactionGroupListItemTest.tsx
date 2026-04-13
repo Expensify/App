@@ -1,3 +1,4 @@
+import type * as CoreNavigation from '@react-navigation/core';
 import * as NativeNavigation from '@react-navigation/native';
 import {fireEvent, render, screen} from '@testing-library/react-native';
 import React, {act} from 'react';
@@ -7,8 +8,8 @@ import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import {SearchContextProvider} from '@components/Search/SearchContext';
-import TransactionGroupListItem from '@src/components/SelectionListWithSections/Search/TransactionGroupListItem';
-import type {TransactionGroupListItemProps, TransactionListItemType, TransactionReportGroupListItemType} from '@src/components/SelectionListWithSections/types';
+import type {TransactionGroupListItemProps, TransactionListItemType, TransactionReportGroupListItemType} from '@components/Search/SearchList/ListItem/types';
+import TransactionGroupListItem from '@src/components/Search/SearchList/ListItem/TransactionGroupListItem';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
@@ -24,6 +25,28 @@ jest.mock('@libs/SearchUIUtils', () => ({
     getTableMinWidth: jest.fn(() => 0),
     getSuggestedSearches: jest.fn(() => ({})),
 }));
+
+jest.mock('@react-navigation/native', () => ({
+    ...jest.requireActual<typeof NativeNavigation>('@react-navigation/native'),
+    useNavigationState: () => true,
+    useIsFocused: () => true,
+    useNavigation: () => ({
+        navigate: jest.fn(),
+        addListener: jest.fn(),
+    }),
+    useFocusEffect: jest.fn((callback: () => void) => callback()),
+    useRoute: () => ({
+        params: {},
+    }),
+    usePreventRemove: jest.fn(),
+}));
+
+jest.mock('@react-navigation/core', () => ({
+    ...jest.requireActual<typeof CoreNavigation>('@react-navigation/core'),
+    useNavigation: jest.fn(() => ({getState: jest.fn(() => undefined)})),
+}));
+
+jest.mock('@hooks/useRootNavigationState', () => jest.fn((selector: (state: undefined) => unknown) => selector(undefined)));
 
 const mockEmptyReport: TransactionReportGroupListItemType = {
     accountID: 1,
@@ -273,6 +296,7 @@ describe('TransactionGroupListItem', () => {
         onSelectRow: mockOnSelectRow,
         searchType: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
         canSelectMultiple: true,
+        keyForList: '1',
     };
 
     function TestWrapper({children}: {children: React.ReactNode}) {
@@ -371,60 +395,6 @@ describe('TransactionGroupListItem', () => {
         expect(getVisibleTransactionRowsCount()).toBe(CONST.TRANSACTION.RESULTS_PAGE_SIZE);
         expect(screen.getByText('Show more')).toBeTruthy();
     });
-
-    it('should pass onDEWModalOpen callback to ReportListItemHeader for SUBMIT action', async () => {
-        const mockOnDEWModalOpen = jest.fn();
-        const reportWithSubmitAction: TransactionReportGroupListItemType = {
-            ...report,
-            action: 'submit',
-            hash: 0,
-        };
-
-        const propsWithDEWCallback: TransactionGroupListItemProps<TransactionReportGroupListItemType> = {
-            ...defaultProps,
-            item: reportWithSubmitAction,
-            onDEWModalOpen: mockOnDEWModalOpen,
-        };
-
-        render(
-            <TransactionGroupListItem
-                // eslint-disable-next-line react/jsx-props-no-spreading
-                {...propsWithDEWCallback}
-            />,
-            {wrapper: TestWrapper},
-        );
-        await waitForBatchedUpdatesWithAct();
-
-        // Verify that the component renders with the callback prop
-        expect(screen.getByTestId('ReportSearchHeader')).toBeTruthy();
-    });
-
-    it('should pass onDEWModalOpen callback to ReportListItemHeader for APPROVE action', async () => {
-        const mockOnDEWModalOpen = jest.fn();
-        const reportWithApproveAction: TransactionReportGroupListItemType = {
-            ...report,
-            action: 'approve',
-            hash: 0,
-        };
-
-        const propsWithDEWCallback: TransactionGroupListItemProps<TransactionReportGroupListItemType> = {
-            ...defaultProps,
-            item: reportWithApproveAction,
-            onDEWModalOpen: mockOnDEWModalOpen,
-        };
-
-        render(
-            <TransactionGroupListItem
-                // eslint-disable-next-line react/jsx-props-no-spreading
-                {...propsWithDEWCallback}
-            />,
-            {wrapper: TestWrapper},
-        );
-        await waitForBatchedUpdatesWithAct();
-
-        // Verify that the component renders with the callback prop
-        expect(screen.getByTestId('ReportSearchHeader')).toBeTruthy();
-    });
 });
 
 describe('Empty Report Selection', () => {
@@ -456,6 +426,7 @@ describe('Empty Report Selection', () => {
         onCheckboxPress: mockOnCheckboxPress,
         searchType: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
         canSelectMultiple: true,
+        keyForList: '1',
     };
 
     function TestWrapper({children}: {children: React.ReactNode}) {
