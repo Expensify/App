@@ -2698,7 +2698,16 @@ function getValidOptions(
     }
 
     if (excludeHidden) {
-        recentReportOptions = recentReportOptions.filter((option) => option.notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN);
+        recentReportOptions = recentReportOptions.filter((option) => {
+            // For threads, use the resolved notificationPreference (original behavior)
+            if (option.isThread) {
+                return option.notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
+            }
+            // For non-thread reports (e.g., workspace rooms), check the current user's explicit
+            // participant entry to avoid filtering reports where the user simply isn't a participant
+            const participant = option.item?.participants?.[currentUserAccountID];
+            return participant?.notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
+        });
     }
 
     let userToInvite: SearchOptionData | null = null;
