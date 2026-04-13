@@ -2001,6 +2001,7 @@ const translations: TranslationDeepObject<typeof en> = {
             sentryDebugDescription: 'Registrar solicitações do Sentry no console',
             sentryHighlightedSpanOps: 'Nomes de trechos destacados',
             sentryHighlightedSpanOpsPlaceholder: 'ui.interaction.click, navegação, ui.carregar',
+            showBranchNameInTitle: 'Mostrar nome da branch no título do navegador',
         },
         security: 'Segurança',
         signOut: 'Sair',
