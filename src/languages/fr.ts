@@ -8075,6 +8075,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         personalCard: 'Carte personnelle',
         companyCard: 'Carte d’entreprise',
         expensifyCard: 'Carte Expensify',
+        centralInvoicing: 'Facturation centralisée',
     },
     distance: {
         addStop: 'Ajouter un arrêt',

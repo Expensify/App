@@ -8041,6 +8041,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
         personalCard: 'Carta personale',
         companyCard: 'Carta aziendale',
         expensifyCard: 'Carta Expensify',
+        centralInvoicing: 'Fatturazione centralizzata',
     },
     distance: {
         addStop: 'Aggiungi fermata',

@@ -8011,6 +8011,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
         personalCard: 'Cartão pessoal',
         companyCard: 'Cartão corporativo',
         expensifyCard: 'Cartão Expensify',
+        centralInvoicing: 'Faturamento centralizado',
     },
     distance: {
         addStop: 'Adicionar parada',
