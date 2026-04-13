@@ -1,5 +1,5 @@
 import type {NavigationState, PartialState} from '@react-navigation/native';
-import buildDynamicStateChain from '@libs/Navigation/helpers/dynamicRoutesUtils/buildDynamicStateChain';
+import restoreDynamicStateChain from '@libs/Navigation/helpers/dynamicRoutesUtils/buildDynamicStateChain';
 import getStateFromPath from '@libs/Navigation/helpers/getStateFromPath';
 
 jest.mock('@react-navigation/native', () => ({
@@ -42,7 +42,7 @@ jest.mock('@libs/Navigation/helpers/getRedirectedPath', () => jest.fn((path: str
 jest.mock('@libs/Navigation/helpers/dynamicRoutesUtils/getStateForDynamicRoute', () => jest.fn());
 jest.mock('@libs/Navigation/helpers/getStateFromPath', () => jest.fn());
 
-describe('buildDynamicStateChain', () => {
+describe('restoreDynamicStateChain', () => {
     const mockGetStateFromPath = getStateFromPath as jest.Mock;
 
     beforeEach(() => {
@@ -78,7 +78,7 @@ describe('buildDynamicStateChain', () => {
 
         mockGetStateFromPath.mockReturnValue(staticState);
 
-        const result = buildDynamicStateChain(initialState, '/base/suffix-a');
+        const result = restoreDynamicStateChain(initialState, '/base/suffix-a');
 
         const innerRoutes = result.routes.at(0)?.state?.routes.at(0)?.state?.routes ?? [];
         expect(innerRoutes).toHaveLength(2);
@@ -102,7 +102,7 @@ describe('buildDynamicStateChain', () => {
             return {routes: [{name: 'NotFound'}], index: 0};
         });
 
-        const result = buildDynamicStateChain(initialState, '/base/suffix-a/suffix-b/suffix-c');
+        const result = restoreDynamicStateChain(initialState, '/base/suffix-a/suffix-b/suffix-c');
 
         const innerRoutes = result.routes.at(0)?.state?.routes.at(0)?.state?.routes ?? [];
         expect(innerRoutes).toHaveLength(4);
@@ -118,7 +118,7 @@ describe('buildDynamicStateChain', () => {
         };
         mockGetStateFromPath.mockReturnValue(nonRhpState);
 
-        const result = buildDynamicStateChain(initialState, '/base/suffix-a');
+        const result = restoreDynamicStateChain(initialState, '/base/suffix-a');
 
         const rootRoutes = result.routes;
         expect(rootRoutes).toHaveLength(2);
@@ -139,7 +139,7 @@ describe('buildDynamicStateChain', () => {
             return {routes: [{name: 'NotFound'}], index: 0};
         });
 
-        const result = buildDynamicStateChain(initialState, '/base/suffix-a/suffix-cross');
+        const result = restoreDynamicStateChain(initialState, '/base/suffix-a/suffix-cross');
 
         const rhp = result.routes.at(0);
         const modalStacks = rhp?.state?.routes ?? [];
@@ -161,7 +161,7 @@ describe('buildDynamicStateChain', () => {
 
         mockGetStateFromPath.mockReturnValue(staticState);
 
-        const result = buildDynamicStateChain(initialState, '/base/deep/suffix-a');
+        const result = restoreDynamicStateChain(initialState, '/base/deep/suffix-a');
 
         const innerRoutes = result.routes.at(0)?.state?.routes.at(0)?.state?.routes ?? [];
         expect(innerRoutes).toHaveLength(2);
@@ -172,7 +172,7 @@ describe('buildDynamicStateChain', () => {
     it('should return state unchanged when suffix match fails', () => {
         const initialState = makeRhpState('ModalStack', 'DynScreenA', '/no-match-path');
 
-        const result = buildDynamicStateChain(initialState, '/no-match-path');
+        const result = restoreDynamicStateChain(initialState, '/no-match-path');
 
         expect(result).toBe(initialState);
         expect(mockGetStateFromPath).not.toHaveBeenCalled();
@@ -183,7 +183,7 @@ describe('buildDynamicStateChain', () => {
 
         mockGetStateFromPath.mockReturnValue(undefined);
 
-        const result = buildDynamicStateChain(initialState, '/base/suffix-a');
+        const result = restoreDynamicStateChain(initialState, '/base/suffix-a');
 
         expect(result).toBe(initialState);
     });

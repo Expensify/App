@@ -8,12 +8,18 @@ import getPathWithoutDynamicSuffix from './getPathWithoutDynamicSuffix';
 import isDynamicRouteScreen from './isDynamicRouteScreen';
 
 /**
- * Recursively merges `stateToInsert` behind (before) `accumulatedState` in the
+ * Recursively inserts `stateToInsert` below `accumulatedState` in the
  * navigation tree. At each level, if the first route names match we recurse
  * deeper; otherwise the route from `stateToInsert` is prepended and the index
  * is shifted so the previously focused route stays focused.
+ *
+ * @param accumulatedState - The accumulated state to insert the new state below.
+ * @param stateToInsert - The state to insert below the accumulated state.
+ * @returns The new state with the new state inserted below the accumulated state.
+ *
+ * @private - Internal helper. Do not export or use outside this file.
  */
-function mergeStateBehind(accumulatedState: PartialState<NavigationState>, stateToInsert: PartialState<NavigationState>): PartialState<NavigationState> {
+function insertStateBelow(accumulatedState: PartialState<NavigationState>, stateToInsert: PartialState<NavigationState>): PartialState<NavigationState> {
     const insertRoute = stateToInsert.routes.at(0);
     if (!insertRoute) {
         return accumulatedState;
@@ -29,7 +35,7 @@ function mergeStateBehind(accumulatedState: PartialState<NavigationState>, state
         const insNestedState = insertRoute.state as PartialState<NavigationState> | undefined;
 
         if (accNestedState && insNestedState) {
-            const mergedNested = mergeStateBehind(accNestedState, insNestedState);
+            const mergedNested = insertStateBelow(accNestedState, insNestedState);
             const updatedRoute = {...firstAccumulatedRoute, state: mergedNested};
             const updatedRoutes = [updatedRoute, ...accumulatedState.routes.slice(1)];
             return {
@@ -51,8 +57,8 @@ function mergeStateBehind(accumulatedState: PartialState<NavigationState>, state
 }
 
 /**
- * Iteratively strips dynamic suffixes from a URL and merges each intermediate
- * navigation state into the accumulated state. This reconstructs the full
+ * Iteratively strips dynamic suffixes from a URL and inserts each intermediate
+ * navigation state below the accumulated state. This restores the full
  * screen chain so that back-navigation works correctly after a page refresh
  * when the URL contains stacked dynamic suffixes.
  *
@@ -60,11 +66,11 @@ function mergeStateBehind(accumulatedState: PartialState<NavigationState>, state
  * @param focusedRoutePath - The full URL path of the currently focused route
  * @returns Navigation state with all intermediate screens present
  */
-function buildDynamicStateChain(state: PartialState<NavigationState>, focusedRoutePath: string): PartialState<NavigationState> {
+function restoreDynamicStateChain(state: PartialState<NavigationState>, focusedRoutePath: string): PartialState<NavigationState> {
     let accumulatedState = state;
     let currentPath = focusedRoutePath;
 
-    let shouldContinue = true;
+    let newFocused = findFocusedRouteWithOnyxTabGuard(accumulatedState);
     do {
         const suffixMatch = findMatchingDynamicSuffix(currentPath);
         if (!suffixMatch) {
@@ -81,14 +87,13 @@ function buildDynamicStateChain(state: PartialState<NavigationState>, focusedRou
             break;
         }
 
-        accumulatedState = mergeStateBehind(accumulatedState, baseState);
+        accumulatedState = insertStateBelow(accumulatedState, baseState);
         currentPath = basePath;
 
-        const newFocused = findFocusedRouteWithOnyxTabGuard(baseState);
-        shouldContinue = !!newFocused && isDynamicRouteScreen(newFocused.name as Screen);
-    } while (shouldContinue);
+        newFocused = findFocusedRouteWithOnyxTabGuard(baseState);
+    } while (!!newFocused && isDynamicRouteScreen(newFocused.name as Screen));
 
     return accumulatedState;
 }
 
-export default buildDynamicStateChain;
+export default restoreDynamicStateChain;

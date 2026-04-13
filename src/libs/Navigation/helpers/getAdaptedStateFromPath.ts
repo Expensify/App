@@ -11,7 +11,7 @@ import type {Route as RoutePath} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {Screen} from '@src/SCREENS';
-import buildDynamicStateChain from './dynamicRoutesUtils/buildDynamicStateChain';
+import restoreDynamicStateChain from './dynamicRoutesUtils/buildDynamicStateChain';
 import findMatchingDynamicSuffix from './dynamicRoutesUtils/findMatchingDynamicSuffix';
 import getPathWithoutDynamicSuffix from './dynamicRoutesUtils/getPathWithoutDynamicSuffix';
 import isDynamicRouteScreen from './dynamicRoutesUtils/isDynamicRouteScreen';
@@ -299,7 +299,7 @@ function getAdaptedState(state: PartialState<NavigationState<RootNavigatorParamL
         if (focusedRoute) {
             if (focusedRoute.path && isDynamicRouteScreen(focusedRoute.name as Screen)) {
                 // eslint-disable-next-line no-param-reassign
-                state = buildDynamicStateChain(state, focusedRoute.path) as PartialState<NavigationState<RootNavigatorParamList>>;
+                state = restoreDynamicStateChain(state, focusedRoute.path) as PartialState<NavigationState<RootNavigatorParamList>>;
             }
 
             const matchingRootRoute = getMatchingFullScreenRoute(focusedRoute);
