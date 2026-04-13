@@ -910,8 +910,19 @@ function handleNavigateAfterExpenseCreate({
     );
     const queryString = buildCannedSearchQuery({type});
     const navigateToSearch = () => {
-        if (getIsNarrowLayout()) {
-            Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: queryString}), {forceReplace: true});
+        // On the fast path, onConfirm already cleared the flag and dismissed the modal,
+        // so this branch is only reached on the slow path (user submitted before the
+        // 300ms pre-insert timer fired).
+        if (getIsNarrowLayout() && Navigation.getIsFullscreenPreInsertedUnderRHP()) {
+            Navigation.clearFullscreenPreInsertedFlag();
+            Navigation.dismissModal();
+        } else if (getIsNarrowLayout()) {
+            const isRHPStillOnTop = navigationRef.getRootState()?.routes?.at(-1)?.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR;
+            if (!alreadyOnSearchRoot || !isSameSearchType || isRHPStillOnTop) {
+                Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: queryString}), {forceReplace: true});
+            } else {
+                Log.info('[IOU] navigateToSearch: already on matching Search root with RHP dismissed — no-op');
+            }
         } else {
             Navigation.revealRouteBeforeDismissingModal(ROUTES.SEARCH_ROOT.getRoute({query: queryString}));
         }
