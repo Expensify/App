@@ -5401,18 +5401,18 @@ describe('SearchUIUtils', () => {
                 expect(item?.isCardFeedDeleted).toBeUndefined();
             });
 
-            it('should set isCardFeedDeleted to true when card feed does not exist', () => {
+            it('should leave isCardFeedDeleted undefined when cardFeeds is an empty collection', () => {
                 const data = makeFilterTestData({}, {bank: 'deleted-bank-feed'});
                 const [sections] = callGetTransactionsSections(data, {cardFeeds: {}});
                 const item = sections.find((s) => s.transactionID === filterTestTxID);
-                expect(item?.isCardFeedDeleted).toBe(true);
+                expect(item?.isCardFeedDeleted).toBeUndefined();
             });
 
-            it('should set isCardFeedDeleted to false when bank is empty', () => {
+            it('should leave isCardFeedDeleted undefined when cardFeeds is empty even with no bank', () => {
                 const data = makeFilterTestData({}, {bank: ''});
                 const [sections] = callGetTransactionsSections(data, {cardFeeds: {}});
                 const item = sections.find((s) => s.transactionID === filterTestTxID);
-                expect(item?.isCardFeedDeleted).toBe(false);
+                expect(item?.isCardFeedDeleted).toBeUndefined();
             });
 
             it('should set exported to empty string when transaction has no reportID', () => {
