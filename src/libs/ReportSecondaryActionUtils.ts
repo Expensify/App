@@ -232,10 +232,6 @@ function isSubmitAction({
         return false;
     }
 
-    if (reportTransactions.length > 0 && reportTransactions.every((transaction) => isPending(transaction))) {
-        return false;
-    }
-
     const isExpenseReport = isExpenseReportUtils(report);
 
     if (!isExpenseReport || (report?.total === 0 && reportTransactions.length === 0) || !isPaidGroupPolicy(policy)) {

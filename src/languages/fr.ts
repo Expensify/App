@@ -1290,6 +1290,8 @@ const translations: TranslationDeepObject<typeof en> = {
         receiptStatusText: 'Vous seul pouvez voir ce reçu pendant son analyse. Revenez plus tard ou saisissez les détails maintenant.',
         receiptScanningFailed: 'L’analyse du reçu a échoué. Veuillez saisir les détails manuellement.',
         transactionPendingDescription: "Transaction en attente. L'inscription peut prendre quelques jours.",
+        allTransactionsPendingNextStep:
+            "Toutes les transactions sont en attente. Vous ne pouvez pas soumettre ce rapport tant qu'elles ne sont pas enregistrées. Cela peut prendre quelques jours.",
         companyInfo: 'Informations sur l’entreprise',
         companyInfoDescription: 'Nous avons besoin de quelques informations supplémentaires avant que vous puissiez envoyer votre première facture.',
         yourCompanyName: 'Nom de votre entreprise',
@@ -1476,6 +1478,8 @@ const translations: TranslationDeepObject<typeof en> = {
             manySplitsProvided: `Le nombre maximal de répartitions autorisées est de ${CONST.IOU.SPLITS_LIMIT}.`,
             dateRangeExceedsMaxDays: `La plage de dates ne peut pas dépasser ${CONST.IOU.SPLITS_LIMIT} jours.`,
             stitchOdometerImagesFailed: 'Échec de la combinaison des images de l’odomètre. Veuillez réessayer plus tard.',
+            unableToSubmitReport: 'Impossible de soumettre le rapport',
+            allTransactionsPendingDescription: 'Vous ne pouvez pas soumettre ce rapport car toutes les transactions sont en attente. Leur enregistrement peut prendre quelques jours.',
             nonReimbursablePayment: 'Impossible de payer via Expensify',
             nonReimbursablePaymentDescription: (isMultiple?: boolean) =>
                 isMultiple

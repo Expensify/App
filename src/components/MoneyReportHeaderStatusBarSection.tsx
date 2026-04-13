@@ -122,7 +122,7 @@ function MoneyReportHeaderStatusBarSection({reportID, statusBarType, iouTransact
         return (
             <MoneyRequestHeaderStatusBar
                 icon={getStatusIcon(expensifyIcons.CreditCardHourglass)}
-                description={translate('iou.transactionPendingDescription')}
+                description={translate('iou.allTransactionsPendingNextStep')}
             />
         );
     }

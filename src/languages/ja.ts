@@ -1268,6 +1268,7 @@ const translations: TranslationDeepObject<typeof en> = {
         receiptStatusText: 'スキャン中のレシートは、あなただけが見ることができます。後でまた確認するか、今すぐ詳細を入力してください。',
         receiptScanningFailed: 'レシートのスキャンに失敗しました。詳細を手入力してください。',
         transactionPendingDescription: '取引は保留中です。記帳されるまで数日かかる場合があります。',
+        allTransactionsPendingNextStep: 'すべての取引が保留中です。記帳されるまでこのレポートを提出できません。数日かかる場合があります。',
         companyInfo: '会社情報',
         companyInfoDescription: '最初の請求書を送信する前に、いくつか追加の情報が必要です。',
         yourCompanyName: '会社名',
@@ -1452,6 +1453,8 @@ const translations: TranslationDeepObject<typeof en> = {
             manySplitsProvided: `分割できる最大数は${CONST.IOU.SPLITS_LIMIT}件です。`,
             dateRangeExceedsMaxDays: `日付範囲は${CONST.IOU.SPLITS_LIMIT}日を超えることはできません。`,
             stitchOdometerImagesFailed: '走行距離計の画像を結合できませんでした。後でもう一度お試しください。',
+            unableToSubmitReport: 'レポートを提出できません',
+            allTransactionsPendingDescription: 'すべての取引が保留中のため、このレポートを提出できません。記帳されるまで数日かかる場合があります。',
             nonReimbursablePayment: 'Expensify経由では支払えません',
             nonReimbursablePaymentDescription: (isMultiple?: boolean) =>
                 isMultiple

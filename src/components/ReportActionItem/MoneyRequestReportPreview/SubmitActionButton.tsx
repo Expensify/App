@@ -1,6 +1,7 @@
 import {delegateEmailSelector} from '@selectors/Account';
 import React from 'react';
 import AnimatedSubmitButton from '@components/AnimatedSubmitButton';
+import useConfirmModal from '@hooks/useConfirmModal';
 import useConfirmPendingRTERAndProceed from '@hooks/useConfirmPendingRTERAndProceed';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
@@ -9,7 +10,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import useReportTransactionsCollection from '@hooks/useReportTransactionsCollection';
 import {canSubmitAndIsAwaitingForCurrentUser, hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
-import {hasAnyPendingRTERViolation as hasAnyPendingRTERViolationTransactionUtils} from '@libs/TransactionUtils';
+import {hasAnyPendingRTERViolation as hasAnyPendingRTERViolationTransactionUtils, isExpensifyCardTransaction, isPending} from '@libs/TransactionUtils';
 import {submitReport} from '@userActions/IOU';
 import {markPendingRTERTransactionsAsCash} from '@userActions/Transaction';
 import CONST from '@src/CONST';
@@ -26,6 +27,7 @@ type SubmitActionButtonProps = {
 
 function SubmitActionButton({iouReportID, chatReportID, isSubmittingAnimationRunning, stopAnimation, startSubmittingAnimation}: SubmitActionButtonProps) {
     const {translate} = useLocalize();
+    const {showConfirmModal} = useConfirmModal();
     const currentUserDetails = useCurrentUserPersonalDetails();
     const currentUserAccountID = currentUserDetails.accountID;
     const currentUserEmail = currentUserDetails.email ?? '';
@@ -57,6 +59,8 @@ function SubmitActionButton({iouReportID, chatReportID, isSubmittingAnimationRun
 
     const confirmPendingRTERAndProceed = useConfirmPendingRTERAndProceed(hasAnyPendingRTERViolation, handleMarkPendingRTERTransactionsAsCash);
 
+    const hasOnlyPendingTransactions = transactions.length > 0 && transactions.every((t) => isExpensifyCardTransaction(t) && isPending(t));
+
     const isWaitingForSubmissionFromCurrentUser = canSubmitAndIsAwaitingForCurrentUser(
         iouReport,
         chatReport,
@@ -73,6 +77,15 @@ function SubmitActionButton({iouReportID, chatReportID, isSubmittingAnimationRun
             success={isWaitingForSubmissionFromCurrentUser}
             text={translate('common.submit')}
             onPress={() => {
+                if (hasOnlyPendingTransactions) {
+                    showConfirmModal({
+                        title: translate('iou.error.unableToSubmitReport'),
+                        prompt: translate('iou.error.allTransactionsPendingDescription'),
+                        confirmText: translate('common.buttonConfirm'),
+                        shouldShowCancelButton: false,
+                    });
+                    return;
+                }
                 confirmPendingRTERAndProceed(() => {
                     submitReport({
                         expenseReport: iouReport,

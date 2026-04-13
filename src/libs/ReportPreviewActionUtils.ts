@@ -42,10 +42,6 @@ function canSubmit(
     const isManager = report.managerID === currentUserAccountID;
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
 
-    if (!!transactions && transactions?.length > 0 && transactions.every((transaction) => isPending(transaction))) {
-        return false;
-    }
-
     const isAnyReceiptBeingScanned = transactions?.some((transaction) => isScanning(transaction));
 
     if (hasSmartScanFailedWithMissingFields(transactions ?? [], report)) {

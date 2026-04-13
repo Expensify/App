@@ -762,6 +762,16 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
                 return;
             }
 
+            if (hasOnlyPendingTransactions) {
+                showConfirmModal({
+                    title: translate('iou.error.unableToSubmitReport'),
+                    prompt: translate('iou.error.allTransactionsPendingDescription'),
+                    confirmText: translate('common.buttonConfirm'),
+                    shouldShowCancelButton: false,
+                });
+                return;
+            }
+
             const doSubmit = () => {
                 submitReport({
                     expenseReport: moneyRequestReport,
@@ -801,6 +811,9 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
         [
             moneyRequestReport,
             shouldBlockSubmit,
+            hasOnlyPendingTransactions,
+            showConfirmModal,
+            translate,
             policy,
             startSubmittingAnimation,
             accountID,
