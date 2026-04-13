@@ -122,6 +122,7 @@ function IOURequestStepOdometerImage({
             op: CONST.TELEMETRY.SPAN_ODOMETER_IMAGE_CAPTURE,
             attributes: {
                 [CONST.TELEMETRY.ATTRIBUTE_ODOMETER_IMAGE_TYPE]: imageType,
+                [CONST.TELEMETRY.ATTRIBUTE_PLATFORM]: 'web',
             },
         });
 
@@ -319,6 +320,7 @@ function IOURequestStepOdometerImage({
 
     useEffect(() => {
         return () => {
+            cancelSpan(CONST.TELEMETRY.SPAN_ODOMETER_IMAGE_CAPTURE);
             if (!shouldRevokeOnUnmountRef.current) {
                 return;
             }

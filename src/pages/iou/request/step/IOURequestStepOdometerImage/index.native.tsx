@@ -75,7 +75,12 @@ function IOURequestStepOdometerImage({
         tapGesture,
         cameraFocusIndicatorAnimatedStyle,
         cameraLoadingReasonAttributes,
-    } = useNativeCamera({context: 'IOURequestStepOdometerImage'});
+    } = useNativeCamera({
+        context: 'IOURequestStepOdometerImage',
+        onFocusCleanup: () => {
+            cancelSpan(CONST.TELEMETRY.SPAN_ODOMETER_IMAGE_CAPTURE);
+        },
+    });
     const {setIsLoaderVisible} = useFullScreenLoaderActions();
 
     const title = imageType === 'start' ? translate('distance.odometer.startTitle') : translate('distance.odometer.endTitle');
@@ -137,6 +142,7 @@ function IOURequestStepOdometerImage({
             op: CONST.TELEMETRY.SPAN_ODOMETER_IMAGE_CAPTURE,
             attributes: {
                 [CONST.TELEMETRY.ATTRIBUTE_ODOMETER_IMAGE_TYPE]: imageType,
+                [CONST.TELEMETRY.ATTRIBUTE_PLATFORM]: 'native',
             },
         });
 
