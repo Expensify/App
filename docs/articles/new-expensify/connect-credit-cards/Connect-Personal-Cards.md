@@ -53,14 +53,14 @@ If you proceed with the upgrade:
 
 # FAQ
 
-## How can I check if my bank or card issuer is supported/ 
+## How can I check if my bank or card issuer is supported?
+
 Expensify supports most major banks and card issuers worldwide. [Learn how to check which banks are supported in Expensify](/articles/new-expensify/connect-credit-cards/Check-Supported-Banks)
-Expensify supports most major banks and card issuers worldwide. [Check which banks are supported in Expensify](/articles/new-expensify/connect-credit-cards/Check-Supported-Banks)
 
 ## How many personal cards can I connect for free?
 
 You can connect up to two personal cards for free. To add more, you'll need a paid workspace on the Collect plan or above.
 
 ## How do I manage a personal card after connecting it?
+
 Once connected, your card appears in **Account > Wallet** under **Assigned cards**. [Learn how to manage your personal cards](/articles/new-expensify/connect-credit-cards/Personal-Cards).
-Once connected, your card appears in **Account > Wallet** under **Assigned cards**. [Learn how to manage your personal cards]({{site.url}}/articles/new-expensify/connect-credit-cards/Personal-Cards).
