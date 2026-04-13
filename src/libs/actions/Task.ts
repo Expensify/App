@@ -507,6 +507,7 @@ function completeTask(
     parentReportAction: OnyxEntry<ReportAction> | undefined,
     delegateEmail: string | undefined,
     reportIDFromAction?: string,
+    shouldPlaySound = true,
 ): OnyxData<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS> {
     const taskReportID = taskReport?.reportID ?? reportIDFromAction;
 
@@ -523,7 +524,9 @@ function completeTask(
         delegateEmail,
     );
 
-    playSound(SOUNDS.SUCCESS);
+    if (shouldPlaySound) {
+        playSound(SOUNDS.SUCCESS);
+    }
     API.write(WRITE_COMMANDS.COMPLETE_TASK, parameters, {optimisticData, successData, failureData});
     return {optimisticData, successData, failureData};
 }
@@ -1448,7 +1451,7 @@ function getFinishOnboardingTaskOnyxData(
         if (taskReport) {
             if (taskReport.stateNum !== CONST.REPORT.STATE_NUM.APPROVED || taskReport.statusNum !== CONST.REPORT.STATUS_NUM.APPROVED) {
                 // Will be refactored in next PR; full restructure tracked in https://github.com/Expensify/App/issues/66417
-                return completeTask(taskReport, taskParentReport?.hasOutstandingChildTask ?? false, hasOutstandingChildTask, parentReportAction, undefined);
+                return completeTask(taskReport, taskParentReport?.hasOutstandingChildTask ?? false, hasOutstandingChildTask, parentReportAction, undefined, undefined, false);
             }
         }
     }
