@@ -58,6 +58,7 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
     const [allPolicyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
+    const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
     const {removeTransaction, setSelectedTransactions} = useSearchActionsContext();
     const reportOrDraftReport = getReportOrDraftReport(reportIDFromRoute);
@@ -254,7 +255,7 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
 
     const createReport = () => {
         const restrictionPolicyID = isPerDiemTransaction ? perDiemOriginalPolicy?.id : policyForMovingExpensesID;
-        if (restrictionPolicyID && shouldRestrictUserBillableActions(restrictionPolicyID, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds)) {
+        if (restrictionPolicyID && shouldRestrictUserBillableActions(restrictionPolicyID, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed)) {
             Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(restrictionPolicyID));
             return;
         }
@@ -287,7 +288,7 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
             transactionIDs={transaction ? [transaction.transactionID] : []}
             selectedReportID={selectedReportID}
             selectedPolicyID={selectedPolicyID}
-            transactionPolicyID={transactionPolicyID}
+            transactionPolicyID={selectedReport?.policyID ?? transactionPolicyID}
             removeFromReport={removeFromReport}
             isEditing={isEditing}
             isUnreported={isUnreported}

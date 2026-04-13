@@ -159,6 +159,7 @@ describe('OptionsListUtils', () => {
             loginList,
             MOCK_CURRENT_USER_ACCOUNT_ID,
             MOCK_CURRENT_USER_EMAIL,
+            undefined,
             ValidOptionsConfig,
         );
         await measureFunction(() => {
@@ -175,6 +176,7 @@ describe('OptionsListUtils', () => {
             loginList,
             MOCK_CURRENT_USER_ACCOUNT_ID,
             MOCK_CURRENT_USER_EMAIL,
+            undefined,
             ValidOptionsConfig,
         );
         await measureFunction(() => {
@@ -194,6 +196,7 @@ describe('OptionsListUtils', () => {
                 loginList,
                 MOCK_CURRENT_USER_ACCOUNT_ID,
                 MOCK_CURRENT_USER_EMAIL,
+                undefined,
                 {
                     betas: mockedBetas,
                     includeMultipleParticipantReports: true,
@@ -277,17 +280,17 @@ describe('OptionsListUtils', () => {
         await measureFunction(() =>
             createFilteredOptionList(personalDetails, mockedReportsMap, undefined, EMPTY_PRIVATE_IS_ARCHIVED_MAP, undefined, {
                 maxRecentReports: 500,
-                searchTerm: '',
+                isSearching: false,
             }),
         );
     });
 
-    test('[OptionsListUtils] createFilteredOptionList with searchTerm', async () => {
+    test('[OptionsListUtils] createFilteredOptionList with isSearching is true', async () => {
         await waitForBatchedUpdates();
         await measureFunction(() =>
             createFilteredOptionList(personalDetails, mockedReportsMap, undefined, EMPTY_PRIVATE_IS_ARCHIVED_MAP, undefined, {
                 maxRecentReports: 500,
-                searchTerm: SEARCH_VALUE,
+                isSearching: true,
             }),
         );
     });
@@ -308,6 +311,7 @@ describe('OptionsListUtils', () => {
             loginList,
             MOCK_CURRENT_USER_ACCOUNT_ID,
             MOCK_CURRENT_USER_EMAIL,
+            undefined,
             ValidOptionsConfig,
         );
 
@@ -316,11 +320,11 @@ describe('OptionsListUtils', () => {
         });
     });
 
-    test('[OptionsListUtils] getSearchOptions with searchTerm', async () => {
+    test('[OptionsListUtils] getSearchOptions with isSearching is true', async () => {
         await waitForBatchedUpdates();
         const optionLists = createFilteredOptionList(personalDetails, mockedReportsMap, undefined, EMPTY_PRIVATE_IS_ARCHIVED_MAP, undefined, {
             maxRecentReports: 500,
-            searchTerm: SEARCH_VALUE,
+            isSearching: true,
         });
 
         await measureFunction(() =>

@@ -18,6 +18,10 @@ type RootStackNavigatorActionType =
           payload: {route: Route};
       }
     | {
+          type: typeof CONST.NAVIGATION.ACTION_TYPE.REMOVE_FULLSCREEN_UNDER_RHP;
+          payload: {expectedRouteName: string};
+      }
+    | {
           type: typeof CONST.NAVIGATION.ACTION_TYPE.OPEN_WORKSPACE_SPLIT;
           payload: {
               policyID: string;
@@ -69,6 +73,11 @@ type ReplaceFullscreenUnderRHPActionType = RootStackNavigatorActionType & {
     payload: {route: Route};
 };
 
+type RemoveFullscreenUnderRHPActionType = RootStackNavigatorActionType & {
+    type: typeof CONST.NAVIGATION.ACTION_TYPE.REMOVE_FULLSCREEN_UNDER_RHP;
+    payload: {expectedRouteName: string};
+};
+
 type RootStackNavigatorRouterOptions = StackRouterOptions;
 
 type RootStackNavigatorAction = CommonActions.Action | StackActionType | RootStackNavigatorActionType;
@@ -81,6 +90,7 @@ export type {
     DismissModalActionType,
     PreloadActionType,
     ReplaceFullscreenUnderRHPActionType,
+    RemoveFullscreenUnderRHPActionType,
     RootStackNavigatorAction,
     RootStackNavigatorRouterOptions,
     ToggleSidePanelWithHistoryActionType,

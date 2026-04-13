@@ -124,6 +124,7 @@ function MoneyRequestParticipantsSelector({
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`];
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
+    const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const [isSearchingForReports] = useOnyx(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserLogin = currentUserPersonalDetails.login;
@@ -531,7 +532,7 @@ function MoneyRequestParticipantsSelector({
 
     const onSelectRow = useCallback(
         (option: Participant) => {
-            if (option.isPolicyExpenseChat && option.policyID && shouldRestrictUserBillableActions(option.policyID, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds)) {
+            if (option.isPolicyExpenseChat && option.policyID && shouldRestrictUserBillableActions(option.policyID, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed)) {
                 Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(option.policyID));
                 return;
             }
@@ -543,7 +544,7 @@ function MoneyRequestParticipantsSelector({
 
             addSingleParticipant(option);
         },
-        [isIOUSplit, addParticipantToSelection, addSingleParticipant, userBillingGracePeriodEnds, ownerBillingGracePeriodEnd],
+        [isIOUSplit, addParticipantToSelection, addSingleParticipant, userBillingGracePeriodEnds, ownerBillingGracePeriodEnd, amountOwed],
     );
 
     const importContactsButtonComponent = useMemo(() => {
