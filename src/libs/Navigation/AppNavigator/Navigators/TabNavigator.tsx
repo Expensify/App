@@ -6,8 +6,9 @@ import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import {findFocusedRoute, useNavigation, useNavigationState} from '@react-navigation/native';
 import React, {lazy, Suspense, useEffect} from 'react';
 import {View} from 'react-native';
-import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+import ActivityIndicator from '@components/ActivityIndicator';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {TabNavigatorParamList} from '@libs/Navigation/types';
 import HomePage from '@pages/home/HomePage';
@@ -27,7 +28,10 @@ function withSuspense<P extends Record<string, unknown>>(LazyComponent: React.La
             <Suspense
                 fallback={
                     <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter, styles.appBG]}>
-                        <FullScreenLoadingIndicator reasonAttributes={{context: 'TabNavigator.LazyTab'}} />
+                        <ActivityIndicator
+                            size="large"
+                            reasonAttributes={{context: 'TabNavigator.LazyTab'}}
+                        />
                     </View>
                 }
             >
@@ -59,22 +63,12 @@ const TAB_SCREEN_OPTIONS_BASE = {
     headerShown: false,
     lazy: true,
     animation: 'none' as const,
-    sceneStyle: {flex: 1},
     freezeOnBlur: true,
-} as const;
-
-const TAB_SCREEN_OPTIONS_NARROW = {
-    ...TAB_SCREEN_OPTIONS_BASE,
-    tabBarPosition: 'bottom' as const,
-} as const;
-
-const TAB_SCREEN_OPTIONS_WIDE = {
-    ...TAB_SCREEN_OPTIONS_BASE,
-    tabBarPosition: 'left' as const,
 } as const;
 
 function TabNavigator() {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const theme = useTheme();
     const navigation = useNavigation();
     const parentNavigation = navigation.getParent();
     const focusedRouteName = useNavigationState((state) => findFocusedRoute(state)?.name);
@@ -87,11 +81,17 @@ function TabNavigator() {
         parentNavigation.setOptions({gestureEnabled: !isRootScreen});
     }, [focusedRouteName, shouldUseNarrowLayout, parentNavigation]);
 
+    const screenOptions = {
+        ...TAB_SCREEN_OPTIONS_BASE,
+        sceneStyle: {flex: 1, backgroundColor: theme.appBG},
+        tabBarPosition: shouldUseNarrowLayout ? ('bottom' as const) : ('left' as const),
+    };
+
     return (
         <Tab.Navigator
             backBehavior="fullHistory"
             tabBar={renderTabBar}
-            screenOptions={shouldUseNarrowLayout ? TAB_SCREEN_OPTIONS_NARROW : TAB_SCREEN_OPTIONS_WIDE}
+            screenOptions={screenOptions}
         >
             <Tab.Screen
                 name={SCREENS.HOME}
