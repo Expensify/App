@@ -48,6 +48,8 @@ Flag ONLY when ALL of these are true:
 - The value is part of configuration or environment variables
 - The value is documented with clear comments explaining its purpose
 - The value is defined as a named constant in the same file or imported module
+- The value is a **common CSS/styling numeric literal** (padding, margin, width, height, fontSize, borderRadius, lineHeight, gap, flex) in a style object, unless the same value is duplicated 3+ times across different files with clear semantic meaning beyond a pixel value
+- The value is a **numeric error/status code that maps to an external API** and has an adjacent comment explaining its meaning (e.g., `// HTTP 438 - custom rate limit code from backend`)
 
 **Search Patterns** (hints for reviewers):
 - Hardcoded numbers/strings (not self-explanatory like Math.PI or "error")
