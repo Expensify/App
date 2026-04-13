@@ -13,7 +13,7 @@ import type {ActionHandledType} from '@components/ProcessMoneyReportHoldMenu';
 import {useSearchActionsContext, useSearchStateContext} from '@components/Search/SearchContext';
 import type {PaymentActionParams} from '@components/SettlementButton/types';
 import {payInvoice, payMoneyRequest} from '@libs/actions/IOU/PayMoneyRequest';
-import {approveMoneyRequest, canApproveIOU, canIOUBePaid as canIOUBePaidAction} from '@libs/actions/IOU/ReportWorkflow';
+import {approveMoneyRequest, canApproveIOU, canIOUBePaid as canIOUBePaidAction, submitReport} from '@libs/actions/IOU/ReportWorkflow';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {search} from '@libs/actions/Search';
 import getPlatform from '@libs/getPlatform';

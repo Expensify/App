@@ -28,7 +28,7 @@ jest.mock('@libs/actions/BankAccounts', () => ({
     setPersonalBankAccountContinueKYCOnSuccess: jest.fn(),
 }));
 
-jest.mock('@libs/actions/IOU', () => ({
+jest.mock('@libs/actions/IOU/ReportWorkflow', () => ({
     approveMoneyRequest: jest.fn(),
 }));
 
