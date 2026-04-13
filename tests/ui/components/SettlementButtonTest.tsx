@@ -14,10 +14,23 @@ import SettlementButton from '@components/SettlementButton';
 import type SettlementButtonProps from '@components/SettlementButton/types';
 import {createWorkspace} from '@libs/actions/Policy/Policy';
 import CONST from '@src/CONST';
-import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {BankAccountList, Beta, LastPaymentMethod, Policy, Report} from '@src/types/onyx';
+import {
+    createSettlementBankAccountList as createBankAccountList,
+    createSettlementChatReport as createChatReport,
+    createSettlementExpenseReport as createExpenseReport,
+    createSettlementInvoiceReport as createInvoiceReport,
+    createSettlementIOUReport as createIOUReport,
+    createSettlementPersonalBankAccount as createPersonalBankAccount,
+    createSettlementTestPolicy as createTestPolicy,
+    SETTLEMENT_TEST_ACCOUNT_ID,
+    SETTLEMENT_TEST_ACCOUNT_LOGIN,
+    SETTLEMENT_TEST_BANK_ACCOUNT_ID,
+    SETTLEMENT_TEST_CHAT_REPORT_ID,
+    SETTLEMENT_TEST_POLICY_ID,
+} from '../../utils/collections/settlementTestHelpers';
 import {translateLocal} from '../../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../../utils/waitForBatchedUpdatesWithAct';
 
@@ -69,17 +82,45 @@ jest.mock('@components/ProductTrainingContext', () => ({
 
 jest.mock('@src/hooks/useResponsiveLayout');
 
+jest.mock('@src/languages/IntlStore', () => {
+    // eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+    const en: Record<string, unknown> = require('@src/languages/en').default;
+    // eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+    const flatten: (obj: Record<string, unknown>) => Record<string, unknown> = require('@src/languages/flattenObject').default;
+    const cache = new Map<string, Record<string, unknown>>();
+    cache.set('en', flatten(en));
+    return {
+        getCurrentLocale: jest.fn(() => 'en'),
+        load: jest.fn(() => Promise.resolve()),
+        get: jest.fn((key: string, locale?: string) => {
+            const translations = cache.get(locale ?? 'en');
+            return translations?.[key] ?? null;
+        }),
+    };
+});
+
+jest.mock('@assets/emojis', () => ({
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+    __esModule: true,
+    default: [],
+    importEmojiLocale: jest.fn(() => Promise.resolve()),
+}));
+
+jest.mock('@libs/EmojiTrie', () => ({
+    createTrie: jest.fn(),
+    buildEmojisTrie: jest.fn(),
+}));
+
 jest.mock('@libs/actions/Policy/Policy', () => ({
     ...jest.requireActual<Record<string, unknown>>('@libs/actions/Policy/Policy'),
     createWorkspace: jest.fn(() => ({policyID: 'mock-created-policy-id'})),
 }));
 
-const ACCOUNT_ID = 1;
-const ACCOUNT_LOGIN = 'test@user.com';
-const REPORT_ID = '100';
-const CHAT_REPORT_ID = '200';
-const POLICY_ID = 'test-policy-id';
-const BANK_ACCOUNT_ID = 12345;
+const ACCOUNT_ID = SETTLEMENT_TEST_ACCOUNT_ID;
+const ACCOUNT_LOGIN = SETTLEMENT_TEST_ACCOUNT_LOGIN;
+const CHAT_REPORT_ID = SETTLEMENT_TEST_CHAT_REPORT_ID;
+const POLICY_ID = SETTLEMENT_TEST_POLICY_ID;
+const BANK_ACCOUNT_ID = SETTLEMENT_TEST_BANK_ACCOUNT_ID;
 
 function SettlementButtonWrapper({children}: {children: React.ReactNode}) {
     return (
@@ -89,85 +130,6 @@ function SettlementButtonWrapper({children}: {children: React.ReactNode}) {
             {children}
         </ComposeProviders>
     );
-}
-
-function createIOUReport(overrides?: Partial<Report>): Report {
-    return {
-        reportID: REPORT_ID,
-        type: CONST.REPORT.TYPE.IOU,
-        ownerAccountID: 2,
-        currency: CONST.CURRENCY.USD,
-        policyID: POLICY_ID,
-        ...overrides,
-    } as Report;
-}
-
-function createExpenseReport(overrides?: Partial<Report>): Report {
-    return {
-        reportID: REPORT_ID,
-        type: CONST.REPORT.TYPE.EXPENSE,
-        ownerAccountID: 2,
-        currency: CONST.CURRENCY.USD,
-        policyID: POLICY_ID,
-        ...overrides,
-    } as Report;
-}
-
-function createInvoiceReport(overrides?: Partial<Report>): Report {
-    return {
-        reportID: REPORT_ID,
-        type: CONST.REPORT.TYPE.INVOICE,
-        ownerAccountID: 2,
-        currency: CONST.CURRENCY.USD,
-        policyID: POLICY_ID,
-        ...overrides,
-    } as Report;
-}
-
-function createChatReport(overrides?: Partial<Report>): Report {
-    return {
-        reportID: CHAT_REPORT_ID,
-        type: CONST.REPORT.TYPE.CHAT,
-        ...overrides,
-    } as Report;
-}
-
-function createTestPolicy(overrides?: Partial<Policy>): Policy {
-    return {
-        id: POLICY_ID,
-        name: 'Test Policy',
-        type: CONST.POLICY.TYPE.TEAM,
-        role: CONST.POLICY.ROLE.ADMIN,
-        owner: ACCOUNT_LOGIN,
-        ownerAccountID: ACCOUNT_ID,
-        outputCurrency: CONST.CURRENCY.USD,
-        isPolicyExpenseChatEnabled: true,
-        ...overrides,
-    } as Policy;
-}
-
-function createBankAccountList(accountNumber = '1234', type: string = CONST.BANK_ACCOUNT.TYPE.BUSINESS): BankAccountList {
-    return {
-        [BANK_ACCOUNT_ID]: {
-            methodID: BANK_ACCOUNT_ID,
-            bankCurrency: CONST.CURRENCY.USD,
-            bankCountry: 'US',
-            title: 'Test Bank Account',
-            description: `Account ending in ${accountNumber}`,
-            accountData: {
-                bankAccountID: BANK_ACCOUNT_ID,
-                type,
-                state: CONST.BANK_ACCOUNT.STATE.OPEN,
-                accountNumber: `00000${accountNumber}`,
-                routingNumber: '123456789',
-                addressName: 'Test Account',
-            },
-        },
-    } as BankAccountList;
-}
-
-function createPersonalBankAccount(accountNumber = '5678'): BankAccountList {
-    return createBankAccountList(accountNumber, CONST.BANK_ACCOUNT.TYPE.PERSONAL);
 }
 
 const defaultProps: SettlementButtonProps = {
@@ -192,6 +154,7 @@ type OnyxSetupParams = {
 async function setupOnyxState({report, chatReport, policy, bankAccountList, lastPaymentMethod, userWallet, betas}: OnyxSetupParams) {
     await act(async () => {
         await Onyx.merge(ONYXKEYS.SESSION, {accountID: ACCOUNT_ID, email: ACCOUNT_LOGIN});
+        await Onyx.merge(ONYXKEYS.ACCOUNT, {validated: true});
         await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
             [ACCOUNT_ID]: {accountID: ACCOUNT_ID, login: ACCOUNT_LOGIN, displayName: 'Test User'},
         });
@@ -223,7 +186,6 @@ async function setupOnyxState({report, chatReport, policy, bankAccountList, last
 describe('SettlementButton', () => {
     beforeAll(() => {
         Onyx.init({keys: ONYXKEYS, evictableKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS]});
-        IntlStore.load(CONST.LOCALES.EN);
     });
 
     beforeEach(() => {
@@ -1088,6 +1050,162 @@ describe('SettlementButton', () => {
             await waitForBatchedUpdatesWithAct();
 
             expect(createWorkspaceMock).not.toHaveBeenCalled();
+        });
+    });
+
+    describe('approve action', () => {
+        it('calls confirmApproval callback when provided', async () => {
+            const confirmApprovalMock = jest.fn();
+
+            const expenseReport = createExpenseReport();
+
+            await setupOnyxState({
+                report: expenseReport,
+                chatReport: createChatReport(),
+                policy: createTestPolicy(),
+            });
+
+            render(
+                <SettlementButtonWrapper>
+                    <SettlementButton
+                        {...defaultProps}
+                        iouReport={expenseReport}
+                        shouldHidePaymentOptions
+                        shouldShowApproveButton
+                        confirmApproval={confirmApprovalMock}
+                    />
+                </SettlementButtonWrapper>,
+            );
+
+            await waitForBatchedUpdatesWithAct();
+
+            const approveButton = screen.getByText(translateLocal('iou.approve', {formattedAmount: '$100.00'}));
+            fireEvent.press(approveButton);
+            await waitForBatchedUpdatesWithAct();
+
+            expect(confirmApprovalMock).toHaveBeenCalledTimes(1);
+        });
+    });
+
+    describe('invoice payment options', () => {
+        it('shows individual and business submenu for individual invoice room', async () => {
+            const invoiceReport = createInvoiceReport();
+
+            await setupOnyxState({
+                report: invoiceReport,
+                chatReport: createChatReport({
+                    chatType: CONST.REPORT.CHAT_TYPE.INVOICE,
+                    invoiceReceiver: {
+                        type: CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL,
+                        accountID: 2,
+                    },
+                }),
+                policy: createTestPolicy(),
+            });
+
+            render(
+                <SettlementButtonWrapper>
+                    <SettlementButton
+                        {...defaultProps}
+                        iouReport={invoiceReport}
+                    />
+                </SettlementButtonWrapper>,
+            );
+
+            await waitForBatchedUpdatesWithAct();
+
+            const payButton = screen.getByText(translateLocal('iou.settlePayment', '$100.00'));
+            fireEvent.press(payButton);
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByText(translateLocal('iou.settlePersonal', '$100.00'))).toBeTruthy();
+            expect(screen.getByText(translateLocal('iou.settleBusiness', '$100.00'))).toBeTruthy();
+        });
+
+        it('shows flat options (no individual/business split) for business invoice room', async () => {
+            const invoiceReport = createInvoiceReport();
+
+            await setupOnyxState({
+                report: invoiceReport,
+                chatReport: createChatReport({
+                    chatType: CONST.REPORT.CHAT_TYPE.INVOICE,
+                    invoiceReceiver: {
+                        type: CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS,
+                        policyID: POLICY_ID,
+                    },
+                }),
+                policy: createTestPolicy(),
+            });
+
+            render(
+                <SettlementButtonWrapper>
+                    <SettlementButton
+                        {...defaultProps}
+                        iouReport={invoiceReport}
+                    />
+                </SettlementButtonWrapper>,
+            );
+
+            await waitForBatchedUpdatesWithAct();
+
+            const payButton = screen.getByText(translateLocal('iou.settlePayment', '$100.00'));
+            fireEvent.press(payButton);
+            await waitForBatchedUpdatesWithAct();
+
+            // Business invoice rooms show flat "Mark as paid" option, not individual/business submenu
+            expect(screen.getByText(translateLocal('iou.payElsewhere', ''))).toBeTruthy();
+            expect(screen.queryByText(translateLocal('iou.settlePersonal', '$100.00'))).toBeNull();
+        });
+    });
+
+    describe('invoice currency support', () => {
+        it('uses personal policy currency for invoice payment options even when workspace uses different currency', async () => {
+            const workspacePolicyID = 'workspace-eur';
+            const personalPolicyIDValue = 'personal-usd';
+
+            const invoiceReport = createInvoiceReport({policyID: workspacePolicyID});
+
+            await act(async () => {
+                await Onyx.merge(ONYXKEYS.SESSION, {accountID: ACCOUNT_ID, email: ACCOUNT_LOGIN});
+                await Onyx.merge(ONYXKEYS.ACCOUNT, {validated: true});
+                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                    [ACCOUNT_ID]: {accountID: ACCOUNT_ID, login: ACCOUNT_LOGIN, displayName: 'Test User'},
+                });
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${invoiceReport.reportID}`, invoiceReport);
+                await Onyx.merge(
+                    `${ONYXKEYS.COLLECTION.REPORT}${CHAT_REPORT_ID}`,
+                    createChatReport({
+                        chatType: CONST.REPORT.CHAT_TYPE.INVOICE,
+                        invoiceReceiver: {
+                            type: CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL,
+                            accountID: 2,
+                        },
+                    }),
+                );
+                await Onyx.merge(ONYXKEYS.BETAS, [CONST.BETAS.PAY_INVOICE_VIA_EXPENSIFY]);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${workspacePolicyID}`, createTestPolicy({id: workspacePolicyID, outputCurrency: 'EUR'}));
+                await Onyx.merge(ONYXKEYS.PERSONAL_POLICY_ID, personalPolicyIDValue);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${personalPolicyIDValue}`, createTestPolicy({id: personalPolicyIDValue, outputCurrency: CONST.CURRENCY.USD}));
+            });
+
+            render(
+                <SettlementButtonWrapper>
+                    <SettlementButton
+                        {...defaultProps}
+                        policyID={workspacePolicyID}
+                        iouReport={invoiceReport}
+                    />
+                </SettlementButtonWrapper>,
+            );
+
+            await waitForBatchedUpdatesWithAct();
+
+            const payButton = screen.getByText(translateLocal('iou.settlePayment', '$100.00'));
+            fireEvent.press(payButton);
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByText(translateLocal('iou.settlePersonal', '$100.00'))).toBeTruthy();
+            expect(screen.getByText(translateLocal('iou.settleBusiness', '$100.00'))).toBeTruthy();
         });
     });
 });
