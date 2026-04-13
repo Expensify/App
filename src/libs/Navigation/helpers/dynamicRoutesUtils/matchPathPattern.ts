@@ -27,7 +27,11 @@ function matchPathPattern(candidate: string, pattern: string): PatternMatch | un
         const candidateSeg = candidateSegments.at(i) ?? '';
 
         if (patternSeg.startsWith(':')) {
-            params[patternSeg.slice(1)] = decodeURIComponent(candidateSeg);
+            try {
+                params[patternSeg.slice(1)] = decodeURIComponent(candidateSeg);
+            } catch {
+                return undefined;
+            }
         } else if (patternSeg !== candidateSeg) {
             return undefined;
         }

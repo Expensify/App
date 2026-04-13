@@ -33,10 +33,10 @@ import type {SearchDateValues} from '@libs/SearchQueryUtils';
 import {buildFilterQueryWithSortDefaults, getDateRangeDisplayValueFromFormValue, isFilterSupported, isSearchDatePreset} from '@libs/SearchQueryUtils';
 import {
     filterValidHasValues,
+    getCurrencyOptions,
     getFeedOptions,
     getGroupByOptions,
     getGroupBySections,
-    getGroupCurrencyOptions,
     getHasOptions,
     getStatusOptions,
     getTypeOptions,
@@ -214,7 +214,7 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEn
     const viewOptions = getViewOptions(translate);
     const viewValue = viewOptions.find((option) => option.value === unsafeView) ?? viewOptions.at(0) ?? null;
 
-    const groupCurrencyOptions = getGroupCurrencyOptions(currencyList, getCurrencySymbol);
+    const groupCurrencyOptions = getCurrencyOptions(currencyList, getCurrencySymbol);
     const groupCurrency = groupCurrencyOptions.find((option) => option.value === searchAdvancedFiltersForm.groupCurrency) ?? null;
 
     const feedFilterValues = flatFilters.find((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED)?.filters?.map((filter) => filter.value);
@@ -287,7 +287,7 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEn
             buildFilterQueryWithSortDefaults(
                 updatedFilterFormValues,
                 {view: searchAdvancedFiltersForm.view, groupBy: searchAdvancedFiltersForm.groupBy},
-                {sortBy: queryJSON.sortBy, sortOrder: queryJSON.sortOrder, limit: queryJSON.limit},
+                {sortBy: queryJSON.sortBy, sortOrder: queryJSON.sortOrder},
             ) ?? '';
         if (!queryString) {
             return;
@@ -421,7 +421,6 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEn
     };
     const statusComponent = (props: PopoverComponentProps) => (
         <MultiSelectFilterPopup
-            isExpanded={props.isExpanded}
             closeOverlay={props.closeOverlay}
             translationKey="common.status"
             items={statusOptions}
@@ -435,7 +434,6 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEn
     };
     const hasComponent = (props: PopoverComponentProps) => (
         <MultiSelectFilterPopup
-            isExpanded={props.isExpanded}
             closeOverlay={props.closeOverlay}
             translationKey="search.has"
             items={hasOptions}
@@ -449,7 +447,6 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEn
     };
     const isComponent = (props: PopoverComponentProps) => (
         <MultiSelectFilterPopup
-            isExpanded={props.isExpanded}
             closeOverlay={props.closeOverlay}
             translationKey="search.filters.is"
             items={isOptions}

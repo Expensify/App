@@ -892,11 +892,7 @@ and [`src/pages/settings/Profile/PersonalDetails/DynamicCountrySelectionPage.tsx
 ### How to add a new dynamic route
 
 1. Add to `DYNAMIC_ROUTES` in [`src/ROUTES.ts`](../src/ROUTES.ts): define `path` and
-`entryScreens` (screen names that may open this route).
-If the suffix needs path parameters, define `path` with `:param` placeholders
-and a `getRoute` function.
-If the suffix needs query parameters, also define `getRoute`
-and `queryParams` — see
+`entryScreens` (screen names that may open this route). If the suffix needs path parameters, define `path` with `:param` placeholders and a `getRoute` function. If the suffix needs query parameters, also define `getRoute` and `queryParams` - see
 [Dynamic routes with query parameters](#dynamic-routes-with-query-parameters).
 2. Add a screen constant in [`src/SCREENS.ts`](../src/SCREENS.ts).
 The name must start with the `DYNAMIC_` prefix

@@ -8,6 +8,7 @@ import MenuItem from '@components/MenuItem';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
+import {useWideRHPState} from '@components/WideRHPContextProvider';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -56,6 +57,7 @@ function DynamicFlagCommentPage({parentReportAction, report, parentReport, repor
     const [originalReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${originalReportID}`);
     const isOriginalReportArchived = useReportIsArchived(originalReportID);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const {superWideRHPRouteKeys, wideRHPRouteKeys} = useWideRHPState();
 
     const severities: SeverityItemList = [
         {
@@ -113,7 +115,11 @@ function DynamicFlagCommentPage({parentReportAction, report, parentReport, repor
             flagCommentUtil(reportAction, severity, originalReport, isOriginalReportArchived);
         }
 
-        Navigation.dismissModal();
+        if (superWideRHPRouteKeys.length > 0 || wideRHPRouteKeys.length > 0) {
+            Navigation.dismissToPreviousRHP();
+        } else {
+            Navigation.dismissModal();
+        }
     };
 
     const severityMenuItems = severities.map((item) => (
