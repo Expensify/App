@@ -41,7 +41,7 @@ import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
 import {hasOnlyPersonalPolicies as hasOnlyPersonalPoliciesUtil, isPaidGroupPolicy} from '@libs/PolicyUtils';
 import {shouldValidateFile} from '@libs/ReceiptUtils';
 import {getReportOrDraftReport, isSelfDM} from '@libs/ReportUtils';
-import {getAttendees, getDefaultTaxCode, getTaxValue} from '@libs/TransactionUtils';
+import {getDefaultTaxCode, getTaxValue} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -342,18 +342,9 @@ function SubmitDetailsPage({
                     <MoneyRequestConfirmationList
                         transaction={transaction}
                         selectedParticipants={participants}
-                        iouAmount={0}
-                        iouComment={trimmedComment}
-                        iouCategory={transaction?.category}
                         iouType={iouType}
-                        iouMerchant={transaction?.merchant}
-                        iouCreated={transaction?.created}
-                        iouCurrencyCode={transaction?.currency}
-                        iouIsBillable={transaction?.billable}
                         onToggleBillable={setBillable}
-                        iouIsReimbursable={transaction?.reimbursable}
                         onToggleReimbursable={setReimbursable}
-                        iouAttendees={getAttendees(transaction, currentUserPersonalDetails)}
                         isPolicyExpenseChat={isPolicyExpenseChat}
                         policyID={policy?.id}
                         onConfirm={(updatedParticipants) => onConfirm(updatedParticipants, true)}
@@ -363,9 +354,6 @@ function SubmitDetailsPage({
                         shouldShowSmartScanFields={false}
                         shouldDisplayReceipt
                         isReceiptEditable
-                        isDistanceRequest={false}
-                        isManualDistanceRequest={false}
-                        isGPSDistanceRequest={false}
                         action={CONST.IOU.ACTION.CREATE}
                         onPDFLoadError={() => {
                             if (errorTitle) {
