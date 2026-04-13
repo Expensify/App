@@ -132,10 +132,8 @@ function ReportNotFoundInnerGuard({reportIDFromPath, children}: ReportNotFoundIn
         parentReportMetadata,
         isOffline,
     });
-    const isDeletedTransactionThread = isParentActionDeleted || isParentActionMissingAfterLoad;
-
     // eslint-disable-next-line rulesdir/no-negated-variables
-    const shouldShowNotFoundPage = isDeletedTransactionThread;
+    const shouldShowNotFoundPage = isParentActionDeleted || isParentActionMissingAfterLoad;
 
     useEffect(() => {
         if (!shouldShowNotFoundPage) {
