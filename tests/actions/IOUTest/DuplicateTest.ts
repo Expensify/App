@@ -18,7 +18,7 @@ import IntlStore from '@src/languages/IntlStore';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import * as API from '@src/libs/API';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {OriginalMessageIOU, PolicyTagLists, RecentWaypoint, Report, ReportActions} from '@src/types/onyx';
+import type {OriginalMessageIOU, Policy, PolicyTagLists, RecentWaypoint, Report, ReportActions} from '@src/types/onyx';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import type {ReportActionsCollectionDataSet} from '@src/types/onyx/ReportAction';
 import type Transaction from '@src/types/onyx/Transaction';
@@ -2394,7 +2394,7 @@ describe('actions/Duplicate', () => {
             role: undefined,
             pendingAction: undefined,
             employeeList: {},
-        };
+        } as unknown as Policy;
 
         const ACTIVE_PEC_REPORT_ID = 'activePEC';
         const activePolicyExpenseChat: Report = {
@@ -2435,7 +2435,7 @@ describe('actions/Duplicate', () => {
                 [`${ONYXKEYS.COLLECTION.POLICY}${SOURCE_POLICY_ID}`]: sourcePolicy,
                 [`${ONYXKEYS.COLLECTION.POLICY}${DEFAULT_POLICY_ID}`]: defaultPolicy,
                 [`${ONYXKEYS.COLLECTION.POLICY}${OTHER_POLICY_ID}`]: inaccessiblePolicy,
-            },
+            } as BulkDuplicateReportsParams['allPolicies'],
             allPolicyCategories: {},
             allPolicyTags: {},
             defaultExpensePolicy: defaultPolicy,
