@@ -2,7 +2,8 @@ import passthroughPolicyTagListSelector from '@selectors/PolicyTagList';
 import {useCallback} from 'react';
 import type {OnyxCollection} from 'react-native-onyx';
 import {useSearchStateContext} from '@components/Search/SearchContext';
-import {deleteMoneyRequest, getIOURequestPolicyID} from '@libs/actions/IOU';
+import {getIOURequestPolicyID} from '@libs/actions/IOU';
+import {deleteMoneyRequest} from '@libs/actions/IOU/DeleteMoneyRequest';
 import {getIOUActionForTransactions} from '@libs/actions/IOU/Duplicate';
 import {initSplitExpenseItemData, updateSplitTransactions} from '@libs/actions/IOU/Split';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
@@ -200,6 +201,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
                     selectedTransactionIDs: transactionIDs,
                     allTransactionViolationsParam: transactionViolations,
                     currentUserAccountID: currentUserPersonalDetails.accountID,
+                    currentUserEmail: currentUserPersonalDetails.email ?? '',
                 });
                 deletedTransactionIDs.push(transactionID);
                 if (action.childReportID) {
