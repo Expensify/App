@@ -19,7 +19,7 @@ function DateCell({date, showTooltip, isLargeScreenWidth}: DateCellProps) {
         <TextWithTooltip
             text={formattedDate}
             shouldShowTooltip={showTooltip}
-            style={[styles.lineHeightLarge, styles.pre, styles.justifyContentCenter, isLargeScreenWidth ? undefined : [styles.textMicro, styles.textSupporting]]}
+            style={[styles.lineHeightLarge, styles.pre, styles.justifyContentCenter, isLargeScreenWidth ? undefined : styles.mutedNormalTextLabel]}
         />
     );
 }

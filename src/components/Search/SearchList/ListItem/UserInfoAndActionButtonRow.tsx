@@ -12,7 +12,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {getReportStatusColorStyle, getReportStatusTranslation} from '@libs/ReportUtils';
 import {isCorrectSearchUserName} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
-import type {TransactionListItemType, TransactionReportGroupListItemType} from './types';
+import type {ExpenseReportListItemType, TransactionListItemType, TransactionReportGroupListItemType} from './types';
 import UserInfoCellsWithArrow from './UserInfoCellsWithArrow';
 
 function UserInfoAndActionButtonRow({
@@ -20,7 +20,7 @@ function UserInfoAndActionButtonRow({
     shouldShowUserInfo,
     containerStyles,
 }: {
-    item: TransactionReportGroupListItemType | TransactionListItemType;
+    item: TransactionReportGroupListItemType | TransactionListItemType | ExpenseReportListItemType;
     shouldShowUserInfo: boolean;
     containerStyles?: StyleProp<ViewStyle>;
 }) {
@@ -28,8 +28,8 @@ function UserInfoAndActionButtonRow({
     const theme = useTheme();
     const {translate} = useLocalize();
     const transactionItem = item as unknown as TransactionListItemType;
-    const stateNum = transactionItem.report?.stateNum;
-    const statusNum = transactionItem.report?.statusNum;
+    const stateNum = transactionItem.report?.stateNum ?? (item as unknown as ExpenseReportListItemType).stateNum;
+    const statusNum = transactionItem.report?.statusNum ?? (item as unknown as ExpenseReportListItemType).statusNum;
     const statusText = useMemo(() => getReportStatusTranslation({stateNum, statusNum, translate}), [stateNum, statusNum, translate]);
     const reportStatusColorStyle = useMemo(() => getReportStatusColorStyle(theme, stateNum, statusNum), [theme, stateNum, statusNum]);
     const hasFromSender = !!item?.from && !!item?.from?.accountID && !!item?.from?.displayName;
@@ -38,7 +38,7 @@ function UserInfoAndActionButtonRow({
     const participantToDisplayName = item.formattedTo ?? item?.to?.displayName ?? '';
     const shouldShowToRecipient = hasFromSender && hasToRecipient && !!item?.to?.accountID && !!isCorrectSearchUserName(participantToDisplayName);
     return (
-        <View style={[styles.pt0, styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.gap2, containerStyles]}>
+        <View style={[styles.pt0, styles.flexRow, styles.alignItemsCenter, shouldShowUserInfo ? styles.justifyContentBetween : styles.justifyContentEnd, styles.gap2, containerStyles]}>
             {shouldShowUserInfo && (
                 <UserInfoCellsWithArrow
                     shouldShowToRecipient={shouldShowToRecipient}
@@ -48,7 +48,7 @@ function UserInfoAndActionButtonRow({
                     participantTo={item?.to}
                     avatarSize={CONST.AVATAR_SIZE.MID_SUBSCRIPT}
                     style={[styles.flexRow, styles.alignItemsCenter, styles.gap1]}
-                    infoCellsTextStyle={{lineHeight: 14}}
+                    infoCellsTextStyle={styles.mutedNormalTextLabel}
                     infoCellsAvatarStyle={styles.pr1}
                     fromRecipientStyle={!shouldShowToRecipient ? styles.mw100 : {}}
                     shouldUseArrowIcon={false}

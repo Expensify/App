@@ -741,10 +741,10 @@ function TransactionItemRow({
                                     />
                                     {!!categoryForDisplay && (
                                         <>
-                                            <Text style={[styles.textSupporting, {fontSize: variables.fontSizeLabel}]}> • </Text>
+                                            <Text style={[styles.mutedNormalTextLabel]}> • </Text>
                                             <Text
                                                 numberOfLines={1}
-                                                style={[styles.textSupporting, {fontSize: variables.fontSizeLabel}, styles.flexShrink1]}
+                                                style={[styles.mutedNormalTextLabel, styles.flexShrink1]}
                                             >
                                                 {categoryForDisplay}
                                             </Text>
