@@ -2035,7 +2035,6 @@ const CONST = {
             REQUEST_MONEY_MANUAL: 'request_money_manual',
             REQUEST_MONEY_SCAN: 'request_money_scan',
             DISTANCE: 'distance',
-            ODOMETER: 'odometer',
             TRACK_EXPENSE: 'track_expense',
             SPLIT: 'split',
             SPLIT_RECEIPT: 'split_receipt',

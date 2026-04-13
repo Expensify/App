@@ -1322,7 +1322,6 @@ function IOURequestStepConfirmation({
         const scenario = getSubmitExpenseScenario({
             iouType,
             isDistanceRequest,
-            isOdometerRequest: isOdometerDistanceRequest,
             isMovingTransactionFromTrackExpense,
             isUnreported,
             isCategorizingTrackExpense,

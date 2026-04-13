@@ -4,7 +4,6 @@ import CONST from '@src/CONST';
 type GetSubmitExpenseScenarioParams = {
     iouType: IOUType;
     isDistanceRequest: boolean;
-    isOdometerRequest: boolean;
     isMovingTransactionFromTrackExpense: boolean;
     isUnreported: boolean;
     isCategorizingTrackExpense: boolean;
@@ -20,7 +19,6 @@ type GetSubmitExpenseScenarioParams = {
 function getSubmitExpenseScenario({
     iouType,
     isDistanceRequest,
-    isOdometerRequest,
     isMovingTransactionFromTrackExpense,
     isUnreported,
     isCategorizingTrackExpense,
@@ -31,10 +29,7 @@ function getSubmitExpenseScenario({
 }: GetSubmitExpenseScenarioParams): string {
     const {SUBMIT_EXPENSE_SCENARIO} = CONST.TELEMETRY;
 
-    if (iouType !== CONST.IOU.TYPE.TRACK && isOdometerRequest && !isMovingTransactionFromTrackExpense && !isUnreported) {
-        return SUBMIT_EXPENSE_SCENARIO.ODOMETER;
-    }
-    if (iouType !== CONST.IOU.TYPE.TRACK && isDistanceRequest && !isOdometerRequest && !isMovingTransactionFromTrackExpense && !isUnreported) {
+    if (iouType !== CONST.IOU.TYPE.TRACK && isDistanceRequest && !isMovingTransactionFromTrackExpense && !isUnreported) {
         return SUBMIT_EXPENSE_SCENARIO.DISTANCE;
     }
     if (iouType === CONST.IOU.TYPE.SPLIT) {
