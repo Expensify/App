@@ -276,7 +276,7 @@ const ONYXKEYS = {
     NVP_PRIVATE_FREEBIE_CREDITS: 'nvp_private_freebieCredits',
 
     /** The amount owed by the workspace’s owner. */
-    NVP_PRIVATE_AMOUNT_OWED: ‘nvp_private_amountOwed’,
+    NVP_PRIVATE_AMOUNT_OWED: 'nvp_private_amountOwed',
 
     /** The end date (epoch timestamp) of the workspace owner’s grace period after the free trial ends. */
     NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END: 'nvp_private_billingGracePeriodEnd',
