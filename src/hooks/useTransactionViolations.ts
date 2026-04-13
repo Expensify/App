@@ -1,6 +1,6 @@
 import {useMemo} from 'react';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import {isViolationDismissed, mergeProhibitedViolations, shouldShowViolation} from '@libs/TransactionUtils';
+import {isBrokenConnectionViolation, isViolationDismissed, mergeProhibitedViolations, shouldShowBrokenConnectionViolation, shouldShowViolation} from '@libs/TransactionUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {TransactionViolation, TransactionViolations} from '@src/types/onyx';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
@@ -15,14 +15,27 @@ function useTransactionViolations(transactionID?: string, shouldShowRterForSettl
     const currentUserDetails = useCurrentUserPersonalDetails();
 
     return useMemo(
-        () =>
-            mergeProhibitedViolations(
-                transactionViolations.filter(
-                    (violation: TransactionViolation) =>
-                        !isViolationDismissed(transaction, violation, currentUserDetails.email ?? '', currentUserDetails.accountID, iouReport, policy) &&
-                        shouldShowViolation(iouReport, policy, violation.name, currentUserDetails.email ?? '', shouldShowRterForSettledReport, transaction),
-                ),
-            ),
+        () => {
+            const notDismissed = transactionViolations.filter(
+                (violation: TransactionViolation) =>
+                    !isViolationDismissed(transaction, violation, currentUserDetails.email ?? '', currentUserDetails.accountID, iouReport, policy),
+            );
+
+            // Broken card connection violations have their own display logic that accounts for policy admin visibility
+            // on open reports — separate them so we can apply the correct check for each group.
+            const brokenConnectionViolations = notDismissed.filter((v) => isBrokenConnectionViolation(v));
+            const otherViolations = notDismissed.filter((v) => !isBrokenConnectionViolation(v));
+
+            const visibleOtherViolations = otherViolations.filter((violation: TransactionViolation) =>
+                shouldShowViolation(iouReport, policy, violation.name, currentUserDetails.email ?? '', shouldShowRterForSettledReport, transaction),
+            );
+
+            // shouldShowBrokenConnectionViolation correctly handles visibility for policy admins on open reports,
+            // whereas the general shouldShowViolation RTER branch only checks isSubmitter || isInstantSubmitEnabled.
+            const visibleBrokenConnectionViolations = shouldShowBrokenConnectionViolation(iouReport, policy, brokenConnectionViolations) ? brokenConnectionViolations : [];
+
+            return mergeProhibitedViolations([...visibleOtherViolations, ...visibleBrokenConnectionViolations]);
+        },
         [transaction, transactionViolations, iouReport, policy, shouldShowRterForSettledReport, currentUserDetails.email, currentUserDetails.accountID],
     );
 }
