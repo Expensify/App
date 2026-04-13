@@ -713,6 +713,15 @@ function doesCardFeedExist(feed: CardFeed | undefined, cardFeeds: OnyxCollection
 }
 
 /**
+ * Check if the cardFeeds collection has any loaded data.
+ * An empty collection ({}) means data was never fetched (e.g. non-admin users),
+ * which is different from having data that shows a feed was deleted.
+ */
+function hasLoadedCardFeeds(cardFeeds: OnyxCollection<CardFeeds> | undefined): boolean {
+    return !!cardFeeds && Object.keys(cardFeeds).length > 0;
+}
+
+/**
  * Retrieve the custom nickname for a feed from the card feeds collection.
  */
 function getCustomFeedNameFromFeeds(cardFeeds: OnyxCollection<CardFeeds> | undefined, feed: CompanyCardFeed | undefined): string | undefined {
@@ -1588,7 +1597,7 @@ function getCardHintText(validFrom: string | undefined, validThru: string | unde
 
 /**
  * Resolves card-related fields on transactions for report layout display.
- * The search API pre-resolves cardName and isCardFeedDeleted, but local Onyx transactions have raw values.
+ * The search API pre-resolves cardName, but local Onyx transactions have raw values.
  * This ensures the report layout matches the search page.
  */
 function resolveTransactionCardFields<T extends {cardID?: number; cardName?: string; bank?: string}>(
@@ -1611,8 +1620,8 @@ function resolveTransactionCardFields<T extends {cardID?: number; cardName?: str
             }
         }
 
-        // Resolve isCardFeedDeleted
-        if (cardFeeds !== undefined) {
+        // Resolve isCardFeedDeleted — only when we have actual feed data to make an informed judgment
+        if (hasLoadedCardFeeds(cardFeeds)) {
             updates = {...updates, isCardFeedDeleted: !!transaction.bank && !doesCardFeedExist(transaction.bank as CompanyCardFeed, cardFeeds)};
         }
 
@@ -1680,6 +1689,7 @@ export {
     lastFourNumbersFromCardName,
     isMatchingCard,
     normalizeCardName,
+    hasLoadedCardFeeds,
     hasIssuedExpensifyCard,
     isExpensifyCardFullySetUp,
     getCardSettings,
