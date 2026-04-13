@@ -29,7 +29,6 @@ jobs:
     runs-on: blacksmith-2vcpu-ubuntu-2404
     env:
       PR_NUMBER: ${{ github.event.pull_request.number }}
-      ALLOWED_RULES_FILE: ${{ runner.temp }}/allowed-rules.txt
     steps:
       - name: Checkout repository
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
@@ -58,7 +57,7 @@ jobs:
         run: |
           "$GITHUB_WORKSPACE/.github/scripts/extractAllowedRules.sh" \
             "$GITHUB_WORKSPACE/.claude/skills/coding-standards/rules" \
-            "$ALLOWED_RULES_FILE"
+            "$RUNNER_TEMP/allowed-rules.txt"
 
       - name: Load code review JSON schema
         id: schema
@@ -83,6 +82,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           STRUCTURED_OUTPUT: ${{ steps.code-review.outputs.structured_output }}
+          ALLOWED_RULES_FILE: ${{ runner.temp }}/allowed-rules.txt
         run: |
           if [ -z "$STRUCTURED_OUTPUT" ]; then
             echo "::error::Claude Code Action returned empty structured output"
