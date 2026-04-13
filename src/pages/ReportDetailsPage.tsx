@@ -111,7 +111,7 @@ import {
 } from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
 import {isDemoTransaction} from '@libs/TransactionUtils';
-import {getNavigationUrlOnMoneyRequestDelete} from '@userActions/IOU';
+import {getNavigationUrlOnMoneyRequestDelete} from '@userActions/IOU/DeleteMoneyRequest';
 import {deleteTrackExpense, getNavigationUrlAfterTrackExpenseDelete} from '@userActions/IOU/TrackExpense';
 import {
     clearAvatarErrors,
@@ -471,6 +471,8 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                         isRestrictedToPreferredPolicy,
                         preferredPolicyID,
                         transaction: iouTransaction,
+                        currentUserAccountID: currentUserPersonalDetails.accountID,
+                        currentUserEmail: currentUserPersonalDetails.email ?? '',
                     });
                 },
             });
@@ -493,6 +495,8 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                             amountOwed,
                             ownerBillingGracePeriodEnd,
                             transaction: iouTransaction,
+                            currentUserAccountID: currentUserPersonalDetails.accountID,
+                            currentUserEmail: currentUserPersonalDetails.email ?? '',
                         });
                     },
                 });
@@ -514,6 +518,8 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                             amountOwed,
                             ownerBillingGracePeriodEnd,
                             transaction: iouTransaction,
+                            currentUserAccountID: currentUserPersonalDetails.accountID,
+                            currentUserEmail: currentUserPersonalDetails.email ?? '',
                         });
                     },
                 });

@@ -253,7 +253,7 @@ function TaskListItemRow({item, containerStyle, showTooltip}: TaskListItemRowPro
                         isLargeScreenWidth={isLargeScreenWidth}
                     />
                 </View>
-                <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.ACTION)]}>
+                <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.ACTION, {isActionColumnWide: true})]}>
                     <ActionCell
                         taskItem={item}
                         showTooltip={showTooltip}
