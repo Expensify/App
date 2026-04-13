@@ -499,7 +499,9 @@ function TransactionGroupListItem<TItem extends ListItem>({
                 const transactionViolations = groupViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${snapshotTransaction.transactionID}`];
                 if (transactionViolations) {
                     const merged = mergeProhibitedViolations(
-                        transactionViolations.filter((violation) => shouldShowViolation(report, policy, violation.name, currentUserDetails?.email ?? '', true, snapshotTransaction)),
+                        transactionViolations.filter((violation) =>
+                            shouldShowViolation(report, policy, violation.name, currentUserDetails?.email ?? '', true, snapshotTransaction, violation),
+                        ),
                     );
                     if (merged.length > 0) {
                         filteredViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${snapshotTransaction.transactionID}`] = merged;

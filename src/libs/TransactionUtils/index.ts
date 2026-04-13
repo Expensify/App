@@ -1626,7 +1626,7 @@ function shouldShowBrokenConnectionViolationForMultipleTransactions(
                 return false;
             }
 
-            return shouldShowViolation(report, policy, violation.name, currentUserEmail, true, transaction);
+            return shouldShowViolation(report, policy, violation.name, currentUserEmail, true, transaction, violation);
         });
     });
 
@@ -1665,6 +1665,7 @@ function shouldShowViolation(
     currentUserEmail: string,
     shouldShowRterForSettledReport = true,
     transaction?: OnyxEntry<Transaction>,
+    violation?: TransactionViolation,
 ): boolean {
     const isSubmitter = isCurrentUserSubmitter(iouReport);
     const isPolicyMember = isPolicyMemberPolicyUtils(policy, currentUserEmail);
@@ -1678,6 +1679,9 @@ function shouldShowViolation(
     }
 
     if (violationName === CONST.VIOLATIONS.RTER) {
+        if (violation && isBrokenConnectionViolation(violation)) {
+            return shouldShowRterForSettledReport || !isSettled(iouReport);
+        }
         return (isSubmitter || isInstantSubmitEnabled(policy)) && (shouldShowRterForSettledReport || !isSettled(iouReport));
     }
 
@@ -1715,7 +1719,7 @@ function allHavePendingRTERViolation(
         // Get violations not dismissed by current user
         const filteredTransactionViolations = getTransactionViolations(transaction, transactionViolations, currentUserEmail, currentUserAccountID, report, policy)?.filter((violation) =>
             // Further filter to only violations visible to the current user
-            shouldShowViolation(report, policy, violation.name, currentUserEmail, true, transaction),
+            shouldShowViolation(report, policy, violation.name, currentUserEmail, true, transaction, violation),
         );
         // Check if there is pending rter violation in the filtered violations
         return hasPendingRTERViolation(filteredTransactionViolations);

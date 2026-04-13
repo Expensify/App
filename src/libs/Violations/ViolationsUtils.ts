@@ -900,7 +900,7 @@ const ViolationsUtils = {
             return transactionViolations.some((violation: TransactionViolation) => {
                 return (
                     !isViolationDismissed(transaction, violation, currentUserEmail, currentUserAccountID, report, policy) &&
-                    shouldShowViolation(report, policy, violation.name, currentUserEmail, true, transaction)
+                    shouldShowViolation(report, policy, violation.name, currentUserEmail, true, transaction, violation)
                 );
             });
         });
