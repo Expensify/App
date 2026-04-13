@@ -101,6 +101,19 @@ class Git {
     }
 
     /**
+     * Get the name of the currently checked-out git branch.
+     *
+     * @returns The branch name, or an empty string if it cannot be determined.
+     */
+    static getCurrentBranchName(): string {
+        try {
+            return execSync('git rev-parse --abbrev-ref HEAD').trim();
+        } catch {
+            return '';
+        }
+    }
+
+    /**
      * Execute a git diff between two refs and return structured diff information.
      *
      * @param fromRef - The starting reference (commit, branch, tag, etc.)
