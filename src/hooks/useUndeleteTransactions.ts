@@ -26,8 +26,6 @@ function useUndeleteTransactions() {
             email: currentUserPersonalDetails.email ?? '',
             policy,
             allTransactions,
-            translate,
-            toLocaleDigit,
         });
     };
 }
