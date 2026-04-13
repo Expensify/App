@@ -3,7 +3,6 @@ import {StackRouter, useNavigationBuilder} from '@react-navigation/native';
 import type {StackNavigationEventMap, StackNavigationOptions} from '@react-navigation/stack';
 import {StackView} from '@react-navigation/stack';
 import React, {useMemo} from 'react';
-import {addCustomHistoryRouterExtension} from '@libs/Navigation/AppNavigator/customHistory';
 import convertToWebNavigationOptions from '@libs/Navigation/PlatformStackNavigation/navigationOptions/convertToWebNavigationOptions';
 import type {
     CreatePlatformStackNavigatorComponentOptions,
@@ -13,17 +12,19 @@ import type {
     PlatformStackNavigatorProps,
     PlatformStackRouterOptions,
 } from '@libs/Navigation/PlatformStackNavigation/types';
+import wrapDescriptorsWithFreeze from './wrapDescriptorsWithFreeze';
 
 function createPlatformStackNavigatorComponent<RouterOptions extends PlatformStackRouterOptions = PlatformStackRouterOptions>(
     displayName: string,
     options?: CreatePlatformStackNavigatorComponentOptions<RouterOptions>,
 ) {
-    const createRouter = addCustomHistoryRouterExtension(options?.createRouter ?? StackRouter);
+    const createRouter = options?.createRouter ?? StackRouter;
     const useCustomState = options?.useCustomState ?? (() => undefined);
     const defaultScreenOptions = options?.defaultScreenOptions;
     const ExtraContent = options?.ExtraContent;
     const NavigationContentWrapper = options?.NavigationContentWrapper;
     const useCustomEffects = options?.useCustomEffects ?? (() => undefined);
+    const freezeNonTopScreens = options?.freezeNonTopScreens;
 
     function PlatformNavigator({
         id,
@@ -100,6 +101,8 @@ function createPlatformStackNavigatorComponent<RouterOptions extends PlatformSta
             };
         }, [persistentScreens, state]);
 
+        const wrappedDescriptors = freezeNonTopScreens ? wrapDescriptorsWithFreeze(descriptors, state, persistentScreens) : descriptors;
+
         const Content = useMemo(
             () => (
                 <NavigationContent>
@@ -108,7 +111,7 @@ function createPlatformStackNavigatorComponent<RouterOptions extends PlatformSta
                         {...props}
                         direction="ltr"
                         state={mappedState}
-                        descriptors={descriptors}
+                        descriptors={wrappedDescriptors}
                         navigation={navigation}
                         describe={describe}
                     />
@@ -119,7 +122,7 @@ function createPlatformStackNavigatorComponent<RouterOptions extends PlatformSta
                     )}
                 </NavigationContent>
             ),
-            [NavigationContent, customCodePropsWithCustomState, describe, descriptors, mappedState, navigation, props],
+            [NavigationContent, customCodePropsWithCustomState, describe, wrappedDescriptors, mappedState, navigation, props],
         );
 
         // eslint-disable-next-line react/jsx-props-no-spreading

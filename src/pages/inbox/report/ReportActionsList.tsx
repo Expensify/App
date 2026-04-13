@@ -25,7 +25,7 @@ import useScrollToEndOnNewMessageReceived from '@hooks/useScrollToEndOnNewMessag
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {isSafari} from '@libs/Browser';
-import type {ReasoningEntry} from '@libs/ConciergeReasoningStore';
+import {isConsecutiveChronosAutomaticTimerAction} from '@libs/ChronosUtils';
 import DateUtils from '@libs/DateUtils';
 import FS from '@libs/Fullstory';
 import durationHighlightItem from '@libs/Navigation/helpers/getDurationHighlightItem';
@@ -36,7 +36,6 @@ import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigat
 import {
     getFirstVisibleReportActionID,
     isConsecutiveActionMadeByPreviousActor,
-    isConsecutiveChronosAutomaticTimerAction,
     isCurrentActionUnread,
     isDeletedParentAction,
     isReportPreviewAction,
@@ -73,6 +72,7 @@ import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import FloatingMessageCounter from './FloatingMessageCounter';
 import getInitialNumToRender from './getInitialNumReportActionsToRender';
+import getReportActionsListInitialNumToRender from './getReportActionsListInitialNumToRender';
 import ListBoundaryLoader from './ListBoundaryLoader';
 import ReportActionsListItemRenderer from './ReportActionsListItemRenderer';
 import {getUnreadMarkerReportAction} from './shouldDisplayNewMarkerOnReportAction';
@@ -97,9 +97,6 @@ type ReportActionsListProps = {
 
     /** Sorted actions that should be visible to the user */
     sortedVisibleReportActions: OnyxTypes.ReportAction[];
-
-    /** The ID of the most recent IOU report action connected with the shown report */
-    mostRecentIOUReportActionID?: string | null;
 
     /** Callback executed on list layout */
     onLayout: (event: LayoutChangeEvent) => void;
@@ -136,14 +133,6 @@ type ReportActionsListProps = {
 
     /** Callback to show previous messages */
     onShowPreviousMessages?: () => void;
-    /** If concierge is currently processing a request */
-    isConciergeProcessing?: boolean;
-
-    /** Concierge reasoning history for display */
-    conciergeReasoningHistory?: ReasoningEntry[];
-
-    /** Concierge status label */
-    conciergeStatusLabel?: string;
 };
 
 // In the component we are subscribing to the arrival of new actions.
@@ -174,7 +163,6 @@ function ReportActionsList({
     sortedReportActions,
     sortedVisibleReportActions,
     onScroll,
-    mostRecentIOUReportActionID = '',
     loadNewerChats,
     loadOlderChats,
     onLayout,
@@ -187,9 +175,6 @@ function ReportActionsList({
     showHiddenHistory,
     hasPreviousMessages,
     onShowPreviousMessages,
-    isConciergeProcessing = false,
-    conciergeReasoningHistory,
-    conciergeStatusLabel,
 }: ReportActionsListProps) {
     const prevHasCreatedActionAdded = usePrevious(hasCreatedActionAdded);
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
@@ -644,11 +629,25 @@ function ReportActionsList({
         const minimumReportActionHeight = styles.chatItem.paddingTop + styles.chatItem.paddingBottom + variables.fontSizeNormalHeight;
         const availableHeight = windowHeight - (CONST.CHAT_FOOTER_MIN_HEIGHT + variables.contentHeaderHeight);
         const numToRender = Math.ceil(availableHeight / minimumReportActionHeight);
-        if (linkedReportActionID) {
-            return getInitialNumToRender(numToRender);
-        }
-        return numToRender || undefined;
-    }, [styles.chatItem.paddingBottom, styles.chatItem.paddingTop, windowHeight, linkedReportActionID]);
+        return getReportActionsListInitialNumToRender({
+            numToRender,
+            linkedReportActionID,
+            shouldScrollToEndAfterLayout,
+            hasCreatedActionAdded,
+            sortedVisibleReportActionsLength: sortedVisibleReportActions.length,
+            isOffline,
+            getInitialNumToRender,
+        });
+    }, [
+        styles.chatItem.paddingBottom,
+        styles.chatItem.paddingTop,
+        windowHeight,
+        linkedReportActionID,
+        shouldScrollToEndAfterLayout,
+        hasCreatedActionAdded,
+        sortedVisibleReportActions.length,
+        isOffline,
+    ]);
 
     /**
      * Thread's divider line should hide when the first chat in the thread is marked as unread.
@@ -713,7 +712,6 @@ function ReportActionsList({
                             !isConsecutiveChronosAutomaticTimerAction(sortedVisibleReportActions, index, chatIncludesChronosWithID(reportAction?.reportID), isOffline) &&
                             isConsecutiveActionMadeByPreviousActor(sortedVisibleReportActions, index, isOffline)
                         }
-                        mostRecentIOUReportActionID={mostRecentIOUReportActionID}
                         shouldHideThreadDividerLine={shouldHideThreadDividerLine}
                         shouldDisplayNewMarker={reportAction.reportActionID === unreadMarkerReportActionID}
                         shouldDisplayReplyDivider={sortedVisibleReportActions.length > 1}
@@ -740,7 +738,6 @@ function ReportActionsList({
             transactionThreadReport,
             linkedReportActionID,
             sortedVisibleReportActions,
-            mostRecentIOUReportActionID,
             shouldHideThreadDividerLine,
             unreadMarkerReportActionID,
             firstVisibleReportActionID,
@@ -761,7 +758,6 @@ function ReportActionsList({
             styles,
             translate,
             expensifyIcons.UpArrow,
-            isOffline,
         ],
     );
 
@@ -804,20 +800,14 @@ function ReportActionsList({
 
         return (
             <>
-                {isConciergeProcessing && (
-                    <ConciergeThinkingMessage
-                        report={report}
-                        reasoningHistory={conciergeReasoningHistory}
-                        statusLabel={conciergeStatusLabel}
-                    />
-                )}
+                <ConciergeThinkingMessage report={report} />
                 <ListBoundaryLoader
                     type={CONST.LIST_COMPONENTS.HEADER}
                     onRetry={retryLoadNewerChatsError}
                 />
             </>
         );
-    }, [canShowHeader, isConciergeProcessing, report, conciergeReasoningHistory, conciergeStatusLabel, retryLoadNewerChatsError]);
+    }, [canShowHeader, report, retryLoadNewerChatsError]);
 
     const shouldShowSkeleton = isOffline && !sortedVisibleReportActions.some((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED);
 

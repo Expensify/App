@@ -118,7 +118,8 @@ function WorkspaceNewRoomPage({ref}: WorkspaceNewRoomPageProps) {
      */
     const submit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NEW_ROOM_FORM>) => {
         setNewRoomFormLoading();
-        const participants = [session?.accountID ?? CONST.DEFAULT_NUMBER_ID];
+        const currentUserAccountID = session?.accountID ?? CONST.DEFAULT_NUMBER_ID;
+        const participants = [currentUserAccountID];
         const parsedDescription = getParsedComment(values.reportDescription ?? '', {policyID});
         const policyReport = buildOptimisticChatReport({
             participantList: participants,
@@ -130,6 +131,7 @@ function WorkspaceNewRoomPage({ref}: WorkspaceNewRoomPageProps) {
             writeCapability: writeCapability || CONST.REPORT.WRITE_CAPABILITIES.ALL,
             notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.DAILY,
             description: parsedDescription,
+            currentUserAccountID,
         });
 
         // eslint-disable-next-line @typescript-eslint/no-deprecated

@@ -55,6 +55,7 @@ type AuthenticationChallenge = {
     allowCredentials: Array<{
         type: string;
         id: string;
+        transports?: string[];
     }>;
     userVerification: UserVerificationRequirement;
     timeout: number;

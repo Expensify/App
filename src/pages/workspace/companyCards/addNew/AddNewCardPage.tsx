@@ -30,6 +30,7 @@ import CardNameStep from './CardNameStep';
 import CardTypeStep from './CardTypeStep';
 import DetailsStep from './DetailsStep';
 import DirectStatementCloseDateStep from './DirectStatementCloseDatePage';
+import ImportFromFileStep from './ImportFromFileStep';
 import PlaidConnectionStep from './PlaidConnectionStep';
 import SelectBankStep from './SelectBankStep';
 import SelectCountryStep from './SelectCountryStep';
@@ -47,6 +48,7 @@ function AddNewCardPage({policy}: WithPolicyAndFullscreenLoadingProps) {
     const {translate} = useLocalize();
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
@@ -138,6 +140,9 @@ function AddNewCardPage({policy}: WithPolicyAndFullscreenLoadingProps) {
         case CONST.COMPANY_CARDS.STEP.SELECT_DIRECT_STATEMENT_CLOSE_DATE:
             CurrentStep = <DirectStatementCloseDateStep policyID={policyID} />;
             break;
+        case CONST.COMPANY_CARDS.STEP.IMPORT_FROM_FILE:
+            CurrentStep = <ImportFromFileStep />;
+            break;
         default:
             CurrentStep = <SelectCountryStep policyID={policyID} />;
             break;
@@ -160,7 +165,7 @@ function AddNewCardPage({policy}: WithPolicyAndFullscreenLoadingProps) {
                 onCancel={() => setIsModalVisible(false)}
                 onConfirm={() => {
                     setIsModalVisible(false);
-                    navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, false);
+                    navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas, false);
                 }}
             />
         </AccessOrNotFoundWrapper>
