@@ -21,7 +21,7 @@ import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {createNewReport} from '@libs/actions/Report';
-import getCreateReportRoute from '@libs/Navigation/helpers/getCreateReportRoute';
+import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import setNavigationActionToMicrotaskQueue from '@libs/Navigation/helpers/setNavigationActionToMicrotaskQueue';
 import Navigation from '@libs/Navigation/Navigation';
 import type {NewReportWorkspaceSelectionNavigatorParamList} from '@libs/Navigation/types';
@@ -100,7 +100,10 @@ function NewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelectionPag
         }
 
         Navigation.setNavigationActionToMicrotaskQueue(() => {
-            Navigation.navigate(getCreateReportRoute({reportID: optimisticReportID, shouldUseNarrowLayout}), {forceReplace: isRHPOnReportInSearch || shouldUseNarrowLayout});
+            Navigation.navigate(
+                isSearchTopmostFullScreenRoute() ? ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: optimisticReportID}) : ROUTES.REPORT_WITH_ID.getRoute(optimisticReportID),
+                {forceReplace: isRHPOnReportInSearch || shouldUseNarrowLayout},
+            );
         });
     };
 
@@ -163,7 +166,6 @@ function NewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelectionPag
         onCancel: () => {
             setPendingPolicySelection(null);
         },
-        shouldHandleNavigationBack: false,
     });
 
     // Open the confirmation modal after pendingPolicySelection is committed so the hook has the correct policyName
