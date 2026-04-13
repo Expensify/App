@@ -325,7 +325,7 @@ function SearchList({
     }, [data, groupBy, newTransactions]);
 
     const {windowWidth} = useWindowDimensions();
-    const minTableWidth = getTableMinWidth(columns);
+    const minTableWidth = getTableMinWidth(columns, queryJSON.type);
     const shouldScrollHorizontally = !!SearchTableHeader && minTableWidth > windowWidth;
 
     const horizontalScrollViewRef = useRef<RNScrollView>(null);

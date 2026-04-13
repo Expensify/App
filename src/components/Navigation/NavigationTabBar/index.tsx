@@ -10,7 +10,6 @@ import {PressableWithFeedback} from '@components/Pressable';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import useReportAttributes from '@hooks/useReportAttributes';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useRootNavigationState from '@hooks/useRootNavigationState';
 import {useSidebarOrderedReportsState} from '@hooks/useSidebarOrderedReports';
@@ -22,7 +21,6 @@ import Navigation from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
 import {isDeletedAction} from '@libs/ReportActionsUtils';
 import {startSpan} from '@libs/telemetry/activeSpans';
-import {getChatTabBrickRoad} from '@libs/WorkspacesSettingsUtils';
 import type {ReportsSplitNavigatorParamList} from '@navigation/types';
 import NavigationTabBarAvatar from '@pages/inbox/sidebar/NavigationTabBarAvatar';
 import NavigationTabBarFloatingActionButton from '@pages/inbox/sidebar/NavigationTabBarFloatingActionButton';
@@ -51,7 +49,7 @@ function NavigationTabBar({selectedTab, shouldShowFloatingButtons = true}: Navig
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {orderedReportIDs} = useSidebarOrderedReportsState();
+    const {chatTabBrickRoad} = useSidebarOrderedReportsState();
     const [isDebugModeEnabled] = useOnyx(ONYXKEYS.IS_DEBUG_MODE_ENABLED);
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['ExpensifyAppIcon', 'Home', 'Inbox']);
 
@@ -79,9 +77,7 @@ function NavigationTabBar({selectedTab, shouldShowFloatingButtons = true}: Navig
     };
     const [doesLastReportActionExist] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${lastReportRouteReportID}`, {selector: doesLastReportActionExistSelector});
 
-    const reportAttributes = useReportAttributes();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const chatTabBrickRoad = getChatTabBrickRoad(orderedReportIDs, reportAttributes);
 
     const StyleUtils = useStyleUtils();
 

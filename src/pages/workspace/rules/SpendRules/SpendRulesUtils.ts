@@ -1,3 +1,6 @@
+import ROUTES from '@src/ROUTES';
+import type {Route} from '@src/ROUTES';
+
 const MAX_SUMMARY_CHARS = 74;
 
 type MoreCountFormatter = (summary: string, count: number) => string;
@@ -25,4 +28,8 @@ function getTruncatedSpendRuleSummary(values: string[] | undefined, formatMoreCo
     return text && hiddenCount > 0 ? formatMoreCount(text, hiddenCount) : text;
 }
 
-export default getTruncatedSpendRuleSummary;
+function getParentRoute(policyID: string, ruleID: string): Route {
+    return ruleID === ROUTES.NEW ? ROUTES.RULES_SPEND_NEW.getRoute(policyID) : ROUTES.RULES_SPEND_EDIT.getRoute(policyID, ruleID);
+}
+
+export {getTruncatedSpendRuleSummary, getParentRoute};
