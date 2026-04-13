@@ -15,7 +15,7 @@ import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnec
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import {clearQBOErrorField} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
-import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {Account, QBONonReimbursableExportAccountType} from '@src/types/onyx/Policy';
 
 type MenuItem = ListItem & {
@@ -66,12 +66,8 @@ function DynamicQuickbooksCompanyCardExpenseAccountSelectCardPage({policy}: With
     }, [translate, qboConfig?.nonReimbursableExpensesExportDestination, isLocationEnabled, accountPayable, bankAccounts, creditCards, vendors]);
 
     const goBack = useCallback(() => {
-        Navigation.goBack(
-            backPath ||
-                (policyID &&
-                    `${ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT.getRoute(policyID)}/${DYNAMIC_ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_ACCOUNT.path}`),
-        );
-    }, [backPath, policyID]);
+        Navigation.goBack(backPath);
+    }, [backPath]);
 
     const selectExportCompanyCard = useCallback(
         (row: MenuItem) => {

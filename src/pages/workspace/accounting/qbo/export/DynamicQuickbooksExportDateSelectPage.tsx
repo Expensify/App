@@ -15,7 +15,7 @@ import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnec
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import {clearQBOErrorField} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
-import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 
 type CardListItem = ListItem & {
     value: ValueOf<typeof CONST.QUICKBOOKS_EXPORT_DATE>;
@@ -40,7 +40,7 @@ function DynamicQuickbooksExportDateSelectPage({policy}: WithPolicyConnectionsPr
 
     const goBack = useCallback(() => {
         Navigation.goBack(backPath);
-    }, [policyID, backPath]);
+    }, [backPath]);
 
     const selectExportDate = useCallback(
         (row: CardListItem) => {
