@@ -9,7 +9,7 @@ import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViol
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import getPlatform from '@libs/getPlatform';
 import {getNonHeldAndFullAmount, hasOnlyHeldExpenses as hasOnlyHeldExpensesReportUtils, hasOnlyNonReimbursableTransactions} from '@libs/ReportUtils';
-import {canIOUBePaid as canIOUBePaidAction} from '@userActions/IOU';
+import {canIOUBePaid as canIOUBePaidAction} from '@userActions/IOU/ReportWorkflow';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import MoneyReportHeaderEducationalModals from './MoneyReportHeaderEducationalModals';
