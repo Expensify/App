@@ -59,7 +59,7 @@ function useChartLabelLayout({
     // Memoized on all geometry inputs so truncatedLabels and truncatedLabelWidths have stable
     // references between re-renders where only unrelated state changes.
     return useMemo(() => {
-        if (!measurements || tickSpacing <= 0 || labelAreaWidth <= 0) {
+        if (!fontMgr || !measurements || tickSpacing <= 0 || labelAreaWidth <= 0) {
             return EMPTY_LAYOUT;
         }
 
@@ -142,7 +142,7 @@ function useChartLabelLayout({
             firstLabelMaxWidth: labelMaxWidths.at(0) ?? tickMaxWidth,
             lastLabelMaxWidth: labelMaxWidths.at(lastIndex) ?? tickMaxWidth,
         };
-    }, [measurements, data, tickSpacing, labelAreaWidth, firstTickLeftSpace, lastTickRightSpace, allowTightDiagonalPacking]);
+    }, [fontMgr, measurements, data, tickSpacing, labelAreaWidth, firstTickLeftSpace, lastTickRightSpace, allowTightDiagonalPacking]);
 }
 
 export {useChartLabelLayout};
