@@ -35,7 +35,6 @@ import Animations from '@libs/Navigation/PlatformStackNavigation/navigationOptio
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {AuthScreensParamList, RightModalNavigatorParamList} from '@navigation/types';
 import {PINContextProvider} from '@pages/MissingPersonalDetails/PINContext';
-import SearchSavePage from '@pages/Search/SearchSavePage';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -101,6 +100,7 @@ function SecondaryOverlay() {
 
 const loadRHPReportScreen = () => require<ReactComponentModule>('../../../../pages/inbox/RHPReportScreen').default;
 const loadSearchMoneyRequestReportPage = () => require<ReactComponentModule>('../../../../pages/Search/SearchMoneyRequestReportPage').default;
+const loadSearchSavePage = () => require<ReactComponentModule>('../../../../pages/Search/SearchSavePage').default;
 
 function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
@@ -400,7 +400,7 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                                 />
                                 <Stack.Screen
                                     name={SCREENS.RIGHT_MODAL.SEARCH_SAVE}
-                                    component={SearchSavePage}
+                                    getComponent={loadSearchSavePage}
                                 />
                                 <Stack.Screen
                                     name={SCREENS.RIGHT_MODAL.SEARCH_ADVANCED_FILTERS}
