@@ -4,7 +4,7 @@ import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import {hasCompanyCardFeeds} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {hasAccountingConnections, hasCustomCategories, hasNonDefaultRules, isPaidGroupPolicy, isPendingDeletePolicy, isPolicyAdmin} from '@libs/PolicyUtils';
+import {getValidConnectedIntegration, hasCustomCategories, hasNonDefaultRules, isPaidGroupPolicy, isPendingDeletePolicy, isPolicyAdmin} from '@libs/PolicyUtils';
 import isWithinGettingStartedPeriod from '@pages/home/GettingStartedSection/utils/isWithinGettingStartedPeriod';
 import {enablePolicyCategories} from '@userActions/Policy/Category';
 import {enableCompanyCards, enablePolicyConnections, enablePolicyRules} from '@userActions/Policy/Policy';
@@ -12,6 +12,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
+import type {ConnectionName} from '@src/types/onyx/Policy';
 
 type GettingStartedItem = {
     key: string;
@@ -82,7 +83,12 @@ function useGettingStartedItems(): UseGettingStartedItemsResult {
         items.push({
             key: 'connectAccounting',
             label: translate('homePage.gettingStartedSection.connectAccounting', {integrationName}),
-            isComplete: hasAccountingConnections(policy),
+            // Use getValidConnectedIntegration for currently-healthy connections. Additionally check
+            // successfulDate so that a task completed by a once-working integration stays checked
+            // even if the connection later breaks (e.g. auth expires). successfulDate is never
+            // cleared by subsequent error syncs due to Onyx deep-merge semantics.
+            isComplete:
+                !!getValidConnectedIntegration(policy, [reportedIntegration as ConnectionName]) || !!policy?.connections?.[reportedIntegration as ConnectionName]?.lastSync?.successfulDate,
             route: ROUTES.WORKSPACE_ACCOUNTING.getRoute(activePolicyID),
             isFeatureEnabled: policy.areConnectionsEnabled,
             enableFeature: () => enablePolicyConnections(activePolicyID, true, false),

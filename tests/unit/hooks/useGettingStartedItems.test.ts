@@ -269,6 +269,47 @@ describe('useGettingStartedItems', () => {
                         [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
                             config: {},
                             data: {},
+                            lastSync: {isConnected: true},
+                        },
+                    } as Policy['connections'],
+                },
+            });
+
+            const {result} = renderHook(() => useGettingStartedItems());
+
+            const connectItem = result.current.items.find((item) => item.key === 'connectAccounting');
+            expect(connectItem?.isComplete).toBe(true);
+        });
+
+        it('should not be completed when the initial connection attempt failed', async () => {
+            await setupManageTeamScenario({
+                accounting: CONST.POLICY.CONNECTIONS.NAME.QBO,
+                policy: {
+                    connections: {
+                        [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
+                            config: {},
+                            data: {},
+                            lastSync: {isConnected: false},
+                        },
+                    } as Policy['connections'],
+                },
+            });
+
+            const {result} = renderHook(() => useGettingStartedItems());
+
+            const connectItem = result.current.items.find((item) => item.key === 'connectAccounting');
+            expect(connectItem?.isComplete).toBe(false);
+        });
+
+        it('should stay completed when a previously successful connection later breaks', async () => {
+            await setupManageTeamScenario({
+                accounting: CONST.POLICY.CONNECTIONS.NAME.QBO,
+                policy: {
+                    connections: {
+                        [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
+                            config: {},
+                            data: {},
+                            lastSync: {isConnected: false, successfulDate: '2024-01-01'},
                         },
                     } as Policy['connections'],
                 },
