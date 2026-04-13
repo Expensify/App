@@ -1,9 +1,6 @@
-// eslint-disable-next-line no-restricted-imports
-import styles from '@styles/index';
-// eslint-disable-next-line no-restricted-imports
-import {defaultTheme} from '@styles/theme';
-// eslint-disable-next-line no-restricted-imports
-import createStyleUtils from '@styles/utils';
+import styles from '@src/styles';
+import {defaultTheme} from '@src/styles/theme';
+import createStyleUtils from '@src/styles/utils';
 import type {ThemeStylesActionsContextType, ThemeStylesStateContextType} from './types';
 
 // Lazy defaults: defers the expensive styles(defaultTheme) call from module import
