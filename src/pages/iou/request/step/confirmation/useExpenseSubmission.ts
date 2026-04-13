@@ -1,7 +1,13 @@
-import type {RefObject} from 'react';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import type {LocaleContextProps} from '@components/LocaleContextProvider';
+import {hasSeenTourSelector} from '@selectors/Onboarding';
+import {useRef, useState} from 'react';
+import type {OnyxEntry} from 'react-native-onyx';
+import useLocalize from '@hooks/useLocalize';
+import useOnboardingTaskInformation from '@hooks/useOnboardingTaskInformation';
 import useOnyx from '@hooks/useOnyx';
+import useParentReportAction from '@hooks/useParentReportAction';
+import useParticipantsInvoiceReport from '@hooks/useParticipantsInvoiceReport';
+import useParticipantsPolicyTags from '@hooks/useParticipantsPolicyTags';
+import usePermissions from '@hooks/usePermissions';
 import {completeTestDriveTask} from '@libs/actions/Task';
 import {getCurrencySymbol} from '@libs/CurrencyUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
@@ -10,34 +16,28 @@ import {getGPSCoordinates} from '@libs/GPSDraftDetailsUtils';
 import {getExistingTransactionID} from '@libs/IOUUtils';
 import Log from '@libs/Log';
 import {rand64, roundToTwoDecimalPlaces} from '@libs/NumberUtils';
-import {generateReportID, isSelectedManagerMcTest} from '@libs/ReportUtils';
+import {findSelfDMReportID, generateReportID, hasViolations as hasViolationsReportUtils, isSelectedManagerMcTest} from '@libs/ReportUtils';
 import {endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
 import getSubmitExpenseScenario from '@libs/telemetry/getSubmitExpenseScenario';
 import markSubmitExpenseEnd from '@libs/telemetry/markSubmitExpenseEnd';
-import {getValidWaypoints, isManualDistanceRequest as isManualDistanceRequestTransactionUtils} from '@libs/TransactionUtils';
+import {
+    getDefaultTaxCode,
+    getRateID,
+    getTaxValue,
+    getValidWaypoints,
+    isGPSDistanceRequest as isGPSDistanceRequestTransactionUtils,
+    isManualDistanceRequest as isManualDistanceRequestTransactionUtils,
+} from '@libs/TransactionUtils';
 import type {GpsPoint} from '@userActions/IOU';
 import {createDistanceRequest as createDistanceRequestIOUActions} from '@userActions/IOU';
 import {submitPerDiemExpenseForSelfDM, submitPerDiemExpense as submitPerDiemExpenseIOUActions} from '@userActions/IOU/PerDiem';
-import {sendInvoice} from '@userActions/IOU/SendInvoice';
+import {getReceiverType, sendInvoice} from '@userActions/IOU/SendInvoice';
 import {sendMoneyElsewhere, sendMoneyWithWallet} from '@userActions/IOU/SendMoney';
 import {splitBill, splitBillAndOpenReport, startSplitBill} from '@userActions/IOU/Split';
 import {requestMoney as requestMoneyIOUActions, trackExpense as trackExpenseIOUActions} from '@userActions/IOU/TrackExpense';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {
-    Beta,
-    GpsDraftDetails,
-    IntroSelected,
-    PersonalDetailsList,
-    PolicyCategories,
-    PolicyTagLists,
-    QuickAction,
-    RecentlyUsedCategories,
-    RecentlyUsedTags,
-    Report,
-    ReportAction,
-    TransactionViolation,
-} from '@src/types/onyx';
+import type {PersonalDetailsList, PolicyCategories, RecentlyUsedCategories, Report} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type Policy from '@src/types/onyx/Policy';
@@ -77,24 +77,14 @@ type UseExpenseSubmissionParams = {
     transaction: OnyxEntry<Transaction>;
     transactions: Transaction[];
     receiptFiles: Record<string, Receipt>;
-    transactionViolationsRef: RefObject<OnyxCollection<TransactionViolation[]>>;
 
     // Report data
     report: OnyxEntry<Report>;
     reportID: string;
-    existingInvoiceReport: OnyxEntry<Report>;
-    selfDMReport: OnyxEntry<Report>;
 
     // Policy data
     policy: OnyxEntry<Policy>;
     policyCategories: OnyxEntry<PolicyCategories>;
-    policyTags: OnyxEntry<PolicyTagLists>;
-    policyRecentlyUsedCategories: OnyxEntry<RecentlyUsedCategories>;
-    policyRecentlyUsedTags: OnyxEntry<RecentlyUsedTags>;
-    policyRecentlyUsedCurrencies: string[];
-    recentlyUsedDestinations: OnyxEntry<string[]>;
-    participantsPolicyTags: Record<string, PolicyTagLists>;
-    senderWorkspacePolicyTags: OnyxEntry<PolicyTagLists>;
     isDraftPolicy: boolean;
 
     // User data
@@ -109,7 +99,6 @@ type UseExpenseSubmissionParams = {
     isDistanceRequest: boolean;
     isManualDistanceRequest: boolean;
     isOdometerDistanceRequest: boolean;
-    isGPSDistanceRequest: boolean;
     isPerDiemRequest: boolean;
     isTimeRequest: boolean;
     isMovingTransactionFromTrackExpense: boolean;
@@ -117,46 +106,12 @@ type UseExpenseSubmissionParams = {
     isSharingTrackExpense: boolean;
     isUnreported: boolean;
 
-    // Tax data
-    transactionTaxCode: string;
-    transactionTaxAmount: number;
-    transactionTaxValue: string;
-
-    // Other derived values
-    customUnitRateID: string;
-    transactionDistance: number | undefined;
-    hasViolations: boolean;
-    shouldGenerateTransactionThreadReport: boolean;
-
     // Onyx values
-    gpsDraftDetails: OnyxEntry<GpsDraftDetails>;
-    introSelected: OnyxEntry<IntroSelected>;
-    activePolicyID: OnyxEntry<string>;
-    quickAction: OnyxEntry<QuickAction>;
-    betas: OnyxEntry<Beta[]>;
-    isSelfTourViewed: boolean;
-    userLocation: OnyxEntry<{latitude: number; longitude: number}>;
     draftTransactionIDs: string[] | undefined;
     privateIsArchivedMap: Record<string, boolean | undefined>;
 
     // Navigation
     backToReport?: string;
-    isASAPSubmitBetaEnabled: boolean;
-
-    // Onboarding task data
-    viewTourTaskReport: OnyxEntry<Report>;
-    viewTourTaskParentReport: OnyxEntry<Report>;
-    isViewTourTaskParentReportArchived: boolean;
-    hasOutstandingChildTask: boolean;
-    parentReportAction: OnyxEntry<ReportAction>;
-
-    // Localization
-    translate: LocaleContextProps['translate'];
-    toLocaleDigit: LocaleContextProps['toLocaleDigit'];
-
-    // UI state setters
-    setIsConfirmed: (value: boolean) => void;
-    formHasBeenSubmitted: RefObject<boolean>;
 };
 
 function useExpenseSubmission(params: UseExpenseSubmissionParams) {
@@ -164,20 +119,10 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         transaction,
         transactions,
         receiptFiles,
-        transactionViolationsRef,
         report,
         reportID,
-        existingInvoiceReport,
-        selfDMReport,
         policy,
         policyCategories,
-        policyTags,
-        policyRecentlyUsedCategories,
-        policyRecentlyUsedTags,
-        policyRecentlyUsedCurrencies,
-        recentlyUsedDestinations,
-        participantsPolicyTags,
-        senderWorkspacePolicyTags,
         isDraftPolicy,
         currentUserPersonalDetails,
         personalDetails,
@@ -188,43 +133,86 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         isDistanceRequest,
         isManualDistanceRequest,
         isOdometerDistanceRequest,
-        isGPSDistanceRequest,
         isPerDiemRequest,
         isTimeRequest,
         isMovingTransactionFromTrackExpense,
         isCategorizingTrackExpense,
         isSharingTrackExpense,
         isUnreported,
-        transactionTaxCode,
-        transactionTaxAmount,
-        transactionTaxValue,
-        customUnitRateID,
-        transactionDistance,
-        hasViolations,
-        shouldGenerateTransactionThreadReport,
-        gpsDraftDetails,
-        introSelected,
-        activePolicyID,
-        quickAction,
-        betas,
-        isSelfTourViewed,
-        userLocation,
         draftTransactionIDs,
         privateIsArchivedMap,
         backToReport,
-        isASAPSubmitBetaEnabled,
-        viewTourTaskReport,
-        viewTourTaskParentReport,
-        isViewTourTaskParentReportArchived,
-        hasOutstandingChildTask,
-        parentReportAction,
-        translate,
-        toLocaleDigit,
-        setIsConfirmed,
-        formHasBeenSubmitted,
     } = params;
 
+    // Localization
+    const {translate, toLocaleDigit} = useLocalize();
+
+    // Permissions
+    const {isBetaEnabled} = usePermissions();
+    const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
+    const shouldGenerateTransactionThreadReport = !isBetaEnabled(CONST.BETAS.NO_OPTIMISTIC_TRANSACTION_THREADS);
+
+    // UI state
+    const [isConfirmed, setIsConfirmed] = useState(false);
+    const formHasBeenSubmitted = useRef(false);
+
+    // Transaction violations – ref keeps callbacks always reading the latest value without re-creating them.
+    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
+    const transactionViolationsRef = useRef(transactionViolations);
+    // eslint-disable-next-line react-hooks/refs
+    transactionViolationsRef.current = transactionViolations;
+    const hasViolations = hasViolationsReportUtils(report?.reportID, transactionViolations, currentUserPersonalDetails.accountID, currentUserPersonalDetails.login ?? '');
+
+    // Policy-scoped Onyx data
+    const policyID = policy?.id;
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
+    const [policyRecentlyUsedCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${policyID}`);
+    const [policyRecentlyUsedTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${policyID}`);
+    const [policyRecentlyUsedCurrenciesOnyx] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES);
+    const policyRecentlyUsedCurrencies = policyRecentlyUsedCurrenciesOnyx ?? [];
+    const [recentlyUsedDestinations] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_DESTINATIONS}${policyID}`);
+
+    // Reports
+    const [selfDMReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${findSelfDMReportID()}`);
+
+    // Invoice data
+    const receiverParticipant = transaction?.participants?.find((p) => p?.accountID) ?? report?.invoiceReceiver;
+    const receiverAccountID = receiverParticipant && 'accountID' in receiverParticipant && receiverParticipant.accountID ? receiverParticipant.accountID : CONST.DEFAULT_NUMBER_ID;
+    const receiverType = getReceiverType(receiverParticipant);
+    const senderWorkspaceID = transaction?.participants?.find((p) => p?.isSender)?.policyID;
+    const [senderWorkspacePolicyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${senderWorkspaceID}`);
+    const existingInvoiceReport = useParticipantsInvoiceReport(receiverAccountID, receiverType, senderWorkspaceID);
+
+    // Policy tags from participants
+    const participantsPolicyTags = useParticipantsPolicyTags(participants ?? []);
+
+    // Global Onyx values
+    const [userLocation] = useOnyx(ONYXKEYS.USER_LOCATION);
+    const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
+    const [isSelfTourViewed = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
+    const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [gpsDraftDetails] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS);
     const [recentWaypoints] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS);
+
+    // Onboarding task data
+    const {
+        taskReport: viewTourTaskReport,
+        taskParentReport: viewTourTaskParentReport,
+        isOnboardingTaskParentReportArchived: isViewTourTaskParentReportArchived,
+        hasOutstandingChildTask,
+    } = useOnboardingTaskInformation(CONST.ONBOARDING_TASK_TYPE.VIEW_TOUR);
+    const parentReportAction = useParentReportAction(viewTourTaskReport);
+
+    // Derived values from transaction
+    const isGPSDistanceRequest = isGPSDistanceRequestTransactionUtils(transaction);
+    const customUnitRateID = getRateID(transaction) ?? '';
+    const transactionDistance = isManualDistanceRequest || isOdometerDistanceRequest || isGPSDistanceRequest ? (transaction?.comment?.customUnit?.quantity ?? undefined) : undefined;
+    const defaultTaxCode = getDefaultTaxCode(policy, transaction);
+    const transactionTaxCode = (transaction?.taxCode ? transaction?.taxCode : defaultTaxCode) ?? '';
+    const transactionTaxAmount = transaction?.taxAmount ?? 0;
+    const transactionTaxValue = transaction?.taxValue ?? getTaxValue(policy, transaction, transactionTaxCode) ?? '';
 
     function requestMoney(selectedParticipantsArg: Participant[], gpsPoint?: GpsPoint) {
         if (!transactions.length) {
@@ -864,7 +852,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         }
     }
 
-    return {createTransaction, sendMoney};
+    return {createTransaction, sendMoney, isConfirmed, formHasBeenSubmitted};
 }
 
 export default useExpenseSubmission;
