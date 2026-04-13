@@ -1077,8 +1077,6 @@ const translations = {
                 sunglassesDescription: "Time to chill, though stay tuned for what's next!",
                 f1FlagsTitle: 'All caught up',
                 f1FlagsDescription: "You've finished all outstanding to-dos.",
-                fireworksTitle: 'All caught up',
-                fireworksDescription: 'Upcoming to-dos will appear here.',
             },
         },
         gettingStartedSection: {
@@ -8033,6 +8031,7 @@ const translations = {
         personalCard: 'Personal card',
         companyCard: 'Company card',
         expensifyCard: 'Expensify Card',
+        centralInvoicing: 'Central invoicing',
     },
     distance: {
         addStop: 'Add stop',

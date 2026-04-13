@@ -55,7 +55,7 @@ jest.mock('@hooks/useEnvironment', () => ({
 jest.mock('@hooks/usePermissions', () => ({
     __esModule: true,
     default: jest.fn(() => ({
-        isBetaEnabled: (beta: string) => beta === 'selectionModeReportActions',
+        isBetaEnabled: (beta: string) => beta === 'bulkSubmitApprovePay',
     })),
 }));
 
