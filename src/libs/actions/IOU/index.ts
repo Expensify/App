@@ -1493,7 +1493,8 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
     const isTimeRequest = isTimeRequestTransactionUtils(transaction);
     const outstandingChildRequest = getOutstandingChildRequest(iou.report);
     const clearedPendingFields = Object.fromEntries(Object.keys(transaction.pendingFields ?? {}).map((key) => [key, null]));
-    const isMoneyRequestToManagerMcTest = isTestTransactionReport(iou.report);
+    // TODO: Pass personalDetailsList once threaded through buildOnyxDataForMoneyRequest (https://github.com/Expensify/App/issues/66413) → PR 26
+    const isMoneyRequestToManagerMcTest = isTestTransactionReport(iou.report, undefined);
     const onyxData: OnyxData<BuildOnyxDataForMoneyRequestKeys> = {
         optimisticData: [],
         successData: [],
@@ -2483,7 +2484,8 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
     if (reportPreviewAction) {
         reportPreviewAction = updateReportPreview(iouReport, reportPreviewAction, false, comment, optimisticTransaction);
     } else {
-        reportPreviewAction = buildOptimisticReportPreview(chatReport, iouReport, comment, optimisticTransaction, undefined, optimisticReportPreviewActionID);
+        // TODO: Pass personalDetailsList in PR 26; isTestTransactionReport falls back to module-level Onyx value (https://github.com/Expensify/App/issues/66413)
+        reportPreviewAction = buildOptimisticReportPreview(chatReport, iouReport, comment, optimisticTransaction, undefined, undefined, optimisticReportPreviewActionID);
         chatReport.lastVisibleActionCreated = reportPreviewAction.created;
 
         // Generated ReportPreview action is a parent report action of the iou report.
@@ -3816,11 +3818,13 @@ function createSplitsAndOnyxData({
         // entering code that creates optimistic personal details
         if ((!hasMultipleParticipants && !existingSplitChatReportID) || isOwnPolicyExpenseChat || isOneOnOneChat(splitChatReport)) {
             oneOnOneChatReport = splitChatReport;
-            shouldCreateOptimisticPersonalDetails = !existingSplitChatReport && isOptimisticPersonalDetail(accountID);
+            // TODO: Pass personalDetailsList once threaded through createSplitsAndOnyxData (https://github.com/Expensify/App/issues/66413) → PR 26
+            shouldCreateOptimisticPersonalDetails = !existingSplitChatReport && isOptimisticPersonalDetail(accountID, undefined);
         } else {
             const existingChatReport = getChatByParticipants([accountID, currentUserAccountID]);
             isNewOneOnOneChatReport = !existingChatReport;
-            shouldCreateOptimisticPersonalDetails = isNewOneOnOneChatReport && isOptimisticPersonalDetail(accountID);
+            // TODO: Pass personalDetailsList once threaded through createSplitsAndOnyxData (https://github.com/Expensify/App/issues/66413) → PR 26
+            shouldCreateOptimisticPersonalDetails = isNewOneOnOneChatReport && isOptimisticPersonalDetail(accountID, undefined);
             oneOnOneChatReport =
                 existingChatReport ??
                 buildOptimisticChatReport({
@@ -3939,6 +3943,7 @@ function createSplitsAndOnyxData({
         if (oneOnOneReportPreviewAction) {
             oneOnOneReportPreviewAction = updateReportPreview(oneOnOneIOUReport, oneOnOneReportPreviewAction);
         } else {
+            // TODO: Pass personalDetailsList in PR 26; isTestTransactionReport falls back to module-level Onyx value (https://github.com/Expensify/App/issues/66413)
             oneOnOneReportPreviewAction = buildOptimisticReportPreview(oneOnOneChatReport, oneOnOneIOUReport);
         }
 
@@ -4000,7 +4005,8 @@ function createSplitsAndOnyxData({
         const individualSplit = {
             email,
             accountID,
-            isOptimisticAccount: isOptimisticPersonalDetail(accountID),
+            // TODO: Pass personalDetailsList once threaded through createSplitsAndOnyxData (https://github.com/Expensify/App/issues/66413) → PR 26
+            isOptimisticAccount: isOptimisticPersonalDetail(accountID, undefined),
             amount: splitAmount,
             iouReportID: oneOnOneIOUReport.reportID,
             chatReportID: oneOnOneChatReport.reportID,
@@ -4528,11 +4534,13 @@ function getReportFromHoldRequestsOnyxData({
               createdTimestamp,
           );
 
+    // TODO: Pass personalDetailsList in PR 28; isTestTransactionReport falls back to module-level Onyx value (https://github.com/Expensify/App/issues/66413)
     const optimisticExpenseReportPreview = buildOptimisticReportPreview(
         chatReport,
         optimisticExpenseReport,
         '',
         firstHoldTransaction,
+        undefined,
         optimisticExpenseReport.reportID,
         newParentReportActionID,
     );
@@ -4962,7 +4970,8 @@ function getSearchOnyxUpdate({
 
     if (currentSearchQueryJSON && toAccountID != null && fromAccountID != null) {
         if (shouldOptimisticallyUpdateSearch(currentSearchQueryJSON, iouReport, isInvoice, transaction)) {
-            const isOptimisticToAccountData = isOptimisticPersonalDetail(toAccountID);
+            // TODO: Pass personalDetailsList once threaded through getSearchOnyxUpdate (https://github.com/Expensify/App/issues/66413) → PR 26
+            const isOptimisticToAccountData = isOptimisticPersonalDetail(toAccountID, undefined);
             const successData = [];
             if (isOptimisticToAccountData) {
                 // The optimistic personal detail is removed on the API's success data but we can't change the managerID of the transaction in the snapshot.

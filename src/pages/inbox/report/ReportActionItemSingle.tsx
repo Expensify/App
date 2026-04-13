@@ -138,7 +138,8 @@ function ReportActionItemSingle({
 
     const shouldDisableDetailPage =
         CONST.RESTRICTED_ACCOUNT_IDS.includes(details.accountID ?? CONST.DEFAULT_NUMBER_ID) ||
-        (!details.isWorkspaceActor && isOptimisticPersonalDetail(action?.delegateAccountID ? Number(action.delegateAccountID) : (details.accountID ?? CONST.DEFAULT_NUMBER_ID)));
+        (!details.isWorkspaceActor &&
+            isOptimisticPersonalDetail(action?.delegateAccountID ? Number(action.delegateAccountID) : (details.accountID ?? CONST.DEFAULT_NUMBER_ID), personalDetails));
 
     const getBackgroundColor = () => {
         if (isActive) {

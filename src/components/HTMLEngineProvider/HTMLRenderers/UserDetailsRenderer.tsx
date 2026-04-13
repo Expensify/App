@@ -3,16 +3,19 @@ import type {CustomRendererProps, TPhrasing, TText} from 'react-native-render-ht
 import {TNodeChildrenRenderer} from 'react-native-render-html';
 import Text from '@components/Text';
 import UserDetailsTooltip from '@components/UserDetailsTooltip';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import {isOptimisticPersonalDetail} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
 type UserDetailsRendererProps = CustomRendererProps<TText | TPhrasing>;
 
 function UserDetailsRenderer({tnode, ...defaultRendererProps}: UserDetailsRendererProps) {
     const styles = useThemeStyles();
+    const [personalDetailsList] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const accountID = tnode.attributes.accountid ? parseInt(tnode.attributes.accountid, 10) : undefined;
 
     if (!accountID) {
@@ -20,7 +23,7 @@ function UserDetailsRenderer({tnode, ...defaultRendererProps}: UserDetailsRender
         return <TNodeChildrenRenderer tnode={tnode} />;
     }
 
-    const isOptimistic = isOptimisticPersonalDetail(accountID);
+    const isOptimistic = isOptimisticPersonalDetail(accountID, personalDetailsList);
 
     return (
         <UserDetailsTooltip accountID={accountID}>

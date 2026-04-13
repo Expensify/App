@@ -145,6 +145,7 @@ function getSendMoneyParams({
             isSendMoneyFlow: true,
         });
 
+    // TODO: Pass personalDetailsList in PR 29; isTestTransactionReport falls back to module-level Onyx value (https://github.com/Expensify/App/issues/66413)
     const reportPreviewAction = buildOptimisticReportPreview(chatReport, optimisticIOUReport);
 
     // Change the method to set for new reports because it doesn't exist yet, is faster,

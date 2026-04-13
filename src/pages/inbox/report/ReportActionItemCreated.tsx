@@ -35,12 +35,13 @@ function ReportActionItemCreated({reportID, policyID}: ReportActionItemCreatedPr
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
+    const [personalDetailsList] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
 
     if (!isChatReport(report)) {
         return null;
     }
 
-    const shouldDisableDetailPage = shouldDisableDetailPageReportUtils(report);
+    const shouldDisableDetailPage = shouldDisableDetailPageReportUtils(report, personalDetailsList);
 
     return (
         <OfflineWithFeedback
