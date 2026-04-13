@@ -30,7 +30,6 @@ import {endSpan, getSpan, startSpan} from './libs/telemetry/activeSpans';
 import type {BootsplashGateStatus} from './libs/telemetry/bootsplashTelemetry';
 import {startBootsplashMonitor} from './libs/telemetry/bootsplashTelemetry';
 import {cleanupMemoryTrackingTelemetry, initializeMemoryTrackingTelemetry} from './libs/telemetry/TelemetrySynchronizer';
-import {setShouldShowBranchNameInTitle} from './libs/UnreadIndicatorUpdater/updateUnread';
 import Visibility from './libs/Visibility';
 import ONYXKEYS from './ONYXKEYS';
 import PriorityModeHandler from './PriorityModeHandler';
@@ -62,13 +61,7 @@ function Expensify() {
     const [isCheckingPublicRoom = true] = useOnyx(ONYXKEYS.IS_CHECKING_PUBLIC_ROOM, {initWithStoredValues: false});
     const [updateRequired] = useOnyx(ONYXKEYS.RAM_ONLY_UPDATE_REQUIRED);
     const [lastVisitedPath] = useOnyx(ONYXKEYS.LAST_VISITED_PATH);
-    const [shouldShowBranchNameInTitle] = useOnyx(ONYXKEYS.SHOULD_SHOW_BRANCH_NAME_IN_TITLE);
-
     useDebugShortcut();
-
-    useEffect(() => {
-        setShouldShowBranchNameInTitle(shouldShowBranchNameInTitle ?? false);
-    }, [shouldShowBranchNameInTitle]);
 
     useEffect(() => {
         initializeMemoryTrackingTelemetry();
