@@ -2,7 +2,6 @@ import {Str} from 'expensify-common';
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import Avatar from '@components/Avatar';
-import ListSelectionButton from '@components/SelectionList/components/ListSelectionButton';
 import TextWithTooltip from '@components/TextWithTooltip';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
@@ -23,7 +22,6 @@ function UserSelectionListItem<TItem extends ListItem>({
     onCheckboxPress,
     onDismissError,
     shouldPreventEnterKeySubmit,
-    rightHandSideComponent,
     onFocus,
     shouldSyncFocus,
     wrapperStyle,
@@ -61,17 +59,20 @@ function UserSelectionListItem<TItem extends ListItem>({
             showTooltip={showTooltip}
             canSelectMultiple={canSelectMultiple}
             onSelectRow={onSelectRow}
+            onCheckboxPress={onCheckboxPress}
             onDismissError={onDismissError}
             shouldPreventEnterKeySubmit={shouldPreventEnterKeySubmit}
-            rightHandSideComponent={rightHandSideComponent}
+            // eslint-disable-next-line react/jsx-no-useless-fragment
+            rightHandSideComponent={<>{item.rightElement}</>}
             errors={item.errors}
             pendingAction={item.pendingAction}
             pressableStyle={pressableStyle}
             keyForList={item.keyForList}
             onFocus={onFocus}
             shouldSyncFocus={shouldSyncFocus}
+            shouldShowSelectionButton
         >
-            <View style={[styles.flexRow, styles.alignItemsCenter, styles.h13, styles.gap3, styles.w100]}>
+            <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.h13, styles.gap3]}>
                 {!!item.icons?.length && (
                     <View style={styles.mentionSuggestionsAvatarContainer}>
                         <Avatar
@@ -99,17 +100,6 @@ function UserSelectionListItem<TItem extends ListItem>({
                         />
                     )}
                 </View>
-
-                <ListSelectionButton
-                    role={CONST.ROLE.CHECKBOX}
-                    item={item}
-                    onSelectRow={onCheckboxPress ?? onSelectRow}
-                    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                    disabled={isDisabled || item.isDisabledCheckbox}
-                    style={item.rightElement ? styles.mr3 : undefined}
-                />
-
-                {!!item.rightElement && item.rightElement}
             </View>
         </BaseListItem>
     );

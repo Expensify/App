@@ -4,7 +4,6 @@ import {View} from 'react-native';
 import Avatar from '@components/Avatar';
 import Icon from '@components/Icon';
 import PlaidCardFeedIcon from '@components/PlaidCardFeedIcon';
-import ListSelectionButton from '@components/SelectionList/components/ListSelectionButton';
 import TextWithTooltip from '@components/TextWithTooltip';
 import UserDetailsTooltip from '@components/UserDetailsTooltip';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -42,6 +41,7 @@ function CardListItem<TItem extends ListItem>({
     rightHandSideComponent,
     onFocus,
     shouldSyncFocus,
+    shouldShowSelectionButton,
 }: CardListItemProps<TItem>) {
     const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar']);
     const styles = useThemeStyles();
@@ -71,6 +71,7 @@ function CardListItem<TItem extends ListItem>({
             showTooltip={showTooltip}
             canSelectMultiple={canSelectMultiple}
             onSelectRow={onSelectRow}
+            onCheckboxPress={onCheckboxPress}
             onDismissError={onDismissError}
             rightHandSideComponent={rightHandSideComponent}
             errors={item.errors}
@@ -78,6 +79,7 @@ function CardListItem<TItem extends ListItem>({
             keyForList={item.keyForList}
             onFocus={onFocus}
             shouldSyncFocus={shouldSyncFocus}
+            shouldShowSelectionButton={shouldShowSelectionButton ?? (!!canSelectMultiple && !item.isDisabled)}
         >
             <>
                 {!!item.bankIcon && (
@@ -157,15 +159,6 @@ function CardListItem<TItem extends ListItem>({
                         )}
                     </View>
                 </View>
-                {!!canSelectMultiple && !item.isDisabled && (
-                    <ListSelectionButton
-                        role={CONST.ROLE.CHECKBOX}
-                        item={item}
-                        onSelectRow={onCheckboxPress ?? onSelectRow}
-                        disabled={!!isDisabled}
-                        style={styles.ml3}
-                    />
-                )}
             </>
         </BaseListItem>
     );
