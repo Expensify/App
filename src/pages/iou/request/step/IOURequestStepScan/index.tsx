@@ -9,7 +9,7 @@ import {isMobile} from '@libs/Browser';
 import {isLocalFile as isLocalFileFileUtils} from '@libs/fileDownload/FileUtils';
 import getCurrentPosition from '@libs/getCurrentPosition';
 import Navigation from '@libs/Navigation/Navigation';
-import {endSpan} from '@libs/telemetry/activeSpans';
+import {cancelSpan, endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
 import withFullTransactionOrNotFound from '@pages/iou/request/step/withFullTransactionOrNotFound';
 import withWritableReportOrNotFound from '@pages/iou/request/step/withWritableReportOrNotFound';
 import {updateLastLocationPermissionPrompt} from '@userActions/IOU';
@@ -40,9 +40,27 @@ function IOURequestStepScan({
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID}`);
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
 
-    // End the create expense span on mount for web (no camera init tracking needed)
+    // End telemetry spans on mount for web (no camera init tracking needed)
     useEffect(() => {
         endSpan(CONST.TELEMETRY.SPAN_OPEN_CREATE_EXPENSE);
+
+        endSpan(CONST.TELEMETRY.SPAN_ENTRY_TO_SCAN_NAVIGATION);
+        const entryParentSpan = getSpan(CONST.TELEMETRY.SPAN_ENTRY_TO_SCAN);
+        if (entryParentSpan) {
+            startSpan(CONST.TELEMETRY.SPAN_ENTRY_TO_SCAN_READY, {
+                name: CONST.TELEMETRY.SPAN_ENTRY_TO_SCAN_READY,
+                op: CONST.TELEMETRY.SPAN_ENTRY_TO_SCAN_READY,
+                parentSpan: entryParentSpan,
+            });
+            endSpan(CONST.TELEMETRY.SPAN_ENTRY_TO_SCAN_READY);
+            endSpan(CONST.TELEMETRY.SPAN_ENTRY_TO_SCAN);
+        }
+
+        return () => {
+            cancelSpan(CONST.TELEMETRY.SPAN_ENTRY_TO_SCAN_NAVIGATION);
+            cancelSpan(CONST.TELEMETRY.SPAN_ENTRY_TO_SCAN_READY);
+            cancelSpan(CONST.TELEMETRY.SPAN_ENTRY_TO_SCAN);
+        };
     }, []);
 
     const navigateBack = useCallback(() => {
