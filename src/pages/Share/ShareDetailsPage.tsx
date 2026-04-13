@@ -273,9 +273,8 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
                         )}
                     </PressableWithoutFeedback>
                 </View>
-                {isInLandscapeMode && <ShareButton onPress={handleShare} />}
             </ScrollView>
-            {!isInLandscapeMode && <ShareButton onPress={handleShare} />}
+            <ShareButton onPress={handleShare} />
         </ScreenWrapper>
     );
 }
