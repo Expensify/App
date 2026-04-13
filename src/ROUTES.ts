@@ -135,6 +135,14 @@ const DYNAMIC_ROUTES = {
         path: 'date/select',
         entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_EXPORT],
     },
+    POLICY_ACCOUNTING_NETSUITE_EXPORT_EXPENSES: {
+        path: 'expenses/:expenseType',
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_EXPORT],
+    },
+    POLICY_ACCOUNTING_NETSUITE_EXPORT_EXPENSES_DESTINATION_SELECT: {
+        path: 'destination/select',
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_EXPORT_EXPENSES],
+    },
     POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_PREFERRED_EXPORTER: {
         path: 'preferred-exporter',
         entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_EXPORT],

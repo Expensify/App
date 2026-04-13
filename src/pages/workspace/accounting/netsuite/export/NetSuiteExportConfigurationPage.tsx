@@ -110,7 +110,7 @@ function NetSuiteExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
             description: translate('workspace.accounting.exportOutOfPocket'),
             onPress: !policyID
                 ? undefined
-                : () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT_EXPENSES.getRoute(policyID, CONST.NETSUITE_EXPENSE_TYPE.REIMBURSABLE, Navigation.getActiveRoute())),
+                : () => Navigation.navigate(createDynamicRoute(`expenses/${CONST.NETSUITE_EXPENSE_TYPE.REIMBURSABLE}`)),
             subscribedSettings: [
                 CONST.NETSUITE_CONFIG.REIMBURSABLE_EXPENSES_EXPORT_DESTINATION,
                 ...(!shouldHideReimbursableDefaultVendor(true, config) ? [CONST.NETSUITE_CONFIG.DEFAULT_VENDOR] : []),
@@ -127,7 +127,7 @@ function NetSuiteExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
             description: translate('workspace.accounting.exportCompanyCard'),
             onPress: !policyID
                 ? undefined
-                : () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT_EXPENSES.getRoute(policyID, CONST.NETSUITE_EXPENSE_TYPE.NON_REIMBURSABLE, Navigation.getActiveRoute())),
+                : () => Navigation.navigate(createDynamicRoute(`expenses/${CONST.NETSUITE_EXPENSE_TYPE.NON_REIMBURSABLE}`)),
             subscribedSettings: [
                 CONST.NETSUITE_CONFIG.NON_REIMBURSABLE_EXPENSES_EXPORT_DESTINATION,
                 ...(!shouldHideReimbursableDefaultVendor(false, config) ? [CONST.NETSUITE_CONFIG.DEFAULT_VENDOR] : []),

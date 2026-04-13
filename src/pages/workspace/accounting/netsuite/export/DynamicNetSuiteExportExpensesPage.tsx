@@ -3,6 +3,7 @@ import React, {useMemo} from 'react';
 import ConnectionLayout from '@components/ConnectionLayout';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {clearNetSuiteErrorField} from '@libs/actions/Policy/Policy';
@@ -22,7 +23,7 @@ import {
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import CONST from '@src/CONST';
-import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
 type MenuItemWithSubscribedSettings = Pick<MenuItem, 'description' | 'title' | 'onPress' | 'shouldHide' | 'onCloseError' | 'helperText' | 'shouldParseHelperText'> & {
@@ -36,6 +37,7 @@ function DynamicNetSuiteExportExpensesPage({policy}: WithPolicyConnectionsProps)
     const route = useRoute<PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_EXPORT_EXPENSES>>();
     const params = route.params;
     const isReimbursable = params.expenseType === CONST.NETSUITE_EXPENSE_TYPE.REIMBURSABLE;
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT_EXPENSES.path);
 
     const config = policy?.connections?.netsuite?.options.config;
 
@@ -61,7 +63,7 @@ function DynamicNetSuiteExportExpensesPage({policy}: WithPolicyConnectionsProps)
                 if (!policyID) {
                     return;
                 }
-                Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT_EXPENSES_DESTINATION_SELECT.getRoute(policyID, params.expenseType, Navigation.getActiveRoute()));
+                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT_EXPENSES_DESTINATION_SELECT.path));
             },
             title: exportDestination ? translate(`workspace.netsuite.exportDestination.values.${exportDestination}.label`) : undefined,
             subscribedSettings: [exportDestinationSettingName],
@@ -128,7 +130,7 @@ function DynamicNetSuiteExportExpensesPage({policy}: WithPolicyConnectionsProps)
     return (
         <ConnectionLayout
             displayName="DynamicNetSuiteExportExpensesPage"
-            onBackButtonPress={() => Navigation.goBack(params.backTo ?? (policyID && ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT.getRoute(policyID)))}
+            onBackButtonPress={() => Navigation.goBack(params.backTo ?? backPath)}
             headerTitle={`workspace.accounting.${isReimbursable ? 'exportOutOfPocket' : 'exportCompanyCard'}`}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             policyID={policyID}
