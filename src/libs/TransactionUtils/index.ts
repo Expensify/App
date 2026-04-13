@@ -1617,17 +1617,13 @@ function shouldShowBrokenConnectionViolationForMultipleTransactions(
             return [];
         }
 
-        return violations.filter((violation) => {
-            if (!isBrokenConnectionViolation(violation)) {
-                return false;
-            }
-
-            if (isViolationDismissed(transaction, violation, currentUserEmail, currentUserAccountID, report, policy)) {
-                return false;
-            }
-
-            return shouldShowViolation(report, policy, violation.name, currentUserEmail, true, transaction);
-        });
+        // Do not pre-filter with shouldShowViolation here — shouldShowBrokenConnectionViolationInternal
+        // handles the admin/open-report visibility logic. Pre-filtering with shouldShowViolation would
+        // incorrectly exclude broken card connection violations for policy admins on non-instant-submit policies.
+        return violations.filter(
+            (violation) =>
+                isBrokenConnectionViolation(violation) && !isViolationDismissed(transaction, violation, currentUserEmail, currentUserAccountID, report, policy),
+        );
     });
 
     return shouldShowBrokenConnectionViolationInternal(brokenConnectionViolations, report, policy);
