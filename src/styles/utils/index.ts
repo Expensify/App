@@ -597,15 +597,10 @@ function getButtonPaddingStyle(styles: ThemeStyles, size?: ButtonSizeValue, hasI
     return horizontalPaddingBySize[size];
 }
 
-function getButtonStyleWithIcon(styles: ThemeStyles, size?: ButtonSizeValue, hasIcon?: boolean, hasText?: boolean, shouldShowRightIcon?: boolean): ViewStyle | undefined {
+function getButtonStyleWithIcon(styles: ThemeStyles, size?: ButtonSizeValue, hasIcon?: boolean, hasText?: boolean, shouldShowRightIcon?: boolean): StyleProp<ViewStyle> {
     const buttonSizeStyle = getButtonSizeStyle(styles, size);
     const buttonPaddingStyle = getButtonPaddingStyle(styles, size, hasIcon, hasText, shouldShowRightIcon);
-
-    if (!buttonSizeStyle && !buttonPaddingStyle) {
-        return undefined;
-    }
-
-    return {...buttonSizeStyle, ...buttonPaddingStyle};
+    return [buttonSizeStyle, buttonPaddingStyle];
 }
 
 function getButtonVariantStyles(styles: ThemeStyles): ButtonVariantStyles {
