@@ -1,10 +1,16 @@
 import {useCallback, useEffect, useRef, useState} from 'react';
 import type {RefObject} from 'react';
 import {AccessibilityInfo} from 'react-native';
-import type {View as RNView} from 'react-native';
+import type {ReactNativeElement, View as RNView} from 'react-native';
+import type BaseModalProps from '@components/Modal/types';
 import Accessibility from '@libs/Accessibility';
 import getPlatform from '@libs/getPlatform';
 import CONST from '@src/CONST';
+
+type WebFocusMode = 'manual' | 'initialFocus' | 'none';
+type DismissAccessibilityMode = 'none' | 'focusConfirmation' | 'timer';
+type DismissAccessibilityPlatforms = 'ios' | 'native';
+type FocusableElement = {focus: () => void};
 
 type UseBottomDockedDismissAccessibilityParams = {
     isVisible: boolean;
@@ -15,6 +21,11 @@ type UseBottomDockedDismissAccessibilityParams = {
     focusedIndex?: number;
     maxFocusRetries?: number;
     nativeFocusRetryDelayMs?: number;
+    focusTargetRef?: RefObject<unknown>;
+    webFocusMode?: WebFocusMode;
+    dismissAccessibilityMode?: DismissAccessibilityMode;
+    dismissAccessibilityPlatforms?: DismissAccessibilityPlatforms;
+    dismissAccessibilityDelayMs?: number;
 };
 
 type UseBottomDockedDismissAccessibilityResult = {
@@ -22,10 +33,17 @@ type UseBottomDockedDismissAccessibilityResult = {
     handleFirstItemFocus: () => void;
     handleModalShow: () => void;
     shouldEnableBottomDockedDismissAccessibility?: boolean;
+    initialFocus?: BaseModalProps['initialFocus'];
 };
 
 const DEFAULT_MAX_FIRST_MENU_ITEM_FOCUS_RETRIES = 5;
 const DEFAULT_FIRST_MENU_ITEM_NATIVE_FOCUS_RETRY_DELAY_MS = 50;
+const DEFAULT_WEB_FOCUS_MODE: WebFocusMode = 'manual';
+const DEFAULT_DISMISS_ACCESSIBILITY_PLATFORMS: DismissAccessibilityPlatforms = 'ios';
+
+function isFocusableElement(target: unknown): target is FocusableElement {
+    return typeof target === 'object' && target !== null && 'focus' in target && typeof target.focus === 'function';
+}
 
 function useBottomDockedDismissAccessibility({
     isVisible,
@@ -36,35 +54,55 @@ function useBottomDockedDismissAccessibility({
     focusedIndex,
     maxFocusRetries = DEFAULT_MAX_FIRST_MENU_ITEM_FOCUS_RETRIES,
     nativeFocusRetryDelayMs = DEFAULT_FIRST_MENU_ITEM_NATIVE_FOCUS_RETRY_DELAY_MS,
+    focusTargetRef,
+    webFocusMode = DEFAULT_WEB_FOCUS_MODE,
+    dismissAccessibilityMode,
+    dismissAccessibilityPlatforms = DEFAULT_DISMISS_ACCESSIBILITY_PLATFORMS,
+    dismissAccessibilityDelayMs,
 }: UseBottomDockedDismissAccessibilityParams): UseBottomDockedDismissAccessibilityResult {
     const platform = getPlatform();
     const isWeb = platform === CONST.PLATFORM.WEB;
     const isAndroid = platform === CONST.PLATFORM.ANDROID;
     const isIOS = platform === CONST.PLATFORM.IOS;
-    // Active iOS bottom-docked popovers can announce dismiss before the first item unless it stays hidden until focus lands.
-    const shouldDeferDismissButtonAccessibility = isIOS && shouldActivate;
+    const resolvedDismissAccessibilityMode = dismissAccessibilityMode ?? (shouldConfirmFirstItemFocus ? 'focusConfirmation' : 'none');
+    const shouldUseManualWebFocus = isWeb && shouldActivate && webFocusMode === 'manual';
+    const shouldUseInitialWebFocus = isWeb && shouldActivate && webFocusMode === 'initialFocus';
+    const shouldUseNativeFocusHandoff = !isWeb && shouldActivate && resolvedDismissAccessibilityMode !== 'timer';
+    const shouldDeferDismissButtonAccessibility =
+        shouldActivate &&
+        resolvedDismissAccessibilityMode !== 'none' &&
+        ((dismissAccessibilityPlatforms === 'native' && (isIOS || isAndroid)) || (dismissAccessibilityPlatforms === 'ios' && isIOS));
     const firstItemRef = useRef<RNView>(null);
     const isVisibleRef = useRef(isVisible);
-    const hasFocusedFirstItemOnCurrentOpenRef = useRef(false);
-    const firstMenuItemFocusRetryTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const hasFocusedTargetOnCurrentOpenRef = useRef(false);
+    const scheduledFocusRetryTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const dismissAccessibilityTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const [shouldEnableBottomDockedDismissAccessibility, setShouldEnableBottomDockedDismissAccessibility] = useState(!shouldDeferDismissButtonAccessibility);
 
-    const clearScheduledFirstMenuItemFocus = useCallback(() => {
-        if (!firstMenuItemFocusRetryTimeoutRef.current) {
+    const clearScheduledFocusTarget = useCallback(() => {
+        if (!scheduledFocusRetryTimeoutRef.current) {
             return;
         }
 
-        clearTimeout(firstMenuItemFocusRetryTimeoutRef.current);
-        firstMenuItemFocusRetryTimeoutRef.current = null;
+        clearTimeout(scheduledFocusRetryTimeoutRef.current);
+        scheduledFocusRetryTimeoutRef.current = null;
     }, []);
 
-    const markFirstMenuItemUnfocused = useCallback(() => {
-        clearScheduledFirstMenuItemFocus();
-        hasFocusedFirstItemOnCurrentOpenRef.current = false;
-        if (shouldDeferDismissButtonAccessibility) {
-            setShouldEnableBottomDockedDismissAccessibility(false);
+    const clearDismissAccessibilityTimeout = useCallback(() => {
+        if (!dismissAccessibilityTimeoutRef.current) {
+            return;
         }
-    }, [clearScheduledFirstMenuItemFocus, shouldDeferDismissButtonAccessibility]);
+
+        clearTimeout(dismissAccessibilityTimeoutRef.current);
+        dismissAccessibilityTimeoutRef.current = null;
+    }, []);
+
+    const markTargetUnfocused = useCallback(() => {
+        clearScheduledFocusTarget();
+        clearDismissAccessibilityTimeout();
+        hasFocusedTargetOnCurrentOpenRef.current = false;
+        setShouldEnableBottomDockedDismissAccessibility(!shouldDeferDismissButtonAccessibility);
+    }, [clearDismissAccessibilityTimeout, clearScheduledFocusTarget, shouldDeferDismissButtonAccessibility]);
 
     useEffect(() => {
         isVisibleRef.current = isVisible;
@@ -73,79 +111,80 @@ function useBottomDockedDismissAccessibility({
         }
 
         const animationFrame = requestAnimationFrame(() => {
-            markFirstMenuItemUnfocused();
+            markTargetUnfocused();
         });
 
         return () => cancelAnimationFrame(animationFrame);
-    }, [isVisible, markFirstMenuItemUnfocused]);
+    }, [isVisible, markTargetUnfocused]);
 
     useEffect(
         () => () => {
-            clearScheduledFirstMenuItemFocus();
+            clearScheduledFocusTarget();
+            clearDismissAccessibilityTimeout();
         },
-        [clearScheduledFirstMenuItemFocus],
+        [clearDismissAccessibilityTimeout, clearScheduledFocusTarget],
     );
 
-    const getFirstMenuItemTarget = useCallback(() => {
-        if (!isVisibleRef.current || hasFocusedFirstItemOnCurrentOpenRef.current) {
+    const getFocusTarget = useCallback(() => {
+        if (!isVisibleRef.current || hasFocusedTargetOnCurrentOpenRef.current) {
             return null;
         }
 
-        return firstItemRef.current;
-    }, []);
+        return (focusTargetRef ?? firstItemRef).current;
+    }, [focusTargetRef]);
 
-    const markFirstMenuItemFocused = useCallback(() => {
-        clearScheduledFirstMenuItemFocus();
-        hasFocusedFirstItemOnCurrentOpenRef.current = true;
-        if (shouldDeferDismissButtonAccessibility) {
-            setShouldEnableBottomDockedDismissAccessibility(true);
-        }
-    }, [clearScheduledFirstMenuItemFocus, shouldDeferDismissButtonAccessibility]);
+    const markTargetFocused = useCallback(() => {
+        clearScheduledFocusTarget();
+        clearDismissAccessibilityTimeout();
+        hasFocusedTargetOnCurrentOpenRef.current = true;
+        setShouldEnableBottomDockedDismissAccessibility(true);
+    }, [clearDismissAccessibilityTimeout, clearScheduledFocusTarget]);
 
-    const focusFirstMenuItemOnWeb = useCallback(() => {
-        const target = getFirstMenuItemTarget();
-        if (!target || !('focus' in target) || typeof target.focus !== 'function') {
+    const focusTargetOnWeb = useCallback(() => {
+        const target = getFocusTarget();
+        if (!isFocusableElement(target)) {
             return false;
         }
 
         target.focus();
-        markFirstMenuItemFocused();
+        markTargetFocused();
         return true;
-    }, [getFirstMenuItemTarget, markFirstMenuItemFocused]);
+    }, [getFocusTarget, markTargetFocused]);
 
-    const focusFirstMenuItemOnNative = useCallback(() => {
-        const target = getFirstMenuItemTarget();
+    const focusTargetOnNative = useCallback(() => {
+        const target = getFocusTarget();
         if (!target) {
             return false;
         }
 
+        const accessibilityFocusTargetRef = (focusTargetRef ?? firstItemRef) as RefObject<RNView | null>;
         const sendAccessibilityEvent = AccessibilityInfo.sendAccessibilityEvent;
         if (sendAccessibilityEvent && isAndroid) {
-            sendAccessibilityEvent(target, 'viewHoverEnter');
+            sendAccessibilityEvent(target as ReactNativeElement, 'viewHoverEnter');
         }
 
-        Accessibility.moveAccessibilityFocus(firstItemRef);
-        if (!shouldDeferDismissButtonAccessibility || !shouldConfirmFirstItemFocus) {
-            markFirstMenuItemFocused();
+        Accessibility.moveAccessibilityFocus(accessibilityFocusTargetRef);
+        if (!shouldDeferDismissButtonAccessibility || resolvedDismissAccessibilityMode !== 'focusConfirmation' || !shouldConfirmFirstItemFocus) {
+            markTargetFocused();
         }
         return true;
-    }, [getFirstMenuItemTarget, isAndroid, markFirstMenuItemFocused, shouldConfirmFirstItemFocus, shouldDeferDismissButtonAccessibility]);
+    }, [focusTargetRef, getFocusTarget, isAndroid, markTargetFocused, resolvedDismissAccessibilityMode, shouldConfirmFirstItemFocus, shouldDeferDismissButtonAccessibility]);
 
-    const focusFirstMenuItem = useCallback(() => {
+    const focusTarget = useCallback(() => {
         if (isWeb) {
-            return focusFirstMenuItemOnWeb();
+            return focusTargetOnWeb();
         }
 
-        return focusFirstMenuItemOnNative();
-    }, [focusFirstMenuItemOnNative, focusFirstMenuItemOnWeb, isWeb]);
+        return focusTargetOnNative();
+    }, [focusTargetOnNative, focusTargetOnWeb, isWeb]);
 
-    const scheduleFocusFirstMenuItemOnWeb = useCallback(() => {
-        const focusFirstMenuItemWithRetries = (retries = maxFocusRetries) => {
-            if (!isVisibleRef.current || hasFocusedFirstItemOnCurrentOpenRef.current) {
+    const scheduleFocusTargetOnWeb = useCallback(() => {
+        const focusTargetWithRetries = (retries = maxFocusRetries) => {
+            if (!isVisibleRef.current || hasFocusedTargetOnCurrentOpenRef.current) {
                 return;
             }
 
-            if (focusFirstMenuItem()) {
+            if (focusTarget()) {
                 return;
             }
 
@@ -153,64 +192,87 @@ function useBottomDockedDismissAccessibility({
                 return;
             }
 
-            requestAnimationFrame(() => focusFirstMenuItemWithRetries(retries - 1));
+            requestAnimationFrame(() => focusTargetWithRetries(retries - 1));
         };
 
-        requestAnimationFrame(() => focusFirstMenuItemWithRetries());
-    }, [focusFirstMenuItem, maxFocusRetries]);
+        requestAnimationFrame(() => focusTargetWithRetries());
+    }, [focusTarget, maxFocusRetries]);
 
-    const scheduleFocusFirstMenuItemOnNative = useCallback(() => {
-        const focusFirstMenuItemWithRetries = (retries = maxFocusRetries) => {
+    const scheduleFocusTargetOnNative = useCallback(() => {
+        const focusTargetWithRetries = (retries = maxFocusRetries) => {
             requestAnimationFrame(() => {
-                if (!isVisibleRef.current || hasFocusedFirstItemOnCurrentOpenRef.current) {
+                if (!isVisibleRef.current || hasFocusedTargetOnCurrentOpenRef.current) {
                     return;
                 }
 
-                focusFirstMenuItem();
+                focusTarget();
 
-                if (!shouldDeferDismissButtonAccessibility || !shouldConfirmFirstItemFocus || hasFocusedFirstItemOnCurrentOpenRef.current) {
+                if (
+                    !shouldDeferDismissButtonAccessibility ||
+                    resolvedDismissAccessibilityMode !== 'focusConfirmation' ||
+                    !shouldConfirmFirstItemFocus ||
+                    hasFocusedTargetOnCurrentOpenRef.current
+                ) {
                     return;
                 }
 
                 if (retries <= 0) {
-                    markFirstMenuItemFocused();
+                    markTargetFocused();
                     return;
                 }
 
-                firstMenuItemFocusRetryTimeoutRef.current = setTimeout(() => {
-                    firstMenuItemFocusRetryTimeoutRef.current = null;
-                    focusFirstMenuItemWithRetries(retries - 1);
+                scheduledFocusRetryTimeoutRef.current = setTimeout(() => {
+                    scheduledFocusRetryTimeoutRef.current = null;
+                    focusTargetWithRetries(retries - 1);
                 }, nativeFocusRetryDelayMs);
             });
         };
 
-        clearScheduledFirstMenuItemFocus();
-        firstMenuItemFocusRetryTimeoutRef.current = setTimeout(
+        clearScheduledFocusTarget();
+        scheduledFocusRetryTimeoutRef.current = setTimeout(
             () => {
-                firstMenuItemFocusRetryTimeoutRef.current = null;
-                focusFirstMenuItemWithRetries();
+                scheduledFocusRetryTimeoutRef.current = null;
+                focusTargetWithRetries();
             },
             shouldDeferDismissButtonAccessibility ? animationDelayMs : 0,
         );
     }, [
         animationDelayMs,
-        clearScheduledFirstMenuItemFocus,
-        focusFirstMenuItem,
-        markFirstMenuItemFocused,
+        clearScheduledFocusTarget,
+        focusTarget,
+        markTargetFocused,
         maxFocusRetries,
         nativeFocusRetryDelayMs,
+        resolvedDismissAccessibilityMode,
         shouldConfirmFirstItemFocus,
         shouldDeferDismissButtonAccessibility,
     ]);
 
-    const scheduleFocusFirstMenuItem = useCallback(() => {
-        if (isWeb) {
-            scheduleFocusFirstMenuItemOnWeb();
+    const scheduleDismissAccessibilityTimer = useCallback(() => {
+        if (!shouldDeferDismissButtonAccessibility || resolvedDismissAccessibilityMode !== 'timer') {
             return;
         }
 
-        scheduleFocusFirstMenuItemOnNative();
-    }, [isWeb, scheduleFocusFirstMenuItemOnNative, scheduleFocusFirstMenuItemOnWeb]);
+        clearDismissAccessibilityTimeout();
+        setShouldEnableBottomDockedDismissAccessibility(false);
+        dismissAccessibilityTimeoutRef.current = setTimeout(() => {
+            setShouldEnableBottomDockedDismissAccessibility(true);
+            dismissAccessibilityTimeoutRef.current = null;
+        }, dismissAccessibilityDelayMs ?? animationDelayMs);
+    }, [animationDelayMs, clearDismissAccessibilityTimeout, dismissAccessibilityDelayMs, resolvedDismissAccessibilityMode, shouldDeferDismissButtonAccessibility]);
+
+    const shouldScheduleFocusTargetOnOpen = shouldUseManualWebFocus || shouldUseNativeFocusHandoff;
+
+    const scheduleFocusTargetOnOpen = useCallback(() => {
+        if (shouldUseManualWebFocus) {
+            scheduleFocusTargetOnWeb();
+            return;
+        }
+
+        if (shouldUseNativeFocusHandoff) {
+            scheduleFocusTargetOnNative();
+        }
+    }, [scheduleFocusTargetOnNative, scheduleFocusTargetOnWeb, shouldUseManualWebFocus, shouldUseNativeFocusHandoff]);
 
     const handleModalShow = useCallback(() => {
         onModalShow?.();
@@ -218,42 +280,57 @@ function useBottomDockedDismissAccessibility({
             return;
         }
 
-        scheduleFocusFirstMenuItem();
-    }, [onModalShow, scheduleFocusFirstMenuItem, shouldActivate]);
-
-    useEffect(() => {
-        if (!isVisible || !shouldActivate || hasFocusedFirstItemOnCurrentOpenRef.current) {
+        if (resolvedDismissAccessibilityMode === 'timer') {
+            scheduleDismissAccessibilityTimer();
             return;
         }
 
-        scheduleFocusFirstMenuItem();
-    }, [isVisible, scheduleFocusFirstMenuItem, shouldActivate]);
+        scheduleFocusTargetOnOpen();
+    }, [onModalShow, resolvedDismissAccessibilityMode, scheduleDismissAccessibilityTimer, scheduleFocusTargetOnOpen, shouldActivate]);
 
     useEffect(() => {
-        if (!isVisible || !shouldDeferDismissButtonAccessibility || !shouldConfirmFirstItemFocus || focusedIndex !== 0 || hasFocusedFirstItemOnCurrentOpenRef.current) {
+        if (!isVisible || !shouldActivate || hasFocusedTargetOnCurrentOpenRef.current || !shouldScheduleFocusTargetOnOpen) {
+            return;
+        }
+
+        scheduleFocusTargetOnOpen();
+    }, [isVisible, scheduleFocusTargetOnOpen, shouldActivate, shouldScheduleFocusTargetOnOpen]);
+
+    useEffect(() => {
+        if (
+            !isVisible ||
+            !shouldDeferDismissButtonAccessibility ||
+            resolvedDismissAccessibilityMode !== 'focusConfirmation' ||
+            !shouldConfirmFirstItemFocus ||
+            focusedIndex !== 0 ||
+            hasFocusedTargetOnCurrentOpenRef.current
+        ) {
             return;
         }
 
         const animationFrame = requestAnimationFrame(() => {
-            markFirstMenuItemFocused();
+            markTargetFocused();
         });
 
         return () => cancelAnimationFrame(animationFrame);
-    }, [focusedIndex, isVisible, markFirstMenuItemFocused, shouldConfirmFirstItemFocus, shouldDeferDismissButtonAccessibility]);
+    }, [focusedIndex, isVisible, markTargetFocused, resolvedDismissAccessibilityMode, shouldConfirmFirstItemFocus, shouldDeferDismissButtonAccessibility]);
 
     const handleFirstItemFocus = useCallback(() => {
-        if (hasFocusedFirstItemOnCurrentOpenRef.current) {
+        if (hasFocusedTargetOnCurrentOpenRef.current) {
             return;
         }
 
-        markFirstMenuItemFocused();
-    }, [markFirstMenuItemFocused]);
+        markTargetFocused();
+    }, [markTargetFocused]);
+
+    const initialFocus = shouldUseInitialWebFocus ? () => (focusTargetRef ?? firstItemRef).current as NonNullable<UseBottomDockedDismissAccessibilityResult['initialFocus']> : undefined;
 
     return {
         firstItemRef,
         handleFirstItemFocus,
         handleModalShow,
         shouldEnableBottomDockedDismissAccessibility: shouldDeferDismissButtonAccessibility ? shouldEnableBottomDockedDismissAccessibility : undefined,
+        initialFocus,
     };
 }
 

@@ -1,6 +1,6 @@
 import {willAlertModalBecomeVisibleSelector} from '@selectors/Modal';
 import type {ComponentProps, ComponentType, Ref} from 'react';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useMemo, useRef, useState} from 'react';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import Button from '@components/Button';
@@ -8,13 +8,13 @@ import CaretWrapper from '@components/CaretWrapper';
 import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
 import Text from '@components/Text';
 import withViewportOffsetTop from '@components/withViewportOffsetTop';
+import useBottomDockedDismissAccessibility from '@hooks/useBottomDockedDismissAccessibility';
 import useOnyx from '@hooks/useOnyx';
 import usePopoverPosition from '@hooks/usePopoverPosition';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import getPlatform from '@libs/getPlatform';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -93,9 +93,7 @@ function DropdownButton({
     const triggerRef = useRef<View | null>(null);
     const anchorRef = useRef<View | null>(null);
     const modalAccessibilityHeadingElementRef = useRef<ModalHeadingNode>(null);
-    const dismissAccessibilityTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const [isOverlayVisible, setIsOverlayVisible] = useState(false);
-    const [shouldEnableBottomDockedDismissAccessibility, setShouldEnableBottomDockedDismissAccessibility] = useState(true);
     const [customPopoverWidth, setCustomPopoverWidth] = useState<number | undefined>(undefined);
     const {calculatePopoverPosition} = usePopoverPosition();
 
@@ -105,27 +103,22 @@ function DropdownButton({
     });
 
     const [willAlertModalBecomeVisible] = useOnyx(ONYXKEYS.MODAL, {selector: willAlertModalBecomeVisibleSelector});
-    const isWeb = getPlatform() === CONST.PLATFORM.WEB;
-    const shouldUseWebModalHeadingFocus = shouldDelayBottomDockedDismissAccessibility && isSmallScreenWidth && isWeb;
-    const shouldDelayDismissAccessibilityForCurrentLayout = shouldDelayBottomDockedDismissAccessibility && isSmallScreenWidth && !isWeb;
+    const shouldUseFilterModalAccessibility = shouldDelayBottomDockedDismissAccessibility && isSmallScreenWidth;
 
     const handleModalHeadingRef = useCallback<ModalHeadingRef>((node) => {
         modalAccessibilityHeadingElementRef.current = node;
     }, []);
 
-    const clearDismissAccessibilityTimeout = useCallback(() => {
-        if (!dismissAccessibilityTimeoutRef.current) {
-            return;
-        }
-
-        clearTimeout(dismissAccessibilityTimeoutRef.current);
-        dismissAccessibilityTimeoutRef.current = null;
-    }, []);
-
-    const updateDismissAccessibilityForLayout = useCallback(() => {
-        clearDismissAccessibilityTimeout();
-        setShouldEnableBottomDockedDismissAccessibility(!shouldDelayDismissAccessibilityForCurrentLayout);
-    }, [clearDismissAccessibilityTimeout, shouldDelayDismissAccessibilityForCurrentLayout]);
+    const {handleModalShow, initialFocus, shouldEnableBottomDockedDismissAccessibility} = useBottomDockedDismissAccessibility({
+        isVisible: isOverlayVisible,
+        shouldActivate: shouldUseFilterModalAccessibility,
+        animationDelayMs: 0,
+        focusTargetRef: modalAccessibilityHeadingElementRef,
+        webFocusMode: 'initialFocus',
+        dismissAccessibilityMode: 'timer',
+        dismissAccessibilityPlatforms: 'native',
+        dismissAccessibilityDelayMs: BOTTOM_DOCKED_DISMISS_ACCESSIBILITY_DELAY,
+    });
 
     /**
      * Toggle the overlay between open & closed
@@ -135,9 +128,8 @@ function DropdownButton({
             return;
         }
 
-        updateDismissAccessibilityForLayout();
         setIsOverlayVisible((previousValue) => !previousValue);
-    }, [isOverlayVisible, updateDismissAccessibilityForLayout, willAlertModalBecomeVisible]);
+    }, [isOverlayVisible, willAlertModalBecomeVisible]);
 
     /**
      * Calculate popover position and toggle overlay
@@ -169,28 +161,6 @@ function DropdownButton({
         }
         return {width: actualPopoverWidth};
     }, [isSmallScreenWidth, styles, actualPopoverWidth]);
-
-    const initialFocus = shouldUseWebModalHeadingFocus ? () => modalAccessibilityHeadingElementRef.current as never : undefined;
-
-    const handleModalShow = useCallback(() => {
-        if (!shouldDelayDismissAccessibilityForCurrentLayout) {
-            return;
-        }
-
-        clearDismissAccessibilityTimeout();
-        setShouldEnableBottomDockedDismissAccessibility(false);
-        dismissAccessibilityTimeoutRef.current = setTimeout(() => {
-            setShouldEnableBottomDockedDismissAccessibility(true);
-            dismissAccessibilityTimeoutRef.current = null;
-        }, BOTTOM_DOCKED_DISMISS_ACCESSIBILITY_DELAY);
-    }, [clearDismissAccessibilityTimeout, shouldDelayDismissAccessibilityForCurrentLayout]);
-
-    useEffect(
-        () => () => {
-            clearDismissAccessibilityTimeout();
-        },
-        [clearDismissAccessibilityTimeout],
-    );
 
     return (
         <View
@@ -232,7 +202,7 @@ function DropdownButton({
                 anchorAlignment={ANCHOR_ORIGIN}
                 restoreFocusType={CONST.MODAL.RESTORE_FOCUS_TYPE.DELETE}
                 shouldEnableNewFocusManagement
-                shouldEnableBottomDockedDismissAccessibility={shouldDelayDismissAccessibilityForCurrentLayout ? shouldEnableBottomDockedDismissAccessibility : undefined}
+                shouldEnableBottomDockedDismissAccessibility={shouldEnableBottomDockedDismissAccessibility}
                 initialFocus={initialFocus}
                 shouldMeasureAnchorPositionFromTop={false}
                 outerStyle={{...StyleUtils.getOuterModalStyle(windowHeight, viewportOffsetTop), ...containerStyles}}
@@ -252,7 +222,7 @@ function DropdownButton({
                     closeOverlay={toggleOverlay}
                     isExpanded={isOverlayVisible}
                     setPopoverWidth={setCustomPopoverWidth}
-                    modalHeadingRef={shouldUseWebModalHeadingFocus ? handleModalHeadingRef : undefined}
+                    modalHeadingRef={shouldUseFilterModalAccessibility ? handleModalHeadingRef : undefined}
                 />
             </PopoverWithMeasuredContent>
         </View>
