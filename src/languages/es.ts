@@ -3,7 +3,7 @@ import dedent from '@libs/StringUtils/dedent';
 import CONST from '@src/CONST';
 import type {OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
 import type en from './en';
-import type {ConciergeBrokenCardConnectionParams, CreatedReportForUnapprovedTransactionsParams, PaidElsewhereParams} from './params';
+import type {ConciergeBrokenCardConnectionParams, CreatedReportForUnapprovedTransactionsParams, PaidElsewhereParams, UnsupportedFormulaValueErrorParams} from './params';
 import type {TranslationDeepObject} from './types';
 
 /* eslint-disable max-len */
@@ -964,9 +964,15 @@ const translations: TranslationDeepObject<typeof en> = {
                 sunglassesDescription: '¡Hora de relajarse, pero mantente atento a lo que viene!',
                 f1FlagsTitle: 'Todo al día',
                 f1FlagsDescription: 'Has completado todas las tareas pendientes.',
-                fireworksTitle: 'Todo al día',
-                fireworksDescription: 'Las próximas tareas aparecerán aquí.',
             },
+        },
+        gettingStartedSection: {
+            title: 'Primeros pasos',
+            createWorkspace: 'Crear un espacio de trabajo',
+            connectAccounting: ({integrationName}: {integrationName: string}) => `Conectar con ${integrationName}`,
+            customizeCategories: 'Personalizar categorías contables',
+            linkCompanyCards: 'Vincular tarjetas corporativas',
+            setupRules: 'Configurar reglas de gasto',
         },
         upcomingTravel: 'Próximos viajes',
         upcomingTravelSection: {
@@ -1303,6 +1309,44 @@ const translations: TranslationDeepObject<typeof en> = {
         paidWithExpensify: (payer) => `${payer ? `${payer} ` : ''}pagó con la billetera`,
         automaticallyPaidWithExpensify: (payer) =>
             `${payer ? `${payer} ` : ''}pagó con Expensify via <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">reglas del espacio de trabajo</a>`,
+        reimbursedThisReport: 'reembolsó este informe',
+        paidThisBill: 'pagó esta factura',
+        reimbursedOnBehalfOf: (actor: string) => `en nombre de ${actor}`,
+        reimbursedFromBankAccount: (debitBankAccount: string) => `desde la cuenta bancaria terminada en ${debitBankAccount}`,
+        reimbursedSubmitterAddedBankAccount: (submitter: string) => `${submitter} añadió una cuenta bancaria, quitando el informe de espera. El reembolso se ha iniciado`,
+        reimbursedWithFastACH: ({
+            isCurrentUser,
+            submitterLogin,
+            creditBankAccount,
+            expectedDate,
+        }: {
+            isCurrentUser: boolean;
+            submitterLogin: string;
+            creditBankAccount: string;
+            expectedDate: string;
+        }) =>
+            isCurrentUser
+                ? `. El dinero está en camino a tu${creditBankAccount ? ` cuenta bancaria terminada en ${creditBankAccount}` : ' cuenta'}. Se estima que el reembolso se completará el ${expectedDate}.`
+                : `. El dinero está en camino a la cuenta bancaria de ${submitterLogin}${creditBankAccount ? ` terminada en ${creditBankAccount}` : ''}. Se estima que el reembolso se completará el ${expectedDate}.`,
+        reimbursedWithCheck: ' mediante cheque.',
+        reimbursedWithStripeConnect: ({
+            isCurrentUser,
+            submitterLogin,
+            creditBankAccount,
+            isCard,
+        }: {
+            isCurrentUser: boolean;
+            submitterLogin: string;
+            creditBankAccount: string;
+            isCard: boolean;
+        }) => {
+            const paymentMethod = isCard ? 'tarjeta' : 'cuenta bancaria';
+            return isCurrentUser
+                ? `. El dinero está en camino a tu${creditBankAccount ? ` cuenta bancaria terminada en ${creditBankAccount}` : ' cuenta'} (pagado mediante ${paymentMethod}). Esto puede tardar hasta 10 días hábiles.`
+                : `. El dinero está en camino a la cuenta bancaria de ${submitterLogin}${creditBankAccount ? ` terminada en ${creditBankAccount}` : ''} (pagado mediante ${paymentMethod}). Esto puede tardar hasta 10 días hábiles.`;
+        },
+        reimbursedWithACH: ({creditBankAccount, expectedDate}: {creditBankAccount?: string; expectedDate?: string}) =>
+            ` con depósito directo (ACH)${creditBankAccount ? ` a la cuenta bancaria terminada en ${creditBankAccount}. ` : '. '}${expectedDate ? `Se estima que el reembolso se completará para el ${expectedDate}.` : 'Esto generalmente toma de 4 a 5 días hábiles.'}`,
         noReimbursableExpenses: 'El importe de este informe no es válido',
         pendingConversionMessage: 'El total se actualizará cuando estés online',
         changedTheExpense: 'cambió el gasto',
@@ -2850,7 +2894,7 @@ ${amount} para ${merchant} - ${date}`,
                 description: dedent(`
                     *Envía un gasto* introduciendo una cantidad o escaneando un recibo.
 
-                    1. Haz clic en el botón ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}.
+                    1. Haz clic en el botón *+*.
                     2. Elige *Crear gasto*.
                     3. Introduce una cantidad o escanea un recibo.
                     4. Añade el correo o teléfono de tu jefe.
@@ -2864,7 +2908,7 @@ ${amount} para ${merchant} - ${date}`,
                 description: dedent(`
                     *Envía un gasto* introduciendo una cantidad o escaneando un recibo.
 
-                    1. Haz clic en el botón ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}.
+                    1. Haz clic en el botón *+*.
                     2. Elige *Crear gasto*.
                     3. Introduce una cantidad o escanea un recibo.
                     4. Confirma los detalles.
@@ -2878,7 +2922,7 @@ ${amount} para ${merchant} - ${date}`,
                 description: dedent(`
                     *Organiza un gasto* en cualquier moneda, tengas recibo o no.
 
-                    1. Haz clic en el botón ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}.
+                    1. Haz clic en el botón *+*.
                     2. Elige *Crear gasto*.
                     3. Introduce una cantidad o escanea un recibo.
                     4. Elige tu espacio *personal*.
@@ -2980,7 +3024,7 @@ ${amount} para ${merchant} - ${date}`,
                 description: dedent(`
                     *Inicia un chat* con cualquier persona usando su correo o número.
 
-                    1. Haz clic en el botón ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}.
+                    1. Haz clic en el botón *+*.
                     2. Elige *Iniciar chat*.
                     3. Introduce un correo o teléfono.
 
@@ -2994,7 +3038,7 @@ ${amount} para ${merchant} - ${date}`,
                 description: dedent(`
                     *Divide gastos* con una o más personas.
 
-                    1. Haz clic en el botón ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}.
+                    1. Haz clic en el botón *+*.
                     2. Elige *Iniciar chat*.
                     3. Introduce correos o teléfonos.
                     4. Haz clic en el botón gris *+* en el chat > *Dividir gasto*.
@@ -3019,7 +3063,7 @@ ${amount} para ${merchant} - ${date}`,
                 description: dedent(`
                     Así es como puedes crear un informe:
 
-                    1. Haz clic en el botón ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}.
+                    1. Haz clic en el botón *+*.
                     2. Elige *Crear informe*.
                     3. Haz clic en *Añadir gasto*.
                     4. Añade tu primer gasto.
@@ -3101,6 +3145,7 @@ ${amount} para ${merchant} - ${date}`,
             dateShouldBeAfter: (dateString) => `La fecha debe ser posterior a ${dateString}`,
             incorrectZipFormat: (zipFormat) => `Formato de código postal incorrecto.${zipFormat ? ` Formato aceptable: ${zipFormat}` : ''}`,
             hasInvalidCharacter: 'El nombre sólo puede incluir caracteres latinos',
+            cannotIncludeCommaOrSemicolon: 'El nombre no puede contener una coma o un punto y coma',
             invalidPhoneNumber: `Asegúrese de que el número de teléfono sean válidos (p. ej. ${CONST.EXAMPLE_PHONE_NUMBER})`,
         },
     },
@@ -5092,7 +5137,8 @@ ${amount} para ${merchant} - ${date}`,
             chooseTheCardholder: 'Elige el titular de la tarjeta',
             chooseCard: 'Elige una tarjeta',
             chooseCardFor: (assignee) => `Elige una tarjeta para <strong>${assignee}</strong>. ¿No encuentras la tarjeta que buscas? <concierge-link>Avísanos.</concierge-link>`,
-            noActiveCards: 'No hay tarjetas activas en este feed',
+            noAvailableCards: 'No hay tarjetas activas en este feed',
+            noAvailableCardsSubtitle: 'Edita una regla de tarjeta existente para hacer cambios',
             somethingMightBeBroken:
                 '<muted-text><centered-text>O algo podría estar roto. De cualquier manera, si tienes alguna pregunta, <concierge-link>contacta a Concierge</concierge-link>.</centered-text></muted-text>',
             chooseTransactionStartDate: 'Elige una fecha de inicio de transacciones',
@@ -5573,6 +5619,7 @@ ${amount} para ${merchant} - ${date}`,
             reportFieldNameRequiredError: 'Ingresa un nombre de campo de informe',
             reportFieldTypeRequiredError: 'Elige un tipo de campo de informe',
             circularReferenceError: 'Este campo no puede hacer referencia a sí mismo. Por favor, actualizar.',
+            unsupportedFormulaValueError: ({value}: UnsupportedFormulaValueErrorParams) => `El campo de fórmula ${value} no se reconoce`,
             reportFieldInitialValueRequiredError: 'Elige un valor inicial de campo de informe',
             genericFailureMessage: 'Se ha producido un error al actualizar el campo de informe. Por favor, inténtalo de nuevo.',
         },
@@ -6660,10 +6707,13 @@ ${amount} para ${merchant} - ${date}`,
                     description: `Expensify siempre rechaza estos cargos:\n\n  • Servicios para adultos\n  • Cajeros automáticos\n  • Juegos de azar\n  • Transferencias de dinero\n\nAgregue más reglas de gasto para proteger el flujo de caja de la empresa.`,
                 },
                 addSpendRule: 'Añadir regla de gastos',
+                editRuleTitle: 'Editar regla',
                 cardPageTitle: 'Tarjeta',
                 cardsSectionTitle: 'Tarjetas',
                 chooseCards: 'Elegir tarjetas',
                 saveRule: 'Guardar regla',
+                deleteRule: 'Eliminar regla',
+                deleteRuleConfirmation: '¿Estás seguro de que quieres eliminar esta regla?',
                 allow: 'Permitir',
                 spendRuleSectionTitle: 'Regla de gastos',
                 restrictionType: 'Tipo de restricción',
@@ -7412,6 +7462,7 @@ ${amount} para ${merchant} - ${date}`,
             hold: 'Retener',
             unhold: 'Desbloquear',
             reject: 'Rechazar',
+            duplicateExpense: ({count}: {count: number}) => `Duplicar ${count === 1 ? 'gasto' : 'gastos'}`,
             noOptionsAvailable: 'No hay opciones disponibles para el grupo de gastos seleccionado.',
         },
         filtersHeader: 'Filtros',
@@ -7694,6 +7745,21 @@ ${amount} para ${merchant} - ${date}`,
         oooEventSummaryPartialDay: (summary, timePeriod, date) => `${summary} de ${timePeriod} del ${date}`,
         startTimer: 'Iniciar temporizador',
         stopTimer: 'Detener temporizador',
+        scheduleOOO: 'Programar ausencia',
+        scheduleOOOTitle: 'Programar fuera de oficina',
+        date: 'Fecha',
+        time: 'Hora (formato de 24 horas)',
+        durationAmount: 'Duración',
+        durationUnit: 'Unidad',
+        reason: 'Motivo',
+        workingPercentage: 'Porcentaje de trabajo',
+        dateRequired: 'La fecha es obligatoria.',
+        invalidTimeFormat: 'Ingresa una hora válida (ej., 14:30).',
+        enterANumber: 'Ingresa un número.',
+        hour: 'horas',
+        day: 'días',
+        week: 'semanas',
+        month: 'meses',
     },
     footer: {
         features: 'Características',
@@ -8268,6 +8334,11 @@ ${amount} para ${merchant} - ${date}`,
         joinExpensifyOrg: 'Únete a Expensify.org para eliminar la injusticia en todo el mundo y ayuda a los profesores a dividir sus gastos para las aulas más necesitadas.',
         iKnowATeacher: 'Yo conozco a un profesor',
         iAmATeacher: 'Soy profesor',
+        personalKarma: {
+            title: 'Activar Karma personal',
+            description: 'Dona $1 a Expensify.org por cada $500 que gastes cada mes',
+            stopDonationsPrompt: '¿Seguro que quieres dejar de donar a Expensify.org?',
+        },
         getInTouch: '¡Excelente! Por favor, comparte tu información para que podamos ponernos en contacto con ellos.',
         introSchoolPrincipal: 'Introducción al director del colegio',
         schoolPrincipalVerifyExpense:
@@ -8293,6 +8364,7 @@ ${amount} para ${merchant} - ${date}`,
         personalCard: 'Tarjeta personal',
         companyCard: 'Tarjeta corporativa',
         expensifyCard: 'Tarjeta Expensify',
+        centralInvoicing: 'Facturación centralizada',
     },
     distance: {
         addStop: 'Añadir parada',

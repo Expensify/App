@@ -34,18 +34,20 @@ jest.mock('@hooks/useResponsiveLayout', () => ({
     })),
 }));
 
-jest.mock('@components/OptionListContextProvider', () => {
-    const ActualReact = jest.requireActual<typeof React>('react');
-    return {
-        useOptionsList: jest.fn(() => ({
-            options: {},
-            areOptionsInitialized: true,
-        })),
-        OptionsListStateContext: ActualReact.createContext({
-            areOptionsInitialized: true,
-        }),
-    };
-});
+jest.mock('@hooks/useFilteredOptions', () => ({
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+    __esModule: true,
+    default: jest.fn(() => ({
+        options: {
+            reports: [],
+            personalDetails: [],
+        },
+        isLoading: false,
+        loadMore: jest.fn(),
+        hasMore: false,
+        isLoadingMore: false,
+    })),
+}));
 
 jest.mock('@libs/OptionsListUtils', () => ({
     getSearchOptions: jest.fn(() => ({

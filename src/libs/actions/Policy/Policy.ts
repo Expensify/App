@@ -2923,7 +2923,8 @@ function buildPolicyData(options: BuildPolicyDataOptions): OnyxData<BuildPolicyD
             optimisticData: optimisticCreateWorkspaceTaskData,
             successData: successCreateWorkspaceTaskData,
             failureData: failureCreateWorkspaceTaskData,
-        } = buildTaskData(createWorkspaceTaskReport, introSelected.createWorkspace, false, false, undefined);
+            // Will be refactored in next PR; full restructure tracked in https://github.com/Expensify/App/issues/66417
+        } = buildTaskData(createWorkspaceTaskReport, introSelected.createWorkspace, false, false, undefined, undefined);
         optimisticData.push(...optimisticCreateWorkspaceTaskData);
         successData.push(...successCreateWorkspaceTaskData);
         failureData.push(...failureCreateWorkspaceTaskData);
@@ -2977,6 +2978,8 @@ function createWorkspace(options: CreateWorkspaceDataOptions): CreateWorkspacePa
 function createDraftWorkspace(
     introSelected: OnyxEntry<IntroSelected>,
     workspaceName: string,
+    currentUserAccountID: number,
+    currentUserEmail: string,
     policyOwnerEmail = '',
     makeMeAdmin = false,
     policyID = generatePolicyID(),
@@ -3002,13 +3005,13 @@ function createDraftWorkspace(
                 type: CONST.POLICY.TYPE.TEAM,
                 name: workspaceName,
                 role: CONST.POLICY.ROLE.ADMIN,
-                owner: deprecatedSessionEmail,
-                ownerAccountID: deprecatedSessionAccountID,
+                owner: currentUserEmail,
+                ownerAccountID: currentUserAccountID,
                 isPolicyExpenseChatEnabled: true,
                 outputCurrency,
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                 autoReporting: true,
-                approver: deprecatedSessionEmail,
+                approver: currentUserEmail,
                 autoReportingFrequency: shouldEnableWorkflowsByDefault ? CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE : CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
                 harvesting: {
                     enabled: !shouldEnableWorkflowsByDefault,
@@ -3024,9 +3027,9 @@ function createDraftWorkspace(
                 areConnectionsEnabled: false,
                 areExpensifyCardsEnabled: false,
                 employeeList: {
-                    [deprecatedSessionEmail]: {
-                        submitsTo: deprecatedSessionEmail,
-                        email: deprecatedSessionEmail,
+                    [currentUserEmail]: {
+                        submitsTo: currentUserEmail,
+                        email: currentUserEmail,
                         role: CONST.POLICY.ROLE.ADMIN,
                         errors: {},
                     },
@@ -4425,7 +4428,7 @@ function createWorkspaceFromIOUPayment(
     return {policyID, workspaceChatReportID: memberData.workspaceChatReportID, reportPreviewReportActionID: reportPreviewAction?.reportActionID, adminsChatReportID};
 }
 
-function enablePolicyConnections(policyID: string, enabled: boolean) {
+function enablePolicyConnections(policyID: string, enabled: boolean, shouldGoBack = true) {
     const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
         optimisticData: [
             {
@@ -4468,7 +4471,7 @@ function enablePolicyConnections(policyID: string, enabled: boolean) {
 
     API.writeWithNoDuplicatesEnableFeatureConflicts(WRITE_COMMANDS.ENABLE_POLICY_CONNECTIONS, parameters, onyxData);
 
-    if (enabled && getIsNarrowLayout()) {
+    if (enabled && getIsNarrowLayout() && shouldGoBack) {
         goBackWhenEnableFeature();
     }
 }

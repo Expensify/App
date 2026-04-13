@@ -75,6 +75,7 @@ import {
     shouldDisableDetailPage as shouldDisableDetailPageReportUtils,
     shouldReportShowSubscript,
 } from '@libs/ReportUtils';
+import StringUtils from '@libs/StringUtils';
 import {shouldShowDiscountBanner} from '@libs/SubscriptionUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import EarlyDiscountBanner from '@pages/settings/Subscription/CardSection/BillingBanner/EarlyDiscountBanner';
@@ -158,9 +159,9 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
     const parentNavigationSubtitleData = getParentNavigationSubtitle(parentNavigationReport, policy, conciergeReportID, isParentReportHeaderDataArchived);
     const humanAgentAccountID = getHumanAgentAccountIDFromReportAction(parentReportAction);
     const humanAgentName = humanAgentAccountID ? personalDetails?.[humanAgentAccountID]?.displayName : undefined;
-    const reportDescription = Parser.htmlToText(getReportDescription(report));
+    const reportDescription = StringUtils.lineBreaksToSpaces(Parser.htmlToText(getReportDescription(report)));
     const policyName = getPolicyName({report, returnEmptyIfNotFound: true});
-    const policyDescription = getPolicyDescriptionText(policy);
+    const policyDescription = StringUtils.lineBreaksToSpaces(getPolicyDescriptionText(policy));
     const isPersonalExpenseChat = isPolicyExpenseChat && isCurrentUserSubmitter(report);
     const hasTeam2025Pricing = useHasTeam2025Pricing();
     // This is used to ensure that we display the text exactly as the user entered it when displaying thread header text, instead of parsing their text to HTML.
@@ -216,11 +217,10 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
         );
     };
 
-    // If the onboarding report is directly loaded, shouldShowDiscountBanner can return wrong value as it is not
-    // linked to the react lifecycle directly. Wait for trial dates to load, before calculating.
+    // Memoize so trial Onyx values and current user account participate in React updates (shouldShowDiscountBanner is pure).
     const shouldShowDiscount = useMemo(
-        () => shouldShowDiscountBanner(hasTeam2025Pricing, subscriptionPlan, firstDayFreeTrial, lastDayFreeTrial, userBillingFundID, allPolicies) && !isReportArchived,
-        [hasTeam2025Pricing, subscriptionPlan, firstDayFreeTrial, lastDayFreeTrial, userBillingFundID, isReportArchived, allPolicies],
+        () => shouldShowDiscountBanner(currentUserAccountID, hasTeam2025Pricing, subscriptionPlan, firstDayFreeTrial, lastDayFreeTrial, userBillingFundID, allPolicies) && !isReportArchived,
+        [currentUserAccountID, hasTeam2025Pricing, subscriptionPlan, firstDayFreeTrial, lastDayFreeTrial, userBillingFundID, isReportArchived, allPolicies],
     );
 
     const shouldShowSubscript = shouldReportShowSubscript(report, isReportArchived);
