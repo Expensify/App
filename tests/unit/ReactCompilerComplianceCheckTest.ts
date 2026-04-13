@@ -39,7 +39,7 @@ function BadComponent({condition}) {
         expect(result.status).toBe('failed');
         expect(result.errors.length).toBeGreaterThan(0);
 
-        const error = result.errors.at(0);
+        const error = result.errors.at(0)!;
         expect(error.reason).toContain('Hooks must always be called in a consistent order');
         expect(error.loc).toBeDefined();
         expect(error.loc?.start.line).toBeGreaterThan(0);
@@ -88,7 +88,7 @@ function BadComponent({condition}) {
         `.trim();
         const result = checkReactCompilerCompliance(source, 'BadComponent.tsx');
         expect(result.errors.length).toBeGreaterThan(0);
-        expect(result.errors.at(0).fnLoc).toBeDefined();
-        expect(result.errors.at(0).fnLoc?.start.line).toBe(2);
+        expect(result.errors.at(0)!.fnLoc).toBeDefined();
+        expect(result.errors.at(0)!.fnLoc?.start.line).toBe(2);
     });
 });
