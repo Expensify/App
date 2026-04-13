@@ -90,7 +90,7 @@ function IOURequestStepCategory({
 
     const categoryForDisplay = isCategoryMissing(transactionCategory) ? '' : transactionCategory;
 
-    const canCreateCategoryInSitu = isPolicyAdmin(policy) && !getValidConnectedIntegration(policy);
+    const canCreateCategoryInSitu = isPolicyAdmin(policy) && !getValidConnectedIntegration(policy) && !!policy?.areCategoriesEnabled;
 
     const [pendingCategorySelection] = useOnyx(ONYXKEYS.PENDING_CATEGORY_SELECTION);
 
@@ -226,9 +226,13 @@ function IOURequestStepCategory({
             return;
         }
         const {categoryName} = pendingCategorySelection;
+        // Skip the update until policyCategories reflects the new category — this effect will re-run when it does.
+        if (!policyCategories?.[categoryName]?.enabled) {
+            return;
+        }
         clearPendingCategorySelection();
         updateCategory({searchText: categoryName, keyForList: categoryName, text: categoryName, isSelected: false});
-    }, [pendingCategorySelection, transactionID, updateCategory]);
+    }, [pendingCategorySelection, policyCategories, transactionID, updateCategory]);
 
     return (
         <StepScreenWrapper
