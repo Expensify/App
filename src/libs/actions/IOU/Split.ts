@@ -1560,13 +1560,15 @@ function updateSplitTransactions({
 
             if (isReverseSplitOperation) {
                 delete transactionChanges.transactionID;
-                // For revert, the original transaction amount is restored via getMoneyRequestInformation,
-                // not via getUpdateMoneyRequestParams. The remaining split child's amount is incorrectly
-                // signed for selfDM children (reportID="0" causes getTransactionDetails to negate it).
-                delete transactionChanges.amount;
-                delete transactionChanges.currency;
-                // Ensure moneyRequestInformationOnyxData is applied even if transactionChanges is now empty.
-                hasChanges = true;
+                if (isSelfDMSplit) {
+                    // For revert selfDM splits, the original transaction amount is restored via getMoneyRequestInformation,
+                    // not via getUpdateMoneyRequestParams. The remaining split child's amount is incorrectly
+                    // signed for selfDM children (reportID="0" causes getTransactionDetails to negate it).
+                    delete transactionChanges.amount;
+                    delete transactionChanges.currency;
+                    // Ensure moneyRequestInformationOnyxData is applied even if transactionChanges is now empty.
+                    hasChanges = true;
+                }
             }
 
             if (Object.keys(transactionChanges).length > 0) {
