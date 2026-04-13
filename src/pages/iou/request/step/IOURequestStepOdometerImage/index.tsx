@@ -22,6 +22,7 @@ import {base64ToFile} from '@libs/fileDownload/FileUtils';
 import {shouldUseTransactionDraft} from '@libs/IOUUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
+import {cancelSpan, endSpan, startSpan} from '@libs/telemetry/activeSpans';
 import NavigationAwareCamera from '@pages/iou/request/step/IOURequestStepScan/components/NavigationAwareCamera/WebCamera';
 import {cropImageToAspectRatio} from '@pages/iou/request/step/IOURequestStepScan/cropImageToAspectRatio';
 import type {ImageObject} from '@pages/iou/request/step/IOURequestStepScan/cropImageToAspectRatio';
@@ -116,6 +117,14 @@ function IOURequestStepOdometerImage({
             return;
         }
 
+        startSpan(CONST.TELEMETRY.SPAN_ODOMETER_IMAGE_CAPTURE, {
+            name: CONST.TELEMETRY.SPAN_ODOMETER_IMAGE_CAPTURE,
+            op: CONST.TELEMETRY.SPAN_ODOMETER_IMAGE_CAPTURE,
+            attributes: {
+                [CONST.TELEMETRY.ATTRIBUTE_ODOMETER_IMAGE_TYPE]: imageType,
+            },
+        });
+
         const originalFileName = `receipt_${Date.now()}.png`;
         const originalFile = base64ToFile(imageBase64 ?? '', originalFileName);
         const imageObject: ImageObject = {file: originalFile, filename: originalFile.name, source: URL.createObjectURL(originalFile)};
@@ -131,9 +140,11 @@ function IOURequestStepOdometerImage({
                     URL.revokeObjectURL(imageObject.source);
                 }
                 setMoneyRequestOdometerImage(transaction, imageType, file ?? source, isTransactionDraft, isEditingConfirmation !== 'true');
+                endSpan(CONST.TELEMETRY.SPAN_ODOMETER_IMAGE_CAPTURE);
                 navigateBack();
             })
             .catch((error: unknown) => {
+                cancelSpan(CONST.TELEMETRY.SPAN_ODOMETER_IMAGE_CAPTURE);
                 Log.warn('Error cropping photo', error instanceof Error ? error.message : String(error));
             });
     };
