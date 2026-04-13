@@ -77,7 +77,7 @@ describe('ButtonComposed — Button', () => {
             expect(renderResult.UNSAFE_getByType(RNActivityIndicator)).toBeDefined();
         });
 
-        it('applies the default background colour', () => {
+        it('applies the default background color', () => {
             // Given a Button with default props
             renderButton();
 
