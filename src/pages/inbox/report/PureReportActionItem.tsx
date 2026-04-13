@@ -58,7 +58,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {cleanUpMoneyRequest} from '@libs/actions/IOU';
+import {cleanUpMoneyRequest} from '@libs/actions/IOU/DeleteMoneyRequest';
 import {resolveSuggestedFollowup} from '@libs/actions/Report/SuggestedFollowup';
 import {isPersonalCardBrokenConnection} from '@libs/CardUtils';
 import {isChronosOOOListAction} from '@libs/ChronosUtils';
@@ -120,6 +120,7 @@ import {
     getPolicyChangeLogMaxExpenseAmountMessage,
     getPolicyChangeLogMaxExpenseAmountNoReceiptMessage,
     getPolicyChangeLogUpdateEmployee,
+    getReimbursedMessage,
     getReimburserUpdateMessage,
     getRemovedCardFeedMessage,
     getRemovedConnectionMessage,
@@ -976,6 +977,8 @@ function PureReportActionItem({
                             isRestrictedToPreferredPolicy,
                             preferredPolicyID,
                             transaction: trackExpenseTransaction,
+                            currentUserAccountID: personalDetail.accountID,
+                            currentUserEmail: personalDetail.email ?? '',
                         });
                     },
                 },
@@ -998,6 +1001,8 @@ function PureReportActionItem({
                                 amountOwed,
                                 ownerBillingGracePeriodEnd,
                                 transaction: trackExpenseTransaction,
+                                currentUserAccountID: personalDetail.accountID,
+                                currentUserEmail: personalDetail.email ?? '',
                             });
                         },
                     },
@@ -1016,6 +1021,8 @@ function PureReportActionItem({
                                 amountOwed,
                                 ownerBillingGracePeriodEnd,
                                 transaction: trackExpenseTransaction,
+                                currentUserAccountID: personalDetail.accountID,
+                                currentUserEmail: personalDetail.email ?? '',
                             });
                         },
                     },
@@ -1451,8 +1458,9 @@ function PureReportActionItem({
                 }
             }
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED)) {
-            const isFromNewDot = getOriginalMessage(action)?.isNewDot ?? false;
-            children = isFromNewDot ? emptyHTML : <ReportActionItemBasicMessage message={getMarkedReimbursedMessage(translate, action)} />;
+            children = <ReportActionItemBasicMessage message={getMarkedReimbursedMessage(translate, action)} />;
+        } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.REIMBURSED)) {
+            children = <ReportActionItemBasicMessage message={getReimbursedMessage(translate, action, report, currentUserAccountID)} />;
         } else if (isUnapprovedAction(action)) {
             children = <ReportActionItemBasicMessage message={translate('iou.unapproved')} />;
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.FORWARDED)) {

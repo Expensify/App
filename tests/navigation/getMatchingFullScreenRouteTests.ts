@@ -5,7 +5,9 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
 
 jest.mock('@libs/Navigation/linkingConfig/config', () => ({
-    normalizedConfigs: {},
+    normalizedConfigs: {
+        DynamicScreen: {path: 'suffix-a'},
+    },
     screensWithOnyxTabNavigator: new Set(),
 }));
 
@@ -180,5 +182,31 @@ describe('getMatchingFullScreenRoute - dynamic suffix', () => {
 
         expect(mockGetStateFromPath).toHaveBeenCalledWith('/broken/path/suffix-a');
         expect(result).toBeUndefined();
+    });
+
+    it('should ignore backTo for a dynamic screen and resolve full screen route via dynamic suffix instead', () => {
+        const route = {
+            name: 'DynamicScreen',
+            path: '/base/suffix-a',
+            params: {backTo: '/some/other/path'},
+        };
+        const fullScreenRoute = {name: SCREENS.HOME};
+        const basePathState = {
+            routes: [{name: 'BaseScreen'}, fullScreenRoute],
+            index: 1,
+        };
+
+        mockGetStateFromPath.mockImplementation((path: string) => {
+            if (path === '/base') {
+                return basePathState;
+            }
+            return {routes: [{name: 'WrongScreen'}], index: 0};
+        });
+
+        const result = getMatchingFullScreenRoute(route);
+
+        expect(mockGetStateFromPath).toHaveBeenCalledWith('/base');
+        expect(mockGetStateFromPath).not.toHaveBeenCalledWith('/some/other/path');
+        expect(result).toEqual(fullScreenRoute);
     });
 });

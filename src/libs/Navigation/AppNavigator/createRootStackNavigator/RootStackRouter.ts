@@ -15,6 +15,7 @@ import {
     handleOpenDomainSplitAction,
     handleOpenWorkspaceSplitAction,
     handlePushFullscreenAction,
+    handleRemoveFullscreenUnderRHP,
     handleReplaceFullscreenUnderRHP,
     handleReplaceReportsSplitNavigatorAction,
     handleToggleSidePanelWithHistoryAction,
@@ -26,6 +27,7 @@ import type {
     OpenWorkspaceSplitActionType,
     PreloadActionType,
     PushActionType,
+    RemoveFullscreenUnderRHPActionType,
     ReplaceActionType,
     ReplaceFullscreenUnderRHPActionType,
     RootStackNavigatorAction,
@@ -55,6 +57,10 @@ function isDismissModalAction(action: RootStackNavigatorAction): action is Dismi
 
 function isReplaceFullscreenUnderRHPAction(action: RootStackNavigatorAction): action is ReplaceFullscreenUnderRHPActionType {
     return action.type === CONST.NAVIGATION.ACTION_TYPE.REPLACE_FULLSCREEN_UNDER_RHP;
+}
+
+function isRemoveFullscreenUnderRHPAction(action: RootStackNavigatorAction): action is RemoveFullscreenUnderRHPActionType {
+    return action.type === CONST.NAVIGATION.ACTION_TYPE.REMOVE_FULLSCREEN_UNDER_RHP;
 }
 
 function isToggleSidePanelWithHistoryAction(action: RootStackNavigatorAction): action is ToggleSidePanelWithHistoryActionType {
@@ -154,6 +160,10 @@ function RootStackRouter(options: RootStackNavigatorRouterOptions) {
 
             if (isReplaceFullscreenUnderRHPAction(action)) {
                 return handleReplaceFullscreenUnderRHP(state, action, configOptions, stackRouter);
+            }
+
+            if (isRemoveFullscreenUnderRHPAction(action)) {
+                return handleRemoveFullscreenUnderRHP(state, action, configOptions, stackRouter);
             }
 
             if (isReplaceAction(action) && (action.payload.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR || getTabScreenParam(action.payload) === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR)) {
