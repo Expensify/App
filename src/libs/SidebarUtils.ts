@@ -433,17 +433,6 @@ function updateReportsToDisplayInLHN({
         }
     }
 
-    // Remove displayed reports that no longer exist in Onyx. When React batches
-    // multiple Onyx updates (e.g. Onyx.clear followed by setCollection during import),
-    // sourceValue only reflects the last update's keys. Cached reports from a previous
-    // account/session that weren't in updatedReportsKeys would otherwise persist.
-    const currentDisplayed = displayedReportsCopy ?? displayedReports;
-    for (const key of Object.keys(currentDisplayed)) {
-        if (!reports?.[key]) {
-            delete getMutableCopy()[key];
-        }
-    }
-
     return displayedReportsCopy ?? displayedReports;
 }
 /**
