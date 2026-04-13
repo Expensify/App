@@ -571,11 +571,12 @@ function updatePersonalDetailsAndShipExpensifyCards(values: FormOnyxValues<typeo
         // Only surface the invalid-limit error for an explicit 400 from the backend.
         // Using failureData would fire for every non-200 (e.g. 500s, network errors),
         // incorrectly telling the user their card limit is $0.
-        if (response?.jsonCode === CONST.JSON_CODE.BAD_REQUEST) {
-            Onyx.merge(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, {
-                errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('cardPage.invalidCardLimit'),
-            });
+        if (response?.jsonCode !== CONST.JSON_CODE.BAD_REQUEST) {
+            return;
         }
+        Onyx.merge(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, {
+            errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('cardPage.invalidCardLimit'),
+        });
     });
 }
 
