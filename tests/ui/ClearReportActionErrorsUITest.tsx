@@ -98,7 +98,6 @@ describe('ClearReportActionErrors UI', () => {
                                 parentReportAction={undefined}
                                 action={action}
                                 displayAsGroup={false}
-                                isMostRecentIOUReportAction={false}
                                 shouldDisplayNewMarker={false}
                                 index={0}
                                 isFirstVisibleReportAction={false}
