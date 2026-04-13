@@ -7,7 +7,9 @@ import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import PolicyChangeLogContent, {HANDLED_POLICY_CHANGE_LOG_ACTIONS, isHandledPolicyChangeLogAction} from '@pages/inbox/report/actionContents/PolicyChangeLogContent';
 import CONST from '@src/CONST';
 import type {ReportAction} from '@src/types/onyx';
+import createRandomPolicy from '../utils/collections/policies';
 
+const mockPolicy = createRandomPolicy(1);
 const allTypes = Object.values(CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG);
 const handledTypes = [...HANDLED_POLICY_CHANGE_LOG_ACTIONS];
 const fallthroughTypes = allTypes.filter((type) => !HANDLED_POLICY_CHANGE_LOG_ACTIONS.has(type));
@@ -19,7 +21,7 @@ describe('PolicyChangeLogContent', () => {
     });
 
     it('no handled type is missing from CONST', () => {
-        const allTypesSet = new Set(allTypes);
+        const allTypesSet = new Set<string>(allTypes);
         const orphaned = handledTypes.filter((type) => !allTypesSet.has(type));
         expect(orphaned).toEqual([]);
     });
@@ -31,7 +33,7 @@ describe('PolicyChangeLogContent', () => {
             <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, HTMLEngineProvider]}>
                 <PolicyChangeLogContent
                     action={fakeAction}
-                    policy={null}
+                    policy={mockPolicy}
                 />
             </ComposeProviders>,
         );
@@ -50,7 +52,7 @@ describe('PolicyChangeLogContent', () => {
             <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, HTMLEngineProvider]}>
                 <PolicyChangeLogContent
                     action={fakeAction}
-                    policy={null}
+                    policy={mockPolicy}
                 />
             </ComposeProviders>,
         );
