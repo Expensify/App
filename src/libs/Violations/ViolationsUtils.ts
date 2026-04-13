@@ -23,7 +23,7 @@ import {
 } from '@libs/PolicyUtils';
 import {isCurrentUserSubmitter} from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
-import {hasValidModifiedAmount, isViolationDismissed, shouldShowViolation} from '@libs/TransactionUtils';
+import {hasValidModifiedAmount, isBrokenConnectionViolation, isViolationDismissed, shouldShowBrokenConnectionViolation, shouldShowViolation} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Card, CardList, Policy, PolicyCategories, PolicyTagLists, PolicyTags, Report, ReportAction, Transaction, TransactionViolation, ViolationName} from '@src/types/onyx';
@@ -896,13 +896,22 @@ const ViolationsUtils = {
                 return false;
             }
 
-            // Check if any violation is not dismissed and should be shown based on user role and violation type
-            return transactionViolations.some((violation: TransactionViolation) => {
-                return (
-                    !isViolationDismissed(transaction, violation, currentUserEmail, currentUserAccountID, report, policy) &&
-                    shouldShowViolation(report, policy, violation.name, currentUserEmail, true, transaction)
-                );
-            });
+            // Check if any violation is not dismissed and should be shown based on user role and violation type.
+            // Broken card connection violations require their own display check to correctly handle policy admin
+            // visibility on open reports — shouldShowViolation's RTER branch only checks isSubmitter || isInstantSubmitEnabled.
+            const notDismissed = transactionViolations.filter(
+                (violation: TransactionViolation) => !isViolationDismissed(transaction, violation, currentUserEmail, currentUserAccountID, report, policy),
+            );
+
+            const brokenConnectionViolations = notDismissed.filter((v) => isBrokenConnectionViolation(v));
+            const otherViolations = notDismissed.filter((v) => !isBrokenConnectionViolation(v));
+
+            const hasVisibleOtherViolation = otherViolations.some((violation: TransactionViolation) =>
+                shouldShowViolation(report, policy, violation.name, currentUserEmail, true, transaction),
+            );
+            const hasVisibleBrokenConnectionViolation = shouldShowBrokenConnectionViolation(report, policy, brokenConnectionViolations);
+
+            return hasVisibleOtherViolation || hasVisibleBrokenConnectionViolation;
         });
     },
 };
