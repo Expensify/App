@@ -209,8 +209,7 @@ function SearchAutocompleteList({
             personalDetails,
         });
     }, [
-        areOptionsInitialized,
-        options,
+        listOptions,
         draftComments,
         nvpDismissedProductTraining,
         betas,
