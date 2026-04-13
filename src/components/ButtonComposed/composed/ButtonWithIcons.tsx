@@ -77,7 +77,7 @@ function ButtonWithIcons({
 }: ButtonWithIconsProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const buttonStyle = StyleUtils.getButtonStyleWithIcon(styles, size, !!iconLeft, text?.length > 0, !!iconRight);
+    const buttonPaddingStyle = StyleUtils.getButtonPaddingStyle(styles, size, !!iconLeft, text?.length > 0, !!iconRight);
     return (
         <Button
             allowBubble={allowBubble}
@@ -95,7 +95,7 @@ function ButtonWithIcons({
             enterKeyEventListenerPriority={enterKeyEventListenerPriority}
             style={style}
             disabledStyle={disabledStyle}
-            innerStyles={[buttonStyle, !!text && !!iconRight && styles.alignItemsStretch, innerStyles]}
+            innerStyles={[buttonPaddingStyle, !!text && !!iconRight && styles.alignItemsStretch, innerStyles]}
             shouldUseDefaultHover={shouldUseDefaultHover}
             hoverStyles={hoverStyles}
             variant={variant}

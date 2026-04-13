@@ -564,7 +564,7 @@ function getIconWidthAndHeightStyle(
     }
 }
 
-function getDefaultButtonStyle(styles: ThemeStyles, size?: ButtonSizeValue): ViewStyle | undefined {
+function getButtonSizeStyle(styles: ThemeStyles, size?: ButtonSizeValue): ViewStyle | undefined {
     const sizeStyleMap: Record<ButtonSizeValue, ViewStyle> = {
         [CONST.DROPDOWN_BUTTON_SIZE.EXTRA_SMALL]: styles.buttonExtraSmall,
         [CONST.DROPDOWN_BUTTON_SIZE.SMALL]: styles.buttonSmall,
@@ -598,14 +598,14 @@ function getButtonPaddingStyle(styles: ThemeStyles, size?: ButtonSizeValue, hasI
 }
 
 function getButtonStyleWithIcon(styles: ThemeStyles, size?: ButtonSizeValue, hasIcon?: boolean, hasText?: boolean, shouldShowRightIcon?: boolean): ViewStyle | undefined {
-    const defaultButtonStyle = getDefaultButtonStyle(styles, size);
+    const buttonSizeStyle = getButtonSizeStyle(styles, size);
     const buttonPaddingStyle = getButtonPaddingStyle(styles, size, hasIcon, hasText, shouldShowRightIcon);
 
-    if (!defaultButtonStyle && !buttonPaddingStyle) {
+    if (!buttonSizeStyle && !buttonPaddingStyle) {
         return undefined;
     }
 
-    return {...defaultButtonStyle, ...buttonPaddingStyle};
+    return {...buttonSizeStyle, ...buttonPaddingStyle};
 }
 
 function getButtonVariantStyles(styles: ThemeStyles): ButtonVariantStyles {
@@ -1424,6 +1424,8 @@ const staticStyleUtils = {
     getMultiGestureCanvasContainerStyle,
     getIconWidthAndHeightStyle,
     getButtonStyleWithIcon,
+    getButtonSizeStyle,
+    getButtonPaddingStyle,
     getButtonVariantStyles,
     getCharacterWidth,
     getAmountWidth,

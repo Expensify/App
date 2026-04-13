@@ -123,16 +123,6 @@ function Button({
         return [defaultStyles[variant], shouldUseDisabledStyles && disabledStyles[variant]];
     }, [isDisabled, shouldStayNormalOnDisable, styles, variant, StyleUtils]);
 
-    const buttonSizeStyle = useMemo<StyleProp<ViewStyle>>(() => {
-        const allButtonSizeStyles = {
-            [CONST.DROPDOWN_BUTTON_SIZE.EXTRA_SMALL]: styles.buttonExtraSmall,
-            [CONST.DROPDOWN_BUTTON_SIZE.SMALL]: styles.buttonSmall,
-            [CONST.DROPDOWN_BUTTON_SIZE.MEDIUM]: styles.buttonMedium,
-            [CONST.DROPDOWN_BUTTON_SIZE.LARGE]: styles.buttonLarge,
-        };
-        return allButtonSizeStyles[size];
-    }, [size, styles.buttonExtraSmall, styles.buttonLarge, styles.buttonMedium, styles.buttonSmall]);
-
     const borderRadiusStyles = useMemo<Record<'left' | 'right' | 'all', StyleProp<ViewStyle>>>(
         () => ({
             right: styles.noRightBorderRadius,
@@ -145,14 +135,14 @@ function Button({
     const buttonStyles = useMemo<StyleProp<ViewStyle>>(
         () => [
             styles.button,
-            buttonSizeStyle,
+            StyleUtils.getButtonSizeStyle(styles, size),
             buttonVariantStyles,
             shouldRemoveBorderRadius ? borderRadiusStyles[shouldRemoveBorderRadius] : undefined,
             styles.alignItemsStretch,
             innerStyles,
             variant === 'link' && styles.bgTransparent,
         ],
-        [styles.button, styles.alignItemsStretch, styles.bgTransparent, buttonSizeStyle, buttonVariantStyles, shouldRemoveBorderRadius, borderRadiusStyles, innerStyles, variant],
+        [styles, StyleUtils, size, buttonVariantStyles, shouldRemoveBorderRadius, borderRadiusStyles, innerStyles, variant],
     );
 
     const buttonContainerStyles = useMemo<StyleProp<ViewStyle>>(
