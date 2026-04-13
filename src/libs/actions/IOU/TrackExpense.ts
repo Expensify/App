@@ -2674,8 +2674,8 @@ function deleteTrackExpense({
         reportAction,
         iouReport,
         chatIOUReport,
-        isSingleTransactionView,
         isChatIOUReportArchived,
+        isSingleTransactionView,
     );
 
     // STEP 1: Get all collections we're updating
