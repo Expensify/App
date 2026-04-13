@@ -92,6 +92,11 @@ function Badge({
         [styles.defaultBadge, styles.condensedBadge, styles.alignSelfCenter, styles.ml2, StyleUtils, success, error, environment, badgeStyles, isCondensed, isStrong],
     );
 
+    // TEST: deliberate violations for reviewer comment posting verification
+    // eslint-disable-next-line no-unused-vars
+    const badgeOpacity = isDeleted ? 0.5 : 1;
+    const maxBadgeWidth = 200;
+
     if (!text && !icon) {
         return null;
     }
