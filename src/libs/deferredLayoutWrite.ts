@@ -19,7 +19,12 @@
  */
 import {AppState} from 'react-native';
 import type {OnyxKey} from 'react-native-onyx';
+import CONST from '@src/CONST';
 import Log from './Log';
+// Inverted dependency: deferredLayoutWrite imports from telemetry so it can tag the
+// DEFERRED_WRITE optimization at the exact point where deferral is decided. This is the
+// only place that knows whether a write was actually deferred vs. executed immediately.
+import {addOptimization} from './telemetry/submitFollowUpAction';
 
 const DEFAULT_SAFETY_TIMEOUT_MS = 5000;
 
@@ -184,4 +189,45 @@ AppState.addEventListener('change', (nextState) => {
     }
 });
 
-export {registerDeferredWrite, reserveDeferredWriteChannel, flushDeferredWrite, cancelDeferredWrite, hasDeferredWrite, getOptimisticWatchKey};
+/**
+ * Decide whether to defer the API write behind a pending layout transition
+ * (Search pre-insert or dismiss-modal) or execute it immediately.
+ *
+ * Callers pre-compute `shouldDeferForSearch` using their own eligibility logic.
+ * The dismiss-modal channel is detected automatically via `hasDeferredWrite`.
+ */
+function deferOrExecuteWrite(apiWrite: () => void, options: {shouldDeferForSearch: boolean; isRetry?: boolean; optimisticWatchKey?: OnyxKey}) {
+    const {shouldDeferForSearch, isRetry = false, optimisticWatchKey} = options;
+
+    if (shouldDeferForSearch) {
+        addOptimization(CONST.TELEMETRY.SUBMIT_OPTIMIZATION.DEFERRED_WRITE);
+        registerDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH, apiWrite, {optimisticWatchKey});
+        return;
+    }
+
+    // Retries skip deferral to avoid infinite loops (retry -> defer -> flush -> retry).
+    // The trade-off is that a retry's optimistic data may be applied mid-animation,
+    // but this is acceptable: retries are rare and the alternative is a stuck write.
+    if (!isRetry && hasDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL)) {
+        addOptimization(CONST.TELEMETRY.SUBMIT_OPTIMIZATION.DEFERRED_WRITE);
+        registerDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL, apiWrite, {optimisticWatchKey});
+        return;
+    }
+
+    apiWrite();
+}
+
+/**
+ * Clear all channels and flushed watch keys. Only for use in tests.
+ * Exported from production code (rather than a test helper) so jest.mock
+ * can auto-resolve it alongside the other exports. Tree-shaken in prod builds.
+ */
+function resetForTesting() {
+    for (const channel of channels.values()) {
+        clearChannelTimeout(channel);
+    }
+    channels.clear();
+    flushedWatchKeys.clear();
+}
+
+export {registerDeferredWrite, reserveDeferredWriteChannel, flushDeferredWrite, cancelDeferredWrite, hasDeferredWrite, getOptimisticWatchKey, deferOrExecuteWrite, resetForTesting};

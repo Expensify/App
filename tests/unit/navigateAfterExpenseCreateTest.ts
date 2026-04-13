@@ -158,4 +158,18 @@ describe('navigateAfterExpenseCreate', () => {
         expect(Navigation.dismissModal).toHaveBeenCalled();
         expect(Navigation.navigate).not.toHaveBeenCalled();
     });
+
+    it('should skip navigation when shouldHandleNavigation is false', () => {
+        navigateAfterExpenseCreate({
+            activeReportID: 'report-123',
+            transactionID: 'txn-1',
+            isFromGlobalCreate: false,
+            hasMultipleTransactions: false,
+            shouldHandleNavigation: false,
+        });
+
+        expect(Navigation.dismissModalWithReport).not.toHaveBeenCalled();
+        expect(Navigation.dismissModal).not.toHaveBeenCalled();
+        expect(Navigation.navigate).not.toHaveBeenCalled();
+    });
 });

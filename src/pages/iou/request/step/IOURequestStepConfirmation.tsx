@@ -53,10 +53,11 @@ import {
 } from '@libs/IOUUtils';
 import Log from '@libs/Log';
 import dismissModalAndOpenReportInInboxTabHelper from '@libs/Navigation/helpers/dismissModalAndOpenReportInInboxTab';
+import isReportOpenInRHP from '@libs/Navigation/helpers/isReportOpenInRHP';
 import isReportTopmostSplitNavigator from '@libs/Navigation/helpers/isReportTopmostSplitNavigator';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import navigateAfterExpenseCreate from '@libs/Navigation/helpers/navigateAfterExpenseCreate';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import {rand64, roundToTwoDecimalPlaces} from '@libs/NumberUtils';
 import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
 import {
@@ -103,6 +104,7 @@ import {requestMoney as requestMoneyIOUActions, trackExpense as trackExpenseIOUA
 import {removeDraftTransaction, replaceDefaultDraftTransaction} from '@userActions/TransactionEdit';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {RecentlyUsedCategories, Report} from '@src/types/onyx';
@@ -384,27 +386,48 @@ function IOURequestStepConfirmation({
     // so pre-inserting Search would leave a stale route in the stack.
     const canPreInsertSearch = iouType !== CONST.IOU.TYPE.PAY && iouType !== CONST.IOU.TYPE.SPLIT && !(isPerDiemRequest && iouType === CONST.IOU.TYPE.TRACK);
 
+    // handleSearchDismiss doesn't pre-insert - it just dismisses the modal when search is
+    // already on top. This is safe for per-diem TRACK (which navigates to self-DM, but when
+    // search is on top dismissModalAndOpenReportInInboxTab only dismisses). SPLIT/PAY still
+    // can't use it because their navigation is coupled to the action function.
+    const canDismissFromSearch = iouType !== CONST.IOU.TYPE.PAY && iouType !== CONST.IOU.TYPE.SPLIT;
+
     const hasPreInsertFired = useRef(false);
     const isTransactionReady = !!transaction;
+    const destinationReportID = backToReport ?? report?.reportID;
+
     useEffect(() => {
         if (hasPreInsertFired.current || !isTransactionReady || !getIsNarrowLayout()) {
             return;
         }
 
         // Search pre-insert: global create flows that navigate to Search after submit.
-        // Report pre-insert is intentionally omitted here — it requires the fast-path
-        // handlers (handleReportPreInsert) introduced in the follow-up PR to clear the
-        // pre-insert flag on submit; without them the flag would get stuck.
         const shouldPreInsertSearch = isFromGlobalCreate && canPreInsertSearch && !isReportTopmostSplitNavigator() && !isSearchTopmostFullScreenRoute();
 
-        if (!shouldPreInsertSearch) {
+        // Report pre-insert: dismiss modal flows that open an existing report after submit.
+        // Skip when the destination is already the topmost fullscreen report to avoid
+        // pushing a duplicate route (which would require an extra back press).
+        const shouldPreInsertReport =
+            !shouldPreInsertSearch &&
+            (!isFromGlobalCreate || isReportTopmostSplitNavigator()) &&
+            !isReportOpenInRHP(navigationRef.getRootState()) &&
+            !!destinationReportID &&
+            Navigation.getTopmostReportId() !== destinationReportID &&
+            !!getReportOrDraftReport(destinationReportID)?.reportID;
+
+        if (!shouldPreInsertSearch && !shouldPreInsertReport) {
             return;
         }
 
         hasPreInsertFired.current = true;
 
-        const type = iouType === CONST.IOU.TYPE.INVOICE ? CONST.SEARCH.DATA_TYPES.INVOICE : CONST.SEARCH.DATA_TYPES.EXPENSE;
-        const route = ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery({type})});
+        let route: Route;
+        if (shouldPreInsertSearch) {
+            const type = iouType === CONST.IOU.TYPE.INVOICE ? CONST.SEARCH.DATA_TYPES.INVOICE : CONST.SEARCH.DATA_TYPES.EXPENSE;
+            route = ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery({type})});
+        } else {
+            route = ROUTES.REPORT_WITH_ID.getRoute(destinationReportID);
+        }
 
         const timer = setTimeout(() => {
             Navigation.preInsertFullscreenUnderRHP(route);
@@ -420,10 +443,11 @@ function IOURequestStepConfirmation({
             Navigation.removePreInsertedFullscreenIfNeeded();
         };
         // isFromGlobalCreate, iouType, and canPreInsertSearch are stable for the lifetime of
-        // this screen instance. isTransactionReady flips once (false → true) as data loads
-        // asynchronously, re-triggering the effect. hasPreInsertFired prevents double-firing.
+        // this screen instance. isTransactionReady and destinationReportID may each flip once
+        // (false -> true / undefined→ID) as data loads asynchronously, re-triggering the effect.
+        // hasPreInsertFired prevents double-firing.
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isTransactionReady]);
+    }, [isTransactionReady, destinationReportID]);
 
     const navigateBack = useCallback(() => {
         if (backTo) {
@@ -689,6 +713,7 @@ function IOURequestStepConfirmation({
                     currentUserAccountIDParam: currentUserPersonalDetails.accountID,
                     currentUserEmailParam: currentUserPersonalDetails.login ?? '',
                     quickAction,
+                    shouldHandleNavigation: shouldHandleNav,
                 });
             } else {
                 const isExpenseReport = isMoneyRequestReport(report);
@@ -1137,6 +1162,7 @@ function IOURequestStepConfirmation({
                     isFromGlobalCreate: transaction?.isFromFloatingActionButton ?? transaction?.isFromGlobalCreate,
                     policyRecentlyUsedTags,
                     senderPolicyTags: senderWorkspacePolicyTags ?? {},
+                    shouldHandleNavigation,
                 });
                 markSubmitExpenseEnd();
                 return;
@@ -1493,8 +1519,11 @@ function IOURequestStepConfirmation({
                     {!!stitchError && <FormHelpMessage message={stitchError} />}
                     <SubmitExpenseOrchestrator
                         createTransaction={createTransaction}
+                        destinationReportID={destinationReportID}
+                        isFromGlobalCreate={isFromGlobalCreate}
                         iouType={iouType}
                         requestType={requestType}
+                        canDismissFromSearch={canDismissFromSearch}
                         gpsRequired={!!gpsRequired}
                         lastLocationPermissionPrompt={lastLocationPermissionPrompt}
                         isDistanceRequest={isDistanceRequest}

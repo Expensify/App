@@ -1,7 +1,8 @@
 import {PortalHost} from '@gorhom/portal';
-import React from 'react';
+import {useFocusEffect} from '@react-navigation/native';
+import React, {useCallback} from 'react';
 import type {ViewStyle} from 'react-native';
-import {View} from 'react-native';
+import {InteractionManager, View} from 'react-native';
 import ScreenWrapper from '@components/ScreenWrapper';
 import WideRHPOverlayWrapper from '@components/WideRHPOverlayWrapper';
 import useActionListContextValue from '@hooks/useActionListContextValue';
@@ -10,6 +11,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSubmitToDestinationVisible from '@hooks/useSubmitToDestinationVisible';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useViewportOffsetTop from '@hooks/useViewportOffsetTop';
+import {flushDeferredWrite, hasDeferredWrite} from '@libs/deferredLayoutWrite';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportsSplitNavigatorParamList, RightModalNavigatorParamList} from '@navigation/types';
@@ -51,6 +53,25 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         [CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_AND_OPEN_REPORT, CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_ONLY],
         reportIDFromRoute,
         CONST.TELEMETRY.SUBMIT_TO_DESTINATION_VISIBLE_TRIGGER.FOCUS,
+    );
+
+    // Flush the dismiss-modal deferred write channel when ReportScreen gains focus.
+    // Empty deps: the callback identity is stable but useFocusEffect runs it on every
+    // focus gain (not just mount). On narrow layout, the modal dismiss/restore cycle
+    // always triggers a new focus event. On wide layout, the fast-path handlers use
+    // InteractionManager.runAfterInteractions as a fallback since the ReportScreen may
+    // already be focused. The 5s safety timeout in deferredLayoutWrite also covers
+    // edge cases where neither focus nor InteractionManager fires.
+    useFocusEffect(
+        useCallback(() => {
+            if (!hasDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL)) {
+                return;
+            }
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
+            InteractionManager.runAfterInteractions(() => {
+                flushDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL);
+            });
+        }, []),
     );
 
     const actionListValue = useActionListContextValue();

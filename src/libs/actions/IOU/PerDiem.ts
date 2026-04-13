@@ -6,7 +6,7 @@ import type {CreatePerDiemRequestParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import {convertAmountToDisplayString, convertToFrontendAmountAsString} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
-import {registerDeferredWrite} from '@libs/deferredLayoutWrite';
+import {deferOrExecuteWrite} from '@libs/deferredLayoutWrite';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import {updateIOUOwnerAndTotal} from '@libs/IOUUtils';
 import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
@@ -264,6 +264,7 @@ type PerDiemExpenseInformationForSelfDM = {
     currentUserAccountIDParam: number;
     currentUserEmailParam: string;
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
+    shouldHandleNavigation?: boolean;
 };
 
 type PerDiemExpenseInformationForSelfDMResult = {
@@ -990,18 +991,14 @@ function submitPerDiemExpense(submitPerDiemExpenseInformation: PerDiemExpenseInf
         playSound(SOUNDS.DONE);
     }
 
-    const shouldDeferWrite = isFromGlobalCreate && !isReportTopmostSplitNavigator();
     const apiWrite = () => {
         API.write(WRITE_COMMANDS.CREATE_PER_DIEM_REQUEST, parameters, onyxData);
     };
 
-    if (shouldDeferWrite) {
-        registerDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH, apiWrite, {
-            optimisticWatchKey: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
-        });
-    } else {
-        apiWrite();
-    }
+    deferOrExecuteWrite(apiWrite, {
+        shouldDeferForSearch: !!(isFromGlobalCreate && !isReportTopmostSplitNavigator()),
+        optimisticWatchKey: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
+    });
 
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     InteractionManager.runAfterInteractions(() => removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID));
@@ -1019,8 +1016,8 @@ function submitPerDiemExpense(submitPerDiemExpenseInformation: PerDiemExpenseInf
  * Submit a per diem expense from self DM
  */
 function submitPerDiemExpenseForSelfDM(submitPerDiemExpenseInformation: PerDiemExpenseInformationForSelfDM) {
-    const {selfDMReport, policy, transactionParams, currentUserAccountIDParam, currentUserEmailParam, quickAction} = submitPerDiemExpenseInformation;
-    const {currency, comment = '', category, tag, created, customUnit, attendees, billable, reimbursable} = transactionParams;
+    const {selfDMReport, policy, transactionParams, currentUserAccountIDParam, currentUserEmailParam, quickAction, shouldHandleNavigation = true} = submitPerDiemExpenseInformation;
+    const {currency, comment = '', category, tag, created, customUnit, attendees, billable, reimbursable, isFromGlobalCreate} = transactionParams;
 
     if (
         isEmptyObject(policy) ||
@@ -1074,11 +1071,22 @@ function submitPerDiemExpenseForSelfDM(submitPerDiemExpenseInformation: PerDiemE
     };
 
     playSound(SOUNDS.DONE);
-    API.write(WRITE_COMMANDS.CREATE_PER_DIEM_REQUEST, parameters, onyxData);
+
+    const apiWrite = () => {
+        API.write(WRITE_COMMANDS.CREATE_PER_DIEM_REQUEST, parameters, onyxData);
+    };
+
+    deferOrExecuteWrite(apiWrite, {
+        shouldDeferForSearch: !!(isFromGlobalCreate && !isReportTopmostSplitNavigator()),
+        optimisticWatchKey: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
+    });
 
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     InteractionManager.runAfterInteractions(() => removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID));
-    dismissModalAndOpenReportInInboxTab(chatReport.reportID);
+
+    if (shouldHandleNavigation) {
+        dismissModalAndOpenReportInInboxTab(chatReport.reportID);
+    }
 
     notifyNewAction(chatReport.reportID, undefined, true);
 }

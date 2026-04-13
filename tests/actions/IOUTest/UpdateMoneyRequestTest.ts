@@ -73,6 +73,9 @@ jest.mock('@libs/deferredLayoutWrite', () => ({
     cancelDeferredWrite: jest.fn(),
     hasDeferredWrite: () => false,
     getOptimisticWatchKey: () => undefined,
+    deferOrExecuteWrite: (apiWrite: () => void) => apiWrite(),
+    reserveDeferredWriteChannel: jest.fn(),
+    resetForTesting: jest.fn(),
 }));
 jest.mock('@hooks/useCardFeedsForDisplay', () => jest.fn(() => ({defaultCardFeed: null, cardFeedsByPolicy: {}})));
 
