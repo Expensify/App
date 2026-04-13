@@ -444,7 +444,7 @@ function EmptySearchViewContent({
         <Animated.ScrollView
             showsVerticalScrollIndicator={false}
             contentContainerStyle={[styles.flexGrow1, styles.flexShrink0, contentContainerStyle, {minHeight: windowHeight}]}
-            scrollEventThrottle={16}
+            scrollEventThrottle={CONST.MIN_SMOOTH_SCROLL_EVENT_THROTTLE}
             onScroll={onScroll}
         >
             <GenericEmptyStateComponent
