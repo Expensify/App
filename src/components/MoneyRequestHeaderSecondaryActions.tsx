@@ -56,7 +56,7 @@ import {
     isDistanceRequest,
     isPerDiemRequest,
 } from '@libs/TransactionUtils';
-import {dismissRejectUseExplanation} from '@userActions/IOU';
+import {dismissRejectUseExplanation} from '@userActions/IOU/RejectMoneyRequest';
 import {setDeleteTransactionNavigateBackUrl} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';

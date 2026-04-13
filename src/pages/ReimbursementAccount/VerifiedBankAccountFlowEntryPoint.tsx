@@ -123,10 +123,10 @@ function VerifiedBankAccountFlowEntryPoint({
     const prepareNextStep = useCallback(
         (setupType: ValueOf<typeof CONST.BANK_ACCOUNT.SETUP_TYPE>) => {
             setBankAccountSubStep(setupType);
+            setUSDBankAccountStep(CONST.BANK_ACCOUNT.STEP.COUNTRY);
             goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.COUNTRY);
-            Navigation.navigate(ROUTES.BANK_ACCOUNT_USD_SETUP.getRoute({policyID, page: CONST.BANK_ACCOUNT.PAGE_NAMES.COUNTRY, backTo}));
         },
-        [policyID, backTo],
+        [setUSDBankAccountStep],
     );
 
     /**
