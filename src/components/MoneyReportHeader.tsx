@@ -89,7 +89,6 @@ import {
     isInvoiceReport as isInvoiceReportUtil,
     isIOUReport as isIOUReportUtil,
     isOpenReport,
-    isReportOwner,
     isSelfDM,
     navigateOnDeleteExpense,
     navigateToDetailsPage,
