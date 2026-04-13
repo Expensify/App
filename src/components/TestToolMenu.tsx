@@ -84,9 +84,9 @@ function TestToolMenu() {
 
                     {/* When toggled on web, the current git branch name is prepended to the browser tab title. */}
                     {Platform.OS === 'web' && !!__GIT_BRANCH__ && (
-                        <TestToolRow title="Show branch name in browser title">
+                        <TestToolRow title={translate('initialSettingsPage.troubleshoot.showBranchNameInTitle')}>
                             <Switch
-                                accessibilityLabel="Show branch name in browser title"
+                                accessibilityLabel={translate('initialSettingsPage.troubleshoot.showBranchNameInTitle')}
                                 isOn={shouldShowBranchNameInTitle}
                                 onToggle={() => setShouldShowBranchNameInTitle(!shouldShowBranchNameInTitle)}
                             />

@@ -2069,6 +2069,7 @@ const translations = {
             resetToOriginalState: 'Reset to original state',
             usingImportedState: 'You are using imported state. Press here to clear it.',
             debugMode: 'Debug mode',
+            showBranchNameInTitle: 'Show branch name in browser title',
             invalidFile: 'Invalid file',
             invalidFileDescription: 'The file you are trying to import is not valid. Please try again.',
             invalidateWithDelay: 'Invalidate with delay',
