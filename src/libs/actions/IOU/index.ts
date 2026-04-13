@@ -323,6 +323,7 @@ type RequestMoneyInformation = {
     isSelfTourViewed: boolean;
     betas: OnyxEntry<OnyxTypes.Beta[]>;
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
+    bankAccountList?: OnyxEntry<OnyxTypes.BankAccountList>;
     shouldDeferAutoSubmit?: boolean;
 };
 
@@ -355,6 +356,7 @@ type MoneyRequestInformationParams = {
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
     policyRecentlyUsedCurrencies: string[];
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
+    bankAccountList?: OnyxEntry<OnyxTypes.BankAccountList>;
 };
 
 type MoneyRequestOptimisticParams = {
@@ -401,6 +403,7 @@ type BuildOnyxDataForMoneyRequestParams = {
     hasViolations: boolean;
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
+    bankAccountList?: OnyxEntry<OnyxTypes.BankAccountList>;
 };
 
 type DistanceRequestTransactionParams = BaseTransactionParams & {
@@ -435,6 +438,7 @@ type CreateDistanceRequestInformation = {
     shouldPlaySound?: boolean;
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
     betas: OnyxEntry<OnyxTypes.Beta[]>;
+    bankAccountList?: OnyxEntry<OnyxTypes.BankAccountList>;
     optimisticReportPreviewActionID?: string;
     shouldDeferAutoSubmit?: boolean;
 };
@@ -528,6 +532,7 @@ type ApproveMoneyRequestFunctionParams = {
     onApproved?: () => void;
     ownerBillingGracePeriodEnd: OnyxEntry<number>;
     delegateEmail: string | undefined;
+    bankAccountList?: OnyxEntry<OnyxTypes.BankAccountList>;
 };
 
 type SubmitReportFunctionParams = {
@@ -1564,6 +1569,7 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
         hasViolations,
         quickAction,
         personalDetails,
+        bankAccountList,
     } = moneyRequestParams;
     const {policy, policyCategories, policyTagList} = policyParams;
     const {
@@ -2190,6 +2196,7 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
                 currentUserEmailParam,
                 hasViolations,
                 isASAPSubmitBetaEnabled,
+                bankAccountList,
             }),
         });
         onyxData.optimisticData?.push({
@@ -2296,6 +2303,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         policyRecentlyUsedCurrencies,
         personalDetails,
         betas,
+        bankAccountList,
     } = moneyRequestInformation;
     const {payeeAccountID = deprecatedUserAccountID, payeeEmail = deprecatedCurrentUserEmail, participant} = participantParams;
     const {policy, policyCategories, policyTagList, policyRecentlyUsedCategories, policyRecentlyUsedTags} = policyParams;
@@ -2608,6 +2616,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         currentUserEmailParam,
         hasViolations,
         isASAPSubmitBetaEnabled,
+        bankAccountList,
     });
 
     const optimisticNextStep = buildOptimisticNextStep({
@@ -2664,6 +2673,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         hasViolations,
         quickAction,
         personalDetails,
+        bankAccountList,
     });
 
     return {
@@ -4161,6 +4171,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
         shouldPlaySound: shouldPlaySoundParam = true,
         personalDetails,
         betas,
+        bankAccountList,
         optimisticReportPreviewActionID,
         shouldDeferAutoSubmit,
     } = distanceRequestInformation;
@@ -4332,6 +4343,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
             policyRecentlyUsedCurrencies,
             personalDetails,
             betas,
+            bankAccountList,
             optimisticReportPreviewActionID,
         });
 
@@ -5097,6 +5109,7 @@ function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
         onApproved,
         ownerBillingGracePeriodEnd,
         delegateEmail,
+        bankAccountList,
     } = params;
     if (!expenseReport) {
         return;
@@ -5130,6 +5143,7 @@ function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
           buildNextStepNew({
               report: expenseReport,
               policy,
+              bankAccountList,
               currentUserAccountIDParam,
               currentUserEmailParam,
               hasViolations,

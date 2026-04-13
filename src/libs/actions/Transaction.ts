@@ -52,6 +52,7 @@ import ViolationsUtils from '@libs/Violations/ViolationsUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {
+    BankAccountList,
     PersonalDetails,
     Policy,
     PolicyCategories,
@@ -494,6 +495,7 @@ type DismissDuplicateTransactionViolationProps = {
     policy: OnyxEntry<Policy>;
     isASAPSubmitBetaEnabled: boolean;
     allTransactions: OnyxCollection<Transaction>;
+    bankAccountList?: OnyxEntry<BankAccountList>;
 };
 
 /**
@@ -507,6 +509,7 @@ function dismissDuplicateTransactionViolation({
     policy,
     isASAPSubmitBetaEnabled,
     allTransactions,
+    bankAccountList,
 }: DismissDuplicateTransactionViolationProps) {
     const currentTransactionViolations = transactionIDs.map((id) => ({transactionID: id, violations: allTransactionViolation?.[id] ?? []}));
     const currentTransactions = transactionIDs.map((id) => allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`]);
@@ -550,6 +553,7 @@ function dismissDuplicateTransactionViolation({
             currentUserEmailParam: dismissedPersonalDetails.login ?? '',
             hasViolations: hasOtherViolationsBesideDuplicates,
             isASAPSubmitBetaEnabled,
+            bankAccountList,
         });
         const optimisticNextStep = buildOptimisticNextStep({
             report: expenseReport,
@@ -851,6 +855,7 @@ type ChangeTransactionsReportProps = {
     reportNextStep?: OnyxEntry<ReportNextStepDeprecated>;
     policyCategories?: OnyxEntry<PolicyCategories>;
     allTransactions: OnyxCollection<Transaction>;
+    bankAccountList?: OnyxEntry<BankAccountList>;
 };
 
 function changeTransactionsReport({
@@ -863,6 +868,7 @@ function changeTransactionsReport({
     reportNextStep,
     policyCategories,
     allTransactions,
+    bankAccountList,
 }: ChangeTransactionsReportProps) {
     const reportID = newReport?.reportID ?? CONST.REPORT.UNREPORTED_REPORT_ID;
 
@@ -1578,6 +1584,7 @@ function changeTransactionsReport({
             isASAPSubmitBetaEnabled,
             predictedNextStatus,
             shouldFixViolations: shouldFixViolationsForReport,
+            bankAccountList,
         });
         const optimisticNextStepForReport = buildOptimisticNextStep({
             report: updatedReport,

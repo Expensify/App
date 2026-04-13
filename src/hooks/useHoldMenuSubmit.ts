@@ -41,6 +41,7 @@ function useHoldMenuSubmit({moneyRequestReport, chatReport, requestType, payment
     const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [moneyRequestReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${moneyRequestReport?.reportID}`);
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const {isBetaEnabled} = usePermissions();
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
@@ -83,6 +84,7 @@ function useHoldMenuSubmit({moneyRequestReport, chatReport, requestType, payment
                 full,
                 onApproved: animationCallback,
                 delegateEmail,
+                bankAccountList,
             });
         } else if (chatReport && paymentType) {
             payMoneyRequest({

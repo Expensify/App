@@ -79,6 +79,7 @@ function SubmitDetailsPage({
     const draftTransactionIDs = Object.keys(transactionDrafts ?? {});
 
     const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const personalPolicy = usePersonalPolicy();
     const [startLocationPermissionFlow, setStartLocationPermissionFlow] = useState(false);
@@ -220,6 +221,7 @@ function SubmitDetailsPage({
                 isSelfTourViewed,
                 betas,
                 personalDetails,
+                bankAccountList,
             });
         }
     };

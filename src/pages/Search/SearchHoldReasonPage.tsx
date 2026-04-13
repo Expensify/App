@@ -35,6 +35,7 @@ function SearchHoldReasonPage({route}: SearchHoldReasonPageProps) {
     const isSubmitter = report ? report.ownerAccountID === currentUserAccountID : selectedTransactionsList.some((t) => t.ownerAccountID === currentUserAccountID);
 
     const ancestors = useAncestors(report);
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
     const onSubmit = useCallback(
@@ -44,20 +45,31 @@ function SearchHoldReasonPage({route}: SearchHoldReasonPageProps) {
                 return;
             }
             if (route.name === SCREENS.SEARCH.MONEY_REQUEST_REPORT_HOLD_TRANSACTIONS) {
-                putTransactionsOnHold(selectedTransactionIDs, comment, reportID, isOffline, ancestors);
+                putTransactionsOnHold(selectedTransactionIDs, comment, reportID, isOffline, ancestors, bankAccountList);
                 clearSelectedTransactions(true);
             } else {
                 const transactionIDs = Object.keys(selectedTransactions);
                 for (const transactionID of transactionIDs) {
                     const transactionThreadReportID = selectedTransactions[transactionID].reportAction?.childReportID;
-                    putOnHold(transactionID, comment, transactionThreadReportID, isOffline, ancestors);
+                    putOnHold(transactionID, comment, transactionThreadReportID, isOffline, ancestors, bankAccountList);
                 }
                 clearSelectedTransactions();
             }
 
             Navigation.goBack();
         },
-        [route.name, selectedTransactionIDs, selectedTransactions, clearSelectedTransactions, reportID, ancestors, isOffline, isDelegateAccessRestricted, showDelegateNoAccessModal],
+        [
+            route.name,
+            selectedTransactionIDs,
+            selectedTransactions,
+            clearSelectedTransactions,
+            reportID,
+            ancestors,
+            isOffline,
+            bankAccountList,
+            isDelegateAccessRestricted,
+            showDelegateNoAccessModal,
+        ],
     );
 
     const validate = useCallback(

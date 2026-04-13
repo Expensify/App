@@ -249,6 +249,7 @@ type SetWorkspaceApprovalModeAdditionalData = {
     reportNextSteps?: OnyxCollection<ReportNextStepDeprecated>;
     transactionViolations?: OnyxCollection<TransactionViolations>;
     betas?: Beta[];
+    bankAccountList?: OnyxEntry<BankAccountList>;
 };
 
 const deprecatedAllPolicies: OnyxCollection<Policy> = {};
@@ -902,6 +903,7 @@ function setWorkspaceApprovalMode(
                 hasViolations,
                 isASAPSubmitBetaEnabled,
                 predictedNextStatus: report?.statusNum ?? CONST.REPORT.STATUS_NUM.SUBMITTED,
+                bankAccountList: additionalData?.bankAccountList,
             });
 
             nextStepOptimisticData.push({

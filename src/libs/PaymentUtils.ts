@@ -46,6 +46,7 @@ type SelectPaymentTypeParams = {
     betas: OnyxEntry<Beta[]>;
     userBillingGracePeriodEnds: OnyxCollection<BillingGraceEndPeriod>;
     amountOwed: OnyxEntry<number>;
+    bankAccountList?: OnyxEntry<Record<string, BankAccount>>;
     ownerBillingGracePeriodEnd: OnyxEntry<number>;
     delegateEmail: string | undefined;
 };
@@ -233,6 +234,7 @@ const selectPaymentType = (params: SelectPaymentTypeParams) => {
         betas,
         userBillingGracePeriodEnds,
         amountOwed,
+        bankAccountList,
         ownerBillingGracePeriodEnd,
         delegateEmail,
     } = params;
@@ -268,6 +270,7 @@ const selectPaymentType = (params: SelectPaymentTypeParams) => {
                 ownerBillingGracePeriodEnd,
                 full: true,
                 delegateEmail,
+                bankAccountList,
             });
         }
         return;

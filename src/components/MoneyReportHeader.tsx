@@ -714,6 +714,7 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
                     amountOwed,
                     ownerBillingGracePeriodEnd,
                     full: true,
+                    bankAccountList,
                     onApproved: () => {
                         if (skipAnimation) {
                             return;
@@ -746,6 +747,7 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
             clearSelectedTransactions,
             ownerBillingGracePeriodEnd,
             delegateEmail,
+            bankAccountList,
         ],
     );
 
@@ -1423,7 +1425,7 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
                 const isDismissed = isReportSubmitter ? dismissedHoldUseExplanation : dismissedRejectUseExplanation;
 
                 if (isDismissed || isChatReportDM) {
-                    changeMoneyRequestHoldStatus(requestParentReportAction, transaction, isOffline);
+                    changeMoneyRequestHoldStatus(requestParentReportAction, transaction, isOffline, bankAccountList);
                 } else if (isReportSubmitter) {
                     openHoldEducational();
                 } else {
@@ -1446,7 +1448,7 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
                     return;
                 }
 
-                changeMoneyRequestHoldStatus(requestParentReportAction, transaction, isOffline);
+                changeMoneyRequestHoldStatus(requestParentReportAction, transaction, isOffline, bankAccountList);
             },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.SPLIT]: {
@@ -1924,6 +1926,7 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
                 betas,
                 userBillingGracePeriodEnds,
                 amountOwed,
+                bankAccountList,
                 ownerBillingGracePeriodEnd,
                 delegateEmail,
             });
@@ -1945,6 +1948,7 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
             amountOwed,
             ownerBillingGracePeriodEnd,
             delegateEmail,
+            bankAccountList,
         ],
     );
 

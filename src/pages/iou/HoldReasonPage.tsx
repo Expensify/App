@@ -35,6 +35,7 @@ function HoldReasonPage({route}: HoldReasonPageProps) {
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
     const {isOffline} = useNetwork();
     const ancestors = useAncestors(report);
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
 
     const [parentReportOwnerAccountID] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`, {selector: getReportOwnerAccountID});
 
@@ -59,7 +60,7 @@ function HoldReasonPage({route}: HoldReasonPageProps) {
             return;
         }
 
-        putOnHold(transactionID, values.comment, reportID, isOffline, ancestors);
+        putOnHold(transactionID, values.comment, reportID, isOffline, ancestors, bankAccountList);
         Navigation.goBack(backTo);
     };
 
