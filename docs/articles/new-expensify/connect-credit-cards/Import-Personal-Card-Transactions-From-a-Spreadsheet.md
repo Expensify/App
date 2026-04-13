@@ -24,7 +24,7 @@ Anyone can import personal card transactions using a spreadsheet file in their a
 1. In the navigation tabs (on the left on web, on the bottom on mobile) select **Wallet**.
 2. In the **Assigned Cards** section, choose **Import transactions**.
 3.  Enter a display name and configure the currency, reimbursable state, and amount sign direction.
-4. Select **Choose file** to select a spreadsheet to upload.
+3. Enter a display name and configure the currency, reimbursable state, and amount sign direction.
 5. Map your spreadsheet columns to the required fields (**Date**, **Merchant**, **Amount**).
 6. Click **Import**.
 
