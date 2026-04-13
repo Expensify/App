@@ -1964,6 +1964,9 @@ const CONST = {
         SPAN_SEND_MESSAGE: 'ManualSendMessage',
         SPAN_NOT_FOUND_PAGE: 'ManualNotFoundPage',
         SPAN_SKELETON: 'ManualSkeleton',
+        SPAN_ODOMETER_TO_CONFIRMATION: 'ManualOdometerToConfirmation',
+        SPAN_ODOMETER_IMAGE_STITCH: 'ManualOdometerImageStitch',
+        SPAN_ODOMETER_IMAGE_CAPTURE: 'ManualOdometerImageCapture',
         SPAN_NAVIGATION_ROOT_READY: 'NavigationRootReady',
         SPAN_BOOTSPLASH: {
             ROOT: 'BootsplashVisible',
@@ -2016,6 +2019,9 @@ const CONST = {
         ATTRIBUTE_TRIGGER: 'trigger',
         ATTRIBUTE_PLATFORM: 'platform',
         ATTRIBUTE_IS_MULTI_SCAN: 'is_multi_scan',
+        ATTRIBUTE_ODOMETER_IMAGE_TYPE: 'odometer_image_type',
+        ATTRIBUTE_ODOMETER_IMAGE_COUNT: 'odometer_image_count',
+        ATTRIBUTE_ODOMETER_STITCH_METHOD: 'odometer_stitch_method',
         /** Follow-up action after expense submit (action-based; used as submit_follow_up_action in span). */
         SUBMIT_FOLLOW_UP_ACTION: {
             DISMISS_MODAL_AND_OPEN_REPORT: 'dismiss_modal_and_open_report',
@@ -2031,6 +2037,7 @@ const CONST = {
             REQUEST_MONEY_MANUAL: 'request_money_manual',
             REQUEST_MONEY_SCAN: 'request_money_scan',
             DISTANCE: 'distance',
+            ODOMETER: 'odometer',
             TRACK_EXPENSE: 'track_expense',
             SPLIT: 'split',
             SPLIT_RECEIPT: 'split_receipt',
