@@ -25,7 +25,7 @@ import useResponsiveLayoutOnWideRHP from '@hooks/useResponsiveLayoutOnWideRHP';
 import useSelectedTransactionsActions from '@hooks/useSelectedTransactionsActions';
 import useSelectionModeReportActions from '@hooks/useSelectionModeReportActions';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {dismissRejectUseExplanation} from '@libs/actions/IOU';
+import {dismissRejectUseExplanation} from '@libs/actions/IOU/RejectMoneyRequest';
 import {queueExportSearchWithTemplate} from '@libs/actions/Search';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';

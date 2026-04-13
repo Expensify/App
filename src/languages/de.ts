@@ -56,6 +56,7 @@ import type {
     StepCounterParams,
     SyncStageNameConnectionsParams,
     UnshareParams,
+    UnsupportedFormulaValueErrorParams,
     UpdatedBudgetParams,
     UpdatedPolicyApprovalRuleParams,
     UpdatedPolicyCategoryMaxAmountNoReceiptParams,
@@ -1372,6 +1373,45 @@ const translations: TranslationDeepObject<typeof en> = {
         paidWithExpensify: (payer?: string) => `${payer ? `${payer} ` : ''}mit Wallet bezahlt`,
         automaticallyPaidWithExpensify: (payer?: string) =>
             `${payer ? `${payer} ` : ''}mit Expensify über <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">Workspace-Regeln</a> bezahlt`,
+        reimbursedThisReport: 'diesen Bericht erstattet',
+        paidThisBill: 'diese Rechnung bezahlt',
+        reimbursedOnBehalfOf: (actor: string) => `im Namen von ${actor}`,
+        reimbursedFromBankAccount: (debitBankAccount: string) => `vom Bankkonto mit der Endung ${debitBankAccount}`,
+        reimbursedSubmitterAddedBankAccount: (submitter: string) =>
+            `${submitter} hat ein Bankkonto hinzugefügt und den Bericht aus der Warteschleife genommen. Die Erstattung wurde eingeleitet`,
+        reimbursedWithFastACH: ({
+            isCurrentUser,
+            submitterLogin,
+            creditBankAccount,
+            expectedDate,
+        }: {
+            isCurrentUser: boolean;
+            submitterLogin: string;
+            creditBankAccount: string;
+            expectedDate: string;
+        }) =>
+            isCurrentUser
+                ? `. Das Geld ist auf dem Weg zu Ihrem ${creditBankAccount ? `Bankkonto mit der Endung ${creditBankAccount}` : 'Konto'}. Die Erstattung wird voraussichtlich bis zum ${expectedDate} abgeschlossen.`
+                : `. Das Geld ist auf dem Weg zum Bankkonto von ${submitterLogin}${creditBankAccount ? ` mit der Endung ${creditBankAccount}` : ''}. Die Erstattung wird voraussichtlich am ${expectedDate} abgeschlossen.`,
+        reimbursedWithCheck: ' per Scheck.',
+        reimbursedWithStripeConnect: ({
+            isCurrentUser,
+            submitterLogin,
+            creditBankAccount,
+            isCard,
+        }: {
+            isCurrentUser: boolean;
+            submitterLogin: string;
+            creditBankAccount: string;
+            isCard: boolean;
+        }) => {
+            const paymentMethod = isCard ? 'Karte' : 'Bankkonto';
+            return isCurrentUser
+                ? `. Das Geld ist auf dem Weg zu Ihrem ${creditBankAccount ? `Bankkonto mit der Endung ${creditBankAccount}` : 'Konto'} (bezahlt über ${paymentMethod}). Dies kann bis zu 10 Werktage dauern.`
+                : `. Das Geld ist auf dem Weg zum Bankkonto von ${submitterLogin}${creditBankAccount ? ` mit der Endung ${creditBankAccount}` : ''} (bezahlt über ${paymentMethod}). Dies kann bis zu 10 Werktage dauern.`;
+        },
+        reimbursedWithACH: ({creditBankAccount, expectedDate}: {creditBankAccount?: string; expectedDate?: string}) =>
+            ` mit Direkteinzahlung (ACH)${creditBankAccount ? ` auf das Bankkonto mit der Endziffer ${creditBankAccount}.` : '. '}${expectedDate ? `Die Rückerstattung wird voraussichtlich bis zum ${expectedDate} abgeschlossen sein.` : 'Dies dauert in der Regel 4–5 Werktage.'}`,
         noReimbursableExpenses: 'Dieser Bericht enthält einen ungültigen Betrag',
         pendingConversionMessage: 'Die Gesamtsumme wird aktualisiert, sobald du wieder online bist',
         changedTheExpense: 'hat die Ausgabe geändert',
@@ -1709,8 +1749,6 @@ const translations: TranslationDeepObject<typeof en> = {
         backdropLabel: 'Modal-Hintergrund',
     },
     nextStep: {
-        // All nextStep.message functions share a common positional signature (actor, actorType, eta, etaType) for type compatibility, so unused params are expected
-        /* eslint-disable @typescript-eslint/no-unused-vars */
         message: {
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_ADD_TRANSACTIONS]: (
                 actor: string,
@@ -1718,8 +1756,6 @@ const translations: TranslationDeepObject<typeof en> = {
                 _eta?: string,
                 _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
             ) => {
-                // Disabling the default-case lint rule here is actually safer as this forces us to make the switch cases exhaustive
-                // eslint-disable-next-line default-case
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
                         return `Warte darauf, dass <strong>Sie</strong> Spesen hinzufügen.`;
@@ -1735,8 +1771,6 @@ const translations: TranslationDeepObject<typeof en> = {
                 _eta?: string,
                 _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
             ) => {
-                // Disabling the default-case lint rule here is actually safer as this forces us to make the switch cases exhaustive
-                // eslint-disable-next-line default-case
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
                         return `Wartet darauf, dass <strong>Sie</strong> Spesen einreichen.`;
@@ -1758,8 +1792,6 @@ const translations: TranslationDeepObject<typeof en> = {
                 _eta?: string,
                 _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
             ) => {
-                // Disabling the default-case lint rule here is actually safer as this forces us to make the switch cases exhaustive
-                // eslint-disable-next-line default-case
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
                         return `Warten darauf, dass <strong>Sie</strong> ein Bankkonto hinzufügen.`;
@@ -1779,8 +1811,6 @@ const translations: TranslationDeepObject<typeof en> = {
                 if (eta) {
                     formattedETA = etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? `am ${eta} eines jeden Monats` : ` ${eta}`;
                 }
-                // Disabling the default-case lint rule here is actually safer as this forces us to make the switch cases exhaustive
-                // eslint-disable-next-line default-case
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
                         return `Warten darauf, dass <strong>Ihre</strong> Ausgaben automatisch eingereicht werden${formattedETA}.`;
@@ -1796,8 +1826,6 @@ const translations: TranslationDeepObject<typeof en> = {
                 _eta?: string,
                 _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
             ) => {
-                // Disabling the default-case lint rule here is actually safer as this forces us to make the switch cases exhaustive
-                // eslint-disable-next-line default-case
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
                         return `Warten auf <strong>Sie</strong>, um die Probleme zu beheben.`;
@@ -1813,8 +1841,6 @@ const translations: TranslationDeepObject<typeof en> = {
                 _eta?: string,
                 _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
             ) => {
-                // Disabling the default-case lint rule here is actually safer as this forces us to make the switch cases exhaustive
-                // eslint-disable-next-line default-case
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
                         return `Es wird darauf gewartet, dass <strong>Sie</strong> Spesen genehmigen.`;
@@ -1830,8 +1856,6 @@ const translations: TranslationDeepObject<typeof en> = {
                 _eta?: string,
                 _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
             ) => {
-                // Disabling the default-case lint rule here is actually safer as this forces us to make the switch cases exhaustive
-                // eslint-disable-next-line default-case
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
                         return `Warte darauf, dass <strong>Sie</strong> diesen Bericht exportieren.`;
@@ -1847,8 +1871,6 @@ const translations: TranslationDeepObject<typeof en> = {
                 _eta?: string,
                 _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
             ) => {
-                // Disabling the default-case lint rule here is actually safer as this forces us to make the switch cases exhaustive
-                // eslint-disable-next-line default-case
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
                         return `Wartet darauf, dass <strong>Sie</strong> Spesen bezahlen.`;
@@ -1864,8 +1886,6 @@ const translations: TranslationDeepObject<typeof en> = {
                 _eta?: string,
                 _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
             ) => {
-                // Disabling the default-case lint rule here is actually safer as this forces us to make the switch cases exhaustive
-                // eslint-disable-next-line default-case
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
                         return `Warten darauf, dass <strong>Sie</strong> die Einrichtung eines Geschäftskontos abschließen.`;
@@ -5743,6 +5763,7 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             reportFieldNameRequiredError: 'Bitte gib einen Berichtsfeldnamen ein',
             reportFieldTypeRequiredError: 'Bitte wähle einen Berichtsfeldtyp aus',
             circularReferenceError: 'Dieses Feld kann nicht auf sich selbst verweisen. Bitte aktualisieren.',
+            unsupportedFormulaValueError: ({value}: UnsupportedFormulaValueErrorParams) => `Formelfeld ${value} nicht erkannt`,
             reportFieldInitialValueRequiredError: 'Bitte wähle einen Anfangswert für ein Berichtsfeld aus',
             genericFailureMessage: 'Beim Aktualisieren des Berichtfelds ist ein Fehler aufgetreten. Bitte versuche es erneut.',
         },
@@ -6888,6 +6909,9 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                     [CONST.SPEND_RULES.CATEGORIES.TRANSIT_AND_RIDESHARE]: 'Öffentlicher Nahverkehr und Fahrgemeinschaften',
                     [CONST.SPEND_RULES.CATEGORIES.TRAVEL_AGENCIES]: 'Reisebüros',
                 },
+                editRuleTitle: 'Regel bearbeiten',
+                deleteRule: 'Regel löschen',
+                deleteRuleConfirmation: 'Sind Sie sicher, dass Sie diese Regel löschen möchten?',
             },
         },
         planTypePage: {
@@ -7387,8 +7411,6 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         updatedDefaultTitle: (newDefaultTitle: string, oldDefaultTitle: string) => `benutzerdefinierte Berichtstitelformel in „${newDefaultTitle}“ geändert (zuvor „${oldDefaultTitle}“)`,
         updatedOwnership: (oldOwnerEmail: string, oldOwnerName: string, policyName: string) => `hat die Inhaberschaft von ${policyName} von ${oldOwnerName} (${oldOwnerEmail}) übernommen`,
         updatedAutoHarvesting: (enabled: boolean) => `${enabled ? 'aktiviert' : 'deaktiviert'} geplante Einreichung`,
-        // This function requires 11 params to match the budget notification data model; reducing further would hurt readability
-        // eslint-disable-next-line @typescript-eslint/max-params
         updatedIndividualBudgetNotification: (
             budgetAmount: string,
             budgetFrequency: string,
@@ -8030,6 +8052,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         personalCard: 'Private Karte',
         companyCard: 'Firmenkarte',
         expensifyCard: 'Expensify Karte',
+        centralInvoicing: 'Zentrale Rechnungsstellung',
     },
     distance: {
         addStop: 'Stopp hinzufügen',
