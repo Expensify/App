@@ -287,7 +287,7 @@ function SearchList({
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout here because there is a race condition that causes shouldUseNarrowLayout to change indefinitely in this component
     // See https://github.com/Expensify/App/issues/48675 for more details
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
-    const {isSmallScreenWidth} = useResponsiveLayout();
+    const {isSmallScreenWidth, isLargeScreenWidth} = useResponsiveLayout();
 
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [longPressedItem, setLongPressedItem] = useState<SearchListItem>();
@@ -329,7 +329,7 @@ function SearchList({
     }, [data, groupBy, newTransactions]);
 
     const {windowWidth} = useWindowDimensions();
-    const minTableWidth = getTableMinWidth(columns);
+    const minTableWidth = getTableMinWidth(columns, queryJSON.type);
     const shouldScrollHorizontally = !!SearchTableHeader && minTableWidth > windowWidth;
 
     const horizontalScrollViewRef = useRef<RNScrollView>(null);
@@ -456,6 +456,8 @@ function SearchList({
                         newTransactionID={newTransactionID}
                         onUndelete={handleUndelete}
                         keyForList={item.keyForList}
+                        isFirstItem={index === 0}
+                        isLastItem={index === data.length - 1 && !ListFooterComponent}
                     />
                 </Animated.View>
             );
@@ -487,6 +489,7 @@ function SearchList({
             personalPolicyID,
             customCardNames,
             selectedTransactions,
+            ListFooterComponent,
             handleUndelete,
         ],
     );
@@ -498,7 +501,12 @@ function SearchList({
     const content = (
         <View style={[styles.flex1, !isKeyboardShown && safeAreaPaddingBottomStyle, containerStyle]}>
             {tableHeaderVisible && (
-                <View style={[styles.searchListHeaderContainerStyle, styles.listTableHeader]}>
+                <View
+                    style={[
+                        styles.searchListHeaderContainerStyle,
+                        isLargeScreenWidth ? [styles.listTableHeaderCompact, styles.searchListHeaderTableStyle, styles.mh5] : styles.listTableHeader,
+                    ]}
+                >
                     {canSelectMultiple && (
                         <Checkbox
                             accessibilityLabel={translate('accessibilityHints.selectAllItems')}
@@ -508,6 +516,7 @@ function SearchList({
                                 onAllCheckboxPress();
                             }}
                             disabled={totalItems === 0}
+                            containerStyle={styles.m0}
                             sentryLabel={CONST.SENTRY_LABEL.SEARCH.SELECT_ALL_CHECKBOX}
                         />
                     )}

@@ -10,7 +10,6 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -49,6 +48,7 @@ type ExpenseReportListItemRowProps = {
     isFocused?: boolean;
     isPendingDelete?: boolean;
     columns?: SearchColumnType[];
+    isLargeScreenWidth?: boolean;
 };
 
 function ExpenseReportListItemRow({
@@ -67,13 +67,14 @@ function ExpenseReportListItemRow({
     isHovered = false,
     isFocused = false,
     isPendingDelete = false,
+    isLargeScreenWidth = false,
 }: ExpenseReportListItemRowProps) {
     const StyleUtils = useStyleUtils();
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
-    const {isLargeScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
+    const shouldUseNarrowLayout = !isLargeScreenWidth;
     const policy = usePolicy(item.policyID);
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
 
@@ -141,6 +142,7 @@ function ExpenseReportListItemRow({
                         accountID={item.from.accountID}
                         avatar={item.from.avatar}
                         displayName={item.formattedFrom ?? ''}
+                        isLargeScreenWidth={isLargeScreenWidth}
                     />
                 )}
             </View>
@@ -152,12 +154,17 @@ function ExpenseReportListItemRow({
                         accountID={item.to.accountID}
                         avatar={item.to.avatar}
                         displayName={item.formattedTo ?? ''}
+                        isLargeScreenWidth={isLargeScreenWidth}
                     />
                 )}
             </View>
         ),
         [CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE_TOTAL]: (
-            <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TOTAL)]}>
+            <View
+                style={[
+                    StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE_TOTAL, {isAmountColumnWide: item.isAmountColumnWide, shouldRemoveTotalColumnFlex: true}),
+                ]}
+            >
                 <TotalCell
                     total={reimbursableSpend}
                     currency={currency}
@@ -166,7 +173,14 @@ function ExpenseReportListItemRow({
             </View>
         ),
         [CONST.SEARCH.TABLE_COLUMNS.NON_REIMBURSABLE_TOTAL]: (
-            <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TOTAL)]}>
+            <View
+                style={[
+                    StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.NON_REIMBURSABLE_TOTAL, {
+                        isAmountColumnWide: item.isAmountColumnWide,
+                        shouldRemoveTotalColumnFlex: true,
+                    }),
+                ]}
+            >
                 <TotalCell
                     total={nonReimbursableSpend}
                     currency={currency}
@@ -175,7 +189,7 @@ function ExpenseReportListItemRow({
             </View>
         ),
         [CONST.SEARCH.TABLE_COLUMNS.TOTAL]: (
-            <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TOTAL)]}>
+            <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TOTAL, {isAmountColumnWide: item.isAmountColumnWide, shouldRemoveTotalColumnFlex: true})]}>
                 <TotalCell
                     total={totalDisplaySpend}
                     currency={currency}
@@ -278,7 +292,7 @@ function ExpenseReportListItemRow({
                                     onPress={onCheckboxPress}
                                     isChecked={isSelectAllChecked}
                                     isIndeterminate={isIndeterminate}
-                                    containerStyle={[StyleUtils.getCheckboxContainerStyle(20), StyleUtils.getMultiselectListStyles(!!item.isSelected, !!item.isDisabled)]}
+                                    containerStyle={[StyleUtils.getCheckboxContainerStyle(20), StyleUtils.getMultiselectListStyles(!!item.isSelected, !!item.isDisabled), styles.m0]}
                                     disabled={isDisabledCheckbox}
                                     accessibilityLabel={item.text ?? ''}
                                     shouldStopMouseDownPropagation
@@ -323,18 +337,18 @@ function ExpenseReportListItemRow({
     }
 
     return (
-        <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, containerStyle]}>
-            <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap3, styles.pr2]}>
+        <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap3, containerStyle]}>
+            <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap3]}>
                 {!!canSelectMultiple && (
                     <Checkbox
                         onPress={onCheckboxPress}
                         isChecked={isSelectAllChecked}
                         isIndeterminate={isIndeterminate}
-                        containerStyle={[StyleUtils.getCheckboxContainerStyle(20), StyleUtils.getMultiselectListStyles(!!item.isSelected, !!item.isDisabled)]}
+                        containerStyle={[StyleUtils.getCheckboxContainerStyle(20), StyleUtils.getMultiselectListStyles(!!item.isSelected, !!item.isDisabled), styles.m0]}
                         disabled={isDisabledCheckbox}
                         accessibilityLabel={item.text ?? ''}
                         shouldStopMouseDownPropagation
-                        style={[styles.cursorUnset, StyleUtils.getCheckboxPressableStyle(), isDisabledCheckbox && styles.cursorDisabled, styles.mr1]}
+                        style={[styles.cursorUnset, StyleUtils.getCheckboxPressableStyle(), isDisabledCheckbox && styles.cursorDisabled]}
                         sentryLabel={CONST.SENTRY_LABEL.SEARCH.EXPENSE_REPORT_CHECKBOX}
                     />
                 )}
@@ -346,6 +360,7 @@ function ExpenseReportListItemRow({
                         shouldShowTooltip={showTooltip}
                         subscriptAvatarBorderColor={finalAvatarBorderColor}
                         reportID={item.reportID}
+                        isLargeScreenWidth={isLargeScreenWidth}
                     />
                 </View>
 
@@ -354,15 +369,13 @@ function ExpenseReportListItemRow({
                     return <Fragment key={column}>{CellComponent}</Fragment>;
                 })}
             </View>
-            <View style={styles.ml2}>
-                <Icon
-                    src={expensifyIcons.ArrowRight}
-                    width={variables.iconSizeNormal}
-                    height={variables.iconSizeNormal}
-                    fill={theme.icon}
-                    additionalStyles={!isHovered && styles.opacitySemiTransparent}
-                />
-            </View>
+            <Icon
+                src={expensifyIcons.ArrowRight}
+                width={variables.iconSizeNormal}
+                height={variables.iconSizeNormal}
+                fill={theme.icon}
+                additionalStyles={!isHovered && styles.opacitySemiTransparent}
+            />
         </View>
     );
 }

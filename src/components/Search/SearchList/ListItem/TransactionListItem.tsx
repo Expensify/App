@@ -30,7 +30,6 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {isAttendeeTrackingEnabled} from '@libs/PolicyUtils';
 import {isInvoiceReport} from '@libs/ReportUtils';
 import {isDeletedTransaction as isDeletedTransactionUtil, isViolationDismissed, mergeProhibitedViolations, shouldShowViolation} from '@libs/TransactionUtils';
-import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isActionLoadingSelector} from '@src/selectors/ReportMetaData';
@@ -56,12 +55,14 @@ function TransactionListItem<TItem extends ListItem>({
     customCardNames,
     lastPaymentMethod,
     personalPolicyID,
+    isLastItem,
     onUndelete,
 }: TransactionListItemProps<TItem>) {
     const transactionItem = item as unknown as TransactionListItemType;
     const isDeletedTransaction = isDeletedTransactionUtil(transactionItem);
     const styles = useThemeStyles();
     const theme = useTheme();
+    const StyleUtils = useStyleUtils();
 
     const {isLargeScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
     const {currentSearchHash, currentSearchKey, currentSearchResults} = useSearchStateContext();
@@ -108,14 +109,22 @@ function TransactionListItem<TItem extends ListItem>({
         styles.transactionListItemStyle,
         !isLargeScreenWidth && styles.pt3,
         item.isSelected && styles.activeComponentBG,
-        isLargeScreenWidth ? {...styles.flexRow, ...styles.justifyContentBetween, ...styles.alignItemsCenter} : {...styles.flexColumn, ...styles.alignItemsStretch},
+        isLargeScreenWidth
+            ? {
+                  ...styles.flexRow,
+                  ...styles.justifyContentBetween,
+                  ...styles.alignItemsCenter,
+                  ...StyleUtils.getSearchTableRowPressableStyle(!!isLastItem, item.isSelected),
+              }
+            : {...styles.flexColumn, ...styles.alignItemsStretch},
     ];
 
     const animatedHighlightStyle = useAnimatedHighlightStyle({
-        borderRadius: variables.componentBorderRadius,
+        borderRadius: StyleUtils.getSearchTableHighlightBorderRadius(isLargeScreenWidth),
         shouldHighlight: item?.shouldAnimateInHighlight ?? false,
         highlightColor: theme.messageHighlightBG,
         backgroundColor: theme.highlightBG,
+        shouldApplyOtherStyles: !isLargeScreenWidth,
     });
 
     const amountColumnSize = transactionItem.isAmountColumnWide ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL;
@@ -176,7 +185,6 @@ function TransactionListItem<TItem extends ListItem>({
         });
     };
 
-    const StyleUtils = useStyleUtils();
     const pressableRef = useRef<View>(null);
 
     useSyncFocus(pressableRef, !!isFocused, shouldSyncFocus);
@@ -202,7 +210,14 @@ function TransactionListItem<TItem extends ListItem>({
                     isDeletedTransaction && styles.cursorDefault,
                 ]}
                 onFocus={onFocus}
-                wrapperStyle={[styles.mb2, styles.mh5, styles.flex1, animatedHighlightStyle, styles.userSelectNone]}
+                wrapperStyle={[
+                    !isLargeScreenWidth && styles.mb2,
+                    styles.mh5,
+                    styles.flex1,
+                    animatedHighlightStyle,
+                    styles.userSelectNone,
+                    isLargeScreenWidth && isLastItem && [styles.searchTableBottomRadius, styles.overflowHidden],
+                ]}
             >
                 {({hovered}) => (
                     <>
@@ -223,6 +238,7 @@ function TransactionListItem<TItem extends ListItem>({
                             onButtonPress={handleActionButtonPress}
                             onCheckboxPress={() => onCheckboxPress?.(item)}
                             shouldUseNarrowLayout={!isLargeScreenWidth}
+                            isLargeScreenWidth={isLargeScreenWidth}
                             columns={columns}
                             isActionLoading={isLoading ?? isActionLoading}
                             isSelected={!!transactionItem.isSelected}
@@ -236,7 +252,7 @@ function TransactionListItem<TItem extends ListItem>({
                             taxAmountColumnSize={taxAmountColumnSize}
                             shouldShowCheckbox={!!canSelectMultiple}
                             checkboxSentryLabel={CONST.SENTRY_LABEL.SEARCH.TRANSACTION_LIST_ITEM_CHECKBOX}
-                            style={[styles.p3, styles.pv2, shouldUseNarrowLayout ? styles.pt2 : {}]}
+                            style={[styles.p3, styles.pv2, shouldUseNarrowLayout ? styles.pt2 : isLargeScreenWidth && styles.noBorderRadius]}
                             violations={transactionViolations}
                             onArrowRightPress={isDeletedTransaction ? undefined : () => onSelectRow(item, transactionPreviewData)}
                             isHover={hovered}

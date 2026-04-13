@@ -20,7 +20,6 @@ import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -147,6 +146,7 @@ type TransactionItemRowProps = {
     customCardNames?: Record<number, string>;
     reportActions?: ReportAction[];
     checkboxSentryLabel?: string;
+    isLargeScreenWidth?: boolean;
 };
 
 const EMPTY_ACTIVE_STYLE: StyleProp<ViewStyle> = [];
@@ -199,12 +199,13 @@ function TransactionItemRow({
     customCardNames,
     reportActions,
     checkboxSentryLabel,
+    isLargeScreenWidth: isLargeScreenWidthProp,
 }: TransactionItemRowProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const StyleUtils = useStyleUtils();
     const theme = useTheme();
-    const {isLargeScreenWidth} = useResponsiveLayout();
+    const isLargeScreenWidth = isLargeScreenWidthProp ?? !shouldUseNarrowLayout;
     const hasCategoryOrTag = !isCategoryMissing(transactionItem?.category) || !!transactionItem.tag;
     const createdAt = getTransactionCreated(transactionItem);
     const expensicons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
@@ -311,6 +312,7 @@ function TransactionItemRow({
                         <ReceiptCell
                             transactionItem={transactionItem}
                             isSelected={isSelected}
+                            shouldUseNarrowLayout={shouldUseNarrowLayout}
                         />
                     </View>
                 );
@@ -487,6 +489,7 @@ function TransactionItemRow({
                                 accountID={transactionItem.to.accountID}
                                 avatar={transactionItem.to.avatar}
                                 displayName={transactionItem.formattedTo ?? transactionItem.to.displayName ?? ''}
+                                isLargeScreenWidth={isLargeScreenWidth}
                             />
                         )}
                     </View>
@@ -502,6 +505,7 @@ function TransactionItemRow({
                                 accountID={transactionItem.from.accountID}
                                 avatar={transactionItem.from.avatar}
                                 displayName={transactionItem.formattedFrom ?? transactionItem.from.displayName ?? ''}
+                                isLargeScreenWidth={isLargeScreenWidth}
                             />
                         )}
                     </View>
@@ -703,6 +707,7 @@ function TransactionItemRow({
                                 accessibilityLabel={CONST.ROLE.CHECKBOX}
                                 isChecked={isSelected}
                                 style={styles.mr3}
+                                containerStyle={styles.m0}
                                 wrapperStyle={styles.justifyContentCenter}
                                 sentryLabel={checkboxSentryLabel}
                             />
@@ -711,6 +716,7 @@ function TransactionItemRow({
                             transactionItem={transactionItem}
                             isSelected={isSelected}
                             style={styles.mr3}
+                            shouldUseNarrowLayout={shouldUseNarrowLayout}
                         />
                         <View style={[styles.flex2, styles.flexColumn, styles.justifyContentEvenly]}>
                             <View style={[styles.flexRow, styles.alignItemsCenter, styles.minHeight5, styles.maxHeight5]}>
@@ -833,7 +839,7 @@ function TransactionItemRow({
                             }}
                             accessibilityLabel={CONST.ROLE.CHECKBOX}
                             isChecked={isSelected}
-                            style={styles.mr1}
+                            containerStyle={styles.m0}
                             wrapperStyle={styles.justifyContentCenter}
                             sentryLabel={checkboxSentryLabel}
                         />
@@ -855,7 +861,7 @@ function TransactionItemRow({
                             <PressableWithFeedback
                                 disabled={!!isDisabled}
                                 onPress={() => onArrowRightPress?.()}
-                                style={[styles.p3Half, styles.pl0half, styles.pr0half, styles.justifyContentCenter, styles.alignItemsEnd]}
+                                style={[styles.pv2, styles.justifyContentCenter, styles.alignItemsEnd]}
                                 accessibilityRole={CONST.ROLE.BUTTON}
                                 accessibilityLabel={CONST.ROLE.BUTTON}
                                 sentryLabel={CONST.SENTRY_LABEL.TRANSACTION_ITEM_ROW.ARROW_RIGHT}

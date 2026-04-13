@@ -68,7 +68,7 @@ function UserInfoAndActionButtonRow({
                     shouldUseArrowIcon={false}
                 />
             )}
-            <View style={[{width: isLargeScreenWidth ? variables.w80 : variables.w72}, styles.alignItemsEnd]}>
+            <View style={[{width: isLargeScreenWidth ? variables.w68 : variables.w72}, styles.alignItemsEnd]}>
                 <ActionCell
                     action={item.action}
                     onButtonPress={handleActionButtonPress}
