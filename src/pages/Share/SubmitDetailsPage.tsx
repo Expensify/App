@@ -11,6 +11,7 @@ import MoneyRequestConfirmationList from '@components/MoneyRequestConfirmationLi
 import ScreenWrapper from '@components/ScreenWrapper';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
@@ -42,6 +43,7 @@ import {hasOnlyPersonalPolicies as hasOnlyPersonalPoliciesUtil, isPaidGroupPolic
 import {shouldValidateFile} from '@libs/ReceiptUtils';
 import {getReportOrDraftReport, isSelfDM} from '@libs/ReportUtils';
 import {getDefaultTaxCode, getTaxValue} from '@libs/TransactionUtils';
+import DraftWorkspaceOpener from '@pages/iou/request/step/confirmation/DraftWorkspaceOpener';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -150,7 +152,10 @@ function SubmitDetailsPage({
     });
 
     const isPolicyExpenseChat = useMemo(() => participants?.some((participant) => participant.isPolicyExpenseChat), [participants]);
+    const policyExpenseChatPolicyID = participants?.find((participant) => participant.isPolicyExpenseChat)?.policyID;
+    const senderPolicyID = participants?.find((participant) => !!participant && 'isSender' in participant && participant.isSender)?.policyID;
     const iouType = isSelfDM(report) ? CONST.IOU.TYPE.TRACK : CONST.IOU.TYPE.SUBMIT;
+    const {isOffline} = useNetwork();
     const isCreatingTrackExpense = iouType === CONST.IOU.TYPE.TRACK;
 
     // Initialize billable/reimbursable from policy defaults (mirrors IOURequestStepConfirmation)
@@ -322,6 +327,14 @@ function SubmitDetailsPage({
     return (
         <ScreenWrapper testID="SubmitDetailsPage">
             <FullPageNotFoundView shouldShow={!reportOrAccountID}>
+                <DraftWorkspaceOpener
+                    isCreatingTrackExpense={isCreatingTrackExpense}
+                    policyID={policy?.id}
+                    policyPendingAction={policy?.pendingAction}
+                    policyExpenseChatPolicyID={policyExpenseChatPolicyID}
+                    senderPolicyID={senderPolicyID}
+                    isOffline={isOffline}
+                />
                 <HeaderWithBackButton
                     title={translate('iou.confirmDetails')}
                     onBackButtonPress={() => Navigation.goBack()}
