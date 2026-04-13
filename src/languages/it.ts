@@ -5273,7 +5273,7 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
             chooseCard: 'Scegli una carta',
             chooseCardFor: (assignee: string) =>
                 `Scegli una carta per <strong>${assignee}</strong>. Non riesci a trovare la carta che stai cercando? <concierge-link>Facci sapere.</concierge-link>`,
-            noAvailableCards: 'Tutte le carte hanno già una regola',
+            noActiveCards: 'Nessuna carta attiva in questo feed',
             somethingMightBeBroken:
                 '<muted-text><centered-text>Oppure potrebbe esserci un problema. In ogni caso, se hai domande, <concierge-link>contatta Concierge</concierge-link>.</centered-text></muted-text>',
             chooseTransactionStartDate: 'Scegli una data di inizio transazione',
@@ -5307,7 +5307,6 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
             },
             deletedCard: 'Carta eliminata',
             assignNewCards: {title: 'Assegna nuove carte', description: 'Ottieni le ultime carte da assegnare dalla tua banca'},
-            noAvailableCardsSubtitle: 'Modifica una regola della carta esistente per apportare modifiche',
         },
         expensifyCard: {
             issueAndManageCards: 'Emetti e gestisci le tue Carte Expensify',
@@ -6869,6 +6868,8 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                 confirmErrorApplyAtLeastOneSpendRule: 'Applica almeno una regola di spesa',
                 categories: 'Categorie',
                 merchants: 'Esercenti',
+                noAvailableCards: 'Tutte le carte hanno già una regola',
+                noAvailableCardsSubtitle: 'Modifica una regola carta esistente per apportare modifiche',
                 max: 'Massimo',
                 categoryOptions: {
                     [CONST.SPEND_RULES.CATEGORIES.AIRLINES]: 'Compagnie aeree',

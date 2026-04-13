@@ -5265,7 +5265,7 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
             chooseCard: 'Kies een kaart',
             chooseCardFor: (assignee: string) =>
                 `Kies een kaart voor <strong>${assignee}</strong>. Kun je de kaart die je zoekt niet vinden? <concierge-link>Laat het ons weten.</concierge-link>`,
-            noAvailableCards: 'Alle kaarten hebben al een regel',
+            noActiveCards: 'Geen actieve kaarten in deze feed',
             somethingMightBeBroken:
                 '<muted-text><centered-text>Of er er is iets kapot. Hoe dan ook, als je vragen hebt, <concierge-link>neem dan contact op met Concierge</concierge-link>.</centered-text></muted-text>',
             chooseTransactionStartDate: 'Kies een startdatum voor transacties',
@@ -5300,7 +5300,6 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
             },
             deletedCard: 'Verwijderde kaart',
             assignNewCards: {title: 'Nieuwe kaarten toewijzen', description: 'Haal de nieuwste kaarten op om toe te wijzen vanuit je bank'},
-            noAvailableCardsSubtitle: 'Bewerk een bestaande kaartregel om wijzigingen aan te brengen',
         },
         expensifyCard: {
             issueAndManageCards: 'Geef Expensify Kaarten uit en beheer ze',
@@ -6850,6 +6849,8 @@ Voeg meer bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 confirmErrorApplyAtLeastOneSpendRule: 'Pas minstens één bestedingsregel toe',
                 categories: 'Categorieën',
                 merchants: 'Handelaars',
+                noAvailableCards: 'Alle kaarten hebben al een regel',
+                noAvailableCardsSubtitle: 'Bewerk een bestaande kaartregel om wijzigingen aan te brengen',
                 max: 'Max',
                 categoryOptions: {
                     [CONST.SPEND_RULES.CATEGORIES.AIRLINES]: 'Luchtvaartmaatschappijen',
