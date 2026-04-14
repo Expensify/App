@@ -682,6 +682,41 @@ describe('handleStateChange integration', () => {
 
         expect(restoreTriggerForRoute('a')).toBe(false);
     });
+
+    it('should drop the stale entry after MAX_RESTORE_ATTEMPTS retries all fail', () => {
+        jest.useFakeTimers();
+        try {
+            simulateTab();
+            const hidden = document.createElement('div');
+            hidden.setAttribute('aria-hidden', 'true');
+            const trigger = document.createElement('button');
+            hidden.appendChild(trigger);
+            document.body.appendChild(hidden);
+            trigger.focus();
+            trigger.dispatchEvent(new FocusEvent('focusin', {bubbles: true}));
+
+            const onA = stackState(0, [{key: 'a', name: 'A'}]);
+            handleStateChange(onA);
+            const onAB = stackState(1, [
+                {key: 'a', name: 'A'},
+                {key: 'b', name: 'B'},
+            ]);
+            handleStateChange(onAB);
+            trigger.blur();
+            handleStateChange(onA);
+
+            // Trigger stays aria-hidden across all retry attempts — scheduleRestore gives up.
+            jest.runAllTimers();
+            const spy = jest.spyOn(trigger, 'focus');
+
+            // Sibling later clears aria-hidden; the entry must already be dropped.
+            hidden.removeAttribute('aria-hidden');
+            expect(restoreTriggerForRoute('a')).toBe(false);
+            expect(spy).not.toHaveBeenCalled();
+        } finally {
+            jest.useRealTimers();
+        }
+    });
 });
 
 describe('teardown / setup lifecycle', () => {

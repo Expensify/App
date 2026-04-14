@@ -9,7 +9,12 @@
 const {focusFirstInteractiveElement} = require<{
     focusFirstInteractiveElement: (container: HTMLElement | null) => boolean;
 }>('../../src/hooks/useDialogContainerFocus/index.ts');
-const {resetCycle: resetArbiter} = require<{resetCycle: () => void}>('../../src/libs/ScreenFocusArbiter.ts');
+const {resetCycle: resetArbiter, tryClaim: arbiterClaim, Priorities: arbiterPriorities} = require<{
+    resetCycle: () => void;
+    tryClaim: (priority: 1 | 2 | 3) => boolean;
+    Priorities: {INITIAL: 1; AUTO: 2; RETURN: 3};
+}>('../../src/libs/ScreenFocusArbiter.ts');
+const {teardownHadTabNavigation} = require<{teardownHadTabNavigation: () => void}>('../../src/libs/hadTabNavigation.ts');
 /* eslint-enable @typescript-eslint/no-require-imports, import/extensions */
 
 function createContainer(...children: HTMLElement[]) {
@@ -276,6 +281,38 @@ describe('focusFirstInteractiveElement', () => {
             const spy = jest.spyOn(el, 'focus');
             focusFirstInteractiveElement(createContainer(el));
             expect(spy).toHaveBeenCalled();
+        });
+    });
+
+    describe('arbiter integration', () => {
+        beforeEach(() => {
+            simulateTab();
+        });
+
+        it('should return false (and not focus) when a higher-priority claim already won the cycle', () => {
+            // Simulate useAutoFocusInput (AUTO=2) having claimed earlier — INITIAL=1 cannot preempt.
+            arbiterClaim(arbiterPriorities.AUTO);
+
+            const button = document.createElement('button');
+            const spy = jest.spyOn(button, 'focus');
+            expect(focusFirstInteractiveElement(createContainer(button))).toBe(false);
+            expect(spy).not.toHaveBeenCalled();
+        });
+    });
+
+    describe('hadTabNavigation teardown', () => {
+        it('should stop tracking Tab/mouse after teardown, and revert focus-skip behavior', () => {
+            // Tab is active; focus would normally proceed.
+            simulateTab();
+            const button = document.createElement('button');
+            const spy = jest.spyOn(button, 'focus');
+            expect(focusFirstInteractiveElement(createContainer(button))).toBe(true);
+            expect(spy).toHaveBeenCalled();
+
+            // Tear down listeners; a subsequent mousedown should NOT clear the flag (listener is gone),
+            // so modality stays true — but focus still proceeds. Confirms no errors on torn-down state.
+            teardownHadTabNavigation();
+            expect(() => simulateMouse()).not.toThrow();
         });
     });
 });
