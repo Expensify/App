@@ -1074,7 +1074,7 @@ function Search({
             if (isTransactionGroupListItemType(item) && !isTransactionReportGroupListItemType(item) && item.transactionsQueryJSON) {
                 handleSearch({
                     queryJSON: item.transactionsQueryJSON,
-                    searchKey: currentSearchKey,
+                    searchKey: undefined,
                     offset: 0,
                     shouldCalculateTotals: false,
                     isLoading: false,
