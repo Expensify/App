@@ -1,3 +1,4 @@
+import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import React, {useCallback, useMemo} from 'react';
 import type {OnyxCollection} from 'react-native-onyx';
 import useReportPreviewSenderID from '@components/ReportActionAvatars/useReportPreviewSenderID';
@@ -7,6 +8,7 @@ import useGetExpensifyCardFromReportAction from '@hooks/useGetExpensifyCardFromR
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import {isSubmitAndClose} from '@libs/PolicyUtils';
 import {getLastVisibleActionIncludingTransactionThread, getOriginalMessage, isActionableTrackExpense, isInviteOrRemovedAction} from '@libs/ReportActionsUtils';
 import {canUserPerformWriteAction as canUserPerformWriteActionUtil} from '@libs/ReportUtils';
 import SidebarUtils from '@libs/SidebarUtils';
@@ -116,6 +118,7 @@ function OptionRowLHNData({
     const [movedFromReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(lastAction, CONST.REPORT.MOVE_TYPE.FROM)}`);
     const [movedToReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(lastAction, CONST.REPORT.MOVE_TYPE.TO)}`);
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fullReport?.policyID}`);
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
 
     const card = useGetExpensifyCardFromReportAction({reportAction: lastAction, policyID: fullReport?.policyID});
 
@@ -154,6 +157,7 @@ function OptionRowLHNData({
         reportAttributesDerived,
         policyTags,
         currentUserLogin: login ?? '',
+        isTrackIntentUser,
     });
 
     // For single-sender IOUs, trim to the sender's avatar to match the header.
@@ -177,6 +181,7 @@ function OptionRowLHNData({
             report={fullReport}
             hasDraftComment={hasDraftComment}
             conciergeReportID={conciergeReportID}
+            isApprovalDisabledForReport={isSubmitAndClose(policy)}
         />
     );
 }

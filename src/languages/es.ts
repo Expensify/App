@@ -51,7 +51,9 @@ const translations: TranslationDeepObject<typeof en> = {
         save: 'Guardar',
         saveChanges: 'Guardar cambios',
         submit: 'Enviar',
+        markAsDone: 'Marcar como listo',
         submitted: 'Enviado',
+        markedAsDoneStatus: 'Marcado como listo',
         rotate: 'Rotar',
         zoom: 'Zoom',
         password: 'Contraseña',
@@ -777,6 +779,7 @@ const translations: TranslationDeepObject<typeof en> = {
         beginningOfChatHistory: (users) => `Este chat es con ${users}.`,
         beginningOfChatHistoryPolicyExpenseChat: (workspaceName, submitterDisplayName) =>
             `Aquí es donde <strong>${submitterDisplayName}</strong> enviará los gastos al espacio de trabajo <strong>${workspaceName}</strong>. Solo usa el botón +.`,
+        beginningOfChatHistoryPolicyExpenseChatTrack: 'Aquí es donde harás seguimiento de los gastos',
         beginningOfChatHistorySelfDM: 'Este es tu espacio personal. Úsalo para notas, tareas, borradores y recordatorios.',
         beginningOfChatHistorySystemDM: '¡Bienvenido! Vamos a configurar tu cuenta.',
         chatWithAccountManager: 'Chatea con tu gestor de cuenta aquí',
@@ -1270,6 +1273,7 @@ const translations: TranslationDeepObject<typeof en> = {
         sendInvoice: (amount) => `Enviar factura de ${amount}`,
         expenseAmount: (formattedAmount, comment) => `${formattedAmount}${comment ? ` para ${comment}` : ''}`,
         submitted: (memo) => `enviado${memo ? `, dijo ${memo}` : ''}`,
+        markedAsDone: (memo) => `marcado como listo${memo ? `, dijo ${memo}` : ''}`,
         automaticallySubmitted: `envió mediante <a href="${CONST.SELECT_WORKFLOWS_HELP_URL}">retrasar envíos</a>`,
         queuedToSubmitViaDEW: 'en cola para enviar a través del flujo de aprobación personalizado',
         failedToAutoSubmitViaDEW: (reason: string) => `no ha podido enviar este informe mediante <a href="${CONST.SELECT_WORKFLOWS_HELP_URL}">retrasar envíos</a>. ${reason}`,
@@ -1699,6 +1703,17 @@ const translations: TranslationDeepObject<typeof en> = {
                         return `Esperando a que <strong>${actor}</strong> envíe los gastos.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
                         return `Esperando a que un administrador envíe los gastos.`;
+                }
+            },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_MARK_AS_DONE]: (actor, actorType, _eta, _etaType) => {
+                // eslint-disable-next-line default-case
+                switch (actorType) {
+                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
+                        return `Esperando a que <strong>tú</strong> lo marques como listo.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
+                        return `Esperando a que <strong>${actor}</strong> lo marque como listo.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
+                        return `Esperando a que un administrador lo marque como listo.`;
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.NO_FURTHER_ACTION]: (_actor, _actorType, _eta, _etaType) => `¡No se requiere ninguna acción adicional!`,

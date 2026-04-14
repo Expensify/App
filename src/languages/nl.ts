@@ -124,7 +124,9 @@ const translations: TranslationDeepObject<typeof en> = {
         selectMultiple: 'Meerdere selecteren',
         saveChanges: 'Wijzigingen opslaan',
         submit: 'Verzenden',
+        markAsDone: 'Markeren als voltooid',
         submitted: 'Ingediend',
+        markedAsDoneStatus: 'Als voltooid gemarkeerd',
         rotate: 'Draaien',
         zoom: 'Zoom',
         password: 'Wachtwoord',
@@ -859,6 +861,7 @@ const translations: TranslationDeepObject<typeof en> = {
         beginningOfChatHistory: (users: string) => `Deze chat is met ${users}.`,
         beginningOfChatHistoryPolicyExpenseChat: (workspaceName: string, submitterDisplayName: string) =>
             `Dit is waar <strong>${submitterDisplayName}</strong> declaraties indient bij <strong>${workspaceName}</strong>. Gebruik gewoon de +-knop.`,
+        beginningOfChatHistoryPolicyExpenseChatTrack: 'Hier houd je je uitgaven bij',
         beginningOfChatHistorySelfDM: 'Dit is je persoonlijke ruimte. Gebruik het voor notities, taken, concepten en herinneringen.',
         beginningOfChatHistorySystemDM: 'Welkom! Laten we je instellen.',
         chatWithAccountManager: 'Chat hier met je accountmanager',
@@ -1335,6 +1338,7 @@ const translations: TranslationDeepObject<typeof en> = {
         sendInvoice: (amount: string) => `Verzend factuur van ${amount}`,
         expenseAmount: (formattedAmount: string, comment?: string) => `${formattedAmount}${comment ? `voor ${comment}` : ''}`,
         submitted: (memo?: string) => `ingediend${memo ? `, met de omschrijving ${memo}` : ''}`,
+        markedAsDone: (memo) => `gemarkeerd als voltooid${memo ? `, met als omschrijving ${memo}` : ''}`,
         automaticallySubmitted: `ingediend via <a href="${CONST.SELECT_WORKFLOWS_HELP_URL}">uitgestelde indieningen</a>`,
         queuedToSubmitViaDEW: 'in wachtrij om via aangepast goedkeuringsproces in te dienen',
         queuedToApproveViaDEW: 'in de wachtrij gezet voor goedkeuring via aangepaste goedkeuringsworkflow',
@@ -1769,6 +1773,21 @@ const translations: TranslationDeepObject<typeof en> = {
                         return `Wachten tot <strong>${actor}</strong> de onkosten indient.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
                         return `Wachten tot een beheerder de onkosten indient.`;
+                }
+            },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_MARK_AS_DONE]: (
+                actor: string,
+                actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
+                _eta?: string,
+                _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
+            ) => {
+                switch (actorType) {
+                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
+                        return `Er wordt gewacht tot <strong>jij</strong> dit als voltooid markeert.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
+                        return `Wachten tot <strong>${actor}</strong> dit als voltooid markeert.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
+                        return `Wachten tot een beheerder dit als voltooid markeert.`;
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.NO_FURTHER_ACTION]: (

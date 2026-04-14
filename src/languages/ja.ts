@@ -124,7 +124,9 @@ const translations: TranslationDeepObject<typeof en> = {
         selectMultiple: '複数選択',
         saveChanges: '変更を保存',
         submit: '送信',
+        markAsDone: '完了にする',
         submitted: '送信済み',
+        markedAsDoneStatus: '完了済み',
         rotate: '回転',
         zoom: 'ズーム',
         password: 'パスワード',
@@ -847,6 +849,7 @@ const translations: TranslationDeepObject<typeof en> = {
         beginningOfChatHistory: (users: string) => `このチャットの相手は${users}です。`,
         beginningOfChatHistoryPolicyExpenseChat: (workspaceName: string, submitterDisplayName: string) =>
             `ここは<strong>${submitterDisplayName}</strong>さんが<strong>${workspaceName}</strong>に経費精算を提出する場所です。+ボタンを押すだけでOKです。`,
+        beginningOfChatHistoryPolicyExpenseChatTrack: 'ここは経費を管理する場所です',
         beginningOfChatHistorySelfDM: 'ここはあなたの個人スペースです。メモ、タスク、下書き、リマインダーに活用してください。',
         beginningOfChatHistorySystemDM: 'ようこそ！設定を始めましょう。',
         chatWithAccountManager: 'ここでアカウントマネージャーとチャットする',
@@ -1319,6 +1322,7 @@ const translations: TranslationDeepObject<typeof en> = {
         sendInvoice: (amount: string) => `${amount} の請求書を送信`,
         expenseAmount: (formattedAmount: string, comment?: string) => `${formattedAmount}${comment ? `${comment}用` : ''}`,
         submitted: (memo?: string) => `送信済み${memo ? `、メモ: ${memo}` : ''}`,
+        markedAsDone: (memo) => `完了としてマークしました${memo ? `（メモ：${memo}）` : ''}`,
         automaticallySubmitted: `<a href="${CONST.SELECT_WORKFLOWS_HELP_URL}">提出の延期</a> 経由で提出されました`,
         queuedToSubmitViaDEW: 'カスタム承認ワークフローで提出待ち',
         queuedToApproveViaDEW: 'カスタム承認ワークフローで承認待ちに設定されました',
@@ -1753,6 +1757,21 @@ const translations: TranslationDeepObject<typeof en> = {
                         return `<strong>${actor}</strong> が経費を提出するのを待機しています。`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
                         return `管理者が経費を送信するのを待っています。`;
+                }
+            },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_MARK_AS_DONE]: (
+                actor: string,
+                actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
+                _eta?: string,
+                _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
+            ) => {
+                switch (actorType) {
+                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
+                        return `<strong>あなた</strong>が完了にするのを待っています。`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
+                        return `<strong>${actor}</strong>が完了にするのを待っています。`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
+                        return `管理者が完了にするのを待っています。`;
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.NO_FURTHER_ACTION]: (

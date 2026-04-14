@@ -124,7 +124,9 @@ const translations: TranslationDeepObject<typeof en> = {
         selectMultiple: '多选',
         saveChanges: '保存更改',
         submit: '提交',
+        markAsDone: '标记为完成',
         submitted: '已提交',
+        markedAsDoneStatus: '已标记为完成',
         rotate: '旋转',
         zoom: '缩放',
         password: '密码',
@@ -835,6 +837,7 @@ const translations: TranslationDeepObject<typeof en> = {
         beginningOfChatHistory: (users: string) => `此聊天对象为 ${users}。`,
         beginningOfChatHistoryPolicyExpenseChat: (workspaceName: string, submitterDisplayName: string) =>
             `这是 <strong>${submitterDisplayName}</strong> 向 <strong>${workspaceName}</strong> 提交报销的地方。只需使用“+”按钮即可。`,
+        beginningOfChatHistoryPolicyExpenseChatTrack: '在这里跟踪你的报销费用',
         beginningOfChatHistorySelfDM: '这是你的个人空间。可在此记录笔记、任务、草稿和提醒事项。',
         beginningOfChatHistorySystemDM: '欢迎！让我们帮你完成设置。',
         chatWithAccountManager: '在这里与您的客户经理聊天',
@@ -1295,6 +1298,7 @@ const translations: TranslationDeepObject<typeof en> = {
         sendInvoice: (amount: string) => `发送 ${amount} 发票`,
         expenseAmount: (formattedAmount: string, comment?: string) => `${formattedAmount}${comment ? `用于 ${comment}` : ''}`,
         submitted: (memo?: string) => `已提交${memo ? `，备注为 ${memo}` : ''}`,
+        markedAsDone: (memo) => `标记为已完成${memo ? `，说明：${memo}` : ''}`,
         automaticallySubmitted: `通过<a href="${CONST.SELECT_WORKFLOWS_HELP_URL}">延迟提交</a>提交`,
         queuedToSubmitViaDEW: '已排队，待通过自定义审批流程提交',
         queuedToApproveViaDEW: '已排队，等待通过自定义审批流程批准',
@@ -1717,6 +1721,21 @@ const translations: TranslationDeepObject<typeof en> = {
                         return `正在等待<strong>${actor}</strong>提交报销。`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
                         return `正在等待管理员提交报销。`;
+                }
+            },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_MARK_AS_DONE]: (
+                actor: string,
+                actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
+                _eta?: string,
+                _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
+            ) => {
+                switch (actorType) {
+                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
+                        return `正在等待<strong>你</strong>标记为完成。`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
+                        return `正在等待<strong>${actor}</strong>标记为完成。`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
+                        return `正在等待管理员标记为完成。`;
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.NO_FURTHER_ACTION]: (

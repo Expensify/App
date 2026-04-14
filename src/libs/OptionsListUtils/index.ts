@@ -34,6 +34,7 @@ import {
     getSubmitToAccountID,
     hasDynamicExternalWorkflow,
     isCurrentUserMemberOfAnyPolicy,
+    isSubmitAndClose,
     isTimeTrackingEnabled,
 } from '@libs/PolicyUtils';
 import {
@@ -619,6 +620,7 @@ function getLastMessageTextForReport({
     policyTags,
     currentUserLogin,
     conciergeReportID,
+    isTrackIntentUser = false,
 }: {
     translate: LocalizedTranslate;
     report: OnyxEntry<Report>;
@@ -636,6 +638,7 @@ function getLastMessageTextForReport({
     currentUserLogin?: string;
     // TODO: conciergeReportID will be required eventually. Refactor issue: https://github.com/Expensify/App/issues/66411
     conciergeReportID?: string;
+    isTrackIntentUser?: boolean;
 }): string {
     const reportID = report?.reportID;
     const canUserPerformWrite = canUserPerformWriteAction(report, isReportArchived);
@@ -783,7 +786,10 @@ function getLastMessageTextForReport({
         } else if (hasPendingDEWSubmit(reportMetadata, isDEWPolicy) && isPendingAdd) {
             lastMessageTextFromReport = translate('iou.queuedToSubmitViaDEW');
         } else {
-            lastMessageTextFromReport = translate('iou.submitted', getOriginalMessage(lastReportAction)?.message);
+            lastMessageTextFromReport =
+                isTrackIntentUser && isSubmitAndClose(policy)
+                    ? translate('iou.markedAsDone', getOriginalMessage(lastReportAction)?.message)
+                    : translate('iou.submitted', getOriginalMessage(lastReportAction)?.message);
         }
     } else if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.APPROVED)) {
         const {automaticAction} = getOriginalMessage(lastReportAction) ?? {};
