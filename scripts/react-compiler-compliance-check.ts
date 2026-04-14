@@ -316,7 +316,10 @@ async function main() {
 }
 
 if (require.main === module) {
-    main();
+    main().catch((error: unknown) => {
+        logError('Unexpected error:', error);
+        process.exit(1);
+    });
 }
 
 export {checkReactCompilerCompliance};
