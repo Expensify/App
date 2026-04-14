@@ -20,7 +20,6 @@ import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import {showCameraPermissionsAlert} from '@libs/fileDownload/FileUtils';
 import getPhotoSource from '@libs/fileDownload/getPhotoSource';
 import getReceiptsUploadFolderPath from '@libs/getReceiptsUploadFolderPath';
@@ -53,7 +52,6 @@ function AttachmentCamera({isVisible, onCapture, onClose}: AttachmentCameraProps
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
-    const {windowWidth, windowHeight} = useWindowDimensions();
     const isInLandscapeMode = useIsInLandscapeMode();
     const insets = useSafeAreaInsets();
     const lazyIcons = useMemoizedLazyExpensifyIcons(['Bolt', 'boltSlash', 'CameraFlip', 'Close']);
@@ -72,7 +70,6 @@ function AttachmentCamera({isVisible, onCapture, onClose}: AttachmentCameraProps
     const format = useCameraFormat(device, [
         {photoAspectRatio: CONST.RECEIPT_CAMERA.PHOTO_ASPECT_RATIO},
         {photoResolution: {width: CONST.RECEIPT_CAMERA.PHOTO_WIDTH, height: CONST.RECEIPT_CAMERA.PHOTO_HEIGHT}},
-        {videoResolution: {width: windowHeight, height: windowWidth}},
     ]);
     const cameraAspectRatio = format ? format.photoHeight / format.photoWidth : undefined;
     const hasFlash = !!device?.hasFlash;
