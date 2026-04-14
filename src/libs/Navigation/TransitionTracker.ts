@@ -1,3 +1,4 @@
+import Log from '@libs/Log';
 import CONST from '@src/CONST';
 
 type CancelHandle = {cancel: () => void};
@@ -28,12 +29,17 @@ let promiseForNextTransitionStart = new Promise<void>((resolve) => {
 
 /**
  * Invokes and removes all pending callbacks.
+ * Each callback is isolated so that one exception does not prevent the rest from running.
  */
 function flushCallbacks(): void {
     const callbacks = pendingCallbacks;
     pendingCallbacks = [];
     for (const callback of callbacks) {
-        callback();
+        try {
+            callback();
+        } catch (error) {
+            Log.warn('[TransitionTracker] A pending callback threw an error', {error});
+        }
     }
 }
 
