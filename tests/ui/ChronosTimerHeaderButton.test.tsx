@@ -146,21 +146,16 @@ describe('ChronosTimerHeaderButton', () => {
         jest.clearAllMocks();
     });
 
-    it('renders the Start Timer button', async () => {
+    it('should send a start timer command when the main button is pressed', async () => {
+        // Given a rendered ChronosTimerHeaderButton
         renderComponent();
         await waitForBatchedUpdates();
 
-        expect(screen.getByText('Start Timer')).toBeOnTheScreen();
-    });
-
-    it('calls addComment when the main Start Timer button is pressed', async () => {
-        renderComponent();
+        // When the main "Start Timer" button is pressed
+        fireEvent.press(screen.getByText('Start Timer'));
         await waitForBatchedUpdates();
 
-        const startTimerButton = screen.getByText('Start Timer');
-        fireEvent.press(startTimerButton);
-        await waitForBatchedUpdates();
-
+        // Then addComment is called with the start timer command
         expect(mockAddComment).toHaveBeenCalledTimes(1);
         expect(mockAddComment).toHaveBeenCalledWith(
             expect.objectContaining({
@@ -170,38 +165,21 @@ describe('ChronosTimerHeaderButton', () => {
         );
     });
 
-    it('shows both Start Timer and Schedule OOO options in the dropdown menu', async () => {
+    it('should send a start timer command when Start Timer is selected from the dropdown menu', async () => {
+        // Given a rendered ChronosTimerHeaderButton
         renderComponent();
         await waitForBatchedUpdates();
 
-        // Open the dropdown menu
+        // When the dropdown is opened and "Start Timer" is selected
         fireEvent.press(getDropdownArrowButton());
         await waitForBatchedUpdates();
-
-        // Both options should be visible in the popover
-        await waitFor(() => {
-            expect(screen.getByTestId('PopoverMenuItem-Start Timer')).toBeOnTheScreen();
-            expect(screen.getByTestId('PopoverMenuItem-Schedule OOO')).toBeOnTheScreen();
-        });
-    });
-
-    it('calls addComment when Start Timer is selected from the dropdown menu', async () => {
-        renderComponent();
-        await waitForBatchedUpdates();
-
-        // Open the dropdown menu
-        fireEvent.press(getDropdownArrowButton());
-        await waitForBatchedUpdates();
-
-        // Wait for the popover menu to appear
         await waitFor(() => {
             expect(screen.getByTestId('PopoverMenuItem-Start Timer')).toBeOnTheScreen();
         });
-
-        // Press the "Start Timer" menu item in the dropdown
         fireEvent.press(screen.getByTestId('PopoverMenuItem-Start Timer'));
         await waitForBatchedUpdates();
 
+        // Then addComment is called with the start timer command
         expect(mockAddComment).toHaveBeenCalledTimes(1);
         expect(mockAddComment).toHaveBeenCalledWith(
             expect.objectContaining({
@@ -211,23 +189,21 @@ describe('ChronosTimerHeaderButton', () => {
         );
     });
 
-    it('navigates to Schedule OOO when the option is selected from dropdown', async () => {
+    it('should navigate to Schedule OOO when the option is selected from the dropdown menu', async () => {
+        // Given a rendered ChronosTimerHeaderButton
         renderComponent();
         await waitForBatchedUpdates();
 
-        // Open the dropdown menu
+        // When the dropdown is opened and "Schedule OOO" is selected
         fireEvent.press(getDropdownArrowButton());
         await waitForBatchedUpdates();
-
-        // Wait for the popover menu to appear
         await waitFor(() => {
             expect(screen.getByTestId('PopoverMenuItem-Schedule OOO')).toBeOnTheScreen();
         });
-
-        // Press the "Schedule OOO" menu item
         fireEvent.press(screen.getByTestId('PopoverMenuItem-Schedule OOO'));
         await waitForBatchedUpdates();
 
+        // Then Navigation.navigate is called with the Schedule OOO route
         expect(mockNavigate).toHaveBeenCalledTimes(1);
         expect(mockNavigate).toHaveBeenCalledWith(`r/${TEST_REPORT_ID}/chronos/schedule-ooo`);
     });
