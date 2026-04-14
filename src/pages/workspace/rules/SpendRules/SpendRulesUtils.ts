@@ -1,3 +1,4 @@
+import type {OnyxCollection} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import {convertToBackendAmount, convertToDisplayString} from '@libs/CurrencyUtils';
@@ -6,6 +7,7 @@ import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {SpendRuleForm} from '@src/types/form';
 import {isSpendRuleCategory} from '@src/types/form/SpendRuleForm';
+import type {ExpensifyCardSettings} from '@src/types/onyx';
 import type {ExpensifyCardRule, ExpensifyCardRuleFilter} from '@src/types/onyx/ExpensifyCardSettings';
 
 function isSpendRuleASTNode(value: unknown): value is ExpensifyCardRuleFilter {
@@ -158,6 +160,24 @@ function getSpendRuleFormValuesFromCardRule(cardRule: ExpensifyCardRule): SpendR
     return formValues;
 }
 
+type SpendRuleMatchByCardID = {
+    ruleID: string;
+    formValues: SpendRuleForm;
+};
+
+function getSpendRuleByCardID(expensifyCardSettingsCollection: OnyxCollection<ExpensifyCardSettings> | undefined, cardID: string): SpendRuleMatchByCardID[] {
+    return Object.values(expensifyCardSettingsCollection ?? {}).flatMap((settings) =>
+        Object.entries(settings?.cardRules ?? {}).flatMap(([ruleID, rule]) => {
+            const formValues = getSpendRuleFormValuesFromCardRule(rule);
+            if (!formValues?.cardIDs?.includes(cardID)) {
+                return [];
+            }
+
+            return [{ruleID, formValues}];
+        }),
+    );
+}
+
 const MAX_SUMMARY_CHARS = 74;
 
 type MoreCountFormatter = (summary: string, count: number) => string;
@@ -222,5 +242,5 @@ function getSpendRuleSummaryParts(formValues: SpendRuleForm, selectedCurrency: s
     return summaryParts;
 }
 
-export {buildSpendRuleAST, getParentRoute, getSpendRuleFormValuesFromCardRule, getSpendRuleSummaryParts, getTruncatedSpendRuleSummary};
-export type {SpendRuleSummaryPart};
+export {buildSpendRuleAST, getParentRoute, getSpendRuleByCardID, getSpendRuleFormValuesFromCardRule, getSpendRuleSummaryParts, getTruncatedSpendRuleSummary};
+export type {SpendRuleMatchByCardID, SpendRuleSummaryPart};

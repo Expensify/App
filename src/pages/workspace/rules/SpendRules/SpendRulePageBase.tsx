@@ -22,14 +22,13 @@ import {rand64} from '@libs/NumberUtils';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
-import {getSpendRuleFormValuesFromCardRule} from './SpendRulesUtils';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {SpendRuleCategory} from '@src/types/form/SpendRuleForm';
 import SpendRuleRestrictionTypeToggle from './SpendRuleRestrictionTypeToggle';
-import {getTruncatedSpendRuleSummary} from './SpendRulesUtils';
+import {getSpendRuleFormValuesFromCardRule, getTruncatedSpendRuleSummary} from './SpendRulesUtils';
 
 type SpendRulePageBaseProps = {
     policyID: string;
