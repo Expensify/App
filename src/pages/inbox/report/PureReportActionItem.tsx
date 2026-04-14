@@ -977,6 +977,8 @@ function PureReportActionItem({
                             isRestrictedToPreferredPolicy,
                             preferredPolicyID,
                             transaction: trackExpenseTransaction,
+                            currentUserAccountID: personalDetail.accountID,
+                            currentUserEmail: personalDetail.email ?? '',
                         });
                     },
                 },
@@ -999,6 +1001,8 @@ function PureReportActionItem({
                                 amountOwed,
                                 ownerBillingGracePeriodEnd,
                                 transaction: trackExpenseTransaction,
+                                currentUserAccountID: personalDetail.accountID,
+                                currentUserEmail: personalDetail.email ?? '',
                             });
                         },
                     },
@@ -1017,6 +1021,8 @@ function PureReportActionItem({
                                 amountOwed,
                                 ownerBillingGracePeriodEnd,
                                 transaction: trackExpenseTransaction,
+                                currentUserAccountID: personalDetail.accountID,
+                                currentUserEmail: personalDetail.email ?? '',
                             });
                         },
                     },
