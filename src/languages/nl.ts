@@ -2112,6 +2112,9 @@ const translations: TranslationDeepObject<typeof en> = {
             helpSite: 'Helppagina',
             conciergeChat: 'Concierge',
             conciergeChatDescription: 'Je persoonlijke AI-agent',
+            accountManagerDescription: 'Je accountmanager',
+            partnerManagerDescription: 'Je partnerbeheerder',
+            guideDescription: 'Je instelspecialist',
         },
     },
     closeAccountPage: {
