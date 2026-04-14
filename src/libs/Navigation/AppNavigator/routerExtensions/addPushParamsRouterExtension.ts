@@ -46,6 +46,11 @@ function isPopAction(action: PushParamsRouterAction): boolean {
  * SearchFullscreenNavigator. It may break if new screens are added to that navigator or if
  * other structural changes are made to the navigation hierarchy.
  */
+// Position cursor for PUSH_PARAMS history — needed because duplicate compounds (A → B → A) make
+// lastIndex ambiguous when classifying a RESET as back / forward / non-history nav. Singleton
+// because SearchFullscreenNavigator is the sole consumer of this extension.
+let pushParamsHistoryPosition = -1;
+
 function addPushParamsRouterExtension<RouterOptions extends PlatformStackRouterOptions = PlatformStackRouterOptions>(
     originalRouter: PlatformStackRouterFactory<ParamListBase, RouterOptions>,
 ) {
@@ -84,7 +89,9 @@ function addPushParamsRouterExtension<RouterOptions extends PlatformStackRouterO
                 const lastRoute = stateWithUpdatedParams.routes.at(-1);
 
                 if (lastRoute) {
-                    return {...stateWithUpdatedParams, history: [...stateWithUpdatedParams.history, lastRoute]};
+                    const newHistory = [...stateWithUpdatedParams.history, lastRoute];
+                    pushParamsHistoryPosition = newHistory.length - 1;
+                    return {...stateWithUpdatedParams, history: newHistory};
                 }
 
                 return stateWithUpdatedParams;
@@ -122,6 +129,7 @@ function addPushParamsRouterExtension<RouterOptions extends PlatformStackRouterO
                             if (lastRoute.key) {
                                 notifyPushParamsBackward(lastRoute.key, targetParams);
                             }
+                            pushParamsHistoryPosition = Math.max(pushParamsHistoryPosition - 1, 0);
 
                             return {
                                 ...state,
@@ -168,30 +176,29 @@ function addPushParamsRouterExtension<RouterOptions extends PlatformStackRouterO
             // PUSH_PARAMS snapshots. Preserve history entries for routes that still exist
             // in the rehydrated state (which may have added routes, e.g. for wide layout).
             if (action.type === CONST.NAVIGATION.ACTION_TYPE.RESET && state.history) {
-                // RESET (not GO_BACK) handles popstate. Notify only when new params live earlier in history than current — otherwise it's forward nav.
-                const oldFocused = state.routes.at(-1);
+                // RESET handles popstate. Only entries at position±1 are adjacent browser nav; non-adjacent jumps are forward URL nav (skip).
                 const newFocused = rehydratedState.routes.at(-1);
-                if (oldFocused?.key && newFocused?.key && oldFocused.key === newFocused.key) {
-                    const oldCompound = compoundParamsKey(oldFocused.key, oldFocused.params);
+                if (newFocused?.key) {
+                    const history = state.history as CustomHistoryEntry[];
+                    if (pushParamsHistoryPosition < 0) {
+                        pushParamsHistoryPosition = history.length - 1;
+                    }
                     const newCompound = compoundParamsKey(newFocused.key, newFocused.params);
-                    if (oldCompound !== newCompound) {
-                        let oldIndex = -1;
-                        let newIndex = -1;
-                        const history = state.history as CustomHistoryEntry[];
-                        for (const [idx, entry] of history.entries()) {
-                            if (typeof entry === 'string' || entry.key !== newFocused.key) {
-                                continue;
-                            }
-                            const compound = compoundParamsKey(entry.key, entry.params);
-                            if (compound === oldCompound) {
-                                oldIndex = idx;
-                            } else if (compound === newCompound) {
-                                newIndex = idx;
-                            }
+                    const matchAt = (idx: number) => {
+                        if (idx < 0 || idx >= history.length) {
+                            return false;
                         }
-                        if (newIndex >= 0 && newIndex < oldIndex) {
-                            notifyPushParamsBackward(newFocused.key, newFocused.params);
+                        const entry = history.at(idx);
+                        if (typeof entry === 'string' || !entry || entry.key !== newFocused.key) {
+                            return false;
                         }
+                        return compoundParamsKey(entry.key, entry.params) === newCompound;
+                    };
+                    if (matchAt(pushParamsHistoryPosition - 1)) {
+                        notifyPushParamsBackward(newFocused.key, newFocused.params);
+                        pushParamsHistoryPosition -= 1;
+                    } else if (matchAt(pushParamsHistoryPosition + 1)) {
+                        pushParamsHistoryPosition += 1;
                     }
                 }
 

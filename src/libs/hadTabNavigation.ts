@@ -16,6 +16,10 @@ function setup(): void {
             hadTabNavigation = true;
             return;
         }
+        // Modifier-key shortcuts (Cmd/Ctrl/Alt + key) are navigation, not typing — preserve modality.
+        if (e.ctrlKey || e.metaKey || e.altKey) {
+            return;
+        }
         // Printable chars (not space) + Backspace/Delete clear; everything else preserves.
         const isTypingKey = (e.key.length === 1 && e.key !== ' ') || e.key === 'Backspace' || e.key === 'Delete';
         if (isTypingKey) {
