@@ -6664,7 +6664,7 @@ ${reportName}
                 currencyMismatchTitle: '货币不匹配',
                 currencyMismatchPrompt: '若要设置最高金额，请选择以相同货币结算的卡片。',
                 reviewSelectedCards: '检查所选卡片',
-                summaryMoreCount: ({summary, count}) => count > 0 ? `${summary}，还有 +${count} 个` : summary,
+                summaryMoreCount: ({summary, count}) => (count > 0 ? `${summary}，还有 +${count} 个` : summary),
                 confirmErrorApplyAtLeastOneSpendRuleToOneCard: '至少将一条支出规则应用到一张卡上',
                 confirmErrorCardRequired: '“卡”是必填字段',
                 confirmErrorApplyAtLeastOneSpendRule: '至少应用一条支出规则',

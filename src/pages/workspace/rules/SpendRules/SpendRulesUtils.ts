@@ -249,12 +249,16 @@ function getSpendRuleSummaryParts(formValues: SpendRuleForm, selectedCurrency: s
 function getSpendRuleSummaryText(formValues: SpendRuleForm, cardCurrency: string | undefined, translate: LocalizedTranslate) {
     const action = formValues.restrictionAction;
     const merchantSummary = formValues.merchantNames
-        ? getTruncatedSpendRuleSummary(formValues.merchantNames, (merchants, hiddenCount, shownCount) => translate('workspace.rules.spendRules.summaryMerchants', {merchants, hiddenCount, shownCount, action}))
+        ? getTruncatedSpendRuleSummary(formValues.merchantNames, (merchants, hiddenCount, shownCount) =>
+              translate('workspace.rules.spendRules.summaryMerchants', {merchants, hiddenCount, shownCount, action}),
+          )
         : undefined;
     const categoryNames = formValues.categories.map((category) => translate(`workspace.rules.spendRules.categoryOptions.${category}`));
     const categorySummary =
         categoryNames.length > 0
-            ? getTruncatedSpendRuleSummary(categoryNames, (categories, hiddenCount, shownCount) => translate('workspace.rules.spendRules.summaryCategories', {categories, hiddenCount, shownCount, action}))
+            ? getTruncatedSpendRuleSummary(categoryNames, (categories, hiddenCount, shownCount) =>
+                  translate('workspace.rules.spendRules.summaryCategories', {categories, hiddenCount, shownCount, action}),
+              )
             : undefined;
     const amountSummary =
         formValues.maxAmount.trim() !== ''
