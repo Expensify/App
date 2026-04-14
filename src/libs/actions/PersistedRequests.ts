@@ -67,7 +67,7 @@ Onyx.connectWithoutView({
             }
         }
 
-        if (!isInitialized && persistedRequests.length > 0) {
+        if (!isInitialized && (persistedRequests.length > 0 || !!ongoingRequest)) {
             Log.info('[PersistedRequests] Triggering initialization callback', false);
             triggerInitializationCallback();
         }
@@ -87,6 +87,11 @@ Onyx.connectWithoutView({
             diskValue: val?.command ?? 'null',
             changed: previousOngoingRequest !== ongoingRequest,
         });
+
+        if (isInitialized && ongoingRequest && previousOngoingRequest !== ongoingRequest) {
+            Log.info('[PersistedRequests] Triggering initialization callback from ongoing request', false);
+            triggerInitializationCallback();
+        }
     },
 });
 
@@ -228,9 +233,7 @@ function updateOngoingRequest<TKey extends OnyxKey>(newRequest: Request<TKey>) {
     Log.info('[PersistedRequests] Updating the ongoing request', false, {ongoingRequest, newRequest});
     ongoingRequest = newRequest as AnyRequest;
 
-    if (newRequest.persistWhenOngoing) {
-        Onyx.set(ONYXKEYS.PERSISTED_ONGOING_REQUESTS, newRequest as AnyRequest);
-    }
+    Onyx.set(ONYXKEYS.PERSISTED_ONGOING_REQUESTS, newRequest as AnyRequest);
 }
 
 function processNextRequest(): AnyRequest | null {
@@ -270,16 +273,13 @@ function processNextRequest(): AnyRequest | null {
         newQueueLength: persistedRequests.length,
     });
 
-    if (ongoingRequest && ongoingRequest.persistWhenOngoing) {
-        Log.info('[PersistedRequests] Persisting ongoingRequest to disk', false, {
-            command: ongoingRequest.command,
-        });
-        Onyx.set(ONYXKEYS.PERSISTED_ONGOING_REQUESTS, ongoingRequest);
-    } else {
-        Log.info('[PersistedRequests] NOT persisting ongoingRequest to disk (persistWhenOngoing=false)', false, {
-            command: ongoingRequest?.command ?? 'null',
-        });
-    }
+    Log.info('[PersistedRequests] Persisting queue transition to disk', false, {
+        command: ongoingRequest?.command ?? 'null',
+    });
+    Onyx.multiSet({
+        [ONYXKEYS.PERSISTED_REQUESTS]: persistedRequests,
+        [ONYXKEYS.PERSISTED_ONGOING_REQUESTS]: ongoingRequest,
+    });
 
     return ongoingRequest;
 }
@@ -313,6 +313,11 @@ function rollbackOngoingRequest() {
         rolledBackCommand: requestToRollback.command,
         newQueueLength: persistedRequests.length,
         ongoingRequestCleared: true,
+    });
+
+    Onyx.multiSet({
+        [ONYXKEYS.PERSISTED_REQUESTS]: persistedRequests,
+        [ONYXKEYS.PERSISTED_ONGOING_REQUESTS]: null,
     });
 }
 

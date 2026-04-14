@@ -6,6 +6,7 @@ import {
     endRequestAndRemoveFromQueue as endPersistedRequestAndRemoveFromQueue,
     getAll as getAllPersistedRequests,
     getCommands,
+    getOngoingRequest as getPersistedOngoingRequest,
     onInitialization as onPersistedRequestsInitialization,
     processNextRequest as processNextPersistedRequest,
     rollbackOngoingRequest as rollbackOngoingPersistedRequest,
@@ -133,13 +134,15 @@ function process(): Promise<void> {
     }
 
     const persistedRequests = getAllPersistedRequests();
+    const ongoingRequest = getPersistedOngoingRequest();
 
     Log.info('[SequentialQueue] process() called', false, {
         persistedRequestsLength: persistedRequests.length,
+        hasOngoingRequest: !!ongoingRequest,
         isSequentialQueueRunning,
     });
 
-    if (persistedRequests.length === 0) {
+    if (persistedRequests.length === 0 && !ongoingRequest) {
         Log.info('[SequentialQueue] Unable to process. No requests to process.');
         return Promise.resolve();
     }
@@ -281,23 +284,26 @@ function flush(shouldResetPromise = true) {
     }
 
     const currentPersistedRequests = getAllPersistedRequests();
+    const currentOngoingRequest = getPersistedOngoingRequest();
     const persistedRequestsLength = currentPersistedRequests.length;
     const hasOnyxUpdates = !isEmpty();
 
     Log.info('[SequentialQueue] flush() called', false, {
         shouldResetPromise,
         persistedRequestsLength,
+        hasOngoingRequest: !!currentOngoingRequest,
         hasQueuedOnyxUpdates: hasOnyxUpdates,
         isClientTheLeader: isClientTheLeader(),
     });
 
-    if (persistedRequestsLength === 0 && !hasOnyxUpdates) {
+    if (persistedRequestsLength === 0 && !currentOngoingRequest && !hasOnyxUpdates) {
         Log.info('[SequentialQueue] Unable to flush. No requests or queued Onyx updates to process.');
         return;
     }
 
     Log.info('[SequentialQueue] Checking if client is leader', false, {
         persistedRequestsLength,
+        hasOngoingRequest: !!currentOngoingRequest,
         hasOnyxUpdates,
     });
 
@@ -306,12 +312,14 @@ function flush(shouldResetPromise = true) {
     if (!isClientTheLeader()) {
         Log.info('[SequentialQueue] Unable to flush. Client is not the leader.', false, {
             persistedRequestsLength,
+            hasOngoingRequest: !!currentOngoingRequest,
         });
         return;
     }
 
     Log.info('[SequentialQueue] Starting queue processing', false, {
         persistedRequestsLength,
+        hasOngoingRequest: !!currentOngoingRequest,
         persistedCommands: getCommands(currentPersistedRequests),
     });
 
@@ -392,18 +400,20 @@ function unpause() {
     }
 
     const currentPersistedRequests = getAllPersistedRequests();
+    const currentOngoingRequest = getPersistedOngoingRequest();
     const numberOfPersistedRequests = currentPersistedRequests.length;
     const persistedCommands = getCommands(currentPersistedRequests);
 
     Log.info('[SequentialQueue] Unpausing the queue', false, {
         numberOfPersistedRequests,
+        hasOngoingRequest: !!currentOngoingRequest,
         persistedCommands,
     });
 
     isQueuePaused = false;
 
     // If there are no persisted requests, we need to flush the Onyx updates queue
-    if (numberOfPersistedRequests === 0) {
+    if (numberOfPersistedRequests === 0 && !currentOngoingRequest) {
         Log.info('[SequentialQueue] No persisted requests, flushing Onyx updates queue');
         flushOnyxUpdatesQueue();
     }
