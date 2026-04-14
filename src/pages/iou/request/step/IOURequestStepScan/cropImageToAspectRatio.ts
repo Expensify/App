@@ -81,7 +81,7 @@ function cropImageToAspectRatio(
         .catch(() => image);
 }
 
-const THUMBNAIL_MAX_WIDTH = 256;
+const THUMBNAIL_MAX_WIDTH = 512;
 /**
  * Generate a low-resolution thumbnail from an image URI.
  * Used on native to avoid decoding the full 12MP camera photo on the confirmation page.
