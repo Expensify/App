@@ -1,107 +1,133 @@
 ---
-title: Connect a Business Bank Account
-description: How to connect a business bank account to New Expensify in supported currencies (USD, CAD, GBP, EUR, AUD).
-keywords: [New Expensify, business bank account, verified business bank account, send reimbursement, micro transactions, test deposits, verification amounts, bank verification, share bank account, share business bank account]
+title: Connect a US Business Bank Account
+description: Learn how to connect and verify a US business bank account in Expensify for reimbursements, Expensify Card payments, and invoice payouts.
+keywords: [New Expensify, business bank account, connect bank account, verified business bank account, reimbursement, Expensify Card, Plaid, Wallet, workspace payments, link bank account, ACH]
+internalScope: Audience is Workspace Admins. Covers connecting a new US business bank account from a workspace or Wallet, and linking an existing one to a workspace for reimbursements. Does not cover validating test transactions, sharing, unsharing, or unlocking a business bank account.
 ---
 
-<div id="new-expensify" markdown="1">
+# Connect a US Business Bank Account
 
-You can connect a business bank account in **New Expensify** using the following supported currencies: **USD, CAD, GBP, EUR, and AUD**.
+You can connect a US business bank account from **Wallet**, or from a Workspace if you are a Workspace Admin. Once connected, you can use the bank account for reimbursements, Expensify Card payments, and invoice payouts.
 
-Follow the steps below to connect your business bank account and enable payment features.
+This article covers connecting US bank accounts only. If your business bank account is based outside the United States, [learn how to connect an international business bank account](/articles/new-expensify/wallet-and-payments/Enable-Global-Reimbursement). 
 
 ---
 
-# How to connect and verify a business bank account
+## Who can connect a US business bank account
 
-## Step 1: Enable Make or Track Payments
+- Any member can connect a US business bank account in **Wallet**. 
+- Workspace Admins can connect a business bank account to a Workspace.
+- The member who sets up the account and all beneficial owners must have a physical US address, a US photo ID, and a US SSN.
 
-1. Click **Workspaces** in the navigation tabs.
-2. Navigate to **[Workspace Name] > More Features**.
-3. Click **Enable Workflows**.
-4. A **Workflows** setting will appear in the left-hand menu.
-5. Click **Workflows** and enable **Make or Track Payments**.
+To connect a business bank account, the Workspace must have Workflows enabled. [Learn how to enable Workflows](/articles/new-expensify/workspaces/Workspace-Workflows#enable-workflows).
 
-![Enable workflows from the more features page]({{site.url}}/assets/images/Help-ConnectBusinessBankAccount-1.png){:width="100%"}
+---
+
+## How to add a new US business bank account in Wallet
+
+1. In the navigation tabs (on the left on web, on the bottom on mobile), click **Account > Wallet**. 
+2. Click **Add bank account**.
+3. Select **Make payments**.
+4. Choose the country where your bank is located.
+5. Select **Log into your bank** (preferred) or **Connect manually**.
+6. Complete the identity verification, company details, and Beneficial Owner steps described below.
+
+<!-- SCREENSHOT:
+Suggestion: Wallet page showing Add bank account button and the Make payments option
+Location: After step 3
+Purpose: Shows the new Wallet entry point for business bank accounts
+-->
+
+---
+
+## How to connect a new US business bank account in a Workspace
+
+1. In the navigation tabs (on the left on web, on the bottom on mobile)**,** click **Workspace > [Workspace name]**.
+2. Select **Workflows**.
+3. Enable **Payments**.
+4. In the **Payments** section, select **Add bank account**.
+5. Select **Log into your bank** (preferred) or **Connect manually**.
+6. Enter your bank details.
+7. Complete the identity verification, company details, and Beneficial Owner steps described below.
+
+If your business bank account already exists in Expensify, an admin with access can share it with you instead. Learn how to [share a business bank account](/articles/new-expensify/wallet-and-payments/Share-a-Business-Bank-Account).
+
+<!-- SCREENSHOT:
+Suggestion: Update current screenshots
+-->
 
 ![Workflows screen with Connect Bank Account button]({{site.url}}/assets/images/Help-ConnectBusinessBankAccount-2.png){:width="100%"}
 
 ---
 
-## Step 2: Connect your business bank account
+## How to link an existing business bank account to a workspace
 
-1. Click **Connect Bank Account**.
-2. Select either **Connect online with Plaid (preferred)** or **Connect manually**.
-3. Enter your bank details.
-
-**Note:** If your business bank account already exists in Expensify, an admin with access can **share it with you** — no need to complete the setup process again. [Learn how to share a business bank account](https://help.expensify.com/articles/new-expensify/wallet-and-payments/Share-a-Business-Bank-Account).
+If you already have a verified business bank account, you can share it to another workspace without needing to add it again. [Learn how to share a business bank account](/articles/new-expensify/wallet-and-payments/Share-a-Business-Bank-Account). 
 
 ---
 
-## Step 3: Verify your identity with a U.S.-issued photo ID
+## How to verify your identity with a US-issued photo ID
 
-After entering your personal details, you’ll be prompted to complete identity verification:
-1. Upload a photo of the **front and back** of your ID (**cannot be a photo of an existing image**).
-2. Use your device to take a **selfie** and record a **short video** of yourself.
+After entering your personal details, complete identity verification:
 
-**Your ID must be:**
-- Issued in the **US**
-- Current (**expiration date must be in the future**)
+1. Upload a photo of the **front and back** of your ID. The photo cannot be a photo of an existing image.
+2. Take a **selfie** and record a **short video** of yourself.
 
----
-
-## Step 4: Add company details for bank account verification
-
-Add your company details, including:
-- **Company Address:** Must be a **physical** US location (**PO Boxes or mail drop addresses will be flagged for review and may delay verification**).
-- **Tax Identification Number (TIN):** Assigned by the **IRS**.
-- **Company Website:** Required to access most **Expensify payment features**.
-- **Industry Classification Code:** Find the list of codes [here](https://www.census.gov/naics/?input=software&year=2022).
+Your ID must be issued in the US with an expiration date in the future.
 
 ---
 
-## Step 5: Add Beneficial Owner details (if applicable)
+## How to add company details for bank account verification
 
-1. Check the appropriate box under **Beneficial Owner**:
-   - A **Beneficial Owner** is an **individual** who owns **25% or more** of the business.
-   - If no individual owns **25% or more**, leave both boxes **unchecked**.
-2. Accept the agreement terms and verify that all details are **true and accurate**.
+Provide the following company information:
 
----
-
-## Step 6: Wait for documentation review
-
-In some cases, Concierge may request additional documents (e.g., business address verification or a bank letter). If this happens, Concierge will follow up directly.
+1. **Company address** — Must be a physical US address. PO Boxes or mail drop addresses will be flagged for review and may delay verification.
+2. **Tax Identification Number (TIN)** — Assigned by the IRS.
+3. **Company website** — Required to access most Expensify payment features.
+4. **Industry Classification Code** — Find the list of codes at [census.gov/naics](https://www.census.gov/naics/?input=software&year=2022).
 
 ---
 
-## Step 7: Watch for the test transaction message
+## How to add Beneficial Owner details
 
-Once your account is nearly ready, you’ll see the message: **“Your bank account is almost set up!”**
-
-This means Expensify has sent **three test transactions** (usually arriving within 1–2 business days). You’ll need these to complete setup.
+1. Check the appropriate box under **Beneficial Owner**. A Beneficial Owner is an individual who owns 25% or more of the business. If no individual owns 25% or more, leave both boxes unchecked.
+2. Accept the agreement terms and verify that all details are true and accurate.
 
 ---
 
-## Step 8: Validate the test transactions
+## What to expect after submitting your bank account details
 
-1. Return to **Settings > Workspaces > [Workspace Name] > Workflows > Payments**.
-2. Click **Enter test transactions**.
-3. Input the **three exact amounts** and click **Validate**.
+After you submit your details:
 
-Once validated, your **verified business bank account** is fully connected and ready to use.
+1. **Documentation review** — In some cases, Concierge may request additional documents such as business address verification or a bank letter. Concierge will follow up directly if needed.
+2. **Test transactions** — Once your account is nearly ready, you'll see the message **"Your bank account is almost set up!"** This means Expensify has sent three test transactions, which usually arrive within 1–2 business days.
+3. **Validation** — Enter the three exact amounts to complete setup. Learn how to [validate a business bank account](/articles/new-expensify/wallet-and-payments/Validate-a-Business-Bank-Account).
+
+---
+
+## How business bank accounts appear in Wallet
+
+Once connected, your business bank account appears in **Account > Wallet**. If you have both personal and business bank accounts, Wallet separates them into **Personal bank accounts** and **Business bank accounts** sections.
+
+Partially set-up accounts display an **Action required** badge. Click the account row to resume setup from where you left off.
+
+<!-- SCREENSHOT:
+Suggestion: Wallet page showing separate Personal and Business bank account sections, with an Action required badge on a partially set-up account
+Location: After the paragraph
+Purpose: Shows the new Wallet layout with separated sections and status badges
+-->
 
 ---
 
 # FAQ
 
-## What are the general requirements for adding a business bank account?
-To add a **business bank account** for **ACH reimbursements (US) or Expensify Cards**:
-- Enter a **physical address** for yourself, any **Beneficial Owner** (if applicable), and the **business**.
-- **US photo ID, address, and SSN** are required for all individuals associated with the account.
+## What are the general requirements for adding a US business bank account?
 
-## Are there certain industries or businesses for which Expensify cannot process automatic, in-app payments?
-Yes, Expensify cannot process direct payments for businesses in the following industries:
+To add a business bank account for ACH reimbursements or the Expensify Card, enter a physical address for yourself, any Beneficial Owner (if applicable), and the business. A US photo ID, US address, and US SSN are required for all individuals associated with the account.
+
+## Which industries does Expensify not support for direct payments?
+
+Expensify cannot process direct payments for businesses in the following industries:
 
 - Security Brokers & Dealers
 - Dating & Escort Services
@@ -119,28 +145,33 @@ Yes, Expensify cannot process direct payments for businesses in the following in
 - NFT (non-fungible token) services
 
 ## What is a Beneficial Owner?
-A **Beneficial Owner** is an **individual** who owns **25% or more** of the business. If no individual meets this threshold, you do **not** need to list a **Beneficial Owner**.
+
+A Beneficial Owner is an individual who owns 25% or more of the business. If no individual meets this threshold, you do not need to list a Beneficial Owner.
 
 ## What if my business is owned by another company?
-Please only check the Beneficial Owner box if an individual owns 25% or more of the business.
 
-## Why can’t I input my address or upload my ID?
-All individuals associated with the account must have a **US address, US photo ID, and a US SSN**. If you do not meet these requirements, an **admin who qualifies** should add the bank account.
+Only check the Beneficial Owner box if an individual owns 25% or more of the business.
+
+## Why can't I input my address or upload my ID?
+
+All individuals associated with the account must have a US address, US photo ID, and a US SSN. If you do not meet these requirements, an admin who qualifies should add the bank account instead.
 
 ## Why am I asked for documents when adding my bank account?
-Expensify follows **federal regulations (BSA / AML laws)** and anti-fraud measures. If automatic verification fails, we may request manual verification (e.g., address verification, bank ownership letter, etc.). Contact **Concierge** for assistance.
 
-## I don’t see all three microtransactions I need to validate my bank account. What should I do?
-Wait **two business days**. If still missing, contact your **bank** and ask them to whitelist our **ACH IDs:**
+Expensify follows federal regulations (BSA/AML laws) and anti-fraud measures. If automatic verification fails, Expensify may request manual verification such as address verification or a bank ownership letter. Contact Concierge for assistance.
+
+## What should I do if I don't see all three test transactions?
+
+Wait two business days. If the transactions still haven't arrived, contact your bank and ask them to whitelist the following ACH IDs:
+
 - **1270239450**
 - **4270239450**
 - **2270239450**
 
-Expensify’s **ACH Originator Name**: **Expensify**.
+ACH Originator Name: **Expensify**
 
-Once completed, contact **Concierge** to re-trigger the microtransactions.
+Once completed, contact Concierge to re-trigger the test transactions.
 
-## Is my data safe?
-Yes! Expensify uses **bank-level security measures** and is **tested daily** by **McAfee**. Learn more about our security policies [here](https://help.expensify.com/articles/new-expensify/settings/Encryption-and-Data-Security).
+## How does Expensify protect my data?
 
-</div>
+Expensify uses bank-level security measures. Learn more about [Expensify's security policies](/articles/new-expensify/settings/Encryption-and-Data-Security).

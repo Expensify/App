@@ -56,6 +56,7 @@ import type {
     StepCounterParams,
     SyncStageNameConnectionsParams,
     UnshareParams,
+    UnsupportedFormulaValueErrorParams,
     UpdatedBudgetParams,
     UpdatedPolicyApprovalRuleParams,
     UpdatedPolicyCategoryMaxAmountNoReceiptParams,
@@ -1014,8 +1015,6 @@ const translations: TranslationDeepObject<typeof en> = {
                 sunglassesDescription: 'Hora de relaxar, mas fique atento ao que vem por aí!',
                 f1FlagsTitle: 'Tudo em dia',
                 f1FlagsDescription: 'Você concluiu todas as tarefas pendentes.',
-                fireworksTitle: 'Tudo em dia',
-                fireworksDescription: 'As próximas tarefas aparecerão aqui.',
             },
         },
         upcomingTravel: 'Próximas viagens',
@@ -1367,6 +1366,44 @@ const translations: TranslationDeepObject<typeof en> = {
         paidWithExpensify: (payer?: string) => `${payer ? `${payer} ` : ''}pago com carteira`,
         automaticallyPaidWithExpensify: (payer?: string) =>
             `${payer ? `${payer} ` : ''}pagos com Expensify via <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">regras do workspace</a>`,
+        reimbursedThisReport: 'reembolsou este relatório',
+        paidThisBill: 'pagou esta conta',
+        reimbursedOnBehalfOf: (actor: string) => `em nome de ${actor}`,
+        reimbursedFromBankAccount: (debitBankAccount: string) => `da conta bancária com final ${debitBankAccount}`,
+        reimbursedSubmitterAddedBankAccount: (submitter: string) => `${submitter} adicionou uma conta bancária, retirando o relatório da suspensão. O reembolso foi iniciado`,
+        reimbursedWithFastACH: ({
+            isCurrentUser,
+            submitterLogin,
+            creditBankAccount,
+            expectedDate,
+        }: {
+            isCurrentUser: boolean;
+            submitterLogin: string;
+            creditBankAccount: string;
+            expectedDate: string;
+        }) =>
+            isCurrentUser
+                ? `. O dinheiro está a caminho da sua ${creditBankAccount ? `conta bancária terminada em ${creditBankAccount}` : 'conta'}. Reembolso previsto para ser concluído em ${expectedDate}.`
+                : `. O dinheiro está a caminho da conta bancária de ${submitterLogin}${creditBankAccount ? ` terminada em ${creditBankAccount}` : ''}. Reembolso com conclusão estimada em ${expectedDate}.`,
+        reimbursedWithCheck: ' por cheque.',
+        reimbursedWithStripeConnect: ({
+            isCurrentUser,
+            submitterLogin,
+            creditBankAccount,
+            isCard,
+        }: {
+            isCurrentUser: boolean;
+            submitterLogin: string;
+            creditBankAccount: string;
+            isCard: boolean;
+        }) => {
+            const paymentMethod = isCard ? 'cartão' : 'conta bancária';
+            return isCurrentUser
+                ? `. O dinheiro está a caminho da sua ${creditBankAccount ? `conta bancária terminada em ${creditBankAccount}` : 'conta'} (pago via ${paymentMethod}). Isso pode levar até 10 dias úteis.`
+                : `. O dinheiro está a caminho da conta bancária de ${submitterLogin}${creditBankAccount ? ` terminada em ${creditBankAccount}` : ''} (pago via ${paymentMethod}). Isso pode levar até 10 dias úteis.`;
+        },
+        reimbursedWithACH: ({creditBankAccount, expectedDate}: {creditBankAccount?: string; expectedDate?: string}) =>
+            ` com depósito direto (ACH)${creditBankAccount ? ` para a conta bancária terminada em ${creditBankAccount}.` : '. '}${expectedDate ? `O reembolso está previsto para ser concluído até ${expectedDate}.` : 'Geralmente isso leva de 4 a 5 dias úteis.'}`,
         noReimbursableExpenses: 'Este relatório tem um valor inválido',
         pendingConversionMessage: 'O total será atualizado quando você voltar a ficar online',
         changedTheExpense: 'alterou a despesa',
@@ -4520,7 +4557,7 @@ ${amount} para ${merchant} - ${date}`,
                     [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Despesas reembolsáveis serão exportadas quando pagas',
                 },
             },
-            travelInvoicing: 'Faturamento de Viagens',
+            travelInvoicing: 'Exportar contas a pagar de viagens do Expensify para',
             travelInvoicingVendor: 'Fornecedor de viagens',
             travelInvoicingPayableAccount: 'Conta a pagar de viagens',
         },
@@ -5220,7 +5257,7 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
             chooseCard: 'Escolha um cartão',
             chooseCardFor: (assignee: string) =>
                 `Escolha um cartão para <strong>${assignee}</strong>. Não encontra o cartão que está procurando? <concierge-link>Conte para a gente.</concierge-link>`,
-            noActiveCards: 'Nenhum cartão ativo neste feed',
+            noActiveCards: 'Não há cartões ativos neste feed',
             somethingMightBeBroken:
                 '<muted-text><centered-text>Ou talvez algo esteja com problema. De qualquer forma, se tiver alguma dúvida, é só <concierge-link>entrar em contato com a Concierge</concierge-link>.</centered-text></muted-text>',
             chooseTransactionStartDate: 'Escolha uma data de início da transação',
@@ -5694,6 +5731,7 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
             reportFieldNameRequiredError: 'Insira um nome de campo de relatório',
             reportFieldTypeRequiredError: 'Escolha um tipo de campo de relatório',
             circularReferenceError: 'Este campo não pode fazer referência a si mesmo. Atualize, por favor.',
+            unsupportedFormulaValueError: ({value}: UnsupportedFormulaValueErrorParams) => `Campo de fórmula ${value} não reconhecido`,
             reportFieldInitialValueRequiredError: 'Escolha um valor inicial para o campo de relatório',
             genericFailureMessage: 'Ocorreu um erro ao atualizar o campo do relatório. Tente novamente.',
         },
@@ -6809,6 +6847,8 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                 confirmErrorApplyAtLeastOneSpendRule: 'Aplicar pelo menos uma regra de gasto',
                 categories: 'Categorias',
                 merchants: 'Comerciantes',
+                noAvailableCards: 'Todos os cartões já têm uma regra',
+                noAvailableCardsSubtitle: 'Edite uma regra de cartão existente para fazer alterações',
                 max: 'Máx.',
                 categoryOptions: {
                     [CONST.SPEND_RULES.CATEGORIES.AIRLINES]: 'Companhias aéreas',
@@ -7825,6 +7865,21 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
         oooEventSummaryPartialDay: (summary: string, timePeriod: string, date: string) => `${summary} de ${timePeriod} em ${date}`,
         startTimer: 'Iniciar cronômetro',
         stopTimer: 'Parar cronômetro',
+        scheduleOOO: 'Agendar ausência',
+        scheduleOOOTitle: 'Agendar ausência do escritório',
+        date: 'Data',
+        time: 'Horário (formato de 24 horas)',
+        durationAmount: 'Duração',
+        durationUnit: 'Unidade',
+        reason: 'Motivo',
+        workingPercentage: 'Porcentagem de trabalho',
+        dateRequired: 'A data é obrigatória.',
+        invalidTimeFormat: 'Insira um horário válido no formato 24 horas (por exemplo, 14:30).',
+        enterANumber: 'Insira um número.',
+        hour: 'horas',
+        day: 'dias',
+        week: 'semanas',
+        month: 'meses',
     },
     footer: {
         features: 'Recursos',
@@ -7970,6 +8025,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
         personalCard: 'Cartão pessoal',
         companyCard: 'Cartão corporativo',
         expensifyCard: 'Cartão Expensify',
+        centralInvoicing: 'Faturamento centralizado',
     },
     distance: {
         addStop: 'Adicionar parada',

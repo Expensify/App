@@ -76,19 +76,35 @@ function HomePage() {
                         {!shouldUseNarrowLayout && <QuickCreationActionsBar />}
                         <View style={styles.homePageMainLayout(shouldUseNarrowLayout)}>
                             {/* Widgets handle their own visibility and may return null to avoid duplicating visibility logic here */}
-                            <View style={styles.homePageLeftColumn(shouldUseNarrowLayout)}>
-                                <TimeSensitiveSection />
-                                <ForYouSection />
-                                <SpendOverTimeSection />
-                                <DiscoverSection />
-                            </View>
-                            <View style={styles.homePageRightColumn(shouldUseNarrowLayout)}>
-                                <FreeTrialSection />
-                                <GettingStartedSection />
-                                <UpcomingTravelSection />
-                                <AssignedCardsSection />
-                                <AnnouncementSection />
-                            </View>
+                            {shouldUseNarrowLayout ? (
+                                <>
+                                    <FreeTrialSection />
+                                    <TimeSensitiveSection />
+                                    <GettingStartedSection />
+                                    <ForYouSection />
+                                    <UpcomingTravelSection />
+                                    <AssignedCardsSection />
+                                    <SpendOverTimeSection />
+                                    <DiscoverSection />
+                                    <AnnouncementSection />
+                                </>
+                            ) : (
+                                <>
+                                    <View style={styles.homePageLeftColumn}>
+                                        <TimeSensitiveSection />
+                                        <ForYouSection />
+                                        <SpendOverTimeSection />
+                                        <DiscoverSection />
+                                    </View>
+                                    <View style={styles.homePageRightColumn}>
+                                        <FreeTrialSection />
+                                        <GettingStartedSection />
+                                        <UpcomingTravelSection />
+                                        <AssignedCardsSection />
+                                        <AnnouncementSection />
+                                    </View>
+                                </>
+                            )}
                         </View>
                     </ScrollView>
                     {shouldDisplayLHB && <NavigationTabBar selectedTab={NAVIGATION_TABS.HOME} />}
