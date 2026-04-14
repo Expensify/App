@@ -1,12 +1,16 @@
 import {Str} from 'expensify-common';
-import React, {useCallback, useEffect, useMemo, useRef} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {View} from 'react-native';
+import FormHelpMessage from '@components/FormHelpMessage';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import YesNoStep from '@components/SubStepForms/YesNoStep';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type NonUSDPageProps from '@pages/ReimbursementAccount/NonUSD/types';
+import getCurrencyForNonUSDBankAccount from '@pages/ReimbursementAccount/NonUSD/utils/getCurrencyForNonUSDBankAccount';
 import getDraftValuesForSignerInfo from '@pages/ReimbursementAccount/NonUSD/utils/getDraftValuesForSignerInfo';
 import getSignerDetailsAndSignerFilesForSignerInfo from '@pages/ReimbursementAccount/NonUSD/utils/getSignerDetailsAndSignerFilesForSignerInfo';
 import {askForCorpaySignerInformation, clearReimbursementAccountSaveCorpayOnboardingDirectorInformation, saveCorpayOnboardingDirectorInformation} from '@userActions/BankAccounts';
@@ -27,20 +31,21 @@ const {OWNS_MORE_THAN_25_PERCENT, COMPANY_NAME, SIGNER_FULL_NAME} = INPUT_IDS.AD
 
 function SignerInfo({onBackButtonPress, onSubmit, stepNames, currentSubPage, backTo}: NonUSDPageProps) {
     const {translate} = useLocalize();
-    const {isProduction} = useEnvironment();
+    const styles = useThemeStyles();
+    const {isProduction, environmentURL} = useEnvironment();
 
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const policyID = reimbursementAccount?.achData?.policyID;
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
-    const country = reimbursementAccountDraft?.[INPUT_IDS.ADDITIONAL_DATA.COUNTRY] ?? reimbursementAccount?.achData?.[INPUT_IDS.ADDITIONAL_DATA.COUNTRY] ?? '';
-    const currency = policy?.outputCurrency ?? reimbursementAccountDraft?.currency ?? CONST.BBA_COUNTRY_CURRENCY_MAP[country] ?? '';
+    const {currency} = getCurrencyForNonUSDBankAccount(policy, reimbursementAccountDraft, reimbursementAccount);
     const isUserOwner = reimbursementAccount?.achData?.corpay?.[OWNS_MORE_THAN_25_PERCENT] ?? reimbursementAccountDraft?.[OWNS_MORE_THAN_25_PERCENT] ?? false;
     const companyName = reimbursementAccount?.achData?.corpay?.[COMPANY_NAME] ?? reimbursementAccountDraft?.[COMPANY_NAME] ?? '';
     const bankAccountID = reimbursementAccount?.achData?.bankAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const isUserDirector = reimbursementAccountDraft?.isUserDirector ?? false;
     const shouldSendOnlySecondSignerEmail = currency === CONST.CURRENCY.AUD && isUserDirector;
+    const [showNoPolicyError, setShowNoPolicyError] = useState(false);
 
     const primaryLogin = account?.primaryLogin ?? '';
     // Corpay does not accept emails with a "+" character and will not let us connect account at the end of whole flow
@@ -123,6 +128,10 @@ function SignerInfo({onBackButtonPress, onSubmit, stepNames, currentSubPage, bac
 
     const handleIsDirectorSelected = useCallback(
         (value: boolean) => {
+            if (!policyID && !value) {
+                setShowNoPolicyError(true);
+                return;
+            }
             setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {isUserDirector: value});
             if (value) {
                 const firstFormPage = isUserOwner ? SUB_PAGE_NAMES.JOB_TITLE : SUB_PAGE_NAMES.NAME;
@@ -131,7 +140,7 @@ function SignerInfo({onBackButtonPress, onSubmit, stepNames, currentSubPage, bac
                 Navigation.navigate(ROUTES.BANK_ACCOUNT_NON_USD_SETUP.getRoute({policyID, page: PAGE_NAME.SIGNER_INFO, subPage: SUB_PAGE_NAMES.ENTER_EMAIL, backTo}));
             }
         },
-        [isUserOwner, policyID, backTo],
+        [policyID, isUserOwner, backTo],
     );
 
     const handleBackButtonPress = useCallback(() => {
@@ -177,7 +186,20 @@ function SignerInfo({onBackButtonPress, onSubmit, stepNames, currentSubPage, bac
                     description={translate('signerInfoStep.regulationRequiresUs')}
                     defaultValue={isUserDirector}
                     onSelectedValue={handleIsDirectorSelected}
-                />
+                    onValueChange={() => setShowNoPolicyError(false)}
+                    submitFlexEnabled={!showNoPolicyError}
+                >
+                    {showNoPolicyError && (
+                        <View style={[styles.flex1, styles.justifyContentEnd]}>
+                            <FormHelpMessage
+                                style={styles.mt3}
+                                isError
+                                shouldRenderMessageAsHTML
+                                message={translate('signerInfoStep.error.connectToWorkspace', `${environmentURL}/${ROUTES.WORKSPACES_LIST.getRoute()}`)}
+                            />
+                        </View>
+                    )}
+                </YesNoStep>
             )}
             {currentSubPage === SUB_PAGE_NAMES.ENTER_EMAIL && (
                 <EnterEmail

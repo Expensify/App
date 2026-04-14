@@ -1,5 +1,6 @@
 /* eslint-disable es/no-optional-chaining */
 import {useRoute} from '@react-navigation/native';
+import {delegateEmailSelector} from '@selectors/Account';
 import React, {useEffect} from 'react';
 import {InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -46,6 +47,7 @@ function TaskAssigneeSelectorModal() {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserEmail = currentUserPersonalDetails.email ?? '';
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
+    const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
 
     const {searchTerm, debouncedSearchTerm, setSearchTerm, availableOptions, areOptionsInitialized} = useSearchSelector({
         selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_SINGLE,
@@ -166,18 +168,19 @@ function TaskAssigneeSelectorModal() {
                     isCurrentUser({...option, accountID: option?.accountID ?? CONST.DEFAULT_NUMBER_ID, login: option?.login ?? ''}, loginList, currentUserEmail),
                 );
                 // Pass through the selected assignee
-                editTaskAssignee(
+                editTaskAssignee({
                     report,
                     parentReport,
-                    currentUserPersonalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID,
-                    option?.login ?? '',
+                    sessionAccountID: currentUserPersonalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+                    assigneeEmail: option?.login ?? '',
                     currentUserEmail,
-                    currentUserPersonalDetails.accountID,
+                    currentUserAccountID: currentUserPersonalDetails.accountID,
                     hasOutstandingChildTask,
-                    option?.accountID,
+                    delegateEmail,
+                    assigneeAccountID: option?.accountID,
                     assigneeChatReport,
                     isOptimisticReport,
-                );
+                });
             }
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             InteractionManager.runAfterInteractions(() => {

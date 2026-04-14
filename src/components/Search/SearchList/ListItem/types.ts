@@ -4,7 +4,18 @@ import type {SearchColumnType, SearchGroupBy, SearchQueryJSON} from '@components
 import type {ListItemProps} from '@components/SelectionList/ListItem/types';
 import type {ListItem} from '@components/SelectionList/types';
 import type CONST from '@src/CONST';
-import type {LastPaymentMethod, PersonalDetails, PersonalDetailsList, Policy, Report, ReportAction, SearchResults, TransactionViolation, TransactionViolations} from '@src/types/onyx';
+import type {
+    BillingGraceEndPeriod,
+    LastPaymentMethod,
+    PersonalDetails,
+    PersonalDetailsList,
+    Policy,
+    Report,
+    ReportAction,
+    SearchResults,
+    TransactionViolation,
+    TransactionViolations,
+} from '@src/types/onyx';
 import type {Attendee} from '@src/types/onyx/IOU';
 import type {Errors, Icon} from '@src/types/onyx/OnyxCommon';
 import type {
@@ -55,6 +66,12 @@ type ExpenseReportListItemProps<TItem extends ListItem> = ListItemProps<TItem> &
 
     /** The user's personal policy ID */
     personalPolicyID?: string;
+
+    /** Billing grace period end dates for workspace owners (shared across all list items) */
+    userBillingGracePeriodEnds?: OnyxCollection<BillingGraceEndPeriod>;
+
+    /** The workspace owner's billing grace period end date */
+    ownerBillingGracePeriodEnd?: OnyxEntry<number>;
 };
 
 type TransactionListItemType = ListItem &
@@ -253,6 +270,9 @@ type TransactionReportGroupListItemType = TransactionGroupListItemType & {groupe
         /** Pre-computed reimbursable spend amount */
         reimbursableSpend?: number;
 
+        /** Whether the amount column should use the wide layout */
+        isAmountColumnWide?: boolean;
+
         /** Pre-computed flag indicating whether all transactions are scanning */
         isAllScanning?: boolean;
 
@@ -356,6 +376,9 @@ type TransactionMonthGroupListItemType = TransactionGroupListItemType & {grouped
 type TransactionWithdrawalIDGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID} & SearchWithdrawalIDGroup & {
         /** Final and formatted "withdrawalID" value used for displaying and sorting */
         formattedWithdrawalID?: string;
+
+        /** Whether any withdrawn date in the current results belongs to a past year */
+        shouldShowYearWithdrawn?: boolean;
     };
 
 type TransactionCategoryGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.CATEGORY} & SearchCategoryGroup & {

@@ -10,7 +10,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useReportWithTransactionsAndViolations from '@hooks/useReportWithTransactionsAndViolations';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {canIOUBePaid} from '@libs/actions/IOU';
+import {canIOUBePaid} from '@libs/actions/IOU/ReportWorkflow';
 import {getPayMoneyOnSearchInvoiceParams, payMoneyRequestOnSearch} from '@libs/actions/Search';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import {hasOnlyNonReimbursableTransactions, isInvoiceReport} from '@libs/ReportUtils';
@@ -34,7 +34,7 @@ function PayActionCell({isLoading, policyID, reportID, hash, amount, extraSmall,
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
     const [iouReport, transactions] = useReportWithTransactionsAndViolations(reportID);
-    const {showNonReimbursablePaymentErrorModal, shouldBlockDirectPayment, nonReimbursablePaymentErrorDecisionModal} = useNonReimbursablePaymentModal(iouReport, transactions);
+    const {showNonReimbursablePaymentErrorModal, shouldBlockDirectPayment} = useNonReimbursablePaymentModal(iouReport, transactions);
     const policy = usePolicy(policyID);
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${iouReport?.chatReportID}`);
@@ -97,7 +97,6 @@ function PayActionCell({isLoading, policyID, reportID, hash, amount, extraSmall,
                 onlyShowPayElsewhere={shouldOnlyShowElsewhere}
                 sentryLabel={CONST.SENTRY_LABEL.SEARCH.ACTION_CELL_PAY}
             />
-            {nonReimbursablePaymentErrorDecisionModal}
         </SearchScopeProvider>
     );
 }
