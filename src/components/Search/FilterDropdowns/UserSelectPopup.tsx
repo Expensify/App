@@ -177,7 +177,16 @@ function UserSelectPopup({value, label, closeOverlay, onChange, isSearchable}: U
             onApply={applyChanges}
             resetSentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_RESET_USER}
             applySentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY_USER}
-            style={[styles.getCommonSelectionListPopoverHeight(listData.length || 1, variables.optionRowHeightCompact, windowHeight, shouldUseNarrowLayout, isInLandscapeMode, shouldShowSearchInput)]}
+            style={[
+                styles.getCommonSelectionListPopoverHeight(
+                    listData.length || 1,
+                    variables.optionRowHeightCompact,
+                    windowHeight,
+                    shouldUseNarrowLayout,
+                    isInLandscapeMode,
+                    shouldShowSearchInput,
+                ),
+            ]}
         >
             <SelectionList
                 data={listData}
