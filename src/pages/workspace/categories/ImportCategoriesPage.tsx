@@ -3,7 +3,7 @@ import React from 'react';
 import ImportSpreadsheet from '@components/ImportSpreadsheet';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import usePolicy from '@hooks/usePolicy';
-import appendDynamicRouteSuffixToBasePath from '@libs/Navigation/helpers/dynamicRoutesUtils/appendDynamicRouteSuffixToBasePath';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {goBackFromInvalidPolicy, hasAccountingConnections as hasAccountingConnectionsUtil} from '@libs/PolicyUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
@@ -25,7 +25,7 @@ function ImportCategoriesPage({route}: ImportCategoriesPageProps) {
     const backTo = isQuickSettingsFlow && 'backTo' in route.params ? route.params.backTo : undefined;
 
     const workspaceCategoriesListBackPath = useDynamicBackPath(DYNAMIC_ROUTES.WORKSPACE_CATEGORIES_IMPORT.path);
-    const workspaceGoToImportedPath = appendDynamicRouteSuffixToBasePath(workspaceCategoriesListBackPath, DYNAMIC_ROUTES.WORKSPACE_CATEGORIES_IMPORTED.path);
+    const workspaceGoToImportedPath = createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CATEGORIES_IMPORTED.path, workspaceCategoriesListBackPath);
 
     if (hasAccountingConnections) {
         return <NotFoundPage />;
