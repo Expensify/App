@@ -1100,7 +1100,7 @@ In Expensify, we use an extended implementation of this function because:
 -   In case of opening the RHP, appropriate screens should be pushed to the navigation to be displayed below the overlay. A guide on how to set up a good screen for RHP can be found [here](#how-to-set-a-correct-screen-below-the-rhp).
 -   When opening the settings of a specific workspace, the workspace list needs to be pushed to the state.
 -   When the `backTo` parameter is in the URL, we need to build a state also for the screen we want to return to. (`backTo` parameter is deprecated, more information can be found [here](#how-to-remove-backto-from-url))
--   For dynamic routes, state is built from the current path and [entryScreens](#entry-screens-access-control) access control.
+-   For dynamic routes, when the page is refreshed the navigation state only contains the deepest screen. To make back navigation work, all intermediate dynamic screens must be inserted into the state in the correct order so the app knows which screen to return to.
 
 Here are examples how the state is generated based on route:
 
@@ -1213,6 +1213,92 @@ As you can see after opening the workspace settings of the specific workspace, w
 ```
 
 In the above example, we can see that when building a state from a link leading to a screen in RHP, screens that appear below the overlay are also built.
+
+-   `workspaces/1D8A960D5E9E10CD/overview/invite/invite-message/role`
+
+```json
+{
+    "stale": false,
+    "type": "stack",
+    "key": "stack-key-7",
+    "index": 1,
+    "routes": [
+        {
+            "name": "WorkspaceSplitNavigator",
+            "state": {
+                "stale": false,
+                "type": "stack",
+                "key": "stack-key-8",
+                "index": 1,
+                "routes": [
+                    {
+                        "name": "Workspace_Initial",
+                        "params": {
+                            "policyID": "1D8A960D5E9E10CD"
+                        },
+                        "key": "Workspace_Initial-key"
+                    },
+                    {
+                        "name": "Workspace_Overview",
+                        "params": {
+                            "policyID": "1D8A960D5E9E10CD"
+                        },
+                        "key": "Workspace_Overview-key"
+                    }
+                ]
+            },
+            "key": "WorkspaceSplitNavigator-key"
+        },
+        {
+            "name": "RightModalNavigator",
+            "state": {
+                "stale": false,
+                "type": "stack",
+                "key": "stack-key-9",
+                "index": 0,
+                "routes": [
+                    {
+                        "name": "Settings",
+                        "state": {
+                            "stale": false,
+                            "type": "stack",
+                            "key": "stack-key-10",
+                            "index": 2,
+                            "routes": [
+                                {
+                                    "name": "Dynamic_Workspace_Invite",
+                                    "params": {
+                                        "policyID": "1D8A960D5E9E10CD"
+                                    },
+                                    "key": "Dynamic_Workspace_Invite-key"
+                                },
+                                {
+                                    "name": "Dynamic_Workspace_Invite_Message",
+                                    "params": {
+                                        "policyID": "1D8A960D5E9E10CD"
+                                    },
+                                    "key": "Dynamic_Workspace_Invite_Message-key"
+                                },
+                                {
+                                    "name": "Dynamic_Workspace_Invite_Message_Role",
+                                    "params": {
+                                        "policyID": "1D8A960D5E9E10CD"
+                                    },
+                                    "path": "/workspaces/1D8A960D5E9E10CD/overview/invite/invite-message/role",
+                                    "key": "Dynamic_Workspace_Invite_Message_Role-key"
+                                }
+                            ]
+                        },
+                        "key": "Settings-key"
+                    }
+                ]
+            },
+            "key": "RightModalNavigator-key"
+        }
+    ]
+}
+```
+This URL contains three stacked dynamic suffixes: `invite` → `invite-message` → `role`. When the app is opened from this link, all three intermediate dynamic screens need to be present in the `Settings` stack. Without them, only the deepest screen would exist, and pressing back would have nowhere to go.
 
 ## Setting the correct screen underneath RHP
 

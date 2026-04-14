@@ -20,23 +20,24 @@ import isDynamicRouteScreen from './isDynamicRouteScreen';
  * @private - Internal helper. Do not export or use outside this file.
  */
 function insertStateBelow(accumulatedState: PartialState<NavigationState>, stateToInsert: PartialState<NavigationState>): PartialState<NavigationState> {
-    const insertRoute = stateToInsert.routes.at(0);
-    if (!insertRoute) {
+    const routeToInsert = stateToInsert.routes.at(0);
+    if (!routeToInsert) {
         return accumulatedState;
     }
 
-    const firstAccumulatedRoute = accumulatedState.routes.at(0);
-    if (!firstAccumulatedRoute) {
+    const existingRoute = accumulatedState.routes.at(0);
+    if (!existingRoute) {
         return stateToInsert;
     }
 
-    if (insertRoute.name === firstAccumulatedRoute.name) {
-        const accNestedState = firstAccumulatedRoute.state as PartialState<NavigationState> | undefined;
-        const insNestedState = insertRoute.state as PartialState<NavigationState> | undefined;
+    // Same navigator at this level - recurse deeper to find the divergence point.
+    if (routeToInsert.name === existingRoute.name) {
+        const existingNestedState = existingRoute.state as PartialState<NavigationState> | undefined;
+        const nestedStateToInsert = routeToInsert.state as PartialState<NavigationState> | undefined;
 
-        if (accNestedState && insNestedState) {
-            const mergedNested = insertStateBelow(accNestedState, insNestedState);
-            const updatedRoute = {...firstAccumulatedRoute, state: mergedNested};
+        if (existingNestedState && nestedStateToInsert) {
+            const mergedNestedState = insertStateBelow(existingNestedState, nestedStateToInsert);
+            const updatedRoute = {...existingRoute, state: mergedNestedState};
             const updatedRoutes = [updatedRoute, ...accumulatedState.routes.slice(1)];
             return {
                 ...accumulatedState,
@@ -48,7 +49,9 @@ function insertStateBelow(accumulatedState: PartialState<NavigationState>, state
         return accumulatedState;
     }
 
-    const updatedRoutes = [insertRoute, ...accumulatedState.routes];
+    // Different navigator - this is the divergence point.
+    // Prepend the new route and shift the index so the previously focused route stays focused.
+    const updatedRoutes = [routeToInsert, ...accumulatedState.routes];
     return {
         ...accumulatedState,
         routes: updatedRoutes,
