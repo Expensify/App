@@ -56,7 +56,9 @@ import {navigateToSearchRHP, shouldShowDeleteOption} from '@libs/SearchUIUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {hasCustomUnitOutOfPolicyViolation, hasTransactionBeenRejected, isDistanceRequest, isManagedCardTransaction, isPerDiemRequest, isScanning} from '@libs/TransactionUtils';
 import variables from '@styles/variables';
-import {canIOUBePaid, dismissRejectUseExplanation, initBulkEditDraftTransaction} from '@userActions/IOU';
+import {initBulkEditDraftTransaction} from '@userActions/IOU';
+import {dismissRejectUseExplanation} from '@userActions/IOU/RejectMoneyRequest';
+import {canIOUBePaid} from '@userActions/IOU/ReportWorkflow';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -265,6 +267,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         'IntacctSquare',
         'QBDSquare',
         'CertiniaSquare',
+        'GustoSquare',
         'Pencil',
         'Workflows',
     ]);
