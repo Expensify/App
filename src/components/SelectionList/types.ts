@@ -126,6 +126,9 @@ type BaseSelectionListProps<TItem extends ListItem> = {
 
     /** Which side of the row to render the selection button on */
     selectionButtonPosition?: ValueOf<typeof CONST.SELECTION_BUTTON_POSITION>;
+
+    /** Whether to highlight the selected item */
+    shouldHighlightSelectedItem?: boolean;
 };
 
 /**
@@ -185,9 +188,6 @@ type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> &
 
         /** Whether to clear the text input when a row is selected */
         shouldClearInputOnSelect?: boolean;
-
-        /** Whether to highlight the selected item */
-        shouldHighlightSelectedItem?: boolean;
     };
 
 type SelectionListStyle = {

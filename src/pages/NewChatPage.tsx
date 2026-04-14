@@ -9,8 +9,8 @@ import Button from '@components/Button';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import ReferralProgramCTA from '@components/ReferralProgramCTA';
 import ScreenWrapper from '@components/ScreenWrapper';
-import NewChatListItem from '@components/Search/NewChatListItem';
 import ListSelectionButton from '@components/SelectionList/components/ListSelectionButton';
+import UserListItem from '@components/SelectionList/ListItem/UserListItem';
 import SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
 import type {Section} from '@components/SelectionList/SelectionListWithSections/types';
 import type {ListItem, SelectionListWithSectionsHandle} from '@components/SelectionList/types';
@@ -487,12 +487,13 @@ function NewChatPage({ref}: NewChatPageProps) {
         >
             <SelectionListWithSections<OptionWithKey>
                 ref={selectionListRef}
-                ListItem={NewChatListItem}
+                ListItem={UserListItem}
                 sections={areOptionsInitialized ? sections : getEmptyArray<Section<OptionWithKey>>()}
                 onSelectRow={selectOption}
                 shouldShowTextInput
                 textInputOptions={textInputOptions}
                 shouldSingleExecuteRowSelect
+                shouldShowSelectionButton={false}
                 confirmButtonOptions={{
                     onConfirm: (e, option) => (selectedOptions.length > 0 ? createGroup() : selectOption(option)),
                 }}

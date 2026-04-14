@@ -10,7 +10,7 @@ import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
-import NewChatListItem from '@components/Search/NewChatListItem';
+import UserListItem from '@components/SelectionList/ListItem/UserListItem';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useAncestors from '@hooks/useAncestors';
@@ -206,7 +206,7 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
                             <View style={[styles.optionsListSectionHeader, styles.justifyContentCenter]}>
                                 <Text style={[styles.ph5, styles.textLabelSupporting]}>{translate('common.to')}</Text>
                             </View>
-                            <NewChatListItem
+                            <UserListItem
                                 item={displayReport}
                                 isFocused={false}
                                 showTooltip={false}

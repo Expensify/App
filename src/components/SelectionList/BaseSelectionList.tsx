@@ -356,7 +356,6 @@ function BaseSelectionList<TItem extends ListItem>({
                 onLongPressRow={onLongPressRow}
                 onCheckboxPress={onCheckboxPress}
                 shouldSingleExecuteRowSelect={shouldSingleExecuteRowSelect}
-                shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
                 rightHandSideComponent={rightHandSideComponent}
                 isMultilineSupported={isRowMultilineSupported}
                 isAlternateTextMultilineSupported={(alternateNumberOfSupportedLines ?? 0) > 1}

@@ -135,11 +135,11 @@ function HeaderFirstRow<TItem extends ListItem>({
                         onPress={() => onCheckboxPress?.(reportItem as unknown as TItem)}
                         isChecked={isSelectAllChecked}
                         isIndeterminate={isIndeterminate}
-                        containerStyle={[StyleUtils.getMultiselectListStyles(!!reportItem.isSelected, !!reportItem.isDisabled), styles.m0]}
+                        containerStyle={styles.m0}
                         disabled={!!isDisabled || reportItem.isDisabledCheckbox}
                         accessibilityLabel={reportItem.text ?? ''}
                         shouldStopMouseDownPropagation
-                        style={[styles.cursorUnset, StyleUtils.getSelectionButtonPressableStyle(), reportItem.isDisabledCheckbox && styles.cursorDisabled]}
+                        style={[styles.cursorUnset, reportItem.isDisabledCheckbox && styles.cursorDisabled]}
                     />
                 )}
                 <View style={[{flexShrink: 1, flexGrow: 1, minWidth: 0}, styles.mr2]}>

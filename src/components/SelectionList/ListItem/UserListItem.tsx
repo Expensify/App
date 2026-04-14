@@ -44,6 +44,7 @@ function UserListItem<TItem extends ListItem>({
     pressableStyle,
     forwardedFSClass,
     shouldDisableHoverStyle,
+    shouldHighlightSelectedItem,
     shouldShowSelectionButton = true,
     selectionButtonPosition,
 }: UserListItemProps<TItem>) {
@@ -100,6 +101,7 @@ function UserListItem<TItem extends ListItem>({
             shouldSyncFocus={shouldSyncFocus}
             accessible={shouldDisableAccessibleGrouping ? false : undefined}
             shouldDisableHoverStyle={shouldDisableHoverStyle}
+            shouldHighlightSelectedItem={shouldHighlightSelectedItem}
             shouldShowSelectionButton={shouldShowSelectionButton}
             selectionButtonPosition={selectionButtonPosition}
             onCheckboxPress={onCheckboxPress}

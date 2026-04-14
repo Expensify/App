@@ -246,9 +246,6 @@ type ListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
     /** Is item hovered */
     isHovered?: boolean;
 
-    /** Whether the default focus should be prevented on row selection */
-    shouldPreventDefaultFocusOnSelectRow?: boolean;
-
     /** Prevent the submission of the list item when enter key is pressed */
     shouldPreventEnterKeySubmit?: boolean;
 
@@ -314,7 +311,6 @@ type ValidListItem =
 type BaseListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> &
     ForwardedFSClassProps & {
         item: TItem;
-        shouldPreventDefaultFocusOnSelectRow?: boolean;
         shouldPreventEnterKeySubmit?: boolean;
         shouldShowBlueBorderOnFocus?: boolean;
         keyForList: string;

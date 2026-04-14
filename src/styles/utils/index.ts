@@ -2017,13 +2017,6 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
      */
     getTestToolsModalStyle: (windowWidth: number): ViewStyle[] => [styles.settingsPageBody, styles.p5, {width: windowWidth * 0.9}],
 
-    getMultiselectListStyles: (isSelected: boolean, isDisabled: boolean): ViewStyle => ({
-        ...(isSelected && styles.checkedContainer),
-        ...(isSelected && styles.borderColorFocus),
-        ...(isDisabled && styles.cursorDisabled),
-        ...(isDisabled && styles.buttonOpacityDisabled),
-    }),
-
     /**
      * When adding a new prefix character, adjust this method to add expected character width.
      * This is because character width isn't known before it's rendered to the screen, and once it's rendered,

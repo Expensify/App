@@ -36,7 +36,6 @@ function ListItemRenderer<TItem extends ListItem>({
     selectRow,
     onCheckboxPress,
     onDismissError,
-    shouldPreventDefaultFocusOnSelectRow,
     rightHandSideComponent,
     isMultilineSupported,
     isAlternateTextMultilineSupported,
@@ -84,7 +83,6 @@ function ListItemRenderer<TItem extends ListItem>({
                 }}
                 onCheckboxPress={handleOnCheckboxPress()}
                 onDismissError={() => onDismissError?.(item)}
-                shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
                 shouldPreventEnterKeySubmit={shouldPreventEnterKeySubmit}
                 rightHandSideComponent={rightHandSideComponent}
                 keyForList={item.keyForList}

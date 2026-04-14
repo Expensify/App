@@ -76,6 +76,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
     shouldPreventDefaultFocusOnSelectRow = false,
     isRowMultilineSupported = false,
     titleNumberOfLines,
+    shouldHighlightSelectedItem,
     shouldDisableHoverStyle,
     shouldShowSelectionButton,
     selectionButtonPosition,
@@ -351,7 +352,6 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
                         canSelectMultiple={canSelectMultiple}
                         shouldSingleExecuteRowSelect={shouldSingleExecuteRowSelect}
                         onDismissError={onDismissError}
-                        shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
                         rightHandSideComponent={rightHandSideComponent}
                         setFocusedIndex={setFocusedIndex}
                         singleExecution={singleExecution}
@@ -362,6 +362,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
                         titleStyles={style?.listItemTitleStyles}
                         isMultilineSupported={isRowMultilineSupported}
                         titleNumberOfLines={titleNumberOfLines}
+                        shouldHighlightSelectedItem={shouldHighlightSelectedItem}
                         shouldDisableHoverStyle={shouldDisableHoverStyle}
                         shouldShowSelectionButton={shouldShowSelectionButton}
                         selectionButtonPosition={selectionButtonPosition}

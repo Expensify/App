@@ -83,7 +83,7 @@ import TaxController from './MoneyRequestConfirmationList/TaxController';
 import MoneyRequestConfirmationListFooter from './MoneyRequestConfirmationListFooter';
 import {PressableWithFeedback} from './Pressable';
 import {useProductTrainingContext} from './ProductTrainingContext';
-import NewChatListItem from './Search/NewChatListItem';
+import UserListItem from './SelectionList/ListItem/UserListItem';
 import SelectionListWithSections from './SelectionList/SelectionListWithSections';
 import type {Section} from './SelectionList/SelectionListWithSections/types';
 import SettlementButton from './SettlementButton';
@@ -1204,9 +1204,10 @@ function MoneyRequestConfirmationList({
             <MouseProvider>
                 <SelectionListWithSections<MoneyRequestConfirmationListItem>
                     sections={sections}
-                    ListItem={NewChatListItem}
+                    ListItem={UserListItem}
                     onSelectRow={navigateToParticipantPage}
                     shouldSingleExecuteRowSelect
+                    shouldShowSelectionButton={false}
                     shouldPreventDefaultFocusOnSelectRow
                     shouldShowListEmptyContent={false}
                     footerContent={footerContent}

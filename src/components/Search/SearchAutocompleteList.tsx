@@ -4,6 +4,7 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import OptionsListSkeletonView from '@components/OptionsListSkeletonView';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import type {ListItem as NewListItem, UserListItemProps} from '@components/SelectionList/ListItem/types';
+import UserListItem from '@components/SelectionList/ListItem/UserListItem';
 import SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
 import type {Section, SelectionListWithSectionsHandle} from '@components/SelectionList/SelectionListWithSections/types';
 import useAutocompleteSuggestions from '@hooks/useAutocompleteSuggestions';
@@ -35,7 +36,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {CardFeeds, CardList, PersonalDetailsList, Policy, Report} from '@src/types/onyx';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
-import NewChatListItem from './NewChatListItem';
 import type {SearchQueryItem, SearchQueryListItemProps} from './SearchList/ListItem/SearchQueryListItem';
 import SearchQueryListItem, {isSearchQueryItem} from './SearchList/ListItem/SearchQueryListItem';
 import {getSubstitutionMapKey} from './SearchRouter/getQueryWithSubstitutions';
@@ -140,7 +140,7 @@ function SearchRouterItem(props: UserListItemProps<AutocompleteListItem> | Searc
     const fsClass = FS.getChatFSClass((item as SearchOption<Report> | undefined)?.item);
 
     return (
-        <NewChatListItem
+        <UserListItem
             item={item}
             keyForList={item.keyForList}
             isFocused={isFocused}
@@ -156,6 +156,8 @@ function SearchRouterItem(props: UserListItemProps<AutocompleteListItem> | Searc
             wrapperStyle={wrapperStyle}
             pressableStyle={[styles.br2, styles.ph3]}
             forwardedFSClass={fsClass}
+            shouldShowSelectionButton={false}
+            shouldHighlightSelectedItem
         />
     );
 }
