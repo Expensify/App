@@ -53,18 +53,19 @@ function PrivatePersonalDetailsConfirmMagicCodePage() {
     };
 
     const wasLoading = useRef(false);
+    const hasErrors = !isEmptyObject(privateDetailsErrors) || !isEmptyObject(validateCodeAction?.errorFields);
     useEffect(() => {
         if (privatePersonalDetails?.isLoading) {
             wasLoading.current = true;
             return;
         }
-        if (wasLoading.current && isEmptyObject(privateDetailsErrors)) {
+        if (wasLoading.current && !hasErrors) {
             wasLoading.current = false;
             resetValidateActionCodeSent();
             Navigation.goBack(ROUTES.SETTINGS_PROFILE.route);
         }
         wasLoading.current = false;
-    }, [privatePersonalDetails?.isLoading, privateDetailsErrors]);
+    }, [privatePersonalDetails?.isLoading, hasErrors]);
 
     const values = useMemo(() => normalizeCountryCode(getFormValues(privatePersonalDetails, draftValues)) as PersonalDetailsForm, [privatePersonalDetails, draftValues]);
 
