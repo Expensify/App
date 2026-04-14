@@ -45,14 +45,17 @@ const Stack = createPlatformStackNavigator<OnboardingModalNavigatorParamList>();
 
 const navigate = jest.spyOn(Navigation, 'navigate');
 
-const renderOnboardingPurposePage = (initialRouteName: typeof SCREENS.ONBOARDING.PURPOSE, initialParams: OnboardingModalNavigatorParamList[typeof SCREENS.ONBOARDING.PURPOSE]) => {
+const renderOnboardingPurposePage = (
+    initialRouteName: typeof SCREENS.ONBOARDING.DYNAMIC_PURPOSE,
+    initialParams: OnboardingModalNavigatorParamList[typeof SCREENS.ONBOARDING.DYNAMIC_PURPOSE],
+) => {
     return render(
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrentReportIDContextProvider]}>
             <PortalProvider>
                 <NavigationContainer>
                     <Stack.Navigator initialRouteName={initialRouteName}>
                         <Stack.Screen
-                            name={SCREENS.ONBOARDING.PURPOSE}
+                            name={SCREENS.ONBOARDING.DYNAMIC_PURPOSE}
                             component={OnboardingPurpose}
                             initialParams={initialParams}
                         />
@@ -76,7 +79,7 @@ describe('OnboardingPurpose Page', () => {
             isSmallScreenWidth: false,
             shouldUseNarrowLayout: false,
         } as ResponsiveLayoutResult);
-        jest.spyOn(Navigation, 'getActiveRoute').mockReturnValue(ROUTES.ONBOARDING_PURPOSE.route);
+        jest.spyOn(Navigation, 'getActiveRoute').mockReturnValue(`/${ROUTES.ONBOARDING_ROOT.route}/${DYNAMIC_ROUTES.ONBOARDING_PURPOSE.path}`);
     });
 
     afterEach(async () => {
@@ -96,7 +99,7 @@ describe('OnboardingPurpose Page', () => {
             });
         });
 
-        const {unmount} = renderOnboardingPurposePage(SCREENS.ONBOARDING.PURPOSE, {backTo: ''});
+        const {unmount} = renderOnboardingPurposePage(SCREENS.ONBOARDING.DYNAMIC_PURPOSE, {backTo: ''});
 
         await waitForBatchedUpdatesWithAct();
 
@@ -106,7 +109,7 @@ describe('OnboardingPurpose Page', () => {
         await user.press(chatSplitOption);
 
         await waitFor(() => {
-            expect(navigate).toHaveBeenCalledWith(`${ROUTES.ONBOARDING_PURPOSE.route}/${DYNAMIC_ROUTES.ONBOARDING_PERSONAL_DETAILS.path}`);
+            expect(navigate).toHaveBeenCalledWith(createDynamicRoute(DYNAMIC_ROUTES.ONBOARDING_PERSONAL_DETAILS.path));
         });
 
         unmount();
@@ -123,7 +126,7 @@ describe('OnboardingPurpose Page', () => {
             });
         });
 
-        const {unmount} = renderOnboardingPurposePage(SCREENS.ONBOARDING.PURPOSE, {backTo: ''});
+        const {unmount} = renderOnboardingPurposePage(SCREENS.ONBOARDING.DYNAMIC_PURPOSE, {backTo: ''});
 
         await waitForBatchedUpdatesWithAct();
 
@@ -162,7 +165,7 @@ describe('OnboardingPurpose Page', () => {
             await Onyx.set(ONYXKEYS.NVP_ONBOARDING, {selfTourViewed: true});
         });
 
-        const {unmount} = renderOnboardingPurposePage(SCREENS.ONBOARDING.PURPOSE, {backTo: ''});
+        const {unmount} = renderOnboardingPurposePage(SCREENS.ONBOARDING.DYNAMIC_PURPOSE, {backTo: ''});
 
         await waitForBatchedUpdatesWithAct();
 

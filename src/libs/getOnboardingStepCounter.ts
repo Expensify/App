@@ -27,7 +27,7 @@ const screenResolution: Record<OnboardingScreen, OnboardingScreen> = {
     [ONBOARDING.DYNAMIC_PRIVATE_DOMAIN]: ONBOARDING.DYNAMIC_PRIVATE_DOMAIN,
     [ONBOARDING.DYNAMIC_PERSONAL_DETAILS]: ONBOARDING.DYNAMIC_PERSONAL_DETAILS,
     [ONBOARDING.WORKSPACES]: ONBOARDING.WORKSPACES,
-    [ONBOARDING.PURPOSE]: ONBOARDING.PURPOSE,
+    [ONBOARDING.DYNAMIC_PURPOSE]: ONBOARDING.DYNAMIC_PURPOSE,
     [ONBOARDING.DYNAMIC_EMPLOYEES]: ONBOARDING.DYNAMIC_EMPLOYEES,
     [ONBOARDING.DYNAMIC_ACCOUNTING]: ONBOARDING.DYNAMIC_ACCOUNTING,
     [ONBOARDING.DYNAMIC_INTERESTED_FEATURES]: ONBOARDING.DYNAMIC_INTERESTED_FEATURES,
@@ -100,7 +100,7 @@ function getOnboardingFlow(context: OnboardingFlowContext): OnboardingScreen[] |
 
     const suffix = purposeSuffixes[context.purposeSelected];
     const adjustedSuffix = isPrivateDomain ? suffix.filter((s) => s !== ONBOARDING.DYNAMIC_PERSONAL_DETAILS) : suffix;
-    return [...prefix, ONBOARDING.PURPOSE, ...adjustedSuffix];
+    return [...prefix, ONBOARDING.DYNAMIC_PURPOSE, ...adjustedSuffix];
 }
 
 function getOnboardingStepCounter(page: OnboardingScreen, context: OnboardingFlowContext): OnboardingStepResult | undefined {
@@ -109,7 +109,7 @@ function getOnboardingStepCounter(page: OnboardingScreen, context: OnboardingFlo
 
     if (!flow) {
         const prefix = getDomainPrefix(context);
-        const knownScreens = [...prefix, ONBOARDING.PURPOSE];
+        const knownScreens = [...prefix, ONBOARDING.DYNAMIC_PURPOSE];
         const index = knownScreens.indexOf(resolvedPage);
         if (index === -1) {
             return undefined;

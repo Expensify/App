@@ -91,7 +91,7 @@ function BaseOnboardingPrivateDomain({shouldUseNativeStyles}: BaseOnboardingPriv
                 Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.ONBOARDING_EMPLOYEES.path), {forceReplace: true});
                 return;
             }
-            Navigation.navigate(ROUTES.ONBOARDING_PURPOSE.getRoute(backPath), {forceReplace: true});
+            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.ONBOARDING_PURPOSE.path), {forceReplace: true});
         }
     }, [isValidated, joinablePoliciesLength, getAccessiblePoliciesAction?.loading, isVsb, isSmb, backPath]);
 
@@ -146,7 +146,7 @@ function BaseOnboardingPrivateDomain({shouldUseNativeStyles}: BaseOnboardingPriv
                                 Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.ONBOARDING_EMPLOYEES.path));
                                 return;
                             }
-                            Navigation.navigate(ROUTES.ONBOARDING_PURPOSE.getRoute(backPath));
+                            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.ONBOARDING_PURPOSE.path));
                         }}
                         buttonStyles={[styles.flex2, styles.justifyContentEnd]}
                         isLoading={getAccessiblePoliciesAction?.loading}

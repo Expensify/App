@@ -143,7 +143,7 @@ describe('OnboardingWorkspaces Page', () => {
         });
 
         const {unmount} = renderOnboardingWorkspacesPage(SCREENS.ONBOARDING.WORKSPACES, {
-            backTo: `${ROUTES.ONBOARDING_PURPOSE.route}/${DYNAMIC_ROUTES.ONBOARDING_PERSONAL_DETAILS.path}`,
+            backTo: `/${ROUTES.ONBOARDING_ROOT.route}/${DYNAMIC_ROUTES.ONBOARDING_PURPOSE.path}/${DYNAMIC_ROUTES.ONBOARDING_PERSONAL_DETAILS.path}`,
         });
 
         await waitForBatchedUpdatesWithAct();
@@ -166,7 +166,7 @@ describe('OnboardingWorkspaces Page', () => {
         });
 
         const {unmount} = renderOnboardingWorkspacesPage(SCREENS.ONBOARDING.WORKSPACES, {
-            backTo: `${ROUTES.ONBOARDING_PURPOSE.route}/${DYNAMIC_ROUTES.ONBOARDING_PERSONAL_DETAILS.path}`,
+            backTo: `/${ROUTES.ONBOARDING_ROOT.route}/${DYNAMIC_ROUTES.ONBOARDING_PURPOSE.path}/${DYNAMIC_ROUTES.ONBOARDING_PERSONAL_DETAILS.path}`,
         });
 
         await waitForBatchedUpdatesWithAct();

@@ -49,7 +49,7 @@ function OnboardingModalNavigator() {
     const [onboardingPolicyID] = useOnyx(ONYXKEYS.ONBOARDING_POLICY_ID);
     const isOnPrivateDomainAndHasAccessiblePolicies = !account?.isFromPublicDomain && account?.hasAccessibleDomainPolicies;
 
-    let initialRouteName: ValueOf<typeof SCREENS.ONBOARDING> = SCREENS.ONBOARDING.PURPOSE;
+    let initialRouteName: ValueOf<typeof SCREENS.ONBOARDING> = SCREENS.ONBOARDING.DYNAMIC_PURPOSE;
 
     if (isOnPrivateDomainAndHasAccessiblePolicies) {
         initialRouteName = SCREENS.ONBOARDING.DYNAMIC_PERSONAL_DETAILS;
@@ -125,7 +125,7 @@ function OnboardingModalNavigator() {
                             initialRouteName={initialRouteName}
                         >
                             <Stack.Screen
-                                name={SCREENS.ONBOARDING.PURPOSE}
+                                name={SCREENS.ONBOARDING.DYNAMIC_PURPOSE}
                                 component={OnboardingPurpose}
                             />
                             <Stack.Screen

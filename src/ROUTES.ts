@@ -228,14 +228,24 @@ const DYNAMIC_ROUTES = {
         path: 'private-domain',
         entryScreens: [SCREENS.ONBOARDING.DYNAMIC_PERSONAL_DETAILS, SCREENS.ONBOARDING.WORK_EMAIL],
     },
+    ONBOARDING_PURPOSE: {
+        path: 'purpose',
+        entryScreens: [
+            SCREENS.ONBOARDING.DYNAMIC_PURPOSE,
+            SCREENS.ONBOARDING.WORK_EMAIL,
+            SCREENS.ONBOARDING.WORK_EMAIL_VALIDATION,
+            SCREENS.ONBOARDING.DYNAMIC_PRIVATE_DOMAIN,
+            SCREENS.ONBOARDING.WORKSPACES,
+        ],
+    },
     ONBOARDING_PERSONAL_DETAILS: {
         path: 'personal-details',
-        entryScreens: [SCREENS.ONBOARDING.PURPOSE],
+        entryScreens: [SCREENS.ONBOARDING.DYNAMIC_PURPOSE],
     },
     ONBOARDING_EMPLOYEES: {
         path: 'employees',
         entryScreens: [
-            SCREENS.ONBOARDING.PURPOSE,
+            SCREENS.ONBOARDING.DYNAMIC_PURPOSE,
             SCREENS.ONBOARDING.WORKSPACES,
             SCREENS.ONBOARDING.WORK_EMAIL,
             SCREENS.ONBOARDING.WORK_EMAIL_VALIDATION,
@@ -245,7 +255,7 @@ const DYNAMIC_ROUTES = {
     ONBOARDING_ACCOUNTING: {
         path: 'accounting',
         entryScreens: [
-            SCREENS.ONBOARDING.PURPOSE,
+            SCREENS.ONBOARDING.DYNAMIC_PURPOSE,
             SCREENS.ONBOARDING.WORKSPACES,
             SCREENS.ONBOARDING.WORK_EMAIL,
             SCREENS.ONBOARDING.WORK_EMAIL_VALIDATION,
@@ -3217,12 +3227,6 @@ const ROUTES = {
 
         // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
         getRoute: (backTo?: string) => getUrlWithBackToParam(`onboarding`, backTo),
-    },
-    ONBOARDING_PURPOSE: {
-        route: 'onboarding/purpose',
-
-        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-        getRoute: (backTo?: string) => getUrlWithBackToParam(`onboarding/purpose`, backTo),
     },
     ONBOARDING_WORKSPACES: {
         route: 'onboarding/join-workspaces',

@@ -98,8 +98,8 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                     path: ROUTES.ONBOARDING_WORK_EMAIL_VALIDATION.route,
                     exact: true,
                 },
-                [SCREENS.ONBOARDING.PURPOSE]: {
-                    path: ROUTES.ONBOARDING_PURPOSE.route,
+                [SCREENS.ONBOARDING.DYNAMIC_PURPOSE]: {
+                    path: DYNAMIC_ROUTES.ONBOARDING_PURPOSE.path,
                     exact: true,
                 },
                 [SCREENS.ONBOARDING.DYNAMIC_PERSONAL_DETAILS]: {
