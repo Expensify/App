@@ -3942,6 +3942,9 @@ function createSplitsAndOnyxData({
             oneOnOneReportPreviewAction = buildOptimisticReportPreview(oneOnOneChatReport, oneOnOneIOUReport);
         }
 
+        // Link the child IOU report to the resolved preview action so the expense page can resolve the parent action while offline
+        oneOnOneIOUReport.parentReportActionID = oneOnOneReportPreviewAction.reportActionID;
+
         const optimisticPolicyRecentlyUsedCategories = isPolicyExpenseChat ? mergePolicyRecentlyUsedCategories(category, policyRecentlyUsedCategories) : [];
         const optimisticRecentlyUsedCurrencies = mergePolicyRecentlyUsedCurrencies(currency, policyRecentlyUsedCurrencies);
 
