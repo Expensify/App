@@ -11,7 +11,7 @@ You can create a copy of one or more expenses using **Duplicate expense**. This 
 
 This is useful when you need to create similar expenses quickly without re-entering all the details manually. You can duplicate a single expense or select multiple expenses and duplicate them all at once.
 
-**Note:** Card expenses cannot be duplicated. Only cash, distance, and per diem expenses are eligibe to be duplicated. 
+**Note:** Card expenses cannot be duplicated. Only cash, distance, and per diem expenses are eligible to be duplicated. 
 
 <!-- LINK:
 Learn about expense types. 
