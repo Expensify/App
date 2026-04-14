@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/naming-convention */
+/* eslint-disable @typescript-eslint/naming-convention -- Mock module paths use non-standard naming conventions required by jest.mock */
 import {PortalProvider} from '@gorhom/portal';
 import {fireEvent, render, screen, waitFor} from '@testing-library/react-native';
 import React from 'react';
@@ -81,7 +81,7 @@ type PopoverMenuProps = {
  * and directly invokes onSelected, bypassing the modal animation lifecycle.
  */
 jest.mock('@components/PopoverMenu', () => {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment -- jest.requireActual returns an untyped module object
     const {View, Text, TouchableOpacity} = jest.requireActual('react-native');
     function MockPopoverMenu({isVisible, menuItems, onClose, onItemSelected}: PopoverMenuProps) {
         if (!isVisible) {
