@@ -152,18 +152,17 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
     const spendRulesTitleComponent = useMemo(
         () => (
             <View>
-                {spendRulesSummary.map((summary, index) => (
+                {spendRulesSummary.map((summary) => (
                     <Text
                         key={summary}
                         numberOfLines={2}
-                        style={[styles.themeTextColor, index < spendRulesSummary.length - 1 && styles.mb1]}
                     >
                         {summary}
                     </Text>
                 ))}
             </View>
         ),
-        [spendRulesSummary, styles.mb1, styles.themeTextColor],
+        [spendRulesSummary],
     );
 
     const canManageCardFreeze = isAdmin && !!card;
@@ -323,7 +322,6 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
                             description={translate('cardPage.spendRules')}
                             descriptionTextStyle={[styles.fontSizeLabel]}
                             titleComponent={spendRulesTitleComponent}
-                            shouldShowRightIcon
                             onPress={() => Navigation.navigate(spendRulesRoute)}
                             accessibilityLabel={spendRulesSummary.join('. ')}
                         />
