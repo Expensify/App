@@ -64,8 +64,9 @@ import {
     isScanning,
 } from '@libs/TransactionUtils';
 import variables from '@styles/variables';
-import {canIOUBePaid, initBulkEditDraftTransaction} from '@userActions/IOU';
+import {initBulkEditDraftTransaction} from '@userActions/IOU';
 import {dismissRejectUseExplanation} from '@userActions/IOU/RejectMoneyRequest';
+import {canIOUBePaid} from '@userActions/IOU/ReportWorkflow';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
