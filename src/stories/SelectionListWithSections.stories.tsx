@@ -1,13 +1,13 @@
 import type {Meta} from '@storybook/react-webpack5';
 import React, {useMemo, useState} from 'react';
 import Badge from '@components/Badge';
+import Button from '@components/Button';
 import MultiSelectListItem from '@components/SelectionList/ListItem/MultiSelectListItem';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import SelectionList from '@components/SelectionList/SelectionListWithSections';
 import type {ListItem, SelectionListWithSectionsProps} from '@components/SelectionList/SelectionListWithSections/types';
 import withNavigationFallback from '@components/withNavigationFallback';
 import useThemeStyles from '@hooks/useThemeStyles';
-import CONST from '@src/CONST';
 
 const SelectionListWithNavigation = withNavigationFallback(SelectionList);
 
@@ -17,7 +17,7 @@ const SelectionListWithNavigation = withNavigationFallback(SelectionList);
  * https://storybook.js.org/docs/react/writing-stories/introduction#component-story-format
  */
 const story: Meta<typeof SelectionList> = {
-    title: 'Components/SelectionList',
+    title: 'Components/SelectionListWithSections',
     component: SelectionList,
     parameters: {
         docs: {
@@ -48,6 +48,7 @@ const SECTIONS = [
             },
         ],
         isDisabled: false,
+        sectionIndex: 0,
     },
     {
         data: [
@@ -68,29 +69,23 @@ const SECTIONS = [
             },
         ],
         isDisabled: false,
+        sectionIndex: 1,
     },
 ];
 
 function Default(props: SelectionListWithSectionsProps<ListItem>) {
-    const [selectedIndex, setSelectedIndex] = useState(1);
+    const [selectedKey, setSelectedKey] = useState('option-2');
 
     const sections = props.sections.map((section) => {
-        const data = section.data.map((item, index) => {
-            const isSelected = selectedIndex === index;
-            return {...item, isSelected};
-        });
-
+        const data = section.data.map((item) => ({...item, isSelected: item.keyForList === selectedKey}));
         return {...section, data};
     });
 
     const onSelectRow = (item: ListItem) => {
-        for (const section of sections) {
-            const newSelectedIndex = section.data.findIndex((option) => option.keyForList === item.keyForList);
-
-            if (newSelectedIndex >= 0) {
-                setSelectedIndex(newSelectedIndex);
-            }
+        if (!item.keyForList) {
+            return;
         }
+        setSelectedKey(item.keyForList);
     };
 
     return (
@@ -107,21 +102,19 @@ function Default(props: SelectionListWithSectionsProps<ListItem>) {
 Default.args = {
     sections: SECTIONS,
     onSelectRow: () => {},
-    initiallyFocusedOptionKey: 'option-2',
+    initiallyFocusedItemKey: 'option-2',
 };
 
 function WithTextInput(props: SelectionListWithSectionsProps<ListItem>) {
-    const [searchText] = useState('');
-    const [selectedIndex, setSelectedIndex] = useState(1);
+    const [searchText, setSearchText] = useState('');
+    const [selectedKey, setSelectedKey] = useState('option-2');
 
     const sections = props.sections.map((section) => {
-        const data = section.data.reduce<ListItem[]>((memo, item, index) => {
+        const data = section.data.reduce<ListItem[]>((memo, item) => {
             if (!item.text?.toLowerCase().includes(searchText.trim().toLowerCase())) {
                 return memo;
             }
-
-            const isSelected = selectedIndex === index;
-            memo.push({...item, isSelected});
+            memo.push({...item, isSelected: item.keyForList === selectedKey});
             return memo;
         }, []);
 
@@ -129,13 +122,10 @@ function WithTextInput(props: SelectionListWithSectionsProps<ListItem>) {
     });
 
     const onSelectRow = (item: ListItem) => {
-        for (const section of sections) {
-            const newSelectedIndex = section.data.findIndex((option) => option.keyForList === item.keyForList);
-
-            if (newSelectedIndex >= 0) {
-                setSelectedIndex(newSelectedIndex);
-            }
+        if (!item.keyForList) {
+            return;
         }
+        setSelectedKey(item.keyForList);
     };
 
     return (
@@ -145,61 +135,43 @@ function WithTextInput(props: SelectionListWithSectionsProps<ListItem>) {
             sections={sections}
             ListItem={SingleSelectListItem}
             onSelectRow={onSelectRow}
+            shouldShowTextInput
+            textInputOptions={{
+                label: 'Option list',
+                placeholder: 'Search something...',
+                value: searchText,
+                onChangeText: setSearchText,
+            }}
         />
     );
 }
 
 WithTextInput.args = {
     sections: SECTIONS,
-    textInputLabel: 'Option list',
-    textInputPlaceholder: 'Search something...',
-    textInputMaxLength: 4,
-    inputMode: CONST.INPUT_MODE.NUMERIC,
-    initiallyFocusedOptionKey: 'option-2',
+    initiallyFocusedItemKey: 'option-2',
     onSelectRow: () => {},
 };
 
-function WithHeaderMessage(props: SelectionListWithSectionsProps<ListItem>) {
-    return (
-        <WithTextInput
-            // eslint-disable-next-line react/jsx-props-no-spreading
-            {...props}
-        />
-    );
-}
-
-WithHeaderMessage.args = {
-    ...WithTextInput.args,
-    headerMessage: 'No results found',
-    sections: [],
-};
-
 function WithAlternateText(props: SelectionListWithSectionsProps<ListItem>) {
-    const [selectedIndex, setSelectedIndex] = useState(1);
+    const [selectedKey, setSelectedKey] = useState('option-2');
 
     const sections = props.sections.map((section) => {
-        const data = section.data.map((item, index) => {
-            const isSelected = selectedIndex === index;
-
-            return {
-                ...item,
-                alternateText: `Alternate ${index + 1}`,
-                isSelected,
-            };
-        });
+        const data = section.data.map((item, index) => ({
+            ...item,
+            alternateText: `Alternate ${index + 1}`,
+            isSelected: item.keyForList === selectedKey,
+        }));
 
         return {...section, data};
     });
 
     const onSelectRow = (item: ListItem) => {
-        for (const section of sections) {
-            const newSelectedIndex = section.data.findIndex((option) => option.keyForList === item.keyForList);
-
-            if (newSelectedIndex >= 0) {
-                setSelectedIndex(newSelectedIndex);
-            }
+        if (!item.keyForList) {
+            return;
         }
+        setSelectedKey(item.keyForList);
     };
+
     return (
         <SelectionListWithNavigation
             // eslint-disable-next-line react/jsx-props-no-spreading
@@ -370,16 +342,20 @@ function WithConfirmButton(props: SelectionListWithSectionsProps<ListItem>) {
             sections={memo.sections}
             ListItem={MultiSelectListItem}
             onSelectRow={onSelectRow}
+            footerContent={
+                <Button
+                    success
+                    text="Confirm"
+                    onPress={() => {}}
+                />
+            }
         />
     );
 }
 
 WithConfirmButton.args = {
     ...MultipleSelection.args,
-    onConfirm: () => {},
-    confirmButtonText: 'Confirm',
-    showConfirmButton: true,
 };
 
-export {Default, WithTextInput, WithHeaderMessage, WithAlternateText, MultipleSelection, WithSectionHeader, WithConfirmButton};
+export {Default, WithTextInput, WithAlternateText, MultipleSelection, WithSectionHeader, WithConfirmButton};
 export default story;
