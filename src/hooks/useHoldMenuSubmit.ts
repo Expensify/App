@@ -3,8 +3,8 @@ import {hasSeenTourSelector} from '@selectors/Onboarding';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import {hasOnlyNonReimbursableTransactions, hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
-import {approveMoneyRequest} from '@userActions/IOU';
 import {payMoneyRequest} from '@userActions/IOU/PayMoneyRequest';
+import {approveMoneyRequest} from '@userActions/IOU/ReportWorkflow';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -82,6 +82,7 @@ function useHoldMenuSubmit({moneyRequestReport, chatReport, requestType, payment
                 ownerBillingGracePeriodEnd,
                 full,
                 onApproved: animationCallback,
+                expenseReportPolicy: policy,
                 delegateEmail,
             });
         } else if (chatReport && paymentType) {
