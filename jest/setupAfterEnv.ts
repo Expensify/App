@@ -1,4 +1,5 @@
 import '@testing-library/react-native';
+import type {KeyboardEventName} from 'react-native';
 import {Keyboard} from 'react-native';
 import Onyx from 'react-native-onyx';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -9,7 +10,7 @@ jest.useRealTimers();
 // @react-navigation/bottom-tabs useIsKeyboardShown hook doesn't crash on cleanup.
 if (Keyboard && typeof Keyboard.addListener === 'function') {
     const originalAddListener = Keyboard.addListener.bind(Keyboard);
-    Keyboard.addListener = ((event: string, callback: () => void) => {
+    Keyboard.addListener = ((event: KeyboardEventName, callback: () => void) => {
         const subscription = originalAddListener(event, callback);
         if (!subscription || typeof subscription.remove !== 'function') {
             return {remove: jest.fn()};

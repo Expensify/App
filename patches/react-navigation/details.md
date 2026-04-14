@@ -1,8 +1,9 @@
 # `@react-navigation` patches
 
 ### @react-navigation+package-name+7+fix-failing-jest-by-disabling-esmodule.patch
+#### [@react-navigation+bottom-tabs+7.15.5+001+fix-failing-jest-by-disabling-esmodule.patch](@react-navigation+bottom-tabs+7.15.5+001+fix-failing-jest-by-disabling-esmodule.patch)
 #### [@react-navigation+core+7.16.1+001+fix-failing-jest-by-disabling-esmodule.patch](@react-navigation+core+7.16.1+001+fix-failing-jest-by-disabling-esmodule.patch)
-#### [@react-navigation+elements+2.9.10+001+fix-failing-jest-by-disabling-esmodule.patch](@react-navigation+elements+2.9.10+001+fix-failing-jest-by-disabling-esmodule.patch)
+#### [@react-navigation+elements+2.9.14+001+fix-failing-jest-by-disabling-esmodule.patch](@react-navigation+elements+2.9.14+001+fix-failing-jest-by-disabling-esmodule.patch)
 #### [@react-navigation+material-top-tabs+7.4.19+001+fix-failing-jest-by-disabling-esmodule.patch](@react-navigation+material-top-tabs+7.4.19+001+fix-failing-jest-by-disabling-esmodule.patch)
 #### [@react-navigation+native-stack+7.14.5+002+fix-failing-jest-by-disabling-esmodule.patch](@react-navigation+native-stack+7.14.5+002+fix-failing-jest-by-disabling-esmodule.patch)
 #### [@react-navigation+native+7.1.33+002+fix-failing-jest-by-disabling-esmodule.patch](@react-navigation+native+7.1.33+002+fix-failing-jest-by-disabling-esmodule.patch)

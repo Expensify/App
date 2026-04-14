@@ -26,7 +26,6 @@ describe('getActiveTabName', () => {
                 routes: [{name: SCREENS.HOME}, {name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR}, {name: NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR}],
             },
         };
-        // @ts-expect-error -- minimal route object for testing
         expect(getActiveTabName(route)).toBe(NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR);
     });
 
@@ -38,7 +37,6 @@ describe('getActiveTabName', () => {
                 routes: [{name: SCREENS.HOME}, {name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR}],
             },
         };
-        // @ts-expect-error -- minimal route object for testing
         expect(getActiveTabName(route)).toBe(SCREENS.HOME);
     });
 
@@ -51,7 +49,6 @@ describe('getActiveTabName', () => {
                 routes: [{name: SCREENS.HOME}],
             },
         };
-        // @ts-expect-error -- minimal route object for testing
         expect(getActiveTabName(route)).toBeUndefined();
     });
 });

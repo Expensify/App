@@ -7,15 +7,15 @@ import type {Screen} from '@src/SCREENS';
 
 function getLastRoute(rootState: NavigationState, navigator: ValueOf<typeof NAVIGATORS>, screen: Screen) {
     // Navigators can be at root level or nested inside TabNavigator
-    let lastNavigator = rootState.routes.findLast((route) => route.name === navigator);
+    let lastNavigatorKey = rootState.routes.findLast((route) => route.name === navigator)?.key;
 
-    if (!lastNavigator) {
+    if (!lastNavigatorKey) {
         const rootTabRoute = rootState.routes.findLast((route) => route.name === NAVIGATORS.TAB_NAVIGATOR);
         const tabState = getTabState(rootTabRoute);
-        lastNavigator = tabState?.routes?.findLast((route) => route.name === navigator);
+        lastNavigatorKey = tabState?.routes?.findLast((route) => route.name === navigator)?.key;
     }
 
-    const lastNavigatorState = lastNavigator?.key ? getPreservedNavigatorState(lastNavigator.key) : undefined;
+    const lastNavigatorState = lastNavigatorKey ? getPreservedNavigatorState(lastNavigatorKey) : undefined;
     const lastRoute = lastNavigatorState?.routes?.findLast((route) => route.name === screen);
     return lastRoute;
 }

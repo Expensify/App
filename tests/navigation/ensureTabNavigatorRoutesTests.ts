@@ -1,9 +1,11 @@
+import type {NavigationRoute, ParamListBase} from '@react-navigation/native';
 import ensureTabNavigatorRoutes from '@libs/Navigation/AppNavigator/createRootStackNavigator/useCustomRootStackNavigatorState/ensureTabNavigatorRoutes';
-import type {NavigationRoute} from '@libs/Navigation/types';
 import NAVIGATORS from '@src/NAVIGATORS';
 
-function makeRoute(name: string, key: string): NavigationRoute {
-    return {name, key} as NavigationRoute;
+type Route = NavigationRoute<ParamListBase, string>;
+
+function makeRoute(name: string, key: string): Route {
+    return {name, key} as Route;
 }
 
 describe('ensureTabNavigatorRoutes', () => {

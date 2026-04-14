@@ -267,13 +267,12 @@ describe('Go back on the narrow layout', () => {
                 Navigation.goBack(ROUTES.SETTINGS);
             });
 
-            // In the tab navigator, goBack with a cross-tab fallback route dispatches a pop
-            // to the tab state. Tab navigators don't support stack-style pop, so the state stays
-            // on the current tab (reports) unchanged.
+            // In the tab navigator, goBack with a cross-tab fallback route uses jumpTo
+            // to switch to the target tab (settings).
             const rootStateAfterGoBack = navigationRef.current?.getRootState();
             const tabStateAfterGoBack = rootStateAfterGoBack?.routes.at(0)?.state;
             const activeTabAfterGoBack = tabStateAfterGoBack?.routes.at(tabStateAfterGoBack?.index ?? 0);
-            expect(activeTabAfterGoBack?.name).toBe(NAVIGATORS.REPORTS_SPLIT_NAVIGATOR);
+            expect(activeTabAfterGoBack?.name).toBe(NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR);
         });
 
         it('Should replace the current route with a new split navigator when distance from the fallbackRoute is greater than one split navigator', () => {
@@ -356,13 +355,12 @@ describe('Go back on the narrow layout', () => {
                 Navigation.goBack(ROUTES.SETTINGS);
             });
 
-            // In the tab navigator, goBack with a cross-tab fallback route dispatches a pop
-            // to the tab state. Tab navigators don't support stack-style pop, so the state stays
-            // on the current tab (search) unchanged.
+            // In the tab navigator, goBack with a cross-tab fallback route uses jumpTo
+            // to switch to the target tab (settings).
             const rootStateAfterGoBack = navigationRef.current?.getRootState();
             const tabStateAfterGoBack = rootStateAfterGoBack?.routes.at(0)?.state;
             const activeTabAfterGoBack = tabStateAfterGoBack?.routes.at(tabStateAfterGoBack?.index ?? 0);
-            expect(activeTabAfterGoBack?.name).toBe(NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR);
+            expect(activeTabAfterGoBack?.name).toBe(NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR);
         });
     });
 

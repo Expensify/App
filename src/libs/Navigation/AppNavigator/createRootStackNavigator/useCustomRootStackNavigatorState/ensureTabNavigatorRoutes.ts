@@ -1,5 +1,7 @@
-import type {NavigationRoute} from '@libs/Navigation/types';
+import type {NavigationRoute, ParamListBase} from '@react-navigation/native';
 import NAVIGATORS from '@src/NAVIGATORS';
+
+type Route = NavigationRoute<ParamListBase, string>;
 
 /**
  * Ensures the last two TAB_NAVIGATOR instances are always included in the rendered routes,
@@ -8,7 +10,7 @@ import NAVIGATORS from '@src/NAVIGATORS';
  * mounted to preserve that state when a newer ROOT_TAB is pushed above (e.g., for workspace
  * navigation from RHP).
  */
-function ensureTabNavigatorRoutes(slicedRoutes: NavigationRoute[], indexToSlice: number, allRoutes: NavigationRoute[]): NavigationRoute[] {
+function ensureTabNavigatorRoutes(slicedRoutes: Route[], indexToSlice: number, allRoutes: Route[]): Route[] {
     if (indexToSlice === 0) {
         return slicedRoutes;
     }
