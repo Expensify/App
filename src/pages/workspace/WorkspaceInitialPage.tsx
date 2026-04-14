@@ -38,9 +38,10 @@ import {
     goBackFromInvalidPolicy,
     hasAccountingFeatureConnection,
     hasPolicyCategoriesError,
+    canEditWorkspaceSettings,
+    isGroupPolicy,
     isPaidGroupPolicy,
     isPendingDeletePolicy,
-    isPolicyAdmin,
     isTimeTrackingEnabled,
     shouldShowEmployeeListError,
     shouldShowSyncError,
@@ -133,7 +134,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
 
     const policyName = policy?.name ?? '';
     const hasPolicyCreationError = policy?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD && !isEmptyObject(policy.errors);
-    const shouldShowProtectedItems = isPolicyAdmin(policy, login);
+    const shouldShowProtectedItems = canEditWorkspaceSettings(policy);
     const shouldDisplayLHB = !shouldUseNarrowLayout;
 
     const accountingConnectionNames = CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES;
@@ -228,7 +229,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
         },
     ];
 
-    if (isPaidGroupPolicy(policy) && shouldShowProtectedItems) {
+    if (isGroupPolicy(policy) && shouldShowProtectedItems) {
         workspaceMenuItems.push({
             translationKey: 'common.reports',
             icon: expensifyIcons.Document,

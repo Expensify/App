@@ -832,6 +832,17 @@ function isSubmitPolicy(policy: OnyxInputOrEntry<Policy>): boolean {
     return policy?.type === CONST.POLICY.TYPE.SUBMIT;
 }
 
+function isPolicyEditor(policy: OnyxEntry<Policy>): boolean {
+    return policy?.role === CONST.POLICY.ROLE.EDITOR;
+}
+
+/**
+ * Returns true if the user can edit workspace settings — admins on any workspace, or editors on Submit workspaces.
+ */
+function canEditWorkspaceSettings(policy: OnyxEntry<Policy>): boolean {
+    return isPolicyAdmin(policy) || isPolicyEditor(policy);
+}
+
 function isGroupPolicy(policy: OnyxInputOrEntry<Policy>): boolean {
     return isPaidGroupPolicy(policy) || isSubmitPolicy(policy);
 }
@@ -2163,6 +2174,8 @@ export {
     getCorrectedAutoReportingFrequency,
     isPaidGroupPolicy,
     isSubmitPolicy,
+    isPolicyEditor,
+    canEditWorkspaceSettings,
     isGroupPolicy,
     isPendingDeletePolicy,
     isPolicyAdmin,
