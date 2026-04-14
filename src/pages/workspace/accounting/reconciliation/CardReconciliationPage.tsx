@@ -75,6 +75,7 @@ function CardReconciliationPage({policy, route}: CardReconciliationPageProps) {
 
     const [continuousReconciliation] = useOnyx(`${ONYXKEYS.COLLECTION.EXPENSIFY_CARD_USE_CONTINUOUS_RECONCILIATION}${effectiveDomainID}`);
     const [currentConnectionName] = useOnyx(`${ONYXKEYS.COLLECTION.EXPENSIFY_CARD_CONTINUOUS_RECONCILIATION_CONNECTION}${effectiveDomainID}`);
+    const [reconciliationBankAccountID] = useOnyx(`${ONYXKEYS.COLLECTION.EXPENSIFY_CARD_RECONCILIATION_BANK_ACCOUNT_ID}${effectiveDomainID}`);
 
     const resolvedCardSettings = getCardSettings(fullySetUpCardSetting.cardSetting);
     const paymentBankAccountID = resolvedCardSettings?.paymentBankAccountID ?? CONST.DEFAULT_NUMBER_ID;
@@ -86,8 +87,8 @@ function CardReconciliationPage({policy, route}: CardReconciliationPageProps) {
 
     const connectionBankAccounts = useMemo(() => getConnectionBankAccountsForReconciliation(policy, connectionName), [policy, connectionName]);
     const bankAccountTitle = useMemo(
-        () => connectionBankAccounts.find((account) => account.id === paymentBankAccountID?.toString())?.name ?? '',
-        [connectionBankAccounts, paymentBankAccountID],
+        () => connectionBankAccounts.find((account) => account.id === reconciliationBankAccountID)?.name ?? '',
+        [connectionBankAccounts, reconciliationBankAccountID],
     );
 
     const handleToggleContinuousReconciliation = (value: boolean) => {

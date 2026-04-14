@@ -37,10 +37,12 @@ function DynamicReconciliationAccountSettingsPage({route}: DynamicReconciliation
     const defaultFundID = useDefaultFundID(policyID);
 
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+    const workspaceAccountID = policy?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${defaultFundID}`);
     const settings = getCardSettings(cardSettings);
     const paymentBankAccountID = settings?.paymentBankAccountID;
+    const [reconciliationBankAccountID] = useOnyx(`${ONYXKEYS.COLLECTION.EXPENSIFY_CARD_RECONCILIATION_BANK_ACCOUNT_ID}${workspaceAccountID}`);
 
     const selectedBankAccount = useMemo(() => bankAccountList?.[paymentBankAccountID?.toString() ?? ''], [paymentBankAccountID, bankAccountList]);
     const bankAccountNumber = useMemo(() => selectedBankAccount?.accountData?.accountNumber ?? '', [selectedBankAccount?.accountData?.accountNumber]);
@@ -59,15 +61,15 @@ function DynamicReconciliationAccountSettingsPage({route}: DynamicReconciliation
             text: bankAccount.name,
             value: bankAccount.id,
             keyForList: bankAccount.id,
-            isSelected: bankAccount.id === paymentBankAccountID?.toString(),
+            isSelected: bankAccount.id === reconciliationBankAccountID,
         }));
-    }, [connectionBankAccounts, paymentBankAccountID]);
+    }, [connectionBankAccounts, reconciliationBankAccountID]);
 
     const selectBankAccount = (newBankAccountID?: string) => {
         if (!newBankAccountID) {
             return;
         }
-        setCardReconciliationAccount(domainName, policyID, newBankAccountID);
+        setCardReconciliationAccount(workspaceAccountID, domainName, policyID, newBankAccountID);
         goBack();
     };
 
@@ -98,7 +100,7 @@ function DynamicReconciliationAccountSettingsPage({route}: DynamicReconciliation
                 data={options}
                 onSelectRow={({value}) => selectBankAccount(value)}
                 ListItem={RadioListItem}
-                initiallyFocusedItemKey={paymentBankAccountID?.toString()}
+                initiallyFocusedItemKey={reconciliationBankAccountID}
             />
         </ConnectionLayout>
     );

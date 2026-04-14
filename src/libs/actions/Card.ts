@@ -1522,14 +1522,22 @@ function toggleContinuousReconciliation(workspaceAccountID: number, shouldUseCon
     });
 }
 
-function setCardReconciliationAccount(domainName: string, policyID: string, expensifyCardIntegrationWithdrawalID: string) {
+function setCardReconciliationAccount(workspaceAccountID: number, domainName: string, policyID: string, expensifyCardIntegrationWithdrawalID: string) {
     const parameters = {
         domainName,
         expensifyCardIntegrationPolicyID: policyID,
         expensifyCardIntegrationWithdrawalID,
     };
 
-    API.write(WRITE_COMMANDS.SET_CARD_RECONCILIATION_BANK_ACCOUNT, parameters);
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.EXPENSIFY_CARD_RECONCILIATION_BANK_ACCOUNT_ID>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.EXPENSIFY_CARD_RECONCILIATION_BANK_ACCOUNT_ID}${workspaceAccountID}`,
+            value: expensifyCardIntegrationWithdrawalID,
+        },
+    ];
+
+    API.write(WRITE_COMMANDS.SET_CARD_RECONCILIATION_BANK_ACCOUNT, parameters, {optimisticData});
 }
 
 function updateSelectedFeed(feed: CompanyCardFeedWithDomainID, policyID: string | undefined) {
