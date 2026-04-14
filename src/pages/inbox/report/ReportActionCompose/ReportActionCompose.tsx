@@ -495,19 +495,22 @@ function ReportActionCompose({reportID}: ReportActionComposeProps) {
                         ? Object.entries(selectedTransactions)
                               .filter(([, info]) => info.isSelected)
                               .map(([id]) => id)
+                              .join(',') || undefined
                         : undefined;
                 const selectedReportIDsForContext =
-                    isConciergeSidePanel && selectedReports.length > 0 ? selectedReports.map((r) => r.reportID).filter((id): id is string => !!id) : undefined;
+                    isConciergeSidePanel && selectedReports.length > 0
+                        ? selectedReports
+                              .map((r) => r.reportID)
+                              .filter((id): id is string => !!id)
+                              .join(',') || undefined
+                        : undefined;
                 let sidePanelContext: OnyxTypes.SidePanelContext | undefined;
                 if (contextReportID) {
-                    sidePanelContext = {
-                        reportID: contextReportID,
-                        selectedTransactionIDs: selectedTransactionIDsForContext?.length ? selectedTransactionIDsForContext : undefined,
-                    };
-                } else if (selectedTransactionIDsForContext?.length) {
-                    sidePanelContext = {selectedTransactionIDs: selectedTransactionIDsForContext};
-                } else if (selectedReportIDsForContext?.length) {
+                    sidePanelContext = {reportID: contextReportID, selectedTransactionIDs: selectedTransactionIDsForContext, selectedReportIDs: selectedReportIDsForContext};
+                } else if (selectedReportIDsForContext) {
                     sidePanelContext = {selectedReportIDs: selectedReportIDsForContext};
+                } else if (selectedTransactionIDsForContext) {
+                    sidePanelContext = {selectedTransactionIDs: selectedTransactionIDsForContext};
                 }
 
                 addComment({
