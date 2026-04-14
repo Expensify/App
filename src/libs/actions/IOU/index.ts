@@ -1686,7 +1686,6 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
     let iouAction = iou.action;
     let iouReport = iou.report;
     if (isMoneyRequestToManagerMcTest) {
-        const date = new Date();
         const isTestReceipt = transaction.receipt?.isTestReceipt ?? false;
         const managerMcTestParticipant = getManagerMcTestParticipant(currentUserAccountIDParam, personalDetails) ?? {};
         const optimisticIOUReportAction = buildOptimisticIOUReportAction({
