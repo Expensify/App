@@ -316,13 +316,12 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
                             }
                         />
                     </OfflineWithFeedback>
-                    {matchingSpendRule.length > 0 && <MenuItemWithTopDescription
+                    {!!spendRulesSummary && <MenuItemWithTopDescription
                         description={translate('cardPage.spendRules')}
-                        title={spendRulesSummary || translate('cardPage.editSpendRules')}
-                        shouldShowRightIcon
-                        numberOfLinesTitle={0}
+                        title={spendRulesSummary}
                         titleStyle={styles.flex1}
                         onPress={() => Navigation.navigate(spendRulesRoute)}
+                        shouldShowRightIcon
                     />}
                     <MenuItem
                         icon={expensifyIcons.MoneySearch}
