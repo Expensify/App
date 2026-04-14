@@ -33,7 +33,7 @@ function CurrencyListContextProvider({children}: React.PropsWithChildren) {
     );
 
     const convertToDisplayString = useCallback(
-        (amountInCents: number, currencyCode: string): string => {
+        (amountInCents = 0, currencyCode: string = CONST.CURRENCY.USD): string => {
             const decimals = getCurrencyDecimals(currencyCode);
             const convertedAmount = convertToFrontendAmountAsInteger(amountInCents, decimals);
             return format(preferredLocale, convertedAmount, {
