@@ -64,9 +64,9 @@ When an expense is submitted on a workspace with an approval workflow configured
 
 ## How to change the approver for multiple reports at once
 
-1. In the navigation tabs (on the left on web, and at the bottom on mobile), head to **Reports > Reports**.
+1. In the navigation tabs (on the left on web, and at the bottom on mobile), go to **Reports > Reports**.
 2. Select two or more reports using the checkboxes.
-3. Tap the selection count at the bottom, then select **Change approver**.
+3. Choose **Selected**, then **Change approver**.
 4. Select **Add approver** or **Bypass approvers**.
 5. If you selected **Add approver**, choose the approver and save.
 
