@@ -2947,16 +2947,16 @@ describe('CardUtils', () => {
             },
         };
         it('should return the correct description for a company card', () => {
-            const description = getCompanyCardDescription('Test', 21310091, cardList);
+            const description = getCompanyCardDescription('Test', 21310091, cardList, mockTranslate);
             expect(description).toBe('480801XXXXXX2554');
         });
 
         it('should return the correct description for an Expensify card', () => {
-            const description = getCompanyCardDescription('Test', 21570657, cardList);
+            const description = getCompanyCardDescription('Test', 21570657, cardList, mockTranslate);
             expect(description).toBe('Test');
         });
 
-        it('should return "Central invoicing" for a travel card when translate is provided', () => {
+        it('should return "Central invoicing" for a travel card', () => {
             const travelCardList = {
                 '99999': {
                     cardID: 99999,
@@ -2968,20 +2968,6 @@ describe('CardUtils', () => {
             } as unknown as CardList;
             const description = getCompanyCardDescription('Expensify Card - 6909', 99999, travelCardList, mockTranslate);
             expect(description).toBe('Central invoicing');
-        });
-
-        it('should return raw card name for a travel card when translate is not provided', () => {
-            const travelCardList = {
-                '99999': {
-                    cardID: 99999,
-                    bank: CONST.EXPENSIFY_CARD.BANK,
-                    nameValuePairs: {
-                        feedCountry: CONST.TRAVEL.PROGRAM_TRAVEL_US,
-                    },
-                },
-            } as unknown as CardList;
-            const description = getCompanyCardDescription('Expensify Card - 6909', 99999, travelCardList);
-            expect(description).toBe('Expensify Card - 6909');
         });
     });
 

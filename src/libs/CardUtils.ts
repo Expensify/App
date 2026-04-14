@@ -202,12 +202,12 @@ function getCardDescriptionForSearchTable(card: Card, translate: LocalizedTransl
  * @param translate
  * @returns company card name
  */
-function getCompanyCardDescription(transactionCardName?: string, cardID?: number, cards?: CardList, translate?: LocalizedTranslate) {
+function getCompanyCardDescription(transactionCardName: string | undefined, cardID: number | undefined, cards: CardList | undefined, translate: LocalizedTranslate) {
     if (!cardID || !cards?.[cardID]) {
         return transactionCardName;
     }
     const card = cards[cardID];
-    if (isTravelCard(card) && translate) {
+    if (isTravelCard(card)) {
         return translate('cardTransactions.centralInvoicing');
     }
     if (isExpensifyCard(card)) {
