@@ -1,5 +1,5 @@
 import type {ReactElement, ReactNode} from 'react';
-import type {AccessibilityState, BlurEvent, NativeSyntheticEvent, Role, StyleProp, TargetedEvent, TextStyle, ViewStyle} from 'react-native';
+import type {BlurEvent, NativeSyntheticEvent, Role, StyleProp, TargetedEvent, TextStyle, ViewStyle} from 'react-native';
 import type {AnimatedStyle} from 'react-native-reanimated';
 import type {ValueOf} from 'type-fest';
 import type {SearchRouterItem} from '@components/Search/SearchAutocompleteList';
@@ -203,9 +203,6 @@ type CommonListItemProps<TItem extends ListItem> = {
 
     /** Callback to fire when the item is long pressed */
     onLongPressRow?: (item: TItem, itemTransactions?: TransactionListItemType[]) => void;
-
-    /** Accessibility State tells a person using either VoiceOver on iOS or TalkBack on Android the state of the element currently focused on */
-    accessibilityState?: AccessibilityState;
 
     /** Accessibility role for the list item (e.g. 'checkbox' for multi-select options so screen readers announce checked state) */
     accessibilityRole?: Role;

@@ -220,7 +220,7 @@ function BaseListItem<TItem extends ListItem>({
                 tabIndex={tabIndex}
                 // eslint-disable-next-line react/jsx-props-no-spreading -- we can't pass those props here on their own because this Component expects a discriminated Union
                 {...accessibleAndAccessibilityLabel}
-                accessibilityState={accessibilityState}
+                accessibilityState={accessibilityState ?? {selected: !!isFocused}}
                 aria-current={ariaCurrent}
                 onMouseLeave={handleMouseLeave}
                 // When the list-level Enter shortcut is disabled (disableKeyboardShortcuts), items with role="option"
@@ -230,7 +230,6 @@ function BaseListItem<TItem extends ListItem>({
             >
                 <View
                     testID={`${CONST.BASE_LIST_ITEM_TEST_ID}${item.keyForList}`}
-                    accessibilityState={accessibilityState ?? {selected: !!isFocused}}
                     style={[
                         isFocused &&
                             StyleUtils.getItemBackgroundColorStyle(

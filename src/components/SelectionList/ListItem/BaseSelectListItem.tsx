@@ -29,7 +29,7 @@ function BaseSelectListItem<TItem extends ListItem>({
     shouldSyncFocus,
     wrapperStyle,
     titleStyles,
-    shouldHighlightSelectedItem = true,
+    shouldHighlightSelectedItem,
     accessibilityRole,
     shouldShowSelectionButton,
     selectionButtonPosition,

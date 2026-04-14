@@ -64,8 +64,6 @@ function InviteMemberListItem<TItem extends ListItem>({
     const subscriptAvatarBorderColor = isFocused ? focusedBackgroundColor : theme.sidebar;
     const hoveredBackgroundColor = !!styles.sidebarLinkHover && 'backgroundColor' in styles.sidebarLinkHover ? styles.sidebarLinkHover.backgroundColor : theme.sidebar;
 
-    const isSelectable = !item.isDisabled && shouldShowSelectionButton;
-
     const firstItemIconID = Number(item?.icons?.at(0)?.id);
 
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -92,8 +90,8 @@ function InviteMemberListItem<TItem extends ListItem>({
             keyForList={item.keyForList}
             onFocus={onFocus}
             shouldSyncFocus={shouldSyncFocus}
-            shouldDisplayRBR={!isSelectable}
-            shouldShowSelectionButton={isSelectable}
+            shouldDisplayRBR={!(canSelectMultiple && !item.isDisabled)}
+            shouldShowSelectionButton={!item.isDisabled && shouldShowSelectionButton}
             onCheckboxPress={onCheckboxPress}
             testID={item.text}
         >
