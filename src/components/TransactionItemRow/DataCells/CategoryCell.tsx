@@ -27,9 +27,7 @@ function CategoryCell({shouldUseNarrowLayout, shouldShowTooltip, transactionItem
     const categoryForComparison = isCategoryMissing(transactionItem?.category) ? '' : (transactionItem?.category ?? '');
 
     const handleCategorySelected = (item: ListItem) => {
-        if (item.keyForList) {
-            onSave?.(String(item.keyForList));
-        }
+        onSave?.(item.keyForList);
         cancelEditing();
     };
 

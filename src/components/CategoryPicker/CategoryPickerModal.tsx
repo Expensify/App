@@ -52,7 +52,12 @@ function CategoryPickerModal({
     const anchorRef = useRef<View>(null);
 
     const handleCategorySelect = (item: ListItem) => {
-        onSelected?.(item);
+        // If clicking the same category that's already selected, treat it as deselection
+        if (item.keyForList === selectedCategory) {
+            onSelected?.({keyForList: '', searchText: ''});
+        } else {
+            onSelected?.(item);
+        }
         onClose();
     };
 

@@ -62,7 +62,12 @@ function TagPickerModal({
     const tagListName = getTagList(policyTags, 0).name;
 
     const handleTagSelected = (item: Partial<OptionData>) => {
-        onSelected?.(item.searchText ?? item.text ?? '');
+        // If clicking the same tag that's already selected, treat it as deselection
+        if (item.keyForList === selectedTag) {
+            onSelected?.('');
+        } else {
+            onSelected?.(item.searchText ?? item.text ?? '');
+        }
         onClose();
     };
 

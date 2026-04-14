@@ -59,9 +59,6 @@ function DatePickerModal({
         onSelected?.(newValue);
         onTouched?.();
         onInputChange?.(newValue);
-        if (shouldSaveDraft && formID) {
-            setDraftValues(formID, {[inputID]: newValue});
-        }
         setSelectedDate(newValue);
     };
 
