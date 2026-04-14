@@ -996,15 +996,12 @@ function checkIfNewFeedConnected(prevFeedsData: CombinedCardFeeds, currentFeedsD
     };
 }
 
-function filterAllInactiveCards(cards: CardList | undefined, includeDeactivated = false) {
+function filterAllInactiveCards(cards: CardList | undefined) {
     if (!cards) {
         return {};
     }
 
     const closedStates = new Set<number>([CONST.EXPENSIFY_CARD.STATE.CLOSED, CONST.EXPENSIFY_CARD.STATE.STATE_DEACTIVATED]);
-    if (includeDeactivated) {
-        closedStates.delete(CONST.EXPENSIFY_CARD.STATE.STATE_DEACTIVATED);
-    }
     const filteredCards = filterObject(cards, (_key, card) => {
         if (card.state === CONST.EXPENSIFY_CARD.STATE.STATE_SUSPENDED) {
             // Only include suspended cards that are frozen.
@@ -1027,22 +1024,12 @@ function filterInactiveCards(cardsList: WorkspaceCardsList | undefined) {
     } as WorkspaceCardsList;
 }
 
-function filterInactiveCardsIncludingDeactivated(cardsList: WorkspaceCardsList | undefined) {
-    const {cardList, ...assignedCards} = cardsList ?? {};
-    const filteredAssignedCards = filterAllInactiveCards(assignedCards, true);
-
-    return {
-        ...(cardList ? {cardList} : {}),
-        ...filteredAssignedCards,
-    } as WorkspaceCardsList;
-}
-
 function getAllCardsForWorkspace(
     workspaceAccountID: number,
     allCardList: OnyxCollection<WorkspaceCardsList>,
     cardFeeds?: CombinedCardFeeds,
     expensifyCardSettings?: OnyxCollection<ExpensifyCardSettings>,
-    includeDeactivated = false,
+    skipFiltering = false,
 ): CardList {
     const cards: CardList = {};
     const companyCardsDomainFeeds = Object.entries(cardFeeds ?? {}).map(([feedName, feedData]) => ({domainID: feedData.domainID, feedName}));
@@ -1050,14 +1037,13 @@ function getAllCardsForWorkspace(
         .map((key) => key.split('_').at(-1))
         .filter((id): id is string => !!id);
 
-    const filterFn = includeDeactivated ? filterInactiveCardsIncludingDeactivated : filterInactiveCards;
     for (const [key, values] of Object.entries(allCardList ?? {})) {
         const isWorkspaceAccountCards = workspaceAccountID !== CONST.DEFAULT_NUMBER_ID && key.includes(workspaceAccountID.toString());
         const isCompanyDomainCards = companyCardsDomainFeeds?.some((domainFeed) => domainFeed.domainID && key.includes(domainFeed.domainID.toString()) && key.includes(domainFeed.feedName));
         const isExpensifyDomainCards = expensifyCardsDomainIDs.some((domainID) => key.includes(domainID.toString()) && key.includes(CONST.EXPENSIFY_CARD.BANK));
         if ((isWorkspaceAccountCards || isCompanyDomainCards || isExpensifyDomainCards) && values) {
             const {cardList: assignableCards, ...assignedCards} = values ?? {};
-            const filteredCards = filterFn(assignedCards);
+            const filteredCards = skipFiltering ? assignedCards : filterInactiveCards(assignedCards);
             Object.assign(cards, filteredCards);
         }
     }
@@ -1775,7 +1761,6 @@ export {
     isPolicyIDInLinkedExpensifyCardPolicyList,
     filterAllInactiveCards,
     filterInactiveCards,
-    filterInactiveCardsIncludingDeactivated,
     getPersonalBankCardDetailsImage,
     isCardPendingIssue,
     isCardPendingActivate,

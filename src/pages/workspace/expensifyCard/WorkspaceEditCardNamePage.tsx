@@ -11,7 +11,6 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updateExpensifyCardTitle} from '@libs/actions/Card';
-import {filterInactiveCardsIncludingDeactivated} from '@libs/CardUtils';
 import {addErrorMessage} from '@libs/ErrorUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getFieldRequiredErrors, isValidInputLength} from '@libs/ValidationUtils';
@@ -34,7 +33,7 @@ function WorkspaceEditCardNamePage({route}: WorkspaceEditCardNamePageProps) {
     const {inputCallbackRef} = useAutoFocusInput();
     const styles = useThemeStyles();
 
-    const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${defaultFundID}_${CONST.EXPENSIFY_CARD.BANK}`, {selector: filterInactiveCardsIncludingDeactivated});
+    const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${defaultFundID}_${CONST.EXPENSIFY_CARD.BANK}`);
     const card = cardsList?.[cardID];
 
     const isWorkspaceRhp = route.name === SCREENS.WORKSPACE.EXPENSIFY_CARD_NAME;

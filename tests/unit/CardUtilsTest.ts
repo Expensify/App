@@ -12,7 +12,6 @@ import {
     filterAllInactiveCards,
     filterCardsByNonExpensify,
     filterInactiveCards,
-    filterInactiveCardsIncludingDeactivated,
     flattenWorkspaceCardsList,
     formatCardExpiration,
     formatMaskedCardName,
@@ -2072,25 +2071,6 @@ describe('CardUtils', () => {
 
         it('should return an empty object if undefined card list is passed', () => {
             const cards = filterInactiveCards(undefined);
-            expect(cards).toEqual({});
-        });
-    });
-
-    describe('filterInactiveCardsIncludingDeactivated', () => {
-        it('should keep deactivated cards but still filter out closed and suspended cards', () => {
-            const activeCards = {card1: {cardID: 1, state: CONST.EXPENSIFY_CARD.STATE.OPEN}};
-            const deactivatedCards = {card3: {cardID: 3, state: CONST.EXPENSIFY_CARD.STATE.STATE_DEACTIVATED}};
-            const closedCards = {
-                card2: {cardID: 2, state: CONST.EXPENSIFY_CARD.STATE.CLOSED},
-                card4: {cardID: 4, state: CONST.EXPENSIFY_CARD.STATE.STATE_SUSPENDED},
-            };
-            const cardList = {...activeCards, ...deactivatedCards, ...closedCards} as unknown as CardList;
-            const filteredList = filterInactiveCardsIncludingDeactivated(cardList);
-            expect(filteredList).toEqual({...activeCards, ...deactivatedCards});
-        });
-
-        it('should return an empty object if undefined card list is passed', () => {
-            const cards = filterInactiveCardsIncludingDeactivated(undefined);
             expect(cards).toEqual({});
         });
     });
