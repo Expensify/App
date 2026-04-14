@@ -80,6 +80,8 @@ function TransactionGroupListItem<TItem extends ListItem>({
     personalPolicyID,
     isFirstItem,
     isLastItem,
+    userBillingGracePeriodEnds,
+    ownerBillingGracePeriodEnd,
 }: TransactionGroupListItemProps<TItem>) {
     const groupItem = item as unknown as TransactionGroupListItemType;
 
@@ -452,6 +454,8 @@ function TransactionGroupListItem<TItem extends ListItem>({
                     personalPolicyID={personalPolicyID}
                     onDownArrowClick={onExpandIconPress}
                     isExpanded={isExpanded}
+                    userBillingGracePeriodEnds={userBillingGracePeriodEnds}
+                    ownerBillingGracePeriodEnd={ownerBillingGracePeriodEnd}
                 />
             );
         }
