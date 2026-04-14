@@ -1776,7 +1776,6 @@ function deleteExpensifyCardRule(domainAccountID: number, cardRuleID: string, ex
                 hasOnceLoaded: true,
                 cardRules: {
                     [cardRuleID]: {
-                        ...existingRule,
                         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                     },
                 },
