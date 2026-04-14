@@ -24,7 +24,6 @@ type CategoryFieldProps = {
     reportActionID: string | undefined;
     policy: OnyxEntry<OnyxTypes.Policy>;
     transaction: OnyxEntry<OnyxTypes.Transaction>;
-    shouldDisplayCategoryError: boolean;
     formError: string;
     shouldNavigateToUpgradePath: boolean;
     shouldSelectPolicy: boolean;
@@ -41,7 +40,6 @@ function CategoryField({
     reportActionID,
     policy,
     transaction,
-    shouldDisplayCategoryError,
     formError,
     shouldNavigateToUpgradePath,
     shouldSelectPolicy,
@@ -50,6 +48,7 @@ function CategoryField({
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Sparkles']);
 
+    const shouldDisplayCategoryError = formError === 'violations.categoryOutOfPolicy';
     const iouCategory = getCategory(transaction);
     const decodedCategoryName = getDecodedCategoryName(iouCategory);
 

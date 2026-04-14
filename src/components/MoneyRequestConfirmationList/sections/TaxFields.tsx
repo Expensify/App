@@ -24,27 +24,14 @@ type TaxFieldsProps = {
     action: IOUAction;
     iouType: Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>;
     reportID: string;
-    shouldDisplayTaxRateError: boolean;
     formError: string;
 };
 
-function TaxFields({
-    policy,
-    policyForMovingExpenses,
-    transaction,
-    iouCurrencyCode,
-    canModifyTaxFields,
-    didConfirm,
-    transactionID,
-    action,
-    iouType,
-    reportID,
-    shouldDisplayTaxRateError,
-    formError,
-}: TaxFieldsProps) {
+function TaxFields({policy, policyForMovingExpenses, transaction, iouCurrencyCode, canModifyTaxFields, didConfirm, transactionID, action, iouType, reportID, formError}: TaxFieldsProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
+    const shouldDisplayTaxRateError = formError === 'violations.taxOutOfPolicy';
     const isMovingCurrentTransactionFromTrackExpense = isMovingTransactionFromTrackExpense(action);
     const taxRates = policy?.taxRates ?? (isMovingCurrentTransactionFromTrackExpense ? policyForMovingExpenses?.taxRates : null);
     const taxAmount = getTaxAmount(transaction, false);

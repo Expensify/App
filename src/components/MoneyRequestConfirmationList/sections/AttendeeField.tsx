@@ -19,15 +19,15 @@ type AttendeeFieldProps = {
     action: IOUAction;
     iouType: Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>;
     reportID: string;
-    shouldDisplayAttendeesError: boolean;
     formError: string;
     transaction: OnyxEntry<OnyxTypes.Transaction>;
 };
 
-function AttendeeField({formattedAmountPerAttendee, isReadOnly, transactionID, action, iouType, reportID, shouldDisplayAttendeesError, formError, transaction}: AttendeeFieldProps) {
+function AttendeeField({formattedAmountPerAttendee, isReadOnly, transactionID, action, iouType, reportID, formError, transaction}: AttendeeFieldProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const shouldDisplayAttendeesError = formError === 'violations.missingAttendees';
 
     const iouAttendees = getAttendees(transaction, currentUserPersonalDetails);
 

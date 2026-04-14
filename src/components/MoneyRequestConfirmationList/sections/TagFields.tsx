@@ -24,7 +24,6 @@ type TagFieldsProps = {
     iouType: Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>;
     reportID: string;
     reportActionID: string | undefined;
-    shouldDisplayTagError: boolean;
     formError: string;
 
     /** The global tag index used for navigation and display */
@@ -43,12 +42,12 @@ function TagFields({
     iouType,
     reportID,
     reportActionID,
-    shouldDisplayTagError,
     formError,
     tagIndex,
 }: TagFieldsProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const shouldDisplayTagError = formError === 'violations.tagOutOfPolicy';
 
     return (
         <MenuItemWithTopDescription

@@ -308,12 +308,6 @@ function MoneyRequestConfirmationListFooter({
     const shouldShowReimbursable =
         (isPolicyExpenseChat || isTrackExpense) && !!policy && policy?.disabledFields?.reimbursable !== true && !isManagedCardTransaction(transaction) && !isTypeInvoice;
 
-    const shouldDisplayDistanceRateError = formError === 'iou.error.invalidRate';
-    const shouldDisplayTagError = formError === 'violations.tagOutOfPolicy';
-    const shouldDisplayTaxRateError = formError === 'violations.taxOutOfPolicy';
-    const shouldDisplayCategoryError = formError === 'violations.categoryOutOfPolicy';
-    const shouldDisplayAttendeesError = formError === 'violations.missingAttendees';
-
     const shouldNavigateToUpgradePath = !policyForMovingExpensesID && !shouldSelectPolicy;
     const shouldShowTimeRequestFields = isTimeRequest && action === CONST.IOU.ACTION.CREATE;
     const tagVisibility = getTagVisibility({
@@ -445,7 +439,7 @@ function MoneyRequestConfirmationListFooter({
                     iouType={iouType}
                     reportID={reportID}
                     reportActionID={reportActionID}
-                    shouldDisplayDistanceRateError={shouldDisplayDistanceRateError}
+                    formError={formError}
                     shouldNavigateToUpgradePath={shouldNavigateToUpgradePath}
                     shouldSelectPolicy={shouldSelectPolicy}
                 />
@@ -505,7 +499,6 @@ function MoneyRequestConfirmationListFooter({
                     reportActionID={reportActionID}
                     policy={policy}
                     transaction={transaction}
-                    shouldDisplayCategoryError={shouldDisplayCategoryError}
                     formError={formError}
                     shouldNavigateToUpgradePath={shouldNavigateToUpgradePath}
                     shouldSelectPolicy={shouldSelectPolicy}
@@ -553,7 +546,6 @@ function MoneyRequestConfirmationListFooter({
                         iouType={iouType}
                         reportID={reportID}
                         reportActionID={reportActionID}
-                        shouldDisplayTagError={shouldDisplayTagError}
                         formError={formError}
                     />
                 ),
@@ -575,7 +567,6 @@ function MoneyRequestConfirmationListFooter({
                     action={action}
                     iouType={iouType}
                     reportID={reportID}
-                    shouldDisplayTaxRateError={shouldDisplayTaxRateError}
                     formError={formError}
                 />
             ),
@@ -592,7 +583,6 @@ function MoneyRequestConfirmationListFooter({
                     action={action}
                     iouType={iouType}
                     reportID={reportID}
-                    shouldDisplayAttendeesError={shouldDisplayAttendeesError}
                     formError={formError}
                     transaction={transaction}
                 />

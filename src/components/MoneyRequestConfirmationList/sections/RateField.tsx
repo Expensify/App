@@ -27,7 +27,7 @@ type RateFieldProps = {
     iouType: Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>;
     reportID: string;
     reportActionID: string | undefined;
-    shouldDisplayDistanceRateError: boolean;
+    formError: string;
     shouldNavigateToUpgradePath: boolean;
     shouldSelectPolicy: boolean;
 };
@@ -46,13 +46,14 @@ function RateField({
     iouType,
     reportID,
     reportActionID,
-    shouldDisplayDistanceRateError,
+    formError,
     shouldNavigateToUpgradePath,
     shouldSelectPolicy,
 }: RateFieldProps) {
     const styles = useThemeStyles();
     const {translate, toLocaleDigit} = useLocalize();
     const {getCurrencySymbol} = useCurrencyListActions();
+    const shouldDisplayDistanceRateError = formError === 'iou.error.invalidRate';
     const {isOffline} = useNetwork();
 
     const isTrackExpense = iouType === CONST.IOU.TYPE.TRACK;
