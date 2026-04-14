@@ -6,6 +6,7 @@ import EmptyStateComponent from '@components/EmptyStateComponent';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {PressableWithFeedback} from '@components/Pressable';
 import ScreenWrapper from '@components/ScreenWrapper';
+import ScrollView from '@components/ScrollView';
 import DropdownButton from '@components/Search/FilterDropdowns/DropdownButton';
 import type {MultiSelectItem} from '@components/Search/FilterDropdowns/MultiSelectPopup';
 import MultiSelectPopup from '@components/Search/FilterDropdowns/MultiSelectPopup';
@@ -15,6 +16,7 @@ import UnreportedExpensesSkeleton from '@components/Skeletons/UnreportedExpenses
 import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
+import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -76,7 +78,7 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [reportDrafts] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT);
-
+    const isInLandscapeMode = useIsInLandscapeMode();
     const initialSkeletonReasonAttributes: SkeletonSpanReasonAttributes = {
         context: 'AddUnreportedExpense.InitialSkeleton',
         isLoadingUnreportedTransactions,
@@ -401,34 +403,37 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
                     title={translate('iou.addUnreportedExpense')}
                     onBackButtonPress={Navigation.goBack}
                 />
-                <EmptyStateComponent
-                    cardStyles={[styles.appBG]}
-                    cardContentStyles={[styles.pb0]}
-                    headerMedia={illustrations.FolderWithPapersAndWatch}
-                    title={translate('iou.emptyStateUnreportedExpenseTitle')}
-                    subtitle={translate('iou.emptyStateUnreportedExpenseSubtitle')}
-                    headerStyles={[styles.emptyStateMoneyRequestReport]}
-                    headerContentStyles={[styles.emptyStateFolderStaticIllustration]}
-                    buttons={[
-                        {
-                            buttonText: translate('iou.createExpense'),
-                            buttonAction: () => {
-                                if (
-                                    report &&
-                                    report.policyID &&
-                                    shouldRestrictUserBillableActions(report.policyID, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, undefined, policy)
-                                ) {
-                                    Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(report.policyID));
-                                    return;
-                                }
-                                interceptAnonymousUser(() => {
-                                    startMoneyRequest(CONST.IOU.TYPE.SUBMIT, reportID, draftTransactionIDs, undefined, false, backToReport);
-                                });
+                <ScrollView contentContainerStyle={[styles.flexGrow1]}>
+                    <EmptyStateComponent
+                        minModalHeight={isInLandscapeMode ? 0 : undefined}
+                        cardStyles={[styles.appBG]}
+                        cardContentStyles={[styles.pb0]}
+                        headerMedia={illustrations.FolderWithPapersAndWatch}
+                        title={translate('iou.emptyStateUnreportedExpenseTitle')}
+                        subtitle={translate('iou.emptyStateUnreportedExpenseSubtitle')}
+                        headerStyles={[styles.emptyStateMoneyRequestReport]}
+                        headerContentStyles={[styles.emptyStateFolderStaticIllustration]}
+                        buttons={[
+                            {
+                                buttonText: translate('iou.createExpense'),
+                                buttonAction: () => {
+                                    if (
+                                        report &&
+                                        report.policyID &&
+                                        shouldRestrictUserBillableActions(report.policyID, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, undefined, policy)
+                                    ) {
+                                        Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(report.policyID));
+                                        return;
+                                    }
+                                    interceptAnonymousUser(() => {
+                                        startMoneyRequest(CONST.IOU.TYPE.SUBMIT, reportID, draftTransactionIDs, undefined, false, backToReport);
+                                    });
+                                },
+                                success: true,
                             },
-                            success: true,
-                        },
-                    ]}
-                />
+                        ]}
+                    />
+                </ScrollView>
             </ScreenWrapper>
         );
     }

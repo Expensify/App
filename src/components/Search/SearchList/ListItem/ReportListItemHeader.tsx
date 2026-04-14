@@ -135,7 +135,7 @@ function HeaderFirstRow<TItem extends ListItem>({
                         onPress={() => onCheckboxPress?.(reportItem as unknown as TItem)}
                         isChecked={isSelectAllChecked}
                         isIndeterminate={isIndeterminate}
-                        containerStyle={[StyleUtils.getCheckboxContainerStyle(20), StyleUtils.getMultiselectListStyles(!!reportItem.isSelected, !!reportItem.isDisabled)]}
+                        containerStyle={[StyleUtils.getCheckboxContainerStyle(20), StyleUtils.getMultiselectListStyles(!!reportItem.isSelected, !!reportItem.isDisabled), styles.m0]}
                         disabled={!!isDisabled || reportItem.isDisabledCheckbox}
                         accessibilityLabel={reportItem.text ?? ''}
                         shouldStopMouseDownPropagation
