@@ -1,4 +1,5 @@
 import React, {useState} from 'react';
+import {View} from 'react-native';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -136,17 +137,19 @@ function SearchSavePage() {
                 <Text style={[styles.textLabelSupporting, styles.mb2, styles.mt5]}>{translate('search.appliedFilters')}:</Text>
                 {appliedFilters.length > 0 ? (
                     appliedFilters.map((filter) => (
-                        <Text
+                        <View
+                            style={[styles.flexRow]}
                             key={filter.key}
-                            style={[styles.label]}
                         >
                             <Text style={[styles.label, styles.ph2]}>{CONST.DOT_SEPARATOR}</Text>
-                            <Text style={[styles.labelStrong]}>{filter.label}: </Text>
-                            <FilterValue
-                                filterKey={filter.key}
-                                value={filter.value}
-                            />
-                        </Text>
+                            <Text style={[styles.label]}>
+                                <Text style={[styles.labelStrong]}>{filter.label}: </Text>
+                                <FilterValue
+                                    filterKey={filter.key}
+                                    value={filter.value}
+                                />
+                            </Text>
+                        </View>
                     ))
                 ) : (
                     <Text>{translate('common.none')}</Text>
