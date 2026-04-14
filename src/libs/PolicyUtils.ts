@@ -1107,7 +1107,7 @@ function getFirstRuleApprover(approvalRules: ApprovalRule[], expenseReport: Onyx
         }
         for (let j = 0; j < rule.applyWhen.length; j++) {
             const applyWhen = rule.applyWhen.at(j);
-            if (!applyWhen || applyWhen.condition !== CONST.POLICY.RULE_CONDITIONS.MATCHES) {
+            if (applyWhen?.condition !== CONST.POLICY.RULE_CONDITIONS.MATCHES) {
                 continue;
             }
             if (applyWhen.field === CONST.POLICY.FIELDS.CATEGORY || applyWhen.field === CONST.POLICY.FIELDS.TAG) {
@@ -1232,7 +1232,7 @@ function getPersonalPolicy() {
 }
 
 function getAdminEmployees(policy: OnyxEntry<Policy>): PolicyEmployee[] {
-    if (!policy || !policy.employeeList) {
+    if (!policy?.employeeList) {
         return [];
     }
     return Object.keys(policy.employeeList)
@@ -1582,8 +1582,7 @@ function getIntegrationLastSuccessfulDate(
     const connectionSyncTimeStamp = getLocalDateFromDatetime(connectionSyncProgress?.timestamp).toISOString();
 
     if (
-        connectionSyncProgress &&
-        connectionSyncProgress.stageInProgress === CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.JOB_DONE &&
+        connectionSyncProgress?.stageInProgress === CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.JOB_DONE &&
         syncSuccessfulDate &&
         connectionSyncTimeStamp > getLocalDateFromDatetime(syncSuccessfulDate).toISOString()
     ) {
