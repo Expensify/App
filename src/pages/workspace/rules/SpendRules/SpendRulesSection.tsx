@@ -1,4 +1,4 @@
-import React, {useEffect, useMemo} from 'react';
+import React, {useEffect} from 'react';
 import {View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
 import Badge from '@components/Badge';
@@ -154,7 +154,7 @@ function SpendRulesSection({policyID}: SpendRulesSectionProps) {
 
     // Exclude pending-delete rules when online because OfflineWithFeedback hides them visually.
     // When offline, keep them so OfflineWithFeedback can show strikethrough styling.
-    const visibleRules = useMemo(() => createdRules.filter((rule) => isOffline || rule.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE), [createdRules, isOffline]);
+    const visibleRules = createdRules.filter((rule) => isOffline || rule.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
 
     const renderSectionTitle = () => (
         <View style={[styles.flexRow, styles.alignItemsCenter]}>
