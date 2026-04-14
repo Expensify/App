@@ -1553,7 +1553,7 @@ function Search({
                     type={type}
                     hasResults={searchResults?.search?.hasResults}
                     queryJSON={queryJSON}
-                    onScroll={isInLandscapeMode ? onSearchListScroll : undefined}
+                    onScroll={onSearchListScroll}
                     contentContainerStyle={isInLandscapeMode ? styles.searchListContentContainerStyles : undefined}
                 />
             </View>
