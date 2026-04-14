@@ -593,4 +593,29 @@ describe('DateUtils', () => {
             expect(result).toBe('2024-01-16 04:59:59');
         });
     });
+
+    describe('getFormattedCancellationDate', () => {
+        it('should format the date using the venue timezone embedded in the ISO string', () => {
+            // 2026-04-19T15:00:00+07:00 — venue is UTC+7, device timezone is UTC
+            const result = DateUtils.getFormattedCancellationDate('2026-04-19T15:00:00+07:00');
+            // Should display 3:00 PM in the venue's +07:00 timezone, not converted to device-local time
+            expect(result).toBe('Sunday, Apr 19, 2026 3:00 PM');
+        });
+
+        it('should format without year when date is in the current year', () => {
+            const currentYear = new Date().getFullYear();
+            const isoString = `${currentYear}-06-15T10:30:00+00:00`;
+            const result = DateUtils.getFormattedCancellationDate(isoString);
+            expect(result).toBe('Monday, Jun 15 10:30 AM');
+        });
+
+        it('should return empty string for falsy input', () => {
+            expect(DateUtils.getFormattedCancellationDate('')).toBe('');
+        });
+
+        it('should fall back to UTC when no timezone offset is present in the ISO string', () => {
+            const result = DateUtils.getFormattedCancellationDate('2026-04-19T15:00:00');
+            expect(result).toBe('Sunday, Apr 19, 2026 3:00 PM');
+        });
+    });
 });
