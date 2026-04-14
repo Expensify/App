@@ -57,7 +57,7 @@ jobs:
         run: |
           "$GITHUB_WORKSPACE/.github/scripts/extractAllowedRules.sh" \
             "$GITHUB_WORKSPACE/.claude/skills/coding-standards/rules" \
-            "$GITHUB_WORKSPACE/.claude/allowed-rules.txt"
+            "$RUNNER_TEMP/allowed-rules.txt"
 
       - name: Load code review JSON schema
         id: schema
@@ -82,6 +82,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           STRUCTURED_OUTPUT: ${{ steps.code-review.outputs.structured_output }}
+          ALLOWED_RULES_FILE: ${{ runner.temp }}/allowed-rules.txt
         run: |
           if [ -z "$STRUCTURED_OUTPUT" ]; then
             echo "::error::Claude Code Action returned empty structured output"

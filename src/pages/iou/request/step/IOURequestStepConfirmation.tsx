@@ -1,3 +1,4 @@
+import {delegateEmailSelector} from '@selectors/Account';
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
@@ -204,6 +205,7 @@ function IOURequestStepConfirmation({
     const [gpsDraftDetails] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
 
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['ReplaceReceipt', 'SmartScan']);
 
@@ -528,6 +530,7 @@ function IOURequestStepConfirmation({
                         currentUserPersonalDetails.accountID,
                         hasOutstandingChildTask,
                         parentReportAction,
+                        delegateEmail,
                         false,
                     );
                 }
@@ -654,6 +657,7 @@ function IOURequestStepConfirmation({
             isViewTourTaskParentReportArchived,
             hasOutstandingChildTask,
             parentReportAction,
+            delegateEmail,
             translate,
             toLocaleDigit,
             betas,

@@ -1450,11 +1450,6 @@ const translations: TranslationDeepObject<typeof en> = {
             manySplitsProvided: `分割できる最大数は${CONST.IOU.SPLITS_LIMIT}件です。`,
             dateRangeExceedsMaxDays: `日付範囲は${CONST.IOU.SPLITS_LIMIT}日を超えることはできません。`,
             stitchOdometerImagesFailed: '走行距離計の画像を結合できませんでした。後でもう一度お試しください。',
-            nonReimbursablePayment: 'Expensify経由では支払えません',
-            nonReimbursablePaymentDescription: (isMultiple?: boolean) =>
-                isMultiple
-                    ? '1つ以上の選択したレポートには精算可能な経費がありません。経費を再確認するか、手動で支払い済みにしてください。'
-                    : 'このレポートには精算可能な経費がありません。経費を再確認するか、手動で支払い済みにしてください。',
         },
         dismissReceiptError: 'エラーを閉じる',
         dismissReceiptErrorConfirmation: 'ご注意ください！このエラーを閉じると、アップロード済みのレシートが完全に削除されます。本当に続行しますか？',
@@ -3179,8 +3174,7 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
                         # 無料トライアルが開始されました！セットアップを始めましょう。
                         👋 はじめまして。私は Expensify のセットアップ担当です。ワークスペースを作成したので、以下の手順に沿って 30 日間の無料トライアルを最大限に活用しましょう！
                     `),
-            onboardingTrackWorkspaceMessage:
-                '# セットアップを始めましょう\n👋 こんにちは、私はあなたのExpensifyセットアップ担当です。すでに領収書と経費を管理するためのワークスペースを作成してあります。30日間の無料トライアルを最大限に活用するために、残りのセットアップ手順に従って進めてください！',
+            onboardingTrackWorkspaceMessage: '30日間の無料トライアルを最大限に活用するために、以下の残りの手順に従ってください。',
             onboardingChatSplitMessage: '友だちとの割り勘は、メッセージを送るくらい簡単です。やり方はこちら。',
             onboardingAdminMessage: '管理者としてチームのワークスペースを管理し、自分の経費を提出する方法を学びましょう。',
             onboardingTestDriveReceiverMessage: '*3か月無料でご利用いただけます！下から始めましょう。*',
@@ -4530,7 +4524,7 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
                     [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: '自己負担経費は支払われた時点でエクスポートされます',
                 },
             },
-            travelInvoicing: '出張請求書作成',
+            travelInvoicing: 'Expensify Travel 買掛金のエクスポート先',
             travelInvoicingVendor: '出張業者',
             travelInvoicingPayableAccount: '旅費未払勘定',
         },
@@ -5224,7 +5218,7 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             chooseCard: 'カードを選択',
             chooseCardFor: (assignee: string) =>
                 `<strong>${assignee}</strong> に割り当てるカードを選択してください。お探しのカードが見つかりませんか？<concierge-link>お知らせください。</concierge-link>`,
-            noActiveCards: 'このフィードには有効なカードがありません',
+            noActiveCards: 'このフィードに有効なカードはありません',
             somethingMightBeBroken:
                 '<muted-text><centered-text>もしくは不具合が発生している可能性があります。いずれにせよ、ご不明な点があれば、<concierge-link>Concierge にお問い合わせください</concierge-link>。</centered-text></muted-text>',
             chooseTransactionStartDate: '取引の開始日を選択',
@@ -6793,6 +6787,8 @@ ${reportName}
                 confirmErrorApplyAtLeastOneSpendRule: '少なくとも 1 つの支出ルールを適用してください',
                 categories: 'カテゴリ',
                 merchants: '加盟店',
+                noAvailableCards: 'すべてのカードにはすでにルールがあります',
+                noAvailableCardsSubtitle: '既存のカードルールを編集して変更します',
                 max: '最大',
                 categoryOptions: {
                     [CONST.SPEND_RULES.CATEGORIES.AIRLINES]: '航空会社',
@@ -7796,6 +7792,21 @@ ${reportName}
         oooEventSummaryPartialDay: (summary: string, timePeriod: string, date: string) => `${date}の${timePeriod}の${summary}`,
         startTimer: 'タイマー開始',
         stopTimer: 'タイマーを停止',
+        scheduleOOO: '不在予定を設定',
+        scheduleOOOTitle: '不在予定を設定',
+        date: '日付',
+        time: '時間（24時間表記）',
+        durationAmount: '期間',
+        durationUnit: '単位',
+        reason: '理由',
+        workingPercentage: '稼働率',
+        dateRequired: '日付は必須です。',
+        invalidTimeFormat: '有効な24時間表記の時刻を入力してください（例: 14:30）。',
+        enterANumber: '数字を入力してください。',
+        hour: '時間',
+        day: '日数',
+        week: '週間',
+        month: 'か月',
     },
     footer: {
         features: '機能',
