@@ -11,7 +11,6 @@ import {PressableWithFeedback} from '@components/Pressable';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import useReportAttributes from '@hooks/useReportAttributes';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useRootNavigationState from '@hooks/useRootNavigationState';
 import {useSidebarOrderedReportsState} from '@hooks/useSidebarOrderedReports';
@@ -25,7 +24,6 @@ import isRoutePreloaded from '@libs/Navigation/helpers/isRoutePreloaded';
 import Navigation from '@libs/Navigation/Navigation';
 import {isDeletedAction} from '@libs/ReportActionsUtils';
 import {startSpan} from '@libs/telemetry/activeSpans';
-import {getChatTabBrickRoad} from '@libs/WorkspacesSettingsUtils';
 import navigationRef from '@navigation/navigationRef';
 import type {ReportsSplitNavigatorParamList} from '@navigation/types';
 import NavigationTabBarAvatar from '@pages/inbox/sidebar/NavigationTabBarAvatar';
@@ -56,7 +54,7 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFloatin
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {orderedReportIDs} = useSidebarOrderedReportsState();
+    const {chatTabBrickRoad} = useSidebarOrderedReportsState();
     const [isDebugModeEnabled] = useOnyx(ONYXKEYS.IS_DEBUG_MODE_ENABLED);
     const subscriptionPlan = useSubscriptionPlan();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['ExpensifyAppIcon', 'Home', 'Inbox']);
@@ -77,9 +75,7 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFloatin
     };
     const [doesLastReportActionExist] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${lastReportRouteReportID}`, {selector: doesLastReportActionExistSelector});
 
-    const reportAttributes = useReportAttributes();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const chatTabBrickRoad = getChatTabBrickRoad(orderedReportIDs, reportAttributes);
 
     const StyleUtils = useStyleUtils();
 

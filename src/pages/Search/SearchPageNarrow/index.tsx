@@ -1,6 +1,6 @@
-import {useRoute} from '@react-navigation/native';
+import {useFocusEffect, useNavigation, useRoute} from '@react-navigation/native';
 import React, {useCallback, useContext, useEffect, useRef, useState, useTransition} from 'react';
-import {View} from 'react-native';
+import {StyleSheet, View} from 'react-native';
 import Animated, {clamp, useAnimatedScrollHandler, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import {scheduleOnRN} from 'react-native-worklets';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
@@ -33,7 +33,7 @@ import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import Navigation from '@libs/Navigation/Navigation';
 import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import {isSearchDataLoaded} from '@libs/SearchUIUtils';
-import {getPendingSubmitFollowUpAction} from '@libs/telemetry/submitFollowUpAction';
+import {endSubmitFollowUpActionSpan, getPendingSubmitFollowUpAction} from '@libs/telemetry/submitFollowUpAction';
 import variables from '@styles/variables';
 import {searchInServer} from '@userActions/Report';
 import {search} from '@userActions/Search';
@@ -152,9 +152,21 @@ function SearchPageNarrow({queryJSON, searchResults, isMobileSelectionModeEnable
         return () => removeRouteKey(route.key);
     }, [addRouteKey, removeRouteKey, route.key, searchRouterListVisible]);
 
-    const [useStaticRendering] = useState(() => getPendingSubmitFollowUpAction()?.followUpAction === CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.NAVIGATE_TO_SEARCH);
+    const navigation = useNavigation();
+    // When pre-inserted behind the RHP (not focused), always start in static rendering
+    // mode so we stay at the lightweight static list until focus arrives. This avoids
+    // mounting the heavy Search component while hidden and ensures the deferred write
+    // mechanism works correctly: createTransaction registers the write in the next rAF,
+    // and the full Search component flushes it when it mounts after focus-driven phase transition.
+    const [useStaticRendering] = useState(() => {
+        if (!navigation.isFocused()) {
+            return true;
+        }
+        return getPendingSubmitFollowUpAction()?.followUpAction === CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.NAVIGATE_TO_SEARCH;
+    });
     const [isInteractive, setIsInteractive] = useState(!useStaticRendering);
     const [isHeaderInteractive, setIsHeaderInteractive] = useState(!useStaticRendering);
+    const [isSearchReady, setIsSearchReady] = useState(!useStaticRendering);
     const isHeaderInteractiveRef = useRef(isHeaderInteractive);
     const [, startTransition] = useTransition();
     useEffect(() => {
@@ -168,14 +180,55 @@ function SearchPageNarrow({queryJSON, searchResults, isMobileSelectionModeEnable
             setIsHeaderInteractive(true);
         });
     }, [startTransition]);
-    useEffect(() => {
-        if (!isHeaderInteractive || isInteractive) {
+
+    const onSearchContentReady = useCallback(() => {
+        setIsSearchReady(true);
+    }, []);
+
+    const hadFocusRef = useRef(false);
+    const hadLayoutRef = useRef(false);
+
+    // Single callback for ending submit-expense navigation spans. Passed down
+    // to SearchStaticList and Search so the logic lives in one place.
+    // Requires both focus and layout signals before ending — prevents 0ms spans
+    // on subsequent flows where useFocusEffect fires before the content re-renders.
+    const endSubmitNavigationSpans = useCallback((wasListEmpty: boolean, source: 'focus' | 'layout') => {
+        if (source === 'focus') {
+            hadFocusRef.current = true;
+        } else {
+            hadLayoutRef.current = true;
+        }
+
+        if (!hadFocusRef.current || !hadLayoutRef.current) {
             return;
         }
-        startTransition(() => {
-            setIsInteractive(true);
-        });
-    }, [isHeaderInteractive, isInteractive, startTransition]);
+
+        hadFocusRef.current = false;
+        hadLayoutRef.current = false;
+
+        const pending = getPendingSubmitFollowUpAction();
+        if (pending && pending.followUpAction !== CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_AND_OPEN_REPORT) {
+            endSubmitFollowUpActionSpan(pending.followUpAction, undefined, {
+                [CONST.TELEMETRY.ATTRIBUTE_IS_WARM]: true,
+                [CONST.TELEMETRY.ATTRIBUTE_WAS_LIST_EMPTY]: wasListEmpty,
+            });
+        }
+    }, []);
+
+    // Wait for focus before transitioning to the full interactive Search component.
+    // When pre-inserted behind the RHP, this keeps the page at the lightweight static
+    // list phase until it is actually visible, avoiding wasted work and premature span endings.
+    // useFocusEffect avoids the extra re-renders that useIsFocused causes on every focus change.
+    useFocusEffect(
+        useCallback(() => {
+            if (!isHeaderInteractive || isInteractive) {
+                return;
+            }
+            startTransition(() => {
+                setIsInteractive(true);
+            });
+        }, [isHeaderInteractive, isInteractive, startTransition]),
+    );
 
     if (!queryJSON) {
         return (
@@ -198,38 +251,41 @@ function SearchPageNarrow({queryJSON, searchResults, isMobileSelectionModeEnable
     const shouldShowLoadingState = !isOffline && (!isDataLoaded || !!metadata?.isLoading);
     const contentContainerStyle = !isMobileSelectionModeEnabled ? styles.searchListContentContainerStyles : undefined;
 
-    // Single element used in both phases so React.memo sees stable props.
-    // Phase 1: Rendered directly for fast perceived performance.
-    // Phase 2: Passed as initialContent to Search (onLayout is a no-op via the ref guard).
-    // Phase 3: Search transitions to the full FlashList once deferred work completes.
-    const staticListContent = (
-        <SearchStaticList
-            searchResults={searchResults}
-            queryJSON={queryJSON}
-            contentContainerStyle={contentContainerStyle}
-            onLayout={onSearchLayout}
-        />
+    // Overlay pattern: SearchStaticList renders as an absolute-fill sibling on
+    // top of Search, so its native views are never unmounted by a tree-structure
+    // swap. Search mounts behind the overlay when isInteractive flips, and once
+    // Search signals readiness (onContentReady -> onLayout), the overlay is removed.
+    const showStaticOverlay = useStaticRendering && !isSearchReady;
+
+    const renderStaticSearchList = () => (
+        <>
+            {isInteractive && (
+                <Search
+                    searchResults={searchResults}
+                    queryJSON={queryJSON}
+                    key={queryJSON.hash}
+                    contentContainerStyle={contentContainerStyle}
+                    handleSearch={handleSearchAction}
+                    isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
+                    onSearchListScroll={scrollHandler}
+                    searchRequestResponseStatusCode={searchRequestResponseStatusCode}
+                    onDestinationVisible={endSubmitNavigationSpans}
+                    onContentReady={onSearchContentReady}
+                />
+            )}
+            {showStaticOverlay && (
+                <View style={[StyleSheet.absoluteFill, styles.appBG]}>
+                    <SearchStaticList
+                        searchResults={searchResults}
+                        queryJSON={queryJSON}
+                        contentContainerStyle={contentContainerStyle}
+                        onLayout={onSearchLayout}
+                        onDestinationVisible={endSubmitNavigationSpans}
+                    />
+                </View>
+            )}
+        </>
     );
-
-    const renderStaticSearchList = () => {
-        if (!isInteractive) {
-            return staticListContent;
-        }
-
-        return (
-            <Search
-                searchResults={searchResults}
-                queryJSON={queryJSON}
-                key={queryJSON.hash}
-                contentContainerStyle={contentContainerStyle}
-                handleSearch={handleSearchAction}
-                isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
-                onSearchListScroll={scrollHandler}
-                searchRequestResponseStatusCode={searchRequestResponseStatusCode}
-                initialContent={staticListContent}
-            />
-        );
-    };
 
     const renderDynamicSearchList = () => {
         if (shouldShowLoadingSkeleton) {
@@ -260,6 +316,7 @@ function SearchPageNarrow({queryJSON, searchResults, isMobileSelectionModeEnable
                 handleSearch={handleSearchAction}
                 isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
                 searchRequestResponseStatusCode={searchRequestResponseStatusCode}
+                onDestinationVisible={endSubmitNavigationSpans}
             />
         );
     };
