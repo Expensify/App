@@ -47,7 +47,6 @@ import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import useActiveAdminPolicies from './useActiveAdminPolicies';
 import useConfirmPendingRTERAndProceed from './useConfirmPendingRTERAndProceed';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
-import useLastWorkspaceNumber from './useLastWorkspaceNumber';
 import {useMemoizedLazyExpensifyIcons} from './useLazyAsset';
 import useLocalize from './useLocalize';
 import useNonReimbursablePaymentModal from './useNonReimbursablePaymentModal';
@@ -119,7 +118,6 @@ function useSelectionModeReportActions({
     );
     const existingB2BInvoiceReport = useParticipantsInvoiceReport(activePolicyID, CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS, chatReport?.policyID);
     const activeAdminPolicies = useActiveAdminPolicies();
-    const lastWorkspaceNumber = useLastWorkspaceNumber();
 
     const isChatReportArchived = useReportIsArchived(chatReport?.reportID);
     const {showNonReimbursablePaymentErrorModal, shouldBlockDirectPayment} = useNonReimbursablePaymentModal(report, transactions);
@@ -375,7 +373,6 @@ function useSelectionModeReportActions({
                 activePolicy,
                 betas,
                 isSelfTourViewed,
-                defaultWorkspaceName: generateDefaultWorkspaceName(email, lastWorkspaceNumber, translate),
             });
             clearSelectedTransactions(true);
             turnOffMobileSelectionMode();

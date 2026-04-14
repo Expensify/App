@@ -250,7 +250,6 @@ type PayInvoiceArgs = {
     activePolicy?: OnyxTypes.Policy;
     betas: OnyxEntry<OnyxTypes.Beta[]>;
     isSelfTourViewed: boolean | undefined;
-    defaultWorkspaceName: string;
 };
 
 type InitMoneyRequestParams = {
@@ -4938,7 +4937,6 @@ function getPayMoneyRequestParams({
     iouReportCurrentNextStepDeprecated,
     betas,
     isSelfTourViewed,
-    defaultWorkspaceName,
 }: {
     initialChatReport: OnyxTypes.Report;
     iouReport: OnyxEntry<OnyxTypes.Report>;
@@ -4958,7 +4956,6 @@ function getPayMoneyRequestParams({
     iouReportCurrentNextStepDeprecated: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>;
     betas: OnyxEntry<OnyxTypes.Beta[]>;
     isSelfTourViewed: boolean | undefined;
-    defaultWorkspaceName?: string;
 }): PayMoneyRequestData {
     const isInvoiceReport = isInvoiceReportReportUtils(iouReport);
     let payerPolicyID = activePolicy?.id;
@@ -4978,7 +4975,7 @@ function getPayMoneyRequestParams({
         successData: [],
         failureData: [],
     };
-    const shouldCreatePolicy = (!activePolicy || !isPolicyAdmin(activePolicy) || !isPaidGroupPolicy(activePolicy)) && defaultWorkspaceName;
+    const shouldCreatePolicy = !activePolicy || !isPolicyAdmin(activePolicy) || !isPaidGroupPolicy(activePolicy);
 
     if (isIndividualInvoiceRoom(chatReport) && payAsBusiness && shouldCreatePolicy) {
         payerPolicyID = generatePolicyID();
@@ -4989,7 +4986,6 @@ function getPayMoneyRequestParams({
             params,
         } = buildPolicyData({
             policyOwnerEmail: deprecatedCurrentUserEmail,
-            policyName: defaultWorkspaceName,
             makeMeAdmin: true,
             policyID: payerPolicyID,
             currentUserAccountIDParam: currentUserAccountIDParam ?? CONST.DEFAULT_NUMBER_ID,
@@ -7008,7 +7004,6 @@ function payInvoice({
     invoiceReportCurrentNextStepDeprecated,
     betas,
     isSelfTourViewed,
-    defaultWorkspaceName,
 }: PayInvoiceArgs) {
     const recipient = {accountID: invoiceReport?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID};
     const {
@@ -7041,7 +7036,6 @@ function payInvoice({
         introSelected,
         betas,
         isSelfTourViewed,
-        defaultWorkspaceName,
     });
 
     const paymentSelected = paymentMethodType === CONST.IOU.PAYMENT_TYPE.VBBA ? CONST.IOU.PAYMENT_SELECTED.BBA : CONST.IOU.PAYMENT_SELECTED.PBA;
