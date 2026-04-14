@@ -51,7 +51,7 @@ type UseSearchFiltersBarResult = {
     translate: ReturnType<typeof useLocalize>['translate'];
 };
 
-const SKIPPED_FILTERS = new Set<SearchAdvancedFiltersKey>([CONST.SEARCH.SYNTAX_FILTER_KEYS.TYPE, CONST.SEARCH.SYNTAX_FILTER_KEYS.GROUP_CURRENCY]);
+const SKIPPED_FILTERS = new Set<SearchAdvancedFiltersKey>([FILTER_KEYS.GROUP_BY, FILTER_KEYS.GROUP_CURRENCY, FILTER_KEYS.LIMIT, FILTER_KEYS.TYPE, FILTER_KEYS.VIEW]);
 
 function getFilterSentryLabel(filterKey: SearchAdvancedFiltersKey | SearchFilterKey | ReportFieldKey) {
     return `Search-Filter-${filterKey}`;
