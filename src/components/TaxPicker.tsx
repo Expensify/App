@@ -86,7 +86,8 @@ function TaxPicker({
 
     const {taxCode, taxValue} = currentTransaction ?? {};
     const defaultTaxCode = getDefaultTaxCode(policy, currentTransaction) ?? '';
-    const effectiveTaxCode = taxCode && taxCode.length > 0 ? taxCode : defaultTaxCode;
+    const fallbackTaxCode = transactionID ? defaultTaxCode : '';
+    const effectiveTaxCode = taxCode && taxCode.length > 0 ? taxCode : fallbackTaxCode;
     const effectiveSelectedTaxRate = selectedTaxRate || (effectiveTaxCode ? (transformedTaxRates(policy, currentTransaction)[effectiveTaxCode]?.modifiedName ?? '') : '');
     const hasTaxBeenDeleted = !!taxCode && taxValue !== undefined && !taxRates?.taxes?.[taxCode];
     const hasTaxValueChanged = !!taxCode && taxValue !== undefined && taxRates?.taxes?.[taxCode]?.value !== taxValue;

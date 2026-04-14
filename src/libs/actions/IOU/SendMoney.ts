@@ -28,7 +28,6 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import type {Receipt} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import {dismissModalAndOpenReportInInboxTab} from '.';
 
 type SendMoneyParamsData = {
     params: SendMoneyParams;
@@ -72,6 +71,8 @@ function getSendMoneyParams({
     created,
     merchant,
     receipt,
+    optimisticChatReportID,
+    currentUserAccountID,
 }: {
     report: OnyxEntry<OnyxTypes.Report>;
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
@@ -84,6 +85,8 @@ function getSendMoneyParams({
     created?: string;
     merchant?: string;
     receipt?: Receipt;
+    optimisticChatReportID?: string;
+    currentUserAccountID: number;
 }): SendMoneyParamsData {
     const recipientEmail = addSMSDomainIfPhoneNumber(recipient.login ?? '');
     const recipientAccountID = Number(recipient.accountID);
@@ -104,6 +107,8 @@ function getSendMoneyParams({
     if (!chatReport) {
         chatReport = buildOptimisticChatReport({
             participantList: [recipientAccountID, managerID],
+            optimisticReportID: optimisticChatReportID,
+            currentUserAccountID,
         });
         isNewChat = true;
     }
@@ -475,22 +480,21 @@ function getSendMoneyParams({
     };
 }
 
-/**
- * @param currentUserAccountID - Account ID of the person sending the money
- * @param recipient - The user receiving the money
- */
-function sendMoneyElsewhere(
-    report: OnyxEntry<OnyxTypes.Report>,
-    quickAction: OnyxEntry<OnyxTypes.QuickAction>,
-    amount: number,
-    currency: string,
-    comment: string,
-    currentUserAccountID: number,
-    recipient: Participant,
-    created?: string,
-    merchant?: string,
-    receipt?: Receipt,
-) {
+type SendMoneyActionParams = {
+    report: OnyxEntry<OnyxTypes.Report>;
+    quickAction: OnyxEntry<OnyxTypes.QuickAction>;
+    amount: number;
+    currency: string;
+    comment: string;
+    currentUserAccountID: number;
+    recipient: Participant | OptionData;
+    created?: string;
+    merchant?: string;
+    receipt?: Receipt;
+    optimisticChatReportID?: string;
+};
+
+function sendMoneyElsewhere({report, quickAction, amount, currency, comment, currentUserAccountID, recipient, created, merchant, receipt, optimisticChatReportID}: SendMoneyActionParams) {
     const {params, optimisticData, successData, failureData} = getSendMoneyParams({
         report,
         quickAction,
@@ -503,6 +507,8 @@ function sendMoneyElsewhere(
         created,
         merchant,
         receipt,
+        optimisticChatReportID,
+        currentUserAccountID,
     });
     startSpan(CONST.TELEMETRY.SPAN_SUBMIT_TO_DESTINATION_VISIBLE, {
         name: 'submit-to-destination-visible',
@@ -518,26 +524,10 @@ function sendMoneyElsewhere(
     playSound(SOUNDS.DONE);
     API.write(WRITE_COMMANDS.SEND_MONEY_ELSEWHERE, params, {optimisticData, successData, failureData});
 
-    dismissModalAndOpenReportInInboxTab(params.chatReportID);
     notifyNewAction(params.chatReportID, undefined, true);
 }
 
-/**
- * @param currentUserAccountID - Account ID of the person sending the money
- * @param recipient - The user receiving the money
- */
-function sendMoneyWithWallet(
-    report: OnyxEntry<OnyxTypes.Report>,
-    quickAction: OnyxEntry<OnyxTypes.QuickAction>,
-    amount: number,
-    currency: string,
-    comment: string,
-    currentUserAccountID: number,
-    recipient: Participant | OptionData,
-    created?: string,
-    merchant?: string,
-    receipt?: Receipt,
-) {
+function sendMoneyWithWallet({report, quickAction, amount, currency, comment, currentUserAccountID, recipient, created, merchant, receipt, optimisticChatReportID}: SendMoneyActionParams) {
     const {params, optimisticData, successData, failureData} = getSendMoneyParams({
         report,
         quickAction,
@@ -550,6 +540,8 @@ function sendMoneyWithWallet(
         created,
         merchant,
         receipt,
+        optimisticChatReportID,
+        currentUserAccountID,
     });
     startSpan(CONST.TELEMETRY.SPAN_SUBMIT_TO_DESTINATION_VISIBLE, {
         name: 'submit-to-destination-visible',
@@ -565,7 +557,6 @@ function sendMoneyWithWallet(
     playSound(SOUNDS.DONE);
     API.write(WRITE_COMMANDS.SEND_MONEY_WITH_WALLET, params, {optimisticData, successData, failureData});
 
-    dismissModalAndOpenReportInInboxTab(params.chatReportID);
     notifyNewAction(params.chatReportID, undefined, true);
 }
 

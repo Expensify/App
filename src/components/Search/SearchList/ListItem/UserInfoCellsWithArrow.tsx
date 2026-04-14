@@ -24,6 +24,7 @@ function UserInfoCellsWithArrow({
     infoCellsAvatarStyle,
     fromRecipientStyle,
     shouldUseArrowIcon = true,
+    isLargeScreenWidth,
 }: {
     shouldShowToRecipient: boolean;
     participantFrom: PersonalDetails;
@@ -36,6 +37,7 @@ function UserInfoCellsWithArrow({
     infoCellsAvatarStyle?: ViewStyle;
     fromRecipientStyle?: ViewStyle;
     shouldUseArrowIcon?: boolean;
+    isLargeScreenWidth?: boolean;
 }) {
     const icons = useMemoizedLazyExpensifyIcons(['ArrowRightLong']);
     const styles = useThemeStyles();
@@ -56,6 +58,7 @@ function UserInfoCellsWithArrow({
                 textStyle={infoCellsTextStyle}
                 avatarStyle={infoCellsAvatarStyle}
                 containerStyle={[styles.mw50, styles.flexShrink1, fromRecipientStyle]}
+                isLargeScreenWidth={isLargeScreenWidth}
             />
             {shouldShowToRecipient && (
                 <>
@@ -83,6 +86,7 @@ function UserInfoCellsWithArrow({
                         textStyle={infoCellsTextStyle}
                         avatarStyle={infoCellsAvatarStyle}
                         containerStyle={[styles.mw50, styles.flexShrink1, fromRecipientStyle, styles.mlHalf]}
+                        isLargeScreenWidth={isLargeScreenWidth}
                     />
                 </>
             )}
