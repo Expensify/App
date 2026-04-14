@@ -1,5 +1,4 @@
 import type {BottomTabBarProps} from '@react-navigation/bottom-tabs';
-import type {NavigationState, PartialState} from '@react-navigation/native';
 import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
@@ -10,6 +9,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+import getFocusedLeafScreenName from '@libs/Navigation/helpers/getFocusedLeafScreenName';
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
 
@@ -26,20 +26,6 @@ const ROOT_TAB_SCREENS = new Set<string>([
     SCREENS.WORKSPACE.INITIAL,
     SCREENS.DOMAIN.INITIAL,
 ]);
-
-/**
- * Walks down the focused route chain and returns the leaf screen name.
- */
-function getFocusedLeafScreenName(state: NavigationState | PartialState<NavigationState> | undefined): string | undefined {
-    if (!state || state.index === undefined) {
-        return undefined;
-    }
-    const focused = state.routes[state.index];
-    if (focused?.state) {
-        return getFocusedLeafScreenName(focused.state);
-    }
-    return focused?.name;
-}
 
 const ROUTE_TO_NAVIGATION_TAB: Record<string, ValueOf<typeof NAVIGATION_TABS>> = {
     [SCREENS.HOME]: NAVIGATION_TABS.HOME,
