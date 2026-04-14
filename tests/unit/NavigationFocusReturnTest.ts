@@ -383,6 +383,26 @@ describe('restoreTriggerForRoute', () => {
         expect(restoreTriggerForRoute('route-a')).toBe(false);
     });
 
+    it('should preserve the entry on transient aria-hidden so a later retry can restore it', () => {
+        const hidden = document.createElement('div');
+        hidden.setAttribute('aria-hidden', 'true');
+        const trigger = document.createElement('button');
+        hidden.appendChild(trigger);
+        document.body.appendChild(hidden);
+        trigger.focus();
+        setLastInteractiveElementForTests(trigger);
+        captureTriggerForRoute('route-a');
+        trigger.blur();
+
+        expect(restoreTriggerForRoute('route-a')).toBe(false);
+
+        hidden.removeAttribute('aria-hidden');
+
+        const spy = jest.spyOn(trigger, 'focus');
+        expect(restoreTriggerForRoute('route-a')).toBe(true);
+        expect(spy).toHaveBeenCalled();
+    });
+
     it('should preempt an earlier AUTO/INITIAL focus via the arbiter', () => {
         const trigger = document.createElement('button');
         const other = document.createElement('input');
@@ -526,6 +546,43 @@ describe('handleStateChange integration', () => {
 
         handleStateChange(state);
         expect(restoreTriggerForRoute('a')).toBe(false);
+    });
+
+    it('should cancel a queued restore when a new state change arrives before it fires', () => {
+        jest.useFakeTimers();
+        try {
+            simulateTab();
+            const onA = stackState(0, [{key: 'a', name: 'A'}]);
+            handleStateChange(onA);
+
+            const trigger = document.createElement('button');
+            document.body.appendChild(trigger);
+            trigger.focus();
+            trigger.dispatchEvent(new FocusEvent('focusin', {bubbles: true}));
+
+            const onAB = stackState(1, [
+                {key: 'a', name: 'A'},
+                {key: 'b', name: 'B'},
+            ]);
+            handleStateChange(onAB);
+
+            // Backward to A queues a restore...
+            trigger.blur();
+            handleStateChange(onA);
+
+            // ...but a forward nav arrives before it fires (e.g. dismissModalWithReport).
+            const onAC = stackState(1, [
+                {key: 'a', name: 'A'},
+                {key: 'c', name: 'C'},
+            ]);
+            handleStateChange(onAC);
+
+            const spy = jest.spyOn(trigger, 'focus');
+            jest.runAllTimers();
+            expect(spy).not.toHaveBeenCalled();
+        } finally {
+            jest.useRealTimers();
+        }
     });
 
     it('should drop triggers for routes that leave the tree entirely', () => {

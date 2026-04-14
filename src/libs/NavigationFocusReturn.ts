@@ -91,14 +91,15 @@ function restoreTriggerForRoute(routeKey: string): boolean {
     if (!element) {
         return false;
     }
-    triggerMap.delete(routeKey);
     if (!document.contains(element)) {
+        triggerMap.delete(routeKey);
         return false;
     }
-    // Unfocusable trigger: skip both the claim and the focus so fallbacks can run.
+    // Keep the entry on transient unfocusability so scheduleRestore can retry.
     if (element.matches(':disabled') || element.getAttribute('aria-disabled') === 'true' || element.closest('[aria-hidden="true"]')) {
         return false;
     }
+    triggerMap.delete(routeKey);
     if (!tryClaim(Priorities.RETURN)) {
         return false;
     }
@@ -112,40 +113,68 @@ function cancelPendingRestore(): void {
     pendingRestore = null;
 }
 
+const MAX_RESTORE_ATTEMPTS = 2;
+const RESTORE_RETRY_MS = 50;
+
 function scheduleRestore(routeKey: string): void {
     cancelPendingRestore();
     let cancelled = false;
+    let attempts = 0;
     let frameId: number | undefined;
-    // Defer past the transition so useAutoFocusInput and React Navigation's own focus work settle first.
-    // InteractionManager is marked deprecated in type defs but remains the idiomatic defer primitive across this codebase.
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const handle = InteractionManager.runAfterInteractions(() => {
-        if (cancelled) {
-            return;
-        }
-        frameId = requestAnimationFrame(() => {
+    let retryTimerId: ReturnType<typeof setTimeout> | undefined;
+    let imHandle: {cancel: () => void} | undefined;
+
+    const attempt = () => {
+        // Defer past the transition so useAutoFocusInput and React Navigation's own focus work settle first.
+        // InteractionManager is the idiomatic defer primitive here despite the type-def deprecation.
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        imHandle = InteractionManager.runAfterInteractions(() => {
             if (cancelled) {
                 return;
             }
-            restoreTriggerForRoute(routeKey);
-            pendingRestore = null;
+            frameId = requestAnimationFrame(() => {
+                if (cancelled) {
+                    return;
+                }
+                attempts += 1;
+                const restored = restoreTriggerForRoute(routeKey);
+                if (restored || !triggerMap.has(routeKey)) {
+                    pendingRestore = null;
+                    return;
+                }
+                if (attempts >= MAX_RESTORE_ATTEMPTS) {
+                    // Give up — drop the stale entry.
+                    triggerMap.delete(routeKey);
+                    pendingRestore = null;
+                    return;
+                }
+                retryTimerId = setTimeout(attempt, RESTORE_RETRY_MS);
+            });
         });
-    });
+    };
+
     pendingRestore = {
         cancel: () => {
             cancelled = true;
-            handle.cancel();
+            imHandle?.cancel();
             if (frameId !== undefined) {
                 cancelAnimationFrame(frameId);
             }
+            if (retryTimerId !== undefined) {
+                clearTimeout(retryTimerId);
+            }
         },
     };
+
+    attempt();
 }
 
 function handleStateChange(newState: NavigationState | undefined): void {
     if (!newState) {
         return;
     }
+    // Any new nav invalidates a queued restore from a prior one.
+    cancelPendingRestore();
     resetCycle();
     const {action, removedKeys} = diffNavigationState(prevState, newState);
 
