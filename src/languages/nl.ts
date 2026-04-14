@@ -1045,6 +1045,7 @@ const translations: TranslationDeepObject<typeof en> = {
             title: 'Aan de slag',
             createWorkspace: 'Maak een werkruimte',
             connectAccounting: ({integrationName}: {integrationName: string}) => `Verbind met ${integrationName}`,
+            connectAccountingDefault: 'Verbind met boekhouding',
             customizeCategories: 'Boekhoudcategorieën aanpassen',
             linkCompanyCards: 'Bedrijfspassen koppelen',
             setupRules: 'Uitgavenregels instellen',

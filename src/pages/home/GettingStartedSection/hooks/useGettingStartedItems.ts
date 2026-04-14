@@ -4,7 +4,7 @@ import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import {hasCompanyCardFeeds} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {getValidConnectedIntegration, hasCustomCategories, hasNonDefaultRules, isPaidGroupPolicy, isPendingDeletePolicy, isPolicyAdmin} from '@libs/PolicyUtils';
+import {getValidConnectedIntegration, hasAccountingConnections, hasCustomCategories, hasNonDefaultRules, isPaidGroupPolicy, isPendingDeletePolicy, isPolicyAdmin} from '@libs/PolicyUtils';
 import isWithinGettingStartedPeriod from '@pages/home/GettingStartedSection/utils/isWithinGettingStartedPeriod';
 import {enablePolicyCategories} from '@userActions/Policy/Category';
 import {enableCompanyCards, enablePolicyConnections, enablePolicyRules} from '@userActions/Policy/Policy';
@@ -12,7 +12,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
-import type {ConnectionName} from '@src/types/onyx/Policy';
 
 type GettingStartedItem = {
     key: string;
@@ -76,19 +75,17 @@ function useGettingStartedItems(): UseGettingStartedItemsResult {
         route: shouldUseNarrowLayout ? ROUTES.WORKSPACE_INITIAL.getRoute(activePolicyID, Navigation.getActiveRoute()) : ROUTES.WORKSPACE_OVERVIEW.getRoute(activePolicyID),
     });
 
-    const isDirectConnect = !!reportedIntegration && DIRECT_CONNECT_INTEGRATIONS.has(reportedIntegration);
+    const isDirectConnect = policy.areConnectionsEnabled && !hasAccountingConnections(policy);
 
     if (isDirectConnect) {
-        const integrationName = CONST.ONBOARDING_ACCOUNTING_MAPPING[reportedIntegration as keyof typeof CONST.ONBOARDING_ACCOUNTING_MAPPING] ?? String(reportedIntegration);
+        const integrationName =
+            reportedIntegration && DIRECT_CONNECT_INTEGRATIONS.has(reportedIntegration)
+                ? (CONST.ONBOARDING_ACCOUNTING_MAPPING[reportedIntegration as keyof typeof CONST.ONBOARDING_ACCOUNTING_MAPPING] ?? String(reportedIntegration))
+                : undefined;
         items.push({
             key: 'connectAccounting',
-            label: translate('homePage.gettingStartedSection.connectAccounting', {integrationName}),
-            // Use getValidConnectedIntegration for currently-healthy connections. Additionally check
-            // successfulDate so that a task completed by a once-working integration stays checked
-            // even if the connection later breaks (e.g. auth expires). successfulDate is never
-            // cleared by subsequent error syncs due to Onyx deep-merge semantics.
-            isComplete:
-                !!getValidConnectedIntegration(policy, [reportedIntegration as ConnectionName]) || !!policy?.connections?.[reportedIntegration as ConnectionName]?.lastSync?.successfulDate,
+            label: integrationName ? translate('homePage.gettingStartedSection.connectAccounting', {integrationName}) : translate('homePage.gettingStartedSection.connectAccountingDefault'),
+            isComplete: !!getValidConnectedIntegration(policy),
             route: ROUTES.WORKSPACE_ACCOUNTING.getRoute(activePolicyID),
             isFeatureEnabled: policy.areConnectionsEnabled,
             enableFeature: () => enablePolicyConnections(activePolicyID, true, false),

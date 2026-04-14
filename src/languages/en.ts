@@ -1083,6 +1083,7 @@ const translations = {
             title: 'Getting started',
             createWorkspace: 'Create a workspace',
             connectAccounting: ({integrationName}: {integrationName: string}) => `Connect to ${integrationName}`,
+            connectAccountingDefault: 'Connect to accounting',
             customizeCategories: 'Customize accounting categories',
             linkCompanyCards: 'Link company cards',
             setupRules: 'Set up spend rules',

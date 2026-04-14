@@ -1046,6 +1046,7 @@ const translations: TranslationDeepObject<typeof en> = {
             title: 'Pierwsze kroki',
             createWorkspace: 'Utwórz przestrzeń roboczą',
             connectAccounting: ({integrationName}: {integrationName: string}) => `Połącz z ${integrationName}`,
+            connectAccountingDefault: 'Połącz z księgowością',
             customizeCategories: 'Dostosuj kategorie księgowe',
             linkCompanyCards: 'Połącz firmowe karty',
             setupRules: 'Skonfiguruj zasady wydatków',
