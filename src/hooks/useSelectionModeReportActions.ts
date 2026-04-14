@@ -14,7 +14,6 @@ import {useSearchActionsContext, useSearchStateContext} from '@components/Search
 import type {PaymentActionParams} from '@components/SettlementButton/types';
 import {approveMoneyRequest, canApproveIOU, canIOUBePaid as canIOUBePaidAction, payInvoice, payMoneyRequest, submitReport} from '@libs/actions/IOU';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
-import {generateDefaultWorkspaceName} from '@libs/actions/Policy/Policy';
 import {search} from '@libs/actions/Search';
 import getPlatform from '@libs/getPlatform';
 import {getTotalAmountForIOUReportPreviewButton} from '@libs/MoneyRequestReportUtils';
@@ -357,7 +356,6 @@ function useSelectionModeReportActions({
                 setIsHoldMenuVisible(true);
             }
         } else if (isInvoiceReport) {
-            const email = currentUserEmail ?? '';
             payInvoice({
                 paymentMethodType: type,
                 chatReport,
@@ -365,7 +363,7 @@ function useSelectionModeReportActions({
                 invoiceReportCurrentNextStepDeprecated: nextStep,
                 introSelected,
                 currentUserAccountIDParam: currentUserAccountID,
-                currentUserEmailParam: email,
+                currentUserEmailParam: currentUserEmail ?? '',
                 payAsBusiness,
                 existingB2BInvoiceReport,
                 methodID,
