@@ -1,33 +1,39 @@
-import type {OnyxUpdate} from 'react-native-onyx';
+import type {OnyxCollection, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
-import type {CancelBillingSubscriptionParams, UpdateSubscriptionAddNewUsersAutomaticallyParams, UpdateSubscriptionAutoRenewParams, UpdateSubscriptionTypeParams} from '@libs/API/parameters';
+import type {
+    CancelBillingSubscriptionParams,
+    UpdatePersonalKarmaParams,
+    UpdateSubscriptionAddNewUsersAutomaticallyParams,
+    UpdateSubscriptionAutoRenewParams,
+    UpdateSubscriptionTypeParams,
+} from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import CONST from '@src/CONST';
 import type {FeedbackSurveyOptionID, SubscriptionType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {BillingGraceEndPeriod} from '@src/types/onyx';
 import type {OnyxData} from '@src/types/onyx/Request';
 
 /**
  * Fetches data when the user opens the SubscriptionSettingsPage
+ * @param currentGracePeriods - The current billing grace period collection. If provided and non-empty,
+ *                              all entries will be optimistically cleared to handle stale cache when
+ *                              billing was resolved (e.g. owner changed). On failure, previous values are restored.
  */
-function openSubscriptionPage() {
-    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.IS_LOADING_SUBSCRIPTION_DATA>> = [
+function openSubscriptionPage(currentGracePeriods?: OnyxCollection<BillingGraceEndPeriod>) {
+    type SubscriptionOnyxKeys = typeof ONYXKEYS.IS_LOADING_SUBSCRIPTION_DATA | typeof ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END;
+
+    const optimisticData: Array<OnyxUpdate<SubscriptionOnyxKeys>> = [
         {
             onyxMethod: Onyx.METHOD.SET,
             key: ONYXKEYS.IS_LOADING_SUBSCRIPTION_DATA,
             value: true,
         },
     ];
-    const successData: Array<OnyxUpdate<typeof ONYXKEYS.IS_LOADING_SUBSCRIPTION_DATA>> = [
-        {
-            onyxMethod: Onyx.METHOD.SET,
-            key: ONYXKEYS.IS_LOADING_SUBSCRIPTION_DATA,
-            value: false,
-        },
-    ];
-    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.IS_LOADING_SUBSCRIPTION_DATA>> = [
+
+    const successData: Array<OnyxUpdate<SubscriptionOnyxKeys>> = [
         {
             onyxMethod: Onyx.METHOD.SET,
             key: ONYXKEYS.IS_LOADING_SUBSCRIPTION_DATA,
@@ -35,7 +41,42 @@ function openSubscriptionPage() {
         },
     ];
 
+    const failureData: Array<OnyxUpdate<SubscriptionOnyxKeys>> = [
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: ONYXKEYS.IS_LOADING_SUBSCRIPTION_DATA,
+            value: false,
+        },
+    ];
+
+    // Clear ALL billing grace period keys optimistically. If the server still has active
+    // grace periods, they will be restored from the response. This clears the entire
+    // collection rather than a single owner's key, so stale entries from previous owners
+    // are also evicted. On failure, previous values are restored.
+    if (currentGracePeriods) {
+        const keys = Object.keys(currentGracePeriods) as Array<`${typeof ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END}${string}`>;
+        for (const key of keys) {
+            optimisticData.push({
+                onyxMethod: Onyx.METHOD.SET,
+                key,
+                value: null,
+            });
+            failureData.push({
+                onyxMethod: Onyx.METHOD.SET,
+                key,
+                value: currentGracePeriods[key] ?? null,
+            });
+        }
+    }
+
     API.read(READ_COMMANDS.OPEN_SUBSCRIPTION_PAGE, null, {optimisticData, successData, failureData});
+}
+
+/**
+ * Fetches data when the user opens the Save The World page
+ */
+function openSaveTheWorldPage() {
+    API.read(READ_COMMANDS.OPEN_SAVE_THE_WORLD_PAGE, null);
 }
 
 function updateSubscriptionType(type: SubscriptionType) {
@@ -191,6 +232,52 @@ function updateSubscriptionAddNewUsersAutomatically(addNewUsersAutomatically: bo
     };
 
     API.write(WRITE_COMMANDS.UPDATE_SUBSCRIPTION_ADD_NEW_USERS_AUTOMATICALLY, parameters, {
+        optimisticData,
+        successData,
+        failureData,
+    });
+}
+
+function updatePersonalKarma(enabled: boolean) {
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.NVP_PERSONAL_OFFSETS> | OnyxUpdate<typeof ONYXKEYS.IS_PENDING_UPDATE_PERSONAL_KARMA>> = [
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: ONYXKEYS.IS_PENDING_UPDATE_PERSONAL_KARMA,
+            value: true,
+        },
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: ONYXKEYS.NVP_PERSONAL_OFFSETS,
+            value: enabled,
+        },
+    ];
+
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.IS_PENDING_UPDATE_PERSONAL_KARMA>> = [
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: ONYXKEYS.IS_PENDING_UPDATE_PERSONAL_KARMA,
+            value: false,
+        },
+    ];
+
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.NVP_PERSONAL_OFFSETS> | OnyxUpdate<typeof ONYXKEYS.IS_PENDING_UPDATE_PERSONAL_KARMA>> = [
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: ONYXKEYS.IS_PENDING_UPDATE_PERSONAL_KARMA,
+            value: false,
+        },
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: ONYXKEYS.NVP_PERSONAL_OFFSETS,
+            value: !enabled,
+        },
+    ];
+
+    const parameters: UpdatePersonalKarmaParams = {
+        enabled,
+    };
+
+    API.write(WRITE_COMMANDS.UPDATE_PERSONAL_KARMA, parameters, {
         optimisticData,
         successData,
         failureData,
@@ -369,8 +456,10 @@ function applyExpensifyCode(promoCode: string) {
 
 export {
     openSubscriptionPage,
+    openSaveTheWorldPage,
     updateSubscriptionAutoRenew,
     updateSubscriptionAddNewUsersAutomatically,
+    updatePersonalKarma,
     updateSubscriptionSize,
     clearUpdateSubscriptionSizeError,
     updateSubscriptionType,
