@@ -114,9 +114,7 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
                 if (choice === CONST.ONBOARDING_CHOICES.EMPLOYER && canUseSubmit2026) {
                     if (isPrivateDomainAndHasAccessiblePolicies && isValidated) {
                         Navigation.navigate(
-                            personalDetailsForm?.firstName
-                                ? ROUTES.ONBOARDING_WORKSPACES.getRoute(route.params?.backTo)
-                                : ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute(route.params?.backTo),
+                            personalDetailsForm?.firstName ? ROUTES.ONBOARDING_WORKSPACES.getRoute(route.params?.backTo) : ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute(route.params?.backTo),
                         );
                         return;
                     }
