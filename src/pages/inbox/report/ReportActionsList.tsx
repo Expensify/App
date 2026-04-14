@@ -9,6 +9,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {renderScrollComponent as renderActionSheetAwareScrollView} from '@components/ActionSheetAwareScrollView';
 import Button from '@components/Button';
 import InvertedFlashList from '@components/FlashList/InvertedFlashList';
+import getShowScrollIndicator from '@components/FlashList/InvertedFlashList/getShowScrollIndicator';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -882,7 +883,7 @@ function ReportActionsList({
                         shouldFocusToTopOnMount && styles.justifyContentEnd,
                         shouldScrollToEndAfterLayout && StyleUtils.getHiddenChatContentStyle(),
                     ]}
-                    showsVerticalScrollIndicator={!shouldScrollToEndAfterLayout}
+                    showsVerticalScrollIndicator={getShowScrollIndicator(shouldScrollToEndAfterLayout)}
                     onEndReached={onEndReached}
                     onEndReachedThreshold={0.75}
                     onStartReached={onStartReached}
