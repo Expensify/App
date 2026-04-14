@@ -10,8 +10,11 @@ import type {SearchQueryJSON} from '@components/Search/types';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useViewportOffsetTop from '@hooks/useViewportOffsetTop';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import CONST from '@src/CONST';
 import type {SearchResults} from '@src/types/onyx';
 
@@ -29,6 +32,9 @@ function DisplayIconButton({ModalComponent}: DisplayIconButtonProps) {
     const {translate} = useLocalize();
     const theme = useTheme();
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
+    const {windowHeight} = useWindowDimensions();
+    const viewportOffsetTop = useViewportOffsetTop();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Gear']);
 
     const [isModalVisible, setIsModalVisible] = useState(false);
@@ -58,6 +64,9 @@ function DisplayIconButton({ModalComponent}: DisplayIconButtonProps) {
                 onClose={() => setIsModalVisible(false)}
                 animationIn="slideInUp"
                 animationOut="slideOutDown"
+                shouldWrapModalChildrenInScrollViewIfBottomDockedInLandscapeMode={false}
+                innerContainerStyle={styles.w100}
+                outerStyle={{...StyleUtils.getOuterModalStyle(windowHeight, viewportOffsetTop), ...styles.w100}}
             >
                 {ModalComponent({closeOverlay: () => setIsModalVisible(false)})}
             </Modal>
