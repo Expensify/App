@@ -1767,7 +1767,7 @@ function setExpensifyCardRule(domainAccountID: number, cardRuleID: string, spend
     API.write(WRITE_COMMANDS.SET_EXPENSIFY_CARD_RULE, parameters, {optimisticData, successData, failureData});
 }
 
-function deleteExpensifyCardRule(domainAccountID: number, cardRuleID: string, existingRule?: ExpensifyCardRule) {
+function deleteExpensifyCardRule(domainAccountID: number, cardRuleID: string, existingRule: ExpensifyCardRule) {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -1775,12 +1775,10 @@ function deleteExpensifyCardRule(domainAccountID: number, cardRuleID: string, ex
             value: {
                 hasOnceLoaded: true,
                 cardRules: {
-                    [cardRuleID]: existingRule
-                        ? {
-                              ...existingRule,
-                              pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-                          }
-                        : null,
+                    [cardRuleID]: {
+                        ...existingRule,
+                        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                    },
                 },
             },
         },
@@ -1798,19 +1796,17 @@ function deleteExpensifyCardRule(domainAccountID: number, cardRuleID: string, ex
         },
     ];
 
-    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS>> = existingRule
-        ? [
-              {
-                  onyxMethod: Onyx.METHOD.MERGE,
-                  key: `${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${domainAccountID}`,
-                  value: {
-                      cardRules: {
-                          [cardRuleID]: existingRule,
-                      },
-                  },
-              },
-          ]
-        : [];
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${domainAccountID}`,
+            value: {
+                cardRules: {
+                    [cardRuleID]: existingRule,
+                },
+            },
+        },
+    ];
 
     const parameters: SetExpensifyCardRuleParams = {
         domainAccountID,
