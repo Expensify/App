@@ -52,7 +52,6 @@ import FILTER_KEYS, {AMOUNT_FILTER_KEYS, DATE_FILTER_KEYS} from '@src/types/form
 import type {HasFilterValue, IsFilterValue, SearchAdvancedFiltersKey} from '@src/types/form/SearchAdvancedFiltersForm';
 import type {Policy} from '@src/types/onyx';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
-import {getEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
 import type WithSentryLabel from '@src/types/utils/SentryLabel';
 import DatePickerFilterPopup from './DatePickerFilterPopup';
@@ -153,7 +152,6 @@ function typeOptionsPoliciesSelector(policies: OnyxCollection<Policy>): OnyxColl
 }
 
 function useSearchFiltersBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEnabled: boolean): UseSearchFiltersBarResult {
-    const [searchAdvancedFiltersForm = getEmptyObject<Partial<SearchAdvancedFiltersForm>>()] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
     const {type: unsafeType, groupBy: unsafeGroupBy, status: unsafeStatus, view: unsafeView, flatFilters} = queryJSON;
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -192,7 +190,7 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEn
     const selectedTransactionsKeys = Object.keys(selectedTransactions ?? {});
 
     const selectedWorkspaceOptions = (() => {
-        const policyIDs = searchAdvancedFiltersForm.policyID ?? queryJSON.policyID;
+        const policyIDs = filterFormValues.policyID ?? queryJSON.policyID;
         if (!policyIDs) {
             return [];
         }
@@ -215,7 +213,7 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEn
     const viewValue = viewOptions.find((option) => option.value === unsafeView) ?? viewOptions.at(0) ?? null;
 
     const groupCurrencyOptions = getCurrencyOptions(currencyList, getCurrencySymbol);
-    const groupCurrency = groupCurrencyOptions.find((option) => option.value === searchAdvancedFiltersForm.groupCurrency) ?? null;
+    const groupCurrency = groupCurrencyOptions.find((option) => option.value === filterFormValues.groupCurrency) ?? null;
 
     const feedFilterValues = flatFilters.find((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED)?.filters?.map((filter) => filter.value);
     const feedOptions = getFeedOptions(allFeeds, personalAndWorkspaceCards, translate, localeCompare, feedKeysWithCards);
@@ -236,57 +234,57 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEn
 
     const [date, displayDate] = createDateDisplayValue(
         {
-            on: searchAdvancedFiltersForm.dateOn,
-            after: searchAdvancedFiltersForm.dateAfter,
-            before: searchAdvancedFiltersForm.dateBefore,
-            range: searchAdvancedFiltersForm.dateRange,
+            on: filterFormValues.dateOn,
+            after: filterFormValues.dateAfter,
+            before: filterFormValues.dateBefore,
+            range: filterFormValues.dateRange,
         },
         translate,
     );
 
     const [posted, displayPosted] = createDateDisplayValue(
         {
-            on: searchAdvancedFiltersForm.postedOn,
-            after: searchAdvancedFiltersForm.postedAfter,
-            before: searchAdvancedFiltersForm.postedBefore,
-            range: searchAdvancedFiltersForm.postedRange,
+            on: filterFormValues.postedOn,
+            after: filterFormValues.postedAfter,
+            before: filterFormValues.postedBefore,
+            range: filterFormValues.postedRange,
         },
         translate,
     );
 
     const [withdrawn, displayWithdrawn] = createDateDisplayValue(
         {
-            on: searchAdvancedFiltersForm.withdrawnOn,
-            after: searchAdvancedFiltersForm.withdrawnAfter,
-            before: searchAdvancedFiltersForm.withdrawnBefore,
-            range: searchAdvancedFiltersForm.withdrawnRange,
+            on: filterFormValues.withdrawnOn,
+            after: filterFormValues.withdrawnAfter,
+            before: filterFormValues.withdrawnBefore,
+            range: filterFormValues.withdrawnRange,
         },
         translate,
     );
 
     const withdrawalTypeOptions = getWithdrawalTypeOptions(translate);
-    const withdrawalType = withdrawalTypeOptions.find((option) => option.value === searchAdvancedFiltersForm.withdrawalType) ?? null;
+    const withdrawalType = withdrawalTypeOptions.find((option) => option.value === filterFormValues.withdrawalType) ?? null;
 
     const updateFilterForm = (values: Partial<SearchAdvancedFiltersForm>) => {
         const updatedFilterFormValues: Partial<SearchAdvancedFiltersForm> = {
-            ...searchAdvancedFiltersForm,
+            ...filterFormValues,
             ...values,
         };
 
-        if (updatedFilterFormValues.type !== searchAdvancedFiltersForm.type) {
+        if (updatedFilterFormValues.type !== filterFormValues.type) {
             updatedFilterFormValues.columns = [];
             updatedFilterFormValues.status = CONST.SEARCH.STATUS.EXPENSE.ALL;
             updatedFilterFormValues.has = filterValidHasValues(updatedFilterFormValues.has, updatedFilterFormValues.type, translate);
         }
 
-        if (updatedFilterFormValues.groupBy !== searchAdvancedFiltersForm.groupBy) {
+        if (updatedFilterFormValues.groupBy !== filterFormValues.groupBy) {
             updatedFilterFormValues.columns = [];
         }
 
         const queryString =
             buildFilterQueryWithSortDefaults(
                 updatedFilterFormValues,
-                {view: searchAdvancedFiltersForm.view, groupBy: searchAdvancedFiltersForm.groupBy},
+                {view: filterFormValues.view, groupBy: filterFormValues.groupBy},
                 {sortBy: queryJSON.sortBy, sortOrder: queryJSON.sortOrder},
             ) ?? '';
         if (!queryString) {
@@ -456,7 +454,7 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEn
     );
 
     const userPickerComponent = ({closeOverlay}: PopoverComponentProps) => {
-        const value = searchAdvancedFiltersForm.from ?? [];
+        const value = filterFormValues.from ?? [];
 
         return (
             <UserSelectPopup
@@ -484,17 +482,15 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEn
 
     const workspaceValue = selectedWorkspaceOptions.map((option) => option.text);
 
-    const fromValue = searchAdvancedFiltersForm.from?.map((currentAccountID) => getDisplayNameOrDefault(personalDetails?.[currentAccountID], currentAccountID, false)) ?? [];
+    const fromValue = filterFormValues.from?.map((currentAccountID) => getDisplayNameOrDefault(personalDetails?.[currentAccountID], currentAccountID, false)) ?? [];
 
     const shouldDisplayGroupByFilter = !!groupBy?.value;
     const shouldDisplayGroupCurrencyFilter = shouldDisplayGroupByFilter && hasMultipleOutputCurrency;
-    const shouldDisplayFeedFilter = feedOptions.length > 1 && !!searchAdvancedFiltersForm.feed;
+    const shouldDisplayFeedFilter = feedOptions.length > 1 && !!filterFormValues.feed;
     const shouldDisplayPostedFilter =
-        !!searchAdvancedFiltersForm.feed &&
-        (!!searchAdvancedFiltersForm.postedOn || !!searchAdvancedFiltersForm.postedAfter || !!searchAdvancedFiltersForm.postedBefore || !!searchAdvancedFiltersForm.postedRange);
-    const shouldDisplayWithdrawalTypeFilter = !!searchAdvancedFiltersForm.withdrawalType;
-    const shouldDisplayWithdrawnFilter =
-        !!searchAdvancedFiltersForm.withdrawnOn || !!searchAdvancedFiltersForm.withdrawnAfter || !!searchAdvancedFiltersForm.withdrawnBefore || !!searchAdvancedFiltersForm.withdrawnRange;
+        !!filterFormValues.feed && (!!filterFormValues.postedOn || !!filterFormValues.postedAfter || !!filterFormValues.postedBefore || !!filterFormValues.postedRange);
+    const shouldDisplayWithdrawalTypeFilter = !!filterFormValues.withdrawalType;
+    const shouldDisplayWithdrawnFilter = !!filterFormValues.withdrawnOn || !!filterFormValues.withdrawnAfter || !!filterFormValues.withdrawnBefore || !!filterFormValues.withdrawnRange;
 
     const filters: FilterItem[] = [
         {
