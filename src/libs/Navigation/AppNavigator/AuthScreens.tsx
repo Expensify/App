@@ -67,6 +67,12 @@ const loadSubmitExpensePage = () => require<ReactComponentModule>('../../../page
 const loadWorkspaceJoinUser = () => require<ReactComponentModule>('@pages/workspace/WorkspaceJoinUserPage').default;
 
 const loadSearchRouterPage = () => require<ReactComponentModule>('../../../components/Search/SearchRouter/SearchRouterPage').default;
+const loadReportSplitNavigator = () => require<ReactComponentModule>('./Navigators/ReportsSplitNavigator').default;
+const loadSettingsSplitNavigator = () => require<ReactComponentModule>('./Navigators/SettingsSplitNavigator').default;
+const loadWorkspaceNavigator = () => require<ReactComponentModule>('./Navigators/WorkspaceNavigator').default;
+const loadSearchNavigator = () => require<ReactComponentModule>('./Navigators/SearchFullscreenNavigator').default;
+const loadRightModalNavigator = () => require<ReactComponentModule>('./Navigators/RightModalNavigator').default;
+
 const RootStack = createRootStackNavigator<AuthScreensParamList>();
 
 // We want to delay the re-rendering for components(e.g. ReportActionCompose)
@@ -259,7 +265,7 @@ function AuthScreens() {
                         <RootStack.Screen
                             name={NAVIGATORS.RIGHT_MODAL_NAVIGATOR}
                             options={rootNavigatorScreenOptions.rightModalNavigator}
-                            component={RightModalNavigator}
+                            getComponent={loadRightModalNavigator}
                             listeners={modalScreenListenersWithCancelSearch}
                         />
                         <RootStack.Screen
