@@ -230,6 +230,7 @@ function BaseListItem<TItem extends ListItem>({
             >
                 <View
                     testID={`${CONST.BASE_LIST_ITEM_TEST_ID}${item.keyForList}`}
+                    accessibilityState={accessibilityState ?? {selected: !!isFocused}}
                     style={[
                         isFocused &&
                             StyleUtils.getItemBackgroundColorStyle(
