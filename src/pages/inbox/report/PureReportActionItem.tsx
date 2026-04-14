@@ -122,7 +122,6 @@ import {
     getRemovedConnectionMessage,
     getRenamedAction,
     getRenamedCardFeedMessage,
-    getReportAction,
     getReportActionHtml,
     getReportActionMessage,
     getReportActionText,
@@ -206,7 +205,6 @@ import {
     isTripPreview,
     isWhisperActionTargetedToOthers,
     useTableReportViewActionRenderConditionals,
-    wasActionTakenByCurrentUser,
 } from '@libs/ReportActionsUtils';
 import type {CreateDraftTransactionParams, MissingPaymentMethod} from '@libs/ReportUtils';
 import {
