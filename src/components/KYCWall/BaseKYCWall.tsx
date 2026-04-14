@@ -78,7 +78,7 @@ function KYCWall({
     const personalDetails = usePersonalDetails();
     const employeeEmail = personalDetails?.[iouReport?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID]?.login ?? '';
     const reportTransactions = useReportTransactions(iouReport?.reportID);
-    const {filteredReportActions} = useAllPolicyExpenseChatReportActions();
+    const filteredReportActions = useAllPolicyExpenseChatReportActions();
     const anchorRef = useRef<HTMLDivElement | View>(null);
     const transferBalanceButtonRef = useRef<HTMLDivElement | View | null>(null);
 
