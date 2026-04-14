@@ -206,8 +206,6 @@ describe('AgentZeroStatusContext', () => {
 
             expect(result.current.isProcessing).toBe(false);
             expect(result.current.statusLabel).toBe('');
-
-            jest.useRealTimers();
         });
 
         it('should not clear optimistic state before the 2-minute timeout', async () => {
@@ -227,8 +225,6 @@ describe('AgentZeroStatusContext', () => {
 
             expect(result.current.isProcessing).toBe(true);
             expect(result.current.statusLabel).toBe('Thinking...');
-
-            jest.useRealTimers();
         });
 
         it('should cancel timeout when server label arrives before 2 minutes', async () => {
@@ -258,8 +254,6 @@ describe('AgentZeroStatusContext', () => {
 
             expect(result.current.isProcessing).toBe(true);
             expect(result.current.statusLabel).toBe(serverLabel);
-
-            jest.useRealTimers();
         });
 
         it('should clear optimistic waiting state when server label arrives', async () => {
