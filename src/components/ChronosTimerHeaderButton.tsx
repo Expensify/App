@@ -68,6 +68,7 @@ function ChronosTimerHeaderButton({report}: ChronosTimerHeaderButtonProps) {
         {
             value: 'timer' as const,
             text: translate(isTimerRunning ? 'chronos.stopTimer' : 'chronos.startTimer'),
+            onSelected: () => callFunctionIfActionIsAllowed(sendCommentToChronos)(),
         },
         {
             value: 'scheduleOOO' as const,
