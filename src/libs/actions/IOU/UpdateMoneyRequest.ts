@@ -10,8 +10,9 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type {Attendee} from '@src/types/onyx/IOU';
 import type RecentlyUsedTags from '@src/types/onyx/RecentlyUsedTags';
 import type {Routes, TransactionChanges, WaypointCollection} from '@src/types/onyx/Transaction';
-import type {UpdateMoneyRequestData, UpdateMoneyRequestDataKeys} from '.';
-import {getUpdateMoneyRequestParams, getUpdateTrackExpenseParams} from '.';
+import type {UpdateMoneyRequestData} from '.';
+import {getUpdateMoneyRequestParams, getUpdateTrackExpenseParams} from './UpdateMoneyRequestData';
+import type {UpdateMoneyRequestDataKeys} from './UpdateMoneyRequestData';
 
 type UpdateMoneyRequestDateParams = {
     transactionID: string;
