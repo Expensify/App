@@ -52,11 +52,11 @@ type SubscriptionPlanIllustrations = {
     ShieldYellow: IconAsset;
 };
 
-let currentUserAccountID = -1;
+let deprecatedCurrentUserAccountID = -1;
 Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (value) => {
-        currentUserAccountID = value?.accountID ?? CONST.DEFAULT_NUMBER_ID;
+        deprecatedCurrentUserAccountID = value?.accountID ?? CONST.DEFAULT_NUMBER_ID;
     },
 });
 
@@ -141,7 +141,11 @@ function hasCardExpiringSoon(fundList: OnyxEntry<FundList>, billingStatus: OnyxE
     return isExpiringThisMonth || isExpiringNextMonth;
 }
 
+/**
+ * @param currentUserAccountID — Session account ID of the current user (used to detect owned paid policies).
+ */
 function shouldShowDiscountBanner(
+    currentUserAccountID: number | undefined,
     hasTeam2025Pricing: boolean,
     subscriptionPlan: ValueOf<typeof CONST.POLICY.TYPE> | null,
     firstDayFreeTrial: string | undefined,
@@ -393,7 +397,7 @@ function getFreeTrialText(
     firstDayFreeTrial: string | undefined,
     lastDayFreeTrial: string | undefined,
 ): string | undefined {
-    const ownedPaidPolicies = getOwnedPaidPolicies(policies, currentUserAccountID);
+    const ownedPaidPolicies = getOwnedPaidPolicies(policies, deprecatedCurrentUserAccountID);
     if (isEmptyObject(ownedPaidPolicies)) {
         return undefined;
     }
@@ -477,7 +481,7 @@ function shouldRestrictUserBillableActions(
     // If it reached here it means that the user is actually the workspace's owner.
     // We should restrict the workspace's owner actions if it's past its grace period end date and it's owing some amount.
     if (
-        isPolicyOwner(policy, currentUserAccountID) &&
+        isPolicyOwner(policy, deprecatedCurrentUserAccountID) &&
         ownerBillingGracePeriodEnd &&
         amountOwed !== undefined &&
         amountOwed > 0 &&
@@ -490,7 +494,7 @@ function shouldRestrictUserBillableActions(
 }
 
 function shouldCalculateBillNewDot(canDowngrade: boolean | undefined, policies: OnyxCollection<Policy>): boolean {
-    return (canDowngrade ?? false) && getOwnedPaidPolicies(policies, currentUserAccountID).length === 1;
+    return (canDowngrade ?? false) && getOwnedPaidPolicies(policies, deprecatedCurrentUserAccountID).length === 1;
 }
 
 function getSubscriptionPrice(
@@ -582,7 +586,7 @@ function shouldShowTrialEndedUI(
     isFromInternalDomain: boolean | undefined,
     privateSubscriptionType: SubscriptionType | undefined,
 ): boolean {
-    if (!getOwnedPaidPolicies(policies, currentUserAccountID)?.length) {
+    if (!getOwnedPaidPolicies(policies, deprecatedCurrentUserAccountID)?.length) {
         return false;
     }
     if (isGrandfatheredFree || isFromInternalDomain) {

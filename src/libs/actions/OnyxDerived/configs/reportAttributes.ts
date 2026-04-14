@@ -271,7 +271,7 @@ export default createOnyxDerivedValueConfig({
                 });
 
                 const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
-                const hasFieldViolations = hasVisibleReportFieldViolations(report, policy);
+                const hasFieldViolations = hasVisibleReportFieldViolations(report, policy, session?.accountID);
 
                 let brickRoadStatus;
                 let actionBadge;
