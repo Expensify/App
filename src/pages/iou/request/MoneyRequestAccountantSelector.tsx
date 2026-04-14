@@ -73,6 +73,7 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
     const currentUserEmail = currentUserPersonalDetails.email ?? '';
     const currentUserAccountID = currentUserPersonalDetails.accountID;
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const privateIsArchivedMap = usePrivateIsArchivedMap();
     const [sortedActions] = useOnyx(ONYXKEYS.DERIVED.RAM_ONLY_SORTED_REPORT_ACTIONS, {selector: sortedActionsSelector});
 
@@ -96,6 +97,7 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
             loginList,
             currentUserAccountID,
             currentUserEmail,
+            conciergeReportID,
             {
                 betas,
                 excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
@@ -126,6 +128,7 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
         countryCode,
         currentUserAccountID,
         currentUserEmail,
+        conciergeReportID,
         personalDetails,
         sortedActions,
     ]);

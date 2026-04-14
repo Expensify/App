@@ -61,6 +61,7 @@ function QuickActionMenuItem({reportID}: QuickActionMenuItemProps) {
     const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {selector: reportAttributesSelector});
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
+    const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
 
     const isValidReport = !(isEmptyObject(quickActionReport) || isReportArchived);
 
@@ -107,7 +108,11 @@ function QuickActionMenuItem({reportID}: QuickActionMenuItemProps) {
 
     const quickActionReportPolicyID = quickActionReport?.policyID;
     const selectOption = (onSelected: () => void, shouldRestrictAction: boolean) => {
-        if (shouldRestrictAction && quickActionReportPolicyID && shouldRestrictUserBillableActions(quickActionReportPolicyID, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds)) {
+        if (
+            shouldRestrictAction &&
+            quickActionReportPolicyID &&
+            shouldRestrictUserBillableActions(quickActionReportPolicyID, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed)
+        ) {
             Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(quickActionReportPolicyID));
             return;
         }
@@ -184,7 +189,7 @@ function QuickActionMenuItem({reportID}: QuickActionMenuItemProps) {
                 interceptAnonymousUser(() => {
                     if (
                         policyChatForActivePolicy?.policyID &&
-                        shouldRestrictUserBillableActions(policyChatForActivePolicy.policyID, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds)
+                        shouldRestrictUserBillableActions(policyChatForActivePolicy.policyID, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed)
                     ) {
                         Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policyChatForActivePolicy.policyID));
                         return;
