@@ -4,7 +4,7 @@ import type {OnyxCollection} from 'react-native-onyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {canApproveIOU, canSubmitReport} from '@userActions/IOU';
+import {canApproveIOU, canSubmitReport} from '@userActions/IOU/ReportWorkflow';
 import CONST from '@src/CONST';
 import * as IOUUtils from '@src/libs/IOUUtils';
 import * as ReportUtils from '@src/libs/ReportUtils';
