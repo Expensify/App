@@ -1462,6 +1462,34 @@ function getLastVisibleAction(
 }
 
 /**
+ * Gets the last visible action for a report that is not a room change log (system message).
+ * Used for LHN preview text: room change log actions like INVITE_TO_ROOM, LEAVE_ROOM, and
+ * UPDATE_ROOM_DESCRIPTION should not replace the last real message text in the sidebar.
+ */
+function getLastVisibleNonSystemAction(
+    reportID: string | undefined,
+    canUserPerformWriteAction?: boolean,
+    reportActionsParam: OnyxCollection<ReportActions> = allReportActions,
+    visibleReportActionsData?: VisibleReportActionsDerivedValue,
+): OnyxEntry<ReportAction> {
+    const reportActions = Object.values(reportActionsParam?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`] ?? {});
+
+    let newest: ReportAction | undefined;
+    for (const action of reportActions) {
+        if (!action || isRoomChangeLogAction(action)) {
+            continue;
+        }
+        if (!isReportActionVisibleAsLastAction(action, canUserPerformWriteAction, visibleReportActionsData, reportID)) {
+            continue;
+        }
+        if (!newest || isNewerReportAction(action, newest)) {
+            newest = action;
+        }
+    }
+    return newest;
+}
+
+/**
  * Gets the last visible action for a report, including checking transaction thread for one-transaction reports.
  * This ensures LHN preview shows the most recent action whether it's on the parent report or transaction thread.
  */
