@@ -35,9 +35,7 @@ Card expenses (company cards and Expensify Cards) cannot be duplicated.
 3. Select **More**. 
 4. Choose **Duplicate expense**.
 
-<!-- SCREENSHOT:
-WIP here: https://github.com/Expensify/Expensify/issues/616815
--->
+![Select an Expense > More > Duplicate expense]({{site.url}}/assets/images/ExpensifyHelp-DuplicateExpense_01.png){:width="100%"}
 
 ---
 
