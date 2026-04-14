@@ -244,7 +244,7 @@ function buildSortKey(displayName: string): string {
         return cached;
     }
 
-    const key = displayName.toLowerCase().replace(DIGIT_SEQUENCE, (match) => match.padStart(NUMERIC_PAD_WIDTH, '0'));
+    const key = displayName.toLowerCase().replaceAll(DIGIT_SEQUENCE, (match) => match.padStart(NUMERIC_PAD_WIDTH, '0'));
     sortKeyCache.set(displayName, key);
     return key;
 }
