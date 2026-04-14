@@ -188,6 +188,7 @@ function UserSelectPopup({value, label, closeOverlay, onChange, isSearchable}: U
                 isLoadingNewOptions={isLoadingNewOptions}
                 shouldShowLoadingPlaceholder={!areOptionsInitialized}
                 onEndReached={onListEndReached}
+                style={{contentContainerStyle: [styles.pb0]}}
             />
         </BasePopup>
     );

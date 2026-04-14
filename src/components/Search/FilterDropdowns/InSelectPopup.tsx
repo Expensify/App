@@ -191,7 +191,6 @@ function InSelectPopup({closeOverlay, updateFilterForm}: InSelectPopupProps) {
                 onSelectRow={handleParticipantSelection}
                 ListItem={InviteMemberListItem}
                 canSelectMultiple
-                style={{listStyle: styles.pb2}}
                 shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
                 textInputOptions={textInputOptions}
                 isLoadingNewOptions={isLoadingNewOptions}
