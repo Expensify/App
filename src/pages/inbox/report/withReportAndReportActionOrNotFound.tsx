@@ -22,7 +22,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type WithReportAndReportActionOrNotFoundProps = PlatformStackScreenProps<
     FlagCommentNavigatorParamList & SplitDetailsNavigatorParamList,
-    typeof SCREENS.FLAG_COMMENT_ROOT | typeof SCREENS.SPLIT_DETAILS.ROOT
+    typeof SCREENS.DYNAMIC_FLAG_COMMENT | typeof SCREENS.SPLIT_DETAILS.ROOT
 > & {
     /** The report currently being looked at */
     report: OnyxTypes.Report;
