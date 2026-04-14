@@ -56,6 +56,7 @@ import {
     getLastVisibleAction,
     getLastVisibleActionIncludingTransactionThread,
     getLastVisibleMessage,
+    getLastVisibleNonSystemAction,
     getMarkedReimbursedMessage,
     getMentionedAccountIDsFromAction,
     getMessageOfOldDotReportAction,
@@ -107,6 +108,7 @@ import {
     isRenamedAction,
     isReportActionVisible,
     isReportPreviewAction,
+    isRoomChangeLogAction,
     isTaskAction,
     isThreadParentMessage,
     isUnapprovedAction,
@@ -647,6 +649,14 @@ function getLastMessageTextForReport({
     if (reportID && !lastAction && transactionThreadReportID) {
         lastReportAction =
             getLastVisibleActionIncludingTransactionThread(reportID, canUserPerformWrite, undefined, visibleReportActionsDataParam, transactionThreadReportID) ?? lastReportAction;
+    }
+
+    // Room change log actions (system messages like INVITE_TO_ROOM, LEAVE_ROOM, UPDATE_ROOM_DESCRIPTION)
+    // should not replace the last real message text in the LHN preview. When the most recent visible
+    // action is a system message, use the last non-system visible action for the preview instead,
+    // so the LHN shows consistent message text whether on app load or during a live update.
+    if (isRoomChangeLogAction(lastReportAction)) {
+        lastReportAction = getLastVisibleNonSystemAction(reportID, canUserPerformWrite, undefined, visibleReportActionsDataParam) ?? lastReportAction;
     }
 
     // Compute lastVisibleMessage before IOU filter — it needs IOU CREATE/TRACK for text extraction.
