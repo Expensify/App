@@ -285,7 +285,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo}: UseExpe
             value: CONST.REPORT.SECONDARY_ACTIONS.SPLIT,
             sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.SPLIT,
             onSelected: () => {
-                if (Number(transactions?.length) !== 1) {
+                if (transactions.length !== 1) {
                     return;
                 }
                 initSplitExpense(currentTransaction, policy);
