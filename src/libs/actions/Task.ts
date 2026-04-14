@@ -1443,12 +1443,12 @@ function getFinishOnboardingTaskOnyxData(
     currentUserAccountID: number,
     hasOutstandingChildTask: boolean,
     parentReportAction: OnyxEntry<ReportAction> | undefined,
+    delegateEmail: string | undefined,
 ): OnyxData<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS> {
     if (taskReport && canActionTask(taskReport, parentReportAction, currentUserAccountID, taskParentReport, isParentReportArchived)) {
         if (taskReport) {
             if (taskReport.stateNum !== CONST.REPORT.STATE_NUM.APPROVED || taskReport.statusNum !== CONST.REPORT.STATUS_NUM.APPROVED) {
-                // Will be refactored in next PR; full restructure tracked in https://github.com/Expensify/App/issues/66417
-                return completeTask(taskReport, taskParentReport?.hasOutstandingChildTask ?? false, hasOutstandingChildTask, parentReportAction, undefined);
+                return completeTask(taskReport, taskParentReport?.hasOutstandingChildTask ?? false, hasOutstandingChildTask, parentReportAction, delegateEmail);
             }
         }
     }
@@ -1462,10 +1462,19 @@ function completeTestDriveTask(
     currentUserAccountID: number,
     hasOutstandingChildTask: boolean,
     parentReportAction: OnyxEntry<ReportAction> | undefined,
+    delegateEmail: string | undefined,
     shouldUpdateSelfTourViewedOnlyLocally = false,
 ) {
     setSelfTourViewed(shouldUpdateSelfTourViewedOnlyLocally);
-    getFinishOnboardingTaskOnyxData(viewTourTaskReport, viewTourTaskParentReport, isViewTourTaskParentReportArchived, currentUserAccountID, hasOutstandingChildTask, parentReportAction);
+    getFinishOnboardingTaskOnyxData(
+        viewTourTaskReport,
+        viewTourTaskParentReport,
+        isViewTourTaskParentReportArchived,
+        currentUserAccountID,
+        hasOutstandingChildTask,
+        parentReportAction,
+        delegateEmail,
+    );
 }
 
 export {
