@@ -1547,6 +1547,98 @@ describe('PureReportActionItem', () => {
 
             expect(screen.getByText(/8765/)).toBeOnTheScreen();
         });
+
+        it('IOU PAY with bankAccountID and payAsBusiness renders settleInvoiceBusiness message', async () => {
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.IOU, {
+                type: CONST.IOU.REPORT_ACTION_TYPE.PAY,
+                paymentType: CONST.IOU.PAYMENT_TYPE.EXPENSIFY,
+                automaticAction: false,
+                bankAccountID: 55555,
+                payAsBusiness: true,
+                amount: 5000,
+                currency: 'USD',
+            });
+            render(
+                <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, HTMLEngineProvider]}>
+                    <OptionsListContextProvider>
+                        <ScreenWrapper testID="test">
+                            <PortalProvider>
+                                <PureReportActionItem
+                                    personalPolicyID={undefined}
+                                    currentUserEmail={undefined}
+                                    report={undefined}
+                                    parentReportAction={undefined}
+                                    action={action}
+                                    displayAsGroup={false}
+                                    shouldDisplayNewMarker={false}
+                                    index={0}
+                                    isFirstVisibleReportAction={false}
+                                    taskReport={undefined}
+                                    linkedReport={undefined}
+                                    iouReportOfLinkedReport={undefined}
+                                    currentUserAccountID={ACTOR_ACCOUNT_ID}
+                                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                                    bankAccountList={{55555: {accountData: {accountNumber: '000012345'}} as never}}
+                                    betas={undefined}
+                                    draftTransactionIDs={[]}
+                                    userBillingGracePeriodEnds={undefined}
+                                />
+                            </PortalProvider>
+                        </ScreenWrapper>
+                    </OptionsListContextProvider>
+                </ComposeProviders>,
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByText(/with business account/i)).toBeOnTheScreen();
+            expect(screen.getByText(/2345/)).toBeOnTheScreen();
+        });
+
+        it('IOU PAY with bankAccountID and no payAsBusiness renders settleInvoicePersonal message', async () => {
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.IOU, {
+                type: CONST.IOU.REPORT_ACTION_TYPE.PAY,
+                paymentType: CONST.IOU.PAYMENT_TYPE.EXPENSIFY,
+                automaticAction: false,
+                bankAccountID: 77777,
+                payAsBusiness: false,
+                amount: 3000,
+                currency: 'USD',
+            });
+            render(
+                <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, HTMLEngineProvider]}>
+                    <OptionsListContextProvider>
+                        <ScreenWrapper testID="test">
+                            <PortalProvider>
+                                <PureReportActionItem
+                                    personalPolicyID={undefined}
+                                    currentUserEmail={undefined}
+                                    report={undefined}
+                                    parentReportAction={undefined}
+                                    action={action}
+                                    displayAsGroup={false}
+                                    shouldDisplayNewMarker={false}
+                                    index={0}
+                                    isFirstVisibleReportAction={false}
+                                    taskReport={undefined}
+                                    linkedReport={undefined}
+                                    iouReportOfLinkedReport={undefined}
+                                    currentUserAccountID={ACTOR_ACCOUNT_ID}
+                                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                                    bankAccountList={{77777: {accountData: {accountNumber: '000067890'}} as never}}
+                                    betas={undefined}
+                                    draftTransactionIDs={[]}
+                                    userBillingGracePeriodEnds={undefined}
+                                />
+                            </PortalProvider>
+                        </ScreenWrapper>
+                    </OptionsListContextProvider>
+                </ComposeProviders>,
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByText(/with personal account/i)).toBeOnTheScreen();
+            expect(screen.getByText(/7890/)).toBeOnTheScreen();
+        });
     });
 
     describe('Default rendering fallbacks', () => {
