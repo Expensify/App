@@ -1214,7 +1214,7 @@ As you can see after opening the workspace settings of the specific workspace, w
 
 In the above example, we can see that when building a state from a link leading to a screen in RHP, screens that appear below the overlay are also built.
 
--   `workspaces/1D8A960D5E9E10CD/overview/invite/invite-message/role`
+-   `settings/profile/address/country?country=US`
 
 ```json
 {
@@ -1224,7 +1224,7 @@ In the above example, we can see that when building a state from a link leading 
     "index": 1,
     "routes": [
         {
-            "name": "WorkspaceSplitNavigator",
+            "name": "SettingsSplitNavigator",
             "state": {
                 "stale": false,
                 "type": "stack",
@@ -1232,22 +1232,16 @@ In the above example, we can see that when building a state from a link leading 
                 "index": 1,
                 "routes": [
                     {
-                        "name": "Workspace_Initial",
-                        "params": {
-                            "policyID": "1D8A960D5E9E10CD"
-                        },
-                        "key": "Workspace_Initial-key"
+                        "name": "Settings_Root",
+                        "key": "Settings_Root-key"
                     },
                     {
-                        "name": "Workspace_Overview",
-                        "params": {
-                            "policyID": "1D8A960D5E9E10CD"
-                        },
-                        "key": "Workspace_Overview-key"
+                        "name": "Settings_Profile",
+                        "key": "Settings_Profile-key"
                     }
                 ]
             },
-            "key": "WorkspaceSplitNavigator-key"
+            "key": "SettingsSplitNavigator-key"
         },
         {
             "name": "RightModalNavigator",
@@ -1263,29 +1257,20 @@ In the above example, we can see that when building a state from a link leading 
                             "stale": false,
                             "type": "stack",
                             "key": "stack-key-10",
-                            "index": 2,
+                            "index": 1,
                             "routes": [
                                 {
-                                    "name": "Dynamic_Workspace_Invite",
-                                    "params": {
-                                        "policyID": "1D8A960D5E9E10CD"
-                                    },
-                                    "key": "Dynamic_Workspace_Invite-key"
+                                    "name": "Settings_Address",
+                                    "path": "/settings/profile/address",
+                                    "key": "Settings_Address-key"
                                 },
                                 {
-                                    "name": "Dynamic_Workspace_Invite_Message",
+                                    "name": "Dynamic_Address_Country",
+                                    "path": "/settings/profile/address/country?country=US",
                                     "params": {
-                                        "policyID": "1D8A960D5E9E10CD"
+                                        "country": "US"
                                     },
-                                    "key": "Dynamic_Workspace_Invite_Message-key"
-                                },
-                                {
-                                    "name": "Dynamic_Workspace_Invite_Message_Role",
-                                    "params": {
-                                        "policyID": "1D8A960D5E9E10CD"
-                                    },
-                                    "path": "/workspaces/1D8A960D5E9E10CD/overview/invite/invite-message/role",
-                                    "key": "Dynamic_Workspace_Invite_Message_Role-key"
+                                    "key": "Dynamic_Address_Country-key"
                                 }
                             ]
                         },
@@ -1298,7 +1283,7 @@ In the above example, we can see that when building a state from a link leading 
     ]
 }
 ```
-This URL contains three stacked dynamic suffixes: `invite` → `invite-message` → `role`. When the app is opened from this link, all three intermediate dynamic screens need to be present in the `Settings` stack. Without them, only the deepest screen would exist, and pressing back would have nowhere to go.
+Since `country` is a dynamic suffix, the `Dynamic_Address_Country` screen is layered on top of the static `Settings_Address` screen in the initial state, ensuring correct back navigation after a refresh.
 
 ## Setting the correct screen underneath RHP
 

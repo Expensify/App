@@ -199,7 +199,11 @@ describe('getPathFromState', () => {
         });
 
         it('inner dynamic suffix has path params, outer is simple', () => {
-            const state = buildState([{name: 'ReportScreen', params: {reportID: '123'}}, {name: 'FlagScreen', params: {reportID: '456', reportActionID: 'abc'}}, {name: 'VerifyAccountScreen'}]);
+            const state = buildState([
+                {name: 'ReportScreen', params: {reportID: '123'}},
+                {name: 'FlagScreen', params: {reportID: '456', reportActionID: 'abc'}},
+                {name: 'VerifyAccountScreen'},
+            ]);
 
             expect(getPathFromState(state as PartialState<NavigationState>)).toBe('/r/123/flag/456/abc/verify-account');
         });
