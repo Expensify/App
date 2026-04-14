@@ -1,12 +1,12 @@
 import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback, useEffect, useState} from 'react';
-import {ScrollView} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
+import ScrollView from '@components/ScrollView';
 import SelectionList from '@components/SelectionList';
 import CardListItem from '@components/SelectionList/ListItem/CardListItem';
 import type {AdditionalCardProps} from '@components/SelectionList/ListItem/CardListItem';
