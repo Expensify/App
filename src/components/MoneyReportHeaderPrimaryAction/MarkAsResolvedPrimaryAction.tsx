@@ -2,7 +2,7 @@ import React from 'react';
 import Button from '@components/Button';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
-import {markRejectViolationAsResolved} from '@userActions/IOU';
+import {markRejectViolationAsResolved} from '@userActions/IOU/RejectMoneyRequest';
 import type {SimpleActionProps} from './types';
 import useTransactionThreadData from './useTransactionThreadData';
 
