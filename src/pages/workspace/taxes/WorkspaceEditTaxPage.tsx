@@ -74,6 +74,9 @@ function WorkspaceEditTaxPage({
     };
 
     if (!currentTaxRate) {
+        if (policy?.taxRates?.taxes) {
+            return null;
+        }
         return <NotFoundPage />;
     }
     const taxCodeToShow = isControlPolicy(policy) ? taxID : '';
