@@ -184,7 +184,7 @@ function getSpendRuleByCardID(expensifyCardSettingsCollection: OnyxCollection<Ex
 
 const MAX_SUMMARY_CHARS = 74;
 
-type MoreCountFormatter = (summary: string, count: number) => string;
+type MoreCountFormatter = (summary: string, hiddenCount: number, shownCount?: number) => string;
 type SpendRuleSummaryPart = {
     badgeLabel: string;
     text: string;
@@ -211,7 +211,7 @@ function getTruncatedSpendRuleSummary(values: string[] | undefined, formatMoreCo
     }
 
     const hiddenCount = Math.max(normalizedValues.length - shownCount, 0);
-    return text ? formatMoreCount(text, hiddenCount) : '';
+    return text ? formatMoreCount(text, hiddenCount, shownCount) : '';
 }
 
 function getParentRoute(policyID: string, ruleID: string) {
@@ -249,12 +249,12 @@ function getSpendRuleSummaryParts(formValues: SpendRuleForm, selectedCurrency: s
 function getSpendRuleSummaryText(formValues: SpendRuleForm, cardCurrency: string | undefined, translate: LocalizedTranslate) {
     const action = formValues.restrictionAction;
     const merchantSummary = formValues.merchantNames
-        ? getTruncatedSpendRuleSummary(formValues.merchantNames, (merchants, count) => translate('workspace.rules.spendRules.summaryMerchants', {merchants, count, action}))
+        ? getTruncatedSpendRuleSummary(formValues.merchantNames, (merchants, hiddenCount, shownCount) => translate('workspace.rules.spendRules.summaryMerchants', {merchants, hiddenCount, shownCount, action}))
         : undefined;
     const categoryNames = formValues.categories.map((category) => translate(`workspace.rules.spendRules.categoryOptions.${category}`));
     const categorySummary =
         categoryNames.length > 0
-            ? getTruncatedSpendRuleSummary(categoryNames, (categories, count) => translate('workspace.rules.spendRules.summaryCategories', {categories, count, action}))
+            ? getTruncatedSpendRuleSummary(categoryNames, (categories, hiddenCount, shownCount) => translate('workspace.rules.spendRules.summaryCategories', {categories, hiddenCount, shownCount, action}))
             : undefined;
     const amountSummary =
         formValues.maxAmount.trim() !== ''
