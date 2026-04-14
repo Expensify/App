@@ -8540,7 +8540,6 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 confirm: 'Workspace(s) löschen und herabstufen',
             },
             viewPaymentHistory: 'Zahlungsverlauf anzeigen',
-            creditsBalance: ({amount}: {amount: string}) => `Sie haben ${amount} an Expensify-Guthaben`,
         },
         yourPlan: {
             title: 'Ihr Tarif',
@@ -8593,6 +8592,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         details: {
             title: 'Abonnementdetails',
             annual: 'Jahresabonnement',
+            creditBalance: 'Guthaben',
             taxExempt: 'Steuerbefreiungsstatus beantragen',
             taxExemptEnabled: 'Steuerbefreit',
             taxExemptStatus: 'Steuerbefreiungsstatus',

@@ -8522,7 +8522,6 @@ const translations = {
                 confirm: 'Delete workspace(s) and downgrade',
             },
             viewPaymentHistory: 'View payment history',
-            creditsBalance: ({amount}: {amount: string}) => `You have ${amount} in Expensify credits`,
         },
         yourPlan: {
             title: 'Your plan',
@@ -8575,6 +8574,7 @@ const translations = {
         details: {
             title: 'Subscription details',
             annual: 'Annual subscription',
+            creditBalance: 'Credit balance',
             taxExempt: 'Request tax exempt status',
             taxExemptEnabled: 'Tax exempt',
             taxExemptStatus: 'Tax exempt status',

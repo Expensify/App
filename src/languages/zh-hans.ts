@@ -8267,7 +8267,6 @@ ${reportName}
                 confirm: '删除工作区并降级',
             },
             viewPaymentHistory: '查看付款记录',
-            creditsBalance: ({amount}: {amount: string}) => `您有 ${amount} 的 Expensify 积分`,
         },
         yourPlan: {
             title: '您的方案',
@@ -8320,6 +8319,7 @@ ${reportName}
         details: {
             title: '订阅详情',
             annual: '年度订阅',
+            creditBalance: '积分余额',
             taxExempt: '申请免税状态',
             taxExemptEnabled: '免税',
             taxExemptStatus: '免税状态',
