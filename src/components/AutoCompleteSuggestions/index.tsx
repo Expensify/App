@@ -11,8 +11,12 @@ import type {AutoCompleteSuggestionsProps, MeasureParentContainerAndCursor} from
 
 const measureHeightOfSuggestionRows = (numRows: number, canBeBig: boolean, isInLandscapeMode: boolean): number => {
     if (isInLandscapeMode) {
-        // In landscape mode, we display a scrollable window with a height of 1.5 items, indicating that there are more items available beyond what is currently visible
-        return CONST.AUTO_COMPLETE_SUGGESTER.SMALL_CONTAINER_HEIGHT_FACTOR_LANDSCAPE_MODE * CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTION_ROW_HEIGHT;
+        if (numRows > 1) {
+            // In landscape mode, we display a scrollable window with a height of 1.5 items, indicating that there are more items available beyond what is currently visible
+            return CONST.AUTO_COMPLETE_SUGGESTER.SMALL_CONTAINER_HEIGHT_FACTOR_LANDSCAPE_MODE * CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTION_ROW_HEIGHT;
+        }
+
+        return numRows * CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTION_ROW_HEIGHT;
     }
     if (canBeBig) {
         if (numRows > CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_VISIBLE_SUGGESTIONS_IN_CONTAINER) {
@@ -47,11 +51,8 @@ const initialContainerState = {
 };
 
 function getLeftOffset(x: number, leftInset: number, bigScreenLeftOffset: number, shouldUseNarrowLayout: boolean, isInLandscapeMode: boolean): number {
-    if (isInLandscapeMode) {
-        return x - leftInset;
-    }
     if (shouldUseNarrowLayout) {
-        return x;
+        return isInLandscapeMode ? x - leftInset : x;
     }
     return bigScreenLeftOffset;
 }
@@ -113,6 +114,7 @@ function AutoCompleteSuggestions<TSuggestion>({measureParentContainerAndReportCu
                     : xCoordinatesOfCursor;
             const contentMaxHeight = measureHeightOfSuggestionRows(suggestionsLength, true, isInLandscapeMode);
             const contentMinHeight = measureHeightOfSuggestionRows(suggestionsLength, false, isInLandscapeMode);
+            console.log({contentMinHeight, contentMaxHeight});
             let bottomValue = windowHeight - (cursorCoordinates.y - scrollValue + y) - keyboardHeight;
             const widthValue = shouldUseNarrowLayout ? width : CONST.AUTO_COMPLETE_SUGGESTER.BIG_SCREEN_SUGGESTION_WIDTH;
 
