@@ -106,7 +106,7 @@ describe('useSearchSelector sortedActions integration', () => {
 
         expect(mockGetValidOptions).toHaveBeenCalled();
         const lastCall = mockGetValidOptions.mock.calls.at(-1);
-        const config = lastCall?.[7];
+        const config = lastCall?.[8];
         expect(config?.sortedActions).toBeUndefined();
     });
 
@@ -128,7 +128,7 @@ describe('useSearchSelector sortedActions integration', () => {
 
         expect(mockGetValidOptions).toHaveBeenCalled();
         const lastCall = mockGetValidOptions.mock.calls.at(-1);
-        const config = lastCall?.[7];
+        const config = lastCall?.[8];
         expect(config?.sortedActions).toEqual(mockData.sortedActions);
     });
 
@@ -150,7 +150,7 @@ describe('useSearchSelector sortedActions integration', () => {
 
         expect(mockGetValidOptions).toHaveBeenCalled();
         const lastCall = mockGetValidOptions.mock.calls.at(-1);
-        const config = lastCall?.[7];
+        const config = lastCall?.[8];
         expect(config?.sortedActions).toEqual(mockData.sortedActions);
     });
 
@@ -172,7 +172,7 @@ describe('useSearchSelector sortedActions integration', () => {
 
         expect(mockGetValidOptions).toHaveBeenCalled();
         const lastCall = mockGetValidOptions.mock.calls.at(-1);
-        const config = lastCall?.[7];
+        const config = lastCall?.[8];
         expect(config?.sortedActions).toEqual(mockData.sortedActions);
     });
 
@@ -194,7 +194,7 @@ describe('useSearchSelector sortedActions integration', () => {
 
         expect(mockGetValidOptions).toHaveBeenCalled();
         const lastCall = mockGetValidOptions.mock.calls.at(-1);
-        const config = lastCall?.[7];
+        const config = lastCall?.[8];
         expect(config?.sortedActions).toEqual(mockData.sortedActions);
     });
 
@@ -214,7 +214,7 @@ describe('useSearchSelector sortedActions integration', () => {
         );
         await waitForBatchedUpdatesWithAct();
 
-        const firstCallConfig = mockGetValidOptions.mock.calls.at(-1)?.[7];
+        const firstCallConfig = mockGetValidOptions.mock.calls.at(-1)?.[8];
         expect(firstCallConfig?.sortedActions).toEqual(initialData.sortedActions);
 
         const updatedData = buildMockSortedActions(['1', '2', '3']);
@@ -223,7 +223,7 @@ describe('useSearchSelector sortedActions integration', () => {
         });
         await waitForBatchedUpdatesWithAct();
 
-        const latestCallConfig = mockGetValidOptions.mock.calls.at(-1)?.[7];
+        const latestCallConfig = mockGetValidOptions.mock.calls.at(-1)?.[8];
         expect(latestCallConfig?.sortedActions).toEqual(updatedData.sortedActions);
     });
 
