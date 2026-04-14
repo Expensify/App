@@ -220,6 +220,7 @@ type GetOptionsConfig = {
     includeUserToInvite?: boolean;
     shouldAcceptName?: boolean;
     countryCode?: number;
+    reportsCollection?: OnyxCollection<Report>;
     visibleReportActionsData?: VisibleReportActionsDerivedValue;
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'];
     // TODO: Remove the optional operator once all call sites pass sortedActions (https://github.com/Expensify/App/issues/66381)

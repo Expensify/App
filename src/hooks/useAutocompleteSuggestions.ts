@@ -99,6 +99,7 @@ function useAutocompleteSuggestions({
     feedKeysWithCards,
     translate,
 }: UseAutocompleteSuggestionsParams): AutocompleteItemData[] {
+    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [allPolicyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
     const [allRecentCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES);
     const [recentCurrencyAutocompleteList] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES);
@@ -216,6 +217,7 @@ function useAutocompleteSuggestions({
                 options,
                 draftComments,
                 nvpDismissedProductTraining,
+                reports,
                 betas: betas ?? [],
                 isUsedInChatFinder: true,
                 includeReadOnly: true,
@@ -252,6 +254,7 @@ function useAutocompleteSuggestions({
                 options,
                 draftComments,
                 nvpDismissedProductTraining,
+                reports,
                 betas: betas ?? [],
                 isUsedInChatFinder: true,
                 includeReadOnly: true,

@@ -200,6 +200,7 @@ function SearchAutocompleteList({
             options: listOptions,
             draftComments,
             nvpDismissedProductTraining,
+            reports,
             betas: betas ?? [],
             isUsedInChatFinder: true,
             includeReadOnly: true,
