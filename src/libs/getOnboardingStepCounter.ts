@@ -26,7 +26,7 @@ const screenResolution: Record<OnboardingScreen, OnboardingScreen> = {
     [ONBOARDING.WORK_EMAIL_VALIDATION]: ONBOARDING.WORK_EMAIL_VALIDATION,
     [ONBOARDING.DYNAMIC_PRIVATE_DOMAIN]: ONBOARDING.DYNAMIC_PRIVATE_DOMAIN,
     [ONBOARDING.DYNAMIC_PERSONAL_DETAILS]: ONBOARDING.DYNAMIC_PERSONAL_DETAILS,
-    [ONBOARDING.WORKSPACES]: ONBOARDING.WORKSPACES,
+    [ONBOARDING.DYNAMIC_WORKSPACES]: ONBOARDING.DYNAMIC_WORKSPACES,
     [ONBOARDING.DYNAMIC_PURPOSE]: ONBOARDING.DYNAMIC_PURPOSE,
     [ONBOARDING.DYNAMIC_EMPLOYEES]: ONBOARDING.DYNAMIC_EMPLOYEES,
     [ONBOARDING.DYNAMIC_ACCOUNTING]: ONBOARDING.DYNAMIC_ACCOUNTING,
@@ -71,7 +71,7 @@ function getResolvedPage(page: OnboardingScreen, context: OnboardingFlowContext)
 function getDomainPrefix(context: OnboardingFlowContext): OnboardingScreen[] {
     if (context.isFromPublicDomain) {
         if (context.isMergeAccountStepSkipped === false) {
-            return [ONBOARDING.WORK_EMAIL, ONBOARDING.WORK_EMAIL_VALIDATION, ONBOARDING.WORKSPACES];
+            return [ONBOARDING.WORK_EMAIL, ONBOARDING.WORK_EMAIL_VALIDATION, ONBOARDING.DYNAMIC_WORKSPACES];
         }
         // User skipped the work email step — they never see WORK_EMAIL_VALIDATION
         if (context.isMergeAccountStepSkipped === true) {
@@ -80,7 +80,7 @@ function getDomainPrefix(context: OnboardingFlowContext): OnboardingScreen[] {
         return [ONBOARDING.WORK_EMAIL, ONBOARDING.WORK_EMAIL_VALIDATION];
     }
     if (context.hasAccessibleDomainPolicies) {
-        return [ONBOARDING.DYNAMIC_PERSONAL_DETAILS, ONBOARDING.DYNAMIC_PRIVATE_DOMAIN, ONBOARDING.WORKSPACES];
+        return [ONBOARDING.DYNAMIC_PERSONAL_DETAILS, ONBOARDING.DYNAMIC_PRIVATE_DOMAIN, ONBOARDING.DYNAMIC_WORKSPACES];
     }
     return [];
 }

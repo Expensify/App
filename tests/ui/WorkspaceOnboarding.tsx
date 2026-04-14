@@ -7,6 +7,7 @@ import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import {CurrentReportIDContextProvider} from '@hooks/useCurrentReportID';
+import * as useDynamicBackPathModule from '@hooks/useDynamicBackPath';
 import * as useResponsiveLayoutModule from '@hooks/useResponsiveLayout';
 import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
@@ -17,6 +18,7 @@ import OnboardingWorkspaces from '@pages/OnboardingWorkspaces';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import type {Route} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
@@ -27,14 +29,17 @@ const Stack = createPlatformStackNavigator<OnboardingModalNavigatorParamList>();
 
 const navigate = jest.spyOn(Navigation, 'navigate');
 
-const renderOnboardingWorkspacesPage = (initialRouteName: typeof SCREENS.ONBOARDING.WORKSPACES, initialParams: OnboardingModalNavigatorParamList[typeof SCREENS.ONBOARDING.WORKSPACES]) => {
+const renderOnboardingWorkspacesPage = (
+    initialRouteName: typeof SCREENS.ONBOARDING.DYNAMIC_WORKSPACES,
+    initialParams: OnboardingModalNavigatorParamList[typeof SCREENS.ONBOARDING.DYNAMIC_WORKSPACES],
+) => {
     return render(
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrentReportIDContextProvider]}>
             <PortalProvider>
                 <NavigationContainer>
                     <Stack.Navigator initialRouteName={initialRouteName}>
                         <Stack.Screen
-                            name={SCREENS.ONBOARDING.WORKSPACES}
+                            name={SCREENS.ONBOARDING.DYNAMIC_WORKSPACES}
                             component={OnboardingWorkspaces}
                             initialParams={initialParams}
                         />
@@ -57,6 +62,7 @@ describe('OnboardingWorkspaces Page', () => {
             isSmallScreenWidth: false,
             shouldUseNarrowLayout: false,
         } as ResponsiveLayoutResult);
+        jest.spyOn(useDynamicBackPathModule, 'default').mockReturnValue(`/${ROUTES.ONBOARDING_ROOT.route}/${DYNAMIC_ROUTES.ONBOARDING_PERSONAL_DETAILS.path}` as unknown as Route);
     });
 
     afterEach(async () => {
@@ -76,7 +82,7 @@ describe('OnboardingWorkspaces Page', () => {
             });
         });
 
-        const {unmount} = renderOnboardingWorkspacesPage(SCREENS.ONBOARDING.WORKSPACES, {backTo: ''});
+        const {unmount} = renderOnboardingWorkspacesPage(SCREENS.ONBOARDING.DYNAMIC_WORKSPACES, undefined);
 
         await waitForBatchedUpdatesWithAct();
 
@@ -109,7 +115,7 @@ describe('OnboardingWorkspaces Page', () => {
             });
         });
 
-        const {unmount} = renderOnboardingWorkspacesPage(SCREENS.ONBOARDING.WORKSPACES, {backTo: ''});
+        const {unmount} = renderOnboardingWorkspacesPage(SCREENS.ONBOARDING.DYNAMIC_WORKSPACES, undefined);
 
         await waitForBatchedUpdatesWithAct();
 
@@ -142,9 +148,7 @@ describe('OnboardingWorkspaces Page', () => {
             });
         });
 
-        const {unmount} = renderOnboardingWorkspacesPage(SCREENS.ONBOARDING.WORKSPACES, {
-            backTo: `/${ROUTES.ONBOARDING_ROOT.route}/${DYNAMIC_ROUTES.ONBOARDING_PURPOSE.path}/${DYNAMIC_ROUTES.ONBOARDING_PERSONAL_DETAILS.path}`,
-        });
+        const {unmount} = renderOnboardingWorkspacesPage(SCREENS.ONBOARDING.DYNAMIC_WORKSPACES, undefined);
 
         await waitForBatchedUpdatesWithAct();
 
@@ -165,9 +169,7 @@ describe('OnboardingWorkspaces Page', () => {
             });
         });
 
-        const {unmount} = renderOnboardingWorkspacesPage(SCREENS.ONBOARDING.WORKSPACES, {
-            backTo: `/${ROUTES.ONBOARDING_ROOT.route}/${DYNAMIC_ROUTES.ONBOARDING_PURPOSE.path}/${DYNAMIC_ROUTES.ONBOARDING_PERSONAL_DETAILS.path}`,
-        });
+        const {unmount} = renderOnboardingWorkspacesPage(SCREENS.ONBOARDING.DYNAMIC_WORKSPACES, undefined);
 
         await waitForBatchedUpdatesWithAct();
 

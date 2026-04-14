@@ -145,7 +145,7 @@ function OnboardingModalNavigator() {
                                 component={OnboardingPrivateDomain}
                             />
                             <Stack.Screen
-                                name={SCREENS.ONBOARDING.WORKSPACES}
+                                name={SCREENS.ONBOARDING.DYNAMIC_WORKSPACES}
                                 component={OnboardingWorkspaces}
                             />
                             <Stack.Screen

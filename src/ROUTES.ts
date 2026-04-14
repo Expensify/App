@@ -228,6 +228,10 @@ const DYNAMIC_ROUTES = {
         path: 'private-domain',
         entryScreens: [SCREENS.ONBOARDING.DYNAMIC_PERSONAL_DETAILS, SCREENS.ONBOARDING.WORK_EMAIL],
     },
+    ONBOARDING_WORKSPACES: {
+        path: 'join-workspaces',
+        entryScreens: [SCREENS.ONBOARDING.DYNAMIC_PERSONAL_DETAILS, SCREENS.ONBOARDING.DYNAMIC_PRIVATE_DOMAIN, SCREENS.ONBOARDING.WORK_EMAIL_VALIDATION],
+    },
     ONBOARDING_PURPOSE: {
         path: 'purpose',
         entryScreens: [
@@ -235,7 +239,7 @@ const DYNAMIC_ROUTES = {
             SCREENS.ONBOARDING.WORK_EMAIL,
             SCREENS.ONBOARDING.WORK_EMAIL_VALIDATION,
             SCREENS.ONBOARDING.DYNAMIC_PRIVATE_DOMAIN,
-            SCREENS.ONBOARDING.WORKSPACES,
+            SCREENS.ONBOARDING.DYNAMIC_WORKSPACES,
         ],
     },
     ONBOARDING_PERSONAL_DETAILS: {
@@ -246,7 +250,7 @@ const DYNAMIC_ROUTES = {
         path: 'employees',
         entryScreens: [
             SCREENS.ONBOARDING.DYNAMIC_PURPOSE,
-            SCREENS.ONBOARDING.WORKSPACES,
+            SCREENS.ONBOARDING.DYNAMIC_WORKSPACES,
             SCREENS.ONBOARDING.WORK_EMAIL,
             SCREENS.ONBOARDING.WORK_EMAIL_VALIDATION,
             SCREENS.ONBOARDING.DYNAMIC_PRIVATE_DOMAIN,
@@ -256,7 +260,7 @@ const DYNAMIC_ROUTES = {
         path: 'accounting',
         entryScreens: [
             SCREENS.ONBOARDING.DYNAMIC_PURPOSE,
-            SCREENS.ONBOARDING.WORKSPACES,
+            SCREENS.ONBOARDING.DYNAMIC_WORKSPACES,
             SCREENS.ONBOARDING.WORK_EMAIL,
             SCREENS.ONBOARDING.WORK_EMAIL_VALIDATION,
             SCREENS.ONBOARDING.DYNAMIC_PRIVATE_DOMAIN,
@@ -3227,12 +3231,6 @@ const ROUTES = {
 
         // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
         getRoute: (backTo?: string) => getUrlWithBackToParam(`onboarding`, backTo),
-    },
-    ONBOARDING_WORKSPACES: {
-        route: 'onboarding/join-workspaces',
-
-        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-        getRoute: (backTo?: string) => getUrlWithBackToParam(`onboarding/join-workspaces`, backTo),
     },
     ONBOARDING_WORK_EMAIL: {
         route: 'onboarding/work-email',
