@@ -19,7 +19,8 @@ let lastInteractiveElement: HTMLElement | null = null;
 const triggerMap = new Map<string, HTMLElement>();
 let prevState: NavigationState | undefined;
 let pendingRestore: {cancel: () => void} | null = null;
-let teardown: (() => void) | null = null;
+let focusinHandler: ((e: FocusEvent) => void) | null = null;
+let stateUnsubscribe: (() => void) | null = null;
 
 function collectRouteKeys(state: AnyState, out = new Set<string>()): Set<string> {
     if (!state?.routes) {
@@ -192,36 +193,37 @@ function handleStateChange(newState: NavigationState | undefined): void {
 }
 
 function setupNavigationFocusReturn(): void {
-    if (teardown || typeof document === 'undefined') {
+    if (typeof document === 'undefined') {
         return;
     }
-
-    const focusinHandler = (e: FocusEvent) => {
-        if (!(e.target instanceof HTMLElement) || e.target === document.body) {
-            return;
-        }
-        if (!getHadTabNavigation()) {
-            return;
-        }
-        lastInteractiveElement = e.target;
-    };
-    const stateHandler = () => {
-        handleStateChange(navigationRef.getRootState());
-    };
-
-    document.addEventListener('focusin', focusinHandler, true);
-    const unsubscribeState = navigationRef.addListener('state', stateHandler);
-
-    teardown = () => {
-        document.removeEventListener('focusin', focusinHandler, true);
-        unsubscribeState();
-        teardown = null;
-    };
+    if (!focusinHandler) {
+        focusinHandler = (e: FocusEvent) => {
+            if (!(e.target instanceof HTMLElement) || e.target === document.body) {
+                return;
+            }
+            if (!getHadTabNavigation()) {
+                return;
+            }
+            lastInteractiveElement = e.target;
+        };
+        document.addEventListener('focusin', focusinHandler, true);
+    }
+    // Absent before NavigationContainer mounts and in tests that mock navigationRef; NavigationRoot.onReady re-invokes this to install once the container is live.
+    if (!stateUnsubscribe && typeof navigationRef?.addListener === 'function') {
+        stateUnsubscribe = navigationRef.addListener('state', () => {
+            handleStateChange(navigationRef.getRootState());
+        });
+    }
 }
 
 function teardownNavigationFocusReturn(): void {
     cancelPendingRestore();
-    teardown?.();
+    if (focusinHandler && typeof document !== 'undefined') {
+        document.removeEventListener('focusin', focusinHandler, true);
+    }
+    focusinHandler = null;
+    stateUnsubscribe?.();
+    stateUnsubscribe = null;
 }
 
 function resetForTests(): void {

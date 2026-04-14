@@ -1,3 +1,4 @@
+// Typed require with explicit .ts path — matches the project's test-file convention.
 /* eslint-disable @typescript-eslint/no-require-imports, import/extensions */
 const {resetCycle: resetArbiter} = require<{resetCycle: () => void}>('../../src/libs/ScreenFocusArbiter.ts');
 const {

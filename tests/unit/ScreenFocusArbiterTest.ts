@@ -1,3 +1,4 @@
+// Typed require with explicit .ts path — matches the project's test-file convention.
 /* eslint-disable @typescript-eslint/no-require-imports, import/extensions */
 const {tryClaim, resetCycle, Priorities, CYCLE_TIMEOUT_MS} = require<{
     tryClaim: (priority: 1 | 2 | 3) => boolean;

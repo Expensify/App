@@ -12,6 +12,7 @@ import useTheme from '@hooks/useTheme';
 import useThemePreference from '@hooks/useThemePreference';
 import FS from '@libs/Fullstory';
 import Log from '@libs/Log';
+import {setupNavigationFocusReturn} from '@libs/NavigationFocusReturn';
 import shouldOpenLastVisitedPath from '@libs/shouldOpenLastVisitedPath';
 import {getPathFromURL} from '@libs/Url';
 import {getBaseTheme} from '@styles/theme/utils';
@@ -248,6 +249,7 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
         endSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.NAVIGATION);
         onReady();
         navigationIntegration.registerNavigationContainer(navigationRef);
+        setupNavigationFocusReturn();
     }, [onReady]);
 
     return (
