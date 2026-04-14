@@ -4097,7 +4097,7 @@ function shouldShowReportActionNotification(reportID: string, currentUserAccount
     }
 
     // If this comment is from the current user we don't want to parrot whatever they wrote back to them.
-    if (action && action.actorAccountID === currentUserAccountID) {
+    if (action?.actorAccountID === currentUserAccountID) {
         Log.info(`${tag} No notification because comment is from the currently logged in user`);
         return false;
     }
@@ -4118,7 +4118,7 @@ function shouldShowReportActionNotification(reportID: string, currentUserAccount
     }
 
     const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
-    if (!report || (report && report.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)) {
+    if (!report || report?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
         Log.info(`${tag} No notification because the report does not exist or is pending deleted`, false);
         return false;
     }
