@@ -461,7 +461,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             exact: true,
                         },
                         [SCREENS.SETTINGS.PROFILE.PRIVATE_PERSONAL_DETAILS]: {
-                            path: ROUTES.SETTINGS_PRIVATE_PERSONAL_DETAILS,
+                            path: ROUTES.SETTINGS_PRIVATE_PERSONAL_DETAILS.route,
                             exact: true,
                         },
                         [SCREENS.SETTINGS.PROFILE.PRIVATE_PERSONAL_DETAILS_CONFIRM_MAGIC_CODE]: {
