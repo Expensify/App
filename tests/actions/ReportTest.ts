@@ -3428,6 +3428,79 @@ describe('actions/Report', () => {
             expect(Object.values(reportActions ?? {}).at(0)?.actionName).toBe(CONST.REPORT.ACTIONS.TYPE.MOVED);
         });
 
+        it('should return undefined when iouReport is not an IOU report', () => {
+            const expenseReport: OnyxTypes.Report = {
+                ...createRandomReport(1, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+            };
+            const policy: OnyxTypes.Policy = {...createRandomPolicy(1), role: CONST.POLICY.ROLE.ADMIN};
+            const result = Report.moveIOUReportToPolicy(expenseReport, policy);
+            expect(result).toBeUndefined();
+        });
+
+        it('should return undefined when hasRequestFromCurrentAccount is true and isFromSettlementButton is false', async () => {
+            const currentUserAccountID = 12;
+            const iouReport: OnyxTypes.Report = {
+                ...createRandomReport(1, undefined),
+                type: CONST.REPORT.TYPE.IOU,
+                managerID: currentUserAccountID,
+            };
+            const policy: OnyxTypes.Policy = {...createRandomPolicy(1), role: CONST.POLICY.ROLE.ADMIN};
+
+            // Create a non-deleted IOU report action from the current account so hasRequestFromCurrentAccount returns true
+            const iouReportAction: OnyxTypes.ReportAction = {
+                reportActionID: '100',
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                actorAccountID: currentUserAccountID,
+                created: '2024-01-01 00:00:00',
+                message: [{html: '$100.00 expense', text: '$100.00 expense', type: 'COMMENT'}],
+            } as OnyxTypes.ReportAction;
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`, {[iouReportAction.reportActionID]: iouReportAction});
+            await waitForBatchedUpdates();
+
+            const result = Report.moveIOUReportToPolicy(iouReport, policy, false);
+            expect(result).toBeUndefined();
+        });
+
+        it('should proceed when hasRequestFromCurrentAccount is true but isFromSettlementButton is true', async () => {
+            const currentUserAccountID = 12;
+            const ownerAccountID = 1;
+            const ownerEmail = 'owner@gmail.com';
+            const adminEmail = 'admin@gmail.com';
+            const iouReport: OnyxTypes.Report = {
+                ...createRandomReport(1, undefined),
+                type: CONST.REPORT.TYPE.IOU,
+                ownerAccountID,
+                managerID: currentUserAccountID,
+            };
+            const policy: OnyxTypes.Policy = {
+                ...createRandomPolicy(1),
+                role: CONST.POLICY.ROLE.ADMIN,
+                employeeList: {[adminEmail]: {email: adminEmail, role: CONST.POLICY.ROLE.ADMIN}, [ownerEmail]: {email: ownerEmail, role: CONST.POLICY.ROLE.USER}},
+            };
+
+            // Create a non-deleted IOU report action from the current account so hasRequestFromCurrentAccount returns true
+            const iouReportAction: OnyxTypes.ReportAction = {
+                reportActionID: '100',
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                actorAccountID: currentUserAccountID,
+                created: '2024-01-01 00:00:00',
+                message: [{html: '$100.00 expense', text: '$100.00 expense', type: 'COMMENT'}],
+            } as OnyxTypes.ReportAction;
+
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[ownerAccountID]: {login: ownerEmail}});
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`, iouReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`, {[iouReportAction.reportActionID]: iouReportAction});
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+            await waitForBatchedUpdates();
+
+            // When isFromSettlementButton is true, it should proceed despite hasRequestFromCurrentAccount being true
+            const result = Report.moveIOUReportToPolicy(iouReport, policy, true);
+            expect(result).toBeDefined();
+            expect(result?.policyExpenseChatReportID).toBeDefined();
+        });
+
         describe('convertIOUReportToExpenseReport', () => {
             it('should set reportName to default formula when policy field list is empty', () => {
                 // Given a policy with an empty field list
@@ -3704,6 +3777,21 @@ describe('actions/Report', () => {
             expect(updatedReport?.type).toBe(CONST.REPORT.TYPE.EXPENSE);
             expect(updatedReport?.policyID).toBe(policy.id);
             expect(updatedReport?.total).toBe(-3000);
+        });
+
+        it('should return undefined when policy is missing', () => {
+            const iouReport: OnyxTypes.Report = {
+                ...createRandomReport(1, undefined),
+                type: CONST.REPORT.TYPE.IOU,
+            };
+            const result = Report.moveIOUReportToPolicyAndInviteSubmitter(iouReport, undefined as unknown as OnyxTypes.Policy, (phone: string) => phone, {});
+            expect(result).toBeUndefined();
+        });
+
+        it('should return undefined when iouReport is missing', () => {
+            const policy: OnyxTypes.Policy = {...createRandomPolicy(1), role: CONST.POLICY.ROLE.ADMIN};
+            const result = Report.moveIOUReportToPolicyAndInviteSubmitter(undefined, policy, (phone: string) => phone, {});
+            expect(result).toBeUndefined();
         });
     });
 
@@ -5869,7 +5957,16 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             // When create group chat is called
-            Report.navigateToAndCreateGroupChat([TEST_USER_LOGIN, PARTICIPANT_1_LOGIN], GROUP_CHAT_NAME, TEST_USER_LOGIN, GROUP_CHAT_REPORT_ID, TEST_INTRO_SELECTED, false, undefined);
+            Report.navigateToAndCreateGroupChat(
+                [TEST_USER_LOGIN, PARTICIPANT_1_LOGIN],
+                GROUP_CHAT_NAME,
+                TEST_USER_LOGIN,
+                GROUP_CHAT_REPORT_ID,
+                TEST_INTRO_SELECTED,
+                false,
+                undefined,
+                TEST_USER_ACCOUNT_ID,
+            );
             await waitForBatchedUpdates();
 
             // Then it should create a new group chat report in Onyx
@@ -5923,6 +6020,7 @@ describe('actions/Report', () => {
                 TEST_INTRO_SELECTED,
                 true,
                 undefined,
+                TEST_USER_ACCOUNT_ID,
                 AVATAR_URI,
             );
             await waitForBatchedUpdates();
@@ -5957,6 +6055,7 @@ describe('actions/Report', () => {
                 {...TEST_INTRO_SELECTED, isInviteOnboardingComplete: true},
                 true,
                 undefined,
+                TEST_USER_ACCOUNT_ID,
             );
             await waitForBatchedUpdates();
 
@@ -5983,6 +6082,7 @@ describe('actions/Report', () => {
                 {choice: CONST.ONBOARDING_CHOICES.ADMIN},
                 false,
                 undefined,
+                TEST_USER_ACCOUNT_ID,
                 undefined,
                 avatarFile,
             );
@@ -6013,6 +6113,7 @@ describe('actions/Report', () => {
                 {choice: CONST.ONBOARDING_CHOICES.ADMIN},
                 false,
                 undefined,
+                TEST_USER_ACCOUNT_ID,
             );
             await waitForBatchedUpdates();
 
@@ -6650,6 +6751,71 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.OPEN_REPORT, 1);
+        });
+    });
+
+    describe('readNewestAction', () => {
+        it('should mark a report as read when hasOnceLoadedReportActions is false but report actions exist in Onyx', () => {
+            global.fetch = TestHelper.getGlobalFetchMock();
+            const REPORT_ID = '1';
+            const USER_1_LOGIN = 'user@test.com';
+            const USER_1_ACCOUNT_ID = 1;
+            const USER_2_ACCOUNT_ID = 2;
+
+            let report: OnyxEntry<OnyxTypes.Report>;
+            Onyx.connect({
+                key: `${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`,
+                callback: (val) => (report = val),
+            });
+
+            const reportActionCreatedDate = DateUtils.getDBTime();
+
+            return TestHelper.signInWithTestUser(USER_1_ACCOUNT_ID, USER_1_LOGIN)
+                .then(waitForNetworkPromises)
+                .then(() => TestHelper.setPersonalDetails(USER_1_LOGIN, USER_1_ACCOUNT_ID))
+                .then(() => {
+                    // Set up a report with actions in Onyx (as if delivered via Pusher from a new user)
+                    // but without hasOnceLoadedReportActions being set (simulating offline + new chat)
+                    return Promise.all([
+                        Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {
+                            reportID: REPORT_ID,
+                            participants: {
+                                [USER_1_ACCOUNT_ID]: {notificationPreference: 'always'},
+                            },
+                            lastMessageText: 'Hello from new user',
+                            lastActorAccountID: USER_2_ACCOUNT_ID,
+                            lastVisibleActionCreated: reportActionCreatedDate,
+                            lastReadTime: DateUtils.subtractMillisecondsFromDateTime(reportActionCreatedDate, 1),
+                        }),
+                        Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, {
+                            1: {
+                                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                                actorAccountID: USER_2_ACCOUNT_ID,
+                                automatic: false,
+                                avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_3.png',
+                                message: [{type: 'COMMENT', html: 'Hello from new user', text: 'Hello from new user'}],
+                                person: [{type: 'TEXT', style: 'strong', text: 'New User'}],
+                                shouldShow: true,
+                                created: reportActionCreatedDate,
+                                reportActionID: '1',
+                            },
+                        }),
+                    ]);
+                })
+                .then(waitForBatchedUpdates)
+                .then(() => {
+                    // Verify the report is currently unread
+                    expect(ReportUtils.isUnread(report, undefined, undefined)).toBe(true);
+
+                    // Call readNewestAction with hasOnceLoadedReportActions = false
+                    // This simulates the scenario where a chat from a new user is opened offline
+                    Report.readNewestAction(REPORT_ID, false);
+                    return waitForBatchedUpdates();
+                })
+                .then(() => {
+                    // The report should now be read because report actions exist in Onyx
+                    expect(ReportUtils.isUnread(report, undefined, undefined)).toBe(false);
+                });
         });
     });
 });
