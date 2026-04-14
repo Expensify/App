@@ -1017,8 +1017,6 @@ const translations: TranslationDeepObject<typeof en> = {
                 sunglassesDescription: 'È il momento di rilassarti, ma resta in attesa di ciò che arriva!',
                 f1FlagsTitle: 'Tutto a posto',
                 f1FlagsDescription: 'Hai completato tutte le attività in sospeso.',
-                fireworksTitle: 'Tutto a posto',
-                fireworksDescription: 'Le prossime attività appariranno qui.',
             },
         },
         upcomingTravel: 'Prossimi viaggi',
@@ -1372,6 +1370,44 @@ const translations: TranslationDeepObject<typeof en> = {
         paidWithExpensify: (payer?: string) => `${payer ? `${payer} ` : ''}pagato con portafoglio`,
         automaticallyPaidWithExpensify: (payer?: string) =>
             `${payer ? `${payer} ` : ''}pagato con Expensify tramite le <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">regole dello spazio di lavoro</a>`,
+        reimbursedThisReport: 'ha rimborsato questo resoconto',
+        paidThisBill: 'ha pagato questa fattura',
+        reimbursedOnBehalfOf: (actor: string) => `per conto di ${actor}`,
+        reimbursedFromBankAccount: (debitBankAccount: string) => `dal conto bancario che termina con ${debitBankAccount}`,
+        reimbursedSubmitterAddedBankAccount: (submitter: string) => `${submitter} ha aggiunto un conto bancario, rimuovendo il blocco sul resoconto. Il rimborso è stato avviato`,
+        reimbursedWithFastACH: ({
+            isCurrentUser,
+            submitterLogin,
+            creditBankAccount,
+            expectedDate,
+        }: {
+            isCurrentUser: boolean;
+            submitterLogin: string;
+            creditBankAccount: string;
+            expectedDate: string;
+        }) =>
+            isCurrentUser
+                ? `. Il denaro è in arrivo sul tuo ${creditBankAccount ? `conto bancario che termina con ${creditBankAccount}` : 'conto'}. Rimborso previsto per il ${expectedDate}.`
+                : `. Il denaro è in arrivo sul conto bancario di ${submitterLogin}${creditBankAccount ? ` che termina con ${creditBankAccount}` : ''}. Rimborso previsto per il ${expectedDate}.`,
+        reimbursedWithCheck: ' tramite assegno.',
+        reimbursedWithStripeConnect: ({
+            isCurrentUser,
+            submitterLogin,
+            creditBankAccount,
+            isCard,
+        }: {
+            isCurrentUser: boolean;
+            submitterLogin: string;
+            creditBankAccount: string;
+            isCard: boolean;
+        }) => {
+            const paymentMethod = isCard ? 'carta' : 'conto bancario';
+            return isCurrentUser
+                ? `. Il denaro è in arrivo sul tuo ${creditBankAccount ? `conto bancario che termina con ${creditBankAccount}` : 'conto'} (pagato tramite ${paymentMethod}). Questo potrebbe richiedere fino a 10 giorni lavorativi.`
+                : `. Il denaro è in arrivo sul conto bancario di ${submitterLogin}${creditBankAccount ? ` che termina con ${creditBankAccount}` : ''} (pagato tramite ${paymentMethod}). Potrebbero volerci fino a 10 giorni lavorativi.`;
+        },
+        reimbursedWithACH: ({creditBankAccount, expectedDate}: {creditBankAccount?: string; expectedDate?: string}) =>
+            ` con accredito diretto (ACH)${creditBankAccount ? ` al conto bancario che termina con ${creditBankAccount}.` : '. '}${expectedDate ? `Il rimborso dovrebbe essere completato entro il ${expectedDate}.` : 'In genere richiede 4-5 giorni lavorativi.'}`,
         noReimbursableExpenses: 'Questo rendiconto contiene un importo non valido',
         pendingConversionMessage: 'Il totale verrà aggiornato quando torni online',
         changedTheExpense: 'ha modificato la spesa',
@@ -4533,7 +4569,7 @@ ${amount} per ${merchant} - ${date}`,
                     [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Le spese anticipate verranno esportate al momento del pagamento',
                 },
             },
-            travelInvoicing: 'Fatturazione viaggi',
+            travelInvoicing: 'Esporta debiti di Expensify Travel verso',
             travelInvoicingVendor: 'Fornitore di viaggi',
             travelInvoicingPayableAccount: 'Conto debiti per viaggi',
         },
@@ -6832,6 +6868,8 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                 confirmErrorApplyAtLeastOneSpendRule: 'Applica almeno una regola di spesa',
                 categories: 'Categorie',
                 merchants: 'Esercenti',
+                noAvailableCards: 'Tutte le carte hanno già una regola',
+                noAvailableCardsSubtitle: 'Modifica una regola carta esistente per apportare modifiche',
                 max: 'Massimo',
                 categoryOptions: {
                     [CONST.SPEND_RULES.CATEGORIES.AIRLINES]: 'Compagnie aeree',
@@ -7857,6 +7895,21 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
         oooEventSummaryPartialDay: (summary: string, timePeriod: string, date: string) => `${summary} dal ${timePeriod} del ${date}`,
         startTimer: 'Avvia timer',
         stopTimer: 'Ferma timer',
+        scheduleOOO: 'Pianifica OOO',
+        scheduleOOOTitle: 'Programma assenza dall’ufficio',
+        date: 'Data',
+        time: 'Ora (formato 24 ore)',
+        durationAmount: 'Durata',
+        durationUnit: 'Unità',
+        reason: 'Motivo',
+        workingPercentage: 'Percentuale lavorativa',
+        dateRequired: 'La data è obbligatoria.',
+        invalidTimeFormat: 'Inserisci un orario valido nel formato 24 ore (ad es. 14:30).',
+        enterANumber: 'Inserisci un numero.',
+        hour: 'ore',
+        day: 'giorni',
+        week: 'settimane',
+        month: 'mesi',
     },
     footer: {
         features: 'Funzionalità',
@@ -8002,6 +8055,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
         personalCard: 'Carta personale',
         companyCard: 'Carta aziendale',
         expensifyCard: 'Carta Expensify',
+        centralInvoicing: 'Fatturazione centralizzata',
     },
     distance: {
         addStop: 'Aggiungi fermata',

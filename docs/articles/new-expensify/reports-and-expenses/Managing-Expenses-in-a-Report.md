@@ -90,6 +90,8 @@ The table displays:
 - Date
 - Merchant
 - Category
+- Attendees (if any expense has attendees)
+- Per attendee (if any expense has attendees)
 - Amount
 - Workspace violations (if applicable)
 

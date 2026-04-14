@@ -482,6 +482,130 @@ describe('PureReportActionItem', () => {
             expect(screen.getByText(translateLocal('iou.submitted'))).toBeOnTheScreen();
             expect(screen.queryByText(translateLocal('iou.queuedToSubmitViaDEW'))).not.toBeOnTheScreen();
         });
+
+        it('should display DEW queued message for pending APPROVED action when policy has DEW enabled', async () => {
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.APPROVED, {automaticAction: false});
+            action.pendingAction = CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD;
+
+            const dewPolicy = {
+                id: 'testPolicy',
+                name: 'Test DEW Policy',
+                type: CONST.POLICY.TYPE.TEAM,
+                role: CONST.POLICY.ROLE.ADMIN,
+                owner: 'owner@test.com',
+                outputCurrency: CONST.CURRENCY.USD,
+                isPolicyExpenseChatEnabled: true,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL,
+            } as const;
+
+            const reportMetadata = {
+                pendingExpenseAction: CONST.EXPENSE_PENDING_ACTION.APPROVE,
+            };
+
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}testPolicy`, dewPolicy);
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            render(
+                <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, HTMLEngineProvider]}>
+                    <OptionsListContextProvider>
+                        <ScreenWrapper testID="test">
+                            <PortalProvider>
+                                <PureReportActionItem
+                                    personalPolicyID={undefined}
+                                    currentUserEmail={undefined}
+                                    policy={dewPolicy as Policy}
+                                    report={{reportID: 'testReport', policyID: 'testPolicy'}}
+                                    parentReportAction={undefined}
+                                    action={action}
+                                    displayAsGroup={false}
+                                    shouldDisplayNewMarker={false}
+                                    index={0}
+                                    isFirstVisibleReportAction={false}
+                                    taskReport={undefined}
+                                    linkedReport={undefined}
+                                    iouReportOfLinkedReport={undefined}
+                                    reportMetadata={reportMetadata}
+                                    currentUserAccountID={ACTOR_ACCOUNT_ID}
+                                    betas={undefined}
+                                    draftTransactionIDs={[]}
+                                    userBillingGracePeriodEnds={undefined}
+                                />
+                            </PortalProvider>
+                        </ScreenWrapper>
+                    </OptionsListContextProvider>
+                </ComposeProviders>,
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByText(actorEmail)).toBeOnTheScreen();
+            expect(screen.getByText(translateLocal('iou.queuedToApproveViaDEW'))).toBeOnTheScreen();
+        });
+
+        it('should display submitted without memo for SUBMITTED action on DEW policy that is not pending', async () => {
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.SUBMITTED, {harvesting: false, message: 'my memo'});
+
+            const dewPolicy = {
+                id: 'testPolicy',
+                name: 'Test DEW Policy',
+                type: CONST.POLICY.TYPE.TEAM,
+                role: CONST.POLICY.ROLE.ADMIN,
+                owner: 'owner@test.com',
+                outputCurrency: CONST.CURRENCY.USD,
+                isPolicyExpenseChatEnabled: true,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL,
+            } as const;
+
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}testPolicy`, dewPolicy);
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            render(
+                <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, HTMLEngineProvider]}>
+                    <OptionsListContextProvider>
+                        <ScreenWrapper testID="test">
+                            <PortalProvider>
+                                <PureReportActionItem
+                                    personalPolicyID={undefined}
+                                    currentUserEmail={undefined}
+                                    policy={dewPolicy as Policy}
+                                    report={{reportID: 'testReport', policyID: 'testPolicy'}}
+                                    parentReportAction={undefined}
+                                    action={action}
+                                    displayAsGroup={false}
+                                    shouldDisplayNewMarker={false}
+                                    index={0}
+                                    isFirstVisibleReportAction={false}
+                                    taskReport={undefined}
+                                    linkedReport={undefined}
+                                    iouReportOfLinkedReport={undefined}
+                                    currentUserAccountID={ACTOR_ACCOUNT_ID}
+                                    betas={undefined}
+                                    draftTransactionIDs={[]}
+                                    userBillingGracePeriodEnds={undefined}
+                                />
+                            </PortalProvider>
+                        </ScreenWrapper>
+                    </OptionsListContextProvider>
+                </ComposeProviders>,
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByText(actorEmail)).toBeOnTheScreen();
+            // DEW policy should show submitted without the memo (memo is shown in the Concierge action)
+            expect(screen.getByText(translateLocal('iou.submitted'))).toBeOnTheScreen();
+            expect(screen.queryByText('my memo')).not.toBeOnTheScreen();
+        });
+
+        it('CLOSED action with amount (MARK_AS_CLOSED) renders submitted message', async () => {
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.CLOSED, {amount: 5000});
+            renderItemWithAction(action);
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByText(translateLocal('iou.submitted'))).toBeOnTheScreen();
+        });
     });
 
     describe('Followup list buttons', () => {
@@ -614,6 +738,40 @@ describe('PureReportActionItem', () => {
 
             // Verify followup buttons are NOT displayed (resolved state)
             expect(screen.queryByText(followupQuestion)).not.toBeOnTheScreen();
+        });
+    });
+
+    describe('Reimbursed actions', () => {
+        it('REIMBURSED action from OldDot should display the message', async () => {
+            // Given a REIMBURSED action without isNewDot flag (created from OldDot)
+            const action = {
+                reportActionID: '12345',
+                actorAccountID: ACTOR_ACCOUNT_ID,
+                created: '2025-07-12 09:03:17.653',
+                actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSED,
+                automatic: false,
+                shouldShow: true,
+                avatar: '',
+                person: [{type: 'TEXT', style: 'strong', text: 'Concierge'}],
+                message: [{type: 'COMMENT', html: 'Reimbursed via ACH', text: 'Reimbursed via ACH'}],
+                originalMessage: {},
+            } as ReportAction;
+
+            renderItemWithAction(action);
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the action message should be displayed
+            expect(screen.getByText('Reimbursed via ACH')).toBeOnTheScreen();
+        });
+
+        it('MARKED_REIMBURSED action from OldDot should display the message', async () => {
+            // Given a MARKED_REIMBURSED action without isNewDot flag (created from OldDot)
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED, {});
+            renderItemWithAction(action);
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the action message should be displayed
+            expect(screen.getByText(translateLocal('iou.paidElsewhere', {}))).toBeOnTheScreen();
         });
     });
 

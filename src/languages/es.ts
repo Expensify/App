@@ -962,8 +962,6 @@ const translations: TranslationDeepObject<typeof en> = {
                 sunglassesDescription: '¡Hora de relajarse, pero mantente atento a lo que viene!',
                 f1FlagsTitle: 'Todo al día',
                 f1FlagsDescription: 'Has completado todas las tareas pendientes.',
-                fireworksTitle: 'Todo al día',
-                fireworksDescription: 'Las próximas tareas aparecerán aquí.',
             },
         },
         gettingStartedSection: {
@@ -1309,6 +1307,44 @@ const translations: TranslationDeepObject<typeof en> = {
         paidWithExpensify: (payer) => `${payer ? `${payer} ` : ''}pagó con la billetera`,
         automaticallyPaidWithExpensify: (payer) =>
             `${payer ? `${payer} ` : ''}pagó con Expensify via <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">reglas del espacio de trabajo</a>`,
+        reimbursedThisReport: 'reembolsó este informe',
+        paidThisBill: 'pagó esta factura',
+        reimbursedOnBehalfOf: (actor: string) => `en nombre de ${actor}`,
+        reimbursedFromBankAccount: (debitBankAccount: string) => `desde la cuenta bancaria terminada en ${debitBankAccount}`,
+        reimbursedSubmitterAddedBankAccount: (submitter: string) => `${submitter} añadió una cuenta bancaria, quitando el informe de espera. El reembolso se ha iniciado`,
+        reimbursedWithFastACH: ({
+            isCurrentUser,
+            submitterLogin,
+            creditBankAccount,
+            expectedDate,
+        }: {
+            isCurrentUser: boolean;
+            submitterLogin: string;
+            creditBankAccount: string;
+            expectedDate: string;
+        }) =>
+            isCurrentUser
+                ? `. El dinero está en camino a tu${creditBankAccount ? ` cuenta bancaria terminada en ${creditBankAccount}` : ' cuenta'}. Se estima que el reembolso se completará el ${expectedDate}.`
+                : `. El dinero está en camino a la cuenta bancaria de ${submitterLogin}${creditBankAccount ? ` terminada en ${creditBankAccount}` : ''}. Se estima que el reembolso se completará el ${expectedDate}.`,
+        reimbursedWithCheck: ' mediante cheque.',
+        reimbursedWithStripeConnect: ({
+            isCurrentUser,
+            submitterLogin,
+            creditBankAccount,
+            isCard,
+        }: {
+            isCurrentUser: boolean;
+            submitterLogin: string;
+            creditBankAccount: string;
+            isCard: boolean;
+        }) => {
+            const paymentMethod = isCard ? 'tarjeta' : 'cuenta bancaria';
+            return isCurrentUser
+                ? `. El dinero está en camino a tu${creditBankAccount ? ` cuenta bancaria terminada en ${creditBankAccount}` : ' cuenta'} (pagado mediante ${paymentMethod}). Esto puede tardar hasta 10 días hábiles.`
+                : `. El dinero está en camino a la cuenta bancaria de ${submitterLogin}${creditBankAccount ? ` terminada en ${creditBankAccount}` : ''} (pagado mediante ${paymentMethod}). Esto puede tardar hasta 10 días hábiles.`;
+        },
+        reimbursedWithACH: ({creditBankAccount, expectedDate}: {creditBankAccount?: string; expectedDate?: string}) =>
+            ` con depósito directo (ACH)${creditBankAccount ? ` a la cuenta bancaria terminada en ${creditBankAccount}. ` : '. '}${expectedDate ? `Se estima que el reembolso se completará para el ${expectedDate}.` : 'Esto generalmente toma de 4 a 5 días hábiles.'}`,
         noReimbursableExpenses: 'El importe de este informe no es válido',
         pendingConversionMessage: 'El total se actualizará cuando estés online',
         changedTheExpense: 'cambió el gasto',
@@ -4222,7 +4258,7 @@ ${amount} para ${merchant} - ${date}`,
             exportExpensifyCard: 'Exportar las transacciones de la tarjeta Expensify como',
             account: 'Cuenta',
             accountDescription: 'Elige dónde contabilizar los asientos contables.',
-            accountsPayable: 'Cuentas por pagar',
+            accountsPayable: 'Cuentas por Pagar',
             accountsPayableDescription: 'Elige dónde crear las facturas de proveedores.',
             bankAccount: 'Cuenta bancaria',
             notConfigured: 'No configurado',
@@ -4371,7 +4407,7 @@ ${amount} para ${merchant} - ${date}`,
             accountDescription: 'Elige dónde contabilizar los asientos contables.',
             vendor: 'Proveedor',
             defaultVendorDescription: 'Establece un proveedor predeterminado que se aplicará a todas las transacciones con tarjeta de crédito al momento de exportarlas.',
-            accountsPayable: 'Cuentas por pagar',
+            accountsPayable: 'Cuentas por Pagar',
             accountsPayableDescription: 'Elige dónde crear las facturas de proveedores.',
             bankAccount: 'Cuenta bancaria',
             notConfigured: 'No configurado',
@@ -4450,7 +4486,7 @@ ${amount} para ${merchant} - ${date}`,
                     [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Los gastos por cuenta propia se exportarán cuando estén pagados',
                 },
             },
-            travelInvoicing: 'Facturación de viajes',
+            travelInvoicing: 'Exportar Viajes de Expensify por Pagar a',
             travelInvoicingVendor: 'Proveedor de viajes',
             travelInvoicingPayableAccount: 'Cuenta por pagar de viajes',
         },
@@ -6702,6 +6738,8 @@ ${amount} para ${merchant} - ${date}`,
                 confirmErrorApplyAtLeastOneSpendRule: 'Aplica al menos una regla de gasto',
                 categories: 'Categorías',
                 merchants: 'Comerciantes',
+                noAvailableCards: 'No hay tarjetas activas en este feed',
+                noAvailableCardsSubtitle: 'Edita una regla de tarjeta existente para hacer cambios',
                 max: 'Máx.',
                 categoryOptions: {
                     [CONST.SPEND_RULES.CATEGORIES.AIRLINES]: 'Aerolíneas',
@@ -7706,6 +7744,21 @@ ${amount} para ${merchant} - ${date}`,
         oooEventSummaryPartialDay: (summary, timePeriod, date) => `${summary} de ${timePeriod} del ${date}`,
         startTimer: 'Iniciar temporizador',
         stopTimer: 'Detener temporizador',
+        scheduleOOO: 'Programar ausencia',
+        scheduleOOOTitle: 'Programar fuera de oficina',
+        date: 'Fecha',
+        time: 'Hora (formato de 24 horas)',
+        durationAmount: 'Duración',
+        durationUnit: 'Unidad',
+        reason: 'Motivo',
+        workingPercentage: 'Porcentaje de trabajo',
+        dateRequired: 'La fecha es obligatoria.',
+        invalidTimeFormat: 'Ingresa una hora válida (ej., 14:30).',
+        enterANumber: 'Ingresa un número.',
+        hour: 'horas',
+        day: 'días',
+        week: 'semanas',
+        month: 'meses',
     },
     footer: {
         features: 'Características',
@@ -8310,6 +8363,7 @@ ${amount} para ${merchant} - ${date}`,
         personalCard: 'Tarjeta personal',
         companyCard: 'Tarjeta corporativa',
         expensifyCard: 'Tarjeta Expensify',
+        centralInvoicing: 'Facturación centralizada',
     },
     distance: {
         addStop: 'Añadir parada',
