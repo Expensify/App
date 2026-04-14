@@ -234,14 +234,14 @@ function getAirReservations(pnr: Pnr, travelers: PnrTraveler[]): ReservationItem
     return reservationList;
 }
 
-function getCancellationDeadline(pnrData: HotelPnr): string | null {
+function getCancellationDeadline(pnrData: HotelPnr): string | undefined {
     const duration = pnrData.room.cancellationPolicy?.durationBeforeArrivalDeadline?.iso8601;
     const checkIn = pnrData.checkInDateTime?.iso8601;
     if (duration && checkIn) {
         const durationSeconds = parseDurationToSeconds(duration);
         return subSeconds(parseISO(checkIn), durationSeconds).toISOString();
     }
-    return pnrData.room.cancellationPolicy?.deadline?.iso8601 ?? null;
+    return pnrData.room.cancellationPolicy?.deadline?.iso8601;
 }
 
 function getHotelReservations(pnr: Pnr, travelers: PnrTraveler[]): ReservationItem[] {
@@ -285,7 +285,7 @@ function getHotelReservations(pnr: Pnr, travelers: PnrTraveler[]): ReservationIt
             duration: 0,
             numberOfRooms: pnrData.numberOfRooms,
             roomClass: pnrData.room.roomName,
-            cancellationPolicy: pnrData.room.cancellationPolicy?.policy ?? null,
+            cancellationPolicy: pnrData.room.cancellationPolicy?.policy,
             cancellationDeadline: getCancellationDeadline(pnrData),
             confirmations,
             travelerPersonalInfo: {
@@ -335,8 +335,8 @@ function getCarReservations(pnr: Pnr, travelers: PnrTraveler[]): ReservationItem
             confirmations,
             vendor: pnrData.carInfo.vendor.name,
             carInfo: {name: pnrData.carInfo.carSpec.displayName, engine: pnrData.carInfo.carSpec.engineType},
-            cancellationPolicy: pnrData.cancellationPolicy?.policy ?? null,
-            cancellationDeadline: pnrData.cancellationPolicy?.deadline.iso8601 ?? null,
+            cancellationPolicy: pnrData.cancellationPolicy?.policy,
+            cancellationDeadline: pnrData.cancellationPolicy?.deadline.iso8601,
             duration: 0,
             travelerPersonalInfo: {
                 name: getTravelerName(traveler),
