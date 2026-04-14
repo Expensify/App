@@ -692,10 +692,6 @@ function dismissModalAndOpenReportInInboxTab(reportID?: string, isInvoice?: bool
  * Marks a transaction for highlight on the Search page when the expense was created
  * from the global create button and the user is not on the Inbox tab.
  */
-/**
- * Marks a transaction for highlight on the Search page when the expense was created
- * from the global create button and the user is not on the Inbox tab.
- */
 function highlightTransactionOnSearchRouteIfNeeded(isFromGlobalCreate: boolean | undefined, transactionID: string | undefined, dataType: SearchDataTypes) {
     if (!isFromGlobalCreate || isReportTopmostSplitNavigator() || !transactionID) {
         return;
