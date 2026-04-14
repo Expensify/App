@@ -17,7 +17,6 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getSpendRuleFormValuesFromCardRule} from '@libs/actions/Card';
 import {openPolicyExpensifyCardsPage} from '@libs/actions/Policy/Policy';
 import {filterInactiveCards, getCardDescriptionForSearchTable, getSelectedCardsSharedCurrency, isCard} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -26,7 +25,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import {getSpendRuleSummaryParts, getTruncatedSpendRuleSummary} from './SpendRulesUtils';
+import {getSpendRuleFormValuesFromCardRule, getSpendRuleSummaryParts, getTruncatedSpendRuleSummary} from './SpendRulesUtils';
 
 type SpendRulesSectionProps = {
     policyID: string;

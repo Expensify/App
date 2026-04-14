@@ -25,7 +25,6 @@ import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getSpendRuleFormValuesFromCardRule} from '@libs/actions/Card';
 import {openPolicyExpensifyCardsPage} from '@libs/actions/Policy/Policy';
 import {getAllCardsForWorkspace, getCardHintText, getTranslationKeyForLimitType, isCardFrozen, maskCard} from '@libs/CardUtils';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
@@ -37,7 +36,7 @@ import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import Navigation from '@navigation/Navigation';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
-import {getSpendRuleSummaryParts} from '@pages/workspace/rules/SpendRules/SpendRulesUtils';
+import {getSpendRuleFormValuesFromCardRule, getSpendRuleSummaryParts} from '@pages/workspace/rules/SpendRules/SpendRulesUtils';
 import variables from '@styles/variables';
 import {deactivateCard as deactivateCardAction, freezeCard as freezeCardAction, openCardDetailsPage, unfreezeCard as unfreezeCardAction} from '@userActions/Card';
 import CONST from '@src/CONST';
@@ -139,18 +138,20 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
     };
 
     const matchingSpendRule = useMemo(
-        () => Object.values(expensifyCardSettings ?? {}).flatMap((settings) => {
-            return Object.entries(settings?.cardRules ?? {}).flatMap(([ruleID, rule]) => {
-                const formValues = getSpendRuleFormValuesFromCardRule(rule);
-                if (!formValues?.cardIDs.includes(cardID)) {
-                    return [];
-                }
+        () =>
+            Object.values(expensifyCardSettings ?? {}).flatMap((settings) => {
+                return Object.entries(settings?.cardRules ?? {}).flatMap(([ruleID, rule]) => {
+                    const formValues = getSpendRuleFormValuesFromCardRule(rule);
+                    if (!formValues?.cardIDs.includes(cardID)) {
+                        return [];
+                    }
 
-                return [{ruleID, formValues}];
-            });
-        }),
+                    return [{ruleID, formValues}];
+                });
+            }),
         [cardID, expensifyCardSettings],
     );
+    console.log('over here', matchingSpendRule);
 
     const spendRulesSummary = useMemo(
         () =>
@@ -329,14 +330,16 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
                             }
                         />
                     </OfflineWithFeedback>
-                    {hasRule && <MenuItemWithTopDescription
-                        description={translate('cardPage.spendRules')}
-                        title={spendRulesSummary || translate('cardPage.editSpendRules')}
-                        shouldShowRightIcon
-                        numberOfLinesTitle={0}
-                        titleStyle={styles.flex1}
-                        onPress={() => Navigation.navigate(spendRulesRoute)}
-                    />}
+                    {hasRule && (
+                        <MenuItemWithTopDescription
+                            description={translate('cardPage.spendRules')}
+                            title={spendRulesSummary || translate('cardPage.editSpendRules')}
+                            shouldShowRightIcon
+                            numberOfLinesTitle={0}
+                            titleStyle={styles.flex1}
+                            onPress={() => Navigation.navigate(spendRulesRoute)}
+                        />
+                    )}
                     <MenuItem
                         icon={expensifyIcons.MoneySearch}
                         title={translate('workspace.common.viewTransactions')}
