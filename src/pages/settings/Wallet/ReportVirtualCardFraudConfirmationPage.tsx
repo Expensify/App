@@ -42,22 +42,20 @@ function ReportVirtualCardFraudConfirmationPage({
                 title={translate('reportFraudConfirmationPage.title')}
                 onBackButtonPress={close}
             />
-            <View style={[themeStyles.ph5, themeStyles.mt3, themeStyles.mb5, themeStyles.flex1]}>
-                <ScrollView contentContainerStyle={[themeStyles.flexGrow1]}>
-                    <View style={[themeStyles.justifyContentCenter, themeStyles.flex1]}>
-                        <ImageSVG
-                            contentFit="contain"
-                            src={expensifyIcons.MagnifyingGlassSpyMouthClosed}
-                            style={themeStyles.alignSelfCenter}
-                            width={184}
-                            height={290}
-                        />
+            <View style={[themeStyles.ph5, themeStyles.mt3, themeStyles.mb5, themeStyles.flex1, themeStyles.gap2]}>
+                <ScrollView contentContainerStyle={[themeStyles.flexGrow1, themeStyles.justifyContentCenter]}>
+                    <ImageSVG
+                        contentFit="contain"
+                        src={expensifyIcons.MagnifyingGlassSpyMouthClosed}
+                        style={themeStyles.alignSelfCenter}
+                        width={184}
+                        height={290}
+                    />
 
-                        <Text style={[themeStyles.textHeadlineH1, themeStyles.alignSelfCenter, themeStyles.mt5]}>{translate('reportFraudConfirmationPage.title')}</Text>
-                        <Text style={[themeStyles.textSupporting, themeStyles.alignSelfCenter, themeStyles.mt2, themeStyles.textAlignCenter]}>
-                            {translate('reportFraudConfirmationPage.description')}
-                        </Text>
-                    </View>
+                    <Text style={[themeStyles.textHeadlineH1, themeStyles.alignSelfCenter, themeStyles.mt5]}>{translate('reportFraudConfirmationPage.title')}</Text>
+                    <Text style={[themeStyles.textSupporting, themeStyles.alignSelfCenter, themeStyles.mt2, themeStyles.textAlignCenter]}>
+                        {translate('reportFraudConfirmationPage.description')}
+                    </Text>
                 </ScrollView>
                 <Button
                     text={translate('reportFraudConfirmationPage.buttonText')}
