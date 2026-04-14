@@ -20,7 +20,7 @@ import {startDistanceRequest, startMoneyRequest} from '@libs/actions/IOU';
 import {openOldDotLink} from '@libs/actions/Link';
 import {createNewReport} from '@libs/actions/Report';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
-import getCreateReportRoute, {getReportsRootRoute, navigateToCreateReportWorkspaceSelection} from '@libs/Navigation/helpers/getCreateReportRoute';
+import getCreateReportRoute, {navigateToCreateReportWorkspaceSelection, navigateToReportsRoot} from '@libs/Navigation/helpers/getCreateReportRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {openTravelDotLink} from '@libs/openTravelDotLink';
 import Permissions from '@libs/Permissions';
@@ -121,7 +121,7 @@ function QuickCreationActionsBar() {
             );
             // Navigate to the Reports page first so getCreateReportRoute() resolves against
             // the Search/Reports fullscreen context before opening the created report modal.
-            Navigation.navigate(getReportsRootRoute());
+            navigateToReportsRoot();
             Navigation.setNavigationActionToMicrotaskQueue(() => {
                 Navigation.navigate(getCreateReportRoute({reportID: createdReportID}));
             });

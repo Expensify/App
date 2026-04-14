@@ -3,7 +3,6 @@ import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import CONST from '@src/CONST';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
-import isHomeTopmostFullScreenRoute from './isHomeTopmostFullScreenRoute';
 import isSearchTopmostFullScreenRoute from './isSearchTopmostFullScreenRoute';
 import type {LinkToOptions} from './linkTo/types';
 
@@ -33,13 +32,6 @@ function getCreateReportRoute({reportID}: GetCreateReportRouteParams): Route {
 
     if (isSearchTopmostFullScreenRoute()) {
         return ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID, backTo: activeRoute});
-    }
-
-    if (isHomeTopmostFullScreenRoute()) {
-        return ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({
-            reportID,
-            backTo: getReportsRootRoute(),
-        });
     }
 
     return ROUTES.REPORT_WITH_ID.getRoute(reportID, undefined, undefined, activeRoute);
