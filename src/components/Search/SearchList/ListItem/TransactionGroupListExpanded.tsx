@@ -193,7 +193,7 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
             return;
         }
         openReportInRHP(transaction);
-    }
+    };
 
     const minTableWidth = getTableMinWidth(currentColumns.filter((column) => !column.startsWith(CONST.SEARCH.GROUP_COLUMN_PREFIX)) ?? []);
     const shouldScrollHorizontally = isLargeScreenWidth && minTableWidth > windowWidth;
