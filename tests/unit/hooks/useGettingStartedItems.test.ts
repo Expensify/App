@@ -330,8 +330,18 @@ describe('useGettingStartedItems', () => {
             expect(categoriesItem).toBeUndefined();
         });
 
-        it('should show generic "Connect to accounting" when reportedIntegration is not set (e.g. cache cleared)', async () => {
-            await setupManageTeamScenario();
+        it('should show generic "Connect to accounting" when reportedIntegration is not set but a connection already exists (e.g. cache cleared after connecting)', async () => {
+            await setupManageTeamScenario({
+                policy: {
+                    connections: {
+                        [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
+                            config: {},
+                            data: {},
+                            lastSync: {isConnected: true},
+                        },
+                    } as Policy['connections'],
+                },
+            });
 
             const {result} = renderHook(() => useGettingStartedItems());
 
@@ -340,13 +350,13 @@ describe('useGettingStartedItems', () => {
             expect(connectItem?.label).toContain('connectAccountingDefault');
         });
 
-        it('should not show the categories row when reportedIntegration is not set', async () => {
+        it('should show "Customize accounting categories" when reportedIntegration is not set and no connections exist (e.g. cache cleared before connecting)', async () => {
             await setupManageTeamScenario();
 
             const {result} = renderHook(() => useGettingStartedItems());
 
             const categoriesItem = result.current.items.find((item) => item.key === 'customizeCategories');
-            expect(categoriesItem).toBeUndefined();
+            expect(categoriesItem).toBeDefined();
         });
     });
 

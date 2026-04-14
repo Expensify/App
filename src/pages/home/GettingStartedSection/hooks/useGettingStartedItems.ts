@@ -4,7 +4,7 @@ import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import {hasCompanyCardFeeds} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {getValidConnectedIntegration, hasCustomCategories, hasNonDefaultRules, isPaidGroupPolicy, isPendingDeletePolicy, isPolicyAdmin} from '@libs/PolicyUtils';
+import {getValidConnectedIntegration, hasAccountingConnections, hasCustomCategories, hasNonDefaultRules, isPaidGroupPolicy, isPendingDeletePolicy, isPolicyAdmin} from '@libs/PolicyUtils';
 import isWithinGettingStartedPeriod from '@pages/home/GettingStartedSection/utils/isWithinGettingStartedPeriod';
 import {enablePolicyCategories} from '@userActions/Policy/Category';
 import {enableCompanyCards, enablePolicyConnections, enablePolicyRules} from '@userActions/Policy/Policy';
@@ -77,7 +77,7 @@ function useGettingStartedItems(): UseGettingStartedItemsResult {
 
     const isDirectConnect = !!reportedIntegration && DIRECT_CONNECT_INTEGRATIONS.has(reportedIntegration);
 
-    if (isDirectConnect || !reportedIntegration) {
+    if (isDirectConnect || (!reportedIntegration && hasAccountingConnections(policy))) {
         const integrationName = isDirectConnect
             ? (CONST.ONBOARDING_ACCOUNTING_MAPPING[reportedIntegration as keyof typeof CONST.ONBOARDING_ACCOUNTING_MAPPING] ?? String(reportedIntegration))
             : undefined;
