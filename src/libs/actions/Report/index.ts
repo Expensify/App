@@ -79,6 +79,7 @@ import {isEmailPublicDomain} from '@libs/LoginUtils';
 import {getMovedReportID} from '@libs/ModifiedExpenseMessage';
 import getReportRouteForCurrentContext from '@libs/Navigation/helpers/getReportRouteForCurrentContext';
 import type {LinkToOptions} from '@libs/Navigation/helpers/linkTo/types';
+import shouldUseBackToOnLeaveReport from '@libs/Navigation/helpers/shouldUseBackToOnLeaveReport';
 import Navigation from '@libs/Navigation/Navigation';
 import enhanceParameters from '@libs/Network/enhanceParameters';
 import * as NetworkStore from '@libs/Network/NetworkStore';
@@ -4301,7 +4302,7 @@ function navigateToMostRecentReport(
     betas: OnyxEntry<Beta[]>,
     backTo?: Route,
 ) {
-    if (backTo) {
+    if (shouldUseBackToOnLeaveReport(currentReport?.reportID, backTo)) {
         Navigation.goBack(backTo);
         return;
     }
