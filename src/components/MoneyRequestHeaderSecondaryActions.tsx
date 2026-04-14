@@ -439,7 +439,13 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
                         InteractionManager.runAfterInteractions(() => {
                             deleteTransactions([transaction.transactionID], duplicateTransactions, duplicateTransactionViolations, isReportInSearch ? currentSearchHash : undefined, true);
                             removeTransaction(transaction.transactionID);
+                            if (isInNarrowPaneModal) {
+                                Navigation.navigateBackToLastSuperWideRHPScreen();
+                                return;
+                            }
+                            onBackButtonPress();
                         });
+                        return;
                     }
                     if (isInNarrowPaneModal) {
                         Navigation.navigateBackToLastSuperWideRHPScreen();
