@@ -168,20 +168,28 @@ function addPushParamsRouterExtension<RouterOptions extends PlatformStackRouterO
             // PUSH_PARAMS snapshots. Preserve history entries for routes that still exist
             // in the rehydrated state (which may have added routes, e.g. for wide layout).
             if (action.type === CONST.NAVIGATION.ACTION_TYPE.RESET && state.history) {
-                // Browser back/forward dispatches RESET (not GO_BACK). Notify only when the new params exist in our history — otherwise it's forward URL nav, not a rewind.
+                // RESET (not GO_BACK) handles popstate. Notify only when new params live earlier in history than current — otherwise it's forward nav.
                 const oldFocused = state.routes.at(-1);
                 const newFocused = rehydratedState.routes.at(-1);
                 if (oldFocused?.key && newFocused?.key && oldFocused.key === newFocused.key) {
                     const oldCompound = compoundParamsKey(oldFocused.key, oldFocused.params);
                     const newCompound = compoundParamsKey(newFocused.key, newFocused.params);
                     if (oldCompound !== newCompound) {
-                        const isHistoricalRewind = (state.history as CustomHistoryEntry[]).some((entry) => {
+                        let oldIndex = -1;
+                        let newIndex = -1;
+                        const history = state.history as CustomHistoryEntry[];
+                        for (const [idx, entry] of history.entries()) {
                             if (typeof entry === 'string' || entry.key !== newFocused.key) {
-                                return false;
+                                continue;
                             }
-                            return compoundParamsKey(entry.key, entry.params) === newCompound;
-                        });
-                        if (isHistoricalRewind) {
+                            const compound = compoundParamsKey(entry.key, entry.params);
+                            if (compound === oldCompound) {
+                                oldIndex = idx;
+                            } else if (compound === newCompound) {
+                                newIndex = idx;
+                            }
+                        }
+                        if (newIndex >= 0 && newIndex < oldIndex) {
                             notifyPushParamsBackward(newFocused.key, newFocused.params);
                         }
                     }
