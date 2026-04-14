@@ -149,12 +149,8 @@ function SpendRulesSection({policyID}: SpendRulesSectionProps) {
                 pendingAction: cardRule.pendingAction,
             };
         })
-        .filter((rule) => rule !== undefined)
+        .filter((rule): rule is NonNullable<typeof rule> => rule !== undefined && (isOffline || rule.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE))
         .sort((a, b) => localeCompare(a.created, b.created));
-
-    // Exclude pending-delete rules when online because OfflineWithFeedback hides them visually.
-    // When offline, keep them so OfflineWithFeedback can show strikethrough styling.
-    const visibleRules = createdRules.filter((rule) => isOffline || rule.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
 
     const renderSectionTitle = () => (
         <View style={[styles.flexRow, styles.alignItemsCenter]}>
@@ -228,7 +224,7 @@ function SpendRulesSection({policyID}: SpendRulesSectionProps) {
                     />
                 </View>
             ) : (
-                visibleRules.map((rule) => (
+                createdRules.map((rule) => (
                     <OfflineWithFeedback
                         key={rule.ruleID}
                         pendingAction={rule.pendingAction}
