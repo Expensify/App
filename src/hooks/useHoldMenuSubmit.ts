@@ -73,6 +73,7 @@ function useHoldMenuSubmit({moneyRequestReport, chatReport, requestType, payment
                 ownerBillingGracePeriodEnd,
                 full,
                 onApproved: animationCallback,
+                expenseReportPolicy: policy,
                 delegateEmail,
             });
         } else if (chatReport && paymentType) {
