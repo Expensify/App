@@ -114,7 +114,6 @@ function AutoCompleteSuggestions<TSuggestion>({measureParentContainerAndReportCu
                     : xCoordinatesOfCursor;
             const contentMaxHeight = measureHeightOfSuggestionRows(suggestionsLength, true, isInLandscapeMode);
             const contentMinHeight = measureHeightOfSuggestionRows(suggestionsLength, false, isInLandscapeMode);
-            console.log({contentMinHeight, contentMaxHeight});
             let bottomValue = windowHeight - (cursorCoordinates.y - scrollValue + y) - keyboardHeight;
             const widthValue = shouldUseNarrowLayout ? width : CONST.AUTO_COMPLETE_SUGGESTER.BIG_SCREEN_SUGGESTION_WIDTH;
 
