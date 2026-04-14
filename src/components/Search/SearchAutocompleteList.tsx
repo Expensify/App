@@ -223,6 +223,7 @@ function SearchAutocompleteList({
         currentUserEmail,
         policies,
         personalDetails,
+        conciergeReportID
     ]);
 
     const [isInitialRender, setIsInitialRender] = useState(true);
