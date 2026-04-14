@@ -69,7 +69,7 @@ function OutcomeScreenBase({headerTitle, illustration, iconWidth, iconHeight, ti
                 shouldShowBackButton
             />
             <View style={[styles.flex1, styles.gap2]}>
-                <ScrollView contentContainerStyle={[styles.flexGrow1, styles.justifyContentCenter, styles.gap2]}>
+                <ScrollView contentContainerStyle={[styles.flexGrow1, styles.justifyContentCenter]}>
                     <BlockingView
                         icon={icon}
                         contentFitImage="fill"
@@ -78,7 +78,7 @@ function OutcomeScreenBase({headerTitle, illustration, iconWidth, iconHeight, ti
                         title={title}
                         titleStyles={styles.mb2}
                         CustomSubtitle={CustomSubtitle}
-                        containerStyle={[styles.ph5, styles.flex0, padding]}
+                        containerStyle={[styles.ph5, padding]}
                         testID={OutcomeScreenBase.displayName}
                     />
                 </ScrollView>
