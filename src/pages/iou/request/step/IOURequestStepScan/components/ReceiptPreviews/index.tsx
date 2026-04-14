@@ -49,7 +49,7 @@ function useReceiptPreviewsSizes(isInLandscapeMode: boolean) {
         const initialReceiptsAmount = (windowHeight - submitButtonHeight - tabSelectorButtonHeight - contentHeaderHeight) / previewItemSize;
 
         return {
-            previewsSize: styles.receiptPlaceholder.width + styles.ph6.paddingHorizontal * 2,
+            previewsSize: styles.receiptPlaceholderLandscape.width + styles.ph6.paddingHorizontal * 2,
             previewItemSize,
             initialReceiptsAmount,
         };
@@ -160,6 +160,7 @@ function ReceiptPreviews({submit, isMultiScanEnabled, isCapturingPhoto = false, 
                     style={isInLandscapeMode ? styles.ph2 : styles.pv2}
                     scrollEnabled={isScrollEnabled}
                     showsHorizontalScrollIndicator={false}
+                    showsVerticalScrollIndicator={false}
                     contentContainerStyle={
                         isInLandscapeMode ? [{paddingBottom: styles.singleAvatarMedium.height}, styles.ph4] : [{paddingRight: styles.singleAvatarMedium.width}, styles.pl4]
                     }
