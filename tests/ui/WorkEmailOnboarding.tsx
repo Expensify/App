@@ -311,7 +311,7 @@ describe('OnboardingWorkEmail Page', () => {
         await waitForBatchedUpdatesWithAct();
 
         await waitFor(() => {
-            expect(navigate).toHaveBeenCalledWith(ROUTES.ONBOARDING_PRIVATE_DOMAIN.getRoute(), {forceReplace: true});
+            expect(navigate).toHaveBeenCalledWith(expect.stringContaining('private-domain'), {forceReplace: true});
         });
 
         unmount();

@@ -105,7 +105,7 @@ describe('OnboardingPersonalDetails Page', () => {
         await waitForBatchedUpdatesWithAct();
 
         await waitFor(() => {
-            expect(navigate).toHaveBeenCalledWith(ROUTES.ONBOARDING_PRIVATE_DOMAIN.getRoute());
+            expect(navigate).toHaveBeenCalledWith(expect.stringContaining('private-domain'));
         });
 
         unmount();
@@ -137,7 +137,7 @@ describe('OnboardingPersonalDetails Page', () => {
         await waitForBatchedUpdatesWithAct();
 
         await waitFor(() => {
-            expect(navigate).toHaveBeenCalledWith(ROUTES.ONBOARDING_PRIVATE_DOMAIN.getRoute());
+            expect(navigate).toHaveBeenCalledWith(expect.stringContaining('private-domain'));
         });
 
         unmount();
