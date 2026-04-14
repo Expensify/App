@@ -49,7 +49,7 @@ function inSelector(searchAdvancedFiltersForm: SearchAdvancedFiltersForm | undef
 function InSelectPopup({closeOverlay, updateFilterForm}: InSelectPopupProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {shouldUseNarrowLayout, isInLandscapeMode} = useResponsiveLayout();
     const {windowHeight} = useWindowDimensions();
     const personalDetails = usePersonalDetails();
     const {options, areOptionsInitialized} = useOptionsList();
@@ -186,7 +186,7 @@ function InSelectPopup({closeOverlay, updateFilterForm}: InSelectPopupProps) {
             onApply={applyChanges}
             resetSentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_RESET_REPORT}
             applySentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY_REPORT}
-            style={[styles.getCommonSelectionListPopoverHeight(itemCount, variables.optionRowHeight, windowHeight, shouldUseNarrowLayout, true)]}
+            style={[styles.getCommonSelectionListPopoverHeight(itemCount, variables.optionRowHeight, windowHeight, shouldUseNarrowLayout, isInLandscapeMode, true)]}
         >
             <SelectionListWithSections
                 sections={sections}

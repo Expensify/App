@@ -6272,14 +6272,16 @@ const dynamicStyles = (theme: ThemeColors) =>
             width,
         }),
 
-        getSelectionListPopoverHeight: (itemCount: number, windowHeight: number, isSearchable: boolean) => {
+        getSelectionListPopoverHeight: (itemCount: number, windowHeight: number, isSearchable: boolean, isInLandscapeMode: boolean, shouldShowLabel: boolean) => {
             const SEARCHBAR_HEIGHT = isSearchable ? 52 : 0;
             const SEARCHBAR_PADDING = isSearchable ? 12 : 0;
             const PADDING = 32;
             const GAP = 8;
             const BUTTON_HEIGHT = 40;
+            const LABEL_HEIGHT = 26;
             const ESTIMATED_LIST_HEIGHT = itemCount * variables.optionRowHeightCompact + SEARCHBAR_HEIGHT + SEARCHBAR_PADDING;
-            const MAX_HEIGHT = CONST.POPOVER_DROPDOWN_MAX_HEIGHT - (PADDING + GAP + BUTTON_HEIGHT);
+            const popoverHeight = isInLandscapeMode ? CONST.MODAL_MAX_HEIGHT_TO_WINDOW_HEIGHT_RATIO_LANDSCAPE_MODE * windowHeight : CONST.POPOVER_DROPDOWN_MAX_HEIGHT;
+            const MAX_HEIGHT = popoverHeight - (PADDING + GAP + BUTTON_HEIGHT) - (shouldShowLabel ? LABEL_HEIGHT + GAP : 0);
 
             // Native platforms don't support maxHeight in the way thats expected, so lets manually set the height to either
             // the listHeight, the max height of the popover, or 90% of the window height, such that we never overflow the screen
@@ -6289,17 +6291,20 @@ const dynamicStyles = (theme: ThemeColors) =>
             return {height};
         },
 
-        getCommonSelectionListPopoverHeight: (itemCount: number, itemHeight: number, windowHeight: number, shouldUseNarrowLayout: boolean, isSearchable = true) => {
+        getCommonSelectionListPopoverHeight: (itemCount: number, itemHeight: number, windowHeight: number, shouldUseNarrowLayout: boolean, isInLandscapeMode: boolean, isSearchable = true) => {
+            const MODAL_PADDING = 32;
             const BUTTON_HEIGHT = 48;
             const SEARCHBAR_HEIGHT = isSearchable ? 64 : 0;
             const TITLE_HEIGHT = shouldUseNarrowLayout ? 34 : 0;
-            const PADDING = shouldUseNarrowLayout ? 0 : 32;
+            const PADDING = shouldUseNarrowLayout ? 0 : MODAL_PADDING;
             const ESTIMATED_LIST_HEIGHT = itemCount * itemHeight + SEARCHBAR_HEIGHT + BUTTON_HEIGHT + TITLE_HEIGHT + PADDING;
+
+            const popoverHeight = isInLandscapeMode ? (CONST.MODAL_MAX_HEIGHT_TO_WINDOW_HEIGHT_RATIO_LANDSCAPE_MODE * windowHeight) - MODAL_PADDING : CONST.POPOVER_DROPDOWN_MAX_HEIGHT;
 
             // Native platforms don't support maxHeight in the way thats expected, so lets manually set the height to either
             // the listHeight, the max height of the popover, or 90% of the window height, such that we never overflow the screen
             // and never expand over the max height
-            const height = Math.min(ESTIMATED_LIST_HEIGHT, CONST.POPOVER_DROPDOWN_MAX_HEIGHT, windowHeight * 0.9);
+            const height = Math.min(ESTIMATED_LIST_HEIGHT, popoverHeight, windowHeight * 0.9);
             const width = shouldUseNarrowLayout ? sizing.w100 : {width: CONST.POPOVER_DROPDOWN_WIDTH};
 
             return {height, ...width};
