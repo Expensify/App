@@ -238,9 +238,9 @@ function SpendRuleCardPage({route}: SpendRuleCardPageProps) {
                                 icon={illustrations.HandCard}
                                 iconWidth={variables.iconSection}
                                 iconHeight={variables.iconSection}
-                                title={inputValue.trim() ? translate('common.noResultsFound') : translate('workspace.companyCards.noAvailableCards')}
+                                title={inputValue.trim() ? translate('common.noResultsFound') : translate('workspace.rules.spendRules.noAvailableCards')}
                                 titleStyles={styles.mb2}
-                                subtitle={translate('workspace.companyCards.noAvailableCardsSubtitle')}
+                                subtitle={translate('workspace.rules.spendRules.noAvailableCardsSubtitle')}
                                 subtitleStyle={styles.textSupporting}
                             />
                         }
