@@ -1,4 +1,4 @@
-import React, {useCallback, useMemo} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 import ValidateCodeActionContent from '@components/ValidateCodeActionModal/ValidateCodeActionContent';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -52,6 +52,20 @@ function PrivatePersonalDetailsConfirmMagicCodePage() {
         clearPersonalDetailsErrors();
     };
 
+    const wasLoading = useRef(false);
+    useEffect(() => {
+        if (privatePersonalDetails?.isLoading) {
+            wasLoading.current = true;
+            return;
+        }
+        if (wasLoading.current && isEmptyObject(privateDetailsErrors)) {
+            wasLoading.current = false;
+            resetValidateActionCodeSent();
+            Navigation.goBack(ROUTES.SETTINGS_PROFILE.route);
+        }
+        wasLoading.current = false;
+    }, [privatePersonalDetails?.isLoading, privateDetailsErrors]);
+
     const values = useMemo(() => normalizeCountryCode(getFormValues(privatePersonalDetails, draftValues)) as PersonalDetailsForm, [privatePersonalDetails, draftValues]);
 
     const handleSubmitForm = useCallback(
@@ -72,7 +86,7 @@ function PrivatePersonalDetailsConfirmMagicCodePage() {
             clearError={clearError}
             onClose={() => {
                 resetValidateActionCodeSent();
-                Navigation.goBack(ROUTES.SETTINGS_PRIVATE_PERSONAL_DETAILS);
+                Navigation.goBack(ROUTES.SETTINGS_PRIVATE_PERSONAL_DETAILS.route);
             }}
             isLoading={privatePersonalDetails?.isLoading}
         />
