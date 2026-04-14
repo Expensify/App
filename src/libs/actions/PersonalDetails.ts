@@ -12,6 +12,7 @@ import type {
     UpdateHomeAddressParams,
     UpdateLegalNameParams,
     UpdatePhoneNumberParams,
+    UpdatePrivatePersonalDetailsParams,
     UpdatePronounsParams,
     UpdateSelectedTimezoneParams,
     UpdateUserAvatarParams,
@@ -534,6 +535,54 @@ function clearPersonalDetailsErrors() {
     });
 }
 
+function updatePrivatePersonalDetails(values: FormOnyxValues<typeof ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM>, validateCode: string, countryCode: number) {
+    const stateValue = (values.state ?? '').trim();
+    const parameters: UpdatePrivatePersonalDetailsParams = {
+        legalFirstName: values.legalFirstName?.trim() ?? '',
+        legalLastName: values.legalLastName?.trim() ?? '',
+        phoneNumber: LoginUtils.appendCountryCode(values.phoneNumber?.trim() ?? '', countryCode),
+        addressCity: (values.city ?? '').trim(),
+        addressStreet: values.addressLine1?.trim() ?? '',
+        addressStreet2: values.addressLine2?.trim() ?? '',
+        addressZip: values.zipPostCode?.trim().toUpperCase() ?? '',
+        addressCountry: values.country ?? '',
+        addressState: stateValue,
+        addressStateLong: values.country !== CONST.COUNTRY.US ? stateValue : '',
+        dob: values.dob ?? '',
+        validateCode,
+    };
+
+    API.write(WRITE_COMMANDS.UPDATE_PRIVATE_PERSONAL_DETAILS, parameters, {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
+                value: {
+                    isLoading: true,
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
+                value: {
+                    isLoading: false,
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
+                value: {
+                    isLoading: false,
+                },
+            },
+        ],
+    });
+}
+
 function updatePersonalDetailsAndShipExpensifyCards(values: FormOnyxValues<typeof ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM>, validateCode: string, countryCode: number) {
     const parameters: SetPersonalDetailsAndShipExpensifyCardsParams = {
         ...buildSetPersonalDetailsAndShipExpensifyCardsParams(values, countryCode),
@@ -577,6 +626,7 @@ export {
     clearPhoneNumberError,
     updatePronouns,
     updateSelectedTimezone,
+    updatePrivatePersonalDetails,
     updatePersonalDetailsAndShipExpensifyCards,
     clearPersonalDetailsErrors,
     buildSetPersonalDetailsAndShipExpensifyCardsParams,

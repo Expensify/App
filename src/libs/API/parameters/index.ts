@@ -101,6 +101,7 @@ export type {default as UpdateHomeAddressParams} from './UpdateHomeAddressParams
 export type {default as UpdatePolicyAddressParams} from './UpdatePolicyAddressParams';
 export type {default as UpdateLegalNameParams} from './UpdateLegalNameParams';
 export type {default as UpdatePhoneNumberParams} from './UpdatePhoneNumberParams';
+export type {default as UpdatePrivatePersonalDetailsParams} from './UpdatePrivatePersonalDetailsParams';
 export type {default as UpdateNewsletterSubscriptionParams} from './UpdateNewsletterSubscriptionParams';
 export type {default as UpdatePersonalInformationForBankAccountParams} from './UpdatePersonalInformationForBankAccountParams';
 export type {default as UpdatePreferredEmojiSkinToneParams} from './UpdatePreferredEmojiSkinToneParams';
