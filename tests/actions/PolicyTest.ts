@@ -517,6 +517,73 @@ describe('actions/Policy', () => {
             expect(policy?.arePerDiemRatesEnabled).toBe(false);
         });
 
+        it('duplicate workspace with overview, travel, and codingRules options', async () => {
+            await Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
+            const basePolicy = createRandomPolicy(15, CONST.POLICY.TYPE.TEAM);
+            const fakePolicy: PolicyType = {
+                ...basePolicy,
+                outputCurrency: 'EUR',
+                address: {addressStreet: '1 Rue de Rivoli', city: 'Paris', country: 'FR', state: '', zipCode: '75001'},
+                isTravelEnabled: true,
+                tax: {trackingEnabled: true},
+                rules: {codingRules: {rule1: {filters: {left: 'merchant', operator: 'eq', right: 'Acme'}, category: 'Travel'}}},
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+            await waitForBatchedUpdates();
+
+            const policyID = Policy.generatePolicyID();
+
+            const options = {
+                currentUserAccountID: ESH_ACCOUNT_ID,
+                policyName: 'Overview Travel CodingRules Workspace',
+                policyID: fakePolicy.id,
+                targetPolicyID: policyID,
+                welcomeNote: 'Join my policy',
+                parts: {
+                    people: false,
+                    reports: false,
+                    connections: false,
+                    categories: false,
+                    tags: false,
+                    taxes: true,
+                    perDiem: false,
+                    reimbursements: false,
+                    expenses: false,
+                    distance: false,
+                    invoices: false,
+                    exportLayouts: false,
+                    overview: true,
+                    travel: true,
+                    codingRules: true,
+                },
+                localCurrency: 'USD',
+            };
+
+            Policy.duplicateWorkspace(fakePolicy, options);
+            await waitForBatchedUpdates();
+
+            const policy: OnyxEntry<PolicyType> = await new Promise((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                    callback: (workspace) => {
+                        Onyx.disconnect(connection);
+                        resolve(workspace);
+                    },
+                });
+            });
+
+            // When overview is selected, outputCurrency should come from the source policy
+            expect(policy?.outputCurrency).toBe('EUR');
+            // When overview is selected, address should come from the source policy
+            expect(policy?.address).toEqual(fakePolicy.address);
+            // When travel is selected, isTravelEnabled should come from the source policy
+            expect(policy?.isTravelEnabled).toBe(true);
+            // When taxes is selected, tax should come from the source policy
+            expect(policy?.tax).toEqual(fakePolicy.tax);
+            // When codingRules is selected, rules should contain codingRules from the source policy
+            expect(policy?.rules).toEqual({codingRules: fakePolicy.rules?.codingRules});
+        });
+
         it('creates a new workspace with BASIC approval mode if the introSelected is MANAGE_TEAM', async () => {
             const policyID = Policy.generatePolicyID();
             // When a new workspace is created with introSelected set to MANAGE_TEAM
