@@ -17,7 +17,6 @@ import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
-import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {showCameraPermissionsAlert} from '@libs/fileDownload/FileUtils';
@@ -50,7 +49,6 @@ type AttachmentCameraProps = {
 function AttachmentCamera({isVisible, onCapture, onClose}: AttachmentCameraProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
-    const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const isInLandscapeMode = useIsInLandscapeMode();
     const insets = useSafeAreaInsets();
@@ -71,7 +69,6 @@ function AttachmentCamera({isVisible, onCapture, onClose}: AttachmentCameraProps
         {photoAspectRatio: CONST.RECEIPT_CAMERA.PHOTO_ASPECT_RATIO},
         {photoResolution: {width: CONST.RECEIPT_CAMERA.PHOTO_WIDTH, height: CONST.RECEIPT_CAMERA.PHOTO_HEIGHT}},
     ]);
-    const cameraAspectRatio = format ? format.photoHeight / format.photoWidth : undefined;
     const hasFlash = !!device?.hasFlash;
 
     // Focus indicator animations (same pattern as useNativeCamera)
@@ -259,9 +256,9 @@ function AttachmentCamera({isVisible, onCapture, onClose}: AttachmentCameraProps
                         </View>
                     )}
                     {cameraPermissionStatus === RESULTS.GRANTED && device != null && (
-                        <View style={[styles.cameraView, styles.alignItemsCenter]}>
+                        <View style={[styles.flex1, styles.overflowHidden]}>
                             <GestureDetector gesture={tapGesture}>
-                                <View style={StyleUtils.getCameraViewfinderStyle(cameraAspectRatio)}>
+                                <View style={styles.flex1}>
                                     <VisionCamera
                                         ref={camera}
                                         device={device}
