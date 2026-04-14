@@ -2119,9 +2119,9 @@ const translations: TranslationDeepObject<typeof en> = {
             helpSite: 'Hilfeseite',
             conciergeChat: 'Concierge',
             conciergeChatDescription: 'Ihr persönlicher KI-Agent',
-            accountManagerDescription: 'Your account manager',
-            partnerManagerDescription: 'Your partner manager',
-            guideDescription: 'Your setup specialist',
+            accountManagerDescription: 'Ihre Kundenbetreuung',
+            partnerManagerDescription: 'Ihre Partnermanagerin / Ihr Partnermanager',
+            guideDescription: 'Ihre Einrichtungsfachkraft',
         },
     },
     closeAccountPage: {
