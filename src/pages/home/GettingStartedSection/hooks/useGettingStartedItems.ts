@@ -4,7 +4,7 @@ import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import {hasCompanyCardFeeds} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {getValidConnectedIntegration, hasAccountingConnections, hasCustomCategories, hasNonDefaultRules, isPaidGroupPolicy, isPendingDeletePolicy, isPolicyAdmin} from '@libs/PolicyUtils';
+import {getValidConnectedIntegration, hasCustomCategories, hasNonDefaultRules, isPaidGroupPolicy, isPendingDeletePolicy, isPolicyAdmin} from '@libs/PolicyUtils';
 import isWithinGettingStartedPeriod from '@pages/home/GettingStartedSection/utils/isWithinGettingStartedPeriod';
 import {enablePolicyCategories} from '@userActions/Policy/Category';
 import {enableCompanyCards, enablePolicyConnections, enablePolicyRules} from '@userActions/Policy/Policy';
@@ -75,17 +75,16 @@ function useGettingStartedItems(): UseGettingStartedItemsResult {
         route: shouldUseNarrowLayout ? ROUTES.WORKSPACE_INITIAL.getRoute(activePolicyID, Navigation.getActiveRoute()) : ROUTES.WORKSPACE_OVERVIEW.getRoute(activePolicyID),
     });
 
-    const isDirectConnect = policy.areConnectionsEnabled && !hasAccountingConnections(policy);
+    const isDirectConnect = !!reportedIntegration && DIRECT_CONNECT_INTEGRATIONS.has(reportedIntegration);
 
-    if (isDirectConnect) {
-        const integrationName =
-            reportedIntegration && DIRECT_CONNECT_INTEGRATIONS.has(reportedIntegration)
-                ? (CONST.ONBOARDING_ACCOUNTING_MAPPING[reportedIntegration as keyof typeof CONST.ONBOARDING_ACCOUNTING_MAPPING] ?? String(reportedIntegration))
-                : undefined;
+    if (isDirectConnect || !reportedIntegration) {
+        const integrationName = isDirectConnect
+            ? (CONST.ONBOARDING_ACCOUNTING_MAPPING[reportedIntegration as keyof typeof CONST.ONBOARDING_ACCOUNTING_MAPPING] ?? String(reportedIntegration))
+            : undefined;
         items.push({
             key: 'connectAccounting',
             label: integrationName ? translate('homePage.gettingStartedSection.connectAccounting', {integrationName}) : translate('homePage.gettingStartedSection.connectAccountingDefault'),
-            isComplete: !!getValidConnectedIntegration(policy),
+            isComplete: !!getValidConnectedIntegration(policy) || Object.values(policy?.connections ?? {}).some((conn) => !!conn?.lastSync?.successfulDate),
             route: ROUTES.WORKSPACE_ACCOUNTING.getRoute(activePolicyID),
             isFeatureEnabled: policy.areConnectionsEnabled,
             enableFeature: () => enablePolicyConnections(activePolicyID, true, false),

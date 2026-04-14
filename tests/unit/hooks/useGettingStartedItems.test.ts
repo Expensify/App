@@ -329,10 +329,29 @@ describe('useGettingStartedItems', () => {
             const categoriesItem = result.current.items.find((item) => item.key === 'customizeCategories');
             expect(categoriesItem).toBeUndefined();
         });
+
+        it('should show generic "Connect to accounting" when reportedIntegration is not set (e.g. cache cleared)', async () => {
+            await setupManageTeamScenario();
+
+            const {result} = renderHook(() => useGettingStartedItems());
+
+            const connectItem = result.current.items.find((item) => item.key === 'connectAccounting');
+            expect(connectItem).toBeDefined();
+            expect(connectItem?.label).toContain('connectAccountingDefault');
+        });
+
+        it('should not show the categories row when reportedIntegration is not set', async () => {
+            await setupManageTeamScenario();
+
+            const {result} = renderHook(() => useGettingStartedItems());
+
+            const categoriesItem = result.current.items.find((item) => item.key === 'customizeCategories');
+            expect(categoriesItem).toBeUndefined();
+        });
     });
 
     describe('row 2b - Customize accounting categories', () => {
-        const categoriesIntegrations = ['sap', 'oracle', 'microsoftDynamics', 'other', 'none', null];
+        const categoriesIntegrations = ['sap', 'oracle', 'microsoftDynamics', 'other', 'none'];
 
         it.each(categoriesIntegrations)('should show "Customize accounting categories" when accounting choice is %s', async (accounting) => {
             await setupManageTeamScenario({accounting});
