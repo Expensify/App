@@ -18,7 +18,7 @@ import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
@@ -75,6 +75,7 @@ describe('OnboardingPurpose Page', () => {
             isSmallScreenWidth: false,
             shouldUseNarrowLayout: false,
         } as ResponsiveLayoutResult);
+        jest.spyOn(Navigation, 'getActiveRoute').mockReturnValue(ROUTES.ONBOARDING_PURPOSE.route);
     });
 
     afterEach(async () => {
@@ -104,7 +105,7 @@ describe('OnboardingPurpose Page', () => {
         await user.press(chatSplitOption);
 
         await waitFor(() => {
-            expect(navigate).toHaveBeenCalledWith(ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute(''));
+            expect(navigate).toHaveBeenCalledWith(`${ROUTES.ONBOARDING_PURPOSE.route}/${DYNAMIC_ROUTES.ONBOARDING_PERSONAL_DETAILS.path}`);
         });
 
         unmount();

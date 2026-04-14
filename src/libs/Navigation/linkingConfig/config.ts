@@ -102,9 +102,8 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                     path: ROUTES.ONBOARDING_PURPOSE.route,
                     exact: true,
                 },
-                [SCREENS.ONBOARDING.PERSONAL_DETAILS]: {
-                    path: ROUTES.ONBOARDING_PERSONAL_DETAILS.route,
-                    exact: true,
+                [SCREENS.ONBOARDING.DYNAMIC_PERSONAL_DETAILS]: {
+                    path: DYNAMIC_ROUTES.ONBOARDING_PERSONAL_DETAILS.path,
                 },
                 [SCREENS.ONBOARDING.DYNAMIC_PRIVATE_DOMAIN]: DYNAMIC_ROUTES.ONBOARDING_PRIVATE_DOMAIN.path,
                 [SCREENS.ONBOARDING.EMPLOYEES]: {

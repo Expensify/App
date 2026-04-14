@@ -12,6 +12,7 @@ import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalD
 import useArchivedReportsIdSet from '@hooks/useArchivedReportsIdSet';
 import useAutoCreateTrackWorkspace from '@hooks/useAutoCreateTrackWorkspace';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useOnboardingMessages from '@hooks/useOnboardingMessages';
 import useOnboardingStepCounter from '@hooks/useOnboardingStepCounter';
@@ -55,6 +56,7 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
     const [onboardingPersonalDetailsForm] = useOnyx(ONYXKEYS.FORMS.ONBOARDING_PERSONAL_DETAILS_FORM);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const autoCreateTrackWorkspace = useAutoCreateTrackWorkspace();
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.ONBOARDING_PERSONAL_DETAILS.path);
 
     // When we merge public email with work email, we now want to navigate to the
     // concierge chat report of the new work email and not the last accessed report.
@@ -65,7 +67,7 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
     const {inputCallbackRef} = useAutoFocusInput();
     const [shouldValidateOnChange, setShouldValidateOnChange] = useState(false);
     const {isBetaEnabled} = usePermissions();
-    const onboardingStep = useOnboardingStepCounter(SCREENS.ONBOARDING.PERSONAL_DETAILS);
+    const onboardingStep = useOnboardingStepCounter(SCREENS.ONBOARDING.DYNAMIC_PERSONAL_DETAILS);
 
     const isPrivateDomainAndHasAccessiblePolicies = !account?.isFromPublicDomain && !!account?.hasAccessibleDomainPolicies;
     const isValidated = isCurrentUserValidated(loginList, session?.email);
@@ -212,7 +214,7 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
         <ScreenWrapper
             shouldEnableMaxHeight
             includeSafeAreaPaddingBottom
-            testID="BaseOnboardingPersonalDetails"
+            testID="DynamicOnboardingPersonalDetails"
             style={[styles.defaultModalContainer, shouldUseNativeStyles && styles.pt8]}
         >
             <HeaderWithBackButton
@@ -226,7 +228,7 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
                         return;
                     }
 
-                    Navigation.goBack(ROUTES.ONBOARDING_PURPOSE.getRoute(route.params?.backTo));
+                    Navigation.goBack(backPath);
                 }}
                 shouldDisplayHelpButton={false}
             />

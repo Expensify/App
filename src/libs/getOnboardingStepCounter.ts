@@ -25,7 +25,7 @@ const screenResolution: Record<OnboardingScreen, OnboardingScreen> = {
     [ONBOARDING.WORK_EMAIL]: ONBOARDING.WORK_EMAIL,
     [ONBOARDING.WORK_EMAIL_VALIDATION]: ONBOARDING.WORK_EMAIL_VALIDATION,
     [ONBOARDING.DYNAMIC_PRIVATE_DOMAIN]: ONBOARDING.DYNAMIC_PRIVATE_DOMAIN,
-    [ONBOARDING.PERSONAL_DETAILS]: ONBOARDING.PERSONAL_DETAILS,
+    [ONBOARDING.DYNAMIC_PERSONAL_DETAILS]: ONBOARDING.DYNAMIC_PERSONAL_DETAILS,
     [ONBOARDING.WORKSPACES]: ONBOARDING.WORKSPACES,
     [ONBOARDING.PURPOSE]: ONBOARDING.PURPOSE,
     [ONBOARDING.EMPLOYEES]: ONBOARDING.EMPLOYEES,
@@ -40,14 +40,14 @@ const screenResolution: Record<OnboardingScreen, OnboardingScreen> = {
 // Screens that follow PURPOSE. For private domain users, PERSONAL_DETAILS is filtered out.
 const purposeSuffixes = {
     [ONBOARDING_CHOICES.MANAGE_TEAM]: [ONBOARDING.EMPLOYEES, ONBOARDING.ACCOUNTING, ONBOARDING.INTERESTED_FEATURES],
-    [ONBOARDING_CHOICES.PERSONAL_SPEND]: [ONBOARDING.PERSONAL_DETAILS, ONBOARDING.WORKSPACE_OPTIONAL],
-    [ONBOARDING_CHOICES.TRACK_WORKSPACE]: [ONBOARDING.PERSONAL_DETAILS, ONBOARDING.WORKSPACE_OPTIONAL],
-    [ONBOARDING_CHOICES.EMPLOYER]: [ONBOARDING.PERSONAL_DETAILS],
-    [ONBOARDING_CHOICES.CHAT_SPLIT]: [ONBOARDING.PERSONAL_DETAILS],
-    [ONBOARDING_CHOICES.LOOKING_AROUND]: [ONBOARDING.PERSONAL_DETAILS],
-    [ONBOARDING_CHOICES.ADMIN]: [ONBOARDING.PERSONAL_DETAILS],
-    [ONBOARDING_CHOICES.SUBMIT]: [ONBOARDING.PERSONAL_DETAILS],
-    [ONBOARDING_CHOICES.TEST_DRIVE_RECEIVER]: [ONBOARDING.PERSONAL_DETAILS],
+    [ONBOARDING_CHOICES.PERSONAL_SPEND]: [ONBOARDING.DYNAMIC_PERSONAL_DETAILS, ONBOARDING.WORKSPACE_OPTIONAL],
+    [ONBOARDING_CHOICES.TRACK_WORKSPACE]: [ONBOARDING.DYNAMIC_PERSONAL_DETAILS, ONBOARDING.WORKSPACE_OPTIONAL],
+    [ONBOARDING_CHOICES.EMPLOYER]: [ONBOARDING.DYNAMIC_PERSONAL_DETAILS],
+    [ONBOARDING_CHOICES.CHAT_SPLIT]: [ONBOARDING.DYNAMIC_PERSONAL_DETAILS],
+    [ONBOARDING_CHOICES.LOOKING_AROUND]: [ONBOARDING.DYNAMIC_PERSONAL_DETAILS],
+    [ONBOARDING_CHOICES.ADMIN]: [ONBOARDING.DYNAMIC_PERSONAL_DETAILS],
+    [ONBOARDING_CHOICES.SUBMIT]: [ONBOARDING.DYNAMIC_PERSONAL_DETAILS],
+    [ONBOARDING_CHOICES.TEST_DRIVE_RECEIVER]: [ONBOARDING.DYNAMIC_PERSONAL_DETAILS],
 } satisfies Record<ValueOf<typeof ONBOARDING_CHOICES>, OnboardingScreen[]>;
 
 // VSB/SMB have fixed suffixes; individual (null) is handled via purposeSuffixes.
@@ -58,7 +58,7 @@ const qualifierSuffixes = {
 } satisfies Record<ValueOf<typeof ONBOARDING_SIGNUP_QUALIFIERS>, OnboardingScreen[] | null>;
 
 const maxSuffixLength = Math.max(...Object.values(purposeSuffixes).map((s) => s.length));
-const maxPrivateSuffixLength = Math.max(...Object.values(purposeSuffixes).map((s) => s.filter((p) => p !== ONBOARDING.PERSONAL_DETAILS).length));
+const maxPrivateSuffixLength = Math.max(...Object.values(purposeSuffixes).map((s) => s.filter((p) => p !== ONBOARDING.DYNAMIC_PERSONAL_DETAILS).length));
 
 function getResolvedPage(page: OnboardingScreen, context: OnboardingFlowContext): OnboardingScreen {
     // In public domain flows, PRIVATE_DOMAIN is used as a variant of WORK_EMAIL_VALIDATION
@@ -80,7 +80,7 @@ function getDomainPrefix(context: OnboardingFlowContext): OnboardingScreen[] {
         return [ONBOARDING.WORK_EMAIL, ONBOARDING.WORK_EMAIL_VALIDATION];
     }
     if (context.hasAccessibleDomainPolicies) {
-        return [ONBOARDING.PERSONAL_DETAILS, ONBOARDING.DYNAMIC_PRIVATE_DOMAIN, ONBOARDING.WORKSPACES];
+        return [ONBOARDING.DYNAMIC_PERSONAL_DETAILS, ONBOARDING.DYNAMIC_PRIVATE_DOMAIN, ONBOARDING.WORKSPACES];
     }
     return [];
 }
@@ -99,7 +99,7 @@ function getOnboardingFlow(context: OnboardingFlowContext): OnboardingScreen[] |
     }
 
     const suffix = purposeSuffixes[context.purposeSelected];
-    const adjustedSuffix = isPrivateDomain ? suffix.filter((s) => s !== ONBOARDING.PERSONAL_DETAILS) : suffix;
+    const adjustedSuffix = isPrivateDomain ? suffix.filter((s) => s !== ONBOARDING.DYNAMIC_PERSONAL_DETAILS) : suffix;
     return [...prefix, ONBOARDING.PURPOSE, ...adjustedSuffix];
 }
 

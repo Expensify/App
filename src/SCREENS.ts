@@ -875,7 +875,7 @@ const SCREENS = {
     },
 
     ONBOARDING: {
-        PERSONAL_DETAILS: 'Onboarding_Personal_Details',
+        DYNAMIC_PERSONAL_DETAILS: 'Dynamic_Onboarding_Personal_Details',
         PURPOSE: 'Onboarding_Purpose',
         DYNAMIC_PRIVATE_DOMAIN: 'Dynamic_Onboarding_Private_Domain',
         EMPLOYEES: 'Onboarding_Employees',

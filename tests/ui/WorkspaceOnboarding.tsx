@@ -15,7 +15,7 @@ import type {OnboardingModalNavigatorParamList} from '@libs/Navigation/types';
 import OnboardingWorkspaces from '@pages/OnboardingWorkspaces';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
@@ -141,7 +141,9 @@ describe('OnboardingWorkspaces Page', () => {
             });
         });
 
-        const {unmount} = renderOnboardingWorkspacesPage(SCREENS.ONBOARDING.WORKSPACES, {backTo: ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute()});
+        const {unmount} = renderOnboardingWorkspacesPage(SCREENS.ONBOARDING.WORKSPACES, {
+            backTo: `${ROUTES.ONBOARDING_PURPOSE.route}/${DYNAMIC_ROUTES.ONBOARDING_PERSONAL_DETAILS.path}`,
+        });
 
         await waitForBatchedUpdatesWithAct();
 
@@ -162,7 +164,9 @@ describe('OnboardingWorkspaces Page', () => {
             });
         });
 
-        const {unmount} = renderOnboardingWorkspacesPage(SCREENS.ONBOARDING.WORKSPACES, {backTo: ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute()});
+        const {unmount} = renderOnboardingWorkspacesPage(SCREENS.ONBOARDING.WORKSPACES, {
+            backTo: `${ROUTES.ONBOARDING_PURPOSE.route}/${DYNAMIC_ROUTES.ONBOARDING_PERSONAL_DETAILS.path}`,
+        });
 
         await waitForBatchedUpdatesWithAct();
 

@@ -14,7 +14,7 @@ import IntlStore from '@src/languages/IntlStore';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import {hasCompletedGuidedSetupFlowSelector} from '@src/selectors/Onboarding';
 import type {Locale, Onboarding} from '@src/types/onyx';
 
@@ -134,7 +134,7 @@ function getOnboardingInitialPath(getOnboardingInitialPathParams: GetOnboardingI
         if (onboardingInitialPath) {
             return onboardingInitialPath;
         }
-        return `/${ROUTES.ONBOARDING_PERSONAL_DETAILS.route}`;
+        return `/${ROUTES.ONBOARDING_PURPOSE.route}/${DYNAMIC_ROUTES.ONBOARDING_PERSONAL_DETAILS.path}`;
     }
 
     if (isVsb) {

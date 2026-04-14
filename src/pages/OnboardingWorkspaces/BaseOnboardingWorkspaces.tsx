@@ -20,6 +20,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {navigateAfterOnboardingWithMicrotaskQueue} from '@libs/navigateAfterOnboarding';
+import splitPathAndQuery from '@libs/Navigation/helpers/dynamicRoutesUtils/splitPathAndQuery';
 import Navigation from '@libs/Navigation/Navigation';
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import {isCurrentUserValidated} from '@libs/UserUtils';
@@ -29,7 +30,7 @@ import {completeOnboarding} from '@userActions/Report';
 import {setOnboardingAdminsChatReportID, setOnboardingPolicyID} from '@userActions/Welcome';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {JoinablePolicy} from '@src/types/onyx/JoinablePolicies';
 import type {BaseOnboardingWorkspacesProps} from './types';
@@ -69,7 +70,8 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
     const [onboardingValues] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
     const isVsb = onboardingValues?.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.VSB;
     const isSmb = onboardingValues?.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.SMB;
-    const shouldHideBackButton = onboardingValues?.shouldValidate === false && route.params?.backTo === ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute();
+    const backToPath = splitPathAndQuery(route.params?.backTo ?? '')[0] ?? '';
+    const shouldHideBackButton = onboardingValues?.shouldValidate === false && backToPath.endsWith(`/${DYNAMIC_ROUTES.ONBOARDING_PERSONAL_DETAILS.path}`);
     const onboardingStep = useOnboardingStepCounter(SCREENS.ONBOARDING.WORKSPACES);
 
     const handleJoinWorkspace = (policy: JoinablePolicy) => {
