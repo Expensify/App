@@ -17,7 +17,7 @@ import {hasPendingDEWSubmit} from '@libs/ReportActionsUtils';
 import getReportPreviewAction from '@libs/ReportPreviewActionUtils';
 import {getAddExpenseDropdownOptions} from '@libs/ReportUtils';
 import variables from '@styles/variables';
-import {canIOUBePaid as canIOUBePaidIOUActions} from '@userActions/IOU';
+import {canIOUBePaid as canIOUBePaidIOUActions} from '@userActions/IOU/ReportWorkflow';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {validTransactionDraftIDsSelector} from '@src/selectors/TransactionDraft';
