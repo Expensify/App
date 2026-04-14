@@ -5768,8 +5768,8 @@ ${amount} para ${merchant} - ${date}`,
             error: 'Se produjo un error al duplicar tu nuevo espacio de trabajo. Inténtalo de nuevo.',
         },
         emptyWorkspace: {
-            title: 'No tienes espacios de trabajo',
-            subtitle: 'Organiza recibos, reembolsa gastos, gestiona viajes, envía facturas y mucho más.',
+            title: 'Aún no hay espacios de trabajo',
+            subtitle: 'Crea un espacio de trabajo para gestionar tus gastos, reembolsos y tarjetas de empresa.',
             createAWorkspaceCTA: 'Comenzar',
             features: {
                 trackAndCollect: 'Organiza recibos',
