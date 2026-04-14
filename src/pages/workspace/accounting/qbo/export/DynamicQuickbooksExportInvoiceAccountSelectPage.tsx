@@ -46,7 +46,7 @@ function DynamicQuickbooksExportInvoiceAccountSelectPage({policy}: WithPolicyCon
 
     const goBack = useCallback(() => {
         Navigation.goBack(backPath);
-    }, [policyID, backPath]);
+    }, [backPath]);
 
     const selectExportInvoice = useCallback(
         (row: CardListItem) => {
