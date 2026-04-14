@@ -166,7 +166,7 @@ function CardSelectionStep({route}: CardSelectionStepProps) {
                         width={116}
                         height={168}
                     />
-                    <Text style={[styles.textHeadlineLineHeightXXL, styles.mt3]}>{translate('workspace.companyCards.noAvailableCards')}</Text>
+                    <Text style={[styles.textHeadlineLineHeightXXL, styles.mt3]}>{translate('workspace.companyCards.noActiveCards')}</Text>
                     <View style={[styles.renderHTML, styles.flexRow, styles.ph5, styles.mv3]}>
                         <RenderHTML html={translate('workspace.companyCards.somethingMightBeBroken')} />
                     </View>
