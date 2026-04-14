@@ -10,10 +10,8 @@ import useOnyx from '@hooks/useOnyx';
 import {clearAllRelatedReportActionErrors} from '@libs/actions/ClearReportActionErrors';
 import {
     calculateDiffAmount,
-    clearBulkEditDraftTransaction,
     createDistanceRequest,
     handleNavigateAfterExpenseCreate,
-    initBulkEditDraftTransaction,
     initMoneyRequest,
     removeMoneyRequestOdometerImage,
     resetDraftTransactionsCustomUnit,
@@ -28,9 +26,8 @@ import {
     setMoneyRequestOdometerImage,
     setMoneyRequestTag,
     shouldOptimisticallyUpdateSearch,
-    updateBulkEditDraftTransaction,
-    updateMultipleMoneyRequests,
 } from '@libs/actions/IOU';
+import {clearBulkEditDraftTransaction, initBulkEditDraftTransaction, updateBulkEditDraftTransaction, updateMultipleMoneyRequests} from '@libs/actions/IOU/BulkEdit';
 import {putOnHold} from '@libs/actions/IOU/Hold';
 import {completeSplitBill, splitBill, startSplitBill, updateSplitTransactionsFromSplitExpensesFlow} from '@libs/actions/IOU/Split';
 import {requestMoney, trackExpense} from '@libs/actions/IOU/TrackExpense';
