@@ -36,7 +36,7 @@ import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import Navigation from '@navigation/Navigation';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
-import {getSpendRuleByCardID, getSpendRuleSummaryParts} from '@pages/workspace/rules/SpendRules/SpendRulesUtils';
+import {getSpendRuleByCardID, getSpendRuleSummaryText} from '@pages/workspace/rules/SpendRules/SpendRulesUtils';
 import variables from '@styles/variables';
 import {deactivateCard as deactivateCardAction, freezeCard as freezeCardAction, openCardDetailsPage, unfreezeCard as unfreezeCardAction} from '@userActions/Card';
 import CONST from '@src/CONST';
@@ -137,32 +137,16 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
         setIsUnfreezeModalVisible(false);
     };
 
-    const matchingSpendRule = useMemo(() => getSpendRuleByCardID(expensifyCardSettings, cardID), [cardID, expensifyCardSettings]);
-
-    const spendRulesSummary = useMemo(
-        () =>
-            matchingSpendRule
-                .flatMap(({formValues}) => {
-                    const actionLabel =
-                        formValues.restrictionAction === CONST.SPEND_RULES.ACTION.BLOCK ? translate('workspace.rules.spendRules.block') : translate('workspace.rules.spendRules.allow');
-
-                    return getSpendRuleSummaryParts(formValues, currency, actionLabel, translate).map((part) => `${part.badgeLabel} ${part.text}`);
-                })
-                .join('\n'),
-        [currency, matchingSpendRule, translate],
-    );
+    const spendRule = useMemo(() => getSpendRuleByCardID(expensifyCardSettings, cardID), [cardID, expensifyCardSettings]);
+    const spendRulesSummary = useMemo(() => (spendRule ? getSpendRuleSummaryText(spendRule.formValues, currency, translate) : ''), [currency, spendRule, translate]);
 
     const spendRulesRoute = useMemo(() => {
-        if (matchingSpendRule.length === 0) {
+        if (!spendRule) {
             return ROUTES.RULES_SPEND_NEW.getRoute(policyID);
         }
 
-        if (matchingSpendRule.length === 1) {
-            return ROUTES.RULES_SPEND_EDIT.getRoute(policyID, matchingSpendRule.at(0)?.ruleID ?? ROUTES.NEW);
-        }
-
-        return ROUTES.WORKSPACE_RULES.getRoute(policyID);
-    }, [matchingSpendRule, policyID]);
+        return ROUTES.RULES_SPEND_EDIT.getRoute(policyID, spendRule.ruleID);
+    }, [policyID, spendRule]);
 
     const canManageCardFreeze = isAdmin && !!card;
     const scarfOverlayStyle = useMemo(
@@ -316,13 +300,15 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
                             }
                         />
                     </OfflineWithFeedback>
-                    {!!spendRulesSummary && <MenuItemWithTopDescription
-                        description={translate('cardPage.spendRules')}
-                        title={spendRulesSummary}
-                        titleStyle={styles.flex1}
-                        onPress={() => Navigation.navigate(spendRulesRoute)}
-                        shouldShowRightIcon
-                    />}
+                    {!!spendRulesSummary && (
+                        <MenuItemWithTopDescription
+                            description={translate('cardPage.spendRules')}
+                            title={spendRulesSummary}
+                            titleStyle={styles.flex1}
+                            onPress={() => Navigation.navigate(spendRulesRoute)}
+                            shouldShowRightIcon
+                        />
+                    )}
                     <MenuItem
                         icon={expensifyIcons.MoneySearch}
                         title={translate('workspace.common.viewTransactions')}

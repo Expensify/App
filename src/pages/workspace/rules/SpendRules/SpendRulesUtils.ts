@@ -160,22 +160,26 @@ function getSpendRuleFormValuesFromCardRule(cardRule: ExpensifyCardRule): SpendR
     return formValues;
 }
 
-type SpendRuleMatchByCardID = {
+type SpendRuleByCardID = {
     ruleID: string;
     formValues: SpendRuleForm;
 };
 
-function getSpendRuleByCardID(expensifyCardSettingsCollection: OnyxCollection<ExpensifyCardSettings> | undefined, cardID: string): SpendRuleMatchByCardID[] {
-    return Object.values(expensifyCardSettingsCollection ?? {}).flatMap((settings) =>
-        Object.entries(settings?.cardRules ?? {}).flatMap(([ruleID, rule]) => {
+/** At most one custom spend rule should reference a card; returns rule id + form values, or undefined. */
+function getSpendRuleByCardID(expensifyCardSettingsCollection: OnyxCollection<ExpensifyCardSettings> | undefined, cardID: string): SpendRuleByCardID | undefined {
+    for (const settings of Object.values(expensifyCardSettingsCollection ?? {})) {
+        const cardRules = settings?.cardRules;
+        if (!cardRules) {
+            continue;
+        }
+        for (const [ruleID, rule] of Object.entries(cardRules)) {
             const formValues = getSpendRuleFormValuesFromCardRule(rule);
-            if (!formValues?.cardIDs?.includes(cardID)) {
-                return [];
+            if (formValues?.cardIDs?.includes(cardID)) {
+                return {ruleID, formValues};
             }
-
-            return [{ruleID, formValues}];
-        }),
-    );
+        }
+    }
+    return undefined;
 }
 
 const MAX_SUMMARY_CHARS = 74;
@@ -207,7 +211,7 @@ function getTruncatedSpendRuleSummary(values: string[] | undefined, formatMoreCo
     }
 
     const hiddenCount = Math.max(normalizedValues.length - shownCount, 0);
-    return text && hiddenCount > 0 ? formatMoreCount(text, hiddenCount) : text;
+    return text ? formatMoreCount(text, hiddenCount) : '';
 }
 
 function getParentRoute(policyID: string, ruleID: string) {
@@ -242,5 +246,36 @@ function getSpendRuleSummaryParts(formValues: SpendRuleForm, selectedCurrency: s
     return summaryParts;
 }
 
-export {buildSpendRuleAST, getParentRoute, getSpendRuleByCardID, getSpendRuleFormValuesFromCardRule, getSpendRuleSummaryParts, getTruncatedSpendRuleSummary};
-export type {SpendRuleMatchByCardID, SpendRuleSummaryPart};
+function getSpendRuleSummaryText(formValues: SpendRuleForm, cardCurrency: string | undefined, translate: LocalizedTranslate) {
+    const action = formValues.restrictionAction;
+    const merchantSummary = formValues.merchantNames
+        ? getTruncatedSpendRuleSummary(formValues.merchantNames, (merchants, count) => translate('workspace.rules.spendRules.summaryMerchants', {merchants, count, action}))
+        : undefined;
+    const categoryNames = formValues.categories.map((category) => translate(`workspace.rules.spendRules.categoryOptions.${category}`));
+    const categorySummary =
+        categoryNames.length > 0
+            ? getTruncatedSpendRuleSummary(categoryNames, (categories, count) => translate('workspace.rules.spendRules.summaryCategories', {categories, count, action}))
+            : undefined;
+    const amountSummary =
+        formValues.maxAmount.trim() !== ''
+            ? `${translate('workspace.rules.spendRules.maxAmount')}: ${convertToDisplayString(convertToBackendAmount(Number.parseFloat(formValues.maxAmount)), cardCurrency ?? CONST.CURRENCY.USD)}`
+            : undefined;
+
+    const summaryText = [];
+    if (merchantSummary) {
+        summaryText.push(merchantSummary);
+    }
+
+    if (categorySummary) {
+        summaryText.push(categorySummary);
+    }
+
+    if (amountSummary) {
+        summaryText.push(amountSummary);
+    }
+
+    return summaryText.join('\n');
+}
+
+export {buildSpendRuleAST, getParentRoute, getSpendRuleByCardID, getSpendRuleFormValuesFromCardRule, getSpendRuleSummaryParts, getSpendRuleSummaryText, getTruncatedSpendRuleSummary};
+export type {SpendRuleByCardID, SpendRuleSummaryPart};
