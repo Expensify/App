@@ -31,9 +31,9 @@ function Waypoints({unit, isInLandscapeMode}: WaypointsProps) {
     const icons = useMemoizedLazyExpensifyIcons(['Location', 'Crosshair', 'DotIndicatorUnfilled']);
 
     // eslint-disable-next-line rulesdir/no-negated-variables
-    const tripNotInitialized = (gpsDraftDetails?.gpsPoints?.length ?? 0) === 0 && !gpsDraftDetails?.isTracking;
+    const isTripNotInitialized = (gpsDraftDetails?.gpsPoints?.length ?? 0) === 0 && !gpsDraftDetails?.isTracking;
 
-    if (tripNotInitialized) {
+    if (isTripNotInitialized) {
         return null;
     }
 
