@@ -182,7 +182,7 @@ function DisplayPopup({queryJSON, searchResults, closeOverlay, onSort}: DisplayP
                     groupBy={groupBy}
                     onSort={onSort}
                     onSortOrderPress={() => setSelectedDisplayFilter(CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_ORDER)}
-                    closeOverlay={() => setSelectedDisplayFilter(null)}
+                    closeOverlay={closeOverlay}
                 />
             );
             break;
@@ -191,7 +191,7 @@ function DisplayPopup({queryJSON, searchResults, closeOverlay, onSort}: DisplayP
                 <SortOrderPopup
                     queryJSON={queryJSON}
                     onSort={onSort}
-                    closeOverlay={() => setSelectedDisplayFilter(null)}
+                    closeOverlay={closeOverlay}
                 />
             );
             break;
@@ -201,7 +201,7 @@ function DisplayPopup({queryJSON, searchResults, closeOverlay, onSort}: DisplayP
                     style={styles.p0}
                     sections={groupBySections}
                     value={groupBy}
-                    closeOverlay={() => setSelectedDisplayFilter(null)}
+                    closeOverlay={closeOverlay}
                     onChange={(item) => {
                         const newValue = item?.value;
                         if (!newValue) {
@@ -227,7 +227,7 @@ function DisplayPopup({queryJSON, searchResults, closeOverlay, onSort}: DisplayP
                     style={styles.p0}
                     items={viewOptions}
                     value={view}
-                    closeOverlay={() => setSelectedDisplayFilter(null)}
+                    closeOverlay={closeOverlay}
                     onChange={(item) => updateFilterForm({view: item?.value ?? CONST.SEARCH.VIEW.TABLE})}
                 />
             );
@@ -238,7 +238,7 @@ function DisplayPopup({queryJSON, searchResults, closeOverlay, onSort}: DisplayP
                     style={styles.pv0}
                     placeholder={translate('search.filters.limit')}
                     defaultValue={limitValue}
-                    closeOverlay={() => setSelectedDisplayFilter(null)}
+                    closeOverlay={closeOverlay}
                     onChange={(value) => updateFilterForm({limit: value})}
                 />
             );
