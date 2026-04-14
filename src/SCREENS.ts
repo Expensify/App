@@ -877,9 +877,9 @@ const SCREENS = {
     ONBOARDING: {
         DYNAMIC_PERSONAL_DETAILS: 'Dynamic_Onboarding_Personal_Details',
         DYNAMIC_EMPLOYEES: 'Dynamic_Onboarding_Employees',
+        DYNAMIC_ACCOUNTING: 'Dynamic_Onboarding_Accounting',
         PURPOSE: 'Onboarding_Purpose',
         DYNAMIC_PRIVATE_DOMAIN: 'Dynamic_Onboarding_Private_Domain',
-        ACCOUNTING: 'Onboarding_Accounting',
         INTERESTED_FEATURES: 'Onboarding_Interested_Features',
         WORKSPACES: 'Onboarding_Workspaces',
         WORK_EMAIL: 'Onboarding_Work_Email',

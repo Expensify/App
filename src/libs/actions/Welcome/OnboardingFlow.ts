@@ -138,8 +138,9 @@ function getOnboardingInitialPath(getOnboardingInitialPathParams: GetOnboardingI
     }
 
     if (isVsb) {
-        return `/${ROUTES.ONBOARDING_ACCOUNTING.route}`;
+        return `/${ROUTES.ONBOARDING_PURPOSE.route}/${DYNAMIC_ROUTES.ONBOARDING_ACCOUNTING.path}`;
     }
+
     if (isSmb) {
         return `/${ROUTES.ONBOARDING_PURPOSE.route}/${DYNAMIC_ROUTES.ONBOARDING_EMPLOYEES.path}`;
     }
@@ -153,7 +154,7 @@ function getOnboardingInitialPath(getOnboardingInitialPathParams: GetOnboardingI
     }
 
     if (
-        onboardingInitialPath.includes(ROUTES.ONBOARDING_ACCOUNTING.route) &&
+        onboardingInitialPath.includes(`/${DYNAMIC_ROUTES.ONBOARDING_ACCOUNTING.path}`) &&
         ((currentOnboardingPurposeSelected !== null && !isCurrentOnboardingPurposeManageTeam) || (currentOnboardingCompanySize === null && currentOnboardingPurposeSelected !== null))
     ) {
         return `/${ROUTES.ONBOARDING_PURPOSE.route}`;

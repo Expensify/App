@@ -153,7 +153,7 @@ function OnboardingModalNavigator() {
                                 component={OnboardingEmployees}
                             />
                             <Stack.Screen
-                                name={SCREENS.ONBOARDING.ACCOUNTING}
+                                name={SCREENS.ONBOARDING.DYNAMIC_ACCOUNTING}
                                 component={OnboardingAccounting}
                             />
                             <Stack.Screen

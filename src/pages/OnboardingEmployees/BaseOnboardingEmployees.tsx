@@ -14,11 +14,12 @@ import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {OnboardingCompanySize} from '@libs/actions/Welcome/OnboardingFlow';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {setOnboardingCompanySize} from '@userActions/Welcome';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {BaseOnboardingEmployeesProps} from './types';
 
@@ -69,7 +70,7 @@ function BaseOnboardingEmployees({shouldUseNativeStyles}: BaseOnboardingEmployee
                         return;
                     }
                     setOnboardingCompanySize(selectedCompanySize);
-                    Navigation.navigate(ROUTES.ONBOARDING_ACCOUNTING.getRoute(Navigation.getActiveRoute()));
+                    Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.ONBOARDING_ACCOUNTING.path));
                 }}
                 pressOnEnter
                 sentryLabel={CONST.SENTRY_LABEL.ONBOARDING.CONTINUE}
