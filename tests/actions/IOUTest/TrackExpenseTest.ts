@@ -268,6 +268,8 @@ describe('actions/IOU/TrackExpense', () => {
                 userBillingGracePeriodEnds: undefined,
                 amountOwed: 0,
                 transaction,
+                currentUserAccountID: RORY_ACCOUNT_ID,
+                currentUserEmail: RORY_EMAIL,
             });
             await waitForBatchedUpdates();
 
@@ -841,6 +843,8 @@ describe('actions/IOU/TrackExpense', () => {
                 userBillingGracePeriodEnds: undefined,
                 amountOwed: 0,
                 transaction: createdTransaction,
+                currentUserAccountID: RORY_ACCOUNT_ID,
+                currentUserEmail: RORY_EMAIL,
             });
             await waitForBatchedUpdates();
 
