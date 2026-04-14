@@ -97,21 +97,27 @@ describe('usePendingConciergeResponse', () => {
     });
 
     it('should cancel the timer on unmount and not apply the action', async () => {
-        // Given a pending concierge response with a large delay so the timer never races with unmount under CI load
+        // Given a pending concierge response with a short delay
+        const timerDelay = SHORT_DELAY;
         await Onyx.merge(`${ONYXKEYS.COLLECTION.PENDING_CONCIERGE_RESPONSE}${REPORT_ID}`, {
             reportAction: fakeConciergeAction,
-            displayAfter: Date.now() + 10_000,
+            displayAfter: Date.now() + timerDelay,
         });
         await waitForBatchedUpdates();
 
+        // Switch to fake timers so we can advance past the deadline deterministically
+        jest.useFakeTimers();
+
         const {unmount} = renderHook(() => usePendingConciergeResponse(REPORT_ID));
-        await waitForBatchedUpdates();
 
         // When the hook unmounts before the delay
         unmount();
 
-        // And we wait long enough to confirm the action was not applied
-        await delay(150);
+        // Advance well past the timer deadline — if clearTimeout were missing, the callback would fire here
+        jest.advanceTimersByTime(timerDelay + 1000);
+
+        // Restore real timers before async assertions
+        jest.useRealTimers();
         await waitForBatchedUpdates();
 
         // Then the action should NOT be in REPORT_ACTIONS (timer was cleaned up)
