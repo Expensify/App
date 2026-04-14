@@ -37,6 +37,7 @@ function setupSentry(): void {
         // eslint-disable-next-line @typescript-eslint/naming-convention
         _experiments: {
             profilingOptions: {
+                profileSessionSampleRate: 1.0,
                 lifecycle: "trace",
             }
         }
