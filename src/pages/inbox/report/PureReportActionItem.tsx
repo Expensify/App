@@ -74,7 +74,7 @@ import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNa
 import type {ReportsSplitNavigatorParamList} from '@libs/Navigation/types';
 import Permissions from '@libs/Permissions';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
-import {getCleanedTagName, hasDynamicExternalWorkflow, isPolicyAdmin, isPolicyMember, isPolicyOwner} from '@libs/PolicyUtils';
+import {getCleanedTagName, isPolicyAdmin, isPolicyMember, isPolicyOwner} from '@libs/PolicyUtils';
 import {containsActionableFollowUps, parseFollowupsFromHtml} from '@libs/ReportActionFollowupUtils';
 import {
     extractLinksFromMessageHtml,
@@ -168,8 +168,6 @@ import {
     getWorkspaceTagUpdateMessage,
     getWorkspaceTaxUpdateMessage,
     getWorkspaceUpdateFieldMessage,
-    hasPendingDEWApprove,
-    hasPendingDEWSubmit,
     isActionableAddPaymentCard,
     isActionableCardFraudAlert,
     isActionableJoinRequest,
@@ -186,7 +184,6 @@ import {
     isDeletedAction,
     isDeletedParentAction as isDeletedParentActionUtils,
     isIOURequestReportAction,
-    isMarkAsClosedAction,
     isMessageDeleted,
     isMoneyRequestAction,
     isPendingRemove,
@@ -248,6 +245,7 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type {JoinWorkspaceResolution} from '@src/types/onyx/OriginalMessage';
 import {isEmptyObject, isEmptyValueObject} from '@src/types/utils/EmptyObject';
+import ApprovalFlowContent, {isApprovalFlowAction} from './actionContents/ApprovalFlowContent';
 import PaymentContent from './actionContents/PaymentContent';
 import SimpleMessageContent, {isSimpleMessageAction} from './actionContents/SimpleMessageContent';
 import {RestrictedReadOnlyContextMenuActions} from './ContextMenu/ContextMenuActions';
@@ -1363,47 +1361,16 @@ function PureReportActionItem({
                     originalReport={originalReport}
                 />
             );
-        } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.SUBMITTED) || isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED) || isMarkAsClosedAction(action)) {
-            const wasSubmittedViaHarvesting = !isMarkAsClosedAction(action) ? (getOriginalMessage(action)?.harvesting ?? false) : false;
-            const isDEWPolicy = hasDynamicExternalWorkflow(policy);
-
-            const isPendingAdd = action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD;
-            if (wasSubmittedViaHarvesting) {
-                children = (
-                    <ReportActionItemMessageWithExplain
-                        message={translate('iou.automaticallySubmitted')}
-                        action={action}
-                        childReport={childReport}
-                        originalReport={originalReport}
-                    />
-                );
-            } else if (hasPendingDEWSubmit(reportMetadata, isDEWPolicy) && isPendingAdd) {
-                children = <ReportActionItemBasicMessage message={translate('iou.queuedToSubmitViaDEW')} />;
-            } else if (isDEWPolicy) {
-                // Don't show a memo for DEW actions, it's shown in the Concierge action below
-                children = <ReportActionItemBasicMessage message={translate('iou.submitted')} />;
-            } else {
-                children = <ReportActionItemBasicMessage message={translate('iou.submitted', getOriginalMessage(action)?.message)} />;
-            }
-        } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.APPROVED)) {
-            const wasAutoApproved = getOriginalMessage(action)?.automaticAction ?? false;
-            const isDEWPolicy = hasDynamicExternalWorkflow(policy);
-            const isPendingAdd = action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD;
-
-            if (wasAutoApproved) {
-                children = (
-                    <ReportActionItemMessageWithExplain
-                        message={translate('iou.automaticallyApproved')}
-                        action={action}
-                        childReport={childReport}
-                        originalReport={originalReport}
-                    />
-                );
-            } else if (hasPendingDEWApprove(reportMetadata, isDEWPolicy) && isPendingAdd) {
-                children = <ReportActionItemBasicMessage message={translate('iou.queuedToApproveViaDEW')} />;
-            } else {
-                children = <ReportActionItemBasicMessage message={translate('iou.approvedMessage')} />;
-            }
+        } else if (isApprovalFlowAction(action)) {
+            children = (
+                <ApprovalFlowContent
+                    action={action}
+                    policy={policy}
+                    reportMetadata={reportMetadata}
+                    childReport={childReport}
+                    originalReport={originalReport}
+                />
+            );
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.IOU) && getOriginalMessage(action)?.type === CONST.IOU.REPORT_ACTION_TYPE.PAY) {
             children = (
                 <PaymentContent
@@ -1416,17 +1383,6 @@ function PureReportActionItem({
             children = <ReportActionItemBasicMessage message={getReimbursedMessage(translate, action, report, currentUserAccountID)} />;
         } else if (isSimpleMessageAction(action)) {
             children = <SimpleMessageContent action={action} />;
-        } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.FORWARDED)) {
-            const wasAutoForwarded = getOriginalMessage(action)?.automaticAction ?? false;
-            if (wasAutoForwarded) {
-                children = (
-                    <ReportActionItemBasicMessage>
-                        <RenderHTML html={`<comment><muted-text>${translate('iou.automaticallyForwarded')}</muted-text></comment>`} />
-                    </ReportActionItemBasicMessage>
-                );
-            } else {
-                children = <ReportActionItemBasicMessage message={translate('iou.forwarded')} />;
-            }
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.CORPORATE_UPGRADE) {
             children = <ReportActionItemBasicMessage message={translate('workspaceActions.upgradedWorkspace')} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.CORPORATE_FORCE_UPGRADE) {
