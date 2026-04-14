@@ -305,6 +305,7 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
                             description={translate('cardPage.spendRules')}
                             title={spendRulesSummary}
                             titleStyle={styles.flex1}
+                            numberOfLinesTitle={5}
                             onPress={() => Navigation.navigate(spendRulesRoute)}
                             shouldShowRightIcon
                         />

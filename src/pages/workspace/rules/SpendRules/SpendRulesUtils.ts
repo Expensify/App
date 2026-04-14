@@ -184,7 +184,7 @@ function getSpendRuleByCardID(expensifyCardSettingsCollection: OnyxCollection<Ex
 
 const MAX_SUMMARY_CHARS = 74;
 
-type MoreCountFormatter = (summary: string, hiddenCount: number, shownCount?: number) => string;
+type MoreCountFormatter = (summary: string, hiddenCount: number, shownCount: number) => string;
 type SpendRuleSummaryPart = {
     badgeLabel: string;
     text: string;
