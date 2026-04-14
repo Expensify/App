@@ -97,7 +97,7 @@ import type {TransactionPreviewData} from './actions/Search';
 import {setOptimisticDataForTransactionThreadPreview} from './actions/Search';
 import type {CardFeedForDisplay} from './CardFeedUtils';
 import {getCardFeedsForDisplay} from './CardFeedUtils';
-import {doesCardFeedExist, getCardDescriptionForSearchTable, getFeedNameForDisplay} from './CardUtils';
+import {getCardDescriptionForSearchTable, getFeedNameForDisplay} from './CardUtils';
 import {getDecodedCategoryName} from './CategoryUtils';
 import {convertToDisplayString} from './CurrencyUtils';
 import DateUtils from './DateUtils';
