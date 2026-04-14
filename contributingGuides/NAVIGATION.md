@@ -934,7 +934,26 @@ For the legacy approach (e.g. separating routes per screen instance) and edge ca
 
 ### Backward compatibility for changed paths
 
-When migrating a static route to a dynamic route, the resulting URL may differ from the old one. For example, a static route `/r/:reportID/settings/name` might become `/r/:reportID/details/settings/name` after migration (because the dynamic suffix `settings/name` is now appended to the `/r/:reportID/details` base path instead of `/r/:reportID/settings`).
+When migrating a static route to a dynamic route, the resulting URL often changes because dynamic routes build the target path on top of the entry screen's URL. Here is a concrete example:
+
+**Static routes** — the entry screen and the target screen have independent, unrelated paths:
+
+| | Path |
+|---|---|
+| Entry screen | `/r/:reportID/details` |
+| Target screen | `/r/:reportID/settings/name` |
+
+The target path `/r/:reportID/settings/name` stands on its own; it does not contain the entry screen's `/details` segment.
+
+**Dynamic routes** — the target URL is formed by appending a suffix to the entry screen's URL:
+
+| | Path |
+|---|---|
+| Entry screen (base path) | `/r/:reportID/details` |
+| Dynamic suffix | `settings/name` |
+| Target screen | `/r/:reportID/details/settings/name` |
+
+Because the suffix `settings/name` is appended to `/r/:reportID/details`, the resulting URL now includes the entry screen's path as a prefix. The old static URL (`/r/:reportID/settings/name`) no longer matches the new dynamic one (`/r/:reportID/details/settings/name`).
 
 If the new path does not match the old one, you **must** add a redirect mapping to [`src/libs/Navigation/linkingConfig/OldRoutes.ts`](../src/libs/Navigation/linkingConfig/OldRoutes.ts) so that bookmarks, shared links, and browser history still work.
 
