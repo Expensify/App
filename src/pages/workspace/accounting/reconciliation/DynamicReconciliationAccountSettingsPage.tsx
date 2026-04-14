@@ -69,7 +69,7 @@ function DynamicReconciliationAccountSettingsPage({route}: DynamicReconciliation
         if (!newBankAccountID) {
             return;
         }
-        setCardReconciliationAccount(workspaceAccountID, domainName, policyID, newBankAccountID);
+        setCardReconciliationAccount(workspaceAccountID, domainName, newBankAccountID);
         goBack();
     };
 

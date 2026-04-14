@@ -1522,10 +1522,9 @@ function toggleContinuousReconciliation(workspaceAccountID: number, shouldUseCon
     });
 }
 
-function setCardReconciliationAccount(workspaceAccountID: number, domainName: string, policyID: string, expensifyCardIntegrationWithdrawalID: string) {
+function setCardReconciliationAccount(workspaceAccountID: number, domainName: string, expensifyCardIntegrationWithdrawalID: string) {
     const parameters = {
         domainName,
-        expensifyCardIntegrationPolicyID: policyID,
         expensifyCardIntegrationWithdrawalID,
     };
 
