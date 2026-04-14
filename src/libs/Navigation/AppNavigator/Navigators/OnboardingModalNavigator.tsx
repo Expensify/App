@@ -8,8 +8,6 @@ import FocusTrapForScreens from '@components/FocusTrap/FocusTrapForScreen';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
-import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isMobileSafari} from '@libs/Browser';
 import GoogleTagManager from '@libs/GoogleTagManager';
@@ -36,6 +34,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+import OnboardingModalNavigatorContentWrapper from './OnboardingModalNavigatorContentWrapper';
 import Overlay from './Overlay';
 
 const Stack = createPlatformStackNavigator<OnboardingModalNavigatorParamList>();
@@ -44,9 +43,6 @@ let signUpEventPublishedForAccountID: number | undefined;
 
 function OnboardingModalNavigator() {
     const styles = useThemeStyles();
-    const StyleUtils = useStyleUtils();
-    const insets = useSafeAreaInsets();
-    const safeAreaPadding = StyleUtils.getPlatformSafeAreaPadding(insets);
     const {onboardingIsMediumOrLargerScreenWidth} = useResponsiveLayout();
     const outerViewRef = React.useRef<View>(null);
     const [account, accountMetadata] = useOnyx(ONYXKEYS.ACCOUNT);
@@ -121,15 +117,7 @@ function OnboardingModalNavigator() {
                 style={styles.onboardingNavigatorOuterView}
             >
                 <FocusTrapForScreens>
-                    <View
-                        onClick={(e) => e.stopPropagation()}
-                        style={[
-                            styles.maxHeight100Percentage,
-                            styles.overflowHidden,
-                            styles.OnboardingNavigatorInnerView(onboardingIsMediumOrLargerScreenWidth),
-                            {paddingLeft: safeAreaPadding.paddingLeft, paddingRight: safeAreaPadding.paddingRight},
-                        ]}
-                    >
+                    <OnboardingModalNavigatorContentWrapper onboardingIsMediumOrLargerScreenWidth={onboardingIsMediumOrLargerScreenWidth}>
                         <Stack.Navigator
                             screenOptions={defaultScreenOptions}
                             initialRouteName={initialRouteName}
@@ -187,7 +175,7 @@ function OnboardingModalNavigator() {
                                 component={OnboardingWorkspaceInvite}
                             />
                         </Stack.Navigator>
-                    </View>
+                    </OnboardingModalNavigatorContentWrapper>
                 </FocusTrapForScreens>
             </View>
         </NoDropZone>
