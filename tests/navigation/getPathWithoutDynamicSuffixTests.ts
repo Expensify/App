@@ -48,4 +48,28 @@ describe('getPathWithoutDynamicSuffix', () => {
 
         expect(result).toBe('/settings/profile/address?baseParam=1');
     });
+
+    it('should strip parametric suffix by actual value length', () => {
+        const result = getPathWithoutDynamicSuffix('/r/123/flag/456/abc', 'flag/456/abc');
+
+        expect(result).toBe('/r/123');
+    });
+
+    it('should strip single-param suffix', () => {
+        const result = getPathWithoutDynamicSuffix('/r/123/members/member-details/456', 'member-details/456');
+
+        expect(result).toBe('/r/123/members');
+    });
+
+    it('should strip parametric suffix and preserve query params', () => {
+        const result = getPathWithoutDynamicSuffix('/r/123/flag/456/abc?tab=details', 'flag/456/abc');
+
+        expect(result).toBe('/r/123?tab=details');
+    });
+
+    it('should return empty when parametric suffix covers entire path', () => {
+        const result = getPathWithoutDynamicSuffix('/flag/123/abc', 'flag/123/abc');
+
+        expect(result).toBe('');
+    });
 });
