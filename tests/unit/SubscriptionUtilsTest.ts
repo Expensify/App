@@ -1034,7 +1034,7 @@ describe('SubscriptionUtils', () => {
                 [ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL]: null,
                 [ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL]: null,
             });
-            expect(shouldShowDiscountBanner(true, 'corporate', undefined, undefined, undefined, policies)).toBeFalsy();
+            expect(shouldShowDiscountBanner(ownerAccountID, true, 'corporate', undefined, undefined, undefined, policies)).toBeFalsy();
         });
 
         it(`should return false if user has already added a payment method`, async () => {
@@ -1049,7 +1049,7 @@ describe('SubscriptionUtils', () => {
                 [ONYXKEYS.SESSION]: {accountID: ownerAccountID},
                 [ONYXKEYS.NVP_BILLING_FUND_ID]: 8010,
             });
-            expect(shouldShowDiscountBanner(true, 'corporate', undefined, undefined, 8010, policies)).toBeFalsy();
+            expect(shouldShowDiscountBanner(ownerAccountID, true, 'corporate', undefined, undefined, 8010, policies)).toBeFalsy();
         });
 
         it('should return false if the user is on Team plan', async () => {
@@ -1066,7 +1066,7 @@ describe('SubscriptionUtils', () => {
                 [ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL]: firstDayFreeTrial,
                 [ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL]: formatDate(addDays(new Date(), 10), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING),
             });
-            expect(shouldShowDiscountBanner(true, 'team', firstDayFreeTrial, undefined, undefined, policies)).toBeFalsy();
+            expect(shouldShowDiscountBanner(ownerAccountID, true, 'team', firstDayFreeTrial, undefined, undefined, policies)).toBeFalsy();
         });
 
         it('should return true if the date is before the free trial end date or within the 8 days from the trial start date', async () => {
@@ -1084,7 +1084,7 @@ describe('SubscriptionUtils', () => {
                 [ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL]: firstDayFreeTrial,
                 [ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL]: lastDayFreeTrial,
             });
-            expect(shouldShowDiscountBanner(true, 'corporate', firstDayFreeTrial, lastDayFreeTrial, undefined, policies)).toBeTruthy();
+            expect(shouldShowDiscountBanner(ownerAccountID, true, 'corporate', firstDayFreeTrial, lastDayFreeTrial, undefined, policies)).toBeTruthy();
         });
 
         it("should return false if user's trial is during the discount period but has no workspaces", async () => {
@@ -1094,7 +1094,7 @@ describe('SubscriptionUtils', () => {
                 [ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL]: firstDayFreeTrial,
                 [ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL]: formatDate(addDays(new Date(), 10), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING),
             });
-            expect(shouldShowDiscountBanner(true, 'corporate', firstDayFreeTrial, undefined, undefined, {})).toBeFalsy();
+            expect(shouldShowDiscountBanner(ownerAccountID, true, 'corporate', firstDayFreeTrial, undefined, undefined, {})).toBeFalsy();
         });
     });
 
