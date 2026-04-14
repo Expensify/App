@@ -2512,7 +2512,7 @@ function buildPolicyData(options: BuildPolicyDataOptions): OnyxData<BuildPolicyD
                 id: policyID,
                 type: workspaceType,
                 name: workspaceName,
-                role: CONST.POLICY.ROLE.ADMIN,
+                role: isSubmitWorkspace ? CONST.POLICY.ROLE.EDITOR : CONST.POLICY.ROLE.ADMIN,
                 owner: policyOwnerEmail || currentUserEmailParam,
                 ownerAccountID: policyOwnerEmail ? (PersonalDetailsUtils.getPersonalDetailByEmail(policyOwnerEmail)?.accountID ?? currentUserAccountIDParam) : currentUserAccountIDParam,
                 isPolicyExpenseChatEnabled: true,
@@ -2545,7 +2545,7 @@ function buildPolicyData(options: BuildPolicyDataOptions): OnyxData<BuildPolicyD
                               [policyOwnerEmail]: {
                                   submitsTo: policyOwnerEmail,
                                   email: policyOwnerEmail,
-                                  role: CONST.POLICY.ROLE.ADMIN,
+                                  role: isSubmitWorkspace ? CONST.POLICY.ROLE.EDITOR : CONST.POLICY.ROLE.ADMIN,
                                   errors: {},
                               },
                           }
@@ -2555,7 +2555,7 @@ function buildPolicyData(options: BuildPolicyDataOptions): OnyxData<BuildPolicyD
                               [currentUserEmailParam]: {
                                   submitsTo: currentUserEmailParam,
                                   email: currentUserEmailParam,
-                                  role: CONST.POLICY.ROLE.ADMIN,
+                                  role: isSubmitWorkspace ? CONST.POLICY.ROLE.EDITOR : CONST.POLICY.ROLE.ADMIN,
                                   errors: {},
                               },
                           }
@@ -2565,7 +2565,7 @@ function buildPolicyData(options: BuildPolicyDataOptions): OnyxData<BuildPolicyD
                               [currentUserEmailParam]: {
                                   submitsTo: policyOwnerEmail,
                                   email: currentUserEmailParam,
-                                  role: makeMeAdmin ? CONST.POLICY.ROLE.ADMIN : CONST.POLICY.ROLE.USER,
+                                  role: isSubmitWorkspace ? CONST.POLICY.ROLE.EDITOR : makeMeAdmin ? CONST.POLICY.ROLE.ADMIN : CONST.POLICY.ROLE.USER,
                                   errors: {},
                               },
                           }

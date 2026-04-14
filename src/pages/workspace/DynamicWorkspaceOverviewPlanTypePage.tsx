@@ -17,6 +17,7 @@ import usePrivateSubscription from '@hooks/usePrivateSubscription';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import OpenWorkspacePlanPage from '@libs/actions/Policy/Plan';
+import {isSubmitPolicy} from '@libs/PolicyUtils';
 import {isSubscriptionTypeOfInvoicing} from '@libs/SubscriptionUtils';
 import Navigation from '@navigation/Navigation';
 import CardSectionUtils from '@pages/settings/Subscription/CardSection/utils';
@@ -55,7 +56,15 @@ function DynamicWorkspaceOverviewPlanTypePage({policy}: WithPolicyProps) {
     }, [policy?.type]);
 
     const workspacePlanTypes = Object.values(CONST.POLICY.TYPE)
-        .filter((type) => type !== CONST.POLICY.TYPE.PERSONAL && type !== CONST.POLICY.TYPE.SUBMIT)
+        .filter((type) => {
+            if (type === CONST.POLICY.TYPE.PERSONAL) {
+                return false;
+            }
+            if (type === CONST.POLICY.TYPE.SUBMIT && !isSubmitPolicy(policy)) {
+                return false;
+            }
+            return true;
+        })
         .map<WorkspacePlanTypeItem>((policyType) => ({
             value: policyType,
             text: translate(`workspace.planTypePage.planTypes.${policyType as PersonalPolicyTypeExcludedProps}.label`),
@@ -81,6 +90,11 @@ function DynamicWorkspaceOverviewPlanTypePage({policy}: WithPolicyProps) {
         ) : null;
 
     const handleUpdatePlan = () => {
+        if (policyID && isSubmitPolicy(policy) && currentPlan !== CONST.POLICY.TYPE.SUBMIT) {
+            Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policyID));
+            return;
+        }
+
         if (policyID && policy?.type === CONST.POLICY.TYPE.TEAM && currentPlan === CONST.POLICY.TYPE.CORPORATE) {
             Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policyID));
             return;

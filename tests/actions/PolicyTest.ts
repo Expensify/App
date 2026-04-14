@@ -869,6 +869,7 @@ describe('actions/Policy', () => {
                 waitForCollectionCallback: false,
                 callback: (policy) => {
                     expect(policy?.type).toBe(CONST.POLICY.TYPE.SUBMIT);
+                    expect(policy?.role).toBe(CONST.POLICY.ROLE.EDITOR);
                     expect(policy?.approvalMode).toBe(CONST.POLICY.APPROVAL_MODE.ADVANCED);
                     expect(policy?.areWorkflowsEnabled).toBe(true);
                     expect(policy?.areTagsEnabled).toBe(true);
@@ -876,6 +877,7 @@ describe('actions/Policy', () => {
                     expect(policy?.areCompanyCardsEnabled).toBe(false);
                     expect(policy?.harvesting?.enabled).toBe(false);
                     expect(policy?.autoReportingFrequency).toBe(CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE);
+                    expect(policy?.employeeList?.[ESH_EMAIL]?.role).toBe(CONST.POLICY.ROLE.EDITOR);
                 },
             });
         });
