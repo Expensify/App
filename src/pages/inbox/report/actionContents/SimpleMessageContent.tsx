@@ -1,4 +1,5 @@
 import React from 'react';
+import type {OnyxEntry} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
 import {
     getActionableCard3DSTransactionApprovalMessage,
@@ -7,10 +8,12 @@ import {
     getMarkedReimbursedMessage,
     getOriginalMessage,
     getRemovedFromApprovalChainMessage,
+    getReportAction,
     getReportActionText,
     isActionOfType,
     isRejectedAction,
     isUnapprovedAction,
+    wasActionTakenByCurrentUser,
 } from '@libs/ReportActionsUtils';
 import {getDeletedTransactionMessage, getPolicyChangeMessage} from '@libs/ReportUtils';
 import ReportActionItemBasicMessage from '@pages/inbox/report/ReportActionItemBasicMessage';
@@ -19,6 +22,7 @@ import type * as OnyxTypes from '@src/types/onyx';
 
 type SimpleMessageContentProps = {
     action: OnyxTypes.ReportAction;
+    report: OnyxEntry<OnyxTypes.Report>;
 };
 
 const SIMPLE_MESSAGE_ACTION_TYPES = new Set<string>([
@@ -45,7 +49,7 @@ function isSimpleMessageAction(action: OnyxTypes.ReportAction): boolean {
     return SIMPLE_MESSAGE_ACTION_TYPES.has(action.actionName) || isUnapprovedAction(action) || isRejectedAction(action);
 }
 
-function SimpleMessageContent({action}: SimpleMessageContentProps) {
+function SimpleMessageContent({action, report}: SimpleMessageContentProps) {
     const {translate} = useLocalize();
 
     if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED)) {
@@ -88,7 +92,9 @@ function SimpleMessageContent({action}: SimpleMessageContentProps) {
         return <ReportActionItemBasicMessage message={translate('violations.resolvedDuplicates')} />;
     }
     if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.RECEIPT_SCAN_FAILED)) {
-        return <ReportActionItemBasicMessage message={translate('iou.receiptScanningFailed')} />;
+        // RECEIPT_SCAN_FAILED is submitted by Concierge, so use the IOU action to determine edit permission
+        const iouAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
+        return <ReportActionItemBasicMessage message={translate('violations.smartscanFailed', {canEdit: wasActionTakenByCurrentUser(iouAction)})} />;
     }
     if (isUnapprovedAction(action)) {
         return <ReportActionItemBasicMessage message={translate('iou.unapproved')} />;
