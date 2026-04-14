@@ -66,7 +66,7 @@ function insertStateBelow(accumulatedState: PartialState<NavigationState>, state
  * @param focusedRoutePath - The full URL path of the currently focused route
  * @returns Navigation state with all intermediate screens present
  */
-function restoreDynamicStateChain(state: PartialState<NavigationState>, focusedRoutePath: string): PartialState<NavigationState> {
+function getDynamicRouteAdaptedState(state: PartialState<NavigationState>, focusedRoutePath: string): PartialState<NavigationState> {
     let accumulatedState = state;
     let currentPath = focusedRoutePath;
 
@@ -96,4 +96,4 @@ function restoreDynamicStateChain(state: PartialState<NavigationState>, focusedR
     return accumulatedState;
 }
 
-export default restoreDynamicStateChain;
+export default getDynamicRouteAdaptedState;
