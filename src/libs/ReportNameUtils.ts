@@ -475,7 +475,10 @@ function computeReportNameBasedOnReportAction(
     }
     if (parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.RECEIPT_SCAN_FAILED) {
         // RECEIPT_SCAN_FAILED is submitted by Concierge, so use the IOU action to determine edit permission
-        const iouAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
+        let iouAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
+        if (!isActionOfType(iouAction, CONST.REPORT.ACTIONS.TYPE.IOU)) {
+            iouAction = getReportAction(parentReport?.parentReportID, parentReport?.parentReportActionID);
+        }
         return translate('violations.smartscanFailed', {canEdit: wasActionTakenByCurrentUser(iouAction)});
     }
 
