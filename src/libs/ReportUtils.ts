@@ -7559,19 +7559,18 @@ function buildOptimisticSubmittedReportAction(
  *
  * @param chatReport
  * @param iouReport
+ * @param personalDetailsList - personal details used to check test transactions
  * @param [comment] - User comment for the IOU.
  * @param [transaction] - optimistic first transaction of preview
- * @param [personalDetailsList] - personal details used to check test transactions
  * @param [childReportID]
  * @param [reportActionID]
  */
 function buildOptimisticReportPreview(
     chatReport: OnyxInputOrEntry<Report>,
     iouReport: Report,
+    personalDetailsList: OnyxEntry<PersonalDetailsList>,
     comment = '',
     transaction: OnyxInputOrEntry<Transaction> = null,
-    // TODO: Remove fallback once all callers pass personalDetailsList (https://github.com/Expensify/App/issues/66413)
-    personalDetailsList: OnyxEntry<PersonalDetailsList> = undefined,
     childReportID?: string,
     reportActionID?: string,
 ): ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW> {

@@ -668,7 +668,7 @@ function getSendInvoiceInformation({
 
     // STEP 5: Build optimistic reportActions.
     // TODO: Pass personalDetailsList in PR 29; isTestTransactionReport falls back to module-level Onyx value (https://github.com/Expensify/App/issues/66413)
-    const reportPreviewAction = buildOptimisticReportPreview(chatReport, optimisticInvoiceReport, trimmedComment, optimisticTransaction);
+    const reportPreviewAction = buildOptimisticReportPreview(chatReport, optimisticInvoiceReport, undefined, trimmedComment, optimisticTransaction);
     optimisticInvoiceReport.parentReportActionID = reportPreviewAction.reportActionID;
     chatReport.lastVisibleActionCreated = reportPreviewAction.created;
     const [optimisticCreatedActionForChat, optimisticCreatedActionForIOUReport, iouAction, optimisticTransactionThread, optimisticCreatedActionForTransactionThread] =

@@ -2485,7 +2485,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         reportPreviewAction = updateReportPreview(iouReport, reportPreviewAction, false, comment, optimisticTransaction);
     } else {
         // TODO: Pass personalDetailsList in PR 26; isTestTransactionReport falls back to module-level Onyx value (https://github.com/Expensify/App/issues/66413)
-        reportPreviewAction = buildOptimisticReportPreview(chatReport, iouReport, comment, optimisticTransaction, undefined, undefined, optimisticReportPreviewActionID);
+        reportPreviewAction = buildOptimisticReportPreview(chatReport, iouReport, undefined, comment, optimisticTransaction, undefined, optimisticReportPreviewActionID);
         chatReport.lastVisibleActionCreated = reportPreviewAction.created;
 
         // Generated ReportPreview action is a parent report action of the iou report.
@@ -3944,7 +3944,7 @@ function createSplitsAndOnyxData({
             oneOnOneReportPreviewAction = updateReportPreview(oneOnOneIOUReport, oneOnOneReportPreviewAction);
         } else {
             // TODO: Pass personalDetailsList in PR 26; isTestTransactionReport falls back to module-level Onyx value (https://github.com/Expensify/App/issues/66413)
-            oneOnOneReportPreviewAction = buildOptimisticReportPreview(oneOnOneChatReport, oneOnOneIOUReport);
+            oneOnOneReportPreviewAction = buildOptimisticReportPreview(oneOnOneChatReport, oneOnOneIOUReport, undefined);
         }
 
         const optimisticPolicyRecentlyUsedCategories = isPolicyExpenseChat ? mergePolicyRecentlyUsedCategories(category, policyRecentlyUsedCategories) : [];
@@ -4538,9 +4538,9 @@ function getReportFromHoldRequestsOnyxData({
     const optimisticExpenseReportPreview = buildOptimisticReportPreview(
         chatReport,
         optimisticExpenseReport,
+        undefined,
         '',
         firstHoldTransaction,
-        undefined,
         optimisticExpenseReport.reportID,
         newParentReportActionID,
     );
