@@ -502,15 +502,15 @@ const ContextMenuActions: ContextMenuAction[] = [
                             currentUserPersonalDetails.accountID,
                             introSelected,
                             betas,
-                            currentUserPersonalDetails?.timezone,
                             isSelfTourViewed,
+                            currentUserPersonalDetails?.timezone,
                         );
                     });
                 });
                 return;
             }
 
-            explain(childReport, originalReport, reportAction, translate, currentUserPersonalDetails.accountID, introSelected, betas, currentUserPersonalDetails?.timezone, isSelfTourViewed);
+            explain(childReport, originalReport, reportAction, translate, currentUserPersonalDetails.accountID, introSelected, betas, isSelfTourViewed, currentUserPersonalDetails?.timezone);
         },
         getDescription: () => {},
         sentryLabel: CONST.SENTRY_LABEL.CONTEXT_MENU.EXPLAIN,

@@ -47,7 +47,7 @@ function ReportActionItemMessageWithExplain({message, action, childReport, origi
     const handleLinkPress = (event: GestureResponderEvent | KeyboardEvent, href: string) => {
         // Handle the special "Explain" link
         if (href.endsWith(CONST.CONCIERGE_EXPLAIN_LINK_PATH)) {
-            explain(childReport, originalReport, action, translate, personalDetail.accountID, introSelected, betas, personalDetail?.timezone, isSelfTourViewed);
+            explain(childReport, originalReport, action, translate, personalDetail.accountID, introSelected, betas, isSelfTourViewed, personalDetail?.timezone);
             return;
         }
 

@@ -2156,8 +2156,8 @@ function explain(
     currentUserAccountID: number,
     introSelected: OnyxEntry<IntroSelected>,
     betas: OnyxEntry<Beta[]>,
-    timezone: Timezone = CONST.DEFAULT_TIME_ZONE,
     isSelfTourViewed: boolean | undefined,
+    timezone: Timezone = CONST.DEFAULT_TIME_ZONE,
 ) {
     if (!originalReport?.reportID || !reportAction) {
         return;
