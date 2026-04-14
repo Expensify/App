@@ -56,7 +56,7 @@ function OnboardingModalNavigator() {
     }
 
     if (account?.isFromPublicDomain) {
-        initialRouteName = SCREENS.ONBOARDING.WORK_EMAIL;
+        initialRouteName = SCREENS.ONBOARDING.DYNAMIC_WORK_EMAIL;
     }
 
     if (onboardingPurposeSelected === CONST.ONBOARDING_CHOICES.PERSONAL_SPEND && !!onboardingPolicyID) {
@@ -133,7 +133,7 @@ function OnboardingModalNavigator() {
                                 component={OnboardingPersonalDetails}
                             />
                             <Stack.Screen
-                                name={SCREENS.ONBOARDING.WORK_EMAIL}
+                                name={SCREENS.ONBOARDING.DYNAMIC_WORK_EMAIL}
                                 component={OnboardingWorkEmail}
                             />
                             <Stack.Screen

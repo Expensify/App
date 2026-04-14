@@ -882,7 +882,7 @@ const SCREENS = {
         DYNAMIC_INTERESTED_FEATURES: 'Dynamic_Onboarding_Interested_Features',
         DYNAMIC_PRIVATE_DOMAIN: 'Dynamic_Onboarding_Private_Domain',
         DYNAMIC_WORKSPACES: 'Dynamic_Onboarding_Workspaces',
-        WORK_EMAIL: 'Onboarding_Work_Email',
+        DYNAMIC_WORK_EMAIL: 'Dynamic_Onboarding_Work_Email',
         WORK_EMAIL_VALIDATION: 'Onboarding_Work_Email_Validation',
         WORKSPACE_OPTIONAL: 'Onboarding_Workspace_Optional',
         WORKSPACE_CONFIRMATION: 'Onboarding_Workspace_Confirmation',

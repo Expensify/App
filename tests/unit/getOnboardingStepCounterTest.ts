@@ -40,13 +40,18 @@ describe('getOnboardingFlow', () => {
         expect(getOnboardingFlow({signupQualifier: 'individual'})).toBeUndefined();
     });
 
-    it('returns [WORK_EMAIL, WORK_EMAIL_VALIDATION, ACCOUNTING, INTERESTED_FEATURES] for public + VSB', () => {
-        expect(getOnboardingFlow({signupQualifier: 'vsb', isFromPublicDomain: true})).toEqual([O.WORK_EMAIL, O.WORK_EMAIL_VALIDATION, O.DYNAMIC_ACCOUNTING, O.DYNAMIC_INTERESTED_FEATURES]);
+    it('returns [DYNAMIC_WORK_EMAIL, WORK_EMAIL_VALIDATION, ACCOUNTING, INTERESTED_FEATURES] for public + VSB', () => {
+        expect(getOnboardingFlow({signupQualifier: 'vsb', isFromPublicDomain: true})).toEqual([
+            O.DYNAMIC_WORK_EMAIL,
+            O.WORK_EMAIL_VALIDATION,
+            O.DYNAMIC_ACCOUNTING,
+            O.DYNAMIC_INTERESTED_FEATURES,
+        ]);
     });
 
-    it('returns [WORK_EMAIL, WORK_EMAIL_VALIDATION, EMPLOYEES, ACCOUNTING, INTERESTED_FEATURES] for public + SMB', () => {
+    it('returns [DYNAMIC_WORK_EMAIL, WORK_EMAIL_VALIDATION, EMPLOYEES, ACCOUNTING, INTERESTED_FEATURES] for public + SMB', () => {
         expect(getOnboardingFlow({signupQualifier: 'smb', isFromPublicDomain: true})).toEqual([
-            O.WORK_EMAIL,
+            O.DYNAMIC_WORK_EMAIL,
             O.WORK_EMAIL_VALIDATION,
             O.DYNAMIC_EMPLOYEES,
             O.DYNAMIC_ACCOUNTING,
@@ -56,7 +61,7 @@ describe('getOnboardingFlow', () => {
 
     it('returns 6-step flow for public + individual + MANAGE_TEAM', () => {
         expect(getOnboardingFlow({signupQualifier: 'individual', isFromPublicDomain: true, purposeSelected: ONBOARDING_CHOICES.MANAGE_TEAM})).toEqual([
-            O.WORK_EMAIL,
+            O.DYNAMIC_WORK_EMAIL,
             O.WORK_EMAIL_VALIDATION,
             O.DYNAMIC_PURPOSE,
             O.DYNAMIC_EMPLOYEES,
@@ -67,7 +72,7 @@ describe('getOnboardingFlow', () => {
 
     it('returns 5-step flow for public + individual + PERSONAL_SPEND', () => {
         expect(getOnboardingFlow({signupQualifier: 'individual', isFromPublicDomain: true, purposeSelected: ONBOARDING_CHOICES.PERSONAL_SPEND})).toEqual([
-            O.WORK_EMAIL,
+            O.DYNAMIC_WORK_EMAIL,
             O.WORK_EMAIL_VALIDATION,
             O.DYNAMIC_PURPOSE,
             O.DYNAMIC_PERSONAL_DETAILS,
@@ -77,7 +82,7 @@ describe('getOnboardingFlow', () => {
 
     it('returns 4-step flow for public + individual + LOOKING_AROUND', () => {
         expect(getOnboardingFlow({signupQualifier: 'individual', isFromPublicDomain: true, purposeSelected: ONBOARDING_CHOICES.LOOKING_AROUND})).toEqual([
-            O.WORK_EMAIL,
+            O.DYNAMIC_WORK_EMAIL,
             O.WORK_EMAIL_VALIDATION,
             O.DYNAMIC_PURPOSE,
             O.DYNAMIC_PERSONAL_DETAILS,
@@ -86,7 +91,7 @@ describe('getOnboardingFlow', () => {
 
     it('returns 5-step flow for public + merge + VSB', () => {
         expect(getOnboardingFlow({signupQualifier: 'vsb', isFromPublicDomain: true, isMergeAccountStepSkipped: false})).toEqual([
-            O.WORK_EMAIL,
+            O.DYNAMIC_WORK_EMAIL,
             O.WORK_EMAIL_VALIDATION,
             O.DYNAMIC_WORKSPACES,
             O.DYNAMIC_ACCOUNTING,
@@ -96,7 +101,7 @@ describe('getOnboardingFlow', () => {
 
     it('returns 7-step flow for public + merge + individual + MANAGE_TEAM', () => {
         expect(getOnboardingFlow({signupQualifier: 'individual', isFromPublicDomain: true, isMergeAccountStepSkipped: false, purposeSelected: ONBOARDING_CHOICES.MANAGE_TEAM})).toEqual([
-            O.WORK_EMAIL,
+            O.DYNAMIC_WORK_EMAIL,
             O.WORK_EMAIL_VALIDATION,
             O.DYNAMIC_WORKSPACES,
             O.DYNAMIC_PURPOSE,
@@ -108,7 +113,7 @@ describe('getOnboardingFlow', () => {
 
     it('returns 6-step flow for public + merge + individual + PERSONAL_SPEND', () => {
         expect(getOnboardingFlow({signupQualifier: 'individual', isFromPublicDomain: true, isMergeAccountStepSkipped: false, purposeSelected: ONBOARDING_CHOICES.PERSONAL_SPEND})).toEqual([
-            O.WORK_EMAIL,
+            O.DYNAMIC_WORK_EMAIL,
             O.WORK_EMAIL_VALIDATION,
             O.DYNAMIC_WORKSPACES,
             O.DYNAMIC_PURPOSE,
@@ -119,7 +124,7 @@ describe('getOnboardingFlow', () => {
 
     it('returns 4-step flow for public + skipped + individual + PERSONAL_SPEND', () => {
         expect(getOnboardingFlow({signupQualifier: 'individual', isFromPublicDomain: true, isMergeAccountStepSkipped: true, purposeSelected: ONBOARDING_CHOICES.PERSONAL_SPEND})).toEqual([
-            O.WORK_EMAIL,
+            O.DYNAMIC_WORK_EMAIL,
             O.DYNAMIC_PURPOSE,
             O.DYNAMIC_PERSONAL_DETAILS,
             O.WORKSPACE_OPTIONAL,
@@ -128,7 +133,7 @@ describe('getOnboardingFlow', () => {
 
     it('returns 5-step flow for public + skipped + individual + MANAGE_TEAM', () => {
         expect(getOnboardingFlow({signupQualifier: 'individual', isFromPublicDomain: true, isMergeAccountStepSkipped: true, purposeSelected: ONBOARDING_CHOICES.MANAGE_TEAM})).toEqual([
-            O.WORK_EMAIL,
+            O.DYNAMIC_WORK_EMAIL,
             O.DYNAMIC_PURPOSE,
             O.DYNAMIC_EMPLOYEES,
             O.DYNAMIC_ACCOUNTING,
@@ -226,7 +231,7 @@ describe('getOnboardingStepCounter', () => {
 
     it('returns correct step/total/percentage for public + individual + MANAGE_TEAM', () => {
         const ctx: OnboardingFlowContext = {signupQualifier: 'individual', isFromPublicDomain: true, purposeSelected: ONBOARDING_CHOICES.MANAGE_TEAM};
-        expect(getOnboardingStepCounter(O.WORK_EMAIL, ctx)).toEqual({stepCounter: {step: 1, total: 6}, progressBarPercentage: 17});
+        expect(getOnboardingStepCounter(O.DYNAMIC_WORK_EMAIL, ctx)).toEqual({stepCounter: {step: 1, total: 6}, progressBarPercentage: 17});
         expect(getOnboardingStepCounter(O.WORK_EMAIL_VALIDATION, ctx)).toEqual({stepCounter: {step: 2, total: 6}, progressBarPercentage: 33});
         expect(getOnboardingStepCounter(O.DYNAMIC_PURPOSE, ctx)).toEqual({stepCounter: {step: 3, total: 6}, progressBarPercentage: 50});
         expect(getOnboardingStepCounter(O.DYNAMIC_EMPLOYEES, ctx)).toEqual({stepCounter: {step: 4, total: 6}, progressBarPercentage: 67});
@@ -236,7 +241,7 @@ describe('getOnboardingStepCounter', () => {
 
     it('returns correct step/total/percentage for public + merge + individual + MANAGE_TEAM', () => {
         const ctx: OnboardingFlowContext = {signupQualifier: 'individual', isFromPublicDomain: true, isMergeAccountStepSkipped: false, purposeSelected: ONBOARDING_CHOICES.MANAGE_TEAM};
-        expect(getOnboardingStepCounter(O.WORK_EMAIL, ctx)).toEqual({stepCounter: {step: 1, total: 7}, progressBarPercentage: 14});
+        expect(getOnboardingStepCounter(O.DYNAMIC_WORK_EMAIL, ctx)).toEqual({stepCounter: {step: 1, total: 7}, progressBarPercentage: 14});
         expect(getOnboardingStepCounter(O.WORK_EMAIL_VALIDATION, ctx)).toEqual({stepCounter: {step: 2, total: 7}, progressBarPercentage: 29});
         expect(getOnboardingStepCounter(O.DYNAMIC_WORKSPACES, ctx)).toEqual({stepCounter: {step: 3, total: 7}, progressBarPercentage: 43});
         expect(getOnboardingStepCounter(O.DYNAMIC_PURPOSE, ctx)).toEqual({stepCounter: {step: 4, total: 7}, progressBarPercentage: 57});
@@ -247,7 +252,7 @@ describe('getOnboardingStepCounter', () => {
 
     it('returns correct step/total/percentage for public + skipped + individual + MANAGE_TEAM (no gaps)', () => {
         const ctx: OnboardingFlowContext = {signupQualifier: 'individual', isFromPublicDomain: true, isMergeAccountStepSkipped: true, purposeSelected: ONBOARDING_CHOICES.MANAGE_TEAM};
-        expect(getOnboardingStepCounter(O.WORK_EMAIL, ctx)).toEqual({stepCounter: {step: 1, total: 5}, progressBarPercentage: 20});
+        expect(getOnboardingStepCounter(O.DYNAMIC_WORK_EMAIL, ctx)).toEqual({stepCounter: {step: 1, total: 5}, progressBarPercentage: 20});
         expect(getOnboardingStepCounter(O.DYNAMIC_PURPOSE, ctx)).toEqual({stepCounter: {step: 2, total: 5}, progressBarPercentage: 40});
         expect(getOnboardingStepCounter(O.DYNAMIC_EMPLOYEES, ctx)).toEqual({stepCounter: {step: 3, total: 5}, progressBarPercentage: 60});
         expect(getOnboardingStepCounter(O.DYNAMIC_ACCOUNTING, ctx)).toEqual({stepCounter: {step: 4, total: 5}, progressBarPercentage: 80});
@@ -256,7 +261,7 @@ describe('getOnboardingStepCounter', () => {
 
     it('returns correct step/total/percentage for public + skipped + individual + PERSONAL_SPEND (no gaps)', () => {
         const ctx: OnboardingFlowContext = {signupQualifier: 'individual', isFromPublicDomain: true, isMergeAccountStepSkipped: true, purposeSelected: ONBOARDING_CHOICES.PERSONAL_SPEND};
-        expect(getOnboardingStepCounter(O.WORK_EMAIL, ctx)).toEqual({stepCounter: {step: 1, total: 4}, progressBarPercentage: 25});
+        expect(getOnboardingStepCounter(O.DYNAMIC_WORK_EMAIL, ctx)).toEqual({stepCounter: {step: 1, total: 4}, progressBarPercentage: 25});
         expect(getOnboardingStepCounter(O.DYNAMIC_PURPOSE, ctx)).toEqual({stepCounter: {step: 2, total: 4}, progressBarPercentage: 50});
         expect(getOnboardingStepCounter(O.DYNAMIC_PERSONAL_DETAILS, ctx)).toEqual({stepCounter: {step: 3, total: 4}, progressBarPercentage: 75});
         expect(getOnboardingStepCounter(O.WORKSPACE_OPTIONAL, ctx)).toEqual({stepCounter: {step: 4, total: 4}, progressBarPercentage: 100});
@@ -316,7 +321,7 @@ describe('getOnboardingStepCounter', () => {
                 expectedPurposeStep: 3,
                 expectedPurposePct: 50,
                 prefixPages: [
-                    {page: O.WORK_EMAIL, step: 1, pct: 17},
+                    {page: O.DYNAMIC_WORK_EMAIL, step: 1, pct: 17},
                     {page: O.WORK_EMAIL_VALIDATION, step: 2, pct: 33},
                 ],
             },
@@ -325,7 +330,7 @@ describe('getOnboardingStepCounter', () => {
                 ctx: {signupQualifier: 'individual', isFromPublicDomain: true, isMergeAccountStepSkipped: true},
                 expectedPurposeStep: 2,
                 expectedPurposePct: 40,
-                prefixPages: [{page: O.WORK_EMAIL, step: 1, pct: 20}],
+                prefixPages: [{page: O.DYNAMIC_WORK_EMAIL, step: 1, pct: 20}],
             },
             {
                 label: 'public-merge',
@@ -333,7 +338,7 @@ describe('getOnboardingStepCounter', () => {
                 expectedPurposeStep: 4,
                 expectedPurposePct: 57,
                 prefixPages: [
-                    {page: O.WORK_EMAIL, step: 1, pct: 14},
+                    {page: O.DYNAMIC_WORK_EMAIL, step: 1, pct: 14},
                     {page: O.WORK_EMAIL_VALIDATION, step: 2, pct: 29},
                     {page: O.DYNAMIC_WORKSPACES, step: 3, pct: 43},
                 ],

@@ -90,8 +90,8 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
             // the onboarding purpose page will be briefly visible.
             path: ROUTES.ONBOARDING_ROOT.route,
             screens: {
-                [SCREENS.ONBOARDING.WORK_EMAIL]: {
-                    path: ROUTES.ONBOARDING_WORK_EMAIL.route,
+                [SCREENS.ONBOARDING.DYNAMIC_WORK_EMAIL]: {
+                    path: DYNAMIC_ROUTES.ONBOARDING_WORK_EMAIL.path,
                     exact: true,
                 },
                 [SCREENS.ONBOARDING.WORK_EMAIL_VALIDATION]: {

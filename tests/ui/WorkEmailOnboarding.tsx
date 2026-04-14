@@ -52,14 +52,17 @@ function HTMLProviderWrapper({children}: {children: React.ReactNode}) {
     return <HTMLEngineProvider>{children}</HTMLEngineProvider>;
 }
 
-const renderOnboardingWorkEmailPage = (initialRouteName: typeof SCREENS.ONBOARDING.WORK_EMAIL, initialParams: OnboardingModalNavigatorParamList[typeof SCREENS.ONBOARDING.WORK_EMAIL]) => {
+const renderOnboardingWorkEmailPage = (
+    initialRouteName: typeof SCREENS.ONBOARDING.DYNAMIC_WORK_EMAIL,
+    initialParams: OnboardingModalNavigatorParamList[typeof SCREENS.ONBOARDING.DYNAMIC_WORK_EMAIL],
+) => {
     return render(
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrentReportIDContextProvider]}>
             <PortalProvider>
                 <NavigationContainer>
                     <Stack.Navigator initialRouteName={initialRouteName}>
                         <Stack.Screen
-                            name={SCREENS.ONBOARDING.WORK_EMAIL}
+                            name={SCREENS.ONBOARDING.DYNAMIC_WORK_EMAIL}
                             component={OnboardingWorkEmail}
                             initialParams={initialParams}
                         />
@@ -243,7 +246,7 @@ describe('OnboardingWorkEmail Page', () => {
             });
         });
 
-        const {unmount} = renderOnboardingWorkEmailPage(SCREENS.ONBOARDING.WORK_EMAIL, {backTo: ''});
+        const {unmount} = renderOnboardingWorkEmailPage(SCREENS.ONBOARDING.DYNAMIC_WORK_EMAIL, undefined);
 
         await waitForBatchedUpdatesWithAct();
 
@@ -271,7 +274,7 @@ describe('OnboardingWorkEmail Page', () => {
             });
         });
 
-        const {unmount} = renderOnboardingWorkEmailPage(SCREENS.ONBOARDING.WORK_EMAIL, {backTo: ''});
+        const {unmount} = renderOnboardingWorkEmailPage(SCREENS.ONBOARDING.DYNAMIC_WORK_EMAIL, undefined);
 
         await waitForBatchedUpdatesWithAct();
 
@@ -303,7 +306,7 @@ describe('OnboardingWorkEmail Page', () => {
             });
         });
 
-        const {unmount} = renderOnboardingWorkEmailPage(SCREENS.ONBOARDING.WORK_EMAIL, {backTo: ''});
+        const {unmount} = renderOnboardingWorkEmailPage(SCREENS.ONBOARDING.DYNAMIC_WORK_EMAIL, undefined);
 
         await waitForBatchedUpdatesWithAct();
 
@@ -328,7 +331,7 @@ describe('OnboardingWorkEmail Page', () => {
             });
         });
 
-        const {unmount} = renderOnboardingWorkEmailPage(SCREENS.ONBOARDING.WORK_EMAIL, {backTo: ''});
+        const {unmount} = renderOnboardingWorkEmailPage(SCREENS.ONBOARDING.DYNAMIC_WORK_EMAIL, undefined);
 
         await waitForBatchedUpdatesWithAct();
 
@@ -354,7 +357,7 @@ describe('OnboardingWorkEmail Page', () => {
             });
         });
 
-        const {unmount} = renderOnboardingWorkEmailPage(SCREENS.ONBOARDING.WORK_EMAIL, {backTo: ''});
+        const {unmount} = renderOnboardingWorkEmailPage(SCREENS.ONBOARDING.DYNAMIC_WORK_EMAIL, undefined);
 
         await waitForBatchedUpdatesWithAct();
 
