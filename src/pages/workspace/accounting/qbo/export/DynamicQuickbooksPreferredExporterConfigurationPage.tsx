@@ -53,8 +53,8 @@ function DynamicQuickbooksPreferredExporterConfigurationPage({policy}: WithPolic
     );
 
     const goBack = useCallback(() => {
-        Navigation.goBack(backPath || ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT.getRoute(policyID));
-    }, [policyID, backPath]);
+        Navigation.goBack(backPath);
+    }, [backPath]);
 
     const selectExporter = useCallback(
         (row: CardListItem) => {
