@@ -1419,7 +1419,12 @@ function PureReportActionItem({
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.REIMBURSED)) {
             children = <ReportActionItemBasicMessage message={getReimbursedMessage(translate, action, report, currentUserAccountID)} />;
         } else if (isSimpleMessageAction(action)) {
-            children = <SimpleMessageContent action={action} />;
+            children = (
+                <SimpleMessageContent
+                    action={action}
+                    report={report}
+                />
+            );
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.CORPORATE_UPGRADE) {
             children = <ReportActionItemBasicMessage message={translate('workspaceActions.upgradedWorkspace')} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.CORPORATE_FORCE_UPGRADE) {
