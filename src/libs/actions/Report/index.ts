@@ -7067,6 +7067,7 @@ function changeReportPolicyAndInviteSubmitter({
     employeeList,
     formatPhoneNumber,
     isReportLastVisibleArchived,
+    reportNextStep,
 }: {
     report: Report;
     parentReport: OnyxEntry<Report>;
@@ -7079,6 +7080,7 @@ function changeReportPolicyAndInviteSubmitter({
     employeeList: PolicyEmployeeList | undefined;
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     isReportLastVisibleArchived: boolean | undefined;
+    reportNextStep: OnyxEntry<ReportNextStepDeprecated>;
 }) {
     if (!report.reportID || !policy?.id || report.policyID === policy.id || !isExpenseReport(report) || !report.ownerAccountID) {
         return;
@@ -7126,7 +7128,7 @@ function changeReportPolicyAndInviteSubmitter({
         hasViolationsParam,
         isASAPSubmitBetaEnabled,
         isReportLastVisibleArchived,
-        undefined,
+        reportNextStep,
         membersChats.reportCreationData[submitterEmail],
     );
 
