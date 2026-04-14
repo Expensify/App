@@ -35,6 +35,7 @@ import {
     hasAccountingConnections,
     hasAccountingFeatureConnection,
     isControlPolicy,
+    isSubmitPolicy,
     isTimeTrackingEnabled,
 } from '@libs/PolicyUtils';
 import {enablePolicyCategories} from '@userActions/Policy/Category';
@@ -198,6 +199,10 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                 if (!policyID) {
                     return;
                 }
+                if (isEnabled && isSubmitPolicy(policy)) {
+                    Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.travel.alias, ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID)));
+                    return;
+                }
                 enablePolicyTravel(policyID, isEnabled);
             },
             onPress: () => {
@@ -216,6 +221,12 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
             disabled: (!!policy?.areExpensifyCardsEnabled && !!paymentBankAccountID) || !isEmptyObject(cardsList),
             action: (isEnabled: boolean) => {
                 if (!policyID) {
+                    return;
+                }
+                if (isEnabled && isSubmitPolicy(policy)) {
+                    Navigation.navigate(
+                        ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.expensifyCard.alias, ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID)),
+                    );
                     return;
                 }
                 enableExpensifyCard(policyID, isEnabled);
@@ -241,6 +252,10 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
         disabled: !isEmptyObject(getCompanyFeeds(cardFeeds)),
         action: (isEnabled: boolean) => {
             if (!policyID) {
+                return;
+            }
+            if (isEnabled && isSubmitPolicy(policy)) {
+                Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.companyCards.alias, ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID)));
                 return;
             }
             enableCompanyCards(policyID, isEnabled, true);
@@ -359,6 +374,10 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                 if (!policyID) {
                     return;
                 }
+                if (isEnabled && isSubmitPolicy(policy)) {
+                    Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.invoicing.alias, ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID)));
+                    return;
+                }
                 enablePolicyInvoicing(policyID, isEnabled);
             },
             onPress: () => {
@@ -452,6 +471,10 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
             },
             action: (isEnabled: boolean) => {
                 if (!policyID) {
+                    return;
+                }
+                if (isEnabled && isSubmitPolicy(policy)) {
+                    Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.accounting.alias, ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID)));
                     return;
                 }
                 enablePolicyConnections(policyID, isEnabled);

@@ -9,8 +9,9 @@ import useLocalize from '@hooks/useLocalize';
 import useReusablePoliciesConnectedToQBD from '@hooks/useReusablePoliciesConnectedToQBD';
 import {removePolicyConnection} from '@libs/actions/connections';
 import Navigation from '@libs/Navigation/Navigation';
-import {isControlPolicy} from '@libs/PolicyUtils';
+import {isControlPolicy, isSubmitPolicy} from '@libs/PolicyUtils';
 import {getAccountingIntegrationData} from '@pages/workspace/accounting/utils';
+import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type Policy from '@src/types/onyx/Policy';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
@@ -51,6 +52,10 @@ function AccountingContextProvider({children, policy}: AccountingContextProvider
                 undefined,
                 accountingIcons,
             );
+            if (isSubmitPolicy(policy)) {
+                Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.accounting.alias, ROUTES.POLICY_ACCOUNTING.getRoute(policyID)));
+                return;
+            }
             const workspaceUpgradeNavigationDetails = accountingIntegrationData?.workspaceUpgradeNavigationDetails;
             if (workspaceUpgradeNavigationDetails && !isControlPolicy(policy)) {
                 Navigation.navigate(
