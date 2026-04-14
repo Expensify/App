@@ -33,12 +33,12 @@ import {convertToDisplayString} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {
+    canEditWorkspaceSettings,
     canPolicyAccessFeature,
     shouldShowPolicy as checkIfShouldShowPolicy,
     goBackFromInvalidPolicy,
     hasAccountingFeatureConnection,
     hasPolicyCategoriesError,
-    canEditWorkspaceSettings,
     isGroupPolicy,
     isPaidGroupPolicy,
     isPendingDeletePolicy,

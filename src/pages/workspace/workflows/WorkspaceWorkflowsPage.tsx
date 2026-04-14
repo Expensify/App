@@ -47,10 +47,10 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import {getPaymentMethodDescription} from '@libs/PaymentUtils';
 import {getDisplayNameOrDefault, getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import {
+    canEditWorkspaceSettings,
     getCorrectedAutoReportingFrequency,
     hasDynamicExternalWorkflow,
     isControlPolicy,
-    canEditWorkspaceSettings,
     isGroupPolicy as isGroupPolicyUtil,
     isPaidGroupPolicy as isPaidGroupPolicyUtil,
     isPolicyAdmin as isPolicyAdminUtil,
