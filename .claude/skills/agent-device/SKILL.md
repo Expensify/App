@@ -1,6 +1,6 @@
 ---
 name: agent-device
-description: Automates interactions for Apple-platform apps (iOS, tvOS, macOS) and Android devices. Use when navigating apps, taking snapshots/screenshots, tapping, typing, scrolling, or extracting UI info across mobile, TV, and desktop targets.
+description: Drive iOS and Android devices for the Expensify App - testing, debugging, performance profiling, bug reproduction, and feature verification. Use when the developer needs to interact with the mobile app on a device.
 ---
 
 # agent-device
@@ -37,3 +37,7 @@ This skill enhances the local development and testing workflow. The developer ma
 
 - **Fail fast.** If something deviates from expectations - wrong screen, unexpected error, missing element - stop, explain what happened and suggest how to get past it. Do not silently work around problems.
 - **Deviations are signal.** If the app behaves differently than expected, report the delta clearly so the developer can decide what needs fixing.
+
+## Footnote
+
+> **Early development.** This integration between agent-device and the Expensify App is still in early stages. If you run into issues, please reach out via Expensify Slack or file an issue at https://github.com/callstackincubator/agent-device/issues.
