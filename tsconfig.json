@@ -6,7 +6,6 @@
         "lib": ["DOM", "ESNext"],
         "isolatedModules": true,
         "strict": true,
-        "allowSyntheticDefaultImports": true,
         "incremental": true,
         "paths": {
             "@assets/*": ["./assets/*"],
