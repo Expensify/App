@@ -1,6 +1,6 @@
 import {useRoute} from '@react-navigation/native';
 import {subYears} from 'date-fns';
-import React, {useCallback, useMemo} from 'react';
+import React, {useCallback, useEffect, useMemo} from 'react';
 import {View} from 'react-native';
 import DatePicker from '@components/DatePicker';
 import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
@@ -14,6 +14,7 @@ import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {clearDraftValues} from '@libs/actions/FormActions';
 import {normalizeCountryCode} from '@libs/CountryUtils';
 import {appendCountryCode} from '@libs/LoginUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -49,6 +50,13 @@ function PrivatePersonalDetailsPage() {
     const state = address?.state ?? '';
     const zip = address?.zip ?? '';
     const country = address?.country ?? '';
+
+    useEffect(
+        () => () => {
+            clearDraftValues(ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM);
+        },
+        [],
+    );
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM> => {
