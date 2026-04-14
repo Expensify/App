@@ -287,6 +287,10 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                                     component={ModalStackNavigators.ReportDescriptionModalStackNavigator}
                                 />
                                 <Stack.Screen
+                                    name={SCREENS.RIGHT_MODAL.CHRONOS_SCHEDULE_OOO}
+                                    component={ModalStackNavigators.ChronosScheduleOOOModalStackNavigator}
+                                />
+                                <Stack.Screen
                                     name={SCREENS.RIGHT_MODAL.REPORT_VERIFY_ACCOUNT}
                                     component={ModalStackNavigators.ReportVerifyAccountModalStackNavigator}
                                 />
