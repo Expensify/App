@@ -5,7 +5,6 @@ import {ModalActions} from '@components/Modal/Global/ModalContext';
 import PaymentCardDetails from '@components/PaymentCardDetails';
 import RenderHTML from '@components/RenderHTML';
 import Section from '@components/Section';
-import Text from '@components/Text';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useHasTeam2025Pricing from '@hooks/useHasTeam2025Pricing';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
@@ -16,7 +15,6 @@ import usePrivateSubscription from '@hooks/usePrivateSubscription';
 import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {requestRefund as requestRefundByUser} from '@libs/actions/User';
-import {convertToDisplayString} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {buildQueryStringFromFilterFormValues} from '@libs/SearchQueryUtils';
 import {hasCardAuthenticatedError, isUserOnFreeTrial, shouldShowDiscountBanner, shouldShowPreTrialBillingBanner, shouldShowTrialEndedUI} from '@libs/SubscriptionUtils';
@@ -69,7 +67,6 @@ function CardSection() {
     const [userBillingFundID] = useOnyx(ONYXKEYS.NVP_BILLING_FUND_ID);
     const [billingStatusOnyx] = useOnyx(ONYXKEYS.NVP_PRIVATE_BILLING_STATUS);
     const [amountOwed = 0] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
-    const [freebieCredits] = useOnyx(ONYXKEYS.NVP_PRIVATE_FREEBIE_CREDITS);
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [isGrandfatheredFree] = useOnyx(ONYXKEYS.NVP_PRIVATE_GRANDFATHERED_FREE);
@@ -260,12 +257,6 @@ function CardSection() {
                     onPress={viewPurchases}
                     sentryLabel={CONST.SENTRY_LABEL.SETTINGS_SUBSCRIPTION.VIEW_PAYMENT_HISTORY}
                 />
-            )}
-
-            {!!freebieCredits && freebieCredits > 0 && (
-                <Text style={[styles.mt3, styles.mb3, styles.ph5, styles.mutedNormalTextLabel]}>
-                    {translate('subscription.cardSection.creditsBalance', {amount: convertToDisplayString(freebieCredits, defaultCard?.accountData?.currency ?? CONST.CURRENCY.USD)})}
-                </Text>
             )}
 
             {!!(subscriptionPlan && account?.isEligibleForRefund) && (
