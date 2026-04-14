@@ -10,7 +10,7 @@ import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import {createNewReport} from '@libs/actions/Report';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
-import getCreateReportRoute, {getReportsRootRoute} from '@libs/Navigation/helpers/getCreateReportRoute';
+import getCreateReportRoute, {navigateToCreateReportWorkspaceSelection, navigateToReportsRoot} from '@libs/Navigation/helpers/getCreateReportRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {getDefaultChatEnabledPolicy, isPaidGroupPolicy, shouldShowPolicy} from '@libs/PolicyUtils';
 import {hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
@@ -101,9 +101,9 @@ function CreateReportMenuItem() {
         );
         // Navigate to the Reports page first so getCreateReportRoute() resolves against
         // the Search/Reports fullscreen context before opening the created report modal.
-        Navigation.navigate(getReportsRootRoute());
+        navigateToReportsRoot({forceReplace: isReportInSearch});
         Navigation.setNavigationActionToMicrotaskQueue(() => {
-            Navigation.navigate(getCreateReportRoute({reportID: createdReportID, shouldUseNarrowLayout}), {forceReplace: isReportInSearch});
+            Navigation.navigate(getCreateReportRoute({reportID: createdReportID}), {forceReplace: isReportInSearch});
         });
     };
 
@@ -138,12 +138,7 @@ function CreateReportMenuItem() {
                         (shouldRestrictUserBillableActions(workspaceIDForReportCreation, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed) &&
                             groupPoliciesWithChatEnabled.length > 1)
                     ) {
-                        // Navigate to the Reports page first so workspace selection continues from
-                        // the Search/Reports fullscreen context before opening the created report modal.
-                        Navigation.navigate(getReportsRootRoute());
-                        Navigation.setNavigationActionToMicrotaskQueue(() => {
-                            Navigation.navigate(ROUTES.NEW_REPORT_WORKSPACE_SELECTION.getRoute());
-                        });
+                        navigateToCreateReportWorkspaceSelection({forceReplace: isReportInSearch});
                         return;
                     }
 
