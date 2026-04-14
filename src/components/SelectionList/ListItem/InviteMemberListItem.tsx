@@ -21,6 +21,10 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import BaseListItem from './BaseListItem';
 import type {InviteMemberListItemProps, ListItem} from './types';
 
+/**
+ * A user row with avatar, name, and subtitle used for person selection and invitation. Adds
+ * secondary-login footers and product training tooltips on top of the standard user row layout.
+ */
 function InviteMemberListItem<TItem extends ListItem>({
     item,
     isFocused,

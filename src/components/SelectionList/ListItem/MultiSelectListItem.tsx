@@ -7,8 +7,8 @@ import BaseSelectListItem from './BaseSelectListItem';
 import type {ListItem, MultiSelectListItemProps} from './types';
 
 /**
- * MultiSelectListItem extends BaseSelectListItem with multi-selection support.
- * Renders an avatar when icons are provided.
+ * A compact row with a checkbox and optional avatar, used in multi-choice picker lists
+ * (e.g. search filters, feature toggles, category selection).
  */
 function MultiSelectListItem<TItem extends ListItem>({
     item,

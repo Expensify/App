@@ -21,6 +21,10 @@ import SplitAmountDisplay from './SplitListItem/SplitAmountDisplay';
 import SplitListItemInput from './SplitListItem/SplitListItemInput';
 import type {SplitListItemProps, SplitListItemType} from './types';
 
+/**
+ * A rich row showing merchant, date, category/tags, and an editable amount or percentage input.
+ * Used in split expense flows to allocate amounts across participants.
+ */
 function SplitListItem<TItem extends ListItem>({
     item,
     isFocused,

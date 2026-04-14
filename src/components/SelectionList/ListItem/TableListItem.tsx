@@ -10,6 +10,10 @@ import CONST from '@src/CONST';
 import BaseListItem from './BaseListItem';
 import type {ListItem, TableListItemProps} from './types';
 
+/**
+ * A pressable row styled as a table entry with animated highlight, optional avatar, and
+ * right caret. Used in workspace management lists (e.g. members, categories, tags, taxes).
+ */
 function TableListItem<TItem extends ListItem>({
     item,
     isFocused,

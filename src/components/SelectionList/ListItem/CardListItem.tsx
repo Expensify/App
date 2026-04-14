@@ -29,6 +29,10 @@ type AdditionalCardProps = {
 };
 type CardListItemProps<TItem extends ListItem> = BaseListItemProps<TItem & AdditionalCardProps>;
 
+/**
+ * A row with a bank/card icon (or owner avatar with card miniature), card name, and last-four
+ * subtitle. Used in card selection and filtering (e.g. search filters, spend rules).
+ */
 function CardListItem<TItem extends ListItem>({
     item,
     isFocused,

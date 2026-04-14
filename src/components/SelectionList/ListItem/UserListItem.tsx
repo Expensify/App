@@ -23,6 +23,10 @@ import type {ListItem, UserListItemProps} from './types';
 
 const reportExistsSelector = (report: OnyxEntry<Report>) => !!report;
 
+/**
+ * A row with user/workspace avatar(s), display name, and optional subtitle. Used broadly for
+ * user and workspace selection (e.g. task assignee, workspace picker, card assignee, delegates).
+ */
 function UserListItem<TItem extends ListItem>({
     item,
     isFocused,

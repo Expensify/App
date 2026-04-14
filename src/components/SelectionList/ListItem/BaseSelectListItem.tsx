@@ -7,6 +7,10 @@ import CONST from '@src/CONST';
 import BaseListItem from './BaseListItem';
 import type {BaseSelectListItemProps, ListItem} from './types';
 
+/**
+ * A text-only row with a title and optional subtitle, built on BaseListItem. Serves as the
+ * base for SingleSelectListItem and MultiSelectListItem.
+ */
 function BaseSelectListItem<TItem extends ListItem>({
     item,
     isFocused,

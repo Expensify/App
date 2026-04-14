@@ -4,8 +4,8 @@ import BaseSelectListItem from './BaseSelectListItem';
 import type {ListItem, SingleSelectListItemProps} from './types';
 
 /**
- * SingleSelectListItem mirrors the behavior of a default BaseSelectListItem, but adds support
- * for the new style of single selection lists.
+ * A standard row with an optional (but default) radio button, used in single-choice picker lists
+ * (e.g. language, theme, timezone).
  */
 function SingleSelectListItem<TItem extends ListItem>({
     item,

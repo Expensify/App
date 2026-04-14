@@ -7,6 +7,10 @@ import CONST from '@src/CONST';
 import BaseListItem from './BaseListItem';
 import type {ListItem, TravelDomainListItemProps} from './types';
 
+/**
+ * A text row with a left-side checkbox and an optional "Recommended" badge. Used in the
+ * travel domain selector for choosing booking domains.
+ */
 function TravelDomainListItem<TItem extends ListItem>({
     item,
     isFocused,

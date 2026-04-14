@@ -66,6 +66,10 @@ function getAccessibilityProps<TItem extends ListItem>({
     } satisfies CalculatedAccessibilityProps;
 }
 
+/**
+ * The foundational pressable row that all list items build on. Handles press/hover/focus states,
+ * selection buttons (radio or checkbox), error indicators, and accessibility roles.
+ */
 function BaseListItem<TItem extends ListItem>({
     item,
     pressableStyle,

@@ -12,6 +12,10 @@ import CONST from '@src/CONST';
 import BaseListItem from './BaseListItem';
 import type {ListItem, UserSelectionListItemProps} from './types';
 
+/**
+ * A compact single-line row with avatar, display name, and handle side by side. Used for
+ * user selection in search participant filters.
+ */
 function UserSelectionListItem<TItem extends ListItem>({
     item,
     isFocused,
