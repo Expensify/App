@@ -4626,6 +4626,7 @@ export {
     getLastVisibleAction,
     getLastVisibleActionIncludingTransactionThread,
     getLastVisibleMessage,
+    getLastVisibleNonSystemAction,
     getLatestReportActionFromOnyxData,
     getLinkedTransactionID,
     getMarkedReimbursedMessage,
