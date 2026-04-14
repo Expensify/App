@@ -48,7 +48,7 @@ function PolicyDistanceRateDetailsPage({route}: PolicyDistanceRateDetailsPagePro
     const policyReportsSelector = useCallback(
         (reports: OnyxCollection<Report>) => {
             return Object.values(reports ?? {}).reduce((reportIDs, report) => {
-                if (report && report.policyID === policyID) {
+                if (report?.policyID === policyID) {
                     reportIDs.add(report.reportID);
                 }
                 return reportIDs;
@@ -65,8 +65,7 @@ function PolicyDistanceRateDetailsPage({route}: PolicyDistanceRateDetailsPagePro
         (transactions: OnyxCollection<Transaction>) => {
             return Object.values(transactions ?? {}).reduce((transactionIDs, transaction) => {
                 if (
-                    transaction &&
-                    transaction.reportID &&
+                    transaction?.reportID &&
                     policyReports?.has(transaction.reportID) &&
                     customUnitID &&
                     transaction?.comment?.customUnit?.customUnitID === customUnitID &&

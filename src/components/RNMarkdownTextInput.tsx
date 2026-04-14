@@ -37,7 +37,7 @@ function RNMarkdownTextInputWithRef({maxLength, parser, ref, forwardedFSClass = 
     React.useImperativeHandle<AnimatedMarkdownTextInputRef | null, AnimatedMarkdownTextInputRef | null>(ref, () => inputRef.current);
 
     // Check if the cursor is at the end of the text
-    const isCursorAtEnd = props.selection && props.value && props.selection.start === props.value.length;
+    const isCursorAtEnd = props.selection && props.selection.start === props.value?.length;
 
     // Automatically scroll to the end if the cursor was at the end after value changes
     useEffect(() => {

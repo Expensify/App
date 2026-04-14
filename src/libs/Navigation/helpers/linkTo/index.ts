@@ -46,7 +46,7 @@ function arePathAndBackToEqual(stateFromPath: PartialState<NavigationState<RootN
 }
 
 function shouldCheckFullScreenRouteMatching(action: StackNavigationAction): action is StackNavigationAction & {type: 'PUSH'; payload: {name: typeof NAVIGATORS.RIGHT_MODAL_NAVIGATOR}} {
-    return action !== undefined && action.type === 'PUSH' && action.payload.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR;
+    return action?.type === 'PUSH' && action.payload.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR;
 }
 
 function isNavigatingToAttachmentScreen(focusedRouteName?: string) {

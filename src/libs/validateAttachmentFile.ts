@@ -78,7 +78,7 @@ async function validateAttachmentFile(file: FileObject, item?: DataTransferItem,
 }
 
 function isDataTransferItemDirectory(item: DataTransferItem | undefined) {
-    if (item && item.kind === 'file' && 'webkitGetAsEntry' in item && item.webkitGetAsEntry()?.isDirectory) {
+    if (item?.kind === 'file' && 'webkitGetAsEntry' in item && item.webkitGetAsEntry()?.isDirectory) {
         return true;
     }
 
