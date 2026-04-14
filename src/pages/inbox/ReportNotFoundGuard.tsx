@@ -20,18 +20,22 @@ type ReportNotFoundGuardProps = {
     children: ReactNode;
 };
 
+/**
+ * The outer guard subscribes to lightweight keys and handles
+ * all "obvious" not-found cases (invalid path, report missing after load).
+ *
+ */
 // eslint-disable-next-line rulesdir/no-negated-variables
 function ReportNotFoundGuard({children}: ReportNotFoundGuardProps) {
-    const styles = useThemeStyles();
     const route = useRoute();
+    const styles = useThemeStyles();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const routeParams = route.params as {reportID?: string} | undefined;
     const reportIDFromRoute = getNonEmptyStringOnyxID(routeParams?.reportID);
 
     const {isOffline} = useNetwork();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDFromRoute}`);
-    const [parentReportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report?.parentReportID}`);
     const [userLeavingStatus = false] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_USER_IS_LEAVING_ROOM}${reportIDFromRoute}`);
     const [isLoadingInitialReportActions = true] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportIDFromRoute}`, {
         selector: isLoadingInitialReportActionsSelector,
@@ -40,31 +44,19 @@ function ReportNotFoundGuard({children}: ReportNotFoundGuardProps) {
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const [deleteTransactionNavigateBackUrl] = useOnyx(ONYXKEYS.NVP_DELETE_TRANSACTION_NAVIGATE_BACK_URL);
 
-    const parentReportAction = useParentReportAction(report);
     const reportID = report?.reportID;
     const isOptimisticDelete = report?.statusNum === CONST.REPORT.STATUS_NUM.CLOSED;
-
-    const {isParentActionMissingAfterLoad, isParentActionDeleted} = getParentReportActionDeletionStatus({
-        parentReportID: report?.parentReportID,
-        parentReportActionID: report?.parentReportActionID,
-        parentReportAction,
-        parentReportMetadata,
-        isOffline,
-    });
-    const isDeletedTransactionThread = isReportTransactionThread(report) && (isParentActionDeleted || isParentActionMissingAfterLoad);
-
     const isInvalidReportPath = !!routeParams?.reportID && !isValidReportIDFromPath(routeParams.reportID);
     const isLoading = isLoadingApp !== false || isLoadingReportData || (!isOffline && !!isLoadingInitialReportActions);
-    const reportExists = !!reportID || (!isDeletedTransactionThread && isOptimisticDelete) || userLeavingStatus;
+    const reportExists = !!reportID || isOptimisticDelete || userLeavingStatus;
 
     // eslint-disable-next-line rulesdir/no-negated-variables
-    const shouldShowNotFoundPage = !deleteTransactionNavigateBackUrl && (isDeletedTransactionThread || isInvalidReportPath || (!isLoading && !reportExists));
+    const shouldShowNotFoundPage = !deleteTransactionNavigateBackUrl && (isInvalidReportPath || (!isLoading && !reportExists));
 
     useEffect(() => {
         if (!shouldShowNotFoundPage) {
             return;
         }
-
         Log.info('[ReportScreen] Displaying NotFound Page', false, {
             isLoadingApp,
             isLoadingReportData,
@@ -75,9 +67,6 @@ function ReportNotFoundGuard({children}: ReportNotFoundGuardProps) {
             userLeavingStatus,
             reportIDFromPath: routeParams?.reportID,
             deleteTransactionNavigateBackUrl,
-            isDeletedTransactionThread,
-            isParentActionDeleted,
-            isParentActionMissingAfterLoad,
         });
     }, [
         shouldShowNotFoundPage,
@@ -90,10 +79,72 @@ function ReportNotFoundGuard({children}: ReportNotFoundGuardProps) {
         userLeavingStatus,
         routeParams?.reportID,
         deleteTransactionNavigateBackUrl,
-        isDeletedTransactionThread,
-        isParentActionDeleted,
-        isParentActionMissingAfterLoad,
     ]);
+
+    if (shouldShowNotFoundPage) {
+        return (
+            <FullPageNotFoundView
+                shouldShow
+                subtitleKey="notFound.noAccess"
+                subtitleStyle={[styles.textSupporting]}
+                shouldShowBackButton={shouldUseNarrowLayout}
+                onBackButtonPress={Navigation.goBack}
+                shouldShowLink={false}
+                shouldDisplaySearchRouter
+            >
+                {children}
+            </FullPageNotFoundView>
+        );
+    }
+
+    if (!deleteTransactionNavigateBackUrl && isReportTransactionThread(report)) {
+        return <ReportNotFoundInnerGuard reportIDFromPath={routeParams?.reportID}>{children}</ReportNotFoundInnerGuard>;
+    }
+
+    return children;
+}
+
+type ReportNotFoundInnerGuardProps = {
+    reportIDFromPath: string | undefined;
+    children: ReactNode;
+};
+
+/**
+ * Inner guard for transaction threads only. Subscribes to the expensive
+ * parentReportMetadata and parentReportAction to detect deleted parent actions.
+ */
+// eslint-disable-next-line rulesdir/no-negated-variables
+function ReportNotFoundInnerGuard({reportIDFromPath, children}: ReportNotFoundInnerGuardProps) {
+    const styles = useThemeStyles();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {isOffline} = useNetwork();
+
+    const reportIDFromRoute = getNonEmptyStringOnyxID(reportIDFromPath);
+
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDFromRoute}`);
+    const [parentReportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report?.parentReportID}`);
+    const parentReportAction = useParentReportAction(report);
+
+    const {isParentActionMissingAfterLoad, isParentActionDeleted} = getParentReportActionDeletionStatus({
+        parentReportID: report?.parentReportID,
+        parentReportActionID: report?.parentReportActionID,
+        parentReportAction,
+        parentReportMetadata,
+        isOffline,
+    });
+    // eslint-disable-next-line rulesdir/no-negated-variables
+    const shouldShowNotFoundPage = isParentActionDeleted || isParentActionMissingAfterLoad;
+
+    useEffect(() => {
+        if (!shouldShowNotFoundPage) {
+            return;
+        }
+        Log.info('[ReportScreen] Displaying NotFound Page (deleted transaction thread)', false, {
+            reportIDFromPath,
+            isParentActionDeleted,
+            isParentActionMissingAfterLoad,
+        });
+    }, [shouldShowNotFoundPage, reportIDFromPath, isParentActionDeleted, isParentActionMissingAfterLoad]);
 
     return (
         <FullPageNotFoundView
