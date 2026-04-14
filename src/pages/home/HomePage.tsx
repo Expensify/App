@@ -40,46 +40,64 @@ function HomePage() {
     useConfirmReadyToOpenApp();
 
     return (
-        <View
-            ref={receiptDropTargetRef}
-            style={styles.flex1}
-        >
-            <ScreenWrapper
-                shouldEnablePickerAvoiding={false}
-                shouldShowOfflineIndicatorInWideScreen
-                testID="HomePage"
-                enableEdgeToEdgeBottomSafeAreaPadding={false}
-                bottomContent={<TabBarBottomContent selectedTab={NAVIGATION_TABS.HOME} />}
-                bottomContentStyle={styles.overflowVisible}
+        <View style={styles.flex1}>
+            <View
+                ref={receiptDropTargetRef}
+                style={styles.flex1}
             >
-                <TopBar
-                    breadcrumbLabel={translate('common.home')}
-                    shouldShowLoadingBar={isForYouLoading}
-                    shouldDisplayHelpButton
-                />
-                <ScrollView
-                    contentContainerStyle={styles.homePageContentContainer}
-                    addBottomSafeAreaPadding
+                <ScreenWrapper
+                    shouldEnablePickerAvoiding={false}
+                    shouldShowOfflineIndicatorInWideScreen
+                    testID="HomePage"
+                    enableEdgeToEdgeBottomSafeAreaPadding={false}
+                    bottomContent={<TabBarBottomContent selectedTab={NAVIGATION_TABS.HOME} />}
+                    bottomContentStyle={styles.overflowVisible}
                 >
-                    {!shouldUseNarrowLayout && <QuickCreationActionsBar />}
-                    <View style={styles.homePageMainLayout(shouldUseNarrowLayout)}>
-                        {/* Widgets handle their own visibility and may return null to avoid duplicating visibility logic here */}
-                        <View style={styles.homePageLeftColumn(shouldUseNarrowLayout)}>
-                            <TimeSensitiveSection />
-                            <ForYouSection />
-                            <SpendOverTimeSection />
-                            <DiscoverSection />
+                    <TopBar
+                        breadcrumbLabel={translate('common.home')}
+                        shouldShowLoadingBar={isForYouLoading}
+                        shouldDisplayHelpButton
+                    />
+                    <ScrollView
+                        contentContainerStyle={styles.homePageContentContainer}
+                        addBottomSafeAreaPadding
+                    >
+                        {!shouldUseNarrowLayout && <QuickCreationActionsBar />}
+                        <View style={styles.homePageMainLayout(shouldUseNarrowLayout)}>
+                            {/* Widgets handle their own visibility and may return null to avoid duplicating visibility logic here */}
+                            {shouldUseNarrowLayout ? (
+                                <>
+                                    <FreeTrialSection />
+                                    <TimeSensitiveSection />
+                                    <GettingStartedSection />
+                                    <ForYouSection />
+                                    <UpcomingTravelSection />
+                                    <AssignedCardsSection />
+                                    <SpendOverTimeSection />
+                                    <DiscoverSection />
+                                    <AnnouncementSection />
+                                </>
+                            ) : (
+                                <>
+                                    <View style={styles.homePageLeftColumn}>
+                                        <TimeSensitiveSection />
+                                        <ForYouSection />
+                                        <SpendOverTimeSection />
+                                        <DiscoverSection />
+                                    </View>
+                                    <View style={styles.homePageRightColumn}>
+                                        <FreeTrialSection />
+                                        <GettingStartedSection />
+                                        <UpcomingTravelSection />
+                                        <AssignedCardsSection />
+                                        <AnnouncementSection />
+                                    </View>
+                                </>
+                            )}
                         </View>
-                        <View style={styles.homePageRightColumn(shouldUseNarrowLayout)}>
-                            <FreeTrialSection />
-                            <GettingStartedSection />
-                            <UpcomingTravelSection />
-                            <AssignedCardsSection />
-                            <AnnouncementSection />
-                        </View>
-                    </View>
-                </ScrollView>
-            </ScreenWrapper>
+                    </ScrollView>
+                </ScreenWrapper>
+            </View>
             <ReceiptScanDropZone
                 targetRef={receiptDropTargetRef}
                 dropWrapperStyle={shouldUseNarrowLayout ? {marginBottom: variables.bottomTabHeight} : undefined}
