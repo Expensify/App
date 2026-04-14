@@ -2520,7 +2520,7 @@ ${amount} para ${merchant} - ${date}`,
         frozenByAdminNeedsUnfreezeSuffix: '. Entre em contato com um administrador para desbloqueá-lo.',
         frozenByAdminNeedsUnfreeze: ({person}: {person: string}) => `Este cartão foi bloqueado por ${person}. Entre em contato com um administrador para desbloqueá-lo.`,
         spendRules: 'Regras de gasto',
-        editSpendRules: 'Editar regras de gasto',
+        editSpendRules: 'Editar regras de gastos',
     },
     workflowsPage: {
         workflowTitle: 'Gastos',
@@ -6843,7 +6843,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                 currencyMismatchTitle: 'Incompatibilidade de moeda',
                 currencyMismatchPrompt: 'Para definir um valor máximo, selecione cartões que liquidem na mesma moeda.',
                 reviewSelectedCards: 'Revisar cartões selecionados',
-                summaryMoreCount: ({summary, count}) => (count > 0 ? `${summary}, +${count} mais` : summary),
+                summaryMoreCount: ({summary, count}: {summary: string; count: number}) => (count > 0 ? `${summary}, +${count} mais` : summary),
                 confirmErrorApplyAtLeastOneSpendRuleToOneCard: 'Aplicar pelo menos uma regra de gasto a um cartão',
                 confirmErrorCardRequired: 'O campo Cartão é obrigatório',
                 confirmErrorApplyAtLeastOneSpendRule: 'Aplicar pelo menos uma regra de gasto',
@@ -6878,6 +6878,30 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                 editRuleTitle: 'Editar regra',
                 deleteRule: 'Excluir regra',
                 deleteRuleConfirmation: 'Tem certeza de que quer excluir esta regra?',
+                summaryMerchants: ({
+                    merchants,
+                    hiddenCount,
+                    shownCount,
+                    action,
+                }: {
+                    merchants: string;
+                    hiddenCount: number;
+                    shownCount: number;
+                    action: ValueOf<typeof CONST.SPEND_RULES.ACTION>;
+                }) =>
+                    `${action === CONST.SPEND_RULES.ACTION.BLOCK ? 'Bloqueado' : 'Permitido'} ${shownCount > 1 ? 'comerciantes' : 'estabelecimento'}: ${merchants}${hiddenCount > 0 ? `, +${hiddenCount} mais` : ''}`,
+                summaryCategories: ({
+                    categories,
+                    hiddenCount,
+                    shownCount,
+                    action,
+                }: {
+                    categories: string;
+                    hiddenCount: number;
+                    shownCount: number;
+                    action: ValueOf<typeof CONST.SPEND_RULES.ACTION>;
+                }) =>
+                    `${action === CONST.SPEND_RULES.ACTION.BLOCK ? 'Bloqueado' : 'Permitido'} ${shownCount > 1 ? 'categorias' : 'categoria'}: ${categories}${hiddenCount > 0 ? `, +${hiddenCount} mais` : ''}`,
             },
         },
         planTypePage: {
