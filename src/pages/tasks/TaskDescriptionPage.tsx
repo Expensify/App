@@ -17,7 +17,7 @@ import useOnyx from '@hooks/useOnyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {addErrorMessage} from '@libs/ErrorUtils';
-import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
+import dismissModalForCurrentContext from '@libs/Navigation/helpers/dismissModalForCurrentContext';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportDescriptionNavigatorParamList} from '@libs/Navigation/types';
@@ -63,23 +63,14 @@ function TaskDescriptionPage({report, currentUserPersonalDetails}: TaskDescripti
                 editTask(report, {description: values.description}, delegateEmail);
             }
 
-            if (isSearchTopmostFullScreenRoute()) {
-                Navigation.dismissModal();
-                return;
-            }
-
-            Navigation.dismissModalWithReport({reportID: report?.reportID});
+            dismissModalForCurrentContext(report?.reportID);
         },
         [report, delegateEmail],
     );
 
     if (!isTaskReport(report)) {
         Navigation.isNavigationReady().then(() => {
-            if (isSearchTopmostFullScreenRoute()) {
-                Navigation.dismissModal();
-                return;
-            }
-            Navigation.dismissModalWithReport({reportID: report?.reportID});
+            dismissModalForCurrentContext(report?.reportID);
         });
     }
     const inputRef = useRef<AnimatedTextInputRef | null>(null);
