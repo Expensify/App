@@ -3,6 +3,7 @@
         "module": "node16",
         "moduleResolution": "node16",
         "target": "ES2023",
+        "rootDir": "..",
         "types": ["node"],
         "strict": true,
         "paths": {
