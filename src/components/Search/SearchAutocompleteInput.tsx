@@ -202,7 +202,7 @@ function SearchAutocompleteInput({
 
     return (
         <View style={[outerWrapperStyle]}>
-            <Animated.View style={[styles.flex1, wrapperStyle ?? styles.searchRouterTextInputContainer, wrapperAnimatedStyle, wrapperBorderColorAnimatedStyle]}>
+            <Animated.View style={[wrapperStyle ?? styles.searchRouterTextInputContainer, wrapperAnimatedStyle, wrapperBorderColorAnimatedStyle]}>
                 <TextInput
                     testID="search-autocomplete-text-input"
                     value={value}
