@@ -35,7 +35,6 @@ Use this skill as a router with mandatory defaults. Read this file first. For no
 
 ## QA modes
 
-- Open-ended bug hunt with reporting: use [../dogfood/SKILL.md](../dogfood/SKILL.md).
 - Pass/fail QA from acceptance criteria: stay in this skill, start with [references/bootstrap-install.md](references/bootstrap-install.md), then use the QA loop in [references/exploration.md](references/exploration.md).
 
 ## Required references
@@ -68,5 +67,3 @@ Use this skill as a router with mandatory defaults. Read this file first. For no
 
 - Need logs, network, alerts, permissions, or failure triage: [references/debugging.md](references/debugging.md)
 - Need screenshots, diff, recording, replay maintenance, or perf data: [references/verification.md](references/verification.md)
-- Need desktop surfaces, menu bar behavior, or macOS-specific interaction rules: [references/macos-desktop.md](references/macos-desktop.md)
-- Need remote HTTP transport, `--remote-config` launches, or tenant leases on a remote macOS host: [references/remote-tenancy.md](references/remote-tenancy.md)
