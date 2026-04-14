@@ -1,7 +1,7 @@
 import Navigation from '@libs/Navigation/Navigation';
 import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import CONST from '@src/CONST';
-import getCreateReportRoute, {getReportsRootRoute, navigateToCreateReportWorkspaceSelection, navigateToReportsRoot} from '@src/libs/Navigation/helpers/getCreateReportRoute';
+import getCreateReportRoute, {getReportsRootRoute, navigateToCreateReportWorkspaceSelection} from '@src/libs/Navigation/helpers/getCreateReportRoute';
 import isSearchTopmostFullScreenRoute from '@src/libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import ROUTES from '@src/ROUTES';
 
@@ -47,13 +47,6 @@ describe('getCreateReportRoute', () => {
 
     it('returns the default report route when Search is not the topmost fullscreen route', () => {
         expect(getCreateReportRoute({reportID: '42'})).toBe(ROUTES.REPORT_WITH_ID.getRoute('42', undefined, undefined, 'workspace/123'));
-    });
-
-    it('navigates to the Reports search root', () => {
-        navigateToReportsRoot({forceReplace: true});
-
-        expect(mockNavigate).toHaveBeenCalledTimes(1);
-        expect(mockNavigate).toHaveBeenCalledWith(getReportsRootRoute(), {forceReplace: true});
     });
 
     it('navigates to the Reports search root and then opens workspace selection in the microtask queue', () => {

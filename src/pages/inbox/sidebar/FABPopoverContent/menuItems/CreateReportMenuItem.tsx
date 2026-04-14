@@ -10,7 +10,7 @@ import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import {createNewReport} from '@libs/actions/Report';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
-import getCreateReportRoute, {navigateToCreateReportWorkspaceSelection, navigateToReportsRoot} from '@libs/Navigation/helpers/getCreateReportRoute';
+import getCreateReportRoute, {getReportsRootRoute, navigateToCreateReportWorkspaceSelection} from '@libs/Navigation/helpers/getCreateReportRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {getDefaultChatEnabledPolicy, isPaidGroupPolicy, shouldShowPolicy} from '@libs/PolicyUtils';
 import {hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
@@ -101,7 +101,7 @@ function CreateReportMenuItem() {
         );
         // Navigate to the Reports page first so getCreateReportRoute() resolves against
         // the Search/Reports fullscreen context before opening the created report modal.
-        navigateToReportsRoot({forceReplace: isReportInSearch});
+        Navigation.navigate(getReportsRootRoute(), {forceReplace: isReportInSearch});
         Navigation.setNavigationActionToMicrotaskQueue(() => {
             Navigation.navigate(getCreateReportRoute({reportID: createdReportID}), {forceReplace: isReportInSearch});
         });

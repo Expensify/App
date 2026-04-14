@@ -16,12 +16,8 @@ function getReportsRootRoute() {
     });
 }
 
-function navigateToReportsRoot(options?: LinkToOptions) {
-    Navigation.navigate(getReportsRootRoute(), options);
-}
-
 function navigateToCreateReportWorkspaceSelection(options?: LinkToOptions) {
-    navigateToReportsRoot(options);
+    Navigation.navigate(getReportsRootRoute(), options);
     Navigation.setNavigationActionToMicrotaskQueue(() => {
         Navigation.navigate(ROUTES.NEW_REPORT_WORKSPACE_SELECTION.getRoute());
     });
@@ -38,4 +34,4 @@ function getCreateReportRoute({reportID}: GetCreateReportRouteParams): Route {
 }
 
 export default getCreateReportRoute;
-export {getReportsRootRoute, navigateToReportsRoot, navigateToCreateReportWorkspaceSelection};
+export {getReportsRootRoute, navigateToCreateReportWorkspaceSelection};
