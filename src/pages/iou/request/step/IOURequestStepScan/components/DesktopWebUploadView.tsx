@@ -20,21 +20,12 @@ type DesktopWebUploadViewProps = {
     PDFValidationComponent: React.ReactNode;
     shouldAcceptMultipleFiles: boolean;
     isReplacingReceipt: boolean;
-    onLayout: () => void;
     validateFiles: (files: FileObject[], items?: DataTransferItem[]) => void;
     onBackButtonPress: () => void;
     shouldShowWrapper: boolean;
 };
 
-function DesktopWebUploadView({
-    PDFValidationComponent,
-    shouldAcceptMultipleFiles,
-    isReplacingReceipt,
-    onLayout,
-    validateFiles,
-    onBackButtonPress,
-    shouldShowWrapper,
-}: DesktopWebUploadViewProps) {
+function DesktopWebUploadView({PDFValidationComponent, shouldAcceptMultipleFiles, isReplacingReceipt, validateFiles, onBackButtonPress, shouldShowWrapper}: DesktopWebUploadViewProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -77,7 +68,6 @@ function DesktopWebUploadView({
                 <View
                     onLayout={(event) => {
                         setContainerHeight(event.nativeEvent.layout.height);
-                        onLayout();
                     }}
                     style={[styles.flex1, styles.chooseFilesView(false)]}
                 >

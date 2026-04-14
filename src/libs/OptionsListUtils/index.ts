@@ -2400,37 +2400,13 @@ function prepareReportOptionsForDisplay(
 }
 
 /**
- * Whether user submitted already an expense or scanned receipt
- */
-function getIsUserSubmittedExpenseOrScannedReceipt(nvpDismissedProductTraining: OnyxEntry<DismissedProductTraining>): boolean {
-    return !!nvpDismissedProductTraining?.[CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP];
-}
-
-/**
- * Whether the report is a Manager McTest report
- */
-function isManagerMcTestReport(report: SearchOption<Report>): boolean {
-    return report.participantsList?.some((participant) => participant.accountID === CONST.ACCOUNT_ID.MANAGER_MCTEST) ?? false;
-}
-
-/**
  * Returns a list of logins that should be restricted (i.e., hidden or excluded in the UI)
  * based on dynamic business logic and feature flags.
  * Centralizes restriction logic to avoid scattering conditions across the codebase.
  */
-function getRestrictedLogins(
-    config: GetOptionsConfig,
-    options: OptionList,
-    canShowManagerMcTest: boolean,
-    nvpDismissedProductTraining: OnyxEntry<DismissedProductTraining>,
-): Record<string, boolean> {
-    const userHasReportWithManagerMcTest = Object.values(options.reports).some((report) => isManagerMcTestReport(report));
+function getRestrictedLogins(config: GetOptionsConfig, canShowManagerMcTest: boolean): Record<string, boolean> {
     return {
-        [CONST.EMAIL.MANAGER_MCTEST]:
-            !canShowManagerMcTest ||
-            (getIsUserSubmittedExpenseOrScannedReceipt(nvpDismissedProductTraining) && !userHasReportWithManagerMcTest) ||
-            !Permissions.isBetaEnabled(CONST.BETAS.NEWDOT_MANAGER_MCTEST, config.betas) ||
-            isCurrentUserMemberOfAnyPolicy(),
+        [CONST.EMAIL.MANAGER_MCTEST]: !canShowManagerMcTest || !Permissions.isBetaEnabled(CONST.BETAS.NEWDOT_MANAGER_MCTEST, config.betas) || isCurrentUserMemberOfAnyPolicy(),
     };
 }
 
@@ -2472,7 +2448,7 @@ function getValidOptions(
         ...config
     }: GetOptionsConfig = {},
 ): Options {
-    const restrictedLogins = getRestrictedLogins(config, options, canShowManagerMcTest, nvpDismissedProductTraining);
+    const restrictedLogins = getRestrictedLogins(config, canShowManagerMcTest);
 
     // Gather shared configs:
     // Hard exclusions: cannot be selected at all
@@ -3446,7 +3422,6 @@ export {
     getHeaderMessageForNonUserList,
     getIOUConfirmationOptionsFromPayeePersonalDetail,
     getIOUReportIDOfLastAction,
-    getIsUserSubmittedExpenseOrScannedReceipt,
     getLastActorDisplayName,
     getLastActorDisplayNameFromLastVisibleActions,
     getLastMessageTextForReport,

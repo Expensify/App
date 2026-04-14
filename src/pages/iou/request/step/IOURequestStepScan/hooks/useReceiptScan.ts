@@ -1,7 +1,6 @@
 import shouldStartLocationPermissionFlowSelector from '@selectors/LocationPermission';
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import {useMemo, useState} from 'react';
-import TestReceipt from '@assets/images/fake-receipt.png';
 import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
 import useFilesValidation from '@hooks/useFilesValidation';
 import useOnyx from '@hooks/useOnyx';
@@ -15,7 +14,6 @@ import useReportAttributes from '@hooks/useReportAttributes';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useSelfDMReport from '@hooks/useSelfDMReport';
 import {getMoneyRequestParticipantOptions, handleMoneyRequestStepScanParticipants} from '@libs/actions/IOU/MoneyRequest';
-import setTestReceipt from '@libs/actions/setTestReceipt';
 import {isPolicyExpenseChat} from '@libs/ReportUtils';
 import {getSpan, startSpan} from '@libs/telemetry/activeSpans';
 import {getDefaultTaxCode, getTaxValue, hasReceipt, shouldReuseInitialTransaction} from '@libs/TransactionUtils';
@@ -158,14 +156,6 @@ function useReceiptScan({
         });
     }
 
-    function setTestReceiptAndNavigate() {
-        setTestReceipt(TestReceipt, 'png', (source, file, filename) => {
-            setMoneyRequestReceipt(initialTransactionID, source, filename, !isEditing, CONST.TEST_RECEIPT.FILE_TYPE, true);
-            removeDraftTransactionsByIDs(draftTransactionIDs, true);
-            navigateToConfirmationStep([{file, source, transactionID: initialTransactionID}], false, true);
-        });
-    }
-
     /**
      * Processes receipt files and navigates to confirmation step
      */
@@ -242,7 +232,6 @@ function useReceiptScan({
         validateFiles,
         PDFValidationComponent,
         ErrorModal,
-        setTestReceiptAndNavigate,
     };
 }
 

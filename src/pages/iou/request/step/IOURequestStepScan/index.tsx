@@ -33,7 +33,6 @@ function IOURequestStepScan({
     },
     transaction: initialTransaction,
     currentUserPersonalDetails,
-    onLayout,
 }: Omit<IOURequestStepScanProps, 'user'>) {
     const isMobileWeb = isMobile();
     const policy = usePolicy(report?.policyID);
@@ -76,7 +75,6 @@ function IOURequestStepScan({
         validateFiles,
         PDFValidationComponent,
         ErrorModal,
-        setTestReceiptAndNavigate,
     } = useReceiptScan({
         report,
         reportID,
@@ -91,10 +89,6 @@ function IOURequestStepScan({
         updateScanAndNavigate,
         getSource,
     });
-
-    const handleOnLayout = useCallback(() => {
-        onLayout?.(setTestReceiptAndNavigate);
-    }, [onLayout, setTestReceiptAndNavigate]);
 
     const hasValidatedInitialScanFiles = useRef(false);
 
@@ -178,7 +172,6 @@ function IOURequestStepScan({
                     navigateToConfirmationStep={navigateToConfirmationStep}
                     shouldSkipConfirmation={shouldSkipConfirmation}
                     setStartLocationPermissionFlow={setStartLocationPermissionFlow}
-                    onLayout={handleOnLayout}
                     onBackButtonPress={navigateBack}
                     shouldShowWrapper={!!backTo || isEditing}
                 />
@@ -187,7 +180,6 @@ function IOURequestStepScan({
                     PDFValidationComponent={PDFValidationComponent}
                     shouldAcceptMultipleFiles={shouldAcceptMultipleFiles}
                     isReplacingReceipt={isReplacingReceipt}
-                    onLayout={handleOnLayout}
                     validateFiles={validateFiles}
                     onBackButtonPress={navigateBack}
                     shouldShowWrapper={!!backTo || isEditing}
