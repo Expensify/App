@@ -1423,9 +1423,6 @@ const translations: TranslationDeepObject<typeof en> = {
             manySplitsProvided: `允许的最大拆分数为 ${CONST.IOU.SPLITS_LIMIT}。`,
             dateRangeExceedsMaxDays: `日期范围不能超过 ${CONST.IOU.SPLITS_LIMIT} 天。`,
             stitchOdometerImagesFailed: '合并里程表图片失败。请稍后重试。',
-            nonReimbursablePayment: '无法通过 Expensify 付款',
-            nonReimbursablePaymentDescription: (isMultiple?: boolean) =>
-                isMultiple ? '一个或多个所选报告没有可报销的费用。请再次检查费用，或手动将其标记为已支付。' : '该报告没有可报销的费用。请再次检查费用，或手动将其标记为已支付。',
         },
         dismissReceiptError: '忽略错误',
         dismissReceiptErrorConfirmation: '提醒：关闭此错误将彻底删除你上传的收据。确定要继续吗？',
