@@ -1,5 +1,6 @@
 import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback, useEffect, useState} from 'react';
+import {ScrollView} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
@@ -239,15 +240,17 @@ function SpendRuleCardPage({route}: SpendRuleCardPageProps) {
                         shouldUpdateFocusedIndex
                         shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
                         listEmptyContent={
-                            <BlockingView
-                                icon={illustrations.HandCard}
-                                iconWidth={variables.iconSection}
-                                iconHeight={variables.iconSection}
-                                title={inputValue.trim() ? translate('common.noResultsFound') : translate('workspace.rules.spendRules.noAvailableCards')}
-                                titleStyles={styles.mb2}
-                                subtitle={translate('workspace.rules.spendRules.noAvailableCardsSubtitle')}
-                                subtitleStyle={styles.textSupporting}
-                            />
+                            <ScrollView contentContainerStyle={[styles.flexGrow1]}>
+                                <BlockingView
+                                    icon={illustrations.HandCard}
+                                    iconWidth={variables.iconSection}
+                                    iconHeight={variables.iconSection}
+                                    title={inputValue.trim() ? translate('common.noResultsFound') : translate('workspace.rules.spendRules.noAvailableCards')}
+                                    titleStyles={styles.mb2}
+                                    subtitle={translate('workspace.rules.spendRules.noAvailableCardsSubtitle')}
+                                    subtitleStyle={styles.textSupporting}
+                                />
+                            </ScrollView>
                         }
                         footerContent={
                             <FormAlertWithSubmitButton
