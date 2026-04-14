@@ -131,15 +131,18 @@ function compoundParamsKey(routeKey: string, params: unknown): string {
     if (typeof params !== 'object') {
         return `${routeKey}${COMPOUND_KEY_DELIMITER}${JSON.stringify(params)}`;
     }
-    const entries = Object.entries(params as Record<string, unknown>).sort(([a], [b]) => {
-        if (a < b) {
-            return -1;
-        }
-        if (a > b) {
-            return 1;
-        }
-        return 0;
-    });
+    // Drop undefined so explicit-undefined fields match path-rehydrated (omitted) params.
+    const entries = Object.entries(params as Record<string, unknown>)
+        .filter(([, value]) => value !== undefined)
+        .sort(([a], [b]) => {
+            if (a < b) {
+                return -1;
+            }
+            if (a > b) {
+                return 1;
+            }
+            return 0;
+        });
     return `${routeKey}${COMPOUND_KEY_DELIMITER}${JSON.stringify(entries)}`;
 }
 

@@ -921,6 +921,19 @@ describe('PUSH_PARAMS notifications', () => {
             // A route key alone (used by the regular nav path) shouldn't match a compound key for the same route.
             expect(compoundParamsKey('search-x', {q: 'foo'})).not.toBe('search-x');
         });
+
+        it('should treat explicit-undefined fields as omitted (path rehydration parity)', () => {
+            // Saved-search dispatches `rawQuery: undefined`, but URL rebuild omits the field entirely.
+            const explicitUndef = compoundParamsKey('search-x', {q: 'foo', rawQuery: undefined});
+            const omitted = compoundParamsKey('search-x', {q: 'foo'});
+            expect(explicitUndef).toBe(omitted);
+        });
+
+        it('should still distinguish explicit null from absent (null is a real value)', () => {
+            const withNull = compoundParamsKey('search-x', {q: 'foo', rawQuery: null});
+            const omitted = compoundParamsKey('search-x', {q: 'foo'});
+            expect(withNull).not.toBe(omitted);
+        });
     });
 
     it('should roundtrip: forward captures the trigger, backward restores it', () => {
