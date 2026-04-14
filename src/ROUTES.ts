@@ -232,6 +232,16 @@ const DYNAMIC_ROUTES = {
         path: 'personal-details',
         entryScreens: [SCREENS.ONBOARDING.PURPOSE],
     },
+    ONBOARDING_EMPLOYEES: {
+        path: 'employees',
+        entryScreens: [
+            SCREENS.ONBOARDING.PURPOSE,
+            SCREENS.ONBOARDING.WORKSPACES,
+            SCREENS.ONBOARDING.WORK_EMAIL,
+            SCREENS.ONBOARDING.WORK_EMAIL_VALIDATION,
+            SCREENS.ONBOARDING.DYNAMIC_PRIVATE_DOMAIN,
+        ],
+    },
     DETAILS_CONSTANT_PICKER: {
         path: 'constant-picker',
         entryScreens: [SCREENS.DEBUG.REPORT, SCREENS.DEBUG.REPORT_ACTION, SCREENS.DEBUG.TRANSACTION, SCREENS.DEBUG.TRANSACTION_VIOLATION],
@@ -3191,12 +3201,6 @@ const ROUTES = {
 
         // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
         getRoute: (backTo?: string) => getUrlWithBackToParam(`onboarding`, backTo),
-    },
-    ONBOARDING_EMPLOYEES: {
-        route: 'onboarding/employees',
-
-        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-        getRoute: (backTo?: string) => getUrlWithBackToParam(`onboarding/employees`, backTo),
     },
     ONBOARDING_ACCOUNTING: {
         route: 'onboarding/accounting',
