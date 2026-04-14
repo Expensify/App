@@ -12,6 +12,7 @@ import ScrollView from '@components/ScrollView';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
 import useConfirmModal from '@hooks/useConfirmModal';
+import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -96,6 +97,7 @@ function MerchantRulePageBase({policyID, ruleID, titleKey, testID}: MerchantRule
     const policy = usePolicy(policyID);
     const [isDeleting, setIsDeleting] = useState(false);
     const isEditing = !!ruleID;
+    const isInLandscapeMode = useIsInLandscapeMode();
 
     const [form] = useOnyx(ONYXKEYS.FORMS.MERCHANT_RULE_FORM);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
@@ -376,6 +378,53 @@ function MerchantRulePageBase({policyID, ruleID, titleKey, testID}: MerchantRule
         return <NotFoundPage />;
     }
 
+    const footer = (
+        <FormAlertWithSubmitButton
+            buttonText={translate('workspace.rules.merchantRules.saveRule')}
+            containerStyles={[styles.m4, styles.mb5]}
+            isAlertVisible={shouldShowError && !!errorMessage}
+            message={errorMessage}
+            onSubmit={handleSubmit}
+            enabledWhenOffline
+            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_SAVE}
+            shouldRenderFooterAboveSubmit
+            footerContent={
+                <>
+                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.mb4]}>
+                        <Text
+                            style={[styles.textNormal]}
+                            accessible={false}
+                            aria-hidden
+                        >
+                            {translate('workspace.rules.merchantRules.applyToExistingUnsubmittedExpenses')}
+                        </Text>
+                        <Switch
+                            accessibilityLabel={translate('workspace.rules.merchantRules.applyToExistingUnsubmittedExpenses')}
+                            isOn={shouldUpdateMatchingTransactions}
+                            onToggle={setShouldUpdateMatchingTransactions}
+                        />
+                    </View>
+                    <Button
+                        text={translate('workspace.rules.merchantRules.previewMatches')}
+                        onPress={previewMatches}
+                        style={[styles.mb4]}
+                        large
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_PREVIEW_MATCHES}
+                    />
+                    {isEditing && (
+                        <Button
+                            text={translate('workspace.rules.merchantRules.deleteRule')}
+                            onPress={handleDelete}
+                            style={[styles.mb4]}
+                            large
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_DELETE}
+                        />
+                    )}
+                </>
+            }
+        />
+    );
+
     return (
         <AccessOrNotFoundWrapper
             policyID={policyID}
@@ -410,51 +459,9 @@ function MerchantRulePageBase({policyID, ruleID, titleKey, testID}: MerchantRule
                                 ))}
                         </View>
                     ))}
+                    {isInLandscapeMode && footer}
                 </ScrollView>
-                <FormAlertWithSubmitButton
-                    buttonText={translate('workspace.rules.merchantRules.saveRule')}
-                    containerStyles={[styles.m4, styles.mb5]}
-                    isAlertVisible={shouldShowError && !!errorMessage}
-                    message={errorMessage}
-                    onSubmit={handleSubmit}
-                    enabledWhenOffline
-                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_SAVE}
-                    shouldRenderFooterAboveSubmit
-                    footerContent={
-                        <>
-                            <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.mb4]}>
-                                <Text
-                                    style={[styles.textNormal]}
-                                    accessible={false}
-                                    aria-hidden
-                                >
-                                    {translate('workspace.rules.merchantRules.applyToExistingUnsubmittedExpenses')}
-                                </Text>
-                                <Switch
-                                    accessibilityLabel={translate('workspace.rules.merchantRules.applyToExistingUnsubmittedExpenses')}
-                                    isOn={shouldUpdateMatchingTransactions}
-                                    onToggle={setShouldUpdateMatchingTransactions}
-                                />
-                            </View>
-                            <Button
-                                text={translate('workspace.rules.merchantRules.previewMatches')}
-                                onPress={previewMatches}
-                                style={[styles.mb4]}
-                                large
-                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_PREVIEW_MATCHES}
-                            />
-                            {isEditing && (
-                                <Button
-                                    text={translate('workspace.rules.merchantRules.deleteRule')}
-                                    onPress={handleDelete}
-                                    style={[styles.mb4]}
-                                    large
-                                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_DELETE}
-                                />
-                            )}
-                        </>
-                    }
-                />
+                {!isInLandscapeMode && footer}
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );

@@ -89,6 +89,7 @@ import type RecentlyUsedTags from '@src/types/onyx/RecentlyUsedTags';
 import type {OnyxData} from '@src/types/onyx/Request';
 import type {SplitShares, TransactionChanges, TransactionCustomUnit} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import {getCleanUpTransactionThreadReportOnyxData} from './DeleteMoneyRequest';
 import {
     buildMinimalTransactionForFormula,
     buildOnyxDataForMoneyRequest,
@@ -97,7 +98,6 @@ import {
     getAllPersonalDetails,
     getAllReports,
     getAllTransactions,
-    getCleanUpTransactionThreadReportOnyxData,
     getMoneyRequestInformation,
     getMoneyRequestParticipantsFromReport,
     getOrCreateOptimisticSplitChatReport,
@@ -878,6 +878,7 @@ function completeSplitBill(
                 existingChatReport ??
                 buildOptimisticChatReport({
                     participantList: participant.accountID ? [participant.accountID, sessionAccountID] : [],
+                    currentUserAccountID: sessionAccountID,
                 });
         }
 
@@ -2635,10 +2636,16 @@ function addSplitExpenseField(
     const currency = getCurrency(draftTransaction);
     const originalTransactionID = draftTransaction.comment?.originalTransactionID ?? transaction.transactionID;
 
+    // Check if existing splits already sum to the total
+    const existingSum = existingSplits.reduce((sum, split) => sum + split.amount, 0);
+    const hasManuallyEditedSplits = existingSplits.some((split) => split.isManuallyEdited);
+    const splitsAlreadyMatchTotal = Math.abs(existingSum) === Math.abs(total);
+
     let redistributedSplitExpenses = updatedSplitExpenses;
 
-    // Auto-redistribute amounts for all splits if this is not a distance request
-    if (!isDistanceRequest) {
+    // Skip redistribution only when manual edits exist AND splits sum to total
+    const shouldRedistribute = !splitsAlreadyMatchTotal || !hasManuallyEditedSplits;
+    if (!isDistanceRequest && shouldRedistribute) {
         redistributedSplitExpenses = redistributeSplitExpenseAmounts(updatedSplitExpenses, total, currency);
     }
 
