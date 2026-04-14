@@ -2,7 +2,7 @@ import {useRoute} from '@react-navigation/native';
 import {delegateEmailSelector, isUserValidatedSelector} from '@selectors/Account';
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import truncate from 'lodash/truncate';
-import React, {useContext, useRef} from 'react';
+import React, {useContext, useEffect, useRef} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
@@ -117,6 +117,13 @@ function MoneyReportHeaderSelectionDropdown({reportID, primaryAction, isReportIn
 
     const {transactionThreadReportID, reportActions} = useTransactionThreadReport(reportID);
 
+    useEffect(() => {
+        if (!transactionThreadReportID) {
+            return;
+        }
+        clearSelectedTransactions(true);
+    }, [transactionThreadReportID]);
+
     const {transactions: reportTransactions, violations} = useTransactionsAndViolationsForReport(moneyRequestReport?.reportID);
 
     const allTransactionValues = Object.values(reportTransactions);
@@ -139,6 +146,13 @@ function MoneyReportHeaderSelectionDropdown({reportID, primaryAction, isReportIn
     const {showConfirmModal} = useConfirmModal();
 
     const isSelectionModePaymentRef = useRef(false);
+
+    useEffect(() => {
+        if (selectedTransactionIDs.length !== 0) {
+            return;
+        }
+        isSelectionModePaymentRef.current = false;
+    }, [selectedTransactionIDs.length]);
 
     const expensifyIcons = useMemoizedLazyExpensifyIcons(PAYMENT_ICONS);
 

@@ -145,6 +145,7 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
                     reportID={reportIDProp}
                     primaryAction={primaryAction}
                     isReportInSearch={isReportInSearch}
+                    backTo={backTo}
                 />
             )}
             <MoneyReportHeaderMoreContent reportID={reportIDProp} />
