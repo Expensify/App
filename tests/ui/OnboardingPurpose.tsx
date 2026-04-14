@@ -167,12 +167,20 @@ describe('OnboardingPurpose Page', () => {
     });
 
     it('should navigate to workspaces page when user selects EMPLOYER with Submit2026 beta and is from private domain with name set', async () => {
+        const testEmail = 'test@user.com';
         await TestHelper.signInWithTestUser();
 
         await act(async () => {
             await Onyx.merge(ONYXKEYS.ACCOUNT, {
                 isFromPublicDomain: false,
                 hasAccessibleDomainPolicies: true,
+            });
+            await Onyx.merge(ONYXKEYS.LOGIN_LIST, {
+                [testEmail]: {
+                    partnerName: 'expensify.com',
+                    partnerUserID: testEmail,
+                    validatedDate: 'fake-validatedDate',
+                },
             });
             await Onyx.merge(ONYXKEYS.BETAS, [CONST.BETAS.SUBMIT_2026]);
             await Onyx.merge(ONYXKEYS.FORMS.ONBOARDING_PERSONAL_DETAILS_FORM, {

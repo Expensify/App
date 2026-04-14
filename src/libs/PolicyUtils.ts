@@ -825,7 +825,7 @@ function isPendingDeletePolicy(policy: OnyxEntry<Policy>): boolean {
 }
 
 function isPaidGroupPolicy(policy: OnyxInputOrEntry<Policy>): boolean {
-    return policy?.type === CONST.POLICY.TYPE.TEAM || policy?.type === CONST.POLICY.TYPE.CORPORATE;
+    return policy?.type === CONST.POLICY.TYPE.TEAM || policy?.type === CONST.POLICY.TYPE.CORPORATE || policy?.type === CONST.POLICY.TYPE.SUBMIT;
 }
 
 function getOwnedPaidPolicies(policies: OnyxCollection<Policy> | null, currentUserAccountID: number | undefined): Policy[] {
