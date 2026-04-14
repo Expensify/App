@@ -116,7 +116,7 @@ function mapTransactionItemToSelectedEntry(
     outstandingReportsByPolicyID?: OutstandingReportsByPolicyIDDerivedValue,
     allowNegativeAmount = true,
 ): [string, SelectedTransactionInfo] {
-    const {canHoldRequest, canUnholdRequest} = canHoldUnholdReportAction(item.report, item.reportAction, item.holdReportAction, item, item.policy);
+    const {canHoldRequest, canUnholdRequest} = canHoldUnholdReportAction(item.report, item.reportAction, item.holdReportAction, item, item.policy, currentUserAccountID);
     const canRejectRequest = item.report ? canRejectReportAction(currentUserLogin, item.report) : false;
     const amount = hasValidModifiedAmount(item) ? Number(item.modifiedAmount) : item.amount;
 
@@ -759,6 +759,7 @@ function Search({
                         transactionItem.holdReportAction,
                         transactionItem,
                         transactionItem.policy,
+                        accountID,
                     );
                     const canRejectRequest = email && transactionItem.report ? canRejectReportAction(email, transactionItem.report) : false;
 
@@ -817,6 +818,7 @@ function Search({
                     transactionItem.holdReportAction,
                     transactionItem,
                     transactionItem.policy,
+                    accountID,
                 );
                 const canRejectRequest = email && transactionItem.report ? canRejectReportAction(email, transactionItem.report) : false;
 

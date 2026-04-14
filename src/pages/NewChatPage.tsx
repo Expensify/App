@@ -77,6 +77,7 @@ function useOptions(reportAttributesDerived: ReportAttributesDerivedValue['repor
     const isScreenFocusedRef = useIsFocusedRef();
     const [sortedActions] = useOnyx(ONYXKEYS.DERIVED.RAM_ONLY_SORTED_REPORT_ACTIONS, {selector: sortedActionsSelector});
     const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {selector: passthroughPolicyTagListSelector});
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
 
     const {
         options: listOptions,
@@ -110,6 +111,7 @@ function useOptions(reportAttributesDerived: ReportAttributesDerivedValue['repor
         loginList,
         currentUserAccountID,
         currentUserEmail,
+        conciergeReportID,
         {
             betas: betas ?? [],
             includeSelfDM: true,
