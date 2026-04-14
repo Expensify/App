@@ -7,6 +7,7 @@ import type {LayoutChangeEvent} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
+import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useLocalReceiptThumbnail from '@hooks/useLocalReceiptThumbnail';
@@ -345,6 +346,7 @@ function MoneyRequestConfirmationListFooter({
     const {translate, toLocaleDigit, localeCompare, preferredLocale} = useLocalize();
     const {getCurrencySymbol, getCurrencyDecimals} = useCurrencyListActions();
     const {isOffline} = useNetwork();
+    const isInLandscapeMode = useIsInLandscapeMode();
     const {windowWidth} = useWindowDimensions();
 
     const {isBetaEnabled} = usePermissions();
@@ -1319,7 +1321,7 @@ function MoneyRequestConfirmationListFooter({
         return badges;
     }, [firstDay, lastDay, translate, tripDays, icons]);
 
-    const isCompactMode = useMemo(() => !showMoreFields && isScan, [isScan, showMoreFields]);
+    const isCompactMode = useMemo(() => !showMoreFields && isScan && !isInLandscapeMode, [isScan, showMoreFields, isInLandscapeMode]);
     const [receiptAspectRatio, setReceiptAspectRatio] = useState<number | null>(null);
     const [compactReceiptContainerWidth, setCompactReceiptContainerWidth] = useState(0);
     const hasEndedReceiptLoadSpan = useRef(false);
