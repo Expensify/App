@@ -90,6 +90,7 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
             onboardingMessage: onboardingMessages[engagementChoice],
             firstName: onboardingPersonalDetails?.firstName ?? '',
             lastName: onboardingPersonalDetails?.lastName ?? '',
+            onboardingPolicyID: isEmployerWithSubmit && policy.automaticJoiningEnabled ? policy.policyID : undefined,
             companySize: onboardingCompanySize,
             introSelected,
             isSelfTourViewed,

@@ -13,6 +13,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import type {OnboardingModalNavigatorParamList} from '@libs/Navigation/types';
 import OnboardingWorkspaces from '@pages/OnboardingWorkspaces';
+import {joinAccessiblePolicy} from '@userActions/Policy/Member';
 import {createWorkspace} from '@userActions/Policy/Policy';
 import {completeOnboarding} from '@userActions/Report';
 import CONST from '@src/CONST';
@@ -25,6 +26,7 @@ import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct'
 
 const mockCreateWorkspace = jest.mocked(createWorkspace);
 const mockCompleteOnboarding = jest.mocked(completeOnboarding);
+const mockJoinAccessiblePolicy = jest.mocked(joinAccessiblePolicy);
 
 jest.mock('@userActions/Report', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
@@ -46,6 +48,16 @@ jest.mock('@userActions/Policy/Policy', () => {
             policyID: 'test-policy-id',
             adminsChatReportID: 'test-admins-report-id',
         }),
+    };
+});
+
+jest.mock('@userActions/Policy/Member', () => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const actual = jest.requireActual('@userActions/Policy/Member');
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+    return {
+        ...actual,
+        joinAccessiblePolicy: jest.fn(),
     };
 });
 
@@ -254,6 +266,66 @@ describe('OnboardingWorkspaces Page', () => {
             expect(navigate).toHaveBeenCalledWith(ROUTES.WORKSPACE_CATEGORIES.getRoute('test-policy-id'));
         });
 
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    it('should complete onboarding with the joined Submit workspace policyID and open Categories in the admins room', async () => {
+        jest.spyOn(Navigation, 'dismissModal').mockImplementation(() => {});
+        jest.spyOn(Navigation, 'setNavigationActionToMicrotaskQueue').mockImplementation((callback: () => void) => callback());
+
+        await TestHelper.signInWithTestUser();
+
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {
+                hasCompletedGuidedSetupFlow: false,
+            });
+            await Onyx.set(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, CONST.ONBOARDING_CHOICES.EMPLOYER);
+            await Onyx.set(ONYXKEYS.BETAS, [CONST.BETAS.SUBMIT_2026]);
+            await Onyx.merge(ONYXKEYS.FORMS.ONBOARDING_PERSONAL_DETAILS_FORM, {
+                firstName: 'Test',
+                lastName: 'User',
+            });
+            await Onyx.set(ONYXKEYS.JOINABLE_POLICIES, {
+                submitPolicyID: {
+                    policyID: 'submit-policy-id',
+                    policyName: 'Submit Workspace',
+                    policyOwner: 'owner@test.com',
+                    employeeCount: 4,
+                    hasPendingAccess: false,
+                    automaticJoiningEnabled: true,
+                },
+            });
+        });
+
+        const onyxSetSpy = jest.spyOn(Onyx, 'set');
+        onyxSetSpy.mockClear();
+
+        const {unmount} = renderOnboardingWorkspacesPage(SCREENS.ONBOARDING.WORKSPACES, {backTo: ''});
+
+        await waitForBatchedUpdatesWithAct();
+
+        fireEvent.press(screen.getByText(TestHelper.translateLocal('workspace.workspaceList.joinNow')));
+
+        await waitFor(() => {
+            expect(mockJoinAccessiblePolicy).toHaveBeenCalledWith('submit-policy-id');
+        });
+
+        await waitFor(() => {
+            expect(mockCompleteOnboarding).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    engagementChoice: CONST.ONBOARDING_CHOICES.EMPLOYER,
+                    onboardingPolicyID: 'submit-policy-id',
+                }),
+            );
+        });
+
+        await waitFor(() => {
+            expect(onyxSetSpy).toHaveBeenCalledWith(ONYXKEYS.NVP_ONBOARDING_RHP_VARIANT, CONST.ONBOARDING_RHP_VARIANT.RHP_ADMINS_ROOM);
+            expect(navigate).toHaveBeenCalledWith(ROUTES.WORKSPACE_CATEGORIES.getRoute('submit-policy-id'));
+        });
+
+        onyxSetSpy.mockRestore();
         unmount();
         await waitForBatchedUpdatesWithAct();
     });

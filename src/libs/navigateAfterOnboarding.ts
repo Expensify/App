@@ -1,7 +1,9 @@
 import {handleRHPVariantNavigation, shouldOpenRHPVariant} from '@components/SidePanel/RHPVariantTest';
+import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import {setDisableDismissOnEscape} from './actions/Modal';
 import SidePanelActions from './actions/SidePanel';
+import {setOnboardingRHPVariant} from './actions/Welcome';
 import shouldOpenOnAdminRoom from './Navigation/helpers/shouldOpenOnAdminRoom';
 import Navigation from './Navigation/Navigation';
 import {findLastAccessedReport, isConciergeChatReport, isSelfDM} from './ReportUtils';
@@ -108,6 +110,7 @@ function navigateToSubmitWorkspaceAfterOnboarding(policyID?: string) {
     setDisableDismissOnEscape(false);
 
     if (policyID) {
+        setOnboardingRHPVariant(CONST.ONBOARDING_RHP_VARIANT.RHP_ADMINS_ROOM);
         Navigation.navigate(ROUTES.WORKSPACE_CATEGORIES.getRoute(policyID));
         SidePanelActions.openSidePanel(true);
     } else {

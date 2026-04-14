@@ -135,9 +135,8 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
             setPersonalDetails(firstName, lastName);
 
             if (onboardingPurposeSelected === CONST.ONBOARDING_CHOICES.EMPLOYER && canUseSubmit2026) {
-                if (isPrivateDomainAndHasAccessiblePolicies) {
-                    const nextRoute = isValidated ? ROUTES.ONBOARDING_WORKSPACES : ROUTES.ONBOARDING_PRIVATE_DOMAIN;
-                    Navigation.navigate(nextRoute.getRoute(route.params?.backTo));
+                if (isPrivateDomainAndHasAccessiblePolicies && isValidated) {
+                    Navigation.navigate(ROUTES.ONBOARDING_WORKSPACES.getRoute(route.params?.backTo));
                     return;
                 }
                 updateDisplayName(firstName, lastName, formatPhoneNumber, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, session?.email ?? '');

@@ -9,6 +9,7 @@ import type {MenuItemProps} from '@components/MenuItem';
 import MenuItemList from '@components/MenuItemList';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
+import useAutoCreateSubmitWorkspace from '@hooks/useAutoCreateSubmitWorkspace';
 import useAutoCreateTrackWorkspace from '@hooks/useAutoCreateTrackWorkspace';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -81,6 +82,7 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
     const {isBetaEnabled} = usePermissions();
     const canUseSubmit2026 = isBetaEnabled(CONST.BETAS.SUBMIT_2026);
     const isValidated = isCurrentUserValidated(loginList, session?.email);
+    const autoCreateSubmitWorkspace = useAutoCreateSubmitWorkspace();
     const autoCreateTrackWorkspace = useAutoCreateTrackWorkspace();
     const paddingHorizontal = onboardingIsMediumOrLargerScreenWidth ? styles.ph8 : styles.ph5;
 
@@ -110,14 +112,20 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
                 }
 
                 if (choice === CONST.ONBOARDING_CHOICES.EMPLOYER && canUseSubmit2026) {
-                    if (isPrivateDomainAndHasAccessiblePolicies) {
+                    if (isPrivateDomainAndHasAccessiblePolicies && isValidated) {
                         Navigation.navigate(
-                            personalDetailsForm?.firstName && isValidated
+                            personalDetailsForm?.firstName
                                 ? ROUTES.ONBOARDING_WORKSPACES.getRoute(route.params?.backTo)
                                 : ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute(route.params?.backTo),
                         );
                         return;
                     }
+
+                    if (personalDetailsForm?.firstName) {
+                        autoCreateSubmitWorkspace(personalDetailsForm.firstName, personalDetailsForm.lastName ?? '');
+                        return;
+                    }
+
                     Navigation.navigate(ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute(route.params?.backTo));
                     return;
                 }
