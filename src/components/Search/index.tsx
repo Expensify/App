@@ -317,6 +317,7 @@ function Search({
     const [allReportMetadata] = useOnyx(ONYXKEYS.COLLECTION.REPORT_METADATA);
     const [visibleColumns] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {selector: columnsSelector});
     const [customCardNames] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES);
+    const [nonPersonalAndWorkspaceCards] = useOnyx(ONYXKEYS.DERIVED.NON_PERSONAL_AND_WORKSPACE_CARD_LIST);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
 
     const isExpenseReportType = type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
@@ -1677,7 +1678,7 @@ function Search({
                     shouldAnimate={type === CONST.SEARCH.DATA_TYPES.EXPENSE}
                     newTransactions={newTransactions}
                     hasLoadedAllTransactions={hasLoadedAllTransactions}
-                    customCardNames={customCardNames}
+                    nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}
                 />
             </Animated.View>
         </SearchScopeProvider>

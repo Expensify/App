@@ -36,7 +36,7 @@ import variables from '@styles/variables';
 import type {TransactionPreviewData} from '@userActions/Search';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Transaction, TransactionViolations} from '@src/types/onyx';
+import type {CardList, Transaction, TransactionViolations} from '@src/types/onyx';
 import BaseSearchList from './BaseSearchList';
 import type ChatListItem from './ListItem/ChatListItem';
 import type ExpenseReportListItem from './ListItem/ExpenseReportListItem';
@@ -124,11 +124,11 @@ type SearchListProps = Pick<FlashListProps<SearchListItem>, 'onScroll' | 'conten
     /** Violations indexed by transaction ID */
     violations?: Record<string, TransactionViolations | undefined> | undefined;
 
-    /** Custom card names */
-    customCardNames?: Record<number, string>;
-
     /** Selected transactions for determining isSelected state */
     selectedTransactions: SelectedTransactions;
+
+    /** Non-personal and workspace cards (same drill path as former custom card names for rows) */
+    nonPersonalAndWorkspaceCards?: CardList;
 
     /** Whether all transactions have been loaded from snapshots in group-by views */
     hasLoadedAllTransactions?: boolean;
@@ -214,7 +214,7 @@ function SearchList({
     isMobileSelectionModeEnabled,
     newTransactions = [],
     violations,
-    customCardNames,
+    nonPersonalAndWorkspaceCards,
     selectedTransactions,
     hasLoadedAllTransactions,
     ref,
@@ -452,7 +452,7 @@ function SearchList({
                         userBillingFundID={userBillingFundID}
                         isOffline={isOffline}
                         violations={violations}
-                        customCardNames={customCardNames}
+                        nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}
                         onFocus={onFocus}
                         newTransactionID={newTransactionID}
                         keyForList={item.keyForList}
@@ -489,7 +489,7 @@ function SearchList({
             personalPolicyID,
             userBillingGracePeriodEnds,
             ownerBillingGracePeriodEnd,
-            customCardNames,
+            nonPersonalAndWorkspaceCards,
             selectedTransactions,
             ListFooterComponent,
         ],
@@ -558,7 +558,7 @@ function SearchList({
                 contentContainerStyle={contentContainerStyle}
                 newTransactions={newTransactions}
                 selectedTransactions={selectedTransactions}
-                customCardNames={customCardNames}
+                nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}
             />
             <Modal
                 isVisible={isModalVisible}

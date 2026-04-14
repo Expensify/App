@@ -52,7 +52,7 @@ function TransactionListItem<TItem extends ListItem>({
     columns,
     isLoading,
     violations,
-    customCardNames,
+    nonPersonalAndWorkspaceCards,
     lastPaymentMethod,
     personalPolicyID,
     isLastItem,
@@ -252,7 +252,7 @@ function TransactionListItem<TItem extends ListItem>({
                             violations={transactionViolations}
                             onArrowRightPress={() => onSelectRow(item, transactionPreviewData)}
                             isHover={hovered}
-                            customCardNames={customCardNames}
+                            nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}
                             reportActions={exportedReportActions}
                         />
                     </>

@@ -167,8 +167,7 @@ function MoneyRequestReportTransactionList({
     const [reportDetailsColumns] = useOnyx(ONYXKEYS.NVP_REPORT_DETAILS_COLUMNS);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
-    const [cardFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER);
-    const [customCardNames] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES);
+    const [nonPersonalAndWorkspaceCards] = useOnyx(ONYXKEYS.DERIVED.NON_PERSONAL_AND_WORKSPACE_CARD_LIST);
     const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
 
@@ -562,7 +561,7 @@ function MoneyRequestReportTransactionList({
                                           taxAmountColumnSize={taxAmountColumnSize}
                                           scrollToNewTransaction={transaction.transactionID === newTransactions?.at(0)?.transactionID ? scrollToNewTransaction : undefined}
                                           onArrowRightPress={handleArrowRightPress}
-                                          customCardNames={customCardNames}
+                                          nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards ?? {}}
                                       />
                                   );
                               })}
@@ -587,7 +586,7 @@ function MoneyRequestReportTransactionList({
                           taxAmountColumnSize={taxAmountColumnSize}
                           scrollToNewTransaction={transaction.transactionID === newTransactions?.at(0)?.transactionID ? scrollToNewTransaction : undefined}
                           onArrowRightPress={handleArrowRightPress}
-                          customCardNames={customCardNames}
+                          nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards ?? {}}
                       />
                   ))}
         </View>

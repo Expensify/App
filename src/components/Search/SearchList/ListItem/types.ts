@@ -6,6 +6,7 @@ import type {ListItem} from '@components/SelectionList/types';
 import type CONST from '@src/CONST';
 import type {
     BillingGraceEndPeriod,
+    CardList,
     LastPaymentMethod,
     PersonalDetails,
     PersonalDetailsList,
@@ -419,7 +420,8 @@ type TransactionListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
     isLoading?: boolean;
     columns?: SearchColumnType[];
     violations?: Record<string, TransactionViolations | undefined> | undefined;
-    customCardNames?: Record<number, string>;
+    /** Non-personal and workspace cards for company card display */
+    nonPersonalAndWorkspaceCards?: CardList;
     /** The last payment method used per policy */
     lastPaymentMethod?: OnyxEntry<LastPaymentMethod>;
     /** The user's personal policy ID */
@@ -434,6 +436,8 @@ type TransactionGroupListItemProps<TItem extends ListItem> = ListItemProps<TItem
     columns?: SearchColumnType[];
     newTransactionID?: string;
     violations?: Record<string, TransactionViolations | undefined> | undefined;
+    /** Non-personal and workspace cards for company card display in expanded rows */
+    nonPersonalAndWorkspaceCards?: CardList;
     /** The last payment method used per policy */
     lastPaymentMethod?: OnyxEntry<LastPaymentMethod>;
     /** The user's personal policy ID */
@@ -442,7 +446,7 @@ type TransactionGroupListItemProps<TItem extends ListItem> = ListItemProps<TItem
 
 type TransactionGroupListExpandedProps<TItem extends ListItem> = Pick<
     TransactionGroupListItemProps<TItem>,
-    'showTooltip' | 'canSelectMultiple' | 'onCheckboxPress' | 'columns' | 'groupBy' | 'accountID' | 'isOffline' | 'violations' | 'onSelectRow'
+    'showTooltip' | 'canSelectMultiple' | 'onCheckboxPress' | 'columns' | 'groupBy' | 'accountID' | 'isOffline' | 'violations' | 'onSelectRow' | 'nonPersonalAndWorkspaceCards'
 > & {
     transactions: TransactionListItemType[];
     transactionsVisibleLimit: number;

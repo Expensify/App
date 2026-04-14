@@ -143,7 +143,7 @@ type TransactionItemRowProps = {
     reportActions?: ReportAction[];
     checkboxSentryLabel?: string;
     isLargeScreenWidth?: boolean;
-    nonPersonalAndWorkspaceCards: CardList;
+    nonPersonalAndWorkspaceCards?: CardList;
 };
 
 const EMPTY_ACTIVE_STYLE: StyleProp<ViewStyle> = [];
@@ -195,7 +195,7 @@ function TransactionItemRow({
     shouldShowArrowRightOnNarrowLayout,
     reportActions,
     checkboxSentryLabel,
-    nonPersonalAndWorkspaceCards,
+    nonPersonalAndWorkspaceCards = {},
     isLargeScreenWidth: isLargeScreenWidthProp,
 }: TransactionItemRowProps) {
     const styles = useThemeStyles();
