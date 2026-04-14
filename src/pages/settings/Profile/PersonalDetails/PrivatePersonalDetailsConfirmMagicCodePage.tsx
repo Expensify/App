@@ -6,7 +6,7 @@ import usePrimaryContactMethod from '@hooks/usePrimaryContactMethod';
 import {clearPersonalDetailsErrors, updatePrivatePersonalDetails} from '@libs/actions/PersonalDetails';
 import {requestValidateCodeAction, resetValidateActionCodeSent} from '@libs/actions/User';
 import {normalizeCountryCode} from '@libs/CountryUtils';
-import {getLatestError} from '@libs/ErrorUtils';
+import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getCurrentAddress} from '@libs/PersonalDetailsUtils';
 import CONST from '@src/CONST';
@@ -42,18 +42,17 @@ function PrivatePersonalDetailsConfirmMagicCodePage() {
     const primaryLogin = usePrimaryContactMethod();
 
     const [validateCodeAction] = useOnyx(ONYXKEYS.VALIDATE_ACTION_CODE);
-    const privateDetailsErrors = privatePersonalDetails?.errors ?? undefined;
-    const validateLoginError = getLatestError(privateDetailsErrors);
+    const personalDetailsError = getLatestErrorField(privatePersonalDetails, 'personalDetails');
 
     const clearError = () => {
-        if (isEmptyObject(validateLoginError) && isEmptyObject(validateCodeAction?.errorFields)) {
+        if (isEmptyObject(personalDetailsError) && isEmptyObject(validateCodeAction?.errorFields)) {
             return;
         }
         clearPersonalDetailsErrors();
     };
 
     const wasLoading = useRef(false);
-    const hasErrors = !isEmptyObject(privateDetailsErrors) || !isEmptyObject(validateCodeAction?.errorFields);
+    const hasErrors = !isEmptyObject(personalDetailsError) || !isEmptyObject(validateCodeAction?.errorFields);
     useEffect(() => {
         if (privatePersonalDetails?.isLoading) {
             wasLoading.current = true;
@@ -83,7 +82,7 @@ function PrivatePersonalDetailsConfirmMagicCodePage() {
             sendValidateCode={() => requestValidateCodeAction()}
             validateCodeActionErrorField="personalDetails"
             handleSubmitForm={handleSubmitForm}
-            validateError={validateLoginError}
+            validateError={personalDetailsError}
             clearError={clearError}
             onClose={() => {
                 resetValidateActionCodeSent();
