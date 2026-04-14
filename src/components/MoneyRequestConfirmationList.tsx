@@ -672,7 +672,9 @@ function MoneyRequestConfirmationList({
                     <PressableWithFeedback
                         onPress={() => {
                             blurActiveElement();
-                            resetSplitShares(transaction);
+                            requestAnimationFrame(() => {
+                                resetSplitShares(transaction);
+                            });
                         }}
                         accessibilityLabel={CONST.ROLE.BUTTON}
                         role={CONST.ROLE.BUTTON}
