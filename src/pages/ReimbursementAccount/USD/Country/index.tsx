@@ -7,20 +7,24 @@ type CountryProps = {
     /** Handles back button press */
     onBackButtonPress: () => void;
 
-    /** Handles submit button press (URL-based navigation) */
-    onSubmit?: () => void;
-
     /** Array of step names */
     stepNames: readonly string[];
+
+    /** Method to set the state of setUSDBankAccountStep */
+    setUSDBankAccountStep?: (step: string | null) => void;
 
     /** ID of current policy */
     policyID: string | undefined;
 };
 
-function Country({onBackButtonPress, onSubmit, stepNames, policyID}: CountryProps) {
+function Country({onBackButtonPress, stepNames, setUSDBankAccountStep, policyID}: CountryProps) {
     const submit = () => {
+        if (!setUSDBankAccountStep) {
+            return;
+        }
+
+        setUSDBankAccountStep(CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT);
         goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT);
-        onSubmit?.();
     };
 
     return (
