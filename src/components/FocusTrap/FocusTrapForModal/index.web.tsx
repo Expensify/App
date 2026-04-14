@@ -2,7 +2,7 @@ import {FocusTrap} from 'focus-trap-react';
 import React from 'react';
 import sharedTrapStack from '@components/FocusTrap/sharedTrapStack';
 import blurActiveElement from '@libs/Accessibility/blurActiveElement';
-import {setActivePopoverLauncher} from '@libs/NavigationFocusReturn';
+import {scheduleClearActivePopoverLauncher, setActivePopoverLauncher} from '@libs/NavigationFocusReturn';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import type FocusTrapForModalProps from './FocusTrapForModalProps';
 
@@ -20,7 +20,8 @@ function FocusTrapForModal({children, active, initialFocus = false, shouldPreven
                     }
                 },
                 onPostDeactivate: () => {
-                    setActivePopoverLauncher(null);
+                    // Defer so popover paths that navigate after modal-hide can still consume the launcher.
+                    scheduleClearActivePopoverLauncher();
                 },
                 preventScroll: shouldPreventScroll,
                 trapStack: sharedTrapStack,

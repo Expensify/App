@@ -15,8 +15,12 @@ type AnyState = NavigationState | PartialState<NavigationState> | undefined;
 
 type DiffAction = {type: 'forward'; captureKey: string} | {type: 'backward'; restoreKey: string} | {type: 'lateral'} | {type: 'noop'};
 
+const COMPOUND_KEY_DELIMITER = '::';
+const LAUNCHER_CLEAR_DELAY_MS = 1000;
+
 let lastInteractiveElement: HTMLElement | null = null;
 let activePopoverLauncher: HTMLElement | null = null;
+let clearLauncherTimerId: ReturnType<typeof setTimeout> | undefined;
 const triggerMap = new Map<string, HTMLElement>();
 let prevState: NavigationState | undefined;
 let pendingRestore: {cancel: () => void} | null = null;
@@ -77,6 +81,7 @@ function captureTriggerForRoute(routeKey: string): void {
     // Items inside an active FocusTrapForModal get removed on close; prefer the launcher.
     if (activePopoverLauncher && document.contains(activePopoverLauncher)) {
         triggerMap.set(routeKey, activePopoverLauncher);
+        setActivePopoverLauncher(null);
         return;
     }
     if (!lastInteractiveElement || !document.contains(lastInteractiveElement)) {
@@ -91,16 +96,35 @@ function captureTriggerForRoute(routeKey: string): void {
 }
 
 function setActivePopoverLauncher(element: HTMLElement | null): void {
+    if (clearLauncherTimerId !== undefined) {
+        clearTimeout(clearLauncherTimerId);
+        clearLauncherTimerId = undefined;
+    }
     activePopoverLauncher = element;
+}
+
+/**
+ * Defer the launcher clear so deferred-navigation popover paths (e.g. FABPopoverMenu's
+ * close(() => navigateAfterInteraction(...))) can still consume the launcher when their
+ * navigate eventually fires. A new setActivePopoverLauncher call cancels the pending clear.
+ */
+function scheduleClearActivePopoverLauncher(): void {
+    if (clearLauncherTimerId !== undefined) {
+        clearTimeout(clearLauncherTimerId);
+    }
+    clearLauncherTimerId = setTimeout(() => {
+        activePopoverLauncher = null;
+        clearLauncherTimerId = undefined;
+    }, LAUNCHER_CLEAR_DELAY_MS);
 }
 
 /** Compound key for PUSH_PARAMS history (same route.key across params snapshots). Sorts top-level keys for insertion-order stability. */
 function compoundParamsKey(routeKey: string, params: unknown): string {
     if (params == null) {
-        return `${routeKey}::`;
+        return `${routeKey}${COMPOUND_KEY_DELIMITER}`;
     }
     if (typeof params !== 'object') {
-        return `${routeKey}::${JSON.stringify(params)}`;
+        return `${routeKey}${COMPOUND_KEY_DELIMITER}${JSON.stringify(params)}`;
     }
     const entries = Object.entries(params as Record<string, unknown>).sort(([a], [b]) => {
         if (a < b) {
@@ -111,7 +135,7 @@ function compoundParamsKey(routeKey: string, params: unknown): string {
         }
         return 0;
     });
-    return `${routeKey}::${JSON.stringify(entries)}`;
+    return `${routeKey}${COMPOUND_KEY_DELIMITER}${JSON.stringify(entries)}`;
 }
 
 function notifyPushParamsForward(routeKey: string, prevParams: unknown): void {
@@ -229,6 +253,13 @@ function handleStateChange(newState: NavigationState | undefined): void {
 
     for (const key of removedKeys) {
         triggerMap.delete(key);
+        // Drop compound PUSH_PARAMS entries (`${key}::...`) for the removed route.
+        const compoundPrefix = `${key}${COMPOUND_KEY_DELIMITER}`;
+        for (const mapKey of triggerMap.keys()) {
+            if (mapKey.startsWith(compoundPrefix)) {
+                triggerMap.delete(mapKey);
+            }
+        }
     }
 
     prevState = newState;
@@ -270,6 +301,10 @@ function teardownNavigationFocusReturn(): void {
 
 function resetForTests(): void {
     cancelPendingRestore();
+    if (clearLauncherTimerId !== undefined) {
+        clearTimeout(clearLauncherTimerId);
+        clearLauncherTimerId = undefined;
+    }
     triggerMap.clear();
     prevState = undefined;
     lastInteractiveElement = null;
@@ -291,6 +326,7 @@ export {
     captureTriggerForRoute,
     restoreTriggerForRoute,
     setActivePopoverLauncher,
+    scheduleClearActivePopoverLauncher,
     notifyPushParamsForward,
     notifyPushParamsBackward,
     compoundParamsKey,

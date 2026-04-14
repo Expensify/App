@@ -10,6 +10,7 @@ const {
     resetForTests,
     setLastInteractiveElementForTests,
     setActivePopoverLauncher,
+    scheduleClearActivePopoverLauncher,
     notifyPushParamsForward,
     notifyPushParamsBackward,
     compoundParamsKey,
@@ -24,6 +25,7 @@ const {
     resetForTests: () => void;
     setLastInteractiveElementForTests: (element: HTMLElement | null) => void;
     setActivePopoverLauncher: (element: HTMLElement | null) => void;
+    scheduleClearActivePopoverLauncher: () => void;
     notifyPushParamsForward: (routeKey: string, prevParams: unknown) => void;
     notifyPushParamsBackward: (routeKey: string, targetParams: unknown) => void;
     compoundParamsKey: (routeKey: string, params: unknown) => string;
@@ -349,6 +351,81 @@ describe('captureTriggerForRoute', () => {
             captureTriggerForRoute('route-a');
             fallback.blur();
             expect(restoreTriggerForRoute('route-a')).toBe(true);
+        });
+
+        it('should keep the launcher available across a deferred onPostDeactivate clear', () => {
+            jest.useFakeTimers();
+            try {
+                const launcher = document.createElement('button');
+                document.body.appendChild(launcher);
+                setActivePopoverLauncher(launcher);
+
+                // Modal close triggers onPostDeactivate before the deferred navigate fires.
+                scheduleClearActivePopoverLauncher();
+
+                // Within the deferral window, capture should still see the launcher.
+                jest.advanceTimersByTime(50);
+                captureTriggerForRoute('route-a');
+
+                launcher.blur();
+                expect(restoreTriggerForRoute('route-a')).toBe(true);
+            } finally {
+                jest.useRealTimers();
+            }
+        });
+
+        it('should clear the launcher after the deferred window elapses', () => {
+            jest.useFakeTimers();
+            try {
+                const launcher = document.createElement('button');
+                document.body.appendChild(launcher);
+                setActivePopoverLauncher(launcher);
+                scheduleClearActivePopoverLauncher();
+
+                jest.advanceTimersByTime(2000);
+
+                const fallback = document.createElement('button');
+                document.body.appendChild(fallback);
+                fallback.focus();
+                fallback.dispatchEvent(new FocusEvent('focusin', {bubbles: true}));
+
+                captureTriggerForRoute('route-a');
+                fallback.blur();
+                const launcherSpy = jest.spyOn(launcher, 'focus');
+                expect(restoreTriggerForRoute('route-a')).toBe(true);
+                // Expect the fallback was captured, not the (since-cleared) launcher.
+                expect(launcherSpy).not.toHaveBeenCalled();
+            } finally {
+                jest.useRealTimers();
+            }
+        });
+
+        it('should cancel a pending deferred clear when a new launcher is set', () => {
+            jest.useFakeTimers();
+            try {
+                const launcherA = document.createElement('button');
+                const launcherB = document.createElement('button');
+                document.body.appendChild(launcherA);
+                document.body.appendChild(launcherB);
+
+                setActivePopoverLauncher(launcherA);
+                scheduleClearActivePopoverLauncher();
+
+                // Open another popover within the clear window.
+                jest.advanceTimersByTime(100);
+                setActivePopoverLauncher(launcherB);
+
+                // Original deferred clear must NOT fire and wipe launcherB.
+                jest.advanceTimersByTime(2000);
+
+                captureTriggerForRoute('route-a');
+                launcherB.blur();
+                const spyB = jest.spyOn(launcherB, 'focus');
+                expect(restoreTriggerForRoute('route-a')).toBe(true);
+                expect(spyB).toHaveBeenCalled();
+            } finally {
+                jest.useRealTimers();
+            }
         });
     });
 
@@ -822,6 +899,24 @@ describe('PUSH_PARAMS notifications', () => {
         } finally {
             jest.useRealTimers();
         }
+    });
+
+    it('should drop compound entries when their bare route is removed from the tree', () => {
+        const trigger = document.createElement('input');
+        document.body.appendChild(trigger);
+        trigger.focus();
+        trigger.dispatchEvent(new FocusEvent('focusin', {bubbles: true}));
+
+        // Prime prev state, then capture a compound entry against (search-x, q=foo).
+        handleStateChange(stackState(0, [{key: 'search-x', name: 'Search'}]));
+        notifyPushParamsForward('search-x', {q: 'foo'});
+
+        // Now the search route leaves the tree entirely.
+        handleStateChange(stackState(0, [{key: 'other', name: 'Other'}]));
+
+        // Compound entry must be gone — restore returns false.
+        trigger.blur();
+        expect(restoreTriggerForRoute(compoundParamsKey('search-x', {q: 'foo'}))).toBe(false);
     });
 
     it('should not restore for a different params hash', () => {
