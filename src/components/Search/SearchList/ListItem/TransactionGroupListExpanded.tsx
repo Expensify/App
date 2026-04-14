@@ -187,6 +187,14 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
         openReportInRHP(transaction);
     };
 
+    const handleButtonPress = (transaction: TransactionListItemType) => {
+        if (transaction.action === CONST.SEARCH.ACTION_TYPES.UNDELETE) {
+            onUndelete?.(transaction);
+            return;
+        }
+        openReportInRHP(transaction);
+    }
+
     const minTableWidth = getTableMinWidth(currentColumns.filter((column) => !column.startsWith(CONST.SEARCH.GROUP_COLUMN_PREFIX)) ?? []);
     const shouldScrollHorizontally = isLargeScreenWidth && minTableWidth > windowWidth;
 
@@ -233,13 +241,7 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
                         checkboxSentryLabel={CONST.SENTRY_LABEL.SEARCH.EXPANDED_TRANSACTION_ROW_CHECKBOX}
                         onCheckboxPress={() => onCheckboxPress?.(transaction as unknown as TItem)}
                         columns={currentColumns}
-                        onButtonPress={() => {
-                            if (transaction.action === CONST.SEARCH.ACTION_TYPES.UNDELETE) {
-                                onUndelete?.(transaction);
-                                return;
-                            }
-                            openReportInRHP(transaction);
-                        }}
+                        onButtonPress={() => handleButtonPress(transaction)}
                         style={[styles.noBorderRadius, styles.p3, isLargeScreenWidth && [styles.pv2, styles.searchTableRowHeight], styles.flex1]}
                         isReportItemChild
                         isInSingleTransactionReport={isInSingleTransactionReport}
