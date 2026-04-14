@@ -2,12 +2,12 @@
 import {PortalProvider} from '@gorhom/portal';
 import {fireEvent, render, screen, waitFor} from '@testing-library/react-native';
 import React from 'react';
-import type {GestureResponderEvent} from 'react-native';
 import Onyx from 'react-native-onyx';
 import ChronosTimerHeaderButton from '@components/ChronosTimerHeaderButton';
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
+import type {PopoverMenuItem, PopoverMenuProps} from '@components/PopoverMenu';
 import CONST from '@src/CONST';
 import type {Report} from '@src/types/onyx';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -34,6 +34,7 @@ jest.mock('@userActions/Session', () => ({
 jest.mock('@libs/ReportUtils', () => ({
     canUserPerformWriteAction: () => true,
     canWriteInReport: () => true,
+    getAncestors: () => [],
 }));
 
 jest.mock('@libs/ChronosUtils', () => ({
@@ -42,11 +43,6 @@ jest.mock('@libs/ChronosUtils', () => ({
 
 jest.mock('@libs/ReportActionsUtils', () => ({
     getSortedReportActionsForDisplay: () => [],
-}));
-
-jest.mock('@hooks/useAncestors', () => ({
-    __esModule: true,
-    default: () => [],
 }));
 
 jest.mock('@hooks/useIsInSidePanel', () => ({
@@ -63,18 +59,6 @@ jest.mock('@hooks/useCurrentUserPersonalDetails', () => ({
     __esModule: true,
     default: () => ({accountID: 12345, timezone: {automatic: true, selected: 'America/Los_Angeles'}}),
 }));
-
-type PopoverMenuItem = {
-    text: string;
-    onSelected?: () => void;
-};
-
-type PopoverMenuProps = {
-    isVisible: boolean;
-    menuItems: PopoverMenuItem[];
-    onClose: () => void;
-    onItemSelected?: (item: PopoverMenuItem, index: number, event?: GestureResponderEvent | KeyboardEvent) => void;
-};
 
 /**
  * A simplified PopoverMenu that renders menu items as pressable elements
