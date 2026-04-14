@@ -197,6 +197,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
         shouldHighlight: item?.shouldAnimateInHighlight ?? false,
         highlightColor: theme.messageHighlightBG,
         backgroundColor: theme.highlightBG,
+        shouldApplyOtherStyles: !isLargeScreenWidth,
     });
 
     const isItemSelected = isSelectAllChecked || item?.isSelected;
@@ -534,6 +535,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
                     animatedHighlightStyle,
                     styles.userSelectNone,
                     isLargeScreenWidth && StyleUtils.getSearchTableGroupRowBorderStyle(isFirstItem, isLastItem, isItemSelected),
+                    isLargeScreenWidth && isLastItem && styles.overflowHidden,
                 ]}
             >
                 {({hovered}) => (

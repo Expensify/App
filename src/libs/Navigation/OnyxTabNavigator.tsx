@@ -3,12 +3,14 @@ import {createMaterialTopTabNavigator} from '@react-navigation/material-top-tabs
 import type {EventMapCore, NavigationState, ParamListBase, ScreenListeners} from '@react-navigation/native';
 import {useRoute} from '@react-navigation/native';
 import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
+import {StyleSheet, View} from 'react-native';
+import ActivityIndicator from '@components/ActivityIndicator';
 import FocusTrapContainerElement from '@components/FocusTrap/FocusTrapContainerElement';
-import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import type {TabSelectorProps} from '@components/TabSelector/types';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Tab from '@userActions/Tab';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {SelectedTabRequest} from '@src/types/onyx';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
@@ -105,6 +107,7 @@ function OnyxTabNavigator<TTabName extends string = SelectedTabRequest>({
     equalWidth = false,
     ...rest
 }: OnyxTabNavigatorProps<TTabName>) {
+    const styles = useThemeStyles();
     const isFirstMountRef = useRef(true);
     // Mapping of tab name to focus trap container element
     const [focusTrapContainerElementMapping, setFocusTrapContainerElementMapping] = useState<Record<string, HTMLElement>>({});
@@ -115,8 +118,15 @@ function OnyxTabNavigator<TTabName extends string = SelectedTabRequest>({
     const validInitialTab = selectedTab && tabNames.includes(selectedTab) ? selectedTab : defaultSelectedTab;
 
     const LazyPlaceholder = useCallback(() => {
-        return <FullScreenLoadingIndicator reasonAttributes={{context: 'OnyxTabNavigator.LazyPlaceholder'}} />;
-    }, []);
+        return (
+            <View style={[StyleSheet.absoluteFill, styles.fullScreenLoading, styles.w100]}>
+                <ActivityIndicator
+                    size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                    reasonAttributes={{context: 'OnyxTabNavigator.LazyPlaceholder'}}
+                />
+            </View>
+        );
+    }, [styles.fullScreenLoading, styles.w100]);
 
     // This callback is used to register the focus trap container element of each available tab screen
     const setTabFocusTrapContainerElement = useCallback((tabName: string, containerElement: HTMLElement | null) => {
