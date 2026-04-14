@@ -10,7 +10,7 @@ import type {ValueOf} from 'type-fest';
 import ReceiptGeneric from '@assets/images/receipt-generic.png';
 import type {SearchQueryJSON} from '@components/Search/types';
 import * as API from '@libs/API';
-import type {AddReportApproverParams, AssignReportToMeParams, CreateDistanceRequestParams, UpdateMoneyRequestParams, MarkReportPaymentReceivedParams,} from '@libs/API/parameters';
+import type {AddReportApproverParams, AssignReportToMeParams, CreateDistanceRequestParams, MarkReportPaymentReceivedParams, UpdateMoneyRequestParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import {convertToBackendAmount, getCurrencyDecimals} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
@@ -4779,7 +4779,6 @@ function getReportFromHoldRequestsOnyxData({
     };
 }
 
-
 function markReportPaymentReceived(
     chatReport: OnyxEntry<OnyxTypes.Report>,
     iouReport: OnyxEntry<OnyxTypes.Report>,
@@ -4937,7 +4936,6 @@ function markReportPaymentReceived(
     }
 
     const parameters: MarkReportPaymentReceivedParams = {
-        iouReportID: iouReport.reportID,
         reportID: iouReport.reportID,
         reportActionID: optimisticIOUReportAction.reportActionID,
     };
@@ -4946,7 +4944,6 @@ function markReportPaymentReceived(
     API.write(WRITE_COMMANDS.MARK_REPORT_PAYMENT_RECEIVED, parameters, {optimisticData, successData, failureData});
     notifyNewAction(iouReport.reportID, undefined, true);
 }
-
 
 /**
  * Finds the participants for an IOU based on the attached report

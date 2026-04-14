@@ -1,5 +1,4 @@
 type MarkReportPaymentReceivedParams = {
-    iouReportID: string;
     reportID: string;
     reportActionID: string;
 };
