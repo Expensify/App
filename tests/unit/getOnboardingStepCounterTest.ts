@@ -8,11 +8,11 @@ const {ONBOARDING_CHOICES, ONBOARDING_SIGNUP_QUALIFIERS} = CONST;
 
 describe('getOnboardingFlow', () => {
     it('returns [ACCOUNTING, INTERESTED_FEATURES] for VSB without domain context', () => {
-        expect(getOnboardingFlow({signupQualifier: 'vsb'})).toEqual([O.DYNAMIC_ACCOUNTING, O.INTERESTED_FEATURES]);
+        expect(getOnboardingFlow({signupQualifier: 'vsb'})).toEqual([O.DYNAMIC_ACCOUNTING, O.DYNAMIC_INTERESTED_FEATURES]);
     });
 
     it('returns [EMPLOYEES, ACCOUNTING, INTERESTED_FEATURES] for SMB without domain context', () => {
-        expect(getOnboardingFlow({signupQualifier: 'smb'})).toEqual([O.DYNAMIC_EMPLOYEES, O.DYNAMIC_ACCOUNTING, O.INTERESTED_FEATURES]);
+        expect(getOnboardingFlow({signupQualifier: 'smb'})).toEqual([O.DYNAMIC_EMPLOYEES, O.DYNAMIC_ACCOUNTING, O.DYNAMIC_INTERESTED_FEATURES]);
     });
 
     it('returns [PURPOSE, EMPLOYEES, ACCOUNTING, INTERESTED_FEATURES] for individual + MANAGE_TEAM', () => {
@@ -20,7 +20,7 @@ describe('getOnboardingFlow', () => {
             O.PURPOSE,
             O.DYNAMIC_EMPLOYEES,
             O.DYNAMIC_ACCOUNTING,
-            O.INTERESTED_FEATURES,
+            O.DYNAMIC_INTERESTED_FEATURES,
         ]);
     });
 
@@ -37,7 +37,7 @@ describe('getOnboardingFlow', () => {
     });
 
     it('returns [WORK_EMAIL, WORK_EMAIL_VALIDATION, ACCOUNTING, INTERESTED_FEATURES] for public + VSB', () => {
-        expect(getOnboardingFlow({signupQualifier: 'vsb', isFromPublicDomain: true})).toEqual([O.WORK_EMAIL, O.WORK_EMAIL_VALIDATION, O.DYNAMIC_ACCOUNTING, O.INTERESTED_FEATURES]);
+        expect(getOnboardingFlow({signupQualifier: 'vsb', isFromPublicDomain: true})).toEqual([O.WORK_EMAIL, O.WORK_EMAIL_VALIDATION, O.DYNAMIC_ACCOUNTING, O.DYNAMIC_INTERESTED_FEATURES]);
     });
 
     it('returns [WORK_EMAIL, WORK_EMAIL_VALIDATION, EMPLOYEES, ACCOUNTING, INTERESTED_FEATURES] for public + SMB', () => {
@@ -46,7 +46,7 @@ describe('getOnboardingFlow', () => {
             O.WORK_EMAIL_VALIDATION,
             O.DYNAMIC_EMPLOYEES,
             O.DYNAMIC_ACCOUNTING,
-            O.INTERESTED_FEATURES,
+            O.DYNAMIC_INTERESTED_FEATURES,
         ]);
     });
 
@@ -57,7 +57,7 @@ describe('getOnboardingFlow', () => {
             O.PURPOSE,
             O.DYNAMIC_EMPLOYEES,
             O.DYNAMIC_ACCOUNTING,
-            O.INTERESTED_FEATURES,
+            O.DYNAMIC_INTERESTED_FEATURES,
         ]);
     });
 
@@ -86,7 +86,7 @@ describe('getOnboardingFlow', () => {
             O.WORK_EMAIL_VALIDATION,
             O.WORKSPACES,
             O.DYNAMIC_ACCOUNTING,
-            O.INTERESTED_FEATURES,
+            O.DYNAMIC_INTERESTED_FEATURES,
         ]);
     });
 
@@ -98,7 +98,7 @@ describe('getOnboardingFlow', () => {
             O.PURPOSE,
             O.DYNAMIC_EMPLOYEES,
             O.DYNAMIC_ACCOUNTING,
-            O.INTERESTED_FEATURES,
+            O.DYNAMIC_INTERESTED_FEATURES,
         ]);
     });
 
@@ -128,7 +128,7 @@ describe('getOnboardingFlow', () => {
             O.PURPOSE,
             O.DYNAMIC_EMPLOYEES,
             O.DYNAMIC_ACCOUNTING,
-            O.INTERESTED_FEATURES,
+            O.DYNAMIC_INTERESTED_FEATURES,
         ]);
     });
 
@@ -138,7 +138,7 @@ describe('getOnboardingFlow', () => {
             O.DYNAMIC_PRIVATE_DOMAIN,
             O.WORKSPACES,
             O.DYNAMIC_ACCOUNTING,
-            O.INTERESTED_FEATURES,
+            O.DYNAMIC_INTERESTED_FEATURES,
         ]);
     });
 
@@ -149,7 +149,7 @@ describe('getOnboardingFlow', () => {
             O.WORKSPACES,
             O.DYNAMIC_EMPLOYEES,
             O.DYNAMIC_ACCOUNTING,
-            O.INTERESTED_FEATURES,
+            O.DYNAMIC_INTERESTED_FEATURES,
         ]);
     });
 
@@ -161,7 +161,7 @@ describe('getOnboardingFlow', () => {
             O.PURPOSE,
             O.DYNAMIC_EMPLOYEES,
             O.DYNAMIC_ACCOUNTING,
-            O.INTERESTED_FEATURES,
+            O.DYNAMIC_INTERESTED_FEATURES,
         ]);
     });
 
@@ -189,14 +189,14 @@ describe('getOnboardingStepCounter', () => {
     it('returns correct step/total/percentage for each page in VSB flow', () => {
         const ctx: OnboardingFlowContext = {signupQualifier: 'vsb'};
         expect(getOnboardingStepCounter(O.DYNAMIC_ACCOUNTING, ctx)).toEqual({stepCounter: {step: 1, total: 2}, progressBarPercentage: 50});
-        expect(getOnboardingStepCounter(O.INTERESTED_FEATURES, ctx)).toEqual({stepCounter: {step: 2, total: 2}, progressBarPercentage: 100});
+        expect(getOnboardingStepCounter(O.DYNAMIC_INTERESTED_FEATURES, ctx)).toEqual({stepCounter: {step: 2, total: 2}, progressBarPercentage: 100});
     });
 
     it('returns correct step/total/percentage for each page in SMB flow', () => {
         const ctx: OnboardingFlowContext = {signupQualifier: 'smb'};
         expect(getOnboardingStepCounter(O.DYNAMIC_EMPLOYEES, ctx)).toEqual({stepCounter: {step: 1, total: 3}, progressBarPercentage: 33});
         expect(getOnboardingStepCounter(O.DYNAMIC_ACCOUNTING, ctx)).toEqual({stepCounter: {step: 2, total: 3}, progressBarPercentage: 67});
-        expect(getOnboardingStepCounter(O.INTERESTED_FEATURES, ctx)).toEqual({stepCounter: {step: 3, total: 3}, progressBarPercentage: 100});
+        expect(getOnboardingStepCounter(O.DYNAMIC_INTERESTED_FEATURES, ctx)).toEqual({stepCounter: {step: 3, total: 3}, progressBarPercentage: 100});
     });
 
     it('returns correct step/total/percentage for individual + MANAGE_TEAM', () => {
@@ -204,7 +204,7 @@ describe('getOnboardingStepCounter', () => {
         expect(getOnboardingStepCounter(O.PURPOSE, ctx)).toEqual({stepCounter: {step: 1, total: 4}, progressBarPercentage: 25});
         expect(getOnboardingStepCounter(O.DYNAMIC_EMPLOYEES, ctx)).toEqual({stepCounter: {step: 2, total: 4}, progressBarPercentage: 50});
         expect(getOnboardingStepCounter(O.DYNAMIC_ACCOUNTING, ctx)).toEqual({stepCounter: {step: 3, total: 4}, progressBarPercentage: 75});
-        expect(getOnboardingStepCounter(O.INTERESTED_FEATURES, ctx)).toEqual({stepCounter: {step: 4, total: 4}, progressBarPercentage: 100});
+        expect(getOnboardingStepCounter(O.DYNAMIC_INTERESTED_FEATURES, ctx)).toEqual({stepCounter: {step: 4, total: 4}, progressBarPercentage: 100});
     });
 
     it('returns correct step/total/percentage for individual + PERSONAL_SPEND', () => {
@@ -227,7 +227,7 @@ describe('getOnboardingStepCounter', () => {
         expect(getOnboardingStepCounter(O.PURPOSE, ctx)).toEqual({stepCounter: {step: 3, total: 6}, progressBarPercentage: 50});
         expect(getOnboardingStepCounter(O.DYNAMIC_EMPLOYEES, ctx)).toEqual({stepCounter: {step: 4, total: 6}, progressBarPercentage: 67});
         expect(getOnboardingStepCounter(O.DYNAMIC_ACCOUNTING, ctx)).toEqual({stepCounter: {step: 5, total: 6}, progressBarPercentage: 83});
-        expect(getOnboardingStepCounter(O.INTERESTED_FEATURES, ctx)).toEqual({stepCounter: {step: 6, total: 6}, progressBarPercentage: 100});
+        expect(getOnboardingStepCounter(O.DYNAMIC_INTERESTED_FEATURES, ctx)).toEqual({stepCounter: {step: 6, total: 6}, progressBarPercentage: 100});
     });
 
     it('returns correct step/total/percentage for public + merge + individual + MANAGE_TEAM', () => {
@@ -238,7 +238,7 @@ describe('getOnboardingStepCounter', () => {
         expect(getOnboardingStepCounter(O.PURPOSE, ctx)).toEqual({stepCounter: {step: 4, total: 7}, progressBarPercentage: 57});
         expect(getOnboardingStepCounter(O.DYNAMIC_EMPLOYEES, ctx)).toEqual({stepCounter: {step: 5, total: 7}, progressBarPercentage: 71});
         expect(getOnboardingStepCounter(O.DYNAMIC_ACCOUNTING, ctx)).toEqual({stepCounter: {step: 6, total: 7}, progressBarPercentage: 86});
-        expect(getOnboardingStepCounter(O.INTERESTED_FEATURES, ctx)).toEqual({stepCounter: {step: 7, total: 7}, progressBarPercentage: 100});
+        expect(getOnboardingStepCounter(O.DYNAMIC_INTERESTED_FEATURES, ctx)).toEqual({stepCounter: {step: 7, total: 7}, progressBarPercentage: 100});
     });
 
     it('returns correct step/total/percentage for public + skipped + individual + MANAGE_TEAM (no gaps)', () => {
@@ -247,7 +247,7 @@ describe('getOnboardingStepCounter', () => {
         expect(getOnboardingStepCounter(O.PURPOSE, ctx)).toEqual({stepCounter: {step: 2, total: 5}, progressBarPercentage: 40});
         expect(getOnboardingStepCounter(O.DYNAMIC_EMPLOYEES, ctx)).toEqual({stepCounter: {step: 3, total: 5}, progressBarPercentage: 60});
         expect(getOnboardingStepCounter(O.DYNAMIC_ACCOUNTING, ctx)).toEqual({stepCounter: {step: 4, total: 5}, progressBarPercentage: 80});
-        expect(getOnboardingStepCounter(O.INTERESTED_FEATURES, ctx)).toEqual({stepCounter: {step: 5, total: 5}, progressBarPercentage: 100});
+        expect(getOnboardingStepCounter(O.DYNAMIC_INTERESTED_FEATURES, ctx)).toEqual({stepCounter: {step: 5, total: 5}, progressBarPercentage: 100});
     });
 
     it('returns correct step/total/percentage for public + skipped + individual + PERSONAL_SPEND (no gaps)', () => {
@@ -266,7 +266,7 @@ describe('getOnboardingStepCounter', () => {
         expect(getOnboardingStepCounter(O.PURPOSE, ctx)).toEqual({stepCounter: {step: 4, total: 7}, progressBarPercentage: 57});
         expect(getOnboardingStepCounter(O.DYNAMIC_EMPLOYEES, ctx)).toEqual({stepCounter: {step: 5, total: 7}, progressBarPercentage: 71});
         expect(getOnboardingStepCounter(O.DYNAMIC_ACCOUNTING, ctx)).toEqual({stepCounter: {step: 6, total: 7}, progressBarPercentage: 86});
-        expect(getOnboardingStepCounter(O.INTERESTED_FEATURES, ctx)).toEqual({stepCounter: {step: 7, total: 7}, progressBarPercentage: 100});
+        expect(getOnboardingStepCounter(O.DYNAMIC_INTERESTED_FEATURES, ctx)).toEqual({stepCounter: {step: 7, total: 7}, progressBarPercentage: 100});
     });
 
     describe('sub-page mappings', () => {

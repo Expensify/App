@@ -157,7 +157,7 @@ function OnboardingModalNavigator() {
                                 component={OnboardingAccounting}
                             />
                             <Stack.Screen
-                                name={SCREENS.ONBOARDING.INTERESTED_FEATURES}
+                                name={SCREENS.ONBOARDING.DYNAMIC_INTERESTED_FEATURES}
                                 component={OnboardingInterestedFeatures}
                             />
                             <Stack.Screen

@@ -253,6 +253,10 @@ const DYNAMIC_ROUTES = {
             SCREENS.ONBOARDING.DYNAMIC_EMPLOYEES,
         ],
     },
+    ONBOARDING_INTERESTED_FEATURES: {
+        path: 'interested-features',
+        entryScreens: [SCREENS.ONBOARDING.DYNAMIC_ACCOUNTING],
+    },
 
     DETAILS_CONSTANT_PICKER: {
         path: 'constant-picker',
@@ -3213,12 +3217,6 @@ const ROUTES = {
 
         // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
         getRoute: (backTo?: string) => getUrlWithBackToParam(`onboarding`, backTo),
-    },
-    ONBOARDING_INTERESTED_FEATURES: {
-        route: 'onboarding/interested-features',
-
-        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-        getRoute: (userReportedIntegration?: string, backTo?: string) => getUrlWithBackToParam(`onboarding/interested-features?userReportedIntegration=${userReportedIntegration}`, backTo),
     },
     ONBOARDING_PURPOSE: {
         route: 'onboarding/purpose',

@@ -21,6 +21,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setOnboardingAdminsChatReportID, setOnboardingPolicyID, setOnboardingUserReportedIntegration} from '@libs/actions/Welcome';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {isPaidGroupPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
 import variables from '@styles/variables';
@@ -28,7 +29,7 @@ import type {OnboardingAccounting} from '@src/CONST';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type IconAsset from '@src/types/utils/IconAsset';
 import type {BaseOnboardingAccountingProps} from './types';
@@ -189,8 +190,8 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
 
         setOnboardingUserReportedIntegration(userReportedIntegration);
 
-        // Navigate to the next onboarding step interested features with the selected integration
-        Navigation.navigate(ROUTES.ONBOARDING_INTERESTED_FEATURES.getRoute(Navigation.getActiveRoute()));
+        // Navigate to interested features by layering a dynamic suffix on top of accounting.
+        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.ONBOARDING_INTERESTED_FEATURES.path));
     }, [translate, userReportedIntegration]);
 
     const handleIntegrationSelect = useCallback((integrationKey: OnboardingListItem['keyForList']) => {
