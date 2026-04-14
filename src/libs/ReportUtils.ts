@@ -10515,7 +10515,7 @@ function getTaskAssigneeChatOnyxData(
         );
 
         // If assignee is created optimistically, we need to clear the optimistic personal details to prevent duplication with real data sent from BE.
-        // TODO: Pass personalDetailsList once threaded through getTaskAssigneeChatOnyxData (https://github.com/Expensify/App/issues/66413) → PR 24
+        // TODO: Pass personalDetailsList in PR 24; isOptimisticPersonalDetail falls back to module-level Onyx value (https://github.com/Expensify/App/issues/66413)
         if (isOptimisticPersonalDetail(assigneeAccountID, undefined)) {
             successData.push(
                 {

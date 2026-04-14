@@ -123,7 +123,7 @@ function buildRoomMembersOnyxData(
             key: `${ONYXKEYS.COLLECTION.REPORT}${report?.reportID}`,
             value: {
                 participants: accountIDs.reduce((acc, curr) => {
-                    // TODO: Pass personalDetailsList once threaded through buildRoomMembersOnyxData (https://github.com/Expensify/App/issues/66413) → PR 32
+                    // TODO: Pass personalDetailsList in PR 32; isOptimisticPersonalDetail falls back to module-level Onyx value (https://github.com/Expensify/App/issues/66413)
                     if (ReportUtils.isOptimisticPersonalDetail(curr, undefined)) {
                         Object.assign(acc, {[curr]: null});
                     }
