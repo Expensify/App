@@ -705,6 +705,7 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
                 }
                 approveMoneyRequest({
                     expenseReport: moneyRequestReport,
+                    expenseReportPolicy: policy,
                     policy,
                     currentUserAccountIDParam: accountID,
                     currentUserEmailParam: email ?? '',
@@ -1917,6 +1918,7 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
                 event,
                 iouPaymentType,
                 triggerKYCFlow,
+                expenseReportPolicy: policy,
                 policy,
                 onPress: confirmPayment,
                 currentAccountID: accountID,
