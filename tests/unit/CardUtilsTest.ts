@@ -1,6 +1,7 @@
 import {buildFeedKeysWithAssignedCards, isExpensifyCardUkEuSupportedSelector} from '@selectors/Card';
 import lodashSortBy from 'lodash/sortBy';
 import type {OnyxCollection} from 'react-native-onyx';
+import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import type {FeedKeysWithAssignedCards} from '@hooks/useFeedKeysWithAssignedCards';
 import type IllustrationsType from '@styles/theme/illustrations/types';
 import CONST from '@src/CONST';
@@ -2912,6 +2913,12 @@ describe('CardUtils', () => {
     });
 
     describe('getCompanyCardDescription', () => {
+        const mockTranslate = ((key: string) => {
+            if (key === 'cardTransactions.centralInvoicing') {
+                return 'Central invoicing';
+            }
+            return key;
+        }) as LocalizedTranslate;
         const cardList: CardList = {
             '21310091': {
                 accountID: 18439984,
@@ -2947,6 +2954,34 @@ describe('CardUtils', () => {
         it('should return the correct description for an Expensify card', () => {
             const description = getCompanyCardDescription('Test', 21570657, cardList);
             expect(description).toBe('Test');
+        });
+
+        it('should return "Central invoicing" for a travel card when translate is provided', () => {
+            const travelCardList = {
+                '99999': {
+                    cardID: 99999,
+                    bank: CONST.EXPENSIFY_CARD.BANK,
+                    nameValuePairs: {
+                        feedCountry: CONST.TRAVEL.PROGRAM_TRAVEL_US,
+                    },
+                },
+            } as unknown as CardList;
+            const description = getCompanyCardDescription('Expensify Card - 6909', 99999, travelCardList, mockTranslate);
+            expect(description).toBe('Central invoicing');
+        });
+
+        it('should return raw card name for a travel card when translate is not provided', () => {
+            const travelCardList = {
+                '99999': {
+                    cardID: 99999,
+                    bank: CONST.EXPENSIFY_CARD.BANK,
+                    nameValuePairs: {
+                        feedCountry: CONST.TRAVEL.PROGRAM_TRAVEL_US,
+                    },
+                },
+            } as unknown as CardList;
+            const description = getCompanyCardDescription('Expensify Card - 6909', 99999, travelCardList);
+            expect(description).toBe('Expensify Card - 6909');
         });
     });
 
