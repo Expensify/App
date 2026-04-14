@@ -1,8 +1,7 @@
-import {shouldFailAllRequestsSelector} from '@selectors/Network';
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import {deepEqual} from 'fast-equals';
 import type {RefObject} from 'react';
-import React, {memo, useCallback, useMemo, useRef, useState} from 'react';
+import React, {memo, useMemo, useRef, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
 import type {GestureResponderEvent, Text as RNText, View as ViewType} from 'react-native';
@@ -11,13 +10,12 @@ import * as ActionSheetAwareScrollView from '@components/ActionSheetAwareScrollV
 import ContextMenuItem from '@components/ContextMenuItem';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import FocusTrapForModal from '@components/FocusTrap/FocusTrapForModal';
-import HoldOrRejectEducationalModal from '@components/HoldOrRejectEducationalModal';
-import HoldSubmitterEducationalModal from '@components/HoldSubmitterEducationalModal';
 import {useSession} from '@components/OnyxListItemProvider';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useEnvironment from '@hooks/useEnvironment';
 import useGetExpensifyCardFromReportAction from '@hooks/useGetExpensifyCardFromReportAction';
+import useHoldEducationalModal from '@hooks/useHoldEducationalModal';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -28,7 +26,6 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useRestoreInputFocus from '@hooks/useRestoreInputFocus';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
-import {setNameValuePair} from '@libs/actions/User';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getMovedReportID} from '@libs/ModifiedExpenseMessage';
 import {getLinkedTransactionID, getOneTransactionThreadReportID, getOriginalMessage, getReportAction, isDeletedAction, withDEWRoutedActionsObject} from '@libs/ReportActionsUtils';
@@ -37,15 +34,12 @@ import {
     getHarvestOriginalReportID,
     getSourceIDFromReportAction,
     isArchivedNonExpenseReport,
-    isCurrentUserSubmitter,
-    isDM as isDMReportUtils,
     isHarvestCreatedExpenseReport,
     isInvoiceReport as ReportUtilsIsInvoiceReport,
     isMoneyRequest as ReportUtilsIsMoneyRequest,
     isMoneyRequestReport as ReportUtilsIsMoneyRequestReport,
     isTrackExpenseReport as ReportUtilsIsTrackExpenseReport,
 } from '@libs/ReportUtils';
-import {dismissRejectUseExplanation} from '@userActions/IOU/RejectMoneyRequest';
 import {isAnonymousUser, signOutAndRedirectToSignIn} from '@userActions/Session';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -251,9 +245,7 @@ function BaseReportActionContextMenu({
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
-    const [dismissedHoldUseExplanation] = useOnyx(ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION);
-    const [dismissedRejectUseExplanation] = useOnyx(ONYXKEYS.NVP_DISMISSED_REJECT_USE_EXPLANATION);
-    const [shouldFailAllRequests] = useOnyx(ONYXKEYS.NETWORK, {selector: shouldFailAllRequestsSelector});
+    const {holdWithEducation} = useHoldEducationalModal({moneyRequestReport, originalReport});
 
     const isTryNewDotNVPDismissed = !!tryNewDot?.classicRedirect?.dismissed;
     const session = useSession();
@@ -271,44 +263,6 @@ function BaseReportActionContextMenu({
 
     const shouldEnableArrowNavigation = !isMini && (isVisible || shouldKeepOpen);
     const isHarvestReport = isHarvestCreatedExpenseReport(reportNameValuePairs?.origin, reportNameValuePairs?.originalID);
-
-    // Hold educational modal state
-    const [isHoldEducationalModalVisible, setIsHoldEducationalModalVisible] = useState(false);
-    const [isRejectEducationalModalVisible, setIsRejectEducationalModalVisible] = useState(false);
-    const pendingHoldActionRef = useRef<(() => void) | null>(null);
-
-    const holdWithEducation = useCallback(
-        (holdAction: () => void) => {
-            const isSubmitter = isCurrentUserSubmitter(moneyRequestReport);
-            const isChatDM = isDMReportUtils(originalReport);
-            const isDismissed = isSubmitter ? dismissedHoldUseExplanation : dismissedRejectUseExplanation;
-
-            if (isDismissed || isChatDM) {
-                holdAction();
-            } else if (isSubmitter) {
-                pendingHoldActionRef.current = holdAction;
-                setIsHoldEducationalModalVisible(true);
-            } else {
-                pendingHoldActionRef.current = holdAction;
-                setIsRejectEducationalModalVisible(true);
-            }
-        },
-        [moneyRequestReport, originalReport, dismissedHoldUseExplanation, dismissedRejectUseExplanation],
-    );
-
-    const dismissHoldEducationalModal = useCallback(() => {
-        setIsHoldEducationalModalVisible(false);
-        setNameValuePair(ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION, true, false, !shouldFailAllRequests);
-        pendingHoldActionRef.current?.();
-        pendingHoldActionRef.current = null;
-    }, [shouldFailAllRequests]);
-
-    const dismissRejectEducationalModal = useCallback(() => {
-        setIsRejectEducationalModalVisible(false);
-        dismissRejectUseExplanation();
-        pendingHoldActionRef.current?.();
-        pendingHoldActionRef.current = null;
-    }, []);
 
     let filteredContextMenuActions = ContextMenuActions.filter(
         (contextAction) =>
@@ -417,113 +371,98 @@ function BaseReportActionContextMenu({
     const card = useGetExpensifyCardFromReportAction({reportAction: (reportAction ?? null) as ReportAction, policyID});
 
     return (
-        <>
-            {(isVisible || shouldKeepOpen || !isMini) && (
-                <FocusTrapForModal active={!isMini && !isSmallScreenWidth && (isVisible || shouldKeepOpen)}>
-                    <View
-                        ref={contentRef}
-                        style={wrapperStyle}
-                    >
-                        {filteredContextMenuActions.map((contextAction, index) => {
-                            const closePopup = !isMini;
-                            const payload: ContextMenuActionPayload = {
-                                reportActions,
-                                // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
-                                reportAction: (reportAction ?? null) as ReportAction,
-                                reportID,
-                                originalReportID,
-                                report,
-                                draftMessage,
-                                selection,
-                                close: () => setShouldKeepOpen(false),
-                                transitionActionSheetState,
-                                openContextMenu: () => setShouldKeepOpen(true),
-                                interceptAnonymousUser,
-                                openOverflowMenu,
-                                setIsEmojiPickerActive,
-                                isHarvestReport,
-                                moneyRequestAction,
-                                card,
-                                originalReport,
-                                isTryNewDotNVPDismissed,
-                                childReport,
-                                movedFromReport,
-                                movedToReport,
-                                getLocalDateFromDatetime,
-                                policy,
-                                policyTags,
-                                translate,
-                                harvestReport,
-                                introSelected,
-                                isSelfTourViewed,
-                                betas,
-                                isDelegateAccessRestricted,
-                                showDelegateNoAccessModal,
-                                currentUserAccountID: currentUserPersonalDetails?.accountID,
-                                currentUserPersonalDetails,
-                                encryptedAuthToken,
-                                iouTransaction,
-                                bankAccountList,
-                                isOffline,
-                                conciergeReportID,
-                                holdWithEducation,
-                            };
+        (isVisible || shouldKeepOpen || !isMini) && (
+            <FocusTrapForModal active={!isMini && !isSmallScreenWidth && (isVisible || shouldKeepOpen)}>
+                <View
+                    ref={contentRef}
+                    style={wrapperStyle}
+                >
+                    {filteredContextMenuActions.map((contextAction, index) => {
+                        const closePopup = !isMini;
+                        const payload: ContextMenuActionPayload = {
+                            reportActions,
+                            // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
+                            reportAction: (reportAction ?? null) as ReportAction,
+                            reportID,
+                            originalReportID,
+                            report,
+                            draftMessage,
+                            selection,
+                            close: () => setShouldKeepOpen(false),
+                            transitionActionSheetState,
+                            openContextMenu: () => setShouldKeepOpen(true),
+                            interceptAnonymousUser,
+                            openOverflowMenu,
+                            setIsEmojiPickerActive,
+                            isHarvestReport,
+                            moneyRequestAction,
+                            card,
+                            originalReport,
+                            isTryNewDotNVPDismissed,
+                            childReport,
+                            movedFromReport,
+                            movedToReport,
+                            getLocalDateFromDatetime,
+                            policy,
+                            policyTags,
+                            translate,
+                            harvestReport,
+                            introSelected,
+                            isSelfTourViewed,
+                            betas,
+                            isDelegateAccessRestricted,
+                            showDelegateNoAccessModal,
+                            currentUserAccountID: currentUserPersonalDetails?.accountID,
+                            currentUserPersonalDetails,
+                            encryptedAuthToken,
+                            iouTransaction,
+                            bankAccountList,
+                            isOffline,
+                            conciergeReportID,
+                            holdWithEducation,
+                        };
 
-                            if ('renderContent' in contextAction) {
-                                return contextAction.renderContent(closePopup, payload);
-                            }
+                        if ('renderContent' in contextAction) {
+                            return contextAction.renderContent(closePopup, payload);
+                        }
 
-                            const {textTranslateKey} = contextAction;
-                            const isKeyInActionUpdateKeys = textTranslateKey === 'reportActionContextMenu.editAction' || textTranslateKey === 'reportActionContextMenu.deleteConfirmation';
-                            const text =
-                                textTranslateKey && (isKeyInActionUpdateKeys ? translate(textTranslateKey, {action: moneyRequestAction ?? reportAction}) : translate(textTranslateKey));
-                            const transactionPayload = textTranslateKey === 'reportActionContextMenu.copyMessage' && transaction && {transaction};
-                            const isMenuAction = textTranslateKey === 'reportActionContextMenu.menu';
-                            const successIcon = contextAction.successIcon ? icons[contextAction.successIcon] : undefined;
+                        const {textTranslateKey} = contextAction;
+                        const isKeyInActionUpdateKeys = textTranslateKey === 'reportActionContextMenu.editAction' || textTranslateKey === 'reportActionContextMenu.deleteConfirmation';
+                        const text = textTranslateKey && (isKeyInActionUpdateKeys ? translate(textTranslateKey, {action: moneyRequestAction ?? reportAction}) : translate(textTranslateKey));
+                        const transactionPayload = textTranslateKey === 'reportActionContextMenu.copyMessage' && transaction && {transaction};
+                        const isMenuAction = textTranslateKey === 'reportActionContextMenu.menu';
+                        const successIcon = contextAction.successIcon ? icons[contextAction.successIcon] : undefined;
 
-                            return (
-                                <ContextMenuItem
-                                    buttonRef={isMenuAction ? threeDotRef : {current: null}}
-                                    icon={icons[contextAction.icon]}
-                                    text={text ?? ''}
-                                    successIcon={successIcon}
-                                    successText={contextAction.successTextTranslateKey ? translate(contextAction.successTextTranslateKey) : undefined}
-                                    isMini={isMini}
-                                    key={contextAction.textTranslateKey}
-                                    onPress={(event) =>
-                                        interceptAnonymousUser(
-                                            () => contextAction.onPress?.(closePopup, {...payload, ...transactionPayload, event, ...(isMenuAction ? {anchorRef: threeDotRef} : {})}),
-                                            contextAction.isAnonymousAction,
-                                        )
-                                    }
-                                    description={contextAction.getDescription?.(selection) ?? ''}
-                                    isAnonymousAction={contextAction.isAnonymousAction}
-                                    isFocused={focusedIndex === index}
-                                    shouldPreventDefaultFocusOnPress={contextAction.shouldPreventDefaultFocusOnPress}
-                                    onFocus={() => setFocusedIndex(index)}
-                                    onBlur={() => (index === filteredContextMenuActions.length - 1 || index === 1) && setFocusedIndex(-1)}
-                                    disabled={contextAction?.shouldDisable ? contextAction?.shouldDisable(download) : false}
-                                    shouldShowLoadingSpinnerIcon={contextAction?.shouldDisable ? contextAction?.shouldDisable(download) : false}
-                                    sentryLabel={contextAction.sentryLabel}
-                                />
-                            );
-                        })}
-                    </View>
-                </FocusTrapForModal>
-            )}
-            {isHoldEducationalModalVisible && (
-                <HoldSubmitterEducationalModal
-                    onClose={dismissHoldEducationalModal}
-                    onConfirm={dismissHoldEducationalModal}
-                />
-            )}
-            {isRejectEducationalModalVisible && (
-                <HoldOrRejectEducationalModal
-                    onClose={dismissRejectEducationalModal}
-                    onConfirm={dismissRejectEducationalModal}
-                />
-            )}
-        </>
+                        return (
+                            <ContextMenuItem
+                                buttonRef={isMenuAction ? threeDotRef : {current: null}}
+                                icon={icons[contextAction.icon]}
+                                text={text ?? ''}
+                                successIcon={successIcon}
+                                successText={contextAction.successTextTranslateKey ? translate(contextAction.successTextTranslateKey) : undefined}
+                                isMini={isMini}
+                                key={contextAction.textTranslateKey}
+                                onPress={(event) =>
+                                    interceptAnonymousUser(
+                                        () => contextAction.onPress?.(closePopup, {...payload, ...transactionPayload, event, ...(isMenuAction ? {anchorRef: threeDotRef} : {})}),
+                                        contextAction.isAnonymousAction,
+                                    )
+                                }
+                                description={contextAction.getDescription?.(selection) ?? ''}
+                                isAnonymousAction={contextAction.isAnonymousAction}
+                                isFocused={focusedIndex === index}
+                                shouldPreventDefaultFocusOnPress={contextAction.shouldPreventDefaultFocusOnPress}
+                                onFocus={() => setFocusedIndex(index)}
+                                onBlur={() => (index === filteredContextMenuActions.length - 1 || index === 1) && setFocusedIndex(-1)}
+                                disabled={contextAction?.shouldDisable ? contextAction?.shouldDisable(download) : false}
+                                shouldShowLoadingSpinnerIcon={contextAction?.shouldDisable ? contextAction?.shouldDisable(download) : false}
+                                sentryLabel={contextAction.sentryLabel}
+                            />
+                        );
+                    })}
+                </View>
+            </FocusTrapForModal>
+        )
     );
 }
 
