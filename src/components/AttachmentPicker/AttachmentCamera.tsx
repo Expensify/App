@@ -1,5 +1,5 @@
 import React, {useCallback, useEffect, useRef, useState} from 'react';
-import {AppState, Modal, StyleSheet, View} from 'react-native';
+import {Modal, StyleSheet, View} from 'react-native';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
 import {RESULTS} from 'react-native-permissions';
 import Animated, {useAnimatedStyle, useSharedValue, withDelay, withSequence, withSpring, withTiming} from 'react-native-reanimated';
@@ -133,24 +133,13 @@ function AttachmentCamera({isVisible, onCapture, onClose}: AttachmentCameraProps
             });
     }, [translate]);
 
-    // Refresh permissions when modal becomes visible and when app returns to foreground
+    // Refresh permissions when modal becomes visible
     useEffect(() => {
         if (!isVisible) {
             return;
         }
 
         refreshCameraPermissionStatus();
-
-        const subscription = AppState.addEventListener('change', (appState) => {
-            if (appState !== 'active') {
-                return;
-            }
-            refreshCameraPermissionStatus();
-        });
-
-        return () => {
-            subscription.remove();
-        };
     }, [isVisible, refreshCameraPermissionStatus]);
 
     // Auto-request permission if denied when modal first opens
