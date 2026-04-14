@@ -20,6 +20,7 @@ const LAUNCHER_CLEAR_DELAY_MS = 1000;
 
 let lastInteractiveElement: HTMLElement | null = null;
 let activePopoverLauncher: HTMLElement | null = null;
+let popoverIsActive = false;
 let clearLauncherTimerId: ReturnType<typeof setTimeout> | undefined;
 const triggerMap = new Map<string, HTMLElement>();
 let prevState: NavigationState | undefined;
@@ -78,11 +79,14 @@ function captureTriggerForRoute(routeKey: string): void {
     if (!getHadTabNavigation()) {
         return;
     }
-    // Items inside an active FocusTrapForModal get removed on close; prefer the launcher.
+    // Items inside an active FocusTrapForModal get removed on close; prefer the launcher unless the user has since moved on to a different in-DOM control.
     if (activePopoverLauncher && document.contains(activePopoverLauncher)) {
-        triggerMap.set(routeKey, activePopoverLauncher);
-        setActivePopoverLauncher(null);
-        return;
+        const userMovedOn = !popoverIsActive && lastInteractiveElement && lastInteractiveElement !== activePopoverLauncher && document.contains(lastInteractiveElement);
+        if (!userMovedOn) {
+            triggerMap.set(routeKey, activePopoverLauncher);
+            setActivePopoverLauncher(null);
+            return;
+        }
     }
     if (!lastInteractiveElement || !document.contains(lastInteractiveElement)) {
         return;
@@ -101,14 +105,15 @@ function setActivePopoverLauncher(element: HTMLElement | null): void {
         clearLauncherTimerId = undefined;
     }
     activePopoverLauncher = element;
+    popoverIsActive = element !== null;
 }
 
 /**
- * Defer the launcher clear so deferred-navigation popover paths (e.g. FABPopoverMenu's
- * close(() => navigateAfterInteraction(...))) can still consume the launcher when their
- * navigate eventually fires. A new setActivePopoverLauncher call cancels the pending clear.
+ * Defer the launcher clear so deferred-navigation popover paths (e.g. close(() => navigateAfterInteraction(...)))
+ * can still consume it. Marks popoverIsActive=false; a new setActivePopoverLauncher cancels the pending clear.
  */
 function scheduleClearActivePopoverLauncher(): void {
+    popoverIsActive = false;
     if (clearLauncherTimerId !== undefined) {
         clearTimeout(clearLauncherTimerId);
     }
@@ -309,6 +314,7 @@ function resetForTests(): void {
     prevState = undefined;
     lastInteractiveElement = null;
     activePopoverLauncher = null;
+    popoverIsActive = false;
 }
 
 function setLastInteractiveElementForTests(element: HTMLElement | null): void {

@@ -2,7 +2,7 @@ import {CommonActions} from '@react-navigation/native';
 import type {NavigationRoute, ParamListBase, PartialState, Router, RouterConfigOptions, StackActionType} from '@react-navigation/native';
 import type {PlatformStackNavigationState, PlatformStackRouterFactory, PlatformStackRouterOptions} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {GoBackAction, SetParamsAction} from '@libs/Navigation/types';
-import {notifyPushParamsBackward, notifyPushParamsForward} from '@libs/NavigationFocusReturn';
+import {compoundParamsKey, notifyPushParamsBackward, notifyPushParamsForward} from '@libs/NavigationFocusReturn';
 import CONST from '@src/CONST';
 import type {CustomHistoryEntry, PushParamsActionType, PushParamsRouterAction} from './types';
 import {enhanceStateWithHistory} from './utils';
@@ -168,6 +168,17 @@ function addPushParamsRouterExtension<RouterOptions extends PlatformStackRouterO
             // PUSH_PARAMS snapshots. Preserve history entries for routes that still exist
             // in the rehydrated state (which may have added routes, e.g. for wide layout).
             if (action.type === CONST.NAVIGATION.ACTION_TYPE.RESET && state.history) {
+                // Browser back/forward over PUSH_PARAMS history dispatches RESET, not GO_BACK — notify on same-key params change.
+                const oldFocused = state.routes.at(-1);
+                const newFocused = rehydratedState.routes.at(-1);
+                if (oldFocused?.key && newFocused?.key && oldFocused.key === newFocused.key) {
+                    const oldCompound = compoundParamsKey(oldFocused.key, oldFocused.params);
+                    const newCompound = compoundParamsKey(newFocused.key, newFocused.params);
+                    if (oldCompound !== newCompound) {
+                        notifyPushParamsBackward(newFocused.key, newFocused.params);
+                    }
+                }
+
                 const preservedHistory = preserveHistoryForRoutes(state.history as CustomHistoryEntry[], rehydratedState.routes);
                 if (preservedHistory.length > 0) {
                     return {

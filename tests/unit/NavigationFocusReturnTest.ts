@@ -400,6 +400,53 @@ describe('captureTriggerForRoute', () => {
             }
         });
 
+        it('should defer to lastInteractiveElement when the user moved on after popover closed', () => {
+            const launcher = document.createElement('button');
+            const otherButton = document.createElement('button');
+            document.body.appendChild(launcher);
+            document.body.appendChild(otherButton);
+
+            // Popover opens then closes: launcher is set, scheduled-clear is pending, popoverIsActive=false.
+            setActivePopoverLauncher(launcher);
+            scheduleClearActivePopoverLauncher();
+
+            // FocusTrap returnFocus puts focus on launcher first.
+            launcher.focus();
+            launcher.dispatchEvent(new FocusEvent('focusin', {bubbles: true}));
+            // Then user Tabs to a different control.
+            otherButton.focus();
+            otherButton.dispatchEvent(new FocusEvent('focusin', {bubbles: true}));
+
+            captureTriggerForRoute('route-a');
+            otherButton.blur();
+
+            const launcherSpy = jest.spyOn(launcher, 'focus');
+            const otherSpy = jest.spyOn(otherButton, 'focus');
+            expect(restoreTriggerForRoute('route-a')).toBe(true);
+            expect(otherSpy).toHaveBeenCalled();
+            expect(launcherSpy).not.toHaveBeenCalled();
+        });
+
+        it('should still use the launcher while the popover is active even if focus is on a menu item', () => {
+            const launcher = document.createElement('button');
+            const menuItem = document.createElement('button');
+            document.body.appendChild(launcher);
+            document.body.appendChild(menuItem);
+
+            // Popover open: launcher set, popoverIsActive=true (no scheduleClear yet).
+            setActivePopoverLauncher(launcher);
+            menuItem.focus();
+            menuItem.dispatchEvent(new FocusEvent('focusin', {bubbles: true}));
+
+            captureTriggerForRoute('route-a');
+            // Popover closes after the (synchronous) navigation — menu item gets removed.
+            menuItem.remove();
+
+            const launcherSpy = jest.spyOn(launcher, 'focus');
+            expect(restoreTriggerForRoute('route-a')).toBe(true);
+            expect(launcherSpy).toHaveBeenCalled();
+        });
+
         it('should cancel a pending deferred clear when a new launcher is set', () => {
             jest.useFakeTimers();
             try {
