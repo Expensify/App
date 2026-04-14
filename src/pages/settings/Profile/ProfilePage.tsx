@@ -112,55 +112,39 @@ function ProfilePage() {
         },
     ];
 
+    const navigateToPrivateDetails = () => {
+        if (isActingAsDelegate) {
+            showDelegateNoAccessModal();
+            return;
+        }
+        Navigation.navigate(ROUTES.SETTINGS_PRIVATE_PERSONAL_DETAILS);
+    };
+
     const privateOptions = [
         {
             description: translate('privatePersonalDetails.legalName'),
             title: legalName,
             sentryLabel: CONST.SENTRY_LABEL.SETTINGS_PROFILE.LEGAL_NAME,
-            action: () => {
-                if (isActingAsDelegate) {
-                    showDelegateNoAccessModal();
-                    return;
-                }
-                Navigation.navigate(ROUTES.SETTINGS_LEGAL_NAME);
-            },
+            action: navigateToPrivateDetails,
         },
         {
             description: translate('common.dob'),
             title: privateDetails.dob ?? '',
             sentryLabel: CONST.SENTRY_LABEL.SETTINGS_PROFILE.DATE_OF_BIRTH,
-            action: () => {
-                if (isActingAsDelegate) {
-                    showDelegateNoAccessModal();
-                    return;
-                }
-                Navigation.navigate(ROUTES.SETTINGS_DATE_OF_BIRTH);
-            },
+            action: navigateToPrivateDetails,
         },
         {
             description: translate('common.phoneNumber'),
             title: privateDetails.phoneNumber ?? '',
             sentryLabel: CONST.SENTRY_LABEL.SETTINGS_PROFILE.PHONE_NUMBER,
-            action: () => {
-                if (isActingAsDelegate) {
-                    showDelegateNoAccessModal();
-                    return;
-                }
-                Navigation.navigate(ROUTES.SETTINGS_PHONE_NUMBER);
-            },
+            action: navigateToPrivateDetails,
             brickRoadIndicator: privatePersonalDetails?.errorFields?.phoneNumber ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
         },
         {
             description: translate('privatePersonalDetails.address'),
             title: getFormattedAddress(privateDetails),
             sentryLabel: CONST.SENTRY_LABEL.SETTINGS_PROFILE.ADDRESS,
-            action: () => {
-                if (isActingAsDelegate) {
-                    showDelegateNoAccessModal();
-                    return;
-                }
-                Navigation.navigate(ROUTES.SETTINGS_ADDRESS);
-            },
+            action: navigateToPrivateDetails,
         },
     ];
 
