@@ -29,7 +29,6 @@ function BaseSearchList({
     onViewableItemsChanged,
     onLayout,
     contentContainerStyle,
-    flattenedItemsLength,
     newTransactions,
     selectedTransactions,
     customCardNames,
@@ -48,7 +47,7 @@ function BaseSearchList({
 
     const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({
         initialFocusedIndex: -1,
-        maxIndex: flattenedItemsLength - 1,
+        maxIndex: data.length - 1,
         isActive: isFocused,
         onFocusedIndexChange: (index: number) => {
             scrollToIndex?.(index);

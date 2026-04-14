@@ -31,7 +31,6 @@ type BaseSearchListProps = Pick<
     newTransactions: Transaction[];
 
     /** The length of the flattened items in the list */
-    flattenedItemsLength: number;
 
     /** The callback, which is run when a row is pressed */
     onSelectRow: (item: SearchListItem) => void;
