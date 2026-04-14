@@ -103,7 +103,7 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
         }
 
         openPolicyExpensifyCardsPage(policyID, defaultFundID);
-    }, [defaultFundID, expensifyCardSettings.isLoading, expensifyCardSettings.hasOnceLoaded, isAdmin, policyID]);
+    }, [defaultFundID, expensifyCardSettings?.isLoading, expensifyCardSettings?.hasOnceLoaded, isAdmin, policyID]);
 
     const deactivateCard = () => {
         setIsDeactivateModalVisible(false);
@@ -138,21 +138,23 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
         setIsUnfreezeModalVisible(false);
     };
 
-    const matchingSpendRules = useMemo(
-        () =>
-            Object.entries(expensifyCardSettings?.cardRules ?? {}).flatMap(([ruleID, rule]) => {
+    const matchingSpendRule = useMemo(
+        () => Object.values(expensifyCardSettings ?? {}).flatMap((settings) => {
+            return Object.entries(settings?.cardRules ?? {}).flatMap(([ruleID, rule]) => {
                 const formValues = getSpendRuleFormValuesFromCardRule(rule);
                 if (!formValues?.cardIDs.includes(cardID)) {
                     return [];
                 }
 
                 return [{ruleID, formValues}];
-            }),
-        [cardID, expensifyCardSettings?.cardRules],
+            });
+        }),
+        [cardID, expensifyCardSettings],
     );
+
     const spendRulesSummary = useMemo(
         () =>
-            matchingSpendRules
+            matchingSpendRule
                 .flatMap(({formValues}) => {
                     const actionLabel =
                         formValues.restrictionAction === CONST.SPEND_RULES.ACTION.BLOCK ? translate('workspace.rules.spendRules.block') : translate('workspace.rules.spendRules.allow');
@@ -160,19 +162,20 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
                     return getSpendRuleSummaryParts(formValues, currency, actionLabel, translate).map((part) => `${part.badgeLabel} ${part.text}`);
                 })
                 .join('\n'),
-        [currency, matchingSpendRules, translate],
+        [currency, matchingSpendRule, translate],
     );
+
     const spendRulesRoute = useMemo(() => {
-        if (matchingSpendRules.length === 0) {
+        if (matchingSpendRule.length === 0) {
             return ROUTES.RULES_SPEND_NEW.getRoute(policyID);
         }
 
-        if (matchingSpendRules.length === 1) {
-            return ROUTES.RULES_SPEND_EDIT.getRoute(policyID, matchingSpendRules.at(0)?.ruleID ?? ROUTES.NEW);
+        if (matchingSpendRule.length === 1) {
+            return ROUTES.RULES_SPEND_EDIT.getRoute(policyID, matchingSpendRule.at(0)?.ruleID ?? ROUTES.NEW);
         }
 
         return ROUTES.WORKSPACE_RULES.getRoute(policyID);
-    }, [matchingSpendRules, policyID]);
+    }, [matchingSpendRule, policyID]);
 
     const canManageCardFreeze = isAdmin && !!card;
     const scarfOverlayStyle = useMemo(
@@ -326,14 +329,14 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
                             }
                         />
                     </OfflineWithFeedback>
-                    <MenuItemWithTopDescription
+                    {hasRule && <MenuItemWithTopDescription
                         description={translate('cardPage.spendRules')}
                         title={spendRulesSummary || translate('cardPage.editSpendRules')}
                         shouldShowRightIcon
                         numberOfLinesTitle={0}
                         titleStyle={styles.flex1}
                         onPress={() => Navigation.navigate(spendRulesRoute)}
-                    />
+                    />}
                     <MenuItem
                         icon={expensifyIcons.MoneySearch}
                         title={translate('workspace.common.viewTransactions')}
