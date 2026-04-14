@@ -6509,6 +6509,12 @@ const translations = {
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Advanced approvals are only available on the Control plan, which starts at <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per member per month.` : `per active member per month.`}</muted-text>`,
             },
+            approvalSubmit: {
+                title: 'Approvals',
+                description: 'Centrally configure who all members submit to by enabling approvals.',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Approvals are available on the Collect and Control plans, starting at <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per member per month.` : `per active member per month.`}</muted-text>`,
+            },
             categories: {
                 title: 'Categories',
                 description: 'Categories allow you to track and organize spend. Use our default categories or add your own.',
@@ -6539,6 +6545,12 @@ const translations = {
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>This is only available on the Control plan, starting at <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per member per month.` : `per active member per month.`}</muted-text>`,
             },
+            companyCardSubmit: {
+                title: 'Company cards',
+                description: `Bring your own company card to Expensify to get automatic import, automatic categorization, customizable rule support, and integrated reconciliation.`,
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Company card import is available on the Collect and Control plans, starting at <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per member per month.` : `per active member per month.`}</muted-text>`,
+            },
             rules: {
                 title: 'Rules',
                 description: `Rules run in the background and keep your spend under control so you don't have to sweat the small stuff.\n\nRequire expense details like receipts and descriptions, set limits and defaults, and automate approvals and payments – all in one place.`,
@@ -6557,6 +6569,12 @@ const translations = {
                 description: 'Expensify Travel is a new corporate travel booking and management platform that allows members to book accommodations, flights, transportation, and more.',
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Travel is available on the Collect plan, starting at <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per member per month.` : `per active member per month.`}</muted-text>`,
+            },
+            travelSubmit: {
+                title: 'Expensify Travel',
+                description: 'Book discounted flights, hotels, cars, and trains globally from within Expensify, with duty of care reporting and integrated expense management.',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Expensify Travel is available on the Collect and Control plans, starting at <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per member per month.` : `per active member per month.`}</muted-text>`,
             },
             reports: {
                 title: 'Reports',
@@ -6591,33 +6609,36 @@ const translations = {
             },
             roles: {
                 title: 'Roles',
-                description: 'Manage member roles like Admin and Auditor to control access and permissions within your workspace.',
+                description: 'Assign different roles to different members to increase or decrease visibility and control as appropriate.',
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
-                    `<muted-text>Roles are only available on paid plans, starting at <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per member per month.` : `per active member per month.`}</muted-text>`,
+                    `<muted-text>Roles are available on the Collect and Control plans, starting at <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per member per month.` : `per active member per month.`}</muted-text>`,
             },
             payments: {
                 title: 'Payments',
-                description: 'Set up payments to reimburse employees directly through Expensify with direct bank transfers or other payment methods.',
+                description: 'Reimburse employees directly from your business bank account.',
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
-                    `<muted-text>Payments are only available on paid plans, starting at <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per member per month.` : `per active member per month.`}</muted-text>`,
+                    `<muted-text>Payments are available on the Collect and Control plans, starting at <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per member per month.` : `per active member per month.`}</muted-text>`,
             },
             accounting: {
                 title: 'Accounting',
-                description: 'Connect your accounting software to automatically sync expense data and streamline your financial workflows.',
+                description:
+                    'Sync categories, tags, tax rates, and more from your accounting system to Expensify, as well as export expense reports and card transactions – no typing (or typos) involved!',
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
-                    `<muted-text>Accounting integrations are only available on paid plans, starting at <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per member per month.` : `per active member per month.`}</muted-text>`,
+                    `<muted-text>Accounting is available on the Collect and Control plans, starting at <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per member per month.` : `per active member per month.`}</muted-text>`,
             },
             expensifyCard: {
                 title: 'Expensify Card',
-                description: 'Issue Expensify Cards to your team for real-time expense tracking, smart limits, and cash back on every purchase.',
+                description:
+                    'Issue company cards (including virtual cards) directly from your own bank account to get realtime spend control with an unbreakable connection, and up to 2% cashback!',
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
-                    `<muted-text>The Expensify Card is only available on paid plans, starting at <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per member per month.` : `per active member per month.`}</muted-text>`,
+                    `<muted-text>The Expensify Card is available on the Collect and Control plans, starting at <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per member per month.` : `per active member per month.`}</muted-text>`,
+                upgradeButton: 'Upgrade and enable',
             },
             invoicing: {
                 title: 'Invoicing',
-                description: 'Send invoices directly from your workspace and track payments all in one place.',
+                description: 'Create, send, and track professional invoices, all inside Expensify. Get paid faster with integrated payments and real-time visibility.',
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
-                    `<muted-text>Invoicing is only available on paid plans, starting at <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per member per month.` : `per active member per month.`}</muted-text>`,
+                    `<muted-text>Invoicing is available on the Collect and Control plans, starting at <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per member per month.` : `per active member per month.`}</muted-text>`,
             },
             pricing: {
                 perActiveMember: 'per active member per month.',

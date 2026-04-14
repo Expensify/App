@@ -339,7 +339,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                         Navigation.navigate(
                             ROUTES.WORKSPACE_UPGRADE.getRoute(
                                 route.params.policyID,
-                                CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.alias,
+                                CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvalSubmit.alias,
                                 ROUTES.WORKSPACE_WORKFLOWS.getRoute(route.params.policyID),
                             ),
                         );

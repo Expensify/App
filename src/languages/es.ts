@@ -6382,6 +6382,12 @@ ${amount} para ${merchant} - ${date}`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}) =>
                     `<muted-text>Las aprobaciones avanzadas sólo están disponibles en el plan Controlar, con precios desde <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `por miembro al mes.` : `por miembro activo al mes.`}</muted-text>`,
             },
+            approvalSubmit: {
+                title: 'Aprobaciones',
+                description: 'Configura de forma centralizada a quién envían todos los miembros sus gastos al activar las aprobaciones.',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}) =>
+                    `<muted-text>Las aprobaciones están disponibles en los planes Recopilar y Controlar, a partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `por miembro al mes.` : `por miembro activo al mes.`}</muted-text>`,
+            },
             categories: {
                 title: 'Categorías',
                 description: 'Las categorías te permiten rastrear y organizar gastos. Usa nuestras categorías predeterminadas o añade las tuyas propias.',
@@ -6412,6 +6418,12 @@ ${amount} para ${merchant} - ${date}`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}) =>
                     `<muted-text>Esto solo está disponible en el plan Control, a partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `por miembro al mes.` : `por miembro activo al mes.`}</muted-text>`,
             },
+            companyCardSubmit: {
+                title: 'Tarjetas de empresa',
+                description: 'Trae tu propia tarjeta de empresa a Expensify para obtener importación automática, categorización automática, reglas personalizables y conciliación integrada.',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}) =>
+                    `<muted-text>La importación de tarjetas de empresa está disponible en los planes Recopilar y Controlar, a partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `por miembro al mes.` : `por miembro activo al mes.`}</muted-text>`,
+            },
             rules: {
                 title: 'Reglas',
                 description: `Las reglas se ejecutan en segundo plano y mantienen tus gastos bajo control para que no tengas que preocuparte por los detalles pequeños.\n\nExige detalles de los gastos, como recibos y descripciones, establece límites y valores predeterminados, y automatiza las aprobaciones y los pagos, todo en un mismo lugar.`,
@@ -6431,6 +6443,12 @@ ${amount} para ${merchant} - ${date}`,
                     'Expensify Travel es una nueva plataforma corporativa de reserva y gestión de viajes que permite a los miembros reservar alojamientos, vuelos, transporte y mucho más.',
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}) =>
                     `<muted-text>Los viajes están disponibles en el plan Recopilar, a partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `por miembro al mes.` : `por miembro activo al mes.`}</muted-text>`,
+            },
+            travelSubmit: {
+                title: 'Expensify Travel',
+                description: 'Reserva vuelos, hoteles, coches y trenes con descuento en todo el mundo desde Expensify, con informes de duty of care y gestión de gastos integrada.',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}) =>
+                    `<muted-text>Expensify Travel está disponible en los planes Recopilar y Controlar, a partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `por miembro al mes.` : `por miembro activo al mes.`}</muted-text>`,
             },
             reports: {
                 title: 'Informes',

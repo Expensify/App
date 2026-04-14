@@ -200,7 +200,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                     return;
                 }
                 if (isEnabled && isSubmitPolicy(policy)) {
-                    Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.travel.alias, ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID)));
+                    Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.travelSubmit.alias, ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID)));
                     return;
                 }
                 enablePolicyTravel(policyID, isEnabled);
@@ -255,7 +255,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                 return;
             }
             if (isEnabled && isSubmitPolicy(policy)) {
-                Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.companyCards.alias, ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID)));
+                Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.companyCardSubmit.alias, ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID)));
                 return;
             }
             enableCompanyCards(policyID, isEnabled, true);

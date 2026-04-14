@@ -8408,6 +8408,30 @@ const CONST = {
                 description: 'workspace.upgrade.invoicing.description' as const,
                 icon: 'InvoiceBlue',
             },
+            companyCardSubmit: {
+                id: 'companyCardSubmit' as const,
+                alias: 'company-card-submit',
+                name: 'Company cards',
+                title: 'workspace.upgrade.companyCardSubmit.title' as const,
+                description: 'workspace.upgrade.companyCardSubmit.description' as const,
+                icon: 'CompanyCard',
+            },
+            travelSubmit: {
+                id: 'travelSubmit' as const,
+                alias: 'travel-submit',
+                name: 'Travel',
+                title: 'workspace.upgrade.travelSubmit.title' as const,
+                description: 'workspace.upgrade.travelSubmit.description' as const,
+                icon: 'Luggage',
+            },
+            approvalSubmit: {
+                id: 'approvalSubmit' as const,
+                alias: 'approval-submit',
+                name: 'Approvals',
+                title: 'workspace.upgrade.approvalSubmit.title' as const,
+                description: 'workspace.upgrade.approvalSubmit.description' as const,
+                icon: 'AdvancedApprovalsSquare',
+            },
         };
     },
     REPORT_FIELD_TYPES: {

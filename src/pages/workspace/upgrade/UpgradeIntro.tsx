@@ -1,6 +1,6 @@
-import React, {useMemo} from 'react';
-import {View} from 'react-native';
-import type {ValueOf} from 'type-fest';
+import React, { useMemo } from 'react';
+import { View } from 'react-native';
+import type { ValueOf } from 'type-fest';
 import Avatar from '@components/Avatar';
 import Badge from '@components/Badge';
 import Button from '@components/Button';
@@ -9,18 +9,43 @@ import RenderHTML from '@components/RenderHTML';
 import Text from '@components/Text';
 import useEnvironment from '@hooks/useEnvironment';
 import useHasTeam2025Pricing from '@hooks/useHasTeam2025Pricing';
-import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
+import { useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations } from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import usePreferredCurrency from '@hooks/usePreferredCurrency';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {convertToShortDisplayString} from '@libs/CurrencyUtils';
+import { convertToShortDisplayString } from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import type {Route} from '@src/ROUTES';
+import type { Route } from '@src/ROUTES';
 import GenericFeaturesView from './GenericFeaturesView';
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 type Props = {
     buttonDisabled?: boolean;
@@ -161,7 +186,7 @@ function UpgradeIntro({feature, onUpgrade, buttonDisabled, loading, isCategorizi
                 </View>
                 <Button
                     isLoading={loading}
-                    text={translate('common.upgrade')}
+                    text={feature.id === CONST.UPGRADE_FEATURE_INTRO_MAPPING.expensifyCard.id ? translate('workspace.upgrade.expensifyCard.upgradeButton') : translate('common.upgrade')}
                     testID="upgrade-button"
                     success
                     onPress={onUpgrade}
