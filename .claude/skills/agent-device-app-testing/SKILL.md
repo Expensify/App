@@ -7,17 +7,6 @@ description: Test the Expensify App on Android/iOS emulators using agent-device.
 
 Expensify App context for the base `agent-device` skill. The user directs what to test - this skill provides App-specific details so you don't have to look them up each time.
 
-## Prerequisites
-
-The `agent-device` CLI must be installed on the host machine. It is **not** bundled with this repo.
-
-```bash
-npm install -g agent-device
-agent-device --version
-```
-
-Android testing requires the Android SDK + an AVD. iOS requires Xcode + a simulator runtime.
-
 ## App Details
 
 | Key | Value |
@@ -28,23 +17,9 @@ Android testing requires the Android SDK + an AVD. iOS requires Xcode + a simula
 
 ## Startup Flow
 
-Follow these steps in order before testing. Each step gates the next.
+Follow these steps after the base agent-device bootstrap (device selection and session). Each step gates the next.
 
-### 1. Device / Emulator
-
-Check if a simulator (iOS) or emulator (Android) is already running:
-
-```bash
-# iOS
-xcrun simctl list devices booted
-# Android
-adb devices
-```
-
-- **Running**: reuse it.
-- **Not running**: prompt the user which device to boot (list available devices so they can pick).
-
-### 2. Metro Dev Server
+### 1. Metro Dev Server
 
 Check if Metro is already running:
 
@@ -59,7 +34,7 @@ lsof -i :8081
   ```
   Wait until Metro reports "Ready" before continuing.
 
-### 3. Dev App
+### 2. Dev App
 
 Check if the **dev** app (bundle ID ending in `.dev`) is installed on the device:
 
