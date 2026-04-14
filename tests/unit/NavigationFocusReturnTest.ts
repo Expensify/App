@@ -169,72 +169,106 @@ describe('diffNavigationState', () => {
 });
 
 describe('captureTriggerForRoute', () => {
-    it('should store the last interactive element against the given route key', () => {
-        const trigger = document.createElement('button');
-        document.body.appendChild(trigger);
-        trigger.focus();
-        setLastInteractiveElementForTests(trigger);
+    describe('when navigation is keyboard-driven', () => {
+        beforeEach(() => {
+            simulateTab();
+        });
 
-        captureTriggerForRoute('route-a');
+        it('should store the last interactive element against the given route key', () => {
+            const trigger = document.createElement('button');
+            document.body.appendChild(trigger);
+            trigger.focus();
+            setLastInteractiveElementForTests(trigger);
 
-        trigger.blur();
-        const spy = jest.spyOn(trigger, 'focus');
-        expect(restoreTriggerForRoute('route-a')).toBe(true);
-        expect(spy).toHaveBeenCalled();
+            captureTriggerForRoute('route-a');
+
+            trigger.blur();
+            const spy = jest.spyOn(trigger, 'focus');
+            expect(restoreTriggerForRoute('route-a')).toBe(true);
+            expect(spy).toHaveBeenCalled();
+        });
+
+        it('should not store when lastInteractiveElement is null', () => {
+            setLastInteractiveElementForTests(null);
+            captureTriggerForRoute('route-a');
+            expect(restoreTriggerForRoute('route-a')).toBe(false);
+        });
+
+        it('should not store when the tracked element has left the DOM', () => {
+            const trigger = document.createElement('button');
+            document.body.appendChild(trigger);
+            setLastInteractiveElementForTests(trigger);
+            trigger.remove();
+
+            captureTriggerForRoute('route-a');
+            expect(restoreTriggerForRoute('route-a')).toBe(false);
+        });
+
+        it('should not store when active element has drifted to another non-body element', () => {
+            const tracked = document.createElement('button');
+            const other = document.createElement('input');
+            document.body.appendChild(tracked);
+            document.body.appendChild(other);
+
+            // Pin tracked AFTER other.focus() so the focusin listener doesn't overwrite it.
+            other.focus();
+            setLastInteractiveElementForTests(tracked);
+
+            captureTriggerForRoute('route-a');
+            expect(restoreTriggerForRoute('route-a')).toBe(false);
+        });
+
+        it('should store when active element matches the tracked element', () => {
+            const trigger = document.createElement('button');
+            document.body.appendChild(trigger);
+            trigger.focus();
+            setLastInteractiveElementForTests(trigger);
+
+            captureTriggerForRoute('route-a');
+            trigger.blur();
+            expect(restoreTriggerForRoute('route-a')).toBe(true);
+        });
+
+        it('should store when active element is body (React Navigation blurred before state change)', () => {
+            const trigger = document.createElement('button');
+            document.body.appendChild(trigger);
+            setLastInteractiveElementForTests(trigger);
+            expect(document.activeElement).toBe(document.body);
+
+            captureTriggerForRoute('route-a');
+            expect(restoreTriggerForRoute('route-a')).toBe(true);
+        });
     });
 
-    it('should not store when lastInteractiveElement is null', () => {
-        setLastInteractiveElementForTests(null);
-        captureTriggerForRoute('route-a');
-        expect(restoreTriggerForRoute('route-a')).toBe(false);
-    });
+    describe('when navigation is mouse-driven', () => {
+        it('should not store even when a keyboard target was tracked earlier', () => {
+            simulateTab();
+            const tracked = document.createElement('button');
+            document.body.appendChild(tracked);
+            setLastInteractiveElementForTests(tracked);
+            simulateMouse();
 
-    it('should not store when the tracked element has left the DOM', () => {
-        const trigger = document.createElement('button');
-        document.body.appendChild(trigger);
-        setLastInteractiveElementForTests(trigger);
-        trigger.remove();
+            captureTriggerForRoute('route-a');
+            expect(restoreTriggerForRoute('route-a')).toBe(false);
+        });
 
-        captureTriggerForRoute('route-a');
-        expect(restoreTriggerForRoute('route-a')).toBe(false);
-    });
+        it('should not store on a pure mouse session (no prior Tab)', () => {
+            simulateMouse();
+            const tracked = document.createElement('button');
+            document.body.appendChild(tracked);
+            setLastInteractiveElementForTests(tracked);
 
-    it('should not store when active element has drifted to another non-body element', () => {
-        const tracked = document.createElement('button');
-        const other = document.createElement('input');
-        document.body.appendChild(tracked);
-        document.body.appendChild(other);
-        setLastInteractiveElementForTests(tracked);
-
-        other.focus();
-
-        captureTriggerForRoute('route-a');
-        expect(restoreTriggerForRoute('route-a')).toBe(false);
-    });
-
-    it('should store when active element matches the tracked element', () => {
-        const trigger = document.createElement('button');
-        document.body.appendChild(trigger);
-        trigger.focus();
-        setLastInteractiveElementForTests(trigger);
-
-        captureTriggerForRoute('route-a');
-        trigger.blur();
-        expect(restoreTriggerForRoute('route-a')).toBe(true);
-    });
-
-    it('should store when active element is body (React Navigation blurred before state change)', () => {
-        const trigger = document.createElement('button');
-        document.body.appendChild(trigger);
-        setLastInteractiveElementForTests(trigger);
-        expect(document.activeElement).toBe(document.body);
-
-        captureTriggerForRoute('route-a');
-        expect(restoreTriggerForRoute('route-a')).toBe(true);
+            captureTriggerForRoute('route-a');
+            expect(restoreTriggerForRoute('route-a')).toBe(false);
+        });
     });
 });
 
 describe('restoreTriggerForRoute', () => {
+    beforeEach(() => {
+        simulateTab();
+    });
+
     it('should return false when no trigger is stored', () => {
         expect(restoreTriggerForRoute('unknown')).toBe(false);
     });
@@ -249,7 +283,7 @@ describe('restoreTriggerForRoute', () => {
         expect(restoreTriggerForRoute('route-a')).toBe(false);
     });
 
-    it('should return false when another element currently holds focus', () => {
+    it('should preempt an earlier AUTO/INITIAL focus via the arbiter', () => {
         const trigger = document.createElement('button');
         const other = document.createElement('input');
         document.body.appendChild(trigger);
@@ -260,8 +294,8 @@ describe('restoreTriggerForRoute', () => {
         other.focus();
 
         const spy = jest.spyOn(trigger, 'focus');
-        expect(restoreTriggerForRoute('route-a')).toBe(false);
-        expect(spy).not.toHaveBeenCalled();
+        expect(restoreTriggerForRoute('route-a')).toBe(true);
+        expect(spy).toHaveBeenCalled();
     });
 
     it('should consume the entry so a second restore returns false', () => {

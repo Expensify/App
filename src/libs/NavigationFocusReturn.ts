@@ -65,10 +65,14 @@ function captureTriggerForRoute(routeKey: string): void {
     if (typeof document === 'undefined') {
         return;
     }
+    // Skip mouse-driven nav: lastInteractiveElement would be a stale keyboard target.
+    if (!getHadTabNavigation()) {
+        return;
+    }
     if (!lastInteractiveElement || !document.contains(lastInteractiveElement)) {
         return;
     }
-    // Stale: focus drifted elsewhere after the last focusin.
+    // Stale: focus drifted to another non-body element since the last focusin.
     const active = document.activeElement;
     if (active && active !== document.body && active !== lastInteractiveElement) {
         return;
@@ -86,10 +90,6 @@ function restoreTriggerForRoute(routeKey: string): boolean {
     }
     triggerMap.delete(routeKey);
     if (!document.contains(element)) {
-        return false;
-    }
-    // Respect user interaction that happened during the deferred restore window.
-    if (document.activeElement && document.activeElement !== document.body) {
         return false;
     }
     if (!tryClaim(Priorities.RETURN)) {
