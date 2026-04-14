@@ -693,11 +693,8 @@ function dismissModalAndOpenReportInInboxTab(reportID?: string, isInvoice?: bool
  * from the global create button and the user is not on the Inbox tab.
  */
 /**
- * Helper to navigate after an expense is created in order to standardize the post‑creation experience
- * when creating an expense from the global create button.
- * If the expense is created from the global create button then:
- * - If it is created on the inbox tab, it will open the chat report containing that expense.
- * - If it is created elsewhere, it will navigate to Reports > Expense and highlight the newly created expense.
+ * Marks a transaction for highlight on the Search page when the expense was created
+ * from the global create button and the user is not on the Inbox tab.
  */
 function highlightTransactionOnSearchRouteIfNeeded(isFromGlobalCreate: boolean | undefined, transactionID: string | undefined, dataType: SearchDataTypes) {
     if (!isFromGlobalCreate || isReportTopmostSplitNavigator() || !transactionID) {
@@ -706,6 +703,13 @@ function highlightTransactionOnSearchRouteIfNeeded(isFromGlobalCreate: boolean |
     mergeTransactionIdsHighlightOnSearchRoute(dataType, {[transactionID]: true});
 }
 
+/**
+ * Helper to navigate after an expense is created in order to standardize the post‑creation experience
+ * when creating an expense from the global create button.
+ * If the expense is created from the global create button then:
+ * - If it is created on the inbox tab, it will open the chat report containing that expense.
+ * - If it is created elsewhere, it will navigate to Reports > Expense and highlight the newly created expense.
+ */
 function handleNavigateAfterExpenseCreate({
     activeReportID,
     transactionID,
