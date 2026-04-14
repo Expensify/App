@@ -49,14 +49,7 @@ function IOURequestStepAccountant({
         // Sharing with an accountant involves inviting them to the workspace and that requires admin access.
         const hasActiveAdminWorkspaces = (adminPolicies?.length ?? 0) > 0;
         if (!hasActiveAdminWorkspaces) {
-            createDraftWorkspaceAndNavigateToConfirmationScreen(
-                introSelected,
-                transactionID,
-                action,
-                generateDefaultWorkspaceName(email, lastWorkspaceNumber, translate),
-                accountID,
-                email,
-            );
+            createDraftWorkspaceAndNavigateToConfirmationScreen(introSelected, transactionID, action, generateDefaultWorkspaceName(email, lastWorkspaceNumber, translate), accountID, email);
             return;
         }
 
