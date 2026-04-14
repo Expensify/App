@@ -49,6 +49,7 @@ import type {DismissedProductTraining, SelectedTabRequest} from '@src/types/onyx
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import {IOURequestStepAmountWithTransactionOnly} from './step/IOURequestStepAmount';
+import IOURequestStepConfirmation from './step/IOURequestStepConfirmation';
 import IOURequestStepDestination from './step/IOURequestStepDestination';
 import IOURequestStepDistance from './step/IOURequestStepDistance';
 import IOURequestStepHours from './step/IOURequestStepHours';
@@ -78,6 +79,8 @@ function IOURequestStartPage({
     // This is currently only being used for testing
     defaultSelectedTab = CONST.TAB_REQUEST.SCAN,
 }: IOURequestStartPageProps) {
+    const confirmationScreenProps = {route, navigation} as unknown as React.ComponentProps<typeof IOURequestStepConfirmation>;
+
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const shouldUseTab = iouType !== CONST.IOU.TYPE.SEND && iouType !== CONST.IOU.TYPE.PAY && iouType !== CONST.IOU.TYPE.INVOICE;
@@ -105,7 +108,6 @@ function IOURequestStartPage({
     const hasOnlyPersonalPolicies = useMemo(() => hasOnlyPersonalPoliciesUtil(allPolicies), [allPolicies]);
 
     const perDiemInputRef = useRef<AnimatedTextInputRef | null>(null);
-
     const tabTitles = {
         [CONST.IOU.TYPE.REQUEST]: translate('iou.createExpense'),
         [CONST.IOU.TYPE.SUBMIT]: translate('iou.createExpense'),
@@ -256,11 +258,17 @@ function IOURequestStartPage({
     }, [headerWithBackBtnContainerElement, tabBarContainerElement, activeTabContainerElement]);
 
     const {isBetaEnabled} = usePermissions();
+    const isNewManualExpenseFlowEnabled = isBetaEnabled(CONST.BETAS.NEW_MANUAL_EXPENSE_FLOW);
+    const shouldShowConfirmationOnStartPage = isNewManualExpenseFlowEnabled && shouldUseTab && (selectedTab === CONST.TAB_REQUEST.MANUAL || selectedTab === CONST.TAB_REQUEST.SCAN);
     const setTestReceiptAndNavigateRef = useRef<() => void>(() => {});
     const {shouldShowProductTrainingTooltip, renderProductTrainingTooltip} = useProductTrainingContext(
         CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP,
         // The test receipt image is served via our server on web so it requires internet connection
-        !hasUserSubmittedExpenseOrScannedReceipt && isBetaEnabled(CONST.BETAS.NEWDOT_MANAGER_MCTEST) && selectedTab === CONST.TAB_REQUEST.SCAN && !(isOffline && isWeb),
+        !shouldShowConfirmationOnStartPage &&
+            !hasUserSubmittedExpenseOrScannedReceipt &&
+            isBetaEnabled(CONST.BETAS.NEWDOT_MANAGER_MCTEST) &&
+            selectedTab === CONST.TAB_REQUEST.SCAN &&
+            !(isOffline && isWeb),
         {
             onShown: () => {
                 GoogleTagManager.publishEvent(CONST.ANALYTICS.EVENT.PRODUCT_TRAINING_SCAN_TEST_TOOLTIP_SHOWN, accountID);
@@ -303,7 +311,7 @@ function IOURequestStartPage({
                 testID="IOURequestStartPage"
                 focusTrapSettings={{containerElements: focusTrapContainerElements}}
             >
-                <DragAndDropProvider isDisabled={selectedTab !== CONST.TAB_REQUEST.SCAN}>
+                <DragAndDropProvider isDisabled={selectedTab !== CONST.TAB_REQUEST.SCAN || shouldShowConfirmationOnStartPage}>
                     <View style={styles.flex1}>
                         <FocusTrapContainerElement
                             onContainerElementChanged={setHeaderWithBackButtonContainerElement}
@@ -331,13 +339,17 @@ function IOURequestStartPage({
                                 <TopTab.Screen name={CONST.TAB_REQUEST.MANUAL}>
                                     {() => (
                                         <TabScreenWithFocusTrapWrapper>
-                                            <IOURequestStepAmountWithTransactionOnly
-                                                shouldKeepUserInput
-                                                route={route}
-                                                navigation={navigation}
-                                                report={report}
-                                                reportDraft={reportDraft}
-                                            />
+                                            {isNewManualExpenseFlowEnabled ? (
+                                                <IOURequestStepConfirmation {...confirmationScreenProps} />
+                                            ) : (
+                                                <IOURequestStepAmountWithTransactionOnly
+                                                    shouldKeepUserInput
+                                                    route={route}
+                                                    navigation={navigation}
+                                                    report={report}
+                                                    reportDraft={reportDraft}
+                                                />
+                                            )}
                                         </TabScreenWithFocusTrapWrapper>
                                     )}
                                 </TopTab.Screen>

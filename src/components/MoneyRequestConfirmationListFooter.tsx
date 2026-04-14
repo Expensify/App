@@ -409,6 +409,7 @@ function MoneyRequestConfirmationListFooter({
 
     const decodedCategoryName = useMemo(() => getDecodedCategoryName(iouCategory), [iouCategory]);
     const isScan = isScanRequest(transaction);
+    const isManualRequest = transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.MANUAL;
 
     const isTrackExpense = iouType === CONST.IOU.TYPE.TRACK;
     const shouldShowTags = useMemo(
@@ -521,7 +522,8 @@ function MoneyRequestConfirmationListFooter({
     const shouldDisplayCategoryError = formError === 'violations.categoryOutOfPolicy';
     const shouldDisplayAttendeesError = formError === 'violations.missingAttendees';
 
-    const showReceiptEmptyState = shouldShowReceiptEmptyState(iouType, action, policy, isPerDiemRequest);
+    const shouldShowReceiptEmptyStateForManualOrScan = isNewManualExpenseFlowEnabled && (isManualRequest || isScan) && !isDistanceRequest && !isPerDiemRequest && !isTimeRequest;
+    const showReceiptEmptyState = shouldShowReceiptEmptyState(iouType, action, policy, isPerDiemRequest) || shouldShowReceiptEmptyStateForManualOrScan;
     // The per diem custom unit
     const perDiemCustomUnit = getPerDiemCustomUnit(policy);
     const {

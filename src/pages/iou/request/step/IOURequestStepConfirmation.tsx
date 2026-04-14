@@ -291,6 +291,7 @@ function IOURequestStepConfirmation({
     const theme = useTheme();
     const {translate, toLocaleDigit} = useLocalize();
     const {isBetaEnabled} = usePermissions();
+    const isNewManualExpenseFlowEnabled = isBetaEnabled(CONST.BETAS.NEW_MANUAL_EXPENSE_FLOW);
     const {isOffline} = useNetwork();
     const {showConfirmModal} = useConfirmModal();
     const [startLocationPermissionFlow, setStartLocationPermissionFlow] = useState(false);
@@ -1485,13 +1486,19 @@ function IOURequestStepConfirmation({
                 isMovingTransactionFromTrackExpense={isMovingTransactionFromTrackExpense}
                 isCreatingTrackExpense={isCreatingTrackExpense}
             />
-            <MoneyRequestInitializer
-                isLoadingTransaction={!!isLoadingTransaction}
-                transaction={transaction}
-                iouType={iouType}
-                reportID={reportID}
-                draftTransactionIDs={draftTransactionIDs}
-            />
+            {/*
+             * In this rollout, NEW_MANUAL_EXPENSE_FLOW means this screen is embedded on IOURequestStartPage.
+             * Skip MoneyRequestInitializer here to avoid duplicate initialization and navigation side effects.
+             */}
+            {!isNewManualExpenseFlowEnabled && (
+                <MoneyRequestInitializer
+                    isLoadingTransaction={!!isLoadingTransaction}
+                    transaction={transaction}
+                    iouType={iouType}
+                    reportID={reportID}
+                    draftTransactionIDs={draftTransactionIDs}
+                />
+            )}
             <CategoryDefaultsSetter
                 transactions={transactions}
                 transactionIDs={transactionIDs}
@@ -1526,20 +1533,26 @@ function IOURequestStepConfirmation({
             />
             <DragAndDropProvider isDisabled={!showReceiptEmptyState || isOdometerDistanceRequest}>
                 <View style={styles.flex1}>
-                    <HeaderWithBackButton
-                        title={headerTitle}
-                        subtitle={hasMultipleTransactions ? `${currentTransactionIndex + 1} ${translate('common.of')} ${transactions.length}` : undefined}
-                        onBackButtonPress={navigateBack}
-                    >
-                        {hasMultipleTransactions ? (
-                            <PrevNextButtons
-                                isPrevButtonDisabled={currentTransactionIndex === 0}
-                                isNextButtonDisabled={currentTransactionIndex === transactions.length - 1}
-                                onNext={showNextTransaction}
-                                onPrevious={showPreviousTransaction}
-                            />
-                        ) : null}
-                    </HeaderWithBackButton>
+                    {/*
+                     * Keep a single header in embedded mode: IOURequestStartPage renders the parent header,
+                     * so this inner header must be hidden to prevent duplicate back buttons and title layout issues.
+                     */}
+                    {!isNewManualExpenseFlowEnabled && (
+                        <HeaderWithBackButton
+                            title={headerTitle}
+                            subtitle={hasMultipleTransactions ? `${currentTransactionIndex + 1} ${translate('common.of')} ${transactions.length}` : undefined}
+                            onBackButtonPress={navigateBack}
+                        >
+                            {hasMultipleTransactions ? (
+                                <PrevNextButtons
+                                    isPrevButtonDisabled={currentTransactionIndex === 0}
+                                    isNextButtonDisabled={currentTransactionIndex === transactions.length - 1}
+                                    onNext={showNextTransaction}
+                                    onPrevious={showPreviousTransaction}
+                                />
+                            ) : null}
+                        </HeaderWithBackButton>
+                    )}
                     {(isLoading || (isScanRequest(transaction) && !Object.values(receiptFiles).length)) && (
                         <FullScreenLoadingIndicator
                             reasonAttributes={{
