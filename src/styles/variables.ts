@@ -120,6 +120,10 @@ export default {
     gutterWidth: 12,
     optionRowHeight: 64,
     optionRowHeightCompact: 52,
+    tableRowHeight: 56,
+    tableRowPaddingVertical: 8,
+    tableRowPaddingHorizontal: 12,
+    tableGroupRowPaddingVertical: 4,
     sectionMenuItemHeight: 52,
     sectionMenuItemHeightCompact: 44,
     optionsListSectionHeaderHeight: getValueUsingPixelRatio(32, 38),
@@ -354,6 +358,7 @@ export default {
 
     h20: 20,
     h28: 28,
+    h32: 32,
     h36: 36,
     h40: 40,
     h70: 70,
@@ -368,6 +373,7 @@ export default {
     w44: 44,
     w46: 46,
     w52: 52,
+    w68: 68,
     w72: 72,
     w80: 80,
     w92: 92,
@@ -441,4 +447,9 @@ export default {
     rightPositionOdometerPhotoInformationContainer: 20,
     bottomPositionOdometerPhotoInformationContainer: 20,
     paddingOdometerPhotoInformationContainer: 13.5,
+
+    // Camera permission view padding
+    permissionViewPaddingVertical: 108,
+    permissionViewPaddingHorizontal: 61,
+    permissionViewPaddingVerticalLandscape: 16,
 } as const;
