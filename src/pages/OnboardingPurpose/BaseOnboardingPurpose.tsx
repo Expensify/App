@@ -27,7 +27,7 @@ import {completeOnboarding} from '@userActions/Report';
 import {setOnboardingErrorMessage, setOnboardingPurposeSelected} from '@userActions/Welcome';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {OnboardingPurpose} from '@src/types/onyx';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
@@ -44,7 +44,7 @@ function getOnboardingChoices(customChoices: OnboardingPurpose[]) {
     return selectableOnboardingChoices.filter((choice) => customChoices.includes(choice));
 }
 
-function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, route}: BaseOnboardingPurposeProps) {
+function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight}: BaseOnboardingPurposeProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const illustrations = useMemoizedLazyIllustrations(['Abacus', 'Binoculars', 'ReceiptUpload', 'PiggyBank', 'SplitBill']);
