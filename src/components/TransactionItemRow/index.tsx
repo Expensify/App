@@ -732,25 +732,13 @@ function TransactionItemRow({
                                     shouldUseNarrowLayout={shouldUseNarrowLayout}
                                 />
                             </View>
-                            <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween]}>
-                                <View style={[styles.flexRow, styles.alignItemsCenter, styles.flexShrink1]}>
-                                    <DateCell
-                                        date={createdAt}
-                                        showTooltip={shouldShowTooltip}
-                                        isLargeScreenWidth={false}
-                                    />
-                                    {!!categoryForDisplay && (
-                                        <>
-                                            <Text style={[styles.mutedNormalTextLabel]}> • </Text>
-                                            <Text
-                                                numberOfLines={1}
-                                                style={[styles.mutedNormalTextLabel, styles.flexShrink1]}
-                                            >
-                                                {categoryForDisplay}
-                                            </Text>
-                                        </>
-                                    )}
-                                </View>
+                            <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.gap2]}>
+                                <DateCell
+                                    date={createdAt}
+                                    showTooltip={shouldShowTooltip}
+                                    isLargeScreenWidth={false}
+                                    suffixText={categoryForDisplay}
+                                />
                                 <TypeCell
                                     transactionItem={transactionItem}
                                     shouldShowTooltip={shouldShowTooltip}
