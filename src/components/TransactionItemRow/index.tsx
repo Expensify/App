@@ -88,9 +88,6 @@ type TransactionWithOptionalSearchFields = TransactionWithOptionalHighlight & {
     /** formatted "merchant" value used for displaying and sorting on Reports page */
     formattedMerchant?: string;
 
-    /** Whether the card feed has been deleted */
-    isCardFeedDeleted?: boolean;
-
     /** information about whether to show merchant, that is provided on Reports page */
     shouldShowMerchant?: boolean;
 
@@ -261,15 +258,12 @@ function TransactionItemRow({
         if (transactionItem.cardName === CONST.EXPENSE.TYPE.CASH_CARD_NAME) {
             return '';
         }
-        if (transactionItem.isCardFeedDeleted && transactionItem.cardID) {
-            return translate('workspace.companyCards.deletedCard');
-        }
         const cardID = transactionItem.cardID;
         if (cardID && customCardNames?.[cardID]) {
             return customCardNames[cardID];
         }
         return transactionItem.cardName;
-    }, [transactionItem.cardID, transactionItem.cardName, transactionItem.isCardFeedDeleted, customCardNames, translate]);
+    }, [transactionItem.cardID, transactionItem.cardName, customCardNames, translate]);
 
     const transactionAttendees = useMemo(() => getAttendees(transactionItem, currentUserPersonalDetails), [transactionItem, currentUserPersonalDetails]);
 

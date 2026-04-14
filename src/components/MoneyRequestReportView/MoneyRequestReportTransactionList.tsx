@@ -112,9 +112,6 @@ type MoneyRequestReportTransactionListProps = {
 type TransactionWithOptionalHighlight = OnyxTypes.Transaction & {
     /** Whether the transaction should be highlighted, when it is added to the report */
     shouldBeHighlighted?: boolean;
-
-    /** Whether the card feed has been deleted */
-    isCardFeedDeleted?: boolean;
 };
 
 type ReportScreenNavigationProps = ReportsSplitNavigatorParamList[typeof SCREENS.REPORT];
@@ -249,7 +246,7 @@ function MoneyRequestReportTransactionList({
         );
     }, [sortBy, sortOrder, transactions, localeCompare, report, policy]);
 
-    const resolvedTransactions = useMemo(() => resolveTransactionCardFields(sortedTransactions, cardList, cardFeeds, translate), [sortedTransactions, cardList, cardFeeds, translate]);
+    const resolvedTransactions = useMemo(() => resolveTransactionCardFields(sortedTransactions, cardList, translate), [sortedTransactions, cardList, translate]);
 
     const highlightedTransactionIDs = useMemo(() => new Set(newTransactions.map(({transactionID}) => transactionID)), [newTransactions]);
 
