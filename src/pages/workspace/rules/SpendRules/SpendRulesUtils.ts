@@ -265,20 +265,20 @@ function getSpendRuleSummaryText(formValues: SpendRuleForm, cardCurrency: string
             ? `${translate('workspace.rules.spendRules.maxAmount')}: ${convertToDisplayString(convertToBackendAmount(Number.parseFloat(formValues.maxAmount)), cardCurrency ?? CONST.CURRENCY.USD)}`
             : undefined;
 
-    const summaryText = [];
+    const summaryArray = [];
     if (merchantSummary) {
-        summaryText.push(merchantSummary);
+        summaryArray.push(merchantSummary);
     }
 
     if (categorySummary) {
-        summaryText.push(categorySummary);
+        summaryArray.push(categorySummary);
     }
 
     if (amountSummary) {
-        summaryText.push(amountSummary);
+        summaryArray.push(amountSummary);
     }
 
-    return summaryText.join('\n');
+    return summaryArray;
 }
 
 export {buildSpendRuleAST, getParentRoute, getSpendRuleByCardID, getSpendRuleFormValuesFromCardRule, getSpendRuleSummaryParts, getSpendRuleSummaryText, getTruncatedSpendRuleSummary};

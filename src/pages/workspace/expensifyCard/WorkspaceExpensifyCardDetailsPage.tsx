@@ -14,6 +14,7 @@ import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
+import Text from '@components/Text';
 import useCardFeeds from '@hooks/useCardFeeds';
 import useCurrencyForExpensifyCard from '@hooks/useCurrencyForExpensifyCard';
 import useDefaultFundID from '@hooks/useDefaultFundID';
@@ -138,7 +139,7 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
     };
 
     const spendRule = useMemo(() => getSpendRuleByCardID(expensifyCardSettings, cardID), [cardID, expensifyCardSettings]);
-    const spendRulesSummary = useMemo(() => (spendRule ? getSpendRuleSummaryText(spendRule.formValues, currency, translate) : ''), [currency, spendRule, translate]);
+    const spendRulesSummary = useMemo(() => (spendRule ? getSpendRuleSummaryText(spendRule.formValues, currency, translate) : []), [currency, spendRule, translate]);
 
     const spendRulesRoute = useMemo(() => {
         if (!spendRule) {
@@ -147,6 +148,23 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
 
         return ROUTES.RULES_SPEND_EDIT.getRoute(policyID, spendRule.ruleID);
     }, [policyID, spendRule]);
+
+    const spendRulesTitleComponent = useMemo(
+        () => (
+            <View>
+                {spendRulesSummary.map((summary, index) => (
+                    <Text
+                        key={summary}
+                        numberOfLines={2}
+                        style={[styles.themeTextColor, index < spendRulesSummary.length - 1 && styles.mb1]}
+                    >
+                        {summary}
+                    </Text>
+                ))}
+            </View>
+        ),
+        [spendRulesSummary, styles.mb1, styles.themeTextColor],
+    );
 
     const canManageCardFreeze = isAdmin && !!card;
     const scarfOverlayStyle = useMemo(
@@ -300,14 +318,14 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
                             }
                         />
                     </OfflineWithFeedback>
-                    {!!spendRulesSummary && (
+                    {spendRulesSummary.length > 0 && (
                         <MenuItemWithTopDescription
                             description={translate('cardPage.spendRules')}
-                            title={spendRulesSummary}
-                            titleStyle={styles.flex1}
-                            numberOfLinesTitle={5}
-                            onPress={() => Navigation.navigate(spendRulesRoute)}
+                            descriptionTextStyle={[styles.fontSizeLabel]}
+                            titleComponent={spendRulesTitleComponent}
                             shouldShowRightIcon
+                            onPress={() => Navigation.navigate(spendRulesRoute)}
+                            accessibilityLabel={spendRulesSummary.join('. ')}
                         />
                     )}
                     <MenuItem
