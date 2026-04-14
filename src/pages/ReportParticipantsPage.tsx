@@ -86,6 +86,7 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
     const isCurrentUserAdmin = isGroupChatAdmin(report, currentUserAccountID);
     const isGroupChat = isGroupChatUtils(report);
     const isCurrentUserGroupChatAdmin = isGroupChat && isCurrentUserAdmin;
+    const shouldShowInviteButton = isGroupChat || isMoneyRequestReport(report);
     const isFocused = useIsFocused();
     const {isOffline} = useNetwork();
     const canSelectMultiple = isGroupChat && isCurrentUserAdmin && (isSmallScreenWidth ? isMobileSelectionModeEnabled : true);
@@ -353,7 +354,7 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
                     subtitle={StringUtils.lineBreaksToSpaces(getReportName(report, reportAttributes))}
                 />
                 <View style={[styles.pl5, styles.pr5]}>
-                    {isGroupChat && (
+                    {shouldShowInviteButton && (
                         <View style={styles.w100}>
                             {(isSmallScreenWidth ? canSelectMultiple : selectedMembers.length > 0) ? (
                                 <ButtonWithDropdownMenu<WorkspaceMemberBulkActionType>
@@ -380,7 +381,7 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
                         </View>
                     )}
                 </View>
-                <View style={[styles.w100, isGroupChat ? styles.mt3 : styles.mt0, styles.flex1]}>
+                <View style={[styles.w100, shouldShowInviteButton ? styles.mt3 : styles.mt0, styles.flex1]}>
                     <SelectionListWithModal
                         data={participants}
                         ref={selectionListRef}
