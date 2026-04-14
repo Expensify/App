@@ -4,7 +4,7 @@ import {renderHook, waitFor} from '@testing-library/react-native';
 import {format} from 'date-fns';
 import {deepEqual} from 'fast-equals';
 import Onyx from 'react-native-onyx';
-import type {OnyxCollection, OnyxEntry, OnyxKey} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {SearchQueryJSON, SearchStatus} from '@components/Search/types';
 import useOnyx from '@hooks/useOnyx';
 import {clearAllRelatedReportActionErrors} from '@libs/actions/ClearReportActionErrors';
@@ -6064,7 +6064,6 @@ describe('actions/IOU', () => {
                 });
         });
     });
-
 
     describe('changeTransactionsReport', () => {
         it('should set the correct optimistic onyx data for reporting a tracked expense', async () => {
