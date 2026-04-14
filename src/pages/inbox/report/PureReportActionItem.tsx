@@ -122,7 +122,6 @@ import {
     getRenamedCardFeedMessage,
     getReportActionHtml,
     getReportActionMessage,
-    getReportActionMessageText,
     getReportActionText,
     getSetAutoJoinMessage,
     getSettlementAccountLockedMessage,
