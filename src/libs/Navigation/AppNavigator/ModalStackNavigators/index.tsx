@@ -9,6 +9,7 @@ import type {PlatformStackNavigationOptions} from '@libs/Navigation/PlatformStac
 import type {
     AddPersonalBankAccountNavigatorParamList,
     AddUnreportedExpensesParamList,
+    ChronosScheduleOOONavigatorParamList,
     DebugParamList,
     EditRequestNavigatorParamList,
     EnablePaymentsNavigatorParamList,
@@ -301,6 +302,10 @@ const ReportVerifyAccountModalStackNavigator = createModalStackNavigator<ReportV
 
 const ReportDescriptionModalStackNavigator = createModalStackNavigator<ReportDescriptionNavigatorParamList>({
     [SCREENS.REPORT_DESCRIPTION_ROOT]: () => require<ReactComponentModule>('../../../../pages/ReportDescriptionPage').default,
+});
+
+const ChronosScheduleOOOModalStackNavigator = createModalStackNavigator<ChronosScheduleOOONavigatorParamList>({
+    [SCREENS.CHRONOS_SCHEDULE_OOO_ROOT]: () => require<ReactComponentModule>('../../../../pages/ChronosScheduleOOOPage').default,
 });
 
 const CategoriesModalStackNavigator = createModalStackNavigator({
@@ -774,9 +779,10 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_SAGE_INTACCT_NON_REIMBURSABLE_CREDIT_CARD_ACCOUNT]: () =>
         require<ReactComponentModule>('../../../../pages/workspace/accounting/intacct/export/DynamicSageIntacctNonReimbursableCreditCardAccountPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_ADVANCED]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/intacct/advanced/SageIntacctAdvancedPage').default,
-    [SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_AUTO_SYNC]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/intacct/advanced/SageIntacctAutoSyncPage').default,
-    [SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_ACCOUNTING_METHOD]: () =>
-        require<ReactComponentModule>('../../../../pages/workspace/accounting/intacct/advanced/SageIntacctAccountingMethodPage').default,
+    [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_SAGE_INTACCT_AUTO_SYNC]: () =>
+        require<ReactComponentModule>('../../../../pages/workspace/accounting/intacct/advanced/SageIntacctAutoSyncPage').default,
+    [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_SAGE_INTACCT_ACCOUNTING_METHOD]: () =>
+        require<ReactComponentModule>('../../../../pages/workspace/accounting/intacct/advanced/DynamicSageIntacctAccountingMethodPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_PAYMENT_ACCOUNT]: () =>
         require<ReactComponentModule>('../../../../pages/workspace/accounting/intacct/advanced/SageIntacctPaymentAccountPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.CARD_RECONCILIATION]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/reconciliation/CardReconciliationPage').default,
@@ -1159,6 +1165,7 @@ export {
     ReportCardActivateStackNavigator,
     ReportChangeApproverModalStackNavigator,
     ReportChangeWorkspaceModalStackNavigator,
+    ChronosScheduleOOOModalStackNavigator,
     ReportDescriptionModalStackNavigator,
     ReportDetailsModalStackNavigator,
     ReportParticipantsModalStackNavigator,
