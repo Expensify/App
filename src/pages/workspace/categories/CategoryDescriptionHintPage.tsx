@@ -13,8 +13,11 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import Parser from '@libs/Parser';
+import {getParsedComment} from '@libs/ReportUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+import variables from '@styles/variables';
 import {setWorkspaceCategoryDescriptionHint} from '@userActions/Policy/Category';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -36,7 +39,7 @@ function CategoryDescriptionHintPage({
 
     const {inputCallbackRef} = useAutoFocusInput();
 
-    const commentHintDefaultValue = policyCategories?.[categoryName]?.commentHint;
+    const commentHintDefaultValue = Parser.htmlToMarkdown(policyCategories?.[categoryName]?.commentHint ?? '');
 
     return (
         <AccessOrNotFoundWrapper
@@ -58,7 +61,7 @@ function CategoryDescriptionHintPage({
                     style={[styles.flexGrow1, styles.mh5]}
                     formID={ONYXKEYS.FORMS.WORKSPACE_CATEGORY_DESCRIPTION_HINT_FORM}
                     onSubmit={({commentHint}) => {
-                        setWorkspaceCategoryDescriptionHint(policyID, categoryName, commentHint, policyCategories);
+                        setWorkspaceCategoryDescriptionHint(policyID, categoryName, getParsedComment(commentHint), policyCategories);
                         Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.goBack(ROUTES.WORKSPACE_CATEGORY_SETTINGS.getRoute(policyID, categoryName)));
                     }}
                     submitButtonText={translate('common.save')}
@@ -75,6 +78,9 @@ function CategoryDescriptionHintPage({
                             label={translate('workspace.rules.categoryRules.descriptionHintLabel')}
                             aria-label={translate('workspace.rules.categoryRules.descriptionHintLabel')}
                             ref={inputCallbackRef}
+                            type="markdown"
+                            autoGrowHeight
+                            maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}
                         />
                         <Text style={[styles.mutedTextLabel, styles.mt2]}>{translate('workspace.rules.categoryRules.descriptionHintSubtitle')}</Text>
                     </View>
