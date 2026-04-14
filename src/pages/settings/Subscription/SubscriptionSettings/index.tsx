@@ -332,11 +332,12 @@ function SubscriptionSettings() {
                     />
                 )}
                 {!!freebieCredits && freebieCredits > 0 && (
-                    <Text style={[styles.mt5, styles.mutedNormalTextLabel]}>
-                        {translate('subscription.cardSection.creditsBalance', {
-                            amount: convertToDisplayString(freebieCredits, defaultCard?.accountData?.currency ?? CONST.CURRENCY.USD),
-                        })}
-                    </Text>
+                    <MenuItemWithTopDescription
+                        description={translate('subscription.details.creditBalance')}
+                        title={convertToDisplayString(freebieCredits, defaultCard?.accountData?.currency ?? CONST.CURRENCY.USD)}
+                        interactive={false}
+                        wrapperStyle={styles.sectionMenuItemTopDescription}
+                    />
                 )}
                 <MenuItemWithTopDescription
                     description={privateTaxExempt ? translate('subscription.details.taxExemptStatus') : undefined}
