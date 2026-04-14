@@ -230,18 +230,22 @@ const DYNAMIC_ROUTES = {
     },
     ONBOARDING_WORKSPACES: {
         path: 'join-workspaces',
-        entryScreens: [SCREENS.ONBOARDING.DYNAMIC_PERSONAL_DETAILS, SCREENS.ONBOARDING.DYNAMIC_PRIVATE_DOMAIN, SCREENS.ONBOARDING.WORK_EMAIL_VALIDATION],
+        entryScreens: [SCREENS.ONBOARDING.DYNAMIC_PERSONAL_DETAILS, SCREENS.ONBOARDING.DYNAMIC_PRIVATE_DOMAIN, SCREENS.ONBOARDING.DYNAMIC_WORK_EMAIL_VALIDATION],
     },
     ONBOARDING_WORK_EMAIL: {
         path: 'work-email',
         entryScreens: ['*'],
+    },
+    ONBOARDING_WORK_EMAIL_VALIDATION: {
+        path: 'work-email-validation',
+        entryScreens: [SCREENS.ONBOARDING.DYNAMIC_WORK_EMAIL],
     },
     ONBOARDING_PURPOSE: {
         path: 'purpose',
         entryScreens: [
             SCREENS.ONBOARDING.DYNAMIC_PURPOSE,
             SCREENS.ONBOARDING.DYNAMIC_WORK_EMAIL,
-            SCREENS.ONBOARDING.WORK_EMAIL_VALIDATION,
+            SCREENS.ONBOARDING.DYNAMIC_WORK_EMAIL_VALIDATION,
             SCREENS.ONBOARDING.DYNAMIC_PRIVATE_DOMAIN,
             SCREENS.ONBOARDING.DYNAMIC_WORKSPACES,
         ],
@@ -256,7 +260,7 @@ const DYNAMIC_ROUTES = {
             SCREENS.ONBOARDING.DYNAMIC_PURPOSE,
             SCREENS.ONBOARDING.DYNAMIC_WORKSPACES,
             SCREENS.ONBOARDING.DYNAMIC_WORK_EMAIL,
-            SCREENS.ONBOARDING.WORK_EMAIL_VALIDATION,
+            SCREENS.ONBOARDING.DYNAMIC_WORK_EMAIL_VALIDATION,
             SCREENS.ONBOARDING.DYNAMIC_PRIVATE_DOMAIN,
         ],
     },
@@ -266,7 +270,7 @@ const DYNAMIC_ROUTES = {
             SCREENS.ONBOARDING.DYNAMIC_PURPOSE,
             SCREENS.ONBOARDING.DYNAMIC_WORKSPACES,
             SCREENS.ONBOARDING.DYNAMIC_WORK_EMAIL,
-            SCREENS.ONBOARDING.WORK_EMAIL_VALIDATION,
+            SCREENS.ONBOARDING.DYNAMIC_WORK_EMAIL_VALIDATION,
             SCREENS.ONBOARDING.DYNAMIC_PRIVATE_DOMAIN,
             SCREENS.ONBOARDING.DYNAMIC_EMPLOYEES,
         ],
@@ -3235,12 +3239,6 @@ const ROUTES = {
 
         // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
         getRoute: (backTo?: string) => getUrlWithBackToParam(`onboarding`, backTo),
-    },
-    ONBOARDING_WORK_EMAIL_VALIDATION: {
-        route: 'onboarding/work-email-validation',
-
-        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-        getRoute: (backTo?: string) => getUrlWithBackToParam(`onboarding/work-email-validation`, backTo),
     },
     ONBOARDING_WORKSPACE: {
         route: 'onboarding/create-workspace',

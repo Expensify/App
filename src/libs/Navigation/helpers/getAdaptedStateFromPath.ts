@@ -260,7 +260,12 @@ function getDefaultFullScreenRoute(route?: NavigationPartialRoute) {
 
 function getOnboardingAdaptedState(state: PartialState<NavigationState>): PartialState<NavigationState> {
     const onboardingRoute = state.routes.at(0);
-    if (!onboardingRoute || onboardingRoute.name === SCREENS.ONBOARDING.DYNAMIC_PURPOSE || onboardingRoute.name === SCREENS.ONBOARDING.DYNAMIC_WORK_EMAIL) {
+    if (
+        !onboardingRoute ||
+        onboardingRoute.name === SCREENS.ONBOARDING.DYNAMIC_PURPOSE ||
+        onboardingRoute.name === SCREENS.ONBOARDING.DYNAMIC_WORK_EMAIL ||
+        onboardingRoute.name === SCREENS.ONBOARDING.DYNAMIC_WORK_EMAIL_VALIDATION
+    ) {
         return state;
     }
 

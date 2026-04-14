@@ -75,8 +75,8 @@ const renderOnboardingWorkEmailPage = (
 };
 
 const renderOnboardingWorkEmailValidationPage = (
-    initialRouteName: typeof SCREENS.ONBOARDING.WORK_EMAIL_VALIDATION,
-    initialParams: OnboardingModalNavigatorParamList[typeof SCREENS.ONBOARDING.WORK_EMAIL_VALIDATION],
+    initialRouteName: typeof SCREENS.ONBOARDING.DYNAMIC_WORK_EMAIL_VALIDATION,
+    initialParams?: OnboardingModalNavigatorParamList[typeof SCREENS.ONBOARDING.DYNAMIC_WORK_EMAIL_VALIDATION],
 ) => {
     return render(
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrentReportIDContextProvider]}>
@@ -84,7 +84,7 @@ const renderOnboardingWorkEmailValidationPage = (
                 <NavigationContainer>
                     <Stack.Navigator initialRouteName={initialRouteName}>
                         <Stack.Screen
-                            name={SCREENS.ONBOARDING.WORK_EMAIL_VALIDATION}
+                            name={SCREENS.ONBOARDING.DYNAMIC_WORK_EMAIL_VALIDATION}
                             component={OnboardingWorkEmailValidation}
                             initialParams={initialParams}
                         />
@@ -340,7 +340,7 @@ describe('OnboardingWorkEmail Page', () => {
         await waitForBatchedUpdatesWithAct();
 
         await waitFor(() => {
-            expect(navigate).toHaveBeenCalledWith(ROUTES.ONBOARDING_WORK_EMAIL_VALIDATION.getRoute());
+            expect(navigate).toHaveBeenCalledWith(createDynamicRoute(DYNAMIC_ROUTES.ONBOARDING_WORK_EMAIL_VALIDATION.path));
         });
 
         unmount();
@@ -416,7 +416,7 @@ describe('OnboardingWorkEmailValidation Page', () => {
             });
         });
 
-        const {unmount} = renderOnboardingWorkEmailValidationPage(SCREENS.ONBOARDING.WORK_EMAIL_VALIDATION, {backTo: ''});
+        const {unmount} = renderOnboardingWorkEmailValidationPage(SCREENS.ONBOARDING.DYNAMIC_WORK_EMAIL_VALIDATION, undefined);
 
         await waitForBatchedUpdatesWithAct();
 
@@ -441,7 +441,7 @@ describe('OnboardingWorkEmailValidation Page', () => {
             });
         });
 
-        const {unmount} = renderOnboardingWorkEmailValidationPage(SCREENS.ONBOARDING.WORK_EMAIL_VALIDATION, {backTo: ''});
+        const {unmount} = renderOnboardingWorkEmailValidationPage(SCREENS.ONBOARDING.DYNAMIC_WORK_EMAIL_VALIDATION, undefined);
 
         await waitForBatchedUpdatesWithAct();
 
@@ -470,7 +470,7 @@ describe('OnboardingWorkEmailValidation Page', () => {
             });
         });
 
-        const {unmount} = renderOnboardingWorkEmailValidationPage(SCREENS.ONBOARDING.WORK_EMAIL_VALIDATION, {backTo: ''});
+        const {unmount} = renderOnboardingWorkEmailValidationPage(SCREENS.ONBOARDING.DYNAMIC_WORK_EMAIL_VALIDATION, undefined);
 
         await waitForBatchedUpdatesWithAct();
         const skipButton = screen.getByText(TestHelper.translateLocal('common.skip'));
@@ -505,7 +505,7 @@ describe('OnboardingWorkEmailValidation Page', () => {
             });
         });
 
-        const {unmount} = renderOnboardingWorkEmailValidationPage(SCREENS.ONBOARDING.WORK_EMAIL_VALIDATION, {backTo: ''});
+        const {unmount} = renderOnboardingWorkEmailValidationPage(SCREENS.ONBOARDING.DYNAMIC_WORK_EMAIL_VALIDATION, undefined);
 
         await waitForBatchedUpdatesWithAct();
 
@@ -534,7 +534,7 @@ describe('OnboardingWorkEmailValidation Page', () => {
             });
         });
 
-        const {unmount} = renderOnboardingWorkEmailValidationPage(SCREENS.ONBOARDING.WORK_EMAIL_VALIDATION, {backTo: ''});
+        const {unmount} = renderOnboardingWorkEmailValidationPage(SCREENS.ONBOARDING.DYNAMIC_WORK_EMAIL_VALIDATION, undefined);
 
         await waitForBatchedUpdatesWithAct();
 
@@ -564,7 +564,7 @@ describe('OnboardingWorkEmailValidation Page', () => {
             });
         });
 
-        const {unmount} = renderOnboardingWorkEmailValidationPage(SCREENS.ONBOARDING.WORK_EMAIL_VALIDATION, {backTo: ''});
+        const {unmount} = renderOnboardingWorkEmailValidationPage(SCREENS.ONBOARDING.DYNAMIC_WORK_EMAIL_VALIDATION, undefined);
 
         await waitForBatchedUpdatesWithAct();
 
@@ -597,7 +597,7 @@ describe('OnboardingWorkEmailValidation Page', () => {
             await Onyx.merge(ONYXKEYS.ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY, specificErrorMessage);
         });
 
-        const {unmount} = renderOnboardingWorkEmailValidationPage(SCREENS.ONBOARDING.WORK_EMAIL_VALIDATION, {backTo: ''});
+        const {unmount} = renderOnboardingWorkEmailValidationPage(SCREENS.ONBOARDING.DYNAMIC_WORK_EMAIL_VALIDATION, undefined);
 
         await waitForBatchedUpdatesWithAct();
 
@@ -623,7 +623,7 @@ describe('OnboardingWorkEmailValidation Page', () => {
             });
         });
 
-        const {unmount} = renderOnboardingWorkEmailValidationPage(SCREENS.ONBOARDING.WORK_EMAIL_VALIDATION, {backTo: ''});
+        const {unmount} = renderOnboardingWorkEmailValidationPage(SCREENS.ONBOARDING.DYNAMIC_WORK_EMAIL_VALIDATION, undefined);
 
         await waitForBatchedUpdatesWithAct();
 

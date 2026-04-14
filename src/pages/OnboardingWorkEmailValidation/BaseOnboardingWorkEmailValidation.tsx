@@ -40,7 +40,7 @@ function BaseOnboardingWorkEmailValidation({shouldUseNativeStyles}: BaseOnboardi
     const [onboardingErrorMessage] = useOnyx(ONYXKEYS.ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY);
     const isValidateCodeFormSubmitting = AccountUtils.isValidateCodeFormSubmitting(account);
     const isFocused = useIsFocused();
-    const onboardingStep = useOnboardingStepCounter(SCREENS.ONBOARDING.WORK_EMAIL_VALIDATION);
+    const onboardingStep = useOnboardingStepCounter(SCREENS.ONBOARDING.DYNAMIC_WORK_EMAIL_VALIDATION);
 
     useEffect(() => {
         if (onboardingValues?.isMergeAccountStepCompleted === undefined) {

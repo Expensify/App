@@ -137,7 +137,7 @@ function OnboardingModalNavigator() {
                                 component={OnboardingWorkEmail}
                             />
                             <Stack.Screen
-                                name={SCREENS.ONBOARDING.WORK_EMAIL_VALIDATION}
+                                name={SCREENS.ONBOARDING.DYNAMIC_WORK_EMAIL_VALIDATION}
                                 component={OnboardingWorkEmailValidation}
                             />
                             <Stack.Screen

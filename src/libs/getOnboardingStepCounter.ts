@@ -23,7 +23,7 @@ const {ONBOARDING_CHOICES, ONBOARDING_SIGNUP_QUALIFIERS} = CONST;
 
 const screenResolution: Record<OnboardingScreen, OnboardingScreen> = {
     [ONBOARDING.DYNAMIC_WORK_EMAIL]: ONBOARDING.DYNAMIC_WORK_EMAIL,
-    [ONBOARDING.WORK_EMAIL_VALIDATION]: ONBOARDING.WORK_EMAIL_VALIDATION,
+    [ONBOARDING.DYNAMIC_WORK_EMAIL_VALIDATION]: ONBOARDING.DYNAMIC_WORK_EMAIL_VALIDATION,
     [ONBOARDING.DYNAMIC_PRIVATE_DOMAIN]: ONBOARDING.DYNAMIC_PRIVATE_DOMAIN,
     [ONBOARDING.DYNAMIC_PERSONAL_DETAILS]: ONBOARDING.DYNAMIC_PERSONAL_DETAILS,
     [ONBOARDING.DYNAMIC_WORKSPACES]: ONBOARDING.DYNAMIC_WORKSPACES,
@@ -63,7 +63,7 @@ const maxPrivateSuffixLength = Math.max(...Object.values(purposeSuffixes).map((s
 function getResolvedPage(page: OnboardingScreen, context: OnboardingFlowContext): OnboardingScreen {
     // In public domain flows, PRIVATE_DOMAIN is used as a variant of WORK_EMAIL_VALIDATION
     if (page === ONBOARDING.DYNAMIC_PRIVATE_DOMAIN && context.isFromPublicDomain) {
-        return ONBOARDING.WORK_EMAIL_VALIDATION;
+        return ONBOARDING.DYNAMIC_WORK_EMAIL_VALIDATION;
     }
     return screenResolution[page];
 }
@@ -71,13 +71,13 @@ function getResolvedPage(page: OnboardingScreen, context: OnboardingFlowContext)
 function getDomainPrefix(context: OnboardingFlowContext): OnboardingScreen[] {
     if (context.isFromPublicDomain) {
         if (context.isMergeAccountStepSkipped === false) {
-            return [ONBOARDING.DYNAMIC_WORK_EMAIL, ONBOARDING.WORK_EMAIL_VALIDATION, ONBOARDING.DYNAMIC_WORKSPACES];
+            return [ONBOARDING.DYNAMIC_WORK_EMAIL, ONBOARDING.DYNAMIC_WORK_EMAIL_VALIDATION, ONBOARDING.DYNAMIC_WORKSPACES];
         }
         // User skipped the work email step — they never see WORK_EMAIL_VALIDATION
         if (context.isMergeAccountStepSkipped === true) {
             return [ONBOARDING.DYNAMIC_WORK_EMAIL];
         }
-        return [ONBOARDING.DYNAMIC_WORK_EMAIL, ONBOARDING.WORK_EMAIL_VALIDATION];
+        return [ONBOARDING.DYNAMIC_WORK_EMAIL, ONBOARDING.DYNAMIC_WORK_EMAIL_VALIDATION];
     }
     if (context.hasAccessibleDomainPolicies) {
         return [ONBOARDING.DYNAMIC_PERSONAL_DETAILS, ONBOARDING.DYNAMIC_PRIVATE_DOMAIN, ONBOARDING.DYNAMIC_WORKSPACES];
