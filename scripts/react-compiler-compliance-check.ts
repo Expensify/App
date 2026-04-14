@@ -84,7 +84,7 @@ function checkReactCompilerCompliance(source: string, filename: string): Compila
                                     hasError = true;
                                     if (event.detail?.reason) {
                                         errors.push({
-                                            reason: event.detail.reason,
+                                            reason: event.detail.reason ?? 'Unknown compiler error',
                                             severity: event.detail.severity ?? 'Error',
                                             loc: event.detail.loc,
                                             fnLoc: event.fnLoc,
