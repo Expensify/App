@@ -55,7 +55,7 @@ jest.mock('@hooks/useEnvironment', () => ({
 jest.mock('@hooks/usePermissions', () => ({
     __esModule: true,
     default: jest.fn(() => ({
-        isBetaEnabled: (beta: string) => beta === 'selectionModeReportActions',
+        isBetaEnabled: (beta: string) => beta === 'bulkSubmitApprovePay',
     })),
 }));
 
@@ -190,7 +190,7 @@ jest.mock('@libs/ReportUtils', () => {
     };
 });
 
-jest.mock('@libs/actions/IOU', () => ({
+jest.mock('@libs/actions/IOU/ReportWorkflow', () => ({
     __esModule: true,
     submitReport: jest.fn(),
     approveMoneyRequest: jest.fn(),
@@ -258,7 +258,7 @@ const DelegateProvider = require('@components/DelegateNoAccessModalProvider') as
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const LockedProvider = require('@components/LockedAccountModalProvider') as Record<string, jest.Mock>;
 // eslint-disable-next-line @typescript-eslint/no-require-imports
-const IOUActions = require('@libs/actions/IOU') as Record<string, jest.Mock>;
+const IOUActions = require('@libs/actions/IOU/ReportWorkflow') as Record<string, jest.Mock>;
 const PayMoneyRequestActions = require('@libs/actions/IOU/PayMoneyRequest') as Record<string, jest.Mock>;
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const usePaymentOptionsMock = require('@hooks/usePaymentOptions') as {default: jest.Mock};
