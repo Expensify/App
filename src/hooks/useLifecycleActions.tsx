@@ -19,8 +19,8 @@ import {
     shouldBlockSubmitDueToStrictPolicyRules,
 } from '@libs/ReportUtils';
 import {hasAnyPendingRTERViolation as hasAnyPendingRTERViolationTransactionUtils} from '@libs/TransactionUtils';
-import {approveMoneyRequest, reopenReport, retractReport, submitReport, unapproveExpenseReport} from '@userActions/IOU';
 import {cancelPayment} from '@userActions/IOU/PayMoneyRequest';
+import {approveMoneyRequest, reopenReport, retractReport, submitReport, unapproveExpenseReport} from '@userActions/IOU/ReportWorkflow';
 import {markPendingRTERTransactionsAsCash} from '@userActions/Transaction';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -144,6 +144,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startSubmittingA
         }
         approveMoneyRequest({
             expenseReport: moneyRequestReport,
+            expenseReportPolicy: policy,
             policy,
             currentUserAccountIDParam: accountID,
             currentUserEmailParam: email ?? '',

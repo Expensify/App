@@ -465,6 +465,7 @@ function MoneyReportHeaderSelectionDropdown({reportID, primaryAction, isReportIn
             event,
             iouPaymentType,
             triggerKYCFlow,
+            expenseReportPolicy: policy,
             policy,
             onPress: confirmPayment,
             currentAccountID: accountID,

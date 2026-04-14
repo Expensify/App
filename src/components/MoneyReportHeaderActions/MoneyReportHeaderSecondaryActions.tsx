@@ -355,6 +355,7 @@ function MoneyReportHeaderSecondaryActions({reportID, primaryAction, isReportInS
             event,
             iouPaymentType,
             triggerKYCFlow,
+            expenseReportPolicy: policy,
             policy,
             onPress: confirmPayment,
             currentAccountID: accountID,
