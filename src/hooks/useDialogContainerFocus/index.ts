@@ -1,41 +1,22 @@
 import {useEffect} from 'react';
 import {InteractionManager} from 'react-native';
+import getHadTabNavigation from '@libs/hadTabNavigation';
+import {Priorities, tryClaim} from '@libs/ScreenFocusArbiter';
 import type UseDialogContainerFocus from './types';
 
 const FOCUSABLE_SELECTOR = 'button, [href], input, textarea, select, [role="button"], [role="link"], [tabindex]:not([tabindex="-1"])';
 
-// Tracks whether the user is Tab-navigating (vs typing in a form or using mouse).
-// Tab sets it, typing keys clear it, Enter/Space preserve it, mousedown clears it.
-let hadTabNavigation = false;
-if (typeof document !== 'undefined') {
-    document.addEventListener(
-        'keydown',
-        (e: KeyboardEvent) => {
-            if (e.key === 'Tab') {
-                hadTabNavigation = true;
-            } else if (e.key !== 'Enter' && e.key !== ' ') {
-                hadTabNavigation = false;
-            }
-        },
-        true,
-    );
-    document.addEventListener(
-        'mousedown',
-        () => {
-            hadTabNavigation = false;
-        },
-        true,
-    );
-}
-
 /** @returns true if an element was focused, false otherwise. */
 function focusFirstInteractiveElement(container: HTMLElement | null): boolean {
-    if (!hadTabNavigation || !container || (document.activeElement && document.activeElement !== document.body)) {
+    if (!getHadTabNavigation() || !container || (document.activeElement && document.activeElement !== document.body)) {
         return false;
     }
     const targets = container.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR);
     const target = Array.from(targets).find((el) => !el.closest('[aria-hidden="true"]') && !el.matches(':disabled') && el.getAttribute('aria-disabled') !== 'true');
     if (!target) {
+        return false;
+    }
+    if (!tryClaim(Priorities.INITIAL)) {
         return false;
     }
     target.focus({preventScroll: true, focusVisible: true} as FocusOptions);
@@ -51,6 +32,7 @@ const useDialogContainerFocus: UseDialogContainerFocus = (ref, isReady, claimIni
         let cancelled = false;
         let frameId: number;
         // Deferred past useAutoFocusInput's InteractionManager + Promise chain.
+        // InteractionManager is marked deprecated in type defs but remains the idiomatic defer primitive across this codebase.
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         const interactionHandle = InteractionManager.runAfterInteractions(() => {
             if (cancelled) {

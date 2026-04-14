@@ -9,6 +9,7 @@ import {moveSelectionToEnd, scrollToBottom} from '@libs/InputUtils';
 import isWindowReadyToFocus from '@libs/isWindowReadyToFocus';
 import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {RootNavigatorParamList} from '@libs/Navigation/types';
+import {Priorities, tryClaim} from '@libs/ScreenFocusArbiter';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {useSplashScreenState} from '@src/SplashScreenStateContext';
@@ -60,7 +61,12 @@ export default function useAutoFocusInput(isMultiline = false): UseAutoFocusInpu
             if (inputRef.current && isMultiline) {
                 moveSelectionToEnd(inputRef.current);
             }
-            isWindowReadyToFocus().then(() => inputRef.current?.focus());
+            isWindowReadyToFocus().then(() => {
+                if (!tryClaim(Priorities.AUTO)) {
+                    return;
+                }
+                inputRef.current?.focus();
+            });
             setIsScreenTransitionEnded(false);
         });
 

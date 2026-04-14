@@ -9,6 +9,7 @@
 const {focusFirstInteractiveElement} = require<{
     focusFirstInteractiveElement: (container: HTMLElement | null) => boolean;
 }>('../../src/hooks/useDialogContainerFocus/index.ts');
+const {resetCycle: resetArbiter} = require<{resetCycle: () => void}>('../../src/libs/ScreenFocusArbiter.ts');
 /* eslint-enable @typescript-eslint/no-require-imports, import/extensions */
 
 function createContainer(...children: HTMLElement[]) {
@@ -42,6 +43,7 @@ function simulateSpace() {
 
 afterEach(() => {
     document.body.innerHTML = '';
+    resetArbiter();
 });
 
 describe('focusFirstInteractiveElement', () => {

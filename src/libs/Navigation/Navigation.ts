@@ -15,6 +15,8 @@ import clearSelectedText from '@libs/clearSelectedText/clearSelectedText';
 import clearSelectedTextIfComposerBlurred from '@libs/clearSelectedTextIfComposerBlurred/clearSelectedTextIfComposerBlurred';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import Log from '@libs/Log';
+// Side-effect import — installs the focus-return listeners.
+import '@libs/NavigationFocusReturn';
 import {shallowCompare} from '@libs/ObjectUtils';
 import {getSpan, startSpan} from '@libs/telemetry/activeSpans';
 import variables from '@styles/variables';
