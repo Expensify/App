@@ -27,6 +27,10 @@ function simulateTab() {
     document.dispatchEvent(new KeyboardEvent('keydown', {key: 'Tab', bubbles: true}));
 }
 
+function simulateKey(key: string) {
+    document.dispatchEvent(new KeyboardEvent('keydown', {key, bubbles: true}));
+}
+
 function simulateMouse() {
     document.dispatchEvent(new MouseEvent('mousedown', {bubbles: true}));
 }
@@ -166,6 +170,21 @@ describe('diffNavigationState', () => {
 
         expect(result.removedKeys.sort()).toEqual(['x', 'y']);
     });
+
+    it('should classify a lateral top-tab switch (all tabs mounted, no removal) as noop', () => {
+        const prev = stackState(0, [
+            {key: 'tab-1', name: 'Tab1'},
+            {key: 'tab-2', name: 'Tab2'},
+        ]);
+        const next = stackState(1, [
+            {key: 'tab-1', name: 'Tab1'},
+            {key: 'tab-2', name: 'Tab2'},
+        ]);
+        const result = diffNavigationState(prev, next);
+
+        expect(result.action.type).toBe('noop');
+        expect(result.removedKeys).toEqual([]);
+    });
 });
 
 describe('captureTriggerForRoute', () => {
@@ -237,6 +256,47 @@ describe('captureTriggerForRoute', () => {
 
             captureTriggerForRoute('route-a');
             expect(restoreTriggerForRoute('route-a')).toBe(true);
+        });
+    });
+
+    describe('modality: arrow and named keys preserve keyboard modality', () => {
+        it.each(['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Home', 'End', 'PageUp', 'PageDown', 'Escape'])(
+            'should still capture after Tab → %s → Enter (list-navigation flow)',
+            (navKey) => {
+                simulateTab();
+                simulateKey(navKey);
+                simulateKey('Enter');
+                const trigger = document.createElement('button');
+                document.body.appendChild(trigger);
+                trigger.focus();
+                setLastInteractiveElementForTests(trigger);
+
+                captureTriggerForRoute('route-a');
+                trigger.blur();
+                expect(restoreTriggerForRoute('route-a')).toBe(true);
+            },
+        );
+
+        it('should clear modality when user types printable characters', () => {
+            simulateTab();
+            simulateKey('a');
+            const trigger = document.createElement('button');
+            document.body.appendChild(trigger);
+            setLastInteractiveElementForTests(trigger);
+
+            captureTriggerForRoute('route-a');
+            expect(restoreTriggerForRoute('route-a')).toBe(false);
+        });
+
+        it('should clear modality on Backspace / Delete', () => {
+            simulateTab();
+            simulateKey('Backspace');
+            const trigger = document.createElement('button');
+            document.body.appendChild(trigger);
+            setLastInteractiveElementForTests(trigger);
+
+            captureTriggerForRoute('route-a');
+            expect(restoreTriggerForRoute('route-a')).toBe(false);
         });
     });
 

@@ -52,10 +52,13 @@ function diffNavigationState(prev: AnyState, next: NavigationState): {action: Di
     let action: DiffAction;
     if (!prevFocusedKey || !newFocusedKey || prevFocusedKey === newFocusedKey) {
         action = {type: 'noop'};
-    } else if (prevKeys.has(newFocusedKey)) {
+    } else if (prevKeys.has(newFocusedKey) && removedKeys.length > 0) {
         action = {type: 'backward', restoreKey: newFocusedKey};
-    } else {
+    } else if (!prevKeys.has(newFocusedKey)) {
         action = {type: 'forward', captureKey: prevFocusedKey};
+    } else {
+        // Lateral: key existed, nothing dropped — e.g. top-tab switch with all tabs mounted.
+        action = {type: 'noop'};
     }
 
     return {action, removedKeys};
