@@ -323,6 +323,40 @@ function mergePagesByIDOverlap<TResource>(sortedItems: TResource[], pages: Pages
 }
 
 /**
+ * Picks the chronologically newest page: prefers the slice marked with PAGINATION_START_ID (synced to present),
+ * otherwise the page whose span starts at the smallest index in descending-sorted items.
+ */
+function selectNewestPageWithIndex(pagesWithIndexes: PageWithIndex[]): PageWithIndex | undefined {
+    if (pagesWithIndexes.length === 0) {
+        return undefined;
+    }
+
+    const pageWithStartMarker = pagesWithIndexes.find((pageWithIndex) => pageWithIndex.firstID === CONST.PAGINATION_START_ID);
+    if (pageWithStartMarker) {
+        return pageWithStartMarker;
+    }
+
+    return pagesWithIndexes.reduce((newest, candidate) => (candidate.firstIndex < newest.firstIndex ? candidate : newest));
+}
+
+/**
+ * Collapses pagination to a single page row for the newest window. Used after jumping to the live tail of a chat.
+ */
+function prunePagesToNewestWindow<TResource>(sortedItems: TResource[], pages: Pages, getID: (item: TResource) => string): Pages {
+    if (pages.length <= 1) {
+        return pages;
+    }
+
+    const pagesWithIndexes = getPagesWithIndexes(sortedItems, pages, getID);
+    const newestPage = selectNewestPageWithIndex(pagesWithIndexes);
+    if (!newestPage) {
+        return pages;
+    }
+
+    return [newestPage.ids];
+}
+
+/**
  * Returns the page of items that contains the item with the given ID, or the first page if null.
  * Also returns whether next / previous pages can be fetched.
  * See unit tests for example of inputs and expected outputs.
@@ -384,10 +418,10 @@ function getContinuousChain<TResource>(sortedItems: TResource[], pages: Pages, g
             page = linkedPage;
         }
     } else {
-        // If we did not find an item with the resource id, we want to link to the first page
-        const pageAtIndex0 = pagesWithIndexes.at(0);
-        if (pageAtIndex0) {
-            page = pageAtIndex0;
+        // If we did not find an item with the resource id, show the newest page (not rely on arbitrary Onyx page order).
+        const newestPage = selectNewestPageWithIndex(pagesWithIndexes);
+        if (newestPage) {
+            page = newestPage;
         }
     }
 
@@ -403,6 +437,6 @@ function getContinuousChain<TResource>(sortedItems: TResource[], pages: Pages, g
     };
 }
 
-export {mergeAndSortContinuousPages, mergePagesByIDOverlap, getContinuousChain};
+export {mergeAndSortContinuousPages, mergePagesByIDOverlap, getContinuousChain, prunePagesToNewestWindow, selectNewestPageWithIndex};
 
-export default {mergeAndSortContinuousPages, mergePagesByIDOverlap, getContinuousChain};
+export default {mergeAndSortContinuousPages, mergePagesByIDOverlap, getContinuousChain, prunePagesToNewestWindow, selectNewestPageWithIndex};

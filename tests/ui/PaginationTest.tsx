@@ -150,7 +150,6 @@ function mockOpenReport(messageCount: number, initialID: string) {
             hasOlderActions: !comments['1'],
             // When comment-linking (reportActionID present), there may be newer actions beyond the cursor.
             hasNewerActions: !!reportActionID,
-            oldestUnreadReportActionID: null,
         };
     });
 }

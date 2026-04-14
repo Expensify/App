@@ -24,6 +24,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useScrollToEndOnNewMessageReceived from '@hooks/useScrollToEndOnNewMessageReceived';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import {openReport, pruneReportActionPagesToNewestWindow, readNewestAction, subscribeToNewActionEvent} from '@libs/actions/Report';
 import {isSafari} from '@libs/Browser';
 import {isConsecutiveChronosAutomaticTimerAction} from '@libs/ChronosUtils';
 import DateUtils from '@libs/DateUtils';
@@ -64,7 +65,6 @@ import type {ReportsSplitNavigatorParamList} from '@navigation/types';
 import ConciergeThinkingMessage from '@pages/home/report/ConciergeThinkingMessage';
 import {ActionListContext} from '@pages/inbox/ReportScreenContext';
 import variables from '@styles/variables';
-import {openReport, readNewestAction, subscribeToNewActionEvent} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -112,6 +112,17 @@ type ReportActionsListProps = {
 
     /** Whether the report has newer actions to load */
     hasNewerActions: boolean;
+
+    /** Full sorted report actions for collapsing stale pagination after a live-tail jump */
+    sortedAllReportActionsForPagination: OnyxTypes.ReportAction[];
+
+    /** Current report action pages from Onyx */
+    reportActionPages: OnyxTypes.Pages | undefined;
+
+    /** When true, the paginated hook ignores deep-link / unread anchors */
+    treatAsNoPaginationAnchor: boolean;
+
+    setTreatAsNoPaginationAnchor: (value: boolean) => void;
 
     /** Whether the composer is in full size */
     isComposerFullSize?: boolean;
@@ -169,6 +180,10 @@ function ReportActionsList({
     loadNewerChats,
     loadOlderChats,
     hasNewerActions,
+    sortedAllReportActionsForPagination,
+    reportActionPages,
+    treatAsNoPaginationAnchor,
+    setTreatAsNoPaginationAnchor,
     onLayout,
     isComposerFullSize,
     listID,
@@ -215,6 +230,7 @@ function ReportActionsList({
     const [isScrollToBottomEnabled, setIsScrollToBottomEnabled] = useState(false);
     const [actionIdToHighlight, setActionIdToHighlight] = useState('');
     const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report.reportID}`);
+    const prevIsLoadingInitialReportActions = usePrevious(reportMetadata?.isLoadingInitialReportActions);
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`);
 
     const backTo = route?.params?.backTo as string;
@@ -351,6 +367,15 @@ function ReportActionsList({
     const hasNewestReportAction = lastAction?.created === lastVisibleActionCreated || isReportPreviewAction(lastAction);
     const hasNewestReportActionRef = useRef(hasNewestReportAction);
     hasNewestReportActionRef.current = hasNewestReportAction;
+    const hasNewerActionsRef = useRef(hasNewerActions);
+    hasNewerActionsRef.current = hasNewerActions;
+    const linkedReportActionIDRef = useRef(linkedReportActionID);
+    linkedReportActionIDRef.current = linkedReportActionID;
+    const sortedAllReportActionsForPaginationRef = useRef(sortedAllReportActionsForPagination);
+    const reportActionPagesRef = useRef(reportActionPages);
+    sortedAllReportActionsForPaginationRef.current = sortedAllReportActionsForPagination;
+    reportActionPagesRef.current = reportActionPages;
+    const liveTailJumpRef = useRef<{stage: 'idle' | 'open_report' | 'await_scroll' | 'await_prune'}>({stage: 'idle'});
     const sortedVisibleReportActionsRef = useRef(sortedVisibleReportActions);
 
     const {isFloatingMessageCounterVisible, setIsFloatingMessageCounterVisible, trackVerticalScrolling, onViewableItemsChanged} = useReportUnreadMessageScrollTracking({
@@ -562,6 +587,22 @@ function ReportActionsList({
                     });
                     return;
                 }
+
+                const shouldJumpToLiveTail =
+                    !isOffline && action?.actionName !== CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && (hasNewerActionsRef.current || !!linkedReportActionIDRef.current);
+
+                if (shouldJumpToLiveTail) {
+                    if (liveTailJumpRef.current.stage === 'idle') {
+                        liveTailJumpRef.current = {stage: 'open_report'};
+                        openReport({
+                            reportID: report.reportID,
+                            introSelected,
+                            betas,
+                        });
+                    }
+                    return;
+                }
+
                 const index = sortedVisibleReportActionsRef.current.findIndex((item) => keyExtractor(item) === action?.reportActionID);
                 if (action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) {
                     if (index > 0) {
@@ -583,8 +624,41 @@ function ReportActionsList({
                 setIsScrollToBottomEnabled(true);
             });
         },
-        [report.reportID, reportScrollManager, setIsFloatingMessageCounterVisible],
+        [betas, introSelected, isOffline, report.reportID, reportScrollManager, setIsFloatingMessageCounterVisible],
     );
+
+    useEffect(() => {
+        liveTailJumpRef.current = {stage: 'idle'};
+    }, [report.reportID]);
+
+    useEffect(() => {
+        if (liveTailJumpRef.current.stage !== 'open_report') {
+            return;
+        }
+
+        const finishedInitialLoad = prevIsLoadingInitialReportActions === true && reportMetadata?.isLoadingInitialReportActions === false;
+
+        if (!finishedInitialLoad) {
+            return;
+        }
+
+        setTreatAsNoPaginationAnchor(true);
+        Navigation.setParams({reportActionID: ''});
+        liveTailJumpRef.current = {stage: 'await_scroll'};
+    }, [prevIsLoadingInitialReportActions, reportMetadata?.isLoadingInitialReportActions, setTreatAsNoPaginationAnchor]);
+
+    useEffect(() => {
+        if (liveTailJumpRef.current.stage !== 'await_scroll') {
+            return;
+        }
+        if (!hasNewestReportAction) {
+            return;
+        }
+
+        liveTailJumpRef.current = {stage: 'await_prune'};
+        setIsFloatingMessageCounterVisible(false);
+        setIsScrollToBottomEnabled(true);
+    }, [hasNewestReportAction, treatAsNoPaginationAnchor, setIsFloatingMessageCounterVisible]);
 
     // Clear the highlighted report action after scrolling and highlighting
     useEffect(() => {
@@ -816,6 +890,12 @@ function ReportActionsList({
             if (isScrollToBottomEnabled) {
                 reportScrollManager.scrollToBottom();
                 setIsScrollToBottomEnabled(false);
+                if (liveTailJumpRef.current.stage === 'await_prune') {
+                    // eslint-disable-next-line @typescript-eslint/no-unsafe-call -- pruneReportActionPagesToNewestWindow is typed; rule loses inference via Report actions barrel
+                    pruneReportActionPagesToNewestWindow(report.reportID, sortedAllReportActionsForPaginationRef.current, reportActionPagesRef.current);
+                    setTreatAsNoPaginationAnchor(false);
+                    liveTailJumpRef.current = {stage: 'idle'};
+                }
             }
             if (shouldScrollToEndAfterLayout && (!hasCreatedActionAdded || isOffline)) {
                 requestAnimationFrame(() => {
@@ -823,7 +903,7 @@ function ReportActionsList({
                 });
             }
         },
-        [isOffline, isScrollToBottomEnabled, onLayout, reportScrollManager, hasCreatedActionAdded, shouldScrollToEndAfterLayout],
+        [isOffline, isScrollToBottomEnabled, onLayout, report.reportID, reportScrollManager, hasCreatedActionAdded, shouldScrollToEndAfterLayout, setTreatAsNoPaginationAnchor],
     );
 
     const retryLoadNewerChatsError = useCallback(() => {
