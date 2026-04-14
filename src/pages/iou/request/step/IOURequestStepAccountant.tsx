@@ -26,7 +26,7 @@ function IOURequestStepAccountant({
     },
 }: IOURequestStepAccountantProps) {
     const {translate} = useLocalize();
-    const {login, email = ''} = useCurrentUserPersonalDetails();
+    const {accountID, login, email = ''} = useCurrentUserPersonalDetails();
     const selector = useCallback(
         (policies: OnyxCollection<Policy>) => {
             return activeAdminPoliciesSelector(policies, login ?? '');
@@ -49,7 +49,14 @@ function IOURequestStepAccountant({
         // Sharing with an accountant involves inviting them to the workspace and that requires admin access.
         const hasActiveAdminWorkspaces = (adminPolicies?.length ?? 0) > 0;
         if (!hasActiveAdminWorkspaces) {
-            createDraftWorkspaceAndNavigateToConfirmationScreen(introSelected, transactionID, action, generateDefaultWorkspaceName(email, lastWorkspaceNumber, translate));
+            createDraftWorkspaceAndNavigateToConfirmationScreen(
+                introSelected,
+                transactionID,
+                action,
+                generateDefaultWorkspaceName(email, lastWorkspaceNumber, translate),
+                accountID,
+                email,
+            );
             return;
         }
 

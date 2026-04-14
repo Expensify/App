@@ -31,6 +31,7 @@ import {
     isFetchingWaypointsFromServer,
     isFromCreditCardImport,
     isMerchantMissing,
+    isOdometerDistanceRequest,
     isPerDiemRequest,
     isScanning,
     isTimeRequest,
@@ -372,6 +373,10 @@ function buildMergedTransactionData(targetTransaction: OnyxEntry<Transaction>, m
             customUnit: mergeTransaction.customUnit,
             waypoints: mergeTransaction.waypoints,
             attendees: mergeTransaction.attendees,
+            ...(mergeTransaction.odometerStart !== undefined && {odometerStart: mergeTransaction.odometerStart}),
+            ...(mergeTransaction.odometerEnd !== undefined && {odometerEnd: mergeTransaction.odometerEnd}),
+            ...(mergeTransaction.odometerStartImage !== undefined && {odometerStartImage: mergeTransaction.odometerStartImage}),
+            ...(mergeTransaction.odometerEndImage !== undefined && {odometerEndImage: mergeTransaction.odometerEndImage}),
         },
         reimbursable: mergeTransaction.reimbursable,
         billable: mergeTransaction.billable,
@@ -631,6 +636,14 @@ function getMergeFieldUpdatedValues<K extends MergeFieldKey>({
         updatedValues.taxName = getTaxName(policy, transaction) ?? transaction?.taxValue ?? '';
         updatedValues.taxAmount = transaction?.taxAmount;
         updatedValues.taxPolicyID = policy?.id;
+
+        // Copy odometer readings from the selected transaction for odometer distance requests
+        if (isOdometerDistanceRequest(transaction)) {
+            updatedValues.odometerStart = transaction?.comment?.odometerStart;
+            updatedValues.odometerEnd = transaction?.comment?.odometerEnd;
+            updatedValues.odometerStartImage = transaction?.comment?.odometerStartImage;
+            updatedValues.odometerEndImage = transaction?.comment?.odometerEndImage;
+        }
     }
 
     if (field === 'taxValue') {
