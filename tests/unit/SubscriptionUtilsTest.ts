@@ -262,7 +262,6 @@ describe('SubscriptionUtils', () => {
                 [ONYXKEYS.SESSION]: null,
                 [ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END]: null,
                 [ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED]: null,
-                [ONYXKEYS.COLLECTION.POLICY]: null,
             });
         });
 
@@ -270,16 +269,10 @@ describe('SubscriptionUtils', () => {
             expect(shouldRestrictUserBillableActions('1', undefined, undefined, undefined)).toBeFalsy();
         });
 
-        it('should return false if the user is a non-owner of a workspace that is not in the shared NVP collection', async () => {
+        it('should return false if the user is a non-owner of a workspace that is not in the shared NVP collection', () => {
             const policyID = '1001';
             const ownerAccountID = 2001;
-
-            await Onyx.multiSet({
-                [`${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const]: {
-                    ...createRandomPolicy(Number(policyID)),
-                    ownerAccountID: 2002, // owner not in the shared NVP collection
-                },
-            });
+            const policy = {...createRandomPolicy(Number(policyID)), ownerAccountID: 2002}; // owner not in the shared NVP collection
 
             expect(
                 shouldRestrictUserBillableActions(
@@ -292,20 +285,15 @@ describe('SubscriptionUtils', () => {
                         },
                     },
                     undefined,
+                    policy,
                 ),
             ).toBeFalsy();
         });
 
-        it("should return false if the user is a workspace's non-owner that is not past due billing", async () => {
+        it("should return false if the user is a workspace's non-owner that is not past due billing", () => {
             const policyID = '1001';
             const ownerAccountID = 2001;
-
-            await Onyx.multiSet({
-                [`${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const]: {
-                    ...createRandomPolicy(Number(policyID)),
-                    ownerAccountID, // owner in the shared NVP collection
-                },
-            });
+            const policy = {...createRandomPolicy(Number(policyID)), ownerAccountID}; // owner in the shared NVP collection
 
             expect(
                 shouldRestrictUserBillableActions(
@@ -318,20 +306,15 @@ describe('SubscriptionUtils', () => {
                         },
                     },
                     undefined,
+                    policy,
                 ),
             ).toBeFalsy();
         });
 
-        it("should return true if the user is a workspace's non-owner that is past due billing", async () => {
+        it("should return true if the user is a workspace's non-owner that is past due billing", () => {
             const policyID = '1001';
             const ownerAccountID = 2001;
-
-            await Onyx.multiSet({
-                [`${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const]: {
-                    ...createRandomPolicy(Number(policyID)),
-                    ownerAccountID, // owner in the shared NVP collection
-                },
-            });
+            const policy = {...createRandomPolicy(Number(policyID)), ownerAccountID}; // owner in the shared NVP collection
 
             expect(
                 shouldRestrictUserBillableActions(
@@ -344,6 +327,7 @@ describe('SubscriptionUtils', () => {
                         },
                     },
                     undefined,
+                    policy,
                 ),
             ).toBeTruthy();
         });
@@ -351,189 +335,153 @@ describe('SubscriptionUtils', () => {
         it("should return false if the user is the workspace's owner but is not past due billing", async () => {
             const accountID = 1;
             const policyID = '1001';
+            const policy = {...createRandomPolicy(Number(policyID)), ownerAccountID: accountID};
 
             await Onyx.multiSet({
                 [ONYXKEYS.SESSION]: {email: '', accountID},
-                [`${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const]: {
-                    ...createRandomPolicy(Number(policyID)),
-                    ownerAccountID: accountID,
-                },
             });
 
-            expect(shouldRestrictUserBillableActions(policyID, getUnixTime(addDays(new Date(), 3)), undefined, undefined)).toBeFalsy();
+            expect(shouldRestrictUserBillableActions(policyID, getUnixTime(addDays(new Date(), 3)), undefined, undefined, policy)).toBeFalsy();
         });
 
         it("should return false if the user is the workspace's owner that is past due billing but isn't owning any amount", async () => {
             const accountID = 1;
             const policyID = '1001';
+            const policy = {...createRandomPolicy(Number(policyID)), ownerAccountID: accountID};
 
             await Onyx.multiSet({
                 [ONYXKEYS.SESSION]: {email: '', accountID},
                 [ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED]: 0,
-                [`${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const]: {
-                    ...createRandomPolicy(Number(policyID)),
-                    ownerAccountID: accountID,
-                },
             });
 
-            expect(shouldRestrictUserBillableActions(policyID, getUnixTime(subDays(new Date(), 3)), undefined, 0)).toBeFalsy();
+            expect(shouldRestrictUserBillableActions(policyID, getUnixTime(subDays(new Date(), 3)), undefined, undefined, policy)).toBeFalsy();
         });
 
         it("should return true if the user is the workspace's owner that is past due billing and is owning some amount", async () => {
             const accountID = 1;
             const policyID = '1001';
+            const policy = {...createRandomPolicy(Number(policyID)), ownerAccountID: accountID};
 
             await Onyx.multiSet({
                 [ONYXKEYS.SESSION]: {email: '', accountID},
                 [ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED]: 8010,
-                [`${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const]: {
-                    ...createRandomPolicy(Number(policyID)),
-                    ownerAccountID: accountID,
-                },
             });
 
-            expect(shouldRestrictUserBillableActions(policyID, getUnixTime(subDays(new Date(), 3)), undefined, 8010)).toBeTruthy();
+            expect(shouldRestrictUserBillableActions(policyID, getUnixTime(subDays(new Date(), 3)), undefined, undefined, policy)).toBeTruthy();
         });
 
         it("should return false if the user is past due billing but is not the workspace's owner", async () => {
             const accountID = 1;
             const policyID = '1001';
+            const policy = {...createRandomPolicy(Number(policyID)), ownerAccountID: 2}; // not the user
 
             await Onyx.multiSet({
                 [ONYXKEYS.SESSION]: {email: '', accountID},
                 [ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED]: 8010,
-                [`${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const]: {
-                    ...createRandomPolicy(Number(policyID)),
-                    ownerAccountID: 2, // not the user
-                },
             });
 
-            expect(shouldRestrictUserBillableActions(policyID, getUnixTime(subDays(new Date(), 3)), undefined, 8010)).toBeFalsy();
+            expect(shouldRestrictUserBillableActions(policyID, getUnixTime(subDays(new Date(), 3)), undefined, undefined, policy)).toBeFalsy();
         });
 
         it('should restrict when ownerBillingGracePeriodEnd is passed directly as 3rd param and is past due', async () => {
             const accountID = 1;
             const policyID = '1001';
+            const policy = {...createRandomPolicy(Number(policyID)), ownerAccountID: accountID};
 
             await Onyx.multiSet({
                 [ONYXKEYS.SESSION]: {email: '', accountID},
                 [ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED]: 8010,
-                [`${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const]: {
-                    ...createRandomPolicy(Number(policyID)),
-                    ownerAccountID: accountID,
-                },
             });
 
-            expect(shouldRestrictUserBillableActions(policyID, getUnixTime(subDays(new Date(), 3)), undefined, 8010)).toBeTruthy();
+            expect(shouldRestrictUserBillableActions(policyID, getUnixTime(subDays(new Date(), 3)), undefined, undefined, policy)).toBeTruthy();
         });
 
-        it("should return false if the user is past due billing but is not the workspace's owner", async () => {
+        it("should return false if the user is past due billing but is not the workspace's owner (2nd check)", async () => {
             const accountID = 1;
             const policyID = '1001';
+            const policy = {...createRandomPolicy(Number(policyID)), ownerAccountID: 2}; // not the user
 
             await Onyx.multiSet({
                 [ONYXKEYS.SESSION]: {email: '', accountID},
                 [ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED]: 8010,
-                [`${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const]: {
-                    ...createRandomPolicy(Number(policyID)),
-                    ownerAccountID: 2, // not the user
-                },
             });
 
-            expect(shouldRestrictUserBillableActions(policyID, getUnixTime(subDays(new Date(), 3)), undefined, 8010)).toBeFalsy();
+            expect(shouldRestrictUserBillableActions(policyID, getUnixTime(subDays(new Date(), 3)), undefined, undefined, policy)).toBeFalsy();
         });
 
         it('should restrict when ownerBillingGracePeriodEnd is passed directly as 4th param and is past due', async () => {
             const accountID = 1;
             const policyID = '1001';
+            const policy = {...createRandomPolicy(Number(policyID)), ownerAccountID: accountID};
 
             await Onyx.multiSet({
                 [ONYXKEYS.SESSION]: {email: '', accountID},
                 [ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED]: 8010,
-                [`${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const]: {
-                    ...createRandomPolicy(Number(policyID)),
-                    ownerAccountID: accountID,
-                },
             });
 
-            expect(shouldRestrictUserBillableActions(policyID, getUnixTime(subDays(new Date(), 3)), undefined, 8010)).toBeTruthy();
+            expect(shouldRestrictUserBillableActions(policyID, getUnixTime(subDays(new Date(), 3)), undefined, undefined, policy)).toBeTruthy();
         });
 
         it('should not restrict when ownerBillingGracePeriodEnd is passed directly as 4th param but is not past due', async () => {
             const accountID = 1;
             const policyID = '1001';
+            const policy = {...createRandomPolicy(Number(policyID)), ownerAccountID: accountID};
 
             await Onyx.multiSet({
                 [ONYXKEYS.SESSION]: {email: '', accountID},
                 [ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED]: 8010,
-                [`${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const]: {
-                    ...createRandomPolicy(Number(policyID)),
-                    ownerAccountID: accountID,
-                },
             });
 
-            expect(shouldRestrictUserBillableActions(policyID, getUnixTime(addDays(new Date(), 3)), undefined, 8010)).toBeFalsy();
+            expect(shouldRestrictUserBillableActions(policyID, getUnixTime(addDays(new Date(), 3)), undefined, undefined, policy)).toBeFalsy();
         });
 
         it('should not restrict when ownerBillingGracePeriodEnd is passed directly as 4th param but amount owed is 0', async () => {
             const accountID = 1;
             const policyID = '1001';
+            const policy = {...createRandomPolicy(Number(policyID)), ownerAccountID: accountID};
 
             await Onyx.multiSet({
                 [ONYXKEYS.SESSION]: {email: '', accountID},
                 [ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED]: 0,
-                [`${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const]: {
-                    ...createRandomPolicy(Number(policyID)),
-                    ownerAccountID: accountID,
-                },
             });
 
-            expect(shouldRestrictUserBillableActions(policyID, getUnixTime(subDays(new Date(), 3)), undefined, 0)).toBeFalsy();
+            expect(shouldRestrictUserBillableActions(policyID, getUnixTime(subDays(new Date(), 3)), undefined, undefined, policy)).toBeFalsy();
         });
 
         it('should restrict when amountOwed is passed directly and is greater than 0', async () => {
             const accountID = 1;
             const policyID = '1001';
+            const policy = {...createRandomPolicy(Number(policyID)), ownerAccountID: accountID};
 
             await Onyx.multiSet({
                 [ONYXKEYS.SESSION]: {email: '', accountID},
-                [`${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const]: {
-                    ...createRandomPolicy(Number(policyID)),
-                    ownerAccountID: accountID,
-                },
             });
 
-            expect(shouldRestrictUserBillableActions(policyID, getUnixTime(subDays(new Date(), 3)), undefined, 500)).toBeTruthy();
+            expect(shouldRestrictUserBillableActions(policyID, getUnixTime(subDays(new Date(), 3)), undefined, 500, policy)).toBeTruthy();
         });
 
         it('should not restrict when amountOwed is passed directly as 0', async () => {
             const accountID = 1;
             const policyID = '1001';
+            const policy = {...createRandomPolicy(Number(policyID)), ownerAccountID: accountID};
 
             await Onyx.multiSet({
                 [ONYXKEYS.SESSION]: {email: '', accountID},
-                [`${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const]: {
-                    ...createRandomPolicy(Number(policyID)),
-                    ownerAccountID: accountID,
-                },
             });
 
-            expect(shouldRestrictUserBillableActions(policyID, getUnixTime(subDays(new Date(), 3)), undefined, 0)).toBeFalsy();
+            expect(shouldRestrictUserBillableActions(policyID, getUnixTime(subDays(new Date(), 3)), undefined, 0, policy)).toBeFalsy();
         });
 
         it('should not restrict when amountOwed is passed directly as undefined', async () => {
             const accountID = 1;
             const policyID = '1001';
+            const policy = {...createRandomPolicy(Number(policyID)), ownerAccountID: accountID};
 
             await Onyx.multiSet({
                 [ONYXKEYS.SESSION]: {email: '', accountID},
-                [`${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const]: {
-                    ...createRandomPolicy(Number(policyID)),
-                    ownerAccountID: accountID,
-                },
             });
 
-            expect(shouldRestrictUserBillableActions(policyID, getUnixTime(subDays(new Date(), 3)), undefined, undefined)).toBeFalsy();
+            expect(shouldRestrictUserBillableActions(policyID, getUnixTime(subDays(new Date(), 3)), undefined, undefined, policy)).toBeFalsy();
         });
     });
 
