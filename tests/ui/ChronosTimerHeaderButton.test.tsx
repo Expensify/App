@@ -34,6 +34,7 @@ jest.mock('@userActions/Session', () => ({
 jest.mock('@libs/ReportUtils', () => ({
     canUserPerformWriteAction: () => true,
     canWriteInReport: () => true,
+    getAncestors: () => [],
 }));
 
 jest.mock('@libs/ChronosUtils', () => ({
@@ -42,11 +43,6 @@ jest.mock('@libs/ChronosUtils', () => ({
 
 jest.mock('@libs/ReportActionsUtils', () => ({
     getSortedReportActionsForDisplay: () => [],
-}));
-
-jest.mock('@hooks/useAncestors', () => ({
-    __esModule: true,
-    default: () => [],
 }));
 
 jest.mock('@hooks/useIsInSidePanel', () => ({
