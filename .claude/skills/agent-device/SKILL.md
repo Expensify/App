@@ -18,7 +18,7 @@ Use this skill as a router with mandatory defaults. Read this file first. For no
 - In React Native dev or debug builds, check early for visible warning or error overlays, tooltips, and toasts that can steal focus or intercept taps. If they are not part of the requested behavior, dismiss them and continue. If you saw them, report them in the final summary.
 - Do not browse the web or use external sources unless the user explicitly asks.
 - Re-snapshot after meaningful UI changes instead of reusing stale refs.
-- Treat refs in default snapshot output as actionable-now, not durable identities. If a target is off-screen, use `scrollintoview` or scroll and re-snapshot.
+- Treat refs in default snapshot output as actionable-now, not durable identities. If a target appears only in an off-screen summary, use `scroll <direction>` and re-snapshot until the target is visible.
 - Prefer `@ref` or selector targeting over raw coordinates.
 - Ensure the correct target is pinned and an app session is open before interacting.
 - Keep the loop short: `open` -> inspect/act -> verify if needed -> `close`.

@@ -38,7 +38,7 @@ Open this file when the app or screen is already running and you need to discove
 - `press`
 - `fill`
 - `type`
-- `scrollintoview`
+- `scroll`
 - `wait`
 - `keyboard dismiss` when the keyboard obscures the next target
 
@@ -115,10 +115,10 @@ App: com.apple.Preferences
 ## Refs vs selectors
 
 - Use refs for discovery, debugging, and short local loops.
-- Use `scrollintoview @ref` when the target is already known from the current snapshot and you want the command to re-snapshot after each swipe until the element reaches the viewport safe band.
-- If `scrollintoview @ref` succeeds, prefer the returned `currentRef` for the next action.
+- When a target appears only in a visible-first off-screen summary, such as `[off-screen below] ... "Battery"`, use `scroll down` and then `snapshot -i`. For `[off-screen above]`, use `scroll up` and then `snapshot -i`.
+- For more than two repeated scroll checks, create a short shell loop instead of issuing each command by hand. Stop when the label appears or the snapshot stops changing.
 - Visible-first off-screen summaries are intentionally compact. If you need the full off-screen tree instead of a short summary, retry with `snapshot --raw`.
-- Cap long searches with `--max-scrolls <n>` when the list may be unbounded or the target may not exist.
+- Cap long searches in the loop when the list may be unbounded or the target may not exist.
 - Use selectors for deterministic scripts, assertions, and replay-friendly actions.
 - Prefer selector or `@ref` targeting over raw coordinates.
 - For tap interactions, `press` is canonical and `click` is an equivalent alias.
@@ -132,11 +132,25 @@ agent-device press 'id="camera_row" || label="Camera" role=button'
 agent-device is visible 'id="camera_settings_anchor"'
 ```
 
+Example loop:
+
+```bash
+previous=''
+for _ in 1 2 3 4 5 6; do
+  current="$(agent-device snapshot -i)"
+  printf '%s\n' "$current"
+  printf '%s\n' "$current" | grep -q 'Battery' && break
+  [ "$current" = "$previous" ] && break
+  previous="$current"
+  agent-device scroll down 0.5 >/dev/null
+done
+```
+
 ## Interaction fallbacks
 
 When `press @ref` fails:
 
-1. If the error says the ref is off-screen, run `scrollintoview @ref` and reuse the returned `currentRef` or take one fresh snapshot.
+1. If the error says the ref is off-screen, use the off-screen summary direction to run `scroll <direction>`, then take a fresh `snapshot -i`.
 2. Re-snapshot if the UI may have changed.
 3. Retry `press @ref` or a selector-based `press`.
 4. If `screenshot --overlay-refs --json` returned a reliable `overlayRefs[].center`, use `agent-device press <x> <y>`.

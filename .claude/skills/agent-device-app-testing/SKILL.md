@@ -22,21 +22,62 @@ Android testing requires the Android SDK + an AVD. iOS requires Xcode + a simula
 
 | Key | Value |
 |---|---|
-| Android package | `com.expensify.chat.dev` (dev) / `com.expensify.chat` (release) |
-| iOS bundle ID | `com.expensify.chat.dev` (dev) / `com.expensify.chat` (release) |
+| Android package | `com.expensify.chat.dev` |
+| iOS bundle ID | `com.expensify.chat.dev` |
 | Screenshot dir | `./agent-device-output/` |
 
-## Building and Installing
+## Startup Flow
 
-The project uses [Rock](https://rockjs.dev/) which downloads pre-built artifacts from S3 first, falling back to local compilation if no match. Metro must be running in a separate terminal.
+Follow these steps in order before testing. Each step gates the next.
+
+### 1. Device / Emulator
+
+Check if a simulator (iOS) or emulator (Android) is already running:
 
 ```bash
-npm install
-npm run start          # metro - separate terminal
-npm run android        # or: npm run ios
+# iOS
+xcrun simctl list devices booted
+# Android
+adb devices
 ```
 
-Full setup details: [SETUP_ANDROID.md](contributingGuides/SETUP_ANDROID.md) | [SETUP_IOS.md](contributingGuides/SETUP_IOS.md)
+- **Running**: reuse it.
+- **Not running**: prompt the user which device to boot (list available devices so they can pick).
+
+### 2. Metro Dev Server
+
+Check if Metro is already running:
+
+```bash
+lsof -i :8081
+```
+
+- **Running**: proceed.
+- **Not running**: start it in a background terminal:
+  ```bash
+  npm run start   # runs Metro bundler on :8081
+  ```
+  Wait until Metro reports "Ready" before continuing.
+
+### 3. Dev App
+
+Check if the **dev** app (bundle ID ending in `.dev`) is installed on the device:
+
+```bash
+# iOS
+xcrun simctl listapps booted | grep com.expensify.chat.dev
+# Android
+adb shell pm list packages | grep com.expensify.chat.dev
+```
+
+- **Installed**: open it via `agent-device open com.expensify.chat.dev`.
+- **Not installed**: build and install with:
+  ```bash
+  npm run ios     # or: npm run android
+  ```
+  This handles everything (dependency download, compilation, installation, launch).
+
+> **Never fall back to a different app.** Only `com.expensify.chat.dev` is valid for testing. If the build fails (expired tokens, missing deps, signing errors, etc.), stop and report the error to the user - do not attempt to use any other installed app.
 
 ## Dev Environment Sign-In
 
