@@ -13,6 +13,8 @@ import {isInvoiceReport, isMoneyRequestReport} from '@libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ReportActionsView from './report/ReportActionsView';
 
+const BLANK_SCREEN_DURATION_MS = 300;
+
 const defaultReportMetadata = {
     hasOnceLoadedReportActions: false,
     isLoadingInitialReportActions: true,
@@ -46,16 +48,38 @@ function ReportActionsList() {
     const shouldWaitForTransactions = shouldWaitForTransactionsUtil(report, reportTransactions, reportMetadata, isOffline);
     const shouldDisplayMoneyRequestActionsList = isMoneyRequestOrInvoiceReport && shouldDisplayReportTableView(report, reportTransactions);
 
-    // Defer the heavy content render by one frame so the skeleton paints first.
-    // This gives the user immediate visual feedback on navigation instead of a
-    // blank screen while the JS thread processes the full component tree.
-    const [isDeferred, setIsDeferred] = useState(true);
+    // For money request / invoice reports, shouldFocusToTopOnMount = true inside the inner
+    // ReportActionsList forces initialNumToRender = all items, making the render potentially
+    // very slow (~5s for large reports). We must commit a skeleton BEFORE that render begins.
+    //
+    // For all other report types (fast renders, typically <50ms), committing a skeleton first
+    // causes a visible flash. Instead we go blank → content directly.
+    //
+    // Transition sequence:
+    //   slow reports: blank (300ms) → skeleton (1 frame) → heavy render → content
+    //   fast reports: blank (300ms) → content
+    const [renderPhase, setRenderPhase] = useState<'blank' | 'skeleton' | 'content'>('blank');
     useEffect(() => {
-        const raf = requestAnimationFrame(() => setIsDeferred(false));
-        return () => cancelAnimationFrame(raf);
+        const timer = setTimeout(() => {
+            setRenderPhase(isMoneyRequestOrInvoiceReport ? 'skeleton' : 'content');
+        }, BLANK_SCREEN_DURATION_MS);
+        return () => clearTimeout(timer);
+        // isMoneyRequestOrInvoiceReport is intentionally read at mount time only — report type
+        // does not change mid-navigation and capturing it once avoids restarting the timer.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
+    useEffect(() => {
+        if (renderPhase !== 'skeleton') {
+            return;
+        }
+        const raf = requestAnimationFrame(() => setRenderPhase('content'));
+        return () => cancelAnimationFrame(raf);
+    }, [renderPhase]);
 
-    if (!report || shouldWaitForTransactions || isDeferred) {
+    if (renderPhase === 'blank') {
+        return null;
+    }
+    if (renderPhase !== 'content' || !report || shouldWaitForTransactions) {
         return <ReportActionsSkeletonView />;
     }
 
