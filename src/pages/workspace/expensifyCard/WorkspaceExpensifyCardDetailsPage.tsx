@@ -60,7 +60,7 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
     const [isFreezeModalVisible, setIsFreezeModalVisible] = useState(false);
     const [isUnfreezeModalVisible, setIsUnfreezeModalVisible] = useState(false);
     const {translate} = useLocalize();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['FallbackAvatar', 'FreezeCard', 'Hourglass', 'MoneySearch', 'Trashcan']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['FallbackAvatar', 'FreezeCard', 'Hourglass', 'MoneySearch', 'Trashcan', 'CreditCardLock']);
     const illustrations = useMemoizedLazyIllustrations(['ExpensifyCardImage']);
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to use the correct modal type for the decision modal
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
@@ -326,16 +326,14 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
                             }
                         />
                     </OfflineWithFeedback>
-                    {isAdmin && (
-                        <MenuItemWithTopDescription
-                            description={translate('cardPage.spendRules')}
-                            title={spendRulesSummary || translate('cardPage.editSpendRules')}
-                            shouldShowRightIcon
-                            numberOfLinesTitle={0}
-                            titleStyle={styles.flex1}
-                            onPress={() => Navigation.navigate(spendRulesRoute)}
-                        />
-                    )}
+                    <MenuItemWithTopDescription
+                        description={translate('cardPage.spendRules')}
+                        title={spendRulesSummary || translate('cardPage.editSpendRules')}
+                        shouldShowRightIcon
+                        numberOfLinesTitle={0}
+                        titleStyle={styles.flex1}
+                        onPress={() => Navigation.navigate(spendRulesRoute)}
+                    />
                     <MenuItem
                         icon={expensifyIcons.MoneySearch}
                         title={translate('workspace.common.viewTransactions')}
@@ -352,18 +350,19 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
                             );
                         }}
                     />
+                    {isAdmin && (
+                        <MenuItem
+                            icon={expensifyIcons.CreditCardLock}
+                            title={translate('cardPage.editSpendRules')}
+                            onPress={() => Navigation.navigate(spendRulesRoute)}
+                        />
+                    )}
                     {canManageCardFreeze && !isCardFrozen(card) && (
                         <MenuItem
                             icon={expensifyIcons.FreezeCard}
                             title={translate('cardPage.freezeCard')}
                             disabled={isOffline}
                             onPress={handleFreezePress}
-                        />
-                    )}
-                    {isWorkspaceCardRhp && isAdmin && (
-                        <MenuItem
-                            title={translate('cardPage.editSpendRules')}
-                            onPress={() => Navigation.navigate(spendRulesRoute)}
                         />
                     )}
                     <MenuItem
