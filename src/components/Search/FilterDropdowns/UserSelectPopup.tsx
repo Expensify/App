@@ -117,7 +117,7 @@ function UserSelectPopup({value, label, closeOverlay, onChange, isSearchable}: U
             ...option,
             keyForList: option.keyForList ?? option.login ?? '',
         }));
-        return [combinedOptionsWithKeyForList.at(0)];
+        return combinedOptionsWithKeyForList;
     }, [availableOptions.personalDetails, availableOptions.recentReports, selectedOptionsForDisplay, currentUserAccountID]);
 
     const headerMessage = useMemo(() => {
