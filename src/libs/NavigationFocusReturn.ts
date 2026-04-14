@@ -92,6 +92,10 @@ function restoreTriggerForRoute(routeKey: string): boolean {
     if (!document.contains(element)) {
         return false;
     }
+    // Unfocusable trigger: skip both the claim and the focus so fallbacks can run.
+    if (element.matches(':disabled') || element.getAttribute('aria-disabled') === 'true' || element.closest('[aria-hidden="true"]')) {
+        return false;
+    }
     if (!tryClaim(Priorities.RETURN)) {
         return false;
     }

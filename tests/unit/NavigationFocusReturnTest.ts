@@ -283,6 +283,46 @@ describe('restoreTriggerForRoute', () => {
         expect(restoreTriggerForRoute('route-a')).toBe(false);
     });
 
+    it('should return false (and not take RETURN priority) when the trigger is disabled', () => {
+        const trigger = document.createElement('button');
+        document.body.appendChild(trigger);
+        trigger.focus();
+        setLastInteractiveElementForTests(trigger);
+        captureTriggerForRoute('route-a');
+        trigger.blur();
+        trigger.disabled = true;
+
+        const spy = jest.spyOn(trigger, 'focus');
+        expect(restoreTriggerForRoute('route-a')).toBe(false);
+        expect(spy).not.toHaveBeenCalled();
+    });
+
+    it('should return false when the trigger has aria-disabled="true"', () => {
+        const trigger = document.createElement('button');
+        document.body.appendChild(trigger);
+        trigger.focus();
+        setLastInteractiveElementForTests(trigger);
+        captureTriggerForRoute('route-a');
+        trigger.blur();
+        trigger.setAttribute('aria-disabled', 'true');
+
+        expect(restoreTriggerForRoute('route-a')).toBe(false);
+    });
+
+    it('should return false when the trigger is inside an aria-hidden container', () => {
+        const hidden = document.createElement('div');
+        hidden.setAttribute('aria-hidden', 'true');
+        const trigger = document.createElement('button');
+        hidden.appendChild(trigger);
+        document.body.appendChild(hidden);
+        trigger.focus();
+        setLastInteractiveElementForTests(trigger);
+        captureTriggerForRoute('route-a');
+        trigger.blur();
+
+        expect(restoreTriggerForRoute('route-a')).toBe(false);
+    });
+
     it('should preempt an earlier AUTO/INITIAL focus via the arbiter', () => {
         const trigger = document.createElement('button');
         const other = document.createElement('input');

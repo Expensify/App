@@ -62,10 +62,15 @@ export default function useAutoFocusInput(isMultiline = false): UseAutoFocusInpu
                 moveSelectionToEnd(inputRef.current);
             }
             isWindowReadyToFocus().then(() => {
+                // Claiming AUTO with a null ref would block fallbacks on the destination screen.
+                const input = inputRef.current;
+                if (!input) {
+                    return;
+                }
                 if (!tryClaim(Priorities.AUTO)) {
                     return;
                 }
-                inputRef.current?.focus();
+                input.focus();
             });
             setIsScreenTransitionEnded(false);
         });
