@@ -576,9 +576,10 @@ function signInAttemptState(): OnyxData<typeof ONYXKEYS.ACCOUNT | typeof ONYXKEY
 function beginSignIn(email: string) {
     const {optimisticData, successData, failureData} = signInAttemptState();
 
-    const params: BeginSignInParams = {email};
-
-    API.read(READ_COMMANDS.BEGIN_SIGNIN, params, {optimisticData, successData, failureData});
+    Device.getDeviceInfoWithID().then((deviceInfo) => {
+        const params: BeginSignInParams = {email, deviceInfo};
+        API.read(READ_COMMANDS.BEGIN_SIGNIN, params, {optimisticData, successData, failureData});
+    });
 }
 
 /**
