@@ -74,10 +74,6 @@ index 994d4ce..a7c9f34 100644
  
        activityWindow.decorView.rootWindowInsets?.let { insets ->
          val activityRootWindowInsets = WindowInsetsCompat.toWindowInsetsCompat(insets)
-diff --git a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/view/.DS_Store b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/view/.DS_Store
-new file mode 100644
-index 0000000..5008ddf
-Binary files /dev/null and b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/view/.DS_Store differ
 diff --git a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/view/WindowUtil.kt b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/view/WindowUtil.kt
 index 0cff3bc..a679c33 100644
 --- a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/view/WindowUtil.kt
