@@ -912,6 +912,214 @@ describe('WorkflowUtils', () => {
 
             expect(updateWorkflowDataOnApproverRemovalResult).toEqual([approvalWorkflow1, {...approvalWorkflow2, removeApprovalWorkflow: true}]);
         });
+
+        // Tests for the isMultipleApprovers block in the default workflow (lines 404-457)
+        it('Should keep the remaining chain when the first approver is removed from the default multi-approver workflow', () => {
+            const approvalWorkflow1: ApprovalWorkflow = {
+                members: [buildMember(1), buildMember(2)],
+                approvers: [buildApprover(3), buildApprover(4), buildApprover(5)],
+                isDefault: true,
+            };
+
+            const ownerDetails = personalDetails[1];
+            const removedApprover = personalDetails[3];
+
+            if (!removedApprover || !ownerDetails) {
+                return;
+            }
+
+            const result = updateWorkflowDataOnApproverRemoval({
+                approvalWorkflows: [approvalWorkflow1],
+                removedApprover,
+                ownerDetails,
+            });
+
+            expect(result).toEqual([{...approvalWorkflow1, approvers: [buildApprover(4), buildApprover(5)]}]);
+        });
+
+        it('Should clear overLimitForwardsTo when a later approver had overLimitForwardsTo pointing to the first approver (which is also the removed approver)', () => {
+            // The multi-approver block handles this: removed approver (3) is spliced out and overLimitForwardsTo is cleared.
+            const approvalWorkflow1: ApprovalWorkflow = {
+                members: [buildMember(1), buildMember(2)],
+                approvers: [buildApprover(3), buildApprover(4, {overLimitForwardsTo: '3@example.com', approvalLimit: 100}), buildApprover(5)],
+                isDefault: true,
+            };
+
+            const ownerDetails = personalDetails[1];
+            const removedApprover = personalDetails[3];
+
+            if (!removedApprover || !ownerDetails) {
+                return;
+            }
+
+            const result = updateWorkflowDataOnApproverRemoval({
+                approvalWorkflows: [approvalWorkflow1],
+                removedApprover,
+                ownerDetails,
+            });
+
+            expect(result).toEqual([
+                {
+                    ...approvalWorkflow1,
+                    approvers: [buildApprover(4, {overLimitForwardsTo: '', approvalLimit: null}), buildApprover(5)],
+                },
+            ]);
+        });
+
+        it('Should truncate the approver chain at the removed approver when the owner already appears before the removed approver in the default workflow', () => {
+            const approvalWorkflow1: ApprovalWorkflow = {
+                members: [buildMember(1), buildMember(2)],
+                approvers: [buildApprover(1), buildApprover(2), buildApprover(3)],
+                isDefault: true,
+            };
+
+            const ownerDetails = personalDetails[1];
+            const removedApprover = personalDetails[3];
+
+            if (!removedApprover || !ownerDetails) {
+                return;
+            }
+
+            const result = updateWorkflowDataOnApproverRemoval({
+                approvalWorkflows: [approvalWorkflow1],
+                removedApprover,
+                ownerDetails,
+            });
+
+            expect(result).toEqual([{...approvalWorkflow1, approvers: [buildApprover(1), buildApprover(2)]}]);
+        });
+
+        it('Should clear overLimitForwardsTo pointing to removed approver when a prior approver references them via overLimitForwardsTo (removed approver also in chain)', () => {
+            // The multi-approver block handles this: removed approver (3) is spliced out and overLimitForwardsTo is cleared.
+            const approvalWorkflow1: ApprovalWorkflow = {
+                members: [buildMember(1), buildMember(2)],
+                approvers: [buildApprover(1), buildApprover(2, {overLimitForwardsTo: '3@example.com', approvalLimit: 100}), buildApprover(3)],
+                isDefault: true,
+            };
+
+            const ownerDetails = personalDetails[1];
+            const removedApprover = personalDetails[3];
+
+            if (!removedApprover || !ownerDetails) {
+                return;
+            }
+
+            const result = updateWorkflowDataOnApproverRemoval({
+                approvalWorkflows: [approvalWorkflow1],
+                removedApprover,
+                ownerDetails,
+            });
+
+            expect(result).toEqual([
+                {
+                    ...approvalWorkflow1,
+                    approvers: [buildApprover(1), buildApprover(2, {overLimitForwardsTo: '', approvalLimit: null})],
+                },
+            ]);
+        });
+
+        it('Should append owner as a new approver when removed approver is in the middle and the owner is not already in the prior approvers in the default workflow', () => {
+            const approvalWorkflow1: ApprovalWorkflow = {
+                members: [buildMember(1), buildMember(2)],
+                approvers: [buildApprover(2), buildApprover(3), buildApprover(4)],
+                isDefault: true,
+            };
+
+            const ownerDetails = personalDetails[1];
+            const removedApprover = personalDetails[3];
+
+            if (!removedApprover || !ownerDetails) {
+                return;
+            }
+
+            const result = updateWorkflowDataOnApproverRemoval({
+                approvalWorkflows: [approvalWorkflow1],
+                removedApprover,
+                ownerDetails,
+            });
+
+            expect(result).toEqual([
+                {
+                    ...approvalWorkflow1,
+                    approvers: [
+                        buildApprover(2),
+                        {
+                            email: '1@example.com',
+                            forwardsTo: undefined,
+                            avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_7.png',
+                            displayName: '1@example.com User',
+                            isCircularReference: buildApprover(3).isCircularReference,
+                        },
+                    ],
+                },
+            ]);
+        });
+
+        it('Should update forwardsTo pointing to removed approver to owner when appending owner in the default multi-approver workflow', () => {
+            const approvalWorkflow1: ApprovalWorkflow = {
+                members: [buildMember(1), buildMember(2)],
+                approvers: [buildApprover(2, {forwardsTo: '3@example.com'}), buildApprover(3)],
+                isDefault: true,
+            };
+
+            const ownerDetails = personalDetails[1];
+            const removedApprover = personalDetails[3];
+
+            if (!removedApprover || !ownerDetails) {
+                return;
+            }
+
+            const result = updateWorkflowDataOnApproverRemoval({
+                approvalWorkflows: [approvalWorkflow1],
+                removedApprover,
+                ownerDetails,
+            });
+
+            expect(result).toEqual([
+                {
+                    ...approvalWorkflow1,
+                    approvers: [
+                        buildApprover(2, {forwardsTo: '1@example.com'}),
+                        {
+                            email: '1@example.com',
+                            forwardsTo: undefined,
+                            avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_7.png',
+                            displayName: '1@example.com User',
+                            isCircularReference: buildApprover(3).isCircularReference,
+                        },
+                    ],
+                },
+            ]);
+        });
+
+        it('Should clear overLimitForwardsTo pointing to removed approver when a prior approver references them via overLimitForwardsTo (removed approver is last in chain)', () => {
+            // The multi-approver block handles this: removed approver (3) is replaced by owner and overLimitForwardsTo is cleared.
+            const approvalWorkflow1: ApprovalWorkflow = {
+                members: [buildMember(1), buildMember(2)],
+                approvers: [buildApprover(2, {overLimitForwardsTo: '3@example.com', approvalLimit: 50}), buildApprover(3)],
+                isDefault: true,
+            };
+
+            const ownerDetails = personalDetails[1];
+            const removedApprover = personalDetails[3];
+
+            if (!removedApprover || !ownerDetails) {
+                return;
+            }
+
+            const result = updateWorkflowDataOnApproverRemoval({
+                approvalWorkflows: [approvalWorkflow1],
+                removedApprover,
+                ownerDetails,
+            });
+
+            expect(result).toEqual([
+                {
+                    ...approvalWorkflow1,
+                    approvers: [buildApprover(2, {overLimitForwardsTo: '', approvalLimit: null}), buildApprover(1)],
+                },
+            ]);
+        });
     });
 
     describe('getApprovalLimitDescription', () => {
