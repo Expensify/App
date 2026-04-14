@@ -207,7 +207,7 @@ function ReportActionCompose({reportID}: ReportActionComposeProps) {
     // the parent report's actions — not combined with transaction thread actions. The table view
     // doesn't display transaction thread comments inline, so the last editable action should only
     // come from what's visible in the parent report. ReportScreen (inbox) uses combinedReportActions
-    // because ReportActionsView merges thread comments into the visible list, and up-arrow-to-edit
+    // because ReportActionsList merges thread comments into the visible list, and up-arrow-to-edit
     // should be able to reach those comments.
     const actionsForLastEditable = isOnSearchMoneyRequestReport ? filteredReportActions : combinedReportActions;
     const lastReportAction = useMemo(

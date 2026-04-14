@@ -32,7 +32,7 @@ describe('useLoadReportActions', () => {
             /* your 4 reportActions array here */
         ],
         allReportActionIDs: ['8759152536123291182', '2034215190990675144', '186758379215594799'],
-        transactionThreadReport: undefined,
+        transactionThreadReportID: undefined,
         hasOlderActions: true,
         hasNewerActions: false,
     };
@@ -65,7 +65,7 @@ describe('useLoadReportActions', () => {
 
             const propsWithTransaction = {
                 ...baseProps,
-                transactionThreadReport: {reportID: '186758379215594798'},
+                transactionThreadReportID: '186758379215594798',
                 allReportActionIDs: ['8759152536123291182'], // Only first action belongs to main report
             };
 
@@ -104,7 +104,7 @@ describe('useLoadReportActions', () => {
             }));
             const props = {
                 ...baseProps,
-                transactionThreadReport: {reportID: 'TRANSACTION_THREAD_REPORT'},
+                transactionThreadReportID: 'TRANSACTION_THREAD_REPORT',
             };
 
             const {result} = renderHook(() => useLoadReportActions(props));
@@ -145,7 +145,7 @@ describe('useLoadReportActions', () => {
             }));
             const props = {
                 ...baseProps,
-                transactionThreadReport: {reportID: 'TRANSACTION_THREAD_REPORT'},
+                transactionThreadReportID: 'TRANSACTION_THREAD_REPORT',
                 hasNewerActions: true,
             };
 

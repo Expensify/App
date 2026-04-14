@@ -30,7 +30,7 @@ import {cancelSpan} from '@libs/telemetry/activeSpans';
 import markOpenReportEnd from '@libs/telemetry/markOpenReportEnd';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import Navigation from '@navigation/Navigation';
-import ReportActionsView from '@pages/inbox/report/ReportActionsView';
+import ReportActionsList from '@pages/inbox/report/ReportActionsList';
 import ReportFooter from '@pages/inbox/report/ReportFooter';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -149,7 +149,7 @@ function MoneyRequestReportView({report, reportMetadata, shouldDisplayReportFoot
     }, [reportID]);
 
     // Special case handling a report that is a transaction thread
-    // If true we will use standard `ReportActionsView` to display report data and a special header, anything else is handled via `MoneyRequestReportActionsList`
+    // If true we will use standard `ReportActionsList` to display report data and a special header, anything else is handled via `MoneyRequestReportActionsList`
     const isTransactionThreadView = isReportTransactionThread(report);
 
     // Prevent the empty state flash by ensuring transaction data is fully loaded before deciding which view to render
@@ -278,8 +278,8 @@ function MoneyRequestReportView({report, reportMetadata, shouldDisplayReportFoot
                                 onLayout={onLayout}
                             />
                         ) : (
-                            <ReportActionsView
-                                reportID={reportID}
+                            <ReportActionsList
+                                reportID={report.reportID}
                                 onLayout={onLayout}
                             />
                         )}

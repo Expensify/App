@@ -21,7 +21,7 @@ import DeleteTransactionNavigateBackHandler from './DeleteTransactionNavigateBac
 import LinkedActionNotFoundGuard from './LinkedActionNotFoundGuard';
 import ReactionListWrapper from './ReactionListWrapper';
 import ReportFooter from './report/ReportFooter';
-import ReportActionsList from './ReportActionsList';
+import ReportActions from './ReportActions';
 import ReportDragAndDropProvider from './ReportDragAndDropProvider';
 import ReportFetchHandler from './ReportFetchHandler';
 import ReportHeader from './ReportHeader';
@@ -82,7 +82,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                                                 style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}
                                                 testID="report-actions-view-wrapper"
                                             >
-                                                <ReportActionsList />
+                                                <ReportActions />
                                                 <ReportFooter />
                                             </View>
                                         </AgentZeroStatusProvider>

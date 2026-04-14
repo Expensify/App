@@ -441,7 +441,7 @@ function MoneyRequestReportActionsList({reportID: reportIDProp, onLayout}: Money
         reportID,
         reportActions,
         allReportActionIDs: reportActionIDs,
-        transactionThreadReport,
+        transactionThreadReportID: transactionThreadReport?.reportID,
         hasOlderActions,
         hasNewerActions,
         newestFetchedReportActionID: reportMetadata?.newestFetchedReportActionID,
