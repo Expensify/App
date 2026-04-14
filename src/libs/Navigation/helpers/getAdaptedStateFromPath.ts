@@ -10,8 +10,10 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import type {Route as RoutePath} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+import type {Screen} from '@src/SCREENS';
 import findMatchingDynamicSuffix from './dynamicRoutesUtils/findMatchingDynamicSuffix';
 import getPathWithoutDynamicSuffix from './dynamicRoutesUtils/getPathWithoutDynamicSuffix';
+import isDynamicRouteScreen from './dynamicRoutesUtils/isDynamicRouteScreen';
 import findFocusedRouteWithOnyxTabGuard from './findFocusedRouteWithOnyxTabGuard';
 import getMatchingNewRoute from './getMatchingNewRoute';
 import getParamsFromRoute from './getParamsFromRoute';
@@ -54,8 +56,13 @@ function getSearchScreenNameForRoute(route: NavigationPartialRoute): string {
 }
 
 function getMatchingFullScreenRoute(route: NavigationPartialRoute) {
+    const isDynamicScreen = isDynamicRouteScreen(route.name as Screen);
+
     // Check for backTo param. One screen with different backTo value may need different screens visible under the overlay.
-    if (isRouteWithBackToParam(route)) {
+    // Dynamic screens are skipped here because they never carry their own backTo - they only
+    // inherit it from the screen underneath. Letting backTo dictate the full-screen route for
+    // a dynamic screen would resolve the wrong page.
+    if (isRouteWithBackToParam(route) && !isDynamicScreen) {
         const stateForBackTo = getStateFromPath(route.params.backTo as RoutePath);
 
         // This may happen if the backTo url is invalid.
@@ -185,15 +192,18 @@ function getMatchingFullScreenRoute(route: NavigationPartialRoute) {
 
     // Handle dynamic routes: find the appropriate full screen route
     if (route.path) {
-        const dynamicRouteSuffix = findMatchingDynamicSuffix(route.path);
-        if (dynamicRouteSuffix) {
-            const pathWithoutDynamicSuffix = getPathWithoutDynamicSuffix(route.path, dynamicRouteSuffix);
+        const suffixMatch = findMatchingDynamicSuffix(route.path);
+        if (suffixMatch) {
+            // Strip the suffix from the URL. For parametric routes we pass both the actual URL
+            // suffix and the registered pattern so query params can be resolved correctly.
+            const pathWithoutDynamicSuffix = getPathWithoutDynamicSuffix(route.path, suffixMatch.actualSuffix, suffixMatch.pattern);
 
             if (!pathWithoutDynamicSuffix) {
                 return undefined;
             }
 
-            // Get navigation state for the base path without dynamic suffix
+            // Parse the base path (without dynamic suffix) into a navigation state
+            // to determine which full-screen route should be visible underneath the overlay.
             const stateUnderDynamicRoute = getStateFromPath(pathWithoutDynamicSuffix);
             const lastRoute = stateUnderDynamicRoute?.routes.at(-1);
 
