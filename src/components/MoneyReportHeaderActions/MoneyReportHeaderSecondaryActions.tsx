@@ -51,8 +51,8 @@ import {
     isIOUReport as isIOUReportUtil,
     navigateToDetailsPage,
 } from '@libs/ReportUtils';
-import {canApproveIOU, canIOUBePaid as canIOUBePaidAction} from '@userActions/IOU';
 import {payInvoice, payMoneyRequest} from '@userActions/IOU/PayMoneyRequest';
+import {canApproveIOU, canIOUBePaid as canIOUBePaidAction} from '@userActions/IOU/ReportWorkflow';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';

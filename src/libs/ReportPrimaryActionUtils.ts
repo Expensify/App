@@ -420,7 +420,13 @@ function isPrimaryMarkAsResolvedAction(
     return isExpenseReportUtils(report) && isMarkAsResolvedAction(report, transactionViolations, policy);
 }
 
-function getAllExpensesToHoldIfApplicable(report: Report | undefined, reportActions: ReportAction[] | undefined, reportTransactions: Transaction[], policy: OnyxEntry<Policy>) {
+function getAllExpensesToHoldIfApplicable(
+    report: Report | undefined,
+    reportActions: ReportAction[] | undefined,
+    reportTransactions: Transaction[],
+    policy: OnyxEntry<Policy>,
+    currentUserAccountID: number | undefined,
+) {
     if (!report || !reportActions || !hasOnlyHeldExpenses(report?.reportID)) {
         return [];
     }
@@ -433,7 +439,7 @@ function getAllExpensesToHoldIfApplicable(report: Report | undefined, reportActi
         const transactionID = getOriginalMessage(action)?.IOUTransactionID;
         const transaction = reportTransactions.find((reportTransaction) => reportTransaction.transactionID === transactionID);
         const holdReportAction = getReportAction(action?.childReportID, `${transaction?.comment?.hold ?? ''}`);
-        return canHoldUnholdReportAction(report, action, holdReportAction, transaction, policy).canUnholdRequest;
+        return canHoldUnholdReportAction(report, action, holdReportAction, transaction, policy, currentUserAccountID).canUnholdRequest;
     });
 }
 
@@ -476,7 +482,7 @@ function getReportPrimaryAction(params: GetReportPrimaryActionParams): ValueOf<t
             invoiceReceiverPolicy,
             reportActions,
         }) && hasOnlyHeldExpenses(report?.reportID);
-    const expensesToHold = getAllExpensesToHoldIfApplicable(report, reportActions, reportTransactions, policy);
+    const expensesToHold = getAllExpensesToHoldIfApplicable(report, reportActions, reportTransactions, policy, currentUserAccountID);
 
     if (isMarkAsCashAction(currentUserLogin, currentUserAccountID, report, reportTransactions, violations, policy)) {
         return CONST.REPORT.PRIMARY_ACTIONS.MARK_AS_CASH;

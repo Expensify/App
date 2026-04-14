@@ -986,6 +986,7 @@ describe('OptionsListUtils', () => {
                 loginList,
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
+                undefined,
             );
             // When we call orderOptions()
             results = orderOptions(results);
@@ -1025,6 +1026,7 @@ describe('OptionsListUtils', () => {
                 loginList,
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
+                undefined,
             );
             // When we call orderOptions()
             results = orderOptions(results);
@@ -1052,7 +1054,16 @@ describe('OptionsListUtils', () => {
         it('should return empty options when no reports or personal details are provided', () => {
             // Given empty arrays of reports and personalDetails
             // When we call getValidOptions()
-            const results = getValidOptions({reports: [], personalDetails: []}, allPolicies, {}, nvpDismissedProductTraining, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL);
+            const results = getValidOptions(
+                {reports: [], personalDetails: []},
+                allPolicies,
+                {},
+                nvpDismissedProductTraining,
+                loginList,
+                CURRENT_USER_ACCOUNT_ID,
+                CURRENT_USER_EMAIL,
+                undefined,
+            );
 
             // Then the result should be empty
             expect(results.personalDetails).toEqual([]);
@@ -1074,6 +1085,7 @@ describe('OptionsListUtils', () => {
                 loginList,
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
+                undefined,
             );
 
             // Then the result should include all personalDetails except the currently logged in user
@@ -1096,6 +1108,7 @@ describe('OptionsListUtils', () => {
                 loginList,
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
+                undefined,
                 {
                     excludeLogins: {[CONST.EMAIL.CONCIERGE]: true},
                 },
@@ -1105,6 +1118,28 @@ describe('OptionsListUtils', () => {
             expect(results.personalDetails.length).toBe(Object.values(OPTIONS_WITH_CONCIERGE.personalDetails).length - 2);
             // Then the result should not include Concierge
             expect(results.personalDetails).not.toEqual(expect.arrayContaining([expect.objectContaining({login: 'concierge@expensify.com'})]));
+        });
+
+        it('should pass conciergeReportID through to options when provided', () => {
+            // Given a set of reports that includes Concierge and a valid conciergeReportID
+            const conciergeReportID = '11';
+            // When we call getValidOptions() with a conciergeReportID
+            const results = getValidOptions(
+                {reports: OPTIONS_WITH_CONCIERGE.reports, personalDetails: OPTIONS_WITH_CONCIERGE.personalDetails},
+                allPolicies,
+                {},
+                nvpDismissedProductTraining,
+                loginList,
+                CURRENT_USER_ACCOUNT_ID,
+                CURRENT_USER_EMAIL,
+                conciergeReportID,
+            );
+
+            // Then the result should still include Concierge in the results
+            expect(results.recentReports).toEqual(expect.arrayContaining([expect.objectContaining({login: 'concierge@expensify.com'})]));
+            // And the concierge report should have a valid reportID
+            const conciergeOption = results.recentReports.find((option) => option.login === 'concierge@expensify.com');
+            expect(conciergeOption?.reportID).toBe(conciergeReportID);
         });
 
         it('should exclude Chronos when excludedLogins is specified', () => {
@@ -1118,6 +1153,7 @@ describe('OptionsListUtils', () => {
                 loginList,
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
+                undefined,
                 {
                     excludeLogins: {[CONST.EMAIL.CHRONOS]: true},
                 },
@@ -1143,6 +1179,7 @@ describe('OptionsListUtils', () => {
                 loginList,
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
+                undefined,
                 {
                     excludeLogins: {[CONST.EMAIL.RECEIPTS]: true},
                 },
@@ -1170,6 +1207,7 @@ describe('OptionsListUtils', () => {
                 loginList,
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
+                undefined,
                 {
                     includeP2P: true,
                     canShowManagerMcTest: true,
@@ -1194,6 +1232,7 @@ describe('OptionsListUtils', () => {
                 loginList,
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
+                undefined,
                 {
                     includeP2P: true,
                     canShowManagerMcTest: false,
@@ -1227,6 +1266,7 @@ describe('OptionsListUtils', () => {
                         loginList,
                         CURRENT_USER_ACCOUNT_ID,
                         CURRENT_USER_EMAIL,
+                        undefined,
                         {
                             includeP2P: true,
                             canShowManagerMcTest: true,
@@ -1284,6 +1324,7 @@ describe('OptionsListUtils', () => {
                 loginList,
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
+                undefined,
                 {
                     includeMultipleParticipantReports: true,
                 },
@@ -1338,6 +1379,7 @@ describe('OptionsListUtils', () => {
                 loginList,
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
+                undefined,
                 {
                     includeMultipleParticipantReports: true,
                     showRBR: true,
@@ -1390,6 +1432,7 @@ describe('OptionsListUtils', () => {
                 loginList,
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
+                undefined,
                 {
                     includeMultipleParticipantReports: true,
                     showRBR: false,
@@ -1446,6 +1489,7 @@ describe('OptionsListUtils', () => {
                 loginList,
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
+                undefined,
                 {
                     includeRecentReports: true,
                     shouldUnreadBeBold: true,
@@ -1481,6 +1525,7 @@ describe('OptionsListUtils', () => {
                 loginList,
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
+                undefined,
                 {
                     personalDetails: customPersonalDetails,
                 },
@@ -1497,7 +1542,7 @@ describe('OptionsListUtils', () => {
         it('should include all reports by default', () => {
             // Given a set of reports and personalDetails that includes workspace rooms
             // When we call getValidOptions()
-            const results = getValidOptions(OPTIONS_WITH_WORKSPACE_ROOM, allPolicies, {}, nvpDismissedProductTraining, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, {
+            const results = getValidOptions(OPTIONS_WITH_WORKSPACE_ROOM, allPolicies, {}, nvpDismissedProductTraining, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, undefined, {
                 includeRecentReports: true,
                 includeMultipleParticipantReports: true,
                 includeP2P: true,
@@ -1529,7 +1574,7 @@ describe('OptionsListUtils', () => {
             };
 
             // When we call getValidOptions with shouldSeparateWorkspaceChat and personalDetails config
-            const results = getValidOptions(OPTIONS_WITH_WORKSPACE_ROOM, allPolicies, {}, nvpDismissedProductTraining, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, {
+            const results = getValidOptions(OPTIONS_WITH_WORKSPACE_ROOM, allPolicies, {}, nvpDismissedProductTraining, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, undefined, {
                 includeRecentReports: true,
                 includeMultipleParticipantReports: true,
                 includeP2P: true,
@@ -1547,7 +1592,7 @@ describe('OptionsListUtils', () => {
         it('should handle undefined personalDetails config in workspace chat lookups', () => {
             // Given a set of reports with workspace rooms
             // When we call getValidOptions with shouldSeparateWorkspaceChat but no personalDetails config
-            const results = getValidOptions(OPTIONS_WITH_WORKSPACE_ROOM, allPolicies, {}, nvpDismissedProductTraining, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, {
+            const results = getValidOptions(OPTIONS_WITH_WORKSPACE_ROOM, allPolicies, {}, nvpDismissedProductTraining, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, undefined, {
                 includeRecentReports: true,
                 includeMultipleParticipantReports: true,
                 includeP2P: true,
@@ -1564,7 +1609,7 @@ describe('OptionsListUtils', () => {
         it('should handle empty personalDetails config in workspace chat lookups', () => {
             // Given a set of reports with workspace rooms
             // When we call getValidOptions with shouldSeparateWorkspaceChat and empty personalDetails
-            const results = getValidOptions(OPTIONS_WITH_WORKSPACE_ROOM, allPolicies, {}, nvpDismissedProductTraining, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, {
+            const results = getValidOptions(OPTIONS_WITH_WORKSPACE_ROOM, allPolicies, {}, nvpDismissedProductTraining, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, undefined, {
                 includeRecentReports: true,
                 includeMultipleParticipantReports: true,
                 includeP2P: true,
@@ -1581,7 +1626,7 @@ describe('OptionsListUtils', () => {
         it('should handle null personalDetails config in workspace chat lookups', () => {
             // Given a set of reports with workspace rooms
             // When we call getValidOptions with shouldSeparateWorkspaceChat and null personalDetails
-            const results = getValidOptions(OPTIONS_WITH_WORKSPACE_ROOM, allPolicies, {}, nvpDismissedProductTraining, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, {
+            const results = getValidOptions(OPTIONS_WITH_WORKSPACE_ROOM, allPolicies, {}, nvpDismissedProductTraining, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, undefined, {
                 includeRecentReports: true,
                 includeMultipleParticipantReports: true,
                 includeP2P: true,
@@ -1608,6 +1653,7 @@ describe('OptionsListUtils', () => {
                 loginList,
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
+                undefined,
             );
             const reportLogins = new Set(results.recentReports.map((reportOption) => reportOption.login));
             const personalDetailsOverlapWithReports = results.personalDetails.every((personalDetailOption) => reportLogins.has(personalDetailOption.login));
@@ -1629,6 +1675,7 @@ describe('OptionsListUtils', () => {
                 loginList,
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
+                undefined,
                 {
                     excludeLogins: {'peterparker@expensify.com': true},
                 },
@@ -1650,6 +1697,7 @@ describe('OptionsListUtils', () => {
                 loginList,
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
+                undefined,
             );
 
             // Then the result should include all personalDetails except the currently logged in user
@@ -1672,6 +1720,7 @@ describe('OptionsListUtils', () => {
                 loginList,
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
+                undefined,
                 {
                     excludeLogins: {[CONST.EMAIL.CONCIERGE]: true},
                 },
@@ -1695,6 +1744,7 @@ describe('OptionsListUtils', () => {
                 loginList,
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
+                undefined,
                 {
                     excludeLogins: {[CONST.EMAIL.CHRONOS]: true},
                 },
@@ -1721,6 +1771,7 @@ describe('OptionsListUtils', () => {
                 loginList,
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
+                undefined,
                 {
                     excludeLogins: {[CONST.EMAIL.RECEIPTS]: true},
                 },
@@ -1745,6 +1796,7 @@ describe('OptionsListUtils', () => {
                 loginList,
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
+                undefined,
                 {
                     maxRecentReportElements: maxRecentReports,
                 },
@@ -1765,6 +1817,7 @@ describe('OptionsListUtils', () => {
                 loginList,
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
+                undefined,
             );
             const resultsWithLimit = getValidOptions(
                 {reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails},
@@ -1774,6 +1827,7 @@ describe('OptionsListUtils', () => {
                 loginList,
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
+                undefined,
                 {
                     maxRecentReportElements: 2,
                 },
@@ -1794,6 +1848,7 @@ describe('OptionsListUtils', () => {
                 loginList,
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
+                undefined,
             );
             const resultsWithLimit = getValidOptions(
                 {reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails},
@@ -1803,6 +1858,7 @@ describe('OptionsListUtils', () => {
                 loginList,
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
+                undefined,
                 {
                     maxRecentReportElements: 2,
                 },
@@ -1825,6 +1881,7 @@ describe('OptionsListUtils', () => {
                 loginList,
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
+                undefined,
                 {
                     maxElements: maxTotalElements,
                     maxRecentReportElements: maxRecentReports,
@@ -1859,6 +1916,7 @@ describe('OptionsListUtils', () => {
                 loginList,
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
+                undefined,
                 {
                     betas: [],
                     includeMultipleParticipantReports: true,
@@ -1900,6 +1958,7 @@ describe('OptionsListUtils', () => {
                 loginList,
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
+                undefined,
                 {
                     betas: [],
                     includeMultipleParticipantReports: true,
@@ -2370,6 +2429,7 @@ describe('OptionsListUtils', () => {
                 loginList,
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
+                undefined,
                 {
                     excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
                 },
@@ -2480,6 +2540,7 @@ describe('OptionsListUtils', () => {
                 loginList,
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
+                undefined,
                 {
                     betas: [],
                     includeMultipleParticipantReports: true,
@@ -2522,6 +2583,7 @@ describe('OptionsListUtils', () => {
                 loginList,
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
+                undefined,
                 {
                     betas: [],
                     includeMultipleParticipantReports: true,
@@ -2564,6 +2626,7 @@ describe('OptionsListUtils', () => {
                 loginList,
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
+                undefined,
                 {
                     betas: [],
                     includeMultipleParticipantReports: true,
@@ -2596,6 +2659,7 @@ describe('OptionsListUtils', () => {
                 loginList,
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
+                undefined,
             );
             // When we call filterAndOrderOptions with a search value that matches a personal detail with no existing report
             const filteredOptions = filterAndOrderOptions(options, 'hulk', COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS);
@@ -2821,6 +2885,7 @@ describe('OptionsListUtils', () => {
                 loginList,
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
+                undefined,
             );
             // When we call filterAndOrderOptions with a search value that does not match any personal details or reports
             const filteredOptions = filterAndOrderOptions(options, 'marc@expensify', COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS);
@@ -2842,6 +2907,7 @@ describe('OptionsListUtils', () => {
                 loginList,
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
+                undefined,
             );
             // When we call filterAndOrderOptions with a search value that does not match any personal details or reports
             const filteredOptions = filterAndOrderOptions(options, 'marc@expensify.com', COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS);
@@ -2863,6 +2929,7 @@ describe('OptionsListUtils', () => {
                 loginList,
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
+                undefined,
             );
             // When we call filterAndOrderOptions with a search value that does not match any personal details or reports but matches user to invite
             const filteredOptions = filterAndOrderOptions(options, 'peter.parker@expensify.com', COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS);
@@ -2883,6 +2950,7 @@ describe('OptionsListUtils', () => {
                 loginList,
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
+                undefined,
             );
             // When we call filterAndOrderOptions with a search value without accent mark
             const filteredOptions = filterAndOrderOptions(options, 'Timothee', COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS);
@@ -2901,6 +2969,7 @@ describe('OptionsListUtils', () => {
                 loginList,
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
+                undefined,
             );
             // When we call filterAndOrderOptions with a search value that does not match any personal details or reports but matches user to invite
             const filteredOptions = filterAndOrderOptions(options, '5005550006', COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS);
@@ -2924,6 +2993,7 @@ describe('OptionsListUtils', () => {
                 loginList,
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
+                undefined,
             );
             // When we call filterAndOrderOptions with a search value that does not match any personal details or reports but matches user to invite
             const filteredOptions = filterAndOrderOptions(options, '+15005550006', COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS);
@@ -2947,6 +3017,7 @@ describe('OptionsListUtils', () => {
                 loginList,
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
+                undefined,
             );
             // When we call filterAndOrderOptions with a search value that does not match any personal details or reports but matches user to invite
             const filteredOptions = filterAndOrderOptions(options, '+1 (800)324-3233', COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS);
@@ -2970,6 +3041,7 @@ describe('OptionsListUtils', () => {
                 loginList,
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
+                undefined,
             );
             // When we call filterAndOrderOptions with a search value that does not match any personal details or reports
             const filteredOptions = filterAndOrderOptions(options, '998243aaaa', COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS);
@@ -2991,6 +3063,7 @@ describe('OptionsListUtils', () => {
                 loginList,
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
+                undefined,
                 {
                     includeUserToInvite: true,
                 },
@@ -3015,6 +3088,7 @@ describe('OptionsListUtils', () => {
                 loginList,
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
+                undefined,
                 {
                     includeUserToInvite: true,
                 },
@@ -3039,6 +3113,7 @@ describe('OptionsListUtils', () => {
                 loginList,
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
+                undefined,
             );
             // When we call filterAndOrderOptions with a search value that does not match any personal details
             const filteredOptions = filterAndOrderOptions(options, 'magneto', COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS);
@@ -3057,6 +3132,7 @@ describe('OptionsListUtils', () => {
                 loginList,
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
+                undefined,
             );
             // When we call filterAndOrderOptions with a search value that matches an email
             const filteredOptions = filterAndOrderOptions(options, 'peterparker@expensify.com', COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS, {
@@ -3081,6 +3157,7 @@ describe('OptionsListUtils', () => {
                 loginList,
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
+                undefined,
             );
             // When we call filterAndOrderOptions with a search value that matches both reports and personal details and maxRecentReportsToShow param
             const filteredOptions = filterAndOrderOptions(options, '.com', COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS, {
@@ -5214,7 +5291,16 @@ describe('OptionsListUtils', () => {
             const policies = {[`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`]: policy};
 
             // Test that getValidOptions accepts policies collection as second parameter
-            const results = getValidOptions({reports: [], personalDetails: []}, policies, undefined, nvpDismissedProductTraining, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL);
+            const results = getValidOptions(
+                {reports: [], personalDetails: []},
+                policies,
+                undefined,
+                nvpDismissedProductTraining,
+                loginList,
+                CURRENT_USER_ACCOUNT_ID,
+                CURRENT_USER_EMAIL,
+                undefined,
+            );
 
             expect(results).toBeDefined();
             expect(results.recentReports).toBeDefined();
@@ -5223,7 +5309,7 @@ describe('OptionsListUtils', () => {
 
         it('should work with undefined policies', () => {
             const options = {reports: [], personalDetails: []};
-            const results = getValidOptions(options, undefined, undefined, nvpDismissedProductTraining, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL);
+            const results = getValidOptions(options, undefined, undefined, nvpDismissedProductTraining, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, undefined);
 
             expect(results).toBeDefined();
             expect(results.recentReports).toBeDefined();
@@ -5232,7 +5318,7 @@ describe('OptionsListUtils', () => {
 
         it('should work with empty policies collection', () => {
             const options = {reports: [], personalDetails: []};
-            const results = getValidOptions(options, {}, undefined, nvpDismissedProductTraining, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL);
+            const results = getValidOptions(options, {}, undefined, nvpDismissedProductTraining, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, undefined);
 
             expect(results).toBeDefined();
             expect(results.recentReports).toBeDefined();
@@ -5264,6 +5350,7 @@ describe('OptionsListUtils', () => {
                 loginList,
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
+                undefined,
                 {
                     betas: [],
                     includeRecentReports: true,
@@ -6644,6 +6731,7 @@ describe('OptionsListUtils', () => {
                 loginList,
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
+                undefined,
             );
 
             // Then the function should complete without errors and return valid results
@@ -6662,6 +6750,7 @@ describe('OptionsListUtils', () => {
                 loginList,
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
+                undefined,
             );
 
             // When we call filterAndOrderOptions with the reports parameter
@@ -6716,6 +6805,7 @@ describe('OptionsListUtils', () => {
                 loginList,
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
+                undefined,
             );
 
             // Then the function should still work correctly
@@ -6734,6 +6824,7 @@ describe('OptionsListUtils', () => {
                 loginList,
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
+                undefined,
             );
 
             // Then the function should still work correctly
@@ -7367,6 +7458,7 @@ describe('OptionsListUtils', () => {
                 loginList,
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
+                undefined,
                 {
                     includeRecentReports: true,
                     includeMultipleParticipantReports: true,
@@ -7430,6 +7522,7 @@ describe('OptionsListUtils', () => {
                 loginList,
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
+                undefined,
                 {
                     includeRecentReports: true,
                     action: CONST.IOU.ACTION.CREATE,
@@ -7489,6 +7582,7 @@ describe('OptionsListUtils', () => {
                 loginList,
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
+                undefined,
                 {
                     includeRecentReports: true,
                     action: CONST.IOU.ACTION.CREATE,
@@ -7574,6 +7668,7 @@ describe('OptionsListUtils', () => {
                 loginList,
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
+                undefined,
                 {
                     includeRecentReports: true,
                     includeMultipleParticipantReports: true,
@@ -7653,6 +7748,7 @@ describe('OptionsListUtils', () => {
                 loginList,
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
+                undefined,
                 {
                     includeRecentReports: true,
                     sortedActions,
@@ -7720,6 +7816,7 @@ describe('OptionsListUtils', () => {
                 loginList,
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
+                undefined,
                 {
                     includeRecentReports: true,
                     action: CONST.IOU.ACTION.CREATE,

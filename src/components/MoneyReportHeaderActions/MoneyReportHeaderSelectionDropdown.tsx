@@ -48,8 +48,8 @@ import {getSecondaryReportActions} from '@libs/ReportSecondaryActionUtils';
 import {hasHeldExpenses, hasUpdatedTotal, hasViolations as hasViolationsReportUtils, isInvoiceReport as isInvoiceReportUtil, isIOUReport as isIOUReportUtil} from '@libs/ReportUtils';
 import shouldPopoverUseScrollView from '@libs/shouldPopoverUseScrollView';
 import {isTransactionPendingDelete} from '@libs/TransactionUtils';
-import {canIOUBePaid as canIOUBePaidAction} from '@userActions/IOU';
 import {payInvoice, payMoneyRequest} from '@userActions/IOU/PayMoneyRequest';
+import {canIOUBePaid as canIOUBePaidAction} from '@userActions/IOU/ReportWorkflow';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -77,6 +77,7 @@ function MoneyReportHeaderSelectionDropdown({reportID, primaryAction, isReportIn
     const {isOffline} = useNetwork();
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
+    const isBulkSubmitApprovePayBetaEnabled = isBetaEnabled(CONST.BETAS.BULK_SUBMIT_APPROVE_PAY);
     const activeAdminPolicies = useActiveAdminPolicies();
 
     const {selectedTransactionIDs, currentSearchQueryJSON, currentSearchKey, currentSearchResults} = useSearchStateContext();
@@ -376,52 +377,54 @@ function MoneyReportHeaderSelectionDropdown({reportID, primaryAction, isReportIn
 
     // Ref writes below are inside onSelected callbacks that only fire on user interaction, never during render.
     /* eslint-disable react-hooks/refs */
-    const selectionModeReportLevelActions: Array<DropdownOption<string> & Pick<PopoverMenuItem, 'backButtonText' | 'rightIcon'>> = [
-        ...(hasSubmitAction && !shouldBlockSubmit
-            ? [
-                  {
-                      text: translate('common.submit'),
-                      icon: expensifyIcons.Send,
-                      value: CONST.REPORT.PRIMARY_ACTIONS.SUBMIT,
-                      onSelected: () => handleSubmitReport(true),
-                  },
-              ]
-            : []),
-        ...(hasApproveAction && !isBlockSubmitDueToPreventSelfApproval
-            ? [
-                  {
-                      text: translate('iou.approve'),
-                      icon: expensifyIcons.ThumbsUp,
-                      value: CONST.REPORT.PRIMARY_ACTIONS.APPROVE,
-                      onSelected: () => {
-                          isSelectionModePaymentRef.current = true;
-                          confirmApproval(true);
-                      },
-                  },
-              ]
-            : []),
-        ...(hasPayAction && !(isOffline && !canAllowSettlement)
-            ? [
-                  {
-                      text: translate('iou.settlePayment', totalAmount),
-                      icon: expensifyIcons.Cash,
-                      value: CONST.REPORT.PRIMARY_ACTIONS.PAY as string,
-                      rightIcon: expensifyIcons.ArrowRight,
-                      backButtonText: translate('iou.settlePayment', totalAmount),
-                      subMenuItems: buildPaymentSubMenuItems((wp) => {
-                          isSelectionModePaymentRef.current = true;
-                          if (checkForNecessaryAction()) {
-                              return;
-                          }
-                          kycWallRef.current?.continueAction?.({policy: wp});
-                      }),
-                      onSelected: () => {
-                          isSelectionModePaymentRef.current = true;
-                      },
-                  },
-              ]
-            : []),
-    ];
+    const selectionModeReportLevelActions: Array<DropdownOption<string> & Pick<PopoverMenuItem, 'backButtonText' | 'rightIcon'>> = !isBulkSubmitApprovePayBetaEnabled
+        ? []
+        : [
+              ...(hasSubmitAction && !shouldBlockSubmit
+                  ? [
+                        {
+                            text: translate('common.submit'),
+                            icon: expensifyIcons.Send,
+                            value: CONST.REPORT.PRIMARY_ACTIONS.SUBMIT,
+                            onSelected: () => handleSubmitReport(true),
+                        },
+                    ]
+                  : []),
+              ...(hasApproveAction && !isBlockSubmitDueToPreventSelfApproval
+                  ? [
+                        {
+                            text: translate('iou.approve'),
+                            icon: expensifyIcons.ThumbsUp,
+                            value: CONST.REPORT.PRIMARY_ACTIONS.APPROVE,
+                            onSelected: () => {
+                                isSelectionModePaymentRef.current = true;
+                                confirmApproval(true);
+                            },
+                        },
+                    ]
+                  : []),
+              ...(hasPayAction && !(isOffline && !canAllowSettlement)
+                  ? [
+                        {
+                            text: translate('iou.settlePayment', totalAmount),
+                            icon: expensifyIcons.Cash,
+                            value: CONST.REPORT.PRIMARY_ACTIONS.PAY as string,
+                            rightIcon: expensifyIcons.ArrowRight,
+                            backButtonText: translate('iou.settlePayment', totalAmount),
+                            subMenuItems: buildPaymentSubMenuItems((wp) => {
+                                isSelectionModePaymentRef.current = true;
+                                if (checkForNecessaryAction()) {
+                                    return;
+                                }
+                                kycWallRef.current?.continueAction?.({policy: wp});
+                            }),
+                            onSelected: () => {
+                                isSelectionModePaymentRef.current = true;
+                            },
+                        },
+                    ]
+                  : []),
+          ];
 
     const mappedOptions = originalSelectedTransactionsOptions.map((option) => {
         if (option.value === CONST.REPORT.SECONDARY_ACTIONS.DELETE) {
