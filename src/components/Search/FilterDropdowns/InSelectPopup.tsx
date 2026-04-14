@@ -18,6 +18,7 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {createOptionFromReport, filterAndOrderOptions, formatSectionsFromSearchTerm, getAlternateText, getSearchOptions} from '@libs/OptionsListUtils';
 import type {Option, OptionWithKey, SelectionListSections} from '@libs/OptionsListUtils/types';
 import type {OptionData} from '@libs/ReportUtils';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import passthroughPolicyTagListSelector from '@src/selectors/PolicyTagList';
@@ -177,6 +178,7 @@ function InSelectPopup({closeOverlay, updateFilterForm}: InSelectPopupProps) {
         headerMessage,
     };
 
+    const itemCount = sections.flatMap((section) => section.data).length || 1;
     return (
         <BasePopup
             label={translate('common.in')}
@@ -184,7 +186,7 @@ function InSelectPopup({closeOverlay, updateFilterForm}: InSelectPopupProps) {
             onApply={applyChanges}
             resetSentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_RESET_REPORT}
             applySentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY_REPORT}
-            style={[styles.getUserSelectionListPopoverHeight(sections.flatMap((section) => section.data).length || 1, windowHeight, shouldUseNarrowLayout, true)]}
+            style={[styles.getCommonSelectionListPopoverHeight(itemCount, variables.optionRowHeight, windowHeight, shouldUseNarrowLayout, true)]}
         >
             <SelectionListWithSections
                 sections={sections}
