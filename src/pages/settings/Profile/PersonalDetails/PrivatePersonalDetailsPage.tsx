@@ -1,3 +1,4 @@
+import {useRoute} from '@react-navigation/native';
 import {subYears} from 'date-fns';
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
@@ -16,16 +17,21 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {normalizeCountryCode} from '@libs/CountryUtils';
 import {appendCountryCode} from '@libs/LoginUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {getCurrentAddress} from '@libs/PersonalDetailsUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {doesContainReservedWord, getAgeRequirementError, isRequiredFulfilled, isValidDisplayName, isValidPhoneNumber} from '@libs/ValidationUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/PersonalDetailsForm';
 import type {Address} from '@src/types/onyx/PrivatePersonalDetails';
 
 function PrivatePersonalDetailsPage() {
+    const route = useRoute<PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.PROFILE.PRIVATE_PERSONAL_DETAILS>>();
+    const fieldToFocus = route.params?.fieldToFocus;
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
     const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
@@ -201,6 +207,7 @@ function PrivatePersonalDetailsPage() {
                             spellCheck={false}
                             autoCapitalize="words"
                             autoComplete="given-name"
+                            autoFocus={fieldToFocus === INPUT_IDS.LEGAL_FIRST_NAME}
                         />
                     </View>
                     <View style={styles.mb4}>
@@ -215,6 +222,7 @@ function PrivatePersonalDetailsPage() {
                             spellCheck={false}
                             autoCapitalize="words"
                             autoComplete="family-name"
+                            autoFocus={fieldToFocus === INPUT_IDS.LEGAL_LAST_NAME}
                         />
                     </View>
                     <View style={styles.mb4}>
@@ -227,6 +235,7 @@ function PrivatePersonalDetailsPage() {
                             minDate={subYears(new Date(), CONST.DATE_BIRTH.MAX_AGE)}
                             maxDate={subYears(new Date(), CONST.DATE_BIRTH.MIN_AGE_FOR_PAYMENT)}
                             autoComplete="birthdate-full"
+                            autoFocus={fieldToFocus === INPUT_IDS.DATE_OF_BIRTH}
                         />
                     </View>
                     <View style={styles.mb4}>
@@ -241,6 +250,7 @@ function PrivatePersonalDetailsPage() {
                             spellCheck={false}
                             inputMode={CONST.INPUT_MODE.TEL}
                             autoComplete="tel"
+                            autoFocus={fieldToFocus === INPUT_IDS.PHONE_NUMBER}
                         />
                     </View>
                     <View style={styles.mb4}>
@@ -254,6 +264,7 @@ function PrivatePersonalDetailsPage() {
                             shouldSaveDraft
                             spellCheck={false}
                             autoComplete="address-line1"
+                            autoFocus={fieldToFocus === INPUT_IDS.ADDRESS_LINE_1}
                         />
                     </View>
                     <View style={styles.mb4}>
