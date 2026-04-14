@@ -575,6 +575,7 @@ function createExpenseByType({
     customUnitPolicyID,
     personalDetails,
     recentWaypoints,
+    conciergeReportID,
 }: {
     transactionType: string;
     params: RequestMoneyInformation;
@@ -587,6 +588,7 @@ function createExpenseByType({
     customUnitPolicyID?: string;
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
     recentWaypoints: OnyxEntry<OnyxTypes.RecentWaypoint[]>;
+    conciergeReportID: string | undefined;
 }) {
     switch (transactionType) {
         case CONST.SEARCH.TRANSACTION_TYPE.DISTANCE: {
@@ -630,6 +632,7 @@ function createExpenseByType({
                 },
                 hasViolations: false,
                 customUnitPolicyID,
+                conciergeReportID,
             };
             return submitPerDiemExpense(perDiemParams);
         }
@@ -660,6 +663,7 @@ type DuplicateExpenseTransactionParams = {
     targetPolicyTags: OnyxEntry<OnyxTypes.PolicyTagLists>;
     shouldPlaySound?: boolean;
     shouldDeferAutoSubmit?: boolean;
+    conciergeReportID: string | undefined;
 };
 
 function duplicateExpenseTransaction({
@@ -684,6 +688,7 @@ function duplicateExpenseTransaction({
     targetPolicyTags,
     shouldPlaySound = true,
     shouldDeferAutoSubmit = false,
+    conciergeReportID,
 }: DuplicateExpenseTransactionParams) {
     if (!transaction) {
         return;
@@ -783,6 +788,7 @@ function duplicateExpenseTransaction({
         customUnitPolicyID,
         personalDetails,
         recentWaypoints,
+        conciergeReportID,
     });
 }
 
@@ -805,6 +811,7 @@ type DuplicateReportParams = {
     transactionViolations: OnyxCollection<OnyxTypes.TransactionViolation[]>;
     translate: LocalizedTranslate;
     recentWaypoints: OnyxEntry<OnyxTypes.RecentWaypoint[]>;
+    conciergeReportID: string | undefined;
 };
 
 function duplicateReport({
@@ -826,6 +833,7 @@ function duplicateReport({
     transactionViolations,
     translate,
     recentWaypoints,
+    conciergeReportID,
 }: DuplicateReportParams) {
     if (!targetPolicy || !parentChatReport) {
         return;
@@ -926,6 +934,7 @@ function duplicateReport({
             customUnitPolicyID: targetPolicy?.id,
             personalDetails,
             recentWaypoints,
+            conciergeReportID,
         });
 
         if (result?.iouReport) {
@@ -955,6 +964,7 @@ type BulkDuplicateExpensesParams = {
     draftTransactionIDs: string[];
     betas: OnyxEntry<OnyxTypes.Beta[]>;
     recentWaypoints: OnyxEntry<OnyxTypes.RecentWaypoint[]>;
+    conciergeReportID: string | undefined;
 };
 
 function bulkDuplicateExpenses({
@@ -976,6 +986,7 @@ function bulkDuplicateExpenses({
     draftTransactionIDs,
     betas,
     recentWaypoints,
+    conciergeReportID,
 }: BulkDuplicateExpensesParams) {
     const transactionsToDuplicate = transactionIDs.map((id) => allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`]).filter((t): t is OnyxTypes.Transaction => !!t);
 
@@ -1023,6 +1034,7 @@ function bulkDuplicateExpenses({
             targetPolicyTags,
             shouldPlaySound: false,
             shouldDeferAutoSubmit: !isLastExpense,
+            conciergeReportID,
         });
 
         if (currentTargetReport && !currentTargetReport.iouReportID) {
