@@ -857,7 +857,7 @@ function TransactionItemRow({
                         </View>
                     )}
                     {!!isLargeScreenWidth &&
-                        (onArrowRightPress ? (
+                        (!!onArrowRightPress ? (
                             <PressableWithFeedback
                                 disabled={!!isDisabled}
                                 onPress={() => onArrowRightPress?.()}
