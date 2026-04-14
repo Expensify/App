@@ -704,7 +704,7 @@ function WalletPage() {
                                     )}
                                 </>
                                 {isBetaEnabled(CONST.BETAS.PERSONAL_CARD_IMPORT) && (
-                                    <View style={[hasAssignedCard ? styles.mt3 : styles.mt5, shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8]}>
+                                    <View style={[shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8]}>
                                         <MenuItem
                                             title={translate('workspace.companyCards.importTransactions.importButton')}
                                             icon={icons.Table}
@@ -718,8 +718,8 @@ function WalletPage() {
                                 {!hasAssignedCard && (
                                     <View style={[shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8]}>
                                         <MenuItem
-                                            iconHeight={48}
-                                            iconWidth={48}
+                                            iconHeight={40}
+                                            iconWidth={40}
                                             shouldShowRightIcon
                                             icon={illustrations.VerticalCreditCards}
                                             displayInDefaultIconColor
