@@ -44,7 +44,7 @@ function UserInfoAndActionButtonRow({
                     avatarSize={CONST.AVATAR_SIZE.MID_SUBSCRIPT}
                     style={[styles.flexRow, styles.alignItemsCenter, styles.gap1]}
                     infoCellsTextStyle={styles.mutedNormalTextLabel}
-                    infoCellsAvatarStyle={styles.pr1}
+                    infoCellsAvatarStyle={styles.pr1half}
                     fromRecipientStyle={styles.mw100}
                     shouldUseArrowIcon={false}
                 />
