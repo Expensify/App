@@ -130,6 +130,7 @@ describe('OnboardingPersonalDetails Page', () => {
 
         // Submit the form
         fireEvent.press(screen.getByText(TestHelper.translateLocal('common.continue')));
+        await waitForBatchedUpdatesWithAct();
 
         await waitFor(() => {
             expect(navigate).toHaveBeenCalledWith(ROUTES.ONBOARDING_PRIVATE_DOMAIN.getRoute());
@@ -161,6 +162,7 @@ describe('OnboardingPersonalDetails Page', () => {
 
         // Submit the form
         fireEvent.press(screen.getByText(TestHelper.translateLocal('common.continue')));
+        await waitForBatchedUpdatesWithAct();
 
         await waitFor(() => {
             expect(navigate).toHaveBeenCalledWith(ROUTES.ONBOARDING_PRIVATE_DOMAIN.getRoute());
