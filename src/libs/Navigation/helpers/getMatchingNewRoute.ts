@@ -5,10 +5,12 @@ const escapeRegExp = (str: string) => str.replaceAll(/[.*+?^${}()|[\]\\]/g, '\\$
 /**
  * Converts an OldRoutes pattern string into a RegExp.
  *
- * - A trailing `*` (last in the pattern) matches any remaining characters (multi-segment).
- * - A non-trailing `*` matches exactly one path segment.
+ * A trailing `*` (last in the pattern) matches any remaining characters (multi-segment).
+ * A non-trailing `*` matches exactly one path segment.
  *
  * Captured groups can be referenced in the replacement via `$1`, `$2`, etc.
+ *
+ * @private - Internal helper. Do not export or use outside this file.
  */
 function patternToRegex(pattern: string): RegExp {
     const parts = pattern.split('*');
