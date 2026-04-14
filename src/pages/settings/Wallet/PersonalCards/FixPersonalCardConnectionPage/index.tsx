@@ -7,19 +7,13 @@ import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import useNetwork from '@hooks/useNetwork';
-import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useUpdatePersonalCardBrokenConnection from '@hooks/useUpdatePersonalCardBrokenConnection';
-import {getBankName, isCardConnectionBroken} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import openBankConnection from '@pages/settings/Wallet/PersonalCards/steps/BankConnection/openBankConnection';
-import {getPersonalCardBankConnection} from '@userActions/getCompanyCardBankConnection';
-import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
-import type {CompanyCardFeed} from '@src/types/onyx';
+import useFixPersonalCardConnection from './useFixPersonalCardConnection';
 
 type FixPersonalCardConnectionPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.PERSONAL_CARD_FIX_CONNECTION>;
 
@@ -29,15 +23,8 @@ function FixPersonalCardConnectionPage({route}: FixPersonalCardConnectionPagePro
     const {cardID} = route.params;
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {isOffline} = useNetwork();
     const illustrations = useMemoizedLazyIllustrations(['PendingBank']);
-    const {updateBrokenConnection} = useUpdatePersonalCardBrokenConnection();
-
-    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
-    const card = cardList?.[cardID];
-    const bankDisplayName = card ? getBankName(card.bank as CompanyCardFeed) : '';
-    const url = getPersonalCardBankConnection(bankDisplayName);
-    const isCardBroken = card ? isCardConnectionBroken(card) : false;
+    const {bankDisplayName, url, isOffline} = useFixPersonalCardConnection(cardID);
 
     const onOpenBankConnectionFlow = () => {
         if (!url) {
@@ -56,16 +43,11 @@ function FixPersonalCardConnectionPage({route}: FixPersonalCardConnectionPagePro
             return;
         }
         customWindow = openBankConnection(url);
-    }, [url, isOffline]);
 
-    useEffect(() => {
-        if (isCardBroken) {
-            return;
-        }
-        customWindow?.close();
-        updateBrokenConnection();
-        Navigation.goBack();
-    }, [isCardBroken, updateBrokenConnection]);
+        return () => {
+            customWindow?.close();
+        };
+    }, [url, isOffline]);
 
     return (
         <ScreenWrapper

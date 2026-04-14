@@ -1,4 +1,4 @@
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useRef, useState} from 'react';
 import {StyleSheet, View} from 'react-native';
 import type {WebViewNavigation} from 'react-native-webview';
 import {WebView} from 'react-native-webview';
@@ -9,19 +9,16 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useUpdatePersonalCardBrokenConnection from '@hooks/useUpdatePersonalCardBrokenConnection';
-import {getBankName, isCardConnectionBroken} from '@libs/CardUtils';
 import getUAForWebView from '@libs/getUAForWebView';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
-import {getPersonalCardBankConnection} from '@userActions/getCompanyCardBankConnection';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {CompanyCardFeed} from '@src/types/onyx';
+import useFixPersonalCardConnection from './useFixPersonalCardConnection';
 
 type FixPersonalCardConnectionPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.PERSONAL_CARD_FIX_CONNECTION>;
 
@@ -30,16 +27,11 @@ function FixPersonalCardConnectionPage({route}: FixPersonalCardConnectionPagePro
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const webViewRef = useRef<WebView>(null);
-    const {updateBrokenConnection} = useUpdatePersonalCardBrokenConnection();
     const [isConnectionCompleted, setConnectionCompleted] = useState(false);
+    const {url} = useFixPersonalCardConnection(cardID);
 
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const authToken = session?.authToken ?? null;
-    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
-    const card = cardList?.[cardID];
-    const bankDisplayName = card ? getBankName(card.bank as CompanyCardFeed) : '';
-    const url = getPersonalCardBankConnection(bankDisplayName);
-    const isCardBroken = card ? isCardConnectionBroken(card) : false;
 
     const activityReasonAttributes: SkeletonSpanReasonAttributes = {
         context: 'FixPersonalCardConnectionPage',
@@ -56,14 +48,6 @@ function FixPersonalCardConnectionPage({route}: FixPersonalCardConnectionPagePro
             />
         </View>
     );
-
-    useEffect(() => {
-        if (isCardBroken) {
-            return;
-        }
-        updateBrokenConnection();
-        Navigation.goBack();
-    }, [isCardBroken, updateBrokenConnection]);
 
     const checkIfConnectionCompleted = (navState: WebViewNavigation) => {
         if (!navState.url.includes(ROUTES.BANK_CONNECTION_COMPLETE)) {
