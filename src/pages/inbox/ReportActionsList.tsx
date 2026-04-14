@@ -1,6 +1,6 @@
 import {useRoute} from '@react-navigation/native';
 import React, {useEffect, useState} from 'react';
-import Animated, {FadeIn} from 'react-native-reanimated';
+import {View} from 'react-native';
 import MoneyRequestReportActionsList from '@components/MoneyRequestReportView/MoneyRequestReportActionsList';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
 import useNetwork from '@hooks/useNetwork';
@@ -85,22 +85,16 @@ function ReportActionsList() {
 
     if (shouldDisplayMoneyRequestActionsList) {
         return (
-            <Animated.View
-                entering={FadeIn}
-                style={{flex: 1}}
-            >
+            <View style={{flex: 1}}>
                 <MoneyRequestReportActionsList reportID={report.reportID} />
-            </Animated.View>
+            </View>
         );
     }
 
     return (
-        <Animated.View
-            entering={FadeIn}
-            style={{flex: 1}}
-        >
+        <View style={{flex: 1}}>
             <ReportActionsView reportID={report.reportID} />
-        </Animated.View>
+        </View>
     );
 }
 
