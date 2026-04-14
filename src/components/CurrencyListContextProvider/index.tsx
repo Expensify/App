@@ -33,9 +33,9 @@ function CurrencyListContextProvider({children}: React.PropsWithChildren) {
     );
 
     const convertToDisplayString = useCallback(
-        (amountInCents = 0, currencyCode: string = CONST.CURRENCY.USD): string => {
+        (amountInCents: number | undefined, currencyCode: string | undefined): string => {
             const decimals = getCurrencyDecimals(currencyCode);
-            const convertedAmount = convertToFrontendAmountAsInteger(amountInCents, decimals);
+            const convertedAmount = convertToFrontendAmountAsInteger(amountInCents ?? 0, decimals);
             return format(preferredLocale, convertedAmount, {
                 style: 'currency',
                 currency: currencyCode,
