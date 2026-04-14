@@ -718,6 +718,8 @@ function WalletPage() {
                                 {!hasAssignedCard && (
                                     <View style={[styles.mt5, shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8]}>
                                         <MenuItem
+                                            iconHeight={48}
+                                            iconWidth={48}
                                             shouldShowRightIcon
                                             icon={illustrations.VerticalCreditCards}
                                             displayInDefaultIconColor
