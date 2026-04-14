@@ -7345,7 +7345,6 @@ export {
     clearCreateChatError,
     notifyNewAction,
     openReport,
-    openReportAtLatestReportActions,
     openRoomMembersPage,
     readNewestAction,
     removeFromGroupChat,
