@@ -2395,6 +2395,13 @@ type BuildPolicyDataKeys =
     | typeof ONYXKEYS.NVP_LAST_PAYMENT_METHOD
     | typeof ONYXKEYS.PERSONAL_DETAILS_LIST;
 
+function getRoleForNewWorkspaceMember(isSubmitWorkspace: boolean, makeMeAdmin: boolean): ValueOf<typeof CONST.POLICY.ROLE> {
+    if (isSubmitWorkspace) {
+        return CONST.POLICY.ROLE.EDITOR;
+    }
+    return makeMeAdmin ? CONST.POLICY.ROLE.ADMIN : CONST.POLICY.ROLE.USER;
+}
+
 function getApprovalModeForNewWorkspace(
     isSubmitWorkspace: boolean,
     shouldEnableWorkflowsByDefault: boolean,
@@ -2565,7 +2572,7 @@ function buildPolicyData(options: BuildPolicyDataOptions): OnyxData<BuildPolicyD
                               [currentUserEmailParam]: {
                                   submitsTo: policyOwnerEmail,
                                   email: currentUserEmailParam,
-                                  role: isSubmitWorkspace ? CONST.POLICY.ROLE.EDITOR : makeMeAdmin ? CONST.POLICY.ROLE.ADMIN : CONST.POLICY.ROLE.USER,
+                                  role: getRoleForNewWorkspaceMember(isSubmitWorkspace, makeMeAdmin),
                                   errors: {},
                               },
                           }
