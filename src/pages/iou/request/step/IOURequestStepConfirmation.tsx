@@ -322,6 +322,7 @@ function IOURequestStepConfirmation({
         return () => {
             clearTimeout(timer);
 
+            // eslint-disable-next-line react-hooks/exhaustive-deps -- formHasBeenSubmitted is a stable ref from useExpenseSubmission; reading .current in cleanup is intentional
             if (!Navigation.getIsFullscreenPreInsertedUnderRHP() || formHasBeenSubmitted.current) {
                 return;
             }

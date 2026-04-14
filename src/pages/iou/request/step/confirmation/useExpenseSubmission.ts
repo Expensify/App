@@ -8,15 +8,19 @@ import useParentReportAction from '@hooks/useParentReportAction';
 import useParticipantsInvoiceReport from '@hooks/useParticipantsInvoiceReport';
 import useParticipantsPolicyTags from '@hooks/useParticipantsPolicyTags';
 import usePermissions from '@hooks/usePermissions';
+import useReportTransactions from '@hooks/useReportTransactions';
 import {completeTestDriveTask} from '@libs/actions/Task';
 import {getCurrencySymbol} from '@libs/CurrencyUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import getCurrentPosition from '@libs/getCurrentPosition';
 import {getGPSCoordinates} from '@libs/GPSDraftDetailsUtils';
-import {getExistingTransactionID} from '@libs/IOUUtils';
+import {getExistingTransactionID, resolveOptimisticChatReportID} from '@libs/IOUUtils';
 import Log from '@libs/Log';
+import dismissModalAndOpenReportInInboxTabHelper from '@libs/Navigation/helpers/dismissModalAndOpenReportInInboxTab';
+import navigateAfterExpenseCreate from '@libs/Navigation/helpers/navigateAfterExpenseCreate';
+import Navigation from '@libs/Navigation/Navigation';
 import {rand64, roundToTwoDecimalPlaces} from '@libs/NumberUtils';
-import {findSelfDMReportID, generateReportID, hasViolations as hasViolationsReportUtils, isSelectedManagerMcTest} from '@libs/ReportUtils';
+import {findSelfDMReportID, generateReportID, getReportOrDraftReport, hasViolations as hasViolationsReportUtils, isMoneyRequestReport, isSelectedManagerMcTest} from '@libs/ReportUtils';
 import {endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
 import getSubmitExpenseScenario from '@libs/telemetry/getSubmitExpenseScenario';
 import markSubmitExpenseEnd from '@libs/telemetry/markSubmitExpenseEnd';
@@ -174,6 +178,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
 
     // Reports
     const [selfDMReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${findSelfDMReportID()}`);
+    const reportTransactions = useReportTransactions(report?.reportID);
 
     // Invoice data
     const receiverParticipant = transaction?.participants?.find((p) => p?.accountID) ?? report?.invoiceReceiver;
@@ -371,7 +376,20 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 quickAction,
             });
         } else {
-            submitPerDiemExpenseIOUActions({
+            const isExpenseReport = isMoneyRequestReport(report);
+            let existingChatReport = report;
+            if (isExpenseReport) {
+                existingChatReport = getReportOrDraftReport(report?.chatReportID);
+            } else if (!report?.reportID && participant.isPolicyExpenseChat && participant.reportID) {
+                existingChatReport = getReportOrDraftReport(participant.reportID);
+            }
+            const {optimisticChatReportID, chatReportID} = resolveOptimisticChatReportID(
+                [participant.accountID ?? CONST.DEFAULT_NUMBER_ID, currentUserPersonalDetails.accountID],
+                existingChatReport,
+            );
+            const activeReportID = isExpenseReport && Navigation.getTopmostReportId() === report?.reportID ? report?.reportID : chatReportID;
+
+            const result = submitPerDiemExpenseIOUActions({
                 report,
                 participantParams: {
                     payeeEmail: currentUserPersonalDetails.login,
@@ -408,7 +426,16 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 quickAction,
                 betas,
                 personalDetails,
+                optimisticChatReportID,
             });
+            if (result && activeReportID) {
+                navigateAfterExpenseCreate({
+                    activeReportID,
+                    transactionID: transaction.transactionID,
+                    isFromGlobalCreate: transaction.isFromFloatingActionButton ?? transaction.isFromGlobalCreate,
+                    hasMultipleTransactions: reportTransactions.length > 0,
+                });
+            }
         }
     }
 
@@ -818,38 +845,31 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
             return;
         }
 
+        const {optimisticChatReportID, chatReportID} = resolveOptimisticChatReportID([participant.accountID ?? CONST.DEFAULT_NUMBER_ID, currentUserPersonalDetails.accountID], report);
+        const sendMoneyParams = {
+            report,
+            quickAction,
+            amount: transaction.amount,
+            currency,
+            comment: trimmedComment,
+            currentUserAccountID: currentUserPersonalDetails.accountID,
+            recipient: participant,
+            created: transaction.created,
+            merchant: transaction.merchant,
+            receipt: receiptFiles[transaction.transactionID],
+            optimisticChatReportID,
+        };
+
         if (paymentMethod === CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
             setIsConfirmed(true);
-            sendMoneyElsewhere(
-                report,
-                quickAction,
-                transaction.amount,
-                currency,
-                trimmedComment,
-                currentUserPersonalDetails.accountID,
-                participant,
-                transaction.created,
-                transaction.merchant,
-                receiptFiles[transaction.transactionID],
-            );
+            sendMoneyElsewhere(sendMoneyParams);
+        } else if (paymentMethod === CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
+            setIsConfirmed(true);
+            sendMoneyWithWallet(sendMoneyParams);
+        } else {
             return;
         }
-
-        if (paymentMethod === CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
-            setIsConfirmed(true);
-            sendMoneyWithWallet(
-                report,
-                quickAction,
-                transaction.amount,
-                currency,
-                trimmedComment,
-                currentUserPersonalDetails.accountID,
-                participant,
-                transaction.created,
-                transaction.merchant,
-                receiptFiles[transaction.transactionID],
-            );
-        }
+        dismissModalAndOpenReportInInboxTabHelper(chatReportID, undefined, reportTransactions.length > 0);
     }
 
     return {createTransaction, sendMoney, isConfirmed, formHasBeenSubmitted};
