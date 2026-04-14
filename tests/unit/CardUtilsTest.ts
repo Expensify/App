@@ -2947,12 +2947,12 @@ describe('CardUtils', () => {
             },
         };
         it('should return the correct description for a company card', () => {
-            const description = getCompanyCardDescription('Test', 21310091, cardList, mockTranslate);
+            const description = getCompanyCardDescription(mockTranslate, 'Test', 21310091, cardList);
             expect(description).toBe('480801XXXXXX2554');
         });
 
         it('should return the correct description for an Expensify card', () => {
-            const description = getCompanyCardDescription('Test', 21570657, cardList, mockTranslate);
+            const description = getCompanyCardDescription(mockTranslate, 'Test', 21570657, cardList);
             expect(description).toBe('Test');
         });
 
@@ -2966,7 +2966,7 @@ describe('CardUtils', () => {
                     },
                 },
             } as unknown as CardList;
-            const description = getCompanyCardDescription('Expensify Card - 6909', 99999, travelCardList, mockTranslate);
+            const description = getCompanyCardDescription(mockTranslate, 'Expensify Card - 6909', 99999, travelCardList);
             expect(description).toBe('Central invoicing');
         });
     });

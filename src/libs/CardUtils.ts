@@ -196,13 +196,13 @@ function getCardDescriptionForSearchTable(card: Card, translate: LocalizedTransl
 }
 
 /**
+ * @param translate
  * @param transactionCardName
  * @param cardID
  * @param cards
- * @param translate
  * @returns company card name
  */
-function getCompanyCardDescription(transactionCardName: string | undefined, cardID: number | undefined, cards: CardList | undefined, translate: LocalizedTranslate) {
+function getCompanyCardDescription(translate: LocalizedTranslate, transactionCardName?: string, cardID?: number, cards?: CardList) {
     if (!cardID || !cards?.[cardID]) {
         return transactionCardName;
     }
