@@ -2,6 +2,7 @@ import {FocusTrap} from 'focus-trap-react';
 import React from 'react';
 import sharedTrapStack from '@components/FocusTrap/sharedTrapStack';
 import blurActiveElement from '@libs/Accessibility/blurActiveElement';
+import {setActivePopoverLauncher} from '@libs/NavigationFocusReturn';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import type FocusTrapForModalProps from './FocusTrapForModalProps';
 
@@ -10,7 +11,17 @@ function FocusTrapForModal({children, active, initialFocus = false, shouldPreven
         <FocusTrap
             active={active}
             focusTrapOptions={{
-                onActivate: blurActiveElement,
+                onActivate: () => {
+                    // Capture the launcher before blur — items inside the trap get removed on close.
+                    const launcher = document.activeElement;
+                    blurActiveElement();
+                    if (launcher instanceof HTMLElement && launcher !== document.body) {
+                        setActivePopoverLauncher(launcher);
+                    }
+                },
+                onPostDeactivate: () => {
+                    setActivePopoverLauncher(null);
+                },
                 preventScroll: shouldPreventScroll,
                 trapStack: sharedTrapStack,
                 clickOutsideDeactivates: true,

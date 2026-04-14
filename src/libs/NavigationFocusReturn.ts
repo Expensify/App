@@ -16,6 +16,7 @@ type AnyState = NavigationState | PartialState<NavigationState> | undefined;
 type DiffAction = {type: 'forward'; captureKey: string} | {type: 'backward'; restoreKey: string} | {type: 'lateral'} | {type: 'noop'};
 
 let lastInteractiveElement: HTMLElement | null = null;
+let activePopoverLauncher: HTMLElement | null = null;
 const triggerMap = new Map<string, HTMLElement>();
 let prevState: NavigationState | undefined;
 let pendingRestore: {cancel: () => void} | null = null;
@@ -73,6 +74,11 @@ function captureTriggerForRoute(routeKey: string): void {
     if (!getHadTabNavigation()) {
         return;
     }
+    // Items inside an active FocusTrapForModal get removed on close; prefer the launcher.
+    if (activePopoverLauncher && document.contains(activePopoverLauncher)) {
+        triggerMap.set(routeKey, activePopoverLauncher);
+        return;
+    }
     if (!lastInteractiveElement || !document.contains(lastInteractiveElement)) {
         return;
     }
@@ -82,6 +88,38 @@ function captureTriggerForRoute(routeKey: string): void {
         return;
     }
     triggerMap.set(routeKey, lastInteractiveElement);
+}
+
+function setActivePopoverLauncher(element: HTMLElement | null): void {
+    activePopoverLauncher = element;
+}
+
+/** Compound key for PUSH_PARAMS history (same route.key across params snapshots). Sorts top-level keys for insertion-order stability. */
+function compoundParamsKey(routeKey: string, params: unknown): string {
+    if (params == null) {
+        return `${routeKey}::`;
+    }
+    if (typeof params !== 'object') {
+        return `${routeKey}::${JSON.stringify(params)}`;
+    }
+    const entries = Object.entries(params as Record<string, unknown>).sort(([a], [b]) => {
+        if (a < b) {
+            return -1;
+        }
+        if (a > b) {
+            return 1;
+        }
+        return 0;
+    });
+    return `${routeKey}::${JSON.stringify(entries)}`;
+}
+
+function notifyPushParamsForward(routeKey: string, prevParams: unknown): void {
+    captureTriggerForRoute(compoundParamsKey(routeKey, prevParams));
+}
+
+function notifyPushParamsBackward(routeKey: string, targetParams: unknown): void {
+    scheduleRestore(compoundParamsKey(routeKey, targetParams));
 }
 
 function restoreTriggerForRoute(routeKey: string): boolean {
@@ -235,6 +273,7 @@ function resetForTests(): void {
     triggerMap.clear();
     prevState = undefined;
     lastInteractiveElement = null;
+    activePopoverLauncher = null;
 }
 
 function setLastInteractiveElementForTests(element: HTMLElement | null): void {
@@ -251,6 +290,10 @@ export {
     collectRouteKeys,
     captureTriggerForRoute,
     restoreTriggerForRoute,
+    setActivePopoverLauncher,
+    notifyPushParamsForward,
+    notifyPushParamsBackward,
+    compoundParamsKey,
     resetForTests,
     setLastInteractiveElementForTests,
 };

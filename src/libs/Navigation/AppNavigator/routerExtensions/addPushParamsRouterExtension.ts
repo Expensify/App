@@ -2,6 +2,7 @@ import {CommonActions} from '@react-navigation/native';
 import type {NavigationRoute, ParamListBase, PartialState, Router, RouterConfigOptions, StackActionType} from '@react-navigation/native';
 import type {PlatformStackNavigationState, PlatformStackRouterFactory, PlatformStackRouterOptions} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {GoBackAction, SetParamsAction} from '@libs/Navigation/types';
+import {notifyPushParamsBackward, notifyPushParamsForward} from '@libs/NavigationFocusReturn';
 import CONST from '@src/CONST';
 import type {CustomHistoryEntry, PushParamsActionType, PushParamsRouterAction} from './types';
 import {enhanceStateWithHistory} from './utils';
@@ -67,6 +68,12 @@ function addPushParamsRouterExtension<RouterOptions extends PlatformStackRouterO
             configOptions: RouterConfigOptions,
         ) => {
             if (isPushParamsAction(action)) {
+                // Capture the trigger against the outgoing (pre-update) params so a future GO_BACK can restore focus to it.
+                const outgoingRoute = state.routes.at(-1);
+                if (outgoingRoute?.key) {
+                    notifyPushParamsForward(outgoingRoute.key, outgoingRoute.params);
+                }
+
                 const setParamsAction = CommonActions.setParams(action.payload.params);
                 const stateWithUpdatedParams = router.getStateForAction(state, setParamsAction, configOptions);
 
@@ -105,10 +112,16 @@ function addPushParamsRouterExtension<RouterOptions extends PlatformStackRouterO
                         const lastRoute = state.routes.at(-1);
                         if (lastRoute) {
                             const routes = [...state.routes];
+                            const targetParams = lastTwo.at(0)?.params;
                             routes[state.routes.length - 1] = {
                                 ...lastRoute,
-                                params: lastTwo.at(0)?.params,
+                                params: targetParams,
                             };
+
+                            // Same-key backward — the state-listener diff would classify this as noop, so notify directly.
+                            if (lastRoute.key) {
+                                notifyPushParamsBackward(lastRoute.key, targetParams);
+                            }
 
                             return {
                                 ...state,

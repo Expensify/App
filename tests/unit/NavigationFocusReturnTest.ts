@@ -9,6 +9,10 @@ const {
     handleStateChange,
     resetForTests,
     setLastInteractiveElementForTests,
+    setActivePopoverLauncher,
+    notifyPushParamsForward,
+    notifyPushParamsBackward,
+    compoundParamsKey,
     setupNavigationFocusReturn,
     teardownNavigationFocusReturn,
 } = require<{
@@ -19,6 +23,10 @@ const {
     handleStateChange: (state: unknown) => void;
     resetForTests: () => void;
     setLastInteractiveElementForTests: (element: HTMLElement | null) => void;
+    setActivePopoverLauncher: (element: HTMLElement | null) => void;
+    notifyPushParamsForward: (routeKey: string, prevParams: unknown) => void;
+    notifyPushParamsBackward: (routeKey: string, targetParams: unknown) => void;
+    compoundParamsKey: (routeKey: string, params: unknown) => string;
     setupNavigationFocusReturn: () => void;
     teardownNavigationFocusReturn: () => void;
 }>('../../src/libs/NavigationFocusReturn.ts');
@@ -298,6 +306,49 @@ describe('captureTriggerForRoute', () => {
 
             captureTriggerForRoute('route-a');
             expect(restoreTriggerForRoute('route-a')).toBe(false);
+        });
+    });
+
+    describe('when a popover launcher is active', () => {
+        beforeEach(() => {
+            simulateTab();
+        });
+
+        it('should capture the launcher even though a transient menu item holds focus', () => {
+            const launcher = document.createElement('button');
+            const menuItem = document.createElement('button');
+            document.body.appendChild(launcher);
+            document.body.appendChild(menuItem);
+            // Simulate FocusTrapForModal.onActivate: registers launcher before blur.
+            setActivePopoverLauncher(launcher);
+            // Focus is now on a menu item inside the popover — the transient element.
+            menuItem.focus();
+            menuItem.dispatchEvent(new FocusEvent('focusin', {bubbles: true}));
+
+            captureTriggerForRoute('route-a');
+
+            // Popover closes: menu item is removed from DOM, launcher survives.
+            menuItem.remove();
+            setActivePopoverLauncher(null);
+
+            const launcherSpy = jest.spyOn(launcher, 'focus');
+            expect(restoreTriggerForRoute('route-a')).toBe(true);
+            expect(launcherSpy).toHaveBeenCalled();
+        });
+
+        it('should fall through to lastInteractiveElement when the launcher is gone', () => {
+            const fallback = document.createElement('button');
+            document.body.appendChild(fallback);
+            fallback.focus();
+            fallback.dispatchEvent(new FocusEvent('focusin', {bubbles: true}));
+
+            // Launcher registered but then removed from DOM before capture.
+            const detachedLauncher = document.createElement('button');
+            setActivePopoverLauncher(detachedLauncher);
+
+            captureTriggerForRoute('route-a');
+            fallback.blur();
+            expect(restoreTriggerForRoute('route-a')).toBe(true);
         });
     });
 
@@ -712,6 +763,83 @@ describe('handleStateChange integration', () => {
             // Sibling later clears aria-hidden; the entry must already be dropped.
             hidden.removeAttribute('aria-hidden');
             expect(restoreTriggerForRoute('a')).toBe(false);
+            expect(spy).not.toHaveBeenCalled();
+        } finally {
+            jest.useRealTimers();
+        }
+    });
+});
+
+describe('PUSH_PARAMS notifications', () => {
+    beforeEach(() => {
+        simulateTab();
+    });
+
+    describe('compoundParamsKey', () => {
+        it('should produce the same key regardless of property insertion order', () => {
+            const a = compoundParamsKey('search-x', {q: 'foo', sort: 'date'});
+            const b = compoundParamsKey('search-x', {sort: 'date', q: 'foo'});
+            expect(a).toBe(b);
+        });
+
+        it('should produce different keys for different params', () => {
+            const a = compoundParamsKey('search-x', {q: 'foo'});
+            const b = compoundParamsKey('search-x', {q: 'bar'});
+            expect(a).not.toBe(b);
+        });
+
+        it('should handle null / undefined params', () => {
+            expect(compoundParamsKey('r', null)).toBe('r::');
+            expect(compoundParamsKey('r', undefined)).toBe('r::');
+        });
+
+        it('should not collide with bare route keys', () => {
+            // A route key alone (used by the regular nav path) shouldn't match a compound key for the same route.
+            expect(compoundParamsKey('search-x', {q: 'foo'})).not.toBe('search-x');
+        });
+    });
+
+    it('should roundtrip: forward captures the trigger, backward restores it', () => {
+        jest.useFakeTimers();
+        try {
+            const trigger = document.createElement('input');
+            document.body.appendChild(trigger);
+            trigger.focus();
+            trigger.dispatchEvent(new FocusEvent('focusin', {bubbles: true}));
+
+            // User on /search?q=foo, focus on the search input. PUSH_PARAMS dispatches with q=bar.
+            notifyPushParamsForward('search-x', {q: 'foo'});
+
+            // Focus moves elsewhere (new results render, etc.)
+            trigger.blur();
+
+            // GO_BACK reverts params to q=foo.
+            const spy = jest.spyOn(trigger, 'focus');
+            notifyPushParamsBackward('search-x', {q: 'foo'});
+            jest.runAllTimers();
+
+            expect(spy).toHaveBeenCalled();
+        } finally {
+            jest.useRealTimers();
+        }
+    });
+
+    it('should not restore for a different params hash', () => {
+        jest.useFakeTimers();
+        try {
+            const trigger = document.createElement('input');
+            document.body.appendChild(trigger);
+            trigger.focus();
+            trigger.dispatchEvent(new FocusEvent('focusin', {bubbles: true}));
+
+            notifyPushParamsForward('search-x', {q: 'foo'});
+            trigger.blur();
+
+            // Backward to a different params snapshot — should not restore the foo trigger.
+            const spy = jest.spyOn(trigger, 'focus');
+            notifyPushParamsBackward('search-x', {q: 'baz'});
+            jest.runAllTimers();
+
             expect(spy).not.toHaveBeenCalled();
         } finally {
             jest.useRealTimers();
