@@ -13,7 +13,7 @@ import {Priorities, resetCycle, tryClaim} from './ScreenFocusArbiter';
 
 type AnyState = NavigationState | PartialState<NavigationState> | undefined;
 
-type DiffAction = {type: 'forward'; captureKey: string} | {type: 'backward'; restoreKey: string} | {type: 'noop'};
+type DiffAction = {type: 'forward'; captureKey: string} | {type: 'backward'; restoreKey: string} | {type: 'lateral'} | {type: 'noop'};
 
 let lastInteractiveElement: HTMLElement | null = null;
 const triggerMap = new Map<string, HTMLElement>();
@@ -58,8 +58,8 @@ function diffNavigationState(prev: AnyState, next: NavigationState): {action: Di
     } else if (!prevKeys.has(newFocusedKey)) {
         action = {type: 'forward', captureKey: prevFocusedKey};
     } else {
-        // Lateral: key existed, nothing dropped — e.g. top-tab switch with all tabs mounted.
-        action = {type: 'noop'};
+        // Key existed, nothing dropped — e.g. top-tab switch with all tabs mounted.
+        action = {type: 'lateral'};
     }
 
     return {action, removedKeys};
@@ -96,7 +96,7 @@ function restoreTriggerForRoute(routeKey: string): boolean {
         triggerMap.delete(routeKey);
         return false;
     }
-    // Keep the entry on transient unfocusability so scheduleRestore can retry.
+    // Keep the entry when the trigger cannot currently accept focus so scheduleRestore can retry.
     if (element.matches(':disabled') || element.getAttribute('aria-disabled') === 'true' || element.closest('[aria-hidden="true"]')) {
         return false;
     }
@@ -174,16 +174,20 @@ function handleStateChange(newState: NavigationState | undefined): void {
     if (!newState) {
         return;
     }
-    // Any new nav invalidates a queued restore from a prior one.
-    cancelPendingRestore();
     resetCycle();
     const {action, removedKeys} = diffNavigationState(prevState, newState);
 
     if (action.type === 'forward') {
+        cancelPendingRestore();
         captureTriggerForRoute(action.captureKey);
     } else if (action.type === 'backward') {
+        // scheduleRestore cancels any prior pending internally.
         scheduleRestore(action.restoreKey);
+    } else if (action.type === 'lateral') {
+        // Sibling route — stale restore would steal focus back.
+        cancelPendingRestore();
     }
+    // noop (same focused route, e.g. setParams): leave any pending restore intact.
 
     for (const key of removedKeys) {
         triggerMap.delete(key);

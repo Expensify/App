@@ -172,7 +172,7 @@ describe('diffNavigationState', () => {
         expect(result.removedKeys.sort()).toEqual(['x', 'y']);
     });
 
-    it('should classify a lateral top-tab switch (all tabs mounted, no removal) as noop', () => {
+    it('should classify a lateral top-tab switch (all tabs mounted, no removal) as lateral', () => {
         const prev = stackState(0, [
             {key: 'tab-1', name: 'Tab1'},
             {key: 'tab-2', name: 'Tab2'},
@@ -183,7 +183,7 @@ describe('diffNavigationState', () => {
         ]);
         const result = diffNavigationState(prev, next);
 
-        expect(result.action.type).toBe('noop');
+        expect(result.action.type).toBe('lateral');
         expect(result.removedKeys).toEqual([]);
     });
 });
@@ -547,6 +547,84 @@ describe('handleStateChange integration', () => {
 
         handleStateChange(state);
         expect(restoreTriggerForRoute('a')).toBe(false);
+    });
+
+    it('should preserve a queued restore when a noop state change (same focused route) arrives', () => {
+        jest.useFakeTimers();
+        try {
+            simulateTab();
+            const onA = stackState(0, [{key: 'a', name: 'A'}]);
+            handleStateChange(onA);
+
+            const trigger = document.createElement('button');
+            document.body.appendChild(trigger);
+            trigger.focus();
+            trigger.dispatchEvent(new FocusEvent('focusin', {bubbles: true}));
+
+            const onAB = stackState(1, [
+                {key: 'a', name: 'A'},
+                {key: 'b', name: 'B'},
+            ]);
+            handleStateChange(onAB);
+
+            trigger.blur();
+            handleStateChange(onA);
+
+            // Noop (e.g. setParams on the already-focused route) — pending restore must survive.
+            handleStateChange(onA);
+
+            const spy = jest.spyOn(trigger, 'focus');
+            jest.runAllTimers();
+            expect(spy).toHaveBeenCalled();
+        } finally {
+            jest.useRealTimers();
+        }
+    });
+
+    it('should cancel a queued restore when a lateral tab switch arrives before it fires', () => {
+        jest.useFakeTimers();
+        try {
+            simulateTab();
+            const onTab1 = stackState(0, [
+                {key: 'tab-1', name: 'Tab1'},
+                {key: 'tab-2', name: 'Tab2'},
+            ]);
+            handleStateChange(onTab1);
+
+            const trigger = document.createElement('button');
+            document.body.appendChild(trigger);
+            trigger.focus();
+            trigger.dispatchEvent(new FocusEvent('focusin', {bubbles: true}));
+
+            // Push a child onto tab-1 so the subsequent pop is a real backward nav.
+            const onTab1Child = stackState(0, [
+                {
+                    key: 'tab-1',
+                    name: 'Tab1',
+                    state: stackState(1, [
+                        {key: 'tab-1-root', name: 'Root'},
+                        {key: 'tab-1-child', name: 'Child'},
+                    ]),
+                },
+                {key: 'tab-2', name: 'Tab2'},
+            ]);
+            handleStateChange(onTab1Child);
+
+            trigger.blur();
+            handleStateChange(onTab1);
+
+            const onTab2 = stackState(1, [
+                {key: 'tab-1', name: 'Tab1'},
+                {key: 'tab-2', name: 'Tab2'},
+            ]);
+            handleStateChange(onTab2);
+
+            const spy = jest.spyOn(trigger, 'focus');
+            jest.runAllTimers();
+            expect(spy).not.toHaveBeenCalled();
+        } finally {
+            jest.useRealTimers();
+        }
     });
 
     it('should cancel a queued restore when a new state change arrives before it fires', () => {
