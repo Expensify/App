@@ -716,7 +716,7 @@ function WalletPage() {
                                     </View>
                                 )}
                                 {!hasAssignedCard && (
-                                    <View style={[styles.mt5, shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8]}>
+                                    <View style={[shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8]}>
                                         <MenuItem
                                             iconHeight={48}
                                             iconWidth={48}
