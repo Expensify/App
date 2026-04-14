@@ -44,11 +44,11 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type Report from '@src/types/onyx/Report';
-import getAutocompleteSelectionSubstitutionKey from './getAutocompleteSelectionSubstitutionKey';
 import type {SubstitutionMap} from './getQueryWithSubstitutions';
 import {getQueryWithSubstitutions} from './getQueryWithSubstitutions';
 import {getUpdatedSubstitutionsMap} from './getUpdatedSubstitutionsMap';
 import {getContextualReportData, getContextualSearchAutocompleteKey, getContextualSearchQuery} from './SearchRouterUtils';
+import updateAutocompleteSubstitutionsForSelection from './updateAutocompleteSubstitutionsForSelection';
 
 type SearchRouterProps = {
     onRouterClose: () => void;
@@ -279,11 +279,15 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                     onSearchQueryChange(newSearchQuery, true);
                     setSelection({start: newSearchQuery.length, end: newSearchQuery.length});
 
-                    if (item.mapKey && item.autocompleteID && fieldKey) {
-                        const substitutionKey = getAutocompleteSelectionSubstitutionKey(newSearchQuery, fieldKey, item.mapKey, item.searchQuery);
-                        const substitutions = {...autocompleteSubstitutions, [substitutionKey]: item.autocompleteID};
-                        setAutocompleteSubstitutions(substitutions);
-                    }
+                    updateAutocompleteSubstitutionsForSelection({
+                        newSearchQuery,
+                        fieldKey,
+                        mapKey: item.mapKey,
+                        searchQuery: item.searchQuery,
+                        autocompleteID: item.autocompleteID,
+                        substitutions: autocompleteSubstitutions,
+                        setAutocompleteSubstitutions,
+                    });
                     setFocusAndScrollToRight();
                 } else {
                     submitSearch(item.searchQuery, item.keyForList !== CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.FIND_ITEM);

@@ -412,6 +412,8 @@ function useAutocompleteSuggestions({
             }));
         }
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID: {
+            // Intentionally scoped to POLICY_ID for this fix: workspace names can collide while policy IDs remain unique.
+            // Other filters currently continue to use value-based exclusion.
             const workspaceList: Array<{id: string; name: string}> = [];
             for (const singlePolicy of Object.values(policies)) {
                 if (!singlePolicy || singlePolicy.isJoinRequestPending || !shouldShowPolicy(singlePolicy, false, currentUserEmail)) {
@@ -430,7 +432,7 @@ function useAutocompleteSuggestions({
                             const index = keyValueCount.get(baseKey) ?? 0;
                             keyValueCount.set(baseKey, index + 1);
                             const fullKey = getSubstitutionMapKeyWithIndex(range.key, range.value, index);
-                            return autocompleteSubstitutions[fullKey] ?? (index === 0 ? autocompleteSubstitutions[baseKey] : undefined);
+                            return autocompleteSubstitutions[fullKey] ?? autocompleteSubstitutions[baseKey];
                         })
                         .filter(Boolean),
                 );

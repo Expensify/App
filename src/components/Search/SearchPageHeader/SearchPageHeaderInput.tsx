@@ -2,7 +2,6 @@ import {useIsFocused} from '@react-navigation/native';
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import {accountIDSelector} from '@selectors/Session';
 import {deepEqual} from 'fast-equals';
-import isEmpty from 'lodash/isEmpty';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {TextInputKeyPressEvent} from 'react-native';
 import {View} from 'react-native';
@@ -14,11 +13,11 @@ import SearchInputSelectionWrapper from '@components/Search/SearchInputSelection
 import type {SearchQueryItem} from '@components/Search/SearchList/ListItem/SearchQueryListItem';
 import {isSearchQueryItem} from '@components/Search/SearchList/ListItem/SearchQueryListItem';
 import {buildSubstitutionsMap} from '@components/Search/SearchRouter/buildSubstitutionsMap';
-import getAutocompleteSelectionSubstitutionKey from '@components/Search/SearchRouter/getAutocompleteSelectionSubstitutionKey';
 import type {SubstitutionMap} from '@components/Search/SearchRouter/getQueryWithSubstitutions';
 import {getQueryWithSubstitutions} from '@components/Search/SearchRouter/getQueryWithSubstitutions';
 import {getUpdatedSubstitutionsMap} from '@components/Search/SearchRouter/getUpdatedSubstitutionsMap';
 import {useSearchRouterActions} from '@components/Search/SearchRouter/SearchRouterContext';
+import updateAutocompleteSubstitutionsForSelection from '@components/Search/SearchRouter/updateAutocompleteSubstitutionsForSelection';
 import type {SearchQueryJSON, SearchQueryString} from '@components/Search/types';
 import type {SelectionListWithSectionsHandle} from '@components/SelectionList/SelectionListWithSections/types';
 import SidePanelButton from '@components/SidePanel/SidePanelButton';
@@ -182,7 +181,7 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
             setAutocompleteQueryValue(updatedUserQuery);
 
             const updatedSubstitutionsMap = getUpdatedSubstitutionsMap(singleLineUserQuery, autocompleteSubstitutions);
-            if (!deepEqual(autocompleteSubstitutions, updatedSubstitutionsMap) && !isEmpty(updatedSubstitutionsMap)) {
+            if (!deepEqual(autocompleteSubstitutions, updatedSubstitutionsMap)) {
                 setAutocompleteSubstitutions(updatedSubstitutionsMap);
             }
         },
@@ -230,11 +229,15 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
                     onSearchQueryChange(newSearchQuery);
                     setSelection({start: newSearchQuery.length, end: newSearchQuery.length});
 
-                    if (item.mapKey && item.autocompleteID && fieldKey) {
-                        const substitutionKey = getAutocompleteSelectionSubstitutionKey(newSearchQuery, fieldKey, item.mapKey, item.searchQuery);
-                        const substitutions = {...autocompleteSubstitutions, [substitutionKey]: item.autocompleteID};
-                        setAutocompleteSubstitutions(substitutions);
-                    }
+                    updateAutocompleteSubstitutionsForSelection({
+                        newSearchQuery,
+                        fieldKey,
+                        mapKey: item.mapKey,
+                        searchQuery: item.searchQuery,
+                        autocompleteID: item.autocompleteID,
+                        substitutions: autocompleteSubstitutions,
+                        setAutocompleteSubstitutions,
+                    });
                 } else if (item.searchItemType === CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.SEARCH) {
                     submitSearch(item.searchQuery, item.keyForList !== CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.FIND_ITEM);
                 }
