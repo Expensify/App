@@ -24,7 +24,7 @@ function ShortcutsOverviewHandler() {
                     }
 
                     const activeRoute = Navigation.getActiveRoute();
-                    if (findMatchingDynamicSuffix(activeRoute) === KEYBOARD_SHORTCUTS_PATH) {
+                    if (findMatchingDynamicSuffix(activeRoute)?.actualSuffix === KEYBOARD_SHORTCUTS_PATH) {
                         return;
                     }
                     return Navigation.navigate(createDynamicRoute(KEYBOARD_SHORTCUTS_PATH));
