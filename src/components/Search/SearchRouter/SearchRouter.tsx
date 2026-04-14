@@ -48,7 +48,7 @@ import {getQueryWithSubstitutions} from './getQueryWithSubstitutions';
 import {getUpdatedSubstitutionsMap} from './getUpdatedSubstitutionsMap';
 import {getContextualReportData, getContextualSearchAutocompleteKey, getContextualSearchQuery} from './SearchRouterUtils';
 
-const privateIsArchivedSelector = (nvp: {private_isArchived?: string} | undefined): boolean | undefined => (nvp?.private_isArchived ? true : undefined);
+const privateIsArchivedSelector = (nvp: {private_isArchived?: string} | undefined): boolean | undefined => !!nvp?.private_isArchived;
 
 type SearchRouterProps = {
     onRouterClose: () => void;
