@@ -241,7 +241,7 @@ function ReportListItemHeader<TItem extends ListItem>({
             ownerBillingGracePeriodEnd,
         });
     };
-    return !isLargeScreenWidth ? (
+    return shouldUseNarrowLayout ? (
         <View style={[styles.pv1Half]}>
             <UserInfoAndActionButtonRow
                 item={reportItem}
