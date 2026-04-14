@@ -63,7 +63,6 @@ import {resolveSuggestedFollowup} from '@libs/actions/Report/SuggestedFollowup';
 import {isPersonalCardBrokenConnection} from '@libs/CardUtils';
 import {isChronosOOOListAction} from '@libs/ChronosUtils';
 import ControlSelection from '@libs/ControlSelection';
-import {convertToDisplayString} from '@libs/CurrencyUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import type {OnyxDataWithErrors} from '@libs/ErrorUtils';
 import {getLatestErrorMessageField, isReceiptError} from '@libs/ErrorUtils';
@@ -73,7 +72,6 @@ import {isReportMessageAttachment} from '@libs/isReportMessageAttachment';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportsSplitNavigatorParamList} from '@libs/Navigation/types';
-import {getBankAccountLastFourDigits} from '@libs/PaymentUtils';
 import Permissions from '@libs/Permissions';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {getCleanedTagName, isPolicyAdmin, isPolicyMember, isPolicyOwner} from '@libs/PolicyUtils';
@@ -248,6 +246,7 @@ import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type {JoinWorkspaceResolution} from '@src/types/onyx/OriginalMessage';
 import {isEmptyObject, isEmptyValueObject} from '@src/types/utils/EmptyObject';
 import ApprovalFlowContent, {isApprovalFlowAction} from './actionContents/ApprovalFlowContent';
+import PaymentContent from './actionContents/PaymentContent';
 import SimpleMessageContent, {isSimpleMessageAction} from './actionContents/SimpleMessageContent';
 import {RestrictedReadOnlyContextMenuActions} from './ContextMenu/ContextMenuActions';
 import MiniReportActionContextMenu from './ContextMenu/MiniReportActionContextMenu';
@@ -1373,49 +1372,13 @@ function PureReportActionItem({
                 />
             );
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.IOU) && getOriginalMessage(action)?.type === CONST.IOU.REPORT_ACTION_TYPE.PAY) {
-            const wasAutoPaid = getOriginalMessage(action)?.automaticAction ?? false;
-            const paymentType = getOriginalMessage(action)?.paymentType;
-
-            if (paymentType === CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
-                children = <ReportActionItemBasicMessage message={translate('iou.paidElsewhere')} />;
-            } else if (paymentType === CONST.IOU.PAYMENT_TYPE.VBBA) {
-                const originalMessage = getOriginalMessage(action);
-                const last4Digits = getBankAccountLastFourDigits(originalMessage?.bankAccountID, bankAccountList, policy);
-                if (wasAutoPaid) {
-                    const translation = translate('iou.automaticallyPaidWithBusinessBankAccount', '', last4Digits);
-
-                    children = (
-                        <ReportActionItemBasicMessage>
-                            <RenderHTML html={`<comment><muted-text>${translation}</muted-text></comment>`} />
-                        </ReportActionItemBasicMessage>
-                    );
-                } else {
-                    children = <ReportActionItemBasicMessage message={translate('iou.businessBankAccount', '', last4Digits)} />;
-                }
-            } else if (wasAutoPaid) {
-                children = (
-                    <ReportActionItemBasicMessage>
-                        <RenderHTML html={`<comment><muted-text>${translate('iou.automaticallyPaidWithExpensify')}</muted-text></comment>`} />
-                    </ReportActionItemBasicMessage>
-                );
-            } else {
-                const originalMessage = getOriginalMessage(action);
-                const amount = convertToDisplayString(Math.abs(originalMessage?.amount ?? 0), originalMessage?.currency);
-                if (originalMessage?.bankAccountID) {
-                    const bankAccount = bankAccountList?.[originalMessage.bankAccountID];
-                    children = (
-                        <ReportActionItemBasicMessage
-                            message={translate(
-                                originalMessage?.payAsBusiness ? 'iou.settleInvoiceBusiness' : 'iou.settleInvoicePersonal',
-                                amount,
-                                bankAccount?.accountData?.accountNumber?.slice(-4) ?? '',
-                            )}
-                        />
-                    );
-                } else {
-                    children = <ReportActionItemBasicMessage message={translate('iou.paidWithExpensify')} />;
-                }
-            }
+            children = (
+                <PaymentContent
+                    action={action}
+                    bankAccountList={bankAccountList}
+                    policy={policy}
+                />
+            );
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.REIMBURSED)) {
             children = <ReportActionItemBasicMessage message={getReimbursedMessage(translate, action, report, currentUserAccountID)} />;
         } else if (isSimpleMessageAction(action)) {
