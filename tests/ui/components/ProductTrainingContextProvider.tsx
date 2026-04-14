@@ -2,7 +2,7 @@ import {render, renderHook} from '@testing-library/react-native';
 import {createRef, useImperativeHandle} from 'react';
 import type {Ref} from 'react';
 import Onyx from 'react-native-onyx';
-import {ProductTrainingContextProvider, useProductTrainingContext} from '@components/ProductTrainingContext';
+import {ImmediateProductTrainingContextProvider as ProductTrainingContextProvider, useProductTrainingContext} from '@components/ProductTrainingContext';
 import type {ProductTrainingTooltipName} from '@components/ProductTrainingContext/TOOLTIPS';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import DateUtils from '@libs/DateUtils';

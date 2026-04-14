@@ -47,11 +47,13 @@ type ProductTrainingContextConfig = {
     onShown?: () => void;
 };
 
-const ProductTrainingContext = createContext<ProductTrainingContextType>({
+const defaultProductTrainingContext: ProductTrainingContextType = {
     shouldRenderTooltip: () => false,
     registerTooltip: () => {},
     unregisterTooltip: () => {},
-});
+};
+
+const ProductTrainingContext = createContext<ProductTrainingContextType>(defaultProductTrainingContext);
 
 function ProductTrainingContextProvider({children}: ChildrenProps) {
     const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP);
@@ -369,4 +371,23 @@ const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shou
     };
 };
 
-export {ProductTrainingContextProvider, useProductTrainingContext};
+/**
+ * Deferred wrapper that skips the heavy Onyx subscriptions and policy iteration
+ * on the first render. Tooltips are never visible during the splash screen, so
+ * providing the default no-op context for the first frame is safe.
+ */
+function DeferredProductTrainingContextProvider({children}: ChildrenProps) {
+    const [isReady, setIsReady] = useState(false);
+
+    useEffect(() => {
+        requestAnimationFrame(() => setIsReady(true));
+    }, []);
+
+    if (isReady) {
+        return <ProductTrainingContextProvider>{children}</ProductTrainingContextProvider>;
+    }
+
+    return <ProductTrainingContext.Provider value={defaultProductTrainingContext}>{children}</ProductTrainingContext.Provider>;
+}
+
+export {DeferredProductTrainingContextProvider as ProductTrainingContextProvider, ProductTrainingContextProvider as ImmediateProductTrainingContextProvider, useProductTrainingContext};
