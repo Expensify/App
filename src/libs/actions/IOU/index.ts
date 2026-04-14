@@ -10,9 +10,8 @@ import type {ValueOf} from 'type-fest';
 import ReceiptGeneric from '@assets/images/receipt-generic.png';
 import type {SearchQueryJSON} from '@components/Search/types';
 import * as API from '@libs/API';
-import type {AddReportApproverParams, AssignReportToMeParams, CreateDistanceRequestParams, UpdateMoneyRequestParams} from '@libs/API/parameters';
+import type {CreateDistanceRequestParams, UpdateMoneyRequestParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
-import {convertToBackendAmount, getCurrencyDecimals} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import {registerDeferredWrite} from '@libs/deferredLayoutWrite';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
@@ -41,7 +40,6 @@ import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
 import {getDistanceRateCustomUnit, hasDependentTags, isPaidGroupPolicy} from '@libs/PolicyUtils';
 import {
     getAllReportActions,
-    getIOUActionForTransactionID,
     getOriginalMessage,
     getReportActionHtml,
     getReportActionText,
@@ -51,7 +49,6 @@ import {
 import type {OptimisticChatReport, OptimisticCreatedReportAction, OptimisticIOUReportAction, TransactionDetails} from '@libs/ReportUtils';
 import {
     buildOptimisticAddCommentReportAction,
-    buildOptimisticChangeApproverReportAction,
     buildOptimisticChatReport,
     buildOptimisticCreatedReportAction,
     buildOptimisticCreatedReportForUnapprovedAction,
@@ -61,8 +58,6 @@ import {
     buildOptimisticModifiedExpenseReportAction,
     buildOptimisticMoneyRequestEntities,
     buildOptimisticReportPreview,
-    canEditFieldOfMoneyRequest,
-    findSelfDMReportID,
     generateReportID,
     getChatByParticipants,
     getOutstandingChildRequest,
@@ -99,13 +94,11 @@ import {getSpan, startSpan} from '@libs/telemetry/activeSpans';
 import {endSubmitFollowUpActionSpan, setPendingSubmitFollowUpAction} from '@libs/telemetry/submitFollowUpAction';
 import {
     buildOptimisticTransaction,
-    calculateTaxAmount,
     getAmount,
     getCategoryTaxCodeAndAmount,
     getClearedPendingFields,
     getCurrency,
     getDistanceInMeters,
-    getTaxValue,
     getUpdatedTransaction,
     isDistanceRequest as isDistanceRequestTransactionUtils,
     isFetchingWaypointsFromServer,
@@ -119,7 +112,7 @@ import {
 } from '@libs/TransactionUtils';
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
 import {buildOptimisticPolicyRecentlyUsedTags} from '@userActions/Policy/Tag';
-import {createTransactionThreadReport, notifyNewAction} from '@userActions/Report';
+import {notifyNewAction} from '@userActions/Report';
 import {mergeTransactionIdsHighlightOnSearchRoute, sanitizeWaypointsForAPI, stringifyWaypointsForAPI} from '@userActions/Transaction';
 import {getRemoveDraftTransactionsByIDsData, removeDraftTransaction, removeDraftTransactionsByIDs} from '@userActions/TransactionEdit';
 import type {IOUAction, IOUActionParams, OdometerImageType} from '@src/CONST';
