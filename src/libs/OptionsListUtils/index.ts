@@ -440,6 +440,7 @@ type GetAlternateTextConfig = {
     translate?: LocalizedTranslate;
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'];
     policyTags?: OnyxEntry<PolicyTagLists>;
+    conciergeReportID: string | undefined;
 };
 
 /**
@@ -448,7 +449,7 @@ type GetAlternateTextConfig = {
 function getAlternateText(
     option: OptionData,
     {showChatPreviewLine = false, forcePolicyNamePreview = false}: PreviewConfig,
-    {isReportArchived, policy, lastActorDetails = {}, visibleReportActionsData = {}, translate, reportAttributesDerived, policyTags}: GetAlternateTextConfig,
+    {isReportArchived, policy, lastActorDetails = {}, visibleReportActionsData = {}, translate, reportAttributesDerived, policyTags, conciergeReportID}: GetAlternateTextConfig,
 ) {
     const report = getReportOrDraftReport(option.reportID);
     const isAdminRoom = reportUtilsIsAdminRoom(report);
@@ -468,6 +469,7 @@ function getAlternateText(
             visibleReportActionsDataParam: visibleReportActionsData,
             reportAttributesDerived,
             policyTags,
+            conciergeReportID,
         });
     const reportPrefix = getReportSubtitlePrefix(report);
     const formattedLastMessageTextWithPrefix = reportPrefix + formattedLastMessageText;
@@ -1115,6 +1117,7 @@ function createOption({
                           translate: translateFn,
                           reportAttributesDerived,
                           policyTags,
+                          conciergeReportID,
                       },
                   );
 
@@ -2277,6 +2280,7 @@ function prepareReportOptionsForDisplay(
     policiesCollection: OnyxCollection<Policy>,
     currentUserAccountID: number,
     config: GetValidReportsConfig,
+    conciergeReportID: string | undefined,
     visibleReportActionsData: VisibleReportActionsDerivedValue = {},
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'],
     // eslint-disable-next-line @typescript-eslint/no-deprecated
@@ -2324,6 +2328,7 @@ function prepareReportOptionsForDisplay(
                 visibleReportActionsData,
                 reportAttributesDerived,
                 policyTags: reportPolicyTags,
+                conciergeReportID,
             },
         );
         const isSelected = isReportSelected(option, selectedOptions);
@@ -2446,6 +2451,7 @@ function getValidOptions(
     loginList: OnyxEntry<Login>,
     currentUserAccountID: number,
     currentUserEmail: string,
+    conciergeReportID: string | undefined,
     {
         excludeLogins = {},
         excludeFromSuggestionsOnly = {},
@@ -2572,6 +2578,7 @@ function getValidOptions(
                     shouldShowGBR,
                     personalDetails,
                 },
+                conciergeReportID,
                 visibleReportActionsData,
                 reportAttributesDerived,
                 sortedActions,
@@ -2595,6 +2602,7 @@ function getValidOptions(
                 shouldShowGBR,
                 personalDetails,
             },
+            conciergeReportID,
             visibleReportActionsData,
             reportAttributesDerived,
             sortedActions,
@@ -2614,6 +2622,7 @@ function getValidOptions(
                 shouldShowGBR,
                 personalDetails,
             },
+            conciergeReportID,
             visibleReportActionsData,
             reportAttributesDerived,
             sortedActions,
@@ -2777,7 +2786,8 @@ function getSearchOptions({
     personalDetails,
     allPolicyTags,
 }: SearchOptionsConfig): Options {
-    const optionList = getValidOptions(options, policyCollection, draftComments, nvpDismissedProductTraining, loginList, currentUserAccountID, currentUserEmail, {
+    // TODO: We'll pass the conciergeReportID eventually. Refactor issue: https://github.com/Expensify/App/issues/66411
+    const optionList = getValidOptions(options, policyCollection, draftComments, nvpDismissedProductTraining, loginList, currentUserAccountID, currentUserEmail, undefined, {
         betas,
         includeRecentReports,
         includeMultipleParticipantReports: true,

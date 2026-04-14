@@ -71,6 +71,9 @@ type OptionRowLHNDataProps = {
     /** The derived report attributes for all reports */
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'];
 
+    /** The concierge report ID, hoisted from list level to avoid per-item subscription */
+    conciergeReportID: OnyxEntry<string>;
+
     /** TestID of the row, indicating order */
     testID: number;
 };
