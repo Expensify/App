@@ -134,7 +134,7 @@ describe('ContactMethodDetailsPage', () => {
 
     it('calls Navigation.goBack when contact method becomes validated and screen is focused', async () => {
         Onyx.merge(ONYXKEYS.SESSION, {email: fakeEmail});
-        Onyx.merge(ONYXKEYS.RAM_ONLY_IS_LOADING_REPORT_DATA, false);
+        Onyx.merge(ONYXKEYS.IS_LOADING_REPORT_DATA, false);
         Onyx.merge(ONYXKEYS.LOGIN_LIST, {
             [fakeEmail]: {
                 partnerName: 'expensify.com',

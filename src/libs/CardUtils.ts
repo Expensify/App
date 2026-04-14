@@ -164,6 +164,9 @@ function getCardDescription(card: Card | undefined, translate: LocalizedTranslat
     if (!card) {
         return '';
     }
+    if (isTravelCard(card)) {
+        return translate('cardTransactions.centralInvoicing');
+    }
     const isCSVCard = card.bank === CONST.COMPANY_CARD.FEED_BANK_NAME.UPLOAD || card.bank?.includes(CONST.COMPANY_CARD.FEED_BANK_NAME.CSV);
     if (isCSVCard) {
         return card.nameValuePairs?.cardTitle ?? card.cardName ?? '';
@@ -180,9 +183,9 @@ function getCardDescription(card: Card | undefined, translate: LocalizedTranslat
  * @param displayName
  * @returns string in format %<defaultOrCustomCardName> • <lastFourPAN>%.
  */
-function getCardDescriptionForSearchTable(card?: Card, displayName?: string) {
-    if (!card) {
-        return '';
+function getCardDescriptionForSearchTable(card: Card, translate: LocalizedTranslate, displayName?: string) {
+    if (isTravelCard(card)) {
+        return translate('cardTransactions.centralInvoicing');
     }
     const isCSVCard = card.bank === CONST.COMPANY_CARD.FEED_BANK_NAME.UPLOAD || card.bank?.includes(CONST.COMPANY_CARD.FEED_BANK_NAME.CSV);
     if (isCSVCard) {
@@ -620,6 +623,10 @@ function getCompanyFeeds(cardFeeds: OnyxEntry<CombinedCardFeeds>, shouldFilterOu
     );
 }
 
+function hasCompanyCardFeeds(cardFeeds: OnyxEntry<CombinedCardFeeds>): boolean {
+    return Object.keys(getCompanyFeeds(cardFeeds, true, true)).length > 0;
+}
+
 function getBankName(feedType: CardFeedWithNumber | CardFeedWithDomainID): string {
     const cacheKey = feedType ?? '';
     const cached = getBankNameCache.get(cacheKey);
@@ -685,9 +692,14 @@ function getCustomOrFormattedFeedName(
 /**
  * Check if a card feed exists in the card feeds collection.
  */
-function doesCardFeedExist(feed: CompanyCardFeed | undefined, cardFeeds: OnyxCollection<CardFeeds> | undefined): boolean {
+function doesCardFeedExist(feed: CardFeed | undefined, cardFeeds: OnyxCollection<CardFeeds> | undefined): boolean {
     if (!feed || !cardFeeds) {
         return false;
+    }
+
+    // Expensify Cards are a native card product, not a third-party feed that can be disconnected
+    if (feed === CONST.EXPENSIFY_CARD.BANK) {
+        return true;
     }
 
     for (const feedData of Object.values(cardFeeds)) {
@@ -968,12 +980,18 @@ function getCardAssignmentStartDate(isEditing: boolean | undefined, existingStar
     return isEditing ? (existingStartDate ?? format(new Date(), CONST.DATE.FNS_FORMAT_STRING)) : format(new Date(), CONST.DATE.FNS_FORMAT_STRING);
 }
 
-function checkIfNewFeedConnected(prevFeedsData: CompanyFeeds, currentFeedsData: CompanyFeeds, plaidBank?: string) {
+function checkIfNewFeedConnected(prevFeedsData: CombinedCardFeeds, currentFeedsData: CombinedCardFeeds, plaidBank?: string) {
     const prevFeeds = Object.keys(prevFeedsData);
     const currentFeeds = Object.keys(currentFeedsData);
 
+    const plaidBankFound =
+        plaidBank &&
+        currentFeeds.find((feed) => {
+            return splitCardFeedWithDomainID(feed as CompanyCardFeedWithDomainID)?.feedName === `${CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID}.${plaidBank}`;
+        });
+
     return {
-        isNewFeedConnected: currentFeeds.length > prevFeeds.length || (plaidBank && currentFeeds.includes(`${CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID}.${plaidBank}`)),
+        isNewFeedConnected: currentFeeds.length > prevFeeds.length || plaidBankFound,
         newFeed: currentFeeds.find((feed) => !prevFeeds.includes(feed)) as CompanyCardFeedWithDomainID | undefined,
     };
 }
@@ -1106,6 +1124,9 @@ function flattenWorkspaceCardsList(allCardsList: OnyxCollection<WorkspaceCardsLi
  * @returns true if the card has a broken connection, false otherwise
  */
 function isCardConnectionBroken(card: Card): boolean {
+    if (card.pendingFields?.lastScrape) {
+        return false;
+    }
     return !!card.lastScrapeResult && !CONST.COMPANY_CARDS.BROKEN_CONNECTION_IGNORED_STATUSES.includes(card.lastScrapeResult);
 }
 
@@ -1519,6 +1540,36 @@ function getCardCurrency(card?: OnyxEntry<Card>, cardSettings?: OnyxEntry<Expens
     return CONST.CURRENCY.USD;
 }
 
+/**
+ * Returns the shared currency for the selected cards when they all match. Returns undefined otherwise.
+ */
+function getSelectedCardsSharedCurrency(cardIDs: string[] | undefined, cardsList: OnyxEntry<WorkspaceCardsList>): string | undefined {
+    if (!cardIDs?.length) {
+        return undefined;
+    }
+
+    const cardsRecord = cardsList ?? {};
+    const currencies = new Set<string>();
+
+    for (const cardID of cardIDs) {
+        const card = cardsRecord[cardID];
+        if (!card) {
+            continue;
+        }
+
+        const currency = card.nameValuePairs?.currency;
+        if (currency) {
+            currencies.add(currency);
+        }
+    }
+
+    if (currencies.size !== 1) {
+        return undefined;
+    }
+
+    return Array.from(currencies).at(0);
+}
+
 function getCardHintText(validFrom: string | undefined, validThru: string | undefined, assigneeTimeZone: SelectedTimezone | undefined, translate: LocalizedTranslate) {
     if (!validFrom || !validThru) {
         return;
@@ -1596,6 +1647,7 @@ export {
     isSelectedFeedExpired,
     isTravelCard,
     getCompanyFeeds,
+    hasCompanyCardFeeds,
     isPersonalCardBrokenConnection,
     isCustomFeed,
     isCSVFeedOrExpensifyCard,
@@ -1670,6 +1722,7 @@ export {
     getDisplayableExpensifyCards,
     isExpiredCard,
     getCardCurrency,
+    getSelectedCardsSharedCurrency,
     getCardHintText,
     resolveTransactionCardFields,
 };
