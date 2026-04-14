@@ -1,7 +1,6 @@
 ---
 name: agent-device-app-testing
 description: Test the Expensify App on Android/iOS emulators using agent-device. Use only when user explicitly requests mobile device testing.
-alwaysApply: false
 ---
 
 # Mobile App Testing with agent-device
@@ -29,17 +28,15 @@ Android testing requires the Android SDK + an AVD. iOS requires Xcode + a simula
 
 ## Building and Installing
 
-**Local build** (builds and installs in one step):
+The project uses [Rock](https://rockjs.dev/) which downloads pre-built artifacts from S3 first, falling back to local compilation if no match. Metro must be running in a separate terminal.
 
 ```bash
-# Android
-npx react-native run-android --mode developmentDebug
-
-# iOS
-npx react-native run-ios --mode Development-Debug --simulator "iPhone 16 Pro"
+npm install
+npm run start          # metro - separate terminal
+npm run android        # or: npm run ios
 ```
 
-If you have a pre-built APK/IPA (from CI, Rock cache, etc.), use `agent-device reinstall` with the package name above.
+Full setup details: [SETUP_ANDROID.md](contributingGuides/SETUP_ANDROID.md) | [SETUP_IOS.md](contributingGuides/SETUP_IOS.md)
 
 ## Dev Environment Sign-In
 
