@@ -1,3 +1,4 @@
+import {hasSeenTourSelector} from '@selectors/Onboarding';
 import React from 'react';
 import type {GestureResponderEvent} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -37,6 +38,7 @@ function ReportActionItemMessageWithExplain({message, action, childReport, origi
     const personalDetail = useCurrentUserPersonalDetails();
     const {environmentURL} = useEnvironment();
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [betas] = useOnyx(ONYXKEYS.BETAS);
 
     const actionHasReasoning = hasReasoning(action);
@@ -45,7 +47,7 @@ function ReportActionItemMessageWithExplain({message, action, childReport, origi
     const handleLinkPress = (event: GestureResponderEvent | KeyboardEvent, href: string) => {
         // Handle the special "Explain" link
         if (href.endsWith(CONST.CONCIERGE_EXPLAIN_LINK_PATH)) {
-            explain(childReport, originalReport, action, translate, personalDetail.accountID, introSelected, betas, personalDetail?.timezone);
+            explain(childReport, originalReport, action, translate, personalDetail.accountID, introSelected, betas, personalDetail?.timezone, isSelfTourViewed);
             return;
         }
 

@@ -1,3 +1,4 @@
+import {hasSeenTourSelector} from '@selectors/Onboarding';
 import React from 'react';
 import type {GestureResponderEvent} from 'react-native';
 import {View} from 'react-native';
@@ -58,6 +59,7 @@ function ReportActionItemThread({
     const {translate, datetimeToCalendarTime} = useLocalize();
     const [childReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportAction.childReportID}`);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [betas] = useOnyx(ONYXKEYS.BETAS);
 
     const numberOfRepliesText = numberOfReplies > CONST.MAX_THREAD_REPLIES_PREVIEW ? `${CONST.MAX_THREAD_REPLIES_PREVIEW}+` : `${numberOfReplies}`;
@@ -69,7 +71,7 @@ function ReportActionItemThread({
         <View style={[styles.chatItemMessage]}>
             <PressableWithSecondaryInteraction
                 onPress={() => {
-                    navigateToAndOpenChildReport(childReport, reportAction, report, currentUserAccountID, introSelected, betas);
+                    navigateToAndOpenChildReport(childReport, reportAction, report, currentUserAccountID, introSelected, betas, isSelfTourViewed);
                 }}
                 role={CONST.ROLE.BUTTON}
                 accessibilityLabel={`${numberOfReplies} ${replyText}`}
