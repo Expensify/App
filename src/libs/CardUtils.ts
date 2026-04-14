@@ -202,12 +202,14 @@ function getCardDescriptionForSearchTable(card: Card, translate: LocalizedTransl
  * @returns company card name
  */
 function getCompanyCardDescription(transactionCardName?: string, cardID?: number, cards?: CardList) {
-    if (!cardID || !cards?.[cardID] || isExpensifyCard(cards[cardID])) {
-        return transactionCardName;
-    }
-    const card = cards[cardID];
+    const useTransactionCardName = !cardID || !cards?.[cardID] || isExpensifyCard(cards[cardID]);
+    const cardName = useTransactionCardName ? transactionCardName : cards[cardID].cardName;
 
-    return card.cardName;
+    if (cardName === CONST.EXPENSE.TYPE.CASH_CARD_NAME) {
+        return '';
+    }
+
+    return cardName;
 }
 
 function isCard(item: Card | Record<string, string>): item is Card {
