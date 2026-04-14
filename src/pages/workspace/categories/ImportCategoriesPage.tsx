@@ -25,7 +25,7 @@ function ImportCategoriesPage({route}: ImportCategoriesPageProps) {
     const backTo = isQuickSettingsFlow && 'backTo' in route.params ? route.params.backTo : undefined;
 
     const workspaceCategoriesListBackPath = useDynamicBackPath(DYNAMIC_ROUTES.WORKSPACE_CATEGORIES_IMPORT.path);
-    const workspaceGoToImportedPath = createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CATEGORIES_IMPORTED.path, workspaceCategoriesListBackPath);
+    const workspaceGoToImportedPath = createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CATEGORIES_IMPORTED.path, ROUTES.WORKSPACE_CATEGORIES.getRoute(policyID));
 
     if (hasAccountingConnections) {
         return <NotFoundPage />;
