@@ -50,6 +50,7 @@ import type {FileObject} from '@src/types/utils/Attachment';
 import captureReceipt from './captureReceipt';
 import NavigationAwareCamera from './components/NavigationAwareCamera/Camera';
 import ReceiptPreviews from './components/ReceiptPreviews';
+import getCameraAspectRatio from './getCameraAspectRatio';
 import useMobileReceiptScan from './hooks/useMobileReceiptScan';
 import useReceiptScan from './hooks/useReceiptScan';
 import type IOURequestStepScanProps from './types';
@@ -112,8 +113,9 @@ function IOURequestStepScan({
         {photoResolution: {width: CONST.RECEIPT_CAMERA.PHOTO_WIDTH, height: CONST.RECEIPT_CAMERA.PHOTO_HEIGHT}},
         {videoResolution: {width: windowHeight, height: windowWidth}},
     ]);
+
     // Format dimensions are in landscape orientation, so height/width gives portrait aspect ratio
-    const cameraAspectRatio = format ? format.photoHeight / format.photoWidth : undefined;
+    const cameraAspectRatio = getCameraAspectRatio(format, isInLandscapeMode);
     const fps = useMemo(() => (format ? Math.min(Math.max(30, format.minFps), format.maxFps) : 30), [format]);
 
     const navigateBack = () => {
@@ -316,7 +318,7 @@ function IOURequestStepScan({
 
         const path = getReceiptsUploadFolderPath();
 
-        captureReceipt(camera.current, {flash, hasFlash, isPlatformMuted, path})
+        captureReceipt(camera.current, {flash, hasFlash, isPlatformMuted, path, isInLandscapeMode})
             .then((photo: PhotoFile) => {
                 setDidCapturePhoto(true);
 
@@ -435,7 +437,7 @@ function IOURequestStepScan({
                         {cameraPermissionStatus === RESULTS.GRANTED && device != null && (
                             <View style={[styles.cameraView, styles.alignItemsCenter]}>
                                 <GestureDetector gesture={tapGesture}>
-                                    <View style={StyleUtils.getCameraViewfinderStyle(cameraAspectRatio)}>
+                                    <View style={StyleUtils.getCameraViewfinderStyle(cameraAspectRatio, isInLandscapeMode)}>
                                         <NavigationAwareCamera
                                             ref={camera}
                                             device={device}
