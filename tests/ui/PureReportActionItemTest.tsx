@@ -957,14 +957,20 @@ describe('PureReportActionItem', () => {
             // Given a RECEIPT_SCAN_FAILED message with a html message from server.
             // Then verify server message is rendered.
             const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.RECEIPT_SCAN_FAILED, {});
-            action.message = [{type: 'COMMENT', html: "the date couldn't be read from this receipt. Please enter it manually.", text: "the date couldn't be read from this receipt. Please enter it manually."}];
+            action.message = [
+                {
+                    type: 'COMMENT',
+                    html: "the date couldn't be read from this receipt. Please enter it manually.",
+                    text: "the date couldn't be read from this receipt. Please enter it manually.",
+                },
+            ];
             renderItemWithAction(action);
             await waitForBatchedUpdatesWithAct();
             expect(screen.getByText("the date couldn't be read from this receipt. Please enter it manually.")).toBeOnTheScreen();
 
             // Given an RECEIPT_SCAN_FAILED with no server side message
             // Then verify generic translation phrase is rendered
-            action.message = [{type: 'COMMENT', html: "", text: ""}];
+            action.message = [{type: 'COMMENT', html: '', text: ''}];
             renderItemWithAction(action);
             await waitForBatchedUpdatesWithAct();
             expect(screen.getByText(translateLocal('iou.receiptScanningFailed'))).toBeOnTheScreen();
