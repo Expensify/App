@@ -9,6 +9,7 @@ import type {PlatformStackNavigationOptions} from '@libs/Navigation/PlatformStac
 import type {
     AddPersonalBankAccountNavigatorParamList,
     AddUnreportedExpensesParamList,
+    ChronosScheduleOOONavigatorParamList,
     DebugParamList,
     EditRequestNavigatorParamList,
     EnablePaymentsNavigatorParamList,
@@ -303,6 +304,10 @@ const ReportDescriptionModalStackNavigator = createModalStackNavigator<ReportDes
     [SCREENS.REPORT_DESCRIPTION_ROOT]: () => require<ReactComponentModule>('../../../../pages/ReportDescriptionPage').default,
 });
 
+const ChronosScheduleOOOModalStackNavigator = createModalStackNavigator<ChronosScheduleOOONavigatorParamList>({
+    [SCREENS.CHRONOS_SCHEDULE_OOO_ROOT]: () => require<ReactComponentModule>('../../../../pages/ChronosScheduleOOOPage').default,
+});
+
 const CategoriesModalStackNavigator = createModalStackNavigator({
     [SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORIES_SETTINGS]: () => require<ReactComponentModule>('../../../../pages/workspace/categories/WorkspaceCategoriesSettingsPage').default,
     [SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORY_CREATE]: () => require<ReactComponentModule>('../../../../pages/workspace/categories/CreateCategoryPage').default,
@@ -372,6 +377,7 @@ const NewTaskModalStackNavigator = createModalStackNavigator<NewTaskNavigatorPar
 
 const NewTeachersUniteNavigator = createModalStackNavigator<TeachersUniteNavigatorParamList>({
     [SCREENS.SAVE_THE_WORLD.ROOT]: () => require<ReactComponentModule>('../../../../pages/TeachersUnite/SaveTheWorldPage').default,
+    [SCREENS.SAVE_THE_WORLD.ADD_PAYMENT_CARD]: () => require<ReactComponentModule>('../../../../pages/settings/Subscription/PaymentCard').default,
     [SCREENS.I_KNOW_A_TEACHER]: () => require<ReactComponentModule>('../../../../pages/TeachersUnite/KnowATeacherPage').default,
     [SCREENS.INTRO_SCHOOL_PRINCIPAL]: () => require<ReactComponentModule>('../../../../pages/TeachersUnite/ImTeacherPage').default,
     [SCREENS.I_AM_A_TEACHER]: () => require<ReactComponentModule>('../../../../pages/TeachersUnite/ImTeacherPage').default,
@@ -419,7 +425,7 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.SETTINGS.WALLET.REPORT_VIRTUAL_CARD_FRAUD_CONFIRMATION]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/ReportVirtualCardFraudConfirmationPage').default,
     [SCREENS.SETTINGS.WALLET.CARD_ACTIVATE]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/ActivatePhysicalCardPage').default,
     [SCREENS.SETTINGS.WALLET.CARD_CHANGE_PIN]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/ExpensifyCardPage/ChangePINPage').default,
-    [SCREENS.SETTINGS.WALLET.CARD_CHANGE_PIN_ATM]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/ExpensifyCardPage/ChangePINATMPage').default,
+    [SCREENS.SETTINGS.WALLET.CARD_CHANGE_PIN_ATM]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/ExpensifyCardPage/ChangePINAtATMPage').default,
     [SCREENS.SETTINGS.WALLET.TRANSFER_BALANCE]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/TransferBalancePage').default,
     [SCREENS.SETTINGS.WALLET.CHOOSE_TRANSFER_ACCOUNT]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/ChooseTransferAccountPage').default,
     [SCREENS.SETTINGS.WALLET.IMPORT_TRANSACTIONS]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/ImportTransactionsPage').default,
@@ -616,6 +622,8 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
         require<ReactComponentModule>('../../../../pages/workspace/accounting/qbd/advanced/QuickbooksDesktopAutoSyncPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_DESKTOP_ACCOUNTING_METHOD]: () =>
         require<ReactComponentModule>('../../../../pages/workspace/accounting/qbd/advanced/QuickbooksDesktopAccountingMethodPage').default,
+    [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_DESKTOP_REUSE_EXISTING_CONNECTIONS]: () =>
+        require<ReactComponentModule>('../../../../pages/workspace/accounting/qbd/QuickbooksDesktopExistingConnectionsPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_DESKTOP_SETUP_MODAL]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/qbd/QuickBooksDesktopSetupPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_DESKTOP_SETUP_REQUIRED_DEVICE_MODAL]: () =>
         require<ReactComponentModule>('../../../../pages/workspace/accounting/qbd/RequireQuickBooksDesktopPage').default,
@@ -676,7 +684,7 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_XERO_EXPORT_BANK_ACCOUNT_SELECT]: () =>
         require<ReactComponentModule>('../../../../pages/workspace/accounting/xero/export/DynamicXeroBankAccountSelectPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.XERO_ADVANCED]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/xero/advanced/XeroAdvancedPage').default,
-    [SCREENS.WORKSPACE.ACCOUNTING.XERO_AUTO_SYNC]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/xero/advanced/XeroAutoSyncPage').default,
+    [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_XERO_AUTO_SYNC]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/xero/advanced/DynamicXeroAutoSyncPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_XERO_ACCOUNTING_METHOD]: () =>
         require<ReactComponentModule>('../../../../pages/workspace/accounting/xero/advanced/DynamicXeroAccountingMethodPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_XERO_BILL_STATUS_SELECTOR]: () =>
@@ -771,9 +779,10 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_SAGE_INTACCT_NON_REIMBURSABLE_CREDIT_CARD_ACCOUNT]: () =>
         require<ReactComponentModule>('../../../../pages/workspace/accounting/intacct/export/DynamicSageIntacctNonReimbursableCreditCardAccountPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_ADVANCED]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/intacct/advanced/SageIntacctAdvancedPage').default,
-    [SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_AUTO_SYNC]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/intacct/advanced/SageIntacctAutoSyncPage').default,
-    [SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_ACCOUNTING_METHOD]: () =>
-        require<ReactComponentModule>('../../../../pages/workspace/accounting/intacct/advanced/SageIntacctAccountingMethodPage').default,
+    [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_SAGE_INTACCT_AUTO_SYNC]: () =>
+        require<ReactComponentModule>('../../../../pages/workspace/accounting/intacct/advanced/SageIntacctAutoSyncPage').default,
+    [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_SAGE_INTACCT_ACCOUNTING_METHOD]: () =>
+        require<ReactComponentModule>('../../../../pages/workspace/accounting/intacct/advanced/DynamicSageIntacctAccountingMethodPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_PAYMENT_ACCOUNT]: () =>
         require<ReactComponentModule>('../../../../pages/workspace/accounting/intacct/advanced/SageIntacctPaymentAccountPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.CARD_RECONCILIATION]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/reconciliation/CardReconciliationPage').default,
@@ -781,8 +790,8 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
         require<ReactComponentModule>('../../../../pages/workspace/accounting/reconciliation/CardReconciliationQuickbooksDesktopAutoSyncPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.CARD_RECONCILIATION_SAGE_INTACCT_AUTO_SYNC]: () =>
         require<ReactComponentModule>('../../../../pages/workspace/accounting/reconciliation/CardReconciliationSageIntacctAutoSyncPage').default,
-    [SCREENS.WORKSPACE.ACCOUNTING.RECONCILIATION_ACCOUNT_SETTINGS]: () =>
-        require<ReactComponentModule>('../../../../pages/workspace/accounting/reconciliation/ReconciliationAccountSettingsPage').default,
+    [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_RECONCILIATION_ACCOUNT_SETTINGS]: () =>
+        require<ReactComponentModule>('../../../../pages/workspace/accounting/reconciliation/DynamicReconciliationAccountSettingsPage').default,
     [SCREENS.WORKSPACE.WORKFLOWS_AUTO_REPORTING_FREQUENCY]: () => require<ReactComponentModule>('../../../../pages/workspace/workflows/WorkspaceAutoReportingFrequencyPage').default,
     [SCREENS.WORKSPACE.WORKFLOWS_AUTO_REPORTING_MONTHLY_OFFSET]: () => require<ReactComponentModule>('../../../../pages/workspace/workflows/WorkspaceAutoReportingMonthlyOffsetPage').default,
     [SCREENS.WORKSPACE.TAX_EDIT]: () => require<ReactComponentModule>('../../../../pages/workspace/taxes/WorkspaceEditTaxPage').default,
@@ -891,6 +900,13 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.WORKSPACE.RULES_CUSTOM]: () => require<ReactComponentModule>('../../../../pages/workspace/rules/RulesCustomPage').default,
     [SCREENS.WORKSPACE.RULES_PROHIBITED_DEFAULT]: () => require<ReactComponentModule>('../../../../pages/workspace/rules/RulesProhibitedDefaultPage').default,
     [SCREENS.WORKSPACE.RULES_MERCHANT_NEW]: () => require<ReactComponentModule>('../../../../pages/workspace/rules/MerchantRules/AddMerchantRulePage').default,
+    [SCREENS.WORKSPACE.RULES_SPEND_NEW]: () => require<ReactComponentModule>('../../../../pages/workspace/rules/SpendRules/AddSpendRulePage').default,
+    [SCREENS.WORKSPACE.RULES_SPEND_EDIT]: () => require<ReactComponentModule>('../../../../pages/workspace/rules/SpendRules/EditSpendRulePage').default,
+    [SCREENS.WORKSPACE.RULES_SPEND_CARD]: () => require<ReactComponentModule>('../../../../pages/workspace/rules/SpendRules/SpendRuleCardPage').default,
+    [SCREENS.WORKSPACE.RULES_SPEND_CATEGORY]: () => require<ReactComponentModule>('../../../../pages/workspace/rules/SpendRules/SpendRuleCategoryPage').default,
+    [SCREENS.WORKSPACE.RULES_SPEND_MAX_AMOUNT]: () => require<ReactComponentModule>('../../../../pages/workspace/rules/SpendRules/SpendRuleMaxAmountPage').default,
+    [SCREENS.WORKSPACE.RULES_SPEND_MERCHANTS]: () => require<ReactComponentModule>('../../../../pages/workspace/rules/SpendRules/SpendRuleMerchantsPage').default,
+    [SCREENS.WORKSPACE.RULES_SPEND_MERCHANT_EDIT]: () => require<ReactComponentModule>('../../../../pages/workspace/rules/SpendRules/SpendRuleMerchantEditPage').default,
     [SCREENS.WORKSPACE.RULES_MERCHANT_MERCHANT_TO_MATCH]: () => require<ReactComponentModule>('../../../../pages/workspace/rules/MerchantRules/AddMerchantToMatchPage').default,
     [SCREENS.WORKSPACE.RULES_MERCHANT_MATCH_TYPE]: () => require<ReactComponentModule>('../../../../pages/workspace/rules/MerchantRules/AddMatchTypePage').default,
     [SCREENS.WORKSPACE.RULES_MERCHANT_MERCHANT]: () => require<ReactComponentModule>('../../../../pages/workspace/rules/MerchantRules/AddMerchantPage').default,
@@ -955,7 +971,7 @@ const WalletStatementStackNavigator = createModalStackNavigator<WalletStatementN
 });
 
 const FlagCommentStackNavigator = createModalStackNavigator<FlagCommentNavigatorParamList>({
-    [SCREENS.FLAG_COMMENT_ROOT]: () => require<ReactComponentModule>('../../../../pages/FlagCommentPage').default,
+    [SCREENS.DYNAMIC_FLAG_COMMENT]: () => require<ReactComponentModule>('../../../../pages/DynamicFlagCommentPage').default,
 });
 
 const EditRequestStackNavigator = createModalStackNavigator<EditRequestNavigatorParamList>({
@@ -1149,6 +1165,7 @@ export {
     ReportCardActivateStackNavigator,
     ReportChangeApproverModalStackNavigator,
     ReportChangeWorkspaceModalStackNavigator,
+    ChronosScheduleOOOModalStackNavigator,
     ReportDescriptionModalStackNavigator,
     ReportDetailsModalStackNavigator,
     ReportParticipantsModalStackNavigator,
