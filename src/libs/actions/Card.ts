@@ -1522,6 +1522,16 @@ function toggleContinuousReconciliation(workspaceAccountID: number, shouldUseCon
     });
 }
 
+function setCardReconciliationAccount(domainName: string, policyID: string, expensifyCardIntegrationWithdrawalID: string) {
+    const parameters = {
+        domainName,
+        expensifyCardIntegrationPolicyID: policyID,
+        expensifyCardIntegrationWithdrawalID,
+    };
+
+    API.write(WRITE_COMMANDS.SET_CARD_RECONCILIATION_BANK_ACCOUNT, parameters);
+}
+
 function updateSelectedFeed(feed: CompanyCardFeedWithDomainID, policyID: string | undefined) {
     if (!policyID) {
         return;
@@ -1878,6 +1888,7 @@ export {
     updateAssignedCardName,
     updateAssignedCardTransactionStartDate,
     toggleContinuousReconciliation,
+    setCardReconciliationAccount,
     updateExpensifyCardLimitType,
     updateSelectedFeed,
     updateSelectedExpensifyCardFeed,

@@ -13,13 +13,12 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getConnectionNameFromRouteParam} from '@libs/AccountingUtils';
 import {getLastFourDigits} from '@libs/BankAccountUtils';
-import {getCardProgramKey, getCardSettings, getConnectionBankAccountsForReconciliation} from '@libs/CardUtils';
-import Log from '@libs/Log';
+import {getCardSettings, getConnectionBankAccountsForReconciliation} from '@libs/CardUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getDomainNameForPolicy} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
-import {updateSettlementAccount} from '@userActions/Card';
+import {setCardReconciliationAccount} from '@userActions/Card';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
@@ -40,8 +39,7 @@ function DynamicReconciliationAccountSettingsPage({route}: DynamicReconciliation
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${defaultFundID}`);
-    const programKey = getCardProgramKey(cardSettings);
-    const settings = getCardSettings(cardSettings, programKey);
+    const settings = getCardSettings(cardSettings);
     const paymentBankAccountID = settings?.paymentBankAccountID;
 
     const selectedBankAccount = useMemo(() => bankAccountList?.[paymentBankAccountID?.toString() ?? ''], [paymentBankAccountID, bankAccountList]);
@@ -66,11 +64,10 @@ function DynamicReconciliationAccountSettingsPage({route}: DynamicReconciliation
     }, [connectionBankAccounts, paymentBankAccountID]);
 
     const selectBankAccount = (newBankAccountID?: string) => {
-        if (!programKey) {
-            Log.alert('[ReconciliationAccountSettingsPage] selectBankAccount called without a detected card program key');
+        if (!newBankAccountID) {
             return;
         }
-        updateSettlementAccount(domainName, defaultFundID, policyID, programKey, Number(newBankAccountID), paymentBankAccountID);
+        setCardReconciliationAccount(domainName, policyID, newBankAccountID);
         goBack();
     };
 
