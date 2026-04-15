@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxCollection} from 'react-native-onyx';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
@@ -111,7 +111,7 @@ function SearchChangeApproverPage() {
         openBulkChangeApproverPage(selectedReports.map((selectedReport) => selectedReport.reportID).filter((selectedReportID) => undefined !== selectedReportID));
     }, [hasLoadedApp, selectedReports]);
 
-    const selectedPolicies = useMemo(() => {
+    const getSelectedPolicies = () => {
         const policies = new Map<string, Policy>();
         for (const selectedReport of selectedReports) {
             const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${selectedReport.policyID}`];
@@ -120,9 +120,10 @@ function SearchChangeApproverPage() {
             }
         }
         return Array.from(policies.values());
-    }, [selectedReports, allPolicies]);
+    };
+    const selectedPolicies = getSelectedPolicies();
 
-    const changeApprover = useCallback(() => {
+    const changeApprover = () => {
         if (!selectedApproverType) {
             setHasError(true);
             return;
@@ -163,21 +164,9 @@ function SearchChangeApproverPage() {
 
         // Note: This clears both reports and transactions
         clearSelectedTransactions();
-    }, [
-        selectedApproverType,
-        selectedPolicies,
-        selectedReports,
-        allPolicies,
-        onyxReports,
-        currentUserDetails.accountID,
-        currentUserDetails.email,
-        transactionViolations,
-        isASAPSubmitBetaEnabled,
-        allReportNextSteps,
-        clearSelectedTransactions,
-    ]);
+    };
 
-    const approverTypes = useMemo(() => {
+    const getApproverTypes = () => {
         const data: Array<ListItem<ApproverType>> = [
             {
                 text: translate('iou.changeApprover.actions.addApprover'),
@@ -220,7 +209,8 @@ function SearchChangeApproverPage() {
         }
 
         return data;
-    }, [translate, selectedApproverType, selectedReports, allPolicies, onyxReports, currentUserDetails.accountID]);
+    };
+    const approverTypes = getApproverTypes();
 
     useEffect(() => {
         if (selectedReports.length && approverTypes.at(0)) {
