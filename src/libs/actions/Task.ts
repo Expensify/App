@@ -1418,6 +1418,7 @@ function clearTaskErrors(
     currentUserAccountID: number,
     introSelected: OnyxEntry<OnyxTypes.IntroSelected>,
     betas: OnyxEntry<OnyxTypes.Beta[]>,
+    isSelfTourViewed: boolean | undefined,
 ) {
     const reportID = report?.reportID;
     if (!reportID) {
@@ -1428,8 +1429,7 @@ function clearTaskErrors(
     if (report?.pendingFields?.createChat === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
         Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`, report.parentReportActionID ? {[report.parentReportActionID]: null} : {});
 
-        // TODO: We'll pass isSelfTourViewed in the next PR. Refactor issue: https://github.com/Expensify/App/issues/66424
-        navigateToConciergeChatAndDeleteReport(reportID, conciergeReportID, currentUserAccountID, introSelected, undefined, betas);
+        navigateToConciergeChatAndDeleteReport(reportID, conciergeReportID, currentUserAccountID, introSelected, isSelfTourViewed, betas);
         return;
     }
 
@@ -1446,12 +1446,12 @@ function getFinishOnboardingTaskOnyxData(
     currentUserAccountID: number,
     hasOutstandingChildTask: boolean,
     parentReportAction: OnyxEntry<ReportAction> | undefined,
+    delegateEmail: string | undefined,
 ): OnyxData<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS> {
     if (taskReport && canActionTask(taskReport, parentReportAction, currentUserAccountID, taskParentReport, isParentReportArchived)) {
         if (taskReport) {
             if (taskReport.stateNum !== CONST.REPORT.STATE_NUM.APPROVED || taskReport.statusNum !== CONST.REPORT.STATUS_NUM.APPROVED) {
-                // Will be refactored in next PR; full restructure tracked in https://github.com/Expensify/App/issues/66417
-                return completeTask(taskReport, taskParentReport?.hasOutstandingChildTask ?? false, hasOutstandingChildTask, parentReportAction, undefined, undefined, false);
+                return completeTask(taskReport, taskParentReport?.hasOutstandingChildTask ?? false, hasOutstandingChildTask, parentReportAction, delegateEmail, undefined, false);
             }
         }
     }
@@ -1465,10 +1465,19 @@ function completeTestDriveTask(
     currentUserAccountID: number,
     hasOutstandingChildTask: boolean,
     parentReportAction: OnyxEntry<ReportAction> | undefined,
+    delegateEmail: string | undefined,
     shouldUpdateSelfTourViewedOnlyLocally = false,
 ) {
     setSelfTourViewed(shouldUpdateSelfTourViewedOnlyLocally);
-    getFinishOnboardingTaskOnyxData(viewTourTaskReport, viewTourTaskParentReport, isViewTourTaskParentReportArchived, currentUserAccountID, hasOutstandingChildTask, parentReportAction);
+    getFinishOnboardingTaskOnyxData(
+        viewTourTaskReport,
+        viewTourTaskParentReport,
+        isViewTourTaskParentReportArchived,
+        currentUserAccountID,
+        hasOutstandingChildTask,
+        parentReportAction,
+        delegateEmail,
+    );
 }
 
 export {

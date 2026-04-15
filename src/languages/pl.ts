@@ -1464,11 +1464,6 @@ const translations: TranslationDeepObject<typeof en> = {
             manySplitsProvided: `Maksymalna dozwolona liczba podziałów to ${CONST.IOU.SPLITS_LIMIT}.`,
             dateRangeExceedsMaxDays: `Zakres dat nie może przekraczać ${CONST.IOU.SPLITS_LIMIT} dni.`,
             stitchOdometerImagesFailed: 'Nie udało się połączyć zdjęć licznika kilometrów. Spróbuj ponownie później.',
-            nonReimbursablePayment: 'Nie można zapłacić przez Expensify',
-            nonReimbursablePaymentDescription: (isMultiple?: boolean) =>
-                isMultiple
-                    ? 'Co najmniej jeden z wybranych raportów nie zawiera wydatków podlegających zwrotowi. Sprawdź wydatki ponownie lub oznacz je ręcznie jako opłacone.'
-                    : 'Raport nie zawiera wydatków podlegających zwrotowi. Sprawdź wydatki ponownie lub oznacz go ręcznie jako opłacony.',
         },
         dismissReceiptError: 'Odrzuć błąd',
         dismissReceiptErrorConfirmation: 'Uwaga! Zamknięcie tego błędu spowoduje całkowite usunięcie przesłanego paragonu. Czy na pewno chcesz kontynuować?',
@@ -1669,6 +1664,7 @@ const translations: TranslationDeepObject<typeof en> = {
             prompt: 'Włącz śledzenie podatku w przestrzeni roboczej, aby edytować szczegóły wydatku lub usunąć podatek z tego wydatku.',
             confirmText: 'Usuń podatek',
         },
+        deleted: 'Usunięto',
     },
     transactionMerge: {
         listPage: {
@@ -2111,6 +2107,9 @@ const translations: TranslationDeepObject<typeof en> = {
             helpSite: 'Centrum pomocy',
             conciergeChat: 'Concierge',
             conciergeChatDescription: 'Twój osobisty agent AI',
+            accountManagerDescription: 'Twój opiekun konta',
+            partnerManagerDescription: 'Twój opiekun partnerski',
+            guideDescription: 'Twój specjalista ds. konfiguracji',
         },
     },
     closeAccountPage: {
@@ -3195,8 +3194,7 @@ ${amount} dla ${merchant} - ${date}`,
                         # Twój bezpłatny okres próbny właśnie się rozpoczął! Skonfigurujmy wszystko.
                         👋 Cześć, jestem Twoim specjalistą ds. konfiguracji Expensify. Skoro utworzyłeś(-aś) już przestrzeń roboczą, wykorzystaj w pełni swój 30-dniowy bezpłatny okres próbny, wykonując poniższe kroki!
                     `),
-            onboardingTrackWorkspaceMessage:
-                '# Skonfigurujmy wszystko\n👋 Cześć, jestem Twoim specjalistą ds. konfiguracji Expensify. Utworzyłem już przestrzeń roboczą, aby pomóc Ci zarządzać paragonami i wydatkami. Aby jak najlepiej wykorzystać 30-dniowy bezpłatny okres próbny, po prostu wykonaj pozostałe kroki konfiguracji poniżej!',
+            onboardingTrackWorkspaceMessage: 'Aby jak najlepiej wykorzystać bezpłatny 30‑dniowy okres próbny, wykonaj pozostałe kroki poniżej:',
             onboardingChatSplitMessage: 'Dziel się rachunkami ze znajomymi tak łatwo, jak wysyłasz wiadomość. Oto jak to działa.',
             onboardingAdminMessage: 'Dowiedz się, jak zarządzać przestrzenią roboczą swojego zespołu jako administrator i rozliczać własne wydatki.',
             onboardingTestDriveReceiverMessage: '*Masz 3 miesiące za darmo! Zacznij poniżej.*',
@@ -4552,7 +4550,7 @@ ${amount} dla ${merchant} - ${date}`,
                     [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Wydatki z własnej kieszeni zostaną wyeksportowane po opłaceniu',
                 },
             },
-            travelInvoicing: 'Fakturowanie podróży',
+            travelInvoicing: 'Eksportuj Expensify Travel Payable do',
             travelInvoicingVendor: 'Dostawca usług turystycznych',
             travelInvoicingPayableAccount: 'Konto zobowiązań z tytułu podróży',
         },
@@ -5254,7 +5252,7 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
             chooseTheCardholder: 'Wybierz posiadacza karty',
             chooseCard: 'Wybierz kartę',
             chooseCardFor: (assignee: string) => `Wybierz kartę dla <strong>${assignee}</strong>. Nie możesz znaleźć karty, której szukasz? <concierge-link>Daj nam znać.</concierge-link>`,
-            noAvailableCards: 'Wszystkie karty mają już regułę',
+            noActiveCards: 'Brak aktywnych kart w tym kanale',
             somethingMightBeBroken:
                 '<muted-text><centered-text>Albo coś może być zepsute. Tak czy inaczej, jeśli masz jakieś pytania, po prostu <concierge-link>skontaktuj się z Concierge</concierge-link>.</centered-text></muted-text>',
             chooseTransactionStartDate: 'Wybierz datę początkową transakcji',
@@ -5288,7 +5286,6 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
             },
             deletedCard: 'Usunięta karta',
             assignNewCards: {title: 'Przydziel nowe karty', description: 'Pobierz z banku najnowsze karty do przypisania'},
-            noAvailableCardsSubtitle: 'Edytuj istniejącą regułę karty, aby wprowadzić zmiany',
         },
         expensifyCard: {
             issueAndManageCards: 'Wydawaj i zarządzaj Kartami Expensify',
@@ -6841,6 +6838,8 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
                 confirmErrorApplyAtLeastOneSpendRule: 'Zastosuj co najmniej jedną regułę wydatków',
                 categories: 'Kategorie',
                 merchants: 'Sprzedawcy',
+                noAvailableCards: 'Wszystkie karty mają już regułę',
+                noAvailableCardsSubtitle: 'Edytuj istniejącą regułę karty, aby wprowadzić zmiany',
                 max: 'Maks',
                 categoryOptions: {
                     [CONST.SPEND_RULES.CATEGORIES.AIRLINES]: 'Linie lotnicze',
@@ -7560,6 +7559,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             reject: 'Odrzuć',
             duplicateExpense: ({count}: {count: number}) => `Duplikuj ${count === 1 ? 'wydatek' : 'wydatki'}`,
             noOptionsAvailable: 'Brak opcji dostępnych dla wybranej grupy wydatków.',
+            undelete: 'Cofnij usunięcie',
         },
         filtersHeader: 'Filtry',
         filters: {
@@ -7612,6 +7612,10 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             billable: 'Fakturowalne',
             reimbursable: 'Podlegające zwrotowi',
             purchaseCurrency: 'Waluta zakupu',
+            sortOrder: {
+                [CONST.SEARCH.SORT_ORDER.ASC]: 'Rosnąco',
+                [CONST.SEARCH.SORT_ORDER.DESC]: 'Zstępujący',
+            },
             groupBy: {
                 [CONST.SEARCH.GROUP_BY.FROM]: 'Od',
                 [CONST.SEARCH.GROUP_BY.CARD]: 'Karta',
@@ -7640,6 +7644,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
         display: {
             label: 'Wyświetl',
             sortBy: 'Sortuj według',
+            sortOrder: 'Kolejność sortowania',
             groupBy: 'Grupuj według',
             limitResults: 'Ogranicz wyniki',
         },
@@ -7675,7 +7680,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
         recentSearches: 'Ostatnie wyszukiwania',
         recentChats: 'Ostatnie czaty',
         searchIn: 'Szukaj w',
-        searchPlaceholder: 'Wyszukaj coś',
+        searchPlaceholder: 'Wyszukaj coś...',
         suggestions: 'Sugestie',
         suggestionsAvailable: (
             {
