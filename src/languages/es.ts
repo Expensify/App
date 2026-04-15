@@ -6505,6 +6505,7 @@ ${amount} para ${merchant} - ${date}`,
                 description: 'Emite tarjetas Expensify a tu equipo para el seguimiento de gastos en tiempo real, límites inteligentes y reembolso en cada compra.',
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}) =>
                     `<muted-text>La Tarjeta Expensify solo está disponible en los planes de pago, a partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `por miembro al mes.` : `por miembro activo al mes.`}</muted-text>`,
+                upgradeButton: 'Actualizar y activar',
             },
             invoicing: {
                 title: 'Facturación',

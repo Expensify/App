@@ -1,6 +1,6 @@
-import React, { useMemo } from 'react';
-import { View } from 'react-native';
-import type { ValueOf } from 'type-fest';
+import React, {useMemo} from 'react';
+import {View} from 'react-native';
+import type {ValueOf} from 'type-fest';
 import Avatar from '@components/Avatar';
 import Badge from '@components/Badge';
 import Button from '@components/Button';
@@ -9,43 +9,18 @@ import RenderHTML from '@components/RenderHTML';
 import Text from '@components/Text';
 import useEnvironment from '@hooks/useEnvironment';
 import useHasTeam2025Pricing from '@hooks/useHasTeam2025Pricing';
-import { useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations } from '@hooks/useLazyAsset';
+import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import usePreferredCurrency from '@hooks/usePreferredCurrency';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
 import useThemeStyles from '@hooks/useThemeStyles';
-import { convertToShortDisplayString } from '@libs/CurrencyUtils';
+import {convertToShortDisplayString} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import type { Route } from '@src/ROUTES';
+import type {Route} from '@src/ROUTES';
 import GenericFeaturesView from './GenericFeaturesView';
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 type Props = {
     buttonDisabled?: boolean;
@@ -59,9 +34,10 @@ type Props = {
     isDistanceRateUpgrade?: boolean;
     policyID?: string;
     backTo?: Route;
+    isSubmitPolicy?: boolean;
 };
 
-function UpgradeIntro({feature, onUpgrade, buttonDisabled, loading, isCategorizing, isDistanceRateUpgrade, isReporting, policyID, backTo}: Props) {
+function UpgradeIntro({feature, onUpgrade, buttonDisabled, loading, isCategorizing, isDistanceRateUpgrade, isReporting, policyID, backTo, isSubmitPolicy}: Props) {
     const styles = useThemeStyles();
     const {isExtraSmallScreenWidth} = useResponsiveLayout();
     const {translate} = useLocalize();
@@ -70,16 +46,21 @@ function UpgradeIntro({feature, onUpgrade, buttonDisabled, loading, isCategorizi
     const preferredCurrency = usePreferredCurrency();
     const hasTeam2025Pricing = useHasTeam2025Pricing();
 
+    const isSubmitFeature =
+        isSubmitPolicy &&
+        feature?.id &&
+        ['companyCardSubmit', 'travelSubmit', 'approvalSubmit', 'roles', 'payments', 'accounting', 'expensifyCard', 'invoicing'].includes(feature.id as string);
+
     const formattedPrice = useMemo(() => {
         const upgradeCurrency = Object.hasOwn(CONST.SUBSCRIPTION_PRICES, preferredCurrency) ? preferredCurrency : CONST.PAYMENT_CARD_CURRENCY.USD;
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        const shouldUseTeamPricing = isCategorizing || isDistanceRateUpgrade || isReporting;
+        const shouldUseTeamPricing = isCategorizing || isDistanceRateUpgrade || isReporting || isSubmitFeature;
         return `${convertToShortDisplayString(
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             CONST.SUBSCRIPTION_PRICES[upgradeCurrency][shouldUseTeamPricing ? CONST.POLICY.TYPE.TEAM : CONST.POLICY.TYPE.CORPORATE][CONST.SUBSCRIPTION.TYPE.ANNUAL],
             upgradeCurrency,
         )} `;
-    }, [preferredCurrency, isCategorizing, isDistanceRateUpgrade, isReporting]);
+    }, [preferredCurrency, isCategorizing, isDistanceRateUpgrade, isReporting, isSubmitFeature]);
 
     const allIconNames = Object.values(CONST.UPGRADE_FEATURE_INTRO_MAPPING)
         .map((feat) => feat?.icon)
