@@ -16,13 +16,13 @@ function getNormalizedString(value?: string): string | undefined {
 function normalizeAttendee(attendee: Attendee): Attendee {
     const {email, displayName: attendeeDisplayName, login: attendeeLogin, ...rest} = attendee;
     const normalizedEmail = getNormalizedString(email);
-    const displayName = getNormalizedString(attendeeDisplayName) ?? normalizedEmail ?? '';
-    const login = getNormalizedString(attendeeLogin) ?? normalizedEmail ?? displayName;
+    const normalizedLogin = getNormalizedString(attendeeLogin);
+    const displayName = getNormalizedString(attendeeDisplayName) ?? normalizedEmail ?? normalizedLogin ?? '';
 
     return {
         ...rest,
         displayName,
-        login,
+        login: normalizedLogin,
         ...(normalizedEmail ? {email: normalizedEmail} : {}),
     };
 }

@@ -140,7 +140,7 @@ function getPersonalDetailsByIDs({
     return result;
 }
 
-function getPersonalDetailByEmail(email: string): PersonalDetails | undefined {
+function getPersonalDetailByEmail(email: string | undefined): PersonalDetails | undefined {
     if (!email) {
         return undefined;
     }
