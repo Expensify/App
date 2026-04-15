@@ -31,8 +31,12 @@ const useAutoUpdateTimezone = () => {
     const updateTimezoneEvent = useEffectEvent(updateTimezone);
     useAppFocusEvent(updateTimezone);
     useEffect(() => {
+        if (!currentUserPersonalDetails.accountID) {
+            // If we don't have an accountID, we can't update the timezone, so we should wait until we do before attempting to update it.
+            return;
+        }
         updateTimezoneEvent();
-    }, []);
+    }, [currentUserPersonalDetails.accountID]);
 };
 
 export default useAutoUpdateTimezone;
