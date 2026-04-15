@@ -420,7 +420,7 @@ function deletePolicyTaxes(policyData: PolicyData, taxesToDelete: string[], loca
         };
     }
 
-    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.COLLECTION.TRANSACTION | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS> = {
+    const policyAndViolationsOnyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS> = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -494,21 +494,28 @@ function deletePolicyTaxes(policyData: PolicyData, taxesToDelete: string[], loca
         ],
     };
 
-    if (Object.keys(optimisticTransactionUpdates).length > 0) {
-        onyxData.optimisticData?.push({
-            onyxMethod: Onyx.METHOD.MERGE_COLLECTION,
-            key: `${ONYXKEYS.COLLECTION.TRANSACTION}`,
-            value: optimisticTransactionUpdates,
-        });
-        onyxData.failureData?.push({
-            onyxMethod: Onyx.METHOD.MERGE_COLLECTION,
-            key: `${ONYXKEYS.COLLECTION.TRANSACTION}`,
-            value: failureTransactionUpdates,
-        });
-    }
+    const transactionOnyxData: OnyxData<typeof ONYXKEYS.COLLECTION.TRANSACTION> =
+        Object.keys(optimisticTransactionUpdates).length > 0
+            ? {
+                  optimisticData: [
+                      {
+                          onyxMethod: Onyx.METHOD.MERGE_COLLECTION,
+                          key: `${ONYXKEYS.COLLECTION.TRANSACTION}`,
+                          value: optimisticTransactionUpdates,
+                      },
+                  ],
+                  failureData: [
+                      {
+                          onyxMethod: Onyx.METHOD.MERGE_COLLECTION,
+                          key: `${ONYXKEYS.COLLECTION.TRANSACTION}`,
+                          value: failureTransactionUpdates,
+                      },
+                  ],
+              }
+            : {};
 
     pushTransactionViolationsOnyxData(
-        onyxData as OnyxData<typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS>,
+        policyAndViolationsOnyxData,
         {
             ...policyData,
             transactionsAndViolations: optimisticTransactionsAndViolations,
@@ -520,6 +527,12 @@ function deletePolicyTaxes(policyData: PolicyData, taxesToDelete: string[], loca
             },
         },
     );
+
+    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.COLLECTION.TRANSACTION | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS> = {
+        optimisticData: [...(policyAndViolationsOnyxData.optimisticData ?? []), ...(transactionOnyxData.optimisticData ?? [])],
+        successData: policyAndViolationsOnyxData.successData,
+        failureData: [...(policyAndViolationsOnyxData.failureData ?? []), ...(transactionOnyxData.failureData ?? [])],
+    };
 
     const parameters = {
         policyID: policy.id,
