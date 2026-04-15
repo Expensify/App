@@ -285,7 +285,7 @@ function Search({
     const {isOffline} = useNetwork();
     const prevIsOffline = usePrevious(isOffline);
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
-    const {shouldUseNarrowLayout, isSmallScreenWidth, isLargeScreenWidth} = useResponsiveLayout();
+    const {shouldUseNarrowLayout, isSmallScreenWidth, isLargeScreenWidth, isInLandscapeMode} = useResponsiveLayout();
     const styles = useThemeStyles();
     const navigation = useNavigation<PlatformStackNavigationProp<SearchFullscreenNavigatorParamList>>();
     const isFocused = useIsFocused();
@@ -1552,12 +1552,14 @@ function Search({
     ) {
         cancelNavigationSpans();
         return (
-            <View style={[shouldUseNarrowLayout ? styles.searchListContentContainerStyles(!!hasFilterBars) : styles.mt3, styles.flex1]}>
+            <View style={[styles.flex1, isInLandscapeMode ? undefined : [shouldUseNarrowLayout ? styles.searchListContentContainerStyles(!!hasFilterBars) : styles.mt3]]}>
                 <EmptySearchView
                     similarSearchHash={similarSearchHash}
                     type={type}
                     hasResults={searchResults?.search?.hasResults}
                     queryJSON={queryJSON}
+                    onScroll={onSearchListScroll}
+                    contentContainerStyle={isInLandscapeMode ? styles.searchListContentContainerStyles(!!hasFilterBars) : undefined}
                 />
             </View>
         );
