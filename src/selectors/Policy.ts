@@ -127,28 +127,8 @@ const iouRequestPolicyCollectionSelector = (policies: OnyxCollection<Policy>): O
     return result;
 };
 
-// Minimal selector for hasOnlyPersonalPolicies — only 3 fields per policy instead of 100+.
-// Used in useResetIOUType where the full policy object is unnecessary.
-const policyTypeAndPendingActionSelector = (policies: OnyxCollection<Policy>): OnyxCollection<Policy> => {
-    if (!policies) {
-        return {};
-    }
-
-    const result: Record<string, Policy> = {};
-
-    for (const [id, policyItem] of Object.entries(policies)) {
-        if (!policyItem) {
-            continue;
-        }
-
-        result[id] = {
-            id: policyItem.id,
-            type: policyItem.type,
-            pendingAction: policyItem.pendingAction,
-        } as Policy;
-    }
-
-    return result;
+const hasOnlyPersonalPoliciesSelector = (policies: OnyxCollection<Policy>): boolean => {
+    return !Object.values(policies ?? {}).some((policy) => policy && policy.type !== CONST.POLICY.TYPE.PERSONAL && policy.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
 };
 
 const adminPoliciesConnectedToSageIntacctSelector = (policies: OnyxCollection<Policy>) =>
@@ -229,5 +209,5 @@ export {
     hasPoliciesConnectedToQBDSelector,
     hasReusablePoliciesConnectedToQBDSelector,
     lastWorkspaceNumberSelector,
-    policyTypeAndPendingActionSelector,
+    hasOnlyPersonalPoliciesSelector,
 };
