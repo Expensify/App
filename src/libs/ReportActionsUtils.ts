@@ -448,8 +448,10 @@ function getReimbursedMessage(translate: LocalizedTranslate, reportAction: OnyxI
     // Real-time Pusher updates only carry `method`, so we fall back to it here for compatibility.
     const effectivePaymentMethod = originalMessage?.paymentMethod ?? originalMessage?.method;
 
-    // If no structured data, fall back to message fragments from backend (old actions)
-    if (!effectivePaymentMethod || !originalMessage) {
+    // If no structured data, or if this is a Pusher-only payload (has `method` but not the enriched
+    // `paymentMethod`/`creditBankAccountLast4` that the openReport path populates), fall back to the
+    // pre-formatted message fragments from the server which already contain the correct account info.
+    if (!effectivePaymentMethod || !originalMessage || (!originalMessage.paymentMethod && !originalMessage.creditBankAccountLast4)) {
         const messageFragments = reportAction?.message;
         let fallback = getReportActionMessageText(reportAction as OnyxEntry<ReportAction>);
         if (Array.isArray(messageFragments) && messageFragments.length > 1) {
