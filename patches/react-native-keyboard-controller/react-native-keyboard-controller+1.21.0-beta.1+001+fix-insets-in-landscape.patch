@@ -1,0 +1,28 @@
+diff --git a/node_modules/react-native-keyboard-controller/android/src/main/java/com/reactnativekeyboardcontroller/views/EdgeToEdgeReactViewGroup.kt b/node_modules/react-native-keyboard-controller/android/src/main/java/com/reactnativekeyboardcontroller/views/EdgeToEdgeReactViewGroup.kt
+index 003890b..90d3375 100644
+--- a/node_modules/react-native-keyboard-controller/android/src/main/java/com/reactnativekeyboardcontroller/views/EdgeToEdgeReactViewGroup.kt
++++ b/node_modules/react-native-keyboard-controller/android/src/main/java/com/reactnativekeyboardcontroller/views/EdgeToEdgeReactViewGroup.kt
+@@ -116,13 +116,21 @@ class EdgeToEdgeReactViewGroup(
+         val systemBarInsets = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+ 
+         params.setMargins(
+-          navBarInsets.left,
++          if (shouldApplyZeroPaddingBottom) {
++            0
++          } else {
++            navBarInsets.left
++          },
+           if (shouldApplyZeroPaddingTop) {
+             0
+           } else {
+             systemBarInsets.top
+           },
+-          navBarInsets.right,
++          if (shouldApplyZeroPaddingBottom) {
++            0
++          } else {
++            navBarInsets.right
++          },
+           if (shouldApplyZeroPaddingBottom) {
+             0
+           } else {

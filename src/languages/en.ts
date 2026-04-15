@@ -1366,6 +1366,7 @@ const translations = {
         }),
         settledExpensify: 'Paid',
         done: 'Done',
+        deleted: 'Deleted',
         settledElsewhere: 'Paid elsewhere',
         individual: 'Individual',
         business: 'Business',
@@ -1522,11 +1523,6 @@ const translations = {
             endDateSameAsStartDate: "The end date can't be the same as the start date",
             manySplitsProvided: `The maximum splits allowed is ${CONST.IOU.SPLITS_LIMIT}.`,
             dateRangeExceedsMaxDays: `The date range can't exceed ${CONST.IOU.SPLITS_LIMIT} days.`,
-            nonReimbursablePayment: 'Cannot pay via Expensify',
-            nonReimbursablePaymentDescription: (isMultiple?: boolean) =>
-                isMultiple
-                    ? "One or more selected reports don't have reimbursable expenses. Double check the expenses, or manually mark as paid."
-                    : "The report doesn't have reimbursable expenses. Double check the expenses, or manually mark as paid.",
         },
         dismissReceiptError: 'Dismiss error',
         dismissReceiptErrorConfirmation: 'Heads up! Dismissing this error will remove your uploaded receipt entirely. Are you sure?',
@@ -2185,6 +2181,9 @@ const translations = {
             helpSite: 'Help site',
             conciergeChat: 'Concierge',
             conciergeChatDescription: 'Your personal AI agent',
+            accountManagerDescription: 'Your account manager',
+            partnerManagerDescription: 'Your partner manager',
+            guideDescription: 'Your setup specialist',
         },
         whatIsNew: "What's new",
         accountSettings: 'Account settings',
@@ -3277,8 +3276,7 @@ const translations = {
                         # Your free trial has started! Let's get you set up.
                         👋 Hey there, I'm your Expensify setup specialist. Now that you've created a workspace, make the most of your 30-day free trial by following the steps below!
                     `),
-            onboardingTrackWorkspaceMessage:
-                "# Let’s get you set up\n👋 Hey there, I'm your Expensify setup specialist. I've already created a workspace to help manage your receipts and expenses. To make the most of your 30-day free trial, just follow the remaining setup steps below!",
+            onboardingTrackWorkspaceMessage: 'To make the most of your 30-day free trial, follow the remaining steps below:',
             onboardingChatSplitMessage: 'Splitting bills with friends is as easy as sending a message. Here’s how.',
             onboardingAdminMessage: "Learn how to manage your team's workspace as an admin and submit your own expenses.",
             onboardingTestDriveReceiverMessage: "*You've got 3 months free! Get started below.*",
@@ -5295,8 +5293,7 @@ const translations = {
             chooseTheCardholder: 'Choose the cardholder',
             chooseCard: 'Choose a card',
             chooseCardFor: (assignee: string) => `Choose a card for <strong>${assignee}</strong>. Can't find the card you're looking for? <concierge-link>Let us know.</concierge-link>`,
-            noAvailableCards: 'All cards already have a rule',
-            noAvailableCardsSubtitle: 'Edit an existing card rule to make changes',
+            noActiveCards: 'No active cards on this feed',
             somethingMightBeBroken:
                 '<muted-text><centered-text>Or something might be broken. Either way, if you have any questions, just <concierge-link>contact Concierge</concierge-link>.</centered-text></muted-text>',
             chooseTransactionStartDate: 'Choose a transaction start date',
@@ -5923,8 +5920,8 @@ const translations = {
             error: 'An error occurred while duplicating your new workspace. Please try again.',
         },
         emptyWorkspace: {
-            title: 'You have no workspaces',
-            subtitle: 'Track receipts, reimburse expenses, manage travel, send invoices, and more.',
+            title: 'No workspaces yet',
+            subtitle: 'Create a workspace to manage your expenses, reimbursements, and company cards.',
             createAWorkspaceCTA: 'Get Started',
             features: {
                 trackAndCollect: 'Track and collect receipts',
@@ -6865,6 +6862,8 @@ const translations = {
                 confirmErrorApplyAtLeastOneSpendRule: 'Apply at least one spend rule',
                 categories: 'Categories',
                 merchants: 'Merchants',
+                noAvailableCards: 'All cards already have a rule',
+                noAvailableCardsSubtitle: 'Edit an existing card rule to make changes',
                 max: 'Max',
                 categoryOptions: {
                     [CONST.SPEND_RULES.CATEGORIES.AIRLINES]: 'Airlines',
@@ -7596,6 +7595,7 @@ const translations = {
             unhold: 'Remove hold',
             reject: 'Reject',
             duplicateExpense: ({count}: {count: number}) => `Duplicate ${count === 1 ? 'expense' : 'expenses'}`,
+            undelete: 'Undelete',
             noOptionsAvailable: 'No options available for the selected group of expenses.',
         },
         filtersHeader: 'Filters',
@@ -7649,6 +7649,10 @@ const translations = {
             billable: 'Billable',
             reimbursable: 'Reimbursable',
             purchaseCurrency: 'Purchase currency',
+            sortOrder: {
+                [CONST.SEARCH.SORT_ORDER.ASC]: 'Ascending',
+                [CONST.SEARCH.SORT_ORDER.DESC]: 'Descending',
+            },
             groupBy: {
                 [CONST.SEARCH.GROUP_BY.FROM]: 'From',
                 [CONST.SEARCH.GROUP_BY.CARD]: 'Card',
@@ -7677,6 +7681,7 @@ const translations = {
         display: {
             label: 'Display',
             sortBy: 'Sort by',
+            sortOrder: 'Sort order',
             groupBy: 'Group by',
             limitResults: 'Limit results',
         },
@@ -7712,7 +7717,7 @@ const translations = {
         recentSearches: 'Recent searches',
         recentChats: 'Recent chats',
         searchIn: 'Search in',
-        searchPlaceholder: 'Search for something',
+        searchPlaceholder: 'Search for something...',
         suggestions: 'Suggestions',
         suggestionsAvailable: ({count}: {count: number}, query = '') => ({
             one: `Suggestions available${query ? ` for ${query}` : ''}. ${count} result.`,
