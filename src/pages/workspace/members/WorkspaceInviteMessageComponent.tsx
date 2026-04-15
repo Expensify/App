@@ -29,6 +29,7 @@ import {getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
 import {getDisplayNameOrDefault, getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import {getDefaultApprover, getMemberAccountIDsForWorkspace, goBackFromInvalidPolicy, isControlPolicy} from '@libs/PolicyUtils';
 import updateMultilineInputRange from '@libs/updateMultilineInputRange';
+import {getSearchParamFromPath} from '@libs/Url';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -66,6 +67,29 @@ function WorkspaceInviteMessageComponent({
 }: WorkspaceInviteMessageComponentProps) {
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
+    const policyName = policy?.name;
+
+    const isWorkflowApprovalExpensesFromRoute = useMemo(() => {
+        if (!backTo || typeof backTo !== 'string') {
+            return false;
+        }
+        return (backTo as string).includes(CONST.WORKSPACE_WORKFLOWS_APPROVALS_EXPENSES_FROM_ROUTE);
+    }, [backTo]);
+
+    const headerTitle = useMemo(() => {
+        if (isWorkflowApprovalExpensesFromRoute) {
+            return translate('workflowsExpensesFromPage.title');
+        }
+        return translate('workspace.inviteMessage.confirmDetails');
+    }, [isWorkflowApprovalExpensesFromRoute, translate]);
+
+    const subtitle = useMemo(() => {
+        if (isWorkflowApprovalExpensesFromRoute) {
+            return undefined;
+        }
+        return policyName;
+    }, [isWorkflowApprovalExpensesFromRoute, policyName]);
+
     const [formData, formDataResult] = useOnyx(ONYXKEYS.FORMS.WORKSPACE_INVITE_MESSAGE_FORM_DRAFT);
     const [allPersonalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
 
@@ -93,22 +117,25 @@ function WorkspaceInviteMessageComponent({
     };
 
     const isOnyxLoading = isLoadingOnyxValue(workspaceInviteMessageDraftResult, invitedEmailsToAccountIDsDraftResult, formDataResult);
-    const personalDetailsOfInvitedEmails = getPersonalDetailsForAccountIDs(Object.values(invitedEmailsToAccountIDsDraft ?? {}), allPersonalDetails ?? {});
-    const memberNames = Object.values(personalDetailsOfInvitedEmails)
-        .map((personalDetail) => {
-            const displayName = getDisplayNameOrDefault(personalDetail, '', false);
-            if (displayName) {
-                return displayName;
-            }
 
-            // We don't have login details for users who are not in the database yet
-            // So we need to fallback to their login from the invitedEmailsToAccountIDsDraft
-            const accountID = personalDetail.accountID;
-            const loginFromInviteMap = Object.entries(invitedEmailsToAccountIDsDraft ?? {}).find(([, id]) => id === accountID)?.[0];
+    const memberNames = useMemo(() => {
+        const personalDetailsOfInvitedEmails = getPersonalDetailsForAccountIDs(Object.values(invitedEmailsToAccountIDsDraft ?? {}), allPersonalDetails ?? {});
+        return Object.values(personalDetailsOfInvitedEmails)
+            .map((personalDetail) => {
+                const displayName = getDisplayNameOrDefault(personalDetail, '', false);
+                if (displayName) {
+                    return displayName;
+                }
 
-            return loginFromInviteMap;
-        })
-        .join(', ');
+                // We don't have login details for users who are not in the database yet
+                // So we need to fallback to their login from the invitedEmailsToAccountIDsDraft
+                const accountID = personalDetail.accountID;
+                const loginFromInviteMap = Object.entries(invitedEmailsToAccountIDsDraft ?? {}).find(([, id]) => id === accountID)?.[0];
+
+                return loginFromInviteMap;
+            })
+            .join(', ');
+    }, [invitedEmailsToAccountIDsDraft, allPersonalDetails]);
 
     const welcomeNoteSubject = useMemo(
         () => `# ${currentUserPersonalDetails?.displayName ?? ''} invited you to ${policy?.name ?? 'a workspace'}`,
@@ -166,7 +193,18 @@ function WorkspaceInviteMessageComponent({
             return;
         }
 
-        if ((backTo as string)?.endsWith('members')) {
+        if (isWorkflowApprovalExpensesFromRoute) {
+            const nestedBackTo = getSearchParamFromPath(backTo?.toString() ?? '', 'backTo');
+            if (nestedBackTo) {
+                Navigation.goBack(nestedBackTo as Routes);
+            } else {
+                Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVER.getRoute(policyID, 0));
+            }
+            return;
+        }
+
+        const backToStr = backTo as string;
+        if (backToStr?.endsWith('members')) {
             Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.dismissModal());
             return;
         }
@@ -195,7 +233,6 @@ function WorkspaceInviteMessageComponent({
         return errorFields;
     };
 
-    const policyName = policy?.name;
     const invitingMemberEmail = Object.keys(invitedEmailsToAccountIDsDraft ?? {}).at(0) ?? '';
     const invitingMemberDetails = getPersonalDetailByEmail(invitingMemberEmail);
     const invitingMemberName = Str.removeSMSDomain(invitingMemberDetails?.displayName ?? '');
@@ -220,8 +257,8 @@ function WorkspaceInviteMessageComponent({
             >
                 {shouldShowBackButton && (
                     <HeaderWithBackButton
-                        title={translate('workspace.inviteMessage.confirmDetails')}
-                        subtitle={policyName}
+                        title={headerTitle}
+                        subtitle={subtitle}
                         shouldShowBackButton
                         onCloseButtonPress={() => Navigation.dismissModal()}
                         onBackButtonPress={() => Navigation.goBack(backTo)}
@@ -237,7 +274,9 @@ function WorkspaceInviteMessageComponent({
                     shouldHideFixErrorsAlert
                     addBottomSafeAreaPadding
                 >
-                    {isInviteNewMemberStep && <Text style={[styles.textHeadlineLineHeightXXL, styles.mv3]}>{translate('workspace.card.issueNewCard.inviteNewMember')}</Text>}
+                    {(isInviteNewMemberStep || isWorkflowApprovalExpensesFromRoute) && (
+                        <Text style={[styles.textHeadlineLineHeightXXL, styles.mv3]}>{translate('workspace.card.issueNewCard.inviteNewMember')}</Text>
+                    )}
                     <View style={[styles.mv4, styles.justifyContentCenter, styles.alignItemsCenter]}>
                         <ReportActionAvatars
                             size={CONST.AVATAR_SIZE.LARGE}
