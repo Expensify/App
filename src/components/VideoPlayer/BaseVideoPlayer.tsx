@@ -13,7 +13,7 @@ import Hoverable from '@components/Hoverable';
 import LoadingIndicator from '@components/LoadingIndicator';
 import {useSession} from '@components/OnyxListItemProvider';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
-import {useFullScreenState} from '@components/VideoPlayerContexts/FullScreenContextProvider';
+import {useFullScreenActions, useFullScreenState} from '@components/VideoPlayerContexts/FullScreenContextProvider';
 import {usePlaybackActionsContext, usePlaybackStateContext} from '@components/VideoPlayerContexts/PlaybackContext';
 import {useVideoPopoverMenuActions} from '@components/VideoPlayerContexts/VideoPopoverMenuContext';
 import {useVolumeActions, useVolumeState} from '@components/VideoPlayerContexts/VolumeContext';
@@ -56,7 +56,8 @@ function BaseVideoPlayer({
     const {currentlyPlayingURL, sharedElement, originalParent, currentVideoPlayerRef, currentVideoViewRef, mountedVideoPlayersRef, playerStatus, shareVersion} = usePlaybackStateContext();
     const {pauseVideo, playVideo, replayVideo, shareVideoPlayerElements, updateCurrentURLAndReportID, setCurrentlyPlayingURL, updatePlayerStatus, requestDonorReRegistration} =
         usePlaybackActionsContext();
-    const {isFullScreenRef} = useFullScreenState();
+    const {isFullScreen} = useFullScreenState();
+    const {setIsFullScreen} = useFullScreenActions();
 
     const isOffline = useNetwork().isOffline;
     const [isVideoOffline, setIsVideoOffline] = useState(false);
@@ -333,6 +334,40 @@ function BaseVideoPlayer({
         setDuration(videoPlayerRef.current.duration);
     }, [videoPlayerRef.current.duration]);
 
+    const isActuallyFullScreen = useCallback(() => {
+        if (typeof document === 'undefined') {
+            return isFullScreen;
+        }
+
+        if (document.fullscreenElement) {
+            return true;
+        }
+
+        const videoElement = videoViewRef.current?.nativeRef?.current as (HTMLVideoElement & {webkitDisplayingFullscreen?: boolean}) | undefined;
+        return !!videoElement?.webkitDisplayingFullscreen;
+    }, [isFullScreen, videoViewRef]);
+
+    useEffect(() => {
+        if (typeof document === 'undefined') {
+            return;
+        }
+
+        const syncFullScreenState = () => {
+            if (isActuallyFullScreen()) {
+                return;
+            }
+            setIsFullScreen(false);
+        };
+
+        document.addEventListener('fullscreenchange', syncFullScreenState);
+        document.addEventListener('webkitfullscreenchange', syncFullScreenState as EventListener);
+
+        return () => {
+            document.removeEventListener('fullscreenchange', syncFullScreenState);
+            document.removeEventListener('webkitfullscreenchange', syncFullScreenState as EventListener);
+        };
+    }, [isActuallyFullScreen, setIsFullScreen]);
+
     useEffect(() => {
         mountedVideoPlayersRef.current.push(url);
         return () => {
@@ -417,7 +452,7 @@ function BaseVideoPlayer({
             videoViewRef.current,
             videoPlayerElementParentRef.current,
             videoPlayerElementRef.current,
-            (isUploading && !isCurrentlyURLSet) || isFullScreenRef.current || !isReadyForDisplayRef.current || hasError || isSeeking || !allowSharedAutoPlayRef.current,
+            (isUploading && !isCurrentlyURLSet) || isFullScreen || !isReadyForDisplayRef.current || hasError || isSeeking || !allowSharedAutoPlayRef.current,
             {shouldUseSharedVideoElement, url, reportID},
         );
     }, [
@@ -429,7 +464,7 @@ function BaseVideoPlayer({
         isUploading,
         reportID,
         videoPlayerRef,
-        isFullScreenRef,
+        isFullScreen,
         hasError,
         isCurrentlyURLSet,
         isSeeking,
@@ -439,7 +474,7 @@ function BaseVideoPlayer({
 
     // append shared video element to new parent (used for example in attachment modal)
     useEffect(() => {
-        if (url !== currentlyPlayingURL || !sharedElement || isFullScreenRef.current) {
+        if (url !== currentlyPlayingURL || !sharedElement || isFullScreen) {
             return;
         }
 
@@ -488,7 +523,7 @@ function BaseVideoPlayer({
                 child.remove();
             }
         };
-    }, [currentVideoPlayerRef, currentVideoViewRef, currentlyPlayingURL, isFullScreenRef, mountedVideoPlayersRef, originalParent, reportID, sharedElement, shouldUseSharedVideoElement, url]);
+    }, [currentVideoPlayerRef, currentVideoViewRef, currentlyPlayingURL, isFullScreen, mountedVideoPlayersRef, originalParent, reportID, sharedElement, shouldUseSharedVideoElement, url]);
 
     useEffect(() => {
         if (!shouldPlay) {
@@ -521,7 +556,13 @@ function BaseVideoPlayer({
                                 accessibilityRole="button"
                                 accessible={false}
                                 onPress={() => {
-                                    if (isFullScreenRef.current) {
+                                    const currentlyFullScreen = isActuallyFullScreen();
+
+                                    if (isFullScreen && !currentlyFullScreen) {
+                                        setIsFullScreen(false);
+                                    }
+
+                                    if (currentlyFullScreen) {
                                         return;
                                     }
                                     if (!canUseTouchScreen) {
@@ -563,29 +604,23 @@ function BaseVideoPlayer({
                                             fullscreenOptions={{enable: true}}
                                             player={videoPlayerRef.current}
                                             style={[styles.w100, styles.h100, videoPlayerStyle, hasErrorIconVisible && {opacity: 0}]}
-                                            nativeControls={isFullScreenRef.current}
+                                            nativeControls={isFullScreen}
                                             playsInline
                                             testID={CONST.VIDEO_PLAYER_TEST_ID}
                                             ref={videoViewRef}
                                             contentFit="contain"
                                             onFullscreenEnter={() => {
-                                                isFullScreenRef.current = true;
-
+                                                setIsFullScreen(true);
                                                 if (!(videoPlayerElementParentRef.current && 'addEventListener' in videoPlayerElementParentRef.current)) {
                                                     return;
                                                 }
-                                                // When the video is in fullscreen, we don't want the scroll to be captured by the InvertedFlatList of report screen.
-                                                // This will also allow the user to scroll the video playback speed.
                                                 videoPlayerElementParentRef.current.addEventListener('wheel', stopWheelPropagation);
                                             }}
                                             onFullscreenExit={() => {
-                                                isFullScreenRef.current = false;
-
+                                                setIsFullScreen(false);
                                                 if (videoPlayerElementParentRef.current && 'removeEventListener' in videoPlayerElementParentRef.current) {
                                                     videoPlayerElementParentRef.current.removeEventListener('wheel', stopWheelPropagation);
                                                 }
-
-                                                // Sync volume updates in full screen mode after leaving it
                                                 updateVolume(videoPlayerRef.current.muted ? 0 : videoPlayerRef.current.volume || 1);
                                             }}
                                         />
