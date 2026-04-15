@@ -236,6 +236,10 @@ const DYNAMIC_ROUTES = {
         path: 'workspace-confirmation',
         entryScreens: [SCREENS.ONBOARDING.DYNAMIC_WORKSPACE_OPTIONAL],
     },
+    ONBOARDING_WORKSPACE_CURRENCY: {
+        path: 'workspace-currency',
+        entryScreens: [SCREENS.ONBOARDING.DYNAMIC_WORKSPACE_CONFIRMATION],
+    },
     ONBOARDING_WORKSPACES: {
         path: 'join-workspaces',
         entryScreens: [SCREENS.ONBOARDING.DYNAMIC_PERSONAL_DETAILS, SCREENS.ONBOARDING.DYNAMIC_PRIVATE_DOMAIN, SCREENS.ONBOARDING.DYNAMIC_WORK_EMAIL_VALIDATION],
@@ -3247,12 +3251,6 @@ const ROUTES = {
 
         // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
         getRoute: (backTo?: string) => getUrlWithBackToParam(`onboarding`, backTo),
-    },
-    ONBOARDING_WORKSPACE_CURRENCY: {
-        route: 'onboarding/workspace-currency',
-
-        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-        getRoute: (backTo?: string) => getUrlWithBackToParam(`onboarding/workspace-currency`, backTo),
     },
     CURRENCY_SELECTION: {
         route: 'workspace/confirmation/currency',

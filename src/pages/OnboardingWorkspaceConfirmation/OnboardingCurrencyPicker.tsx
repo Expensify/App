@@ -4,10 +4,11 @@ import type {StyleProp, ViewStyle} from 'react-native';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useOnyx from '@hooks/useOnyx';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 
 type CurrencyPickerProps = {
     /** Label for the input */
@@ -60,7 +61,7 @@ function OnboardingCurrencyPicker({label, value, errorText, style, onInputChange
             style={style}
             onPress={() => {
                 didOpenCurrencySelector.current = true;
-                Navigation.navigate(ROUTES.ONBOARDING_WORKSPACE_CURRENCY.getRoute(Navigation.getActiveRoute()));
+                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.ONBOARDING_WORKSPACE_CURRENCY.path));
             }}
         />
     );

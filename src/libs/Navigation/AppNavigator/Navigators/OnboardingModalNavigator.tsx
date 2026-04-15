@@ -169,7 +169,7 @@ function OnboardingModalNavigator() {
                                 component={OnboardingWorkspaceConfirmation}
                             />
                             <Stack.Screen
-                                name={SCREENS.ONBOARDING.WORKSPACE_CURRENCY}
+                                name={SCREENS.ONBOARDING.DYNAMIC_WORKSPACE_CURRENCY}
                                 component={OnboardingWorkspaceCurrency}
                             />
                             <Stack.Screen

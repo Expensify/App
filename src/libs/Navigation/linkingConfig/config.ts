@@ -121,8 +121,8 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                     path: DYNAMIC_ROUTES.ONBOARDING_WORKSPACE_CONFIRMATION.path,
                     exact: true,
                 },
-                [SCREENS.ONBOARDING.WORKSPACE_CURRENCY]: {
-                    path: ROUTES.ONBOARDING_WORKSPACE_CURRENCY.route,
+                [SCREENS.ONBOARDING.DYNAMIC_WORKSPACE_CURRENCY]: {
+                    path: DYNAMIC_ROUTES.ONBOARDING_WORKSPACE_CURRENCY.path,
                     exact: true,
                 },
                 [SCREENS.ONBOARDING.WORKSPACE_INVITE]: {

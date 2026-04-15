@@ -6,6 +6,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useOnboardingStepCounter from '@hooks/useOnboardingStepCounter';
 import useOnyx from '@hooks/useOnyx';
@@ -15,29 +16,23 @@ import {setWorkspaceCurrency} from '@libs/actions/Onboarding';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Route} from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {BaseOnboardingWorkspaceCurrencyProps} from './types';
 
-function BaseOnboardingWorkspaceCurrency({route, shouldUseNativeStyles}: BaseOnboardingWorkspaceCurrencyProps) {
+function BaseOnboardingWorkspaceCurrency({shouldUseNativeStyles}: BaseOnboardingWorkspaceCurrencyProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {onboardingIsMediumOrLargerScreenWidth} = useResponsiveLayout();
 
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const onboardingStep = useOnboardingStepCounter(SCREENS.ONBOARDING.WORKSPACE_CURRENCY);
+    const onboardingStep = useOnboardingStepCounter(SCREENS.ONBOARDING.DYNAMIC_WORKSPACE_CURRENCY);
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.ONBOARDING_WORKSPACE_CURRENCY.path);
     const [draftValues] = useOnyx(ONYXKEYS.FORMS.ONBOARDING_WORKSPACE_DETAILS_FORM_DRAFT);
 
     const value = draftValues?.currency ?? currentUserPersonalDetails?.localCurrencyCode ?? CONST.CURRENCY.USD;
 
-    const goBack = useCallback(() => {
-        const backTo = route?.params?.backTo;
-        if (backTo) {
-            Navigation.goBack(backTo as Route);
-            return;
-        }
-        Navigation.goBack();
-    }, [route?.params?.backTo]);
+    const goBack = useCallback(() => Navigation.goBack(backPath), [backPath]);
 
     const updateInput = useCallback(
         (item: CurrencyListItem) => {
