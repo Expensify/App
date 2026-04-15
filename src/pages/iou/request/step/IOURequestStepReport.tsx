@@ -76,13 +76,14 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
     const ownerPersonalDetails = getPersonalDetailsForAccountID(ownerAccountID, personalDetails) as PersonalDetails;
 
     const transactionPolicyID = transaction?.participants?.at(0)?.isPolicyExpenseChat ? transaction?.participants.at(0)?.policyID : undefined;
+    // When moving an expense that belongs to another user, using the policy of their report
+    // (or the transaction's policy as fallback) so the workspace context is preserved.
+    // For the current user's own expenses, fall back to undefined to let the default workspace apply.
+    const targetExpensePolicyID = ownerAccountID !== session?.accountID ? (selectedReport?.policyID ?? transactionPolicyID) : undefined;
+
     // we need to fall back to transactionPolicyID because for a new workspace there is no report created yet
     // and if we choose this workspace as participant we want to create a new report in the chosen workspace
-    const {policyForMovingExpensesID, shouldSelectPolicy} = usePolicyForMovingExpenses(
-        isPerDiemRequest(transaction),
-        isTimeRequestUtil(transaction),
-        selectedReport?.policyID ?? transactionPolicyID,
-    );
+    const {policyForMovingExpensesID, shouldSelectPolicy} = usePolicyForMovingExpenses(isPerDiemRequest(transaction), isTimeRequestUtil(transaction), targetExpensePolicyID);
 
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
@@ -288,7 +289,7 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
             transactionIDs={transaction ? [transaction.transactionID] : []}
             selectedReportID={selectedReportID}
             selectedPolicyID={selectedPolicyID}
-            transactionPolicyID={selectedReport?.policyID ?? transactionPolicyID}
+            transactionPolicyID={targetExpensePolicyID}
             removeFromReport={removeFromReport}
             isEditing={isEditing}
             isUnreported={isUnreported}
