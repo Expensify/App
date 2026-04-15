@@ -242,6 +242,7 @@ function shouldDisplayReportInLHN(
     transactionViolations: OnyxCollection<TransactionViolation[]>,
     draftComment: OnyxEntry<string>,
     transactions: OnyxCollection<Transaction>,
+    isOffline: boolean,
     isReportArchived?: boolean,
     reportAttributes?: ReportAttributesDerivedValue['reports'],
 ) {
@@ -262,7 +263,7 @@ function shouldDisplayReportInLHN(
     const parentReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`];
     const hasErrorsOtherThanFailedReceipt = hasReportErrorsOtherThanFailedReceipt(report, chatReport, doesReportHaveViolations, transactionViolations, transactions, reportAttributes);
     const isReportInAccessible = report?.errorFields?.notFound;
-    if (isOneTransactionThread(report, parentReport, parentReportAction)) {
+    if (isOneTransactionThread(report, parentReport, parentReportAction, isOffline)) {
         return {shouldDisplay: false};
     }
 
@@ -314,6 +315,7 @@ function getReportsToDisplayInLHN(
     draftComments: OnyxCollection<string>,
     transactionViolations: OnyxCollection<TransactionViolation[]>,
     transactions: OnyxCollection<Transaction>,
+    isOffline: boolean,
     reportNameValuePairs?: OnyxCollection<ReportNameValuePairs>,
     reportAttributes?: ReportAttributesDerivedValue['reports'],
 ) {
@@ -337,6 +339,7 @@ function getReportsToDisplayInLHN(
             transactionViolations,
             reportDraftComment,
             transactions,
+            isOffline,
             isArchivedReport(reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`]),
             reportAttributes,
         );
@@ -363,6 +366,7 @@ type UpdateReportsToDisplayInLHNProps = {
     reportAttributes?: ReportAttributesDerivedValue['reports'];
     draftComments: OnyxCollection<string>;
     transactions: OnyxCollection<Transaction>;
+    isOffline: boolean;
 };
 
 function updateReportsToDisplayInLHN({
@@ -377,6 +381,7 @@ function updateReportsToDisplayInLHN({
     reportAttributes,
     draftComments,
     transactions,
+    isOffline,
 }: UpdateReportsToDisplayInLHNProps) {
     // Use a lazy copy to avoid creating a new object reference when no entries actually change.
     let displayedReportsCopy: ReportsToDisplayInLHN | undefined;
@@ -409,6 +414,7 @@ function updateReportsToDisplayInLHN({
             transactionViolations,
             reportDraftComment,
             transactions,
+            isOffline,
             isArchivedReport(reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`] ?? {}),
             reportAttributes,
         );
