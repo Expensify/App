@@ -3371,24 +3371,24 @@ describe('SidebarUtils', () => {
             it('should combine categories in correct order', () => {
                 // Given the reports are created
                 const pinnedAndGBRReports = [
-                    {reportID: '1', displayName: 'Pinned 1', sortKey: 'pinned 0000000001'},
-                    {reportID: '2', displayName: 'Pinned 2', sortKey: 'pinned 0000000002'},
+                    {reportID: '1', displayName: 'Pinned 1', sortKey: 'pinned 000000000000001'},
+                    {reportID: '2', displayName: 'Pinned 2', sortKey: 'pinned 000000000000002'},
                 ];
                 const errorReports = [
-                    {reportID: '3', displayName: 'Error 1', sortKey: 'error 0000000001'},
-                    {reportID: '4', displayName: 'Error 2', sortKey: 'error 0000000002'},
+                    {reportID: '3', displayName: 'Error 1', sortKey: 'error 000000000000001'},
+                    {reportID: '4', displayName: 'Error 2', sortKey: 'error 000000000000002'},
                 ];
                 const draftReports = [
-                    {reportID: '5', displayName: 'Draft 1', sortKey: 'draft 0000000001'},
-                    {reportID: '6', displayName: 'Draft 2', sortKey: 'draft 0000000002'},
+                    {reportID: '5', displayName: 'Draft 1', sortKey: 'draft 000000000000001'},
+                    {reportID: '6', displayName: 'Draft 2', sortKey: 'draft 000000000000002'},
                 ];
                 const nonArchivedReports = [
-                    {reportID: '7', displayName: 'Normal 1', sortKey: 'normal 0000000001'},
-                    {reportID: '8', displayName: 'Normal 2', sortKey: 'normal 0000000002'},
+                    {reportID: '7', displayName: 'Normal 1', sortKey: 'normal 000000000000001'},
+                    {reportID: '8', displayName: 'Normal 2', sortKey: 'normal 000000000000002'},
                 ];
                 const archivedReports = [
-                    {reportID: '9', displayName: 'Archived 1', sortKey: 'archived 0000000001'},
-                    {reportID: '10', displayName: 'Archived 2', sortKey: 'archived 0000000002'},
+                    {reportID: '9', displayName: 'Archived 1', sortKey: 'archived 000000000000001'},
+                    {reportID: '10', displayName: 'Archived 2', sortKey: 'archived 000000000000002'},
                 ];
 
                 // When the reports are combined
@@ -3401,10 +3401,10 @@ describe('SidebarUtils', () => {
             it('should filter out reports with undefined reportID', () => {
                 // Given the reports are created
                 const pinnedAndGBRReports = [
-                    {reportID: '1', displayName: 'Pinned 1', sortKey: 'pinned 0000000001'},
+                    {reportID: '1', displayName: 'Pinned 1', sortKey: 'pinned 000000000000001'},
                     {reportID: undefined, displayName: 'Invalid', sortKey: 'invalid'},
                 ];
-                const errorReports = [{reportID: '2', displayName: 'Error 1', sortKey: 'error 0000000001'}];
+                const errorReports = [{reportID: '2', displayName: 'Error 1', sortKey: 'error 000000000000001'}];
                 const draftReports: Array<{reportID?: string; displayName: string; sortKey: string; lastVisibleActionCreated?: string}> = [];
                 const nonArchivedReports: Array<{reportID?: string; displayName: string; sortKey: string; lastVisibleActionCreated?: string}> = [];
                 const archivedReports: Array<{reportID?: string; displayName: string; sortKey: string; lastVisibleActionCreated?: string}> = [];

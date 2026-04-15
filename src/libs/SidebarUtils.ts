@@ -223,7 +223,7 @@ function compareStringDates(a: string, b: string): 0 | 1 | -1 {
     return 0;
 }
 
-const NUMERIC_PAD_WIDTH = 10;
+const NUMERIC_PAD_WIDTH = 15;
 const DIGIT_SEQUENCE = /\d+/g;
 
 /**
@@ -233,7 +233,7 @@ const sortKeyCache = new Map<string, string>();
 
 /**
  * Builds a normalized sort key for fast string comparison using plain < / > operators.
- * Lowercases the name and zero-pads numeric segments ("Report 2" → "report 0000000002")
+ * Lowercases the name and zero-pads numeric segments ("Report 2" → "report 000000000000002")
  * so that numeric ordering is preserved without Intl.Collator.
  *
  * Results are cached at module level so each unique name pays the cost only once.
