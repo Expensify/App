@@ -586,7 +586,7 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
     /**
      * Cancel the current authentication flow.
      * When the scenario provides onCancel, awaits it to get the reason and sets the error accordingly.
-     * Otherwise, sets an error state with GENERIC.CANCELED. In both cases, the error triggers
+     * Otherwise, sets an error state with LOCAL_ERRORS.CANCELED. In both cases, the error triggers
      * process() which calls handleCallback and navigates to the failure outcome.
      */
     const cancel = useCallback(async () => {
