@@ -20,7 +20,6 @@ import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -44,10 +43,10 @@ import {
     getCreated as getTransactionCreated,
     hasMissingSmartscanFields,
     isAmountMissing,
+    isDeletedTransaction as isDeletedTransactionUtil,
     isMerchantMissing,
     isScanning,
     isTimeRequest,
-    isUnreportedAndHasInvalidDistanceRateTransaction,
     shouldShowAttendees as shouldShowAttendeesUtils,
 } from '@libs/TransactionUtils';
 import variables from '@styles/variables';
@@ -147,6 +146,7 @@ type TransactionItemRowProps = {
     customCardNames?: Record<number, string>;
     reportActions?: ReportAction[];
     checkboxSentryLabel?: string;
+    isLargeScreenWidth?: boolean;
 };
 
 const EMPTY_ACTIVE_STYLE: StyleProp<ViewStyle> = [];
@@ -199,17 +199,19 @@ function TransactionItemRow({
     customCardNames,
     reportActions,
     checkboxSentryLabel,
+    isLargeScreenWidth: isLargeScreenWidthProp,
 }: TransactionItemRowProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const StyleUtils = useStyleUtils();
     const theme = useTheme();
-    const {isLargeScreenWidth} = useResponsiveLayout();
+    const isLargeScreenWidth = isLargeScreenWidthProp ?? !shouldUseNarrowLayout;
     const hasCategoryOrTag = !isCategoryMissing(transactionItem?.category) || !!transactionItem.tag;
     const createdAt = getTransactionCreated(transactionItem);
     const expensicons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const transactionThreadReportID = reportActions ? getIOUActionForTransactionID(reportActions, transactionItem.transactionID)?.childReportID : undefined;
+    const isDeletedTransaction = isDeletedTransactionUtil(transactionItem);
 
     const isDateColumnWide = dateColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE;
     const isSubmittedColumnWide = submittedColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE;
@@ -237,9 +239,7 @@ function TransactionItemRow({
             return '';
         }
 
-        const policyParam = policy ?? transactionItem.policy;
-        const isCustomUnitOutOfPolicy = isUnreportedAndHasInvalidDistanceRateTransaction(transactionItem, policyParam);
-        const hasFieldErrors = hasMissingSmartscanFields(transactionItem, report) || isCustomUnitOutOfPolicy;
+        const hasFieldErrors = hasMissingSmartscanFields(transactionItem, report);
         if (hasFieldErrors) {
             const amountMissing = isAmountMissing(transactionItem);
             const merchantMissing = isMerchantMissing(transactionItem);
@@ -251,12 +251,11 @@ function TransactionItemRow({
                 error = translate('iou.missingAmount');
             } else if (merchantMissing && !isSettled(report)) {
                 error = translate('iou.missingMerchant');
-            } else if (isCustomUnitOutOfPolicy) {
-                error = translate('violations.customUnitOutOfPolicy');
             }
+
             return error;
         }
-    }, [transactionItem, translate, report, policy]);
+    }, [transactionItem, translate, report]);
 
     const exchangeRateMessage = getExchangeRate(transactionItem, report?.currency);
 
@@ -313,6 +312,7 @@ function TransactionItemRow({
                         <ReceiptCell
                             transactionItem={transactionItem}
                             isSelected={isSelected}
+                            shouldUseNarrowLayout={shouldUseNarrowLayout}
                         />
                     </View>
                 );
@@ -333,7 +333,7 @@ function TransactionItemRow({
                 return (
                     <View
                         key={column}
-                        style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.DATE, isDateColumnWide, false, false)]}
+                        style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.DATE, {isDateColumnWide})]}
                     >
                         <DateCell
                             date={createdAt}
@@ -346,7 +346,7 @@ function TransactionItemRow({
                 return (
                     <View
                         key={column}
-                        style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.SUBMITTED, isDateColumnWide, false, false, isSubmittedColumnWide)]}
+                        style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.SUBMITTED, {isDateColumnWide, isSubmittedColumnWide})]}
                     >
                         <DateCell
                             date={report?.submitted ?? ''}
@@ -359,7 +359,7 @@ function TransactionItemRow({
                 return (
                     <View
                         key={column}
-                        style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.APPROVED, false, false, false, false, isApprovedColumnWide)]}
+                        style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.APPROVED, {isApprovedColumnWide})]}
                     >
                         <DateCell
                             date={report?.approved ?? ''}
@@ -372,7 +372,7 @@ function TransactionItemRow({
                 return (
                     <View
                         key={column}
-                        style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.POSTED, false, false, false, false, false, isPostedColumnWide)]}
+                        style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.POSTED, {isPostedColumnWide})]}
                     >
                         <DateCell
                             date={transactionItem.posted ?? ''}
@@ -385,7 +385,7 @@ function TransactionItemRow({
                 return (
                     <View
                         key={column}
-                        style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.EXPORTED, false, false, false, false, false, false, isExportedColumnWide)]}
+                        style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.EXPORTED, {isExportedColumnWide})]}
                     >
                         <DateCell
                             date={transactionItem.exported ?? ''}
@@ -436,7 +436,7 @@ function TransactionItemRow({
                                 action={transactionItem.action}
                                 isSelected={isSelected}
                                 isChildListItem={isReportItemChild}
-                                goToItem={onButtonPress}
+                                onButtonPress={onButtonPress}
                                 isLoading={isActionLoading}
                                 reportID={transactionItem.reportID}
                                 policyID={report?.policyID}
@@ -489,6 +489,7 @@ function TransactionItemRow({
                                 accountID={transactionItem.to.accountID}
                                 avatar={transactionItem.to.avatar}
                                 displayName={transactionItem.formattedTo ?? transactionItem.to.displayName ?? ''}
+                                isLargeScreenWidth={isLargeScreenWidth}
                             />
                         )}
                     </View>
@@ -504,6 +505,7 @@ function TransactionItemRow({
                                 accountID={transactionItem.from.accountID}
                                 avatar={transactionItem.from.avatar}
                                 displayName={transactionItem.formattedFrom ?? transactionItem.from.displayName ?? ''}
+                                isLargeScreenWidth={isLargeScreenWidth}
                             />
                         )}
                     </View>
@@ -557,7 +559,7 @@ function TransactionItemRow({
                 return (
                     <View
                         key={column}
-                        style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT, undefined, isAmountColumnWide)]}
+                        style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT, {isAmountColumnWide})]}
                     >
                         <TotalCell
                             transactionItem={transactionItem}
@@ -570,7 +572,7 @@ function TransactionItemRow({
                 return (
                     <View
                         key={column}
-                        style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TOTAL_PER_ATTENDEE, undefined, isAmountColumnWide)]}
+                        style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TOTAL_PER_ATTENDEE, {isAmountColumnWide})]}
                     >
                         {shouldShowAttendees && (
                             <AmountCell
@@ -585,7 +587,7 @@ function TransactionItemRow({
                 return (
                     <View
                         key={column}
-                        style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT, undefined, isAmountColumnWide)]}
+                        style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT, {isAmountColumnWide})]}
                     >
                         <AmountCell
                             total={getOriginalAmountForDisplay(transactionItem, isExpenseReport(transactionItem.report))}
@@ -624,7 +626,7 @@ function TransactionItemRow({
                 return (
                     <View
                         key={column}
-                        style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT, undefined, undefined, isTaxAmountColumnWide)]}
+                        style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT, {isTaxAmountColumnWide})]}
                     >
                         {isTimeRequest(transactionItem) ? null : (
                             <TaxCell
@@ -667,6 +669,7 @@ function TransactionItemRow({
                         <StatusCell
                             stateNum={transactionItem.report?.stateNum}
                             statusNum={transactionItem.report?.statusNum}
+                            isDeleted={isDeletedTransaction}
                         />
                     </View>
                 );
@@ -704,6 +707,7 @@ function TransactionItemRow({
                                 accessibilityLabel={CONST.ROLE.CHECKBOX}
                                 isChecked={isSelected}
                                 style={styles.mr3}
+                                containerStyle={styles.m0}
                                 wrapperStyle={styles.justifyContentCenter}
                                 sentryLabel={checkboxSentryLabel}
                             />
@@ -712,6 +716,7 @@ function TransactionItemRow({
                             transactionItem={transactionItem}
                             isSelected={isSelected}
                             style={styles.mr3}
+                            shouldUseNarrowLayout={shouldUseNarrowLayout}
                         />
                         <View style={[styles.flex2, styles.flexColumn, styles.justifyContentEvenly]}>
                             <View style={[styles.flexRow, styles.alignItemsCenter, styles.minHeight5, styles.maxHeight5]}>
@@ -752,7 +757,7 @@ function TransactionItemRow({
                                 </View>
                             )}
                         </View>
-                        {!!shouldShowArrowRightOnNarrowLayout && (
+                        {!!shouldShowArrowRightOnNarrowLayout && !!onArrowRightPress && (
                             <View style={[styles.justifyContentEnd, styles.alignItemsEnd, styles.mbHalf, styles.ml1]}>
                                 <Icon
                                     src={expensicons.ArrowRight}
@@ -834,7 +839,7 @@ function TransactionItemRow({
                             }}
                             accessibilityLabel={CONST.ROLE.CHECKBOX}
                             isChecked={isSelected}
-                            style={styles.mr1}
+                            containerStyle={styles.m0}
                             wrapperStyle={styles.justifyContentCenter}
                             sentryLabel={checkboxSentryLabel}
                         />
@@ -851,24 +856,27 @@ function TransactionItemRow({
                             />
                         </View>
                     )}
-                    {!!isLargeScreenWidth && !!onArrowRightPress && (
-                        <PressableWithFeedback
-                            disabled={!!isDisabled}
-                            onPress={() => onArrowRightPress?.()}
-                            style={[styles.p3Half, styles.pl0half, styles.pr0half, styles.justifyContentCenter, styles.alignItemsEnd]}
-                            accessibilityRole={CONST.ROLE.BUTTON}
-                            accessibilityLabel={CONST.ROLE.BUTTON}
-                            sentryLabel={CONST.SENTRY_LABEL.TRANSACTION_ITEM_ROW.ARROW_RIGHT}
-                        >
-                            <Icon
-                                src={expensicons.ArrowRight}
-                                fill={theme.icon}
-                                additionalStyles={!isHover && styles.opacitySemiTransparent}
-                                width={variables.iconSizeNormal}
-                                height={variables.iconSizeNormal}
-                            />
-                        </PressableWithFeedback>
-                    )}
+                    {!!isLargeScreenWidth &&
+                        (onArrowRightPress ? (
+                            <PressableWithFeedback
+                                disabled={!!isDisabled}
+                                onPress={() => onArrowRightPress?.()}
+                                style={[styles.pv2, styles.justifyContentCenter, styles.alignItemsEnd]}
+                                accessibilityRole={CONST.ROLE.BUTTON}
+                                accessibilityLabel={CONST.ROLE.BUTTON}
+                                sentryLabel={CONST.SENTRY_LABEL.TRANSACTION_ITEM_ROW.ARROW_RIGHT}
+                            >
+                                <Icon
+                                    src={expensicons.ArrowRight}
+                                    fill={theme.icon}
+                                    additionalStyles={!isHover && styles.opacitySemiTransparent}
+                                    width={variables.iconSizeNormal}
+                                    height={variables.iconSizeNormal}
+                                />
+                            </PressableWithFeedback>
+                        ) : (
+                            <View style={[styles.p3Half, styles.pl0half, styles.pr0half, {width: variables.iconSizeNormal}]} />
+                        ))}
                 </View>
                 {shouldShowErrors && (
                     <TransactionItemRowRBR

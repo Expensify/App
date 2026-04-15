@@ -89,6 +89,7 @@ import type RecentlyUsedTags from '@src/types/onyx/RecentlyUsedTags';
 import type {OnyxData} from '@src/types/onyx/Request';
 import type {SplitShares, TransactionChanges, TransactionCustomUnit} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import {getCleanUpTransactionThreadReportOnyxData} from './DeleteMoneyRequest';
 import {
     buildMinimalTransactionForFormula,
     buildOnyxDataForMoneyRequest,
@@ -97,19 +98,19 @@ import {
     getAllPersonalDetails,
     getAllReports,
     getAllTransactions,
-    getCleanUpTransactionThreadReportOnyxData,
     getMoneyRequestInformation,
     getMoneyRequestParticipantsFromReport,
     getOrCreateOptimisticSplitChatReport,
     getReceiptError,
     getReportPreviewAction,
-    getUpdateMoneyRequestParams,
     getUserAccountID,
     mergePolicyRecentlyUsedCategories,
     mergePolicyRecentlyUsedCurrencies,
 } from './index';
-import type {BuildOnyxDataForMoneyRequestKeys, MoneyRequestInformationParams, OneOnOneIOUReport, StartSplitBilActionParams, UpdateMoneyRequestDataKeys} from './index';
+import type {BuildOnyxDataForMoneyRequestKeys, MoneyRequestInformationParams, OneOnOneIOUReport, StartSplitBilActionParams} from './index';
 import {getDeleteTrackExpenseInformation} from './TrackExpense';
+import {getUpdateMoneyRequestParams} from './UpdateMoneyRequest';
+import type {UpdateMoneyRequestDataKeys} from './UpdateMoneyRequest';
 
 type IOURequestType = ValueOf<typeof CONST.IOU.REQUEST_TYPE>;
 
@@ -1083,10 +1084,36 @@ function updateSplitTransactions({
     expenseReport,
 }: UpdateSplitTransactionsParams) {
     const chatReport = allReportsList?.[`${ONYXKEYS.COLLECTION.REPORT}${expenseReport?.chatReportID}`];
+    const expenseReportParentChat = getReportOrDraftReport(chatReport?.parentReportID);
     const originalTransactionID = transactionData?.originalTransactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID;
     const originalTransaction = allTransactionsList?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`];
     const originalTransactionDetails = getTransactionDetails(originalTransaction);
-    const participants = getMoneyRequestParticipantsFromReport(expenseReport, currentUserPersonalDetails.accountID);
+    const autoParticipants = getMoneyRequestParticipantsFromReport(expenseReport, currentUserPersonalDetails.accountID);
+    // Delegate split edit can reach this flow without the workspace expense chat in Onyx.
+    const fallbackPolicyParticipant =
+        autoParticipants.length === 0 && !chatReport && expenseReport?.chatReportID && expenseReport?.policyID
+            ? {
+                  accountID: 0,
+                  reportID: expenseReport.chatReportID,
+                  isPolicyExpenseChat: true,
+                  selected: true,
+                  policyID: expenseReport.policyID,
+              }
+            : undefined;
+    const participants = fallbackPolicyParticipant ? [fallbackPolicyParticipant] : autoParticipants;
+    let fallbackPolicyParentChatReport = expenseReportParentChat;
+    if (!fallbackPolicyParentChatReport && chatReport && isPolicyExpenseChatReportUtil(chatReport)) {
+        fallbackPolicyParentChatReport = chatReport;
+    }
+    if (!fallbackPolicyParentChatReport && fallbackPolicyParticipant) {
+        fallbackPolicyParentChatReport = {
+            reportID: fallbackPolicyParticipant.reportID,
+            type: CONST.REPORT.TYPE.CHAT,
+            chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+            policyID: fallbackPolicyParticipant.policyID,
+            ownerAccountID: expenseReport?.ownerAccountID,
+        } as OnyxTypes.Report;
+    }
     const splitExpenses = transactionData?.splitExpenses ?? [];
 
     // Get all children once (including orphaned), then filter for non-orphaned
@@ -1325,7 +1352,7 @@ function updateSplitTransactions({
                 odometerStart: splitExpense.odometerStart,
                 odometerEnd: splitExpense.odometerEnd,
             },
-            parentChatReport: getReportOrDraftReport(getReportOrDraftReport(expenseReport?.chatReportID)?.parentReportID),
+            parentChatReport: fallbackPolicyParentChatReport,
             existingTransaction: originalTransaction,
             isASAPSubmitBetaEnabled,
             currentUserAccountIDParam: currentUserPersonalDetails?.accountID,
@@ -2636,10 +2663,16 @@ function addSplitExpenseField(
     const currency = getCurrency(draftTransaction);
     const originalTransactionID = draftTransaction.comment?.originalTransactionID ?? transaction.transactionID;
 
+    // Check if existing splits already sum to the total
+    const existingSum = existingSplits.reduce((sum, split) => sum + split.amount, 0);
+    const hasManuallyEditedSplits = existingSplits.some((split) => split.isManuallyEdited);
+    const splitsAlreadyMatchTotal = Math.abs(existingSum) === Math.abs(total);
+
     let redistributedSplitExpenses = updatedSplitExpenses;
 
-    // Auto-redistribute amounts for all splits if this is not a distance request
-    if (!isDistanceRequest) {
+    // Skip redistribution only when manual edits exist AND splits sum to total
+    const shouldRedistribute = !splitsAlreadyMatchTotal || !hasManuallyEditedSplits;
+    if (!isDistanceRequest && shouldRedistribute) {
         redistributedSplitExpenses = redistributeSplitExpenseAmounts(updatedSplitExpenses, total, currency);
     }
 

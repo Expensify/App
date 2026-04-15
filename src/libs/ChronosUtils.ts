@@ -1,6 +1,7 @@
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
+import type {OnyxInputOrEntry} from '@src/types/onyx';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import {getReportActionText} from './ReportActionsUtils';
 
@@ -90,5 +91,46 @@ function isConsecutiveChronosAutomaticTimerAction(reportActions: ReportAction[],
     return isChronosAutomaticTimerAction(currentAction, isChronosReport) && isChronosAutomaticTimerAction(previousAction, isChronosReport);
 }
 
+type OOOCommandParams = {
+    date: string;
+    time?: string;
+    durationAmount?: string;
+    durationUnit?: string;
+    reason?: string;
+    workingPercentage?: string;
+};
+
+function buildOOOCommand({date, time, durationAmount, durationUnit, reason, workingPercentage}: OOOCommandParams): string {
+    let command = `ooo ${date}`;
+
+    if (time) {
+        command += ` ${time}`;
+    }
+
+    if (durationAmount && durationUnit) {
+        command += ` for ${durationAmount} ${durationUnit}`;
+    }
+
+    if (reason) {
+        command += ` ${reason}`;
+    }
+
+    if (workingPercentage) {
+        const sanitized = workingPercentage.replaceAll('%', '').trim();
+        if (sanitized) {
+            command += ` ${sanitized}%`;
+        }
+    }
+
+    return command;
+}
+
 export type {ChronosTimerCommandValue};
-export {getLatestUserChronosTimerCommand, isChronosOOOListAction, isChronosStartOrStopMessage, isChronosTimerRunningFromVisibleActions, isConsecutiveChronosAutomaticTimerAction};
+export {
+    buildOOOCommand,
+    getLatestUserChronosTimerCommand,
+    isChronosOOOListAction,
+    isChronosStartOrStopMessage,
+    isChronosTimerRunningFromVisibleActions,
+    isConsecutiveChronosAutomaticTimerAction,
+};

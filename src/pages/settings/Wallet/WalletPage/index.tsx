@@ -77,7 +77,7 @@ function WalletPage() {
     const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET);
     const [countryByIp] = useOnyx(ONYXKEYS.COUNTRY);
     const [walletTerms = getEmptyObject<OnyxTypes.WalletTerms>()] = useOnyx(ONYXKEYS.WALLET_TERMS);
-    const [isLoadingApp] = useOnyx(ONYXKEYS.RAM_ONLY_IS_LOADING_APP);
+    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const [userAccount] = useOnyx(ONYXKEYS.ACCOUNT);
     const [lastUsedPaymentMethods] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD);
     const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
@@ -680,7 +680,6 @@ function WalletPage() {
                                 title={translate('walletPage.assignedCards')}
                                 isCentralPane
                                 subtitleMuted
-                                centralPaneContainerStyle={!hasAssignedCard ? styles.pb0 : undefined}
                                 titleStyles={styles.accountSettingsSectionTitle}
                             >
                                 <>
@@ -705,7 +704,7 @@ function WalletPage() {
                                     )}
                                 </>
                                 {isBetaEnabled(CONST.BETAS.PERSONAL_CARD_IMPORT) && (
-                                    <View style={[hasAssignedCard ? styles.mt3 : styles.mt5, shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8]}>
+                                    <View style={[shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8]}>
                                         <MenuItem
                                             title={translate('workspace.companyCards.importTransactions.importButton')}
                                             icon={icons.Table}
@@ -716,20 +715,22 @@ function WalletPage() {
                                         />
                                     </View>
                                 )}
-                                {!hasAssignedCard ? (
-                                    <MenuItem
-                                        iconHeight={48}
-                                        iconWidth={48}
-                                        containerStyle={styles.hoveredComponentBG}
-                                        shouldShowRightIcon
-                                        icon={illustrations.VerticalCreditCards}
-                                        wrapperStyle={styles.sectionMenuItemTopDescription}
-                                        title={translate('personalCard.lookingForCompanyCards')}
-                                        description={translate('personalCard.lookingForCompanyCardsDescription')}
-                                        titleStyle={styles.textStrong}
-                                        onPress={openCompanyCardFlow}
-                                    />
-                                ) : null}
+                                {!hasAssignedCard && (
+                                    <View style={[shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8]}>
+                                        <MenuItem
+                                            iconHeight={40}
+                                            iconWidth={40}
+                                            shouldShowRightIcon
+                                            icon={illustrations.VerticalCreditCards}
+                                            displayInDefaultIconColor
+                                            wrapperStyle={[styles.paymentMethod, shouldUseNarrowLayout ? styles.ph5 : styles.ph8]}
+                                            title={translate('personalCard.lookingForCompanyCards')}
+                                            description={translate('personalCard.lookingForCompanyCardsDescription')}
+                                            titleStyle={styles.textStrong}
+                                            onPress={openCompanyCardFlow}
+                                        />
+                                    </View>
+                                )}
                             </Section>
                         )}
 
