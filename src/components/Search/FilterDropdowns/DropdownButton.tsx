@@ -1,5 +1,5 @@
 import {willAlertModalBecomeVisibleSelector} from '@selectors/Modal';
-import type {ReactNode} from 'react';
+import type {ReactNode, RefObject} from 'react';
 import React, {useCallback, useMemo, useRef, useState} from 'react';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {View} from 'react-native';
@@ -26,6 +26,8 @@ type PopoverComponentProps = {
 };
 
 type DropdownButtonProps = WithSentryLabel & {
+    children?: (triggerRef: RefObject<View | null>, onPress: () => void) => ReactNode;
+
     /** The label to display on the select */
     label: string;
 
@@ -59,7 +61,19 @@ const ANCHOR_ORIGIN = {
     vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
 };
 
-function DropdownButton({label, value, viewportOffsetTop, PopoverComponent, medium = false, labelStyle, innerStyles, caretWrapperStyle, wrapperStyle, sentryLabel}: DropdownButtonProps) {
+function DropdownButton({
+    children,
+    label,
+    value,
+    viewportOffsetTop,
+    PopoverComponent,
+    medium = false,
+    labelStyle,
+    innerStyles,
+    caretWrapperStyle,
+    wrapperStyle,
+    sentryLabel,
+}: DropdownButtonProps) {
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to distinguish RHL and narrow layout
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
@@ -134,28 +148,32 @@ function DropdownButton({label, value, viewportOffsetTop, PopoverComponent, medi
             style={wrapperStyle}
         >
             {/* Dropdown Trigger */}
-            <Button
-                ref={triggerRef}
-                innerStyles={[isOverlayVisible && styles.buttonHoveredBG, {maxWidth: 256}, innerStyles]}
-                onPress={calculatePopoverPositionAndToggleOverlay}
-                sentryLabel={sentryLabel}
-                // eslint-disable-next-line react/jsx-props-no-spreading
-                {...(medium ? {medium: true} : {small: true})}
-            >
-                <CaretWrapper
-                    style={[styles.flex1, styles.mw100, caretWrapperStyle]}
-                    caretWidth={medium ? variables.iconSizeSmall : variables.iconSizeExtraSmall}
-                    caretHeight={medium ? variables.iconSizeSmall : variables.iconSizeExtraSmall}
-                    isActive={isOverlayVisible}
+            {children ? (
+                children(triggerRef, calculatePopoverPositionAndToggleOverlay)
+            ) : (
+                <Button
+                    ref={triggerRef}
+                    innerStyles={[isOverlayVisible && styles.buttonHoveredBG, {maxWidth: 256}, innerStyles]}
+                    onPress={calculatePopoverPositionAndToggleOverlay}
+                    sentryLabel={sentryLabel}
+                    // eslint-disable-next-line react/jsx-props-no-spreading
+                    {...(medium ? {medium: true} : {small: true})}
                 >
-                    <Text
-                        numberOfLines={1}
-                        style={[styles.textMicroBold, styles.flexShrink1, labelStyle]}
+                    <CaretWrapper
+                        style={[styles.flex1, styles.mw100, caretWrapperStyle]}
+                        caretWidth={medium ? variables.iconSizeSmall : variables.iconSizeExtraSmall}
+                        caretHeight={medium ? variables.iconSizeSmall : variables.iconSizeExtraSmall}
+                        isActive={isOverlayVisible}
                     >
-                        {buttonText}
-                    </Text>
-                </CaretWrapper>
-            </Button>
+                        <Text
+                            numberOfLines={1}
+                            style={[styles.textMicroBold, styles.flexShrink1, labelStyle]}
+                        >
+                            {buttonText}
+                        </Text>
+                    </CaretWrapper>
+                </Button>
+            )}
 
             {/* Dropdown overlay */}
             <PopoverWithMeasuredContent

@@ -6370,6 +6370,15 @@ const dynamicStyles = (theme: ThemeColors) =>
             height: shouldUseNarrowLayout ? variables.sectionMenuItemHeight : variables.sectionMenuItemHeightCompact,
             alignItems: 'center',
         }),
+
+        searchActionsBar: (shouldUseNarrowLayout: boolean) => ({
+            alignItems: 'center',
+            height: shouldUseNarrowLayout ? variables.componentSizeNormal : variables.h28,
+            justifyContent: 'center',
+            width: shouldUseNarrowLayout ? variables.componentSizeNormal : variables.h28,
+            backgroundColor: shouldUseNarrowLayout ? undefined : theme.buttonDefaultBG,
+            borderRadius: 999,
+        }),
     }) satisfies DynamicStyles;
 
 // Styles that cannot be wrapped in StyleSheet.create because they eg. must be passed to 3rd party libraries as JS objects

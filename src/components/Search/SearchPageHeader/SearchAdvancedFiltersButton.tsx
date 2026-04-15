@@ -1,7 +1,7 @@
 import React from 'react';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
-import {PressableWithoutFeedback} from '@components/Pressable';
+import {PressableWithFeedback} from '@components/Pressable';
 import type {SearchQueryJSON} from '@components/Search/types';
 import useFilterFormValues from '@hooks/useFilterFormValues';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -23,7 +23,7 @@ function SearchAdvancedFiltersButton({queryJSON}: SearchAdvancedFiltersButtonPro
     const {translate} = useLocalize();
     const theme = useTheme();
     const styles = useThemeStyles();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Filter']);
     const filterFormValues = useFilterFormValues(queryJSON);
     useSearchFilterSync(filterFormValues);
@@ -33,21 +33,23 @@ function SearchAdvancedFiltersButton({queryJSON}: SearchAdvancedFiltersButtonPro
         Navigation.navigate(ROUTES.SEARCH_ADVANCED_FILTERS.getRoute());
     };
 
-    if (shouldUseNarrowLayout) {
+    if (shouldUseNarrowLayout || isMediumScreenWidth) {
         return (
-            <PressableWithoutFeedback
+            <PressableWithFeedback
                 accessibilityLabel={translate('search.filtersHeader')}
                 role={CONST.ROLE.BUTTON}
-                style={[styles.touchableButtonImage]}
+                style={[styles.searchActionsBar(shouldUseNarrowLayout)]}
+                hoverStyle={styles.buttonHoveredBG}
                 sentryLabel={CONST.SENTRY_LABEL.SEARCH.ADVANCED_FILTERS_BUTTON}
                 onPress={openAdvancedFilters}
             >
                 <Icon
                     src={expensifyIcons.Filter}
                     fill={theme.icon}
-                    small
+                    small={shouldUseNarrowLayout}
+                    extraSmall={isMediumScreenWidth}
                 />
-            </PressableWithoutFeedback>
+            </PressableWithFeedback>
         );
     }
 

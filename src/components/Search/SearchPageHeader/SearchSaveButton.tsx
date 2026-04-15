@@ -1,7 +1,7 @@
 import React from 'react';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
-import {PressableWithoutFeedback} from '@components/Pressable';
+import {PressableWithFeedback} from '@components/Pressable';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -15,28 +15,30 @@ function SearchSaveButton() {
     const {translate} = useLocalize();
     const theme = useTheme();
     const styles = useThemeStyles();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Bookmark']);
 
     const openSaveSearchPage = () => {
         Navigation.navigate(ROUTES.SEARCH_SAVE);
     };
 
-    if (shouldUseNarrowLayout) {
+    if (shouldUseNarrowLayout || isMediumScreenWidth) {
         return (
-            <PressableWithoutFeedback
+            <PressableWithFeedback
                 accessibilityLabel={translate('common.save')}
                 role={CONST.ROLE.BUTTON}
-                style={[styles.touchableButtonImage]}
+                style={[styles.searchActionsBar(shouldUseNarrowLayout)]}
+                hoverStyle={styles.buttonHoveredBG}
                 sentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_SAVE_BUTTON}
                 onPress={openSaveSearchPage}
             >
                 <Icon
                     src={expensifyIcons.Bookmark}
                     fill={theme.icon}
-                    small
+                    small={shouldUseNarrowLayout}
+                    extraSmall={isMediumScreenWidth}
                 />
-            </PressableWithoutFeedback>
+            </PressableWithFeedback>
         );
     }
 
