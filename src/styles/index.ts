@@ -1789,6 +1789,13 @@ const staticStyles = (theme: ThemeColors) =>
             paddingVertical: variables.componentBorderRadiusLarge,
         },
 
+        compactPopoverMenuItem: {
+            height: variables.componentSizeLarge,
+            paddingHorizontal: 20,
+            paddingVertical: 4,
+            alignItems: 'center' as const,
+        },
+
         createMenuHeaderText: {
             ...FontUtils.fontFamily.platform.EXP_NEUE,
             fontSize: variables.fontSizeLabel,
@@ -3982,6 +3989,12 @@ const staticStyles = (theme: ThemeColors) =>
             paddingHorizontal: 25,
             paddingVertical: 12,
             justifyContent: 'space-between',
+        },
+
+        compactQuickReactionsContainer: {
+            paddingHorizontal: 16,
+            paddingTop: variables.spacing2,
+            gap: variables.spacing2,
         },
 
         reactionListContainer: {

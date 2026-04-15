@@ -42,8 +42,8 @@ const createReportActionContextMenuStyleUtils: StyleUtilGenerator<GetReportActio
             getDefaultWrapperStyle(theme),
 
             // Small screens use a bottom-docked modal that already has vertical padding.
-            isSmallScreenWidth ? {} : {paddingVertical: 8},
-            isSmallScreenWidth ? {} : {width: 300},
+            isSmallScreenWidth ? {} : {paddingVertical: variables.spacing2},
+            isSmallScreenWidth ? {} : {width: variables.compactPopoverMenuWidth},
         ];
     },
 });

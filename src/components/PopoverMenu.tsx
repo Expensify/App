@@ -376,8 +376,8 @@ function BasePopoverMenu({
                 icon={expensifyIcons.BackArrow}
                 iconFill={(isHovered) => (isHovered ? theme.iconHovered : theme.icon)}
                 style={hasBackButtonText ? styles.pv0 : undefined}
-                additionalIconStyles={[{width: 20, height: 20}, styles.opacitySemiTransparent, styles.mr1]}
-                iconStyles={[{width: 20, height: 20}]}
+                additionalIconStyles={[{width: variables.iconSizeNormal, height: variables.iconSizeNormal}, styles.opacitySemiTransparent, styles.mr1]}
+                iconStyles={[{width: variables.iconSizeNormal, height: variables.iconSizeNormal}]}
                 wrapperStyle={[styles.ph5, styles.pv3]}
                 innerContainerStyle={styles.alignItemsCenter}
                 title={backButtonTitle}
@@ -438,7 +438,7 @@ function BasePopoverMenu({
                     wrapperStyle={[
                         StyleUtils.getItemBackgroundColorStyle(!!item.isSelected, focusedIndex === menuIndex, item.disabled ?? false, theme.activeComponentBG, theme.hoverComponentBG),
                         shouldUseScrollView && !shouldUseModalPaddingStyle && StyleUtils.getOptionMargin(menuIndex, currentMenuItems.length - 1),
-                        !isSmallScreenWidth && {height: 52, paddingHorizontal: 20, paddingVertical: 4, alignItems: 'center'},
+                        !isSmallScreenWidth && styles.compactPopoverMenuItem,
                     ]}
                     shouldRemoveHoverBackground={item.isSelected}
                     titleStyle={StyleSheet.flatten([styles.flex1, item.titleStyle])}
@@ -446,7 +446,7 @@ function BasePopoverMenu({
                     role={CONST.ROLE.BUTTON}
                     // Spread other props dynamically
                     {...menuItemProps}
-                    iconStyles={!isSmallScreenWidth ? [{width: 20}] : menuItemProps?.iconStyles}
+                    iconStyles={!isSmallScreenWidth ? [{width: variables.iconSizeNormal}] : menuItemProps?.iconStyles}
                     hasSubMenuItems={!!subMenuItems?.length}
                     shouldShowLoadingSpinnerIcon={shouldShowLoadingSpinnerIcon}
                 />
@@ -554,17 +554,17 @@ function BasePopoverMenu({
             return shouldEnableMaxHeight && !isInLandscapeMode ? [{maxHeight: CONST.POPOVER_MENU_MAX_HEIGHT_MOBILE}] : [];
         }
 
-        const stylesArray: ViewStyle[] = [StyleSheet.flatten(styles.createMenuContainer), {width: 300, paddingVertical: 8}];
+        const stylesArray: ViewStyle[] = [StyleSheet.flatten(styles.createMenuContainer), {width: variables.compactPopoverMenuWidth, paddingVertical: variables.spacing2}];
 
         if (shouldUseScrollView && shouldEnableMaxHeight && !isInLandscapeMode) {
-            stylesArray.push({maxHeight: windowHeight - 100});
+            stylesArray.push({maxHeight: windowHeight - variables.compactPopoverMenuVerticalMargin});
         }
 
         return stylesArray;
     }, [isSmallScreenWidth, shouldEnableMaxHeight, styles.createMenuContainer, shouldUseScrollView, windowHeight, isInLandscapeMode]);
 
     const {paddingTop, paddingBottom, paddingVertical, ...restScrollContainerStyle} =
-        (StyleSheet.flatten([isSmallScreenWidth ? styles.pv4 : {paddingVertical: 8}, scrollContainerStyle]) as ViewStyle) ?? {};
+        (StyleSheet.flatten([isSmallScreenWidth ? styles.pv4 : {paddingVertical: variables.spacing2}, scrollContainerStyle]) as ViewStyle) ?? {};
     const {
         paddingVertical: menuContainerPaddingVertical,
         paddingTop: menuContainerPaddingTop,

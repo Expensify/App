@@ -38,7 +38,7 @@ function BaseQuickEmojiReactions({
     );
 
     return (
-        <View style={[styles.quickReactionsContainer, !shouldUseNarrowLayout && {paddingHorizontal: 16, paddingTop: 8, gap: 8}]}>
+        <View style={[styles.quickReactionsContainer, !shouldUseNarrowLayout && styles.compactQuickReactionsContainer]}>
             {CONST.QUICK_REACTIONS.map((emoji: Emoji) => (
                 <Tooltip
                     text={`:${getLocalizedEmojiName(emoji.name, preferredLocale)}:`}
