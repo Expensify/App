@@ -106,7 +106,8 @@ function MultifactorAuthenticationScenarioAuthorizeTransactionPage({route}: Mult
                 setDenyOutcomeScreen(<DeniedTransactionSuccessScreen />);
                 return;
             }
-            setDenyOutcomeScreen(authorizeTransactionConfig.failureScreens[reason] ?? <DeniedTransactionServerFailureScreen />);
+            const failureScreen = reason ? authorizeTransactionConfig.failureScreens[reason] : undefined;
+            setDenyOutcomeScreen(failureScreen ?? <DeniedTransactionServerFailureScreen />);
         });
     };
 

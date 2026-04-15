@@ -139,10 +139,13 @@ const API_RESPONSE_MAP = {
         },
     },
 
+    /** No custom error handling — all responses rely on category fallback reasons. */
     SET_PERSONAL_DETAILS_AND_SHIP_EXPENSIFY_CARDS_WITH_PIN: {},
 
+    /** No custom error handling — all responses rely on category fallback reasons. */
     REVEAL_CARD_PIN: {},
 
+    /** No custom error handling — all responses rely on category fallback reasons. */
     CHANGE_CARD_PIN: {},
 } as const;
 
@@ -154,7 +157,6 @@ const ROUTINE_FAILURES = new Set<ReasonValue>([
     REASON.LOCAL_ERRORS.CANCELED,
     REASON.LOCAL_ERRORS.NO_AUTHENTICATION_METHODS_ENROLLED,
     REASON.LOCAL_ERRORS.AUTHENTICATION_TYPE_NOT_SUPPORTED,
-    REASON.CLIENT_ERRORS.UNHANDLED,
     REASON.CLIENT_ERRORS.TRANSACTION_EXPIRED,
     REASON.CLIENT_ERRORS.TRANSACTION_DENIED,
     REASON.CLIENT_ERRORS.INVALID_VALIDATE_CODE,
@@ -176,6 +178,7 @@ const ROUTINE_FAILURES = new Set<ReasonValue>([
 const ANOMALOUS_FAILURES = new Set<ReasonValue>([
     REASON.CLIENT_ERRORS.REGISTRATION_REQUIRED,
     REASON.CLIENT_ERRORS.BAD_REQUEST,
+    REASON.CLIENT_ERRORS.UNHANDLED,
     REASON.SERVER_ERRORS.UNHANDLED,
     REASON.LOCAL_ERRORS.UNHANDLED,
     REASON.LOCAL_ERRORS.WEBAUTHN.INVALID_STATE,
@@ -275,4 +278,5 @@ const SHARED_VALUES = {
     },
 } as const;
 
+export type {ReasonValue};
 export default SHARED_VALUES;

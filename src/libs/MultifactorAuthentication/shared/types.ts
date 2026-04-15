@@ -10,6 +10,7 @@ import type {PasskeyRegistrationKeyInfo} from '@libs/MultifactorAuthentication/P
 import type {PASSKEY_AUTH_TYPE} from '@libs/MultifactorAuthentication/Passkeys/WebAuthn';
 import type {SignedChallenge} from './challengeTypes';
 import type VALUES from './VALUES';
+import type {ReasonValue} from './VALUES';
 
 /**
  * Authentication type name derived from react-native-biometrics values and passkey auth type.
@@ -29,8 +30,7 @@ type MultifactorAuthenticationMethodCode = ValueOf<typeof NATIVE_BIOMETRICS_HSM_
 /**
  * Represents the reason for a multifactor authentication response from the backend.
  */
-type DeepLeafValues<T> = T extends Record<string, unknown> ? DeepLeafValues<T[keyof T]> : T;
-type MultifactorAuthenticationReason = DeepLeafValues<typeof VALUES.REASON>;
+type MultifactorAuthenticationReason = ReasonValue;
 
 /**
  * Combined type representing all possible authentication base parameters.

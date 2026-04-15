@@ -3,12 +3,12 @@ import VALUES from '@libs/MultifactorAuthentication/VALUES';
 
 describe('MultifactorAuthentication shared helpers', () => {
     describe('parseHttpRequest', () => {
-        it('should return LOCAL_ERROR for a 200 response when the map has no SUCCESS entry', () => {
+        it('should return undefined reason for a 200 response when the map has no SUCCESS entry', () => {
             const responseMap = VALUES.API_RESPONSE_MAP.REQUEST_AUTHENTICATION_CHALLENGE;
             const result = parseHttpRequest(200, responseMap, 'OK');
 
             expect(result.httpStatusCode).toBe(200);
-            expect(result.reason).toBe(VALUES.REASON.LOCAL_ERRORS.UNHANDLED);
+            expect(result.reason).toBeUndefined();
         });
 
         it('should match a 4xx message and return the corresponding reason', () => {

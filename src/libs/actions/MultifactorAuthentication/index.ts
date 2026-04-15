@@ -85,7 +85,7 @@ async function registerAuthenticationKey({keyInfo}: MultifactorAuthenticationSce
 
 type RegistrationChallengeResponse = {
     httpStatusCode: number;
-    reason: MultifactorAuthenticationReason;
+    reason: MultifactorAuthenticationReason | undefined;
     message: string | undefined;
     challenge: RegistrationChallenge | undefined;
     publicKeys: string[] | undefined;
@@ -93,7 +93,7 @@ type RegistrationChallengeResponse = {
 
 type AuthenticationChallengeResponse = {
     httpStatusCode: number;
-    reason: MultifactorAuthenticationReason;
+    reason: MultifactorAuthenticationReason | undefined;
     message: string | undefined;
     challenge: AuthenticationChallenge | undefined;
     publicKeys: string[] | undefined;

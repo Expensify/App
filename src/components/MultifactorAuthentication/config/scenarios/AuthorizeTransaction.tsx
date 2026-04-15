@@ -150,7 +150,7 @@ export default {
             return {reason: CONST.MULTIFACTOR_AUTHENTICATION.REASON.LOCAL_ERRORS.CANCELED};
         }
         const result = await denyTransaction({transactionID: payload.transactionID});
-        return {...result, payload};
+        return {reason: result.reason ?? CONST.MULTIFACTOR_AUTHENTICATION.REASON.LOCAL_ERRORS.CANCELED, payload};
     },
     failureScreens: {
         [CONST.MULTIFACTOR_AUTHENTICATION.REASON.CLIENT_ERRORS.TRANSACTION_DENIED]: <DeniedTransactionSuccessScreen />,

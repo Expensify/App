@@ -66,7 +66,7 @@ type MultifactorAuthenticationOutcomeScreens = {
  */
 type MultifactorAuthenticationScenarioResponse = {
     httpStatusCode: number | undefined;
-    reason: MultifactorAuthenticationReason;
+    reason: MultifactorAuthenticationReason | undefined;
     message: string | undefined;
 
     /** Optional response body containing scenario-specific data (e.g., {pin: number} for PIN reveal) */

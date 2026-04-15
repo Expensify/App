@@ -496,7 +496,7 @@ describe('revokeMultifactorAuthenticationCredentials', () => {
         const result = await revokeMultifactorAuthenticationCredentials({});
 
         expect(result.httpStatusCode).toBe(200);
-        expect(result.reason).toBe(CONST.MULTIFACTOR_AUTHENTICATION.REASON.LOCAL_ERRORS.UNHANDLED);
+        expect(result.reason).toBeUndefined();
     });
 
     it('should return error response when API returns non-200', async () => {

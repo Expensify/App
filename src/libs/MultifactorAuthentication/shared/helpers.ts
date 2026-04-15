@@ -23,12 +23,15 @@ const getHttpStatusCategory = (httpStatusCode: number): HttpStatusCategory | und
 
 const httpStatusCategoryIsDefined = (source: ParseHTTPSource, category: HttpStatusCategory): category is keyof ParseHTTPSource => Object.keys(source).some((key) => key === category);
 
-const getCategoryFallbackReason = (httpStatusCategory: HttpStatusCategory): MultifactorAuthenticationReason => {
+const getCategoryFallbackReason = (httpStatusCategory: HttpStatusCategory): MultifactorAuthenticationReason | undefined => {
     if (httpStatusCategory === VALUES.HTTP_STATUS.CLIENT_ERROR) {
         return VALUES.REASON.CLIENT_ERRORS.UNHANDLED;
     }
     if (httpStatusCategory === VALUES.HTTP_STATUS.SERVER_ERROR) {
         return VALUES.REASON.SERVER_ERRORS.UNHANDLED;
+    }
+    if (httpStatusCategory === VALUES.HTTP_STATUS.SUCCESS) {
+        return undefined;
     }
     return VALUES.REASON.LOCAL_ERRORS.UNHANDLED;
 };
@@ -48,7 +51,7 @@ function parseHttpRequest(
     message: string | undefined,
 ): {
     httpStatusCode: number;
-    reason: MultifactorAuthenticationReason;
+    reason: MultifactorAuthenticationReason | undefined;
     message: string | undefined;
 } {
     const httpStatusCode = Number(jsonCode ?? 0);

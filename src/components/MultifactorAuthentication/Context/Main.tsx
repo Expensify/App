@@ -250,7 +250,14 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
                 );
 
                 if (!challenge) {
-                    dispatch({type: 'SET_ERROR', payload: {reason: challengeReason}});
+                    dispatch({
+                        type: 'SET_ERROR',
+                        payload: {
+                            reason: challengeReason ?? CONST.MULTIFACTOR_AUTHENTICATION.REASON.LOCAL_ERRORS.UNHANDLED,
+                            httpStatusCode: challengeHttpStatus,
+                            message: challengeMessage,
+                        },
+                    });
                     return;
                 }
 
@@ -324,7 +331,7 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
                     dispatch({
                         type: 'SET_ERROR',
                         payload: {
-                            reason: registrationResponse.reason,
+                            reason: registrationResponse.reason ?? CONST.MULTIFACTOR_AUTHENTICATION.REASON.LOCAL_ERRORS.UNHANDLED,
                             httpStatusCode: registrationResponse.httpStatusCode,
                             message: registrationResponse.message,
                         },
@@ -363,7 +370,14 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
                 );
 
                 if (!challenge) {
-                    dispatch({type: 'SET_ERROR', payload: {reason: challengeReason}});
+                    dispatch({
+                        type: 'SET_ERROR',
+                        payload: {
+                            reason: challengeReason ?? CONST.MULTIFACTOR_AUTHENTICATION.REASON.LOCAL_ERRORS.UNHANDLED,
+                            httpStatusCode: challengeHttpStatus,
+                            message: challengeMessage,
+                        },
+                    });
                     return;
                 }
 
@@ -446,7 +460,7 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
                         dispatch({
                             type: 'SET_ERROR',
                             payload: {
-                                reason: scenarioAPIResponse.reason,
+                                reason: scenarioAPIResponse.reason ?? CONST.MULTIFACTOR_AUTHENTICATION.REASON.LOCAL_ERRORS.UNHANDLED,
                                 httpStatusCode: scenarioAPIResponse.httpStatusCode,
                                 message: scenarioAPIResponse.message,
                             },

@@ -5,7 +5,7 @@ import {registerAuthenticationKey} from './index';
 
 type ProcessResult = {
     success: boolean;
-    reason: MultifactorAuthenticationReason;
+    reason: MultifactorAuthenticationReason | undefined;
     message?: string;
     httpStatusCode?: number;
 
