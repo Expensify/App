@@ -20,9 +20,7 @@ import type {Mention} from '@components/MentionSuggestions';
 import OfflineIndicator from '@components/OfflineIndicator';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
-import {useSearchStateContext} from '@components/Search/SearchContext';
 import useAncestors from '@hooks/useAncestors';
-import {useCurrentReportIDState} from '@hooks/useCurrentReportID';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useHandleExceedMaxCommentLength from '@hooks/useHandleExceedMaxCommentLength';
 import useHandleExceedMaxTaskTitleLength from '@hooks/useHandleExceedMaxTaskTitleLength';
@@ -104,6 +102,7 @@ import ComposerWithSuggestions from './ComposerWithSuggestions';
 import type {ComposerRef} from './ComposerWithSuggestions/ComposerWithSuggestions';
 import SendButton from './SendButton';
 import useAttachmentUploadValidation from './useAttachmentUploadValidation';
+import useSidePanelContext from './useSidePanelContext';
 
 type SuggestionsRef = {
     resetSuggestions: () => void;
@@ -169,7 +168,6 @@ function ReportActionCompose({reportID}: ReportActionComposeProps) {
     const {availableLoginsList} = useShortMentionsList();
     const currentUserEmail = currentUserPersonalDetails.email ?? '';
     const {isRestrictedToPreferredPolicy} = usePreferredPolicy();
-    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [isComposerFullSize = false] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${reportID}`);
@@ -402,8 +400,7 @@ function ReportActionCompose({reportID}: ReportActionComposeProps) {
         ComposerFocusManager.setReadyToFocus();
     }, [updateShouldShowSuggestionMenuToFalse]);
 
-    const {currentReportID, currentRHPReportID} = useCurrentReportIDState();
-    const {selectedTransactions, selectedReports} = useSearchStateContext();
+    const sidePanelContext = useSidePanelContext(reportID);
 
     /**
      * Add a new comment to this chat
@@ -488,31 +485,6 @@ function ReportActionCompose({reportID}: ReportActionComposeProps) {
                     });
                 }
 
-                const isConciergeSidePanel = conciergeReportID === reportID && isInSidePanel;
-                const contextReportID = isConciergeSidePanel ? (currentRHPReportID ?? currentReportID ?? undefined) : undefined;
-                const selectedTransactionIDsForContext =
-                    isConciergeSidePanel && !isEmptyObject(selectedTransactions)
-                        ? Object.entries(selectedTransactions)
-                              .filter(([, info]) => info.isSelected)
-                              .map(([id]) => id)
-                              .join(',') || undefined
-                        : undefined;
-                const selectedReportIDsForContext =
-                    isConciergeSidePanel && selectedReports.length > 0
-                        ? selectedReports
-                              .map((r) => r.reportID)
-                              .filter((id): id is string => !!id)
-                              .join(',') || undefined
-                        : undefined;
-                let sidePanelContext: OnyxTypes.SidePanelContext | undefined;
-                if (contextReportID) {
-                    sidePanelContext = {reportID: contextReportID, selectedTransactionIDs: selectedTransactionIDsForContext, selectedReportIDs: selectedReportIDsForContext};
-                } else if (selectedReportIDsForContext) {
-                    sidePanelContext = {selectedReportIDs: selectedReportIDsForContext};
-                } else if (selectedTransactionIDsForContext) {
-                    sidePanelContext = {selectedTransactionIDs: selectedTransactionIDsForContext};
-                }
-
                 addComment({
                     report: targetReport,
                     notifyReportID: reportID,
@@ -542,11 +514,7 @@ function ReportActionCompose({reportID}: ReportActionComposeProps) {
             personalDetails,
             quickAction,
             scrollOffsetRef,
-            currentReportID,
-            currentRHPReportID,
-            conciergeReportID,
-            selectedTransactions,
-            selectedReports,
+            sidePanelContext,
         ],
     );
 
