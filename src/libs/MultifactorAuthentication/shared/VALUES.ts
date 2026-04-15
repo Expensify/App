@@ -62,15 +62,6 @@ const REASON = {
         CHALLENGE_MISSING: 'Challenge is missing',
         CHALLENGE_SIGNED: 'Challenge signed successfully',
     },
-    EXPO: {
-        CANCELED: 'Authentication canceled by user',
-        IN_PROGRESS: 'Authentication already in progress',
-        NOT_IN_FOREGROUND: 'Application must be in the foreground',
-        KEY_EXISTS: 'This key already exists',
-        NO_METHOD_AVAILABLE: 'No authentication methods available',
-        NOT_SUPPORTED: 'This feature is not supported on the device',
-        GENERIC: 'An error occurred',
-    },
     GENERIC: {
         SIGNATURE_MISSING: 'Signature is missing',
         /** The device type is correct for this scenario but no authentication methods are enrolled (e.g. no fingerprint/face/passcode set up in device settings). */
@@ -84,17 +75,6 @@ const REASON = {
         UNKNOWN_RESPONSE: 'Unknown response',
         CANCELED: 'Flow canceled by user',
     },
-    KEYSTORE: {
-        KEY_DELETED: 'Key successfully deleted from SecureStore',
-        REGISTRATION_REQUIRED: 'Key is stored locally but not found on server',
-        KEY_MISSING: 'Key is missing',
-        KEY_SAVED: 'Key successfully saved in SecureStore',
-        UNABLE_TO_SAVE_KEY: 'Failed to save key in SecureStore',
-        UNABLE_TO_DELETE_KEY: 'Failed to delete key from SecureStore',
-        KEY_RETRIEVED: 'Key successfully retrieved from SecureStore',
-        KEY_NOT_FOUND: 'Key not found in SecureStore',
-        UNABLE_TO_RETRIEVE_KEY: 'Failed to retrieve key from SecureStore',
-    },
     WEBAUTHN: {
         NOT_ALLOWED: 'NotAllowedError',
         INVALID_STATE: 'InvalidStateError',
@@ -105,6 +85,18 @@ const REASON = {
         REGISTRATION_REQUIRED: 'No matching passkey credentials found locally',
         UNEXPECTED_RESPONSE: 'WebAuthn credential response type is unexpected',
         GENERIC: 'An unknown WebAuthn error occurred',
+    },
+    HSM: {
+        CANCELED: 'Biometric authentication canceled by user',
+        NOT_AVAILABLE: 'Biometric authentication not available',
+        LOCKOUT: 'Biometric authentication locked out',
+        LOCKOUT_PERMANENT: 'Biometric authentication permanently locked out',
+        KEY_NOT_FOUND: 'Key not found',
+        SIGNATURE_FAILED: 'Signature creation failed',
+        KEY_CREATION_FAILED: 'Key creation failed',
+        KEY_ACCESS_FAILED: 'Failed to access cryptographic key',
+        AUTHENTICATION_FAILED: 'Biometric authentication failed',
+        GENERIC: 'An HSM error occurred',
     },
 } as const;
 
@@ -206,9 +198,6 @@ type ReasonValue = ValueOf<{
 
 /** Known errors the user is likely to encounter (cancellations, expired transactions, unsupported devices, etc.). Logged at 'info' level. */
 const ROUTINE_FAILURES = new Set<ReasonValue>([
-    REASON.EXPO.CANCELED,
-    REASON.EXPO.NO_METHOD_AVAILABLE,
-    REASON.EXPO.NOT_SUPPORTED,
     REASON.GENERIC.CANCELED,
     REASON.GENERIC.NO_AUTHENTICATION_METHODS_ENROLLED,
     REASON.GENERIC.AUTHENTICATION_TYPE_NOT_SUPPORTED,
@@ -224,6 +213,10 @@ const ROUTINE_FAILURES = new Set<ReasonValue>([
     REASON.WEBAUTHN.NOT_ALLOWED,
     REASON.WEBAUTHN.ABORT,
     REASON.WEBAUTHN.NOT_SUPPORTED,
+    REASON.HSM.CANCELED,
+    REASON.HSM.NOT_AVAILABLE,
+    REASON.HSM.LOCKOUT,
+    REASON.HSM.AUTHENTICATION_FAILED,
 ]);
 
 /** Known errors that should rarely happen and may indicate a bug or unexpected state. Logged at 'error' level. Any reason not in either set is treated as UNCLASSIFIED (e.g. 5xx, missing reason). */
@@ -237,23 +230,20 @@ const ANOMALOUS_FAILURES = new Set<ReasonValue>([
     REASON.BACKEND.INVALID_KEY,
     REASON.BACKEND.AUTHENTICATION_REQUIRED,
     REASON.BACKEND.UNAUTHORIZED,
-    REASON.KEYSTORE.KEY_MISSING,
-    REASON.KEYSTORE.KEY_NOT_FOUND,
-    REASON.KEYSTORE.REGISTRATION_REQUIRED,
-    REASON.KEYSTORE.UNABLE_TO_SAVE_KEY,
-    REASON.KEYSTORE.UNABLE_TO_DELETE_KEY,
-    REASON.KEYSTORE.UNABLE_TO_RETRIEVE_KEY,
     REASON.GENERIC.BAD_REQUEST,
     REASON.GENERIC.UNKNOWN_RESPONSE,
-    REASON.EXPO.IN_PROGRESS,
-    REASON.EXPO.NOT_IN_FOREGROUND,
-    REASON.EXPO.GENERIC,
     REASON.WEBAUTHN.INVALID_STATE,
     REASON.WEBAUTHN.SECURITY_ERROR,
     REASON.WEBAUTHN.CONSTRAINT_ERROR,
     REASON.WEBAUTHN.REGISTRATION_REQUIRED,
     REASON.WEBAUTHN.UNEXPECTED_RESPONSE,
     REASON.WEBAUTHN.GENERIC,
+    REASON.HSM.LOCKOUT_PERMANENT,
+    REASON.HSM.SIGNATURE_FAILED,
+    REASON.HSM.KEY_NOT_FOUND,
+    REASON.HSM.KEY_CREATION_FAILED,
+    REASON.HSM.KEY_ACCESS_FAILED,
+    REASON.HSM.GENERIC,
 ]);
 
 const SHARED_VALUES = {
@@ -271,15 +261,15 @@ const SHARED_VALUES = {
      * Maps authentication type to the corresponding prompt type.
      */
     PROMPT_TYPE_MAP: {
-        BIOMETRICS: PROMPT_NAMES.BIOMETRICS,
+        BIOMETRICS_HSM: PROMPT_NAMES.BIOMETRICS_HSM,
         PASSKEYS: PROMPT_NAMES.PASSKEYS,
     },
 
     /**
-     * Authentication type identifiers.
+     * Authentication type identifiers used for identification of allowed authentication methods in scenarios
      */
     TYPE: {
-        BIOMETRICS: 'BIOMETRICS',
+        BIOMETRICS_HSM: 'BIOMETRICS_HSM',
         PASSKEYS: 'PASSKEYS',
     },
     CHALLENGE_TYPE: {

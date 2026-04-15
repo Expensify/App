@@ -1,6 +1,7 @@
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import BlockingView from '@components/BlockingViews/BlockingView';
+import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import SelectionScreen from '@components/SelectionScreen';
 import type {SelectorType} from '@components/SelectionScreen';
 import Text from '@components/Text';
@@ -86,6 +87,7 @@ function NetSuiteSubsidiarySelector({policy}: WithPolicyConnectionsProps) {
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             displayName="NetSuiteSubsidiarySelector"
             data={subsidiaryListSections}
+            listItem={RadioListItem}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.NETSUITE}
             onSelectRow={updateSubsidiary}
             initiallyFocusedOptionKey={netsuiteConfig?.subsidiaryID ?? subsidiaryListSections?.at(0)?.keyForList}

@@ -3,8 +3,6 @@ import lodashSortBy from 'lodash/sortBy';
 import type {OnyxCollection} from 'react-native-onyx';
 import type {FeedKeysWithAssignedCards} from '@hooks/useFeedKeysWithAssignedCards';
 import type IllustrationsType from '@styles/theme/illustrations/types';
-// eslint-disable-next-line no-restricted-imports
-import type * as Illustrations from '@src/components/Icon/Illustrations';
 import CONST from '@src/CONST';
 import type {CombinedCardFeeds} from '@src/hooks/useCardFeeds';
 import IntlStore from '@src/languages/IntlStore';
@@ -23,6 +21,7 @@ import {
     getBankName,
     getBrokenConnectionUrlToFixPersonalCard,
     getCardDescription,
+    getCardDescriptionForSearchTable,
     getCardFeedIcon,
     getCardFeedWithDomainID,
     getCardHintText,
@@ -455,6 +454,7 @@ const mockCompanyCardFeedIcons: CompanyCardFeedIconsMock = {
     BrexCompanyCardDetailLarge: mockIcon('BrexCompanyCardDetailLarge'),
     StripeCompanyCardDetailLarge: mockIcon('StripeCompanyCardDetailLarge'),
     PlaidCompanyCardDetailLarge: mockIcon('PlaidCompanyCardDetailLarge'),
+    ExpensifyCardImage: mockIcon('ExpensifyCardImage'),
 };
 const mockCompanyCardBankIcons: CompanyCardBankIconsMock = {
     AmexCardCompanyCardDetail: mockIcon('AmexCardCompanyCardDetail'),
@@ -469,8 +469,6 @@ const mockCompanyCardBankIcons: CompanyCardBankIconsMock = {
     VisaCompanyCardDetail: mockIcon('VisaCompanyCardDetail'),
     PlaidCompanyCardDetail: mockIcon('PlaidCompanyCardDetail'),
 };
-
-jest.mock('@src/components/Icon/Illustrations', () => require('../../__mocks__/Illustrations') as typeof Illustrations);
 
 describe('CardUtils', () => {
     describe('Expiration date formatting', () => {
@@ -1151,6 +1149,20 @@ describe('CardUtils', () => {
             expect(buildFeedKeysWithAssignedCards(allWorkspaceCards as unknown as OnyxCollection<WorkspaceCardsList>)).toStrictEqual({});
         });
 
+        it('Should include CSV feed keys even when entries only have cardList', () => {
+            const csvFeed = `${CONST.COMPANY_CARD.FEED_BANK_NAME.CSV}_123456_`;
+            const allWorkspaceCards = {
+                [`cards_12345_${csvFeed}`]: {
+                    cardList: {
+                        'CREDIT CARD...1234': 'encrypted_value',
+                    },
+                },
+            };
+            expect(buildFeedKeysWithAssignedCards(allWorkspaceCards as unknown as OnyxCollection<WorkspaceCardsList>, [CONST.BETAS.CSV_CARD_IMPORT])).toStrictEqual({
+                [`12345_${csvFeed}`]: true,
+            });
+        });
+
         it('Should extract feed keys that have assigned cards', () => {
             const allWorkspaceCards = {
                 'cards_12345_oauth.chase.com': {
@@ -1409,6 +1421,18 @@ describe('CardUtils', () => {
             const feed = CONST.COMPANY_CARD.FEED_BANK_NAME.VISA;
             const exists = doesCardFeedExist(feed, undefined);
             expect(exists).toBe(false);
+        });
+
+        it('Should return true for Expensify Card feed even though it is excluded from company feeds', () => {
+            const feed = CONST.EXPENSIFY_CARD.BANK as CompanyCardFeed;
+            const exists = doesCardFeedExist(feed, cardFeedsCollection);
+            expect(exists).toBe(true);
+        });
+
+        it('Should return true for Expensify Card feed even with empty cardFeeds', () => {
+            const feed = CONST.EXPENSIFY_CARD.BANK as CompanyCardFeed;
+            const exists = doesCardFeedExist(feed, {});
+            expect(exists).toBe(true);
         });
     });
 
@@ -2248,6 +2272,26 @@ describe('CardUtils', () => {
             expect(description).toBe(CONST.EXPENSIFY_CARD.BANK);
         });
 
+        it('should return Central invoicing for travel invoicing cards', () => {
+            const card: Card = {
+                accountID: 18439984,
+                bank: CONST.EXPENSIFY_CARD.BANK,
+                cardID: 21570657,
+                cardName: 'CREDIT CARD...6909',
+                domainName: 'expensify-policy17f617b9fe23d2f1.exfy',
+                fraud: 'none',
+                lastFourPAN: '6909',
+                lastScrape: '',
+                lastUpdated: '',
+                state: 3,
+                nameValuePairs: {
+                    feedCountry: CONST.TRAVEL.PROGRAM_TRAVEL_US,
+                } as Card['nameValuePairs'],
+            };
+            const description = getCardDescription(card, translateLocal);
+            expect(description).toBe('Central invoicing');
+        });
+
         it('should return the correct card description for personal card', () => {
             const personalCard: Card = {
                 accountID: 1,
@@ -2263,6 +2307,45 @@ describe('CardUtils', () => {
             };
             const description = getCardDescription(personalCard, translateLocal);
             expect(description).toBe('Visa • 1234');
+        });
+    });
+
+    describe('getCardDescriptionForSearchTable', () => {
+        it('should return Central invoicing for travel invoicing cards when translate is provided', () => {
+            const card: Card = {
+                accountID: 18439984,
+                bank: CONST.EXPENSIFY_CARD.BANK,
+                cardID: 21570657,
+                cardName: 'CREDIT CARD...6909',
+                domainName: 'expensify-policy17f617b9fe23d2f1.exfy',
+                fraud: 'none',
+                lastFourPAN: '6909',
+                lastScrape: '',
+                lastUpdated: '',
+                state: 3,
+                nameValuePairs: {
+                    feedCountry: CONST.TRAVEL.PROGRAM_TRAVEL_US,
+                } as Card['nameValuePairs'],
+            };
+            const description = getCardDescriptionForSearchTable(card, translateLocal, 'John Doe');
+            expect(description).toBe('Central invoicing');
+        });
+
+        it('should return normal description for non-travel Expensify cards', () => {
+            const card: Card = {
+                accountID: 18439984,
+                bank: CONST.EXPENSIFY_CARD.BANK,
+                cardID: 21570657,
+                cardName: 'Expensify Card',
+                domainName: 'expensify-policy17f617b9fe23d2f1.exfy',
+                fraud: 'none',
+                lastFourPAN: '5644',
+                lastScrape: '',
+                lastUpdated: '',
+                state: 3,
+            };
+            const description = getCardDescriptionForSearchTable(card, translateLocal, 'John Doe');
+            expect(description).toBe("John Doe's card • 5644");
         });
     });
 
@@ -2455,7 +2538,7 @@ describe('CardUtils', () => {
             expect(result).toHaveLength(2); // Both cards shown (admin-issued virtual is not grouped)
         });
 
-        it('should show travel cards separately', () => {
+        it('should exclude travel cards', () => {
             const cardList = {
                 1: {
                     accountID: 10160771,
@@ -2492,7 +2575,8 @@ describe('CardUtils', () => {
                 },
             } as unknown as CardList;
             const result = getDisplayableExpensifyCards(cardList);
-            expect(result).toHaveLength(2); // Both cards shown (travel card is not grouped)
+            expect(result).toHaveLength(1);
+            expect(result.at(0)?.cardID).toBe(18468850);
         });
 
         it('should show cards from different domains separately', () => {

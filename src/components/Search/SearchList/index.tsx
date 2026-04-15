@@ -39,6 +39,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Transaction, TransactionViolations} from '@src/types/onyx';
 import BaseSearchList from './BaseSearchList';
 import type ChatListItem from './ListItem/ChatListItem';
+import type ExpenseReportListItem from './ListItem/ExpenseReportListItem';
 import type TaskListItem from './ListItem/TaskListItem';
 import type TransactionGroupListItem from './ListItem/TransactionGroupListItem';
 import type TransactionListItem from './ListItem/TransactionListItem';
@@ -62,7 +63,7 @@ const easing = Easing.bezier(0.76, 0.0, 0.24, 1.0);
 let savedHorizontalScrollOffset = 0;
 
 type SearchListItem = TransactionListItemType | TransactionGroupListItemType | ReportActionListItemType | TaskListItemType;
-type SearchListItemComponentType = typeof TransactionListItem | typeof ChatListItem | typeof TransactionGroupListItem | typeof TaskListItem;
+type SearchListItemComponentType = typeof TransactionListItem | typeof ChatListItem | typeof TransactionGroupListItem | typeof TaskListItem | typeof ExpenseReportListItem;
 
 type SearchListHandle = {
     scrollToIndex: (index: number, animated?: boolean) => void;
@@ -286,7 +287,7 @@ function SearchList({
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout here because there is a race condition that causes shouldUseNarrowLayout to change indefinitely in this component
     // See https://github.com/Expensify/App/issues/48675 for more details
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
-    const {isSmallScreenWidth} = useResponsiveLayout();
+    const {isSmallScreenWidth, isLargeScreenWidth} = useResponsiveLayout();
 
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [longPressedItem, setLongPressedItem] = useState<SearchListItem>();
@@ -301,6 +302,8 @@ function SearchList({
     const [userBillingFundID] = useOnyx(ONYXKEYS.NVP_BILLING_FUND_ID);
     const [lastPaymentMethod] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD);
     const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
+    const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
+    const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
 
     const route = useRoute();
     const {getScrollOffset} = useContext(ScrollOffsetContext);
@@ -325,7 +328,7 @@ function SearchList({
     }, [data, groupBy, newTransactions]);
 
     const {windowWidth} = useWindowDimensions();
-    const minTableWidth = getTableMinWidth(columns);
+    const minTableWidth = getTableMinWidth(columns, queryJSON.type);
     const shouldScrollHorizontally = !!SearchTableHeader && minTableWidth > windowWidth;
 
     const horizontalScrollViewRef = useRef<RNScrollView>(null);
@@ -441,6 +444,8 @@ function SearchList({
                         searchType={type}
                         lastPaymentMethod={lastPaymentMethod}
                         personalPolicyID={personalPolicyID}
+                        userBillingGracePeriodEnds={userBillingGracePeriodEnds}
+                        ownerBillingGracePeriodEnd={ownerBillingGracePeriodEnd}
                         userWalletTierName={userWalletTierName}
                         isUserValidated={isUserValidated}
                         personalDetails={personalDetails}
@@ -451,6 +456,8 @@ function SearchList({
                         onFocus={onFocus}
                         newTransactionID={newTransactionID}
                         keyForList={item.keyForList}
+                        isFirstItem={index === 0}
+                        isLastItem={index === data.length - 1 && !ListFooterComponent}
                     />
                 </Animated.View>
             );
@@ -480,8 +487,11 @@ function SearchList({
             violations,
             lastPaymentMethod,
             personalPolicyID,
+            userBillingGracePeriodEnds,
+            ownerBillingGracePeriodEnd,
             customCardNames,
             selectedTransactions,
+            ListFooterComponent,
         ],
     );
 
@@ -492,7 +502,12 @@ function SearchList({
     const content = (
         <View style={[styles.flex1, !isKeyboardShown && safeAreaPaddingBottomStyle, containerStyle]}>
             {tableHeaderVisible && (
-                <View style={[styles.searchListHeaderContainerStyle, styles.listTableHeader]}>
+                <View
+                    style={[
+                        styles.searchListHeaderContainerStyle,
+                        isLargeScreenWidth ? [styles.listTableHeaderCompact, styles.searchListHeaderTableStyle, styles.mh5] : styles.listTableHeader,
+                    ]}
+                >
                     {canSelectMultiple && (
                         <Checkbox
                             accessibilityLabel={translate('accessibilityHints.selectAllItems')}
@@ -502,6 +517,7 @@ function SearchList({
                                 onAllCheckboxPress();
                             }}
                             disabled={totalItems === 0}
+                            containerStyle={styles.m0}
                             sentryLabel={CONST.SENTRY_LABEL.SEARCH.SELECT_ALL_CHECKBOX}
                         />
                     )}

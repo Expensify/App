@@ -6,13 +6,14 @@ import {StyleSheet} from 'react-native';
 import type {ComposerProps} from '@components/Composer/types';
 import type {AnimatedMarkdownTextInputRef} from '@components/RNMarkdownTextInput';
 import RNMarkdownTextInput from '@components/RNMarkdownTextInput';
+import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import useMarkdownStyle from '@hooks/useMarkdownStyle';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {containsOnlyEmojis} from '@libs/EmojiUtils';
 import {splitExtensionFromFileName} from '@libs/fileDownload/FileUtils';
-import Log from '@libs/Log';
+import getLandscapeTextInputRefProxy from '@libs/getLandscapeTextInputRefProxy';
 import Parser from '@libs/Parser';
 import getFileSize from '@pages/Share/getFileSize';
 import CONST from '@src/CONST';
@@ -43,6 +44,7 @@ function Composer({
     const markdownStyle = useMarkdownStyle(textContainsOnlyEmojis, !isGroupPolicyReport ? excludeReportMentionStyle : excludeNoStyles);
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+    const isInLandscapeMode = useIsInLandscapeMode();
 
     useEffect(() => {
         if (!textInput.current || !textInput.current.setSelection || !selection || isComposerFullSize) {
@@ -67,19 +69,23 @@ function Composer({
      * Set the TextInput Ref
      * @param {Element} el
      */
-    const setTextInputRef = useCallback((el: AnimatedMarkdownTextInputRef | null) => {
-        textInput.current = el;
-        if (typeof ref !== 'function' || textInput.current === null) {
-            return;
-        }
+    const setTextInputRef = useCallback(
+        (el: AnimatedMarkdownTextInputRef | null) => {
+            textInput.current = isInLandscapeMode ? getLandscapeTextInputRefProxy(el) : el;
 
-        // This callback prop is used by the parent component using the constructor to
-        // get a ref to the inner textInput element e.g. if we do
-        // <constructor ref={el => this.textInput = el} /> this will not
-        // return a ref to the component, but rather the HTML element by default
-        ref(textInput.current);
+            if (typeof ref !== 'function' || textInput.current === null) {
+                return;
+            }
+
+            // This callback prop is used by the parent component using the constructor to
+            // get a ref to the inner textInput element e.g. if we do
+            // <constructor ref={el => this.textInput = el} /> this will not
+            // return a ref to the component, but rather the HTML element by default
+            ref(textInput.current);
+        },
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+        [isInLandscapeMode],
+    );
 
     const onClear = useCallback(
         ({nativeEvent}: TextInputChangeEvent) => {
@@ -90,37 +96,20 @@ function Composer({
 
     const pasteFile = useCallback(
         (e: NativeSyntheticEvent<TextInputPasteEventData>) => {
-            const filePromises: Array<Promise<FileObject | undefined>> = e.nativeEvent.items.map(async (item) => {
-                const clipboardContent = item;
-                if (clipboardContent?.type === 'text/plain') {
-                    return;
-                }
-
-                const mimeType = clipboardContent?.type ?? '';
-                const fileURI = clipboardContent?.data;
-                const baseFileName = fileURI?.split('/').pop() ?? 'file';
-                const {fileName: stem, fileExtension: originalFileExtension} = splitExtensionFromFileName(baseFileName);
-                const fileExtension = originalFileExtension || (mimeDb[mimeType].extensions?.[0] ?? 'bin');
-                const fileName = `${stem}.${fileExtension}`;
-                let file: FileObject = {uri: fileURI, name: fileName, type: mimeType, size: 0};
-
-                return getFileSize(file.uri ?? '')
-                    .then((size) => (file = {...file, size} as FileObject))
-                    .finally(() => file);
-            });
-
-            // Use allSettled so one bad URI/type doesn't drop valid files from mixed clipboard payloads
-            Promise.allSettled(filePromises).then((results) => {
-                const files: FileObject[] = [];
-                for (const [index, result] of results.entries()) {
-                    if (result.status === 'fulfilled' && result.value !== undefined) {
-                        files.push(result.value);
-                    } else if (result.status === 'rejected') {
-                        Log.warn('Pasted file could not be processed', {error: result.reason, index});
-                    }
-                }
-                onPasteFile(files);
-            });
+            const clipboardContent = e.nativeEvent.items.at(0);
+            if (clipboardContent?.type === 'text/plain') {
+                return;
+            }
+            const mimeType = clipboardContent?.type ?? '';
+            const fileURI = clipboardContent?.data;
+            const baseFileName = fileURI?.split('/').pop() ?? 'file';
+            const {fileName: stem, fileExtension: originalFileExtension} = splitExtensionFromFileName(baseFileName);
+            const fileExtension = originalFileExtension || (mimeDb[mimeType].extensions?.[0] ?? 'bin');
+            const fileName = `${stem}.${fileExtension}`;
+            let file: FileObject = {uri: fileURI, name: fileName, type: mimeType, size: 0};
+            getFileSize(file.uri ?? '')
+                .then((size) => (file = {...file, size}))
+                .finally(() => onPasteFile(file));
         },
         [onPasteFile],
     );
@@ -143,9 +132,11 @@ function Composer({
             markdownStyle={markdownStyle}
             /* eslint-disable-next-line react/jsx-props-no-spreading */
             {...props}
+            autoFocus={isInLandscapeMode ? false : props.autoFocus}
             readOnly={isDisabled}
             onPaste={pasteFile}
             onClear={onClear}
+            disableFullscreenUI
         />
     );
 }
