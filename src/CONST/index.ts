@@ -2019,6 +2019,7 @@ const CONST = {
         ATTRIBUTE_IS_FROM_GLOBAL_CREATE: 'is_from_global_create',
         /** Sentry span attribute: follow-up action taken after submit (e.g. dismiss_modal_and_open_report, navigate_to_search). */
         ATTRIBUTE_SUBMIT_FOLLOW_UP_ACTION: 'submit_follow_up_action',
+        ATTRIBUTE_FAST_PATH_HANDLER: 'fast_path_handler',
         ATTRIBUTE_COMMAND: 'command',
         ATTRIBUTE_JSON_CODE: 'json_code',
         ATTRIBUTE_COLD_START: 'cold_start',
@@ -2031,6 +2032,19 @@ const CONST = {
             DISMISS_MODAL_AND_OPEN_REPORT: 'dismiss_modal_and_open_report',
             NAVIGATE_TO_SEARCH: 'navigate_to_search',
             DISMISS_MODAL_ONLY: 'dismiss_modal_only',
+        },
+        FAST_PATH_HANDLER: {
+            SEARCH_PRE_INSERT: 'search_pre_insert',
+            REPORT_PRE_INSERT: 'report_pre_insert',
+            DISMISS_MODAL: 'dismiss_modal',
+            REPORT_IN_RHP_DISMISS: 'report_in_rhp_dismiss',
+            SEARCH_DISMISS: 'search_dismiss',
+            DEFAULT: 'default',
+        },
+        SUBMIT_OPTIMIZATION: {
+            PRE_INSERT: 'pre_insert',
+            DISMISS_FIRST: 'dismiss_first',
+            DEFERRED_WRITE: 'deferred_write',
         },
         /** Trigger for useSubmitToDestinationVisible: end span on focus vs on layout. */
         SUBMIT_TO_DESTINATION_VISIBLE_TRIGGER: {
