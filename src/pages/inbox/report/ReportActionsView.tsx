@@ -184,9 +184,11 @@ function ReportActionsView({reportID, onLayout}: ReportActionsViewProps) {
         updateLoadingInitialReportAction(report?.reportID ?? reportID);
     }, [isOffline, report?.reportID, reportID, reportActionID]);
 
+    const previousOldestUnreadReportActionID = usePrevious(oldestUnreadReportAction?.reportActionID);
+
     // Change the list ID only for comment linking to get the positioning right
     const listID = useMemo(() => {
-        if (!reportActionID && !prevReportActionID) {
+        if (!reportActionID && !prevReportActionID && oldestUnreadReportAction?.reportActionID === previousOldestUnreadReportActionID) {
             // Keep the old list ID since we're not in the Comment Linking flow
             return listOldID;
         }
@@ -195,7 +197,7 @@ function ReportActionsView({reportID, onLayout}: ReportActionsViewProps) {
 
         return newID;
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [route, reportActionID]);
+    }, [route, reportActionIDFromRoute, oldestUnreadReportAction?.reportActionID, previousOldestUnreadReportActionID]);
 
     // When we are offline before opening an IOU/Expense report,
     // the total of the report and sometimes the expense aren't displayed because these actions aren't returned until `OpenReport` API is complete.
