@@ -234,6 +234,8 @@ const CONST = {
     },
     ANIMATION_IN_TIMING: 100,
     COMPOSER_FOCUS_DELAY: 150,
+    MAX_TRANSITION_DURATION_MS: 1000,
+    MAX_TRANSITION_START_WAIT_MS: 1000,
     ANIMATION_DIRECTION: {
         IN: 'in',
         OUT: 'out',
@@ -8718,7 +8720,6 @@ const CONST = {
     },
 
     MODAL_EVENTS: {
-        CLOSED: 'modalClosed',
         DISABLE_RHP_ANIMATION: 'disableRHPAnimation',
         RESTORE_RHP_ANIMATION: 'restoreRHPAnimation',
     },
