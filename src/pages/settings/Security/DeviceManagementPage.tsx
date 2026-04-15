@@ -29,7 +29,7 @@ function DeviceManagementPage() {
             <OfflineWithFeedback
                 pendingAction={item.pendingAction}
                 errors={item.errorFields?.revoke}
-                onClose={() => clearRevokeError(item)}
+                onClose={() => clearRevokeError(getLoginKey(item))}
                 contentContainerStyle={[styles.flexRow, styles.alignItemsCenter, styles.pv3, styles.gap3]}
             >
                 <View style={[styles.flex1, styles.flexColumn]}>

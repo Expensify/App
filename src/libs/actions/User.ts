@@ -136,9 +136,9 @@ function revokeDevice(login: NewLogin) {
     });
 }
 
-function clearRevokeError(item: NewLogin) {
+function clearRevokeError(loginKey: string) {
     Onyx.merge(ONYXKEYS.LOGINS, {
-        [getLoginKey(item)]: {
+        [loginKey]: {
             errorFields: {
                 revoke: null,
             },
