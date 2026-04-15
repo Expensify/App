@@ -9,6 +9,7 @@ import {changeMoneyRequestHoldStatus, isCurrentUserSubmitter, isDM} from '@libs/
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import useGetIOUReportFromReportAction from './useGetIOUReportFromReportAction';
 import {useMemoizedLazyExpensifyIcons} from './useLazyAsset';
 import useLocalize from './useLocalize';
 import useNetwork from './useNetwork';
@@ -41,6 +42,8 @@ function useHoldRejectActions({reportID, onHoldEducationalOpen, onRejectModalOpe
     const [reportActionsForParent] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(moneyRequestReport?.reportID)}`, {canEvict: false});
     const requestParentReportAction = transactionThreadReport?.parentReportActionID ? reportActionsForParent?.[transactionThreadReport.parentReportActionID] : undefined;
 
+    const {chatReport: chatIOUReport} = useGetIOUReportFromReportAction(requestParentReportAction);
+
     const iouTransactionID = isMoneyRequestAction(requestParentReportAction)
         ? (getOriginalMessage(requestParentReportAction)?.IOUTransactionID ?? CONST.DEFAULT_NUMBER_ID)
         : CONST.DEFAULT_NUMBER_ID;
@@ -49,7 +52,7 @@ function useHoldRejectActions({reportID, onHoldEducationalOpen, onRejectModalOpe
     const [dismissedRejectUseExplanation] = useOnyx(ONYXKEYS.NVP_DISMISSED_REJECT_USE_EXPLANATION);
     const [dismissedHoldUseExplanation] = useOnyx(ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION);
 
-    const isReportSubmitter = isCurrentUserSubmitter(moneyRequestReport);
+    const isReportSubmitter = isCurrentUserSubmitter(chatIOUReport);
     const isChatReportDM = isDM(chatReport);
 
     return {

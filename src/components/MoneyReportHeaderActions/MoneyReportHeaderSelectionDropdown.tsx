@@ -117,14 +117,6 @@ function MoneyReportHeaderSelectionDropdown({reportID, primaryAction, isReportIn
 
     const {transactionThreadReportID, reportActions} = useTransactionThreadReport(reportID);
 
-    useEffect(() => {
-        if (!transactionThreadReportID) {
-            return;
-        }
-
-        clearSelectedTransactions(true);
-    }, [transactionThreadReportID]);
-
     const {transactions: reportTransactions, violations} = useTransactionsAndViolationsForReport(moneyRequestReport?.reportID);
 
     const allTransactionValues = Object.values(reportTransactions);
@@ -230,6 +222,7 @@ function MoneyReportHeaderSelectionDropdown({reportID, primaryAction, isReportIn
     const canAllowSettlement = hasUpdatedTotal(moneyRequestReport, policy);
     const totalAmount = getTotalAmountForIOUReportPreviewButton(moneyRequestReport, policy, CONST.REPORT.PRIMARY_ACTIONS.PAY, nonPendingDeleteTransactions);
     const canIOUBePaid = canIOUBePaidAction(moneyRequestReport, chatReport, policy, bankAccountList, undefined, false, undefined, invoiceReceiverPolicy);
+    const onlyShowPayElsewhere = !canIOUBePaid && canIOUBePaidAction(moneyRequestReport, chatReport, policy, bankAccountList, undefined, true, undefined, invoiceReceiverPolicy);
     const isPayable = hasPayAction && canIOUBePaid;
 
     const confirmPayment = ({paymentType: type, payAsBusiness, methodID, paymentMethod}: PaymentActionParams) => {
@@ -315,7 +308,7 @@ function MoneyReportHeaderSelectionDropdown({reportID, primaryAction, isReportIn
         shouldHidePaymentOptions: !isPayable,
         shouldShowApproveButton: false,
         shouldDisableApproveButton: false,
-        onlyShowPayElsewhere: false,
+        onlyShowPayElsewhere,
     });
 
     const hasPersonalPaymentOption = paymentButtonOptions.some((opt) => opt.value === CONST.IOU.PAYMENT_TYPE.EXPENSIFY);

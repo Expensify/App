@@ -42,7 +42,7 @@ type UseLifecycleActionsParams = {
     reportID: string | undefined;
     startApprovedAnimation: () => void;
     startSubmittingAnimation: () => void;
-    onHoldMenuOpen: (requestType: ActionHandledType) => void;
+    onHoldMenuOpen: (requestType: ActionHandledType, onConfirm?: () => void) => void;
 };
 
 type UseLifecycleActionsResult = {
@@ -136,7 +136,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startSubmittingA
             return;
         }
         if (isAnyTransactionOnHold) {
-            onHoldMenuOpen(CONST.IOU.REPORT_ACTION_TYPE.APPROVE);
+            onHoldMenuOpen(CONST.IOU.REPORT_ACTION_TYPE.APPROVE, skipAnimation ? undefined : () => startApprovedAnimation());
             return;
         }
         if (!skipAnimation) {

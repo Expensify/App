@@ -1,9 +1,9 @@
-import React, {useRef} from 'react';
+import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import type {ButtonWithDropdownMenuRef} from '@components/ButtonWithDropdownMenu/types';
 import MoneyReportHeaderPrimaryAction from '@components/MoneyReportHeaderPrimaryAction';
-import {useSearchStateContext} from '@components/Search/SearchContext';
+import {useSearchActionsContext, useSearchStateContext} from '@components/Search/SearchContext';
 import useExportAgainModal from '@hooks/useExportAgainModal';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -47,8 +47,17 @@ function MoneyReportHeaderActions({reportID, primaryAction, isReportInSearch, ba
     const {triggerExportOrConfirm} = useExportAgainModal(moneyRequestReport?.reportID, moneyRequestReport?.policyID);
 
     const {selectedTransactionIDs} = useSearchStateContext();
+    const {clearSelectedTransactions} = useSearchActionsContext();
     const hasSelectedTransactions = !!selectedTransactionIDs.length;
     const isTransactionThread = !!transactionThreadReportID;
+
+    useEffect(() => {
+        if (!transactionThreadReportID) {
+            return;
+        }
+
+        clearSelectedTransactions(true);
+    }, [transactionThreadReportID]); // eslint-disable-line react-hooks/exhaustive-deps
 
     const narrowedPrimaryAction = narrowPrimaryAction(primaryAction);
 
@@ -67,14 +76,16 @@ function MoneyReportHeaderActions({reportID, primaryAction, isReportInSearch, ba
 
     return (
         <View style={[styles.flexRow, styles.gap2, ...(!shouldDisplayNarrowMoreButton ? [styles.pb3, styles.ph5, styles.w100, styles.alignItemsCenter, styles.justifyContentCenter] : [])]}>
-            <View style={!!primaryAction && !shouldDisplayNarrowMoreButton ? [styles.flex1] : undefined}>
-                <MoneyReportHeaderPrimaryAction
-                    reportID={reportID}
-                    chatReportID={chatReport?.reportID}
-                    primaryAction={primaryAction}
-                    onExportModalOpen={() => triggerExportOrConfirm(CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION)}
-                />
-            </View>
+            {!!primaryAction && (
+                <View style={!shouldDisplayNarrowMoreButton ? [styles.flex1] : undefined}>
+                    <MoneyReportHeaderPrimaryAction
+                        reportID={reportID}
+                        chatReportID={chatReport?.reportID}
+                        primaryAction={primaryAction}
+                        onExportModalOpen={() => triggerExportOrConfirm(CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION)}
+                    />
+                </View>
+            )}
             <MoneyReportHeaderSecondaryActions
                 reportID={reportID}
                 primaryAction={narrowedPrimaryAction}

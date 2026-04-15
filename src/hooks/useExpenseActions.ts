@@ -58,6 +58,7 @@ import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
 import usePermissions from './usePermissions';
 import useReportIsArchived from './useReportIsArchived';
+import useTheme from './useTheme';
 import useThrottledButtonState from './useThrottledButtonState';
 import useTransactionsAndViolationsForReport from './useTransactionsAndViolationsForReport';
 import useTransactionThreadReport from './useTransactionThreadReport';
@@ -67,6 +68,7 @@ type UseExpenseActionsParams = {
     reportID: string | undefined;
     isReportInSearch?: boolean;
     backTo?: Route;
+    onDuplicateReset?: () => void;
 };
 
 type UseExpenseActionsReturn = {
@@ -77,7 +79,8 @@ type UseExpenseActionsReturn = {
     wasDuplicateReportTriggeredRef: React.RefObject<boolean>;
 };
 
-function useExpenseActions({reportID, isReportInSearch = false, backTo}: UseExpenseActionsParams): UseExpenseActionsReturn {
+function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplicateReset}: UseExpenseActionsParams): UseExpenseActionsReturn {
+    const theme = useTheme();
     const {translate, localeCompare} = useLocalize();
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
@@ -208,8 +211,13 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo}: UseExpe
         hasCustomUnitOutOfPolicyViolation ||
         activePolicyExpenseChat?.iouReportID === moneyRequestReport?.reportID;
 
-    // Dropdown ref is owned by the orchestrator — no reset callback needed here.
-    const [isDuplicateActive, temporarilyDisableDuplicateAction] = useThrottledButtonState();
+    const handleDuplicateReset = () => {
+        if (shouldDuplicateCloseModalOnSelect) {
+            return;
+        }
+        onDuplicateReset?.();
+    };
+    const [isDuplicateActive, temporarilyDisableDuplicateAction] = useThrottledButtonState(handleDuplicateReset);
 
     const targetPolicyTags = defaultExpensePolicy ? (allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${defaultExpensePolicy.id}`] ?? {}) : {};
 
@@ -306,6 +314,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo}: UseExpe
         [CONST.REPORT.SECONDARY_ACTIONS.DUPLICATE_EXPENSE]: {
             text: isDuplicateActive ? translate('common.duplicateExpense') : translate('common.duplicated'),
             icon: isDuplicateActive ? expensifyIcons.ExpenseCopy : expensifyIcons.Checkmark,
+            iconFill: isDuplicateActive ? undefined : theme.icon,
             value: CONST.REPORT.SECONDARY_ACTIONS.DUPLICATE_EXPENSE,
             onSelected: () => {
                 if (hasCustomUnitOutOfPolicyViolation) {
@@ -350,6 +359,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo}: UseExpe
         [CONST.REPORT.SECONDARY_ACTIONS.DUPLICATE_REPORT]: {
             text: isDuplicateReportActive ? translate('common.duplicateReport') : translate('common.duplicated'),
             icon: isDuplicateReportActive ? expensifyIcons.ReportCopy : expensifyIcons.Checkmark,
+            iconFill: isDuplicateReportActive ? undefined : theme.icon,
             value: CONST.REPORT.SECONDARY_ACTIONS.DUPLICATE_REPORT,
             sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.DUPLICATE_REPORT,
             shouldShow: !!defaultExpensePolicy,

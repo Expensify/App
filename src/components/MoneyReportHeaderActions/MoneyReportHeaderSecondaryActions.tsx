@@ -49,6 +49,7 @@ import {
     isIOUReport as isIOUReportUtil,
     navigateToDetailsPage,
 } from '@libs/ReportUtils';
+import {isExpensifyCardTransaction, isPending} from '@libs/TransactionUtils';
 import {payInvoice, payMoneyRequest} from '@userActions/IOU/PayMoneyRequest';
 import {canApproveIOU, canIOUBePaid as canIOUBePaidAction} from '@userActions/IOU/ReportWorkflow';
 import CONST from '@src/CONST';
@@ -66,7 +67,7 @@ type MoneyReportHeaderSecondaryActionsProps = {
 };
 
 function MoneyReportHeaderSecondaryActions({reportID, primaryAction, isReportInSearch, backTo, dropdownMenuRef}: MoneyReportHeaderSecondaryActionsProps) {
-    const {isPaidAnimationRunning, startAnimation, startApprovedAnimation, startSubmittingAnimation} = usePaymentAnimationsContext();
+    const {isPaidAnimationRunning, isApprovedAnimationRunning, startAnimation, startApprovedAnimation, startSubmittingAnimation} = usePaymentAnimationsContext();
     const {openHoldMenu, openPDFDownload, openHoldEducational, openRejectModal} = useMoneyReportHeaderModals();
 
     const {translate, localeCompare} = useLocalize();
@@ -201,8 +202,9 @@ function MoneyReportHeaderSecondaryActions({reportID, primaryAction, isReportInS
     const canIOUBePaid = canIOUBePaidAction(moneyRequestReport, chatReport, policy, bankAccountList, undefined, false, undefined, invoiceReceiverPolicy);
     const onlyShowPayElsewhere = !canIOUBePaid && canIOUBePaidAction(moneyRequestReport, chatReport, policy, bankAccountList, undefined, true, undefined, invoiceReceiverPolicy);
     const shouldShowPayButton = isPaidAnimationRunning || canIOUBePaid || onlyShowPayElsewhere;
-    const isApprovable = canApproveIOU(moneyRequestReport, policy, reportMetadata, allTransactions);
-    const isApproveDisabled = isApprovable && !isAllowedToApproveExpenseReport(moneyRequestReport);
+    const hasOnlyPendingTransactions = allTransactions.length > 0 && allTransactions.every((t) => isExpensifyCardTransaction(t) && isPending(t));
+    const shouldShowApproveButton = (canApproveIOU(moneyRequestReport, policy, reportMetadata, allTransactions) && !hasOnlyPendingTransactions) || isApprovedAnimationRunning;
+    const isApproveDisabled = shouldShowApproveButton && !isAllowedToApproveExpenseReport(moneyRequestReport);
 
     const totalAmount = getTotalAmountForIOUReportPreviewButton(moneyRequestReport, policy, CONST.REPORT.PRIMARY_ACTIONS.PAY, nonPendingDeleteTransactions);
 
@@ -214,7 +216,7 @@ function MoneyReportHeaderSecondaryActions({reportID, primaryAction, isReportInS
         policyID: moneyRequestReport?.policyID,
         onPress: confirmPayment,
         shouldHidePaymentOptions: !shouldShowPayButton,
-        shouldShowApproveButton: isApprovable,
+        shouldShowApproveButton,
         shouldDisableApproveButton: isApproveDisabled,
         onlyShowPayElsewhere,
     });
@@ -255,12 +257,22 @@ function MoneyReportHeaderSecondaryActions({reportID, primaryAction, isReportInS
         reportID,
         startApprovedAnimation,
         startSubmittingAnimation,
-        onHoldMenuOpen: (requestType) => {
-            openHoldMenu({requestType, onConfirm: () => startApprovedAnimation()});
+        onHoldMenuOpen: (requestType, onConfirm) => {
+            openHoldMenu({requestType, onConfirm: onConfirm ?? (() => startApprovedAnimation())});
         },
     });
 
-    const {actions: expenseActions, handleOptionsMenuHide, isDuplicateReportActive, wasDuplicateReportTriggeredRef} = useExpenseActions({reportID, isReportInSearch, backTo});
+    const {
+        actions: expenseActions,
+        handleOptionsMenuHide,
+        isDuplicateReportActive,
+        wasDuplicateReportTriggeredRef,
+    } = useExpenseActions({
+        reportID,
+        isReportInSearch,
+        backTo,
+        onDuplicateReset: () => dropdownMenuRef?.current?.setIsMenuVisible(false),
+    });
 
     useEffect(() => {
         if (!isDuplicateReportActive || !wasDuplicateReportTriggeredRef.current) {
