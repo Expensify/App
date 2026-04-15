@@ -33,6 +33,47 @@ function fireNetInfoState(overrides: Partial<NetInfoState>) {
     } as NetInfoState);
 }
 
+describe('NetworkState — internetUnreachable hard stop via NetInfo', () => {
+    let getIsOffline: typeof NetworkState.getIsOffline;
+
+    beforeEach(() => {
+        jest.resetModules();
+        netInfoListener = null;
+
+        const mod = require<typeof NetworkState>('@src/libs/NetworkState');
+        getIsOffline = mod.getIsOffline;
+    });
+
+    test('null→false fires internetUnreachable (cold start ping failure)', () => {
+        // First event delivers null (indeterminate, ping hasn't completed yet)
+        fireNetInfoState({isInternetReachable: null});
+        expect(getIsOffline()).toBe(false);
+
+        // Ping completes and fails — should trigger internetUnreachable
+        fireNetInfoState({isInternetReachable: false});
+        expect(getIsOffline()).toBe(true);
+    });
+
+    test('true→false fires internetUnreachable', () => {
+        fireNetInfoState({isInternetReachable: true});
+        expect(getIsOffline()).toBe(false);
+
+        fireNetInfoState({isInternetReachable: false});
+        expect(getIsOffline()).toBe(true);
+    });
+
+    test('false→false does not re-trigger (already offline)', () => {
+        // Go offline
+        fireNetInfoState({isInternetReachable: null});
+        fireNetInfoState({isInternetReachable: false});
+        expect(getIsOffline()).toBe(true);
+
+        // Redundant false event — should not cause issues
+        fireNetInfoState({isInternetReachable: false});
+        expect(getIsOffline()).toBe(true);
+    });
+});
+
 describe('NetworkState — reachability recovery triggers reconnect', () => {
     let onReachabilityConfirmed: typeof NetworkState.onReachabilityConfirmed;
     let setForceOffline: typeof NetworkState.setForceOffline;

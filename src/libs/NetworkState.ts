@@ -302,9 +302,10 @@ function configureAndSubscribe() {
         setHasRadio(radio);
 
         // When isInternetReachable transitions to false, api/Ping failed — go offline.
-        // Guard against undefined (initial event) and null (indeterminate) — only
-        // react to a confirmed true→false transition.
-        if (state.isInternetReachable === false && prevIsInternetReachable === true) {
+        // Fire on any non-false→false transition (true→false, null→false, undefined→false)
+        // to catch cold start with no internet and post-recovery resets where prev is null.
+        // Only skip false→false (redundant, already offline).
+        if (state.isInternetReachable === false && prevIsInternetReachable !== false) {
             setInternetUnreachable(true);
         }
 

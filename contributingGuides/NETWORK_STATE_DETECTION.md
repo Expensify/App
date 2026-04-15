@@ -75,7 +75,7 @@ This layer uses `@react-native-community/netinfo` to detect whether the device h
 
 The NetInfo listener tracks `isInternetReachable` transitions in both directions:
 
-- **`true` → `false`** — `api/Ping` failed. Sets the `internetUnreachable` hard stop. This covers the case where a device has a connected radio (WiFi on) but no actual internet (e.g., router has no WAN, captive portal, DNS failure). Without this, an idle user would never see the offline indicator because no API requests are failing.
+- **any non-`false` → `false`** (`true→false`, `null→false`, `undefined→false`) — `api/Ping` failed. Sets the `internetUnreachable` hard stop. Only `false→false` is skipped (already offline). This covers cold start with no internet (`null→false` after the initial indeterminate event), post-recovery resets, and normal online→offline transitions. Without this, an idle user would never see the offline indicator because no API requests are failing.
 - **`false` → `true`** and **`null` → `true`** — `api/Ping` succeeded after a previous failure. Triggers `onReachabilityRestored()` which clears all hard stops and fires reconnect listeners.
 - **`undefined` → `true`** — the initial event on subscribe, delivering current state. This is **not** treated as a recovery to prevent duplicate `openApp()`/`reconnectApp()` calls on boot.
 
@@ -133,7 +133,7 @@ One successful request resets everything — it proves the server is reachable a
 
 ```
 hasRadio                — set by NetInfo listener (Layer 1), inverted: !hasRadio = noRadio hard stop
-internetUnreachable     — set by NetInfo listener when isInternetReachable transitions true→false
+internetUnreachable     — set by NetInfo listener when isInternetReachable transitions to false (any non-false→false)
 sustainedFailuresActive — set by FailureTracker (Layer 2)
 shouldForceOffline      — set by debug tools (Onyx NETWORK key)
 simulatedOffline        — set by poor connection simulator
