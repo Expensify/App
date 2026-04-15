@@ -1,4 +1,4 @@
-import React, {useRef} from 'react';
+import React, {useMemo, useRef} from 'react';
 import MoneyRequestAmountInput from '@components/MoneyRequestAmountInput';
 import {EditableCell, useInlineEditState} from '@components/Table/EditableCell';
 import type {EditableProps} from '@components/Table/EditableCell';
@@ -8,6 +8,7 @@ import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {convertToBackendAmount, convertToDisplayString, convertToFrontendAmountAsString, getCurrencyDecimals} from '@libs/CurrencyUtils';
+import {formatToParts} from '@libs/NumberFormatUtils';
 import {parseFloatAnyLocale, roundToTwoDecimalPlaces} from '@libs/NumberUtils';
 import {getTransactionDetails} from '@libs/ReportUtils';
 import {getCurrency as getTransactionCurrency, isScanning} from '@libs/TransactionUtils';
@@ -18,7 +19,7 @@ type TotalCellProps = TransactionDataCellProps & EditableProps<number>;
 
 function TotalCell({shouldShowTooltip, transactionItem, canEdit, onSave}: TotalCellProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, preferredLocale} = useLocalize();
     const currency = getTransactionCurrency(transactionItem);
 
     const amount = getTransactionDetails(transactionItem)?.amount;
@@ -66,6 +67,21 @@ function TotalCell({shouldShowTooltip, transactionItem, canEdit, onSave}: TotalC
         inputRef.current?.blur();
     };
 
+    // Some currencies display with a space between symbol and amount (e.g., "CZK 100.00") in convertToDisplayString (in preview).
+    // We detect this spacing and apply matching padding to the input to prevent visual flicker when entering edit mode.
+    // See: https://github.com/Expensify/App/pull/83127#issuecomment-4240055145
+    const hasSymbolSpaceInPreview = useMemo(() => {
+        const decimals = getCurrencyDecimals(currency);
+        const parts = formatToParts(preferredLocale, 0, {
+            style: 'currency',
+            currency,
+            minimumFractionDigits: decimals,
+            maximumFractionDigits: 2,
+        });
+
+        return parts.some((part) => part.type === 'literal' && part.value.trim() === '');
+    }, [preferredLocale, currency]);
+
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ESCAPE, handleEscape, {captureOnInputs: true, isActive: isEditing});
 
     const displayContent = (
@@ -102,7 +118,7 @@ function TotalCell({shouldShowTooltip, transactionItem, canEdit, onSave}: TotalC
                     inputStyle={[styles.textAlignRight, styles.pr0]}
                     touchableInputWrapperStyle={styles.editableCellInputStyle}
                     scrollViewStyle={[styles.flexRow, styles.justifyContentEnd]}
-                    symbolTextStyle={styles.editableCellSymbolStyle}
+                    symbolTextStyle={[styles.editableCellSymbolStyle, hasSymbolSpaceInPreview && styles.pr1]}
                 />
             }
         >
