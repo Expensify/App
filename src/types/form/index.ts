@@ -1,5 +1,6 @@
 export type {AddPaymentCardForm} from './AddPaymentCardForm';
 export type {AssignCardForm} from './AssignCardForm';
+export type {ChronosScheduleOOOForm} from './ChronosScheduleOOOForm';
 export type {CloseAccountForm} from './CloseAccountForm';
 export type {DateOfBirthForm} from './DateOfBirthForm';
 export type {DisplayNameForm} from './DisplayNameForm';

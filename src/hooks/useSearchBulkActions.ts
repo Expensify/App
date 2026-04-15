@@ -41,7 +41,6 @@ import {
     getIntegrationIcon,
     getPolicyExpenseChat,
     getReportOrDraftReport,
-    hasOnlyNonReimbursableTransactions,
     isArchivedReport,
     isBusinessInvoiceRoom,
     isCurrentUserSubmitter,
@@ -56,7 +55,9 @@ import {navigateToSearchRHP, shouldShowDeleteOption} from '@libs/SearchUIUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {hasCustomUnitOutOfPolicyViolation, hasTransactionBeenRejected, isDistanceRequest, isManagedCardTransaction, isPerDiemRequest, isScanning} from '@libs/TransactionUtils';
 import variables from '@styles/variables';
-import {canIOUBePaid, dismissRejectUseExplanation, initBulkEditDraftTransaction} from '@userActions/IOU';
+import {initBulkEditDraftTransaction} from '@userActions/IOU';
+import {dismissRejectUseExplanation} from '@userActions/IOU/RejectMoneyRequest';
+import {canIOUBePaid} from '@userActions/IOU/ReportWorkflow';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -200,7 +201,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     const allTransactions = useAllTransactions();
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [allReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
-    const {filteredReportActions: policyExpenseChatReportActions} = useAllPolicyExpenseChatReportActions();
+    const policyExpenseChatReportActions = useAllPolicyExpenseChatReportActions();
     const [allReportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
     const selfDMReport = useSelfDMReport();
     const [lastPaymentMethods] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD);
@@ -231,7 +232,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
     const [isOfflineModalVisible, setIsOfflineModalVisible] = useState(false);
     const [isDownloadErrorModalVisible, setIsDownloadErrorModalVisible] = useState(false);
-    const [isNonReimbursablePaymentErrorModalVisible, setIsNonReimbursablePaymentErrorModalVisible] = useState(false);
     const {showConfirmModal} = useConfirmModal();
     const [isHoldEducationalModalVisible, setIsHoldEducationalModalVisible] = useState(false);
     const [rejectModalAction, setRejectModalAction] = useState<ValueOf<
@@ -265,6 +265,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         'IntacctSquare',
         'QBDSquare',
         'CertiniaSquare',
+        'GustoSquare',
         'Pencil',
         'Workflows',
     ]);
@@ -680,16 +681,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 const reportTransactions = Object.values(allTransactions ?? {}).filter(
                     (transaction): transaction is NonNullable<typeof transaction> => !!transaction && transaction.reportID === itemReportID,
                 );
-
-                if (
-                    isExpenseReport &&
-                    !isInvoiceReport(itemReportID) &&
-                    hasOnlyNonReimbursableTransactions(itemReportID, reportTransactions.length > 0 ? reportTransactions : undefined) &&
-                    lastPolicyPaymentMethod !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE
-                ) {
-                    setIsNonReimbursablePaymentErrorModalVisible(true);
-                    return;
-                }
 
                 const hasPolicyVBBA = itemPolicyID ? policyIDsWithVBBA.includes(itemPolicyID) : false;
                 // Allow bulk pay when user selected a business bank account, even if that account is not linked to the report's policy
@@ -1373,21 +1364,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         selectedTransactions,
         queryJSON?.type,
         expensifyIcons,
-        expensifyIcons.Export,
-        expensifyIcons.ArrowRight,
-        expensifyIcons.Table,
-        expensifyIcons.ThumbsUp,
-        expensifyIcons.ThumbsDown,
-        expensifyIcons.Send,
-        expensifyIcons.MoneyBag,
-        expensifyIcons.Stopwatch,
-        expensifyIcons.ArrowCollapse,
-        expensifyIcons.DocumentMerge,
-        expensifyIcons.ArrowSplit,
-        expensifyIcons.Pencil,
-        expensifyIcons.Trashcan,
-        expensifyIcons.Exclamation,
-        expensifyIcons.Workflows,
         translate,
         areAllMatchingItemsSelected,
         isOffline,
@@ -1453,10 +1429,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         setIsDownloadErrorModalVisible(false);
     }, [setIsDownloadErrorModalVisible]);
 
-    const handleNonReimbursablePaymentErrorModalClose = useCallback(() => {
-        setIsNonReimbursablePaymentErrorModalVisible(false);
-    }, [setIsNonReimbursablePaymentErrorModalVisible]);
-
     const dismissModalAndUpdateUseHold = useCallback(() => {
         setIsHoldEducationalModalVisible(false);
         setNameValuePair(ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION, true, false, !isOffline);
@@ -1487,13 +1459,11 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         confirmPayment: stableOnBulkPaySelected,
         isOfflineModalVisible,
         isDownloadErrorModalVisible,
-        isNonReimbursablePaymentErrorModalVisible,
         isHoldEducationalModalVisible,
         rejectModalAction,
         emptyReportsCount,
         handleOfflineModalClose,
         handleDownloadErrorModalClose,
-        handleNonReimbursablePaymentErrorModalClose,
         dismissModalAndUpdateUseHold,
         dismissRejectModalBasedOnAction,
         isDuplicateOptionVisible,
