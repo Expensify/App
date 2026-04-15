@@ -48,7 +48,6 @@ import ExplanationModalNavigator from './Navigators/ExplanationModalNavigator';
 import FeatureTrainingModalNavigator from './Navigators/FeatureTrainingModalNavigator';
 import MigratedUserWelcomeModalNavigator from './Navigators/MigratedUserWelcomeModalNavigator';
 import OnboardingModalNavigator from './Navigators/OnboardingModalNavigator';
-import RightModalNavigator from './Navigators/RightModalNavigator';
 import TestDriveModalNavigator from './Navigators/TestDriveModalNavigator';
 import TestToolsModalNavigator from './Navigators/TestToolsModalNavigator';
 import TestDriveDemoNavigator from './TestDriveDemoNavigator';
@@ -71,6 +70,7 @@ const loadReportSplitNavigator = () => require<ReactComponentModule>('./Navigato
 const loadSettingsSplitNavigator = () => require<ReactComponentModule>('./Navigators/SettingsSplitNavigator').default;
 const loadWorkspaceNavigator = () => require<ReactComponentModule>('./Navigators/WorkspaceNavigator').default;
 const loadSearchNavigator = () => require<ReactComponentModule>('./Navigators/SearchFullscreenNavigator').default;
+const loadRightModalNavigator = () => require<ReactComponentModule>('./Navigators/RightModalNavigator').default;
 
 const RootStack = createRootStackNavigator<AuthScreensParamList>();
 
@@ -295,7 +295,7 @@ function AuthScreens() {
                         <RootStack.Screen
                             name={NAVIGATORS.RIGHT_MODAL_NAVIGATOR}
                             options={rootNavigatorScreenOptions.rightModalNavigator}
-                            component={RightModalNavigator}
+                            getComponent={loadRightModalNavigator}
                             listeners={modalScreenListenersWithCancelSearch}
                         />
                         <RootStack.Screen

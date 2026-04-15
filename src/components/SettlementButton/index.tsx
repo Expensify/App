@@ -45,7 +45,7 @@ import {handleUnvalidatedUserNavigation, useSettlementButtonPaymentMethods} from
 import shouldPopoverUseScrollView from '@libs/shouldPopoverUseScrollView';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {pressLockedBankAccount, setPersonalBankAccountContinueKYCOnSuccess} from '@userActions/BankAccounts';
-import {approveMoneyRequest} from '@userActions/IOU';
+import {approveMoneyRequest} from '@userActions/IOU/ReportWorkflow';
 import {navigateToConciergeChat} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -106,6 +106,7 @@ function SettlementButton({
     const {translate, localeCompare} = useLocalize();
     const {isOffline} = useNetwork();
     const policy = usePolicy(policyID);
+    const expenseReportPolicy = usePolicy(iouReport?.policyID);
     const {accountID, email} = useCurrentUserPersonalDetails();
 
     // The app would crash due to subscribing to the entire report collection if chatReportID is an empty string. So we should have a fallback ID here.
@@ -498,6 +499,7 @@ function SettlementButton({
             } else {
                 approveMoneyRequest({
                     expenseReport: iouReport,
+                    expenseReportPolicy,
                     policy,
                     currentUserAccountIDParam: accountID,
                     currentUserEmailParam: email ?? '',
