@@ -30,7 +30,7 @@ import type {FileObject} from '@src/types/utils/Attachment';
 import {useComposerActions, useComposerMeta, useComposerSendActions, useComposerSendState, useComposerState} from './ComposerContext';
 import ComposerWithSuggestions from './ComposerWithSuggestions';
 
-type ComposerInputWrapperProps = {
+type ComposerInputProps = {
     reportID: string;
     submitForm: (comment: string) => void;
     onPasteFile: (files: FileObject | FileObject[]) => void;
@@ -43,7 +43,7 @@ function getRandomPlaceholder(translate: LocalizedTranslate): string {
     return translate(AI_PLACEHOLDER_KEYS[randomIndex]);
 }
 
-function ComposerInputWrapper({reportID, submitForm, onPasteFile}: ComposerInputWrapperProps) {
+function ComposerInput({reportID, submitForm, onPasteFile}: ComposerInputProps) {
     const {translate, preferredLocale} = useLocalize();
     const {isOffline} = useNetwork();
     const {isMenuVisible} = useComposerState();
@@ -131,4 +131,4 @@ function ComposerInputWrapper({reportID, submitForm, onPasteFile}: ComposerInput
     );
 }
 
-export default ComposerInputWrapper;
+export default ComposerInput;

@@ -1,16 +1,12 @@
 import React, {useEffect} from 'react';
 import EmojiPickerButton from '@components/EmojiPicker/EmojiPickerButton';
-import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import DomUtils from '@libs/DomUtils';
-import {chatIncludesConcierge} from '@libs/ReportUtils';
 import {hideEmojiPicker, isActive as isActiveEmojiPickerAction} from '@userActions/EmojiPickerAction';
-import {isBlockedFromConcierge as isBlockedFromConciergeUserAction} from '@userActions/User';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
-import {useComposerActions, useComposerMeta} from './ComposerContext';
+import {useComposerActions, useComposerMeta, useComposerSendState} from './ComposerContext';
 
 type ComposerEmojiPickerProps = {
     reportID: string;
@@ -22,10 +18,7 @@ function ComposerEmojiPicker({reportID}: ComposerEmojiPickerProps) {
     const {isMediumScreenWidth} = useResponsiveLayout();
     const {focus} = useComposerActions();
     const {composerRef} = useComposerMeta();
-
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
-    const [blockedFromConcierge] = useOnyx(ONYXKEYS.NVP_BLOCKED_FROM_CONCIERGE);
-    const isBlockedFromConcierge = chatIncludesConcierge({participants: report?.participants}) && isBlockedFromConciergeUserAction(blockedFromConcierge);
+    const {isBlockedFromConcierge} = useComposerSendState();
 
     const chatItemComposeSecondaryRowHeight = styles.chatItemComposeSecondaryRow.height + styles.chatItemComposeSecondaryRow.marginTop + styles.chatItemComposeSecondaryRow.marginBottom;
     const reportActionComposeHeight = styles.chatItemComposeBox.minHeight + chatItemComposeSecondaryRowHeight;

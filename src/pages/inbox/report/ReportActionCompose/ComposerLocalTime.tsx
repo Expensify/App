@@ -2,7 +2,6 @@ import React from 'react';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import {canShowReportRecipientLocalTime, getReportOfflinePendingActionAndErrors, getReportRecipientAccountIDs} from '@libs/ReportUtils';
 import ParticipantLocalTime from '@pages/inbox/report/ParticipantLocalTime';
@@ -17,7 +16,6 @@ function ComposerLocalTime({reportID}: ComposerLocalTimeProps) {
     const [isComposerFullSize = false] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${reportID}`);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const personalDetails = usePersonalDetails();
-    const {isOffline} = useNetwork();
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const {reportPendingAction: pendingAction} = getReportOfflinePendingActionAndErrors(report);
 
@@ -25,7 +23,7 @@ function ComposerLocalTime({reportID}: ComposerLocalTimeProps) {
     const reportRecipientAccountIDs = getReportRecipientAccountIDs(report, currentUserPersonalDetails.accountID);
     const reportRecipient = personalDetails?.[reportRecipientAccountIDs[0]];
 
-    if (!shouldShow || isEmptyObject(reportRecipient) || isOffline) {
+    if (!shouldShow || isEmptyObject(reportRecipient)) {
         return null;
     }
 

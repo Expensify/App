@@ -70,7 +70,7 @@ import {useComposerMeta, useComposerSendState} from './ComposerContext';
 import ComposerEmojiPicker from './ComposerEmojiPicker';
 import ComposerExceededLength from './ComposerExceededLength';
 import ComposerFooter from './ComposerFooter';
-import ComposerInputWrapper from './ComposerInputWrapper';
+import ComposerInput from './ComposerInput';
 import ComposerLocalTime from './ComposerLocalTime';
 import ComposerProvider from './ComposerProvider';
 import ComposerSendButton from './ComposerSendButton';
@@ -300,7 +300,7 @@ function ReportActionComposeInner({reportID}: ReportActionComposeProps) {
                         reportID={reportID}
                         onAttachmentPicked={(files) => validateAttachments({files})}
                     />
-                    <ComposerInputWrapper
+                    <ComposerInput
                         reportID={reportID}
                         submitForm={submitForm}
                         onPasteFile={(files) => validateAttachments({files})}
