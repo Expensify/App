@@ -20,9 +20,8 @@ function useNewTransactions(
     reportID?: string,
     isFocused?: boolean,
 ) {
-    const transactionIDs = transactions?.map((transaction) => transaction.transactionID);
     // If we haven't loaded report yet we set previous transaction ids to undefined.
-    const prevTransactionIDs = usePrevious(hasOnceLoadedReportActions ? transactionIDs : undefined);
+    const prevTransactions = usePrevious(hasOnceLoadedReportActions ? transactions : undefined);
 
     // We need to skip the first transactions change, to avoid highlighting transactions on the first load.
     const skipFirstTransactionsChange = useRef(!hasOnceLoadedReportActions);
@@ -33,7 +32,7 @@ function useNewTransactions(
             return CONST.EMPTY_ARRAY as unknown as Transaction[];
         }
 
-        if (transactions === undefined || prevTransactionIDs === undefined || transactions.length <= prevTransactionIDs.length) {
+        if (transactions === undefined || prevTransactions === undefined || transactions.length <= prevTransactions.length) {
             // When a transaction is submitted from another report (e.g., Self DM → workspace), it is
             // already in the transactions list by the time this component mounts.
             // So we use pendingNewTransactionIDs from report metadata to identify these transactions on first load.
@@ -48,11 +47,11 @@ function useNewTransactions(
             skipFirstTransactionsChange.current = false;
             return CONST.EMPTY_ARRAY as unknown as Transaction[];
         }
-        return transactions.filter((transaction) => !prevTransactionIDs?.some((prevTransactionID) => prevTransactionID === transaction.transactionID));
+        return transactions.filter((transaction) => !prevTransactions?.some((prevTransaction) => prevTransaction.transactionID === transaction.transactionID));
 
         // We only need to recalculate on transactionIDs or reportID change.
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [transactionIDs, reportID]);
+    }, [transactions, reportID]);
 
     useEffect(() => {
         if (!pendingNewTransactionIDs) {

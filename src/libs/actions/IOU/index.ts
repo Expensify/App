@@ -3481,6 +3481,10 @@ function addPendingNewTransactionIDs(reportID: string | undefined, transactionID
 }
 
 function deletePendingNewTransactionIDs(reportID: string | undefined, transactionIDs: string[]) {
+    if (!reportID) {
+        return;
+    }
+
     const pendingNewTransactionIDs = {};
     for (const transactionID of transactionIDs) {
         Object.assign(pendingNewTransactionIDs, {[transactionID]: null});
