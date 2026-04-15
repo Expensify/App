@@ -2,7 +2,7 @@
 import passthroughPolicyTagListSelector from '@selectors/PolicyTagList';
 import type {ForwardedRef} from 'react';
 import React, {useEffect, useRef} from 'react';
-import type {StyleProp, TextInputProps, ViewStyle} from 'react-native';
+import type {StyleProp, TextInputProps, TextStyle, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import Animated, {interpolateColor, useAnimatedStyle, useSharedValue} from 'react-native-reanimated';
 import FormHelpMessage from '@components/FormHelpMessage';
@@ -60,6 +60,12 @@ type SearchAutocompleteInputProps = {
     /** Any additional styles to apply to text input along with FormHelperMessage */
     outerWrapperStyle?: StyleProp<ViewStyle>;
 
+    inputStyle?: StyleProp<TextStyle>;
+
+    inputContainerStyle?: StyleProp<ViewStyle>;
+
+    touchableInputWrapperStyle?: StyleProp<ViewStyle>;
+
     /** Whether the search reports API call is running  */
     isSearchingForReports?: boolean;
 
@@ -88,6 +94,9 @@ function SearchAutocompleteInput({
     wrapperStyle,
     wrapperFocusedStyle = {},
     outerWrapperStyle,
+    inputStyle,
+    inputContainerStyle,
+    touchableInputWrapperStyle,
     isSearchingForReports,
     selection,
     substitutionMap,
@@ -193,63 +202,62 @@ function SearchAutocompleteInput({
 
     return (
         <View style={[outerWrapperStyle]}>
-            <Animated.View style={[styles.flexRow, styles.alignItemsCenter, wrapperStyle ?? styles.searchRouterTextInputContainer, wrapperAnimatedStyle, wrapperBorderColorAnimatedStyle]}>
-                <View style={styles.flex1}>
-                    <TextInput
-                        testID="search-autocomplete-text-input"
-                        value={value}
-                        onChangeText={onSearchQueryChange}
-                        autoFocus={shouldDelayFocus ? autoFocusAfterNav : autoFocus}
-                        caretHidden={caretHidden}
-                        role={CONST.ROLE.SEARCHBOX}
-                        placeholder={translate('search.searchPlaceholder')}
-                        autoCapitalize="none"
-                        autoCorrect={false}
-                        spellCheck={false}
-                        enterKeyHint="search"
-                        accessibilityLabel={translate('search.searchPlaceholder')}
-                        disabled={disabled}
-                        maxLength={CONST.SEARCH_QUERY_LIMIT}
-                        onSubmitEditing={onSubmit}
-                        shouldUseDisabledStyles={false}
-                        textInputContainerStyles={[styles.borderNone, styles.pb0, styles.pl3]}
-                        inputStyle={[inputWidth, styles.lineHeightUndefined]}
-                        placeholderTextColor={theme.textSupporting}
-                        loadingSpinnerStyle={[styles.mt0, styles.mr1, styles.justifyContentCenter]}
-                        onFocus={() => {
-                            onFocus?.();
-                            focusedSharedValue.set(true);
-                        }}
-                        onBlur={() => {
-                            focusedSharedValue.set(false);
-                            onBlur?.();
-                        }}
-                        onKeyPress={onKeyPress}
-                        isLoading={isSearchingForReports}
-                        ref={(element) => {
-                            if (!ref) {
-                                return;
-                            }
+            <Animated.View style={[wrapperStyle ?? styles.searchRouterTextInputContainer, wrapperAnimatedStyle, wrapperBorderColorAnimatedStyle]}>
+                <TextInput
+                    testID="search-autocomplete-text-input"
+                    value={value}
+                    onChangeText={onSearchQueryChange}
+                    autoFocus={shouldDelayFocus ? autoFocusAfterNav : autoFocus}
+                    caretHidden={caretHidden}
+                    role={CONST.ROLE.SEARCHBOX}
+                    placeholder={translate('search.searchPlaceholder')}
+                    autoCapitalize="none"
+                    autoCorrect={false}
+                    spellCheck={false}
+                    enterKeyHint="search"
+                    accessibilityLabel={translate('search.searchPlaceholder')}
+                    disabled={disabled}
+                    maxLength={CONST.SEARCH_QUERY_LIMIT}
+                    onSubmitEditing={onSubmit}
+                    shouldUseDisabledStyles={false}
+                    textInputContainerStyles={[styles.borderNone, styles.pb0, styles.ph3, inputContainerStyle]}
+                    inputStyle={[inputWidth, styles.lineHeightUndefined, inputStyle]}
+                    touchableInputWrapperStyle={touchableInputWrapperStyle}
+                    placeholderTextColor={theme.textSupporting}
+                    loadingSpinnerStyle={[styles.mt0, styles.mr1, styles.justifyContentCenter]}
+                    onFocus={() => {
+                        onFocus?.();
+                        focusedSharedValue.set(true);
+                    }}
+                    onBlur={() => {
+                        focusedSharedValue.set(false);
+                        onBlur?.();
+                    }}
+                    onKeyPress={onKeyPress}
+                    isLoading={isSearchingForReports}
+                    ref={(element) => {
+                        if (!ref) {
+                            return;
+                        }
 
-                            inputRef.current = element as AnimatedTextInputRef;
+                        inputRef.current = element as AnimatedTextInputRef;
 
-                            if (typeof ref === 'function') {
-                                ref(element);
-                                return;
-                            }
+                        if (typeof ref === 'function') {
+                            ref(element);
+                            return;
+                        }
 
-                            // eslint-disable-next-line no-param-reassign
-                            ref.current = element;
-                        }}
-                        type="markdown"
-                        multiline={false}
-                        parser={parser}
-                        selection={selection}
-                        shouldShowClearButton={!!value && !isSearchingForReports}
-                        shouldHideClearButton={false}
-                        onClearInput={clearInput}
-                    />
-                </View>
+                        // eslint-disable-next-line no-param-reassign
+                        ref.current = element;
+                    }}
+                    type="markdown"
+                    multiline={false}
+                    parser={parser}
+                    selection={selection}
+                    shouldShowClearButton={!!value && !isSearchingForReports}
+                    shouldHideClearButton={false}
+                    onClearInput={clearInput}
+                />
             </Animated.View>
             <FormHelpMessage
                 style={styles.ph3}

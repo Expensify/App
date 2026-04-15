@@ -1071,33 +1071,6 @@ function isReportActionDeprecated(reportAction: OnyxEntry<ReportAction>, key: st
     return false;
 }
 
-function isActionable(reportAction: OnyxInputOrEntry<ReportAction>, currentUserAccountID: number) {
-    if (!reportAction) {
-        return false;
-    }
-
-    const actionableTypes = [
-        CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
-        CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_WHISPER,
-        CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_REPORT_MENTION_WHISPER,
-        CONST.REPORT.ACTIONS.TYPE.CREATED,
-        CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.INVITE_TO_ROOM,
-        CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.LEAVE_ROOM,
-        CONST.REPORT.ACTIONS.TYPE.CONCIERGE_CATEGORY_OPTIONS,
-    ] as const;
-
-    if ((actionableTypes as readonly string[]).includes(reportAction.actionName)) {
-        return true;
-    }
-
-    const originalMessage = getOriginalMessage(reportAction);
-    const actionableForAccountIDs = (
-        originalMessage && typeof originalMessage === 'object' && 'actionableForAccountIDs' in originalMessage ? originalMessage?.actionableForAccountIDs : []
-    ) as number[];
-
-    return actionableForAccountIDs.includes(currentUserAccountID);
-}
-
 /**
  * Checks if a given report action corresponds to an actionable mention whisper.
  * @param reportAction
@@ -1240,7 +1213,10 @@ function shouldReportActionBeVisible(
 
     if (actionName === CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION) {
         const unreportedTransactionOriginalMessage = getOriginalMessage(reportAction as OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION>>) ?? {};
-        const {fromReportID} = unreportedTransactionOriginalMessage as OriginalMessageUnreportedTransaction;
+        const {fromReportID, reasoning} = unreportedTransactionOriginalMessage as OriginalMessageUnreportedTransaction;
+        if (reasoning) {
+            return !!fromReportID;
+        }
         const fromReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${fromReportID}`];
         return !!fromReport;
     }
@@ -4632,7 +4608,6 @@ export {
     hasReasoning,
     hasRequestFromCurrentAccount,
     isActionOfType,
-    isActionable,
     isActionableWhisper,
     isActionableJoinRequest,
     isActionableJoinRequestPending,
