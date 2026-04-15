@@ -2,6 +2,7 @@ import React, {useRef, useState} from 'react';
 import {PanResponder, PixelRatio, Platform, View} from 'react-native';
 import RNFetchBlob from 'react-native-blob-util';
 import type {TupleToUnion} from 'type-fest';
+import ScrollView from '@components/ScrollView';
 import useConfirmModal from '@hooks/useConfirmModal';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -168,7 +169,7 @@ function ImportSpreadsheet({backTo, goTo, isImportingMultiLevelTags}: ImportSpre
         } else {
             text = isSmallScreenWidth ? translate('spreadsheet.chooseSpreadsheet') : translate('spreadsheet.dragAndDrop');
         }
-        return text;
+        return `<centered-text>${text}</centered-text>`;
     };
 
     const acceptableFileTypes = isImportingMultiLevelTags
@@ -176,7 +177,10 @@ function ImportSpreadsheet({backTo, goTo, isImportingMultiLevelTags}: ImportSpre
         : CONST.ALLOWED_SPREADSHEET_EXTENSIONS.map((extension) => `.${extension}`).join(',');
 
     const desktopView = (
-        <>
+        <ScrollView
+            style={[styles.w100, styles.h100]}
+            contentContainerStyle={[styles.flexGrow1, styles.justifyContentCenter, styles.alignItemsCenter]}
+        >
             <View onLayout={({nativeEvent}) => setFileTopPosition(PixelRatio.roundToNearestPixel((nativeEvent.layout as DOMRect).top))}>
                 <ImageSVG
                     src={icons.SpreadsheetComputer}
@@ -187,14 +191,12 @@ function ImportSpreadsheet({backTo, goTo, isImportingMultiLevelTags}: ImportSpre
                 />
             </View>
             <View
-                style={[styles.uploadFileViewTextContainer, styles.userSelectNone]}
+                style={[styles.uploadFileViewTextContainer, styles.userSelectNone, styles.alignItemsCenter]}
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...panResponder.panHandlers}
             >
                 <Text style={[styles.textFileUpload, styles.mb1]}>{isImportingMultiLevelTags ? translate('spreadsheet.import') : translate('spreadsheet.upload')}</Text>
-                <View style={[styles.flexRow]}>
-                    <RenderHTML html={getTextForImportModal()} />
-                </View>
+                <RenderHTML html={getTextForImportModal()} />
             </View>
             <FilePicker acceptableFileTypes={acceptableFileTypes}>
                 {({openPicker}) => (
@@ -214,7 +216,7 @@ function ImportSpreadsheet({backTo, goTo, isImportingMultiLevelTags}: ImportSpre
                     />
                 )}
             </FilePicker>
-        </>
+        </ScrollView>
     );
 
     return (
