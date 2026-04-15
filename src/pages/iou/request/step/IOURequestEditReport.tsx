@@ -134,7 +134,7 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
 
     const createReport = () => {
         const restrictionPolicyID = hasPerDiemTransactions ? selectedReport?.policyID : policyForMovingExpensesID;
-        if (restrictionPolicyID && shouldRestrictUserBillableActions(session?.accountID, restrictionPolicyID, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed)) {
+        if (restrictionPolicyID && shouldRestrictUserBillableActions(restrictionPolicyID, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed)) {
             Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(restrictionPolicyID));
             return;
         }

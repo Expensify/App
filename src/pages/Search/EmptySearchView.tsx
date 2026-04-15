@@ -325,13 +325,7 @@ function EmptySearchViewContent({
 
                                                   if (
                                                       !workspaceIDForReportCreation ||
-                                                      (shouldRestrictUserBillableActions(
-                                                          accountID,
-                                                          workspaceIDForReportCreation,
-                                                          ownerBillingGracePeriodEnd,
-                                                          userBillingGracePeriodEnds,
-                                                          amountOwed,
-                                                      ) &&
+                                                      (shouldRestrictUserBillableActions(workspaceIDForReportCreation, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed) &&
                                                           groupPoliciesWithChatEnabled.length > 1)
                                                   ) {
                                                       // If we couldn't guess the workspace to create the report, or a guessed workspace is past it's grace period and we have other workspaces to choose from
@@ -339,15 +333,7 @@ function EmptySearchViewContent({
                                                       return;
                                                   }
 
-                                                  if (
-                                                      !shouldRestrictUserBillableActions(
-                                                          accountID,
-                                                          workspaceIDForReportCreation,
-                                                          ownerBillingGracePeriodEnd,
-                                                          userBillingGracePeriodEnds,
-                                                          amountOwed,
-                                                      )
-                                                  ) {
+                                                  if (!shouldRestrictUserBillableActions(workspaceIDForReportCreation, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed)) {
                                                       handleCreateReportClick();
                                                   } else {
                                                       Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(workspaceIDForReportCreation));

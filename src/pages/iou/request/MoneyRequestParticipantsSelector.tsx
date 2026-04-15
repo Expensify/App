@@ -532,11 +532,7 @@ function MoneyRequestParticipantsSelector({
 
     const onSelectRow = useCallback(
         (option: Participant) => {
-            if (
-                option.isPolicyExpenseChat &&
-                option.policyID &&
-                shouldRestrictUserBillableActions(currentUserAccountID, option.policyID, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed)
-            ) {
+            if (option.isPolicyExpenseChat && option.policyID && shouldRestrictUserBillableActions(option.policyID, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed)) {
                 Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(option.policyID));
                 return;
             }

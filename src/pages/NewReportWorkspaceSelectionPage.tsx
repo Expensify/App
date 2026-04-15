@@ -182,7 +182,7 @@ function NewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelectionPag
             return;
         }
 
-        if (shouldRestrictUserBillableActions(accountID, policy.policyID, ownerBillingGracePeriodEnd, userBillingGracePeriods, amountOwed)) {
+        if (shouldRestrictUserBillableActions(policy.policyID, ownerBillingGracePeriodEnd, userBillingGracePeriods, amountOwed)) {
             Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.policyID));
             return;
         }

@@ -224,7 +224,7 @@ function SettlementButton({
                 return true;
             }
 
-            if (policy && shouldRestrictUserBillableActions(currentUserAccountID, policy.id, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, policy)) {
+            if (policy && shouldRestrictUserBillableActions(policy.id, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, policy, currentUserAccountID)) {
                 Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
                 return true;
             }

@@ -45,7 +45,7 @@ function SearchMoneyRequestReportEmptyState({report, policy, onLayout}: {report:
                 if (!reportId) {
                     return;
                 }
-                if (policy && shouldRestrictUserBillableActions(session?.accountID, policy.id, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, policy)) {
+                if (policy && shouldRestrictUserBillableActions(policy.id, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, policy, session?.accountID)) {
                     Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
                     return;
                 }
@@ -60,7 +60,7 @@ function SearchMoneyRequestReportEmptyState({report, policy, onLayout}: {report:
                 if (!reportId) {
                     return;
                 }
-                if (policy && shouldRestrictUserBillableActions(session?.accountID, policy.id, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, policy)) {
+                if (policy && shouldRestrictUserBillableActions(policy.id, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, policy, session?.accountID)) {
                     Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
                     return;
                 }
@@ -72,7 +72,7 @@ function SearchMoneyRequestReportEmptyState({report, policy, onLayout}: {report:
             text: translate('iou.addUnreportedExpense'),
             icon: icons.ReceiptPlus,
             onSelected: () => {
-                if (policy && shouldRestrictUserBillableActions(session?.accountID, policy.id, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, policy)) {
+                if (policy && shouldRestrictUserBillableActions(policy.id, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, policy, session?.accountID)) {
                     Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
                     return;
                 }

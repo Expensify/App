@@ -177,12 +177,12 @@ function QuickCreationActionsBar() {
                 if (
                     !workspaceIDForReportCreation ||
                     (shouldRestrictUserBillableActions(
-                        session?.accountID,
                         workspaceIDForReportCreation,
                         ownerBillingGracePeriodEnd,
                         userBillingGracePeriodEnds,
                         undefined,
                         defaultChatEnabledPolicy,
+                        session?.accountID,
                     ) &&
                         groupPoliciesWithChatEnabled.length > 1)
                 ) {
@@ -192,12 +192,12 @@ function QuickCreationActionsBar() {
 
                 if (
                     !shouldRestrictUserBillableActions(
-                        session?.accountID,
                         workspaceIDForReportCreation,
                         ownerBillingGracePeriodEnd,
                         userBillingGracePeriodEnds,
                         undefined,
                         defaultChatEnabledPolicy,
+                        session?.accountID,
                     )
                 ) {
                     if (shouldShowEmptyReportConfirmationForDefaultChatEnabledPolicy) {
