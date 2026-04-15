@@ -17,7 +17,7 @@ import DateUtils from '@libs/DateUtils';
 import {buildNextStepNew, buildOptimisticNextStep} from '@libs/NextStepUtils';
 import * as NumberUtils from '@libs/NumberUtils';
 import {rand64} from '@libs/NumberUtils';
-import {hasDependentTags, isPaidGroupPolicy} from '@libs/PolicyUtils';
+import {hasDependentTags, isInstantSubmitEnabled, isPaidGroupPolicy, isSubmitAndClose} from '@libs/PolicyUtils';
 import {
     getAllReportActions,
     getIOUActionForReportID,
@@ -1499,6 +1499,27 @@ function changeTransactionsReport({
             value: {
                 unheldNonReimbursableTotal: allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportIDToUpdate}`]?.unheldNonReimbursableTotal,
             },
+        });
+    }
+
+    // Update the destination report's stateNum/statusNum since it's no longer empty after receiving transactions.
+    // This mirrors getExpenseReportStateAndStatus(policy, betas, false) logic.
+    if (reportID !== CONST.REPORT.UNREPORTED_REPORT_ID && newReport && !isASAPSubmitBetaEnabled && isInstantSubmitEnabled(policy)) {
+        const arePaymentsDisabled = policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO;
+        const shouldClose = arePaymentsDisabled && isSubmitAndClose(policy);
+
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: shouldClose
+                ? {stateNum: CONST.REPORT.STATE_NUM.APPROVED, statusNum: CONST.REPORT.STATUS_NUM.CLOSED}
+                : {stateNum: CONST.REPORT.STATE_NUM.SUBMITTED, statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED},
+        });
+
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {stateNum: newReport.stateNum, statusNum: newReport.statusNum},
         });
     }
 
