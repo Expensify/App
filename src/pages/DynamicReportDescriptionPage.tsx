@@ -8,9 +8,9 @@ import withReportOrNotFound from './inbox/report/withReportOrNotFound';
 import RoomDescriptionPage from './RoomDescriptionPage';
 import TaskDescriptionPage from './tasks/TaskDescriptionPage';
 
-type ReportDescriptionPageProps = WithReportOrNotFoundProps & PlatformStackScreenProps<ReportDescriptionNavigatorParamList, typeof SCREENS.REPORT_DESCRIPTION_ROOT>;
+type DynamicReportDescriptionPageProps = WithReportOrNotFoundProps & PlatformStackScreenProps<ReportDescriptionNavigatorParamList, typeof SCREENS.DYNAMIC_REPORT_DESCRIPTION>;
 
-function ReportDescriptionPage(props: ReportDescriptionPageProps) {
+function DynamicReportDescriptionPage(props: DynamicReportDescriptionPageProps) {
     const isTask = ReportUtils.isTaskReport(props.report);
 
     if (isTask) {
@@ -22,4 +22,4 @@ function ReportDescriptionPage(props: ReportDescriptionPageProps) {
     return <RoomDescriptionPage {...props} />;
 }
 
-export default withReportOrNotFound()(ReportDescriptionPage);
+export default withReportOrNotFound()(DynamicReportDescriptionPage);
