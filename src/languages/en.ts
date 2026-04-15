@@ -44,6 +44,7 @@ import type {
     StepCounterParams,
     SyncStageNameConnectionsParams,
     UnshareParams,
+    UnsupportedFormulaValueErrorParams,
     UpdatedBudgetParams,
     UpdatedPolicyApprovalRuleParams,
     UpdatedPolicyCategoryMaxAmountNoReceiptParams,
@@ -109,6 +110,10 @@ const translations = {
         searchWithThreeDots: 'Search...',
         next: 'Next',
         previous: 'Previous',
+        previousMonth: 'Previous month',
+        nextMonth: 'Next month',
+        previousYear: 'Previous year',
+        nextYear: 'Next year',
         // @context Navigation button that returns the user to the previous screen. Should be interpreted as a UI action label.
         goBack: 'Go back',
         create: 'Create',
@@ -1072,9 +1077,15 @@ const translations = {
                 sunglassesDescription: "Time to chill, though stay tuned for what's next!",
                 f1FlagsTitle: 'All caught up',
                 f1FlagsDescription: "You've finished all outstanding to-dos.",
-                fireworksTitle: 'All caught up',
-                fireworksDescription: 'Upcoming to-dos will appear here.',
             },
+        },
+        gettingStartedSection: {
+            title: 'Getting started',
+            createWorkspace: 'Create a workspace',
+            connectAccounting: ({integrationName}: {integrationName: string}) => `Connect to ${integrationName}`,
+            customizeCategories: 'Customize accounting categories',
+            linkCompanyCards: 'Link company cards',
+            setupRules: 'Set up spend rules',
         },
         upcomingTravel: 'Upcoming travel',
         upcomingTravelSection: {
@@ -1414,6 +1425,44 @@ const translations = {
         paidWithExpensify: (payer?: string) => `${payer ? `${payer} ` : ''}paid with wallet`,
         automaticallyPaidWithExpensify: (payer?: string) =>
             `${payer ? `${payer} ` : ''}paid with Expensify via <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">workspace rules</a>`,
+        reimbursedThisReport: 'reimbursed this report',
+        paidThisBill: 'paid this bill',
+        reimbursedOnBehalfOf: (actor: string) => `on behalf of ${actor}`,
+        reimbursedFromBankAccount: (debitBankAccount: string) => `from the bank account ending in ${debitBankAccount}`,
+        reimbursedSubmitterAddedBankAccount: (submitter: string) => `${submitter} added a bank account, taking report off hold. Reimbursement is initiated`,
+        reimbursedWithFastACH: ({
+            isCurrentUser,
+            submitterLogin,
+            creditBankAccount,
+            expectedDate,
+        }: {
+            isCurrentUser: boolean;
+            submitterLogin: string;
+            creditBankAccount: string;
+            expectedDate: string;
+        }) =>
+            isCurrentUser
+                ? `. Money is on its way to your${creditBankAccount ? ` bank account ending in ${creditBankAccount}` : ' account'}. Reimbursement estimated to complete on ${expectedDate}.`
+                : `. Money is on its way to ${submitterLogin}'s${creditBankAccount ? ` bank account ending in ${creditBankAccount}` : ' account'}. Reimbursement estimated to complete on ${expectedDate}.`,
+        reimbursedWithCheck: ' via check.',
+        reimbursedWithStripeConnect: ({
+            isCurrentUser,
+            submitterLogin,
+            creditBankAccount,
+            isCard,
+        }: {
+            isCurrentUser: boolean;
+            submitterLogin: string;
+            creditBankAccount: string;
+            isCard: boolean;
+        }) => {
+            const paymentMethod = isCard ? 'card' : 'bank account';
+            return isCurrentUser
+                ? `. Money is on its way to your${creditBankAccount ? ` bank account ending in ${creditBankAccount}` : ' account'} (paid via ${paymentMethod}). This could take up to 10 business days.`
+                : `. Money is on its way to ${submitterLogin}'s${creditBankAccount ? ` bank account ending in ${creditBankAccount}` : ' account'} (paid via ${paymentMethod}). This could take up to 10 business days.`;
+        },
+        reimbursedWithACH: ({creditBankAccount, expectedDate}: {creditBankAccount?: string; expectedDate?: string}) =>
+            ` with direct deposit (ACH)${creditBankAccount ? ` to the bank account ending in ${creditBankAccount}. ` : '. '}${expectedDate ? `The reimbursement is estimated to complete by ${expectedDate}.` : 'This generally takes 4-5 business days.'}`,
         noReimbursableExpenses: 'This report has an invalid amount',
         pendingConversionMessage: "Total will update when you're back online",
         changedTheExpense: 'changed the expense',
@@ -1473,11 +1522,6 @@ const translations = {
             endDateSameAsStartDate: "The end date can't be the same as the start date",
             manySplitsProvided: `The maximum splits allowed is ${CONST.IOU.SPLITS_LIMIT}.`,
             dateRangeExceedsMaxDays: `The date range can't exceed ${CONST.IOU.SPLITS_LIMIT} days.`,
-            nonReimbursablePayment: 'Cannot pay via Expensify',
-            nonReimbursablePaymentDescription: (isMultiple?: boolean) =>
-                isMultiple
-                    ? "One or more selected reports don't have reimbursable expenses. Double check the expenses, or manually mark as paid."
-                    : "The report doesn't have reimbursable expenses. Double check the expenses, or manually mark as paid.",
         },
         dismissReceiptError: 'Dismiss error',
         dismissReceiptErrorConfirmation: 'Heads up! Dismissing this error will remove your uploaded receipt entirely. Are you sure?',
@@ -1667,6 +1711,11 @@ const translations = {
         },
         duplicateNonDefaultWorkspacePerDiemError: "You can't duplicate per diem expenses across workspaces because the rates may differ between workspaces.",
         cannotDuplicateDistanceExpense: "You can't duplicate distance expenses across workspaces because the rates may differ between workspaces.",
+        taxDisabledAlert: {
+            title: 'Tax disabled',
+            prompt: 'Enable tax tracking on the workspace to edit the expense details or delete the tax from this expense.',
+            confirmText: 'Delete tax',
+        },
     },
     transactionMerge: {
         listPage: {
@@ -2899,6 +2948,7 @@ const translations = {
         workspaceYouMayJoin: (domain: string, email: string) => `Someone from ${domain} has already created a workspace. Please enter the magic code sent to ${email}.`,
         joinAWorkspace: 'Join a workspace',
         listOfWorkspaces: "Here's the list of workspaces you can join. Don't worry, you can always join them later if you prefer.",
+        skipForNow: 'Skip for now',
         workspaceMemberList: (employeeCount: number, policyOwner: string) => `${employeeCount} member${employeeCount > 1 ? 's' : ''} • ${policyOwner}`,
         whereYouWork: 'Where do you work?',
         errorSelection: 'Select an option to move forward',
@@ -3019,7 +3069,7 @@ const translations = {
                 description: dedent(`
                     *Submit an expense* by entering an amount or scanning a receipt.
 
-                    1. Click the ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} button.
+                    1. Click the *+* button.
                     2. Choose *Create expense*.
                     3. Enter an amount or scan a receipt.
                     4. Add your boss's email or phone number.
@@ -3033,7 +3083,7 @@ const translations = {
                 description: dedent(`
                     *Submit an expense* by entering an amount or scanning a receipt.
 
-                    1. Click the ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} button.
+                    1. Click the *+* button.
                     2. Choose *Create expense*.
                     3. Enter an amount or scan a receipt.
                     4. Confirm details.
@@ -3047,7 +3097,7 @@ const translations = {
                 description: dedent(`
                     *Track an expense* in any currency, whether you have a receipt or not.
 
-                    1. Click the ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} button.
+                    1. Click the *+* button.
                     2. Choose *Create expense*.
                     3. Enter an amount or scan a receipt.
                     4. Choose your *personal* space.
@@ -3152,7 +3202,7 @@ const translations = {
                 description: dedent(`
                     *Start a chat* with anyone using their email or phone number.
 
-                    1. Click the ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} button.
+                    1. Click the *+* button.
                     2. Choose *Start chat*.
                     3. Enter an email or phone number.
 
@@ -3167,7 +3217,7 @@ const translations = {
                 description: dedent(`
                     *Split expenses* with one or more people.
 
-                    1. Click the ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} button.
+                    1. Click the *+* button.
                     2. Choose *Start chat*.
                     3. Enter emails or phone numbers.
                     4. Click the grey *+* button in the chat > *Split expense*.
@@ -3193,7 +3243,7 @@ const translations = {
                 description: dedent(`
                     Here's how to create a report:
 
-                    1. Click the ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} button.
+                    1. Click the *+* button.
                     2. Choose *Create report*.
                     3. Click *Add expense*.
                     4. Add your first expense.
@@ -3222,8 +3272,7 @@ const translations = {
                         # Your free trial has started! Let's get you set up.
                         👋 Hey there, I'm your Expensify setup specialist. Now that you've created a workspace, make the most of your 30-day free trial by following the steps below!
                     `),
-            onboardingTrackWorkspaceMessage:
-                "# Let’s get you set up\n👋 Hey there, I'm your Expensify setup specialist. I've already created a workspace to help manage your receipts and expenses. To make the most of your 30-day free trial, just follow the remaining setup steps below!",
+            onboardingTrackWorkspaceMessage: 'To make the most of your 30-day free trial, follow the remaining steps below:',
             onboardingChatSplitMessage: 'Splitting bills with friends is as easy as sending a message. Here’s how.',
             onboardingAdminMessage: "Learn how to manage your team's workspace as an admin and submit your own expenses.",
             onboardingTestDriveReceiverMessage: "*You've got 3 months free! Get started below.*",
@@ -3274,6 +3323,7 @@ const translations = {
             dateShouldBeBefore: (dateString: string) => `Date should be before ${dateString}`,
             dateShouldBeAfter: (dateString: string) => `Date should be after ${dateString}`,
             hasInvalidCharacter: 'Name can only include Latin characters',
+            cannotIncludeCommaOrSemicolon: 'Name cannot contain a comma or semicolon',
             incorrectZipFormat: (zipFormat?: string) => `Incorrect zip code format${zipFormat ? ` Acceptable format: ${zipFormat}` : ''}`,
             invalidPhoneNumber: `Please ensure the phone number is valid (e.g. ${CONST.EXAMPLE_PHONE_NUMBER})`,
         },
@@ -3349,6 +3399,10 @@ const translations = {
     yearPickerPage: {
         year: 'Year',
         selectYear: 'Please select a year',
+    },
+    monthPickerPage: {
+        month: 'Month',
+        selectMonth: 'Please select a month',
     },
     focusModeUpdateModal: {
         title: 'Welcome to #focus mode!',
@@ -3970,7 +4024,7 @@ const translations = {
         regulationRequiresUs: 'Regulation requires us to verify the identity of any individual who owns more than 25% of the business.',
         iAmAuthorized: 'I am authorized to use the business bank account for business spend.',
         iCertify: 'I certify that the information provided is true and accurate.',
-        iAcceptTheTermsAndConditions: `I accept the <a href="https://cross-border.corpay.com/tc/">terms and conditions</a>.`,
+        iAcceptTheTermsAndConditions: `I accept the <a href="https://www.corpay.com/cross-border/terms">terms and conditions</a>.`,
         iAcceptTheTermsAndConditionsAccessibility: 'I accept the terms and conditions.',
         accept: 'Accept and add bank account',
         iConsentToThePrivacyNotice: 'I consent to the <a href="https://payments.corpay.com/compliance">privacy notice</a>.',
@@ -4595,7 +4649,7 @@ const translations = {
                     [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Out-of-pocket expenses will export when paid',
                 },
             },
-            travelInvoicing: 'Travel Invoicing',
+            travelInvoicing: 'Export Expensify Travel Payable To',
             travelInvoicingVendor: 'Travel vendor',
             travelInvoicingPayableAccount: 'Travel payable account',
         },
@@ -5708,6 +5762,7 @@ const translations = {
             reportFieldNameRequiredError: 'Please enter a report field name',
             reportFieldTypeRequiredError: 'Please choose a report field type',
             circularReferenceError: "This field can't refer to itself. Please update.",
+            unsupportedFormulaValueError: ({value}: UnsupportedFormulaValueErrorParams) => `Formula field ${value} not recognized`,
             reportFieldInitialValueRequiredError: 'Please choose a report field initial value',
             genericFailureMessage: 'An error occurred while updating the report field. Please try again.',
         },
@@ -5861,8 +5916,8 @@ const translations = {
             error: 'An error occurred while duplicating your new workspace. Please try again.',
         },
         emptyWorkspace: {
-            title: 'You have no workspaces',
-            subtitle: 'Track receipts, reimburse expenses, manage travel, send invoices, and more.',
+            title: 'No workspaces yet',
+            subtitle: 'Create a workspace to manage your expenses, reimbursements, and company cards.',
             createAWorkspaceCTA: 'Get Started',
             features: {
                 trackAndCollect: 'Track and collect receipts',
@@ -6686,7 +6741,7 @@ const translations = {
             },
             merchantRules: {
                 title: 'Merchant',
-                subtitle: 'Set the merchant rules so expenses arrive correctly coded and require less cleanup.',
+                subtitle: 'Set merchant rules so expenses arrive correctly coded and require less cleanup.',
                 addRule: 'Add merchant rule',
                 findRule: 'Find merchant rule',
                 addRuleTitle: 'Add rule',
@@ -6767,6 +6822,67 @@ const translations = {
                 builtInProtectionModal: {
                     title: 'Expensify Cards offer built-in protection - always',
                     description: `Expensify always declines these charges:\n\n  • Adult services\n  • ATMs\n  • Gambling\n  • Money transfers\n\nAdd more spend rules to protect company cash flow.`,
+                },
+                addSpendRule: 'Add spend rule',
+                editRuleTitle: 'Edit rule',
+                cardPageTitle: 'Card',
+                cardsSectionTitle: 'Cards',
+                chooseCards: 'Choose cards',
+                saveRule: 'Save rule',
+                deleteRule: 'Delete rule',
+                deleteRuleConfirmation: 'Are you sure you want to delete this rule?',
+                allow: 'Allow',
+                spendRuleSectionTitle: 'Spend rule',
+                restrictionType: 'Restriction type',
+                restrictionTypeHelpAllow: "Charges are approved if they match any merchant or category, and don't exceed a max amount.",
+                restrictionTypeHelpBlock: 'Charges are declined if they match any merchant or category, or exceed a max amount.',
+                addMerchant: 'Add merchant',
+                merchantContains: 'Merchant contains',
+                merchantExactlyMatches: 'Merchant exactly matches',
+                noBlockedMerchants: 'No blocked merchants',
+                addMerchantToBlockSpend: 'Add a merchant to block spend',
+                noAllowedMerchants: 'No allowed merchants',
+                addMerchantToAllowSpend: 'Add a merchant to allow spend',
+                matchType: 'Match type',
+                matchTypeContains: 'Contains',
+                matchTypeExact: 'Matches exactly',
+                spendCategory: 'Spend category',
+                maxAmount: 'Max amount',
+                maxAmountHelp: 'Any charge over this amount will be declined, regardless of merchant and spend category restrictions.',
+                currencyMismatchTitle: 'Currency mismatch',
+                currencyMismatchPrompt: 'To set a max amount, select cards that settle in the same currency.',
+                reviewSelectedCards: 'Review selected cards',
+                summaryMoreCount: ({summary, count}: {summary: string; count: number}) => `${summary}, +${count} more`,
+                confirmErrorApplyAtLeastOneSpendRuleToOneCard: 'Apply at least one spend rule to one card',
+                confirmErrorCardRequired: 'Card is a required field',
+                confirmErrorApplyAtLeastOneSpendRule: 'Apply at least one spend rule',
+                categories: 'Categories',
+                merchants: 'Merchants',
+                noAvailableCards: 'All cards already have a rule',
+                noAvailableCardsSubtitle: 'Edit an existing card rule to make changes',
+                max: 'Max',
+                categoryOptions: {
+                    [CONST.SPEND_RULES.CATEGORIES.AIRLINES]: 'Airlines',
+                    [CONST.SPEND_RULES.CATEGORIES.ALCOHOL_AND_BARS]: 'Alcohol and bars',
+                    [CONST.SPEND_RULES.CATEGORIES.AMAZON_AND_BOOKSTORES]: 'Amazon and bookstores',
+                    [CONST.SPEND_RULES.CATEGORIES.AUTOMOTIVE]: 'Automotive',
+                    [CONST.SPEND_RULES.CATEGORIES.CAR_RENTALS]: 'Car rentals',
+                    [CONST.SPEND_RULES.CATEGORIES.DINING]: 'Dining',
+                    [CONST.SPEND_RULES.CATEGORIES.FUEL_AND_GAS]: 'Fuel and gas',
+                    [CONST.SPEND_RULES.CATEGORIES.GOVERNMENT_AND_NON_PROFITS]: 'Government and non-profits',
+                    [CONST.SPEND_RULES.CATEGORIES.GROCERIES]: 'Groceries',
+                    [CONST.SPEND_RULES.CATEGORIES.GYMS_AND_FITNESS]: 'Gyms and fitness',
+                    [CONST.SPEND_RULES.CATEGORIES.HEALTHCARE]: 'Healthcare',
+                    [CONST.SPEND_RULES.CATEGORIES.HOTELS]: 'Hotels',
+                    [CONST.SPEND_RULES.CATEGORIES.INTERNET_AND_PHONE]: 'Internet and phone',
+                    [CONST.SPEND_RULES.CATEGORIES.OFFICE_SUPPLIES]: 'Office supplies',
+                    [CONST.SPEND_RULES.CATEGORIES.PARKING_AND_TOLLS]: 'Parking and tolls',
+                    [CONST.SPEND_RULES.CATEGORIES.PROFESSIONAL_SERVICES]: 'Professional services',
+                    [CONST.SPEND_RULES.CATEGORIES.RETAIL]: 'Retail',
+                    [CONST.SPEND_RULES.CATEGORIES.SHIPPING_AND_DELIVERY]: 'Shipping and delivery',
+                    [CONST.SPEND_RULES.CATEGORIES.SOFTWARE]: 'Software',
+                    [CONST.SPEND_RULES.CATEGORIES.TRANSIT_AND_RIDESHARE]: 'Transit and rideshare',
+                    [CONST.SPEND_RULES.CATEGORIES.TRAVEL_AGENCIES]: 'Travel agencies',
                 },
             },
         },
@@ -7474,6 +7590,7 @@ const translations = {
             hold: 'Hold',
             unhold: 'Remove hold',
             reject: 'Reject',
+            duplicateExpense: ({count}: {count: number}) => `Duplicate ${count === 1 ? 'expense' : 'expenses'}`,
             noOptionsAvailable: 'No options available for the selected group of expenses.',
         },
         filtersHeader: 'Filters',
@@ -7765,6 +7882,21 @@ const translations = {
         oooEventSummaryPartialDay: (summary: string, timePeriod: string, date: string) => `${summary} from ${timePeriod} on ${date}`,
         startTimer: 'Start Timer',
         stopTimer: 'Stop Timer',
+        scheduleOOO: 'Schedule OOO',
+        scheduleOOOTitle: 'Schedule Out of Office',
+        date: 'Date',
+        time: 'Time (use 24-hour format)',
+        durationAmount: 'Duration',
+        durationUnit: 'Unit',
+        reason: 'Reason',
+        workingPercentage: 'Working percentage',
+        dateRequired: 'Date is required.',
+        invalidTimeFormat: 'Please enter a valid 24-hour time (e.g., 14:30).',
+        enterANumber: 'Please enter a number.',
+        hour: 'hours',
+        day: 'days',
+        week: 'weeks',
+        month: 'months',
     },
     footer: {
         features: 'Features',
@@ -7880,6 +8012,11 @@ const translations = {
             'Join Expensify.org in eliminating injustice around the world. The current "Teachers Unite" campaign supports educators everywhere by splitting the costs of essential school supplies.',
         iKnowATeacher: 'I know a teacher',
         iAmATeacher: 'I am a teacher',
+        personalKarma: {
+            title: 'Enable Personal Karma',
+            description: 'Donate $1 to Expensify.org for every $500 you spend each month',
+            stopDonationsPrompt: 'Are you sure you want to stop donating to Expensify.org?',
+        },
         getInTouch: 'Excellent! Please share their information so we can get in touch with them.',
         introSchoolPrincipal: 'Intro to your school principal',
         schoolPrincipalVerifyExpense:
@@ -7905,6 +8042,7 @@ const translations = {
         personalCard: 'Personal card',
         companyCard: 'Company card',
         expensifyCard: 'Expensify Card',
+        centralInvoicing: 'Central invoicing',
     },
     distance: {
         addStop: 'Add stop',
