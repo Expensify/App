@@ -233,6 +233,8 @@ const CONST = {
     },
     ANIMATION_IN_TIMING: 100,
     COMPOSER_FOCUS_DELAY: 150,
+    MAX_TRANSITION_DURATION_MS: 1000,
+    MAX_TRANSITION_START_WAIT_MS: 1000,
     ANIMATION_DIRECTION: {
         IN: 'in',
         OUT: 'out',
@@ -270,6 +272,12 @@ const CONST = {
     ANIMATION_PAID_BUTTON_HIDE_DELAY: 300,
     BACKGROUND_IMAGE_TRANSITION_DURATION: 1000,
     SCREEN_TRANSITION_END_TIMEOUT: 1000,
+
+    // Delay before pre-inserting the Search fullscreen route under the RHP on the confirmation screen.
+    // Chosen to be long enough for the RHP entrance animation to complete (~250ms) and avoid jank
+    // from concurrent navigation state mutations, but short enough to finish well before most users
+    // tap submit. If the user submits before this fires, the fallback (non-pre-insert) path is used.
+    PRE_INSERT_FULLSCREEN_DELAY: 300,
     LIMIT_TIMEOUT: 2147483647,
     ARROW_HIDE_DELAY: 3000,
     MAX_IMAGE_CANVAS_AREA: 16777216,
@@ -282,6 +290,12 @@ const CONST = {
         TIMER_COMMAND: {
             START: 'start',
             STOP: 'stop',
+        },
+        OOO_DURATION_UNITS: {
+            HOUR: 'hours',
+            DAY: 'days',
+            WEEK: 'weeks',
+            MONTH: 'months',
         },
     },
 
@@ -607,65 +621,7 @@ const CONST = {
             VALIDATION: 'ValidationStep',
             ENABLE: 'EnableStep',
         },
-        PAGE_NAMES: {
-            COUNTRY: 'currency-and-country',
-            BANK_ACCOUNT: 'bank-info',
-            REQUESTOR: 'personal-info',
-            VERIFY_IDENTITY: 'verify-identity',
-            COMPANY: 'company',
-            BENEFICIAL_OWNERS: 'business-owner',
-            ACH_CONTRACT: 'ach-contract',
-            VALIDATION: 'validation',
-            ENABLE: 'enable',
-        },
         STEP_NAMES: ['1', '2', '3', '4', '5', '6'],
-        BANK_INFO_STEP: {
-            SUB_PAGE_NAMES: {
-                MANUAL: 'manual',
-                PLAID: 'plaid',
-            },
-        },
-        PERSONAL_INFO_STEP: {
-            SUB_PAGE_NAMES: {
-                FULL_NAME: 'full-name',
-                DATE_OF_BIRTH: 'date-of-birth',
-                SSN: 'ssn',
-                ADDRESS: 'address',
-                CONFIRMATION: 'confirmation',
-            },
-        },
-        BUSINESS_INFO_STEP: {
-            SUB_PAGE_NAMES: {
-                NAME: 'name',
-                TAX_ID: 'tax-id',
-                WEBSITE: 'website',
-                PHONE: 'phone',
-                ADDRESS: 'address',
-                TYPE: 'type',
-                INCORPORATION_DATE: 'start-date',
-                INCORPORATION_STATE: 'state',
-                INCORPORATION_CODE: 'code',
-                CONFIRMATION: 'confirmation',
-            },
-        },
-        BENEFICIAL_OWNERS_STEP: {
-            SUB_PAGE_NAMES: {
-                IS_USER_UBO: 'is-user-ubo',
-                IS_ANYONE_ELSE_UBO: 'is-anyone-else-ubo',
-                ARE_THERE_MORE_UBOS: 'are-there-more-ubos',
-                UBOS_LIST: 'ubos-list',
-                LEGAL_NAME: 'legal-name',
-                DATE_OF_BIRTH: 'date-of-birth',
-                SSN: 'ssn',
-                ADDRESS: 'address',
-                CONFIRMATION: 'confirmation',
-            },
-        },
-        COMPLETE_VERIFICATION_STEP: {
-            SUB_PAGE_NAMES: {
-                CONFIRM_AGREEMENTS: 'confirm-agreements',
-            },
-        },
         SUBSTEP: {
             MANUAL: 'manual',
             PLAID: 'plaid',
@@ -923,10 +879,10 @@ const CONST = {
         PAY_INVOICE_VIA_EXPENSIFY: 'payInvoiceViaExpensify',
         PERSONAL_CARD_IMPORT: 'personalCardImport',
         SUGGESTED_FOLLOWUPS: 'suggestedFollowups',
-        FREEZE_CARD: 'freezeCard',
         GUSTO: 'gustoNewDot',
         BULK_EDIT: 'bulkEdit',
         NEW_MANUAL_EXPENSE_FLOW: 'newManualExpenseFlow',
+        BULK_SUBMIT_APPROVE_PAY: 'bulkSubmitApprovePay',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -1354,6 +1310,7 @@ const CONST = {
         MAX_COUNT_BEFORE_FOCUS_UPDATE: 30,
         MIN_INITIAL_REPORT_ACTION_COUNT: 15,
         UNREPORTED_REPORT_ID: '0',
+        TRASH_REPORT_ID: '-1',
         SPLIT_REPORT_ID: '-2',
         SECONDARY_ACTIONS: {
             SUBMIT: 'submit',
@@ -2015,6 +1972,9 @@ const CONST = {
         SPAN_SEND_MESSAGE: 'ManualSendMessage',
         SPAN_NOT_FOUND_PAGE: 'ManualNotFoundPage',
         SPAN_SKELETON: 'ManualSkeleton',
+        SPAN_ODOMETER_TO_CONFIRMATION: 'ManualOdometerToConfirmation',
+        SPAN_ODOMETER_IMAGE_STITCH: 'ManualOdometerImageStitch',
+        SPAN_ODOMETER_IMAGE_CAPTURE: 'ManualOdometerImageCapture',
         SPAN_NAVIGATION_ROOT_READY: 'NavigationRootReady',
         SPAN_BOOTSPLASH: {
             ROOT: 'BootsplashVisible',
@@ -2067,6 +2027,7 @@ const CONST = {
         ATTRIBUTE_TRIGGER: 'trigger',
         ATTRIBUTE_PLATFORM: 'platform',
         ATTRIBUTE_IS_MULTI_SCAN: 'is_multi_scan',
+        ATTRIBUTE_ODOMETER_IMAGE_TYPE: 'odometer_image_type',
         /** Follow-up action after expense submit (action-based; used as submit_follow_up_action in span). */
         SUBMIT_FOLLOW_UP_ACTION: {
             DISMISS_MODAL_AND_OPEN_REPORT: 'dismiss_modal_and_open_report',
@@ -2778,6 +2739,14 @@ const CONST = {
     SAGE_INTACCT: {
         APPROVAL_MODE: {
             APPROVAL_MANUAL: 'APPROVAL_MANUAL',
+        },
+    },
+
+    GUSTO: {
+        APPROVAL_MODE: {
+            BASIC: 'basic',
+            MANAGER: 'manager',
+            CUSTOM: 'custom',
         },
     },
 
@@ -3695,6 +3664,7 @@ const CONST = {
                 NETSUITE: 'netsuite',
                 SAGE_INTACCT: 'intacct',
                 CERTINIA: 'certinia',
+                GUSTO: 'gusto',
             },
             SUPPORTED_ONLY_ON_OLDDOT: {
                 FINANCIALFORCE: 'financialForce',
@@ -3709,6 +3679,7 @@ const CONST = {
                 SAGE_INTACCT: 'sage-intacct',
                 QBD: 'quickbooks-desktop',
                 CERTINIA: 'certinia',
+                GUSTO: 'gusto',
             },
             NAME_USER_FRIENDLY: {
                 netsuite: 'NetSuite',
@@ -3718,6 +3689,7 @@ const CONST = {
                 intacct: 'Sage Intacct',
                 financialForce: 'FinancialForce',
                 certinia: 'Certinia',
+                gusto: 'Gusto',
                 billCom: 'Bill.com',
                 zenefits: 'Zenefits',
                 sap: 'SAP',
@@ -3725,8 +3697,14 @@ const CONST = {
                 microsoftDynamics: 'Microsoft Dynamics',
                 other: 'Other',
             },
+            get ACCOUNTING_CONNECTION_NAMES() {
+                return [this.NAME.QBO, this.NAME.QBD, this.NAME.XERO, this.NAME.NETSUITE, this.NAME.SAGE_INTACCT, this.NAME.CERTINIA] as const;
+            },
+            get HR_CONNECTION_NAMES() {
+                return [this.NAME.GUSTO] as const;
+            },
             get EXPORTED_TO_INTEGRATION_DISPLAY_NAMES(): string[] {
-                return Object.values(this.NAME).map((name) => this.NAME_USER_FRIENDLY[name as keyof typeof this.NAME_USER_FRIENDLY]);
+                return this.ACCOUNTING_CONNECTION_NAMES.map((name) => this.NAME_USER_FRIENDLY[name as keyof typeof this.NAME_USER_FRIENDLY]);
             },
             CORPORATE: ['quickbooksDesktop', 'netsuite', 'intacct', 'oracle', 'sap', 'microsoftDynamics', 'other'],
             AUTH_HELP_LINKS: {
@@ -6321,6 +6299,7 @@ const CONST = {
             /** These action types are custom for RootNavigator */
             DISMISS_MODAL: 'DISMISS_MODAL',
             REPLACE_FULLSCREEN_UNDER_RHP: 'REPLACE_FULLSCREEN_UNDER_RHP',
+            REMOVE_FULLSCREEN_UNDER_RHP: 'REMOVE_FULLSCREEN_UNDER_RHP',
             OPEN_WORKSPACE_SPLIT: 'OPEN_WORKSPACE_SPLIT',
             OPEN_DOMAIN_SPLIT: 'OPEN_DOMAIN_SPLIT',
             PUSH_PARAMS: 'PUSH_PARAMS',
@@ -6654,6 +6633,7 @@ const CONST = {
         RHP_CONCIERGE_DM: 'rhpConciergeDm',
         RHP_ADMINS_ROOM: 'rhpAdminsRoom',
         RHP_HOME_PAGE: 'rhpHomePage',
+        TRACK_EXPENSES_WITH_CONCIERGE: 'trackExpensesWithConcierge',
         CONTROL: 'control',
     },
     ONBOARDING_JOINABLE_WORKSPACES_LIMIT: 5,
@@ -6836,6 +6816,7 @@ const CONST = {
             DONE: 'done',
             EXPORT_TO_ACCOUNTING: 'exportToAccounting',
             PAID: 'paid',
+            UNDELETE: 'undelete',
         },
         HAS_VALUES: {
             RECEIPT: 'receipt',
@@ -6859,6 +6840,7 @@ const CONST = {
             CHANGE_REPORT: 'changeReport',
             SPLIT: 'split',
             DUPLICATE: 'duplicate',
+            UNDELETE: 'undelete',
         },
         TRANSACTION_TYPE: {
             CASH: 'cash',
@@ -7097,6 +7079,7 @@ const CONST = {
                 APPROVED: 'approved',
                 DONE: 'done',
                 PAID: 'paid',
+                DELETED: 'deleted',
             },
             EXPENSE_REPORT: {
                 ALL: '',
@@ -8064,7 +8047,8 @@ const CONST = {
     },
 
     MODAL_EVENTS: {
-        CLOSED: 'modalClosed',
+        DISABLE_RHP_ANIMATION: 'disableRHPAnimation',
+        RESTORE_RHP_ANIMATION: 'restoreRHPAnimation',
     },
 
     LIST_BEHAVIOR: {
@@ -8177,22 +8161,11 @@ const CONST = {
             SELECT_ALL_BUTTON: 'Search-SelectAllButton',
             TYPE_MENU_BUTTON: 'Search-TypeMenuButton',
             FILTER_DISPLAY: 'Search-FilterDisplay',
-            FILTER_TYPE: 'Search-FilterType',
-            FILTER_STATUS: 'Search-FilterStatus',
-            FILTER_DATE: 'Search-FilterDate',
-            FILTER_FROM: 'Search-FilterFrom',
-            FILTER_WORKSPACE: 'Search-FilterWorkspace',
             FILTER_GROUP_BY: 'Search-FilterGroupBy',
             FILTER_SORT_BY: 'Search-FilterSortBy',
             FILTER_GROUP_CURRENCY: 'Search-FilterGroupCurrency',
             FILTER_VIEW: 'Search-FilterView',
             FILTER_LIMIT: 'Search-FilterLimit',
-            FILTER_FEED: 'Search-FilterFeed',
-            FILTER_POSTED: 'Search-FilterPosted',
-            FILTER_WITHDRAWN: 'Search-FilterWithdrawn',
-            FILTER_WITHDRAWAL_TYPE: 'Search-FilterWithdrawalType',
-            FILTER_HAS: 'Search-FilterHas',
-            FILTER_IS: 'Search-FilterIs',
             ADVANCED_FILTERS_BUTTON: 'Search-AdvancedFiltersButton',
             COLUMNS_BUTTON: 'Search-ColumnsButton',
             SELECT_ALL_MATCHING_BUTTON: 'Search-SelectAllMatchingButton',
@@ -8450,6 +8423,7 @@ const CONST = {
         },
         HOME_PAGE: {
             WIDGET_ITEM: 'HomePage-WidgetItem',
+            GETTING_STARTED_ROW: 'HomePage-GettingStartedRow',
         },
         CALENDAR_PICKER: {
             YEAR_PICKER: 'CalendarPicker-YearPicker',
@@ -8865,6 +8839,9 @@ const CONST = {
         SETTINGS_HELP: {
             CONCIERGE_CHAT: 'SettingsHelp-ConciergeChat',
             HELP_DOCS: 'SettingsHelp-HelpDocs',
+            ACCOUNT_MANAGER: 'SettingsHelp-AccountManager',
+            PARTNER_MANAGER: 'SettingsHelp-PartnerManager',
+            GUIDE: 'SettingsHelp-Guide',
         },
         SETTINGS_ABOUT: {
             APP_DOWNLOAD_LINKS: 'SettingsAbout-AppDownloadLinks',
@@ -8949,6 +8926,13 @@ const CONST = {
     },
 
     MODAL_MAX_HEIGHT_TO_WINDOW_HEIGHT_RATIO_LANDSCAPE_MODE: 0.75,
+
+    MAP_VIEW_LAYERS: {
+        USER_LOCATION_SOURCE: 'user-location-source',
+        USER_LOCATION: 'user-location',
+        ROUTE_SOURCE: 'route-source',
+        ROUTE_FILL: 'route-fill',
+    },
 } as const;
 
 const CONTINUATION_DETECTION_SEARCH_FILTER_KEYS = [

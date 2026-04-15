@@ -387,6 +387,7 @@ function handleMoneyRequestStepScanParticipants({
             cancelSpan(CONST.TELEMETRY.SPAN_SCAN_PROCESS_AND_NAVIGATE);
             cancelSpan(CONST.TELEMETRY.SPAN_CONFIRMATION_MOUNT);
             cancelSpan(CONST.TELEMETRY.SPAN_SHUTTER_TO_CONFIRMATION);
+            cancelSpan(CONST.TELEMETRY.SPAN_ODOMETER_TO_CONFIRMATION);
             cancelSpan(CONST.TELEMETRY.SPAN_CONFIRMATION_LIST_READY);
             cancelSpan(CONST.TELEMETRY.SPAN_CONFIRMATION_RECEIPT_LOAD);
             const firstReceiptFile = files.at(0);
@@ -640,6 +641,7 @@ function handleMoneyRequestStepDistanceNavigation({
             cancelSpan(CONST.TELEMETRY.SPAN_SCAN_PROCESS_AND_NAVIGATE);
             cancelSpan(CONST.TELEMETRY.SPAN_CONFIRMATION_MOUNT);
             cancelSpan(CONST.TELEMETRY.SPAN_SHUTTER_TO_CONFIRMATION);
+            cancelSpan(CONST.TELEMETRY.SPAN_ODOMETER_TO_CONFIRMATION);
             cancelSpan(CONST.TELEMETRY.SPAN_CONFIRMATION_LIST_READY);
             cancelSpan(CONST.TELEMETRY.SPAN_CONFIRMATION_RECEIPT_LOAD);
             setMoneyRequestPendingFields(transactionID, {waypoints: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD});

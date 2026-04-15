@@ -164,6 +164,9 @@ function getCardDescription(card: Card | undefined, translate: LocalizedTranslat
     if (!card) {
         return '';
     }
+    if (isTravelCard(card)) {
+        return translate('cardTransactions.centralInvoicing');
+    }
     const isCSVCard = card.bank === CONST.COMPANY_CARD.FEED_BANK_NAME.UPLOAD || card.bank?.includes(CONST.COMPANY_CARD.FEED_BANK_NAME.CSV);
     if (isCSVCard) {
         return card.nameValuePairs?.cardTitle ?? card.cardName ?? '';
@@ -180,9 +183,9 @@ function getCardDescription(card: Card | undefined, translate: LocalizedTranslat
  * @param displayName
  * @returns string in format %<defaultOrCustomCardName> • <lastFourPAN>%.
  */
-function getCardDescriptionForSearchTable(card?: Card, displayName?: string) {
-    if (!card) {
-        return '';
+function getCardDescriptionForSearchTable(card: Card, translate: LocalizedTranslate, displayName?: string) {
+    if (isTravelCard(card)) {
+        return translate('cardTransactions.centralInvoicing');
     }
     const isCSVCard = card.bank === CONST.COMPANY_CARD.FEED_BANK_NAME.UPLOAD || card.bank?.includes(CONST.COMPANY_CARD.FEED_BANK_NAME.CSV);
     if (isCSVCard) {
@@ -193,17 +196,23 @@ function getCardDescriptionForSearchTable(card?: Card, displayName?: string) {
 }
 
 /**
+ * @param translate
  * @param transactionCardName
  * @param cardID
  * @param cards
  * @returns company card name
  */
-function getCompanyCardDescription(transactionCardName?: string, cardID?: number, cards?: CardList) {
-    if (!cardID || !cards?.[cardID] || isExpensifyCard(cards[cardID])) {
+function getCompanyCardDescription(translate: LocalizedTranslate, transactionCardName?: string, cardID?: number, cards?: CardList) {
+    if (!cardID || !cards?.[cardID]) {
         return transactionCardName;
     }
     const card = cards[cardID];
-
+    if (isTravelCard(card)) {
+        return translate('cardTransactions.centralInvoicing');
+    }
+    if (isExpensifyCard(card)) {
+        return transactionCardName;
+    }
     return card.cardName;
 }
 
@@ -618,6 +627,10 @@ function getCompanyFeeds(cardFeeds: OnyxEntry<CombinedCardFeeds>, shouldFilterOu
             return !value.feed.includes(CONST.EXPENSIFY_CARD.BANK);
         }),
     );
+}
+
+function hasCompanyCardFeeds(cardFeeds: OnyxEntry<CombinedCardFeeds>): boolean {
+    return Object.keys(getCompanyFeeds(cardFeeds, true, true)).length > 0;
 }
 
 function getBankName(feedType: CardFeedWithNumber | CardFeedWithDomainID): string {
@@ -1195,6 +1208,77 @@ function getCardSettings(cardSettings: OnyxEntry<ExpensifyCardSettings>, program
     );
 }
 
+/** Backend may nest linkedPolicyIDs under each program block (not only on the settings root). */
+const NESTED_EXPENSIFY_CARD_PROGRAM_KEYS: readonly CardProgramKey[] = [CONST.COUNTRY.US, CONST.EXPENSIFY_CARD.CARD_PROGRAM.CURRENT, CONST.COUNTRY.GB, CONST.TRAVEL.PROGRAM_TRAVEL_US];
+
+function getNestedExpensifyCardProgramSettings(settings: ExpensifyCardSettings, key: CardProgramKey): ExpensifyCardSettingsBase | undefined {
+    const nested = settings[key];
+    if (nested && typeof nested === 'object' && !Array.isArray(nested)) {
+        return nested;
+    }
+    return undefined;
+}
+
+function collectLinkedPolicyIDsFromBase(base: ExpensifyCardSettingsBase | undefined): string[] {
+    if (!base) {
+        return [];
+    }
+    return base.linkedPolicyIDs ?? [];
+}
+
+function dedupePolicyIDsCaseInsensitive(ids: string[]): string[] {
+    const seen = new Set<string>();
+    const result: string[] = [];
+    for (const id of ids) {
+        const key = id.toUpperCase();
+        if (!seen.has(key)) {
+            seen.add(key);
+            result.push(id);
+        }
+    }
+    return result;
+}
+
+/**
+ * Linked workspace IDs from the settings root and US / CURRENT / GB / TRAVEL_US nests.
+ * Deduplicates case-insensitively; keeps API casing for Onyx lookups.
+ */
+function getLinkedPolicyIDsFromExpensifyCardSettings(settings: ExpensifyCardSettings | OnyxEntry<ExpensifyCardSettings>): string[] | undefined {
+    if (!settings) {
+        return undefined;
+    }
+    const ids: string[] = [...collectLinkedPolicyIDsFromBase(settings as ExpensifyCardSettingsBase)];
+    for (const key of NESTED_EXPENSIFY_CARD_PROGRAM_KEYS) {
+        ids.push(...collectLinkedPolicyIDsFromBase(getNestedExpensifyCardProgramSettings(settings, key)));
+    }
+    if (ids.length === 0) {
+        return undefined;
+    }
+    return dedupePolicyIDsCaseInsensitive(ids);
+}
+
+/** True if `policyID` is in the linked list (case-insensitive). */
+function isPolicyIDInLinkedExpensifyCardPolicyList(linkedPolicyIDs: string[] | undefined, policyID: string): boolean {
+    return !!linkedPolicyIDs?.some((id) => id.toUpperCase() === policyID.toUpperCase());
+}
+
+/** Resolves preferredPolicy from the settings root or the first nested program block that defines it. */
+function getPreferredPolicyFromExpensifyCardSettings(settings: ExpensifyCardSettings | OnyxEntry<ExpensifyCardSettings>): string | undefined {
+    if (!settings) {
+        return undefined;
+    }
+    if (settings.preferredPolicy) {
+        return settings.preferredPolicy;
+    }
+    for (const key of NESTED_EXPENSIFY_CARD_PROGRAM_KEYS) {
+        const preferred = getNestedExpensifyCardProgramSettings(settings, key)?.preferredPolicy;
+        if (preferred) {
+            return preferred;
+        }
+    }
+    return undefined;
+}
+
 function isCardPendingIssue(card?: Card) {
     return card?.state === CONST.EXPENSIFY_CARD.STATE.STATE_NOT_ISSUED;
 }
@@ -1640,6 +1724,7 @@ export {
     isSelectedFeedExpired,
     isTravelCard,
     getCompanyFeeds,
+    hasCompanyCardFeeds,
     isPersonalCardBrokenConnection,
     isCustomFeed,
     isCSVFeedOrExpensifyCard,
@@ -1676,6 +1761,9 @@ export {
     isExpensifyCardFullySetUp,
     getCardSettings,
     getCardProgramKey,
+    getLinkedPolicyIDsFromExpensifyCardSettings,
+    getPreferredPolicyFromExpensifyCardSettings,
+    isPolicyIDInLinkedExpensifyCardPolicyList,
     filterAllInactiveCards,
     filterInactiveCards,
     getPersonalBankCardDetailsImage,
