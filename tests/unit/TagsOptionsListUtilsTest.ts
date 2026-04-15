@@ -856,7 +856,7 @@ describe('TagsOptionsListUtils', () => {
                     },
                     orderWeight: 0,
                 },
-            } as PolicyTagLists;
+            } as unknown as PolicyTagLists;
 
             const result = getTagVisibility({
                 shouldShowTags: true,
@@ -879,7 +879,7 @@ describe('TagsOptionsListUtils', () => {
                     },
                     orderWeight: 0,
                 },
-            } as PolicyTagLists;
+            } as unknown as PolicyTagLists;
 
             const result = getTagVisibility({
                 shouldShowTags: true,
