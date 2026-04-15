@@ -231,7 +231,7 @@ describe('useGettingStartedItems', () => {
         ];
 
         it.each(directConnectIntegrations)('should show "Connect to $name" when user selected $key in onboarding', async ({key, name}) => {
-            await setupManageTeamScenario({accounting: key, policy: {areAccountingEnabled: true}});
+            await setupManageTeamScenario({accounting: key, policy: {areConnectionsEnabled: true}});
 
             const {result} = renderHook(() => useGettingStartedItems());
 
@@ -241,7 +241,7 @@ describe('useGettingStartedItems', () => {
         });
 
         it('should navigate to workspace accounting route', async () => {
-            await setupManageTeamScenario({accounting: CONST.POLICY.CONNECTIONS.NAME.QBO, policy: {areAccountingEnabled: true}});
+            await setupManageTeamScenario({accounting: CONST.POLICY.CONNECTIONS.NAME.QBO, policy: {areConnectionsEnabled: true}});
 
             const {result} = renderHook(() => useGettingStartedItems());
 
@@ -252,7 +252,7 @@ describe('useGettingStartedItems', () => {
         it('should be not completed when workspace has no accounting connection', async () => {
             await setupManageTeamScenario({
                 accounting: CONST.POLICY.CONNECTIONS.NAME.QBO,
-                policy: {areAccountingEnabled: true, connections: undefined},
+                policy: {areConnectionsEnabled: true, connections: undefined},
             });
 
             const {result} = renderHook(() => useGettingStartedItems());
@@ -265,7 +265,7 @@ describe('useGettingStartedItems', () => {
             await setupManageTeamScenario({
                 accounting: CONST.POLICY.CONNECTIONS.NAME.QBO,
                 policy: {
-                    areAccountingEnabled: true,
+                    areConnectionsEnabled: true,
                     connections: {
                         [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
                             config: {},
@@ -286,7 +286,7 @@ describe('useGettingStartedItems', () => {
             await setupManageTeamScenario({
                 accounting: CONST.POLICY.CONNECTIONS.NAME.QBO,
                 policy: {
-                    areAccountingEnabled: true,
+                    areConnectionsEnabled: true,
                     connections: {
                         [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
                             config: {},
@@ -307,7 +307,7 @@ describe('useGettingStartedItems', () => {
             await setupManageTeamScenario({
                 accounting: CONST.POLICY.CONNECTIONS.NAME.QBO,
                 policy: {
-                    areAccountingEnabled: true,
+                    areConnectionsEnabled: true,
                     connections: {
                         [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
                             config: {},
@@ -325,7 +325,7 @@ describe('useGettingStartedItems', () => {
         });
 
         it('should not show the categories row when showing the connect row', async () => {
-            await setupManageTeamScenario({accounting: CONST.POLICY.CONNECTIONS.NAME.QBO, policy: {areAccountingEnabled: true}});
+            await setupManageTeamScenario({accounting: CONST.POLICY.CONNECTIONS.NAME.QBO, policy: {areConnectionsEnabled: true}});
 
             const {result} = renderHook(() => useGettingStartedItems());
 
@@ -336,7 +336,7 @@ describe('useGettingStartedItems', () => {
         it('should show generic "Connect to accounting" when reportedIntegration is not set but a connection already exists (e.g. cache cleared after connecting)', async () => {
             await setupManageTeamScenario({
                 policy: {
-                    areAccountingEnabled: true,
+                    areConnectionsEnabled: true,
                     connections: {
                         [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
                             config: {},
@@ -355,7 +355,7 @@ describe('useGettingStartedItems', () => {
         });
 
         it('should show "Customize accounting categories" when reportedIntegration is not set and no connections exist (e.g. cache cleared before connecting)', async () => {
-            await setupManageTeamScenario({policy: {areCategoriesEnabled: true}});
+            await setupManageTeamScenario({});
 
             const {result} = renderHook(() => useGettingStartedItems());
 
@@ -368,7 +368,7 @@ describe('useGettingStartedItems', () => {
         const categoriesIntegrations = ['sap', 'oracle', 'microsoftDynamics', 'other', 'none'];
 
         it.each(categoriesIntegrations)('should show "Customize accounting categories" when accounting choice is %s', async (accounting) => {
-            await setupManageTeamScenario({accounting, policy: {areCategoriesEnabled: true}});
+            await setupManageTeamScenario({accounting});
 
             const {result} = renderHook(() => useGettingStartedItems());
 
@@ -377,7 +377,7 @@ describe('useGettingStartedItems', () => {
         });
 
         it('should navigate to workspace categories route', async () => {
-            await setupManageTeamScenario({accounting: 'none', policy: {areCategoriesEnabled: true}});
+            await setupManageTeamScenario({accounting: 'none'});
 
             const {result} = renderHook(() => useGettingStartedItems());
 
@@ -386,7 +386,7 @@ describe('useGettingStartedItems', () => {
         });
 
         it('should not show the connect accounting row when showing the categories row', async () => {
-            await setupManageTeamScenario({accounting: 'none', policy: {areCategoriesEnabled: true}});
+            await setupManageTeamScenario({accounting: 'none'});
 
             const {result} = renderHook(() => useGettingStartedItems());
 
@@ -395,7 +395,7 @@ describe('useGettingStartedItems', () => {
         });
 
         it('should be not completed when workspace has only default categories', async () => {
-            await setupManageTeamScenario({accounting: 'none', policy: {areCategoriesEnabled: true}});
+            await setupManageTeamScenario({accounting: 'none'});
 
             const {result} = renderHook(() => useGettingStartedItems());
 
@@ -419,7 +419,7 @@ describe('useGettingStartedItems', () => {
                 },
             };
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${POLICY_ID}`, customCategories);
-            await setupManageTeamScenario({accounting: 'none', policy: {areCategoriesEnabled: true}});
+            await setupManageTeamScenario({accounting: 'none'});
 
             const {result} = renderHook(() => useGettingStartedItems());
 
@@ -594,7 +594,7 @@ describe('useGettingStartedItems', () => {
         it('should return items in the correct order: createWorkspace, accounting/categories, companyCards, rules', async () => {
             await setupManageTeamScenario({
                 accounting: CONST.POLICY.CONNECTIONS.NAME.QBO,
-                policy: {areAccountingEnabled: true, areCompanyCardsEnabled: true, areRulesEnabled: true},
+                policy: {areConnectionsEnabled: true, areCompanyCardsEnabled: true, areRulesEnabled: true},
             });
 
             const {result} = renderHook(() => useGettingStartedItems());
@@ -606,7 +606,7 @@ describe('useGettingStartedItems', () => {
         it('should return items in the correct order with categories instead of connect', async () => {
             await setupManageTeamScenario({
                 accounting: 'none',
-                policy: {areCategoriesEnabled: true, areCompanyCardsEnabled: true, areRulesEnabled: true},
+                policy: {areCompanyCardsEnabled: true, areRulesEnabled: true},
             });
 
             const {result} = renderHook(() => useGettingStartedItems());
@@ -618,7 +618,7 @@ describe('useGettingStartedItems', () => {
         it('should contain three rows when areRulesEnabled is false', async () => {
             await setupManageTeamScenario({
                 accounting: CONST.POLICY.CONNECTIONS.NAME.QBO,
-                policy: {areAccountingEnabled: true, areCompanyCardsEnabled: false, areRulesEnabled: false},
+                policy: {areConnectionsEnabled: true, areCompanyCardsEnabled: false, areRulesEnabled: false},
             });
 
             const {result} = renderHook(() => useGettingStartedItems());
