@@ -185,6 +185,7 @@ export default createOnyxDerivedValueConfig({
         if (useIncrementalUpdates) {
             // if there are report-related updates, iterate over the updates
             if (updates.length > 0 || !!transactionsUpdates || !!transactionViolationsUpdates || !!policyTagsUpdates) {
+                dataToIterate = [];
                 if (updates.length > 0) {
                     dataToIterate = prepareReportKeys(updates);
 
