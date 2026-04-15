@@ -22,7 +22,6 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLifecycleActions from '@hooks/useLifecycleActions';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
-import useNonReimbursablePaymentModal from '@hooks/useNonReimbursablePaymentModal';
 import useOnyx from '@hooks/useOnyx';
 import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
 import useParticipantsInvoiceReport from '@hooks/useParticipantsInvoiceReport';
@@ -44,7 +43,6 @@ import {getFilteredReportActionsForReportView, hasRequestFromCurrentAccount} fro
 import {getSecondaryReportActions} from '@libs/ReportSecondaryActionUtils';
 import {
     hasHeldExpenses as hasHeldExpensesReportUtils,
-    hasOnlyNonReimbursableTransactions,
     hasViolations as hasViolationsReportUtils,
     isAllowedToApproveExpenseReport,
     isInvoiceReport as isInvoiceReportUtil,
@@ -68,7 +66,7 @@ type MoneyReportHeaderSecondaryActionsProps = {
 };
 
 function MoneyReportHeaderSecondaryActions({reportID, primaryAction, isReportInSearch, backTo, dropdownMenuRef}: MoneyReportHeaderSecondaryActionsProps) {
-    const {startAnimation, startApprovedAnimation, startSubmittingAnimation} = usePaymentAnimationsContext();
+    const {isPaidAnimationRunning, startAnimation, startApprovedAnimation, startSubmittingAnimation} = usePaymentAnimationsContext();
     const {openHoldMenu, openPDFDownload, openHoldEducational, openRejectModal} = useMoneyReportHeaderModals();
 
     const {translate, localeCompare} = useLocalize();
@@ -127,14 +125,8 @@ function MoneyReportHeaderSecondaryActions({reportID, primaryAction, isReportInS
     const isAnyTransactionOnHold = hasHeldExpensesReportUtils(moneyRequestReport?.reportID);
     const existingB2BInvoiceReport = useParticipantsInvoiceReport(activePolicyID, CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS, chatReport?.policyID);
 
-    const {showNonReimbursablePaymentErrorModal, shouldBlockDirectPayment} = useNonReimbursablePaymentModal(moneyRequestReport, allTransactions);
-
     const confirmPayment = ({paymentType: type, payAsBusiness, methodID, paymentMethod}: PaymentActionParams) => {
         if (!type || !chatReport) {
-            return;
-        }
-        if (shouldBlockDirectPayment(type)) {
-            showNonReimbursablePaymentErrorModal();
             return;
         }
         if (isDelegateAccessRestricted) {
@@ -207,12 +199,8 @@ function MoneyReportHeaderSecondaryActions({reportID, primaryAction, isReportInS
 
     // Payment button derivations
     const canIOUBePaid = canIOUBePaidAction(moneyRequestReport, chatReport, policy, bankAccountList, undefined, false, undefined, invoiceReceiverPolicy);
-    const reportHasOnlyNonReimbursableTransactions = hasOnlyNonReimbursableTransactions(moneyRequestReport?.reportID, allTransactions);
-    const onlyShowPayElsewhere =
-        !reportHasOnlyNonReimbursableTransactions &&
-        !canIOUBePaid &&
-        canIOUBePaidAction(moneyRequestReport, chatReport, policy, bankAccountList, undefined, true, undefined, invoiceReceiverPolicy);
-    const isPayable = canIOUBePaid || onlyShowPayElsewhere || (reportHasOnlyNonReimbursableTransactions && (moneyRequestReport?.total ?? 0) !== 0);
+    const onlyShowPayElsewhere = !canIOUBePaid && canIOUBePaidAction(moneyRequestReport, chatReport, policy, bankAccountList, undefined, true, undefined, invoiceReceiverPolicy);
+    const shouldShowPayButton = isPaidAnimationRunning || canIOUBePaid || onlyShowPayElsewhere;
     const isApprovable = canApproveIOU(moneyRequestReport, policy, reportMetadata, allTransactions);
     const isApproveDisabled = isApprovable && !isAllowedToApproveExpenseReport(moneyRequestReport);
 
@@ -225,7 +213,7 @@ function MoneyReportHeaderSecondaryActions({reportID, primaryAction, isReportInS
         formattedAmount: totalAmount,
         policyID: moneyRequestReport?.policyID,
         onPress: confirmPayment,
-        shouldHidePaymentOptions: !isPayable,
+        shouldHidePaymentOptions: !shouldShowPayButton,
         shouldShowApproveButton: isApprovable,
         shouldDisableApproveButton: isApproveDisabled,
         onlyShowPayElsewhere,
