@@ -62,7 +62,7 @@ import ViolationsUtils, {filterReceiptViolations} from '@libs/Violations/Violati
 import Navigation from '@navigation/Navigation';
 import variables from '@styles/variables';
 import {clearAllRelatedReportActionErrors} from '@userActions/ClearReportActionErrors';
-import {cleanUpMoneyRequest} from '@userActions/IOU';
+import {cleanUpMoneyRequest} from '@userActions/IOU/DeleteMoneyRequest';
 import {replaceReceipt} from '@userActions/IOU/Receipt';
 import {addAttachmentWithComment, navigateToConciergeChatAndDeleteReport} from '@userActions/Report';
 import {clearError, getLastModifiedExpense, revert} from '@userActions/Transaction';
@@ -563,7 +563,7 @@ function MoneyRequestReceiptView({
                                                         openPicker({
                                                             onPicked: (files) => {
                                                                 onPickerClosed();
-                                                                validateFiles(files);
+                                                                validateFiles(files, undefined, {isValidatingReceipts: false});
                                                             },
                                                             onCanceled: onPickerClosed,
                                                         });
