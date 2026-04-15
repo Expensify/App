@@ -1,6 +1,6 @@
 import React from 'react';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import * as ReportUtils from '@libs/ReportUtils';
+import {isTaskReport} from '@libs/ReportUtils';
 import type {ReportDescriptionNavigatorParamList} from '@navigation/types';
 import type SCREENS from '@src/SCREENS';
 import type {WithReportOrNotFoundProps} from './inbox/report/withReportOrNotFound';
@@ -11,7 +11,7 @@ import TaskDescriptionPage from './tasks/TaskDescriptionPage';
 type DynamicReportDescriptionPageProps = WithReportOrNotFoundProps & PlatformStackScreenProps<ReportDescriptionNavigatorParamList, typeof SCREENS.DYNAMIC_REPORT_DESCRIPTION>;
 
 function DynamicReportDescriptionPage(props: DynamicReportDescriptionPageProps) {
-    const isTask = ReportUtils.isTaskReport(props.report);
+    const isTask = isTaskReport(props.report);
 
     if (isTask) {
         // eslint-disable-next-line react/jsx-props-no-spreading
