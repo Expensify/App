@@ -1,4 +1,5 @@
 import React, {useMemo} from 'react';
+import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import {getRulesDocumentSourceURL} from '@libs/PolicyUtils';
@@ -10,6 +11,7 @@ import type SCREENS from '@src/SCREENS';
 
 function WorkspaceDocumentModalContent({navigation, route}: AttachmentModalScreenProps<typeof SCREENS.WORKSPACE_DOCUMENT>) {
     const {policyID} = route.params;
+    const {translate} = useLocalize();
 
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const policy = usePolicy(policyID);
@@ -29,13 +31,13 @@ function WorkspaceDocumentModalContent({navigation, route}: AttachmentModalScree
     const contentProps = useMemo<AttachmentModalBaseContentProps>(
         () => ({
             source: rulesDocumentSourceURL,
-            headerTitle: policy?.name ?? '',
+            headerTitle: translate('workspace.rules.customRules.policyDocument'),
             originalFileName: `${policyID}-policy-document.pdf`,
             shouldShowNotFoundPage,
             isLoading,
             shouldCloseOnSwipeDown: true,
         }),
-        [rulesDocumentSourceURL, policy?.name, policyID, shouldShowNotFoundPage, isLoading],
+        [rulesDocumentSourceURL, translate, policyID, shouldShowNotFoundPage, isLoading],
     );
 
     return (
