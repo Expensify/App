@@ -31,6 +31,43 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Policy, Report} from '@src/types/onyx';
 
+type SelectedReportRef = {reportID: string | undefined};
+
+/**
+ * Decides whether the bulk change-approver page should auto-apply the only
+ * available approver option. Mirrors the single-report flow, but guards the
+ * decision until all selected reports are actually loaded in Onyx — otherwise
+ * the permission check that drives `approverTypes` can report a stale value.
+ */
+function shouldAutoApplyApprover({
+    hasAutoApplied,
+    isLoadingBulkChangeApproverPage,
+    selectedReports,
+    onyxReports,
+    approverTypes,
+    selectedApproverType,
+}: {
+    hasAutoApplied: boolean;
+    isLoadingBulkChangeApproverPage: boolean;
+    selectedReports: SelectedReportRef[];
+    onyxReports: Record<string, Report> | undefined;
+    approverTypes: Array<{keyForList: ApproverType}>;
+    selectedApproverType: ApproverType | undefined;
+}): boolean {
+    if (hasAutoApplied || isLoadingBulkChangeApproverPage) {
+        return false;
+    }
+
+    const allReportsLoaded = selectedReports.every((selectedReport) => selectedReport.reportID && onyxReports?.[selectedReport.reportID]);
+    if (!allReportsLoaded) {
+        return false;
+    }
+
+    return approverTypes.length === 1 && selectedApproverType === approverTypes.at(0)?.keyForList;
+}
+
+export {shouldAutoApplyApprover};
+
 function SearchChangeApproverPage() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -196,23 +233,22 @@ function SearchChangeApproverPage() {
     }, [approverTypes, selectedReports.length]);
 
     useEffect(() => {
-        if (hasAutoAppliedRef.current || isLoadingBulkChangeApproverPage) {
+        if (
+            !shouldAutoApplyApprover({
+                hasAutoApplied: hasAutoAppliedRef.current,
+                isLoadingBulkChangeApproverPage,
+                selectedReports,
+                onyxReports,
+                approverTypes,
+                selectedApproverType,
+            })
+        ) {
             return;
         }
 
-        // Ensure all selected reports are loaded in Onyx before auto-applying,
-        // otherwise approverTypes may incorrectly have length 1 (missing "Bypass approvers")
-        // because the permission check needs report data to determine hasPermission.
-        const allReportsLoaded = selectedReports.every((selectedReport) => selectedReport.reportID && onyxReports?.[selectedReport.reportID]);
-        if (!allReportsLoaded) {
-            return;
-        }
-
-        if (approverTypes.length === 1 && selectedApproverType === approverTypes.at(0)?.keyForList) {
-            hasAutoAppliedRef.current = true;
-            // eslint-disable-next-line react-hooks/set-state-in-effect -- intentionally triggering the single available action once reports are loaded
-            changeApprover();
-        }
+        hasAutoAppliedRef.current = true;
+        // eslint-disable-next-line react-hooks/set-state-in-effect -- intentionally triggering the single available action once reports are loaded
+        changeApprover();
     }, [approverTypes, selectedApproverType, changeApprover, isLoadingBulkChangeApproverPage, selectedReports, onyxReports]);
 
     const confirmButtonOptions = {
