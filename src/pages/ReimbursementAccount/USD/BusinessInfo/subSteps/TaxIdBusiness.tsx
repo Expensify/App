@@ -5,7 +5,7 @@ import SingleFieldStep from '@components/SubStepForms/SingleFieldStep';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useReimbursementAccountStepFormSubmit from '@hooks/useReimbursementAccountStepFormSubmit';
-import type {SubPageProps} from '@hooks/useSubPage/types';
+import type {SubStepProps} from '@hooks/useSubStep/types';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {getFieldRequiredErrors, isValidTaxID} from '@libs/ValidationUtils';
 import CONST from '@src/CONST';
@@ -15,7 +15,7 @@ import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 const COMPANY_TAX_ID_KEY = INPUT_IDS.BUSINESS_INFO_STEP.COMPANY_TAX_ID;
 const STEP_FIELDS = [COMPANY_TAX_ID_KEY];
-function TaxIdBusiness({onNext, onMove, isEditing}: SubPageProps) {
+function TaxIdBusiness({onNext, onMove, isEditing}: SubStepProps) {
     const {translate} = useLocalize();
 
     const [reimbursementAccount, reimbursementAccountResult] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
@@ -77,7 +77,6 @@ function TaxIdBusiness({onNext, onMove, isEditing}: SubPageProps) {
             shouldShowHelpLinks={false}
             placeholder={translate('businessInfoStep.taxIDNumberPlaceholder')}
             inputMode={CONST.INPUT_MODE.NUMERIC}
-            shouldDelayAutoFocus
         />
     );
 }

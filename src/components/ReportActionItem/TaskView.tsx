@@ -1,3 +1,5 @@
+import {delegateEmailSelector} from '@selectors/Account';
+import {hasSeenTourSelector} from '@selectors/Onboarding';
 import React, {useEffect, useMemo} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -58,6 +60,8 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
+    const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
 
     useEffect(() => {
         setTaskReport(report);
@@ -115,7 +119,7 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
                     <OfflineWithFeedback
                         shouldShowErrorMessages
                         errors={report?.errorFields?.editTask ?? report?.errorFields?.createTask}
-                        onClose={() => clearTaskErrors(report, conciergeReportID, accountID, introSelected, betas)}
+                        onClose={() => clearTaskErrors(report, conciergeReportID, accountID, introSelected, betas, isSelfTourViewed)}
                         errorRowStyles={styles.ph5}
                     >
                         <Hoverable>
@@ -152,9 +156,9 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
                                                             return;
                                                         }
                                                         if (isCompleted) {
-                                                            reopenTask(report, parentReport, currentUserPersonalDetails.accountID);
+                                                            reopenTask(report, parentReport, currentUserPersonalDetails.accountID, delegateEmail);
                                                         } else {
-                                                            completeTask(report, parentReport?.hasOutstandingChildTask ?? false, hasOutstandingChildTask, parentReportAction);
+                                                            completeTask(report, parentReport?.hasOutstandingChildTask ?? false, hasOutstandingChildTask, parentReportAction, delegateEmail);
                                                         }
                                                     })}
                                                     isChecked={isCompleted}
