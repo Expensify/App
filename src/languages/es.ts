@@ -6170,7 +6170,7 @@ ${amount} para ${merchant} - ${date}`,
                     case 'startingImportGusto':
                         return 'Importando datos desde Gusto';
                     case 'gustoSyncLoadCompany':
-                        return 'Cargando datos de la empresa de Gusto';
+                        return 'Cargando datos de la empresa desde Gusto';
                     case 'gustoSyncImportEmployees':
                         return 'Importando empleados';
                     case 'gustoSyncBuildApprovalChains':
