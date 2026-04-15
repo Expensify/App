@@ -3006,15 +3006,15 @@ describe('TransactionUtils', () => {
             expect(TransactionUtils.getExchangeRate(transaction)).toBe('');
         });
 
-        it('uses fromCurrency as toCurrency when groupCurrency is not set', () => {
+        it('returns empty string when groupCurrency is not set (no conversion context)', () => {
             const transaction = generateTransaction({
                 currency: 'USD',
                 groupExchangeRate: 2.5,
                 groupCurrency: undefined,
             });
 
-            // groupCurrency falls back to fromCurrency (USD)
-            expect(TransactionUtils.getExchangeRate(transaction)).toBe('2.5 USD/USD');
+            // Without a different groupCurrency there is no conversion to show.
+            expect(TransactionUtils.getExchangeRate(transaction)).toBe('');
         });
 
         it('prefers groupExchangeRate over currencyConversionRate when both are set', () => {
@@ -3026,6 +3026,45 @@ describe('TransactionUtils', () => {
             });
 
             expect(TransactionUtils.getExchangeRate(transaction)).toBe('1.25 USD/EUR');
+        });
+
+        it('returns empty string when groupExchangeRate is 0 and currencies are the same', () => {
+            const transaction = generateTransaction({
+                currency: 'USD',
+                groupExchangeRate: 0,
+                groupCurrency: 'USD',
+            });
+
+            expect(TransactionUtils.getExchangeRate(transaction)).toBe('');
+        });
+
+        it('shows groupExchangeRate even when rate is 0 if currencies differ', () => {
+            const transaction = generateTransaction({
+                currency: 'UZS',
+                groupExchangeRate: 0,
+                groupCurrency: 'USD',
+            });
+
+            expect(TransactionUtils.getExchangeRate(transaction)).toBe('0 UZS/USD');
+        });
+
+        it('shows currencyConversionRate even when rate is 0 if report currency differs', () => {
+            const transaction = generateTransaction({
+                currency: 'UZS',
+                currencyConversionRate: '0.0',
+            });
+
+            expect(TransactionUtils.getExchangeRate(transaction, 'USD')).toBe('0.0 UZS/USD');
+        });
+
+        it('returns empty string when currencyConversionRate is set but fromCurrency equals reportCurrency', () => {
+            const transaction = generateTransaction({
+                currency: 'USD',
+                currencyConversionRate: '0.85',
+            });
+
+            // Same currency — no meaningful conversion to show.
+            expect(TransactionUtils.getExchangeRate(transaction, 'USD')).toBe('');
         });
     });
 });
