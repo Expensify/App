@@ -85,7 +85,7 @@ function CardReconciliationPage({policy, route}: CardReconciliationPageProps) {
     const autoSync = !!policy?.connections?.[connectionName]?.config?.autoSync?.enabled;
     const shouldShow = !!resolvedCardSettings?.paymentBankAccountID;
 
-    const connectionBankAccounts = getConnectionBankAccountsForReconciliation(policy, connectionName);
+    const connectionBankAccounts = getConnectionBankAccountsForReconciliation(policy?.connections, connectionName);
     const bankAccountTitle = connectionBankAccounts.find((account) => account.id === reconciliationBankAccountID)?.name ?? '';
 
     const handleToggleContinuousReconciliation = (value: boolean) => {

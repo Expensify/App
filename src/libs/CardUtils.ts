@@ -40,6 +40,7 @@ import type {
     NonConnectableBankName,
 } from '@src/types/onyx/CardFeeds';
 import type {SelectedTimezone} from '@src/types/onyx/PersonalDetails';
+import type {Connections} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
 import {isBankAccountPartiallySetup} from './BankAccountUtils';
@@ -432,22 +433,22 @@ function getEligibleBankAccountsForCard(bankAccountsList: OnyxEntry<BankAccountL
     );
 }
 
-function getConnectionBankAccountsForReconciliation(policy: OnyxEntry<Policy>, connectionName: PolicyConnectionName | undefined): Array<{id: string; name: string}> {
-    if (!policy?.connections || !connectionName) {
+function getConnectionBankAccountsForReconciliation(connections: OnyxEntry<Connections>, connectionName: PolicyConnectionName | undefined): Array<{id: string; name: string}> {
+    if (!connections || !connectionName) {
         return [];
     }
 
     switch (connectionName) {
         case CONST.POLICY.CONNECTIONS.NAME.QBO:
-            return (policy.connections.quickbooksOnline?.data?.bankAccounts ?? []).map(({id, name}) => ({id, name}));
+            return (connections.quickbooksOnline?.data?.bankAccounts ?? []).map(({id, name}) => ({id, name}));
         case CONST.POLICY.CONNECTIONS.NAME.XERO:
-            return (policy.connections.xero?.data?.bankAccounts ?? []).map(({id, name}) => ({id, name}));
+            return (connections.xero?.data?.bankAccounts ?? []).map(({id, name}) => ({id, name}));
         case CONST.POLICY.CONNECTIONS.NAME.NETSUITE:
-            return (policy.connections.netsuite?.options?.data?.payableList ?? []).filter((account) => account.type === '_bank').map(({id, name}) => ({id, name}));
+            return (connections.netsuite?.options?.data?.payableList ?? []).filter((account) => account.type === '_bank').map(({id, name}) => ({id, name}));
         case CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT:
-            return policy.connections.intacct?.data?.bankAccounts ?? [];
+            return connections.intacct?.data?.bankAccounts ?? [];
         case CONST.POLICY.CONNECTIONS.NAME.QBD:
-            return (policy.connections.quickbooksDesktop?.data?.bankAccounts ?? []).map(({id, name}) => ({id, name}));
+            return (connections.quickbooksDesktop?.data?.bankAccounts ?? []).map(({id, name}) => ({id, name}));
         default:
             return [];
     }
