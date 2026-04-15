@@ -488,8 +488,8 @@ const SCREENS = {
     },
 
     PRIVATE_NOTES: {
-        LIST: 'PrivateNotes_List',
-        EDIT: 'PrivateNotes_Edit',
+        DYNAMIC_LIST: 'Dynamic_Private_Notes_List',
+        DYNAMIC_EDIT: 'Dynamic_Private_Notes_Edit',
     },
 
     NEW_REPORT_WORKSPACE_SELECTION: {

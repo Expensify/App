@@ -534,7 +534,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                 icon: expensifyIcons.Pencil,
                 isAnonymousAction: false,
                 shouldShowRightIcon: true,
-                action: () => navigateToPrivateNotes(report, currentUserPersonalDetails.accountID, backTo),
+                action: () => navigateToPrivateNotes(report, currentUserPersonalDetails.accountID),
                 brickRoadIndicator: hasErrorInPrivateNotes(report) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
             });
         }

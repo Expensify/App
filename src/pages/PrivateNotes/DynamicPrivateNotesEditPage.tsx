@@ -13,6 +13,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -20,7 +21,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {PrivateNotesNavigatorParamList} from '@libs/Navigation/types';
 import Parser from '@libs/Parser';
-import {goBackFromPrivateNotes, goBackToDetailsPage} from '@libs/ReportUtils';
+import {goBackFromPrivateNotes} from '@libs/ReportUtils';
 import updateMultilineInputRange from '@libs/updateMultilineInputRange';
 import type {WithReportAndPrivateNotesOrNotFoundProps} from '@pages/inbox/report/withReportAndPrivateNotesOrNotFound';
 import withReportAndPrivateNotesOrNotFound from '@pages/inbox/report/withReportAndPrivateNotesOrNotFound';
@@ -28,7 +29,7 @@ import variables from '@styles/variables';
 import {clearPrivateNotesError, handleUserDeletedLinksInHtml, savePrivateNotesDraft, updatePrivateNotes} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/PrivateNotesForm';
 import type {Report} from '@src/types/onyx';
@@ -36,23 +37,23 @@ import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type {Note} from '@src/types/onyx/Report';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
-type PrivateNotesEditPageProps = WithReportAndPrivateNotesOrNotFoundProps &
-    PlatformStackScreenProps<PrivateNotesNavigatorParamList, typeof SCREENS.PRIVATE_NOTES.EDIT> & {
+type DynamicPrivateNotesEditPageProps = WithReportAndPrivateNotesOrNotFoundProps &
+    PlatformStackScreenProps<PrivateNotesNavigatorParamList, typeof SCREENS.PRIVATE_NOTES.DYNAMIC_EDIT> & {
         /** The report currently being looked at */
         report: Report;
     };
 
-type PrivateNotesEditPageInternalProps = PrivateNotesEditPageProps & {
+type DynamicPrivateNotesEditPageInternalProps = DynamicPrivateNotesEditPageProps & {
     /** Draft private note */
     privateNoteDraft: string;
 };
 
-function PrivateNotesEditPageInternal({route, report, accountID, privateNoteDraft}: PrivateNotesEditPageInternalProps) {
-    const backTo = route.params.backTo;
+function DynamicPrivateNotesEditPageInternal({route, report, accountID, privateNoteDraft}: DynamicPrivateNotesEditPageInternalProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const personalDetailsList = usePersonalDetails();
     const {login} = useCurrentUserPersonalDetails();
+    const backPathToNotesList = useDynamicBackPath(DYNAMIC_ROUTES.PRIVATE_NOTES_EDIT.path);
 
     // We need to edit the note in markdown format, but display it in HTML format
     const [privateNote, setPrivateNote] = useState(() => privateNoteDraft || Parser.htmlToMarkdown(report?.privateNotes?.[Number(route.params.accountID)]?.note ?? '').trim());
@@ -104,9 +105,10 @@ function PrivateNotesEditPageInternal({route, report, accountID, privateNoteDraf
 
         const hasNewNoteBeenAdded = !originalNote && editedNote;
         if (!Object.values<Note>({...report.privateNotes, [route.params.accountID]: {note: editedNote}}).some((item) => item.note) || hasNewNoteBeenAdded) {
-            goBackToDetailsPage(report, backTo, true);
+            Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report.reportID));
         } else {
-            Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.goBack(ROUTES.PRIVATE_NOTES_LIST.getRoute(report.reportID, backTo)));
+            const destination = backPathToNotesList;
+            Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.goBack(destination));
         }
     };
 
@@ -124,11 +126,11 @@ function PrivateNotesEditPageInternal({route, report, accountID, privateNoteDraf
         <ScreenWrapper
             shouldEnableMaxHeight
             includeSafeAreaPaddingBottom
-            testID="PrivateNotesEditPageInternal"
+            testID="DynamicPrivateNotesEditPageInternal"
         >
             <HeaderWithBackButton
                 title={translate('privateNotes.title')}
-                onBackButtonPress={() => goBackFromPrivateNotes(report, accountID, backTo)}
+                onBackButtonPress={() => goBackFromPrivateNotes(report, accountID, backPathToNotesList)}
                 shouldShowBackButton
                 onCloseButtonPress={() => Navigation.dismissModal()}
             />
@@ -188,7 +190,7 @@ function PrivateNotesEditPageInternal({route, report, accountID, privateNoteDraf
     );
 }
 
-function PrivateNotesEditPage({report, ...rest}: PrivateNotesEditPageProps) {
+function DynamicPrivateNotesEditPage({report, ...rest}: DynamicPrivateNotesEditPageProps) {
     const [privateNoteDraft, privateNoteDraftMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_NOTES_DRAFT}${report.reportID}`);
 
     if (isLoadingOnyxValue(privateNoteDraftMetadata)) {
@@ -198,7 +200,7 @@ function PrivateNotesEditPage({report, ...rest}: PrivateNotesEditPageProps) {
     // We have used HOC component approach here as we need the correct value from `useOnyx` hook for initial useState value
     // and onyx value might not available immediately in the mount cycle of the component.
     return (
-        <PrivateNotesEditPageInternal
+        <DynamicPrivateNotesEditPageInternal
             report={report}
             privateNoteDraft={privateNoteDraft ?? ''}
             // eslint-disable-next-line react/jsx-props-no-spreading
@@ -207,4 +209,4 @@ function PrivateNotesEditPage({report, ...rest}: PrivateNotesEditPageProps) {
     );
 }
 
-export default withReportAndPrivateNotesOrNotFound('privateNotes.title')(PrivateNotesEditPage);
+export default withReportAndPrivateNotesOrNotFound('privateNotes.title')(DynamicPrivateNotesEditPage);

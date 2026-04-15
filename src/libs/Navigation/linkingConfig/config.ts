@@ -1418,8 +1418,8 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                 },
                 [SCREENS.RIGHT_MODAL.PRIVATE_NOTES]: {
                     screens: {
-                        [SCREENS.PRIVATE_NOTES.LIST]: ROUTES.PRIVATE_NOTES_LIST.route,
-                        [SCREENS.PRIVATE_NOTES.EDIT]: ROUTES.PRIVATE_NOTES_EDIT.route,
+                        [SCREENS.PRIVATE_NOTES.DYNAMIC_LIST]: DYNAMIC_ROUTES.PRIVATE_NOTES_LIST.path,
+                        [SCREENS.PRIVATE_NOTES.DYNAMIC_EDIT]: DYNAMIC_ROUTES.PRIVATE_NOTES_EDIT.path,
                     },
                 },
                 [SCREENS.RIGHT_MODAL.NEW_REPORT_WORKSPACE_SELECTION]: {

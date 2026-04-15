@@ -2369,15 +2369,10 @@ type ReferralDetailsNavigatorParamList = {
 };
 
 type PrivateNotesNavigatorParamList = {
-    [SCREENS.PRIVATE_NOTES.LIST]: {
-        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
-        backTo?: Routes;
-    };
-    [SCREENS.PRIVATE_NOTES.EDIT]: {
+    [SCREENS.PRIVATE_NOTES.DYNAMIC_LIST]: undefined;
+    [SCREENS.PRIVATE_NOTES.DYNAMIC_EDIT]: {
         reportID: string;
         accountID: string;
-        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
-        backTo?: Routes;
     };
 };
 

@@ -982,8 +982,8 @@ const EditRequestStackNavigator = createModalStackNavigator<EditRequestNavigator
 });
 
 const PrivateNotesModalStackNavigator = createModalStackNavigator<PrivateNotesNavigatorParamList>({
-    [SCREENS.PRIVATE_NOTES.LIST]: () => require<ReactComponentModule>('../../../../pages/PrivateNotes/PrivateNotesListPage').default,
-    [SCREENS.PRIVATE_NOTES.EDIT]: () => require<ReactComponentModule>('../../../../pages/PrivateNotes/PrivateNotesEditPage').default,
+    [SCREENS.PRIVATE_NOTES.DYNAMIC_LIST]: () => require<ReactComponentModule>('../../../../pages/PrivateNotes/DynamicPrivateNotesListPage').default,
+    [SCREENS.PRIVATE_NOTES.DYNAMIC_EDIT]: () => require<ReactComponentModule>('../../../../pages/PrivateNotes/DynamicPrivateNotesEditPage').default,
 });
 
 const SignInModalStackNavigator = createModalStackNavigator<SignInNavigatorParamList>({

@@ -267,6 +267,15 @@ const DYNAMIC_ROUTES = {
         path: 'description',
         entryScreens: [SCREENS.REPORT],
     },
+    PRIVATE_NOTES_LIST: {
+        path: 'notes',
+        entryScreens: [SCREENS.REPORT, SCREENS.REPORT_DETAILS.ROOT, SCREENS.PROFILE_ROOT],
+    },
+    PRIVATE_NOTES_EDIT: {
+        path: 'notes/:accountID/edit',
+        entryScreens: [SCREENS.REPORT, SCREENS.REPORT_DETAILS.ROOT, SCREENS.PROFILE_ROOT],
+        getRoute: (accountID: number | string) => `notes/${accountID}/edit`,
+    },
     FLAG_COMMENT: {
         path: 'flag/:reportID/:reportActionID',
         entryScreens: [SCREENS.REPORT, SCREENS.RIGHT_MODAL.SEARCH_REPORT, SCREENS.RIGHT_MODAL.EXPENSE_REPORT, SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT],
@@ -1030,18 +1039,6 @@ const ROUTES = {
             // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
             return getUrlWithBackToParam(`r/${reportID}/split/${reportActionID}` as const, backTo);
         },
-    },
-    PRIVATE_NOTES_LIST: {
-        route: 'r/:reportID/notes',
-
-        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-        getRoute: (reportID: string, backTo?: string) => getUrlWithBackToParam(`r/${reportID}/notes` as const, backTo),
-    },
-    PRIVATE_NOTES_EDIT: {
-        route: 'r/:reportID/notes/:accountID/edit',
-
-        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-        getRoute: (reportID: string, accountID: number, backTo?: string) => getUrlWithBackToParam(`r/${reportID}/notes/${accountID}/edit` as const, backTo),
     },
     ROOM_MEMBERS: {
         route: 'r/:reportID/members',
