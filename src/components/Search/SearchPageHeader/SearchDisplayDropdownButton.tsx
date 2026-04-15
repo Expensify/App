@@ -4,6 +4,7 @@ import Icon from '@components/Icon';
 import {PressableWithFeedback} from '@components/Pressable';
 import DisplayPopup from '@components/Search/FilterDropdowns/DisplayPopup';
 import DropdownButton from '@components/Search/FilterDropdowns/DropdownButton';
+import type {DropdownButtonProps} from '@components/Search/FilterDropdowns/DropdownButton';
 import type {SearchQueryJSON} from '@components/Search/types';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -30,41 +31,42 @@ function SearchDisplayDropdownButton({queryJSON, searchResults, onSort}: SearchD
         return null;
     }
 
+    const displayPopup = ({closeOverlay}: {closeOverlay: () => void}) => (
+        <DisplayPopup
+            queryJSON={queryJSON}
+            searchResults={searchResults}
+            closeOverlay={closeOverlay}
+            onSort={onSort}
+        />
+    );
+
+    const displayIconButton: DropdownButtonProps['ButtonComponent'] = (props) => (
+        <PressableWithFeedback
+            ref={props.ref}
+            accessibilityLabel={translate('search.display.label')}
+            role={CONST.ROLE.BUTTON}
+            style={[styles.searchActionsBar(shouldUseNarrowLayout)]}
+            hoverStyle={styles.buttonHoveredBG}
+            sentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_DISPLAY}
+            onPress={props.onPress}
+        >
+            <Icon
+                src={expensifyIcons.Gear}
+                fill={theme.icon}
+                small={shouldUseNarrowLayout}
+                extraSmall={isMediumScreenWidth}
+            />
+        </PressableWithFeedback>
+    );
+
     return (
         <DropdownButton
             label={translate('search.display.label')}
             sentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_DISPLAY}
             value={null}
-            PopoverComponent={({closeOverlay}) => (
-                <DisplayPopup
-                    queryJSON={queryJSON}
-                    searchResults={searchResults}
-                    closeOverlay={closeOverlay}
-                    onSort={onSort}
-                />
-            )}
-        >
-            {shouldUseNarrowLayout || isMediumScreenWidth
-                ? (triggerRef, onPress) => (
-                      <PressableWithFeedback
-                          ref={triggerRef}
-                          accessibilityLabel={translate('search.display.label')}
-                          role={CONST.ROLE.BUTTON}
-                          style={[styles.searchActionsBar(shouldUseNarrowLayout)]}
-                          hoverStyle={styles.buttonHoveredBG}
-                          sentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_DISPLAY}
-                          onPress={onPress}
-                      >
-                          <Icon
-                              src={expensifyIcons.Gear}
-                              fill={theme.icon}
-                              small={shouldUseNarrowLayout}
-                              extraSmall={isMediumScreenWidth}
-                          />
-                      </PressableWithFeedback>
-                  )
-                : undefined}
-        </DropdownButton>
+            PopoverComponent={displayPopup}
+            ButtonComponent={shouldUseNarrowLayout || isMediumScreenWidth ? displayIconButton : undefined}
+        />
     );
 }
 

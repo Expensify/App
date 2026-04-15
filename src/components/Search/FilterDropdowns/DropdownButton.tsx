@@ -40,6 +40,8 @@ type DropdownButtonProps = WithSentryLabel & {
     /** The component to render in the popover */
     PopoverComponent: (props: PopoverComponentProps) => ReactNode;
 
+    ButtonComponent?: React.ComponentType<{onPress: () => void; ref: RefObject<View | null>}>;
+
     /** Whether to use medium size button instead of small */
     medium?: boolean;
 
@@ -62,11 +64,11 @@ const ANCHOR_ORIGIN = {
 };
 
 function DropdownButton({
-    children,
     label,
     value,
     viewportOffsetTop,
     PopoverComponent,
+    ButtonComponent,
     medium = false,
     labelStyle,
     innerStyles,
@@ -148,8 +150,11 @@ function DropdownButton({
             style={wrapperStyle}
         >
             {/* Dropdown Trigger */}
-            {children ? (
-                children(triggerRef, calculatePopoverPositionAndToggleOverlay)
+            {ButtonComponent ? (
+                <ButtonComponent
+                    ref={triggerRef}
+                    onPress={calculatePopoverPositionAndToggleOverlay}
+                />
             ) : (
                 <Button
                     ref={triggerRef}
