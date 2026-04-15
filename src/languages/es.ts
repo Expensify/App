@@ -6172,7 +6172,7 @@ ${amount} para ${merchant} - ${date}`,
         },
 
         hr: {
-            title: 'RR. HH.',
+            title: 'HR',
             subtitle: 'Conecta herramientas de RR. HH. y mantén sincronizadas las aprobaciones de empleados.',
             settingsTitle: 'Configuración de Gusto',
             syncStageName: ({stage}) => {
