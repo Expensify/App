@@ -891,7 +891,7 @@ describe('TagsOptionsListUtils', () => {
             expect(result).toEqual([{isTagRequired: false, shouldShow: true}]);
         });
 
-        it('should respect explicit tag list required=false even when policy.requiresTag is true', () => {
+        it('should mark tags as required when policy.requiresTag is true even if tag list required is false', () => {
             const policyWithRequiresTag = {...mockPolicy, requiresTag: true};
             const policyTagsExplicitFalse: PolicyTagLists = {
                 tagList1: {
@@ -911,7 +911,7 @@ describe('TagsOptionsListUtils', () => {
                 transaction: mockTransaction,
             });
 
-            expect(result).toEqual([{isTagRequired: false, shouldShow: true}]);
+            expect(result).toEqual([{isTagRequired: true, shouldShow: true}]);
         });
     });
 
