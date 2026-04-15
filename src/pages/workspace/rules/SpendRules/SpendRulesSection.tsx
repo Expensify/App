@@ -4,6 +4,7 @@ import ActivityIndicator from '@components/ActivityIndicator';
 import Badge from '@components/Badge';
 import Icon from '@components/Icon';
 import MenuItem from '@components/MenuItem';
+import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Section from '@components/Section';
 import Text from '@components/Text';
 import useConfirmModal from '@hooks/useConfirmModal';
@@ -150,9 +151,10 @@ function SpendRulesSection({policyID}: SpendRulesSectionProps) {
                 summaryParts: getSpendRuleSummaryParts(formValues, selectedCurrency, actionLabel, translate),
                 isBlock: formValues.restrictionAction === CONST.SPEND_RULES.ACTION.BLOCK,
                 created: cardRule.created,
+                pendingAction: cardRule.pendingAction,
             };
         })
-        .filter((rule) => rule !== undefined)
+        .filter((rule): rule is NonNullable<typeof rule> => rule !== undefined && (isOffline || rule.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE))
         .sort((a, b) => localeCompare(a.created, b.created));
 
     const renderSectionTitle = () => (
@@ -228,44 +230,49 @@ function SpendRulesSection({policyID}: SpendRulesSectionProps) {
                 </View>
             ) : (
                 createdRules.map((rule) => (
-                    <MenuItem
+                    <OfflineWithFeedback
                         key={rule.ruleID}
-                        wrapperStyle={[styles.borderedContentCard, styles.mt2, styles.ph4, styles.pv4]}
-                        titleComponent={
-                            <View>
-                                {rule.summaryParts.map((part) => (
-                                    <View
-                                        key={part.text}
-                                        style={[styles.flexRow, styles.gap2, styles.alignItemsStart, styles.mb2]}
-                                    >
-                                        <Badge
-                                            text={part.badgeLabel}
-                                            badgeStyles={[styles.ml0, styles.justifyContentCenter, StyleUtils.getMinimumWidth(40)]}
-                                            error={!part.isNeutral && rule.isBlock}
-                                            success={!part.isNeutral && !rule.isBlock}
-                                            isCondensed
-                                        />
-                                        <Text
-                                            style={[styles.flex1, styles.flexShrink1, styles.themeTextColor]}
-                                            numberOfLines={2}
+                        pendingAction={rule.pendingAction}
+                    >
+                        <MenuItem
+                            wrapperStyle={[styles.borderedContentCard, styles.mt2, styles.ph4, styles.pv4]}
+                            titleComponent={
+                                <View>
+                                    {rule.summaryParts.map((part) => (
+                                        <View
+                                            key={part.text}
+                                            style={[styles.flexRow, styles.gap2, styles.alignItemsStart, styles.mb2]}
                                         >
-                                            {part.text}
-                                        </Text>
-                                    </View>
-                                ))}
-                                <Text
-                                    style={[styles.textLabelSupporting, styles.fontSizeLabel]}
-                                    numberOfLines={2}
-                                >
-                                    {rule.cardSummary}
-                                </Text>
-                            </View>
-                        }
-                        accessibilityLabel={`${rule.summaryParts.map((part) => `${part.badgeLabel}. ${part.text}`).join('. ')}. ${rule.cardSummary}`}
-                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.SPEND_RULE_ITEM}
-                        shouldShowRightIcon
-                        onPress={() => Navigation.navigate(ROUTES.RULES_SPEND_EDIT.getRoute(policyID, rule.ruleID))}
-                    />
+                                            <Badge
+                                                text={part.badgeLabel}
+                                                badgeStyles={[styles.ml0, styles.justifyContentCenter, StyleUtils.getMinimumWidth(40)]}
+                                                error={!part.isNeutral && rule.isBlock}
+                                                success={!part.isNeutral && !rule.isBlock}
+                                                isCondensed
+                                            />
+                                            <Text
+                                                style={[styles.flex1, styles.flexShrink1, styles.themeTextColor]}
+                                                numberOfLines={2}
+                                            >
+                                                {part.text}
+                                            </Text>
+                                        </View>
+                                    ))}
+                                    <Text
+                                        style={[styles.textLabelSupporting, styles.fontSizeLabel]}
+                                        numberOfLines={2}
+                                    >
+                                        {rule.cardSummary}
+                                    </Text>
+                                </View>
+                            }
+                            accessibilityLabel={`${rule.summaryParts.map((part) => `${part.badgeLabel}. ${part.text}`).join('. ')}. ${rule.cardSummary}`}
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.SPEND_RULE_ITEM}
+                            shouldShowRightIcon
+                            disabled={rule.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}
+                            onPress={() => Navigation.navigate(ROUTES.RULES_SPEND_EDIT.getRoute(policyID, rule.ruleID))}
+                        />
+                    </OfflineWithFeedback>
                 ))
             )}
             {!isProduction && (
