@@ -174,7 +174,7 @@ function HeaderFirstRow<TItem extends ListItem>({
                 <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.ACTION)]}>
                     <ActionCell
                         action={reportItem.action}
-                        goToItem={handleOnButtonPress}
+                        onButtonPress={handleOnButtonPress}
                         isSelected={reportItem.isSelected}
                         isLoading={isActionLoading}
                         policyID={reportItem.policyID}
