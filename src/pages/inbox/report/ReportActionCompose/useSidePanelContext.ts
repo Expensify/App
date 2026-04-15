@@ -33,16 +33,11 @@ function useSidePanelContext(reportID: string): OnyxTypes.SidePanelContext | und
                       .join(',') || undefined
                 : undefined;
 
-        if (contextReportID) {
-            return {reportID: contextReportID, selectedTransactionIDs: selectedTransactionIDsForContext, selectedReportIDs: selectedReportIDsForContext};
-        }
-        if (selectedReportIDsForContext) {
-            return {selectedReportIDs: selectedReportIDsForContext};
-        }
-        if (selectedTransactionIDsForContext) {
-            return {selectedTransactionIDs: selectedTransactionIDsForContext};
-        }
-        return undefined;
+        return {
+            reportID: contextReportID,
+            selectedTransactionIDs: selectedTransactionIDsForContext,
+            selectedReportIDs: selectedReportIDsForContext,
+        };
     }, [conciergeReportID, reportID, isInSidePanel, currentRHPReportID, currentReportID, selectedTransactions, selectedReports]);
 }
 
