@@ -1,4 +1,4 @@
-// Static twin of SearchPageTabSelector - used for fast perceived performance.
+// Static twin of SearchTypeMenuNarrow - used for fast perceived performance.
 // Keep hooks and Onyx subscriptions to an absolute minimum; add new ones only
 // when strictly necessary. UI must stay visually identical to the interactive version.
 import React, {useMemo} from 'react';
@@ -8,7 +8,7 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import {getSuggestedSearches} from '@libs/SearchUIUtils';
-import {SearchPageTabSelectorContent} from '@pages/Search/SearchPageTabSelector';
+import {SearchTypeMenuNarrowContent} from '@pages/Search/SearchTypeMenuNarrow';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import staticPolicyInfoSelector from './staticPolicyInfoSelector';
@@ -24,7 +24,7 @@ function getActiveKey(similarSearchHash: number, hasPaidGroupPolicy: boolean): s
     return candidates.find((entry) => similarSearchHash === entry.similarSearchHash)?.key ?? reportsSearch.key;
 }
 
-function StaticTabSelector({queryJSON}: {queryJSON: SearchQueryJSON}) {
+function StaticSearchTypeMenu({queryJSON}: {queryJSON: SearchQueryJSON}) {
     const {translate} = useLocalize();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Receipt', 'Document', 'ChatBubbles', 'Send'] as const);
     const [policyInfo] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: staticPolicyInfoSelector});
@@ -47,11 +47,11 @@ function StaticTabSelector({queryJSON}: {queryJSON: SearchQueryJSON}) {
     const activeKey = useMemo(() => getActiveKey(queryJSON.similarSearchHash, hasPaidGroupPolicy), [queryJSON.similarSearchHash, hasPaidGroupPolicy]);
 
     return (
-        <SearchPageTabSelectorContent
+        <SearchTypeMenuNarrowContent
             tabs={tabs}
             activeTabKey={activeKey}
         />
     );
 }
 
-export default StaticTabSelector;
+export default StaticSearchTypeMenu;

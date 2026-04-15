@@ -63,7 +63,8 @@ import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import {getAllReportActionsFromIOU, getAllReportNameValuePairs, getAllTransactionViolations, getCurrentUserEmail, getReportFromHoldRequestsOnyxData, getUserAccountID} from '.';
+import {getAllReportActionsFromIOU, getAllReportNameValuePairs, getAllTransactionViolations, getCurrentUserEmail, getUserAccountID} from '.';
+import {getReportFromHoldRequestsOnyxData} from './Hold';
 
 type ApproveMoneyRequestFunctionParams = {
     expenseReport: OnyxEntry<OnyxTypes.Report>;

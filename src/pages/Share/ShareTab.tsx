@@ -54,6 +54,7 @@ function ShareTab({ref}: ShareTabProps) {
     const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT);
     const [nvpDismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING);
     const [visibleReportActionsData] = useOnyx(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS);
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserAccountID = currentUserPersonalDetails.accountID;
     const currentUserEmail = currentUserPersonalDetails.email ?? '';
@@ -92,6 +93,7 @@ function ShareTab({ref}: ShareTabProps) {
               currentUserEmail,
               policyCollection: allPolicies,
               personalDetails,
+              conciergeReportID,
           })
         : defaultListOptions;
 

@@ -2786,6 +2786,7 @@ type SearchOptionsConfig = {
     personalDetails?: OnyxEntry<PersonalDetailsList>;
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'];
     allPolicyTags?: OnyxCollection<PolicyTagLists>;
+    conciergeReportID: string | undefined;
 };
 
 /**
@@ -2814,9 +2815,9 @@ function getSearchOptions({
     reportAttributesDerived,
     personalDetails,
     allPolicyTags,
+    conciergeReportID,
 }: SearchOptionsConfig): Options {
-    // TODO: We'll pass the conciergeReportID eventually. Refactor issue: https://github.com/Expensify/App/issues/66411
-    const optionList = getValidOptions(options, policyCollection, draftComments, nvpDismissedProductTraining, loginList, currentUserAccountID, currentUserEmail, undefined, {
+    const optionList = getValidOptions(options, policyCollection, draftComments, nvpDismissedProductTraining, loginList, currentUserAccountID, currentUserEmail, conciergeReportID, {
         betas,
         includeRecentReports,
         includeMultipleParticipantReports: true,

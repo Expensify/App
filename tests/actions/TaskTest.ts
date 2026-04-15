@@ -271,24 +271,43 @@ describe('actions/Task', () => {
         const conciergeChatReport: Report = getFakeReport([accountID, CONST.ACCOUNT_ID.CONCIERGE]);
         const testDriveTaskReport: Report = {...getFakeReport(), ownerAccountID: accountID};
         it('Completes test drive task', () => {
-            completeTestDriveTask(testDriveTaskReport, conciergeChatReport, false, accountID, false, undefined);
-            expect(Object.values(getFinishOnboardingTaskOnyxData(testDriveTaskReport, conciergeChatReport, false, 0, false, undefined)).length).toBe(0);
+            completeTestDriveTask(testDriveTaskReport, conciergeChatReport, false, accountID, false, undefined, undefined);
+            expect(Object.values(getFinishOnboardingTaskOnyxData(testDriveTaskReport, conciergeChatReport, false, 0, false, undefined, undefined)).length).toBe(0);
         });
     });
 
     describe('getFinishOnboardingTaskOnyxData', () => {
+        const DELEGATE_EMAIL = 'delegate@example.com';
+        const DELEGATE_ACCOUNT_ID = 999;
         const parentReport: Report = getFakeReport();
         const taskReport: Report = {...getFakeReport(), type: CONST.REPORT.TYPE.TASK, ownerAccountID: 1, managerID: 2, parentReportID: parentReport.reportID};
         beforeEach(async () => {
             await Onyx.clear();
             await Onyx.set(ONYXKEYS.SESSION, {email: 'user1@gmail.com', accountID: 2});
+            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                [DELEGATE_ACCOUNT_ID]: {accountID: DELEGATE_ACCOUNT_ID, login: DELEGATE_EMAIL},
+            });
             await waitForBatchedUpdates();
         });
         it('Return not empty object', () => {
-            expect(Object.values(getFinishOnboardingTaskOnyxData(taskReport, parentReport, false, 2, false, undefined)).length).toBeGreaterThan(0);
+            expect(Object.values(getFinishOnboardingTaskOnyxData(taskReport, parentReport, false, 2, false, undefined, undefined)).length).toBeGreaterThan(0);
         });
         it('Return empty object', () => {
-            expect(Object.values(getFinishOnboardingTaskOnyxData(taskReport, parentReport, true, 2, false, undefined)).length).toBe(0);
+            expect(Object.values(getFinishOnboardingTaskOnyxData(taskReport, parentReport, true, 2, false, undefined, undefined)).length).toBe(0);
+        });
+        it('forwards delegateAccountID when delegateEmail is provided', () => {
+            const onyxData = getFinishOnboardingTaskOnyxData(taskReport, parentReport, false, 2, false, undefined, DELEGATE_EMAIL);
+            const reportActionsData = onyxData.optimisticData?.find((entry) => (entry.key as string).startsWith(ONYXKEYS.COLLECTION.REPORT_ACTIONS));
+            const reportActions = reportActionsData?.value as Record<string, ReportAction> | undefined;
+            const completedAction = reportActions ? Object.values(reportActions).find((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.TASK_COMPLETED) : undefined;
+            expect(completedAction?.delegateAccountID).toBe(DELEGATE_ACCOUNT_ID);
+        });
+        it('does not set delegateAccountID when delegateEmail is undefined', () => {
+            const onyxData = getFinishOnboardingTaskOnyxData(taskReport, parentReport, false, 2, false, undefined, undefined);
+            const reportActionsData = onyxData.optimisticData?.find((entry) => (entry.key as string).startsWith(ONYXKEYS.COLLECTION.REPORT_ACTIONS));
+            const reportActions = reportActionsData?.value as Record<string, ReportAction> | undefined;
+            const completedAction = reportActions ? Object.values(reportActions).find((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.TASK_COMPLETED) : undefined;
+            expect(completedAction?.delegateAccountID).toBeUndefined();
         });
     });
 

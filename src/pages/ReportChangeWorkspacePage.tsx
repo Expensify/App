@@ -76,7 +76,7 @@ function ReportChangeWorkspacePage({report, route}: ReportChangeWorkspacePagePro
     const hasViolations = hasViolationsReportUtils(report?.reportID, transactionViolations, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, session?.email ?? '');
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const [userBillingGracePeriods] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
-    const {filteredReportActions} = useAllPolicyExpenseChatReportActions();
+    const filteredReportActions = useAllPolicyExpenseChatReportActions();
 
     const selectPolicy = useCallback(
         (policyID?: string) => {

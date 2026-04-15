@@ -87,7 +87,7 @@ type ExpensifyCardRuleFilter = {
 };
 
 /** Expensify card rule data model */
-type ExpensifyCardRule = {
+type ExpensifyCardRule = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Date the rule was created */
     created: string;
 
@@ -96,7 +96,7 @@ type ExpensifyCardRule = {
 
     /** Action to take when the rule is matched */
     action: ValueOf<typeof CONST.SPEND_RULES.ACTION>;
-};
+}>;
 
 /** Model of Expensify card settings for a workspace - can have nested feed types from backend */
 type ExpensifyCardSettings = OnyxCommon.OnyxValueWithOfflineFeedback<

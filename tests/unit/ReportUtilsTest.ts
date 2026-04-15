@@ -5580,6 +5580,115 @@ describe('ReportUtils', () => {
 
             expect(canEditReportAction(reportAction, transaction)).toEqual(false);
         });
+
+        it('should return false for a money request action on a settled expense report', async () => {
+            const settledReport: Report = {
+                reportID: '200',
+                type: CONST.REPORT.TYPE.EXPENSE,
+                statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED,
+            };
+            const transaction = createRandomTransaction(200);
+            const moneyRequestAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> = {
+                reportActionID: '200',
+                actorAccountID: currentUserAccountID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                originalMessage: {
+                    IOUReportID: settledReport.reportID,
+                    IOUTransactionID: transaction.transactionID,
+                    amount: 500,
+                    currency: CONST.CURRENCY.USD,
+                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                },
+                message: [
+                    {
+                        type: 'COMMENT',
+                        html: 'USD 5.00 expense',
+                        text: 'USD 5.00 expense',
+                        isEdited: false,
+                        whisperedTo: [],
+                        isDeletedParentAction: false,
+                        deleted: '',
+                    },
+                ],
+                created: '2025-03-05 16:34:27',
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${settledReport.reportID}`, settledReport);
+
+            expect(canEditReportAction(moneyRequestAction, transaction)).toEqual(false);
+        });
+
+        it('should return false for a money request action on an approved expense report', async () => {
+            const approvedReport: Report = {
+                reportID: '201',
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+            };
+            const transaction = createRandomTransaction(201);
+            const moneyRequestAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> = {
+                reportActionID: '201',
+                actorAccountID: currentUserAccountID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                originalMessage: {
+                    IOUReportID: approvedReport.reportID,
+                    IOUTransactionID: transaction.transactionID,
+                    amount: 500,
+                    currency: CONST.CURRENCY.USD,
+                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                },
+                message: [
+                    {
+                        type: 'COMMENT',
+                        html: 'USD 5.00 expense',
+                        text: 'USD 5.00 expense',
+                        isEdited: false,
+                        whisperedTo: [],
+                        isDeletedParentAction: false,
+                        deleted: '',
+                    },
+                ],
+                created: '2025-03-05 16:34:27',
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${approvedReport.reportID}`, approvedReport);
+
+            expect(canEditReportAction(moneyRequestAction, transaction)).toEqual(false);
+        });
+
+        it('should return false for a money request action on a closed expense report', async () => {
+            const closedReport: Report = {
+                reportID: '202',
+                type: CONST.REPORT.TYPE.EXPENSE,
+                statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
+            };
+            const transaction = createRandomTransaction(202);
+            const moneyRequestAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> = {
+                reportActionID: '202',
+                actorAccountID: currentUserAccountID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                originalMessage: {
+                    IOUReportID: closedReport.reportID,
+                    IOUTransactionID: transaction.transactionID,
+                    amount: 500,
+                    currency: CONST.CURRENCY.USD,
+                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                },
+                message: [
+                    {
+                        type: 'COMMENT',
+                        html: 'USD 5.00 expense',
+                        text: 'USD 5.00 expense',
+                        isEdited: false,
+                        whisperedTo: [],
+                        isDeletedParentAction: false,
+                        deleted: '',
+                    },
+                ],
+                created: '2025-03-05 16:34:27',
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${closedReport.reportID}`, closedReport);
+
+            expect(canEditReportAction(moneyRequestAction, transaction)).toEqual(false);
+        });
     });
 
     describe('getChatByParticipants', () => {
@@ -10043,6 +10152,21 @@ describe('ReportUtils', () => {
             expect(getReportStatusTranslation({stateNum: undefined, statusNum: undefined, translate: mockTranslate})).toBe('');
             expect(getReportStatusTranslation({stateNum: CONST.REPORT.STATE_NUM.OPEN, statusNum: undefined, translate: mockTranslate})).toBe('');
             expect(getReportStatusTranslation({stateNum: undefined, statusNum: CONST.REPORT.STATUS_NUM.OPEN, translate: mockTranslate})).toBe('');
+        });
+
+        it('should return "Deleted" when isDeleted is true', () => {
+            const result = getReportStatusTranslation({stateNum: CONST.REPORT.STATE_NUM.OPEN, statusNum: CONST.REPORT.STATUS_NUM.OPEN, isDeleted: true, translate: mockTranslate});
+            expect(result).toBe(mockTranslate('iou.deleted'));
+        });
+
+        it('should return "Deleted" when isDeleted is true regardless of stateNum and statusNum', () => {
+            expect(getReportStatusTranslation({stateNum: CONST.REPORT.STATE_NUM.SUBMITTED, statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED, isDeleted: true, translate: mockTranslate})).toBe(
+                mockTranslate('iou.deleted'),
+            );
+            expect(getReportStatusTranslation({stateNum: CONST.REPORT.STATE_NUM.APPROVED, statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED, isDeleted: true, translate: mockTranslate})).toBe(
+                mockTranslate('iou.deleted'),
+            );
+            expect(getReportStatusTranslation({stateNum: undefined, statusNum: undefined, isDeleted: true, translate: mockTranslate})).toBe(mockTranslate('iou.deleted'));
         });
     });
 

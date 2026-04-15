@@ -30,6 +30,7 @@ import Log from '@libs/Log';
 import moveReceiptToDurableStorage from '@libs/moveReceiptToDurableStorage';
 import Navigation from '@libs/Navigation/Navigation';
 import {getOdometerImageUri} from '@libs/OdometerImageUtils';
+import {cancelSpan, endSpan, startSpan} from '@libs/telemetry/activeSpans';
 import NavigationAwareCamera from '@pages/iou/request/step/IOURequestStepScan/components/NavigationAwareCamera/Camera';
 import {cropImageToAspectRatio} from '@pages/iou/request/step/IOURequestStepScan/cropImageToAspectRatio';
 import type {ImageObject} from '@pages/iou/request/step/IOURequestStepScan/cropImageToAspectRatio';
@@ -78,7 +79,12 @@ function IOURequestStepOdometerImage({
         tapGesture,
         cameraFocusIndicatorAnimatedStyle,
         cameraLoadingReasonAttributes,
-    } = useNativeCamera({context: 'IOURequestStepOdometerImage'});
+    } = useNativeCamera({
+        context: 'IOURequestStepOdometerImage',
+        onFocusCleanup: () => {
+            cancelSpan(CONST.TELEMETRY.SPAN_ODOMETER_IMAGE_CAPTURE);
+        },
+    });
     const {setIsLoaderVisible} = useFullScreenLoaderActions();
 
     const title = imageType === 'start' ? translate('distance.odometer.startTitle') : translate('distance.odometer.endTitle');
@@ -135,6 +141,15 @@ function IOURequestStepOdometerImage({
 
         setDidCapturePhoto(true);
 
+        startSpan(CONST.TELEMETRY.SPAN_ODOMETER_IMAGE_CAPTURE, {
+            name: CONST.TELEMETRY.SPAN_ODOMETER_IMAGE_CAPTURE,
+            op: CONST.TELEMETRY.SPAN_ODOMETER_IMAGE_CAPTURE,
+            attributes: {
+                [CONST.TELEMETRY.ATTRIBUTE_ODOMETER_IMAGE_TYPE]: imageType,
+                [CONST.TELEMETRY.ATTRIBUTE_PLATFORM]: 'native',
+            },
+        });
+
         const path = getReceiptsUploadFolderPath();
 
         ReactNativeBlobUtil.fs
@@ -175,15 +190,18 @@ function IOURequestStepOdometerImage({
                                     isTransactionDraft,
                                     false,
                                 );
+                                endSpan(CONST.TELEMETRY.SPAN_ODOMETER_IMAGE_CAPTURE);
                                 navigateBack();
                             })
                             .catch((error: unknown) => {
+                                cancelSpan(CONST.TELEMETRY.SPAN_ODOMETER_IMAGE_CAPTURE);
                                 setDidCapturePhoto(false);
                                 showCameraAlert();
                                 Log.warn('Error cropping photo', error instanceof Error ? error.message : String(error));
                             });
                     })
                     .catch((error: unknown) => {
+                        cancelSpan(CONST.TELEMETRY.SPAN_ODOMETER_IMAGE_CAPTURE);
                         setDidCapturePhoto(false);
                         showCameraAlert();
                         const errorMessage = error instanceof Error ? error.message : String(error);
