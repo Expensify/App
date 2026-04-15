@@ -36,8 +36,8 @@ import type {CardList, MergeTransaction, Policy, PolicyCategories, PolicyTagList
 import type {UpdateMoneyRequestData} from './IOU';
 import {getCleanUpTransactionThreadReportOnyxData} from './IOU/DeleteMoneyRequest';
 import {getDeleteTrackExpenseInformation} from './IOU/TrackExpense';
-import {getUpdateMoneyRequestParams, getUpdateTrackExpenseParams} from './IOU/UpdateMoneyRequestData';
-import type {UpdateMoneyRequestDataKeys} from './IOU/UpdateMoneyRequestData';
+import {getUpdateMoneyRequestParams, getUpdateTrackExpenseParams} from './IOU/UpdateMoneyRequest';
+import type {UpdateMoneyRequestDataKeys} from './IOU/UpdateMoneyRequest';
 
 /**
  * Setup merge transaction data for merging flow

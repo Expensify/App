@@ -33,6 +33,7 @@ The grey **More** button is always visible in the report header. Tap it to acces
 
 - Hold / Unhold
 - Unapprove
+- Duplicate report
 - Download as CSV
 - **Print**
 - Change Workspace
