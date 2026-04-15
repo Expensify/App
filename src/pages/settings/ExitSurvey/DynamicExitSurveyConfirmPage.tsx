@@ -37,6 +37,9 @@ function DynamicExitSurveyConfirmPage() {
     const [exitSurveyResponse] = useOnyx(ONYXKEYS.FORMS.EXIT_SURVEY_RESPONSE_FORM, {
         selector: exitResponseSelector,
     });
+    const shouldShowQuickTips =
+        isEmptyObject(tryNewDot) || tryNewDot?.classicRedirect?.dismissed === true || (!isEmptyObject(tryNewDot) && tryNewDot?.classicRedirect?.dismissed === undefined);
+
     const parentBackPath = useDynamicBackPath(DYNAMIC_ROUTES.EXIT_SURVEY_CONFIRM.path);
     const backPath: Route = useMemo(() => {
         if (isOffline || !exitSurveyResponse) {
@@ -50,9 +53,7 @@ function DynamicExitSurveyConfirmPage() {
 
         return `${parentBackPath.replace(/\/+$/, '')}/${reasonPathSuffix}` as Route;
     }, [isOffline, exitSurveyResponse, parentBackPath]);
-    const shouldShowQuickTips =
-        isEmptyObject(tryNewDot) || tryNewDot?.classicRedirect?.dismissed === true || (!isEmptyObject(tryNewDot) && tryNewDot?.classicRedirect?.dismissed === undefined);
-
+    
     return (
         <ScreenWrapper
             testID="DynamicExitSurveyConfirmPage"
