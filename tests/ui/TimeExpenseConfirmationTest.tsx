@@ -361,7 +361,7 @@ describe('TimeExpenseConfirmationTest', () => {
             await waitForBatchedUpdatesWithAct();
 
             expect(requestMoney).toHaveBeenCalled();
-            const callArgs = (requestMoney as jest.Mock).mock.calls.at(0)?.at(0);
+            const callArgs = (requestMoney as jest.Mock).mock.calls[0][0] as {transactionParams: {taxCode: string; taxAmount: number}};
             expect(callArgs.transactionParams.taxCode).toBe('');
             expect(callArgs.transactionParams.taxAmount).toBe(0);
         });
