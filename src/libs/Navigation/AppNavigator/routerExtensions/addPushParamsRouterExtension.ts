@@ -87,7 +87,11 @@ function addPushParamsRouterExtension<RouterOptions extends PlatformStackRouterO
                 const lastRoute = stateWithUpdatedParams.routes.at(-1);
 
                 if (lastRoute) {
-                    const newHistory = [...stateWithUpdatedParams.history, lastRoute];
+                    // Mirror browser history: pushing while not at the end discards forward entries.
+                    const existingHistory = stateWithUpdatedParams.history;
+                    const baseHistory =
+                        pushParamsHistoryPosition >= 0 && pushParamsHistoryPosition < existingHistory.length - 1 ? existingHistory.slice(0, pushParamsHistoryPosition + 1) : existingHistory;
+                    const newHistory = [...baseHistory, lastRoute];
                     pushParamsHistoryPosition = newHistory.length - 1;
                     return {...stateWithUpdatedParams, history: newHistory};
                 }

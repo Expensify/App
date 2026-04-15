@@ -508,7 +508,7 @@ describe('restoreTriggerForRoute', () => {
         expect(restoreTriggerForRoute('route-a')).toBe(false);
     });
 
-    describe('unfocusable trigger', () => {
+    describe('trigger cannot accept focus', () => {
         it.each<[label: string, setup: () => HTMLButtonElement]>([
             [
                 'disabled',
