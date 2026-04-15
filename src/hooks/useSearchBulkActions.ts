@@ -35,7 +35,7 @@ import {setNameValuePair} from '@libs/actions/User';
 import {getTransactionsAndReportsFromSearch} from '@libs/MergeTransactionUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getConnectedIntegration} from '@libs/PolicyUtils';
-import {getSecondaryExportReportActions, isMergeActionForSelectedTransactions} from '@libs/ReportSecondaryActionUtils';
+import {getSecondaryExportReportActions, isDuplicateReportAction, isMergeActionForSelectedTransactions} from '@libs/ReportSecondaryActionUtils';
 import {
     canEditMultipleTransactions,
     getIntegrationIcon,
@@ -84,7 +84,6 @@ type SearchHeaderOptionValue = DeepValueOf<typeof CONST.SEARCH.BULK_ACTION_TYPES
 
 type UseSearchBulkActionsParams = {
     queryJSON: SearchQueryJSON | undefined;
-    duplicateReportHandler?: () => void;
 };
 
 function getRestrictedPolicyID(
@@ -187,7 +186,7 @@ function shouldShowBulkDuplicateOption({
     });
 }
 
-function useSearchBulkActions({queryJSON, duplicateReportHandler}: UseSearchBulkActionsParams) {
+function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     const {translate, localeCompare, formatPhoneNumber} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -851,6 +850,14 @@ function useSearchBulkActions({queryJSON, duplicateReportHandler}: UseSearchBulk
         ],
     );
 
+    const duplicateReportHandlerRef = useRef<() => void>(() => {});
+    const setDuplicateReportHandler = useCallback((handler: () => void) => {
+        duplicateReportHandlerRef.current = handler;
+    }, []);
+    const invokeDuplicateReportHandler = useCallback(() => {
+        duplicateReportHandlerRef.current();
+    }, []);
+
     const isDuplicateReportOptionVisible = useMemo(() => {
         if (!isExpenseReportType || !defaultExpensePolicy || selectedReports.length === 0) {
             return false;
@@ -860,9 +867,10 @@ function useSearchBulkActions({queryJSON, duplicateReportHandler}: UseSearchBulk
             if (!report.reportID) {
                 return false;
             }
-            return report.ownerAccountID === accountID && report.type === CONST.REPORT.TYPE.EXPENSE;
+            const fullReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`];
+            return !!fullReport && isDuplicateReportAction(fullReport);
         });
-    }, [isExpenseReportType, defaultExpensePolicy, selectedReports, accountID]);
+    }, [isExpenseReportType, defaultExpensePolicy, selectedReports, allReports]);
 
     const headerButtonsOptions = useMemo(() => {
         if (selectedTransactionsKeys.length === 0 || status == null || !hash) {
@@ -1341,13 +1349,13 @@ function useSearchBulkActions({queryJSON, duplicateReportHandler}: UseSearchBulk
             });
         }
 
-        if (isDuplicateReportOptionVisible && duplicateReportHandler) {
+        if (isDuplicateReportOptionVisible) {
             options.push({
                 text: translate('search.bulkActions.duplicateReport', {count: selectedReports.length}),
                 icon: expensifyIcons.ReportCopy,
                 value: CONST.SEARCH.BULK_ACTION_TYPES.DUPLICATE_REPORT,
                 shouldCloseModalOnSelect: true,
-                onSelected: duplicateReportHandler,
+                onSelected: invokeDuplicateReportHandler,
             });
         }
 
@@ -1431,7 +1439,7 @@ function useSearchBulkActions({queryJSON, duplicateReportHandler}: UseSearchBulk
         isDuplicateOptionVisible,
         invokeDuplicateHandler,
         isDuplicateReportOptionVisible,
-        duplicateReportHandler,
+        invokeDuplicateReportHandler,
         isExpenseReportType,
         handleDeleteSelectedTransactions,
         theme.icon,
@@ -1495,6 +1503,8 @@ function useSearchBulkActions({queryJSON, duplicateReportHandler}: UseSearchBulk
         dismissRejectModalBasedOnAction,
         isDuplicateOptionVisible,
         setDuplicateHandler,
+        isDuplicateReportOptionVisible,
+        setDuplicateReportHandler,
         allTransactions,
         allReports,
         searchData: currentSearchResults?.data,

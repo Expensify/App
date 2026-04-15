@@ -1,6 +1,5 @@
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import {validTransactionDraftsSelector} from '@selectors/TransactionDraft';
-import {useCallback} from 'react';
 import type {OnyxCollection} from 'react-native-onyx';
 import {useSearchActionsContext} from '@components/Search/SearchContext';
 import type {SelectedReports} from '@components/Search/types';
@@ -18,10 +17,9 @@ import usePermissions from './usePermissions';
 type UseBulkDuplicateReportActionParams = {
     selectedReports: SelectedReports[];
     allReports: OnyxCollection<Report> | undefined;
-    isEnabled: boolean;
 };
 
-function useBulkDuplicateReportAction({selectedReports, allReports, isEnabled}: UseBulkDuplicateReportActionParams) {
+function useBulkDuplicateReportAction({selectedReports, allReports}: UseBulkDuplicateReportActionParams) {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {clearSelectedTransactions} = useSearchActionsContext();
     const defaultExpensePolicy = useDefaultExpensePolicy();
@@ -42,11 +40,7 @@ function useBulkDuplicateReportAction({selectedReports, allReports, isEnabled}: 
     const [allPolicyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
     const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
 
-    const handleDuplicateReports = useCallback(() => {
-        if (!isEnabled) {
-            return;
-        }
-
+    const handleDuplicateReports = () => {
         const activePolicyExpenseChat = getPolicyExpenseChat(currentUserPersonalDetails.accountID, defaultExpensePolicy?.id);
 
         const reportIDs = selectedReports.map((r) => r.reportID).filter((id): id is string => !!id);
@@ -74,27 +68,7 @@ function useBulkDuplicateReportAction({selectedReports, allReports, isEnabled}: 
         });
 
         clearSelectedTransactions(undefined, true);
-    }, [
-        isEnabled,
-        currentUserPersonalDetails,
-        defaultExpensePolicy,
-        selectedReports,
-        allReports,
-        allPolicies,
-        allPolicyCategories,
-        allPolicyTags,
-        isASAPSubmitBetaEnabled,
-        betas,
-        personalDetails,
-        quickAction,
-        policyRecentlyUsedCurrencies,
-        draftTransactionIDs,
-        isSelfTourViewed,
-        allTransactionViolations,
-        translate,
-        recentWaypoints,
-        clearSelectedTransactions,
-    ]);
+    };
 
     return handleDuplicateReports;
 }
