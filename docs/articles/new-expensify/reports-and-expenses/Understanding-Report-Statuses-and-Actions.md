@@ -63,6 +63,9 @@ Depending on the report status and your role, the primary action button may say:
 ## Held Expenses  
 If you're an Approver who placed a hold, you'll see a green **Remove hold** button. Other users will see a grey **Review** button.
 
+## Reject Expenses  
+If you're an Approver reviewing an expense that shouldn't have been submitted, you can **Reject** it back to the submitter with a reason. The rejection reason will be added to the report. The expense can later be marked as resolved and resubmitted for approval.
+
 ## Duplicate Expenses
 - Submitters: See **Review Duplicates** if duplicates are suspected.
 - Approvers: See **Resolve Duplicates** to take action.
