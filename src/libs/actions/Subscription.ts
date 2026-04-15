@@ -397,25 +397,25 @@ function cancelBillingSubscription(cancellationReason: FeedbackSurveyOptionID, c
         cancellationNote,
     };
 
-    const onyxData: OnyxData<typeof ONYXKEYS.FORMS.REQUEST_EARLY_CANCELLATION_FORM> = {
+    const onyxData: OnyxData<typeof ONYXKEYS.FORMS.CANCEL_SUBSCRIPTION_FORM> = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.FORMS.REQUEST_EARLY_CANCELLATION_FORM,
+                key: ONYXKEYS.FORMS.CANCEL_SUBSCRIPTION_FORM,
                 value: {isLoading: true},
             },
         ],
         successData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.FORMS.REQUEST_EARLY_CANCELLATION_FORM,
+                key: ONYXKEYS.FORMS.CANCEL_SUBSCRIPTION_FORM,
                 value: {isLoading: false},
             },
         ],
         failureData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.FORMS.REQUEST_EARLY_CANCELLATION_FORM,
+                key: ONYXKEYS.FORMS.CANCEL_SUBSCRIPTION_FORM,
                 value: {isLoading: false},
             },
         ],

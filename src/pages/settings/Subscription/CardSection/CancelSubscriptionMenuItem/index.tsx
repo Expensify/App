@@ -20,17 +20,17 @@ function CancelSubscriptionMenuItem() {
             showDelegateNoAccessModal();
             return;
         }
-        Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_REQUEST_EARLY_CANCELLATION);
+        Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_CANCEL_SUBSCRIPTION);
     };
     return (
         <MenuItem
-            title={translate('subscription.requestEarlyCancellation.title')}
+            title={translate('subscription.cancelSubscription.title')}
             icon={icons.CircleSlash}
             shouldShowRightIcon
             wrapperStyle={styles.sectionMenuItemTopDescription}
             titleStyle={styles.textStrong}
             onPress={handleCancelSubscriptionPress}
-            sentryLabel={CONST.SENTRY_LABEL.SETTINGS_SUBSCRIPTION.REQUEST_EARLY_CANCELLATION}
+            sentryLabel={CONST.SENTRY_LABEL.SETTINGS_SUBSCRIPTION.CANCEL_SUBSCRIPTION}
         />
     );
 }
