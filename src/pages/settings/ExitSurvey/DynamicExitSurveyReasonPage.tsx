@@ -50,7 +50,7 @@ function DynamicExitSurveyReasonPage() {
 
     const submitForm = useCallback(() => {
         saveResponse(draftResponse);
-        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.EXIT_SURVEY_CONFIRM.path));
+        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.EXIT_SURVEY_CONFIRM.path), { forceReplace: true});
     }, [draftResponse]);
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.CTRL_ENTER, submitForm);
 

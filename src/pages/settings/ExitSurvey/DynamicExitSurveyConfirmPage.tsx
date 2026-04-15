@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Icon from '@components//Icon';
@@ -19,7 +19,8 @@ import {switchToOldDot} from '@userActions/ExitSurvey';
 import {openOldDotLink} from '@userActions/Link';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {DYNAMIC_ROUTES} from '@src/ROUTES';
+import type {Route} from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {ExitSurveyResponseForm} from '@src/types/form/ExitSurveyResponseForm';
 import RESPONSE_INPUT_IDS from '@src/types/form/ExitSurveyResponseForm';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -36,7 +37,19 @@ function DynamicExitSurveyConfirmPage() {
     const [exitSurveyResponse] = useOnyx(ONYXKEYS.FORMS.EXIT_SURVEY_RESPONSE_FORM, {
         selector: exitResponseSelector,
     });
-    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.EXIT_SURVEY_CONFIRM.path);
+    const parentBackPath = useDynamicBackPath(DYNAMIC_ROUTES.EXIT_SURVEY_CONFIRM.path);
+    const backPath: Route = useMemo(() => {
+        if (isOffline || !exitSurveyResponse) {
+            return ROUTES.SETTINGS;
+        }
+
+        const reasonPathSuffix = DYNAMIC_ROUTES.EXIT_SURVEY_REASON.path;
+        if (parentBackPath.endsWith(reasonPathSuffix)) {
+            return parentBackPath;
+        }
+
+        return `${parentBackPath.replace(/\/+$/, '')}/${reasonPathSuffix}` as Route;
+    }, [isOffline, exitSurveyResponse, parentBackPath]);
     const shouldShowQuickTips =
         isEmptyObject(tryNewDot) || tryNewDot?.classicRedirect?.dismissed === true || (!isEmptyObject(tryNewDot) && tryNewDot?.classicRedirect?.dismissed === undefined);
 
