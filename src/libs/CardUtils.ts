@@ -1,4 +1,3 @@
-import {isExpo} from '@sentry/react-native/dist/js/utils/environment';
 import {format, fromUnixTime, isBefore} from 'date-fns';
 import groupBy from 'lodash/groupBy';
 import lodashSortBy from 'lodash/sortBy';
