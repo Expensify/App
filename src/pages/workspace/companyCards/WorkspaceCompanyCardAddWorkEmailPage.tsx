@@ -95,7 +95,8 @@ function WorkspaceCompanyCardAddWorkEmailPage({route}: WorkspaceCompanyCardAddWo
     };
 
     useEffect(() => {
-        if (primaryContactMethod?.toLowerCase() !== email?.toLowerCase() || isWorkEmailValidated) {
+        // eslint-disable-next-line @typescript-eslint/prefer-optional-chain -- optional chain changes logic: when both email and primaryContactMethod are falsy, it skips early return and navigates incorrectly
+        if (!email || !primaryContactMethod || primaryContactMethod.toLowerCase() !== email.toLowerCase() || isWorkEmailValidated) {
             return;
         }
         Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARD_VERIFY_WORK_EMAIL.getRoute(policyID, feed));
