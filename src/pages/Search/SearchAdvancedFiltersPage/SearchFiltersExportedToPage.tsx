@@ -34,7 +34,7 @@ function SearchFiltersExportedToPage() {
     const {translate} = useLocalize();
     const StyleUtils = useStyleUtils();
     const theme = useTheme();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['XeroSquare', 'QBOSquare', 'NetSuiteSquare', 'IntacctSquare', 'QBDSquare', 'CertiniaSquare', 'Table']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['XeroSquare', 'QBOSquare', 'NetSuiteSquare', 'IntacctSquare', 'QBDSquare', 'CertiniaSquare', 'GustoSquare', 'Table']);
 
     const [searchAdvancedFiltersForm, searchAdvancedFiltersFormResult] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
     const [integrationsExportTemplates] = useOnyx(ONYXKEYS.NVP_INTEGRATION_SERVER_EXPORT_TEMPLATES);
@@ -42,7 +42,7 @@ function SearchFiltersExportedToPage() {
     const policyIDs = searchAdvancedFiltersForm?.policyID ?? [];
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
 
-    const integrationConnectionNames = Object.values(CONST.POLICY.CONNECTIONS.NAME);
+    const integrationConnectionNames = CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES;
     const selectedExportedToValues = searchAdvancedFiltersForm?.exportedTo ?? [];
     const connectedIntegrationNames = getConnectedIntegrationNamesForPolicies(policies, policyIDs.length > 0 ? policyIDs : undefined);
 

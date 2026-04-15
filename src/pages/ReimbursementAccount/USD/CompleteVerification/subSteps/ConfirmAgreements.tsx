@@ -7,11 +7,14 @@ import RenderHTML from '@components/RenderHTML';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getFieldRequiredErrors, isRequiredFulfilled} from '@libs/ValidationUtils';
 import getSubStepValues from '@pages/ReimbursementAccount/utils/getSubStepValues';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
+
+type ConfirmAgreementsProps = SubStepProps;
 
 const COMPLETE_VERIFICATION_KEYS = INPUT_IDS.COMPLETE_VERIFICATION;
 const STEP_FIELDS = [
@@ -34,11 +37,6 @@ function TermsAndConditionsLabel() {
     const {translate} = useLocalize();
     return <RenderHTML html={translate('common.acceptTermsAndConditions')} />;
 }
-
-type ConfirmAgreementsProps = {
-    /** Continues to the next step */
-    onNext: () => void;
-};
 
 function ConfirmAgreements({onNext}: ConfirmAgreementsProps) {
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);

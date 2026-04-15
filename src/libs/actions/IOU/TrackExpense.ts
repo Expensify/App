@@ -101,18 +101,16 @@ import type ReportAction from '@src/types/onyx/ReportAction';
 import type {OnyxData} from '@src/types/onyx/Request';
 import type {Receipt, ReceiptSource} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import {deleteMoneyRequest, getCleanUpTransactionThreadReportOnyxData, getNavigationUrlOnMoneyRequestDelete} from './DeleteMoneyRequest';
 import type {BuildOnyxDataForMoneyRequestKeys, ReplaceReceipt, RequestMoneyInformation, StartSplitBilActionParams} from './index';
 import {
     buildMinimalTransactionForFormula,
-    deleteMoneyRequest,
     getAllReports,
     getAllTransactionDrafts,
     getAllTransactions,
     getAllTransactionViolations,
-    getCleanUpTransactionThreadReportOnyxData,
     getCurrentUserEmail,
     getMoneyRequestInformation,
-    getNavigationUrlOnMoneyRequestDelete,
     getReceiptError,
     getReportPreviewAction,
     getSearchOnyxUpdate,
