@@ -10,7 +10,7 @@ import initSplitExpense from '@libs/actions/SplitExpenses';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {getActiveGroupSearchHashes} from '@libs/SearchUIUtils';
-import {getChildTransactions, getOriginalTransactionWithSplitInfo, isPerDiemRequest} from '@libs/TransactionUtils';
+import {getChildTransactions, getOriginalTransactionWithSplitInfo, isExpenseUnreported, isPerDiemRequest} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report, ReportAction, Transaction, TransactionViolations} from '@src/types/onyx';
@@ -75,7 +75,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
             const originalTransaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.comment?.originalTransactionID}`];
             const {isExpenseSplit} = getOriginalTransactionWithSplitInfo(transaction, originalTransaction);
 
-            if (!isExpenseSplit || !isPerDiemRequest(originalTransaction ?? transaction)) {
+            if (!isExpenseSplit || isExpenseUnreported(transaction) || isExpenseUnreported(originalTransaction) || !isPerDiemRequest(originalTransaction ?? transaction)) {
                 return undefined;
             }
 
