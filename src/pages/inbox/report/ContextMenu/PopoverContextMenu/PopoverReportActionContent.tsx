@@ -184,6 +184,7 @@ function PopoverReportActionContent({
             moneyRequestPolicy,
             areHoldRequirementsMet,
             iouTransaction,
+            currentUserAccountID,
         });
     const showHold =
         !isDisabled(ACTION_IDS.HOLD) &&
@@ -193,6 +194,7 @@ function PopoverReportActionContent({
             moneyRequestPolicy,
             areHoldRequirementsMet,
             iouTransaction,
+            currentUserAccountID,
         });
     const showJoinThread =
         !isDisabled(ACTION_IDS.JOIN_THREAD) &&
@@ -395,7 +397,7 @@ function PopoverReportActionContent({
             visibleItems.push(
                 <PopoverFlagAsOffensiveItem
                     key="flagAsOffensive"
-                    reportID={resolvedReportID}
+                    originalReportID={resolvedOriginalReportID}
                     reportAction={reportAction}
                     hideAndRun={hideAndRun}
                 />,

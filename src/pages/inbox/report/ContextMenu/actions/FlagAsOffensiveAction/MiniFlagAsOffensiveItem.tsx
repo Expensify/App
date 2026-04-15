@@ -3,19 +3,20 @@ import MiniContextMenuItem from '@components/MiniContextMenuItem';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {ReportAction} from '@src/types/onyx';
 import KeyboardUtils from '@src/utils/keyboard';
 
 type MiniFlagAsOffensiveItemProps = {
-    reportID: string | undefined;
+    originalReportID: string | undefined;
     reportAction: ReportAction;
     hideAndRun: (callback?: () => void) => void;
 };
 
-export default function MiniFlagAsOffensiveItem({reportID, reportAction, hideAndRun}: MiniFlagAsOffensiveItemProps) {
+export default function MiniFlagAsOffensiveItem({originalReportID, reportAction, hideAndRun}: MiniFlagAsOffensiveItemProps) {
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Flag'] as const);
 
@@ -25,13 +26,12 @@ export default function MiniFlagAsOffensiveItem({reportID, reportAction, hideAnd
             icon={icons.Flag}
             onPress={() =>
                 interceptAnonymousUser(() => {
-                    if (!reportID) {
+                    if (!originalReportID) {
                         return;
                     }
-                    const activeRoute = Navigation.getActiveRoute();
                     hideAndRun(() => {
                         KeyboardUtils.dismiss().then(() => {
-                            Navigation.navigate(ROUTES.FLAG_COMMENT.getRoute(reportID, reportAction?.reportActionID, activeRoute));
+                            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.FLAG_COMMENT.getRoute(originalReportID, reportAction.reportActionID)));
                         });
                     });
                 })

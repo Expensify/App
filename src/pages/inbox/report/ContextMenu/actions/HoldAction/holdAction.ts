@@ -9,18 +9,20 @@ function shouldShowHoldAction({
     moneyRequestPolicy,
     areHoldRequirementsMet,
     iouTransaction,
+    currentUserAccountID,
 }: {
     moneyRequestReport: OnyxEntry<ReportType>;
     moneyRequestAction: ReportAction | undefined;
     moneyRequestPolicy: OnyxEntry<Policy>;
     areHoldRequirementsMet: boolean;
     iouTransaction: OnyxEntry<Transaction>;
+    currentUserAccountID: number;
 }): boolean {
     if (!areHoldRequirementsMet) {
         return false;
     }
     const holdReportAction = getReportAction(moneyRequestAction?.childReportID, `${iouTransaction?.comment?.hold ?? ''}`);
-    return canHoldUnholdReportAction(moneyRequestReport, moneyRequestAction, holdReportAction, iouTransaction, moneyRequestPolicy).canHoldRequest;
+    return canHoldUnholdReportAction(moneyRequestReport, moneyRequestAction, holdReportAction, iouTransaction, moneyRequestPolicy, currentUserAccountID).canHoldRequest;
 }
 
 // eslint-disable-next-line import/prefer-default-export -- named utility export per module convention

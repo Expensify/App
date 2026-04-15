@@ -6,14 +6,15 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {ReportAction} from '@src/types/onyx';
 import KeyboardUtils from '@src/utils/keyboard';
 
 type PopoverFlagAsOffensiveItemProps = {
-    reportID: string | undefined;
+    originalReportID: string | undefined;
     reportAction: ReportAction;
     hideAndRun: (callback?: () => void) => void;
     isFocused?: boolean;
@@ -21,7 +22,7 @@ type PopoverFlagAsOffensiveItemProps = {
     onBlur?: () => void;
 };
 
-export default function PopoverFlagAsOffensiveItem({reportID, reportAction, hideAndRun, isFocused, onFocus, onBlur}: PopoverFlagAsOffensiveItemProps) {
+export default function PopoverFlagAsOffensiveItem({originalReportID, reportAction, hideAndRun, isFocused, onFocus, onBlur}: PopoverFlagAsOffensiveItemProps) {
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Flag'] as const);
     const styles = useThemeStyles();
@@ -34,13 +35,12 @@ export default function PopoverFlagAsOffensiveItem({reportID, reportAction, hide
             icon={icons.Flag}
             onPress={() =>
                 interceptAnonymousUser(() => {
-                    if (!reportID) {
+                    if (!originalReportID) {
                         return;
                     }
-                    const activeRoute = Navigation.getActiveRoute();
                     hideAndRun(() => {
                         KeyboardUtils.dismiss().then(() => {
-                            Navigation.navigate(ROUTES.FLAG_COMMENT.getRoute(reportID, reportAction?.reportActionID, activeRoute));
+                            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.FLAG_COMMENT.getRoute(originalReportID, reportAction.reportActionID)));
                         });
                     });
                 })

@@ -237,6 +237,7 @@ function MiniReportActionContextMenu() {
             moneyRequestPolicy,
             areHoldRequirementsMet,
             iouTransaction,
+            currentUserAccountID,
         });
     const showHold =
         !isDisabledAction(ACTION_IDS.HOLD) &&
@@ -246,6 +247,7 @@ function MiniReportActionContextMenu() {
             moneyRequestPolicy,
             areHoldRequirementsMet,
             iouTransaction,
+            currentUserAccountID,
         });
     const showJoinThread =
         !isDisabledAction(ACTION_IDS.JOIN_THREAD) &&
@@ -429,7 +431,7 @@ function MiniReportActionContextMenu() {
             allVisibleItems.push(
                 <MiniFlagAsOffensiveItem
                     key="flagAsOffensive"
-                    reportID={resolvedReportID}
+                    originalReportID={resolvedOriginalReportID}
                     reportAction={reportAction}
                     hideAndRun={hideAndRun}
                 />,
