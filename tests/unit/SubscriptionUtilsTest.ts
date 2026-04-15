@@ -1274,10 +1274,11 @@ describe('SubscriptionUtils', () => {
                 choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
             };
 
+            const expectedRemainingDays = calculateRemainingFreeTrialDays(lastDayFreeTrial);
             const result = getFreeTrialText(accountID, translate, ownedPaidPolicies, introSelected, firstDayFreeTrial, lastDayFreeTrial);
 
-            expect(translate).toHaveBeenCalledWith('subscription.billingBanner.trialStarted.title', expect.any(Number));
-            expect(result).toMatch(/^trialStarted:\d+$/);
+            expect(translate).toHaveBeenCalledWith('subscription.billingBanner.trialStarted.title', expectedRemainingDays);
+            expect(result).toBe(`trialStarted:${expectedRemainingDays}`);
         });
 
         it('returns undefined when the free trial has ended', () => {
