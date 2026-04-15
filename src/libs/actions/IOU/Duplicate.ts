@@ -102,7 +102,7 @@ function mergeDuplicates({transactionThreadReportID: optimisticTransactionThread
             tag: params.tag,
             taxCode: params.taxCode,
             taxAmount,
-            taxValue: taxValue || originalSelectedTransaction?.taxValue,
+            taxValue,
         },
     };
 
@@ -378,7 +378,7 @@ function resolveDuplicates({taxAmount, taxValue, ...params}: MergeDuplicatesPara
             tag: params.tag,
             taxCode: params.taxCode,
             taxAmount,
-            taxValue: taxValue || originalSelectedTransaction?.taxValue,
+            taxValue,
         },
     };
 

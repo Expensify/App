@@ -247,7 +247,7 @@ describe('actions/Duplicate', () => {
             expect(getOriginalMessage(updatedReportActions?.action789)).toHaveProperty('deleted');
 
             // Then: Verify API was called with correct parameters (taxAmount/taxValue are excluded from API params)
-            const {taxAmount: _ta, taxValue: _tv, ...expectedApiParams} = mergeParams;
+            const {taxAmount, taxValue, ...expectedApiParams} = mergeParams;
             expect(writeSpy).toHaveBeenCalledWith(
                 WRITE_COMMANDS.MERGE_DUPLICATES,
                 expect.objectContaining(expectedApiParams),
@@ -577,7 +577,7 @@ describe('actions/Duplicate', () => {
             });
 
             // Then the transaction thread report should be deleted in the success onyx data (taxAmount/taxValue are excluded from API params)
-            const {taxAmount: _ta, taxValue: _tv, ...expectedApiParams} = mergeParams;
+            const {taxAmount, taxValue, ...expectedApiParams} = mergeParams;
             expect(writeSpy).toHaveBeenCalledWith(
                 WRITE_COMMANDS.MERGE_DUPLICATES,
                 expect.objectContaining(expectedApiParams),
