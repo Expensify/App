@@ -284,24 +284,44 @@ type TaxRateDeleteMap = Record<
     | null
 >;
 
-function getReplacementTaxCode(taxRateToDelete: TaxRate | undefined, defaultTaxCode: string | undefined, optimisticTaxes: TaxRates): string | undefined {
+function getTaxCodeByValueMap(taxes: TaxRates): Record<string, string> {
+    const taxCodeByValueMap: Record<string, string> = {};
+
+    for (const [taxCode, taxRate] of Object.entries(taxes)) {
+        if (!taxRate.value || taxCodeByValueMap[taxRate.value]) {
+            continue;
+        }
+        taxCodeByValueMap[taxRate.value] = taxCode;
+    }
+
+    return taxCodeByValueMap;
+}
+
+function getReplacementTaxCode(
+    taxRateToDelete: TaxRate | undefined,
+    defaultTaxCode: string | undefined,
+    defaultTaxValue: string | undefined,
+    taxCodeByValueMap: Record<string, string>,
+): string | undefined {
     if (!taxRateToDelete?.value) {
         return undefined;
     }
 
-    if (defaultTaxCode && optimisticTaxes[defaultTaxCode]?.value === taxRateToDelete.value) {
+    const taxValue = taxRateToDelete.value;
+
+    if (defaultTaxCode && defaultTaxValue === taxValue) {
         return defaultTaxCode;
     }
 
-    return Object.entries(optimisticTaxes).find(([, taxRate]) => taxRate.value === taxRateToDelete.value)?.[0];
+    return taxCodeByValueMap[taxValue];
 }
 
 function deletePolicyTaxes(policyData: PolicyData, taxesToDelete: string[], localeCompare: LocaleContextProps['localeCompare']) {
     const policy = policyData.policy;
     const currentPolicyTaxRates = policy?.taxRates;
-    const policyTaxRates = currentPolicyTaxRates?.taxes;
+    const policyTaxes = currentPolicyTaxRates?.taxes;
     const foreignTaxDefault = currentPolicyTaxRates?.foreignTaxDefault;
-    const firstTaxID = Object.keys(policyTaxRates ?? {})
+    const firstTaxID = Object.keys(policyTaxes ?? {})
         .sort((a, b) => localeCompare(a, b))
         .at(0);
     const distanceRateCustomUnit = getDistanceRateCustomUnit(policy);
@@ -310,14 +330,22 @@ function deletePolicyTaxes(policyData: PolicyData, taxesToDelete: string[], loca
         (rate) => !!rate.attributes?.taxRateExternalID && taxesToDelete.includes(rate.attributes?.taxRateExternalID),
     );
 
-    if (!currentPolicyTaxRates || !policyTaxRates) {
+    if (!currentPolicyTaxRates || !policyTaxes) {
         console.debug('Policy or tax rates not found');
         return;
     }
 
     const taxesToDeleteSet = new Set(taxesToDelete);
-    const optimisticTaxes = Object.fromEntries(Object.entries(policyTaxRates).filter(([taxID]) => !taxesToDeleteSet.has(taxID))) as TaxRates;
+    const remaningTaxes = Object.fromEntries(Object.entries(policyTaxes).filter(([taxID]) => !taxesToDeleteSet.has(taxID)));
     const isForeignTaxRemoved = foreignTaxDefault && taxesToDelete.includes(foreignTaxDefault);
+    const defaultTaxCode = currentPolicyTaxRates.defaultExternalID;
+    const defaultTaxValue = defaultTaxCode ? remaningTaxes[defaultTaxCode]?.value : undefined;
+    const taxCodeByValueMap = getTaxCodeByValueMap(remaningTaxes);
+    const replacementTaxCodeByDeletedTaxCode: Record<string, string | undefined> = {};
+
+    for (const taxCode of taxesToDelete) {
+        replacementTaxCodeByDeletedTaxCode[taxCode] = getReplacementTaxCode(policyTaxes[taxCode], defaultTaxCode, defaultTaxValue, taxCodeByValueMap);
+    }
 
     const optimisticRates: Record<string, NullishDeep<Rate>> = {};
     const successRates: Record<string, NullishDeep<Rate>> = {};
@@ -346,13 +374,13 @@ function deletePolicyTaxes(policyData: PolicyData, taxesToDelete: string[], loca
         };
     }
 
-    const optimisticTransactionUpdates: Record<string, Pick<Transaction, 'taxCode'>> = {};
-    const failureTransactionUpdates: Record<string, Pick<Transaction, 'taxCode'>> = {};
-    const optimisticTransactionsAndViolations = {...policyData.transactionsAndViolations};
+    const optimisticTransactionUpdates: Record<`${typeof ONYXKEYS.COLLECTION.TRANSACTION}${string}`, Pick<Transaction, 'taxCode'>> = {};
+    const failureTransactionUpdates: Record<`${typeof ONYXKEYS.COLLECTION.TRANSACTION}${string}`, Pick<Transaction, 'taxCode'>> = {};
+    let optimisticTransactionsAndViolations = policyData.transactionsAndViolations;
+    let hasOptimisticTransactionsAndViolationsUpdates = false;
 
     for (const [reportID, reportTransactionsAndViolations] of Object.entries(policyData.transactionsAndViolations)) {
-        let hasReportTransactionUpdates = false;
-        const updatedReportTransactions = {...reportTransactionsAndViolations.transactions};
+        let updatedReportTransactions: typeof reportTransactionsAndViolations.transactions | undefined;
 
         for (const [transactionID, transaction] of Object.entries(reportTransactionsAndViolations.transactions)) {
             const transactionTaxCode = transaction.taxCode;
@@ -360,9 +388,13 @@ function deletePolicyTaxes(policyData: PolicyData, taxesToDelete: string[], loca
                 continue;
             }
 
-            const replacementTaxCode = getReplacementTaxCode(policyTaxRates[transactionTaxCode], policy?.taxRates?.defaultExternalID, optimisticTaxes);
+            const replacementTaxCode = replacementTaxCodeByDeletedTaxCode[transactionTaxCode];
             if (!replacementTaxCode || replacementTaxCode === transactionTaxCode) {
                 continue;
+            }
+
+            if (!updatedReportTransactions) {
+                updatedReportTransactions = {...reportTransactionsAndViolations.transactions};
             }
 
             optimisticTransactionUpdates[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] = {taxCode: replacementTaxCode};
@@ -371,11 +403,15 @@ function deletePolicyTaxes(policyData: PolicyData, taxesToDelete: string[], loca
                 ...transaction,
                 taxCode: replacementTaxCode,
             };
-            hasReportTransactionUpdates = true;
         }
 
-        if (!hasReportTransactionUpdates) {
+        if (!updatedReportTransactions) {
             continue;
+        }
+
+        if (!hasOptimisticTransactionsAndViolationsUpdates) {
+            optimisticTransactionsAndViolations = {...policyData.transactionsAndViolations};
+            hasOptimisticTransactionsAndViolationsUpdates = true;
         }
 
         optimisticTransactionsAndViolations[reportID] = {
@@ -443,7 +479,7 @@ function deletePolicyTaxes(policyData: PolicyData, taxesToDelete: string[], loca
                             acc[taxID] = {
                                 pendingAction: null,
                                 errors: getMicroSecondOnyxErrorWithTranslationKey('workspace.taxes.error.deleteFailureMessage'),
-                                isDisabled: !!policyTaxRates?.[taxID]?.isDisabled,
+                                isDisabled: !!policyTaxes?.[taxID]?.isDisabled,
                             };
                             return acc;
                         }, {}),
@@ -483,14 +519,14 @@ function deletePolicyTaxes(policyData: PolicyData, taxesToDelete: string[], loca
         {
             taxRates: {
                 ...currentPolicyTaxRates,
-                taxes: optimisticTaxes,
+                taxes: remaningTaxes,
             },
         },
     );
 
     const parameters = {
         policyID: policy.id,
-        taxNames: JSON.stringify(taxesToDelete.map((taxID) => policyTaxRates[taxID].name)),
+        taxNames: JSON.stringify(taxesToDelete.map((taxID) => policyTaxes[taxID].name)),
     } satisfies DeletePolicyTaxesParams;
 
     API.write(WRITE_COMMANDS.DELETE_POLICY_TAXES, parameters, onyxData);
