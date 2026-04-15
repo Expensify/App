@@ -55,6 +55,7 @@ The following details are **not** copied:
 - Date is set to today instead of the original date
 - Receipt images are not included on the duplicate expenses
 - Card expenses (company cards and Expensify Cards) are not copied
+-  Per diem and distance expenses are not copied when the new report is created in a different Workspace than the original
 
 ---
 
