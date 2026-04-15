@@ -5,14 +5,19 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
+import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
 import useLocalize from '@hooks/useLocalize';
 import {MouseProvider} from '@hooks/useMouseContext';
 import useOnyx from '@hooks/useOnyx';
+import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import usePermissions from '@hooks/usePermissions';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import usePolicyForTransaction from '@hooks/usePolicyForTransaction';
 import usePreferredPolicy from '@hooks/usePreferredPolicy';
 import usePrevious from '@hooks/usePrevious';
+import usePrivateIsArchivedMap from '@hooks/usePrivateIsArchivedMap';
+import useReportAttributes from '@hooks/useReportAttributes';
+import useSelfDMReport from '@hooks/useSelfDMReport';
 import useThemeStyles from '@hooks/useThemeStyles';
 import blurActiveElement from '@libs/Accessibility/blurActiveElement';
 import {computePerDiemExpenseAmount, isValidPerDiemExpenseAmount} from '@libs/actions/IOU/PerDiem';
@@ -25,10 +30,11 @@ import {calculateAmount, isMovingTransactionFromTrackExpense as isMovingTransact
 import Log from '@libs/Log';
 import {validateAmount} from '@libs/MoneyRequestUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {getIOUConfirmationOptionsFromPayeePersonalDetail, hasEnabledOptions} from '@libs/OptionsListUtils';
+import {getIOUConfirmationOptionsFromPayeePersonalDetail, getParticipantsOption, getReportOption, hasEnabledOptions} from '@libs/OptionsListUtils';
 import {getTagLists, isAttendeeTrackingEnabled, isTaxTrackingEnabled} from '@libs/PolicyUtils';
-import {isSelectedManagerMcTest} from '@libs/ReportUtils';
+import {getPolicyExpenseChat, getReportOrDraftReport, isSelectedManagerMcTest} from '@libs/ReportUtils';
 import type {OptionData} from '@libs/ReportUtils';
+import shouldUseDefaultExpensePolicy from '@libs/shouldUseDefaultExpensePolicy';
 import {hasEnabledTags, hasMatchingTag} from '@libs/TagsOptionsListUtils';
 import {isValidTimeExpenseAmount} from '@libs/TimeTrackingUtils';
 import {
@@ -61,6 +67,7 @@ import {
 import {isInvalidMerchantValue, isValidInputLength} from '@libs/ValidationUtils';
 import {getIsViolationFixed} from '@libs/Violations/ViolationsUtils';
 import {hasInvoicingDetails} from '@userActions/Policy/Policy';
+import {getMoneyRequestParticipantsFromReport} from '@userActions/IOU';
 import type {IOUAction, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -81,6 +88,7 @@ import FieldAutoSelector from './MoneyRequestConfirmationList/FieldAutoSelector'
 import SplitBillController from './MoneyRequestConfirmationList/SplitBillController';
 import TaxController from './MoneyRequestConfirmationList/TaxController';
 import MoneyRequestConfirmationListFooter from './MoneyRequestConfirmationListFooter';
+import {usePersonalDetails} from './OnyxListItemProvider';
 import {PressableWithFeedback} from './Pressable';
 import {useProductTrainingContext} from './ProductTrainingContext';
 import UserListItem from './SelectionList/ListItem/UserListItem';
@@ -284,6 +292,16 @@ function MoneyRequestConfirmationList({
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const defaultExpensePolicy = useDefaultExpensePolicy();
+    const personalPolicy = usePersonalPolicy();
+    const selfDMReport = useSelfDMReport();
+    const personalDetails = usePersonalDetails();
+    const reportAttributesDerived = useReportAttributes();
+    const privateIsArchivedMap = usePrivateIsArchivedMap();
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
+    const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
+    const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const {isRestrictedToPreferredPolicy} = usePreferredPolicy();
 
     const isDistanceRequest = isDistanceRequestUtil(transaction);
@@ -308,6 +326,8 @@ function MoneyRequestConfirmationList({
     const isTypeTrackExpense = iouType === CONST.IOU.TYPE.TRACK;
     const isTypeInvoice = iouType === CONST.IOU.TYPE.INVOICE;
     const isScanRequest = useMemo(() => isScanRequestUtil(transaction), [transaction]);
+    const isManualRequest = transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.MANUAL;
+    const shouldForceTopEmptySections = isNewManualExpenseFlowEnabled && (iouType === CONST.IOU.TYPE.CREATE || isManualRequest || isScanRequest);
     const isFromGlobalCreateAndCanEditParticipant = !!transaction?.isFromGlobalCreate && !isPerDiemRequest && !isTimeRequest;
 
     const transactionID = transaction?.transactionID;
@@ -567,6 +587,80 @@ function MoneyRequestConfirmationList({
     );
 
     const selectedParticipants = useMemo(() => selectedParticipantsProp.filter((participant) => participant.selected), [selectedParticipantsProp]);
+    const defaultParticipantOptions = useMemo(() => {
+        if (!shouldForceTopEmptySections || selectedParticipants.length > 0) {
+            return [];
+        }
+
+        const sourceReportID = transaction?.reportID ?? reportID;
+        if (!sourceReportID) {
+            return [];
+        }
+
+        const sourceReport = getReportOrDraftReport(sourceReportID);
+        let defaultParticipants = getMoneyRequestParticipantsFromReport(sourceReport, currentUserPersonalDetails.accountID).filter((participant) => participant.selected);
+
+        const isGlobalCreateFlow = transaction?.isFromGlobalCreate ?? transaction?.isFromFloatingActionButton ?? iouType === CONST.IOU.TYPE.CREATE;
+
+        if (!defaultParticipants.length && isGlobalCreateFlow) {
+            const canUseDefaultExpensePolicy = shouldUseDefaultExpensePolicy(
+                iouType,
+                defaultExpensePolicy,
+                amountOwed,
+                userBillingGracePeriodEnds,
+                ownerBillingGracePeriodEnd,
+            );
+
+            if (canUseDefaultExpensePolicy) {
+                const shouldAutoReport = !!defaultExpensePolicy?.autoReporting || !!personalPolicy?.autoReporting;
+                const defaultTargetReport = shouldAutoReport ? getPolicyExpenseChat(currentUserPersonalDetails.accountID, defaultExpensePolicy?.id) : selfDMReport;
+                defaultParticipants = getMoneyRequestParticipantsFromReport(defaultTargetReport, currentUserPersonalDetails.accountID).filter((participant) => participant.selected);
+            }
+        }
+
+        if (!defaultParticipants.length) {
+            return [];
+        }
+
+        return defaultParticipants
+            .map((participant) => {
+                if (participant.accountID) {
+                    return getParticipantsOption(participant, personalDetails);
+                }
+
+                const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${participant.reportID}`];
+                return getReportOption(participant, privateIsArchived, policy, personalDetails, conciergeReportID, reportAttributesDerived);
+            })
+            .filter(Boolean)
+            .map((participant) => ({...participant, selected: true})) as Participant[];
+    }, [
+        shouldForceTopEmptySections,
+        selectedParticipants.length,
+        transaction?.reportID,
+        reportID,
+        currentUserPersonalDetails.accountID,
+        personalDetails,
+        privateIsArchivedMap,
+        policy,
+        conciergeReportID,
+        reportAttributesDerived,
+        transaction?.isFromGlobalCreate,
+        transaction?.isFromFloatingActionButton,
+        iouType,
+        defaultExpensePolicy,
+        personalPolicy,
+        selfDMReport,
+        amountOwed,
+        userBillingGracePeriodEnds,
+        ownerBillingGracePeriodEnd,
+    ]);
+    const selectedParticipantsWithFallback = useMemo(() => {
+        if (!defaultParticipantOptions.length) {
+            return selectedParticipants;
+        }
+
+        return defaultParticipantOptions;
+    }, [defaultParticipantOptions, selectedParticipants]);
     const payeePersonalDetails = useMemo(() => payeePersonalDetailsProp ?? currentUserPersonalDetails, [payeePersonalDetailsProp, currentUserPersonalDetails]);
     const shouldShowReadOnlySplits = useMemo(() => isPolicyExpenseChat || isReadOnly || isScanRequest, [isPolicyExpenseChat, isReadOnly, isScanRequest]);
 
@@ -717,24 +811,45 @@ function MoneyRequestConfirmationList({
                 },
             );
             // When adding an expense from within a report, hide the "To:" section since the destination is already the current report
-        } else if (!shouldHideToSection) {
-            const formattedSelectedParticipants = selectedParticipants.map((participant) => ({
-                ...participant,
-                isSelected: false,
-                keyForList: `${participant.keyForList ?? participant.accountID ?? participant.reportID}`,
-                isInteractive: canEditParticipant,
-                shouldShowRightCaret: canEditParticipant,
-            }));
+        } else if (!shouldHideToSection || shouldForceTopEmptySections) {
+            const participantRows =
+                selectedParticipantsWithFallback.length > 0
+                    ? selectedParticipantsWithFallback.map((participant) => ({
+                          ...participant,
+                          isSelected: false,
+                          keyForList: `${participant.keyForList ?? participant.accountID ?? participant.reportID}`,
+                          isInteractive: canEditParticipant,
+                          shouldShowRightCaret: canEditParticipant,
+                      }))
+                    : [
+                          {
+                              keyForList: 'empty-participant-option',
+                              text: translate('iou.error.noParticipantSelected'),
+                              isInteractive: canEditParticipant,
+                              shouldShowRightCaret: canEditParticipant,
+                          },
+                      ];
 
             options.push({
                 title: translate('common.to'),
-                data: formattedSelectedParticipants,
+                data: participantRows,
                 sectionIndex: 0,
             });
         }
 
         return options;
-    }, [isTypeSplit, translate, payeePersonalDetails, getSplitSectionHeader, splitParticipants, selectedParticipants, canEditParticipant, shouldHideToSection]);
+    }, [
+        isTypeSplit,
+        translate,
+        payeePersonalDetails,
+        getSplitSectionHeader,
+        splitParticipants,
+        selectedParticipants,
+        selectedParticipantsWithFallback,
+        canEditParticipant,
+        shouldHideToSection,
+        shouldForceTopEmptySections,
+    ]);
 
     /**
      * Navigate to the participant step
@@ -761,7 +876,7 @@ function MoneyRequestConfirmationList({
                 return;
             }
 
-            if (selectedParticipants.length === 0) {
+            if (selectedParticipantsWithFallback.length === 0) {
                 setFormError('iou.error.noParticipantSelected');
                 return;
             }
@@ -874,7 +989,7 @@ function MoneyRequestConfirmationList({
                     return;
                 }
 
-                onConfirm?.(selectedParticipants);
+                onConfirm?.(selectedParticipantsWithFallback);
             } else {
                 if (!paymentMethod) {
                     return;
@@ -897,6 +1012,7 @@ function MoneyRequestConfirmationList({
             policy,
             policyTagLists,
             selectedParticipants,
+            selectedParticipantsWithFallback,
             isEditingSplitBill,
             isMerchantRequired,
             isMerchantEmpty,
