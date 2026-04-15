@@ -2,10 +2,11 @@ import type {OnyxEntry} from 'react-native-onyx';
 import type {CurrencyListActionsContextType} from '@components/CurrencyListContextProvider';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
-import type {DefaultP2PMileageRate, LastSelectedDistanceRates, OnyxInputOrEntry, Transaction} from '@src/types/onyx';
+import type {LastSelectedDistanceRates, OnyxInputOrEntry, Transaction} from '@src/types/onyx';
 import type {Unit} from '@src/types/onyx/Policy';
 import type Policy from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import {getStoredDefaultP2PMileageRate} from './actions/Transaction';
 import {replaceAllDigits} from './MoneyRequestUtils';
 // This will be fixed as part of https://github.com/Expensify/App/issues/66397
 // eslint-disable-next-line @typescript-eslint/no-deprecated
@@ -268,14 +269,21 @@ function getDistanceMerchant(
 }
 
 /**
- * Retrieves the rate and unit for a P2P distance expense.
+ * Retrieves the rate and unit for a P2P distance expense for a given currency.
+ *
+ * Let's ensure this logic is consistent with the logic in the backend (Auth), since we're using the same method to calculate the rate value in distance requests created via Concierge.
+ *
+ * @param currency
+ * @returns The rate and unit in MileageRate object.
  */
-function getRateForP2P(currency: string, transaction: OnyxEntry<Transaction>, defaultP2PMileageRate?: DefaultP2PMileageRate | null): MileageRate {
-    const rate = getCurrency(transaction) === currency ? (transaction?.comment?.customUnit?.defaultP2PRate ?? defaultP2PMileageRate?.rate) : defaultP2PMileageRate?.rate;
+function getRateForP2P(currency: string, transaction: OnyxEntry<Transaction>): MileageRate {
+    const defaultRate = getStoredDefaultP2PMileageRate();
+    const p2pRate = defaultRate ?? {rate: 6700, unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES};
+    const rate = getCurrency(transaction) === currency ? (transaction?.comment?.customUnit?.defaultP2PRate ?? p2pRate.rate) : p2pRate.rate;
     return {
-        unit: defaultP2PMileageRate?.unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
-        currency,
         rate,
+        unit: p2pRate.unit as Unit,
+        currency: defaultRate ? currency : CONST.CURRENCY.USD,
     };
 }
 
@@ -390,7 +398,6 @@ function getRate({
     policy,
     policyDraft,
     useTransactionDistanceUnit = true,
-    defaultP2PMileageRate,
     policyForMovingExpenses,
     isFakeP2PRate,
 }: {
@@ -399,7 +406,6 @@ function getRate({
     policyDraft?: OnyxEntry<Policy>;
     policyForMovingExpenses?: OnyxEntry<Policy>;
     useTransactionDistanceUnit?: boolean;
-    defaultP2PMileageRate?: DefaultP2PMileageRate | null;
     isFakeP2PRate?: boolean;
 }): MileageRate {
     let mileageRates = getMileageRates(policy, true, transaction?.comment?.customUnit?.customUnitRateID);
@@ -415,7 +421,7 @@ function getRate({
     const customUnitRateID = getRateID(transaction);
     const customMileageRate =
         (customUnitRateID && (mileageRates?.[customUnitRateID] ?? mileageRatesForMovingExpenses?.[customUnitRateID])) || (isUnreportedExpense ? undefined : defaultMileageRate);
-    const mileageRate = isCustomUnitRateIDForP2P(transaction) || isFakeP2PRate ? getRateForP2P(policyCurrency, transaction, defaultP2PMileageRate) : customMileageRate;
+    const mileageRate = isCustomUnitRateIDForP2P(transaction) || isFakeP2PRate ? getRateForP2P(policyCurrency, transaction) : customMileageRate;
     const unit = getDistanceUnit(useTransactionDistanceUnit ? transaction : undefined, mileageRate);
     return {
         ...mileageRate,
@@ -431,18 +437,8 @@ function getRate({
  * For example, if an expense is '10 mi @ $1.00 / mi' and the rate is updated to '$1.00 / km',
  * then the updated distance unit should be 'km' from the updated rate, not 'mi' from the currently stored transaction distance unit.
  */
-function getUpdatedDistanceUnit({
-    transaction,
-    policy,
-    policyDraft,
-    defaultP2PMileageRate,
-}: {
-    transaction: OnyxEntry<Transaction>;
-    policy: OnyxEntry<Policy>;
-    policyDraft?: OnyxEntry<Policy>;
-    defaultP2PMileageRate?: DefaultP2PMileageRate | null;
-}) {
-    return getRate({transaction, policy, policyDraft, useTransactionDistanceUnit: false, defaultP2PMileageRate}).unit;
+function getUpdatedDistanceUnit({transaction, policy, policyDraft}: {transaction: OnyxEntry<Transaction>; policy: OnyxEntry<Policy>; policyDraft?: OnyxEntry<Policy>}) {
+    return getRate({transaction, policy, policyDraft, useTransactionDistanceUnit: false}).unit;
 }
 
 /**

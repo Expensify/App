@@ -5,7 +5,6 @@ import {useSearchActionsContext, useSearchStateContext} from '@components/Search
 import type {ListItem} from '@components/SelectionList/types';
 import useConditionalCreateEmptyReportConfirmation from '@hooks/useConditionalCreateEmptyReportConfirmation';
 import useHasPerDiemTransactions from '@hooks/useHasPerDiemTransactions';
-import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
@@ -33,7 +32,6 @@ type TransactionGroupListItem = ListItem & {
 type IOURequestEditReportProps = WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.EDIT_REPORT>;
 
 function IOURequestEditReport({route}: IOURequestEditReportProps) {
-    const {translate, toLocaleDigit} = useLocalize();
     const {backTo, reportID, action, shouldTurnOffSelectionMode, transactionID: transactionIDFromParams} = route.params;
     const {selectedTransactionIDs} = useSearchStateContext();
     const transactionIDs = transactionIDFromParams ? [transactionIDFromParams] : selectedTransactionIDs;
@@ -65,7 +63,6 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
     const policyForMovingExpenses = policyForMovingExpensesID ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyForMovingExpensesID}`] : undefined;
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
-    const [defaultP2PMileageRate] = useOnyx(ONYXKEYS.DEFAULT_P2P_MILEAGE_RATE);
     const selectReport = (item: TransactionGroupListItem, report?: OnyxEntry<Report>) => {
         if (transactionIDs.length === 0 || item.value === reportID) {
             Navigation.dismissToSuperWideRHP();
@@ -85,9 +82,6 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
                 reportNextStep,
                 policyCategories: allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${item.policyID}`],
                 allTransactions,
-                translate,
-                toLocaleDigit,
-                defaultP2PMileageRate,
             });
             turnOffMobileSelectionMode();
             clearSelectedTransactions(true);
@@ -107,9 +101,6 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
             email: session?.email ?? '',
             policy: allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${personalPolicyID}`],
             allTransactions,
-            translate,
-            toLocaleDigit,
-            defaultP2PMileageRate,
         });
         if (shouldTurnOffSelectionMode) {
             turnOffMobileSelectionMode();

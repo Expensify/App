@@ -246,7 +246,6 @@ function MoneyRequestConfirmationList({
         selector: mileageRateSelector,
     });
     const [policyCategoriesDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES_DRAFT}${policyID}`);
-    const [defaultP2PMileageRate] = useOnyx(ONYXKEYS.DEFAULT_P2P_MILEAGE_RATE);
     const {getCurrencySymbol, getCurrencyDecimals} = useCurrencyListActions();
     const {isBetaEnabled} = usePermissions();
     const isNewManualExpenseFlowEnabled = isBetaEnabled(CONST.BETAS.NEW_MANUAL_EXPENSE_FLOW);
@@ -323,7 +322,6 @@ function MoneyRequestConfirmationList({
         policy,
         ...(isMovingTransactionFromTrackExpense && {policyForMovingExpenses}),
         policyDraft,
-        defaultP2PMileageRate,
     });
     const rate = mileageRate.rate;
     const prevRate = usePrevious(rate);

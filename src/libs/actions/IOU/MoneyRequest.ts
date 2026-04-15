@@ -35,7 +35,6 @@ import type {
     Transaction,
     TransactionViolation,
 } from '@src/types/onyx';
-import type DefaultP2PMileageRate from '@src/types/onyx/DefaultP2PMileageRate';
 import type {ReportAttributes, ReportAttributesDerivedValue} from '@src/types/onyx/DerivedValues';
 import type {Participant} from '@src/types/onyx/IOU';
 import type {Unit} from '@src/types/onyx/Policy';
@@ -177,7 +176,6 @@ type MoneyRequestStepDistanceNavigationParams = {
     amountOwed: OnyxEntry<number>;
     userBillingGracePeriodEnds: OnyxCollection<BillingGraceEndPeriod>;
     ownerBillingGracePeriodEnd?: OnyxEntry<number>;
-    defaultP2PMileageRate?: DefaultP2PMileageRate;
     conciergeReportID: string | undefined;
 };
 
@@ -610,7 +608,6 @@ function handleMoneyRequestStepDistanceNavigation({
     amountOwed,
     userBillingGracePeriodEnds,
     ownerBillingGracePeriodEnd,
-    defaultP2PMileageRate,
     conciergeReportID,
 }: MoneyRequestStepDistanceNavigationParams) {
     const isManualDistance = manualDistance !== undefined;
@@ -662,12 +659,7 @@ function handleMoneyRequestStepDistanceNavigation({
             let merchant = translate('iou.fieldPending');
             if (isManualDistance && distance !== undefined && unit) {
                 const distanceInMeters = DistanceRequestUtils.convertToDistanceInMeters(distance, unit);
-                const mileageRate = DistanceRequestUtils.getRate({
-                    transaction,
-                    policy,
-                    policyForMovingExpenses,
-                    defaultP2PMileageRate,
-                });
+                const mileageRate = DistanceRequestUtils.getRate({transaction, policy});
                 amount = DistanceRequestUtils.getDistanceRequestAmount(distanceInMeters, unit, mileageRate?.rate ?? 0);
                 merchant = DistanceRequestUtils.getDistanceMerchant(
                     true,
@@ -808,7 +800,7 @@ function handleMoneyRequestStepDistanceNavigation({
                 ? DistanceRequestUtils.getRateByCustomUnitRateID({customUnitRateID: rateID, policy: policyForMovingExpenses})
                 : undefined;
             const currency = ratePolicyForMovingExpenses?.currency ?? personalOutputCurrency ?? CONST.CURRENCY.USD;
-            const distanceUnit = ratePolicyForMovingExpenses?.unit ?? DistanceRequestUtils.getRateForP2P(currency, transaction, defaultP2PMileageRate).unit;
+            const distanceUnit = ratePolicyForMovingExpenses?.unit ?? DistanceRequestUtils.getRateForP2P(currency, transaction).unit;
             const distanceInMeters = DistanceRequestUtils.convertToDistanceInMeters(distance, unit);
             const distanceInDistanceUnit = roundToTwoDecimalPlaces(DistanceRequestUtils.convertDistanceUnit(distanceInMeters, distanceUnit));
             setMoneyRequestDistance(transactionID, distanceInDistanceUnit, true, distanceUnit);

@@ -196,7 +196,7 @@ function shouldShowBulkDuplicateOption({
 }
 
 function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
-    const {translate, toLocaleDigit, localeCompare, formatPhoneNumber} = useLocalize();
+    const {translate, localeCompare, formatPhoneNumber} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
     const {isOffline} = useNetwork();
@@ -221,7 +221,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     const [csvExportLayouts] = useOnyx(ONYXKEYS.NVP_CSV_EXPORT_LAYOUTS);
     const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
-    const [defaultP2PMileageRate] = useOnyx(ONYXKEYS.DEFAULT_P2P_MILEAGE_RATE);
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const {isBetaEnabled} = usePermissions();
@@ -598,9 +597,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                             allTransactionViolations,
                             bankAccountList,
                             hash,
-                            defaultP2PMileageRate,
-                            translate,
-                            toLocaleDigit,
                         });
                     }
                 } else {
@@ -618,9 +614,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                         bankAccountList,
                         transactions,
                         allReportNameValuePairs,
-                        defaultP2PMileageRate,
-                        translate,
-                        toLocaleDigit,
                     });
                 }
                 clearSelectedTransactions();
@@ -646,7 +639,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         isExpenseReportType,
         selectedReportIDs,
         allReportNameValuePairs,
-        defaultP2PMileageRate,
     ]);
 
     const onBulkPaySelected = useCallback(
@@ -1348,7 +1340,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 icon: expensifyIcons.ArrowSplit,
                 value: CONST.SEARCH.BULK_ACTION_TYPES.SPLIT,
                 onSelected: () => {
-                    initSplitExpense(firstTransaction, firstTransactionPolicy, defaultP2PMileageRate);
+                    initSplitExpense(firstTransaction, firstTransactionPolicy);
                 },
             });
         }
@@ -1453,7 +1445,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         userBillingGracePeriodEnds,
         ownerBillingGracePeriodEnd,
         currentSearchKey,
-        defaultP2PMileageRate,
         getCurrencyDecimals,
         amountOwed,
         allTransactions,
