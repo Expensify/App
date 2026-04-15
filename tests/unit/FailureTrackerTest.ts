@@ -136,4 +136,40 @@ describe('FailureTracker', () => {
         recordSuccess();
         expect(listener).not.toHaveBeenCalled();
     });
+
+    test('slow-trickle failures trigger sustained failure once both thresholds are met', () => {
+        jest.useFakeTimers();
+        const listener = jest.fn();
+        const unsubscribe = onSustainedFailureChange(listener);
+
+        // Trickle failures in slowly — one every 5 seconds
+        recordFailure(); // failure 1 at t=0
+        jest.advanceTimersByTime(5000);
+        recordFailure(); // failure 2 at t=5s
+        jest.advanceTimersByTime(5000);
+        // At t=10s, elapsed >= SUSTAINED_FAILURE_WINDOW_MS (10s) and count will reach threshold
+        recordFailure(); // failure 3 at t=10s
+
+        expect(listener).toHaveBeenCalledWith(true);
+
+        unsubscribe();
+        jest.useRealTimers();
+    });
+
+    test('failures arriving just before window threshold do not trigger sustained failure', () => {
+        jest.useFakeTimers();
+        const listener = jest.fn();
+        const unsubscribe = onSustainedFailureChange(listener);
+
+        // All 3 failures land within the window — count met but elapsed too short
+        recordFailure();
+        jest.advanceTimersByTime(CONST.NETWORK.SUSTAINED_FAILURE_WINDOW_MS - 1);
+        recordFailure();
+        recordFailure();
+
+        expect(listener).not.toHaveBeenCalledWith(true);
+
+        unsubscribe();
+        jest.useRealTimers();
+    });
 });
