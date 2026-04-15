@@ -14,7 +14,7 @@ import IntlStore from '@src/languages/IntlStore';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import {hasCompletedGuidedSetupFlowSelector} from '@src/selectors/Onboarding';
 import type {Locale, Onboarding} from '@src/types/onyx';
 
@@ -127,36 +127,37 @@ function getOnboardingInitialPath(getOnboardingInitialPathParams: GetOnboardingI
         Onyx.set(ONYXKEYS.ONBOARDING_CUSTOM_CHOICES, [CONST.ONBOARDING_CHOICES.PERSONAL_SPEND, CONST.ONBOARDING_CHOICES.EMPLOYER, CONST.ONBOARDING_CHOICES.CHAT_SPLIT]);
     }
     if (isUserFromPublicDomain && !onboardingValuesParam?.isMergeAccountStepCompleted) {
-        return `/${ROUTES.ONBOARDING_WORK_EMAIL.route}`;
+        return `/${ROUTES.ONBOARDING_ROOT.route}/${DYNAMIC_ROUTES.ONBOARDING_WORK_EMAIL.path}`;
     }
 
     if (!isUserFromPublicDomain && hasAccessiblePolicies) {
         if (onboardingInitialPath) {
             return onboardingInitialPath;
         }
-        return `/${ROUTES.ONBOARDING_PERSONAL_DETAILS.route}`;
+        return `/${ROUTES.ONBOARDING_ROOT.route}/${DYNAMIC_ROUTES.ONBOARDING_PURPOSE.path}/${DYNAMIC_ROUTES.ONBOARDING_PERSONAL_DETAILS.path}`;
     }
 
     if (isVsb) {
-        return `/${ROUTES.ONBOARDING_ACCOUNTING.route}`;
+        return `/${ROUTES.ONBOARDING_ROOT.route}/${DYNAMIC_ROUTES.ONBOARDING_PURPOSE.path}/${DYNAMIC_ROUTES.ONBOARDING_ACCOUNTING.path}`;
     }
+
     if (isSmb) {
-        return `/${ROUTES.ONBOARDING_EMPLOYEES.route}`;
+        return `/${ROUTES.ONBOARDING_ROOT.route}/${DYNAMIC_ROUTES.ONBOARDING_PURPOSE.path}/${DYNAMIC_ROUTES.ONBOARDING_EMPLOYEES.path}`;
     }
 
     if (state?.routes?.at(-1)?.name !== NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR) {
         return `/${ROUTES.ONBOARDING_ROOT.route}`;
     }
 
-    if (onboardingInitialPath.includes(ROUTES.ONBOARDING_EMPLOYEES.route) && currentOnboardingPurposeSelected !== null && !isCurrentOnboardingPurposeManageTeam) {
-        return `/${ROUTES.ONBOARDING_PURPOSE.route}`;
+    if (onboardingInitialPath.includes(`/${DYNAMIC_ROUTES.ONBOARDING_EMPLOYEES.path}`) && currentOnboardingPurposeSelected !== null && !isCurrentOnboardingPurposeManageTeam) {
+        return `/${ROUTES.ONBOARDING_ROOT.route}/${DYNAMIC_ROUTES.ONBOARDING_PURPOSE.path}`;
     }
 
     if (
-        onboardingInitialPath.includes(ROUTES.ONBOARDING_ACCOUNTING.route) &&
+        onboardingInitialPath.includes(`/${DYNAMIC_ROUTES.ONBOARDING_ACCOUNTING.path}`) &&
         ((currentOnboardingPurposeSelected !== null && !isCurrentOnboardingPurposeManageTeam) || (currentOnboardingCompanySize === null && currentOnboardingPurposeSelected !== null))
     ) {
-        return `/${ROUTES.ONBOARDING_PURPOSE.route}`;
+        return `/${ROUTES.ONBOARDING_ROOT.route}/${DYNAMIC_ROUTES.ONBOARDING_PURPOSE.path}`;
     }
 
     return onboardingInitialPath;

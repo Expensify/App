@@ -11,6 +11,7 @@ import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useHasActiveAdminPolicies from '@hooks/useHasActiveAdminPolicies';
 import useLocalize from '@hooks/useLocalize';
 import useOnboardingStepCounter from '@hooks/useOnboardingStepCounter';
@@ -18,6 +19,7 @@ import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {addErrorMessage} from '@libs/ErrorUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {isPaidGroupPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
@@ -27,7 +29,7 @@ import {createWorkspace, generatePolicyID, newGenerateDefaultWorkspaceName} from
 import {setOnboardingAdminsChatReportID, setOnboardingErrorMessage, setOnboardingPolicyID} from '@userActions/Welcome';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import {lastWorkspaceNumberSelector} from '@src/selectors/Policy';
 import INPUT_IDS from '@src/types/form/WorkspaceConfirmationForm';
@@ -35,7 +37,7 @@ import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import OnboardingCurrencyPicker from './OnboardingCurrencyPicker';
 import type {BaseOnboardingWorkspaceConfirmationProps} from './types';
 
-function BaseOnboardingWorkspaceConfirmation({shouldUseNativeStyles}: BaseOnboardingWorkspaceConfirmationProps) {
+function BaseOnboardingWorkspaceConfirmation({shouldUseNativeStyles, navigateBackTo}: BaseOnboardingWorkspaceConfirmationProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [onboardingPurposeSelected] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED);
@@ -49,7 +51,9 @@ function BaseOnboardingWorkspaceConfirmation({shouldUseNativeStyles}: BaseOnboar
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
 
     const {inputCallbackRef} = useAutoFocusInput();
-    const onboardingStep = useOnboardingStepCounter(SCREENS.ONBOARDING.WORKSPACE_CONFIRMATION);
+    const onboardingStep = useOnboardingStepCounter(SCREENS.ONBOARDING.DYNAMIC_WORKSPACE_CONFIRMATION);
+    const dynamicBackPath = useDynamicBackPath(DYNAMIC_ROUTES.ONBOARDING_WORKSPACE_CONFIRMATION.path);
+    const backPath = navigateBackTo ?? dynamicBackPath;
 
     const [draftValues, draftValuesMetadata] = useOnyx(ONYXKEYS.FORMS.ONBOARDING_WORKSPACE_DETAILS_FORM_DRAFT);
     const [session, sessionMetadata] = useOnyx(ONYXKEYS.SESSION);
@@ -104,7 +108,7 @@ function BaseOnboardingWorkspaceConfirmation({shouldUseNativeStyles}: BaseOnboar
                 setOnboardingPolicyID(policyID);
             }
             clearWorkspaceDetailsDraft();
-            Navigation.navigate(ROUTES.ONBOARDING_WORKSPACE_INVITE.getRoute());
+            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.ONBOARDING_WORKSPACE_INVITE.path));
         },
         [
             onboardingPurposeSelected,
@@ -155,6 +159,7 @@ function BaseOnboardingWorkspaceConfirmation({shouldUseNativeStyles}: BaseOnboar
             <HeaderWithBackButton
                 stepCounter={onboardingStep?.stepCounter}
                 progressBarPercentage={onboardingStep?.progressBarPercentage}
+                onBackButtonPress={() => Navigation.goBack(backPath)}
                 shouldDisplayHelpButton={false}
             />
             <FormProvider

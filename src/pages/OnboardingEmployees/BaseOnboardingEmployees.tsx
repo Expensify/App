@@ -7,32 +7,35 @@ import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useOnboardingStepCounter from '@hooks/useOnboardingStepCounter';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {OnboardingCompanySize} from '@libs/actions/Welcome/OnboardingFlow';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {setOnboardingCompanySize} from '@userActions/Welcome';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {BaseOnboardingEmployeesProps} from './types';
 
 type OnboardingListItem = ListItem & {
     keyForList: OnboardingCompanySize;
 };
-function BaseOnboardingEmployees({shouldUseNativeStyles, route}: BaseOnboardingEmployeesProps) {
+function BaseOnboardingEmployees({shouldUseNativeStyles}: BaseOnboardingEmployeesProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [onboardingCompanySize] = useOnyx(ONYXKEYS.ONBOARDING_COMPANY_SIZE);
 
     const {onboardingIsMediumOrLargerScreenWidth} = useResponsiveLayout();
-    const onboardingStep = useOnboardingStepCounter(SCREENS.ONBOARDING.EMPLOYEES);
+    const onboardingStep = useOnboardingStepCounter(SCREENS.ONBOARDING.DYNAMIC_EMPLOYEES);
     const [selectedCompanySize, setSelectedCompanySize] = useState<OnboardingCompanySize | null | undefined>(onboardingCompanySize);
     const [error, setError] = useState('');
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.ONBOARDING_EMPLOYEES.path);
 
     const [onboardingValues] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
     const companySizeOptions: OnboardingListItem[] = useMemo(() => {
@@ -67,7 +70,7 @@ function BaseOnboardingEmployees({shouldUseNativeStyles, route}: BaseOnboardingE
                         return;
                     }
                     setOnboardingCompanySize(selectedCompanySize);
-                    Navigation.navigate(ROUTES.ONBOARDING_ACCOUNTING.getRoute(route.params?.backTo));
+                    Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.ONBOARDING_ACCOUNTING.path));
                 }}
                 pressOnEnter
                 sentryLabel={CONST.SENTRY_LABEL.ONBOARDING.CONTINUE}
@@ -85,7 +88,7 @@ function BaseOnboardingEmployees({shouldUseNativeStyles, route}: BaseOnboardingE
                 stepCounter={onboardingStep?.stepCounter}
                 progressBarPercentage={onboardingStep?.progressBarPercentage}
                 onBackButtonPress={() => {
-                    Navigation.goBack(ROUTES.ONBOARDING_PURPOSE.getRoute());
+                    Navigation.goBack(backPath);
                 }}
                 shouldDisplayHelpButton={false}
             />

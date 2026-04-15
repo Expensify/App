@@ -232,6 +232,78 @@ const DYNAMIC_ROUTES = {
         path: 'keyboard-shortcuts',
         entryScreens: ['*'],
     },
+    ONBOARDING_PRIVATE_DOMAIN: {
+        path: 'private-domain',
+        entryScreens: [SCREENS.ONBOARDING.DYNAMIC_PERSONAL_DETAILS, SCREENS.ONBOARDING.DYNAMIC_WORK_EMAIL],
+    },
+    ONBOARDING_WORKSPACE: {
+        path: 'create-workspace',
+        entryScreens: [SCREENS.ONBOARDING.DYNAMIC_PERSONAL_DETAILS],
+    },
+    ONBOARDING_WORKSPACE_CONFIRMATION: {
+        path: 'workspace-confirmation',
+        entryScreens: [SCREENS.ONBOARDING.DYNAMIC_WORKSPACE_OPTIONAL],
+    },
+    ONBOARDING_WORKSPACE_CURRENCY: {
+        path: 'workspace-currency',
+        entryScreens: [SCREENS.ONBOARDING.DYNAMIC_WORKSPACE_CONFIRMATION],
+    },
+    ONBOARDING_WORKSPACE_INVITE: {
+        path: 'workspace-invite',
+        entryScreens: [SCREENS.ONBOARDING.DYNAMIC_WORKSPACE_CONFIRMATION],
+    },
+    ONBOARDING_WORKSPACES: {
+        path: 'join-workspaces',
+        entryScreens: [SCREENS.ONBOARDING.DYNAMIC_PERSONAL_DETAILS, SCREENS.ONBOARDING.DYNAMIC_PRIVATE_DOMAIN, SCREENS.ONBOARDING.DYNAMIC_WORK_EMAIL_VALIDATION],
+    },
+    ONBOARDING_WORK_EMAIL: {
+        path: 'work-email',
+        entryScreens: ['*'],
+    },
+    ONBOARDING_WORK_EMAIL_VALIDATION: {
+        path: 'work-email-validation',
+        entryScreens: [SCREENS.ONBOARDING.DYNAMIC_WORK_EMAIL],
+    },
+    ONBOARDING_PURPOSE: {
+        path: 'purpose',
+        entryScreens: [
+            SCREENS.ONBOARDING.DYNAMIC_PURPOSE,
+            SCREENS.ONBOARDING.DYNAMIC_WORK_EMAIL,
+            SCREENS.ONBOARDING.DYNAMIC_WORK_EMAIL_VALIDATION,
+            SCREENS.ONBOARDING.DYNAMIC_PRIVATE_DOMAIN,
+            SCREENS.ONBOARDING.DYNAMIC_WORKSPACES,
+        ],
+    },
+    ONBOARDING_PERSONAL_DETAILS: {
+        path: 'personal-details',
+        entryScreens: [SCREENS.ONBOARDING.DYNAMIC_PURPOSE],
+    },
+    ONBOARDING_EMPLOYEES: {
+        path: 'employees',
+        entryScreens: [
+            SCREENS.ONBOARDING.DYNAMIC_PURPOSE,
+            SCREENS.ONBOARDING.DYNAMIC_WORKSPACES,
+            SCREENS.ONBOARDING.DYNAMIC_WORK_EMAIL,
+            SCREENS.ONBOARDING.DYNAMIC_WORK_EMAIL_VALIDATION,
+            SCREENS.ONBOARDING.DYNAMIC_PRIVATE_DOMAIN,
+        ],
+    },
+    ONBOARDING_ACCOUNTING: {
+        path: 'accounting',
+        entryScreens: [
+            SCREENS.ONBOARDING.DYNAMIC_PURPOSE,
+            SCREENS.ONBOARDING.DYNAMIC_WORKSPACES,
+            SCREENS.ONBOARDING.DYNAMIC_WORK_EMAIL,
+            SCREENS.ONBOARDING.DYNAMIC_WORK_EMAIL_VALIDATION,
+            SCREENS.ONBOARDING.DYNAMIC_PRIVATE_DOMAIN,
+            SCREENS.ONBOARDING.DYNAMIC_EMPLOYEES,
+        ],
+    },
+    ONBOARDING_INTERESTED_FEATURES: {
+        path: 'interested-features',
+        entryScreens: [SCREENS.ONBOARDING.DYNAMIC_ACCOUNTING],
+    },
+
     DETAILS_CONSTANT_PICKER: {
         path: 'constant-picker',
         entryScreens: [SCREENS.DEBUG.REPORT, SCREENS.DEBUG.REPORT_ACTION, SCREENS.DEBUG.TRANSACTION, SCREENS.DEBUG.TRANSACTION_VIOLATION],
@@ -3203,89 +3275,11 @@ const ROUTES = {
         // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
         getRoute: (backTo?: string) => getUrlWithBackToParam(`onboarding`, backTo),
     },
-    ONBOARDING_PERSONAL_DETAILS: {
-        route: 'onboarding/personal-details',
-
-        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-        getRoute: (backTo?: string) => getUrlWithBackToParam(`onboarding/personal-details`, backTo),
-    },
-    ONBOARDING_PRIVATE_DOMAIN: {
-        route: 'onboarding/private-domain',
-
-        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-        getRoute: (backTo?: string) => getUrlWithBackToParam(`onboarding/private-domain`, backTo),
-    },
-    ONBOARDING_EMPLOYEES: {
-        route: 'onboarding/employees',
-
-        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-        getRoute: (backTo?: string) => getUrlWithBackToParam(`onboarding/employees`, backTo),
-    },
-    ONBOARDING_ACCOUNTING: {
-        route: 'onboarding/accounting',
-
-        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-        getRoute: (backTo?: string) => getUrlWithBackToParam(`onboarding/accounting`, backTo),
-    },
-    ONBOARDING_INTERESTED_FEATURES: {
-        route: 'onboarding/interested-features',
-
-        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-        getRoute: (userReportedIntegration?: string, backTo?: string) => getUrlWithBackToParam(`onboarding/interested-features?userReportedIntegration=${userReportedIntegration}`, backTo),
-    },
-    ONBOARDING_PURPOSE: {
-        route: 'onboarding/purpose',
-
-        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-        getRoute: (backTo?: string) => getUrlWithBackToParam(`onboarding/purpose`, backTo),
-    },
-    ONBOARDING_WORKSPACES: {
-        route: 'onboarding/join-workspaces',
-
-        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-        getRoute: (backTo?: string) => getUrlWithBackToParam(`onboarding/join-workspaces`, backTo),
-    },
-    ONBOARDING_WORK_EMAIL: {
-        route: 'onboarding/work-email',
-
-        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-        getRoute: (backTo?: string) => getUrlWithBackToParam(`onboarding/work-email`, backTo),
-    },
-    ONBOARDING_WORK_EMAIL_VALIDATION: {
-        route: 'onboarding/work-email-validation',
-
-        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-        getRoute: (backTo?: string) => getUrlWithBackToParam(`onboarding/work-email-validation`, backTo),
-    },
-    ONBOARDING_WORKSPACE: {
-        route: 'onboarding/create-workspace',
-
-        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-        getRoute: (backTo?: string) => getUrlWithBackToParam(`onboarding/create-workspace`, backTo),
-    },
-    ONBOARDING_WORKSPACE_CONFIRMATION: {
-        route: 'onboarding/workspace-confirmation',
-
-        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-        getRoute: (backTo?: string) => getUrlWithBackToParam(`onboarding/workspace-confirmation`, backTo),
-    },
-    ONBOARDING_WORKSPACE_CURRENCY: {
-        route: 'onboarding/workspace-currency',
-
-        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-        getRoute: (backTo?: string) => getUrlWithBackToParam(`onboarding/workspace-currency`, backTo),
-    },
     CURRENCY_SELECTION: {
         route: 'workspace/confirmation/currency',
 
         // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
         getRoute: (backTo?: string) => getUrlWithBackToParam(`workspace/confirmation/currency`, backTo),
-    },
-    ONBOARDING_WORKSPACE_INVITE: {
-        route: 'onboarding/workspace-invite',
-
-        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-        getRoute: (backTo?: string) => getUrlWithBackToParam(`onboarding/workspace-invite`, backTo),
     },
     EXPLANATION_MODAL_ROOT: 'onboarding/explanation',
     TEST_DRIVE_MODAL_ROOT: {

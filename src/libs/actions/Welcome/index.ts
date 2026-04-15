@@ -10,7 +10,7 @@ import CONFIG from '@src/CONFIG';
 import type {OnboardingAccounting} from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import type {Route} from '@src/ROUTES';
 import type {OnboardingPurpose} from '@src/types/onyx';
 import type Onboarding from '@src/types/onyx/Onboarding';
 import type {OnboardingCompanySize} from './OnboardingFlow';
@@ -71,7 +71,7 @@ function updateOnboardingValuesAndNavigation(onboardingValues: Onboarding | unde
     // We need to have the Onyx values updated before navigating back
     // Because we navigate based no useEffect logic and we need to clear `shouldValidate` value before going back
     Navigation.setNavigationActionToMicrotaskQueue(() => {
-        Navigation.goBack(ROUTES.ONBOARDING_WORK_EMAIL.getRoute());
+        Navigation.goBack('/onboarding/work-email' as Route);
     });
 }
 

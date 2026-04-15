@@ -90,56 +90,43 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
             // the onboarding purpose page will be briefly visible.
             path: ROUTES.ONBOARDING_ROOT.route,
             screens: {
-                [SCREENS.ONBOARDING.WORK_EMAIL]: {
-                    path: ROUTES.ONBOARDING_WORK_EMAIL.route,
+                [SCREENS.ONBOARDING.DYNAMIC_WORK_EMAIL]: {
+                    path: DYNAMIC_ROUTES.ONBOARDING_WORK_EMAIL.path,
                     exact: true,
                 },
-                [SCREENS.ONBOARDING.WORK_EMAIL_VALIDATION]: {
-                    path: ROUTES.ONBOARDING_WORK_EMAIL_VALIDATION.route,
+                [SCREENS.ONBOARDING.DYNAMIC_WORK_EMAIL_VALIDATION]: {
+                    path: DYNAMIC_ROUTES.ONBOARDING_WORK_EMAIL_VALIDATION.path,
                     exact: true,
                 },
-                [SCREENS.ONBOARDING.PURPOSE]: {
-                    path: ROUTES.ONBOARDING_PURPOSE.route,
+                [SCREENS.ONBOARDING.DYNAMIC_PURPOSE]: {
+                    path: DYNAMIC_ROUTES.ONBOARDING_PURPOSE.path,
                     exact: true,
                 },
-                [SCREENS.ONBOARDING.PERSONAL_DETAILS]: {
-                    path: ROUTES.ONBOARDING_PERSONAL_DETAILS.route,
+                [SCREENS.ONBOARDING.DYNAMIC_PERSONAL_DETAILS]: {
+                    path: DYNAMIC_ROUTES.ONBOARDING_PERSONAL_DETAILS.path,
+                },
+                [SCREENS.ONBOARDING.DYNAMIC_PRIVATE_DOMAIN]: DYNAMIC_ROUTES.ONBOARDING_PRIVATE_DOMAIN.path,
+                [SCREENS.ONBOARDING.DYNAMIC_EMPLOYEES]: DYNAMIC_ROUTES.ONBOARDING_EMPLOYEES.path,
+                [SCREENS.ONBOARDING.DYNAMIC_ACCOUNTING]: DYNAMIC_ROUTES.ONBOARDING_ACCOUNTING.path,
+                [SCREENS.ONBOARDING.DYNAMIC_INTERESTED_FEATURES]: DYNAMIC_ROUTES.ONBOARDING_INTERESTED_FEATURES.path,
+                [SCREENS.ONBOARDING.DYNAMIC_WORKSPACES]: {
+                    path: DYNAMIC_ROUTES.ONBOARDING_WORKSPACES.path,
                     exact: true,
                 },
-                [SCREENS.ONBOARDING.PRIVATE_DOMAIN]: {
-                    path: ROUTES.ONBOARDING_PRIVATE_DOMAIN.route,
+                [SCREENS.ONBOARDING.DYNAMIC_WORKSPACE_OPTIONAL]: {
+                    path: DYNAMIC_ROUTES.ONBOARDING_WORKSPACE.path,
                     exact: true,
                 },
-                [SCREENS.ONBOARDING.EMPLOYEES]: {
-                    path: ROUTES.ONBOARDING_EMPLOYEES.route,
+                [SCREENS.ONBOARDING.DYNAMIC_WORKSPACE_CONFIRMATION]: {
+                    path: DYNAMIC_ROUTES.ONBOARDING_WORKSPACE_CONFIRMATION.path,
                     exact: true,
                 },
-                [SCREENS.ONBOARDING.ACCOUNTING]: {
-                    path: ROUTES.ONBOARDING_ACCOUNTING.route,
+                [SCREENS.ONBOARDING.DYNAMIC_WORKSPACE_CURRENCY]: {
+                    path: DYNAMIC_ROUTES.ONBOARDING_WORKSPACE_CURRENCY.path,
                     exact: true,
                 },
-                [SCREENS.ONBOARDING.INTERESTED_FEATURES]: {
-                    path: ROUTES.ONBOARDING_INTERESTED_FEATURES.route,
-                    exact: true,
-                },
-                [SCREENS.ONBOARDING.WORKSPACES]: {
-                    path: ROUTES.ONBOARDING_WORKSPACES.route,
-                    exact: true,
-                },
-                [SCREENS.ONBOARDING.WORKSPACE_OPTIONAL]: {
-                    path: ROUTES.ONBOARDING_WORKSPACE.route,
-                    exact: true,
-                },
-                [SCREENS.ONBOARDING.WORKSPACE_CONFIRMATION]: {
-                    path: ROUTES.ONBOARDING_WORKSPACE_CONFIRMATION.route,
-                    exact: true,
-                },
-                [SCREENS.ONBOARDING.WORKSPACE_CURRENCY]: {
-                    path: ROUTES.ONBOARDING_WORKSPACE_CURRENCY.route,
-                    exact: true,
-                },
-                [SCREENS.ONBOARDING.WORKSPACE_INVITE]: {
-                    path: ROUTES.ONBOARDING_WORKSPACE_INVITE.route,
+                [SCREENS.ONBOARDING.DYNAMIC_WORKSPACE_INVITE]: {
+                    path: DYNAMIC_ROUTES.ONBOARDING_WORKSPACE_INVITE.path,
                     exact: true,
                 },
             },

@@ -34,14 +34,17 @@ TestHelper.setupGlobalFetchMock();
 
 const Stack = createPlatformStackNavigator<OnboardingModalNavigatorParamList>();
 
-const renderOnboardingEmployeesPage = (initialRouteName: typeof SCREENS.ONBOARDING.EMPLOYEES, initialParams: OnboardingModalNavigatorParamList[typeof SCREENS.ONBOARDING.EMPLOYEES]) => {
+const renderOnboardingEmployeesPage = (
+    initialRouteName: typeof SCREENS.ONBOARDING.DYNAMIC_EMPLOYEES,
+    initialParams: OnboardingModalNavigatorParamList[typeof SCREENS.ONBOARDING.DYNAMIC_EMPLOYEES],
+) => {
     return render(
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrentReportIDContextProvider]}>
             <PortalProvider>
                 <NavigationContainer>
                     <Stack.Navigator initialRouteName={initialRouteName}>
                         <Stack.Screen
-                            name={SCREENS.ONBOARDING.EMPLOYEES}
+                            name={SCREENS.ONBOARDING.DYNAMIC_EMPLOYEES}
                             component={OnboardingEmployees}
                             initialParams={initialParams}
                         />
@@ -82,7 +85,7 @@ describe('OnboardingEmployees Page', () => {
             });
         });
 
-        const {unmount} = renderOnboardingEmployeesPage(SCREENS.ONBOARDING.EMPLOYEES, {backTo: ''});
+        const {unmount} = renderOnboardingEmployeesPage(SCREENS.ONBOARDING.DYNAMIC_EMPLOYEES, undefined);
 
         await waitForBatchedUpdatesWithAct();
 
@@ -105,7 +108,7 @@ describe('OnboardingEmployees Page', () => {
             });
         });
 
-        const {unmount} = renderOnboardingEmployeesPage(SCREENS.ONBOARDING.EMPLOYEES, {backTo: ''});
+        const {unmount} = renderOnboardingEmployeesPage(SCREENS.ONBOARDING.DYNAMIC_EMPLOYEES, undefined);
 
         await waitForBatchedUpdatesWithAct();
 

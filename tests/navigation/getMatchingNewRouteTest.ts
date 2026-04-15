@@ -13,6 +13,10 @@ describe('getBestMatchingPath', () => {
         expect(getMatchingNewRoute('/settings/workspaces/anything/more')).toBe('/workspaces/anything/more');
     });
 
+    it('maps legacy onboarding personal details path to the current route', () => {
+        expect(getMatchingNewRoute('/onboarding/purpose/personal-details')).toBe('/onboarding/personal-details');
+    });
+
     it('returns undefined when input does not match any pattern - similar prefix but different ending', () => {
         expect(getMatchingNewRoute('/settings/anything/')).toBe(undefined);
     });

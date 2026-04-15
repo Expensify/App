@@ -260,14 +260,20 @@ function getDefaultFullScreenRoute(route?: NavigationPartialRoute) {
 
 function getOnboardingAdaptedState(state: PartialState<NavigationState>): PartialState<NavigationState> {
     const onboardingRoute = state.routes.at(0);
-    if (!onboardingRoute || onboardingRoute.name === SCREENS.ONBOARDING.PURPOSE || onboardingRoute.name === SCREENS.ONBOARDING.WORK_EMAIL) {
+    if (
+        !onboardingRoute ||
+        onboardingRoute.name === SCREENS.ONBOARDING.DYNAMIC_PURPOSE ||
+        onboardingRoute.name === SCREENS.ONBOARDING.DYNAMIC_WORK_EMAIL ||
+        onboardingRoute.name === SCREENS.ONBOARDING.DYNAMIC_WORK_EMAIL_VALIDATION ||
+        onboardingRoute.name === SCREENS.ONBOARDING.DYNAMIC_WORKSPACE_OPTIONAL
+    ) {
         return state;
     }
 
     const routes = [];
-    routes.push({name: onboardingRoute.name === SCREENS.ONBOARDING.WORKSPACES ? SCREENS.ONBOARDING.PERSONAL_DETAILS : SCREENS.ONBOARDING.PURPOSE});
-    if (onboardingRoute.name === SCREENS.ONBOARDING.ACCOUNTING) {
-        routes.push({name: SCREENS.ONBOARDING.EMPLOYEES});
+    routes.push({name: onboardingRoute.name === SCREENS.ONBOARDING.DYNAMIC_WORKSPACES ? SCREENS.ONBOARDING.DYNAMIC_PERSONAL_DETAILS : SCREENS.ONBOARDING.DYNAMIC_PURPOSE});
+    if (onboardingRoute.name === SCREENS.ONBOARDING.DYNAMIC_ACCOUNTING) {
+        routes.push({name: SCREENS.ONBOARDING.DYNAMIC_EMPLOYEES});
     }
     routes.push(onboardingRoute);
 

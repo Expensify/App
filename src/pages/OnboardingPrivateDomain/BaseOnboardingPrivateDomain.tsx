@@ -1,3 +1,4 @@
+import {useIsFocused} from '@react-navigation/native';
 import React, {useCallback, useEffect, useState} from 'react';
 import {View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -5,24 +6,25 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import ValidateCodeForm from '@components/ValidateCodeActionModal/ValidateCodeForm';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useOnboardingStepCounter from '@hooks/useOnboardingStepCounter';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updateOnboardingValuesAndNavigation} from '@libs/actions/Welcome';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {isCurrentUserValidated} from '@libs/UserUtils';
 import {clearGetAccessiblePoliciesErrors, getAccessiblePolicies} from '@userActions/Policy/Policy';
 import {resendValidateCode} from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
-import type {Route} from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {BaseOnboardingPrivateDomainProps} from './types';
 
-function BaseOnboardingPrivateDomain({shouldUseNativeStyles, route}: BaseOnboardingPrivateDomainProps) {
+function BaseOnboardingPrivateDomain({shouldUseNativeStyles}: BaseOnboardingPrivateDomainProps) {
     const [hasMagicCodeBeenSent, setHasMagicCodeBeenSent] = useState(false);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -32,9 +34,11 @@ function BaseOnboardingPrivateDomain({shouldUseNativeStyles, route}: BaseOnboard
     const [getAccessiblePoliciesAction] = useOnyx(ONYXKEYS.VALIDATE_USER_AND_GET_ACCESSIBLE_POLICIES);
     const [joinablePolicies] = useOnyx(ONYXKEYS.JOINABLE_POLICIES);
     const joinablePoliciesLength = Object.keys(joinablePolicies ?? {}).length;
+    const isFocused = useIsFocused();
 
     const {onboardingIsMediumOrLargerScreenWidth} = useResponsiveLayout();
-    const onboardingStep = useOnboardingStepCounter(SCREENS.ONBOARDING.PRIVATE_DOMAIN);
+    const onboardingStep = useOnboardingStepCounter(SCREENS.ONBOARDING.DYNAMIC_PRIVATE_DOMAIN);
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.ONBOARDING_PRIVATE_DOMAIN.path);
 
     const email = session?.email ?? '';
     const domain = email.split('@').at(1) ?? '';
@@ -58,9 +62,8 @@ function BaseOnboardingPrivateDomain({shouldUseNativeStyles, route}: BaseOnboard
             return;
         }
 
-        const routeToNavigate = (route.params?.backTo as Route) ?? ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute();
-        Navigation.goBack(routeToNavigate);
-    }, [route.params?.backTo, onboardingValues]);
+        Navigation.goBack(backPath);
+    }, [backPath, onboardingValues]);
 
     useEffect(() => {
         if (isValidated) {
@@ -70,12 +73,16 @@ function BaseOnboardingPrivateDomain({shouldUseNativeStyles, route}: BaseOnboard
     }, [sendValidateCode, isValidated]);
 
     useEffect(() => {
+        if (!isFocused) {
+            return;
+        }
+
         if (!isValidated) {
             return;
         }
 
         if (joinablePoliciesLength > 0) {
-            Navigation.navigate(ROUTES.ONBOARDING_WORKSPACES.getRoute(ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute()), {forceReplace: true});
+            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.ONBOARDING_WORKSPACES.path), {forceReplace: true});
             return;
         }
 
@@ -83,16 +90,16 @@ function BaseOnboardingPrivateDomain({shouldUseNativeStyles, route}: BaseOnboard
         // navigate to the next onboarding step (same as the skip button behavior).
         if (getAccessiblePoliciesAction?.loading === false) {
             if (isVsb) {
-                Navigation.navigate(ROUTES.ONBOARDING_ACCOUNTING.getRoute(ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute()), {forceReplace: true});
+                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.ONBOARDING_ACCOUNTING.path), {forceReplace: true});
                 return;
             }
             if (isSmb) {
-                Navigation.navigate(ROUTES.ONBOARDING_EMPLOYEES.getRoute(ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute()), {forceReplace: true});
+                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.ONBOARDING_EMPLOYEES.path), {forceReplace: true});
                 return;
             }
-            Navigation.navigate(ROUTES.ONBOARDING_PURPOSE.getRoute(ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute()), {forceReplace: true});
+            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.ONBOARDING_PURPOSE.path), {forceReplace: true});
         }
-    }, [isValidated, joinablePoliciesLength, getAccessiblePoliciesAction?.loading, isVsb, isSmb]);
+    }, [isValidated, joinablePoliciesLength, getAccessiblePoliciesAction?.loading, isVsb, isSmb, isFocused]);
 
     return (
         <ScreenWrapper
@@ -137,15 +144,15 @@ function BaseOnboardingPrivateDomain({shouldUseNativeStyles, route}: BaseOnboard
                         shouldShowSkipButton
                         handleSkipButtonPress={() => {
                             if (isVsb) {
-                                Navigation.navigate(ROUTES.ONBOARDING_ACCOUNTING.getRoute(route.params?.backTo));
+                                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.ONBOARDING_ACCOUNTING.path));
                                 return;
                             }
 
                             if (isSmb) {
-                                Navigation.navigate(ROUTES.ONBOARDING_EMPLOYEES.getRoute(route.params?.backTo));
+                                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.ONBOARDING_EMPLOYEES.path));
                                 return;
                             }
-                            Navigation.navigate(ROUTES.ONBOARDING_PURPOSE.getRoute(route.params?.backTo));
+                            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.ONBOARDING_PURPOSE.path));
                         }}
                         buttonStyles={[styles.flex2, styles.justifyContentEnd]}
                         isLoading={getAccessiblePoliciesAction?.loading}
