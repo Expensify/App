@@ -48,7 +48,7 @@ async function setManageTeamUserState(overrides?: {
     hasAccountingConnection?: boolean;
     hasCustomCategories?: boolean;
     hasCompanyCardConnection?: boolean;
-    hasNonDefaultRules?: boolean;
+    hasConfiguredRules?: boolean;
     trialStartDate?: string;
 }) {
     const trialStart = overrides?.trialStartDate ?? '2026-03-01';

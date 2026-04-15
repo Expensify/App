@@ -3796,6 +3796,15 @@ const CONST = {
         DEFAULT_MAX_EXPENSE_AMOUNT: 200000,
         DEFAULT_MAX_AMOUNT_NO_RECEIPT: 2500,
         DEFAULT_MAX_AMOUNT_NO_ITEMIZED_RECEIPT: 7500,
+        DEFAULT_PROHIBITED_EXPENSES: {
+            alcohol: false,
+            hotelIncidentals: false,
+            gambling: true,
+            tobacco: false,
+            adultEntertainment: true,
+        },
+        DEFAULT_BILLABLE: false,
+        DEFAULT_REIMBURSABLE: true,
         DEFAULT_TAG_LIST: {
             Tag: {
                 name: 'Tag',

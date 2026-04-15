@@ -692,14 +692,12 @@ function hasCustomCategories(policyCategories: OnyxEntry<PolicyCategories>): boo
 }
 
 /**
- * Checks if a policy has any non-default rules configured.
- * Defaults are: no approval/expense/coding rules and no custom rules text.
+ * Checks if a policy has any rules configured (structured rules, individual expense limits, or prohibited expenses).
  */
-function hasNonDefaultRules(policy: OnyxEntry<Policy>): boolean {
+function hasConfiguredRules(policy: OnyxEntry<Policy>): boolean {
     if (!policy) {
         return false;
     }
-
     const hasCustomRules = !!policy.customRules && policy.customRules.trim().length > 0;
 
     const {rules} = policy;
@@ -707,7 +705,46 @@ function hasNonDefaultRules(policy: OnyxEntry<Policy>): boolean {
     const hasExpenseRules = !!rules?.expenseRules && rules.expenseRules.length > 0;
     const hasCodingRules = !!rules?.codingRules && Object.keys(rules.codingRules).length > 0;
 
-    return hasCustomRules || hasApprovalRules || hasExpenseRules || hasCodingRules;
+    const hasModifiedMaxExpenseAmount =
+        !!policy.maxExpenseAmount && policy.maxExpenseAmount !== CONST.DISABLED_MAX_EXPENSE_VALUE && policy.maxExpenseAmount !== CONST.POLICY.DEFAULT_MAX_EXPENSE_AMOUNT;
+    const hasModifiedMaxExpenseAge = !!policy.maxExpenseAge && policy.maxExpenseAge !== CONST.DISABLED_MAX_EXPENSE_VALUE && policy.maxExpenseAge !== CONST.POLICY.DEFAULT_MAX_EXPENSE_AGE;
+    const hasModifiedMaxExpenseAmountNoReceipt =
+        !!policy.maxExpenseAmountNoReceipt &&
+        policy.maxExpenseAmountNoReceipt !== CONST.DISABLED_MAX_EXPENSE_VALUE &&
+        policy.maxExpenseAmountNoReceipt !== CONST.POLICY.DEFAULT_MAX_AMOUNT_NO_RECEIPT;
+    const hasModifiedMaxExpenseAmountNoItemizedReceipt =
+        !!policy.maxExpenseAmountNoItemizedReceipt &&
+        policy.maxExpenseAmountNoItemizedReceipt !== CONST.DISABLED_MAX_EXPENSE_VALUE &&
+        policy.maxExpenseAmountNoItemizedReceipt !== CONST.POLICY.DEFAULT_MAX_AMOUNT_NO_ITEMIZED_RECEIPT;
+
+    const hasModifiedBillable = !!policy.defaultBillable;
+    const hasModifiedReimbursable = policy.defaultReimbursable === false;
+    const hasEReceiptsEnabled = !!policy.eReceipts;
+    const hasRequireCompanyCardsEnabled = !!policy.requireCompanyCardsEnabled;
+
+    const {prohibitedExpenses} = policy;
+    const hasModifiedProhibitedExpenses =
+        !!prohibitedExpenses &&
+        Object.entries(CONST.POLICY.DEFAULT_PROHIBITED_EXPENSES).some(([key, defaultValue]) => {
+            const value = prohibitedExpenses[key as keyof typeof CONST.POLICY.DEFAULT_PROHIBITED_EXPENSES];
+            return value !== undefined && value !== defaultValue;
+        });
+
+    return (
+        hasCustomRules ||
+        hasApprovalRules ||
+        hasExpenseRules ||
+        hasCodingRules ||
+        hasModifiedMaxExpenseAmount ||
+        hasModifiedMaxExpenseAge ||
+        hasModifiedMaxExpenseAmountNoReceipt ||
+        hasModifiedMaxExpenseAmountNoItemizedReceipt ||
+        hasModifiedBillable ||
+        hasModifiedReimbursable ||
+        hasEReceiptsEnabled ||
+        hasRequireCompanyCardsEnabled ||
+        hasModifiedProhibitedExpenses
+    );
 }
 
 /**
@@ -2132,7 +2169,7 @@ export {
     getTagLists,
     hasTags,
     hasCustomCategories,
-    hasNonDefaultRules,
+    hasConfiguredRules,
     getTaxByID,
     getUnitRateValue,
     getRateDisplayValue,

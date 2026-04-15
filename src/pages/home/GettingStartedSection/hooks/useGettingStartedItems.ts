@@ -4,7 +4,7 @@ import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import {hasCompanyCardFeeds} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {getValidConnectedIntegration, hasCustomCategories, hasNonDefaultRules, isPaidGroupPolicy, isPendingDeletePolicy, isPolicyAdmin} from '@libs/PolicyUtils';
+import {getValidConnectedIntegration, hasConfiguredRules, hasCustomCategories, isPaidGroupPolicy, isPendingDeletePolicy, isPolicyAdmin} from '@libs/PolicyUtils';
 import isWithinGettingStartedPeriod from '@pages/home/GettingStartedSection/utils/isWithinGettingStartedPeriod';
 import {enableCompanyCards} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
@@ -110,7 +110,7 @@ function useGettingStartedItems(): UseGettingStartedItemsResult {
         items.push({
             key: 'setupRules',
             label: translate('homePage.gettingStartedSection.setupRules'),
-            isComplete: hasNonDefaultRules(policy),
+            isComplete: hasConfiguredRules(policy),
             route: ROUTES.WORKSPACE_RULES.getRoute(activePolicyID),
         });
     }
