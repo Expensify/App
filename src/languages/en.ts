@@ -6191,8 +6191,6 @@ const translations = {
                         case 'startingImportQBD':
                         case 'quickbooksDesktopImportMore':
                             return 'Importing QuickBooks Desktop data';
-                        case 'startingImportGusto':
-                            return 'Importing Gusto data';
                         case 'quickbooksDesktopImportTitle':
                             return 'Importing title';
                         case 'quickbooksDesktopImportApproveCertificate':
@@ -6284,14 +6282,6 @@ const translations = {
                             return 'Importing Sage Intacct dimensions';
                         case 'intacctImportTitle':
                             return 'Importing Sage Intacct data';
-                        case 'gustoSyncLoadCompany':
-                            return 'Loading Gusto company data';
-                        case 'gustoSyncImportEmployees':
-                            return 'Importing employees';
-                        case 'gustoSyncBuildApprovalChains':
-                            return 'Building approval chains';
-                        case 'gustoSyncFinalize':
-                            return 'Finalizing sync';
                         default: {
                             // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
                             return `Translation missing for stage: ${stage}`;

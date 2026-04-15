@@ -5982,8 +5982,6 @@ ${amount} para ${merchant} - ${date}`,
                         case 'startingImportQBD':
                         case 'quickbooksDesktopImportMore':
                             return 'Importando datos desde QuickBooks Desktop';
-                        case 'startingImportGusto':
-                            return 'Importando datos desde Gusto';
                         case 'quickbooksDesktopImportTitle':
                             return 'Importando título';
                         case 'quickbooksDesktopImportApproveCertificate':
@@ -6075,14 +6073,6 @@ ${amount} para ${merchant} - ${date}`,
                             return 'Importando dimensiones';
                         case 'intacctImportTitle':
                             return 'Importando datos desde Sage Intacct';
-                        case 'gustoSyncLoadCompany':
-                            return 'Cargando datos de la empresa de Gusto';
-                        case 'gustoSyncImportEmployees':
-                            return 'Importando empleados';
-                        case 'gustoSyncBuildApprovalChains':
-                            return 'Creando cadenas de aprobación';
-                        case 'gustoSyncFinalize':
-                            return 'Finalizando la sincronización';
                         default: {
                             // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
                             return `Translation missing for stage: ${stage}`;
