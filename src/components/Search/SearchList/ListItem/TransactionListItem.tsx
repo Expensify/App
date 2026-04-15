@@ -29,7 +29,7 @@ import {syncMissingAttendeesViolation} from '@libs/AttendeeUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {isAttendeeTrackingEnabled} from '@libs/PolicyUtils';
 import {isInvoiceReport} from '@libs/ReportUtils';
-import {isViolationDismissed, mergeProhibitedViolations, shouldShowViolation} from '@libs/TransactionUtils';
+import {isDeletedTransaction as isDeletedTransactionUtil, isViolationDismissed, mergeProhibitedViolations, shouldShowViolation} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isActionLoadingSelector} from '@src/selectors/ReportMetaData';
@@ -58,8 +58,10 @@ function TransactionListItem<TItem extends ListItem>({
     isLastItem,
     userBillingGracePeriodEnds,
     ownerBillingGracePeriodEnd,
+    onUndelete,
 }: TransactionListItemProps<TItem>) {
     const transactionItem = item as unknown as TransactionListItemType;
+    const isDeletedTransaction = isDeletedTransactionUtil(transactionItem);
     const styles = useThemeStyles();
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
@@ -181,6 +183,7 @@ function TransactionListItem<TItem extends ListItem>({
             personalPolicyID,
             ownerBillingGracePeriodEnd,
             amountOwed,
+            onUndelete: () => onUndelete?.(transactionItem),
         });
     };
 
@@ -193,10 +196,10 @@ function TransactionListItem<TItem extends ListItem>({
             <PressableWithFeedback
                 ref={pressableRef}
                 onLongPress={() => onLongPressRow?.(item)}
-                onPress={() => onSelectRow(item, transactionPreviewData)}
+                onPress={isDeletedTransaction && !canSelectMultiple ? undefined : () => onSelectRow(item, transactionPreviewData)}
                 disabled={isDisabled && !item.isSelected}
                 accessibilityLabel={item.text ?? ''}
-                role={getButtonRole(true)}
+                role={!isDeletedTransaction ? getButtonRole(true) : 'none'}
                 isNested
                 onMouseDown={(e) => e.preventDefault()}
                 hoverStyle={[!item.isDisabled && styles.hoveredComponentBG, item.isSelected && styles.activeComponentBG]}
@@ -206,6 +209,7 @@ function TransactionListItem<TItem extends ListItem>({
                 style={[
                     pressableStyle,
                     isFocused && StyleUtils.getItemBackgroundColorStyle(!!item.isSelected, !!isFocused, !!item.isDisabled, theme.activeComponentBG, theme.hoverComponentBG),
+                    isDeletedTransaction && styles.cursorDefault,
                 ]}
                 onFocus={onFocus}
                 wrapperStyle={[
@@ -223,7 +227,7 @@ function TransactionListItem<TItem extends ListItem>({
                             <UserInfoAndActionButtonRow
                                 item={transactionItem}
                                 handleActionButtonPress={handleActionButtonPress}
-                                shouldShowUserInfo={!!transactionItem?.from}
+                                shouldShowUserInfo={!isDeletedTransaction && !!transactionItem?.from}
                                 isInMobileSelectionMode={shouldUseNarrowLayout && !!canSelectMultiple}
                                 isDisabledItem={!!isDisabled}
                             />
@@ -252,7 +256,7 @@ function TransactionListItem<TItem extends ListItem>({
                             checkboxSentryLabel={CONST.SENTRY_LABEL.SEARCH.TRANSACTION_LIST_ITEM_CHECKBOX}
                             style={[styles.p3, styles.pv2, shouldUseNarrowLayout ? styles.pt2 : isLargeScreenWidth && styles.noBorderRadius]}
                             violations={transactionViolations}
-                            onArrowRightPress={() => onSelectRow(item, transactionPreviewData)}
+                            onArrowRightPress={isDeletedTransaction ? undefined : () => onSelectRow(item, transactionPreviewData)}
                             isHover={hovered}
                             customCardNames={customCardNames}
                             reportActions={exportedReportActions}
