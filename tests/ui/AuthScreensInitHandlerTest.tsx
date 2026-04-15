@@ -2,6 +2,7 @@ import {render} from '@testing-library/react-native';
 import React from 'react';
 import {View} from 'react-native';
 import Onyx from 'react-native-onyx';
+import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import {init as activeClientManagerInit, isClientTheLeader, isReady} from '@libs/ActiveClientManager';
 import AuthScreensInitHandler from '@libs/Navigation/AppNavigator/AuthScreensInitHandler';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
@@ -12,6 +13,8 @@ import {didUserLogInDuringSession, isLoggingInAsNewUser} from '@libs/SessionUtil
 import {openApp, reconnectApp} from '@userActions/App';
 import {signOutAndRedirectToSignIn} from '@userActions/Session';
 import {subscribeToUserEvents} from '@userActions/User';
+import CONST from '@src/CONST';
+import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {ReportAttributesDerivedValue} from '@src/types/onyx';
@@ -79,6 +82,7 @@ jest.mock('@userActions/App', () => ({
     reconnectApp: jest.fn(),
     setUpPoliciesAndNavigate: jest.fn(),
     confirmReadyToOpenApp: jest.fn(),
+    setLocale: jest.fn(),
 }));
 
 jest.mock('@userActions/Download', () => ({
@@ -126,15 +130,18 @@ const mockedOnReconnect = jest.mocked(NetworkConnection.onReconnect);
 
 function renderAuthScreensInitHandler() {
     return render(
-        <View>
-            <AuthScreensInitHandler />
-        </View>,
+        <LocaleContextProvider>
+            <View>
+                <AuthScreensInitHandler />
+            </View>
+        </LocaleContextProvider>,
     );
 }
 
 describe('AuthScreensInitHandler', () => {
     beforeAll(() => {
         Onyx.init({keys: ONYXKEYS});
+        return IntlStore.load(CONST.LOCALES.EN);
     });
 
     beforeEach(async () => {

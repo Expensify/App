@@ -62,6 +62,10 @@ function WorkspaceWorkflowsApprovalsOverLimitApproverPage({policy, personalDetai
                     return null;
                 }
 
+                if (employee.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+                    return null;
+                }
+
                 if (shouldFilterOutExpensifyTeam && isExpensifyTeam(email) && currentApprover?.overLimitForwardsTo !== email) {
                     return null;
                 }
