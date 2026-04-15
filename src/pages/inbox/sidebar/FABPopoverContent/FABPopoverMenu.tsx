@@ -10,7 +10,6 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import {close} from '@libs/actions/Modal';
 import {isSafari} from '@libs/Browser';
 import navigateAfterInteraction from '@libs/Navigation/navigateAfterInteraction';
-import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import {FABMenuContext} from './FABMenuContext';
 
@@ -131,7 +130,7 @@ function FABPopoverMenu({isVisible, onClose, onItemSelected, anchorRef, animatio
                 >
                     <Activity mode={contentActivityMode}>
                         <View style={shouldUseNarrowLayout ? styles.flexGrow1 : [styles.createMenuContainer, styles.pv0, styles.flex1]}>
-                            <View style={shouldUseNarrowLayout ? styles.pv4 : {paddingVertical: variables.spacing2}}>{children}</View>
+                            <View style={shouldUseNarrowLayout ? styles.pv4 : styles.pv2}>{children}</View>
                         </View>
                     </Activity>
                 </FocusTrapForModal>
