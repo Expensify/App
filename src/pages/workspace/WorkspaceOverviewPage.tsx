@@ -807,95 +807,99 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                         </OfflineWithFeedback>
                     )}
                 </Section>
-                {isBetaEnabled(CONST.BETAS.CUSTOM_RULES) ? (
+                {isBetaEnabled(CONST.BETAS.CUSTOM_RULES) && (isPolicyAdmin || !!policy?.rulesDocumentURL || !StringUtils.isEmptyString(policy?.customRules ?? '')) ? (
                     <Section
                         isCentralPane
                         title={translate('workspace.rules.customRules.title')}
                         titleStyles={[styles.textHeadline, styles.cardSectionTitle, styles.accountSettingsSectionTitle, styles.mb0]}
                         subtitle={translate('workspace.rules.customRules.cardSubtitle')}
-                        subtitleStyles={[styles.mb6]}
+                        subtitleStyles={[(isPolicyAdmin || !!policy?.rulesDocumentURL) ? styles.mb6 : styles.mb2]}
                         subtitleTextStyles={[styles.textNormal, styles.colorMuted, styles.mr5]}
                         containerStyles={shouldUseNarrowLayout ? styles.p5 : styles.p8}
                     >
-                        <OfflineWithFeedback
-                            pendingAction={policy?.pendingFields?.rulesDocumentURL}
-                            errors={getLatestErrorField(policy ?? {}, 'rulesDocumentURL')}
-                            onClose={() => {
-                                if (!policyID) {
-                                    return;
-                                }
-                                clearPolicyErrorField(policyID, 'rulesDocumentURL');
-                            }}
-                        >
-                            <Text style={[styles.mutedTextLabel, styles.mb2]}>{translate('workspace.rules.customRules.policyDocument')}</Text>
-                            <AttachmentPicker acceptedFileTypes={['pdf']}>
-                                {({openPicker}) => {
-                                    if (policy?.rulesDocumentURL) {
-                                        return (
-                                            <View style={[styles.w100, rulesDocumentThumbnailStyle]}>
-                                                <PressableWithoutFeedback
-                                                    onPress={() => {
-                                                        if (!policyID) {
-                                                            return;
-                                                        }
-                                                        Navigation.navigate(ROUTES.WORKSPACE_DOCUMENT.getRoute(policyID));
-                                                    }}
-                                                    role={CONST.ROLE.BUTTON}
-                                                    accessibilityLabel={translate('workspace.rules.customRules.policyDocument')}
-                                                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.OVERVIEW.RULES_DOCUMENT}
-                                                    style={[styles.border, styles.borderRadiusComponentLarge, styles.overflowHidden, styles.flex1]}
-                                                >
-                                                    <PDFThumbnail
-                                                        previewSourceURL={rulesDocumentSourceURL}
-                                                        style={styles.flex1}
-                                                    />
-                                                </PressableWithoutFeedback>
-                                                {isPolicyAdmin && (
-                                                    <View style={[styles.pAbsolute, rulesDocumentMenuPositionStyle]}>
-                                                        <ThreeDotsMenu
-                                                            menuItems={getRulesDocumentMenuItems(openPicker)}
-                                                            shouldSelfPosition
-                                                            iconStyles={[rulesDocumentMenuIconStyle]}
+                        {(isPolicyAdmin || !!policy?.rulesDocumentURL) && (
+                            <OfflineWithFeedback
+                                pendingAction={policy?.pendingFields?.rulesDocumentURL}
+                                errors={getLatestErrorField(policy ?? {}, 'rulesDocumentURL')}
+                                onClose={() => {
+                                    if (!policyID) {
+                                        return;
+                                    }
+                                    clearPolicyErrorField(policyID, 'rulesDocumentURL');
+                                }}
+                            >
+                                <Text style={[styles.mutedTextLabel, styles.mb2]}>{translate('workspace.rules.customRules.policyDocument')}</Text>
+                                <AttachmentPicker acceptedFileTypes={['pdf']}>
+                                    {({openPicker}) => {
+                                        if (policy?.rulesDocumentURL) {
+                                            return (
+                                                <View style={[styles.w100, rulesDocumentThumbnailStyle]}>
+                                                    <PressableWithoutFeedback
+                                                        onPress={() => {
+                                                            if (!policyID) {
+                                                                return;
+                                                            }
+                                                            Navigation.navigate(ROUTES.WORKSPACE_DOCUMENT.getRoute(policyID));
+                                                        }}
+                                                        role={CONST.ROLE.BUTTON}
+                                                        accessibilityLabel={translate('workspace.rules.customRules.policyDocument')}
+                                                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.OVERVIEW.RULES_DOCUMENT}
+                                                        style={[styles.border, styles.borderRadiusComponentLarge, styles.overflowHidden, styles.flex1]}
+                                                    >
+                                                        <PDFThumbnail
+                                                            previewSourceURL={rulesDocumentSourceURL}
+                                                            style={styles.flex1}
                                                         />
-                                                    </View>
-                                                )}
+                                                    </PressableWithoutFeedback>
+                                                    {isPolicyAdmin && (
+                                                        <View style={[styles.pAbsolute, rulesDocumentMenuPositionStyle]}>
+                                                            <ThreeDotsMenu
+                                                                menuItems={getRulesDocumentMenuItems(openPicker)}
+                                                                shouldSelfPosition
+                                                                iconStyles={[rulesDocumentMenuIconStyle]}
+                                                            />
+                                                        </View>
+                                                    )}
+                                                </View>
+                                            );
+                                        }
+
+                                        if (!isPolicyAdmin) {
+                                            return null;
+                                        }
+
+                                        return (
+                                            <View style={[styles.flexRow]}>
+                                                <Button
+                                                    medium
+                                                    text={translate('common.chooseFile')}
+                                                    onPress={() => {
+                                                        openPicker({
+                                                            onPicked: handleRulesDocumentPicked,
+                                                        });
+                                                    }}
+                                                />
                                             </View>
                                         );
-                                    }
+                                    }}
+                                </AttachmentPicker>
+                            </OfflineWithFeedback>
+                        )}
 
-                                    if (!isPolicyAdmin) {
-                                        return null;
-                                    }
-
-                                    return (
-                                        <View style={[styles.flexRow]}>
-                                            <Button
-                                                medium
-                                                text={translate('common.chooseFile')}
-                                                onPress={() => {
-                                                    openPicker({
-                                                        onPicked: handleRulesDocumentPicked,
-                                                    });
-                                                }}
-                                            />
-                                        </View>
-                                    );
-                                }}
-                            </AttachmentPicker>
-                        </OfflineWithFeedback>
-
-                        <OfflineWithFeedback pendingAction={policy?.pendingFields?.customRules}>
-                            <MenuItemWithTopDescription
-                                title={policy?.customRules ?? ''}
-                                description={translate('workspace.rules.customRules.policyText')}
-                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.OVERVIEW.CUSTOM_RULES}
-                                shouldShowRightIcon={!readOnly}
-                                interactive={!readOnly}
-                                wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mt4]}
-                                onPress={() => Navigation.navigate(ROUTES.RULES_CUSTOM.getRoute(route.params.policyID))}
-                                shouldRenderAsHTML
-                            />
-                        </OfflineWithFeedback>
+                        {(isPolicyAdmin || !StringUtils.isEmptyString(policy?.customRules ?? '')) && (
+                            <OfflineWithFeedback pendingAction={policy?.pendingFields?.customRules}>
+                                <MenuItemWithTopDescription
+                                    title={policy?.customRules ?? ''}
+                                    description={translate('workspace.rules.customRules.policyText')}
+                                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.OVERVIEW.CUSTOM_RULES}
+                                    shouldShowRightIcon={!readOnly}
+                                    interactive={!readOnly}
+                                    wrapperStyle={[styles.sectionMenuItemTopDescription, (isPolicyAdmin || !!policy?.rulesDocumentURL) && styles.mt4]}
+                                    onPress={() => Navigation.navigate(ROUTES.RULES_CUSTOM.getRoute(route.params.policyID))}
+                                    shouldRenderAsHTML
+                                />
+                            </OfflineWithFeedback>
+                        )}
                     </Section>
                 ) : null}
             </View>
