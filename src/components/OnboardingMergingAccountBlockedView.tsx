@@ -8,7 +8,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';
 import {setOnboardingErrorMessage} from '@userActions/Welcome';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import BlockingView from './BlockingViews/BlockingView';
 import Button from './Button';
 
