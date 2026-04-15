@@ -4172,7 +4172,6 @@ ${amount} voor ${merchant} - ${date}`,
             travel: 'Reizen',
             members: 'Leden',
             accounting: 'Boekhouding',
-            hr: 'HR',
             receiptPartners: 'Bonpartners',
             rules: 'Regels',
             displayedAs: 'Weergegeven als',
@@ -6271,36 +6270,6 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                 chooseBankAccount: 'Kies de bankrekening waarop de betalingen met je Expensify Kaart worden afgestemd.',
                 settlementAccountReconciliation: (settlementAccountUrl: string, lastFourPAN: string) =>
                     `Zorg ervoor dat deze rekening overeenkomt met je <a href="${settlementAccountUrl}">Expensify Kaart-afwikkelingsrekening</a> (eindigend op ${lastFourPAN}), zodat Continue Afstemming goed werkt.`,
-            },
-        },
-        hr: {
-            title: 'HR',
-            subtitle: 'Connect HR tools and keep employee approvals in sync.',
-            settingsTitle: 'Gusto settings',
-            syncStageName: ({stage}) => {
-                switch (stage) {
-                    case 'startingImportGusto':
-                        return 'Importing Gusto data';
-                    case 'gustoSyncLoadCompany':
-                        return 'Loading Gusto company data';
-                    case 'gustoSyncImportEmployees':
-                        return 'Importing employees';
-                    case 'gustoSyncBuildApprovalChains':
-                        return 'Building approval chains';
-                    case 'gustoSyncFinalize':
-                        return 'Finalizing sync';
-                    case 'jobDone':
-                        return 'Waiting for imported data to load';
-                    default: {
-                        // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-                        return `Translation missing for stage: ${stage}`;
-                    }
-                }
-            },
-            gusto: {
-                title: 'Gusto',
-                approvalMode: 'Approval mode',
-                finalApprover: 'Final approver',
             },
         },
         export: {

@@ -4198,7 +4198,6 @@ ${amount} pour ${merchant} - ${date}`,
             travel: 'Déplacements',
             members: 'Membres',
             accounting: 'Comptabilité',
-            hr: 'HR',
             receiptPartners: 'Partenaires de reçus',
             rules: 'Règles',
             displayedAs: 'Affiché comme',
@@ -6322,36 +6321,6 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                 chooseBankAccount: 'Choisissez le compte bancaire avec lequel les paiements de votre Carte Expensify seront rapprochés.',
                 settlementAccountReconciliation: (settlementAccountUrl: string, lastFourPAN: string) =>
                     `Assurez-vous que ce compte correspond à votre <a href="${settlementAccountUrl}">compte de règlement Carte Expensify</a> (se terminant par ${lastFourPAN}) afin que la réconciliation continue fonctionne correctement.`,
-            },
-        },
-        hr: {
-            title: 'HR',
-            subtitle: 'Connect HR tools and keep employee approvals in sync.',
-            settingsTitle: 'Gusto settings',
-            syncStageName: ({stage}) => {
-                switch (stage) {
-                    case 'startingImportGusto':
-                        return 'Importing Gusto data';
-                    case 'gustoSyncLoadCompany':
-                        return 'Loading Gusto company data';
-                    case 'gustoSyncImportEmployees':
-                        return 'Importing employees';
-                    case 'gustoSyncBuildApprovalChains':
-                        return 'Building approval chains';
-                    case 'gustoSyncFinalize':
-                        return 'Finalizing sync';
-                    case 'jobDone':
-                        return 'Waiting for imported data to load';
-                    default: {
-                        // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-                        return `Translation missing for stage: ${stage}`;
-                    }
-                }
-            },
-            gusto: {
-                title: 'Gusto',
-                approvalMode: 'Approval mode',
-                finalApprover: 'Final approver',
             },
         },
         export: {

@@ -4076,7 +4076,6 @@ ${amount} para ${merchant} - ${date}`,
             travel: 'Viajes',
             members: 'Miembros',
             accounting: 'Contabilidad',
-            hr: 'HR',
             receiptPartners: 'Socios de recibos',
             rules: 'Reglas',
             plan: 'Plan',
@@ -6161,36 +6160,6 @@ ${amount} para ${merchant} - ${date}`,
             },
         },
 
-        hr: {
-            title: 'HR',
-            subtitle: 'Connect HR tools and keep employee approvals in sync.',
-            settingsTitle: 'Gusto settings',
-            syncStageName: ({stage}) => {
-                switch (stage) {
-                    case 'startingImportGusto':
-                        return 'Importing Gusto data';
-                    case 'gustoSyncLoadCompany':
-                        return 'Loading Gusto company data';
-                    case 'gustoSyncImportEmployees':
-                        return 'Importing employees';
-                    case 'gustoSyncBuildApprovalChains':
-                        return 'Building approval chains';
-                    case 'gustoSyncFinalize':
-                        return 'Finalizing sync';
-                    case 'jobDone':
-                        return 'Waiting for imported data to load';
-                    default: {
-                        // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-                        return `Translation missing for stage: ${stage}`;
-                    }
-                }
-            },
-            gusto: {
-                title: 'Gusto',
-                approvalMode: 'Approval mode',
-                finalApprover: 'Final approver',
-            },
-        },
         export: {
             notReadyHeading: 'No está listo para exportar',
             notReadyDescription:

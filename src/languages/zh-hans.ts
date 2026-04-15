@@ -4068,7 +4068,6 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             travel: '差旅',
             members: '成员',
             accounting: '会计',
-            hr: 'HR',
             receiptPartners: '收据合作伙伴',
             rules: '规则',
             displayedAs: '显示为',
@@ -6109,36 +6108,6 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 chooseBankAccount: '选择用于对账 Expensify 卡付款的银行账户。',
                 settlementAccountReconciliation: (settlementAccountUrl: string, lastFourPAN: string) =>
                     `请确保此账户与您的<a href="${settlementAccountUrl}">Expensify 卡结算账户</a>（末尾为 ${lastFourPAN}）一致，以便持续对账功能正常运行。`,
-            },
-        },
-        hr: {
-            title: 'HR',
-            subtitle: 'Connect HR tools and keep employee approvals in sync.',
-            settingsTitle: 'Gusto settings',
-            syncStageName: ({stage}) => {
-                switch (stage) {
-                    case 'startingImportGusto':
-                        return 'Importing Gusto data';
-                    case 'gustoSyncLoadCompany':
-                        return 'Loading Gusto company data';
-                    case 'gustoSyncImportEmployees':
-                        return 'Importing employees';
-                    case 'gustoSyncBuildApprovalChains':
-                        return 'Building approval chains';
-                    case 'gustoSyncFinalize':
-                        return 'Finalizing sync';
-                    case 'jobDone':
-                        return 'Waiting for imported data to load';
-                    default: {
-                        // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-                        return `Translation missing for stage: ${stage}`;
-                    }
-                }
-            },
-            gusto: {
-                title: 'Gusto',
-                approvalMode: 'Approval mode',
-                finalApprover: 'Final approver',
             },
         },
         export: {

@@ -4144,7 +4144,6 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             travel: '出張',
             members: 'メンバー',
             accounting: '会計',
-            hr: 'HR',
             receiptPartners: '領収書パートナー',
             rules: 'ルール',
             displayedAs: '表示形式',
@@ -6221,36 +6220,6 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                 chooseBankAccount: 'Expensify カードの支払いを照合する銀行口座を選択してください。',
                 settlementAccountReconciliation: (settlementAccountUrl: string, lastFourPAN: string) =>
                     `継続消込が正しく機能するように、この口座が、末尾が ${lastFourPAN} の<a href="${settlementAccountUrl}">Expensify カード精算口座</a>と一致していることを確認してください。`,
-            },
-        },
-        hr: {
-            title: 'HR',
-            subtitle: 'Connect HR tools and keep employee approvals in sync.',
-            settingsTitle: 'Gusto settings',
-            syncStageName: ({stage}) => {
-                switch (stage) {
-                    case 'startingImportGusto':
-                        return 'Importing Gusto data';
-                    case 'gustoSyncLoadCompany':
-                        return 'Loading Gusto company data';
-                    case 'gustoSyncImportEmployees':
-                        return 'Importing employees';
-                    case 'gustoSyncBuildApprovalChains':
-                        return 'Building approval chains';
-                    case 'gustoSyncFinalize':
-                        return 'Finalizing sync';
-                    case 'jobDone':
-                        return 'Waiting for imported data to load';
-                    default: {
-                        // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-                        return `Translation missing for stage: ${stage}`;
-                    }
-                }
-            },
-            gusto: {
-                title: 'Gusto',
-                approvalMode: 'Approval mode',
-                finalApprover: 'Final approver',
             },
         },
         export: {

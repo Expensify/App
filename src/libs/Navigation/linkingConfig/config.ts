@@ -955,12 +955,6 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.RECEIPT_PARTNERS_CHANGE_BILLING_ACCOUNT]: {
                             path: ROUTES.WORKSPACE_RECEIPT_PARTNERS_CHANGE_BILLING_ACCOUNT.route,
                         },
-                        [SCREENS.WORKSPACE.HR_GUSTO_APPROVAL_MODE]: {
-                            path: ROUTES.WORKSPACE_HR_GUSTO_APPROVAL_MODE.route,
-                        },
-                        [SCREENS.WORKSPACE.HR_GUSTO_FINAL_APPROVER]: {
-                            path: ROUTES.WORKSPACE_HR_GUSTO_FINAL_APPROVER.route,
-                        },
                         [SCREENS.WORKSPACE.RECEIPT_PARTNERS_INVITE_EDIT]: {
                             path: ROUTES.WORKSPACE_RECEIPT_PARTNERS_INVITE_EDIT.route,
                             screens: {
@@ -2268,9 +2262,6 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         },
                         [SCREENS.WORKSPACE.MORE_FEATURES]: {
                             path: ROUTES.WORKSPACE_MORE_FEATURES.route,
-                        },
-                        [SCREENS.WORKSPACE.HR]: {
-                            path: ROUTES.WORKSPACE_HR.route,
                         },
                         [SCREENS.WORKSPACE.TAGS]: {
                             path: ROUTES.WORKSPACE_TAGS.route,
