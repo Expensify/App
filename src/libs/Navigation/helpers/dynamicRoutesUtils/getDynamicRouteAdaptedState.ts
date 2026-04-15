@@ -81,7 +81,7 @@ function getDynamicRouteAdaptedState(state: PartialState<NavigationState>, focus
         }
 
         const basePath = getPathWithoutDynamicSuffix(currentPath, suffixMatch.actualSuffix, suffixMatch.pattern);
-        if (!basePath) {
+        if (!basePath || basePath === currentPath) {
             break;
         }
 
