@@ -583,7 +583,7 @@ describe('useSelectedTransactionsActions', () => {
             expect(result.current.options.length).toBeGreaterThan(0);
         });
 
-        const holdOption = result.current.options.find((option) => option.value === 'HOLD');
+        const holdOption = result.current.options.find((option) => option.value === 'hold');
         expect(holdOption).toBeDefined();
         expect(holdOption?.text).toBe('iou.hold');
     });
@@ -631,7 +631,7 @@ describe('useSelectedTransactionsActions', () => {
             expect(result.current.options.length).toBeGreaterThan(0);
         });
 
-        const holdOption = result.current.options.find((option) => option.value === 'HOLD');
+        const holdOption = result.current.options.find((option) => option.value === 'hold');
         holdOption?.onSelected?.();
 
         expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SEARCH_MONEY_REQUEST_REPORT_HOLD_TRANSACTIONS.getRoute({reportID: report.reportID}));
@@ -681,7 +681,7 @@ describe('useSelectedTransactionsActions', () => {
             expect(result.current.options.length).toBeGreaterThan(0);
         });
 
-        const unholdOption = result.current.options.find((option) => option.value === 'UNHOLD');
+        const unholdOption = result.current.options.find((option) => option.value === 'unhold');
         expect(unholdOption).toBeDefined();
         expect(unholdOption?.text).toBe('iou.unhold');
 
@@ -736,7 +736,7 @@ describe('useSelectedTransactionsActions', () => {
             expect(result.current.options.length).toBeGreaterThan(0);
         });
 
-        const unholdOption = result.current.options.find((option) => option.value === 'UNHOLD');
+        const unholdOption = result.current.options.find((option) => option.value === 'unhold');
         expect(unholdOption).toBeDefined();
 
         unholdOption?.onSelected?.();
@@ -785,11 +785,11 @@ describe('useSelectedTransactionsActions', () => {
         // The EXPORT option appears immediately, but MOVE depends on selectedTransactionsList
         // which requires the Onyx transaction data to be fully loaded.
         await waitFor(() => {
-            const moveOption = result.current.options.find((option) => option.value === 'MOVE');
+            const moveOption = result.current.options.find((option) => option.value === 'move');
             expect(moveOption).toBeDefined();
         });
 
-        const moveOption = result.current.options.find((option) => option.value === 'MOVE');
+        const moveOption = result.current.options.find((option) => option.value === 'move');
         expect(moveOption?.text).toBe('iou.moveExpenses');
     });
 
@@ -830,7 +830,7 @@ describe('useSelectedTransactionsActions', () => {
         );
 
         await waitFor(() => {
-            const moveOption = result.current.options.find((option) => option.value === 'MOVE');
+            const moveOption = result.current.options.find((option) => option.value === 'move');
             expect(moveOption).toBeDefined();
         });
 
@@ -892,11 +892,11 @@ describe('useSelectedTransactionsActions', () => {
         // The EXPORT option appears immediately, but SPLIT depends on selectedTransactionsList
         // which requires the Onyx transaction data to be fully loaded.
         await waitFor(() => {
-            const splitOption = result.current.options.find((option) => option.value === 'SPLIT');
+            const splitOption = result.current.options.find((option) => option.value === 'split');
             expect(splitOption).toBeDefined();
         });
 
-        const splitOption = result.current.options.find((option) => option.value === 'SPLIT');
+        const splitOption = result.current.options.find((option) => option.value === 'split');
         expect(splitOption?.text).toBe('iou.split');
 
         splitOption?.onSelected?.();
@@ -939,11 +939,11 @@ describe('useSelectedTransactionsActions', () => {
         // The EXPORT option appears immediately, but MERGE depends on selectedTransactionsList
         // which requires the Onyx transaction data to be fully loaded.
         await waitFor(() => {
-            const mergeOption = result.current.options.find((option) => option.value === 'MERGE');
+            const mergeOption = result.current.options.find((option) => option.value === 'merge');
             expect(mergeOption).toBeDefined();
         });
 
-        const mergeOption = result.current.options.find((option) => option.value === 'MERGE');
+        const mergeOption = result.current.options.find((option) => option.value === 'merge');
         expect(mergeOption?.text).toBe('common.merge');
 
         mergeOption?.onSelected?.();
