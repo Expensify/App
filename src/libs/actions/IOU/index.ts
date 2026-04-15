@@ -2526,6 +2526,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         isNewChatReport,
         shouldCreateNewMoneyRequestReport,
         shouldGenerateTransactionThreadReport,
+        isOneOnOneSplit: isSplitExpense,
         policyParams: {
             policy,
             policyCategories,
