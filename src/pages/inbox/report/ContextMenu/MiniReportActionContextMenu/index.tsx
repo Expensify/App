@@ -62,7 +62,7 @@ function MiniReportActionContextMenu() {
         checkIfContextMenuActive,
         setIsEmojiPickerActive,
     } = useMiniContextMenuState() ?? {};
-    const {hideMiniContextMenu, keepOpen, release} = useMiniContextMenuActions();
+    const {hideMiniContextMenu, keepOpen, release, menuContainerRef} = useMiniContextMenuActions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
@@ -71,7 +71,15 @@ function MiniReportActionContextMenu() {
     const overflowIcons = useMemoizedLazyExpensifyIcons(['ThreeDots'] as const);
     const threeDotRef = useRef<View>(null);
     const overlayRef = useRef<View>(null);
-    const menuContainerRef = useRef<View>(null);
+    const localMenuContainerRef = useRef<View>(null);
+    const menuContainerCallbackRef = useCallback(
+        (node: View | null) => {
+            localMenuContainerRef.current = node;
+            // eslint-disable-next-line no-param-reassign
+            menuContainerRef.current = node as unknown as HTMLElement | null;
+        },
+        [menuContainerRef],
+    );
     const [containerRect, setContainerRect] = useState<DOMRect | null>(null);
 
     const overlayCallbackRef = useCallback((node: View | null) => {
@@ -99,7 +107,7 @@ function MiniReportActionContextMenu() {
             : null;
 
     useEffect(() => {
-        const el = menuContainerRef.current as unknown as HTMLElement | null;
+        const el = localMenuContainerRef.current as unknown as HTMLElement | null;
         if (!el) {
             return;
         }
@@ -111,11 +119,26 @@ function MiniReportActionContextMenu() {
             hideMiniContextMenu();
         };
 
+        const onKeyDown = (e: KeyboardEvent) => {
+            if (e.key !== 'Tab' || !e.shiftKey) {
+                return;
+            }
+            const anchorEl = anchor?.current as unknown as HTMLElement | null;
+            if (!anchorEl) {
+                return;
+            }
+            e.preventDefault();
+            anchorEl.focus();
+        };
+
         el.addEventListener('blur', onBlurCapture, true);
+        el.addEventListener('keydown', onKeyDown);
         return () => {
             el.removeEventListener('blur', onBlurCapture, true);
+            el.removeEventListener('keydown', onKeyDown);
         };
-    }, [hideMiniContextMenu]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- anchor is a ref object, only its .current matters
+    }, [hideMiniContextMenu, anchor?.current]);
 
     useEffect(() => {
         if (!isVisible) {
@@ -132,7 +155,7 @@ function MiniReportActionContextMenu() {
     }, [isVisible, release, hideMiniContextMenu]);
 
     useEffect(() => {
-        const el = menuContainerRef.current as unknown as HTMLElement | null;
+        const el = localMenuContainerRef.current as unknown as HTMLElement | null;
         if (!el) {
             return;
         }
@@ -506,7 +529,7 @@ function MiniReportActionContextMenu() {
                         pointerEvents={isVisible ? 'auto' : 'none'}
                     >
                         <View
-                            ref={menuContainerRef}
+                            ref={menuContainerCallbackRef}
                             style={wrapperStyle}
                         >
                             {hasEmoji && !!emojiData.reportAction && !!emojiData.reportActionID && (

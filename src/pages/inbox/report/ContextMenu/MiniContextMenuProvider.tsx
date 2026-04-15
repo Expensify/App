@@ -46,6 +46,9 @@ type MiniContextMenuActions = {
 
     /** Unlock the menu after `keepOpen`. If a hide was deferred while locked, it executes immediately. */
     release: () => void;
+
+    /** Ref to the mini menu's container element, used by PureReportActionItem to bridge Tab focus from the row to the Portal-rendered menu. */
+    menuContainerRef: RefObject<HTMLElement | null>;
 };
 
 const MiniContextMenuActionsContext = createContext<MiniContextMenuActions>({
@@ -54,6 +57,7 @@ const MiniContextMenuActionsContext = createContext<MiniContextMenuActions>({
     hideMiniContextMenuWithoutNotification: () => {},
     keepOpen: () => {},
     release: () => {},
+    menuContainerRef: {current: null},
 });
 
 const MiniContextMenuStateContext = createContext<MiniContextMenuState | null>(null);
@@ -68,6 +72,7 @@ function MiniContextMenuProvider({children}: MiniContextMenuProviderProps) {
     const pendingHideRef = useRef(false);
     const onMenuHideRef = useRef<(() => void) | null>(null);
     const activeReportActionIDRef = useRef<string | undefined>(undefined);
+    const menuContainerRef = useRef<HTMLElement | null>(null);
 
     const [actions] = useState<MiniContextMenuActions>(() => {
         const isGuarded = () => shouldKeepOpenRef.current;
@@ -133,6 +138,7 @@ function MiniContextMenuProvider({children}: MiniContextMenuProviderProps) {
                 shouldKeepOpenRef.current = false;
                 drainPendingHide();
             },
+            menuContainerRef,
         };
     });
 

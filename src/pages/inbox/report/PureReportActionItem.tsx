@@ -467,7 +467,7 @@ function PureReportActionItem({
     const {transitionActionSheetState} = ActionSheetAwareScrollView.useActionSheetAwareScrollViewActions();
     const {translate, formatPhoneNumber, localeCompare, formatTravelDate, datetimeToCalendarTime} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
-    const {showMiniContextMenu, hideMiniContextMenu, hideMiniContextMenuWithoutNotification} = useMiniContextMenuActions();
+    const {showMiniContextMenu, hideMiniContextMenu, hideMiniContextMenuWithoutNotification, menuContainerRef} = useMiniContextMenuActions();
     const personalDetail = useCurrentUserPersonalDetails();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const reportID = report?.reportID ?? action?.reportID;
@@ -657,6 +657,31 @@ function PureReportActionItem({
         }
         setIsHidden(false);
     }, [latestDecision, action]);
+
+    useEffect(() => {
+        if (!isContextMenuActive) {
+            return;
+        }
+        const el = popoverAnchorRef.current as unknown as HTMLElement | null;
+        if (!el) {
+            return;
+        }
+
+        const onKeyDown = (e: KeyboardEvent) => {
+            if (e.key !== 'Tab' || e.shiftKey) {
+                return;
+            }
+            const firstButton = menuContainerRef.current?.querySelector('[role="button"]') as HTMLElement | null;
+            if (!firstButton) {
+                return;
+            }
+            e.preventDefault();
+            firstButton.focus();
+        };
+
+        el.addEventListener('keydown', onKeyDown);
+        return () => el.removeEventListener('keydown', onKeyDown);
+    }, [isContextMenuActive, menuContainerRef]);
 
     const toggleContextMenuFromActiveReportAction = useCallback(() => {
         setIsContextMenuActive(isActiveReportAction(action.reportActionID));
