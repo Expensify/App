@@ -32,7 +32,7 @@ const translations: TranslationDeepObject<typeof en> = {
         newFeature: 'Nueva función',
         center: 'Centrar',
         search: 'Buscar',
-        reports: 'Informes',
+        reports: 'Gastos',
         find: 'Encontrar',
         searchWithThreeDots: 'Buscar...',
         select: 'Seleccionar',

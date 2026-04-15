@@ -29,7 +29,7 @@ type SearchTabButtonProps = {
 function SearchTabButton({selectedTab, isWideLayout}: SearchTabButtonProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['MoneySearch']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['ReceiptMultiple']);
     const [lastSearchParams] = useOnyx(ONYXKEYS.REPORT_NAVIGATION_LAST_SEARCH_QUERY);
     const searchAccessibilityState = {selected: selectedTab === NAVIGATION_TABS.SEARCH};
 
@@ -81,7 +81,7 @@ function SearchTabButton({selectedTab, isWideLayout}: SearchTabButtonProps) {
             >
                 {({hovered}) => (
                     <TabBarItem
-                        icon={expensifyIcons.MoneySearch}
+                        icon={expensifyIcons.ReceiptMultiple}
                         label={translate('common.reports')}
                         isSelected={selectedTab === NAVIGATION_TABS.SEARCH}
                         isHovered={hovered}
@@ -102,7 +102,7 @@ function SearchTabButton({selectedTab, isWideLayout}: SearchTabButtonProps) {
             sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.REPORTS}
         >
             <TabBarItem
-                icon={expensifyIcons.MoneySearch}
+                icon={expensifyIcons.ReceiptMultiple}
                 label={translate('common.reports')}
                 isSelected={selectedTab === NAVIGATION_TABS.SEARCH}
                 numberOfLines={1}

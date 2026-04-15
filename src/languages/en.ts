@@ -105,7 +105,7 @@ const translations = {
         new: 'New',
         newFeature: 'New feature',
         search: 'Search',
-        reports: 'Reports',
+        reports: 'Spend',
         find: 'Find',
         searchWithThreeDots: 'Search...',
         next: 'Next',
