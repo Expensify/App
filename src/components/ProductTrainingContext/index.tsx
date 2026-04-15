@@ -47,11 +47,13 @@ type ProductTrainingContextConfig = {
     onShown?: () => void;
 };
 
-const ProductTrainingContext = createContext<ProductTrainingContextType>({
+const defaultProductTrainingContext: ProductTrainingContextType = {
     shouldRenderTooltip: () => false,
     registerTooltip: () => {},
     unregisterTooltip: () => {},
-});
+};
+
+const ProductTrainingContext = createContext<ProductTrainingContextType>(defaultProductTrainingContext);
 
 function ProductTrainingContextProvider({children}: ChildrenProps) {
     const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP);

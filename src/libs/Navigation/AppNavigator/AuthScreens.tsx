@@ -11,6 +11,7 @@ import LockedAccountModalProvider from '@components/LockedAccountModalProvider';
 import OpenAppFailureModal from '@components/OpenAppFailureModal';
 import OptionsListContextProvider from '@components/OptionListContextProvider';
 import PriorityModeController from '@components/PriorityModeController';
+import {ProductTrainingContextProvider} from '@components/ProductTrainingContext';
 import {SearchContextProvider} from '@components/Search/SearchContext';
 import SearchRouterModal from '@components/Search/SearchRouter/SearchRouterModal';
 import SupportalPermissionDeniedModalProvider from '@components/SupportalPermissionDeniedModalProvider';
@@ -157,6 +158,7 @@ function AuthScreens() {
                         OptionsListContextProvider,
                         SidebarOrderedReportsContextProvider,
                         SearchContextProvider,
+                        ProductTrainingContextProvider,
                         LockedAccountModalProvider,
                         DelegateNoAccessModalProvider,
                         SupportalPermissionDeniedModalProvider,
