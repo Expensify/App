@@ -113,7 +113,7 @@ describe('SelectCountryStep', () => {
         expect(selectionListProps?.initiallyFocusedItemKey).toBe('US');
         expect(selectionListProps?.shouldScrollToFocusedIndex).toBe(false);
         expect(selectionListProps?.shouldScrollToFocusedIndexOnMount).toBe(false);
-        expect(selectionListProps?.shouldUpdateFocusedIndex).toBeUndefined();
+        expect(selectionListProps?.shouldUpdateFocusedIndex).toBe(true);
     });
 
     it('keeps the initially pinned country at the top while the live selection changes during the same mount', () => {

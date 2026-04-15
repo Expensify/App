@@ -81,7 +81,7 @@ describe('CountrySelectionList', () => {
         );
         expect(selectionListProps?.initiallyFocusedItemKey).toBe(initialCountry);
         expect(selectionListProps?.searchValueForFocusSync).toBe('');
-        expect(selectionListProps?.shouldUpdateFocusedIndex).toBeUndefined();
+        expect(selectionListProps?.shouldUpdateFocusedIndex).toBe(true);
         expect(selectionListProps?.shouldScrollToFocusedIndex).toBe(false);
         expect(selectionListProps?.shouldScrollToFocusedIndexOnMount).toBe(false);
     });
