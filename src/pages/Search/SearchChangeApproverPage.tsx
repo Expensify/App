@@ -54,7 +54,7 @@ function shouldAutoApplyApprover({
     approverTypes: Array<{keyForList: ApproverType}>;
     selectedApproverType: ApproverType | undefined;
 }): boolean {
-    if (hasAutoApplied || isLoadingBulkChangeApproverPage) {
+    if (hasAutoApplied || isLoadingBulkChangeApproverPage || selectedReports.length === 0) {
         return false;
     }
 

@@ -25,6 +25,19 @@ describe('SearchChangeApproverPage', () => {
             expect(result).toBe(false);
         });
 
+        it('should return false when no reports are selected', () => {
+            const result = shouldAutoApplyApprover({
+                hasAutoApplied: false,
+                isLoadingBulkChangeApproverPage: false,
+                selectedReports: [],
+                onyxReports: {},
+                approverTypes: [ADD_APPROVER_OPTION],
+                selectedApproverType: APPROVER_TYPE.ADD_APPROVER,
+            });
+
+            expect(result).toBe(false);
+        });
+
         it('should return false while the bulk change approver page is still loading', () => {
             const result = shouldAutoApplyApprover({
                 hasAutoApplied: false,
