@@ -1245,8 +1245,7 @@ let hiddenTranslation = '';
 let unavailableTranslation = '';
 
 Onyx.connect({
-    key: ONYXKEYS.ARE_TRANSLATIONS_LOADING,
-    initWithStoredValues: false,
+    key: ONYXKEYS.RAM_ONLY_ARE_TRANSLATIONS_LOADING,
     callback: (value) => {
         if (value ?? true) {
             return;
@@ -2667,8 +2666,7 @@ function isReportTransactionThread(report: OnyxEntry<Report>) {
 /**
  * Get displayed report ID, it will be parentReportID if the report is one transaction thread
  */
-// TODO: isOffline will be required eventually. Refactor issue: https://github.com/Expensify/App/issues/66407
-function getDisplayedReportID(reportID: string, isOffline?: boolean): string {
+function getDisplayedReportID(reportID: string, isOffline: boolean): string {
     const report = getReport(reportID, deprecatedAllReports);
     const parentReportID = report?.parentReportID;
     const parentReport = deprecatedAllReports?.[`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`];
@@ -3492,6 +3490,7 @@ function getParticipantsAccountIDsForDisplay(
     shouldExcludeDeleted = false,
     shouldForceExcludeCurrentUser = false,
     reportMetadataParam?: OnyxEntry<ReportMetadata>,
+    personalDetails: OnyxEntry<PersonalDetailsList> = allPersonalDetails,
 ): number[] {
     const reportParticipants = report?.participants ?? {};
     const reportMetadata = reportMetadataParam ?? getReportMetadata(report?.reportID);
@@ -3502,14 +3501,14 @@ function getParticipantsAccountIDsForDisplay(
 
     for (const entry of participantsEntries) {
         const [accountID] = entry;
-        const personalDetail = allPersonalDetails?.[accountID];
+        const personalDetail = personalDetails?.[accountID];
         if (personalDetail?.login && !personalDetail.isOptimisticPersonalDetail) {
             nonOptimisticLoginMap[personalDetail.login] = true;
         }
     }
 
     participantsEntries = participantsEntries.filter(([accountID]) => {
-        const personalDetail = allPersonalDetails?.[accountID];
+        const personalDetail = personalDetails?.[accountID];
         if (personalDetail?.login && personalDetail.isOptimisticPersonalDetail) {
             return !nonOptimisticLoginMap[personalDetail.login];
         }
@@ -3531,7 +3530,7 @@ function getParticipantsAccountIDsForDisplay(
 
 function getParticipantsList(report: Report, personalDetails: OnyxEntry<PersonalDetailsList>, isRoomMembersList = false, reportMetadata: OnyxEntry<ReportMetadata> = undefined): number[] {
     const shouldExcludeHiddenParticipants = !isGroupChat(report) && !isInvoiceReport(report) && !isMoneyRequestReport(report) && !isMoneyRequest(report) && !isPolicyExpenseChat(report);
-    const chatParticipants = getParticipantsAccountIDsForDisplay(report, isRoomMembersList || shouldExcludeHiddenParticipants, false, false, reportMetadata);
+    const chatParticipants = getParticipantsAccountIDsForDisplay(report, isRoomMembersList || shouldExcludeHiddenParticipants, false, false, reportMetadata, personalDetails);
 
     return chatParticipants.filter((accountID) => {
         const details = personalDetails?.[accountID];
@@ -4319,8 +4318,10 @@ function getReasonAndReportActionThatRequiresAttention(
     const hasOnlyPendingTransactions = transactions.length > 0 && transactions.every((t) => isExpensifyCardTransaction(t) && isPending(t));
 
     // Has a child report that is awaiting action (e.g. approve, pay, add bank account) from current user
+    const hasStaleChildRequest = isTripRoom(optionOrReport) && (optionOrReport.transactionCount ?? 0) === 0;
+
     if (
-        (optionOrReport.hasOutstandingChildRequest === true || iouReportActionToApproveOrPay?.reportActionID) &&
+        ((optionOrReport.hasOutstandingChildRequest === true && !hasStaleChildRequest) || iouReportActionToApproveOrPay?.reportActionID) &&
         (policy?.reimbursementChoice !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO || !hasOnlyPendingTransactions)
     ) {
         return {
@@ -12927,15 +12928,43 @@ function generateReportAttributes({
     };
 }
 
+type ReportParticipantForDisplay = {
+    accountID: number;
+    details: PersonalDetails;
+    isDisabled: boolean;
+    isPendingDelete: boolean;
+    pendingAction?: PendingAction;
+    role?: ValueOf<typeof CONST.REPORT.ROLE>;
+};
+
 function getReportPersonalDetailsParticipants(report: Report, personalDetailsParam: OnyxEntry<PersonalDetailsList>, reportMetadata: OnyxEntry<ReportMetadata>, isRoomMembersList = false) {
     const chatParticipants = getParticipantsList(report, personalDetailsParam, isRoomMembersList, reportMetadata);
+    const participantsForDisplay = chatParticipants.reduce<ReportParticipantForDisplay[]>((acc, accountID) => {
+        const details = personalDetailsParam?.[accountID];
+        if (!details) {
+            return acc;
+        }
+
+        const pendingChatMember = reportMetadata?.pendingChatMembers?.findLast((member) => member.accountID === accountID.toString());
+        const pendingAction = pendingChatMember?.pendingAction ?? report?.participants?.[accountID]?.pendingAction;
+
+        acc.push({
+            accountID,
+            details,
+            pendingAction,
+            isPendingDelete: pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+            isDisabled: !!details.isOptimisticPersonalDetail || pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+            role: report?.participants?.[accountID]?.role,
+        });
+
+        return acc;
+    }, []);
+
     return {
         chatParticipants,
-        personalDetailsParticipants: chatParticipants.reduce<Record<number, PersonalDetails>>((acc, accountID) => {
-            const details = personalDetailsParam?.[accountID];
-            if (details) {
-                acc[accountID] = details;
-            }
+        participantsForDisplay,
+        personalDetailsParticipants: participantsForDisplay.reduce<Record<number, PersonalDetails>>((acc, participant) => {
+            acc[participant.accountID] = participant.details;
             return acc;
         }, {}),
     };
