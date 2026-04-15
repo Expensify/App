@@ -687,6 +687,42 @@ function updateSettlementFrequency(
     API.write(WRITE_COMMANDS.UPDATE_CARD_SETTLEMENT_FREQUENCY, parameters, {optimisticData, successData, failureData});
 }
 
+function toggleCashbackToBill(workspaceAccountID: number, programKey: CardProgramKey, shouldApplyCashbackToBill: boolean, currentValue?: boolean) {
+    const optimisticValue = {[programKey]: {shouldApplyCashbackToBill}};
+    const failureValue = {[programKey]: {shouldApplyCashbackToBill: currentValue ?? true}};
+
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`,
+            value: optimisticValue,
+        },
+    ];
+
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`,
+            value: optimisticValue,
+        },
+    ];
+
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`,
+            value: failureValue,
+        },
+    ];
+
+    const parameters = {
+        workspaceAccountID,
+        shouldApplyCashbackToBill,
+    };
+
+    API.write(WRITE_COMMANDS.TOGGLE_CARD_CASHBACK_TO_BILL, parameters, {optimisticData, successData, failureData});
+}
+
 function updateSettlementAccount(
     domainName: string,
     workspaceAccountID: number,
@@ -1877,6 +1913,7 @@ export {
     unassignCard,
     updateAssignedCardName,
     updateAssignedCardTransactionStartDate,
+    toggleCashbackToBill,
     toggleContinuousReconciliation,
     updateExpensifyCardLimitType,
     updateSelectedFeed,
