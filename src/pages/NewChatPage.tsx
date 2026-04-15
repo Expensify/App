@@ -32,7 +32,7 @@ import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import {filterAndOrderOptions, filterSelectedOptions, getHeaderMessage, getUserToInviteOption, getValidOptions} from '@libs/OptionsListUtils';
-import {isPersonalDetailMatchingSearchTerm} from '@libs/OptionsListUtils/searchMatchUtils';
+import {doesPersonalDetailMatchSearchTerm} from '@libs/OptionsListUtils/searchMatchUtils';
 import type {OptionWithKey} from '@libs/OptionsListUtils/types';
 import type {OptionData} from '@libs/ReportUtils';
 import variables from '@styles/variables';
@@ -133,7 +133,7 @@ function useOptions(reportAttributesDerived: ReportAttributesDerivedValue['repor
         !!options.userToInvite,
         debouncedSearchTerm.trim(),
         countryCode,
-        selectedOptions.some((participant) => isPersonalDetailMatchingSearchTerm(participant, currentUserAccountID, cleanSearchTerm)),
+        selectedOptions.some((participant) => doesPersonalDetailMatchSearchTerm(participant, currentUserAccountID, cleanSearchTerm)),
     );
 
     useFocusEffect(() => {
@@ -274,7 +274,7 @@ function NewChatPage({ref}: NewChatPageProps) {
     const selectedSection =
         debouncedSearchTerm === ''
             ? selectedOptions
-            : selectedOptions.filter((participant) => isPersonalDetailMatchingSearchTerm(participant, currentUserAccountID, debouncedSearchTerm.trim().toLowerCase()));
+            : selectedOptions.filter((participant) => doesPersonalDetailMatchSearchTerm(participant, currentUserAccountID, debouncedSearchTerm.trim().toLowerCase()));
 
     sections.push({data: selectedSection, title: undefined, sectionIndex: 0});
 

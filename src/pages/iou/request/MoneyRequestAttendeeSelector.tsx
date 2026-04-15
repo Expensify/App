@@ -30,7 +30,7 @@ import {
     isCurrentUser,
     orderOptions,
 } from '@libs/OptionsListUtils';
-import {isPersonalDetailMatchingSearchTerm} from '@libs/OptionsListUtils/searchMatchUtils';
+import {doesPersonalDetailMatchSearchTerm} from '@libs/OptionsListUtils/searchMatchUtils';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import {isPaidGroupPolicy as isPaidGroupPolicyFn} from '@libs/PolicyUtils';
 import type {OptionData} from '@libs/ReportUtils';
@@ -272,7 +272,7 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
             !!orderedAvailableOptions?.userToInvite,
             cleanSearchTerm,
             countryCode,
-            attendees.some((attendee) => isPersonalDetailMatchingSearchTerm(attendee, currentUserAccountID, cleanSearchTerm)),
+            attendees.some((attendee) => doesPersonalDetailMatchSearchTerm(attendee, currentUserAccountID, cleanSearchTerm)),
         );
         sections = newSections;
     }

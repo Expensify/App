@@ -4,7 +4,7 @@ import CONST from '@src/CONST';
 import type {SearchOptionData} from './types';
 
 type SearchMatchConfig = {
-    /** Use toLocaleLowerCase() instead of toLowerCase(). Default: false */
+    /** Whether to use toLocaleLowerCase() instead of toLowerCase(), defaults to false */
     useLocaleLowerCase?: boolean;
 
     /**
@@ -14,11 +14,25 @@ type SearchMatchConfig = {
     transformSearchText?: (concatenatedSearchTerms: string) => string;
 };
 
+/**
+ * Includes localized "You"/"Me" so the current user is findable
+ * by those terms in any supported language.
+ *
+ * @returns Raw (not lowercased) terms: display text, login,
+ * login with dots stripped before @, and translated "You"/"Me".
+ */
 function getCurrentUserSearchTerms(item: Partial<SearchOptionData>) {
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     return [item.text ?? item.displayName ?? '', item.login ?? '', item.login?.replace(CONST.EMAIL_SEARCH_REGEX, '') ?? '', translateLocal('common.you'), translateLocal('common.me')];
 }
 
+/**
+ * For the current user, delegates to getCurrentUserSearchTerms.
+ * For others, includes display name and login with dots stripped
+ * before @ (so "john.doe@" matches "johndoe@").
+ *
+ * @returns Raw (not lowercased) terms the person is searchable by.
+ */
 function getPersonalDetailSearchTerms(item: Partial<SearchOptionData>, currentUserAccountID: number) {
     if (item.accountID === currentUserAccountID) {
         return getCurrentUserSearchTerms(item);
@@ -32,7 +46,7 @@ function getPersonalDetailSearchTerms(item: Partial<SearchOptionData>, currentUs
  *
  * Expects `searchTerm` to already be lowercased and trimmed.
  */
-function isPersonalDetailMatchingSearchTerm(
+function doesPersonalDetailMatchSearchTerm(
     item: Partial<SearchOptionData>,
     currentUserAccountID: number,
     searchTerm: string,
@@ -48,5 +62,5 @@ function isPersonalDetailMatchingSearchTerm(
     return searchText.includes(searchTerm);
 }
 
-export {getCurrentUserSearchTerms, getPersonalDetailSearchTerms, isPersonalDetailMatchingSearchTerm};
+export {getCurrentUserSearchTerms, getPersonalDetailSearchTerms, doesPersonalDetailMatchSearchTerm};
 export type {SearchMatchConfig};

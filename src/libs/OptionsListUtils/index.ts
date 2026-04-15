@@ -188,7 +188,7 @@ import type {
 } from '@src/types/onyx';
 import type {Attendee, Participant} from '@src/types/onyx/IOU';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import {getCurrentUserSearchTerms, getPersonalDetailSearchTerms, isPersonalDetailMatchingSearchTerm} from './searchMatchUtils';
+import {doesPersonalDetailMatchSearchTerm, getCurrentUserSearchTerms, getPersonalDetailSearchTerms} from './searchMatchUtils';
 import type {
     FilterUserToInviteConfig,
     GetOptionsConfig,
@@ -2670,7 +2670,7 @@ function getValidOptions(
                 return false;
             }
             return searchTerms.every((term) =>
-                isPersonalDetailMatchingSearchTerm(personalDetail, currentUserAccountID, term, {
+                doesPersonalDetailMatchSearchTerm(personalDetail, currentUserAccountID, term, {
                     useLocaleLowerCase: true,
                     transformSearchText: (concatenatedSearchTerms) => deburr(`${concatenatedSearchTerms} ${(personalDetail.text ?? '').toLocaleLowerCase()}`),
                 }),
@@ -3012,7 +3012,7 @@ function formatSectionsFromSearchTerm(
     // This will add them to the list of options, deduping them if they already exist in the other lists
     const selectedParticipantsWithoutDetails = selectedOptions.filter((participant) => {
         const accountID = participant.accountID ?? null;
-        const isPartOfSearchTerm = isPersonalDetailMatchingSearchTerm(participant, currentUserAccountID, cleanSearchTerm);
+        const isPartOfSearchTerm = doesPersonalDetailMatchSearchTerm(participant, currentUserAccountID, cleanSearchTerm);
         const isReportInRecentReports = filteredRecentReports.some((report) => report.accountID === accountID) || filteredWorkspaceChats.some((report) => report.accountID === accountID);
         const isReportInPersonalDetails = filteredPersonalDetails.some((personalDetail) => personalDetail.accountID === accountID);
 
