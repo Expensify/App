@@ -12,7 +12,7 @@ function useSidePanelContext(reportID: string): OnyxTypes.SidePanelContext | und
     const isInSidePanel = useIsInSidePanel();
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const {currentReportID, currentRHPReportID} = useCurrentReportIDState();
-    const {currentSearchQueryJSON, selectedTransactions, selectedReports} = useSearchStateContext();
+    const {currentSearchQueryJSON, selectedTransactionIDs, selectedTransactions, selectedReports} = useSearchStateContext();
 
     return useMemo(() => {
         if (conciergeReportID !== reportID || !isInSidePanel) {
@@ -20,35 +20,37 @@ function useSidePanelContext(reportID: string): OnyxTypes.SidePanelContext | und
         }
 
         const contextReportID = currentRHPReportID ?? currentReportID ?? undefined;
-        if (contextReportID) {
-            return {reportID: contextReportID};
-        }
 
-        const searchType = currentSearchQueryJSON?.type;
+        // selectedTransactions (map) is populated from the Search list; selectedTransactionIDs (array)
+        // is populated from the report table view. The two are mutually exclusive.
+        const txIDsFromMap = !isEmptyObject(selectedTransactions)
+            ? Object.entries(selectedTransactions)
+                  .filter(([, info]) => info.isSelected && !!info.transaction)
+                  .map(([id]) => id)
+            : [];
+        const allTransactionIDs = txIDsFromMap.length > 0 ? txIDsFromMap : selectedTransactionIDs;
+        const selectedTransactionIDsForContext = allTransactionIDs.length > 0 ? allTransactionIDs.join(',') : undefined;
 
-        if (searchType === CONST.SEARCH.DATA_TYPES.EXPENSE) {
-            const selectedTransactionIDsForContext = !isEmptyObject(selectedTransactions)
-                ? Object.entries(selectedTransactions)
-                      .filter(([, info]) => info.isSelected && !!info.transaction)
-                      .map(([id]) => id)
+        const selectedReportIDsForContext =
+            selectedReports.length > 0
+                ? selectedReports
+                      .map((r) => r.reportID)
+                      .filter((id): id is string => !!id)
                       .join(',') || undefined
                 : undefined;
-            return selectedTransactionIDsForContext ? {selectedTransactionIDs: selectedTransactionIDsForContext} : undefined;
+
+        // This condition is reached when we are either in the global Reports => Reports page, or within a single expense report having multiple transactions.
+        // If we have selectedReportIDs, that means we're in the Reports page, otherwise we're in the expense report RHP.
+        if (currentSearchQueryJSON?.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT) {
+            return selectedReportIDsForContext ? {selectedReportIDs: selectedReportIDsForContext} : {reportID: contextReportID, selectedTransactionIDs: selectedTransactionIDsForContext};
         }
 
-        if (searchType === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT) {
-            const selectedReportIDsForContext =
-                selectedReports.length > 0
-                    ? selectedReports
-                          .map((r) => r.reportID)
-                          .filter((id): id is string => !!id)
-                          .join(',') || undefined
-                    : undefined;
-            return selectedReportIDsForContext ? {selectedReportIDs: selectedReportIDsForContext} : undefined;
+        if (!contextReportID && !selectedTransactionIDsForContext && !selectedReportIDsForContext) {
+            return undefined;
         }
 
-        return undefined;
-    }, [conciergeReportID, reportID, isInSidePanel, currentSearchQueryJSON?.type, selectedTransactions, selectedReports, currentRHPReportID, currentReportID]);
+        return {reportID: contextReportID, selectedTransactionIDs: selectedTransactionIDsForContext, selectedReportIDs: selectedReportIDsForContext};
+    }, [conciergeReportID, reportID, isInSidePanel, currentSearchQueryJSON?.type, currentRHPReportID, currentReportID, selectedTransactionIDs, selectedTransactions, selectedReports]);
 }
 
 export default useSidePanelContext;
