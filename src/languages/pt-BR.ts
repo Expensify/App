@@ -1661,6 +1661,7 @@ const translations: TranslationDeepObject<typeof en> = {
             prompt: 'Ative o acompanhamento de impostos no espaço de trabalho para editar os detalhes da despesa ou excluir o imposto desta despesa.',
             confirmText: 'Excluir imposto',
         },
+        deleted: 'Excluído',
     },
     transactionMerge: {
         listPage: {
@@ -7561,6 +7562,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             reject: 'Rejeitar',
             duplicateExpense: ({count}: {count: number}) => `Duplicar ${count === 1 ? 'despesa' : 'despesas'}`,
             noOptionsAvailable: 'Nenhuma opção disponível para o grupo de despesas selecionado.',
+            undelete: 'Restaurar',
         },
         filtersHeader: 'Filtros',
         filters: {

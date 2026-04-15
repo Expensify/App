@@ -1614,6 +1614,7 @@ const translations: TranslationDeepObject<typeof en> = {
         failedToApproveViaDEW: (reason: string) => `批准失败。${reason}`,
         cannotDuplicateDistanceExpense: '你无法在不同工作区之间复制里程报销，因为各个工作区的费率可能不同。',
         taxDisabledAlert: {title: '税费已禁用', prompt: '请在工作区中启用税费跟踪，以便编辑此报销的详细信息或从该报销中删除税费。', confirmText: '删除税费'},
+        deleted: '已删除',
     },
     transactionMerge: {
         listPage: {
@@ -7373,6 +7374,7 @@ ${reportName}
             reject: '拒绝',
             duplicateExpense: ({count}: {count: number}) => `复制${count === 1 ? '报销' : '报销费用'}`,
             noOptionsAvailable: '所选报销的费用组没有可用选项。',
+            undelete: '取消删除',
         },
         filtersHeader: '筛选器',
         filters: {

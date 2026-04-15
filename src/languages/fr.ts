@@ -1675,6 +1675,7 @@ const translations: TranslationDeepObject<typeof en> = {
             prompt: 'Activez le suivi des taxes dans l’espace de travail pour modifier les détails de la dépense ou supprimer la taxe de cette dépense.',
             confirmText: 'Supprimer la taxe',
         },
+        deleted: 'Supprimé',
     },
     transactionMerge: {
         listPage: {
@@ -7625,6 +7626,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             reject: 'Rejeter',
             duplicateExpense: ({count}: {count: number}) => `Dupliquer ${count === 1 ? 'la dépense' : 'les dépenses'}`,
             noOptionsAvailable: 'Aucune option n’est disponible pour le groupe de dépenses sélectionné.',
+            undelete: 'Restaurer',
         },
         filtersHeader: 'Filtres',
         filters: {

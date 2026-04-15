@@ -1671,6 +1671,7 @@ const translations: TranslationDeepObject<typeof en> = {
             prompt: 'Aktivieren Sie die Steuerverfolgung im Workspace, um die Ausgabendetails zu bearbeiten oder die Steuer aus dieser Ausgabe zu löschen.',
             confirmText: 'Steuer löschen',
         },
+        deleted: 'Gelöscht',
     },
     transactionMerge: {
         listPage: {
@@ -7603,6 +7604,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             reject: 'Ablehnen',
             duplicateExpense: ({count}: {count: number}) => `${count === 1 ? 'Ausgabe' : 'Ausgaben'} duplizieren`,
             noOptionsAvailable: 'Für die ausgewählte Ausgabengruppe sind keine Optionen verfügbar.',
+            undelete: 'Wiederherstellen',
         },
         filtersHeader: 'Filter',
         filters: {

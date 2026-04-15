@@ -1648,6 +1648,7 @@ const translations: TranslationDeepObject<typeof en> = {
             prompt: '経費の詳細を編集したり、この経費から税金を削除したりするには、ワークスペースで税金の追跡を有効にしてください。',
             confirmText: '税を削除',
         },
+        deleted: '削除済み',
     },
     transactionMerge: {
         listPage: {
@@ -7501,6 +7502,7 @@ ${reportName}
             reject: '却下',
             duplicateExpense: ({count}: {count: number}) => `${count === 1 ? '経費を複製' : '経費を一括複製'}`,
             noOptionsAvailable: '選択した経費グループには利用できるオプションがありません。',
+            undelete: '削除を取り消す',
         },
         filtersHeader: 'フィルター',
         filters: {

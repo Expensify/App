@@ -1664,6 +1664,7 @@ const translations: TranslationDeepObject<typeof en> = {
             prompt: 'Włącz śledzenie podatku w przestrzeni roboczej, aby edytować szczegóły wydatku lub usunąć podatek z tego wydatku.',
             confirmText: 'Usuń podatek',
         },
+        deleted: 'Usunięto',
     },
     transactionMerge: {
         listPage: {
@@ -7558,6 +7559,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             reject: 'Odrzuć',
             duplicateExpense: ({count}: {count: number}) => `Duplikuj ${count === 1 ? 'wydatek' : 'wydatki'}`,
             noOptionsAvailable: 'Brak opcji dostępnych dla wybranej grupy wydatków.',
+            undelete: 'Cofnij usunięcie',
         },
         filtersHeader: 'Filtry',
         filters: {

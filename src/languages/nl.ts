@@ -1664,6 +1664,7 @@ const translations: TranslationDeepObject<typeof en> = {
             prompt: 'Schakel belastingregistratie in voor de workspace om de onkostendetails te bewerken of de belasting uit deze onkostendeclaratie te verwijderen.',
             confirmText: 'Belasting verwijderen',
         },
+        deleted: 'Verwijderd',
     },
     transactionMerge: {
         listPage: {
@@ -7568,6 +7569,7 @@ Voeg meer bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             reject: 'Afwijzen',
             duplicateExpense: ({count}: {count: number}) => `${count === 1 ? 'Declaratie' : 'Declaraties'} dupliceren`,
             noOptionsAvailable: 'Geen opties beschikbaar voor de geselecteerde groep onkosten.',
+            undelete: 'Terugzetten',
         },
         filtersHeader: 'Filters',
         filters: {
