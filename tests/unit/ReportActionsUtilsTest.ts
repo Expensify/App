@@ -1963,18 +1963,23 @@ describe('ReportActionsUtils', () => {
             expect(actual).toBe(false);
         });
 
-        it('should return true for moved transaction if the report destination is available', async () => {
-            // Given a moved transaction action but the report destination is available
-            const report: Report = createRandomReport(2, undefined);
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+        it('should return true for moved transaction if the report destination is available', () => {
+            // Given a moved transaction action with a valid message
             const reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION> = {
                 actionName: CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION,
                 reportActionID: '1',
                 created: '2025-09-29',
                 originalMessage: {
-                    toReportID: report.reportID,
+                    toReportID: '2',
                     fromReportID: '1',
                 },
+                message: [
+                    {
+                        type: 'COMMENT',
+                        html: 'moved',
+                        text: 'moved',
+                    },
+                ],
             };
 
             // Then the action should be visible
