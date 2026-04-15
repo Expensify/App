@@ -5982,6 +5982,8 @@ ${amount} para ${merchant} - ${date}`,
                         case 'startingImportQBD':
                         case 'quickbooksDesktopImportMore':
                             return 'Importando datos desde QuickBooks Desktop';
+                        case 'startingImportGusto':
+                            return 'Importando datos desde Gusto';
                         case 'quickbooksDesktopImportTitle':
                             return 'Importando título';
                         case 'quickbooksDesktopImportApproveCertificate':
@@ -6073,6 +6075,14 @@ ${amount} para ${merchant} - ${date}`,
                             return 'Importando dimensiones';
                         case 'intacctImportTitle':
                             return 'Importando datos desde Sage Intacct';
+                        case 'gustoSyncLoadCompany':
+                            return 'Cargando datos de la empresa de Gusto';
+                        case 'gustoSyncImportEmployees':
+                            return 'Importando empleados';
+                        case 'gustoSyncBuildApprovalChains':
+                            return 'Creando cadenas de aprobación';
+                        case 'gustoSyncFinalize':
+                            return 'Finalizando la sincronización';
                         default: {
                             // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
                             return `Translation missing for stage: ${stage}`;
@@ -6162,23 +6172,23 @@ ${amount} para ${merchant} - ${date}`,
         },
 
         hr: {
-            title: 'HR',
-            subtitle: 'Connect HR tools and keep employee approvals in sync.',
-            settingsTitle: 'Gusto settings',
+            title: 'RR. HH.',
+            subtitle: 'Conecta herramientas de RR. HH. y mantén sincronizadas las aprobaciones de empleados.',
+            settingsTitle: 'Configuración de Gusto',
             syncStageName: ({stage}) => {
                 switch (stage) {
                     case 'startingImportGusto':
-                        return 'Importing Gusto data';
+                        return 'Importando datos desde Gusto';
                     case 'gustoSyncLoadCompany':
-                        return 'Loading Gusto company data';
+                        return 'Cargando datos de la empresa de Gusto';
                     case 'gustoSyncImportEmployees':
-                        return 'Importing employees';
+                        return 'Importando empleados';
                     case 'gustoSyncBuildApprovalChains':
-                        return 'Building approval chains';
+                        return 'Creando cadenas de aprobación';
                     case 'gustoSyncFinalize':
-                        return 'Finalizing sync';
+                        return 'Finalizando la sincronización';
                     case 'jobDone':
-                        return 'Waiting for imported data to load';
+                        return 'Esperando a que se carguen los datos importados';
                     default: {
                         // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
                         return `Translation missing for stage: ${stage}`;
@@ -6187,8 +6197,8 @@ ${amount} para ${merchant} - ${date}`,
             },
             gusto: {
                 title: 'Gusto',
-                approvalMode: 'Approval mode',
-                finalApprover: 'Final approver',
+                approvalMode: 'Modo de aprobación',
+                finalApprover: 'Aprobador final',
             },
         },
         export: {
