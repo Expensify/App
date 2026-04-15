@@ -2103,7 +2103,7 @@ function sortPoliciesByName(policies: Policy[], localeCompare: (a: string, b: st
 /**
  * Builds a source URL for rendering a policy document PDF.
  * Local blob/file URIs (from optimistic uploads) are returned directly.
- * Remote URLs are routed through the authenticated GetPolicyDocument streaming endpoint.
+ * Remote URLs are routed through the authenticated GetPolicyRulesDocument streaming endpoint.
  * The stored URL (which contains a unique timestamp per upload) is appended as a version
  * parameter so the browser treats each replacement as a distinct resource.
  */
@@ -2120,7 +2120,7 @@ function getRulesDocumentSourceURL(rulesDocumentURL: string | undefined, policyI
     return addEncryptedAuthTokenToURL(
         // Each PDF upload gets a unique S3 key, so rulesDocumentURL changes on every replacement.
         // Encoding it as cacheBuster ensures the full streaming URL is also unique, preventing stale browser/pdfjs cache.
-        `${getApiRoot({shouldUseSecure: false})}api/GetPolicyDocument?policyID=${policyID}&cacheBuster=${encodeURIComponent(rulesDocumentURL)}`,
+        `${getApiRoot({shouldUseSecure: false})}api/GetPolicyRulesDocument?policyID=${policyID}&cacheBuster=${encodeURIComponent(rulesDocumentURL)}`,
         encryptedAuthToken,
         true,
     );

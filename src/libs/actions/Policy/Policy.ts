@@ -1809,7 +1809,7 @@ function deleteWorkspaceAvatar(policyID: string, currentAvatarURL: string, curre
     API.write(WRITE_COMMANDS.DELETE_WORKSPACE_AVATAR, params, {optimisticData, finallyData, failureData});
 }
 
-function updateWorkspaceRulesDocument(policyID: string, file: File, currentDocumentURL: string | undefined) {
+function updatePolicyRulesDocument(policyID: string, file: File, currentDocumentURL: string | undefined) {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -1855,7 +1855,7 @@ function updateWorkspaceRulesDocument(policyID: string, file: File, currentDocum
     API.write(WRITE_COMMANDS.UPDATE_POLICY_RULES_DOCUMENT, params, {optimisticData, finallyData, failureData});
 }
 
-function deleteWorkspaceRulesDocument(policyID: string, currentDocumentURL: string) {
+function deletePolicyRulesDocument(policyID: string, currentDocumentURL: string) {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -7149,8 +7149,8 @@ export {
     updateGeneralSettings,
     deleteWorkspaceAvatar,
     updateWorkspaceAvatar,
-    updateWorkspaceRulesDocument,
-    deleteWorkspaceRulesDocument,
+    updatePolicyRulesDocument,
+    deletePolicyRulesDocument,
     clearAvatarErrors,
     generatePolicyID,
     createWorkspace,
