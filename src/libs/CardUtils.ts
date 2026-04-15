@@ -1,3 +1,4 @@
+import {isExpo} from '@sentry/react-native/dist/js/utils/environment';
 import {format, fromUnixTime, isBefore} from 'date-fns';
 import groupBy from 'lodash/groupBy';
 import lodashSortBy from 'lodash/sortBy';
@@ -196,20 +197,27 @@ function getCardDescriptionForSearchTable(card: Card, translate: LocalizedTransl
 }
 
 /**
- * @param transactionCardName
- * @param cardID
- * @param cards
- * @returns company card name
+ * Returns the formatted card name for a company card. Returns an empty string
+ * if the card is not a real card, but a cash expense
  */
-function getCompanyCardDescription(transactionCardName?: string, cardID?: number, cards?: CardList) {
-    const useTransactionCardName = !cardID || !cards?.[cardID] || isExpensifyCard(cards[cardID]);
-    const cardName = useTransactionCardName ? transactionCardName : cards[cardID].cardName;
+function getCompanyCardDescription(translate: LocalizedTranslate, transactionCardName?: string, cardID?: number, cards?: CardList) {
+    const formattedTransactionCardName = transactionCardName === CONST.EXPENSE.TYPE.CASH_CARD_NAME ? '' : transactionCardName;
 
-    if (cardName === CONST.EXPENSE.TYPE.CASH_CARD_NAME) {
-        return '';
+    if (!cardID || !cards?.[cardID]) {
+        return formattedTransactionCardName;
     }
 
-    return cardName;
+    const card = cards[cardID];
+
+    if (isTravelCard(card)) {
+        return translate('cardTransactions.centralInvoicing');
+    }
+
+    if (isExpensifyCard(card)) {
+        return formattedTransactionCardName;
+    }
+
+    return card.cardName === CONST.EXPENSE.TYPE.CASH_CARD_NAME ? '' : card.cardName;
 }
 
 function isCard(item: Card | Record<string, string>): item is Card {
