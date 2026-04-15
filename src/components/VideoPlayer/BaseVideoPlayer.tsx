@@ -81,10 +81,14 @@ function BaseVideoPlayer({
     const [isSeeking, setIsSeeking] = useState(false);
     const allowSharedAutoPlayRef = useRef(true);
 
+    // Pass a stable initial URL to useVideoPlayer so it never recreates the player
+    // internally. Source updates are handled by the replaceAsync effect below.
+    const [initialSourceURL] = useState(sourceURL);
+
     /* eslint-disable no-param-reassign */
     // According to the library docs, the player is configured by mutating the provided instance
     const videoPlayerRef = useRef<VideoPlayer>(
-        useVideoPlayer(sourceURL, (player) => {
+        useVideoPlayer(initialSourceURL, (player) => {
             player.loop = isLooping;
             player.muted = true;
             player.timeUpdateEventInterval = 0.1;

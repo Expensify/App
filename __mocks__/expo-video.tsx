@@ -33,6 +33,7 @@ type VideoPlayer = {
     play: jest.Mock<void, []>;
     pause: jest.Mock<void, []>;
     replace: jest.Mock<void, [unknown?]>;
+    replaceAsync: jest.Mock<Promise<void>, [unknown?]>;
     seekTo: jest.Mock<void, [number]>;
     setIsMuted: jest.Mock<void, [boolean]>;
 
@@ -49,12 +50,19 @@ function createMockPlayer(): VideoPlayer {
         get isPlaying() {
             return _isPlaying;
         },
+        get playing() {
+            return _isPlaying;
+        },
         get isMuted() {
             return _isMuted;
         },
         get currentTime() {
             return _currentTime;
         },
+
+        loop: false,
+        muted: false,
+        timeUpdateEventInterval: 0,
 
         play: jest.fn(() => {
             _isPlaying = true;
@@ -65,6 +73,7 @@ function createMockPlayer(): VideoPlayer {
         replace: jest.fn((_opts?: unknown) => {
             // no-op; exist to satisfy code that calls it
         }),
+        replaceAsync: jest.fn((_opts?: unknown) => Promise.resolve()),
         seekTo: jest.fn((time: number) => {
             _currentTime = time;
         }),
