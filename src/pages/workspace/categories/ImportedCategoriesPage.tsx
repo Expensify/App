@@ -42,8 +42,6 @@ function ImportedCategoriesPage({route}: ImportedCategoriesPageProps) {
     const columnNames = generateColumnNames(spreadsheet?.data?.length ?? 0);
     const isQuickSettingsFlow = route.name === SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORIES_IMPORTED;
     const backTo = isQuickSettingsFlow && 'backTo' in route.params ? route.params.backTo : undefined;
-
-    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.WORKSPACE_CATEGORIES_IMPORTED.path);
     const workspaceImportPath = createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CATEGORIES_IMPORT.path, ROUTES.WORKSPACE_CATEGORIES.getRoute(policyID));
 
     const getColumnRoles = (): ColumnRole[] => {
