@@ -26,8 +26,6 @@ import DateUtils from '@libs/DateUtils';
 import getIsReportFullyVisible from '@libs/getIsReportFullyVisible';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getAllNonDeletedTransactions} from '@libs/MoneyRequestReportUtils';
-import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {ReportsSplitNavigatorParamList} from '@libs/Navigation/types';
 import {generateNewRandomInt, rand64} from '@libs/NumberUtils';
 import {
     getCombinedReportActions,
@@ -52,9 +50,9 @@ import {
     isUnread,
 } from '@libs/ReportUtils';
 import markOpenReportEnd from '@libs/telemetry/markOpenReportEnd';
+import type {ReportScreenNavigationProps} from '@pages/inbox/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
@@ -72,16 +70,17 @@ type ReportActionsViewProps = {
 let listOldID = Math.round(Math.random() * 100);
 
 function ReportActionsView({reportID, onLayout}: ReportActionsViewProps) {
+    const route = useRoute<ReportScreenNavigationProps['route']>();
+    const reportActionIDFromRoute = route?.params?.reportActionID;
+
     useCopySelectionHelper();
     const {translate} = useLocalize();
     usePendingConciergeResponse(reportID);
-    const route = useRoute<PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const {isOffline} = useNetwork();
 
     const [report, reportResult] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
 
-    const reportActionID = route?.params?.reportActionID;
     const [treatAsNoPaginationAnchor, setTreatAsNoPaginationAnchor] = useState(false);
     const nonEmptyReportIDForPages = getNonEmptyStringOnyxID(reportID);
     const [reportActionPages] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_PAGES}${nonEmptyReportIDForPages}`);
@@ -92,7 +91,7 @@ function ReportActionsView({reportID, onLayout}: ReportActionsViewProps) {
         sortedAllReportActions,
         oldestUnreadReportAction,
         linkedAction,
-    } = usePaginatedReportActions(reportID, reportActionID, {
+    } = usePaginatedReportActions(reportID, reportActionIDFromRoute, {
         shouldLinkToOldestUnreadReportAction: true,
         treatAsNoPaginationAnchor,
     });
@@ -156,7 +155,7 @@ function ReportActionsView({reportID, onLayout}: ReportActionsViewProps) {
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const [visibleReportActionsData] = useOnyx(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS);
     const prevTransactionThreadReport = usePrevious(transactionThreadReport);
-    const prevReportActionID = usePrevious(reportActionID);
+    const prevReportActionID = usePrevious(reportActionIDFromRoute);
     const reportPreviewAction = useMemo(() => getReportPreviewAction(report?.chatReportID, report?.reportID), [report?.chatReportID, report?.reportID]);
     const didLayout = useRef(false);
 
@@ -178,17 +177,17 @@ function ReportActionsView({reportID, onLayout}: ReportActionsViewProps) {
 
     useEffect(() => {
         // When we linked to message - we do not need to wait for initial actions - they already exists
-        if (!reportActionID || !isOffline) {
+        if (!reportActionIDFromRoute || !isOffline) {
             return;
         }
         updateLoadingInitialReportAction(report?.reportID ?? reportID);
-    }, [isOffline, report?.reportID, reportID, reportActionID]);
+    }, [isOffline, report?.reportID, reportID, reportActionIDFromRoute]);
 
     const previousOldestUnreadReportActionID = usePrevious(oldestUnreadReportAction?.reportActionID);
 
     // Change the list ID only for comment linking to get the positioning right
     const listID = useMemo(() => {
-        if (!reportActionID && !prevReportActionID && oldestUnreadReportAction?.reportActionID === previousOldestUnreadReportActionID) {
+        if (!reportActionIDFromRoute && !prevReportActionID && oldestUnreadReportAction?.reportActionID === previousOldestUnreadReportActionID) {
             // Keep the old list ID since we're not in the Comment Linking flow
             return listOldID;
         }
@@ -355,12 +354,12 @@ function ReportActionsView({reportID, onLayout}: ReportActionsViewProps) {
     };
 
     // Check if the first report action in the list is the one we're currently linked to
-    const isTheFirstReportActionIsLinked = newestReportAction?.reportActionID === reportActionID;
+    const isTheFirstReportActionIsLinked = newestReportAction?.reportActionID === reportActionIDFromRoute;
 
     useEffect(() => {
         let timerID: NodeJS.Timeout;
 
-        if (!isTheFirstReportActionIsLinked && reportActionID) {
+        if (!isTheFirstReportActionIsLinked && reportActionIDFromRoute) {
             setNavigatingToLinkedMessage(true);
             // After navigating to the linked reportAction, apply this to correctly set
             // `autoscrollToTopThreshold` prop when linking to a specific reportAction.
@@ -379,7 +378,7 @@ function ReportActionsView({reportID, onLayout}: ReportActionsViewProps) {
             }
             clearTimeout(timerID);
         };
-    }, [isTheFirstReportActionIsLinked, reportActionID]);
+    }, [isTheFirstReportActionIsLinked, reportActionIDFromRoute]);
 
     // Show skeleton while loading initial report actions when data is incomplete/missing and online
     const shouldShowSkeletonForInitialLoad = isLoadingInitialReportActions && (isReportDataIncomplete || isMissingReportActions) && !isOffline;
@@ -402,11 +401,11 @@ function ReportActionsView({reportID, onLayout}: ReportActionsViewProps) {
     // When we first open a report with a linked report action,
     // we need to wait for the results from the OpenReport api call,
     // if the linked report action is not stored in Onyx.
-    const isLinkedMessagePageLoadingInitially = !!reportActionID && !linkedAction;
+    const isLinkedMessagePageLoadingInitially = !!reportActionIDFromRoute && !linkedAction;
 
     // Same for unread messages, we need to wait for the results from the OpenReport api call,
     // if the oldest unread report action is not stored in Onyx.
-    const isUnreadMessagePageLoadingInitially = !reportActionID && isReportUnreadInitially.current && !oldestUnreadReportAction;
+    const isUnreadMessagePageLoadingInitially = !reportActionIDFromRoute && isReportUnreadInitially.current && !oldestUnreadReportAction;
 
     const shouldWaitForOpenReportResultInitially = isLinkedMessagePageLoadingInitially || isUnreadMessagePageLoadingInitially;
 
@@ -436,7 +435,7 @@ function ReportActionsView({reportID, onLayout}: ReportActionsViewProps) {
     }
 
     // AutoScroll is disabled when we do linking to a specific reportAction
-    const shouldEnableAutoScroll = (hasNewestReportAction && (!reportActionID || !isNavigatingToLinkedMessage)) || (transactionThreadReport && !prevTransactionThreadReport);
+    const shouldEnableAutoScroll = (hasNewestReportAction && (!reportActionIDFromRoute || !isNavigatingToLinkedMessage)) || (transactionThreadReport && !prevTransactionThreadReport);
     return (
         <>
             <ReportActionsList
