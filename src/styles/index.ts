@@ -2562,11 +2562,6 @@ const staticStyles = (theme: ThemeColors) =>
             position: 'relative',
         },
 
-        newSearchResultsHeaderBar: {
-            display: 'flex',
-            position: 'relative',
-        },
-
         headerBarHeight: {
             height: variables.contentHeaderHeight,
         },

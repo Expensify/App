@@ -69,7 +69,7 @@ function SearchPageInputWide({queryJSON, handleSearch}: SearchPageInputWideProps
             {isAutocompleteListVisible && <View style={styles.searchPageInputWidePlaceholder} />}
             <View
                 dataSet={{dragArea: false}}
-                style={[styles.appBG, styles.newSearchResultsHeaderBar, ...autocompleteInputStyle]}
+                style={[styles.appBG, styles.searchResultsHeaderBar, ...autocompleteInputStyle]}
             >
                 <SearchInputSelectionWrapper
                     value={textInputValue}
