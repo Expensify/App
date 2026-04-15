@@ -21,7 +21,7 @@ function SearchPageHeaderNarrow({queryJSON, shouldShowLoadingBar = false, isMobi
     return (
         <TopBar
             shouldShowLoadingBar={shouldShowLoadingBar}
-            breadcrumbLabel={translate('common.reports')}
+            breadcrumbLabel={translate('common.spend')}
             shouldDisplaySearch={false}
             cancelSearch={cancelSearch}
         />

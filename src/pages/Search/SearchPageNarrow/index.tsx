@@ -339,7 +339,7 @@ function SearchPageNarrow({queryJSON, searchResults, isMobileSelectionModeEnable
                             <View style={[styles.zIndex10, styles.appBG]}>
                                 <TopBar
                                     shouldShowLoadingBar={shouldShowLoadingState || shouldShowLoadingBarForReports}
-                                    breadcrumbLabel={translate('common.reports')}
+                                    breadcrumbLabel={translate('common.spend')}
                                     shouldDisplaySearch={false}
                                     shouldDisplayHelpButton
                                     cancelSearch={shouldDisplayCancelSearch ? cancelSearchCallback : undefined}
