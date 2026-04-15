@@ -1471,11 +1471,6 @@ const translations: TranslationDeepObject<typeof en> = {
             manySplitsProvided: `Die maximale Anzahl zulässiger Aufteilungen beträgt ${CONST.IOU.SPLITS_LIMIT}.`,
             dateRangeExceedsMaxDays: `Der Datumsbereich darf ${CONST.IOU.SPLITS_LIMIT} Tage nicht überschreiten.`,
             stitchOdometerImagesFailed: 'Kilometerzählerbilder konnten nicht zusammengeführt werden. Bitte versuchen Sie es später noch einmal.',
-            nonReimbursablePayment: 'Kann nicht über Expensify bezahlt werden',
-            nonReimbursablePaymentDescription: (isMultiple?: boolean) =>
-                isMultiple
-                    ? 'Einer oder mehrere ausgewählte Berichte enthalten keine erstattungsfähigen Ausgaben. Überprüfe die Ausgaben erneut oder markiere sie manuell als bezahlt.'
-                    : 'Der Bericht enthält keine erstattungsfähigen Ausgaben. Überprüfe die Ausgaben erneut oder markiere ihn manuell als bezahlt.',
         },
         dismissReceiptError: 'Fehler ausblenden',
         dismissReceiptErrorConfirmation: 'Achtung! Wenn du diesen Fehler schließt, wird deine hochgeladene Quittung vollständig entfernt. Bist du sicher?',
@@ -1676,6 +1671,7 @@ const translations: TranslationDeepObject<typeof en> = {
             prompt: 'Aktivieren Sie die Steuerverfolgung im Workspace, um die Ausgabendetails zu bearbeiten oder die Steuer aus dieser Ausgabe zu löschen.',
             confirmText: 'Steuer löschen',
         },
+        deleted: 'Gelöscht',
     },
     transactionMerge: {
         listPage: {
@@ -2119,6 +2115,9 @@ const translations: TranslationDeepObject<typeof en> = {
             helpSite: 'Hilfeseite',
             conciergeChat: 'Concierge',
             conciergeChatDescription: 'Ihr persönlicher KI-Agent',
+            accountManagerDescription: 'Ihre Kundenbetreuung',
+            partnerManagerDescription: 'Ihre Partnermanagerin / Ihr Partnermanager',
+            guideDescription: 'Ihre Einrichtungsfachkraft',
         },
     },
     closeAccountPage: {
@@ -3212,8 +3211,7 @@ ${amount} für ${merchant} – ${date}`,
                         # Deine kostenlose Testversion hat begonnen! Lass uns alles einrichten.
                         👋 Hallo, ich bin deine Expensify-Einrichtungsspezialist*in. Nachdem du jetzt einen Arbeitsbereich erstellt hast, nutze deine 30-tägige kostenlose Testversion optimal, indem du die folgenden Schritte befolgst!
                     `),
-            onboardingTrackWorkspaceMessage:
-                '# Lass uns alles einrichten\n👋 Hallo, ich bin deine Expensify-Einrichtungsspezialist*in. Ich habe bereits einen Workspace erstellt, um dir bei der Verwaltung deiner Belege und Ausgaben zu helfen. Um das Beste aus deiner 30-tägigen kostenlosen Testphase herauszuholen, folge einfach den verbleibenden Einrichtungsschritten unten!',
+            onboardingTrackWorkspaceMessage: 'Um das Beste aus Ihrer 30-tägigen kostenlosen Testversion zu machen, folgen Sie den verbleibenden Schritten unten:',
             onboardingChatSplitMessage: 'Rechnungen mit Freund*innen zu teilen ist so einfach wie das Senden einer Nachricht. So geht’s.',
             onboardingAdminMessage: 'Erfahre, wie du als Admin den Arbeitsbereich deines Teams verwaltest und deine eigenen Ausgaben einreichst.',
             onboardingTestDriveReceiverMessage: '*Du erhältst 3 Monate gratis! Leg unten los.*',
@@ -5291,7 +5289,7 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             chooseTheCardholder: 'Wähle den Karteninhaber',
             chooseCard: 'Wähle eine Karte',
             chooseCardFor: (assignee: string) => `Wähle eine Karte für <strong>${assignee}</strong>. Du findest die gesuchte Karte nicht? <concierge-link>Gib uns Bescheid.</concierge-link>`,
-            noAvailableCards: 'Alle Karten haben bereits eine Regel',
+            noActiveCards: 'Keine aktiven Karten in diesem Feed',
             somethingMightBeBroken:
                 '<muted-text><centered-text>Oder es ist etwas kaputt. Wie auch immer, wenn du Fragen hast, <concierge-link>wende dich einfach an Concierge</concierge-link>.</centered-text></muted-text>',
             chooseTransactionStartDate: 'Wähle ein Startdatum für Transaktionen',
@@ -5327,7 +5325,6 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             },
             deletedCard: 'Gelöschte Karte',
             assignNewCards: {title: 'Neue Karten zuweisen', description: 'Holen Sie die neuesten Karten zum Zuweisen von Ihrer Bank'},
-            noAvailableCardsSubtitle: 'Bearbeiten Sie eine bestehende Kartenregel, um Änderungen vorzunehmen',
         },
         expensifyCard: {
             issueAndManageCards: 'Geben Sie Expensify Karten aus und verwalten Sie sie',
@@ -5517,6 +5514,11 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                             settlementAccountLabel: 'Verrechnungskonto',
                             settlementFrequencyLabel: 'Auszahlungsfrequenz',
                             settlementFrequencyDescription: 'Wie oft Expensify Ihr Geschäftskonto belastet, um aktuelle Expensify Travel-Transaktionen zu begleichen.',
+                            monthlySpendLimitLabel: 'Monatliches Ausgabelimit pro Mitglied',
+                            monthlySpendLimitDescription: 'Der maximale Betrag, den jedes Mitglied pro Monat für Reisen ausgeben kann.',
+                            reduceLimitTitle: 'Reise-Ausgabelimit reduzieren?',
+                            reduceLimitWarning:
+                                'Wenn Sie das Limit reduzieren, können Mitglieder, die diesen Betrag bereits überschritten haben, bis zum nächsten Monat keine neuen Reisebuchungen vornehmen.',
                         },
                     },
                     disableModal: {
@@ -6884,6 +6886,8 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 confirmErrorApplyAtLeastOneSpendRule: 'Wenden Sie mindestens eine Ausgabenregel an',
                 categories: 'Kategorien',
                 merchants: 'Händler',
+                noAvailableCards: 'Alle Karten haben bereits eine Regel',
+                noAvailableCardsSubtitle: 'Bearbeiten Sie eine vorhandene Kartenregel, um Änderungen vorzunehmen',
                 max: 'Max',
                 categoryOptions: {
                     [CONST.SPEND_RULES.CATEGORIES.AIRLINES]: 'Fluggesellschaften',
@@ -7605,6 +7609,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             reject: 'Ablehnen',
             duplicateExpense: ({count}: {count: number}) => `${count === 1 ? 'Ausgabe' : 'Ausgaben'} duplizieren`,
             noOptionsAvailable: 'Für die ausgewählte Ausgabengruppe sind keine Optionen verfügbar.',
+            undelete: 'Wiederherstellen',
         },
         filtersHeader: 'Filter',
         filters: {
@@ -7657,6 +7662,10 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             billable: 'Abrechenbar',
             reimbursable: 'Erstattungsfähig',
             purchaseCurrency: 'Kaufwährung',
+            sortOrder: {
+                [CONST.SEARCH.SORT_ORDER.ASC]: 'Aufsteigend',
+                [CONST.SEARCH.SORT_ORDER.DESC]: 'Absteigend',
+            },
             groupBy: {
                 [CONST.SEARCH.GROUP_BY.FROM]: 'Von',
                 [CONST.SEARCH.GROUP_BY.CARD]: 'Karte',
@@ -7685,6 +7694,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         display: {
             label: 'Anzeige',
             sortBy: 'Sortieren nach',
+            sortOrder: 'Sortierreihenfolge',
             groupBy: 'Gruppieren nach',
             limitResults: 'Ergebnisse einschränken',
         },
@@ -7720,7 +7730,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         recentSearches: 'Letzte Suchen',
         recentChats: 'Neueste Chats',
         searchIn: 'Suchen in',
-        searchPlaceholder: 'Nach etwas suchen',
+        searchPlaceholder: 'Nach etwas suchen...',
         suggestions: 'Vorschläge',
         suggestionsAvailable: (
             {

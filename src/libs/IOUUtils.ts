@@ -284,8 +284,15 @@ function insertTagIntoTransactionTagsString(transactionTags: string, tag: string
         return tag;
     }
 
-    const tagArray = getTagArrayFromName(transactionTags);
+    const tagArray = transactionTags ? getTagArrayFromName(transactionTags) : [];
     tagArray[tagIndex] = tag;
+
+    // Fill any sparse slots created when tagIndex > tagArray.length
+    for (let i = 0; i < tagArray.length; i++) {
+        if (tagArray.at(i) === undefined) {
+            tagArray[i] = '';
+        }
+    }
 
     while (tagArray.length > 0 && !tagArray.at(-1)) {
         tagArray.pop();
@@ -349,7 +356,7 @@ function navigateToConfirmationPage(
     startSpan(CONST.TELEMETRY.SPAN_CONFIRMATION_MOUNT, {
         name: CONST.TELEMETRY.SPAN_CONFIRMATION_MOUNT,
         op: CONST.TELEMETRY.SPAN_CONFIRMATION_MOUNT,
-        parentSpan: getSpan(CONST.TELEMETRY.SPAN_SHUTTER_TO_CONFIRMATION),
+        parentSpan: getSpan(CONST.TELEMETRY.SPAN_SHUTTER_TO_CONFIRMATION) ?? getSpan(CONST.TELEMETRY.SPAN_ODOMETER_TO_CONFIRMATION),
     });
     switch (iouType) {
         case CONST.IOU.TYPE.REQUEST:
