@@ -2823,10 +2823,7 @@ type OnboardingModalNavigatorParamList = {
     [SCREENS.ONBOARDING.DYNAMIC_EMPLOYEES]: undefined;
     [SCREENS.ONBOARDING.DYNAMIC_ACCOUNTING]: undefined;
     [SCREENS.ONBOARDING.DYNAMIC_INTERESTED_FEATURES]: undefined;
-    [SCREENS.ONBOARDING.WORKSPACE_INVITE]: {
-        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
-        backTo?: string;
-    };
+    [SCREENS.ONBOARDING.DYNAMIC_WORKSPACE_INVITE]: undefined;
 };
 
 type ExplanationModalNavigatorParamList = {

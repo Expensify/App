@@ -19,6 +19,7 @@ import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {addErrorMessage} from '@libs/ErrorUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {isPaidGroupPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
@@ -28,7 +29,7 @@ import {createWorkspace, generatePolicyID, newGenerateDefaultWorkspaceName} from
 import {setOnboardingAdminsChatReportID, setOnboardingErrorMessage, setOnboardingPolicyID} from '@userActions/Welcome';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import {lastWorkspaceNumberSelector} from '@src/selectors/Policy';
 import INPUT_IDS from '@src/types/form/WorkspaceConfirmationForm';
@@ -107,7 +108,7 @@ function BaseOnboardingWorkspaceConfirmation({shouldUseNativeStyles, navigateBac
                 setOnboardingPolicyID(policyID);
             }
             clearWorkspaceDetailsDraft();
-            Navigation.navigate(ROUTES.ONBOARDING_WORKSPACE_INVITE.getRoute());
+            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.ONBOARDING_WORKSPACE_INVITE.path));
         },
         [
             onboardingPurposeSelected,

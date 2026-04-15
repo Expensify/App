@@ -60,7 +60,7 @@ function OnboardingModalNavigator() {
     }
 
     if (onboardingPurposeSelected === CONST.ONBOARDING_CHOICES.PERSONAL_SPEND && !!onboardingPolicyID) {
-        initialRouteName = SCREENS.ONBOARDING.WORKSPACE_INVITE;
+        initialRouteName = SCREENS.ONBOARDING.DYNAMIC_WORKSPACE_INVITE;
     }
 
     const [accountID] = useOnyx(ONYXKEYS.SESSION, {
@@ -173,7 +173,7 @@ function OnboardingModalNavigator() {
                                 component={OnboardingWorkspaceCurrency}
                             />
                             <Stack.Screen
-                                name={SCREENS.ONBOARDING.WORKSPACE_INVITE}
+                                name={SCREENS.ONBOARDING.DYNAMIC_WORKSPACE_INVITE}
                                 component={OnboardingWorkspaceInvite}
                             />
                         </Stack.Navigator>
