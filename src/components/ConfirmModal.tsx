@@ -187,6 +187,7 @@ function ConfirmModal({
             restoreFocusType={restoreFocusType}
             shouldHandleNavigationBack={shouldHandleNavigationBack}
             shouldIgnoreBackHandlerDuringTransition={shouldIgnoreBackHandlerDuringTransition}
+            enableEdgeToEdgeBottomSafeAreaPadding
         >
             <ConfirmContent
                 title={title}

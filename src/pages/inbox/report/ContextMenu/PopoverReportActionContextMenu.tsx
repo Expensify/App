@@ -476,6 +476,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
                 anchorDimensions={contextMenuDimensions.current}
                 anchorRef={anchorRef}
                 shouldSwitchPositionIfOverflow={shouldSwitchPositionIfOverflow}
+                enableEdgeToEdgeBottomSafeAreaPadding
             >
                 <BaseReportActionContextMenu
                     isVisible={isPopoverVisible}

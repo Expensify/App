@@ -7,6 +7,7 @@ import FocusTrapForModal from '@components/FocusTrap/FocusTrapForModal';
 import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import withViewportOffsetTop from '@components/withViewportOffsetTop';
+import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -235,6 +236,8 @@ function EmojiPicker({viewportOffsetTop, ref}: EmojiPickerProps) {
         };
     }, [isEmojiPickerVisible, shouldUseNarrowLayout, emojiPopoverAnchorOrigin, getEmojiPopoverAnchor, hideEmojiPicker]);
 
+    const bottomSafeAreaPaddingStyle = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding: true});
+
     return (
         <PopoverWithMeasuredContent
             shouldHandleNavigationBack={isMobileChrome()}
@@ -266,7 +269,7 @@ function EmojiPicker({viewportOffsetTop, ref}: EmojiPickerProps) {
         >
             <FocusTrapForModal active={isEmojiPickerVisible}>
                 <Activity mode={isEmojiPickerVisible ? 'visible' : 'hidden'}>
-                    <View>
+                    <View style={bottomSafeAreaPaddingStyle}>
                         <EmojiPickerMenu
                             onEmojiSelected={selectEmoji}
                             activeEmoji={activeEmoji.current}

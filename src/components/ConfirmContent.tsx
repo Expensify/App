@@ -2,6 +2,7 @@ import type {ReactNode} from 'react';
 import React from 'react';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {View} from 'react-native';
+import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -143,6 +144,7 @@ function ConfirmContent({
     const theme = useTheme();
     const {isOffline} = useNetwork();
     const icons = useMemoizedLazyExpensifyIcons(['Close']);
+    const bottomSafeAreaPaddingStyle = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding: true});
 
     const isCentered = shouldCenterContent;
 
@@ -161,7 +163,7 @@ function ConfirmContent({
                 </View>
             )}
 
-            <View style={[styles.m5, contentStyles]}>
+            <View style={[styles.m5, contentStyles, bottomSafeAreaPaddingStyle]}>
                 {shouldShowDismissIcon && (
                     <View style={styles.alignItemsEnd}>
                         <Tooltip text={translate('common.close')}>

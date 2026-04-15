@@ -12,6 +12,7 @@ import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/
 import FocusTrapForModal from '@components/FocusTrap/FocusTrapForModal';
 import {useSession} from '@components/OnyxListItemProvider';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
+import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useEnvironment from '@hooks/useEnvironment';
 import useGetExpensifyCardFromReportAction from '@hooks/useGetExpensifyCardFromReportAction';
@@ -368,12 +369,14 @@ function BaseReportActionContextMenu({
     // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
     const card = useGetExpensifyCardFromReportAction({reportAction: (reportAction ?? null) as ReportAction, policyID});
 
+    const bottomSafeAreaPaddingStyle = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding: true});
+
     return (
         (isVisible || shouldKeepOpen || !isMini) && (
             <FocusTrapForModal active={!isMini && !isSmallScreenWidth && (isVisible || shouldKeepOpen)}>
                 <View
                     ref={contentRef}
-                    style={wrapperStyle}
+                    style={[wrapperStyle, bottomSafeAreaPaddingStyle]}
                 >
                     {filteredContextMenuActions.map((contextAction, index) => {
                         const closePopup = !isMini;
