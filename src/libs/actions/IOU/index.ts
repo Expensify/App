@@ -1715,7 +1715,7 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING}`,
-                value: {[CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP]: {timestamp: DateUtils.getDBTime(date.valueOf())}},
+                value: {[CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP]: {timestamp: DateUtils.getDBTime(date.valueOf()), dismissedMethod: 'click'}},
             },
             {
                 onyxMethod: Onyx.METHOD.MERGE,
