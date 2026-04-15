@@ -46,14 +46,13 @@ function isPopAction(action: PushParamsRouterAction): boolean {
  * SearchFullscreenNavigator. It may break if new screens are added to that navigator or if
  * other structural changes are made to the navigation hierarchy.
  */
-// Cursor into PUSH_PARAMS history — lastIndex is ambiguous for duplicate compounds (A → B → A). Singleton: SearchFullscreenNavigator is the sole consumer.
-let pushParamsHistoryPosition = -1;
-
 function addPushParamsRouterExtension<RouterOptions extends PlatformStackRouterOptions = PlatformStackRouterOptions>(
     originalRouter: PlatformStackRouterFactory<ParamListBase, RouterOptions>,
 ) {
     return (options: RouterOptions): Router<PlatformStackNavigationState<ParamListBase>, PushParamsRouterAction> => {
         const router = originalRouter(options);
+        // Cursor into PUSH_PARAMS history — lastIndex is ambiguous for duplicate compounds (A → B → A). Per-router so tests instantiating multiple routers stay isolated.
+        let pushParamsHistoryPosition = -1;
 
         const getInitialState = (configOptions: RouterConfigOptions) => {
             const state = router.getInitialState(configOptions);

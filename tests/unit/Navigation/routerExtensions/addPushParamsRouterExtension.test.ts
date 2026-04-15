@@ -382,6 +382,55 @@ describe('addPushParamsRouterExtension', () => {
         expect(newState).toBeNull();
     });
 
+    it('PUSH_PARAMS while mid-cursor truncates forward history entries (window.history.pushState semantics)', () => {
+        const factory = createMockRouterFactory();
+        const enhancedRouter = addPushParamsRouterExtension(factory)({} as PlatformStackRouterOptions);
+
+        const initial = makeRoute('Search', 'search-1', {q: 'A'});
+        let state: TestState = makeState([initial], {history: [{...initial}] as CustomHistoryEntry[]});
+
+        state = enhancedRouter.getStateForAction(state, {type: CONST.NAVIGATION.ACTION_TYPE.PUSH_PARAMS, payload: {params: {q: 'B'}}}, CONFIG_OPTIONS) as TestState;
+        state = enhancedRouter.getStateForAction(state, {type: CONST.NAVIGATION.ACTION_TYPE.PUSH_PARAMS, payload: {params: {q: 'C'}}}, CONFIG_OPTIONS) as TestState;
+        expect(state.history).toHaveLength(3);
+
+        // Simulate browser-back to B via RESET — moves the internal cursor to position 1.
+        const resetToB: PushParamsRouterAction = {
+            type: CONST.NAVIGATION.ACTION_TYPE.RESET,
+            payload: {routes: [{name: 'Search', key: 'search-1', params: {q: 'B'}}], index: 0},
+        };
+        state = enhancedRouter.getStateForAction(state, resetToB, CONFIG_OPTIONS) as TestState;
+        expect((state.routes.at(0)?.params as {q: string}).q).toBe('B');
+
+        // PUSH D from mid-cursor — forward entry [C] must be discarded, as window.history.pushState would.
+        state = enhancedRouter.getStateForAction(state, {type: CONST.NAVIGATION.ACTION_TYPE.PUSH_PARAMS, payload: {params: {q: 'D'}}}, CONFIG_OPTIONS) as TestState;
+        expect(state.history).toHaveLength(3);
+        expect((asRouteEntry(state.history?.at(1) as CustomHistoryEntry).params as {q: string}).q).toBe('B');
+        expect((asRouteEntry(state.history?.at(2) as CustomHistoryEntry).params as {q: string}).q).toBe('D');
+    });
+
+    it('GO_BACK while mid-cursor reverts to the cursor-relative previous snapshot and preserves forward entries', () => {
+        const factory = createMockRouterFactory();
+        const enhancedRouter = addPushParamsRouterExtension(factory)({} as PlatformStackRouterOptions);
+
+        const initial = makeRoute('Search', 'search-1', {q: 'A'});
+        let state: TestState = makeState([initial], {history: [{...initial}] as CustomHistoryEntry[]});
+
+        state = enhancedRouter.getStateForAction(state, {type: CONST.NAVIGATION.ACTION_TYPE.PUSH_PARAMS, payload: {params: {q: 'B'}}}, CONFIG_OPTIONS) as TestState;
+        state = enhancedRouter.getStateForAction(state, {type: CONST.NAVIGATION.ACTION_TYPE.PUSH_PARAMS, payload: {params: {q: 'C'}}}, CONFIG_OPTIONS) as TestState;
+
+        // Browser-back to B via RESET — cursor is now mid-history at position 1.
+        state = enhancedRouter.getStateForAction(
+            state,
+            {type: CONST.NAVIGATION.ACTION_TYPE.RESET, payload: {routes: [{name: 'Search', key: 'search-1', params: {q: 'B'}}], index: 0}},
+            CONFIG_OPTIONS,
+        ) as TestState;
+
+        // Programmatic GO_BACK from mid-cursor must go to A (history[cursor-1]), not stay on B, and must NOT pop history[last].
+        state = enhancedRouter.getStateForAction(state, CommonActions.goBack(), CONFIG_OPTIONS) as TestState;
+        expect((state.routes.at(0)?.params as {q: string}).q).toBe('A');
+        expect(state.history).toHaveLength(3);
+    });
+
     it('multiple PUSH_PARAMS followed by multiple GO_BACKs reverts params step-by-step', () => {
         const factory = createMockRouterFactory();
         const enhancedRouter = addPushParamsRouterExtension(factory)({} as PlatformStackRouterOptions);
