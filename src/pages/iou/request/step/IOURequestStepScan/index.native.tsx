@@ -159,6 +159,9 @@ function IOURequestStepScan({
             return;
         }
         cancelSpan(CONST.TELEMETRY.SPAN_OPEN_CREATE_EXPENSE);
+        cancelSpan(CONST.TELEMETRY.SPAN_ENTRY_TO_SCAN_NAVIGATION);
+        cancelSpan(CONST.TELEMETRY.SPAN_ENTRY_TO_SCAN_READY);
+        cancelSpan(CONST.TELEMETRY.SPAN_ENTRY_TO_SCAN);
     }, [cameraPermissionStatus]);
 
     // Cancel spans on unmount if camera never initialized
