@@ -19,17 +19,21 @@ function BaseFlatListWithScrollKey<T>({ref, ...props}: BaseFlatListWithScrollKey
         onScrollBeginDrag,
         onWheel,
         onTouchStartCapture,
-        ...rest
+        onInitiallyLoaded,
+        initialNumToRender,
+        ...restProps
     } = props;
     const {displayedData, maintainVisibleContentPosition, handleStartReached, isInitialData, handleRenderItem, listRef} = useFlatListScrollKey<T>({
         data,
         keyExtractor,
         initialScrollKey,
         inverted: false,
+        initialNumToRender,
         onStartReached,
         shouldEnableAutoScrollToTopThreshold,
         renderItem,
         ref,
+        onInitiallyLoaded,
     });
 
     const isLoadingData = useRef(true);
@@ -52,8 +56,9 @@ function BaseFlatListWithScrollKey<T>({ref, ...props}: BaseFlatListWithScrollKey
         <FlatList
             ref={listRef}
             // eslint-disable-next-line react/jsx-props-no-spreading
-            {...rest}
+            {...restProps}
             data={displayedData}
+            initialNumToRender={initialNumToRender}
             maintainVisibleContentPosition={maintainVisibleContentPosition}
             onStartReached={handleStartReached}
             renderItem={handleRenderItem}
@@ -61,8 +66,8 @@ function BaseFlatListWithScrollKey<T>({ref, ...props}: BaseFlatListWithScrollKey
             // Since ListHeaderComponent is always prioritized for rendering before the data,
             // it will be rendered once the data has finished loading.
             // This prevents an unnecessary empty space above the highlighted item.
-            ListHeaderComponent={!isInitialData ? rest.ListHeaderComponent : undefined}
-            contentContainerStyle={!isInitialData ? rest.contentContainerStyle : undefined}
+            ListHeaderComponent={!isInitialData ? restProps.ListHeaderComponent : undefined}
+            contentContainerStyle={!isInitialData ? restProps.contentContainerStyle : undefined}
             onContentSizeChange={(width, height) => onContentSizeChange?.(width, height, isInitialData)}
             onViewableItemsChanged={(info) => {
                 onViewableItemsChanged?.(info);

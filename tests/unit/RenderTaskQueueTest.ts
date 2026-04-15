@@ -21,6 +21,8 @@ describe('RenderTaskQueue', () => {
             // When a task is added and allowed to complete
             queue.add({distanceFromStart: 100});
 
+            jest.advanceTimersByTime(500);
+
             // Then the callback is invoked with true when rendering starts
             expect(mockOnIsRenderingChange).toHaveBeenCalledWith(true);
             jest.advanceTimersByTime(500);
@@ -37,6 +39,9 @@ describe('RenderTaskQueue', () => {
 
             // When a task is added but canceled before completion
             queue.add({distanceFromStart: 100});
+
+            jest.advanceTimersByTime(500);
+
             queue.cancel();
 
             // Then the callback is invoked with true when rendering starts

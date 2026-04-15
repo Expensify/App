@@ -12,6 +12,7 @@ import mockStorage from 'react-native-onyx/dist/storage/__mocks__';
 import type Animated from 'react-native-reanimated';
 import 'setimmediate';
 import {TextDecoder, TextEncoder} from 'util';
+import type {RenderInfo} from '@components/FlatList/InvertedFlatList/RenderTaskQueue';
 import '@src/polyfills/PromiseWithResolvers';
 import mockFSLibrary from './setupMockFullstoryLib';
 import setupMockImages from './setupMockImages';
@@ -265,13 +266,15 @@ jest.mock(
     '@components/FlatList/InvertedFlatList/RenderTaskQueue',
     () =>
         class SyncRenderTaskQueue {
-            private handler: (info: unknown) => void = () => {};
+            private handler: ((info: unknown) => void) | undefined = undefined;
 
-            add(info: unknown) {
-                this.handler(info);
+            add(info: RenderInfo) {
+                this.handler?.(info);
             }
 
-            setHandler(handler: () => void) {
+            start() {}
+
+            setHandler(handler: (info: unknown) => void) {
                 this.handler = handler;
             }
 

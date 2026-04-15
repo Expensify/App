@@ -11,6 +11,7 @@ import {getAllNonDeletedTransactions, shouldDisplayReportTableView, shouldWaitFo
 import {isInvoiceReport, isMoneyRequestReport} from '@libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ReportActionsView from './report/ReportActionsView';
+import type {ReportScreenNavigationProps} from './types';
 
 const defaultReportMetadata = {
     hasOnceLoadedReportActions: false,
@@ -28,9 +29,8 @@ const defaultReportMetadata = {
  * conditions need — heavy data derivation is pushed into each child.
  */
 function ReportActionsList() {
-    const route = useRoute();
-    const routeParams = route.params as {reportID?: string} | undefined;
-    const reportIDFromRoute = getNonEmptyStringOnyxID(routeParams?.reportID);
+    const route = useRoute<ReportScreenNavigationProps['route']>();
+    const reportIDFromRoute = getNonEmptyStringOnyxID(route.params?.reportID);
 
     const {isOffline} = useNetwork();
 

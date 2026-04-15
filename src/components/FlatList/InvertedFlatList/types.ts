@@ -8,6 +8,8 @@ type InvertedFlatListProps<T> = Omit<CustomFlatListProps<T>, 'data' | 'renderIte
     renderItem: ListRenderItem<T>;
     initialScrollKey?: string | null;
     ref?: ForwardedRef<RNFlatList>;
+
+    onInitiallyLoaded?: () => void;
 };
 
 // eslint-disable-next-line import/prefer-default-export

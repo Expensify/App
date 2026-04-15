@@ -8,6 +8,7 @@ type BaseFlatListWithScrollKeyProps<T> = Omit<FlatListProps<T>, 'data' | 'initia
     shouldEnableAutoScrollToTopThreshold?: boolean;
     renderItem: ListRenderItem<T>;
     onContentSizeChange?: (contentWidth: number, contentHeight: number, isInitialData?: boolean) => void;
+    onInitiallyLoaded?: () => void;
     ref: ForwardedRef<RNFlatList>;
 };
 

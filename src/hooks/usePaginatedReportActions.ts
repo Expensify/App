@@ -12,13 +12,16 @@ import useReportIsArchived from './useReportIsArchived';
 type UsePaginatedReportActionsOptions = {
     /** Whether to link to the oldest unread report action, if no other report action id is provided. */
     shouldLinkToOldestUnreadReportAction?: boolean;
+
+    /** When true, pagination anchors to the newest window only (ignores route and unread-derived anchors). */
+    treatAsNoPaginationAnchor?: boolean;
 };
 
 /**
  * Get the longest continuous chunk of reportActions including the linked reportAction. If not linking to a specific action, returns the continuous chunk of newest reportActions.
  */
 function usePaginatedReportActions(reportID: string | undefined, reportActionID?: string, options?: UsePaginatedReportActionsOptions) {
-    const {shouldLinkToOldestUnreadReportAction = false} = options ?? {};
+    const {shouldLinkToOldestUnreadReportAction = false, treatAsNoPaginationAnchor = false} = options ?? {};
 
     const nonEmptyStringReportID = getNonEmptyStringOnyxID(reportID);
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${nonEmptyStringReportID}`);
@@ -45,6 +48,11 @@ function usePaginatedReportActions(reportID: string | undefined, reportActionID?
     const initialReportLastReadTime = useRef(report?.lastReadTime);
 
     const id = useMemo(() => {
+        /* eslint-disable react-hooks/refs -- initialReportLastReadTime snapshots lastRead at first render for stable unread deep-link anchor */
+        if (treatAsNoPaginationAnchor) {
+            return undefined;
+        }
+
         if (reportActionID) {
             return reportActionID;
         }
@@ -53,14 +61,21 @@ function usePaginatedReportActions(reportID: string | undefined, reportActionID?
             return undefined;
         }
 
-        return sortedAllReportActions?.findLast((reportAction) => {
-            if (!initialReportLastReadTime.current) {
-                return false;
-            }
+        const initialLastReadTime = initialReportLastReadTime.current;
+        if (!initialLastReadTime || !sortedAllReportActions?.length) {
+            return undefined;
+        }
 
-            return reportAction.created > initialReportLastReadTime.current;
-        })?.reportActionID;
-    }, [reportActionID, shouldLinkToOldestUnreadReportAction, sortedAllReportActions]);
+        for (let i = sortedAllReportActions.length - 1; i >= 0; i -= 1) {
+            const reportAction = sortedAllReportActions.at(i);
+            if (reportAction && reportAction.created > initialLastReadTime) {
+                return reportAction.reportActionID;
+            }
+        }
+
+        return undefined;
+        /* eslint-enable react-hooks/refs */
+    }, [treatAsNoPaginationAnchor, reportActionID, shouldLinkToOldestUnreadReportAction, sortedAllReportActions]);
 
     const {
         data: reportActions,
@@ -77,17 +92,18 @@ function usePaginatedReportActions(reportID: string | undefined, reportActionID?
 
     const linkedAction = useMemo(() => (reportActionID ? resourceItem?.item : undefined), [resourceItem?.item, reportActionID]);
 
-    const oldestUnreadReportAction = useMemo(() => {
+    const [oldestUnreadReportAction, oldestUnreadReportActionIndex] = useMemo(() => {
         if (shouldLinkToOldestUnreadReportAction && resourceItem && !reportActionID) {
-            return resourceItem.item;
+            return [resourceItem.item, resourceItem.index];
         }
-        return undefined;
+        return [undefined, -1];
     }, [resourceItem, shouldLinkToOldestUnreadReportAction, reportActionID]);
 
     return {
         reportActions,
         linkedAction,
         oldestUnreadReportAction,
+        oldestUnreadReportActionIndex,
         sortedAllReportActions,
         hasOlderActions: hasNextPage,
         hasNewerActions: hasPreviousPage,

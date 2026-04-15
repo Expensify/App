@@ -60,6 +60,7 @@ const defaultPaginatedReportActionsResult: ReturnType<typeof usePaginatedReportA
     reportActions: [],
     linkedAction: undefined,
     oldestUnreadReportAction: undefined,
+    oldestUnreadReportActionIndex: -1,
     sortedAllReportActions: undefined,
     hasNewerActions: false,
     hasOlderActions: false,
