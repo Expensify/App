@@ -95,7 +95,6 @@ function useOptions(reportAttributesDerived: ReportAttributesDerivedValue['repor
         betas,
     });
 
-    const [nvpDismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
 
     const reports = listOptions?.reports ?? [];
@@ -108,7 +107,6 @@ function useOptions(reportAttributesDerived: ReportAttributesDerivedValue['repor
         },
         allPolicies,
         draftComments,
-        nvpDismissedProductTraining,
         loginList,
         currentUserAccountID,
         currentUserEmail,

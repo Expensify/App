@@ -97,7 +97,6 @@ const defaultParams = {
     allFeeds: {},
     options: {reports: [], personalDetails: []},
     draftComments: {},
-    nvpDismissedProductTraining: undefined,
     betas: [] as never[],
     countryCode: 1,
     loginList: {},

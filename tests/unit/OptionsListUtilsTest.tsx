@@ -84,7 +84,7 @@ import createRandomReportAction from '../utils/collections/reportActions';
 import {createRandomReport, createRegularChat} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
 import {getFakeAdvancedReportAction} from '../utils/LHNTestUtils';
-import {getNvpDismissedProductTraining, localeCompare, translateLocal} from '../utils/TestHelper';
+import {localeCompare, translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 jest.mock('@rnmapbox/maps', () => {
@@ -118,7 +118,6 @@ const renderLocaleContextProvider = () => {
     );
 };
 
-const nvpDismissedProductTraining = getNvpDismissedProductTraining();
 const EMPTY_PRIVATE_IS_ARCHIVED_MAP: PrivateIsArchivedMap = {};
 
 describe('OptionsListUtils', () => {
@@ -808,7 +807,7 @@ describe('OptionsListUtils', () => {
                 options: OPTIONS,
                 reportAttributesDerived: MOCK_REPORT_ATTRIBUTES_DERIVED,
                 draftComments: {},
-                nvpDismissedProductTraining,
+
                 loginList,
                 betas: [CONST.BETAS.ALL],
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
@@ -830,7 +829,7 @@ describe('OptionsListUtils', () => {
             const results = getSearchOptions({
                 options: OPTIONS,
                 draftComments: {},
-                nvpDismissedProductTraining,
+
                 betas: [CONST.BETAS.ALL],
                 isUsedInChatFinder: true,
                 includeReadOnly: true,
@@ -862,7 +861,7 @@ describe('OptionsListUtils', () => {
             const results = getSearchOptions({
                 options: OPTIONS,
                 draftComments: {},
-                nvpDismissedProductTraining,
+
                 betas: [CONST.BETAS.ALL],
                 isUsedInChatFinder: true,
                 includeReadOnly: true,
@@ -891,7 +890,7 @@ describe('OptionsListUtils', () => {
             const results = getSearchOptions({
                 options: OPTIONS_WITH_WORKSPACE_ROOM,
                 draftComments: {},
-                nvpDismissedProductTraining,
+
                 betas: [CONST.BETAS.ALL],
                 isUsedInChatFinder: true,
                 includeReadOnly: true,
@@ -920,7 +919,7 @@ describe('OptionsListUtils', () => {
             const results = getSearchOptions({
                 options: OPTIONS,
                 draftComments: {},
-                nvpDismissedProductTraining,
+
                 betas: [CONST.BETAS.ALL],
                 isUsedInChatFinder: true,
                 includeReadOnly: true,
@@ -948,7 +947,7 @@ describe('OptionsListUtils', () => {
             const results = getSearchOptions({
                 options: OPTIONS,
                 draftComments: {},
-                nvpDismissedProductTraining,
+
                 betas: [CONST.BETAS.ALL],
                 isUsedInChatFinder: true,
                 includeReadOnly: true,
@@ -982,7 +981,7 @@ describe('OptionsListUtils', () => {
                 },
                 allPolicies,
                 {},
-                nvpDismissedProductTraining,
+
                 loginList,
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
@@ -1022,7 +1021,7 @@ describe('OptionsListUtils', () => {
                 {personalDetails: OPTIONS.personalDetails, reports: []},
                 allPolicies,
                 {},
-                nvpDismissedProductTraining,
+
                 loginList,
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
@@ -1058,7 +1057,7 @@ describe('OptionsListUtils', () => {
                 {reports: [], personalDetails: []},
                 allPolicies,
                 {},
-                nvpDismissedProductTraining,
+
                 loginList,
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
@@ -1081,7 +1080,7 @@ describe('OptionsListUtils', () => {
                 {reports: OPTIONS_WITH_CONCIERGE.reports, personalDetails: OPTIONS_WITH_CONCIERGE.personalDetails},
                 allPolicies,
                 {},
-                nvpDismissedProductTraining,
+
                 loginList,
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
@@ -1104,7 +1103,7 @@ describe('OptionsListUtils', () => {
                 },
                 allPolicies,
                 {},
-                nvpDismissedProductTraining,
+
                 loginList,
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
@@ -1128,7 +1127,7 @@ describe('OptionsListUtils', () => {
                 {reports: OPTIONS_WITH_CONCIERGE.reports, personalDetails: OPTIONS_WITH_CONCIERGE.personalDetails},
                 allPolicies,
                 {},
-                nvpDismissedProductTraining,
+
                 loginList,
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
@@ -1149,7 +1148,7 @@ describe('OptionsListUtils', () => {
                 {reports: OPTIONS_WITH_CHRONOS.reports, personalDetails: OPTIONS_WITH_CHRONOS.personalDetails},
                 allPolicies,
                 {},
-                nvpDismissedProductTraining,
+
                 loginList,
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
@@ -1175,7 +1174,7 @@ describe('OptionsListUtils', () => {
                 },
                 allPolicies,
                 {},
-                nvpDismissedProductTraining,
+
                 loginList,
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
@@ -1198,12 +1197,6 @@ describe('OptionsListUtils', () => {
                 {reports: OPTIONS_WITH_MANAGER_MCTEST.reports, personalDetails: OPTIONS_WITH_MANAGER_MCTEST.personalDetails},
                 allPolicies,
                 {},
-                {
-                    // @ts-expect-error Mocked for testing
-                    [CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.RENAME_SAVED_SEARCH]: {
-                        timestamp: DateUtils.getDBTime(new Date().valueOf()),
-                    },
-                },
                 loginList,
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
@@ -1228,7 +1221,7 @@ describe('OptionsListUtils', () => {
                 {reports: OPTIONS_WITH_MANAGER_MCTEST.reports, personalDetails: OPTIONS_WITH_MANAGER_MCTEST.personalDetails},
                 allPolicies,
                 {},
-                nvpDismissedProductTraining,
+
                 loginList,
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
@@ -1285,7 +1278,7 @@ describe('OptionsListUtils', () => {
                 {reports: [adminRoom], personalDetails: OPTIONS.personalDetails},
                 allPolicies,
                 {},
-                nvpDismissedProductTraining,
+
                 loginList,
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
@@ -1340,7 +1333,7 @@ describe('OptionsListUtils', () => {
                 {reports: [workspaceChat], personalDetails: []},
                 allPolicies,
                 {},
-                nvpDismissedProductTraining,
+
                 loginList,
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
@@ -1393,7 +1386,7 @@ describe('OptionsListUtils', () => {
                 {reports: [workspaceChat], personalDetails: []},
                 allPolicies,
                 {},
-                nvpDismissedProductTraining,
+
                 loginList,
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
@@ -1450,7 +1443,7 @@ describe('OptionsListUtils', () => {
                 {reports: [inputOption], personalDetails: []},
                 allPolicies,
                 {},
-                nvpDismissedProductTraining,
+
                 loginList,
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
@@ -1486,7 +1479,7 @@ describe('OptionsListUtils', () => {
                 {reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails},
                 {},
                 {},
-                nvpDismissedProductTraining,
+
                 loginList,
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
@@ -1507,7 +1500,7 @@ describe('OptionsListUtils', () => {
         it('should include all reports by default', () => {
             // Given a set of reports and personalDetails that includes workspace rooms
             // When we call getValidOptions()
-            const results = getValidOptions(OPTIONS_WITH_WORKSPACE_ROOM, allPolicies, {}, nvpDismissedProductTraining, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, undefined, {
+            const results = getValidOptions(OPTIONS_WITH_WORKSPACE_ROOM, allPolicies, {}, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, undefined, {
                 includeRecentReports: true,
                 includeMultipleParticipantReports: true,
                 includeP2P: true,
@@ -1539,7 +1532,7 @@ describe('OptionsListUtils', () => {
             };
 
             // When we call getValidOptions with shouldSeparateWorkspaceChat and personalDetails config
-            const results = getValidOptions(OPTIONS_WITH_WORKSPACE_ROOM, allPolicies, {}, nvpDismissedProductTraining, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, undefined, {
+            const results = getValidOptions(OPTIONS_WITH_WORKSPACE_ROOM, allPolicies, {}, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, undefined, {
                 includeRecentReports: true,
                 includeMultipleParticipantReports: true,
                 includeP2P: true,
@@ -1557,7 +1550,7 @@ describe('OptionsListUtils', () => {
         it('should handle undefined personalDetails config in workspace chat lookups', () => {
             // Given a set of reports with workspace rooms
             // When we call getValidOptions with shouldSeparateWorkspaceChat but no personalDetails config
-            const results = getValidOptions(OPTIONS_WITH_WORKSPACE_ROOM, allPolicies, {}, nvpDismissedProductTraining, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, undefined, {
+            const results = getValidOptions(OPTIONS_WITH_WORKSPACE_ROOM, allPolicies, {}, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, undefined, {
                 includeRecentReports: true,
                 includeMultipleParticipantReports: true,
                 includeP2P: true,
@@ -1574,7 +1567,7 @@ describe('OptionsListUtils', () => {
         it('should handle empty personalDetails config in workspace chat lookups', () => {
             // Given a set of reports with workspace rooms
             // When we call getValidOptions with shouldSeparateWorkspaceChat and empty personalDetails
-            const results = getValidOptions(OPTIONS_WITH_WORKSPACE_ROOM, allPolicies, {}, nvpDismissedProductTraining, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, undefined, {
+            const results = getValidOptions(OPTIONS_WITH_WORKSPACE_ROOM, allPolicies, {}, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, undefined, {
                 includeRecentReports: true,
                 includeMultipleParticipantReports: true,
                 includeP2P: true,
@@ -1591,7 +1584,7 @@ describe('OptionsListUtils', () => {
         it('should handle null personalDetails config in workspace chat lookups', () => {
             // Given a set of reports with workspace rooms
             // When we call getValidOptions with shouldSeparateWorkspaceChat and null personalDetails
-            const results = getValidOptions(OPTIONS_WITH_WORKSPACE_ROOM, allPolicies, {}, nvpDismissedProductTraining, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, undefined, {
+            const results = getValidOptions(OPTIONS_WITH_WORKSPACE_ROOM, allPolicies, {}, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, undefined, {
                 includeRecentReports: true,
                 includeMultipleParticipantReports: true,
                 includeP2P: true,
@@ -1614,7 +1607,7 @@ describe('OptionsListUtils', () => {
                 {reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails},
                 allPolicies,
                 {},
-                nvpDismissedProductTraining,
+
                 loginList,
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
@@ -1636,7 +1629,7 @@ describe('OptionsListUtils', () => {
                 {reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails},
                 allPolicies,
                 {},
-                nvpDismissedProductTraining,
+
                 loginList,
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
@@ -1658,7 +1651,7 @@ describe('OptionsListUtils', () => {
                 {reports: OPTIONS_WITH_CONCIERGE.reports, personalDetails: OPTIONS_WITH_CONCIERGE.personalDetails},
                 allPolicies,
                 {},
-                nvpDismissedProductTraining,
+
                 loginList,
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
@@ -1681,7 +1674,7 @@ describe('OptionsListUtils', () => {
                 },
                 undefined,
                 {},
-                nvpDismissedProductTraining,
+
                 loginList,
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
@@ -1705,7 +1698,7 @@ describe('OptionsListUtils', () => {
                 {reports: OPTIONS_WITH_CHRONOS.reports, personalDetails: OPTIONS_WITH_CHRONOS.personalDetails},
                 allPolicies,
                 {},
-                nvpDismissedProductTraining,
+
                 loginList,
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
@@ -1732,7 +1725,7 @@ describe('OptionsListUtils', () => {
                 },
                 undefined,
                 {},
-                nvpDismissedProductTraining,
+
                 loginList,
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
@@ -1757,7 +1750,7 @@ describe('OptionsListUtils', () => {
                 {reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails},
                 allPolicies,
                 {},
-                nvpDismissedProductTraining,
+
                 loginList,
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
@@ -1778,7 +1771,7 @@ describe('OptionsListUtils', () => {
                 {reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails},
                 allPolicies,
                 {},
-                nvpDismissedProductTraining,
+
                 loginList,
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
@@ -1788,7 +1781,7 @@ describe('OptionsListUtils', () => {
                 {reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails},
                 allPolicies,
                 {},
-                nvpDismissedProductTraining,
+
                 loginList,
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
@@ -1809,7 +1802,7 @@ describe('OptionsListUtils', () => {
                 {reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails},
                 allPolicies,
                 {},
-                nvpDismissedProductTraining,
+
                 loginList,
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
@@ -1819,7 +1812,7 @@ describe('OptionsListUtils', () => {
                 {reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails},
                 allPolicies,
                 {},
-                nvpDismissedProductTraining,
+
                 loginList,
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
@@ -1842,7 +1835,7 @@ describe('OptionsListUtils', () => {
                 {reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails},
                 allPolicies,
                 {},
-                nvpDismissedProductTraining,
+
                 loginList,
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
@@ -1877,7 +1870,7 @@ describe('OptionsListUtils', () => {
                 {reports: filteredReports, personalDetails: OPTIONS.personalDetails},
                 allPolicies,
                 {},
-                nvpDismissedProductTraining,
+
                 loginList,
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
@@ -1919,7 +1912,7 @@ describe('OptionsListUtils', () => {
                 {reports: filteredReportsWithWorkspaceRooms, personalDetails: OPTIONS.personalDetails},
                 allPolicies,
                 {},
-                nvpDismissedProductTraining,
+
                 loginList,
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
@@ -2127,7 +2120,7 @@ describe('OptionsListUtils', () => {
                 options: OPTIONS,
                 reportAttributesDerived: MOCK_REPORT_ATTRIBUTES_DERIVED,
                 draftComments: {},
-                nvpDismissedProductTraining,
+
                 loginList,
                 betas: [CONST.BETAS.ALL],
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
@@ -2150,7 +2143,7 @@ describe('OptionsListUtils', () => {
                 options: OPTIONS,
                 reportAttributesDerived: MOCK_REPORT_ATTRIBUTES_DERIVED,
                 draftComments: {},
-                nvpDismissedProductTraining,
+
                 loginList,
                 betas: [CONST.BETAS.ALL],
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
@@ -2182,7 +2175,7 @@ describe('OptionsListUtils', () => {
                 options: OPTIONS,
                 reportAttributesDerived: MOCK_REPORT_ATTRIBUTES_DERIVED,
                 draftComments: {},
-                nvpDismissedProductTraining,
+
                 loginList,
                 betas: [CONST.BETAS.ALL],
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
@@ -2211,7 +2204,7 @@ describe('OptionsListUtils', () => {
                 options: OPTIONS_WITH_ARCHIVED,
                 reportAttributesDerived: MOCK_REPORT_ATTRIBUTES_DERIVED,
                 draftComments: {},
-                nvpDismissedProductTraining,
+
                 loginList,
                 betas: [CONST.BETAS.ALL],
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
@@ -2237,7 +2230,7 @@ describe('OptionsListUtils', () => {
             const options = getSearchOptions({
                 options: OPTIONS_WITH_PERIODS,
                 draftComments: {},
-                nvpDismissedProductTraining,
+
                 loginList,
                 betas: [CONST.BETAS.ALL],
                 policyCollection: allPolicies,
@@ -2263,7 +2256,7 @@ describe('OptionsListUtils', () => {
             const options = getSearchOptions({
                 options: OPTIONS_WITH_WORKSPACE_ROOM,
                 draftComments: {},
-                nvpDismissedProductTraining,
+
                 loginList,
                 betas: [CONST.BETAS.ALL],
                 policyCollection: allPolicies,
@@ -2287,7 +2280,7 @@ describe('OptionsListUtils', () => {
                 options: OPTIONS,
                 reportAttributesDerived: MOCK_REPORT_ATTRIBUTES_DERIVED,
                 draftComments: {},
-                nvpDismissedProductTraining,
+
                 loginList,
                 betas: [CONST.BETAS.ALL],
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
@@ -2319,7 +2312,7 @@ describe('OptionsListUtils', () => {
             const options = getSearchOptions({
                 options: OPTIONS_WITH_CHAT_ROOMS,
                 draftComments: {},
-                nvpDismissedProductTraining,
+
                 loginList,
                 betas: [CONST.BETAS.ALL],
                 policyCollection: allPolicies,
@@ -2344,7 +2337,7 @@ describe('OptionsListUtils', () => {
                 options: OPTIONS,
                 reportAttributesDerived: MOCK_REPORT_ATTRIBUTES_DERIVED,
                 draftComments: {},
-                nvpDismissedProductTraining,
+
                 loginList,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 currentUserEmail: CURRENT_USER_EMAIL,
@@ -2370,7 +2363,7 @@ describe('OptionsListUtils', () => {
                 reportAttributesDerived: MOCK_REPORT_ATTRIBUTES_DERIVED,
                 draftComments: {},
                 loginList,
-                nvpDismissedProductTraining,
+
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 currentUserEmail: CURRENT_USER_EMAIL,
                 policyCollection: allPolicies,
@@ -2390,7 +2383,7 @@ describe('OptionsListUtils', () => {
                 {reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails},
                 allPolicies,
                 {},
-                nvpDismissedProductTraining,
+
                 loginList,
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
@@ -2416,7 +2409,7 @@ describe('OptionsListUtils', () => {
                 reportAttributesDerived: MOCK_REPORT_ATTRIBUTES_DERIVED,
                 draftComments: {},
                 loginList,
-                nvpDismissedProductTraining,
+
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 currentUserEmail: CURRENT_USER_EMAIL,
                 policyCollection: allPolicies,
@@ -2439,7 +2432,7 @@ describe('OptionsListUtils', () => {
                 reportAttributesDerived: MOCK_REPORT_ATTRIBUTES_DERIVED,
                 draftComments: {},
                 loginList,
-                nvpDismissedProductTraining,
+
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 currentUserEmail: CURRENT_USER_EMAIL,
                 policyCollection: allPolicies,
@@ -2470,7 +2463,7 @@ describe('OptionsListUtils', () => {
                 options: OPTIONS,
                 reportAttributesDerived: MOCK_REPORT_ATTRIBUTES_DERIVED,
                 draftComments: {},
-                nvpDismissedProductTraining,
+
                 loginList,
                 betas: [CONST.BETAS.ALL],
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
@@ -2501,7 +2494,7 @@ describe('OptionsListUtils', () => {
                 {reports: filteredReports, personalDetails: OPTIONS.personalDetails},
                 allPolicies,
                 {},
-                nvpDismissedProductTraining,
+
                 loginList,
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
@@ -2544,7 +2537,7 @@ describe('OptionsListUtils', () => {
                 {reports: filteredReportsWithWorkspaceRooms, personalDetails: OPTIONS.personalDetails},
                 allPolicies,
                 {},
-                nvpDismissedProductTraining,
+
                 loginList,
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
@@ -2587,7 +2580,7 @@ describe('OptionsListUtils', () => {
                 {reports: filteredReportsWithWorkspaceRooms, personalDetails: OPTIONS.personalDetails},
                 allPolicies,
                 {},
-                nvpDismissedProductTraining,
+
                 loginList,
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
@@ -2620,7 +2613,7 @@ describe('OptionsListUtils', () => {
                 {reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails},
                 allPolicies,
                 {},
-                nvpDismissedProductTraining,
+
                 loginList,
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
@@ -2662,7 +2655,7 @@ describe('OptionsListUtils', () => {
             const options = getSearchOptions({
                 options: OPTIONS_WITH_GROUP_CHAT,
                 draftComments: {},
-                nvpDismissedProductTraining,
+
                 loginList,
                 betas: [CONST.BETAS.ALL],
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
@@ -2703,7 +2696,7 @@ describe('OptionsListUtils', () => {
             const options = getSearchOptions({
                 options: OPTIONS_WITH_GROUP_CHAT,
                 draftComments: {},
-                nvpDismissedProductTraining,
+
                 loginList,
                 betas: [CONST.BETAS.ALL],
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
@@ -2744,7 +2737,7 @@ describe('OptionsListUtils', () => {
             const options = getSearchOptions({
                 options: OPTIONS_WITH_GROUP_CHAT,
                 draftComments: {},
-                nvpDismissedProductTraining,
+
                 loginList,
                 betas: [CONST.BETAS.ALL],
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
@@ -2785,7 +2778,7 @@ describe('OptionsListUtils', () => {
             const options = getSearchOptions({
                 options: OPTIONS_WITH_GROUP_CHAT,
                 draftComments: {},
-                nvpDismissedProductTraining,
+
                 loginList,
                 betas: [CONST.BETAS.ALL],
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
@@ -2823,7 +2816,7 @@ describe('OptionsListUtils', () => {
             const options = getSearchOptions({
                 options: OPTIONS_WITH_GROUP_CHAT_NO_PARTICIPANTS,
                 draftComments: {},
-                nvpDismissedProductTraining,
+
                 loginList,
                 betas: [CONST.BETAS.ALL],
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
@@ -2846,7 +2839,7 @@ describe('OptionsListUtils', () => {
                 {reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails},
                 allPolicies,
                 {},
-                nvpDismissedProductTraining,
+
                 loginList,
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
@@ -2868,7 +2861,7 @@ describe('OptionsListUtils', () => {
                 {reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails},
                 allPolicies,
                 {},
-                nvpDismissedProductTraining,
+
                 loginList,
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
@@ -2890,7 +2883,7 @@ describe('OptionsListUtils', () => {
                 {reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails},
                 allPolicies,
                 {},
-                nvpDismissedProductTraining,
+
                 loginList,
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
@@ -2911,7 +2904,7 @@ describe('OptionsListUtils', () => {
                 {reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails},
                 allPolicies,
                 {},
-                nvpDismissedProductTraining,
+
                 loginList,
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
@@ -2930,7 +2923,7 @@ describe('OptionsListUtils', () => {
                 {reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails},
                 allPolicies,
                 {},
-                nvpDismissedProductTraining,
+
                 loginList,
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
@@ -2954,7 +2947,7 @@ describe('OptionsListUtils', () => {
                 {reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails},
                 allPolicies,
                 {},
-                nvpDismissedProductTraining,
+
                 loginList,
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
@@ -2978,7 +2971,7 @@ describe('OptionsListUtils', () => {
                 {reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails},
                 allPolicies,
                 {},
-                nvpDismissedProductTraining,
+
                 loginList,
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
@@ -3002,7 +2995,7 @@ describe('OptionsListUtils', () => {
                 {reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails},
                 allPolicies,
                 {},
-                nvpDismissedProductTraining,
+
                 loginList,
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
@@ -3024,7 +3017,7 @@ describe('OptionsListUtils', () => {
                 {reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails},
                 {},
                 {},
-                nvpDismissedProductTraining,
+
                 loginList,
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
@@ -3049,7 +3042,7 @@ describe('OptionsListUtils', () => {
                 {reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails},
                 {},
                 {},
-                nvpDismissedProductTraining,
+
                 loginList,
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
@@ -3074,7 +3067,7 @@ describe('OptionsListUtils', () => {
                 {reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails},
                 allPolicies,
                 {},
-                nvpDismissedProductTraining,
+
                 loginList,
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
@@ -3093,7 +3086,7 @@ describe('OptionsListUtils', () => {
                 {reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails},
                 allPolicies,
                 {},
-                nvpDismissedProductTraining,
+
                 loginList,
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
@@ -3118,7 +3111,7 @@ describe('OptionsListUtils', () => {
                 {reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails},
                 allPolicies,
                 {},
-                nvpDismissedProductTraining,
+
                 loginList,
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
@@ -3146,7 +3139,7 @@ describe('OptionsListUtils', () => {
                 options: OPTIONS,
                 reportAttributesDerived: MOCK_REPORT_ATTRIBUTES_DERIVED,
                 draftComments: {},
-                nvpDismissedProductTraining,
+
                 loginList,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 currentUserEmail: CURRENT_USER_EMAIL,
@@ -3168,7 +3161,7 @@ describe('OptionsListUtils', () => {
                 options: OPTIONS,
                 reportAttributesDerived: MOCK_REPORT_ATTRIBUTES_DERIVED,
                 draftComments: {},
-                nvpDismissedProductTraining,
+
                 loginList,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 currentUserEmail: CURRENT_USER_EMAIL,
@@ -3194,7 +3187,7 @@ describe('OptionsListUtils', () => {
                     const results = getSearchOptions({
                         options: OPTIONS_WITH_PERIODS,
                         draftComments: {},
-                        nvpDismissedProductTraining,
+
                         loginList,
                         currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                         currentUserEmail: CURRENT_USER_EMAIL,
@@ -3233,7 +3226,7 @@ describe('OptionsListUtils', () => {
                 options: OPTIONS,
                 reportAttributesDerived: MOCK_REPORT_ATTRIBUTES_DERIVED,
                 draftComments: {},
-                nvpDismissedProductTraining,
+
                 loginList,
                 betas: [CONST.BETAS.ALL],
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
@@ -3259,7 +3252,7 @@ describe('OptionsListUtils', () => {
             const options = getSearchOptions({
                 options: OPTIONS_WITH_SELF_DM,
                 draftComments: {},
-                nvpDismissedProductTraining,
+
                 loginList,
                 betas: [CONST.BETAS.ALL],
                 policyCollection: allPolicies,
@@ -5260,7 +5253,7 @@ describe('OptionsListUtils', () => {
                 {reports: [], personalDetails: []},
                 policies,
                 undefined,
-                nvpDismissedProductTraining,
+
                 loginList,
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
@@ -5274,7 +5267,7 @@ describe('OptionsListUtils', () => {
 
         it('should work with undefined policies', () => {
             const options = {reports: [], personalDetails: []};
-            const results = getValidOptions(options, undefined, undefined, nvpDismissedProductTraining, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, undefined);
+            const results = getValidOptions(options, undefined, undefined, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, undefined);
 
             expect(results).toBeDefined();
             expect(results.recentReports).toBeDefined();
@@ -5283,7 +5276,7 @@ describe('OptionsListUtils', () => {
 
         it('should work with empty policies collection', () => {
             const options = {reports: [], personalDetails: []};
-            const results = getValidOptions(options, {}, undefined, nvpDismissedProductTraining, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, undefined);
+            const results = getValidOptions(options, {}, undefined, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, undefined);
 
             expect(results).toBeDefined();
             expect(results.recentReports).toBeDefined();
@@ -5311,7 +5304,7 @@ describe('OptionsListUtils', () => {
                 {reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails},
                 policies,
                 undefined,
-                nvpDismissedProductTraining,
+
                 loginList,
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
@@ -6692,7 +6685,7 @@ describe('OptionsListUtils', () => {
                 {reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails},
                 allPolicies,
                 {},
-                nvpDismissedProductTraining,
+
                 loginList,
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
@@ -6711,7 +6704,7 @@ describe('OptionsListUtils', () => {
                 {reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails},
                 allPolicies,
                 {},
-                nvpDismissedProductTraining,
+
                 loginList,
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
@@ -6732,7 +6725,7 @@ describe('OptionsListUtils', () => {
             const options = getSearchOptions({
                 options: OPTIONS,
                 draftComments: {},
-                nvpDismissedProductTraining,
+
                 loginList,
                 policyCollection: {},
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
@@ -6766,7 +6759,7 @@ describe('OptionsListUtils', () => {
                 {reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails},
                 allPolicies,
                 {},
-                nvpDismissedProductTraining,
+
                 loginList,
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
@@ -6785,7 +6778,7 @@ describe('OptionsListUtils', () => {
                 {reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails},
                 allPolicies,
                 {},
-                nvpDismissedProductTraining,
+
                 loginList,
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
@@ -7419,7 +7412,7 @@ describe('OptionsListUtils', () => {
                 {reports: [inputOption], personalDetails: []},
                 allPolicies,
                 {},
-                nvpDismissedProductTraining,
+
                 loginList,
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
@@ -7483,7 +7476,7 @@ describe('OptionsListUtils', () => {
                 {reports: [inputOption], personalDetails: []},
                 allPolicies,
                 {},
-                nvpDismissedProductTraining,
+
                 loginList,
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
@@ -7543,7 +7536,7 @@ describe('OptionsListUtils', () => {
                 {reports: [inputOption], personalDetails: []},
                 allPolicies,
                 {},
-                nvpDismissedProductTraining,
+
                 loginList,
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
@@ -7629,7 +7622,7 @@ describe('OptionsListUtils', () => {
                 {reports: [inputOption], personalDetails: []},
                 allPolicies,
                 {},
-                nvpDismissedProductTraining,
+
                 loginList,
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
@@ -7709,7 +7702,7 @@ describe('OptionsListUtils', () => {
                 {reports: [inputOption], personalDetails: []},
                 allPolicies,
                 {},
-                nvpDismissedProductTraining,
+
                 loginList,
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
@@ -7777,7 +7770,7 @@ describe('OptionsListUtils', () => {
                 {reports: [inputOption], personalDetails: []},
                 allPolicies,
                 {},
-                nvpDismissedProductTraining,
+
                 loginList,
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,

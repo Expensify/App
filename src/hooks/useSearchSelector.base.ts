@@ -193,7 +193,6 @@ function useSearchSelectorBase({
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT);
-    const [nvpDismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING);
     const [visibleReportActionsData] = useOnyx(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS);
     const [sortedActions] = useOnyx(ONYXKEYS.DERIVED.RAM_ONLY_SORTED_REPORT_ACTIONS, {selector: sortedActionsSelector});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -225,7 +224,7 @@ function useSearchSelectorBase({
                 return getSearchOptions({
                     options: optionsWithContacts,
                     draftComments,
-                    nvpDismissedProductTraining,
+
                     betas: betas ?? [],
                     isUsedInChatFinder: true,
                     includeReadOnly: true,
@@ -241,7 +240,7 @@ function useSearchSelectorBase({
                     personalDetails,
                 });
             case CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_MEMBER_INVITE:
-                return getValidOptions(optionsWithContacts, allPolicies, draftComments, nvpDismissedProductTraining, loginList, currentUserAccountID, currentUserEmail, conciergeReportID, {
+                return getValidOptions(optionsWithContacts, allPolicies, draftComments, loginList, currentUserAccountID, currentUserEmail, conciergeReportID, {
                     betas: betas ?? [],
                     includeP2P: true,
                     includeSelectedOptions: false,
@@ -262,7 +261,7 @@ function useSearchSelectorBase({
                     sortedActions,
                 });
             case CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_GENERAL:
-                return getValidOptions(optionsWithContacts, allPolicies, draftComments, nvpDismissedProductTraining, loginList, currentUserAccountID, currentUserEmail, conciergeReportID, {
+                return getValidOptions(optionsWithContacts, allPolicies, draftComments, loginList, currentUserAccountID, currentUserEmail, conciergeReportID, {
                     betas: betas ?? [],
                     searchString: computedSearchTerm,
                     searchInputValue: trimmedSearchInput,
@@ -285,7 +284,7 @@ function useSearchSelectorBase({
                     ...getValidOptionsConfig,
                 });
             case CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_SHARE_DESTINATION:
-                return getValidOptions(optionsWithContacts, allPolicies, draftComments, nvpDismissedProductTraining, loginList, currentUserAccountID, currentUserEmail, conciergeReportID, {
+                return getValidOptions(optionsWithContacts, allPolicies, draftComments, loginList, currentUserAccountID, currentUserEmail, conciergeReportID, {
                     betas,
                     selectedOptions,
                     includeMultipleParticipantReports: true,
@@ -309,7 +308,7 @@ function useSearchSelectorBase({
                     sortedActions,
                 });
             case CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_ATTENDEES:
-                return getValidOptions(optionsWithContacts, allPolicies, draftComments, nvpDismissedProductTraining, loginList, currentUserAccountID, currentUserEmail, conciergeReportID, {
+                return getValidOptions(optionsWithContacts, allPolicies, draftComments, loginList, currentUserAccountID, currentUserEmail, conciergeReportID, {
                     betas: betas ?? [],
                     includeP2P: true,
                     includeSelectedOptions: false,
@@ -340,7 +339,6 @@ function useSearchSelectorBase({
         optionsWithContacts,
         allPolicies,
         draftComments,
-        nvpDismissedProductTraining,
         betas,
         computedSearchTerm,
         maxResults,

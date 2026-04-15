@@ -66,7 +66,6 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
     const offlineMessage: string = isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : '';
     const reportAttributesDerived = useReportAttributes();
     const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT);
-    const [nvpDismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING);
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserEmail = currentUserPersonalDetails.email ?? '';
@@ -91,7 +90,6 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
             },
             allPolicies,
             draftComments,
-            nvpDismissedProductTraining,
             loginList,
             currentUserAccountID,
             currentUserEmail,
@@ -118,7 +116,6 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
         options.personalDetails,
         allPolicies,
         draftComments,
-        nvpDismissedProductTraining,
         loginList,
         betas,
         action,

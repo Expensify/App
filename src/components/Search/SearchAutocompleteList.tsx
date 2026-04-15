@@ -158,7 +158,6 @@ function SearchAutocompleteList({
     const feedKeysWithCards = useFeedKeysWithAssignedCards();
     const reportAttributes = useReportAttributes();
     const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT);
-    const [nvpDismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING);
     const [recentSearches, recentSearchesMetadata] = useOnyx(ONYXKEYS.RECENT_SEARCHES);
     const [countryCode] = useOnyx(ONYXKEYS.COUNTRY_CODE);
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
@@ -199,7 +198,6 @@ function SearchAutocompleteList({
         return getSearchOptions({
             options: listOptions,
             draftComments,
-            nvpDismissedProductTraining,
             betas: betas ?? [],
             isUsedInChatFinder: true,
             includeReadOnly: true,
@@ -283,7 +281,6 @@ function SearchAutocompleteList({
         allFeeds,
         options: listOptions ?? emptyOptionList,
         draftComments,
-        nvpDismissedProductTraining,
         betas,
         countryCode,
         loginList,

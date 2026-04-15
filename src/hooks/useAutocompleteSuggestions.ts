@@ -20,7 +20,7 @@ import {getUserFriendlyKey, getUserFriendlyValue} from '@libs/SearchQueryUtils';
 import {getDatePresets, getHasOptions} from '@libs/SearchUIUtils';
 import CONST, {CONTINUATION_DETECTION_SEARCH_FILTER_KEYS} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Beta, CardFeeds, CardList, DismissedProductTraining, PersonalDetailsList, Policy} from '@src/types/onyx';
+import type {Beta, CardFeeds, CardList, PersonalDetailsList, Policy} from '@src/types/onyx';
 import type {VisibleReportActionsDerivedValue} from '@src/types/onyx/DerivedValues';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 import {useCurrencyListState} from './useCurrencyList';
@@ -41,7 +41,6 @@ type UseAutocompleteSuggestionsParams = {
     allFeeds: Record<string, CardFeeds | undefined> | undefined;
     options: OptionList;
     draftComments: OnyxCollection<string>;
-    nvpDismissedProductTraining: OnyxEntry<DismissedProductTraining>;
     betas: OnyxEntry<Beta[]>;
     countryCode: OnyxEntry<number>;
     loginList: OnyxEntry<Record<string, unknown>>;
@@ -87,7 +86,6 @@ function useAutocompleteSuggestions({
     allFeeds,
     options,
     draftComments,
-    nvpDismissedProductTraining,
     betas,
     countryCode,
     loginList,
@@ -215,7 +213,7 @@ function useAutocompleteSuggestions({
             const participants = getSearchOptions({
                 options,
                 draftComments,
-                nvpDismissedProductTraining,
+
                 betas: betas ?? [],
                 isUsedInChatFinder: true,
                 includeReadOnly: true,
@@ -251,7 +249,7 @@ function useAutocompleteSuggestions({
             const filteredReports = getSearchOptions({
                 options,
                 draftComments,
-                nvpDismissedProductTraining,
+
                 betas: betas ?? [],
                 isUsedInChatFinder: true,
                 includeReadOnly: true,

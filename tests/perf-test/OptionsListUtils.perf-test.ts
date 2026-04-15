@@ -15,7 +15,6 @@ import createRandomOptionData from '../utils/collections/optionData';
 import createPersonalDetails from '../utils/collections/personalDetails';
 import {getRandomDate} from '../utils/collections/reportActions';
 import {createRandomReport} from '../utils/collections/reports';
-import {getNvpDismissedProductTraining} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const REPORTS_COUNT = 5000;
@@ -39,8 +38,6 @@ const reports = createCollection<Report>(
     }),
     REPORTS_COUNT,
 );
-
-const nvpDismissedProductTraining = getNvpDismissedProductTraining();
 
 const personalDetails = createCollection<PersonalDetails>(
     (item) => item.accountID,
@@ -135,7 +132,7 @@ describe('OptionsListUtils', () => {
                 options,
                 betas: mockedBetas,
                 draftComments: {},
-                nvpDismissedProductTraining,
+
                 loginList,
                 currentUserAccountID: MOCK_CURRENT_USER_ACCOUNT_ID,
                 currentUserEmail: MOCK_CURRENT_USER_EMAIL,
@@ -152,7 +149,6 @@ describe('OptionsListUtils', () => {
             {reports: options.reports, personalDetails: options.personalDetails},
             allPolicies,
             {},
-            nvpDismissedProductTraining,
             loginList,
             MOCK_CURRENT_USER_ACCOUNT_ID,
             MOCK_CURRENT_USER_EMAIL,
@@ -169,7 +165,6 @@ describe('OptionsListUtils', () => {
             {reports: options.reports, personalDetails: options.personalDetails},
             allPolicies,
             {},
-            nvpDismissedProductTraining,
             loginList,
             MOCK_CURRENT_USER_ACCOUNT_ID,
             MOCK_CURRENT_USER_EMAIL,
@@ -189,7 +184,7 @@ describe('OptionsListUtils', () => {
                 {reports: options.reports, personalDetails: options.personalDetails},
                 allPolicies,
                 {},
-                nvpDismissedProductTraining,
+
                 loginList,
                 MOCK_CURRENT_USER_ACCOUNT_ID,
                 MOCK_CURRENT_USER_EMAIL,
@@ -304,7 +299,7 @@ describe('OptionsListUtils', () => {
                 options: optionLists,
                 betas: mockedBetas,
                 draftComments: {},
-                nvpDismissedProductTraining,
+
                 loginList,
                 currentUserAccountID: MOCK_CURRENT_USER_ACCOUNT_ID,
                 currentUserEmail: MOCK_CURRENT_USER_EMAIL,

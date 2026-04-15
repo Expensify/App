@@ -169,7 +169,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {
     Beta,
-    DismissedProductTraining,
     Login,
     OnyxInputOrEntry,
     PersonalDetails,
@@ -2417,7 +2416,6 @@ function getValidOptions(
     options: OptionList,
     policiesCollection: OnyxCollection<Policy>,
     draftComments: OnyxCollection<string> | undefined,
-    nvpDismissedProductTraining: OnyxEntry<DismissedProductTraining>,
     loginList: OnyxEntry<Login>,
     currentUserAccountID: number,
     currentUserEmail: string,
@@ -2706,7 +2704,6 @@ function getValidOptions(
 
 type SearchOptionsConfig = {
     options: OptionList;
-    nvpDismissedProductTraining: OnyxEntry<DismissedProductTraining>;
     draftComments: OnyxCollection<string>;
     betas?: Beta[];
     isUsedInChatFinder?: boolean;
@@ -2735,7 +2732,6 @@ type SearchOptionsConfig = {
 function getSearchOptions({
     options,
     draftComments,
-    nvpDismissedProductTraining,
     betas,
     isUsedInChatFinder = true,
     includeReadOnly = true,
@@ -2757,7 +2753,7 @@ function getSearchOptions({
     allPolicyTags,
 }: SearchOptionsConfig): Options {
     // TODO: We'll pass the conciergeReportID eventually. Refactor issue: https://github.com/Expensify/App/issues/66411
-    const optionList = getValidOptions(options, policyCollection, draftComments, nvpDismissedProductTraining, loginList, currentUserAccountID, currentUserEmail, undefined, {
+    const optionList = getValidOptions(options, policyCollection, draftComments, loginList, currentUserAccountID, currentUserEmail, undefined, {
         betas,
         includeRecentReports,
         includeMultipleParticipantReports: true,
