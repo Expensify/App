@@ -826,6 +826,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                                                     }}
                                                     role={CONST.ROLE.BUTTON}
                                                     accessibilityLabel={translate('workspace.rules.customRules.policyDocument')}
+                                                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.OVERVIEW.RULES_DOCUMENT}
                                                     style={[styles.border, styles.borderRadiusComponentLarge, styles.overflowHidden, styles.flex1]}
                                                 >
                                                     <PDFThumbnail
