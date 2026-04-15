@@ -585,9 +585,6 @@ function getSubscriptionPlanInfo(
     };
 }
 
-/**
- * @param currentUserAccountID — Session account ID of the current user (used to detect owned paid policies).
- */
 function shouldShowTrialEndedUI(
     currentUserAccountID: number | undefined,
     lastDayFreeTrial: string | undefined,
