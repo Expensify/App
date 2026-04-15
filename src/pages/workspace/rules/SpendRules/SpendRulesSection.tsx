@@ -19,7 +19,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getSpendRuleFormValuesFromCardRule} from '@libs/actions/Card';
 import {openPolicyExpensifyCardsPage} from '@libs/actions/Policy/Policy';
-import {filterInactiveCards, getCardDescriptionForSearchTable, getSelectedCardsSharedCurrency, isCard} from '@libs/CardUtils';
+import {filterInactiveCards, getCardDescriptionForSearchTable, getSelectedCardsSharedCurrency} from '@libs/CardUtils';
 import {convertToBackendAmount, convertToDisplayString} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
@@ -28,6 +28,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {SpendRuleForm} from '@src/types/form';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import {getTruncatedSpendRuleSummary} from './SpendRulesUtils';
 
 type SpendRulesSectionProps = {
@@ -86,14 +87,14 @@ function SpendRulesSection({policyID}: SpendRulesSectionProps) {
     const {isOffline} = useNetwork();
     const defaultFundID = useDefaultFundID(policyID);
     const [expensifyCardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${defaultFundID}`);
-    const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${defaultFundID}_${CONST.EXPENSIFY_CARD.BANK}`, {selector: filterInactiveCards});
+    const [cardsList, cardsListResult] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${defaultFundID}_${CONST.EXPENSIFY_CARD.BANK}`, {selector: filterInactiveCards});
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
 
     useEffect(() => {
         openPolicyExpensifyCardsPage(policyID, defaultFundID);
     }, [policyID, defaultFundID]);
 
-    const isCardSettingsLoading = !isOffline && (!expensifyCardSettings || expensifyCardSettings.isLoading) && !expensifyCardSettings?.hasOnceLoaded;
+    const isSpendRulesListLoading = !isOffline && (isLoadingOnyxValue(cardsListResult) || !expensifyCardSettings || expensifyCardSettings.isLoading) && !expensifyCardSettings?.hasOnceLoaded;
 
     const showBuiltInProtectionModal = () => {
         showConfirmModal({
@@ -123,11 +124,15 @@ function SpendRulesSection({policyID}: SpendRulesSectionProps) {
                 return undefined;
             }
             const actionLabel = formValues.restrictionAction === CONST.SPEND_RULES.ACTION.BLOCK ? blockLabel : allowLabel;
-            const selectedCurrency = getSelectedCardsSharedCurrency(formValues.cardIDs, cardsList);
+            const activeCardIDs = formValues.cardIDs.filter((cardID) => !!cardsList?.[cardID]);
+            if (activeCardIDs.length === 0) {
+                return undefined;
+            }
+            const selectedCurrency = getSelectedCardsSharedCurrency(activeCardIDs, cardsList);
             const cardSummary = getTruncatedSpendRuleSummary(
-                formValues.cardIDs.map((cardID) => {
+                activeCardIDs.map((cardID) => {
                     const card = cardsList?.[cardID];
-                    if (!card || !isCard(card)) {
+                    if (!card) {
                         return cardID;
                     }
 
@@ -210,14 +215,14 @@ function SpendRulesSection({policyID}: SpendRulesSectionProps) {
                 onPress={showBuiltInProtectionModal}
                 shouldShowRightIcon
             />
-            {isCardSettingsLoading ? (
+            {isSpendRulesListLoading ? (
                 <View style={[styles.justifyContentCenter, styles.alignItemsCenter, styles.mt5, styles.mb3]}>
                     <ActivityIndicator
                         size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                         reasonAttributes={{
                             context: 'SpendRulesSection',
                             isOffline,
-                            hasOnceLoaded: !!expensifyCardSettings?.hasOnceLoaded,
+                            hasOnceLoaded: !isSpendRulesListLoading,
                         }}
                     />
                 </View>
