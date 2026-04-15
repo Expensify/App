@@ -31,13 +31,13 @@ import DateUtils from '@libs/DateUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import localFileDownload from '@libs/localFileDownload';
 import Log from '@libs/Log';
+import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {isReportOpenOrUnsubmitted} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Card, CompanyCardFeedWithDomainID, PersonalDetailsList, Report, Transaction} from '@src/types/onyx';
 import type {SpendRuleForm} from '@src/types/form';
 import {isSpendRuleCategory} from '@src/types/form/SpendRuleForm';
-import type {Card, CompanyCardFeedWithDomainID, PersonalDetailsList, Report, Transaction} from '@src/types/onyx';
 import type {CardLimitType, ExpensifyCardDetails, IssueNewCardData, IssueNewCardStep} from '@src/types/onyx/Card';
 import type {ExpensifyCardRule, ExpensifyCardRuleFilter} from '@src/types/onyx/ExpensifyCardSettings';
 import type {SelectedTimezone} from '@src/types/onyx/PersonalDetails';
@@ -1896,6 +1896,15 @@ function getOwnerEmailForCard(card: Card, personalDetailsList: PersonalDetailsLi
     return personalDetailsList?.[String(accountID)]?.login ?? '';
 }
 
+function getCardholderNameForCSV(card: Card, personalDetailsList: PersonalDetailsList | undefined): string {
+    const accountID = card.accountID ?? CONST.DEFAULT_NUMBER_ID;
+    const details = personalDetailsList?.[String(accountID)];
+    if (!details?.displayName?.trim()) {
+        return '';
+    }
+    return getDisplayNameOrDefault(details, '', false, false);
+}
+
 export type ExportExpensifyCardListToCSVParams = {
     /** Workspace policy ID (used in the download filename) */
     policyID: string;
@@ -1918,7 +1927,8 @@ function exportExpensifyCardListToCSV({policyID, cards, personalDetailsList, set
     }
 
     const header = [
-        translate('workspace.expensifyCard.csvColumnOwner'),
+        translate('common.email'),
+        translate('workspace.expensifyCard.name'),
         translate('workspace.expensifyCard.lastFour'),
         translate('workspace.expensifyCard.csvColumnType'),
         translate('workspace.expensifyCard.csvColumnLimitType'),
@@ -1929,13 +1939,14 @@ function exportExpensifyCardListToCSV({policyID, cards, personalDetailsList, set
 
     const rows = cards.map((card) => {
         const owner = getOwnerEmailForCard(card, personalDetailsList);
+        const ownerNameColumn = getCardholderNameForCSV(card, personalDetailsList);
         const lastFourColumn = card.lastFourPAN ?? '';
         const typeColumn = card.nameValuePairs?.isVirtual ? translate('workspace.expensifyCard.virtual') : translate('workspace.expensifyCard.physical');
         const limitTypeColumn = translate(getTranslationKeyForLimitType(card.nameValuePairs?.limitType));
         const limitAmount = card.nameValuePairs?.unapprovedExpenseLimit ?? 0;
         const limitColumn = convertToShortDisplayString(limitAmount, settlementCurrency);
 
-        return [owner, lastFourColumn, typeColumn, limitTypeColumn, limitColumn].map(escapeCsvField).join(',');
+        return [owner, ownerNameColumn, lastFourColumn, typeColumn, limitTypeColumn, limitColumn].map(escapeCsvField).join(',');
     });
 
     const csvContent = [header, ...rows].join('\r\n');
