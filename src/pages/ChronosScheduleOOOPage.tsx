@@ -1,3 +1,4 @@
+import {delegateEmailSelector} from '@selectors/Account';
 import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import AmountForm from '@components/AmountForm';
@@ -37,6 +38,7 @@ function ChronosScheduleOOOPage({route}: ChronosScheduleOOOPageProps) {
     const {translate} = useLocalize();
     const {accountID: currentUserAccountID, timezone: timezoneParam} = useCurrentUserPersonalDetails();
     const isInSidePanel = useIsInSidePanel();
+    const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [isDurationUnitModalVisible, setIsDurationUnitModalVisible] = useState(false);
@@ -106,6 +108,7 @@ function ChronosScheduleOOOPage({route}: ChronosScheduleOOOPageProps) {
             currentUserAccountID,
             shouldPlaySound: false,
             isInSidePanel,
+            delegateEmail,
         });
 
         Navigation.goBack();

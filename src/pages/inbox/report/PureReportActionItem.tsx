@@ -1,5 +1,6 @@
 /* eslint-disable rulesdir/no-deep-equal-in-memo */
 import {useNavigation} from '@react-navigation/native';
+import {delegateEmailSelector} from '@selectors/Account';
 import {deepEqual} from 'fast-equals';
 import mapValues from 'lodash/mapValues';
 import React, {memo, use, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
@@ -470,6 +471,7 @@ function PureReportActionItem({
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
     const {transitionActionSheetState} = ActionSheetAwareScrollView.useActionSheetAwareScrollViewActions();
     const {translate, formatPhoneNumber, localeCompare, formatTravelDate, datetimeToCalendarTime} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
@@ -853,7 +855,16 @@ function PureReportActionItem({
                     shouldUseLocalization: false,
                     key: `${action.reportActionID}-followup-${followup.text}`,
                     onPress: () => {
-                        resolveSuggestedFollowup(reportActionReport, reportID, action, followup, personalDetail.timezone ?? CONST.DEFAULT_TIME_ZONE, currentUserAccountID, currentUserEmail);
+                        resolveSuggestedFollowup(
+                            reportActionReport,
+                            reportID,
+                            action,
+                            followup,
+                            personalDetail.timezone ?? CONST.DEFAULT_TIME_ZONE,
+                            currentUserAccountID,
+                            currentUserEmail,
+                            delegateEmail,
+                        );
                     },
                 }));
             }
@@ -962,6 +973,7 @@ function PureReportActionItem({
         amountOwed,
         ownerBillingGracePeriodEnd,
         trackExpenseTransaction,
+        delegateEmail,
     ]);
 
     /**

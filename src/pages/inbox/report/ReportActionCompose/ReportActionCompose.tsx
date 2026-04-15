@@ -1,4 +1,5 @@
 import {useRoute} from '@react-navigation/native';
+import {delegateEmailSelector} from '@selectors/Account';
 import {Str} from 'expensify-common';
 import lodashDebounce from 'lodash/debounce';
 import noop from 'lodash/noop';
@@ -164,6 +165,7 @@ function ReportActionCompose({reportID}: ReportActionComposeProps) {
     const [currentDate] = useOnyx(ONYXKEYS.CURRENT_DATE);
     const [shouldShowComposeInput = true] = useOnyx(ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT);
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
+    const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
     const {availableLoginsList} = useShortMentionsList();
     const currentUserEmail = currentUserPersonalDetails.email ?? '';
     const {isRestrictedToPreferredPolicy} = usePreferredPolicy();
@@ -419,6 +421,7 @@ function ReportActionCompose({reportID}: ReportActionComposeProps) {
                     timezone: currentUserPersonalDetails.timezone,
                     shouldPlaySound: true,
                     isInSidePanel,
+                    delegateEmail,
                 });
                 attachmentFileRef.current = null;
             } else {
@@ -491,6 +494,7 @@ function ReportActionCompose({reportID}: ReportActionComposeProps) {
                     shouldPlaySound: true,
                     isInSidePanel,
                     reportActionID: optimisticReportActionID,
+                    delegateEmail,
                 });
             }
         },
@@ -509,6 +513,7 @@ function ReportActionCompose({reportID}: ReportActionComposeProps) {
             personalDetails,
             quickAction,
             scrollOffsetRef,
+            delegateEmail,
         ],
     );
 

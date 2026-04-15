@@ -1,4 +1,5 @@
 import type {StackScreenProps} from '@react-navigation/stack';
+import {delegateEmailSelector} from '@selectors/Account';
 import Str from 'expensify-common/dist/str';
 import React, {useState} from 'react';
 import {View} from 'react-native';
@@ -49,6 +50,7 @@ function TravelTerms({route}: TravelTermsPageProps) {
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [conciergeReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
+    const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
     const errorMessage = travelProvisioning?.errors && !travelProvisioning?.error ? getLatestErrorMessage(travelProvisioning) : '';
@@ -63,7 +65,7 @@ function TravelTerms({route}: TravelTermsPageProps) {
 
         const message = translate('travel.verifyCompany.conciergeMessage', {domain: Str.extractEmailDomain(account?.primaryLogin ?? '')});
 
-        addComment({report: conciergeReport, notifyReportID: conciergeReportID, ancestors: [], text: message, timezoneParam: CONST.DEFAULT_TIME_ZONE, currentUserAccountID});
+        addComment({report: conciergeReport, notifyReportID: conciergeReportID, ancestors: [], text: message, timezoneParam: CONST.DEFAULT_TIME_ZONE, currentUserAccountID, delegateEmail});
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(conciergeReportID));
     };
 

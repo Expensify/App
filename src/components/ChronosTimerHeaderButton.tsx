@@ -1,3 +1,4 @@
+import {delegateEmailSelector} from '@selectors/Account';
 import React from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry, OnyxKey} from 'react-native-onyx';
@@ -50,6 +51,7 @@ function ChronosTimerHeaderButton({report}: ChronosTimerHeaderButtonProps) {
 
     const ancestors = useAncestors(report);
     const isInSidePanel = useIsInSidePanel();
+    const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
 
     function sendCommentToChronos() {
         addComment({
@@ -61,6 +63,7 @@ function ChronosTimerHeaderButton({report}: ChronosTimerHeaderButtonProps) {
             currentUserAccountID,
             shouldPlaySound: false,
             isInSidePanel,
+            delegateEmail,
         });
     }
 
