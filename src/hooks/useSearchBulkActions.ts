@@ -35,7 +35,7 @@ import {setNameValuePair} from '@libs/actions/User';
 import {getTransactionsAndReportsFromSearch} from '@libs/MergeTransactionUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getConnectedIntegration} from '@libs/PolicyUtils';
-import {getSecondaryExportReportActions, isDuplicateReportAction, isMergeActionForSelectedTransactions} from '@libs/ReportSecondaryActionUtils';
+import {getSecondaryExportReportActions, isMergeActionForSelectedTransactions} from '@libs/ReportSecondaryActionUtils';
 import {
     canEditMultipleTransactions,
     getIntegrationIcon,
@@ -84,6 +84,7 @@ type SearchHeaderOptionValue = DeepValueOf<typeof CONST.SEARCH.BULK_ACTION_TYPES
 
 type UseSearchBulkActionsParams = {
     queryJSON: SearchQueryJSON | undefined;
+    duplicateReportHandler?: () => void;
 };
 
 function getRestrictedPolicyID(
@@ -186,7 +187,7 @@ function shouldShowBulkDuplicateOption({
     });
 }
 
-function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
+function useSearchBulkActions({queryJSON, duplicateReportHandler}: UseSearchBulkActionsParams) {
     const {translate, localeCompare, formatPhoneNumber} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -850,14 +851,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         ],
     );
 
-    const duplicateReportHandlerRef = useRef<() => void>(() => {});
-    const setDuplicateReportHandler = useCallback((handler: () => void) => {
-        duplicateReportHandlerRef.current = handler;
-    }, []);
-    const invokeDuplicateReportHandler = useCallback(() => {
-        duplicateReportHandlerRef.current();
-    }, []);
-
     const isDuplicateReportOptionVisible = useMemo(() => {
         if (!isExpenseReportType || !defaultExpensePolicy || selectedReports.length === 0) {
             return false;
@@ -867,10 +860,9 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             if (!report.reportID) {
                 return false;
             }
-            const fullReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`];
-            return !!fullReport && isDuplicateReportAction(fullReport);
+            return report.ownerAccountID === accountID && report.type === CONST.REPORT.TYPE.EXPENSE;
         });
-    }, [isExpenseReportType, defaultExpensePolicy, selectedReports, allReports]);
+    }, [isExpenseReportType, defaultExpensePolicy, selectedReports, accountID]);
 
     const headerButtonsOptions = useMemo(() => {
         if (selectedTransactionsKeys.length === 0 || status == null || !hash) {
@@ -1349,13 +1341,13 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             });
         }
 
-        if (isDuplicateReportOptionVisible) {
+        if (isDuplicateReportOptionVisible && duplicateReportHandler) {
             options.push({
                 text: translate('search.bulkActions.duplicateReport', {count: selectedReports.length}),
                 icon: expensifyIcons.ReportCopy,
                 value: CONST.SEARCH.BULK_ACTION_TYPES.DUPLICATE_REPORT,
                 shouldCloseModalOnSelect: true,
-                onSelected: invokeDuplicateReportHandler,
+                onSelected: duplicateReportHandler,
             });
         }
 
@@ -1439,7 +1431,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         isDuplicateOptionVisible,
         invokeDuplicateHandler,
         isDuplicateReportOptionVisible,
-        invokeDuplicateReportHandler,
+        duplicateReportHandler,
         isExpenseReportType,
         handleDeleteSelectedTransactions,
         theme.icon,
@@ -1503,8 +1495,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         dismissRejectModalBasedOnAction,
         isDuplicateOptionVisible,
         setDuplicateHandler,
-        isDuplicateReportOptionVisible,
-        setDuplicateReportHandler,
         allTransactions,
         allReports,
         searchData: currentSearchResults?.data,

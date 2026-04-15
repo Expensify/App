@@ -10,6 +10,7 @@ import HoldSubmitterEducationalModal from '@components/HoldSubmitterEducationalM
 import KYCWall from '@components/KYCWall';
 import {KYCWallContext} from '@components/KYCWall/KYCWallContext';
 import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
+import useBulkDuplicateReportAction from '@hooks/useBulkDuplicateReportAction';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
@@ -25,7 +26,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import BulkDuplicateHandler from './BulkDuplicateHandler';
-import BulkDuplicateReportHandler from './BulkDuplicateReportHandler';
 import {useSearchActionsContext, useSearchStateContext} from './SearchContext';
 import type {BulkPaySelectionData, SearchQueryJSON} from './types';
 
@@ -52,6 +52,14 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
 
+    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+    const isDuplicateReportEnabled = queryJSON?.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT && selectedReports.length > 0;
+    const duplicateReportHandler = useBulkDuplicateReportAction({
+        selectedReports,
+        allReports,
+        isEnabled: isDuplicateReportEnabled,
+    });
+
     const {
         headerButtonsOptions,
         selectedPolicyIDs,
@@ -70,12 +78,9 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
         dismissRejectModalBasedOnAction,
         isDuplicateOptionVisible,
         setDuplicateHandler,
-        isDuplicateReportOptionVisible,
-        setDuplicateReportHandler,
         allTransactions,
-        allReports,
         searchData,
-    } = useSearchBulkActions({queryJSON});
+    } = useSearchBulkActions({queryJSON, duplicateReportHandler});
     const currentSelectedPolicyID = selectedPolicyIDs?.at(0);
     const currentSelectedReportID = selectedTransactionReportIDs?.at(0) ?? selectedReportIDs?.at(0);
     const currentPolicy = usePolicy(currentSelectedPolicyID);
@@ -115,13 +120,6 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
                     allReports={allReports}
                     searchData={searchData}
                     onHandlerReady={setDuplicateHandler}
-                />
-            )}
-            {isDuplicateReportOptionVisible && (
-                <BulkDuplicateReportHandler
-                    selectedReports={selectedReports}
-                    allReports={allReports}
-                    onHandlerReady={setDuplicateReportHandler}
                 />
             )}
             <KYCWall

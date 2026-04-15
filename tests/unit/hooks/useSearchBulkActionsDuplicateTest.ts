@@ -5,6 +5,7 @@ import Onyx from 'react-native-onyx';
 import type {SearchQueryJSON, SelectedReports, SelectedTransactions} from '@components/Search/types';
 import useBulkDuplicateAction from '@hooks/useBulkDuplicateAction';
 import useBulkDuplicateReportAction from '@hooks/useBulkDuplicateReportAction';
+import useOnyx from '@hooks/useOnyx';
 import useSearchBulkActions from '@hooks/useSearchBulkActions';
 import {bulkDuplicateExpenses, bulkDuplicateReports} from '@libs/actions/IOU/Duplicate';
 import CONST from '@src/CONST';
@@ -206,6 +207,7 @@ function makeSelectedReport(overrides: Partial<SelectedReports> = {}): SelectedR
         currency: 'USD',
         chatReportID: undefined,
         ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+        type: CONST.REPORT.TYPE.EXPENSE,
         ...overrides,
     };
 }
@@ -231,19 +233,16 @@ function useSearchBulkActionsWithDuplicate({queryJSON}: {queryJSON: SearchQueryJ
 
 /**
  * Renders useSearchBulkActions + useBulkDuplicateReportAction together (mirrors the real app tree
- * where BulkDuplicateReportHandler mounts when the option is visible and populates the handler ref).
+ * where the hook is called in SearchBulkActionsButton and the handler is passed to useSearchBulkActions).
  */
 function useSearchBulkActionsWithDuplicateReport({queryJSON}: {queryJSON: SearchQueryJSON}) {
-    const actions = useSearchBulkActions({queryJSON});
-    const {setDuplicateReportHandler, allReports} = actions;
+    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const handleDuplicateReport = useBulkDuplicateReportAction({
         selectedReports: mockSelectedReports,
         allReports,
+        isEnabled: true,
     });
-    useEffect(() => {
-        setDuplicateReportHandler(handleDuplicateReport);
-    }, [handleDuplicateReport, setDuplicateReportHandler]);
-    return actions;
+    return useSearchBulkActions({queryJSON, duplicateReportHandler: handleDuplicateReport});
 }
 
 describe('useSearchBulkActions - duplicate option', () => {
@@ -946,7 +945,7 @@ describe('useSearchBulkActions - duplicate report option', () => {
         mockSelectedTransactions = {txn1: makeSelectedTransaction({reportID: 'report1', policyID})};
         mockSelectedReports = [makeSelectedReport({reportID: 'report1', policyID})];
 
-        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}));
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON, duplicateReportHandler: () => {}}));
 
         await waitFor(() => {
             const opt = result.current.headerButtonsOptions.find((o) => o.value === CONST.SEARCH.BULK_ACTION_TYPES.DUPLICATE_REPORT);
@@ -976,7 +975,7 @@ describe('useSearchBulkActions - duplicate report option', () => {
         };
         mockSelectedReports = [makeSelectedReport({reportID: 'rpt1', policyID}), makeSelectedReport({reportID: 'rpt2', policyID}), makeSelectedReport({reportID: 'rpt3', policyID})];
 
-        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}));
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON, duplicateReportHandler: () => {}}));
 
         await waitFor(() => {
             expect(result.current.headerButtonsOptions.find((o) => o.value === CONST.SEARCH.BULK_ACTION_TYPES.DUPLICATE_REPORT)).toBeDefined();
@@ -998,7 +997,7 @@ describe('useSearchBulkActions - duplicate report option', () => {
         mockSelectedTransactions = {txn1: makeSelectedTransaction()};
         mockSelectedReports = [makeSelectedReport()];
 
-        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}));
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON, duplicateReportHandler: () => {}}));
         await waitFor(() => expect(result.current.headerButtonsOptions.length).toBeGreaterThan(0));
 
         expect(result.current.headerButtonsOptions.find((o) => o.value === CONST.SEARCH.BULK_ACTION_TYPES.DUPLICATE_REPORT)).toBeUndefined();
@@ -1043,7 +1042,7 @@ describe('useSearchBulkActions - duplicate report option', () => {
         mockSelectedTransactions = {txn1: makeSelectedTransaction()};
         mockSelectedReports = [makeSelectedReport({ownerAccountID: otherUserAccountID})];
 
-        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}));
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON, duplicateReportHandler: () => {}}));
         await waitFor(() => expect(result.current.headerButtonsOptions.length).toBeGreaterThan(0));
 
         expect(result.current.headerButtonsOptions.find((o) => o.value === CONST.SEARCH.BULK_ACTION_TYPES.DUPLICATE_REPORT)).toBeUndefined();
@@ -1074,9 +1073,9 @@ describe('useSearchBulkActions - duplicate report option', () => {
             txn1: makeSelectedTransaction({reportID: 'rpt1', policyID}),
             txn2: makeSelectedTransaction({reportID: 'rpt2', policyID}),
         };
-        mockSelectedReports = [makeSelectedReport({reportID: 'rpt1', policyID}), makeSelectedReport({reportID: 'rpt2', policyID})];
+        mockSelectedReports = [makeSelectedReport({reportID: 'rpt1', policyID}), makeSelectedReport({reportID: 'rpt2', policyID, type: CONST.REPORT.TYPE.IOU})];
 
-        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}));
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON, duplicateReportHandler: () => {}}));
         await waitFor(() => expect(result.current.headerButtonsOptions.length).toBeGreaterThan(0));
 
         expect(result.current.headerButtonsOptions.find((o) => o.value === CONST.SEARCH.BULK_ACTION_TYPES.DUPLICATE_REPORT)).toBeUndefined();
@@ -1088,7 +1087,7 @@ describe('useSearchBulkActions - duplicate report option', () => {
 
         mockSelectedReports = [];
 
-        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}));
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON, duplicateReportHandler: () => {}}));
 
         expect(result.current.headerButtonsOptions.find((o) => o.value === CONST.SEARCH.BULK_ACTION_TYPES.DUPLICATE_REPORT)).toBeUndefined();
     });
@@ -1112,7 +1111,7 @@ describe('useSearchBulkActions - duplicate report option', () => {
         };
         mockSelectedReports = [makeSelectedReport({reportID: 'rpt1', policyID}), makeSelectedReport({reportID: undefined, policyID})];
 
-        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}));
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON, duplicateReportHandler: () => {}}));
         await waitFor(() => expect(result.current.headerButtonsOptions.length).toBeGreaterThan(0));
 
         expect(result.current.headerButtonsOptions.find((o) => o.value === CONST.SEARCH.BULK_ACTION_TYPES.DUPLICATE_REPORT)).toBeUndefined();
