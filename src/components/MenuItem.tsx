@@ -454,6 +454,9 @@ type MenuItemBaseProps = ForwardedFSClassProps &
 
         /** Additional styles for the right icon wrapper */
         rightIconWrapperStyle?: StyleProp<ViewStyle>;
+
+        /** Whether to apply compact popover menu item sizing (desktop popovers) */
+        isCompactPopoverItem?: boolean;
     };
 
 type MenuItemProps = (IconProps | AvatarProps | NoIcon) & MenuItemBaseProps;
@@ -601,6 +604,7 @@ function MenuItem({
     tabIndex = 0,
     rightIconWrapperStyle,
     titleAccessibilityRole,
+    isCompactPopoverItem = false,
 }: MenuItemProps) {
     const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'FallbackAvatar', 'DotIndicator', 'Checkmark', 'NewWindow']);
     const {translate} = useLocalize();
@@ -837,6 +841,7 @@ function MenuItem({
                                         !interactive && styles.cursorDefault,
                                         isCompact && styles.alignItemsCenter,
                                         isCompact && styles.optionRowCompact,
+                                        isCompactPopoverItem && (description ? styles.compactPopoverMenuItemBase : styles.compactPopoverMenuItem),
                                         !shouldRemoveBackground &&
                                             StyleUtils.getButtonBackgroundColorStyle(getButtonState(focused || isHovered, pressed, success, disabled, interactive), true),
                                         ...(Array.isArray(wrapperStyle) ? wrapperStyle : [wrapperStyle]),
@@ -873,6 +878,7 @@ function MenuItem({
                                                         styles.flexRow,
                                                         styles.pointerEventsAuto,
                                                         disabled && !shouldUseDefaultCursorWhenDisabled && styles.cursorDisabled,
+                                                        isCompactPopoverItem && styles.alignItemsCenter,
                                                         innerContainerStyle,
                                                     ]}
                                                 >
@@ -896,8 +902,9 @@ function MenuItem({
                                                         <View
                                                             style={[
                                                                 styles.popoverMenuIcon,
-                                                                shouldIconUseAutoWidthStyle ? styles.wAuto : StyleUtils.getAvatarWidthStyle(avatarSize),
                                                                 iconStyles,
+                                                                shouldIconUseAutoWidthStyle ? styles.wAuto : StyleUtils.getAvatarWidthStyle(avatarSize),
+                                                                isCompactPopoverItem && iconType === CONST.ICON_TYPE_ICON && {width: variables.iconSizeNormal},
                                                             ]}
                                                         />
                                                     )}
@@ -905,8 +912,9 @@ function MenuItem({
                                                         <View
                                                             style={[
                                                                 styles.popoverMenuIcon,
-                                                                shouldIconUseAutoWidthStyle ? styles.wAuto : StyleUtils.getAvatarWidthStyle(avatarSize),
                                                                 iconStyles,
+                                                                shouldIconUseAutoWidthStyle ? styles.wAuto : StyleUtils.getAvatarWidthStyle(avatarSize),
+                                                                isCompactPopoverItem && iconType === CONST.ICON_TYPE_ICON && {width: variables.iconSizeNormal},
                                                             ]}
                                                         >
                                                             {typeof icon !== 'string' &&

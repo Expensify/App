@@ -2,8 +2,6 @@ import React from 'react';
 import FocusableMenuItem from '@components/FocusableMenuItem';
 import type {MenuItemProps} from '@components/MenuItem';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useThemeStyles from '@hooks/useThemeStyles';
-import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import useFABMenuItem from './useFABMenuItem';
 
@@ -17,8 +15,6 @@ type FABFocusableMenuItemProps = Omit<MenuItemProps, 'focused' | 'onFocus' | 'wr
 function FABFocusableMenuItem({itemId, isVisible = true, onPress, shouldCallAfterModalHide, ...props}: FABFocusableMenuItemProps) {
     const {itemIndex, isFocused, wrapperStyle, setFocusedIndex, onItemPress} = useFABMenuItem(itemId, isVisible);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const styles = useThemeStyles();
-
     if (!isVisible) {
         return null;
     }
@@ -30,8 +26,8 @@ function FABFocusableMenuItem({itemId, isVisible = true, onPress, shouldCallAfte
             {...(props as MenuItemProps)}
             focused={isFocused}
             onFocus={() => setFocusedIndex(itemIndex)}
-            wrapperStyle={[wrapperStyle, !shouldUseNarrowLayout && styles.compactPopoverMenuItem]}
-            iconStyles={!shouldUseNarrowLayout ? [{width: variables.iconSizeNormal}] : undefined}
+            wrapperStyle={wrapperStyle}
+            isCompactPopoverItem={!shouldUseNarrowLayout}
             shouldCheckActionAllowedOnPress={false}
             role={CONST.ROLE.BUTTON}
             onPress={onPress ? () => onItemPress(onPress, {shouldCallAfterModalHide}) : undefined}

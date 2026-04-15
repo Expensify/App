@@ -6,7 +6,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useThrottledButtonState from '@hooks/useThrottledButtonState';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import getButtonState from '@libs/getButtonState';
-import variables from '@styles/variables';
 import type IconAsset from '@src/types/utils/IconAsset';
 import type WithSentryLabel from '@src/types/utils/SentryLabel';
 import BaseMiniContextMenuItem from './BaseMiniContextMenuItem';
@@ -129,8 +128,8 @@ function ContextMenuItem({
             title={itemText}
             icon={itemIcon}
             onPress={triggerPressAndUpdateSuccess}
-            wrapperStyle={[styles.pr8, !shouldUseNarrowLayout && styles.compactPopoverMenuItem, wrapperStyle]}
-            iconStyles={!shouldUseNarrowLayout ? [{width: variables.iconSizeNormal}] : undefined}
+            wrapperStyle={[styles.pr8, wrapperStyle]}
+            isCompactPopoverItem={!shouldUseNarrowLayout}
             success={!isThrottledButtonActive}
             description={description}
             descriptionTextStyle={styles.breakWord}

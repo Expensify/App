@@ -438,15 +438,14 @@ function BasePopoverMenu({
                     wrapperStyle={[
                         StyleUtils.getItemBackgroundColorStyle(!!item.isSelected, focusedIndex === menuIndex, item.disabled ?? false, theme.activeComponentBG, theme.hoverComponentBG),
                         shouldUseScrollView && !shouldUseModalPaddingStyle && StyleUtils.getOptionMargin(menuIndex, currentMenuItems.length - 1),
-                        !isSmallScreenWidth && !item.description && styles.compactPopoverMenuItem,
                     ]}
+                    isCompactPopoverItem={!isSmallScreenWidth}
                     shouldRemoveHoverBackground={item.isSelected}
                     titleStyle={StyleSheet.flatten([styles.flex1, item.titleStyle])}
                     icon={icon}
                     role={CONST.ROLE.BUTTON}
                     // Spread other props dynamically
                     {...menuItemProps}
-                    iconStyles={menuItemProps?.iconStyles ?? (!isSmallScreenWidth ? [{width: variables.iconSizeNormal}] : undefined)}
                     hasSubMenuItems={!!subMenuItems?.length}
                     shouldShowLoadingSpinnerIcon={shouldShowLoadingSpinnerIcon}
                 />

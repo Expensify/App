@@ -1789,10 +1789,16 @@ const staticStyles = (theme: ThemeColors) =>
             paddingVertical: variables.componentBorderRadiusLarge,
         },
 
+        compactPopoverMenuItemBase: {
+            ...spacing.ph5,
+            ...spacing.pv1,
+            alignItems: 'center' as const,
+        },
+
         compactPopoverMenuItem: {
             height: variables.componentSizeLarge,
-            paddingHorizontal: 20,
-            paddingVertical: 4,
+            ...spacing.ph5,
+            ...spacing.pv1,
             alignItems: 'center' as const,
         },
 
@@ -3992,7 +3998,7 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         compactQuickReactionsContainer: {
-            paddingHorizontal: 16,
+            ...spacing.ph4,
             paddingTop: variables.spacing2,
             gap: variables.spacing2,
         },
