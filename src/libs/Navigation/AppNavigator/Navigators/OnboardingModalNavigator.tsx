@@ -49,14 +49,14 @@ function OnboardingModalNavigator() {
     const [onboardingPolicyID] = useOnyx(ONYXKEYS.ONBOARDING_POLICY_ID);
     const isOnPrivateDomainAndHasAccessiblePolicies = !account?.isFromPublicDomain && account?.hasAccessibleDomainPolicies;
 
-    let initialRouteName: ValueOf<typeof SCREENS.ONBOARDING> = SCREENS.ONBOARDING.PURPOSE;
+    let initialRouteName: ValueOf<typeof SCREENS.ONBOARDING> = SCREENS.ONBOARDING.DYNAMIC_PURPOSE;
 
     if (isOnPrivateDomainAndHasAccessiblePolicies) {
-        initialRouteName = SCREENS.ONBOARDING.PERSONAL_DETAILS;
+        initialRouteName = SCREENS.ONBOARDING.DYNAMIC_PERSONAL_DETAILS;
     }
 
     if (account?.isFromPublicDomain) {
-        initialRouteName = SCREENS.ONBOARDING.WORK_EMAIL;
+        initialRouteName = SCREENS.ONBOARDING.DYNAMIC_WORK_EMAIL;
     }
 
     if (onboardingPurposeSelected === CONST.ONBOARDING_CHOICES.PERSONAL_SPEND && !!onboardingPolicyID) {
@@ -125,39 +125,39 @@ function OnboardingModalNavigator() {
                             initialRouteName={initialRouteName}
                         >
                             <Stack.Screen
-                                name={SCREENS.ONBOARDING.PURPOSE}
+                                name={SCREENS.ONBOARDING.DYNAMIC_PURPOSE}
                                 component={OnboardingPurpose}
                             />
                             <Stack.Screen
-                                name={SCREENS.ONBOARDING.PERSONAL_DETAILS}
+                                name={SCREENS.ONBOARDING.DYNAMIC_PERSONAL_DETAILS}
                                 component={OnboardingPersonalDetails}
                             />
                             <Stack.Screen
-                                name={SCREENS.ONBOARDING.WORK_EMAIL}
+                                name={SCREENS.ONBOARDING.DYNAMIC_WORK_EMAIL}
                                 component={OnboardingWorkEmail}
                             />
                             <Stack.Screen
-                                name={SCREENS.ONBOARDING.WORK_EMAIL_VALIDATION}
+                                name={SCREENS.ONBOARDING.DYNAMIC_WORK_EMAIL_VALIDATION}
                                 component={OnboardingWorkEmailValidation}
                             />
                             <Stack.Screen
-                                name={SCREENS.ONBOARDING.PRIVATE_DOMAIN}
+                                name={SCREENS.ONBOARDING.DYNAMIC_PRIVATE_DOMAIN}
                                 component={OnboardingPrivateDomain}
                             />
                             <Stack.Screen
-                                name={SCREENS.ONBOARDING.WORKSPACES}
+                                name={SCREENS.ONBOARDING.DYNAMIC_WORKSPACES}
                                 component={OnboardingWorkspaces}
                             />
                             <Stack.Screen
-                                name={SCREENS.ONBOARDING.EMPLOYEES}
+                                name={SCREENS.ONBOARDING.DYNAMIC_EMPLOYEES}
                                 component={OnboardingEmployees}
                             />
                             <Stack.Screen
-                                name={SCREENS.ONBOARDING.ACCOUNTING}
+                                name={SCREENS.ONBOARDING.DYNAMIC_ACCOUNTING}
                                 component={OnboardingAccounting}
                             />
                             <Stack.Screen
-                                name={SCREENS.ONBOARDING.INTERESTED_FEATURES}
+                                name={SCREENS.ONBOARDING.DYNAMIC_INTERESTED_FEATURES}
                                 component={OnboardingInterestedFeatures}
                             />
                             <Stack.Screen

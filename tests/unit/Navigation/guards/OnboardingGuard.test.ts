@@ -87,8 +87,8 @@ describe('OnboardingGuard', () => {
             const onboardingState: NavigationState = {
                 key: 'root',
                 index: 0,
-                routeNames: [SCREENS.ONBOARDING.PURPOSE],
-                routes: [{key: 'purpose', name: SCREENS.ONBOARDING.PURPOSE}],
+                routeNames: [SCREENS.ONBOARDING.DYNAMIC_PURPOSE],
+                routes: [{key: 'purpose', name: SCREENS.ONBOARDING.DYNAMIC_PURPOSE}],
                 stale: false,
                 type: 'root',
             };
@@ -368,8 +368,8 @@ describe('OnboardingGuard', () => {
             const onboardingState: NavigationState = {
                 key: 'root',
                 index: 0,
-                routeNames: [SCREENS.ONBOARDING.PURPOSE],
-                routes: [{key: 'purpose', name: SCREENS.ONBOARDING.PURPOSE}],
+                routeNames: [SCREENS.ONBOARDING.DYNAMIC_PURPOSE],
+                routes: [{key: 'purpose', name: SCREENS.ONBOARDING.DYNAMIC_PURPOSE}],
                 stale: false,
                 type: 'root',
             };
@@ -395,8 +395,8 @@ describe('OnboardingGuard', () => {
             const onboardingState: NavigationState = {
                 key: 'root',
                 index: 0,
-                routeNames: [SCREENS.ONBOARDING.PURPOSE],
-                routes: [{key: 'purpose', name: SCREENS.ONBOARDING.PURPOSE}],
+                routeNames: [SCREENS.ONBOARDING.DYNAMIC_PURPOSE],
+                routes: [{key: 'purpose', name: SCREENS.ONBOARDING.DYNAMIC_PURPOSE}],
                 stale: false,
                 type: 'root',
             };
@@ -427,8 +427,8 @@ describe('OnboardingGuard', () => {
             const onboardingState: NavigationState = {
                 key: 'root',
                 index: 0,
-                routeNames: [SCREENS.ONBOARDING.WORK_EMAIL],
-                routes: [{key: 'work-email', name: SCREENS.ONBOARDING.WORK_EMAIL}],
+                routeNames: [SCREENS.ONBOARDING.DYNAMIC_WORK_EMAIL],
+                routes: [{key: 'dynamic-work-email', name: SCREENS.ONBOARDING.DYNAMIC_WORK_EMAIL}],
                 stale: false,
                 type: 'root',
             };

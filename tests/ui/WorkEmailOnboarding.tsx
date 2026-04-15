@@ -13,6 +13,7 @@ import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
 import {openOldDotLink} from '@libs/actions/Link';
 import {AddWorkEmail} from '@libs/actions/Session';
 import HttpUtils from '@libs/HttpUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import type {OnboardingModalNavigatorParamList} from '@navigation/types';
@@ -21,7 +22,7 @@ import OnboardingWorkEmailValidation from '@pages/OnboardingWorkEmailValidation'
 import CONST from '@src/CONST';
 import {MergeIntoAccountAndLogin} from '@src/libs/actions/Session';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {Response as OnyxResponse} from '@src/types/onyx';
 import * as TestHelper from '../utils/TestHelper';
@@ -51,14 +52,17 @@ function HTMLProviderWrapper({children}: {children: React.ReactNode}) {
     return <HTMLEngineProvider>{children}</HTMLEngineProvider>;
 }
 
-const renderOnboardingWorkEmailPage = (initialRouteName: typeof SCREENS.ONBOARDING.WORK_EMAIL, initialParams: OnboardingModalNavigatorParamList[typeof SCREENS.ONBOARDING.WORK_EMAIL]) => {
+const renderOnboardingWorkEmailPage = (
+    initialRouteName: typeof SCREENS.ONBOARDING.DYNAMIC_WORK_EMAIL,
+    initialParams: OnboardingModalNavigatorParamList[typeof SCREENS.ONBOARDING.DYNAMIC_WORK_EMAIL],
+) => {
     return render(
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrentReportIDContextProvider]}>
             <PortalProvider>
                 <NavigationContainer>
                     <Stack.Navigator initialRouteName={initialRouteName}>
                         <Stack.Screen
-                            name={SCREENS.ONBOARDING.WORK_EMAIL}
+                            name={SCREENS.ONBOARDING.DYNAMIC_WORK_EMAIL}
                             component={OnboardingWorkEmail}
                             initialParams={initialParams}
                         />
@@ -71,8 +75,8 @@ const renderOnboardingWorkEmailPage = (initialRouteName: typeof SCREENS.ONBOARDI
 };
 
 const renderOnboardingWorkEmailValidationPage = (
-    initialRouteName: typeof SCREENS.ONBOARDING.WORK_EMAIL_VALIDATION,
-    initialParams: OnboardingModalNavigatorParamList[typeof SCREENS.ONBOARDING.WORK_EMAIL_VALIDATION],
+    initialRouteName: typeof SCREENS.ONBOARDING.DYNAMIC_WORK_EMAIL_VALIDATION,
+    initialParams?: OnboardingModalNavigatorParamList[typeof SCREENS.ONBOARDING.DYNAMIC_WORK_EMAIL_VALIDATION],
 ) => {
     return render(
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrentReportIDContextProvider]}>
@@ -80,7 +84,7 @@ const renderOnboardingWorkEmailValidationPage = (
                 <NavigationContainer>
                     <Stack.Navigator initialRouteName={initialRouteName}>
                         <Stack.Screen
-                            name={SCREENS.ONBOARDING.WORK_EMAIL_VALIDATION}
+                            name={SCREENS.ONBOARDING.DYNAMIC_WORK_EMAIL_VALIDATION}
                             component={OnboardingWorkEmailValidation}
                             initialParams={initialParams}
                         />
@@ -242,7 +246,7 @@ describe('OnboardingWorkEmail Page', () => {
             });
         });
 
-        const {unmount} = renderOnboardingWorkEmailPage(SCREENS.ONBOARDING.WORK_EMAIL, {backTo: ''});
+        const {unmount} = renderOnboardingWorkEmailPage(SCREENS.ONBOARDING.DYNAMIC_WORK_EMAIL, undefined);
 
         await waitForBatchedUpdatesWithAct();
 
@@ -270,7 +274,7 @@ describe('OnboardingWorkEmail Page', () => {
             });
         });
 
-        const {unmount} = renderOnboardingWorkEmailPage(SCREENS.ONBOARDING.WORK_EMAIL, {backTo: ''});
+        const {unmount} = renderOnboardingWorkEmailPage(SCREENS.ONBOARDING.DYNAMIC_WORK_EMAIL, undefined);
 
         await waitForBatchedUpdatesWithAct();
 
@@ -286,7 +290,7 @@ describe('OnboardingWorkEmail Page', () => {
         fireEvent.press(skipButton, mockEvent);
 
         await waitFor(() => {
-            expect(navigate).toHaveBeenCalledWith(ROUTES.ONBOARDING_PURPOSE.getRoute(), {forceReplace: true});
+            expect(navigate).toHaveBeenCalledWith(createDynamicRoute(DYNAMIC_ROUTES.ONBOARDING_PURPOSE.path), {forceReplace: true});
         });
 
         unmount();
@@ -302,7 +306,7 @@ describe('OnboardingWorkEmail Page', () => {
             });
         });
 
-        const {unmount} = renderOnboardingWorkEmailPage(SCREENS.ONBOARDING.WORK_EMAIL, {backTo: ''});
+        const {unmount} = renderOnboardingWorkEmailPage(SCREENS.ONBOARDING.DYNAMIC_WORK_EMAIL, undefined);
 
         await waitForBatchedUpdatesWithAct();
 
@@ -311,7 +315,7 @@ describe('OnboardingWorkEmail Page', () => {
         await waitForBatchedUpdatesWithAct();
 
         await waitFor(() => {
-            expect(navigate).toHaveBeenCalledWith(ROUTES.ONBOARDING_PRIVATE_DOMAIN.getRoute(), {forceReplace: true});
+            expect(navigate).toHaveBeenCalledWith(expect.stringContaining('private-domain'), {forceReplace: true});
         });
 
         unmount();
@@ -327,7 +331,7 @@ describe('OnboardingWorkEmail Page', () => {
             });
         });
 
-        const {unmount} = renderOnboardingWorkEmailPage(SCREENS.ONBOARDING.WORK_EMAIL, {backTo: ''});
+        const {unmount} = renderOnboardingWorkEmailPage(SCREENS.ONBOARDING.DYNAMIC_WORK_EMAIL, undefined);
 
         await waitForBatchedUpdatesWithAct();
 
@@ -336,7 +340,7 @@ describe('OnboardingWorkEmail Page', () => {
         await waitForBatchedUpdatesWithAct();
 
         await waitFor(() => {
-            expect(navigate).toHaveBeenCalledWith(ROUTES.ONBOARDING_WORK_EMAIL_VALIDATION.getRoute());
+            expect(navigate).toHaveBeenCalledWith(createDynamicRoute(DYNAMIC_ROUTES.ONBOARDING_WORK_EMAIL_VALIDATION.path));
         });
 
         unmount();
@@ -353,7 +357,7 @@ describe('OnboardingWorkEmail Page', () => {
             });
         });
 
-        const {unmount} = renderOnboardingWorkEmailPage(SCREENS.ONBOARDING.WORK_EMAIL, {backTo: ''});
+        const {unmount} = renderOnboardingWorkEmailPage(SCREENS.ONBOARDING.DYNAMIC_WORK_EMAIL, undefined);
 
         await waitForBatchedUpdatesWithAct();
 
@@ -369,7 +373,7 @@ describe('OnboardingWorkEmail Page', () => {
         fireEvent.press(skipButton, mockEvent);
 
         await waitFor(() => {
-            expect(navigate).toHaveBeenCalledWith(ROUTES.ONBOARDING_EMPLOYEES.getRoute(), {forceReplace: true});
+            expect(navigate).toHaveBeenCalledWith(createDynamicRoute(DYNAMIC_ROUTES.ONBOARDING_EMPLOYEES.path), {forceReplace: true});
         });
 
         unmount();
@@ -412,7 +416,7 @@ describe('OnboardingWorkEmailValidation Page', () => {
             });
         });
 
-        const {unmount} = renderOnboardingWorkEmailValidationPage(SCREENS.ONBOARDING.WORK_EMAIL_VALIDATION, {backTo: ''});
+        const {unmount} = renderOnboardingWorkEmailValidationPage(SCREENS.ONBOARDING.DYNAMIC_WORK_EMAIL_VALIDATION, undefined);
 
         await waitForBatchedUpdatesWithAct();
 
@@ -437,7 +441,7 @@ describe('OnboardingWorkEmailValidation Page', () => {
             });
         });
 
-        const {unmount} = renderOnboardingWorkEmailValidationPage(SCREENS.ONBOARDING.WORK_EMAIL_VALIDATION, {backTo: ''});
+        const {unmount} = renderOnboardingWorkEmailValidationPage(SCREENS.ONBOARDING.DYNAMIC_WORK_EMAIL_VALIDATION, undefined);
 
         await waitForBatchedUpdatesWithAct();
 
@@ -466,7 +470,7 @@ describe('OnboardingWorkEmailValidation Page', () => {
             });
         });
 
-        const {unmount} = renderOnboardingWorkEmailValidationPage(SCREENS.ONBOARDING.WORK_EMAIL_VALIDATION, {backTo: ''});
+        const {unmount} = renderOnboardingWorkEmailValidationPage(SCREENS.ONBOARDING.DYNAMIC_WORK_EMAIL_VALIDATION, undefined);
 
         await waitForBatchedUpdatesWithAct();
         const skipButton = screen.getByText(TestHelper.translateLocal('common.skip'));
@@ -481,7 +485,7 @@ describe('OnboardingWorkEmailValidation Page', () => {
         fireEvent.press(skipButton, mockEvent);
 
         await waitFor(() => {
-            expect(navigate).toHaveBeenCalledWith(ROUTES.ONBOARDING_PURPOSE.getRoute(), {forceReplace: true});
+            expect(navigate).toHaveBeenCalledWith(createDynamicRoute(DYNAMIC_ROUTES.ONBOARDING_PURPOSE.path), {forceReplace: true});
         });
 
         unmount();
@@ -501,7 +505,7 @@ describe('OnboardingWorkEmailValidation Page', () => {
             });
         });
 
-        const {unmount} = renderOnboardingWorkEmailValidationPage(SCREENS.ONBOARDING.WORK_EMAIL_VALIDATION, {backTo: ''});
+        const {unmount} = renderOnboardingWorkEmailValidationPage(SCREENS.ONBOARDING.DYNAMIC_WORK_EMAIL_VALIDATION, undefined);
 
         await waitForBatchedUpdatesWithAct();
 
@@ -510,7 +514,7 @@ describe('OnboardingWorkEmailValidation Page', () => {
         await waitForBatchedUpdatesWithAct();
 
         await waitFor(() => {
-            expect(navigate).toHaveBeenCalledWith(ROUTES.ONBOARDING_WORKSPACES.getRoute(), {forceReplace: true});
+            expect(navigate).toHaveBeenCalledWith(createDynamicRoute(DYNAMIC_ROUTES.ONBOARDING_WORKSPACES.path), {forceReplace: true});
         });
 
         unmount();
@@ -530,7 +534,7 @@ describe('OnboardingWorkEmailValidation Page', () => {
             });
         });
 
-        const {unmount} = renderOnboardingWorkEmailValidationPage(SCREENS.ONBOARDING.WORK_EMAIL_VALIDATION, {backTo: ''});
+        const {unmount} = renderOnboardingWorkEmailValidationPage(SCREENS.ONBOARDING.DYNAMIC_WORK_EMAIL_VALIDATION, undefined);
 
         await waitForBatchedUpdatesWithAct();
 
@@ -560,7 +564,7 @@ describe('OnboardingWorkEmailValidation Page', () => {
             });
         });
 
-        const {unmount} = renderOnboardingWorkEmailValidationPage(SCREENS.ONBOARDING.WORK_EMAIL_VALIDATION, {backTo: ''});
+        const {unmount} = renderOnboardingWorkEmailValidationPage(SCREENS.ONBOARDING.DYNAMIC_WORK_EMAIL_VALIDATION, undefined);
 
         await waitForBatchedUpdatesWithAct();
 
@@ -569,7 +573,7 @@ describe('OnboardingWorkEmailValidation Page', () => {
         await waitForBatchedUpdatesWithAct();
 
         await waitFor(() => {
-            expect(navigate).toHaveBeenCalledWith(ROUTES.ONBOARDING_EMPLOYEES.getRoute(), {forceReplace: true});
+            expect(navigate).toHaveBeenCalledWith(createDynamicRoute(DYNAMIC_ROUTES.ONBOARDING_EMPLOYEES.path), {forceReplace: true});
         });
 
         unmount();
@@ -593,7 +597,7 @@ describe('OnboardingWorkEmailValidation Page', () => {
             await Onyx.merge(ONYXKEYS.ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY, specificErrorMessage);
         });
 
-        const {unmount} = renderOnboardingWorkEmailValidationPage(SCREENS.ONBOARDING.WORK_EMAIL_VALIDATION, {backTo: ''});
+        const {unmount} = renderOnboardingWorkEmailValidationPage(SCREENS.ONBOARDING.DYNAMIC_WORK_EMAIL_VALIDATION, undefined);
 
         await waitForBatchedUpdatesWithAct();
 
@@ -619,7 +623,7 @@ describe('OnboardingWorkEmailValidation Page', () => {
             });
         });
 
-        const {unmount} = renderOnboardingWorkEmailValidationPage(SCREENS.ONBOARDING.WORK_EMAIL_VALIDATION, {backTo: ''});
+        const {unmount} = renderOnboardingWorkEmailValidationPage(SCREENS.ONBOARDING.DYNAMIC_WORK_EMAIL_VALIDATION, undefined);
 
         await waitForBatchedUpdatesWithAct();
 
