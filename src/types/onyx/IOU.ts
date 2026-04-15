@@ -230,7 +230,7 @@ type IOU = {
 /** Model of IOU attendee */
 type Attendee = {
     /** IOU attendee email */
-    email: string;
+    email?: string;
 
     /** IOU attendee display name */
     displayName: string;
