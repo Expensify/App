@@ -9,6 +9,7 @@ import type {SearchQueryJSON, SearchStatus} from '@components/Search/types';
 import useOnyx from '@hooks/useOnyx';
 import {clearAllRelatedReportActionErrors} from '@libs/actions/ClearReportActionErrors';
 import {
+    calculateDiffAmount,
     clearBulkEditDraftTransaction,
     createDistanceRequest,
     handleNavigateAfterExpenseCreate,
@@ -33,7 +34,6 @@ import {
 import {putOnHold} from '@libs/actions/IOU/Hold';
 import {completeSplitBill, splitBill, startSplitBill, updateSplitTransactionsFromSplitExpensesFlow} from '@libs/actions/IOU/Split';
 import {requestMoney, trackExpense} from '@libs/actions/IOU/TrackExpense';
-import {calculateDiffAmount} from '@libs/actions/IOU/UpdateMoneyRequestData';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 import {createWorkspace, generatePolicyID, setWorkspaceApprovalMode} from '@libs/actions/Policy/Policy';
 import {createNewReport, deleteReport, notifyNewAction} from '@libs/actions/Report';
