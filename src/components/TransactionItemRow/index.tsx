@@ -45,7 +45,6 @@ import {
     isAmountMissing,
     isMerchantMissing,
     isScanning,
-    isTimeRequest,
     shouldShowAttendees as shouldShowAttendeesUtils,
 } from '@libs/TransactionUtils';
 import variables from '@styles/variables';
@@ -617,7 +616,7 @@ function TransactionItemRow({
                         key={column}
                         style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TAX_RATE)]}
                     >
-                        <TextCell text={isTimeRequest(transactionItem) ? '' : (getTaxName(policy, transactionItem) ?? transactionItem.taxValue ?? '')} />
+                        <TextCell text={getTaxName(policy, transactionItem) ?? transactionItem.taxValue ?? ''} />
                     </View>
                 );
             case CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT:
@@ -626,12 +625,10 @@ function TransactionItemRow({
                         key={column}
                         style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT, {isTaxAmountColumnWide})]}
                     >
-                        {isTimeRequest(transactionItem) ? null : (
-                            <TaxCell
-                                transactionItem={transactionItem}
-                                shouldShowTooltip={shouldShowTooltip}
-                            />
-                        )}
+                        <TaxCell
+                            transactionItem={transactionItem}
+                            shouldShowTooltip={shouldShowTooltip}
+                        />
                     </View>
                 );
             case CONST.SEARCH.TABLE_COLUMNS.POLICY_NAME:
