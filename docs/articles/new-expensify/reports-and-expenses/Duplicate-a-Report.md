@@ -7,7 +7,7 @@ internalScope: Audience is all members. Covers how to duplicate an entire report
 
 # Duplicate a Report
 
-You can create a copy of an existing report and all of its non-card expenses using **Duplicate report**.This creates a new report with copies of all non-card expenses from the original, including each expense's merchant, amount, category, tags, and tax. Expense dates are set to today and receipt images are not copied.
+You can create a copy of an existing report and all of its non-card expenses using **Duplicate report**. This creates a new report with copies of all non-card expenses from the original, including each expense's merchant, amount, category, tags, and tax. Expense dates are set to today and receipt images are not copied.
 
 This is useful when you need to recreate a similar set of expenses such as recurring monthly reports. 
 
@@ -23,7 +23,7 @@ Any member who created a report can duplicate it. **Duplicate report** is availa
 
 ## How to duplicate a report
 
-1. In the navigation tabs (on the left on web, and at the bottom on mobile), go to **Reports > Reports**. 
+1. In the navigation tabs (on the left on web, and on the bottom on mobile), go to **Reports > Reports**. 
 2. Locate the report you want to duplicate.
 3. Click the report to open it. 
 4. Select **More**.
