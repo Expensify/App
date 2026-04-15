@@ -1,0 +1,89 @@
+diff --git a/node_modules/@shopify/flash-list/dist/recyclerview/ViewHolderCollection.js b/node_modules/@shopify/flash-list/dist/recyclerview/ViewHolderCollection.js
+index 8e3db51..58f7043 100644
+--- a/node_modules/@shopify/flash-list/dist/recyclerview/ViewHolderCollection.js
++++ b/node_modules/@shopify/flash-list/dist/recyclerview/ViewHolderCollection.js
+@@ -3,10 +3,13 @@
+  * It handles the rendering of a collection of list items, manages layout updates,
+  * and coordinates with the RecyclerView context for layout changes.
+  */
+-import React, { useEffect, useImperativeHandle, useLayoutEffect } from "react";
++import React, { useCallback, useEffect, useImperativeHandle, useLayoutEffect, useRef, useState, } from "react";
++import { Platform } from "react-native";
+ import { ViewHolder } from "./ViewHolder";
+ import { CompatView } from "./components/CompatView";
+ import { useRecyclerViewContext } from "./RecyclerViewContextProvider";
++const SORT_DELAY_MS = 1000;
++const TAB_SCROLL_THRESHOLD_MS = 400;
+ /**
+  * ViewHolderCollection component that manages the rendering of multiple ViewHolder instances
+  * and handles layout updates for the entire collection
+@@ -72,9 +75,67 @@ export const ViewHolderCollection = (props) => {
+     //     return `${index} => ${reactKey}`;
+     //   })
+     // );
+-    return (React.createElement(CompatView, { style: hasData && containerStyle }, containerLayout &&
++    const containerRef = useRef(null);
++    const lastFocusTimeRef = useRef(0);
++    const renderEntriesRef = useRef(Array.from(renderStack.entries()));
++    const [, setSortId] = useState(0);
++    const doSort = useCallback(() => {
++        const entries = renderEntriesRef.current;
++        const direction = inverted ? -1 : 1;
++        const isSorted = entries.every((entry, i) => i === 0 ||
++            direction * (entries[i - 1][1].index - entry[1].index) <= 0);
++        if (isSorted) {
++            return;
++        }
++        entries.sort(([, a], [, b]) => direction * (a.index - b.index));
++        setSortId((prev) => prev + 1);
++        // eslint-disable-next-line react-hooks/exhaustive-deps
++    }, [inverted]);
++    if (Platform.OS === "web") {
++        // Reconcile: remove stale keys, append new keys
++        const existingKeys = new Set(renderEntriesRef.current.map(([key]) => key));
++        renderEntriesRef.current = renderEntriesRef.current.filter(([key]) => renderStack.has(key));
++        for (const key of renderStack.keys()) {
++            if (!existingKeys.has(key)) {
++                renderEntriesRef.current.push([key, renderStack.get(key)]);
++            }
++        }
++    }
++    else {
++        renderEntriesRef.current = Array.from(renderStack.entries());
++    }
++    useEffect(() => {
++        if (Platform.OS !== "web") {
++            return;
++        }
++        const container = containerRef.current;
++        if (!container) {
++            return;
++        }
++        const onFocusIn = () => {
++            lastFocusTimeRef.current = Date.now();
++            doSort();
++        };
++        container.addEventListener("focusin", onFocusIn);
++        return () => container.removeEventListener("focusin", onFocusIn);
++        // eslint-disable-next-line react-hooks/exhaustive-deps
++    }, []);
++    useEffect(() => {
++        if (Platform.OS !== "web") {
++            return;
++        }
++        const isRecentFocus = Date.now() - lastFocusTimeRef.current < TAB_SCROLL_THRESHOLD_MS;
++        if (isRecentFocus) {
++            doSort();
++            return;
++        }
++        const timeoutId = setTimeout(doSort, SORT_DELAY_MS);
++        return () => clearTimeout(timeoutId);
++        // eslint-disable-next-line react-hooks/exhaustive-deps
++    }, [renderStack, renderId]);
++    return (React.createElement(CompatView, { ref: containerRef, style: hasData && containerStyle }, containerLayout &&
+         hasData &&
+-        Array.from(renderStack.entries(), ([reactKey, { index }]) => {
++        renderEntriesRef.current.map(([reactKey, { index }]) => {
+             const item = data[index];
+             // Suppress separators for items in the last row to prevent
+             // height mismatch. The last data item has no separator (no
