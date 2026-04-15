@@ -5521,7 +5521,7 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         userPillMoreText: {
-            color: theme.link,
+            color: theme.textSupporting,
             fontSize: variables.fontSizeNormal,
             lineHeight: variables.lineHeightXLarge,
         },
