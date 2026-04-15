@@ -57,6 +57,7 @@ import {
     hasDependentTags as hasDependentTagsPolicyUtils,
     isAttendeeTrackingEnabled,
     isPolicyAccessible,
+    isPolicyTaxEnabled,
     isTaxTrackingEnabled,
 } from '@libs/PolicyUtils';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
@@ -452,8 +453,8 @@ function MoneyRequestView({
     const getPendingFieldAction = (fieldPath: TransactionPendingFieldsKey) => (pendingAction ? undefined : transaction?.pendingFields?.[fieldPath]);
 
     const isTaxEnabled = isTaxTrackingEnabled(isPolicyExpenseChat || isExpenseUnreported, policy, isDistanceRequest, isPerDiemRequest, isTimeRequest);
-    const shouldShowTaxDisabledAlert = !isTaxEnabled && !!transaction?.taxCode && !isTimeRequest && !isPerDiemRequest;
-    const shouldShowTax = isTaxEnabled || !!transaction?.taxName || shouldShowTaxDisabledAlert;
+    const shouldShowTaxDisabledAlert = (isPolicyExpenseChat || isExpenseUnreported) && !isPolicyTaxEnabled(policy) && !!transaction?.taxCode;
+    const shouldShowTax = isFromMergeTransaction ? !!transaction?.taxName : isTaxEnabled || shouldShowTaxDisabledAlert;
 
     let amountDescription = `${translate('iou.amount')}`;
     let dateDescription = `${translate('common.date')}`;

@@ -633,9 +633,9 @@ function getMergeFieldUpdatedValues<K extends MergeFieldKey>({
         // Distance expense tax rate is fixed to the distance rate, so just carry it over
         updatedValues.taxValue = transaction?.taxValue;
         updatedValues.taxCode = transaction?.taxCode;
-        updatedValues.taxName = getTaxName(policy, transaction) ?? transaction?.taxValue ?? '';
+        updatedValues.taxName = getTaxName(policy, transaction) ?? transaction?.taxValue;
         updatedValues.taxAmount = transaction?.taxAmount;
-        updatedValues.taxPolicyID = policy?.id;
+        updatedValues.taxPolicyID = transaction?.taxValue ? policy?.id : null;
 
         // Copy odometer readings from the selected transaction for odometer distance requests
         if (isOdometerDistanceRequest(transaction)) {
