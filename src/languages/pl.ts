@@ -7612,6 +7612,10 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             billable: 'Fakturowalne',
             reimbursable: 'Podlegające zwrotowi',
             purchaseCurrency: 'Waluta zakupu',
+            sortOrder: {
+                [CONST.SEARCH.SORT_ORDER.ASC]: 'Rosnąco',
+                [CONST.SEARCH.SORT_ORDER.DESC]: 'Zstępujący',
+            },
             groupBy: {
                 [CONST.SEARCH.GROUP_BY.FROM]: 'Od',
                 [CONST.SEARCH.GROUP_BY.CARD]: 'Karta',
@@ -7640,6 +7644,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
         display: {
             label: 'Wyświetl',
             sortBy: 'Sortuj według',
+            sortOrder: 'Kolejność sortowania',
             groupBy: 'Grupuj według',
             limitResults: 'Ogranicz wyniki',
         },
@@ -7675,7 +7680,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
         recentSearches: 'Ostatnie wyszukiwania',
         recentChats: 'Ostatnie czaty',
         searchIn: 'Szukaj w',
-        searchPlaceholder: 'Wyszukaj coś',
+        searchPlaceholder: 'Wyszukaj coś...',
         suggestions: 'Sugestie',
         suggestionsAvailable: (
             {

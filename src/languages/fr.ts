@@ -7679,6 +7679,10 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             billable: 'Facturable',
             reimbursable: 'Remboursable',
             purchaseCurrency: 'Devise d’achat',
+            sortOrder: {
+                [CONST.SEARCH.SORT_ORDER.ASC]: 'Croissant',
+                [CONST.SEARCH.SORT_ORDER.DESC]: 'Descendant',
+            },
             groupBy: {
                 [CONST.SEARCH.GROUP_BY.FROM]: 'De',
                 [CONST.SEARCH.GROUP_BY.CARD]: 'Carte',
@@ -7707,6 +7711,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         display: {
             label: 'Affichage',
             sortBy: 'Trier par',
+            sortOrder: 'Ordre de tri',
             groupBy: 'Regrouper par',
             limitResults: 'Limiter les résultats',
         },
@@ -7742,7 +7747,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         recentSearches: 'Recherches récentes',
         recentChats: 'Discussions récentes',
         searchIn: 'Rechercher dans',
-        searchPlaceholder: 'Rechercher quelque chose',
+        searchPlaceholder: 'Rechercher quelque chose...',
         suggestions: 'Suggestions',
         suggestionsAvailable: (
             {

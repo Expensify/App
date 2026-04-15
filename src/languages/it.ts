@@ -7645,6 +7645,10 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             billable: 'Fatturabile',
             reimbursable: 'Rimborsabile',
             purchaseCurrency: 'Valuta di acquisto',
+            sortOrder: {
+                [CONST.SEARCH.SORT_ORDER.ASC]: 'In ordine crescente',
+                [CONST.SEARCH.SORT_ORDER.DESC]: 'In discesa',
+            },
             groupBy: {
                 [CONST.SEARCH.GROUP_BY.FROM]: 'Da',
                 [CONST.SEARCH.GROUP_BY.CARD]: 'Carta',
@@ -7673,6 +7677,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
         display: {
             label: 'Visualizza',
             sortBy: 'Ordina per',
+            sortOrder: 'Ordine di visualizzazione',
             groupBy: 'Raggruppa per',
             limitResults: 'Limita i risultati',
         },
@@ -7708,7 +7713,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
         recentSearches: 'Ricerche recenti',
         recentChats: 'Chat recenti',
         searchIn: 'Cerca in',
-        searchPlaceholder: 'Cerca qualcosa',
+        searchPlaceholder: 'Cerca qualcosa...',
         suggestions: 'Suggerimenti',
         suggestionsAvailable: (
             {
