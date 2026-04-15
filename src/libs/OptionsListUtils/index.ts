@@ -10,6 +10,7 @@ import FallbackAvatar from '@assets/images/avatars/fallback-avatar.svg';
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 import type {PrivateIsArchivedMap} from '@hooks/usePrivateIsArchivedMap';
 import {getEnabledCategoriesCount} from '@libs/CategoryUtils';
+import {convertToDisplayString} from '@libs/CurrencyUtils';
 import filterArrayByMatch from '@libs/filterArrayByMatch';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {isReportMessageAttachment} from '@libs/isReportMessageAttachment';
@@ -582,6 +583,21 @@ function getLatestVisibleMoneyRequestAction(
     );
 }
 
+function getExpenseReportPreviewText(report: OnyxEntry<Report>, moneyRequestAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>>, translate: LocalizedTranslate): string {
+    const originalMessage = moneyRequestAction ? getOriginalMessage(moneyRequestAction) : undefined;
+    const amount = originalMessage?.amount;
+    const currency = originalMessage?.currency ?? report?.currency;
+
+    if (typeof amount !== 'number' || !currency) {
+        return '';
+    }
+
+    const formattedAmount = convertToDisplayString(amount, currency);
+    const comment = Parser.htmlToText(originalMessage?.comment ?? '').trim();
+
+    return formatReportLastMessageText(translate('iou.expenseAmount', formattedAmount, comment || undefined));
+}
+
 function getLastActorDisplayNameFromLastVisibleActions(
     report: OnyxEntry<Report>,
     lastActorDetails: Partial<PersonalDetails> | null,
@@ -972,9 +988,11 @@ function getLastMessageTextForReport({
                 visibleReportActionsDataParam,
             );
             lastMessageTextFromReport =
-                formatReportLastMessageText(
-                    Parser.htmlToText(getReportPreviewMessage(report, conciergeReportID, latestVisibleMoneyRequestAction ?? lastReportAction, true, false, null, true)),
-                ) || lastVisibleMessage?.lastMessageText;
+                (isExpenseReport(report) && latestVisibleMoneyRequestAction
+                    ? getExpenseReportPreviewText(report, latestVisibleMoneyRequestAction, translate)
+                    : formatReportLastMessageText(
+                          Parser.htmlToText(getReportPreviewMessage(report, conciergeReportID, latestVisibleMoneyRequestAction ?? lastReportAction, true, false, null, true)),
+                      )) || lastVisibleMessage?.lastMessageText;
         } else if (report?.transactionCount === 0) {
             lastMessageTextFromReport = translate('report.noActivityYet');
         }

@@ -4136,10 +4136,7 @@ describe('OptionsListUtils', () => {
             });
         });
         describe('canonical money request preview fallback', () => {
-            const getExpectedPreviewText = (report: Report, reportAction: ReportAction, reportPreviewAction?: ReportAction) =>
-                formatReportLastMessageText(Parser.htmlToText(getReportPreviewMessage(report, undefined, reportAction, true, false, null, true, reportPreviewAction)));
-
-            it('should format expense preview without brackets when falling back for expense reports', async () => {
+            it('should preserve the minus sign when formatting negative expense previews', async () => {
                 const report: Report = {
                     ...createRandomReport(0, undefined),
                     reportID: 'expense-report-1',
@@ -4184,7 +4181,7 @@ describe('OptionsListUtils', () => {
                     currentUserLogin: CURRENT_USER_EMAIL,
                 });
 
-                expect(lastMessage).toBe(getExpectedPreviewText(report, moneyRequestAction));
+                expect(lastMessage).toBe('-$25.00 for Dinner');
             });
 
             it('should ignore deleted money request actions when building canonical expense preview', async () => {
@@ -4247,7 +4244,7 @@ describe('OptionsListUtils', () => {
                     currentUserLogin: CURRENT_USER_EMAIL,
                 });
 
-                expect(lastMessage).toBe(getExpectedPreviewText(report, visibleMoneyRequestAction));
+                expect(lastMessage).toBe('-$45.00 for Visible comment');
             });
 
             it('should format amount-only preview when the canonical money request has an empty comment', async () => {
@@ -4295,8 +4292,55 @@ describe('OptionsListUtils', () => {
                     currentUserLogin: CURRENT_USER_EMAIL,
                 });
 
-                expect(lastMessage).toBe(getExpectedPreviewText(report, moneyRequestAction));
-                expect(lastMessage.endsWith('$25.00')).toBe(true);
+                expect(lastMessage).toBe('-$25.00');
+            });
+
+            it('should format zero-value expense previews without adding a minus sign', async () => {
+                const report: Report = {
+                    ...createRandomReport(0, undefined),
+                    reportID: 'expense-report-zero',
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                    currency: CONST.CURRENCY.USD,
+                    transactionCount: 1,
+                };
+                const createdAction: ReportAction = {
+                    ...createRandomReportAction(14),
+                    reportID: report.reportID,
+                    actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
+                    message: [{type: 'COMMENT', text: ''}],
+                    originalMessage: {},
+                };
+                const moneyRequestAction: ReportAction = {
+                    ...createRandomReportAction(15),
+                    reportID: report.reportID,
+                    actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                    created: '2026-04-01 16:00:00.000',
+                    message: [{type: 'COMMENT', text: ''}],
+                    originalMessage: {
+                        amount: 0,
+                        currency: CONST.CURRENCY.USD,
+                        comment: 'Zero amount',
+                        type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                    },
+                };
+
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
+                    [createdAction.reportActionID]: createdAction,
+                    [moneyRequestAction.reportActionID]: moneyRequestAction,
+                });
+                await waitForBatchedUpdates();
+
+                const lastMessage = getLastMessageTextForReport({
+                    translate: translateLocal,
+                    report,
+                    lastActorDetails: null,
+                    isReportArchived: false,
+                    lastAction: createdAction,
+                    currentUserLogin: CURRENT_USER_EMAIL,
+                });
+
+                expect(lastMessage).toBe('$0.00 for Zero amount');
             });
 
             it('should format preview correctly for non-USD currencies', async () => {
@@ -4344,10 +4388,10 @@ describe('OptionsListUtils', () => {
                     currentUserLogin: CURRENT_USER_EMAIL,
                 });
 
-                expect(lastMessage).toBe(getExpectedPreviewText(report, moneyRequestAction));
+                expect(lastMessage).toBe('-€25.00 for Lunch');
             });
 
-            it('should fall back to shared preview formatting when the canonical money request is missing amount', async () => {
+            it('should return an empty preview when the canonical money request is missing amount', async () => {
                 const report: Report = {
                     ...createRandomReport(0, undefined),
                     reportID: 'expense-report-5',
@@ -4391,10 +4435,10 @@ describe('OptionsListUtils', () => {
                     currentUserLogin: CURRENT_USER_EMAIL,
                 });
 
-                expect(lastMessage).toBe(getExpectedPreviewText(report, moneyRequestAction));
+                expect(lastMessage).toBe('');
             });
 
-            it('should fall back to shared preview formatting when the canonical money request is missing currency', async () => {
+            it('should fall back to the report currency when the canonical money request is missing currency', async () => {
                 const report: Report = {
                     ...createRandomReport(0, undefined),
                     reportID: 'expense-report-6',
@@ -4438,7 +4482,7 @@ describe('OptionsListUtils', () => {
                     currentUserLogin: CURRENT_USER_EMAIL,
                 });
 
-                expect(lastMessage).toBe(getExpectedPreviewText(report, moneyRequestAction));
+                expect(lastMessage).toBe('-$25.00 for Missing currency');
             });
         });
         it('MOVED_TRANSACTION action', async () => {
