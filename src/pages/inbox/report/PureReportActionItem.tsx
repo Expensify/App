@@ -1206,7 +1206,6 @@ function PureReportActionItem({
             children = (
                 <MovedTransactionAction
                     action={action as OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION>}
-                    emptyHTML={emptyHTML}
                     childReport={childReport}
                     originalReport={originalReport}
                 />

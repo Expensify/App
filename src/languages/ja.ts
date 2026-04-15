@@ -1222,8 +1222,10 @@ const translations: TranslationDeepObject<typeof en> = {
         findExpense: '経費を検索',
         deletedTransaction: (amount: string, merchant: string) => `経費を削除しました（${merchant} に ${amount}）`,
         movedFromReport: (reportName: string) => `経費${reportName ? `${reportName} から` : ''}を移動しました`,
-        movedTransactionTo: (reportUrl: string, reportName?: string) => `この経費を移動しました${reportName ? `<a href="${reportUrl}">${reportName}</a>へ` : ''}`,
-        movedTransactionFrom: (reportUrl: string, reportName?: string) => `この経費を移動しました${reportName ? `<a href="${reportUrl}">${reportName}</a> から` : ''}`,
+        movedTransactionTo: (toReportID: string, reportUrl: string, reportName?: string) =>
+            `この経費を移動しました${reportName ? `<a href="${reportUrl}">${reportName}</a>へ` : `レポート ID ${toReportID}へ`}`,
+        movedTransactionFrom: (fromReportID: string, reportUrl: string, reportName?: string) =>
+            `この経費を移動しました${reportName ? `<a href="${reportUrl}">${reportName}</a>から` : `レポート ID ${fromReportID}から`}`,
         unreportedTransaction: (reportUrl: string) => `この経費をあなたの<a href="${reportUrl}">個人スペース</a>に移動しました`,
         movedAction: (shouldHideMovedReportUrl: boolean, movedReportUrl: string, newParentReportUrl: string, toPolicyName: string) => {
             if (shouldHideMovedReportUrl) {
