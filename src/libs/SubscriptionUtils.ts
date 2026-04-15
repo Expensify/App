@@ -60,12 +60,6 @@ Onyx.connect({
     },
 });
 
-let privateAmountOwed: OnyxEntry<number>;
-Onyx.connect({
-    key: ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED,
-    callback: (value) => (privateAmountOwed = value),
-});
-
 let deprecatedAllPolicies: OnyxCollection<Policy>;
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.POLICY,
@@ -463,9 +457,8 @@ function shouldRestrictUserBillableActions(
     policyIDOrPolicy: string | OnyxEntry<Policy>,
     ownerBillingGracePeriodEnd: OnyxEntry<number>,
     userBillingGracePeriodEnds: OnyxCollection<BillingGraceEndPeriod>,
-    amountOwed: OnyxEntry<number> = privateAmountOwed,
+    amountOwed: OnyxEntry<number>,
 ): boolean {
-    const policyID = typeof policyIDOrPolicy === 'string' ? policyIDOrPolicy : policyIDOrPolicy?.id;
     const policy = typeof policyIDOrPolicy === 'string' ? deprecatedAllPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyIDOrPolicy}`] : policyIDOrPolicy;
     const currentDate = new Date();
 

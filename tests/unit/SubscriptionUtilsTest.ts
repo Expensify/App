@@ -266,7 +266,7 @@ describe('SubscriptionUtils', () => {
         });
 
         it("should return false if the user isn't a workspace's owner or isn't a member of any past due billing workspace", () => {
-            expect(shouldRestrictUserBillableActions('1', undefined, undefined)).toBeFalsy();
+            expect(shouldRestrictUserBillableActions('1', undefined, undefined, undefined)).toBeFalsy();
         });
 
         it('should return false if the user is a non-owner of a workspace that is not in the shared NVP collection', () => {
@@ -275,12 +275,17 @@ describe('SubscriptionUtils', () => {
             const policy = {...createRandomPolicy(Number(policyID)), ownerAccountID: 2002}; // owner not in the shared NVP collection
 
             expect(
-                shouldRestrictUserBillableActions(policy, undefined, {
-                    [`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END}${ownerAccountID}`]: {
-                        ...billingGraceEndPeriod,
-                        value: getUnixTime(subDays(new Date(), 3)), // past due
+                shouldRestrictUserBillableActions(
+                    policy,
+                    undefined,
+                    {
+                        [`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END}${ownerAccountID}`]: {
+                            ...billingGraceEndPeriod,
+                            value: getUnixTime(subDays(new Date(), 3)), // past due
+                        },
                     },
-                }),
+                    undefined,
+                ),
             ).toBeFalsy();
         });
 
@@ -290,12 +295,17 @@ describe('SubscriptionUtils', () => {
             const policy = {...createRandomPolicy(Number(policyID)), ownerAccountID}; // owner in the shared NVP collection
 
             expect(
-                shouldRestrictUserBillableActions(policy, undefined, {
-                    [`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END}${ownerAccountID}` as const]: {
-                        ...billingGraceEndPeriod,
-                        value: getUnixTime(addDays(new Date(), 3)), // not past due
+                shouldRestrictUserBillableActions(
+                    policy,
+                    undefined,
+                    {
+                        [`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END}${ownerAccountID}` as const]: {
+                            ...billingGraceEndPeriod,
+                            value: getUnixTime(addDays(new Date(), 3)), // not past due
+                        },
                     },
-                }),
+                    undefined,
+                ),
             ).toBeFalsy();
         });
 
@@ -305,12 +315,17 @@ describe('SubscriptionUtils', () => {
             const policy = {...createRandomPolicy(Number(policyID)), ownerAccountID}; // owner in the shared NVP collection
 
             expect(
-                shouldRestrictUserBillableActions(policy, undefined, {
-                    [`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END}${ownerAccountID}` as const]: {
-                        ...billingGraceEndPeriod,
-                        value: getUnixTime(subDays(new Date(), 3)), // past due
+                shouldRestrictUserBillableActions(
+                    policy,
+                    undefined,
+                    {
+                        [`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END}${ownerAccountID}` as const]: {
+                            ...billingGraceEndPeriod,
+                            value: getUnixTime(subDays(new Date(), 3)), // past due
+                        },
                     },
-                }),
+                    undefined,
+                ),
             ).toBeTruthy();
         });
 
@@ -323,7 +338,7 @@ describe('SubscriptionUtils', () => {
                 [ONYXKEYS.SESSION]: {email: '', accountID},
             });
 
-            expect(shouldRestrictUserBillableActions(policy, getUnixTime(addDays(new Date(), 3)), undefined)).toBeFalsy();
+            expect(shouldRestrictUserBillableActions(policy, getUnixTime(addDays(new Date(), 3)), undefined, undefined)).toBeFalsy();
         });
 
         it("should return false if the user is the workspace's owner that is past due billing but isn't owning any amount", async () => {
@@ -336,7 +351,7 @@ describe('SubscriptionUtils', () => {
                 [ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED]: 0,
             });
 
-            expect(shouldRestrictUserBillableActions(policy, getUnixTime(subDays(new Date(), 3)), undefined)).toBeFalsy();
+            expect(shouldRestrictUserBillableActions(policy, getUnixTime(subDays(new Date(), 3)), undefined, 0)).toBeFalsy();
         });
 
         it("should return true if the user is the workspace's owner that is past due billing and is owning some amount", async () => {
@@ -349,7 +364,7 @@ describe('SubscriptionUtils', () => {
                 [ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED]: 8010,
             });
 
-            expect(shouldRestrictUserBillableActions(policy, getUnixTime(subDays(new Date(), 3)), undefined)).toBeTruthy();
+            expect(shouldRestrictUserBillableActions(policy, getUnixTime(subDays(new Date(), 3)), undefined, 8010)).toBeTruthy();
         });
 
         it("should return false if the user is past due billing but is not the workspace's owner", async () => {
@@ -362,7 +377,7 @@ describe('SubscriptionUtils', () => {
                 [ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED]: 8010,
             });
 
-            expect(shouldRestrictUserBillableActions(policy, getUnixTime(subDays(new Date(), 3)), undefined)).toBeFalsy();
+            expect(shouldRestrictUserBillableActions(policy, getUnixTime(subDays(new Date(), 3)), undefined, 8010)).toBeFalsy();
         });
 
         it('should restrict when ownerBillingGracePeriodEnd is passed directly as 3rd param and is past due', async () => {
@@ -375,7 +390,7 @@ describe('SubscriptionUtils', () => {
                 [ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED]: 8010,
             });
 
-            expect(shouldRestrictUserBillableActions(policy, getUnixTime(subDays(new Date(), 3)), undefined)).toBeTruthy();
+            expect(shouldRestrictUserBillableActions(policy, getUnixTime(subDays(new Date(), 3)), undefined, 8010)).toBeTruthy();
         });
 
         it("should return false if the user is past due billing but is not the workspace's owner (2nd check)", async () => {
@@ -388,7 +403,7 @@ describe('SubscriptionUtils', () => {
                 [ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED]: 8010,
             });
 
-            expect(shouldRestrictUserBillableActions(policy, getUnixTime(subDays(new Date(), 3)), undefined)).toBeFalsy();
+            expect(shouldRestrictUserBillableActions(policy, getUnixTime(subDays(new Date(), 3)), undefined, 8010)).toBeFalsy();
         });
 
         it('should restrict when ownerBillingGracePeriodEnd is passed directly as 4th param and is past due', async () => {
@@ -401,7 +416,7 @@ describe('SubscriptionUtils', () => {
                 [ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED]: 8010,
             });
 
-            expect(shouldRestrictUserBillableActions(policy, getUnixTime(subDays(new Date(), 3)), undefined)).toBeTruthy();
+            expect(shouldRestrictUserBillableActions(policy, getUnixTime(subDays(new Date(), 3)), undefined, 8010)).toBeTruthy();
         });
 
         it('should not restrict when ownerBillingGracePeriodEnd is passed directly as 4th param but is not past due', async () => {
@@ -414,7 +429,7 @@ describe('SubscriptionUtils', () => {
                 [ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED]: 8010,
             });
 
-            expect(shouldRestrictUserBillableActions(policy, getUnixTime(addDays(new Date(), 3)), undefined)).toBeFalsy();
+            expect(shouldRestrictUserBillableActions(policy, getUnixTime(addDays(new Date(), 3)), undefined, 8010)).toBeFalsy();
         });
 
         it('should not restrict when ownerBillingGracePeriodEnd is passed directly as 4th param but amount owed is 0', async () => {
@@ -427,7 +442,7 @@ describe('SubscriptionUtils', () => {
                 [ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED]: 0,
             });
 
-            expect(shouldRestrictUserBillableActions(policy, getUnixTime(subDays(new Date(), 3)), undefined)).toBeFalsy();
+            expect(shouldRestrictUserBillableActions(policy, getUnixTime(subDays(new Date(), 3)), undefined, 0)).toBeFalsy();
         });
 
         it('should restrict when amountOwed is passed directly and is greater than 0', async () => {
@@ -463,7 +478,7 @@ describe('SubscriptionUtils', () => {
                 [ONYXKEYS.SESSION]: {email: '', accountID},
             });
 
-            expect(shouldRestrictUserBillableActions(policy, getUnixTime(subDays(new Date(), 3)), undefined)).toBeFalsy();
+            expect(shouldRestrictUserBillableActions(policy, getUnixTime(subDays(new Date(), 3)), undefined, undefined)).toBeFalsy();
         });
     });
 
@@ -491,7 +506,7 @@ describe('SubscriptionUtils', () => {
                 [ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED]: 8010,
             });
 
-            expect(shouldRestrictUserBillableActions(policy, getUnixTime(subDays(new Date(), 3)), undefined)).toBeTruthy();
+            expect(shouldRestrictUserBillableActions(policy, getUnixTime(subDays(new Date(), 3)), undefined, 8010)).toBeTruthy();
         });
 
         it('should not restrict when policy is passed directly but owner is not past due', async () => {
@@ -507,7 +522,7 @@ describe('SubscriptionUtils', () => {
                 [ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED]: 8010,
             });
 
-            expect(shouldRestrictUserBillableActions(policy, getUnixTime(addDays(new Date(), 3)), undefined)).toBeFalsy();
+            expect(shouldRestrictUserBillableActions(policy, getUnixTime(addDays(new Date(), 3)), undefined, 8010)).toBeFalsy();
         });
 
         it('should not restrict when policy is passed as undefined', () => {
@@ -523,12 +538,17 @@ describe('SubscriptionUtils', () => {
             };
 
             expect(
-                shouldRestrictUserBillableActions(policy, undefined, {
-                    [`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END}${ownerAccountID}` as const]: {
-                        ...billingGraceEndPeriod,
-                        value: getUnixTime(subDays(new Date(), 3)),
+                shouldRestrictUserBillableActions(
+                    policy,
+                    undefined,
+                    {
+                        [`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END}${ownerAccountID}` as const]: {
+                            ...billingGraceEndPeriod,
+                            value: getUnixTime(subDays(new Date(), 3)),
+                        },
                     },
-                }),
+                    undefined,
+                ),
             ).toBeTruthy();
         });
 
@@ -541,12 +561,17 @@ describe('SubscriptionUtils', () => {
             };
 
             expect(
-                shouldRestrictUserBillableActions(policy, undefined, {
-                    [`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END}${ownerAccountID}` as const]: {
-                        ...billingGraceEndPeriod,
-                        value: getUnixTime(addDays(new Date(), 3)),
+                shouldRestrictUserBillableActions(
+                    policy,
+                    undefined,
+                    {
+                        [`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END}${ownerAccountID}` as const]: {
+                            ...billingGraceEndPeriod,
+                            value: getUnixTime(addDays(new Date(), 3)),
+                        },
                     },
-                }),
+                    undefined,
+                ),
             ).toBeFalsy();
         });
 
@@ -567,7 +592,7 @@ describe('SubscriptionUtils', () => {
                 },
             });
 
-            expect(shouldRestrictUserBillableActions(differentOwnerPolicy, getUnixTime(subDays(new Date(), 3)), undefined)).toBeFalsy();
+            expect(shouldRestrictUserBillableActions(differentOwnerPolicy, getUnixTime(subDays(new Date(), 3)), undefined, 8010)).toBeFalsy();
         });
     });
 
