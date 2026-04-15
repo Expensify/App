@@ -474,6 +474,24 @@ describe('captureTriggerForRoute', () => {
             expect(launcherSpy).toHaveBeenCalled();
         });
 
+        it('should prefer the in-trap element when it survives the nav (long-lived trap with in-trap navigation)', () => {
+            const launcher = appendButton(); // "Open side panel"
+            const innerLink = appendButton(); // e.g. a help link inside the still-open trap
+            setActivePopoverLauncher(launcher);
+            innerLink.focus();
+            innerLink.dispatchEvent(new FocusEvent('focusin', {bubbles: true}));
+
+            captureTriggerForRoute('route-a');
+            // Long-lived trap: inner link stays in DOM across the navigation.
+            innerLink.blur();
+
+            const launcherSpy = jest.spyOn(launcher, 'focus');
+            const innerSpy = jest.spyOn(innerLink, 'focus');
+            expect(restoreTriggerForRoute('route-a')).toBe(true);
+            expect(innerSpy).toHaveBeenCalled();
+            expect(launcherSpy).not.toHaveBeenCalled();
+        });
+
         it('should cancel a pending deferred clear when a new launcher is set', () => {
             withFakeTimers(() => {
                 const launcherA = appendButton();

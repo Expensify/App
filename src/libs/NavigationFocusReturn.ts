@@ -15,6 +15,9 @@ type AnyState = NavigationState | PartialState<NavigationState> | undefined;
 
 type DiffAction = {type: 'forward'; captureKey: string} | {type: 'backward'; restoreKey: string} | {type: 'lateral'} | {type: 'noop'};
 
+// Fallback (if set) is the surrounding trap's launcher, used only when primary is gone from the DOM at restore time.
+type TriggerEntry = {primary: HTMLElement; fallback?: HTMLElement};
+
 const COMPOUND_KEY_DELIMITER = '::';
 const LAUNCHER_CLEAR_DELAY_MS = 1000;
 
@@ -22,7 +25,7 @@ let lastInteractiveElement: HTMLElement | null = null;
 let activePopoverLauncher: HTMLElement | null = null;
 // `clearLauncherTimerId === undefined` with a non-null launcher ≡ popover active; with a timer set ≡ deactivated but held for deferred-nav consumption.
 let clearLauncherTimerId: ReturnType<typeof setTimeout> | undefined;
-const triggerMap = new Map<string, HTMLElement>();
+const triggerMap = new Map<string, TriggerEntry>();
 let prevState: NavigationState | undefined;
 let pendingRestore: {cancel: () => void} | null = null;
 let focusinHandler: ((e: FocusEvent) => void) | null = null;
@@ -79,25 +82,29 @@ function captureTriggerForRoute(routeKey: string): void {
     if (!getHadTabNavigation()) {
         return;
     }
-    // Items inside an active FocusTrap get removed on close; prefer the launcher unless the user has since moved on to another in-DOM control.
-    if (activePopoverLauncher && document.contains(activePopoverLauncher)) {
-        const popoverClosed = clearLauncherTimerId !== undefined;
-        const userMovedOn = popoverClosed && lastInteractiveElement && lastInteractiveElement !== activePopoverLauncher && document.contains(lastInteractiveElement);
-        if (!userMovedOn) {
-            triggerMap.set(routeKey, activePopoverLauncher);
-            setActivePopoverLauncher(null);
-            return;
-        }
-    }
-    if (!lastInteractiveElement || !document.contains(lastInteractiveElement)) {
-        return;
-    }
-    // Stale: focus drifted to another non-body element since the last focusin.
+
+    const launcher = activePopoverLauncher && document.contains(activePopoverLauncher) ? activePopoverLauncher : null;
+
+    // Reject lastInteractiveElement if focus has since drifted to another non-body element.
     const active = document.activeElement;
-    if (active && active !== document.body && active !== lastInteractiveElement) {
+    const innerIsStale = lastInteractiveElement && active && active !== document.body && active !== lastInteractiveElement;
+    const inner = lastInteractiveElement && document.contains(lastInteractiveElement) && !innerIsStale ? lastInteractiveElement : null;
+
+    if (launcher) {
+        // Dual-capture in trapped UI: prefer the in-trap element on restore; fall back to the launcher only when the primary is removed on trap close.
+        if (inner && inner !== launcher) {
+            triggerMap.set(routeKey, {primary: inner, fallback: launcher});
+        } else {
+            triggerMap.set(routeKey, {primary: launcher});
+        }
+        setActivePopoverLauncher(null);
         return;
     }
-    triggerMap.set(routeKey, lastInteractiveElement);
+
+    if (!inner) {
+        return;
+    }
+    triggerMap.set(routeKey, {primary: inner});
 }
 
 function setActivePopoverLauncher(element: HTMLElement | null): void {
@@ -157,28 +164,47 @@ function cancelPendingFocusRestore(): void {
     cancelPendingRestore();
 }
 
+function canAcceptFocus(el: HTMLElement): boolean {
+    return !el.matches(':disabled') && el.getAttribute('aria-disabled') !== 'true' && !el.closest('[aria-hidden="true"]');
+}
+
 function restoreTriggerForRoute(routeKey: string): boolean {
     if (typeof document === 'undefined') {
         return false;
     }
-    const element = triggerMap.get(routeKey);
-    if (!element) {
+    const entry = triggerMap.get(routeKey);
+    if (!entry) {
         return false;
     }
-    if (!document.contains(element)) {
+    const {primary, fallback} = entry;
+    const primaryInDom = document.contains(primary);
+
+    // Primary in DOM but transiently cannot accept focus: keep entry so scheduleRestore can retry.
+    if (primaryInDom && !canAcceptFocus(primary)) {
+        return false;
+    }
+
+    let target: HTMLElement | null = null;
+    if (primaryInDom) {
+        target = primary;
+    } else if (fallback && document.contains(fallback)) {
+        if (!canAcceptFocus(fallback)) {
+            return false;
+        }
+        target = fallback;
+    }
+
+    if (!target) {
         triggerMap.delete(routeKey);
         return false;
     }
-    // Keep the entry when the trigger cannot currently accept focus so scheduleRestore can retry.
-    if (element.matches(':disabled') || element.getAttribute('aria-disabled') === 'true' || element.closest('[aria-hidden="true"]')) {
-        return false;
-    }
+
     triggerMap.delete(routeKey);
     if (!tryClaim(Priorities.RETURN)) {
         return false;
     }
     // focusVisible reflects current modality so a user who switched to mouse doesn't get a ring.
-    element.focus({preventScroll: true, focusVisible: getHadTabNavigation()} as FocusOptions);
+    target.focus({preventScroll: true, focusVisible: getHadTabNavigation()} as FocusOptions);
     return true;
 }
 
@@ -293,8 +319,13 @@ function setupNavigationFocusReturn(): void {
     // addListener is absent pre-mount and in test mocks; NavigationRoot.onReady re-invokes once the container is live.
     if (!stateUnsubscribe && typeof navigationRef?.addListener === 'function') {
         // Seed so the first transition diffs against a live state, not undefined (which classifies as noop and skips capture).
-        prevState = navigationRef.getRootState() ?? prevState;
+        if (typeof navigationRef.getRootState === 'function') {
+            prevState = navigationRef.getRootState() ?? prevState;
+        }
         stateUnsubscribe = navigationRef.addListener('state', () => {
+            if (typeof navigationRef.getRootState !== 'function') {
+                return;
+            }
             handleStateChange(navigationRef.getRootState());
         });
     }
