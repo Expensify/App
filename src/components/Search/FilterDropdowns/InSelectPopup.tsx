@@ -100,6 +100,7 @@ function InSelectPopup({closeOverlay, updateFilterForm}: InSelectPopupProps) {
               currentUserEmail,
               personalDetails,
               policyCollection: allPolicies,
+              conciergeReportID,
           });
 
     const chatOptions = filterAndOrderOptions(defaultOptions, cleanSearchTerm, countryCode, loginList, currentUserEmail, currentUserAccountID, personalDetails, {

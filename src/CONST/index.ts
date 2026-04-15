@@ -1970,6 +1970,9 @@ const CONST = {
         SPAN_SEND_MESSAGE: 'ManualSendMessage',
         SPAN_NOT_FOUND_PAGE: 'ManualNotFoundPage',
         SPAN_SKELETON: 'ManualSkeleton',
+        SPAN_ODOMETER_TO_CONFIRMATION: 'ManualOdometerToConfirmation',
+        SPAN_ODOMETER_IMAGE_STITCH: 'ManualOdometerImageStitch',
+        SPAN_ODOMETER_IMAGE_CAPTURE: 'ManualOdometerImageCapture',
         SPAN_NAVIGATION_ROOT_READY: 'NavigationRootReady',
         SPAN_BOOTSPLASH: {
             ROOT: 'BootsplashVisible',
@@ -2022,6 +2025,7 @@ const CONST = {
         ATTRIBUTE_TRIGGER: 'trigger',
         ATTRIBUTE_PLATFORM: 'platform',
         ATTRIBUTE_IS_MULTI_SCAN: 'is_multi_scan',
+        ATTRIBUTE_ODOMETER_IMAGE_TYPE: 'odometer_image_type',
         /** Follow-up action after expense submit (action-based; used as submit_follow_up_action in span). */
         SUBMIT_FOLLOW_UP_ACTION: {
             DISMISS_MODAL_AND_OPEN_REPORT: 'dismiss_modal_and_open_report',
@@ -6627,6 +6631,7 @@ const CONST = {
         RHP_CONCIERGE_DM: 'rhpConciergeDm',
         RHP_ADMINS_ROOM: 'rhpAdminsRoom',
         RHP_HOME_PAGE: 'rhpHomePage',
+        TRACK_EXPENSES_WITH_CONCIERGE: 'trackExpensesWithConcierge',
         CONTROL: 'control',
     },
     ONBOARDING_JOINABLE_WORKSPACES_LIMIT: 5,
@@ -9586,6 +9591,13 @@ const CONST = {
     },
 
     MODAL_MAX_HEIGHT_TO_WINDOW_HEIGHT_RATIO_LANDSCAPE_MODE: 0.75,
+
+    MAP_VIEW_LAYERS: {
+        USER_LOCATION_SOURCE: 'user-location-source',
+        USER_LOCATION: 'user-location',
+        ROUTE_SOURCE: 'route-source',
+        ROUTE_FILL: 'route-fill',
+    },
 } as const;
 
 const CONTINUATION_DETECTION_SEARCH_FILTER_KEYS = [
