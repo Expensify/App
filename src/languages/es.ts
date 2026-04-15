@@ -2092,6 +2092,11 @@ const translations: TranslationDeepObject<typeof en> = {
         chatToConciergeToUnlock: 'Chatea con Concierge para resolver los problemas de seguridad y desbloquear tu cuenta.',
         chatWithConcierge: 'Chatear con Concierge',
     },
+    deviceManagementPage: {
+        title: 'Gestión de dispositivos',
+        description: 'Gestiona todos los dispositivos en los que has iniciado sesión con tu cuenta de Expensify. <a href="">Más información</a>',
+        revoke: 'Revocar',
+    },
     twoFactorAuth: {
         headerTitle: 'Autenticación de dos factores',
         twoFactorAuthEnabled: 'Autenticación de dos factores habilitada',

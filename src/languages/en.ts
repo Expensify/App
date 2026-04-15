@@ -2276,6 +2276,11 @@ const translations = {
         chatToConciergeToUnlock: 'Chat with Concierge to resolve security concerns and unlock your account.',
         chatWithConcierge: 'Chat with Concierge',
     },
+    deviceManagementPage: {
+        title: 'Device management',
+        description: 'Manage all the devices that you have logged into with your Expensify Account. <a href="">Learn more</a>',
+        revoke: 'Revoke',
+    },
     twoFactorAuth: {
         headerTitle: 'Two-factor authentication',
         twoFactorAuthEnabled: 'Two-factor authentication enabled',

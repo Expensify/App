@@ -2199,6 +2199,11 @@ const translations: TranslationDeepObject<typeof en> = {
         chatToConciergeToUnlock: 'Chat met Concierge om beveiligingsproblemen op te lossen en je account te ontgrendelen.',
         chatWithConcierge: 'Chatten met Concierge',
     },
+    deviceManagementPage: {
+        title: 'Apparaatbeheer',
+        description: 'Beheer alle apparaten waarop u bent ingelogd met uw Expensify-account. <a href="">Meer informatie</a>',
+        revoke: 'Intrekken',
+    },
     twoFactorAuth: {
         headerTitle: 'Tweeledige verificatie',
         twoFactorAuthEnabled: 'Authenticatie in twee stappen ingeschakeld',
