@@ -37,6 +37,11 @@ type VideoPlayer = {
     seekTo: jest.Mock<void, [number]>;
     setIsMuted: jest.Mock<void, [boolean]>;
 
+    /** configuration */
+    loop: boolean;
+    muted: boolean;
+    timeUpdateEventInterval: number;
+
     /** simple event API */
     addListener: jest.Mock<{remove: () => void}, [string, (payload: unknown) => void]>;
 };
