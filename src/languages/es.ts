@@ -5209,6 +5209,8 @@ ${amount} para ${merchant} - ${date}`,
             settlementFrequencyDescription: 'Elige con qué frecuencia pagarás el saldo de tu Tarjeta Expensify',
             settlementFrequencyInfo:
                 'Si deseas cambiar a la liquidación mensual, deberás conectar tu cuenta bancaria a través de Plaid y tener un historial de saldo positivo en los últimos 90 días.',
+            applyCashbackToBill: 'Aplicar reembolso a mi factura de Expensify',
+            applyCashbackToBillDescription: 'El reembolso de la Tarjeta Expensify se utilizará para el pago de tu factura de Expensify.',
             frequency: {
                 daily: 'Cada día',
                 monthly: 'Mensual',
