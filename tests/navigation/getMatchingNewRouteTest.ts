@@ -53,4 +53,15 @@ describe('getBestMatchingPath', () => {
         expect(getMatchingNewRoute('/workspaces/abc/overview/plan')).toBe(undefined);
         expect(getMatchingNewRoute('/workspaces/abc/accounting/xero/card-reconciliation/settings')).toBe(undefined);
     });
+
+    it('does not match superstrings of exact patterns', () => {
+        expect(getMatchingNewRoute('/home-page2')).toBe(undefined);
+        expect(getMatchingNewRoute('/home-page/extra')).toBe(undefined);
+        expect(getMatchingNewRoute('/r/123/settings/name-extra')).toBe(undefined);
+        expect(getMatchingNewRoute('/workspaces/abc/overview/address/sub')).toBe(undefined);
+    });
+
+    it('preserves fragment when redirecting', () => {
+        expect(getMatchingNewRoute('/home-page?backTo=r/123')).toBe('/home?backTo=r/123');
+    });
 });

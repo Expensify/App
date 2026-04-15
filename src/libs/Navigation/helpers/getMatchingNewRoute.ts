@@ -24,6 +24,8 @@ function patternToRegex(pattern: string): RegExp {
         }
     }
 
+    regexStr += '(?=[?#]|$)';
+
     return new RegExp(regexStr);
 }
 
