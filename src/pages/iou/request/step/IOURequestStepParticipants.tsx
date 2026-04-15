@@ -126,7 +126,7 @@ function IOURequestStepParticipants({
         iouType === CONST.IOU.TYPE.CREATE &&
         isPaidGroupPolicy(activePolicy) &&
         activePolicy?.isPolicyExpenseChatEnabled &&
-        !shouldRestrictUserBillableActions(activePolicy.id, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed);
+        !shouldRestrictUserBillableActions(activePolicy.id, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, activePolicy, currentUserPersonalDetails.accountID);
 
     const isAndroidNative = getPlatform() === CONST.PLATFORM.ANDROID;
     const isMobileSafari = isMobileSafariBrowser();
