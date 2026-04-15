@@ -446,7 +446,7 @@ function BasePopoverMenu({
                     role={CONST.ROLE.BUTTON}
                     // Spread other props dynamically
                     {...menuItemProps}
-                    iconStyles={!isSmallScreenWidth ? [{width: variables.iconSizeNormal}] : menuItemProps?.iconStyles}
+                    iconStyles={menuItemProps?.iconStyles ?? (!isSmallScreenWidth ? [{width: variables.iconSizeNormal}] : undefined)}
                     hasSubMenuItems={!!subMenuItems?.length}
                     shouldShowLoadingSpinnerIcon={shouldShowLoadingSpinnerIcon}
                 />
