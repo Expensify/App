@@ -813,7 +813,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                         title={translate('workspace.rules.customRules.title')}
                         titleStyles={[styles.textHeadline, styles.cardSectionTitle, styles.accountSettingsSectionTitle, styles.mb0]}
                         subtitle={translate('workspace.rules.customRules.cardSubtitle')}
-                        subtitleStyles={[(isPolicyAdmin || !!policy?.rulesDocumentURL) ? styles.mb6 : styles.mb2]}
+                        subtitleStyles={[isPolicyAdmin || !!policy?.rulesDocumentURL ? styles.mb6 : styles.mb2]}
                         subtitleTextStyles={[styles.textNormal, styles.colorMuted, styles.mr5]}
                         containerStyles={shouldUseNarrowLayout ? styles.p5 : styles.p8}
                     >
