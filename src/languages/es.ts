@@ -1408,11 +1408,6 @@ const translations: TranslationDeepObject<typeof en> = {
             endDateSameAsStartDate: 'La fecha de finalización no puede ser la misma que la fecha de inicio',
             manySplitsProvided: `La cantidad máxima de divisiones permitidas es ${CONST.IOU.SPLITS_LIMIT}.`,
             dateRangeExceedsMaxDays: `El rango de fechas no puede exceder los ${CONST.IOU.SPLITS_LIMIT} días.`,
-            nonReimbursablePayment: 'No se puede pagar a través de Expensify',
-            nonReimbursablePaymentDescription: (isMultiple?: boolean) =>
-                isMultiple
-                    ? 'Uno o más informes seleccionados no tienen gastos reembolsables. Vuelve a revisar los gastos o márcalos manualmente como pagados.'
-                    : 'El informe no tiene gastos reembolsables. Vuelve a revisar los gastos o márcalo manualmente como pagado.',
         },
         dismissReceiptError: 'Descartar error',
         dismissReceiptErrorConfirmation: '¡Atención! Descartar este error eliminará completamente tu recibo cargado. ¿Estás seguro?',
@@ -2003,6 +1998,9 @@ const translations: TranslationDeepObject<typeof en> = {
             helpSite: 'Sitio de ayuda',
             conciergeChat: 'Concierge',
             conciergeChatDescription: 'Tu agente personal de IA',
+            accountManagerDescription: 'Tu gestor de cuenta',
+            partnerManagerDescription: 'Tu gestor de partners',
+            guideDescription: 'Tu especialista asignado',
         },
         whatIsNew: 'Qué hay de nuevo',
         accountSettings: 'Configuración de la cuenta',
@@ -3091,8 +3089,7 @@ ${amount} para ${merchant} - ${date}`,
                         # ¡Tu prueba gratuita ha comenzado! Vamos a configurarte.
                         👋 Hola, soy tu **especialista asignado** de configuración de Expensify. Ahora que ya has creado un espacio de trabajo, aprovecha al máximo tu prueba gratuita de 30 días siguiendo los pasos que aparecen a continuación.
                     `),
-            onboardingTrackWorkspaceMessage:
-                '# Vamos a configurarte\n👋 Hola, soy tu **especialista asignado** de configuración de Expensify. Ya he creado un espacio de trabajo para ayudarte a gestionar tus recibos y gastos. Para aprovechar al máximo tu prueba gratuita de 30 días, ¡solo sigue los pasos de configuración restantes que aparecen a continuación!',
+            onboardingTrackWorkspaceMessage: 'Para aprovechar al máximo tu prueba gratuita de 30 días, sigue los pasos restantes que aparecen a continuación:',
             onboardingChatSplitMessage: 'Dividir cuentas con amigos es tan fácil como enviar un mensaje. Así se hace.',
             onboardingAdminMessage: 'Aprende a gestionar el espacio de tu equipo como administrador y enviar tus propios gastos.',
             onboardingTestDriveReceiverMessage: '*¡Tienes 3 meses gratis! Empieza abajo.*',
@@ -5769,8 +5766,8 @@ ${amount} para ${merchant} - ${date}`,
             error: 'Se produjo un error al duplicar tu nuevo espacio de trabajo. Inténtalo de nuevo.',
         },
         emptyWorkspace: {
-            title: 'No tienes espacios de trabajo',
-            subtitle: 'Organiza recibos, reembolsa gastos, gestiona viajes, envía facturas y mucho más.',
+            title: 'Aún no hay espacios de trabajo',
+            subtitle: 'Crea un espacio de trabajo para gestionar tus gastos, reembolsos y tarjetas de empresa.',
             createAWorkspaceCTA: 'Comenzar',
             features: {
                 trackAndCollect: 'Organiza recibos',

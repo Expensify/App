@@ -1450,11 +1450,6 @@ const translations: TranslationDeepObject<typeof en> = {
             manySplitsProvided: `分割できる最大数は${CONST.IOU.SPLITS_LIMIT}件です。`,
             dateRangeExceedsMaxDays: `日付範囲は${CONST.IOU.SPLITS_LIMIT}日を超えることはできません。`,
             stitchOdometerImagesFailed: '走行距離計の画像を結合できませんでした。後でもう一度お試しください。',
-            nonReimbursablePayment: 'Expensify経由では支払えません',
-            nonReimbursablePaymentDescription: (isMultiple?: boolean) =>
-                isMultiple
-                    ? '1つ以上の選択したレポートには精算可能な経費がありません。経費を再確認するか、手動で支払い済みにしてください。'
-                    : 'このレポートには精算可能な経費がありません。経費を再確認するか、手動で支払い済みにしてください。',
         },
         dismissReceiptError: 'エラーを閉じる',
         dismissReceiptErrorConfirmation: 'ご注意ください！このエラーを閉じると、アップロード済みのレシートが完全に削除されます。本当に続行しますか？',
@@ -2096,6 +2091,9 @@ const translations: TranslationDeepObject<typeof en> = {
             helpSite: 'ヘルプサイト',
             conciergeChat: 'Concierge',
             conciergeChatDescription: 'あなた専用のAIエージェント',
+            accountManagerDescription: 'お客様のアカウントマネージャー',
+            partnerManagerDescription: 'パートナーマネージャー',
+            guideDescription: 'お客様のセットアップ担当者',
         },
     },
     closeAccountPage: {
@@ -3180,8 +3178,7 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
                         # 無料トライアルが開始されました！セットアップを始めましょう。
                         👋 はじめまして。私は Expensify のセットアップ担当です。ワークスペースを作成したので、以下の手順に沿って 30 日間の無料トライアルを最大限に活用しましょう！
                     `),
-            onboardingTrackWorkspaceMessage:
-                '# セットアップを始めましょう\n👋 こんにちは、私はあなたのExpensifyセットアップ担当です。すでに領収書と経費を管理するためのワークスペースを作成してあります。30日間の無料トライアルを最大限に活用するために、残りのセットアップ手順に従って進めてください！',
+            onboardingTrackWorkspaceMessage: '30日間の無料トライアルを最大限に活用するために、以下の残りの手順に従ってください。',
             onboardingChatSplitMessage: '友だちとの割り勘は、メッセージを送るくらい簡単です。やり方はこちら。',
             onboardingAdminMessage: '管理者としてチームのワークスペースを管理し、自分の経費を提出する方法を学びましょう。',
             onboardingTestDriveReceiverMessage: '*3か月無料でご利用いただけます！下から始めましょう。*',
