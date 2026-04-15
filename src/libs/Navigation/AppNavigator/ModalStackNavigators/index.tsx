@@ -7,8 +7,8 @@ import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigati
 import Animations from '@libs/Navigation/PlatformStackNavigation/navigationOptions/animation';
 import type {PlatformStackNavigationOptions} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {
+    AddExistingExpensesParamList,
     AddPersonalBankAccountNavigatorParamList,
-    AddUnreportedExpensesParamList,
     ChronosScheduleOOONavigatorParamList,
     DebugParamList,
     EditRequestNavigatorParamList,
@@ -1101,8 +1101,8 @@ const MissingPersonalDetailsModalStackNavigator = createModalStackNavigator<Miss
     [SCREENS.MISSING_PERSONAL_DETAILS_CONFIRM_MAGIC_CODE]: () => require<ReactComponentModule>('../../../../pages/MissingPersonalDetails/MissingPersonalDetailsMagicCodePage').default,
 });
 
-const AddUnreportedExpenseModalStackNavigator = createModalStackNavigator<AddUnreportedExpensesParamList>({
-    [SCREENS.ADD_UNREPORTED_EXPENSES_ROOT]: () => require<ReactComponentModule>('../../../../pages/AddUnreportedExpense').default,
+const AddExistingExpenseModalStackNavigator = createModalStackNavigator<AddExistingExpensesParamList>({
+    [SCREENS.ADD_EXISTING_EXPENSES_ROOT]: () => require<ReactComponentModule>('../../../../pages/AddExistingExpense').default,
 });
 
 const DebugModalStackNavigator = createModalStackNavigator<DebugParamList>({
@@ -1143,7 +1143,7 @@ const MultifactorAuthenticationStackNavigator = createModalStackNavigator<Multif
 
 export {
     AddPersonalBankAccountModalStackNavigator,
-    AddUnreportedExpenseModalStackNavigator,
+    AddExistingExpenseModalStackNavigator,
     CategoriesModalStackNavigator,
     DebugModalStackNavigator,
     DomainCardModalStackNavigator,

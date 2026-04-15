@@ -15288,7 +15288,7 @@ describe('ReportUtils', () => {
             });
             expect(result.at(0)?.value).toBe(CONST.REPORT.ADD_EXPENSE_OPTIONS.CREATE_NEW_EXPENSE);
             expect(result.at(1)?.value).toBe(CONST.REPORT.ADD_EXPENSE_OPTIONS.TRACK_DISTANCE_EXPENSE);
-            expect(result.at(2)?.value).toBe(CONST.REPORT.ADD_EXPENSE_OPTIONS.ADD_UNREPORTED_EXPENSE);
+            expect(result.at(2)?.value).toBe(CONST.REPORT.ADD_EXPENSE_OPTIONS.ADD_EXISTING_EXPENSE);
         });
 
         it('should return options with correct translated text', () => {
@@ -15304,7 +15304,7 @@ describe('ReportUtils', () => {
             });
             expect(result.at(0)?.text).toBe(translate(CONST.LOCALES.EN, 'iou.createExpense'));
             expect(result.at(1)?.text).toBe(translate(CONST.LOCALES.EN, 'iou.trackDistance'));
-            expect(result.at(2)?.text).toBe(translate(CONST.LOCALES.EN, 'iou.addUnreportedExpense'));
+            expect(result.at(2)?.text).toBe(translate(CONST.LOCALES.EN, 'iou.addExistingExpense'));
         });
 
         it('should return options with correct sentry labels', () => {
@@ -15320,7 +15320,7 @@ describe('ReportUtils', () => {
             });
             expect(result.at(0)?.sentryLabel).toBe(CONST.SENTRY_LABEL.MORE_MENU.ADD_EXPENSE_CREATE);
             expect(result.at(1)?.sentryLabel).toBe(CONST.SENTRY_LABEL.MORE_MENU.ADD_EXPENSE_TRACK_DISTANCE);
-            expect(result.at(2)?.sentryLabel).toBe(CONST.SENTRY_LABEL.MORE_MENU.ADD_EXPENSE_UNREPORTED);
+            expect(result.at(2)?.sentryLabel).toBe(CONST.SENTRY_LABEL.MORE_MENU.ADD_EXPENSE_EXISTING);
         });
 
         it('should pass amountOwed to shouldRestrictUserBillableActions when onSelected is called', () => {
@@ -15464,7 +15464,7 @@ describe('ReportUtils', () => {
             expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.RESTRICTED_ACTION.getRoute(mockPolicy.id));
             jest.clearAllMocks();
 
-            // Trigger ADD_UNREPORTED_EXPENSE onSelected
+            // Trigger ADD_EXISTING_EXPENSE onSelected
             result.at(2)?.onSelected?.();
             expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.RESTRICTED_ACTION.getRoute(mockPolicy.id));
         });
@@ -15800,7 +15800,7 @@ describe('ReportUtils', () => {
             expect(options).toHaveLength(3);
             expect(options.at(0)?.value).toBe(CONST.REPORT.ADD_EXPENSE_OPTIONS.CREATE_NEW_EXPENSE);
             expect(options.at(1)?.value).toBe(CONST.REPORT.ADD_EXPENSE_OPTIONS.TRACK_DISTANCE_EXPENSE);
-            expect(options.at(2)?.value).toBe(CONST.REPORT.ADD_EXPENSE_OPTIONS.ADD_UNREPORTED_EXPENSE);
+            expect(options.at(2)?.value).toBe(CONST.REPORT.ADD_EXPENSE_OPTIONS.ADD_EXISTING_EXPENSE);
         });
 
         describe('CREATE_NEW_EXPENSE', () => {
@@ -15852,7 +15852,7 @@ describe('ReportUtils', () => {
             });
         });
 
-        describe('ADD_UNREPORTED_EXPENSE', () => {
+        describe('ADD_EXISTING_EXPENSE', () => {
             it('should navigate to restricted action when policy owner is past due', async () => {
                 const testPolicy = {
                     ...createRandomPolicy(Number(policyID)),

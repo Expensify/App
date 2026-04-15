@@ -2522,7 +2522,7 @@ type RightModalNavigatorParamList = {
     [SCREENS.RIGHT_MODAL.DEBUG]: NavigatorScreenParams<DebugParamList>;
     [SCREENS.MONEY_REQUEST.SPLIT_EXPENSE]: NavigatorScreenParams<SplitExpenseParamList>;
     [SCREENS.MONEY_REQUEST.SPLIT_EXPENSE_EDIT]: NavigatorScreenParams<SplitExpenseParamList>;
-    [SCREENS.RIGHT_MODAL.ADD_UNREPORTED_EXPENSE]: NavigatorScreenParams<{reportId: string | undefined}>;
+    [SCREENS.RIGHT_MODAL.ADD_EXISTING_EXPENSE]: NavigatorScreenParams<{reportId: string | undefined}>;
     [SCREENS.RIGHT_MODAL.SCHEDULE_CALL]: NavigatorScreenParams<ScheduleCallParamList>;
     [SCREENS.RIGHT_MODAL.REPORT_CHANGE_APPROVER]: NavigatorScreenParams<ReportChangeApproverParamList>;
     [SCREENS.RIGHT_MODAL.MERGE_TRANSACTION]: NavigatorScreenParams<MergeTransactionNavigatorParamList>;
@@ -3166,8 +3166,8 @@ type SplitExpenseParamList = {
     };
 };
 
-type AddUnreportedExpensesParamList = {
-    [SCREENS.ADD_UNREPORTED_EXPENSES_ROOT]: {
+type AddExistingExpensesParamList = {
+    [SCREENS.ADD_EXISTING_EXPENSES_ROOT]: {
         reportID: string;
         backToReport?: string;
     };
@@ -3278,7 +3278,7 @@ declare global {
 
 export type {
     AddPersonalBankAccountNavigatorParamList,
-    AddUnreportedExpensesParamList,
+    AddExistingExpensesParamList,
     AuthScreensParamList,
     BackToParams,
     DebugParamList,

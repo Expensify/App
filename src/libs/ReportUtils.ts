@@ -3046,10 +3046,10 @@ function getAddExpenseDropdownOptions({
             },
         },
         {
-            value: CONST.REPORT.ADD_EXPENSE_OPTIONS.ADD_UNREPORTED_EXPENSE,
-            text: translate('iou.addUnreportedExpense'),
+            value: CONST.REPORT.ADD_EXPENSE_OPTIONS.ADD_EXISTING_EXPENSE,
+            text: translate('iou.addExistingExpense'),
             icon: icons.ReceiptPlus,
-            sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.ADD_EXPENSE_UNREPORTED,
+            sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.ADD_EXPENSE_EXISTING,
             onSelected: () => {
                 if (policy && shouldRestrictUserBillableActions(policy.id, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, policy)) {
                     Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
