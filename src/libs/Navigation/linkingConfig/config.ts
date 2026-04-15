@@ -1854,7 +1854,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                 [SCREENS.RIGHT_MODAL.TASK_DETAILS]: {
                     screens: {
                         [SCREENS.TASK.DYNAMIC_TASK_TITLE]: DYNAMIC_ROUTES.TASK_TITLE.path,
-                        [SCREENS.TASK.ASSIGNEE]: ROUTES.TASK_ASSIGNEE.route,
+                        [SCREENS.TASK.DYNAMIC_TASK_ASSIGNEE]: DYNAMIC_ROUTES.TASK_ASSIGNEE.path,
                     },
                 },
                 [SCREENS.RIGHT_MODAL.ADD_PERSONAL_BANK_ACCOUNT]: {

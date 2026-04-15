@@ -36,7 +36,7 @@ import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 import {canActionTask, canModifyTask, clearTaskErrors, completeTask, reopenTask, setTaskReport} from '@userActions/Task';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {Report, ReportAction} from '@src/types/onyx';
 
 type TaskViewProps = {
@@ -213,7 +213,7 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
                                     iconType={CONST.ICON_TYPE_AVATAR}
                                     avatarSize={CONST.AVATAR_SIZE.SMALLER}
                                     titleStyle={styles.assigneeTextStyle}
-                                    onPress={() => Navigation.navigate(ROUTES.TASK_ASSIGNEE.getRoute(report?.reportID, Navigation.getReportRHPActiveRoute()))}
+                                    onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.TASK_ASSIGNEE.path))}
                                     shouldShowRightIcon={!isDisableInteractive}
                                     disabled={disableState}
                                     wrapperStyle={[styles.pv2]}
@@ -227,7 +227,7 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
                             ) : (
                                 <MenuItemWithTopDescription
                                     description={translate('task.assignee')}
-                                    onPress={() => Navigation.navigate(ROUTES.TASK_ASSIGNEE.getRoute(report?.reportID, Navigation.getReportRHPActiveRoute()))}
+                                    onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.TASK_ASSIGNEE.path))}
                                     shouldShowRightIcon={!isDisableInteractive}
                                     disabled={disableState}
                                     wrapperStyle={[styles.pv2]}

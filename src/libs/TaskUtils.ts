@@ -9,8 +9,8 @@ import Navigation from './Navigation/Navigation';
 import Parser from './Parser';
 import {getReportActionHtml, getReportActionText} from './ReportActionsUtils';
 
-/** Last URL segment for task edit screens (see ROUTES.TASK_TITLE, ROUTES.REPORT_DESCRIPTION, ROUTES.TASK_ASSIGNEE). */
-const TASK_EDIT_URL_SUFFIXES = [DYNAMIC_ROUTES.TASK_TITLE.path, DYNAMIC_ROUTES.REPORT_DESCRIPTION.path, 'assignee'] as const;
+/** Last URL segment for task edit screens (see DYNAMIC_ROUTES.TASK_TITLE, DYNAMIC_ROUTES.REPORT_DESCRIPTION, DYNAMIC_ROUTES.TASK_ASSIGNEE). */
+const TASK_EDIT_URL_SUFFIXES = [DYNAMIC_ROUTES.TASK_TITLE.path, DYNAMIC_ROUTES.REPORT_DESCRIPTION.path, DYNAMIC_ROUTES.TASK_ASSIGNEE.path] as const;
 
 /**
  * Check if the active route belongs to task edit flow.

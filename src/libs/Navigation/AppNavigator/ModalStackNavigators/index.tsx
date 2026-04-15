@@ -291,7 +291,7 @@ const WorkspaceDuplicateModalStackNavigator = createModalStackNavigator<Workspac
 
 const TaskModalStackNavigator = createModalStackNavigator<TaskDetailsNavigatorParamList>({
     [SCREENS.TASK.DYNAMIC_TASK_TITLE]: () => require<ReactComponentModule>('../../../../pages/tasks/DynamicTaskTitlePage').default,
-    [SCREENS.TASK.ASSIGNEE]: () => require<ReactComponentModule>('../../../../pages/tasks/TaskAssigneeSelectorModal').default,
+    [SCREENS.TASK.DYNAMIC_TASK_ASSIGNEE]: () => require<ReactComponentModule>('../../../../pages/tasks/TaskAssigneeSelectorModal').default,
 });
 
 const ReportVerifyAccountModalStackNavigator = createModalStackNavigator<ReportVerifyAccountNavigatorParamList>({

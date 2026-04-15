@@ -484,7 +484,7 @@ const SCREENS = {
 
     TASK: {
         DYNAMIC_TASK_TITLE: 'Dynamic_Task_Title',
-        ASSIGNEE: 'Task_Assignee',
+        DYNAMIC_TASK_ASSIGNEE: 'Dynamic_Task_Assignee',
     },
 
     PRIVATE_NOTES: {

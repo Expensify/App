@@ -259,6 +259,10 @@ const DYNAMIC_ROUTES = {
         path: 'title',
         entryScreens: [SCREENS.REPORT],
     },
+    TASK_ASSIGNEE: {
+        path: 'assignee',
+        entryScreens: [SCREENS.REPORT],
+    },
     REPORT_DESCRIPTION: {
         path: 'description',
         entryScreens: [SCREENS.REPORT],
@@ -1025,17 +1029,6 @@ const ROUTES = {
 
             // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
             return getUrlWithBackToParam(`r/${reportID}/split/${reportActionID}` as const, backTo);
-        },
-    },
-    TASK_ASSIGNEE: {
-        route: 'r/:reportID/assignee',
-        getRoute: (reportID: string | undefined, backTo?: string) => {
-            if (!reportID) {
-                Log.warn('Invalid reportID is used to build the TASK_ASSIGNEE route');
-            }
-
-            // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-            return getUrlWithBackToParam(`r/${reportID}/assignee` as const, backTo);
         },
     },
     PRIVATE_NOTES_LIST: {
