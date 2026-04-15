@@ -3542,6 +3542,7 @@ const staticStyles = (theme: ThemeColors) =>
         groupSearchListTableContainerStyle: {
             minHeight: variables.h28,
             paddingBottom: 0,
+            paddingRight: 48,
         },
 
         narrowSearchRouterInactiveStyle: {
@@ -5073,7 +5074,6 @@ const staticStyles = (theme: ThemeColors) =>
             justifyContent: 'space-between',
             flexGrow: 1,
             flexShrink: 1,
-            flexBasis: '35%',
         },
 
         checkboxWithLabelCheckboxStyle: {

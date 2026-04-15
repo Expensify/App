@@ -1468,11 +1468,6 @@ const translations: TranslationDeepObject<typeof en> = {
             manySplitsProvided: `Il numero massimo di suddivisioni consentite è ${CONST.IOU.SPLITS_LIMIT}.`,
             dateRangeExceedsMaxDays: `L’intervallo di date non può superare ${CONST.IOU.SPLITS_LIMIT} giorni.`,
             stitchOdometerImagesFailed: 'Impossibile combinare le immagini del contachilometri. Riprova più tardi.',
-            nonReimbursablePayment: 'Impossibile pagare tramite Expensify',
-            nonReimbursablePaymentDescription: (isMultiple?: boolean) =>
-                isMultiple
-                    ? 'Uno o più report selezionati non contengono spese rimborsabili. Ricontrolla le spese oppure contrassegnali manualmente come pagati.'
-                    : 'Il report non contiene spese rimborsabili. Ricontrolla le spese oppure contrassegnalo manualmente come pagato.',
         },
         dismissReceiptError: 'Ignora errore',
         dismissReceiptErrorConfirmation: 'Attenzione! Chiudere questo errore rimuoverà completamente la ricevuta che hai caricato. Sei sicuro?',
@@ -1673,6 +1668,7 @@ const translations: TranslationDeepObject<typeof en> = {
             prompt: 'Abilita il monitoraggio delle imposte nello spazio di lavoro per modificare i dettagli della spesa o eliminare l’imposta da questa spesa.',
             confirmText: 'Elimina imposta',
         },
+        deleted: 'Eliminato',
     },
     transactionMerge: {
         listPage: {
@@ -2116,6 +2112,9 @@ const translations: TranslationDeepObject<typeof en> = {
             helpSite: 'Sito di assistenza',
             conciergeChat: 'Concierge',
             conciergeChatDescription: 'Il tuo assistente IA personale',
+            accountManagerDescription: 'Il tuo account manager',
+            partnerManagerDescription: 'Il tuo partner manager',
+            guideDescription: 'Il tuo specialista di configurazione',
         },
     },
     closeAccountPage: {
@@ -3205,8 +3204,7 @@ ${amount} per ${merchant} - ${date}`,
                         # La tua prova gratuita è iniziata! Configuriamo il tuo account.
                         👋 Ciao, sono il tuo specialista di configurazione Expensify. Ora che hai creato uno spazio di lavoro, sfrutta al massimo i tuoi 30 giorni di prova gratuita seguendo i passaggi qui sotto!
                     `),
-            onboardingTrackWorkspaceMessage:
-                '# Configuriamo il tuo account\n👋 Ciao, sono il tuo specialista di configurazione Expensify. Ho già creato uno spazio di lavoro per aiutarti a gestire ricevute e spese. Per sfruttare al massimo la tua prova gratuita di 30 giorni, segui i passaggi di configurazione rimanenti qui sotto!',
+            onboardingTrackWorkspaceMessage: 'Per sfruttare al massimo la tua prova gratuita di 30 giorni, segui i passaggi rimanenti qui sotto:',
             onboardingChatSplitMessage: 'Dividere le spese con gli amici è facile come inviare un messaggio. Ecco come fare.',
             onboardingAdminMessage: 'Scopri come gestire lo spazio di lavoro del tuo team come amministratore e inviare le tue spese.',
             onboardingTestDriveReceiverMessage: '*Hai 3 mesi gratis! Inizia qui sotto.*',
@@ -7594,6 +7592,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             reject: 'Rifiuta',
             duplicateExpense: ({count}: {count: number}) => `Duplica ${count === 1 ? 'spesa' : 'spese'}`,
             noOptionsAvailable: 'Nessuna opzione disponibile per il gruppo di spese selezionato.',
+            undelete: 'Ripristina',
         },
         filtersHeader: 'Filtri',
         filters: {

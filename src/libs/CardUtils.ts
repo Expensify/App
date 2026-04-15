@@ -198,17 +198,23 @@ function getCardDescriptionForSearchTable(card: Card, translate: LocalizedTransl
 }
 
 /**
+ * @param translate
  * @param transactionCardName
  * @param cardID
  * @param cards
  * @returns company card name
  */
-function getCompanyCardDescription(transactionCardName?: string, cardID?: number, cards?: CardList) {
-    if (!cardID || !cards?.[cardID] || isExpensifyCard(cards[cardID])) {
+function getCompanyCardDescription(translate: LocalizedTranslate, transactionCardName?: string, cardID?: number, cards?: CardList) {
+    if (!cardID || !cards?.[cardID]) {
         return transactionCardName;
     }
     const card = cards[cardID];
-
+    if (isTravelCard(card)) {
+        return translate('cardTransactions.centralInvoicing');
+    }
+    if (isExpensifyCard(card)) {
+        return transactionCardName;
+    }
     return card.cardName;
 }
 
