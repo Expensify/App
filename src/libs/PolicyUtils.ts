@@ -837,7 +837,6 @@ function isControlPolicy(policy: OnyxEntry<Policy>): boolean {
 }
 
 function isSubmitPolicy(policy: OnyxEntry<Policy>): boolean {
-    return true;
     return policy?.type === CONST.POLICY.TYPE.SUBMIT;
 }
 
