@@ -5,7 +5,6 @@ import type {ActionHandledType} from '@hooks/useHoldMenuSubmit';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type {ModalProps} from './ModalContext';
@@ -43,9 +42,6 @@ function HoldMenuModalWrapper({
     const [moneyRequestReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`);
 
-    const {transactions: reportTransactions} = useTransactionsAndViolationsForReport(moneyRequestReport?.reportID);
-    const transactions = Object.values(reportTransactions);
-
     const {onSubmit} = useHoldMenuSubmit({
         moneyRequestReport,
         chatReport,
@@ -53,7 +49,6 @@ function HoldMenuModalWrapper({
         methodID,
         onClose: () => setIsVisible(false),
         onConfirm,
-        transactions,
     });
 
     return (

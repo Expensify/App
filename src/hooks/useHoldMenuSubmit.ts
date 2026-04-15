@@ -9,7 +9,6 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
-import useNonReimbursablePaymentModal from './useNonReimbursablePaymentModal';
 import useOnyx from './useOnyx';
 import usePolicy from './usePolicy';
 
@@ -22,10 +21,9 @@ type UseHoldMenuSubmitParams = {
     methodID?: number;
     onClose: () => void;
     onConfirm?: (full: boolean) => void;
-    transactions?: OnyxTypes.Transaction[];
 };
 
-function useHoldMenuSubmit({moneyRequestReport, chatReport, paymentType, methodID, onClose, onConfirm, transactions}: UseHoldMenuSubmitParams) {
+function useHoldMenuSubmit({moneyRequestReport, chatReport, paymentType, methodID, onClose, onConfirm}: UseHoldMenuSubmitParams) {
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
@@ -40,17 +38,10 @@ function useHoldMenuSubmit({moneyRequestReport, chatReport, paymentType, methodI
 
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
-    const {showNonReimbursablePaymentErrorModal} = useNonReimbursablePaymentModal(moneyRequestReport, transactions);
 
     const onSubmit = (full: boolean) => {
         if (isDelegateAccessRestricted) {
             showDelegateNoAccessModal();
-            return;
-        }
-
-        if (chatReport && hasOnlyNonReimbursableTransactions(moneyRequestReport?.reportID, transactions) && paymentType && paymentType !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
-            onClose();
-            showNonReimbursablePaymentErrorModal();
             return;
         }
 

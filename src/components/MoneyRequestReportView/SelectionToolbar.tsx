@@ -355,7 +355,6 @@ function SelectionToolbar({reportID, transactions, reportActions}: SelectionTool
                     hasNonHeldExpenses={!hasOnlyHeldExpenses}
                     onConfirm={handleHoldMenuConfirm}
                     transactionCount={transactions.length}
-                    transactions={transactionsWithoutPendingDelete}
                 />
             )}
         </>

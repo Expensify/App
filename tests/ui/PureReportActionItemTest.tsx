@@ -2214,6 +2214,29 @@ describe('PureReportActionItem', () => {
             expect(screen.getByText(/requested to join/i)).toBeOnTheScreen();
         });
 
+        it('isActionableReportMentionWhisper renders message and yes/no buttons', async () => {
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_REPORT_MENTION_WHISPER, {});
+            const messageText = "Heads up, #test5 doesn't exist yet. Do you want to create it?";
+            action.message = [{type: 'COMMENT', html: messageText, text: messageText}];
+            renderItemWithAction(action);
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByText(/Heads up, #test5 doesn't exist yet/)).toBeOnTheScreen();
+            expect(screen.getByText(translateLocal('common.yes'))).toBeOnTheScreen();
+            expect(screen.getByText(translateLocal('common.no'))).toBeOnTheScreen();
+        });
+
+        it('isActionableMentionInviteToSubmitExpenseConfirmWhisper renders message and confirm button', async () => {
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_INVITE_TO_SUBMIT_EXPENSE_CONFIRM_WHISPER, {});
+            const messageText = "Great, you chose to invite them to the workspace! I've invited user and they'll submit expenses in their expense chat.";
+            action.message = [{type: 'COMMENT', html: messageText, text: messageText}];
+            renderItemWithAction(action);
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByText(/Great, you chose to invite them/)).toBeOnTheScreen();
+            expect(screen.getByText(translateLocal('common.buttonConfirm'))).toBeOnTheScreen();
+        });
+
         it('isCardIssuedAction renders card issued message', async () => {
             const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED, {});
             renderItemWithAction(action);

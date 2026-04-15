@@ -91,7 +91,7 @@ type WorkspaceUpgradeIntroBoxParams = {isExtraSmallScreenWidth: boolean};
 
 type OfflineFeedbackStyle = Record<'deleted' | 'pending' | 'default' | 'error' | 'container' | 'textContainer' | 'text' | 'errorDot', ViewStyle | TextStyle>;
 
-type MapDirectionStyle = Pick<LineLayerStyleProps, 'lineColor' | 'lineWidth'>;
+type MapDirectionStyle = Pick<LineLayerStyleProps, 'lineColor' | 'lineWidth' | 'lineCap'>;
 
 type MapDirectionLayerStyle = Pick<LineLayer, 'layout' | 'paint'>;
 
@@ -543,6 +543,10 @@ const staticStyles = (theme: ThemeColors) =>
 
         textLarge: {
             fontSize: variables.fontSizeLarge,
+        },
+
+        textXLarge: {
+            fontSize: variables.fontSizeXLarge,
         },
 
         textXXLarge: {
@@ -5073,7 +5077,6 @@ const staticStyles = (theme: ThemeColors) =>
             justifyContent: 'space-between',
             flexGrow: 1,
             flexShrink: 1,
-            flexBasis: '35%',
         },
 
         checkboxWithLabelCheckboxStyle: {
@@ -6497,6 +6500,7 @@ const plainStyles = (theme: ThemeColors) =>
         mapDirection: {
             lineColor: theme.success,
             lineWidth: 7,
+            lineCap: 'round',
         },
 
         mapDirectionLayer: {

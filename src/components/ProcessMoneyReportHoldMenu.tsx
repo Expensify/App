@@ -41,9 +41,6 @@ type ProcessMoneyReportHoldMenuProps = {
 
     /** Whether the report has non held expenses */
     hasNonHeldExpenses?: boolean;
-
-    /** Transactions associated with report */
-    transactions?: OnyxTypes.Transaction[];
 };
 
 function ProcessMoneyReportHoldMenu({
@@ -58,7 +55,6 @@ function ProcessMoneyReportHoldMenu({
     transactionCount,
     onConfirm,
     hasNonHeldExpenses,
-    transactions,
 }: ProcessMoneyReportHoldMenuProps) {
     const {translate} = useLocalize();
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to apply the correct modal type
@@ -72,7 +68,6 @@ function ProcessMoneyReportHoldMenu({
         methodID,
         onClose,
         onConfirm,
-        transactions,
     });
     const promptText = hasNonHeldExpenses ? translate('iou.confirmPayAmount') : translate('iou.confirmPayAllHoldAmount', {count: transactionCount});
 

@@ -19,7 +19,6 @@ import StatusBadge from '@components/StatusBadge';
 import Text from '@components/Text';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import useNonReimbursablePaymentModal from '@hooks/useNonReimbursablePaymentModal';
 import useOnyx from '@hooks/useOnyx';
 import usePaymentAnimations from '@hooks/usePaymentAnimations';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -155,7 +154,6 @@ function MoneyRequestReportPreviewContent({
         usePaymentAnimations();
 
     const [isHoldMenuVisible, setIsHoldMenuVisible] = useState(false);
-    const {showNonReimbursablePaymentErrorModal} = useNonReimbursablePaymentModal(iouReport, transactions);
     const [paymentType, setPaymentType] = useState<PaymentMethodType>();
     const [shouldShowPayButton, setShouldShowPayButton] = useState(false);
     const hasOnlyHeldExpenses = hasOnlyHeldExpensesReportUtils(iouReport?.reportID);
@@ -707,7 +705,6 @@ function MoneyRequestReportPreviewContent({
                                                 onPaymentOptionsHide={onPaymentOptionsHide}
                                                 openReportFromPreview={openReportFromPreview}
                                                 onHoldMenuOpen={handleHoldMenuOpen}
-                                                onNonReimbursablePaymentError={showNonReimbursablePaymentErrorModal}
                                                 transactionPreviewCarouselWidth={reportPreviewStyles.transactionPreviewCarouselStyle.width}
                                             />
                                             {transactions.length > 1 && !shouldShowAccessPlaceHolder && (
@@ -744,7 +741,6 @@ function MoneyRequestReportPreviewContent({
                                 transactionCount={numberOfRequests}
                                 onConfirm={startAnimation}
                                 hasNonHeldExpenses={!hasOnlyHeldExpenses}
-                                transactions={transactions}
                             />
                         );
                     })()}
