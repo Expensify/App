@@ -195,11 +195,10 @@ function TransactionGroupListItem<TItem extends ListItem>({
     const StyleUtils = useStyleUtils();
 
     const animatedHighlightStyle = useAnimatedHighlightStyle({
-        borderRadius: StyleUtils.getSearchTableHighlightBorderRadius(isLargeScreenWidth),
         shouldHighlight: item?.shouldAnimateInHighlight ?? false,
         highlightColor: theme.messageHighlightBG,
         backgroundColor: theme.highlightBG,
-        shouldApplyOtherStyles: !isLargeScreenWidth,
+        shouldApplyOtherStyles: false,
     });
 
     const isItemSelected = isSelectAllChecked || item?.isSelected;
@@ -534,12 +533,12 @@ function TransactionGroupListItem<TItem extends ListItem>({
                 ]}
                 onFocus={onFocus}
                 wrapperStyle={[
-                    !isLargeScreenWidth && styles.mb2,
                     styles.mh5,
                     animatedHighlightStyle,
                     styles.userSelectNone,
-                    isLargeScreenWidth && StyleUtils.getSearchTableGroupRowBorderStyle(isFirstItem, isLastItem, isItemSelected),
-                    isLargeScreenWidth && isLastItem && styles.overflowHidden,
+                    isLargeScreenWidth
+                        ? [StyleUtils.getSearchTableGroupRowBorderStyle(isFirstItem, isLastItem, isItemSelected), isLastItem && styles.overflowHidden]
+                        : [styles.borderBottom, isFirstItem && [styles.searchTableTopRadius, styles.overflowHidden], isLastItem && [styles.searchTableBottomRadius, styles.overflowHidden]],
                 ]}
             >
                 {({hovered}) => (
