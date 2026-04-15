@@ -61,6 +61,17 @@ Some banks have specific requirements for successful connections:
 
 # FAQ
 
+## Why don't newly issued cards appear in the assignment list?
+
+Direct feeds cache the card list when first connected. If your bank issues new cards after the initial setup, they won't appear automatically. To refresh the card list:
+
+1. Go to **Workspaces > [Workspace Name] > Company cards**.
+2. Click **Settings** in the top-right corner.
+3. Click **Assign new cards**.
+4. Complete the bank re-authentication to pull the latest cards from your bank.
+
+New cards will then be available for assignment.
+
 ## How do I fix a broken company card feed connection?
 
 If your company card feed is broken, you can fix it from the **Time Sensitive** section on **Home**. Click **Fix** to restore the connection. [Learn how to fix a broken company card feed connection](/articles/new-expensify/connect-credit-cards/Fix-a-broken-Company-Card-Feed-Connection). 
