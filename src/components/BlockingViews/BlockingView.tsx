@@ -130,8 +130,8 @@ function BlockingView({
 
     return (
         <ScrollView
-            style={[styles.flex1, containerStyle]}
-            contentContainerStyle={[styles.flexGrow1, styles.alignItemsCenter, styles.justifyContentCenter, styles.ph10]}
+            style={[styles.flex1]}
+            contentContainerStyle={[styles.flexGrow1, styles.alignItemsCenter, styles.justifyContentCenter, styles.ph10, containerStyle]}
             accessibilityLabel={accessibilityLabel}
             testID={testID}
         >
