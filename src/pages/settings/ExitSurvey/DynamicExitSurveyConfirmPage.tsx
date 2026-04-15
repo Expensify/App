@@ -53,7 +53,7 @@ function DynamicExitSurveyConfirmPage() {
 
         return `${parentBackPath.replace(/\/+$/, '')}/${reasonPathSuffix}` as Route;
     }, [isOffline, exitSurveyResponse, parentBackPath]);
-    
+
     return (
         <ScreenWrapper
             testID="DynamicExitSurveyConfirmPage"
