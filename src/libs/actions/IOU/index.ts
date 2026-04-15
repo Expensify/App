@@ -5619,6 +5619,16 @@ function updateMultipleMoneyRequests({
                 },
             });
             // Initializing as an empty typed object to allow dynamic key assignment resolves TypeScript type inference issue
+            const successSnapshotData: NullishDeep<SearchResultDataType> = {};
+            successSnapshotData[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] = {pendingFields: clearedPendingFields};
+            snapshotSuccessData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}` as const,
+                value: {
+                    data: successSnapshotData,
+                },
+            });
+            // Initializing as an empty typed object to allow dynamic key assignment resolves TypeScript type inference issue
             const failureSnapshotData: NullishDeep<SearchResultDataType> = {};
             failureSnapshotData[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] = {...transaction, pendingFields: clearedPendingFields};
             if (currentTransactionViolations) {
