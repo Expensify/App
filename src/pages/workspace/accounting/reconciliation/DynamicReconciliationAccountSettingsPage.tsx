@@ -13,18 +13,16 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getConnectionNameFromRouteParam} from '@libs/AccountingUtils';
 import {getLastFourDigits} from '@libs/BankAccountUtils';
-import {getCardProgramKey, getCardSettings, getEligibleBankAccountsForCard} from '@libs/CardUtils';
-import Log from '@libs/Log';
+import {getCardProgramKey, getCardSettings, getConnectionBankAccountsForReconciliation} from '@libs/CardUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getDomainNameForPolicy} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
-import {updateSettlementAccount} from '@userActions/Card';
+import {setCardReconciliationAccount} from '@userActions/Card';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type DynamicReconciliationAccountSettingsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_RECONCILIATION_ACCOUNT_SETTINGS>;
 
@@ -38,11 +36,14 @@ function DynamicReconciliationAccountSettingsPage({route}: DynamicReconciliation
     const connectionName = getConnectionNameFromRouteParam(connection);
     const defaultFundID = useDefaultFundID(policyID);
 
+    const [connections] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {selector: (policy) => policy?.connections});
+    const [workspaceAccountID = CONST.DEFAULT_NUMBER_ID] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {selector: (policy) => policy?.workspaceAccountID});
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${defaultFundID}`);
     const programKey = getCardProgramKey(cardSettings);
     const settings = getCardSettings(cardSettings, programKey);
     const paymentBankAccountID = settings?.paymentBankAccountID;
+    const [reconciliationBankAccountID] = useOnyx(`${ONYXKEYS.COLLECTION.EXPENSIFY_CARD_RECONCILIATION_BANK_ACCOUNT_ID}${workspaceAccountID}`);
 
     const selectedBankAccount = useMemo(() => bankAccountList?.[paymentBankAccountID?.toString() ?? ''], [paymentBankAccountID, bankAccountList]);
     const bankAccountNumber = useMemo(() => selectedBankAccount?.accountData?.accountNumber ?? '', [selectedBankAccount?.accountData?.accountNumber]);
@@ -50,33 +51,26 @@ function DynamicReconciliationAccountSettingsPage({route}: DynamicReconciliation
     const domainName = settings?.domainName ?? getDomainNameForPolicy(policyID);
     const {environmentURL} = useEnvironment();
 
+    const connectionBankAccounts = getConnectionBankAccountsForReconciliation(connections, connectionName);
+
     const goBack = useCallback(() => {
         Navigation.goBack(backPath);
     }, [backPath]);
 
     const options = useMemo(() => {
-        if (!bankAccountList || isEmptyObject(bankAccountList)) {
-            return [];
-        }
-        const eligibleBankAccounts = getEligibleBankAccountsForCard(bankAccountList);
-
-        return eligibleBankAccounts.map((bankAccount, index) => ({
-            text: bankAccount.title,
-            value: bankAccount.accountData?.bankAccountID,
-            keyForList: bankAccount.accountData?.bankAccountID?.toString() ?? `${bankAccount.title}-${index}`,
-            isSelected: bankAccount.accountData?.bankAccountID === paymentBankAccountID,
-            alternateText:
-                bankAccount.description ??
-                (bankAccount.accountData?.accountNumber ? `${translate('bankAccount.accountEnding')} ${getLastFourDigits(bankAccount.accountData.accountNumber)}` : ''),
+        return connectionBankAccounts.map((bankAccount) => ({
+            text: bankAccount.name,
+            value: bankAccount.id,
+            keyForList: bankAccount.id,
+            isSelected: bankAccount.id === reconciliationBankAccountID,
         }));
-    }, [bankAccountList, paymentBankAccountID, translate]);
+    }, [connectionBankAccounts, reconciliationBankAccountID]);
 
-    const selectBankAccount = (newBankAccountID?: number) => {
-        if (!programKey) {
-            Log.alert('[ReconciliationAccountSettingsPage] selectBankAccount called without a detected card program key');
+    const selectBankAccount = (newBankAccountID?: string) => {
+        if (!newBankAccountID) {
             return;
         }
-        updateSettlementAccount(domainName, defaultFundID, policyID, programKey, newBankAccountID, paymentBankAccountID);
+        setCardReconciliationAccount(workspaceAccountID, domainName, newBankAccountID, reconciliationBankAccountID);
         goBack();
     };
 
@@ -107,7 +101,7 @@ function DynamicReconciliationAccountSettingsPage({route}: DynamicReconciliation
                 data={options}
                 onSelectRow={({value}) => selectBankAccount(value)}
                 ListItem={RadioListItem}
-                initiallyFocusedItemKey={paymentBankAccountID?.toString()}
+                initiallyFocusedItemKey={reconciliationBankAccountID}
             />
         </ConnectionLayout>
     );
