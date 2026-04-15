@@ -846,7 +846,8 @@ describe('TagsOptionsListUtils', () => {
 
         it('should fall back to policy.requiresTag when tag list required is undefined', () => {
             const policyWithRequiresTag = {...mockPolicy, requiresTag: true};
-            const policyTagsWithoutRequired: PolicyTagLists = {
+            // Intentionally omitting 'required' to simulate backend sync stripping the field
+            const policyTagsWithoutRequired = {
                 tagList1: {
                     name: 'Department',
                     tags: {
@@ -855,7 +856,7 @@ describe('TagsOptionsListUtils', () => {
                     },
                     orderWeight: 0,
                 },
-            };
+            } as PolicyTagLists;
 
             const result = getTagVisibility({
                 shouldShowTags: true,
@@ -869,7 +870,8 @@ describe('TagsOptionsListUtils', () => {
 
         it('should not mark tags as required when policy.requiresTag is false and tag list required is undefined', () => {
             const policyWithoutRequiresTag = {...mockPolicy, requiresTag: false};
-            const policyTagsWithoutRequired: PolicyTagLists = {
+            // Intentionally omitting 'required' to simulate backend sync stripping the field
+            const policyTagsWithoutRequired = {
                 tagList1: {
                     name: 'Department',
                     tags: {
@@ -877,7 +879,7 @@ describe('TagsOptionsListUtils', () => {
                     },
                     orderWeight: 0,
                 },
-            };
+            } as PolicyTagLists;
 
             const result = getTagVisibility({
                 shouldShowTags: true,
