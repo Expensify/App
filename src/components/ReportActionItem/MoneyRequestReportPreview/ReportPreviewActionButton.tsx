@@ -17,7 +17,7 @@ import {hasPendingDEWSubmit} from '@libs/ReportActionsUtils';
 import getReportPreviewAction from '@libs/ReportPreviewActionUtils';
 import {getAddExpenseDropdownOptions} from '@libs/ReportUtils';
 import variables from '@styles/variables';
-import {canIOUBePaid as canIOUBePaidIOUActions} from '@userActions/IOU';
+import {canIOUBePaid as canIOUBePaidIOUActions} from '@userActions/IOU/ReportWorkflow';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {validTransactionDraftIDsSelector} from '@src/selectors/TransactionDraft';
@@ -39,7 +39,6 @@ type ReportPreviewActionButtonProps = {
     startSubmittingAnimation: () => void;
     onPaymentOptionsShow?: () => void;
     onPaymentOptionsHide?: () => void;
-    onNonReimbursablePaymentError?: () => void;
     openReportFromPreview: () => void;
     onHoldMenuOpen: (requestType: string, paymentType?: PaymentMethodType, canPay?: boolean) => void;
     transactionPreviewCarouselWidth: number;
@@ -57,7 +56,6 @@ function ReportPreviewActionButton({
     startSubmittingAnimation,
     onPaymentOptionsShow,
     onPaymentOptionsHide,
-    onNonReimbursablePaymentError,
     openReportFromPreview,
     onHoldMenuOpen,
     transactionPreviewCarouselWidth,
@@ -156,7 +154,6 @@ function ReportPreviewActionButton({
                     onPaymentOptionsShow={onPaymentOptionsShow}
                     onPaymentOptionsHide={onPaymentOptionsHide}
                     onHoldMenuOpen={onHoldMenuOpen}
-                    onNonReimbursablePaymentError={onNonReimbursablePaymentError}
                     buttonMaxWidth={buttonMaxWidth}
                     reportPreviewAction={reportPreviewAction}
                 />

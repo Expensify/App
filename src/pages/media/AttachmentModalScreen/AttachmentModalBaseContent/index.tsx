@@ -70,6 +70,7 @@ function AttachmentModalBaseContent({
     footerActionButtons,
     customAttachmentContent,
     attachmentViewContainerStyles,
+    pdfRotation,
 }: AttachmentModalBaseContentProps) {
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -259,6 +260,7 @@ function AttachmentModalBaseContent({
                             transaction={transaction}
                             isUploaded={!isEmptyObject(report)}
                             reportID={reportID ?? (!isEmptyObject(report) ? report.reportID : undefined)}
+                            rotation={pdfRotation}
                         />
                     </AttachmentCarouselPagerActionsContext.Provider>
                 </AttachmentCarouselPagerStateContext.Provider>
@@ -278,6 +280,7 @@ function AttachmentModalBaseContent({
         isWorkspaceAvatar,
         maybeIcon,
         onNavigate,
+        pdfRotation,
         report,
         reportID,
         setAttachmentError,
