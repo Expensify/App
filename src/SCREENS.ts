@@ -330,7 +330,7 @@ const SCREENS = {
         REPORT_EXPORT: 'Report_Export',
         MISSING_PERSONAL_DETAILS: 'MissingPersonalDetails',
         DEBUG: 'Debug',
-        ADD_UNREPORTED_EXPENSE: 'AddUnreportedExpense',
+        ADD_EXISTING_EXPENSE: 'AddExistingExpense',
         SCHEDULE_CALL: 'ScheduleCall',
         REPORT_CHANGE_APPROVER: 'Report_Change_Approver',
         REPORT_VERIFY_ACCOUNT: 'Report_Verify_Account',
@@ -957,7 +957,7 @@ const SCREENS = {
     RESTRICTED_ACTION_ROOT: 'RestrictedAction_Root',
     MISSING_PERSONAL_DETAILS: 'MissingPersonalDetails',
     MISSING_PERSONAL_DETAILS_CONFIRM_MAGIC_CODE: 'MissingPersonalDetails_ConfirmMagicCode',
-    ADD_UNREPORTED_EXPENSES_ROOT: 'AddUnreportedExpenses_Root',
+    ADD_EXISTING_EXPENSES_ROOT: 'AddExistingExpenses_Root',
     DEBUG: {
         REPORT: 'Debug_Report',
         REPORT_ACTION: 'Debug_Report_Action',

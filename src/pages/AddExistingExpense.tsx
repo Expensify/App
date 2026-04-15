@@ -1,7 +1,7 @@
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import AddUnreportedExpenseFooter from '@components/AddUnreportedExpenseFooter';
+import AddExistingExpenseFooter from '@components/AddExistingExpenseFooter';
 import EmptyStateComponent from '@components/EmptyStateComponent';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {PressableWithFeedback} from '@components/Pressable';
@@ -27,7 +27,7 @@ import {fetchUnreportedExpenses} from '@libs/actions/UnreportedExpenses';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
-import type {AddUnreportedExpensesParamList} from '@libs/Navigation/types';
+import type {AddExistingExpensesParamList} from '@libs/Navigation/types';
 import {canSubmitPerDiemExpenseFromWorkspace, getPerDiemCustomUnit} from '@libs/PolicyUtils';
 import {getTransactionDetails, isIOUReport, isOpenExpenseReport} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
@@ -46,14 +46,14 @@ import type Transaction from '@src/types/onyx/Transaction';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
 import UnreportedExpenseListItem from './UnreportedExpenseListItem';
 
-type AddUnreportedExpensePageType = PlatformStackScreenProps<AddUnreportedExpensesParamList, typeof SCREENS.ADD_UNREPORTED_EXPENSES_ROOT>;
+type AddExistingExpensePageType = PlatformStackScreenProps<AddExistingExpensesParamList, typeof SCREENS.ADD_EXISTING_EXPENSES_ROOT>;
 type ExpenseStatus = typeof CONST.SEARCH.STATUS.EXPENSE.UNREPORTED | typeof CONST.SEARCH.STATUS.EXPENSE.DRAFTS;
 
 function isUnreportedTransaction(transaction: OnyxEntry<Transaction>): boolean {
     return transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID || transaction?.reportID === '';
 }
 
-function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
+function AddExistingExpense({route}: AddExistingExpensePageType) {
     const {translate} = useLocalize();
     const illustrations = useMemoizedLazyIllustrations(['FolderWithPapersAndWatch']);
     const [errorMessage, setErrorMessage] = useState<string>('');
@@ -80,18 +80,18 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
     const [reportDrafts] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT);
     const isInLandscapeMode = useIsInLandscapeMode();
     const initialSkeletonReasonAttributes: SkeletonSpanReasonAttributes = {
-        context: 'AddUnreportedExpense.InitialSkeleton',
+        context: 'AddExistingExpense.InitialSkeleton',
         isLoadingUnreportedTransactions,
     };
 
     const paginationSkeletonReasonAttributes: SkeletonSpanReasonAttributes = {
-        context: 'AddUnreportedExpense.PaginationSkeleton',
+        context: 'AddExistingExpense.PaginationSkeleton',
         isLoadingUnreportedTransactions,
         hasMoreUnreportedTransactionsResults,
         isOffline,
     };
 
-    const getUnreportedTransactions = useCallback(
+    const getEligibleTransactions = useCallback(
         (transactions: OnyxCollection<Transaction>) => {
             if (!transactions) {
                 return [];
@@ -146,9 +146,9 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
     const [transactions = getEmptyArray<Transaction>()] = useOnyx(
         ONYXKEYS.COLLECTION.TRANSACTION,
         {
-            selector: getUnreportedTransactions,
+            selector: getEligibleTransactions,
         },
-        [getUnreportedTransactions],
+        [getEligibleTransactions],
     );
 
     const fetchMoreUnreportedTransactions = () => {
@@ -232,7 +232,7 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
 
     const footerContent = useMemo(
         () => (
-            <AddUnreportedExpenseFooter
+            <AddExistingExpenseFooter
                 selectedIds={selectedIds}
                 report={report}
                 reportToConfirm={reportToConfirm}
@@ -382,7 +382,7 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
                 focusTrapSettings={{active: false}}
             >
                 <HeaderWithBackButton
-                    title={translate('iou.addUnreportedExpense')}
+                    title={translate('iou.addExistingExpense')}
                     onBackButtonPress={Navigation.goBack}
                 />
                 <UnreportedExpensesSkeleton reasonAttributes={initialSkeletonReasonAttributes} />
@@ -400,7 +400,7 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
                 focusTrapSettings={{active: false}}
             >
                 <HeaderWithBackButton
-                    title={translate('iou.addUnreportedExpense')}
+                    title={translate('iou.addExistingExpense')}
                     onBackButtonPress={Navigation.goBack}
                 />
                 <ScrollView contentContainerStyle={[styles.flexGrow1]}>
@@ -409,8 +409,8 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
                         cardStyles={[styles.appBG]}
                         cardContentStyles={[styles.pb0]}
                         headerMedia={illustrations.FolderWithPapersAndWatch}
-                        title={translate('iou.emptyStateUnreportedExpenseTitle')}
-                        subtitle={translate('iou.emptyStateUnreportedExpenseSubtitle')}
+                        title={translate('iou.emptyStateExistingExpenseTitle')}
+                        subtitle={translate('iou.emptyStateExistingExpenseSubtitle')}
                         headerStyles={[styles.emptyStateMoneyRequestReport]}
                         headerContentStyles={[styles.emptyStateFolderStaticIllustration]}
                         buttons={[
@@ -449,7 +449,7 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
             focusTrapSettings={{active: false}}
         >
             <HeaderWithBackButton
-                title={translate('iou.addUnreportedExpense')}
+                title={translate('iou.addExistingExpense')}
                 onBackButtonPress={Navigation.goBack}
             />
             <SelectionList<Transaction & ListItem>
@@ -475,4 +475,4 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
     );
 }
 
-export default AddUnreportedExpense;
+export default AddExistingExpense;

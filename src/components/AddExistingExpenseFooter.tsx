@@ -16,7 +16,7 @@ import Button from './Button';
 import FormHelpMessage from './FormHelpMessage';
 import {usePersonalDetails, useSession} from './OnyxListItemProvider';
 
-type AddUnreportedExpenseFooterProps = {
+type AddExistingExpenseFooterProps = {
     /** Selected transaction IDs */
     selectedIds: Set<string>;
     /** The report to add expenses to */
@@ -35,7 +35,7 @@ type AddUnreportedExpenseFooterProps = {
     setErrorMessage: React.Dispatch<React.SetStateAction<string>>;
 };
 
-function AddUnreportedExpenseFooter({selectedIds, report, reportToConfirm, reportNextStep, policy, policyCategories, errorMessage, setErrorMessage}: AddUnreportedExpenseFooterProps) {
+function AddExistingExpenseFooter({selectedIds, report, reportToConfirm, reportNextStep, policy, policyCategories, errorMessage, setErrorMessage}: AddExistingExpenseFooterProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {isBetaEnabled} = usePermissions();
@@ -61,7 +61,7 @@ function AddUnreportedExpenseFooter({selectedIds, report, reportToConfirm, repor
 
     const handleConfirm = () => {
         if (selectedIds.size === 0) {
-            setErrorMessage(translate('iou.selectUnreportedExpense'));
+            setErrorMessage(translate('iou.selectExistingExpense'));
             return;
         }
 
@@ -111,7 +111,7 @@ function AddUnreportedExpenseFooter({selectedIds, report, reportToConfirm, repor
                 success
                 large
                 style={[styles.w100, styles.justifyContentCenter]}
-                text={translate('iou.addUnreportedExpenseConfirm')}
+                text={translate('iou.addExistingExpenseConfirm')}
                 onPress={handleConfirm}
                 pressOnEnter
                 enterKeyEventListenerPriority={1}
@@ -120,6 +120,6 @@ function AddUnreportedExpenseFooter({selectedIds, report, reportToConfirm, repor
     );
 }
 
-AddUnreportedExpenseFooter.displayName = 'AddUnreportedExpenseFooter';
+AddExistingExpenseFooter.displayName = 'AddExistingExpenseFooter';
 
-export default AddUnreportedExpenseFooter;
+export default AddExistingExpenseFooter;

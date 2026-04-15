@@ -459,7 +459,7 @@ function openUnreportedExpense(reportID: string | undefined, backToReport?: stri
     if (!reportID) {
         return;
     }
-    Navigation.navigate(ROUTES.ADD_UNREPORTED_EXPENSE.getRoute(reportID, backToReport));
+    Navigation.navigate(ROUTES.ADD_EXISTING_EXPENSE.getRoute(reportID, backToReport));
 }
 
 /**

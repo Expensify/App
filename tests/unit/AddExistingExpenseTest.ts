@@ -23,7 +23,7 @@ function generateTransaction(values: Partial<Transaction> = {}): Transaction {
     return baseTransaction;
 }
 
-describe('AddUnreportedExpense', () => {
+describe('AddExistingExpense', () => {
     describe('createUnreportedExpenses', () => {
         it('should mark transactions with DELETE pendingAction as disabled', () => {
             const normalTransaction = generateTransaction({
