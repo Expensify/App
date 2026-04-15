@@ -86,6 +86,7 @@ function WorkspaceExpensifyCardAddWorkEmailPage({route}: WorkspaceExpensifyCardA
     };
 
     useEffect(() => {
+        // eslint-disable-next-line @typescript-eslint/prefer-optional-chain -- optional chain changes logic: when both email and primaryContactMethod are falsy, it skips early return and navigates incorrectly
         if (!email || !primaryContactMethod || primaryContactMethod.toLowerCase() !== email.toLowerCase() || isWorkEmailValidated) {
             return;
         }
