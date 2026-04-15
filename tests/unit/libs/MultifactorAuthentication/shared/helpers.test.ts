@@ -24,7 +24,7 @@ describe('MultifactorAuthentication shared helpers', () => {
             const result = parseHttpRequest(999, responseMap, 'Something is needed');
 
             expect(result.httpStatusCode).toBe(999);
-            expect(result.reason).toBe(VALUES.REASON.LOCAL_ERRORS.UNHANDLED);
+            expect(result.reason).toBe(VALUES.REASON.LOCAL_ERRORS.UNHANDLED_API_RESPONSE);
         });
 
         it('should return LOCAL_ERROR for an undefined HTTP code', () => {
@@ -32,7 +32,7 @@ describe('MultifactorAuthentication shared helpers', () => {
             const result = parseHttpRequest(undefined, responseMap, undefined);
 
             expect(result.httpStatusCode).toBe(0);
-            expect(result.reason).toBe(VALUES.REASON.LOCAL_ERRORS.UNHANDLED);
+            expect(result.reason).toBe(VALUES.REASON.LOCAL_ERRORS.UNHANDLED_API_RESPONSE);
         });
 
         it('should return the same reason for the same message regardless of 4xx status code', () => {

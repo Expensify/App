@@ -133,7 +133,7 @@ describe('MultifactorAuthentication Scenarios Config', () => {
                 false,
                 {
                     httpStatusCode: 401,
-                    message: CONST.MULTIFACTOR_AUTHENTICATION.REASON.LOCAL_ERRORS.UNHANDLED_ERROR,
+                    message: CONST.MULTIFACTOR_AUTHENTICATION.REASON.LOCAL_ERRORS.UNHANDLED_EXCEPTION,
                     body: {},
                 },
                 validPayload,

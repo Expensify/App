@@ -253,7 +253,7 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
                     dispatch({
                         type: 'SET_ERROR',
                         payload: {
-                            reason: challengeReason ?? CONST.MULTIFACTOR_AUTHENTICATION.REASON.LOCAL_ERRORS.UNHANDLED,
+                            reason: challengeReason ?? CONST.MULTIFACTOR_AUTHENTICATION.REASON.LOCAL_ERRORS.UNHANDLED_API_RESPONSE,
                             httpStatusCode: challengeHttpStatus,
                             message: challengeMessage,
                         },
@@ -273,7 +273,7 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
                     dispatch({
                         type: 'SET_ERROR',
                         payload: {
-                            reason: CONST.MULTIFACTOR_AUTHENTICATION.REASON.LOCAL_ERRORS.UNHANDLED_ERROR,
+                            reason: CONST.MULTIFACTOR_AUTHENTICATION.REASON.LOCAL_ERRORS.UNHANDLED_EXCEPTION,
                             message: `Invalid registration challenge type: ${challengeType ?? 'unknown'}`,
                         },
                     });
@@ -331,7 +331,7 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
                     dispatch({
                         type: 'SET_ERROR',
                         payload: {
-                            reason: registrationResponse.reason ?? CONST.MULTIFACTOR_AUTHENTICATION.REASON.LOCAL_ERRORS.UNHANDLED,
+                            reason: registrationResponse.reason ?? CONST.MULTIFACTOR_AUTHENTICATION.REASON.LOCAL_ERRORS.UNHANDLED_API_RESPONSE,
                             httpStatusCode: registrationResponse.httpStatusCode,
                             message: registrationResponse.message,
                         },
@@ -373,7 +373,7 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
                     dispatch({
                         type: 'SET_ERROR',
                         payload: {
-                            reason: challengeReason ?? CONST.MULTIFACTOR_AUTHENTICATION.REASON.LOCAL_ERRORS.UNHANDLED,
+                            reason: challengeReason ?? CONST.MULTIFACTOR_AUTHENTICATION.REASON.LOCAL_ERRORS.UNHANDLED_API_RESPONSE,
                             httpStatusCode: challengeHttpStatus,
                             message: challengeMessage,
                         },
@@ -388,7 +388,7 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
                     dispatch({
                         type: 'SET_ERROR',
                         payload: {
-                            reason: CONST.MULTIFACTOR_AUTHENTICATION.REASON.LOCAL_ERRORS.UNHANDLED_ERROR,
+                            reason: CONST.MULTIFACTOR_AUTHENTICATION.REASON.LOCAL_ERRORS.UNHANDLED_EXCEPTION,
                             message: `Invalid authorization challenge type: ${challengeType ?? 'unknown'}`,
                         },
                     });
@@ -460,7 +460,7 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
                         dispatch({
                             type: 'SET_ERROR',
                             payload: {
-                                reason: scenarioAPIResponse.reason ?? CONST.MULTIFACTOR_AUTHENTICATION.REASON.LOCAL_ERRORS.UNHANDLED,
+                                reason: scenarioAPIResponse.reason ?? CONST.MULTIFACTOR_AUTHENTICATION.REASON.LOCAL_ERRORS.UNHANDLED_API_RESPONSE,
                                 httpStatusCode: scenarioAPIResponse.httpStatusCode,
                                 message: scenarioAPIResponse.message,
                             },
@@ -510,7 +510,7 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
             dispatch({
                 type: 'SET_ERROR',
                 payload: {
-                    reason: CONST.MULTIFACTOR_AUTHENTICATION.REASON.LOCAL_ERRORS.UNHANDLED_ERROR,
+                    reason: CONST.MULTIFACTOR_AUTHENTICATION.REASON.LOCAL_ERRORS.UNHANDLED_EXCEPTION,
                     message: getErrorMessage(error),
                 },
             });

@@ -5,7 +5,7 @@ import type {ErrorState} from '@components/MultifactorAuthentication/Context/Sta
 import CONST from '@src/CONST';
 
 function isServerOrLocalError(error: ErrorState): boolean {
-    return error.reason === CONST.MULTIFACTOR_AUTHENTICATION.REASON.SERVER_ERRORS.UNHANDLED || error.reason === CONST.MULTIFACTOR_AUTHENTICATION.REASON.LOCAL_ERRORS.UNHANDLED;
+    return error.reason === CONST.MULTIFACTOR_AUTHENTICATION.REASON.SERVER_ERRORS.UNHANDLED || error.reason === CONST.MULTIFACTOR_AUTHENTICATION.REASON.LOCAL_ERRORS.UNHANDLED_API_RESPONSE;
 }
 
 function MultifactorAuthenticationOutcomePage() {

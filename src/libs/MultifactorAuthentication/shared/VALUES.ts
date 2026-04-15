@@ -41,11 +41,11 @@ const REASON = {
         NO_AUTHENTICATION_METHODS_ENROLLED: 'No authentication methods enrolled',
         /** The scenario does not allow this device's authentication type (e.g. biometrics-only scenario on web, or passkeys-only scenario on mobile). */
         AUTHENTICATION_TYPE_NOT_SUPPORTED: 'Authentication type not supported',
-        UNHANDLED_ERROR: 'An unhandled error occurred',
+        UNHANDLED_EXCEPTION: 'An unhandled error occurred',
         REQUESTED_TRANSACTION_UNAVAILABLE: 'Requested transaction is unavailable',
         CANCELED: 'Flow canceled by user',
         /** No HTTP status code present — typically a network failure, JSON parse error, or unhandled exception in an action function. */
-        UNHANDLED: 'Local error',
+        UNHANDLED_API_RESPONSE: 'Local error',
         WEBAUTHN: {
             NOT_ALLOWED: 'NotAllowedError',
             INVALID_STATE: 'InvalidStateError',
@@ -180,7 +180,7 @@ const ANOMALOUS_FAILURES = new Set<ReasonValue>([
     REASON.CLIENT_ERRORS.BAD_REQUEST,
     REASON.CLIENT_ERRORS.UNHANDLED,
     REASON.SERVER_ERRORS.UNHANDLED,
-    REASON.LOCAL_ERRORS.UNHANDLED,
+    REASON.LOCAL_ERRORS.UNHANDLED_API_RESPONSE,
     REASON.LOCAL_ERRORS.WEBAUTHN.INVALID_STATE,
     REASON.LOCAL_ERRORS.WEBAUTHN.SECURITY_ERROR,
     REASON.LOCAL_ERRORS.WEBAUTHN.CONSTRAINT_ERROR,

@@ -33,7 +33,7 @@ const getCategoryFallbackReason = (httpStatusCategory: HttpStatusCategory): Mult
     if (httpStatusCategory === VALUES.HTTP_STATUS.SUCCESS) {
         return undefined;
     }
-    return VALUES.REASON.LOCAL_ERRORS.UNHANDLED;
+    return VALUES.REASON.LOCAL_ERRORS.UNHANDLED_API_RESPONSE;
 };
 
 const findMessageInSource = (source: Record<string, MultifactorAuthenticationReason>, message: string): MultifactorAuthenticationReason | undefined => {
@@ -60,7 +60,7 @@ function parseHttpRequest(
     if (!httpStatusCategory) {
         return {
             httpStatusCode,
-            reason: VALUES.REASON.LOCAL_ERRORS.UNHANDLED,
+            reason: VALUES.REASON.LOCAL_ERRORS.UNHANDLED_API_RESPONSE,
             message,
         };
     }

@@ -513,6 +513,6 @@ describe('revokeMultifactorAuthenticationCredentials', () => {
         const result = await revokeMultifactorAuthenticationCredentials({onlyKeyID: 'key-123'});
 
         expect(result.httpStatusCode).toBe(0);
-        expect(result.reason).toBe(CONST.MULTIFACTOR_AUTHENTICATION.REASON.LOCAL_ERRORS.UNHANDLED);
+        expect(result.reason).toBe(CONST.MULTIFACTOR_AUTHENTICATION.REASON.LOCAL_ERRORS.UNHANDLED_API_RESPONSE);
     });
 });
