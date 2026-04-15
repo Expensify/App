@@ -75,7 +75,7 @@ function getIOUActionForTransactions(transactionIDList: Array<string | undefined
 }
 
 /** Merge several transactions into one by updating the fields of the one we want to keep and deleting the rest */
-function mergeDuplicates({transactionThreadReportID: optimisticTransactionThreadReportID, ...params}: MergeDuplicatesParams) {
+function mergeDuplicates({transactionThreadReportID: optimisticTransactionThreadReportID, taxAmount, taxValue, ...params}: MergeDuplicatesParams & {taxAmount: number; taxValue: string}) {
     const allParams: MergeDuplicatesParams = {...params};
     const allTransactions = getAllTransactions();
     const allTransactionViolations = getAllTransactionViolations();
@@ -101,8 +101,8 @@ function mergeDuplicates({transactionThreadReportID: optimisticTransactionThread
             reimbursable: params.reimbursable,
             tag: params.tag,
             taxCode: params.taxCode,
-            taxAmount: originalSelectedTransaction?.taxAmount,
-            taxValue: originalSelectedTransaction?.taxValue,
+            taxAmount,
+            taxValue: taxValue || originalSelectedTransaction?.taxValue,
         },
     };
 
@@ -351,7 +351,7 @@ function mergeDuplicates({transactionThreadReportID: optimisticTransactionThread
 }
 
 /** Instead of merging the duplicates, it updates the transaction we want to keep and puts the others on hold without deleting them */
-function resolveDuplicates(params: MergeDuplicatesParams) {
+function resolveDuplicates({taxAmount, taxValue, ...params}: MergeDuplicatesParams & {taxAmount: number; taxValue: string}) {
     if (!params.transactionID) {
         return;
     }
@@ -377,8 +377,8 @@ function resolveDuplicates(params: MergeDuplicatesParams) {
             reimbursable: params.reimbursable,
             tag: params.tag,
             taxCode: params.taxCode,
-            taxAmount: originalSelectedTransaction?.taxAmount,
-            taxValue: originalSelectedTransaction?.taxValue,
+            taxAmount,
+            taxValue: taxValue || originalSelectedTransaction?.taxValue,
         },
     };
 
