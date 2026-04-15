@@ -19,7 +19,7 @@ Expensify offers flexible options to search and export expenses and reports in v
 
 ## Web
 
-1. In the navigation tabs (on the left on web, and at the bottom on mobile) on the left, select **Reports > Expense Reports**.
+1. In the navigation tabs (on the left on web, and at the bottom on mobile) on the left, select **Spend** > **Reports**.
 2. Check the box next to the expenses or reports you want to export, or use the top checkbox to select all.
 3. Click **Selected** at the top.
 4. Select **Export** from the dropdown.
@@ -35,9 +35,9 @@ You’ll receive a message from **Concierge** with the exported file.
 
 ## Mobile
 
-1. In the navigation tabs (on the left on web, and at the bottom on mobile) at the bottom, select **Reports > Expense Reports**.
+1. In the navigation tabs (on the left on web, and at the bottom on mobile) at the bottom, select **Spend** > **Reports**.
 2. Tap the three-line icon in the top-right corner.
-3. Choose between **Reports** or **Expenses**.
+3. Choose between **Reports** or **Expenses** (under **Explore**).
 4. Check the box next to the items you want to export, or use the top checkbox to select all.
 5. Tap **Selected**, then choose **Export**.
 6. Choose a default or custom export template as described above.

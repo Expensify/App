@@ -11,7 +11,7 @@ The search operator framework lets you quickly filter, sort, and group items lik
 
 # Who can use search operators in Expensify
 
-Anyone can use search operators when filtering data in features like Expenses, Reports, Chats, and Tasks. This is especially helpful for Workspace Admins, accountants, and finance teams looking to analyze or export targeted data.
+Anyone can use search operators when filtering data in features like Expenses, Spend, Chats, and Tasks. This is especially helpful for Workspace Admins, accountants, and finance teams looking to analyze or export targeted data.
 
 ---
 
@@ -64,7 +64,7 @@ type:expense merchant:Starbucks category:Meals amount>20 has:receipt
 - `attendee:` – expense attendees, e.g. `attendee:"Jason Mills"`
 - `posted:` – credit card posted date, e.g. `posted:last-statement`
 
-## Available filters for Reports
+## Available filters for Spend
 
 - `report-id:` – unique report reference
 - `status:` – draft, outstanding, approved, paid, done

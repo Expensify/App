@@ -68,7 +68,7 @@ When an expense is submitted on a workspace with an approval workflow configured
 
 **To place an expense on hold:**
 
-1. In the navigation tabs (on the left on web, and at the bottom on mobile), head to **Reports > Expenses**.
+1. In the navigation tabs (on the left on web, and at the bottom on mobile), head to **Spend > Expenses**.
 2. Locate the expense using the search bar or filters.
 3. Click **View**.
 4. Open the **More** dropdown at the top of the expense.
@@ -76,7 +76,7 @@ When an expense is submitted on a workspace with an approval workflow configured
 
 **To take an expense off hold to approve:**
 
-1. In the navigation tabs (on the left on web, and at the bottom on mobile), head to **Reports > Expenses**.
+1. In the navigation tabs (on the left on web, and at the bottom on mobile), head to **Spend > Expenses**.
 2. Locate the held expense using the search bar or filters.
 3. Click **View**.
 4. Open the **More** dropdown at the top of the expense.
@@ -89,7 +89,7 @@ When an expense is submitted on a workspace with an approval workflow configured
 
 # Unapprove a report
 
-1. In the navigation tabs (on the left on web, and at the bottom on mobile), head to **Reports > Reports**.
+1. In the navigation tabs (on the left on web, and at the bottom on mobile), head to **Spend** > **Reports**.
 2. Locate the report using the search bar or filters.
 3. Click **View**.
 4. Open the **More** dropdown at the top of the report.
@@ -103,7 +103,7 @@ Unapproving a report returns it to the Processing state. The last approver will 
 
 # Reject an expense
 
-1. In the navigation tabs (on the left on web, and at the bottom on mobile), head to **Reports > Expenses**.
+1. In the navigation tabs (on the left on web, and at the bottom on mobile), head to **Spend > Expenses**.
 2. Locate the expense using the search bar or filters.
 3. Click **View**.
 4. Open the **More** dropdown at the top of the expense.
@@ -120,7 +120,7 @@ The rejected expense will be removed from the report, and the submitter will be 
 Expensify Card expenses show as pending until the merchant posts them. This can take 1–3 business days. Hotel or rental car holds may take longer (up to 31 days for hotels).
 
 ## What are expense reports?
-Expense reports group multiple expenses into one batch for review or payment. Draft reports collect new expenses automatically. You can check the status of an expense under **Reports > Expenses**.
+Expense reports group multiple expenses into one batch for review or payment. Draft reports collect new expenses automatically. You can check the status of an expense under **Spend > Expenses**.
 
 ## Why can’t I see “Bypass approvers”?
 Only workspace admins can bypass the prescribed approval workflow. If “Prevent Self-Approval” is enabled, an admin cannot bypass approvals to approve their own report. 

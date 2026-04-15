@@ -19,7 +19,7 @@ Workspace Admins can reconcile Expensify Card expenses when the Expensify Card i
 
 ## How to View Expensify Card Withdrawals
 
-1. Click the navigation tabs (on the left on web, on the bottom on mobile) and go to **Reports**.
+1. Click the navigation tabs (on the left on web, on the bottom on mobile) and go to **Spend**.
 2. In the **Reconciliation** section, select **Expensify Card**.
 3. Choose the **Withdrawn** filter to select a date range (for example, **Last month**).
 4. Review the list of withdrawals. Each row represents a single settlement withdrawal from your bank account.

@@ -1,17 +1,17 @@
 ---
-title: Using Search on the Reports Page
+title: Using Search on the Spend Page
 description: Learn how role-based search simplifies submitting, approving, or paying expense reports in New Expensify.
 keywords: [New Expensify, search, Submit, Approve, Pay, To-do, LHN, batch processing, filters, expense report actions]
 ---
 
 
-Using the search function on the reports page helps you quickly take action on reports you need to submit, approve, or pay, all tailored to your role in a workspace.
+Using the search function on the Spend page helps you quickly take action on reports you need to submit, approve, or pay, all tailored to your role in a workspace.
 
 ---
 
-# Search on the Reports Page
+# Search on the Spend Page
 
-**Navigation: In the navigation tabs (on the left on web, and at the bottom on mobile), select Reports > Expense Reports > To-do**.
+**Navigation:** In the navigation tabs (on the left on web, and at the bottom on mobile), open **Spend**, then go to the **To-do** section and choose a shortcut such as **Submit**, **Approve**, **Pay**, or **Export**. (**To-do** is separate from **Explore**, where **Reports**, **Expenses**, and **Chats** live.)
 
 The **To-do** section surfaces key report actions so you can:
 - Submit expenses waiting on you
@@ -21,7 +21,7 @@ The **To-do** section surfaces key report actions so you can:
 
 These shortcuts are personalized based on your role and workspace configuration, helping you process reports in batches without manually building advanced searches.
 
-![An image of the Search function on the Reports page on New Expensify]({{site.url}}/assets/images/export.png){:width="100%"}
+![An image of the Search function on the Spend page on New Expensify]({{site.url}}/assets/images/export.png){:width="100%"}
 
 ---
 
@@ -44,7 +44,7 @@ Admins may also see:
 # Member Views and Access
 
 ## All members
-- Can access **Reports**, **Expenses**, and **Chats (Inbox tab)** from the **Explore** section.
+- From **Spend** > **Explore**, can open **Reports**, **Expenses**, and **Chats** (the same **Chats** list is also available from **Inbox**).
 - If no reports exist, the To-do section will prompt you to create one.
 
 ## Employees (Submitters)

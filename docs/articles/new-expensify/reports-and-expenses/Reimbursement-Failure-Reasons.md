@@ -150,9 +150,9 @@ Review the FAQ in [Connect a Personal Bank Account](https://help.expensify.com/a
 
 If you're a Workspace Admin, follow these steps:
 
-1. Go to the **Reports** tab.
-   - On web: Select **Reports** from the navigation tabs on the left.
-   - On mobile: Tap **Reports** in the navigation tabs on the bottom.
+1. Go to the **Spend** tab.
+   - On web: Select **Spend** from the navigation tabs on the left.
+   - On mobile: Tap **Spend** in the navigation tabs on the bottom.
 2. Open the returned report (status: **Approved**).
 3. Review the failure message in the report chat.
 4. Confirm the member has corrected their bank details.
@@ -166,9 +166,9 @@ Payments aren't retried automatically -- you must manually click **Pay** after t
 
 If your reimbursement failed, follow these steps:
 
-1. Open the report from the **Reports** tab.
-   - On web: Select **Reports** from the navigation tabs on the left.
-   - On mobile: Tap **Reports** in the navigation tabs on the bottom.
+1. Open the report from the **Spend** tab.
+   - On web: Select **Spend** from the navigation tabs on the left.
+   - On mobile: Tap **Spend** in the navigation tabs on the bottom.
 2. Review the failure message in the report chat.
 3. Go to **Settings**.
    - On web: Select **Settings** from the navigation tabs on the left.

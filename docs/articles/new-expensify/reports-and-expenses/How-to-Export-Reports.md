@@ -2,12 +2,12 @@
 title: How to Export Reports
 description: Learn how to export reports to CSV or download them as PDFs.
 keywords: [New Expensify, export reports, CSV export, PDF download, download report, report export template, bulk export reports, report data]
-internalScope: Audience is all members. Covers exporting reports from the Reports page to CSV using export templates (individually and in bulk), and downloading individual reports as PDF. Does not cover exporting individual expenses from the Expenses page (see Export-Expenses.md), exporting to an accounting integration, or company card reconciliation.
+internalScope: Audience is all members. Covers exporting reports from the Spend page to CSV using export templates (individually and in bulk), and downloading individual reports as PDF. Does not cover exporting individual expenses from the Expenses page (see Export-Expenses.md), exporting to an accounting integration, or company card reconciliation.
 ---
 
 # How to export reports 
 
-Export reports from the Reports page to a CSV file using export templates, and download individual reports as PDFs.
+Export reports from the Spend page to a CSV file using export templates, and download individual reports as PDFs.
 
 If you’re trying to export a specific type of data, use the guides below:
 
@@ -17,7 +17,7 @@ If you’re trying to export a specific type of data, use the guides below:
 
 ## How to export a single report to CSV
 
-1. In the navigation tabs (on the left on web, on the bottom on mobile), go to **Reports**.
+1. In the navigation tabs (on the left on web, on the bottom on mobile), go to **Spend**.
 2. Open the report you want to export.
 3. Select **More**.
 4. Select **Export**.
@@ -27,7 +27,7 @@ You'll receive the exported CSV file in a message from Concierge.
 
 ## How to export multiple reports
 
-1. In the navigation tabs (on the left on web, on the bottom on mobile), go to **Reports**. 
+1. In the navigation tabs (on the left on web, on the bottom on mobile), go to **Spend**. 
 2. Select the checkbox next to each report you want to export, or use the top checkbox to select all.
 3. Select **Selected** at the top.
 4. Select **Export**.
@@ -48,7 +48,7 @@ Expensify offers pre-built export templates, or you can build your own custom ex
 ## How to download a report as a PDF
 # How to download a report as a PDF
 
-1. In the navigation tabs (on the left on web, on the bottom on mobile), go to **Reports**. 
+1. In the navigation tabs (on the left on web, on the bottom on mobile), go to **Spend**. 
 2. Open the report you want to download.
 3. Select **More**.
 4. Select **Download as PDF**.

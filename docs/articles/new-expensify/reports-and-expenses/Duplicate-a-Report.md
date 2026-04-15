@@ -23,7 +23,7 @@ Any member who created a report can duplicate it. **Duplicate report** is availa
 
 ## How to duplicate a report
 
-1. In the navigation tabs (on the left on web, and on the bottom on mobile), go to **Reports > Reports**. 
+1. In the navigation tabs (on the left on web, and on the bottom on mobile), go to **Spend** > **Reports**. 
 2. Locate the report you want to duplicate.
 3. Click the report to open it. 
 4. Select **More**.
