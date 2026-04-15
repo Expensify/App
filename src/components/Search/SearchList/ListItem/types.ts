@@ -424,6 +424,8 @@ type TransactionListItemProps<TItem extends ListItem> = ListItemProps<TItem> &
         columns?: SearchColumnType[];
         violations?: Record<string, TransactionViolations | undefined> | undefined;
         customCardNames?: Record<number, string>;
+        /** Callback to undelete a transaction */
+        onUndelete?: (transaction: Transaction) => void;
     };
 
 type TransactionGroupListItemProps<TItem extends ListItem> = ListItemProps<TItem> &
@@ -435,11 +437,13 @@ type TransactionGroupListItemProps<TItem extends ListItem> = ListItemProps<TItem
         columns?: SearchColumnType[];
         newTransactionID?: string;
         violations?: Record<string, TransactionViolations | undefined> | undefined;
+        /** Callback to undelete a transaction */
+        onUndelete?: (transaction: Transaction) => void;
     };
 
 type TransactionGroupListExpandedProps<TItem extends ListItem> = Pick<
     TransactionGroupListItemProps<TItem>,
-    'showTooltip' | 'canSelectMultiple' | 'onCheckboxPress' | 'columns' | 'groupBy' | 'accountID' | 'isOffline' | 'violations' | 'onSelectRow'
+    'showTooltip' | 'canSelectMultiple' | 'onCheckboxPress' | 'columns' | 'groupBy' | 'accountID' | 'isOffline' | 'violations' | 'onSelectRow' | 'onUndelete'
 > & {
     transactions: TransactionListItemType[];
     transactionsVisibleLimit: number;
