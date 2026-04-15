@@ -63,14 +63,6 @@ Depending on the report status and your role, the primary action button may say:
 ## Held Expenses  
 If you're an Approver who placed a hold, you'll see a green **Remove hold** button. Other users will see a grey **Review** button.
 
-## Reject a Report
-If you're the assigned approver on an Outstanding report, you can **Reject** the entire report. You'll provide a required rejection reason and choose who to return it to — the submitter or a previous approver. Rejecting to the submitter moves the report to Draft (the submitter must manually resubmit). Rejecting to a previous approver keeps the report Outstanding with prior approvals preserved.
-
-## Reject an Expense  
-If you're an Approver reviewing an individual expense that shouldn't have been submitted, you can **Reject** it back to the submitter with a reason. The rejection reason will be added to the report. The expense can later be marked as resolved and resubmitted for approval.
-
-**Note:** On single-expense reports, only report-level Reject appears in the More menu.
-
 ## Duplicate Expenses
 - Submitters: See **Review Duplicates** if duplicates are suspected.
 - Approvers: See **Resolve Duplicates** to take action.
