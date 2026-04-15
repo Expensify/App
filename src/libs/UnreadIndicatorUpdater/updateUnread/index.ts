@@ -1,12 +1,22 @@
 /**
  * Web browsers have a tab title and favicon which can be updated to show there are unread comments
  */
+import Onyx from 'react-native-onyx';
 import CONFIG from '@src/CONFIG';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type UpdateUnread from './types';
 
 let unreadTotalCount = 0;
 let currentPageTitle = '';
 let shouldShowBranchNameInTitle = false;
+
+Onyx.connectWithoutView({
+    key: ONYXKEYS.SHOULD_SHOW_BRANCH_NAME_IN_TITLE,
+    callback: (value) => {
+        shouldShowBranchNameInTitle = value ?? false;
+        updateDocumentTitle();
+    },
+});
 
 /**
  * Set the current page-specific title (called by useDocumentTitle hook)
@@ -54,10 +64,5 @@ window.addEventListener('popstate', () => {
     updateUnread(unreadTotalCount);
 });
 
-function setShouldShowBranchNameInTitle(value: boolean) {
-    shouldShowBranchNameInTitle = value;
-    updateDocumentTitle();
-}
-
 export default updateUnread;
-export {setPageTitle, setShouldShowBranchNameInTitle};
+export {setPageTitle};

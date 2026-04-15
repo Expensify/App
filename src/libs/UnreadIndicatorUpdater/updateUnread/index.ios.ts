@@ -13,8 +13,5 @@ const updateUnread: UpdateUnread = (totalCount) => {
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function setPageTitle(_title: string) {}
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-function setShouldShowBranchNameInTitle(_value: boolean) {}
-
 export default updateUnread;
-export {setPageTitle, setShouldShowBranchNameInTitle};
+export {setPageTitle};
