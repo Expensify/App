@@ -19,6 +19,11 @@ function useSidePanelContext(reportID: string): OnyxTypes.SidePanelContext | und
             return undefined;
         }
 
+        const contextReportID = currentRHPReportID ?? currentReportID ?? undefined;
+        if (contextReportID) {
+            return {reportID: contextReportID};
+        }
+
         const searchType = currentSearchQueryJSON?.type;
 
         if (searchType === CONST.SEARCH.DATA_TYPES.EXPENSE) {
@@ -42,10 +47,6 @@ function useSidePanelContext(reportID: string): OnyxTypes.SidePanelContext | und
             return selectedReportIDsForContext ? {selectedReportIDs: selectedReportIDsForContext} : undefined;
         }
 
-        const contextReportID = currentRHPReportID ?? currentReportID ?? undefined;
-        if (contextReportID) {
-            return {reportID: contextReportID};
-        }
         return undefined;
     }, [conciergeReportID, reportID, isInSidePanel, currentSearchQueryJSON?.type, selectedTransactions, selectedReports, currentRHPReportID, currentReportID]);
 }
