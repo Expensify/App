@@ -90,6 +90,7 @@ function CountrySelectionList({isEditing, selectedCountry, countries, onCountryS
                 initiallyFocusedItemKey={initialSelectedValue}
                 footerContent={footerContent}
                 disableMaintainingScrollPosition
+                shouldUpdateFocusedIndex
                 shouldSingleExecuteRowSelect
                 shouldScrollToFocusedIndex={false}
                 shouldScrollToFocusedIndexOnMount={false}
