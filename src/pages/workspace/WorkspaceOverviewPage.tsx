@@ -204,7 +204,10 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
         [policy?.rulesDocumentURL, policyID, session?.encryptedAuthToken],
     );
 
-    const rulesDocumentThumbnailStyle = useMemo(() => ({width: variables.rulesDocumentThumbnailWidth, height: variables.rulesDocumentThumbnailHeight}), []);
+    const rulesDocumentThumbnailStyle = useMemo(
+        () => ({width: '100%' as const, maxWidth: variables.rulesDocumentThumbnailMaxWidth, height: variables.rulesDocumentThumbnailHeight}),
+        [],
+    );
     const rulesDocumentMenuPositionStyle = useMemo(() => ({top: variables.spacing2, right: variables.spacing2}), []);
     const rulesDocumentMenuIconStyle = useMemo(() => ({borderRadius: variables.componentSizeNormal / 2, backgroundColor: theme.cardBG}), [theme.cardBG]);
 
@@ -835,7 +838,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                                                 >
                                                     <PDFThumbnail
                                                         previewSourceURL={rulesDocumentSourceURL}
-                                                        style={rulesDocumentThumbnailStyle}
+                                                        style={styles.flex1}
                                                     />
                                                 </PressableWithoutFeedback>
                                                 {isPolicyAdmin && (
