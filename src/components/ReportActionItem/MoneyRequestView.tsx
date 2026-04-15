@@ -453,7 +453,7 @@ function MoneyRequestView({
     const getPendingFieldAction = (fieldPath: TransactionPendingFieldsKey) => (pendingAction ? undefined : transaction?.pendingFields?.[fieldPath]);
 
     const isTaxEnabled = isTaxTrackingEnabled(isPolicyExpenseChat || isExpenseUnreported, policy, isDistanceRequest, isPerDiemRequest, isTimeRequest);
-    const shouldShowTaxDisabledAlert = (isPolicyExpenseChat || isExpenseUnreported) && !isPolicyTaxEnabled(policy) && !!transaction?.taxCode;
+    const shouldShowTaxDisabledAlert = !isPolicyTaxEnabled(policy) && !!transaction?.taxCode;
     const shouldShowTax = isFromMergeTransaction ? !!transaction?.taxName : isTaxEnabled || shouldShowTaxDisabledAlert;
 
     let amountDescription = `${translate('iou.amount')}`;
