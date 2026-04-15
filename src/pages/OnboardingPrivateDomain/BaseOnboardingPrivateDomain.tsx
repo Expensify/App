@@ -1,3 +1,4 @@
+import {useIsFocused} from '@react-navigation/native';
 import React, {useCallback, useEffect, useState} from 'react';
 import {View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -33,6 +34,7 @@ function BaseOnboardingPrivateDomain({shouldUseNativeStyles}: BaseOnboardingPriv
     const [getAccessiblePoliciesAction] = useOnyx(ONYXKEYS.VALIDATE_USER_AND_GET_ACCESSIBLE_POLICIES);
     const [joinablePolicies] = useOnyx(ONYXKEYS.JOINABLE_POLICIES);
     const joinablePoliciesLength = Object.keys(joinablePolicies ?? {}).length;
+    const isFocused = useIsFocused();
 
     const {onboardingIsMediumOrLargerScreenWidth} = useResponsiveLayout();
     const onboardingStep = useOnboardingStepCounter(SCREENS.ONBOARDING.DYNAMIC_PRIVATE_DOMAIN);
@@ -71,6 +73,10 @@ function BaseOnboardingPrivateDomain({shouldUseNativeStyles}: BaseOnboardingPriv
     }, [sendValidateCode, isValidated]);
 
     useEffect(() => {
+        if (!isFocused) {
+            return;
+        }
+
         if (!isValidated) {
             return;
         }
@@ -93,7 +99,7 @@ function BaseOnboardingPrivateDomain({shouldUseNativeStyles}: BaseOnboardingPriv
             }
             Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.ONBOARDING_PURPOSE.path), {forceReplace: true});
         }
-    }, [isValidated, joinablePoliciesLength, getAccessiblePoliciesAction?.loading, isVsb, isSmb, backPath]);
+    }, [isValidated, joinablePoliciesLength, getAccessiblePoliciesAction?.loading, isVsb, isSmb, isFocused]);
 
     return (
         <ScreenWrapper
