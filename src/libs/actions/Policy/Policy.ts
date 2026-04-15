@@ -2918,7 +2918,7 @@ function buildPolicyData(options: BuildPolicyDataOptions): OnyxData<BuildPolicyD
             optimisticData: optimisticCreateWorkspaceTaskData,
             successData: successCreateWorkspaceTaskData,
             failureData: failureCreateWorkspaceTaskData,
-            // Will be refactored in next PR; full restructure tracked in https://github.com/Expensify/App/issues/66417
+            // Will be refactored in next PR; buildOptimisticTaskReportAction falls back to module-level Onyx.connect value; tracked in https://github.com/Expensify/App/issues/66417
         } = buildTaskData(createWorkspaceTaskReport, introSelected.createWorkspace, false, false, undefined, undefined);
         optimisticData.push(...optimisticCreateWorkspaceTaskData);
         successData.push(...successCreateWorkspaceTaskData);
@@ -3939,6 +3939,7 @@ function createWorkspaceFromIOUPayment(
     currentUserLocalCurrency: string,
     lastWorkspaceNumber: number | undefined,
     localeTranslate: LocalizedTranslate,
+    reportActionsList: OnyxCollection<ReportActions>,
 ): WorkspaceFromIOUCreationData | undefined {
     // This flow only works for IOU reports
     if (!iouReport || !ReportUtils.isIOUReportUsingReport(iouReport)) {
@@ -3970,8 +3971,7 @@ function createWorkspaceFromIOUPayment(
     }
 
     // Create the expense chat for the employee whose IOU is being paid
-    // TODO: Update to include reportActionsList later (https://github.com/Expensify/App/issues/66578)
-    const employeeWorkspaceChat = createPolicyExpenseChats(policyID, {[iouReportOwnerEmail]: employeeAccountID}, undefined, true);
+    const employeeWorkspaceChat = createPolicyExpenseChats(policyID, {[iouReportOwnerEmail]: employeeAccountID}, reportActionsList, true);
     const newWorkspace = {
         id: policyID,
 
