@@ -51,7 +51,7 @@ function addPushParamsRouterExtension<RouterOptions extends PlatformStackRouterO
 ) {
     return (options: RouterOptions): Router<PlatformStackNavigationState<ParamListBase>, PushParamsRouterAction> => {
         const router = originalRouter(options);
-        // Cursor into PUSH_PARAMS history — lastIndex is ambiguous for duplicate compounds (A → B → A). Per-router so tests instantiating multiple routers stay isolated.
+        // Cursor into history (lastIndex is ambiguous for duplicate compounds A→B→A). Per-router so tests with multiple instances stay isolated.
         let pushParamsHistoryPosition = -1;
 
         const getInitialState = (configOptions: RouterConfigOptions) => {
@@ -109,7 +109,7 @@ function addPushParamsRouterExtension<RouterOptions extends PlatformStackRouterO
                 if (routeHistoryEntries.length > state.routes.length) {
                     const lastRoute = state.routes.at(-1);
                     if (lastRoute) {
-                        // Cursor-relative, not last-two: mid-cursor GO_BACK (web, after a browser-back RESET) would otherwise leave cursor and state out of sync.
+                        // Cursor-relative, not last-two: after a mid-cursor browser-back RESET, last-two would desync the cursor from state.
                         const history = state.history as CustomHistoryEntry[];
                         const currentIdx = pushParamsHistoryPosition >= 0 && pushParamsHistoryPosition < history.length ? pushParamsHistoryPosition : history.length - 1;
                         const currentEntry = history.at(currentIdx);
@@ -188,7 +188,7 @@ function addPushParamsRouterExtension<RouterOptions extends PlatformStackRouterO
             // PUSH_PARAMS snapshots. Preserve history entries for routes that still exist
             // in the rehydrated state (which may have added routes, e.g. for wide layout).
             if (action.type === CONST.NAVIGATION.ACTION_TYPE.RESET && state.history) {
-                // RESET handles popstate. Only entries at position±1 are adjacent browser nav; non-adjacent jumps are forward URL nav (skip).
+                // Only position±1 is adjacent browser nav; non-adjacent jumps are forward URL nav (skip).
                 const newFocused = rehydratedState.routes.at(-1);
                 if (newFocused?.key) {
                     const history = state.history as CustomHistoryEntry[];

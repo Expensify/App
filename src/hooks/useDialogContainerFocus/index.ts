@@ -6,7 +6,6 @@ import type UseDialogContainerFocus from './types';
 
 const FOCUSABLE_SELECTOR = 'button, [href], input, textarea, select, [role="button"], [role="link"], [tabindex]:not([tabindex="-1"])';
 
-/** @returns true if an element was focused, false otherwise. */
 function focusFirstInteractiveElement(container: HTMLElement | null): boolean {
     if (!getHadTabNavigation() || !container || (document.activeElement && document.activeElement !== document.body)) {
         return false;

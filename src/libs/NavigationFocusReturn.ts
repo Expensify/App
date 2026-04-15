@@ -20,7 +20,7 @@ const LAUNCHER_CLEAR_DELAY_MS = 1000;
 
 let lastInteractiveElement: HTMLElement | null = null;
 let activePopoverLauncher: HTMLElement | null = null;
-// Timer undefined + launcher non-null ≡ popover active; timer set + launcher non-null ≡ popover deactivated, launcher held for deferred-nav consumption.
+// `clearLauncherTimerId === undefined` with a non-null launcher ≡ popover active; with a timer set ≡ deactivated but held for deferred-nav consumption.
 let clearLauncherTimerId: ReturnType<typeof setTimeout> | undefined;
 const triggerMap = new Map<string, HTMLElement>();
 let prevState: NavigationState | undefined;
@@ -79,7 +79,7 @@ function captureTriggerForRoute(routeKey: string): void {
     if (!getHadTabNavigation()) {
         return;
     }
-    // Items inside an active FocusTrapForModal get removed on close; prefer the launcher unless the user has since moved on to a different in-DOM control.
+    // Items inside an active FocusTrap get removed on close; prefer the launcher unless the user has since moved on to another in-DOM control.
     if (activePopoverLauncher && document.contains(activePopoverLauncher)) {
         const popoverClosed = clearLauncherTimerId !== undefined;
         const userMovedOn = popoverClosed && lastInteractiveElement && lastInteractiveElement !== activePopoverLauncher && document.contains(lastInteractiveElement);
@@ -200,8 +200,7 @@ function scheduleRestore(routeKey: string): void {
 
     const attempt = () => {
         // Defer past the transition so useAutoFocusInput and React Navigation's own focus work settle first.
-        // InteractionManager is the idiomatic defer primitive here despite the type-def deprecation.
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        // eslint-disable-next-line @typescript-eslint/no-deprecated -- idiomatic defer primitive despite type-def deprecation.
         imHandle = InteractionManager.runAfterInteractions(() => {
             if (cancelled) {
                 return;
@@ -217,7 +216,6 @@ function scheduleRestore(routeKey: string): void {
                     return;
                 }
                 if (attempts >= MAX_RESTORE_ATTEMPTS) {
-                    // Give up — drop the stale entry.
                     triggerMap.delete(routeKey);
                     pendingRestore = null;
                     return;
@@ -294,6 +292,8 @@ function setupNavigationFocusReturn(): void {
     }
     // addListener is absent pre-mount and in test mocks; NavigationRoot.onReady re-invokes once the container is live.
     if (!stateUnsubscribe && typeof navigationRef?.addListener === 'function') {
+        // Seed so the first transition diffs against a live state, not undefined (which classifies as noop and skips capture).
+        prevState = navigationRef.getRootState() ?? prevState;
         stateUnsubscribe = navigationRef.addListener('state', () => {
             handleStateChange(navigationRef.getRootState());
         });

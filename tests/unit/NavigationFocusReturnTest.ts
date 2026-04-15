@@ -38,8 +38,18 @@ function simulateTab() {
     document.dispatchEvent(new KeyboardEvent('keydown', {key: 'Tab', bubbles: true}));
 }
 
-function simulateKey(key: string) {
-    document.dispatchEvent(new KeyboardEvent('keydown', {key, bubbles: true}));
+function simulateKey(key: string, options: {ctrlKey?: boolean; altKey?: boolean; metaKey?: boolean; altGraph?: boolean} = {}) {
+    const event = new KeyboardEvent('keydown', {
+        key,
+        bubbles: true,
+        ctrlKey: options.ctrlKey,
+        altKey: options.altKey,
+        metaKey: options.metaKey,
+    });
+    if (options.altGraph) {
+        Object.defineProperty(event, 'getModifierState', {value: (mod: string) => mod === 'AltGraph'});
+    }
+    document.dispatchEvent(event);
 }
 
 function simulateMouse() {
@@ -315,6 +325,29 @@ describe('captureTriggerForRoute', () => {
 
             captureTriggerForRoute('route-a');
             expect(restoreTriggerForRoute('route-a')).toBe(false);
+        });
+
+        it('should clear modality on AltGraph printable chars (international layouts)', () => {
+            simulateTab();
+            // AltGr+Q on intl layouts → '@' with ctrlKey+altKey+AltGraph set.
+            simulateKey('@', {ctrlKey: true, altKey: true, altGraph: true});
+            const trigger = appendButton();
+            setLastInteractiveElementForTests(trigger);
+
+            captureTriggerForRoute('route-a');
+            expect(restoreTriggerForRoute('route-a')).toBe(false);
+        });
+
+        it('should preserve modality for non-AltGraph Cmd/Ctrl shortcuts', () => {
+            simulateTab();
+            simulateKey('k', {metaKey: true});
+            const trigger = appendButton();
+            trigger.focus();
+            setLastInteractiveElementForTests(trigger);
+
+            captureTriggerForRoute('route-a');
+            trigger.blur();
+            expect(restoreTriggerForRoute('route-a')).toBe(true);
         });
     });
 
@@ -947,5 +980,36 @@ describe('teardown / setup lifecycle', () => {
         captureTriggerForRoute('route-a');
         button.blur();
         expect(restoreTriggerForRoute('route-a')).toBe(true);
+    });
+
+    it('should seed prevState from navigationRef so the first transition is not misclassified as noop', () => {
+        // eslint-disable-next-line @typescript-eslint/no-require-imports, import/extensions
+        const navigationRefModule = require<{default: {getRootState: () => unknown}}>('../../src/libs/Navigation/navigationRef.ts');
+        const navigationRef = navigationRefModule.default;
+        const originalGetRootState = navigationRef.getRootState.bind(navigationRef);
+        const initialState = stackState(0, [{key: 'home', name: 'Home'}]);
+        navigationRef.getRootState = () => initialState;
+        try {
+            teardownNavigationFocusReturn();
+            resetForTests();
+            setupNavigationFocusReturn();
+
+            // Without the seed, prevState=undefined would make this forward transition classify as noop and skip capture.
+            simulateTab();
+            const trigger = appendButton();
+            trigger.focus();
+            setLastInteractiveElementForTests(trigger);
+            handleStateChange(
+                stackState(1, [
+                    {key: 'home', name: 'Home'},
+                    {key: 'settings', name: 'Settings'},
+                ]),
+            );
+
+            trigger.blur();
+            expect(restoreTriggerForRoute('home')).toBe(true);
+        } finally {
+            navigationRef.getRootState = originalGetRootState;
+        }
     });
 });

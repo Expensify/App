@@ -16,8 +16,9 @@ function setup(): void {
             hadTabNavigation = true;
             return;
         }
-        // Modifier-key shortcuts (Cmd/Ctrl/Alt + key) are navigation, not typing — preserve modality.
-        if (e.ctrlKey || e.metaKey || e.altKey) {
+        // Modifier-key shortcuts (Cmd/Ctrl/Alt + key) preserve modality. Exclude AltGraph (ctrl+alt on Windows/Linux) which produces printable chars on international layouts.
+        const isAltGraph = typeof e.getModifierState === 'function' && e.getModifierState('AltGraph');
+        if (!isAltGraph && (e.ctrlKey || e.metaKey || e.altKey)) {
             return;
         }
         // Printable chars (not space) + Backspace/Delete clear; everything else preserves.
