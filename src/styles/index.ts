@@ -5497,6 +5497,7 @@ const staticStyles = (theme: ThemeColors) =>
             gap: 4,
             marginTop: 4,
             marginBottom: 4,
+            paddingRight: 12,
         },
 
         userPill: {
@@ -5507,6 +5508,7 @@ const staticStyles = (theme: ThemeColors) =>
             borderWidth: 1,
             borderColor: theme.border,
             borderRadius: variables.componentBorderRadiusLarge,
+            maxWidth: 260,
         },
 
         userPillStandalone: {
