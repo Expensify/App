@@ -889,7 +889,7 @@ function rejectMoneyRequest(
     return urlToNavigateBack;
 }
 
-function markRejectViolationAsResolved(transactionID: string, reportID?: string) {
+function markRejectViolationAsResolved(transactionID: string, isOffline: boolean, reportID?: string) {
     if (!reportID) {
         return;
     }
@@ -957,7 +957,7 @@ function markRejectViolationAsResolved(transactionID: string, reportID?: string)
         failureData,
     });
 
-    const currentReportID = getDisplayedReportID(reportID);
+    const currentReportID = getDisplayedReportID(reportID, isOffline);
     notifyNewAction(currentReportID, undefined, true);
 }
 

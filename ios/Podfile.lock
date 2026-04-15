@@ -308,12 +308,33 @@ PODS:
     - GoogleUtilities/Logger
     - GoogleUtilities/Privacy
   - group-ib-fp (2.6.0):
+    - boost
+    - DoubleConversion
+    - fast_float
+    - fmt
+    - glog
+    - hermes-engine
     - RCT-Folly
+    - RCT-Folly/Fabric
     - RCTRequired
     - RCTTypeSafety
-    - React-Codegen
     - React-Core
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-ImageManager
+    - React-jsi
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-renderercss
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
+    - SocketRocket
+    - Yoga
   - GTMAppAuth (4.1.1):
     - AppAuth/Core (~> 1.7)
     - GTMSessionFetcher/Core (< 4.0, >= 3.3)
@@ -467,7 +488,6 @@ PODS:
     - React-RCTText (= 0.83.1)
     - React-RCTVibration (= 0.83.1)
   - React-callinvoker (0.83.1)
-  - React-Codegen (0.1.0)
   - React-Core (0.83.1):
     - boost
     - DoubleConversion
@@ -4266,7 +4286,7 @@ DEPENDENCIES:
   - fast_float (from `../node_modules/react-native/third-party-podspecs/fast_float.podspec`)
   - FBLazyVector (from `../node_modules/react-native/Libraries/FBLazyVector`)
   - fmt (from `../node_modules/react-native/third-party-podspecs/fmt.podspec`)
-  - "FullStory (from `{http: \"https://ios-releases.fullstory.com/fullstory-1.68.3-xcframework.tar.gz\"}`)"
+  - "FullStory (from `{:http=>\"https://ios-releases.fullstory.com/fullstory-1.68.3-xcframework.tar.gz\"}`)"
   - "fullstory_react-native (from `../node_modules/@fullstory/react-native`)"
   - glog (from `../node_modules/react-native/third-party-podspecs/glog.podspec`)
   - group-ib-fp (from `../node_modules/group-ib-fp`)
@@ -4427,7 +4447,6 @@ SPEC REPOS:
     - Plaid
     - PromisesObjC
     - PusherSwift
-    - React-Codegen
     - SDWebImage
     - SDWebImageAVIFCoder
     - SDWebImageSVGCoder
@@ -4784,11 +4803,11 @@ SPEC CHECKSUMS:
   GoogleAppMeasurement: 0dfca1a4b534d123de3945e28f77869d10d0d600
   GoogleSignIn: d4281ab6cf21542b1cfaff85c191f230b399d2db
   GoogleUtilities: 00c88b9a86066ef77f0da2fab05f65d7768ed8e1
-  group-ib-fp: 03efaa63a9996535431452a213ed5c7642576c55
+  group-ib-fp: 42bc98218d2b4b18eac9a2dd0156a3074e0df082
   GTMAppAuth: f69bd07d68cd3b766125f7e072c45d7340dea0de
   GTMSessionFetcher: 5aea5ba6bd522a239e236100971f10cb71b96ab6
   GzipSwift: 893f3e48e597a1a4f62fafcb6514220fcf8287fa
-  hermes-engine: 0711ccb14bd615969ef611bc6c2483ea2ed3b09e
+  hermes-engine: 5125891942d0cdeca799d3a5a1bb5e766a783790
   libavif: 84bbb62fb232c3018d6f1bab79beea87e35de7b7
   libdav1d: 23581a4d8ec811ff171ed5e2e05cd27bad64c39f
   libwebp: 02b23773aedb6ff1fd38cec7a77b81414c6842a8
@@ -4815,7 +4834,6 @@ SPEC CHECKSUMS:
   RCTTypeSafety: 27927d0ca04e419ed9467578b3e6297e37210b5c
   React: 4bc1f928568ad4bcfd147260f907b4ea5873a03b
   React-callinvoker: 87f8728235a0dc62e9dc19b3851c829d9347d015
-  React-Codegen: 4b8b4817cea7a54b83851d4c1f91f79aa73de30a
   React-Core: 76bed73b02821e5630e7f2cb2e82432ee964695d
   React-CoreModules: 752dbfdaeb096658aa0adc4a03ba6214815a08df
   React-cxxreact: b6798528aa601c6db66e6adc7e2da2b059c8be74

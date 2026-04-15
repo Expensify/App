@@ -8,6 +8,7 @@ import type {MergeExclusive} from 'type-fest';
 import Icon from '@components/Icon';
 import Lottie from '@components/Lottie';
 import type DotLottieAnimation from '@components/LottieAnimations/types';
+import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -128,8 +129,9 @@ function BlockingView({
     useAbsentPageSpan();
 
     return (
-        <View
-            style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter, styles.ph10, containerStyle]}
+        <ScrollView
+            style={[styles.flex1]}
+            contentContainerStyle={[styles.flexGrow1, styles.alignItemsCenter, styles.justifyContentCenter, styles.ph10, containerStyle]}
             accessibilityLabel={accessibilityLabel}
             testID={testID}
         >
@@ -176,7 +178,7 @@ function BlockingView({
                     </SubtitleWrapper>
                 )}
             </View>
-        </View>
+        </ScrollView>
     );
 }
 
