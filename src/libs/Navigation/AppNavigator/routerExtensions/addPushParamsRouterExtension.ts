@@ -109,7 +109,7 @@ function addPushParamsRouterExtension<RouterOptions extends PlatformStackRouterO
                 if (routeHistoryEntries.length > state.routes.length) {
                     const lastRoute = state.routes.at(-1);
                     if (lastRoute) {
-                        // Cursor-relative, not last-two: after a mid-cursor browser-back RESET, last-two would desync the cursor from state.
+                        // Cursor-relative, not last-two: after a mid-cursor browser-back RESET, last-two would leave the cursor out of sync with state.
                         const history = state.history as CustomHistoryEntry[];
                         const currentIdx = pushParamsHistoryPosition >= 0 && pushParamsHistoryPosition < history.length ? pushParamsHistoryPosition : history.length - 1;
                         const currentEntry = history.at(currentIdx);
