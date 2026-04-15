@@ -2049,7 +2049,16 @@ const translations: TranslationDeepObject<typeof en> = {
         accountSettings: '账户设置',
         account: '账户',
         general: '常规',
-        helpPage: {title: '帮助与支持', description: '我们全天候 24/7 为您提供帮助', helpSite: '帮助网站', conciergeChat: 'Concierge', conciergeChatDescription: '你的个人 AI 助理'},
+        helpPage: {
+            title: '帮助与支持',
+            description: '我们全天候 24/7 为您提供帮助',
+            helpSite: '帮助网站',
+            conciergeChat: 'Concierge',
+            conciergeChatDescription: '你的个人 AI 助理',
+            accountManagerDescription: '您的客户经理',
+            partnerManagerDescription: '您的合作伙伴经理',
+            guideDescription: '您的设置专员',
+        },
     },
     closeAccountPage: {
         closeAccount: '关闭账户',
