@@ -264,7 +264,8 @@ function getOnboardingAdaptedState(state: PartialState<NavigationState>): Partia
         !onboardingRoute ||
         onboardingRoute.name === SCREENS.ONBOARDING.DYNAMIC_PURPOSE ||
         onboardingRoute.name === SCREENS.ONBOARDING.DYNAMIC_WORK_EMAIL ||
-        onboardingRoute.name === SCREENS.ONBOARDING.DYNAMIC_WORK_EMAIL_VALIDATION
+        onboardingRoute.name === SCREENS.ONBOARDING.DYNAMIC_WORK_EMAIL_VALIDATION ||
+        onboardingRoute.name === SCREENS.ONBOARDING.DYNAMIC_WORKSPACE_OPTIONAL
     ) {
         return state;
     }

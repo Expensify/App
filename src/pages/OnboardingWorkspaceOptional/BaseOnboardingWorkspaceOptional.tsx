@@ -62,7 +62,7 @@ function BaseOnboardingWorkspaceOptional({shouldUseNativeStyles}: BaseOnboarding
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const {isRestrictedPolicyCreation} = usePreferredPolicy();
-    const onboardingStep = useOnboardingStepCounter(SCREENS.ONBOARDING.WORKSPACE_OPTIONAL);
+    const onboardingStep = useOnboardingStepCounter(SCREENS.ONBOARDING.DYNAMIC_WORKSPACE_OPTIONAL);
     // When we merge public email with work email, we now want to navigate to the
     // concierge chat report of the new work email and not the last accessed report.
     const mergedAccountConciergeReportID = !onboardingValues?.shouldRedirectToClassicAfterMerge && onboardingValues?.shouldValidate ? conciergeChatReportID : undefined;

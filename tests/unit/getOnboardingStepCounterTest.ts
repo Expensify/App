@@ -24,11 +24,11 @@ describe('getOnboardingFlow', () => {
         ]);
     });
 
-    it('returns [PURPOSE, PERSONAL_DETAILS, WORKSPACE_OPTIONAL] for individual + PERSONAL_SPEND', () => {
+    it('returns [PURPOSE, PERSONAL_DETAILS, DYNAMIC_WORKSPACE_OPTIONAL] for individual + PERSONAL_SPEND', () => {
         expect(getOnboardingFlow({signupQualifier: 'individual', purposeSelected: ONBOARDING_CHOICES.PERSONAL_SPEND})).toEqual([
             O.DYNAMIC_PURPOSE,
             O.DYNAMIC_PERSONAL_DETAILS,
-            O.WORKSPACE_OPTIONAL,
+            O.DYNAMIC_WORKSPACE_OPTIONAL,
         ]);
     });
 
@@ -76,7 +76,7 @@ describe('getOnboardingFlow', () => {
             O.DYNAMIC_WORK_EMAIL_VALIDATION,
             O.DYNAMIC_PURPOSE,
             O.DYNAMIC_PERSONAL_DETAILS,
-            O.WORKSPACE_OPTIONAL,
+            O.DYNAMIC_WORKSPACE_OPTIONAL,
         ]);
     });
 
@@ -118,7 +118,7 @@ describe('getOnboardingFlow', () => {
             O.DYNAMIC_WORKSPACES,
             O.DYNAMIC_PURPOSE,
             O.DYNAMIC_PERSONAL_DETAILS,
-            O.WORKSPACE_OPTIONAL,
+            O.DYNAMIC_WORKSPACE_OPTIONAL,
         ]);
     });
 
@@ -127,7 +127,7 @@ describe('getOnboardingFlow', () => {
             O.DYNAMIC_WORK_EMAIL,
             O.DYNAMIC_PURPOSE,
             O.DYNAMIC_PERSONAL_DETAILS,
-            O.WORKSPACE_OPTIONAL,
+            O.DYNAMIC_WORKSPACE_OPTIONAL,
         ]);
     });
 
@@ -180,7 +180,7 @@ describe('getOnboardingFlow', () => {
             O.DYNAMIC_PRIVATE_DOMAIN,
             O.DYNAMIC_WORKSPACES,
             O.DYNAMIC_PURPOSE,
-            O.WORKSPACE_OPTIONAL,
+            O.DYNAMIC_WORKSPACE_OPTIONAL,
         ]);
     });
 
@@ -220,7 +220,7 @@ describe('getOnboardingStepCounter', () => {
         const ctx: OnboardingFlowContext = {signupQualifier: 'individual', purposeSelected: ONBOARDING_CHOICES.PERSONAL_SPEND};
         expect(getOnboardingStepCounter(O.DYNAMIC_PURPOSE, ctx)).toEqual({stepCounter: {step: 1, total: 3}, progressBarPercentage: 33});
         expect(getOnboardingStepCounter(O.DYNAMIC_PERSONAL_DETAILS, ctx)).toEqual({stepCounter: {step: 2, total: 3}, progressBarPercentage: 67});
-        expect(getOnboardingStepCounter(O.WORKSPACE_OPTIONAL, ctx)).toEqual({stepCounter: {step: 3, total: 3}, progressBarPercentage: 100});
+        expect(getOnboardingStepCounter(O.DYNAMIC_WORKSPACE_OPTIONAL, ctx)).toEqual({stepCounter: {step: 3, total: 3}, progressBarPercentage: 100});
     });
 
     it('returns correct step/total/percentage for individual + other purpose', () => {
@@ -264,7 +264,7 @@ describe('getOnboardingStepCounter', () => {
         expect(getOnboardingStepCounter(O.DYNAMIC_WORK_EMAIL, ctx)).toEqual({stepCounter: {step: 1, total: 4}, progressBarPercentage: 25});
         expect(getOnboardingStepCounter(O.DYNAMIC_PURPOSE, ctx)).toEqual({stepCounter: {step: 2, total: 4}, progressBarPercentage: 50});
         expect(getOnboardingStepCounter(O.DYNAMIC_PERSONAL_DETAILS, ctx)).toEqual({stepCounter: {step: 3, total: 4}, progressBarPercentage: 75});
-        expect(getOnboardingStepCounter(O.WORKSPACE_OPTIONAL, ctx)).toEqual({stepCounter: {step: 4, total: 4}, progressBarPercentage: 100});
+        expect(getOnboardingStepCounter(O.DYNAMIC_WORKSPACE_OPTIONAL, ctx)).toEqual({stepCounter: {step: 4, total: 4}, progressBarPercentage: 100});
     });
 
     it('returns correct step/total/percentage for private domain + individual + MANAGE_TEAM (7-step flow)', () => {
@@ -283,9 +283,9 @@ describe('getOnboardingStepCounter', () => {
             {label: 'WORKSPACE_CONFIRMATION', page: O.WORKSPACE_CONFIRMATION},
             {label: 'WORKSPACE_CURRENCY', page: O.WORKSPACE_CURRENCY},
             {label: 'WORKSPACE_INVITE', page: O.WORKSPACE_INVITE},
-        ])('$label maps to the same step as WORKSPACE_OPTIONAL', ({page}) => {
+        ])('$label maps to the same step as DYNAMIC_WORKSPACE_OPTIONAL', ({page}) => {
             const ctx: OnboardingFlowContext = {signupQualifier: 'individual', purposeSelected: ONBOARDING_CHOICES.PERSONAL_SPEND};
-            expect(getOnboardingStepCounter(page, ctx)).toEqual(getOnboardingStepCounter(O.WORKSPACE_OPTIONAL, ctx));
+            expect(getOnboardingStepCounter(page, ctx)).toEqual(getOnboardingStepCounter(O.DYNAMIC_WORKSPACE_OPTIONAL, ctx));
         });
 
         it('PRIVATE_DOMAIN resolves to DYNAMIC_WORK_EMAIL_VALIDATION step in public domain flows', () => {

@@ -161,7 +161,7 @@ function OnboardingModalNavigator() {
                                 component={OnboardingInterestedFeatures}
                             />
                             <Stack.Screen
-                                name={SCREENS.ONBOARDING.WORKSPACE_OPTIONAL}
+                                name={SCREENS.ONBOARDING.DYNAMIC_WORKSPACE_OPTIONAL}
                                 component={OnboardingWorkspaceOptional}
                             />
                             <Stack.Screen

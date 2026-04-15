@@ -113,8 +113,8 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                     path: DYNAMIC_ROUTES.ONBOARDING_WORKSPACES.path,
                     exact: true,
                 },
-                [SCREENS.ONBOARDING.WORKSPACE_OPTIONAL]: {
-                    path: ROUTES.ONBOARDING_WORKSPACE.route,
+                [SCREENS.ONBOARDING.DYNAMIC_WORKSPACE_OPTIONAL]: {
+                    path: DYNAMIC_ROUTES.ONBOARDING_WORKSPACE.path,
                     exact: true,
                 },
                 [SCREENS.ONBOARDING.WORKSPACE_CONFIRMATION]: {

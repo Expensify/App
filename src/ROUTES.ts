@@ -228,6 +228,10 @@ const DYNAMIC_ROUTES = {
         path: 'private-domain',
         entryScreens: [SCREENS.ONBOARDING.DYNAMIC_PERSONAL_DETAILS, SCREENS.ONBOARDING.DYNAMIC_WORK_EMAIL],
     },
+    ONBOARDING_WORKSPACE: {
+        path: 'create-workspace',
+        entryScreens: [SCREENS.ONBOARDING.DYNAMIC_PERSONAL_DETAILS],
+    },
     ONBOARDING_WORKSPACES: {
         path: 'join-workspaces',
         entryScreens: [SCREENS.ONBOARDING.DYNAMIC_PERSONAL_DETAILS, SCREENS.ONBOARDING.DYNAMIC_PRIVATE_DOMAIN, SCREENS.ONBOARDING.DYNAMIC_WORK_EMAIL_VALIDATION],
@@ -3239,12 +3243,6 @@ const ROUTES = {
 
         // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
         getRoute: (backTo?: string) => getUrlWithBackToParam(`onboarding`, backTo),
-    },
-    ONBOARDING_WORKSPACE: {
-        route: 'onboarding/create-workspace',
-
-        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-        getRoute: (backTo?: string) => getUrlWithBackToParam(`onboarding/create-workspace`, backTo),
     },
     ONBOARDING_WORKSPACE_CONFIRMATION: {
         route: 'onboarding/workspace-confirmation',

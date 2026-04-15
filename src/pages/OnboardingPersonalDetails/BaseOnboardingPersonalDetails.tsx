@@ -33,7 +33,7 @@ import {completeOnboarding as completeOnboardingReport} from '@userActions/Repor
 import {setOnboardingAdminsChatReportID, setOnboardingErrorMessage, setOnboardingPolicyID} from '@userActions/Welcome';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/DisplayNameForm';
 import type {BaseOnboardingPersonalDetailsProps} from './types';
@@ -152,7 +152,7 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
 
             if (onboardingPurposeSelected === CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE) {
                 updateDisplayName(firstName, lastName, formatPhoneNumber, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, session?.email ?? '');
-                Navigation.navigate(ROUTES.ONBOARDING_WORKSPACE.getRoute(route.params?.backTo));
+                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.ONBOARDING_WORKSPACE.path));
                 return;
             }
 

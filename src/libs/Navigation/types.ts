@@ -2813,6 +2813,7 @@ type OnboardingModalNavigatorParamList = {
     [SCREENS.ONBOARDING.DYNAMIC_WORK_EMAIL]: undefined;
     [SCREENS.ONBOARDING.DYNAMIC_WORKSPACES]: undefined;
     [SCREENS.ONBOARDING.DYNAMIC_WORK_EMAIL_VALIDATION]: undefined;
+    [SCREENS.ONBOARDING.DYNAMIC_WORKSPACE_OPTIONAL]: undefined;
     [SCREENS.ONBOARDING.DYNAMIC_PURPOSE]: {
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
         backTo?: string;
@@ -2820,10 +2821,6 @@ type OnboardingModalNavigatorParamList = {
     [SCREENS.ONBOARDING.DYNAMIC_EMPLOYEES]: undefined;
     [SCREENS.ONBOARDING.DYNAMIC_ACCOUNTING]: undefined;
     [SCREENS.ONBOARDING.DYNAMIC_INTERESTED_FEATURES]: undefined;
-    [SCREENS.ONBOARDING.WORKSPACE_OPTIONAL]: {
-        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
-        backTo?: string;
-    };
     [SCREENS.ONBOARDING.WORKSPACE_CONFIRMATION]: {
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
         backTo?: string;
