@@ -7,7 +7,6 @@ import type {ValueOf} from 'type-fest';
 import type {ButtonWithDropdownMenuRef} from '@components/ButtonWithDropdownMenu/types';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import {KYCWallContext} from '@components/KYCWall/KYCWallContext';
-import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
 import MoneyReportHeaderKYCDropdown from '@components/MoneyReportHeaderKYCDropdown';
 import {useMoneyReportHeaderModals} from '@components/MoneyReportHeaderModalsContext';
 import {usePaymentAnimationsContext} from '@components/PaymentAnimationsContext';
@@ -120,8 +119,6 @@ function MoneyReportHeaderSecondaryActions({reportID, primaryAction, isReportInS
 
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
-    const {isAccountLocked} = useLockedAccountState();
-    const {showLockedAccountModal} = useLockedAccountActions();
     const {currentSearchQueryJSON, currentSearchKey, currentSearchResults} = useSearchStateContext();
     const shouldCalculateTotals = useSearchShouldCalculateTotals(currentSearchKey, currentSearchQueryJSON?.hash, true);
 
@@ -354,10 +351,6 @@ function MoneyReportHeaderSecondaryActions({reportID, primaryAction, isReportInS
     const hasViolations = hasViolationsReportUtils(moneyRequestReport?.reportID, allTransactionViolations, accountID, email ?? '');
 
     const onPaymentSelect = (event: KYCFlowEvent, iouPaymentType: PaymentMethodType, triggerKYCFlow: TriggerKYCFlow) => {
-        if (isAccountLocked) {
-            showLockedAccountModal();
-            return;
-        }
         selectPaymentType({
             event,
             iouPaymentType,
