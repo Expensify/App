@@ -50,9 +50,6 @@ function createMockPlayer(): VideoPlayer {
         get isPlaying() {
             return _isPlaying;
         },
-        get playing() {
-            return _isPlaying;
-        },
         get isMuted() {
             return _isMuted;
         },
