@@ -4,43 +4,55 @@
 
 [React Compiler](https://react.dev/learn/react-compiler) is a tool designed to enhance the performance of React applications by automatically memoizing components that lack optimizations.
 
-At Expensify, we are early adopters of this tool and aim to fully leverage its capabilities.
+React Compiler is enabled in both the webpack (web) and metro (mobile) build pipelines via `babel-plugin-react-compiler`.
 
-## React Compiler compliance checker
+## React Compiler CI check
 
-We provide a script, `scripts/react-compiler-compliance-check.ts`, which checks whether React components and hooks compile with React Compiler. It runs in CI on every PR and can also be used locally for quick feedback.
+A CI check runs on every PR that modifies `.ts` or `.tsx` files. It uses `@babel/core`'s `transformSync` with `babel-plugin-react-compiler` to check whether each changed file's components and hooks compile successfully.
 
-### How it works
+### What the CI check enforces
 
-The script uses `@babel/core`'s `transformSync` with `babel-plugin-react-compiler` directly (no intermediate tools). For each file, the compiler reports whether components/hooks compiled successfully, failed, or weren't found. This produces a three-state result per file: `COMPILED`, `FAILED`, or `SKIPPED` (no components/hooks).
+The check enforces two rules:
 
-### CI enforcement (two rules)
+1. **New files must compile.** If you add a new file containing React components or hooks, they must all compile with React Compiler. This prevents new Rules of React violations from entering the codebase.
+2. **No regressions.** If a file already compiles on `main` and your PR breaks that, the check fails. This prevents introducing violations into files that were previously compliant.
 
-The CI check (`check-changed`) enforces two rules on changed `.ts` and `.tsx` files:
+The check does **not** fail if:
+- A file has no React components or hooks (utilities, types, constants are silently skipped)
+- A file was already failing to compile on `main` and still fails on your branch (not a regression)
 
-1. **New files**: If a new file contains components or hooks that fail to compile, the check fails.
-2. **Modified files**: If a file compiled successfully on `main` but fails on the PR branch, the check fails (regression).
+### What to do when the check fails
 
-Files with no React components or hooks are silently skipped.
+The CI output shows which files failed, with the compiler error reason, file path, and line number for each failure. Look for lines like:
 
-### Usage
-
-#### Check specific files
-
-```bash
-npm run react-compiler-compliance-check check src/components/Foo.tsx src/hooks/useBar.ts
+```
+FAILED   src/components/MyComponent.tsx (new file must compile)
+    src/components/MyComponent.tsx:42:8: Hooks must always be called in a consistent order...
 ```
 
-#### Check changed files (CI mode, also works locally)
+The error messages come directly from React Compiler and describe which [Rule of React](https://react.dev/reference/rules) was violated. See the ["How to fix a particular problem?"](#how-to-fix-a-particular-problem) section below for common fixes.
+
+### Local usage
+
+You can run the same check locally before pushing:
 
 ```bash
+# Check specific files, directories, or glob patterns
+npm run react-compiler-compliance-check check src/components/Foo.tsx
+npm run react-compiler-compliance-check check src/components/
+npm run react-compiler-compliance-check check "src/hooks/**/*.ts"
+
+# Check only files changed relative to main (same as CI)
 npm run react-compiler-compliance-check check-changed
+
+# Show detailed output including files that compiled or were skipped
+npm run react-compiler-compliance-check check --verbose src/components/
 ```
 
 #### Flags
 
-- `--verbose` — Show detailed output including skipped files and files that compiled successfully.
-- `--remote <name>` — Git remote name for the base branch (default: `origin`).
+- `--verbose` -- Show detailed output including skipped files and files that compiled successfully.
+- `--remote <name>` -- Git remote name for the base branch (default: `origin`).
 
 ## How to fix a particular problem?
 
