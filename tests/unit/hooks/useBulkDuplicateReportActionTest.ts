@@ -327,7 +327,7 @@ describe('useBulkDuplicateReportAction', () => {
         );
     });
 
-    it('should pass empty allReports when allReports is undefined', async () => {
+    it('should not call bulkDuplicateReports when allReports is undefined', async () => {
         const policyID = 'policy1';
         mockDefaultExpensePolicy = {id: policyID, type: CONST.POLICY.TYPE.TEAM, name: 'Test WS'} as Policy;
 
@@ -341,10 +341,6 @@ describe('useBulkDuplicateReportAction', () => {
 
         result.current();
 
-        expect(bulkDuplicateReports).toHaveBeenCalledWith(
-            expect.objectContaining({
-                allReports: {},
-            }),
-        );
+        expect(bulkDuplicateReports).not.toHaveBeenCalled();
     });
 });
