@@ -92,17 +92,18 @@ function usePaginatedReportActions(reportID: string | undefined, reportActionID?
 
     const linkedAction = useMemo(() => (reportActionID ? resourceItem?.item : undefined), [resourceItem?.item, reportActionID]);
 
-    const oldestUnreadReportAction = useMemo(() => {
+    const [oldestUnreadReportAction, oldestUnreadReportActionIndex] = useMemo(() => {
         if (shouldLinkToOldestUnreadReportAction && resourceItem && !reportActionID) {
-            return resourceItem.item;
+            return [resourceItem.item, resourceItem.index];
         }
-        return undefined;
+        return [undefined, -1];
     }, [resourceItem, shouldLinkToOldestUnreadReportAction, reportActionID]);
 
     return {
         reportActions,
         linkedAction,
         oldestUnreadReportAction,
+        oldestUnreadReportActionIndex,
         sortedAllReportActions,
         hasOlderActions: hasNextPage,
         hasNewerActions: hasPreviousPage,

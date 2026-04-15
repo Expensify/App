@@ -113,6 +113,12 @@ type ReportActionsListProps = {
     /** Whether the report has newer actions to load */
     hasNewerActions: boolean;
 
+    /** The oldest unread report action */
+    oldestUnreadReportAction: OnyxEntry<OnyxTypes.ReportAction> | undefined;
+
+    /** The index of the oldest unread report action */
+    oldestUnreadReportActionIndex: number;
+
     /** Full sorted report actions for collapsing stale pagination after a live-tail jump */
     sortedAllReportActionsForPagination: OnyxTypes.ReportAction[];
 
@@ -180,6 +186,8 @@ function ReportActionsList({
     loadNewerChats,
     loadOlderChats,
     hasNewerActions,
+    oldestUnreadReportAction,
+    oldestUnreadReportActionIndex,
     sortedAllReportActionsForPagination,
     reportActionPages,
     treatAsNoPaginationAnchor,
@@ -303,21 +311,41 @@ function ReportActionsList({
         return receivedOfflineMessages.at(-1);
     }, [getLocalDateFromDatetime, isOffline, lastOfflineAt, lastOnlineAt, sortedReportActions]);
 
+    const oldestUnreadReportActionMarker = useMemo<[string, number] | undefined>(
+        () => (!!oldestUnreadReportAction && !!oldestUnreadReportActionIndex ? [oldestUnreadReportAction.reportActionID, oldestUnreadReportActionIndex] : undefined),
+        [oldestUnreadReportAction, oldestUnreadReportActionIndex],
+    );
+
     /**
      * The reportActionID the unread marker should display above
      */
-    const [unreadMarkerReportActionID, unreadMarkerReportActionIndex] = getUnreadMarkerReportAction({
-        visibleReportActions: sortedVisibleReportActions,
-        earliestReceivedOfflineMessageIndex,
-        currentUserAccountID,
-        prevSortedVisibleReportActionsObjects,
-        unreadMarkerTime,
-        scrollingVerticalOffset: scrollOffsetRef.current,
-        prevUnreadMarkerReportActionID: prevUnreadMarkerReportActionID.current,
-        isOffline,
-        isReversed: false,
-        isAnonymousUser,
-    });
+    const [unreadMarkerReportActionID, unreadMarkerReportActionIndex] = useMemo(
+        () =>
+            oldestUnreadReportActionMarker ??
+            getUnreadMarkerReportAction({
+                visibleReportActions: sortedVisibleReportActions,
+                earliestReceivedOfflineMessageIndex,
+                currentUserAccountID,
+                prevSortedVisibleReportActionsObjects,
+                unreadMarkerTime,
+                scrollingVerticalOffset: scrollOffsetRef.current,
+                prevUnreadMarkerReportActionID: prevUnreadMarkerReportActionID.current,
+                isOffline,
+                isReversed: false,
+                isAnonymousUser,
+            }),
+        [
+            currentUserAccountID,
+            earliestReceivedOfflineMessageIndex,
+            isAnonymousUser,
+            isOffline,
+            oldestUnreadReportActionMarker,
+            prevSortedVisibleReportActionsObjects,
+            scrollOffsetRef,
+            sortedVisibleReportActions,
+            unreadMarkerTime,
+        ],
+    );
     prevUnreadMarkerReportActionID.current = unreadMarkerReportActionID;
 
     /**

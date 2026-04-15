@@ -90,6 +90,7 @@ function ReportActionsView({reportID, onLayout}: ReportActionsViewProps) {
         hasOlderActions,
         sortedAllReportActions,
         oldestUnreadReportAction,
+        oldestUnreadReportActionIndex,
         linkedAction,
     } = usePaginatedReportActions(reportID, reportActionIDFromRoute, {
         shouldLinkToOldestUnreadReportAction: true,
@@ -449,6 +450,8 @@ function ReportActionsView({reportID, onLayout}: ReportActionsViewProps) {
                 loadOlderChats={loadOlderChats}
                 loadNewerChats={loadNewerChats}
                 hasNewerActions={hasNewerActions}
+                oldestUnreadReportAction={oldestUnreadReportAction}
+                oldestUnreadReportActionIndex={oldestUnreadReportActionIndex}
                 sortedAllReportActionsForPagination={sortedAllReportActions ?? []}
                 reportActionPages={reportActionPages}
                 treatAsNoPaginationAnchor={treatAsNoPaginationAnchor}
