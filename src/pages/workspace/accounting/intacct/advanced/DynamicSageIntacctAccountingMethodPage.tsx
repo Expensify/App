@@ -7,6 +7,7 @@ import type {ListItem} from '@components/SelectionList/types';
 import SelectionScreen from '@components/SelectionScreen';
 import type {SelectorType} from '@components/SelectionScreen';
 import Text from '@components/Text';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updateSageIntacctAccountingMethod} from '@libs/actions/connections/SageIntacct';
@@ -15,24 +16,24 @@ import {settingsPendingAction} from '@libs/PolicyUtils';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import CONST from '@src/CONST';
-import type {TranslationPaths} from '@src/languages/types';
-import ROUTES from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 
 type MenuListItem = ListItem & {
     value: ValueOf<typeof COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD>;
 };
 
-function SageIntacctAccountingMethodPage({policy}: WithPolicyConnectionsProps) {
+function DynamicSageIntacctAccountingMethodPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
     const policyID = policy?.id;
     const styles = useThemeStyles();
     const config = policy?.connections?.intacct?.config;
     const accountingMethod = config?.export?.accountingMethod ?? COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH;
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_ACCOUNTING_METHOD.path);
 
     const data: MenuListItem[] = Object.values(COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD).map((accountingMethodType) => ({
         value: accountingMethodType,
-        text: translate(`workspace.sageIntacct.accountingMethods.values.${accountingMethodType}` as TranslationPaths),
-        alternateText: translate(`workspace.sageIntacct.accountingMethods.alternateText.${accountingMethodType}` as TranslationPaths),
+        text: translate(`workspace.sageIntacct.accountingMethods.values.${accountingMethodType}` as const),
+        alternateText: translate(`workspace.sageIntacct.accountingMethods.alternateText.${accountingMethodType}` as const),
         keyForList: `${accountingMethodType}`,
         isSelected: accountingMethod === accountingMethodType,
     }));
@@ -49,19 +50,23 @@ function SageIntacctAccountingMethodPage({policy}: WithPolicyConnectionsProps) {
         [translate, styles.pb5, styles.ph5],
     );
 
+    const goBack = useCallback(() => {
+        Navigation.goBack(backPath);
+    }, [backPath]);
+
     const selectExpenseReportApprovalLevel = useCallback(
         (row: MenuListItem) => {
             if (row.value !== accountingMethod) {
                 updateSageIntacctAccountingMethod(policyID, row.value, accountingMethod);
             }
-            Navigation.goBack(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_AUTO_SYNC.getRoute(policyID));
+            goBack();
         },
-        [accountingMethod, policyID],
+        [accountingMethod, policyID, goBack],
     );
 
     return (
         <SelectionScreen
-            displayName="SageIntacctAccountingMethodPage"
+            displayName="DynamicSageIntacctAccountingMethodPage"
             headerTitleAlreadyTranslated={translate('workspace.sageIntacct.accountingMethods.label')}
             headerContent={headerContent}
             data={data}
@@ -71,7 +76,7 @@ function SageIntacctAccountingMethodPage({policy}: WithPolicyConnectionsProps) {
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
-            onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_AUTO_SYNC.getRoute(policyID))}
+            onBackButtonPress={goBack}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT}
             pendingAction={pendingAction}
             shouldBeBlocked={!config?.autoSync?.enabled}
@@ -79,4 +84,4 @@ function SageIntacctAccountingMethodPage({policy}: WithPolicyConnectionsProps) {
     );
 }
 
-export default withPolicyConnections(SageIntacctAccountingMethodPage);
+export default withPolicyConnections(DynamicSageIntacctAccountingMethodPage);
