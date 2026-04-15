@@ -1,6 +1,6 @@
 import type {ImageContentFit} from 'expo-image';
 import type {ReactElement, ReactNode, Ref} from 'react';
-import React, {useMemo, useRef} from 'react';
+import React, {createContext, useContext, useMemo, useRef} from 'react';
 import type {GestureResponderEvent, Role, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
@@ -49,6 +49,12 @@ import Text from './Text';
 import EducationalTooltip from './Tooltip/EducationalTooltip';
 import getContextMenuAccessibilityHint from './utils/getContextMenuAccessibilityHint';
 import getContextMenuAccessibilityProps from './utils/getContextMenuAccessibilityProps';
+
+const CompactMenuContext = createContext(false);
+
+function useIsCompactMenu() {
+    return useContext(CompactMenuContext);
+}
 
 type IconProps = {
     /** Flag to choose between avatar image or an icon */
@@ -454,9 +460,6 @@ type MenuItemBaseProps = ForwardedFSClassProps &
 
         /** Additional styles for the right icon wrapper */
         rightIconWrapperStyle?: StyleProp<ViewStyle>;
-
-        /** Whether to apply compact popover menu item sizing (desktop popovers) */
-        isCompactPopoverItem?: boolean;
     };
 
 type MenuItemProps = (IconProps | AvatarProps | NoIcon) & MenuItemBaseProps;
@@ -604,7 +607,6 @@ function MenuItem({
     tabIndex = 0,
     rightIconWrapperStyle,
     titleAccessibilityRole,
-    isCompactPopoverItem = false,
 }: MenuItemProps) {
     const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'FallbackAvatar', 'DotIndicator', 'Checkmark', 'NewWindow']);
     const {translate} = useLocalize();
@@ -617,6 +619,9 @@ function MenuItem({
     const {singleExecution, waitForNavigate} = useMenuItemGroupActions() ?? {};
     const popoverAnchor = useRef<View>(null);
     const deviceHasHoverSupport = hasHoverSupport();
+    const isCompactMenu = useIsCompactMenu();
+    const isCompactPopoverItem = isCompactMenu && !shouldUseNarrowLayout;
+    const compactIconStyle = isCompactPopoverItem && iconType === CONST.ICON_TYPE_ICON && {width: variables.iconSizeNormal};
     const isCompact = viewMode === CONST.OPTION_MODE.COMPACT;
     const isDeleted = style && Array.isArray(style) ? style.includes(styles.offlineFeedbackDeleted) : false;
     const descriptionVerticalMargin = shouldShowDescriptionOnTop ? styles.mb1 : styles.mt1;
@@ -904,7 +909,7 @@ function MenuItem({
                                                                 styles.popoverMenuIcon,
                                                                 iconStyles,
                                                                 shouldIconUseAutoWidthStyle ? styles.wAuto : StyleUtils.getAvatarWidthStyle(avatarSize),
-                                                                isCompactPopoverItem && iconType === CONST.ICON_TYPE_ICON && {width: variables.iconSizeNormal},
+                                                                compactIconStyle,
                                                             ]}
                                                         />
                                                     )}
@@ -914,7 +919,7 @@ function MenuItem({
                                                                 styles.popoverMenuIcon,
                                                                 iconStyles,
                                                                 shouldIconUseAutoWidthStyle ? styles.wAuto : StyleUtils.getAvatarWidthStyle(avatarSize),
-                                                                isCompactPopoverItem && iconType === CONST.ICON_TYPE_ICON && {width: variables.iconSizeNormal},
+                                                                compactIconStyle,
                                                             ]}
                                                         >
                                                             {typeof icon !== 'string' &&
@@ -1226,5 +1231,6 @@ function MenuItem({
     );
 }
 
+export {CompactMenuContext};
 export type {MenuItemBaseProps, MenuItemProps};
 export default MenuItem;

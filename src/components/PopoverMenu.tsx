@@ -25,8 +25,8 @@ import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
 import type IconAsset from '@src/types/utils/IconAsset';
 import FocusableMenuItem from './FocusableMenuItem';
 import FocusTrapForModal from './FocusTrap/FocusTrapForModal';
+import MenuItem, {CompactMenuContext} from './MenuItem';
 import type {MenuItemProps} from './MenuItem';
-import MenuItem from './MenuItem';
 import type ReanimatedModalProps from './Modal/ReanimatedModal/types';
 import type BaseModalProps from './Modal/types';
 import OfflineWithFeedback from './OfflineWithFeedback';
@@ -439,7 +439,6 @@ function BasePopoverMenu({
                         StyleUtils.getItemBackgroundColorStyle(!!item.isSelected, focusedIndex === menuIndex, item.disabled ?? false, theme.activeComponentBG, theme.hoverComponentBG),
                         shouldUseScrollView && !shouldUseModalPaddingStyle && StyleUtils.getOptionMargin(menuIndex, currentMenuItems.length - 1),
                     ]}
-                    isCompactPopoverItem={!isSmallScreenWidth}
                     shouldRemoveHoverBackground={item.isSelected}
                     titleStyle={StyleSheet.flatten([styles.flex1, item.titleStyle])}
                     icon={icon}
@@ -560,7 +559,7 @@ function BasePopoverMenu({
         }
 
         return stylesArray;
-    }, [isSmallScreenWidth, shouldEnableMaxHeight, styles.createMenuContainer, shouldUseScrollView, windowHeight, isInLandscapeMode]);
+    }, [isSmallScreenWidth, shouldEnableMaxHeight, styles.createMenuContainer, styles.pv2, shouldUseScrollView, windowHeight, isInLandscapeMode]);
 
     const {paddingTop, paddingBottom, paddingVertical, ...restScrollContainerStyle} =
         (StyleSheet.flatten([isSmallScreenWidth ? styles.pv4 : styles.pv2, scrollContainerStyle]) as ViewStyle) ?? {};
@@ -631,16 +630,18 @@ function BasePopoverMenu({
                 active={isVisible}
                 shouldReturnFocus={!shouldEnableNewFocusManagement}
             >
-                <View
-                    onLayout={onLayout}
-                    style={[restMenuContainerStyle, restContainerStyles, isWeb ? styles.flex1 : styles.flexGrow1]}
-                >
-                    {renderWithConditionalWrapper(
-                        shouldUseScrollView,
-                        [scrollViewPaddingStyles, restScrollContainerStyle],
-                        [renderHeaderText(), enteredSubMenuIndexes.length > 0 && renderBackButtonItem(), renderedMenuItems],
-                    )}
-                </View>
+                <CompactMenuContext.Provider value>
+                    <View
+                        onLayout={onLayout}
+                        style={[restMenuContainerStyle, restContainerStyles, isWeb ? styles.flex1 : styles.flexGrow1]}
+                    >
+                        {renderWithConditionalWrapper(
+                            shouldUseScrollView,
+                            [scrollViewPaddingStyles, restScrollContainerStyle],
+                            [renderHeaderText(), enteredSubMenuIndexes.length > 0 && renderBackButtonItem(), renderedMenuItems],
+                        )}
+                    </View>
+                </CompactMenuContext.Provider>
             </FocusTrapForModal>
         </PopoverWithMeasuredContent>
     );
