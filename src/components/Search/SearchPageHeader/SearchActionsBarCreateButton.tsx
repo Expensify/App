@@ -244,7 +244,7 @@ function SearchActionsBarCreateButton() {
     );
 
     return (
-        <View style={[styles.pr5, styles.searchActionsBarCreateButton]}>
+        <View style={[styles.searchActionsBarCreateButton]}>
             <PopoverMenu
                 onClose={hideCreateMenu}
                 isVisible={isCreateMenuActive}
