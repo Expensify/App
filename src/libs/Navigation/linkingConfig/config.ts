@@ -856,6 +856,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.TRAVEL_SETTINGS_FREQUENCY]: {
                             path: ROUTES.WORKSPACE_TRAVEL_SETTINGS_FREQUENCY.route,
                         },
+                        [SCREENS.WORKSPACE.TRAVEL_SETTINGS_MONTHLY_LIMIT]: {
+                            path: ROUTES.WORKSPACE_TRAVEL_SETTINGS_MONTHLY_LIMIT.route,
+                        },
                         [SCREENS.WORKSPACE.TRAVEL_EXPORT]: {
                             path: ROUTES.WORKSPACE_TRAVEL_EXPORT.route,
                         },
