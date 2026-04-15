@@ -1,5 +1,5 @@
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import {EXPORT_RELEVANT_ACTION_TYPES} from '@libs/ReportActionsUtils';
+import {isExportRelevantAction} from '@libs/ReportActionsUtils';
 import {isApproveAction, isExportAction, isPrimaryPayAction, isSubmitAction} from '@libs/ReportPrimaryActionUtils';
 import {hasOnlyNonReimbursableTransactions} from '@libs/ReportUtils';
 import createOnyxDerivedValueConfig from '@userActions/OnyxDerived/createOnyxDerivedValueConfig';
@@ -116,14 +116,18 @@ function hasNewExportRelevantActions(changedReportKeys: string[], allReportActio
     for (const reportKey of changedReportKeys) {
         const currentActions = allReportActions?.[reportKey];
         const previousActions = prevReportActions?.[reportKey];
-        if (!currentActions) {
+        if (!currentActions && !previousActions) {
             continue;
         }
-        for (const [actionID, action] of Object.entries(currentActions)) {
-            if (!action || previousActions?.[actionID] === action) {
-                continue;
+        // Check added or changed actions
+        for (const [actionID, action] of Object.entries(currentActions ?? {})) {
+            if (previousActions?.[actionID] !== action && isExportRelevantAction(action)) {
+                return true;
             }
-            if (EXPORT_RELEVANT_ACTION_TYPES.has(action.actionName)) {
+        }
+        // Check deleted actions
+        for (const [actionID, action] of Object.entries(previousActions ?? {})) {
+            if (!currentActions?.[actionID] && isExportRelevantAction(action)) {
                 return true;
             }
         }

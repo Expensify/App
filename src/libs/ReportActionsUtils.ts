@@ -552,6 +552,10 @@ const EXPORT_RELEVANT_ACTION_TYPES: ReadonlySet<string> = new Set([
     CONST.REPORT.ACTIONS.TYPE.INTEGRATIONS_MESSAGE,
 ]);
 
+function isExportRelevantAction(action: ReportAction | null | undefined): boolean {
+    return !!action && EXPORT_RELEVANT_ACTION_TYPES.has(action.actionName);
+}
+
 function isTravelUpdate(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.TRAVEL_UPDATE> {
     return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.TRAVEL_UPDATE);
 }
@@ -4681,6 +4685,7 @@ export {
     isIntegrationMessageAction,
     RESET_APPROVAL_ACTION_TYPES,
     EXPORT_RELEVANT_ACTION_TYPES,
+    isExportRelevantAction,
     isMessageDeleted,
     useTableReportViewActionRenderConditionals,
     isModifiedExpenseAction,
