@@ -85,11 +85,8 @@ function CardReconciliationPage({policy, route}: CardReconciliationPageProps) {
     const autoSync = !!policy?.connections?.[connectionName]?.config?.autoSync?.enabled;
     const shouldShow = !!resolvedCardSettings?.paymentBankAccountID;
 
-    const connectionBankAccounts = useMemo(() => getConnectionBankAccountsForReconciliation(policy, connectionName), [policy, connectionName]);
-    const bankAccountTitle = useMemo(
-        () => connectionBankAccounts.find((account) => account.id === reconciliationBankAccountID)?.name ?? '',
-        [connectionBankAccounts, reconciliationBankAccountID],
-    );
+    const connectionBankAccounts = getConnectionBankAccountsForReconciliation(policy, connectionName);
+    const bankAccountTitle = connectionBankAccounts.find((account) => account.id === reconciliationBankAccountID)?.name ?? '';
 
     const handleToggleContinuousReconciliation = (value: boolean) => {
         toggleContinuousReconciliation(effectiveDomainID, value, connectionName, currentConnectionName);

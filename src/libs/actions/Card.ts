@@ -1540,7 +1540,7 @@ function setCardReconciliationAccount(workspaceAccountID: number, domainName: st
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.EXPENSIFY_CARD_RECONCILIATION_BANK_ACCOUNT_ID}${workspaceAccountID}`,
-            value: currentReconciliationBankAccountID ?? undefined,
+            value: currentReconciliationBankAccountID ?? null,
         },
     ];
 
