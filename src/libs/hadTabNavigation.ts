@@ -49,7 +49,11 @@ function getHadTabNavigation(): boolean {
     return hadTabNavigation;
 }
 
+function resetForTests(): void {
+    hadTabNavigation = false;
+}
+
 setup();
 
 export default getHadTabNavigation;
-export {teardownHadTabNavigation};
+export {teardownHadTabNavigation, resetForTests};

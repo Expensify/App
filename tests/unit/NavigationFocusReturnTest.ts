@@ -5,6 +5,9 @@ const {resetCycle: resetArbiter, tryClaim, Priorities} = require<{
     tryClaim: (priority: number) => boolean;
     Priorities: {INITIAL: number; AUTO: number; RETURN: number};
 }>('../../src/libs/ScreenFocusArbiter.ts');
+const {resetForTests: resetHadTabNavigation} = require<{
+    resetForTests: () => void;
+}>('../../src/libs/hadTabNavigation.ts');
 const {
     diffNavigationState,
     collectRouteKeys,
@@ -105,6 +108,7 @@ function withFakeTimers<T>(fn: () => T): T {
 beforeEach(() => {
     resetForTests();
     resetArbiter();
+    resetHadTabNavigation();
     document.body.innerHTML = '';
 });
 

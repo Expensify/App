@@ -498,4 +498,31 @@ describe('addPushParamsRouterExtension', () => {
 
         expect(cancelPendingFocusRestore).toHaveBeenCalledTimes(1);
     });
+
+    it('RESET that shrinks history below the current cursor reinitializes without crashing or misclassifying', () => {
+        // Simulates a parent-navigator RESET that would truncate our history (e.g. browser back jumps across the whole PUSH_PARAMS stack).
+        // The cursor is out of range relative to the new history length — the guard must snap it back, not throw or leave it out of sync.
+        const factory = createMockRouterFactory();
+        const enhancedRouter = addPushParamsRouterExtension(factory)({} as PlatformStackRouterOptions);
+        const initial = makeRoute('Search', 'search-1', {q: 'A'});
+        let state: TestState = makeState([initial], {history: [{...initial}] as CustomHistoryEntry[]});
+
+        state = enhancedRouter.getStateForAction(state, {type: CONST.NAVIGATION.ACTION_TYPE.PUSH_PARAMS, payload: {params: {q: 'B'}}}, CONFIG_OPTIONS) as TestState;
+        state = enhancedRouter.getStateForAction(state, {type: CONST.NAVIGATION.ACTION_TYPE.PUSH_PARAMS, payload: {params: {q: 'C'}}}, CONFIG_OPTIONS) as TestState;
+        expect(state.history).toHaveLength(3);
+
+        // Hand-craft a RESET whose rehydrated state has a much shorter history than our cursor (cursor=2, new history=[A only]).
+        const shrinkReset: PushParamsRouterAction = {
+            type: CONST.NAVIGATION.ACTION_TYPE.RESET,
+            payload: {routes: [{name: 'Search', key: 'search-1', params: {q: 'A'}}], index: 0, history: [{key: 'search-1', name: 'Search', params: {q: 'A'}}]} as never,
+        };
+        const resetState = enhancedRouter.getStateForAction(state, shrinkReset, CONFIG_OPTIONS) as TestState;
+        expect(resetState).not.toBeNull();
+        expect(resetState.history).toBeDefined();
+
+        // After the shrink, a subsequent PUSH_PARAMS must succeed and produce consistent history (no lingering out-of-range cursor).
+        const afterPush = enhancedRouter.getStateForAction(resetState, {type: CONST.NAVIGATION.ACTION_TYPE.PUSH_PARAMS, payload: {params: {q: 'D'}}}, CONFIG_OPTIONS) as TestState;
+        expect((afterPush.routes.at(0)?.params as {q: string}).q).toBe('D');
+        expect(afterPush.history?.length).toBeGreaterThanOrEqual(1);
+    });
 });

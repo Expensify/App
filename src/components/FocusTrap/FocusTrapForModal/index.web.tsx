@@ -13,6 +13,7 @@ function FocusTrapForModal({children, active, initialFocus = false, shouldPreven
             focusTrapOptions={{
                 onActivate: () => {
                     // Capture the launcher before blur — items inside the trap get removed on close.
+                    // Coexists with setReturnFocus (below): that handles same-screen close; this cache only fires if a navigation state change follows.
                     const launcher = document.activeElement;
                     blurActiveElement();
                     // Respect shouldReturnFocus={false} (e.g. DatePickerModal) — skip the launcher cache entirely.

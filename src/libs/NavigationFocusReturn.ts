@@ -16,9 +16,11 @@ type AnyState = NavigationState | PartialState<NavigationState> | undefined;
 type DiffAction = {type: 'forward'; captureKey: string} | {type: 'backward'; restoreKey: string} | {type: 'lateral'} | {type: 'noop'};
 
 // Fallback (if set) is the surrounding trap's launcher, used only when primary is gone from the DOM at restore time.
+// triggerMap holds at most one entry per currently-mounted route key (Map.set overwrites); `removedKeys` in handleStateChange purges entries as routes leave the tree, bounding memory by the nav tree size.
 type TriggerEntry = {primary: HTMLElement; fallback?: HTMLElement};
 
 const COMPOUND_KEY_DELIMITER = '::';
+// Covers the click → state-listener dispatch → focusin → captureTriggerForRoute chain for deferred-navigation popovers. 1s is conservative for slower devices.
 const LAUNCHER_CLEAR_DELAY_MS = 1000;
 
 let lastInteractiveElement: HTMLElement | null = null;
@@ -204,6 +206,7 @@ function restoreTriggerForRoute(routeKey: string): boolean {
         return false;
     }
     // focusVisible reflects current modality so a user who switched to mouse doesn't get a ring.
+    // Cast: focusVisible is a spec'd FocusOptions field (Chromium/Firefox) but lib.dom.d.ts hasn't adopted it yet.
     target.focus({preventScroll: true, focusVisible: getHadTabNavigation()} as FocusOptions);
     return true;
 }
