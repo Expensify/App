@@ -12,6 +12,7 @@ import InvertedFlatList from '@components/FlatList/InvertedFlatList';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useEnvironment from '@hooks/useEnvironment';
 import useIsAnonymousUser from '@hooks/useIsAnonymousUser';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -184,6 +185,7 @@ function ReportActionsList({
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['UpArrow']);
     const {windowHeight} = useWindowDimensions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {isProduction} = useEnvironment();
 
     const {getLocalDateFromDatetime} = useLocalize();
     const {isOffline, lastOfflineAt, lastOnlineAt} = useNetworkWithOfflineStatus();
@@ -212,6 +214,23 @@ function ReportActionsList({
     const [actionIdToHighlight, setActionIdToHighlight] = useState('');
     const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report.reportID}`);
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`);
+    const reportAttributesSelector = useCallback(
+        (value: OnyxEntry<OnyxTypes.ReportAttributesDerivedValue>) => {
+            const attrs = value?.reports?.[report.reportID];
+            if (!attrs) {
+                return undefined;
+            }
+            return {
+                actionBadge: attrs.actionBadge,
+                actionTargetReportActionID: attrs.actionTargetReportActionID,
+                brickRoadStatus: attrs.brickRoadStatus,
+            };
+        },
+        [report.reportID],
+    );
+    const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {
+        selector: reportAttributesSelector,
+    });
 
     const backTo = route?.params?.backTo as string;
     // Display the new message indicator when comment linking and not close to the newest message.
@@ -349,21 +368,32 @@ function ReportActionsList({
     hasNewestReportActionRef.current = hasNewestReportAction;
     const sortedVisibleReportActionsRef = useRef(sortedVisibleReportActions);
 
-    const {isFloatingMessageCounterVisible, setIsFloatingMessageCounterVisible, trackVerticalScrolling, onViewableItemsChanged} = useReportUnreadMessageScrollTracking({
-        reportID: report.reportID,
-        currentVerticalScrollingOffsetRef: scrollOffsetRef,
-        readActionSkippedRef: readActionSkipped,
-        unreadMarkerReportActionIndex,
-        isInverted: true,
-        onTrackScrolling: (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-            scrollOffsetRef.current = event.nativeEvent.contentOffset.y;
-            onScroll?.(event);
-            if (shouldScrollToEndAfterLayout && (!hasCreatedActionAdded || isOffline)) {
-                setShouldScrollToEndAfterLayout(false);
-            }
-        },
-        hasOnceLoadedReportActions: !!reportMetadata?.hasOnceLoadedReportActions,
-    });
+    // Find the index of the action badge target in the visible actions list
+    const actionBadgeTargetIndex = useMemo(() => {
+        const targetID = reportAttributes?.actionTargetReportActionID;
+        if (!targetID) {
+            return -1;
+        }
+        return sortedVisibleReportActions.findIndex((action) => action.reportActionID === targetID);
+    }, [reportAttributes?.actionTargetReportActionID, sortedVisibleReportActions]);
+
+    const {isFloatingMessageCounterVisible, setIsFloatingMessageCounterVisible, isActionBadgeAboveViewport, trackVerticalScrolling, onViewableItemsChanged} =
+        useReportUnreadMessageScrollTracking({
+            reportID: report.reportID,
+            currentVerticalScrollingOffsetRef: scrollOffsetRef,
+            readActionSkippedRef: readActionSkipped,
+            unreadMarkerReportActionIndex,
+            isInverted: true,
+            onTrackScrolling: (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+                scrollOffsetRef.current = event.nativeEvent.contentOffset.y;
+                onScroll?.(event);
+                if (shouldScrollToEndAfterLayout && (!hasCreatedActionAdded || isOffline)) {
+                    setShouldScrollToEndAfterLayout(false);
+                }
+            },
+            hasOnceLoadedReportActions: !!reportMetadata?.hasOnceLoadedReportActions,
+            actionBadgeTargetIndex,
+        });
 
     useScrollToEndOnNewMessageReceived({
         sizeChangeType: 'changed',
@@ -621,6 +651,33 @@ function ReportActionsList({
         readNewestAction(report.reportID, !!reportMetadata?.hasOnceLoadedReportActions);
     }, [setIsFloatingMessageCounterVisible, hasNewestReportAction, reportScrollManager, report.reportID, backTo, introSelected, reportMetadata?.hasOnceLoadedReportActions, betas]);
 
+    const scrollToActionBadgeTargetTimersRef = useRef<Array<ReturnType<typeof setTimeout>>>([]);
+    const scrollToActionBadgeTarget = useCallback(() => {
+        if (actionBadgeTargetIndex === -1) {
+            return;
+        }
+
+        // Clear any pending retry timers from a previous press
+        for (const timer of scrollToActionBadgeTargetTimersRef.current) {
+            clearTimeout(timer);
+        }
+        scrollToActionBadgeTargetTimersRef.current = [];
+
+        // Without getItemLayout, FlatList estimates scroll positions using averageItemLength.
+        // For variable-height chat messages this estimate can be inaccurate, causing the scroll
+        // to land too far or not reach the target at all. We retry after short delays — the
+        // first scroll brings us closer to the target so that items around it get rendered and
+        // measured, making subsequent scrollToIndex calls progressively more accurate.
+        reportScrollManager.scrollToIndex(actionBadgeTargetIndex);
+        const delays = [300, 800];
+        for (const delay of delays) {
+            const timer = setTimeout(() => {
+                reportScrollManager.scrollToIndex(actionBadgeTargetIndex);
+            }, delay);
+            scrollToActionBadgeTargetTimersRef.current.push(timer);
+        }
+    }, [actionBadgeTargetIndex, reportScrollManager]);
+
     /**
      * Calculates the ideal number of report actions to render in the first render, based on the screen height and on
      * the height of the smallest report action possible.
@@ -859,6 +916,9 @@ function ReportActionsList({
                 hasNewMessages={!!unreadMarkerReportActionID}
                 isActive={isFloatingMessageCounterVisible}
                 onClick={scrollToBottomAndMarkReportAsRead}
+                actionBadge={!isProduction && isActionBadgeAboveViewport ? reportAttributes?.actionBadge : undefined}
+                actionBadgeBrickRoadStatus={!isProduction && isActionBadgeAboveViewport ? reportAttributes?.brickRoadStatus : undefined}
+                onActionBadgePress={scrollToActionBadgeTarget}
             />
             <View
                 style={[styles.flex1, !shouldShowReportRecipientLocalTime && !hideComposer ? styles.pb4 : {}]}
