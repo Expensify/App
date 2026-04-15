@@ -1,5 +1,5 @@
 import {Portal} from '@gorhom/portal';
-import React, {useEffect, useLayoutEffect, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useLayoutEffect, useRef, useState} from 'react';
 import type {RefObject} from 'react';
 import {StyleSheet, View} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
@@ -73,6 +73,14 @@ function MiniReportActionContextMenu() {
     const overlayRef = useRef<View>(null);
     const menuContainerRef = useRef<View>(null);
     const [containerRect, setContainerRect] = useState<DOMRect | null>(null);
+
+    const overlayCallbackRef = useCallback((node: View | null) => {
+        overlayRef.current = node;
+        const el = node as unknown as HTMLElement | null;
+        if (el) {
+            setContainerRect(el.getBoundingClientRect());
+        }
+    }, []);
 
     useLayoutEffect(() => {
         const el = overlayRef.current as unknown as HTMLElement | null;
@@ -482,7 +490,7 @@ function MiniReportActionContextMenu() {
     return (
         <Portal hostName={CONST.PORTAL_HOST_NAMES.CONTEXT_MENU}>
             <View
-                ref={overlayRef}
+                ref={overlayCallbackRef}
                 style={StyleSheet.absoluteFill}
                 pointerEvents="box-none"
             >
