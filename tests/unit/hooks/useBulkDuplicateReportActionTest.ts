@@ -237,25 +237,28 @@ describe('useBulkDuplicateReportAction', () => {
         const {result} = renderHook(() => useBulkDuplicateReportAction({selectedReports, allReports}));
 
         await waitFor(() => {
-            result.current();
-            expect(bulkDuplicateReports).toHaveBeenCalledWith(
-                expect.objectContaining({
-                    allPolicies: expect.objectContaining({
-                        [`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]: expect.objectContaining({id: policyID}),
-                    }),
-                    allPolicyCategories: expect.objectContaining({
-                        [`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`]: expect.objectContaining({
-                            Food: expect.objectContaining({name: 'Food'}),
-                        }),
-                    }),
-                    allPolicyTags: expect.objectContaining({
-                        [`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`]: expect.objectContaining({
-                            Tag: expect.objectContaining({name: 'Tag'}),
-                        }),
+            expect(result.current).toBeInstanceOf(Function);
+        });
+
+        result.current();
+
+        expect(bulkDuplicateReports).toHaveBeenCalledWith(
+            expect.objectContaining({
+                allPolicies: expect.objectContaining({
+                    [`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]: expect.objectContaining({id: policyID}),
+                }),
+                allPolicyCategories: expect.objectContaining({
+                    [`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`]: expect.objectContaining({
+                        Food: expect.objectContaining({name: 'Food'}),
                     }),
                 }),
-            );
-        });
+                allPolicyTags: expect.objectContaining({
+                    [`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`]: expect.objectContaining({
+                        Tag: expect.objectContaining({name: 'Tag'}),
+                    }),
+                }),
+            }),
+        );
     });
 
     it('should pass allReports to bulkDuplicateReports', async () => {

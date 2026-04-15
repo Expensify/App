@@ -812,6 +812,7 @@ type DuplicateReportParams = {
     transactionViolations: OnyxCollection<OnyxTypes.TransactionViolation[]>;
     translate: LocalizedTranslate;
     recentWaypoints: OnyxEntry<OnyxTypes.RecentWaypoint[]>;
+    shouldPlaySound?: boolean;
 };
 
 function duplicateReport({
@@ -833,6 +834,7 @@ function duplicateReport({
     transactionViolations,
     translate,
     recentWaypoints,
+    shouldPlaySound = true,
 }: DuplicateReportParams) {
     if (!targetPolicy || !parentChatReport) {
         return;
@@ -940,7 +942,9 @@ function duplicateReport({
         }
     }
 
-    playSound(SOUNDS.DONE);
+    if (shouldPlaySound) {
+        playSound(SOUNDS.DONE);
+    }
 }
 
 type BulkDuplicateExpensesParams = {
@@ -1130,6 +1134,7 @@ function bulkDuplicateReports({
             transactionViolations,
             translate,
             recentWaypoints,
+            shouldPlaySound: false,
         });
     }
 
