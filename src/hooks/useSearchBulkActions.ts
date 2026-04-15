@@ -35,7 +35,7 @@ import {setNameValuePair} from '@libs/actions/User';
 import {getTransactionsAndReportsFromSearch} from '@libs/MergeTransactionUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getConnectedIntegration} from '@libs/PolicyUtils';
-import {getSecondaryExportReportActions, isDuplicateReportAction, isMergeActionForSelectedTransactions} from '@libs/ReportSecondaryActionUtils';
+import {getSecondaryExportReportActions, isMergeActionForSelectedTransactions} from '@libs/ReportSecondaryActionUtils';
 import {
     canEditMultipleTransactions,
     getIntegrationIcon,
@@ -867,10 +867,9 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             if (!report.reportID) {
                 return false;
             }
-            const fullReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`];
-            return !!fullReport && isDuplicateReportAction(fullReport);
+            return report.ownerAccountID === accountID && report.type === CONST.REPORT.TYPE.EXPENSE;
         });
-    }, [isExpenseReportType, defaultExpensePolicy, selectedReports, allReports]);
+    }, [isExpenseReportType, defaultExpensePolicy, selectedReports, accountID]);
 
     const headerButtonsOptions = useMemo(() => {
         if (selectedTransactionsKeys.length === 0 || status == null || !hash) {

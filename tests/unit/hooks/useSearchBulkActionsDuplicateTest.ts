@@ -206,6 +206,7 @@ function makeSelectedReport(overrides: Partial<SelectedReports> = {}): SelectedR
         currency: 'USD',
         chatReportID: undefined,
         ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+        type: CONST.REPORT.TYPE.EXPENSE,
         ...overrides,
     };
 }
@@ -1074,7 +1075,7 @@ describe('useSearchBulkActions - duplicate report option', () => {
             txn1: makeSelectedTransaction({reportID: 'rpt1', policyID}),
             txn2: makeSelectedTransaction({reportID: 'rpt2', policyID}),
         };
-        mockSelectedReports = [makeSelectedReport({reportID: 'rpt1', policyID}), makeSelectedReport({reportID: 'rpt2', policyID})];
+        mockSelectedReports = [makeSelectedReport({reportID: 'rpt1', policyID}), makeSelectedReport({reportID: 'rpt2', policyID, type: CONST.REPORT.TYPE.IOU})];
 
         const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}));
         await waitFor(() => expect(result.current.headerButtonsOptions.length).toBeGreaterThan(0));

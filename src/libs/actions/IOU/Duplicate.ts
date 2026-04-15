@@ -1126,6 +1126,8 @@ function bulkDuplicateReports({
             recentWaypoints,
         });
     }
+
+    playSound(SOUNDS.DONE);
 }
 
 export {getIOUActionForTransactions, mergeDuplicates, resolveDuplicates, duplicateExpenseTransaction, bulkDuplicateExpenses, duplicateReport, bulkDuplicateReports};
