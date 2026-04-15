@@ -41,7 +41,6 @@ import type {Unit} from '@src/types/onyx/Policy';
 import type {Receipt, WaypointCollection} from '@src/types/onyx/Transaction';
 import type {GpsPoint} from './index';
 import {
-    createDistanceRequest,
     getMoneyRequestParticipantsFromReport,
     setCustomUnitRateID,
     setMoneyRequestDistance,
@@ -51,7 +50,7 @@ import {
     setMoneyRequestPendingFields,
     setMultipleMoneyRequestParticipantsFromReport,
 } from './index';
-import {resetSplitShares, startSplitBill} from './Split';
+import {createDistanceRequest, resetSplitShares, startSplitBill} from './Split';
 import {requestMoney, trackExpense} from './TrackExpense';
 
 type CreateTransactionParams = {

@@ -11,7 +11,6 @@ import {clearAllRelatedReportActionErrors} from '@libs/actions/ClearReportAction
 import {
     calculateDiffAmount,
     clearBulkEditDraftTransaction,
-    createDistanceRequest,
     handleNavigateAfterExpenseCreate,
     initBulkEditDraftTransaction,
     initMoneyRequest,
@@ -32,7 +31,7 @@ import {
     updateMultipleMoneyRequests,
 } from '@libs/actions/IOU';
 import {putOnHold} from '@libs/actions/IOU/Hold';
-import {completeSplitBill, splitBill, startSplitBill, updateSplitTransactionsFromSplitExpensesFlow} from '@libs/actions/IOU/Split';
+import {completeSplitBill, createDistanceRequest, splitBill, startSplitBill, updateSplitTransactionsFromSplitExpensesFlow} from '@libs/actions/IOU/Split';
 import {requestMoney, trackExpense} from '@libs/actions/IOU/TrackExpense';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 import {createWorkspace, generatePolicyID, setWorkspaceApprovalMode} from '@libs/actions/Policy/Policy';
