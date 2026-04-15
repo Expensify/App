@@ -980,6 +980,7 @@ type GetReportNameParams = {
 type GetReportStatusParams = {
     stateNum?: number;
     statusNum?: number;
+    isDeleted?: boolean;
     translate: LocaleContextProps['translate'];
 };
 
@@ -5100,6 +5101,19 @@ function canEditFieldOfMoneyRequest({
 function canEditReportAction(reportAction: OnyxInputOrEntry<ReportAction>, linkedTransaction: OnyxEntry<Transaction>): boolean {
     const isCommentOrIOU = reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT || reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU;
     const message = reportAction ? getReportActionMessageReportUtils(reportAction) : undefined;
+
+    // For money request actions on settled/approved/closed expense reports, the action cannot be edited.
+    // canEditMoneyRequest has an admin/manager bypass for field-level edits (via canEditFieldOfMoneyRequest),
+    // but that bypass should not allow the "Edit expense" action on finalized reports.
+    if (isMoneyRequestAction(reportAction)) {
+        const moneyRequestReportID = getOriginalMessage(reportAction)?.IOUReportID;
+        if (moneyRequestReportID) {
+            const moneyRequestReport = getReportOrDraftReport(String(moneyRequestReportID));
+            if (isSettled(moneyRequestReport?.reportID) || isReportApproved({report: moneyRequestReport}) || isClosedReport(moneyRequestReport)) {
+                return false;
+            }
+        }
+    }
 
     return !!(
         reportAction?.actorAccountID === deprecatedCurrentUserAccountID &&
@@ -13239,7 +13253,10 @@ function buildOptimisticMarkedAsResolvedReportAction(created = DateUtils.getDBTi
  * ========================================
  */
 
-function getReportStatusTranslation({stateNum, statusNum, translate}: GetReportStatusParams): string {
+function getReportStatusTranslation({stateNum, statusNum, isDeleted, translate}: GetReportStatusParams): string {
+    if (isDeleted) {
+        return translate('iou.deleted');
+    }
     if (stateNum === undefined || statusNum === undefined) {
         return '';
     }
@@ -13267,7 +13284,10 @@ function getReportStatusTranslation({stateNum, statusNum, translate}: GetReportS
     return '';
 }
 
-function getReportStatusColorStyle(theme: ThemeColors, stateNum?: number, statusNum?: number): {backgroundColor?: ColorValue; textColor?: ColorValue} | undefined {
+function getReportStatusColorStyle(theme: ThemeColors, stateNum?: number, statusNum?: number, isDeleted?: boolean): {backgroundColor?: ColorValue; textColor?: ColorValue} | undefined {
+    if (isDeleted) {
+        return theme.reportStatusBadge.deleted;
+    }
     if (stateNum === undefined || statusNum === undefined) {
         return undefined;
     }
