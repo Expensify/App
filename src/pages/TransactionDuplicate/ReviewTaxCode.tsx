@@ -73,12 +73,11 @@ function ReviewTaxRate() {
     const setTaxCode = useCallback(
         (data: FieldItemType<'taxCode'>) => {
             if (data.value !== undefined) {
-                const taxPercentage = getTaxValue(policy, transaction, data.value) ?? '';
-                setReviewDuplicatesKey({taxCode: data.value, taxAmount: getTaxAmount(data.value), taxValue: taxPercentage, taxName: data.text});
+                setReviewDuplicatesKey({taxCode: data.value, taxAmount: getTaxAmount(data.value)});
             }
             navigateToNextScreen();
         },
-        [getTaxAmount, navigateToNextScreen, policy, transaction],
+        [getTaxAmount, navigateToNextScreen],
     );
 
     return (

@@ -200,6 +200,8 @@ describe('actions/Duplicate', () => {
                 tag: 'UpdatedProject',
                 taxCode: '',
                 taxAmount: 0,
+                taxName: '',
+                taxValue: '',
                 receiptID: 123,
                 reportID,
             };
@@ -283,6 +285,8 @@ describe('actions/Duplicate', () => {
                 tag: 'UpdatedProject',
                 taxCode: '',
                 taxAmount: 0,
+                taxName: '',
+                taxValue: '',
                 receiptID: 123,
                 reportID,
             };
@@ -336,6 +340,8 @@ describe('actions/Duplicate', () => {
                 tag: 'UpdatedProject',
                 taxCode: '',
                 taxAmount: 0,
+                taxName: '',
+                taxValue: '',
                 receiptID: 123,
                 reportID,
             };
@@ -532,6 +538,8 @@ describe('actions/Duplicate', () => {
                 tag: 'UpdatedProject',
                 taxCode: '',
                 taxAmount: 0,
+                taxName: '',
+                taxValue: '',
                 receiptID: 123,
                 reportID,
             };
@@ -634,6 +642,8 @@ describe('actions/Duplicate', () => {
                 tag: 'UpdatedProject',
                 taxCode: '',
                 taxAmount: 0,
+                taxName: '',
+                taxValue: '',
                 receiptID: 123,
                 reportID,
             };
@@ -776,6 +786,8 @@ describe('actions/Duplicate', () => {
                 tag: 'UpdatedProject',
                 taxCode: '',
                 taxAmount: 0,
+                taxName: '',
+                taxValue: '',
                 receiptID: 123,
                 reportID,
             };
@@ -869,6 +881,8 @@ describe('actions/Duplicate', () => {
                 tag: 'UpdatedProject',
                 taxCode: '',
                 taxAmount: 0,
+                taxName: '',
+                taxValue: '',
                 receiptID: 123,
                 reportID: 'report123',
             };
@@ -913,6 +927,8 @@ describe('actions/Duplicate', () => {
                 tag: 'UpdatedProject',
                 taxCode: '',
                 taxAmount: 0,
+                taxName: '',
+                taxValue: '',
                 receiptID: 123,
                 reportID,
             };
@@ -971,6 +987,8 @@ describe('actions/Duplicate', () => {
                 tag: 'UpdatedProject',
                 taxCode: '',
                 taxAmount: 0,
+                taxName: '',
+                taxValue: '',
                 receiptID: 123,
                 reportID,
             };
@@ -1049,6 +1067,8 @@ describe('actions/Duplicate', () => {
                 tag: 'UpdatedProject',
                 taxCode: '',
                 taxAmount: 0,
+                taxName: '',
+                taxValue: '',
                 receiptID: 123,
                 reportID: reportA,
             };
@@ -1841,6 +1861,8 @@ describe('actions/Duplicate', () => {
                         tag: '',
                         taxCode: '',
                         taxAmount: 0,
+                        taxName: '',
+                        taxValue: '',
                         transactionIDList: [transaction2.transactionID],
                     });
                     return waitForBatchedUpdates();

@@ -28,12 +28,6 @@ type ReviewDuplicates = {
     /** Calculated tax amount */
     taxAmount: number;
 
-    /** Tax rate percentage (e.g. "20%") for the selected tax code */
-    taxValue: string;
-
-    /** Display name of the selected tax rate (e.g. "Tax A (20%)") */
-    taxName: string;
-
     /** Description  which user want to keep */
     description: string;
 

@@ -70,8 +70,8 @@ function Confirmation() {
 
     const [duplicates] = useTransactionsByID(reviewDuplicates?.duplicates);
     const transactionsMergeParams = useMemo(
-        () => TransactionUtils.buildMergeDuplicatesParams(reviewDuplicates, duplicates ?? [], newTransaction),
-        [duplicates, reviewDuplicates, newTransaction],
+        () => TransactionUtils.buildMergeDuplicatesParams(reviewDuplicates, duplicates ?? [], newTransaction, policy),
+        [duplicates, reviewDuplicates, newTransaction, policy],
     );
     const isReportOwner = iouReport?.ownerAccountID === currentUserPersonalDetails?.accountID;
 
