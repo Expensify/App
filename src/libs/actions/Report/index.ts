@@ -2160,6 +2160,7 @@ function explain(
     currentUserAccountID: number,
     introSelected: OnyxEntry<IntroSelected>,
     betas: OnyxEntry<Beta[]>,
+    delegateEmail: string | undefined,
     timezone: Timezone = CONST.DEFAULT_TIME_ZONE,
 ) {
     if (!originalReport?.reportID || !reportAction) {
@@ -2181,8 +2182,7 @@ function explain(
             timezoneParam: timezone,
             currentUserAccountID,
             shouldPlaySound: true,
-            // Will be refactored in next PR; buildOptimisticAddCommentReportAction falls back to module-level Onyx.connect value; tracked in https://github.com/Expensify/App/issues/66425
-            delegateEmail: undefined,
+            delegateEmail,
         });
     });
 }
@@ -4655,7 +4655,14 @@ function inviteToRoom(report: Report, inviteeEmailsToAccountIDs: InvitedEmailsTo
 }
 
 /** Invites people to a room via concierge whisper */
-function inviteToRoomAction(report: Report, ancestors: Ancestor[], inviteeEmailsToAccountIDs: InvitedEmailsToAccountIDs, timezoneParam: Timezone, currentUserAccountID: number) {
+function inviteToRoomAction(
+    report: Report,
+    ancestors: Ancestor[],
+    inviteeEmailsToAccountIDs: InvitedEmailsToAccountIDs,
+    timezoneParam: Timezone,
+    currentUserAccountID: number,
+    delegateEmail: string | undefined,
+) {
     const inviteeEmails = Object.keys(inviteeEmailsToAccountIDs);
 
     addComment({
@@ -4666,8 +4673,7 @@ function inviteToRoomAction(report: Report, ancestors: Ancestor[], inviteeEmails
         timezoneParam,
         currentUserAccountID,
         shouldPlaySound: false,
-        // Will be refactored in next PR; buildOptimisticAddCommentReportAction falls back to module-level Onyx.connect value; tracked in https://github.com/Expensify/App/issues/66425
-        delegateEmail: undefined,
+        delegateEmail,
     });
 }
 
@@ -7207,6 +7213,7 @@ function resolveConciergeOptions(
     timezoneParam: Timezone,
     selectedField: 'selectedCategory' | 'selectedDescription',
     currentUserAccountID: number,
+    delegateEmail: string | undefined,
     ancestors: Ancestor[] = [],
 ) {
     if (!report?.reportID || !reportActionID) {
@@ -7214,8 +7221,7 @@ function resolveConciergeOptions(
     }
 
     const reportID = report.reportID;
-    // Will be refactored in next PR; buildOptimisticAddCommentReportAction falls back to module-level Onyx.connect value; tracked in https://github.com/Expensify/App/issues/66425
-    addComment({report, notifyReportID: notifyReportID ?? reportID, ancestors, text: selectedValue, timezoneParam, currentUserAccountID, delegateEmail: undefined});
+    addComment({report, notifyReportID: notifyReportID ?? reportID, ancestors, text: selectedValue, timezoneParam, currentUserAccountID, delegateEmail});
 
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
         [reportActionID]: {
@@ -7242,9 +7248,10 @@ function resolveConciergeCategoryOptions(
     selectedCategory: string,
     timezoneParam: Timezone,
     currentUserAccountID: number,
+    delegateEmail: string | undefined,
     ancestors: Ancestor[] = [],
 ) {
-    resolveConciergeOptions(report, notifyReportID, reportActionID, selectedCategory, timezoneParam, 'selectedCategory', currentUserAccountID, ancestors);
+    resolveConciergeOptions(report, notifyReportID, reportActionID, selectedCategory, timezoneParam, 'selectedCategory', currentUserAccountID, delegateEmail, ancestors);
 }
 
 /**
@@ -7263,9 +7270,10 @@ function resolveConciergeDescriptionOptions(
     selectedDescription: string,
     timezoneParam: Timezone,
     currentUserAccountID: number,
+    delegateEmail: string | undefined,
     ancestors: Ancestor[] = [],
 ) {
-    resolveConciergeOptions(report, notifyReportID, reportActionID, selectedDescription, timezoneParam, 'selectedDescription', currentUserAccountID, ancestors);
+    resolveConciergeOptions(report, notifyReportID, reportActionID, selectedDescription, timezoneParam, 'selectedDescription', currentUserAccountID, delegateEmail, ancestors);
 }
 
 /**

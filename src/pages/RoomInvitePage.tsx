@@ -1,3 +1,4 @@
+import {delegateEmailSelector} from '@selectors/Account';
 import {pendingChatMembersSelector} from '@selectors/ReportMetaData';
 import React, {useEffect, useState} from 'react';
 import type {SectionListData} from 'react-native';
@@ -76,6 +77,7 @@ function RoomInvitePage({
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
     const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report?.reportID}`, {selector: pendingChatMembersSelector});
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
+    const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserEmail = currentUserPersonalDetails.email ?? '';
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState(userSearchPhrase ?? '');
@@ -199,7 +201,14 @@ function RoomInvitePage({
         }
         if (report?.reportID) {
             if (isPolicyExpenseChat(report)) {
-                inviteToRoomAction(report, ancestors, invitedEmailsToAccountIDs, currentUserPersonalDetails.timezone ?? CONST.DEFAULT_TIME_ZONE, currentUserPersonalDetails.accountID);
+                inviteToRoomAction(
+                    report,
+                    ancestors,
+                    invitedEmailsToAccountIDs,
+                    currentUserPersonalDetails.timezone ?? CONST.DEFAULT_TIME_ZONE,
+                    currentUserPersonalDetails.accountID,
+                    delegateEmail,
+                );
             } else {
                 inviteToRoom(report, invitedEmailsToAccountIDs, formatPhoneNumber);
             }
