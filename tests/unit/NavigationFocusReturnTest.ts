@@ -1069,4 +1069,40 @@ describe('teardown / setup lifecycle', () => {
             navigationRef.getRootState = originalGetRootState;
         }
     });
+
+    it('should seed prevState on the NavigationRoot.onReady re-invocation even when the module-load call already attached the listener', () => {
+        // eslint-disable-next-line @typescript-eslint/no-require-imports, import/extensions
+        const navigationRefModule = require<{default: {getRootState: () => unknown}}>('../../src/libs/Navigation/navigationRef.ts');
+        const navigationRef = navigationRefModule.default;
+        const originalGetRootState = navigationRef.getRootState.bind(navigationRef);
+        const liveInitialState = stackState(0, [{key: 'home', name: 'Home'}]);
+
+        // Phase 1: pre-mount — getRootState is undefined.
+        navigationRef.getRootState = () => undefined;
+        try {
+            teardownNavigationFocusReturn();
+            resetForTests();
+            setupNavigationFocusReturn();
+
+            // Phase 2: onReady — container is live. Re-invoking setup must reseed even though stateUnsubscribe is already set.
+            navigationRef.getRootState = () => liveInitialState;
+            setupNavigationFocusReturn();
+
+            simulateTab();
+            const trigger = appendButton();
+            trigger.focus();
+            setLastInteractiveElementForTests(trigger);
+            handleStateChange(
+                stackState(1, [
+                    {key: 'home', name: 'Home'},
+                    {key: 'settings', name: 'Settings'},
+                ]),
+            );
+
+            trigger.blur();
+            expect(restoreTriggerForRoute('home')).toBe(true);
+        } finally {
+            navigationRef.getRootState = originalGetRootState;
+        }
+    });
 });

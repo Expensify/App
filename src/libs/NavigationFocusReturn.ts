@@ -316,12 +316,12 @@ function setupNavigationFocusReturn(): void {
         };
         document.addEventListener('focusin', focusinHandler, true);
     }
+    // Module-load call runs pre-mount (getRootState undefined); the seed must retry on NavigationRoot.onReady re-invocation, independently of stateUnsubscribe.
+    if (!prevState && typeof navigationRef?.getRootState === 'function') {
+        prevState = navigationRef.getRootState() ?? prevState;
+    }
     // addListener is absent pre-mount and in test mocks; NavigationRoot.onReady re-invokes once the container is live.
     if (!stateUnsubscribe && typeof navigationRef?.addListener === 'function') {
-        // Seed so the first transition diffs against a live state, not undefined (which classifies as noop and skips capture).
-        if (typeof navigationRef.getRootState === 'function') {
-            prevState = navigationRef.getRootState() ?? prevState;
-        }
         stateUnsubscribe = navigationRef.addListener('state', () => {
             if (typeof navigationRef.getRootState !== 'function') {
                 return;
