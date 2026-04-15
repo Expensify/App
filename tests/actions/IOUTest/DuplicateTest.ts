@@ -198,6 +198,8 @@ describe('actions/Duplicate', () => {
                 billable: true,
                 reimbursable: false,
                 tag: 'UpdatedProject',
+                taxCode: '',
+                taxAmount: 0,
                 receiptID: 123,
                 reportID,
             };
@@ -279,6 +281,8 @@ describe('actions/Duplicate', () => {
                 billable: true,
                 reimbursable: false,
                 tag: 'UpdatedProject',
+                taxCode: '',
+                taxAmount: 0,
                 receiptID: 123,
                 reportID,
             };
@@ -330,6 +334,8 @@ describe('actions/Duplicate', () => {
                 billable: true,
                 reimbursable: false,
                 tag: 'UpdatedProject',
+                taxCode: '',
+                taxAmount: 0,
                 receiptID: 123,
                 reportID,
             };
@@ -524,6 +530,8 @@ describe('actions/Duplicate', () => {
                 billable: true,
                 reimbursable: false,
                 tag: 'UpdatedProject',
+                taxCode: '',
+                taxAmount: 0,
                 receiptID: 123,
                 reportID,
             };
@@ -624,6 +632,8 @@ describe('actions/Duplicate', () => {
                 billable: true,
                 reimbursable: false,
                 tag: 'UpdatedProject',
+                taxCode: '',
+                taxAmount: 0,
                 receiptID: 123,
                 reportID,
             };
@@ -764,6 +774,8 @@ describe('actions/Duplicate', () => {
                 billable: true,
                 reimbursable: false,
                 tag: 'UpdatedProject',
+                taxCode: '',
+                taxAmount: 0,
                 receiptID: 123,
                 reportID,
             };
@@ -855,6 +867,8 @@ describe('actions/Duplicate', () => {
                 billable: true,
                 reimbursable: false,
                 tag: 'UpdatedProject',
+                taxCode: '',
+                taxAmount: 0,
                 receiptID: 123,
                 reportID: 'report123',
             };
@@ -897,6 +911,8 @@ describe('actions/Duplicate', () => {
                 billable: true,
                 reimbursable: false,
                 tag: 'UpdatedProject',
+                taxCode: '',
+                taxAmount: 0,
                 receiptID: 123,
                 reportID,
             };
@@ -953,6 +969,8 @@ describe('actions/Duplicate', () => {
                 billable: true,
                 reimbursable: false,
                 tag: 'UpdatedProject',
+                taxCode: '',
+                taxAmount: 0,
                 receiptID: 123,
                 reportID,
             };
@@ -1029,6 +1047,8 @@ describe('actions/Duplicate', () => {
                 billable: true,
                 reimbursable: false,
                 tag: 'UpdatedProject',
+                taxCode: '',
+                taxAmount: 0,
                 receiptID: 123,
                 reportID: reportA,
             };
@@ -1819,6 +1839,8 @@ describe('actions/Duplicate', () => {
                         billable: false,
                         reimbursable: true,
                         tag: '',
+                        taxCode: '',
+                        taxAmount: 0,
                         transactionIDList: [transaction2.transactionID],
                     });
                     return waitForBatchedUpdates();

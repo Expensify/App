@@ -2576,6 +2576,8 @@ function buildMergeDuplicatesParams(
         reimbursable: reviewDuplicates?.reimbursable ?? false,
         category: reviewDuplicates?.category ?? '',
         tag: reviewDuplicates?.tag ?? '',
+        taxCode: reviewDuplicates?.taxCode ?? '',
+        taxAmount: reviewDuplicates?.taxAmount ?? 0,
         merchant: reviewDuplicates?.merchant ?? '',
         comment: reviewDuplicates?.description ?? '',
     };

@@ -100,6 +100,8 @@ function mergeDuplicates({transactionThreadReportID: optimisticTransactionThread
             modifiedMerchant: params.merchant,
             reimbursable: params.reimbursable,
             tag: params.tag,
+            taxCode: params.taxCode,
+            taxAmount: params.taxAmount,
         },
     };
 
@@ -373,6 +375,8 @@ function resolveDuplicates(params: MergeDuplicatesParams) {
             modifiedMerchant: params.merchant,
             reimbursable: params.reimbursable,
             tag: params.tag,
+            taxCode: params.taxCode,
+            taxAmount: params.taxAmount,
         },
     };
 

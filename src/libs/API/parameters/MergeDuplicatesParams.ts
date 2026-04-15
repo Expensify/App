@@ -10,6 +10,8 @@ type MergeDuplicatesParams = {
     billable: boolean;
     reimbursable: boolean;
     tag: string;
+    taxCode: string;
+    taxAmount: number;
     receiptID: number;
     reportID: string | undefined;
     reportActionID?: string | undefined;
