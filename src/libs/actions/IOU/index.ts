@@ -37,7 +37,7 @@ import {getCustomUnitID} from '@libs/PerDiemRequestUtils';
 import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
 import {getDistanceRateCustomUnit, hasDependentTags, isPaidGroupPolicy} from '@libs/PolicyUtils';
 import {getOriginalMessage, getReportActionHtml, getReportActionText, isReportPreviewAction} from '@libs/ReportActionsUtils';
-import type {OptimisticChatReport, OptimisticCreatedReportAction, OptimisticIOUReportAction, TransactionDetails} from '@libs/ReportUtils';
+import type {OptimisticChatReport, OptimisticCreatedReportAction, OptimisticIOUReportAction} from '@libs/ReportUtils';
 import {
     buildOptimisticAddCommentReportAction,
     buildOptimisticChatReport,
@@ -45,7 +45,6 @@ import {
     buildOptimisticExpenseReport,
     buildOptimisticIOUReport,
     buildOptimisticIOUReportAction,
-    buildOptimisticModifiedExpenseReportAction,
     buildOptimisticMoneyRequestEntities,
     buildOptimisticReportPreview,
     generateReportID,
@@ -54,7 +53,6 @@ import {
     getParsedComment,
     getReportNotificationPreference,
     getReportOrDraftReport,
-    getTransactionDetails,
     hasOutstandingChildRequest,
     hasViolations as hasViolationsReportUtils,
     isDeprecatedGroupDM,
@@ -72,7 +70,6 @@ import {
     isTestTransactionReport,
     populateOptimisticReportFormula,
     shouldCreateNewMoneyRequestReport as shouldCreateNewMoneyRequestReportReportUtils,
-    shouldEnableNegative,
     updateReportPreview,
 } from '@libs/ReportUtils';
 import {buildCannedSearchQuery, buildSearchQueryJSON, buildSearchQueryString, getCurrentSearchQueryJSON} from '@libs/SearchQueryUtils';
@@ -84,22 +81,19 @@ import {
     buildOptimisticTransaction,
     getAmount,
     getCategoryTaxCodeAndAmount,
-    getClearedPendingFields,
     getCurrency,
     getDistanceInMeters,
-    getUpdatedTransaction,
     isDistanceRequest as isDistanceRequestTransactionUtils,
     isManualDistanceRequest as isManualDistanceRequestTransactionUtils,
     isOdometerDistanceRequest as isOdometerDistanceRequestTransactionUtils,
-    isOnHold,
     isPerDiemRequest as isPerDiemRequestTransactionUtils,
     isScanRequest as isScanRequestTransactionUtils,
     isTimeRequest as isTimeRequestTransactionUtils,
 } from '@libs/TransactionUtils';
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
 import {buildOptimisticPolicyRecentlyUsedTags} from '@userActions/Policy/Tag';
-import {createTransactionThreadReport, notifyNewAction} from '@userActions/Report';
-import {mergeTransactionIdsHighlightOnSearchRoute, sanitizeWaypointsForAPI, stringifyWaypointsForAPI} from '@userActions/Transaction';
+import {notifyNewAction} from '@userActions/Report';
+import {mergeTransactionIdsHighlightOnSearchRoute, sanitizeWaypointsForAPI} from '@userActions/Transaction';
 import {getRemoveDraftTransactionsByIDsData, removeDraftTransaction, removeDraftTransactionsByIDs} from '@userActions/TransactionEdit';
 import type {IOUAction, IOUActionParams, OdometerImageType} from '@src/CONST';
 import CONST from '@src/CONST';
