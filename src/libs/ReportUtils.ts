@@ -356,7 +356,7 @@ type BuildOptimisticAddCommentReportActionParams = {
     reportActionID?: string;
     attachmentID?: string;
     isHTML?: boolean;
-    delegateEmailParam?: string;
+    delegateEmailParam: string | undefined;
 };
 
 type OptimisticReportAction = {
@@ -6542,7 +6542,8 @@ function buildOptimisticTaskCommentReportAction(
     currentUserEmail?: string,
     currentUserAccountID?: number,
 ): OptimisticReportAction {
-    const reportAction = buildOptimisticAddCommentReportAction({text, reportID: taskReportID, createdOffset, currentUserEmail, currentUserAccountID});
+    // Will be refactored in next PR; buildOptimisticAddCommentReportAction falls back to module-level Onyx.connect value; tracked in https://github.com/Expensify/App/issues/66425
+    const reportAction = buildOptimisticAddCommentReportAction({text, reportID: taskReportID, createdOffset, currentUserEmail, currentUserAccountID, delegateEmailParam: undefined});
     if (Array.isArray(reportAction.reportAction.message)) {
         const message = reportAction.reportAction.message.at(0);
         if (message) {
@@ -11828,7 +11829,8 @@ function prepareOnboardingOnyxData({
 
     // Text message
     const message = typeof onboardingMessage.message === 'function' ? onboardingMessage.message(onboardingTaskParams) : onboardingMessage.message;
-    const textComment = buildOptimisticAddCommentReportAction({text: message, actorAccountID, createdOffset: 1});
+    // Will be refactored in next PR; buildOptimisticAddCommentReportAction falls back to module-level Onyx.connect value; tracked in https://github.com/Expensify/App/issues/66425
+    const textComment = buildOptimisticAddCommentReportAction({text: message, actorAccountID, createdOffset: 1, delegateEmailParam: undefined});
     const textCommentAction: OptimisticAddCommentReportAction = textComment.reportAction;
     const textMessage: AddCommentOrAttachmentParams = {
         reportID: targetChatReportID,
@@ -11845,12 +11847,14 @@ function prepareOnboardingOnyxData({
     if (shouldUseFollowupsInsteadOfTasks) {
         const bespokeMarkdown = getBespokeWelcomeMessage(companySize, userReportedIntegration);
         optimisticConciergeReportActionID = rand64();
+        // Will be refactored in next PR; buildOptimisticAddCommentReportAction falls back to module-level Onyx.connect value; tracked in https://github.com/Expensify/App/issues/66425
         bespokeAction = buildOptimisticAddCommentReportAction({
             text: bespokeMarkdown,
             actorAccountID: CONST.ACCOUNT_ID.CONCIERGE,
             createdOffset: 2,
             reportID: targetChatReportID,
             reportActionID: optimisticConciergeReportActionID,
+            delegateEmailParam: undefined,
         });
         // Reuse the HTML that buildOptimisticAddCommentReportAction already parsed via getParsedComment,
         // so we avoid calling getParsedComment a second time with the same input.
@@ -11968,7 +11972,8 @@ function prepareOnboardingOnyxData({
     const welcomeSignOffText =
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         engagementChoice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM ? translateLocal('onboarding.welcomeSignOffTitleManageTeam') : translateLocal('onboarding.welcomeSignOffTitle');
-    const welcomeSignOffComment = buildOptimisticAddCommentReportAction({text: welcomeSignOffText, actorAccountID, createdOffset: tasksData.length + 3});
+    // Will be refactored in next PR; buildOptimisticAddCommentReportAction falls back to module-level Onyx.connect value; tracked in https://github.com/Expensify/App/issues/66425
+    const welcomeSignOffComment = buildOptimisticAddCommentReportAction({text: welcomeSignOffText, actorAccountID, createdOffset: tasksData.length + 3, delegateEmailParam: undefined});
     const welcomeSignOffCommentAction: OptimisticAddCommentReportAction = welcomeSignOffComment.reportAction;
     const welcomeSignOffMessage = {
         reportID: targetChatReportID,

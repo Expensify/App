@@ -22,6 +22,7 @@ function ProactiveAppReviewModalManager() {
 
     const handleResponse = useCallback(
         (response: AppReviewResponse, message?: string) => {
+            // Call the action which will create an optimistic comment (if the message is provided) and call the API
             respondToProactiveAppReview(response, proactiveAppReview, currentUserEmail, currentUserAccountID, delegateEmail, message, conciergeReportID);
         },
         [conciergeReportID, proactiveAppReview, currentUserEmail, currentUserAccountID, delegateEmail],
