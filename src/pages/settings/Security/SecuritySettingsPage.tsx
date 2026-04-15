@@ -266,6 +266,7 @@ function SecuritySettingsPage() {
         icons.UserLock,
         icons.Shield,
         icons.Fingerprint,
+        icons.Monitor,
         isAccountLocked,
         isActingAsDelegate,
         isUserValidated,

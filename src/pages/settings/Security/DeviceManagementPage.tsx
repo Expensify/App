@@ -1,4 +1,5 @@
-import {FlashList, ListRenderItemInfo} from '@shopify/flash-list';
+import {FlashList} from '@shopify/flash-list';
+import type {ListRenderItemInfo} from '@shopify/flash-list';
 import React from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
