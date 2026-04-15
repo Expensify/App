@@ -413,8 +413,7 @@ function payTravelInvoicingSpend(workspaceAccountID: number, travelSpend: number
             onyxMethod: Onyx.METHOD.MERGE,
             key: cardSettingsKey,
             value: {
-                // eslint-disable-next-line @typescript-eslint/naming-convention
-                TRAVEL_US: {
+                [CONST.TRAVEL.PROGRAM_TRAVEL_US]: {
                     pendingSettlementAmount: travelSpend,
                 },
             },
@@ -431,8 +430,7 @@ function payTravelInvoicingSpend(workspaceAccountID: number, travelSpend: number
             onyxMethod: Onyx.METHOD.MERGE,
             key: cardSettingsKey,
             value: {
-                // eslint-disable-next-line @typescript-eslint/naming-convention
-                TRAVEL_US: {
+                [CONST.TRAVEL.PROGRAM_TRAVEL_US]: {
                     pendingSettlementAmount: 0,
                 },
             },
