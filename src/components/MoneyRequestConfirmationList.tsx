@@ -671,6 +671,8 @@ function MoneyRequestConfirmationList({
                 {!shouldShowReadOnlySplits && !!isSplitModified && (
                     <PressableWithFeedback
                         onPress={() => {
+                            // Dismiss the keyboard so that MoneyRequestAmountInput's useEffect syncs the new amount.
+                            // Without this, the effect skips the update while the input is focused (see formatAmountOnBlur guard).
                             Keyboard.dismiss();
                             resetSplitShares(transaction);
                         }}
