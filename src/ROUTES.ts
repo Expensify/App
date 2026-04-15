@@ -138,6 +138,7 @@ const DYNAMIC_ROUTES = {
     POLICY_ACCOUNTING_NETSUITE_EXPORT_EXPENSES: {
         path: 'expenses/:expenseType',
         entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_EXPORT],
+        getRoute: (expenseType: ValueOf<typeof CONST.NETSUITE_EXPENSE_TYPE>) => `expenses/${expenseType as string}` as const,
     },
     POLICY_ACCOUNTING_NETSUITE_EXPORT_EXPENSES_DESTINATION_SELECT: {
         path: 'destination/select',
