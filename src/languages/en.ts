@@ -8856,6 +8856,7 @@ const translations = {
             forceTwoFactorAuthDescription: `<muted-text>Require two-factor authentication for all members of this domain. Domain members will be prompted to set up two-factor authentication on their account when they sign in.</muted-text>`,
             forceTwoFactorAuthError: "Force two-factor authentication couldn't be changed. Please try again later.",
             resetTwoFactorAuth: 'Reset two-factor authentication',
+            error: 'Couldn\'t save this change. Please try again.',
         },
         groups: {
             title: 'Groups',
@@ -8866,7 +8867,7 @@ const translations = {
                 };
             },
             error: {
-                settings: '<rbr>Couldn’t save this change. Please try again or <concierge-link>contact Concierge</concierge-link> for more support.</rbr>',
+                settings: 'Couldn\'t save this change. Please try again.',
             },
         },
     },
