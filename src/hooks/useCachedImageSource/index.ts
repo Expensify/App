@@ -22,16 +22,20 @@ const clearAuthImagesCache = async () => {
 function useCachedImageSource(source: ImageSource | undefined): ImageSource | null | undefined {
     const uri = typeof source === 'object' ? source.uri : undefined;
     const hasHeaders = typeof source === 'object' && !!source.headers;
+    const {attachmentID} = useContext(AttachmentIDContext);
     const [cachedUri, setCachedUri] = useState<string | null>(null);
     const [hasError, setHasError] = useState(false);
-    const {attachmentID} = useContext(AttachmentIDContext);
-    const [attachment] = useOnyx(`${ONYXKEYS.COLLECTION.ATTACHMENT}${attachmentID}`);
+    const [attachment, attachmentMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.ATTACHMENT}${attachmentID ?? CONST.DEFAULT_NUMBER_ID}`);
 
     useEffect(() => {
         setCachedUri(null);
         setHasError(false);
 
         if ((!hasHeaders && !attachmentID) || !uri) {
+            return;
+        }
+
+        if (attachmentMetadata.status === 'loading') {
             return;
         }
 
@@ -66,7 +70,7 @@ function useCachedImageSource(source: ImageSource | undefined): ImageSource | nu
                 URL.revokeObjectURL(objectURL);
             }
         };
-    }, [uri, hasHeaders, source?.headers]);
+    }, [uri, hasHeaders, source?.headers, attachment, attachmentMetadata.status, attachmentID, source]);
 
     // Images without headers are cached natively by the browser,
     // so pass them through as-is — no Cache API needed

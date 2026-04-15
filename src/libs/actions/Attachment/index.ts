@@ -14,9 +14,9 @@ async function cacheAttachment({attachmentID, source}: CacheAttachmentProps): Pr
         return;
     }
 
-    const isAuthRemoteAttachment = !isEmptyObject(source.headers);
+    const isAuthRemoteAttachment = !isEmptyObject(source.headers) && !attachmentID;
 
-    // attachmentID is required for non-auth remote attachments
+    // If both are empty, then return early
     if (!isAuthRemoteAttachment && !attachmentID) {
         return;
     }
@@ -38,9 +38,9 @@ async function cacheAttachment({attachmentID, source}: CacheAttachmentProps): Pr
         }
 
         if (isAuthRemoteAttachment) {
-            await CacheAPI.put(CONST.CACHE_NAME.AUTH_IMAGES, uri, response);
+            await CacheAPI.put(CONST.CACHE_NAME.AUTH_IMAGES, uri, response.clone());
         } else if (attachmentID) {
-            await CacheAPI.put(CONST.CACHE_NAME.ATTACHMENTS, attachmentID, response);
+            await CacheAPI.put(CONST.CACHE_NAME.ATTACHMENTS, attachmentID, response.clone());
             await Onyx.set(`${ONYXKEYS.COLLECTION.ATTACHMENT}${attachmentID}`, {
                 attachmentID,
                 remoteSource: isLocalFile(uri) ? '' : uri,
@@ -50,19 +50,20 @@ async function cacheAttachment({attachmentID, source}: CacheAttachmentProps): Pr
         const cachedSource = await response.blob();
         return URL.createObjectURL(cachedSource);
     } catch (error) {
-        throw new Error('[AttachmentCache] Failed to fetch attachment');
+        console.log('DEBUG ERROR', error);
+        throw new Error('[AttachmentCache] Failed to cache attachment');
     }
 }
 
 async function getCachedAttachment({attachmentID, attachment, source}: GetCachedAttachmentProps): Promise<string | undefined> {
-    if (isEmptyObject(source) || !source.uri) {
+    if (isEmptyObject(source) || !source.uri || source.uri.startsWith('blob:')) {
         return;
     }
-    const isAuthRemoteAttachment = !isEmptyObject(source.headers);
+    const isAuthRemoteAttachment = !isEmptyObject(source.headers) && !attachmentID;
     const imageSource = source.uri;
 
     // For non-auth remote attachments, check if the cached source is stale and re-cache if needed
-    if (!isAuthRemoteAttachment && attachmentID) {
+    if (!isAuthRemoteAttachment) {
         const isStale = attachment?.remoteSource && attachment.remoteSource !== imageSource;
         if (isStale) {
             const cachedUri = await cacheAttachment({attachmentID, source: {uri: imageSource}}).catch((error) => {
@@ -73,11 +74,12 @@ async function getCachedAttachment({attachmentID, attachment, source}: GetCached
         }
     }
 
+    const cacheName = isAuthRemoteAttachment ? CONST.CACHE_NAME.AUTH_IMAGES : CONST.CACHE_NAME.ATTACHMENTS;
     const cacheKey = isAuthRemoteAttachment ? imageSource : attachmentID;
     if (!cacheKey) {
         return imageSource;
     }
-    const cachedAttachment = await CacheAPI.get(isAuthRemoteAttachment ? CONST.CACHE_NAME.AUTH_IMAGES : CONST.CACHE_NAME.ATTACHMENTS, cacheKey);
+    const cachedAttachment = await CacheAPI.get(cacheName, cacheKey);
     const isUncached = !cachedAttachment;
     if (isUncached) {
         const cachedUri = await cacheAttachment({attachmentID, source}).catch((error) => {
