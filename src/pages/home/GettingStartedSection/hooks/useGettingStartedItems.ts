@@ -2,6 +2,7 @@ import useCardFeeds from '@hooks/useCardFeeds';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import {enablePolicyCategories} from '@libs/actions/Policy/Category';
 import {hasCompanyCardFeeds} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {
@@ -101,6 +102,8 @@ function useGettingStartedItems(): UseGettingStartedItemsResult {
             label: translate('homePage.gettingStartedSection.customizeCategories'),
             isComplete: hasCustomCategories(policyCategories),
             route: ROUTES.WORKSPACE_CATEGORIES.getRoute(activePolicyID),
+            isFeatureEnabled: policy.areCategoriesEnabled,
+            enableFeature: () => enablePolicyCategories({policy, categories: policyCategories ?? {}, tags: {}, reports: [], transactionsAndViolations: {}}, true, false),
         });
     }
 

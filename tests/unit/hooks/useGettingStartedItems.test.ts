@@ -355,7 +355,7 @@ describe('useGettingStartedItems', () => {
         });
 
         it('should show "Customize accounting categories" when reportedIntegration is not set and no connections exist (e.g. cache cleared before connecting)', async () => {
-            await setupManageTeamScenario({});
+            await setupManageTeamScenario({policy: {areCategoriesEnabled: true}});
 
             const {result} = renderHook(() => useGettingStartedItems());
 
@@ -368,7 +368,7 @@ describe('useGettingStartedItems', () => {
         const categoriesIntegrations = ['sap', 'oracle', 'microsoftDynamics', 'other', 'none'];
 
         it.each(categoriesIntegrations)('should show "Customize accounting categories" when accounting choice is %s', async (accounting) => {
-            await setupManageTeamScenario({accounting});
+            await setupManageTeamScenario({accounting, policy: {areCategoriesEnabled: true}});
 
             const {result} = renderHook(() => useGettingStartedItems());
 
@@ -376,8 +376,27 @@ describe('useGettingStartedItems', () => {
             expect(categoriesItem).toBeDefined();
         });
 
+        it('should have isFeatureEnabled=true when categories feature is enabled', async () => {
+            await setupManageTeamScenario({accounting: 'none', policy: {areCategoriesEnabled: true}});
+
+            const {result} = renderHook(() => useGettingStartedItems());
+
+            const categoriesItem = result.current.items.find((item) => item.key === 'customizeCategories');
+            expect(categoriesItem?.isFeatureEnabled).toBe(true);
+        });
+
+        it('should have isFeatureEnabled=false when categories feature is not enabled', async () => {
+            await setupManageTeamScenario({accounting: 'none', policy: {areCategoriesEnabled: false}});
+
+            const {result} = renderHook(() => useGettingStartedItems());
+
+            const categoriesItem = result.current.items.find((item) => item.key === 'customizeCategories');
+            expect(categoriesItem).toBeDefined();
+            expect(categoriesItem?.isFeatureEnabled).toBe(false);
+        });
+
         it('should navigate to workspace categories route', async () => {
-            await setupManageTeamScenario({accounting: 'none'});
+            await setupManageTeamScenario({accounting: 'none', policy: {areCategoriesEnabled: true}});
 
             const {result} = renderHook(() => useGettingStartedItems());
 
@@ -386,7 +405,7 @@ describe('useGettingStartedItems', () => {
         });
 
         it('should not show the connect accounting row when showing the categories row', async () => {
-            await setupManageTeamScenario({accounting: 'none'});
+            await setupManageTeamScenario({accounting: 'none', policy: {areCategoriesEnabled: true}});
 
             const {result} = renderHook(() => useGettingStartedItems());
 
@@ -395,7 +414,7 @@ describe('useGettingStartedItems', () => {
         });
 
         it('should be not completed when workspace has only default categories', async () => {
-            await setupManageTeamScenario({accounting: 'none'});
+            await setupManageTeamScenario({accounting: 'none', policy: {areCategoriesEnabled: true}});
 
             const {result} = renderHook(() => useGettingStartedItems());
 
@@ -419,7 +438,7 @@ describe('useGettingStartedItems', () => {
                 },
             };
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${POLICY_ID}`, customCategories);
-            await setupManageTeamScenario({accounting: 'none'});
+            await setupManageTeamScenario({accounting: 'none', policy: {areCategoriesEnabled: true}});
 
             const {result} = renderHook(() => useGettingStartedItems());
 
@@ -606,7 +625,7 @@ describe('useGettingStartedItems', () => {
         it('should return items in the correct order with categories instead of connect', async () => {
             await setupManageTeamScenario({
                 accounting: 'none',
-                policy: {areCompanyCardsEnabled: true, areRulesEnabled: true},
+                policy: {areCategoriesEnabled: true, areCompanyCardsEnabled: true, areRulesEnabled: true},
             });
 
             const {result} = renderHook(() => useGettingStartedItems());
