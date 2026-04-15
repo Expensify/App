@@ -68,5 +68,29 @@ describe('MultifactorAuthentication shared helpers', () => {
             expect(result.httpStatusCode).toBe(503);
             expect(result.reason).toBe(VALUES.REASON.SERVER_ERRORS.UNHANDLED);
         });
+
+        it('should return the string reason directly when SUCCESS maps to a string (DENY_TRANSACTION)', () => {
+            const responseMap = VALUES.API_RESPONSE_MAP.DENY_TRANSACTION;
+            const result = parseHttpRequest(200, responseMap, undefined);
+
+            expect(result.httpStatusCode).toBe(200);
+            expect(result.reason).toBe(VALUES.REASON.CLIENT_ERRORS.TRANSACTION_DENIED);
+        });
+
+        it('should fall back to CLIENT_ERROR for a 4xx response when the source map is empty', () => {
+            const responseMap = VALUES.API_RESPONSE_MAP.CHANGE_CARD_PIN;
+            const result = parseHttpRequest(400, responseMap, 'Some error');
+
+            expect(result.httpStatusCode).toBe(400);
+            expect(result.reason).toBe(VALUES.REASON.CLIENT_ERRORS.UNHANDLED);
+        });
+
+        it('should match backend message via endsWith when response has a prefix', () => {
+            const responseMap = VALUES.API_RESPONSE_MAP.REQUEST_AUTHENTICATION_CHALLENGE;
+            const result = parseHttpRequest(401, responseMap, 'Error: Registration required');
+
+            expect(result.httpStatusCode).toBe(401);
+            expect(result.reason).toBe(VALUES.REASON.CLIENT_ERRORS.REGISTRATION_REQUIRED);
+        });
     });
 });
