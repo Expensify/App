@@ -3,9 +3,9 @@ import {openApp, reconnectApp} from '@libs/actions/App';
 import {reconnect} from '@libs/actions/Reconnect';
 import type AppStateMonitorType from '@libs/AppStateMonitor';
 import {flush} from '@libs/Network/SequentialQueue';
-import type * as NetworkStateType from '@libs/NetworkState';
 import {getIsOffline, setHasRadio, setSustainedFailures} from '@libs/NetworkState';
 import CONST from '@src/CONST';
+import type * as NetworkStateType from '@src/libs/NetworkState';
 import ONYXKEYS from '@src/ONYXKEYS';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
