@@ -1,7 +1,6 @@
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
-import type {OnyxInputOrEntry} from '@src/types/onyx';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import {getReportActionText} from './ReportActionsUtils';
 
