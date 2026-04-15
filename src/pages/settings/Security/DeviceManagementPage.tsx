@@ -32,7 +32,7 @@ function DeviceManagementPage() {
                 onClose={() => clearRevokeError(getLoginKey(item))}
                 contentContainerStyle={[styles.flexRow, styles.alignItemsCenter, styles.pv3, styles.gap3]}
             >
-                <View style={[styles.flex1, styles.flexColumn]}>
+                <View style={[styles.flex1, styles.flexColumn, styles.gap1]}>
                     <Text style={[styles.textLabelSupporting]}>{datetimeToRelative(item.lastLogin)}</Text>
                     <Text>
                         {deviceName} {deviceVersion ? `${deviceVersion} ` : ''}({os} {osVersion})
