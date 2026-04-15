@@ -51,14 +51,13 @@ function DistanceRequestFooter({waypoints, transaction, navigateToWaypointEditPa
     const activePolicy = usePolicy(activePolicyID);
     const personalPolicy = usePolicy(personalPolicyID);
     const [mapboxAccessToken] = useOnyx(ONYXKEYS.MAPBOX_ACCESS_TOKEN);
-    const [defaultP2PMileageRate] = useOnyx(ONYXKEYS.DEFAULT_P2P_MILEAGE_RATE);
 
     const numberOfWaypoints = Object.keys(waypoints ?? {}).length;
     const numberOfFilledWaypoints = Object.values(waypoints ?? {}).filter((waypoint) => waypoint?.address).length;
     const lastWaypointIndex = numberOfWaypoints - 1;
     const defaultMileageRate = DistanceRequestUtils.getDefaultMileageRate(policy ?? activePolicy);
     const policyCurrency = (policy ?? activePolicy ?? personalPolicy)?.outputCurrency ?? CONST.CURRENCY.USD;
-    const mileageRate = isCustomUnitRateIDForP2P(transaction) ? DistanceRequestUtils.getRateForP2P(policyCurrency, transaction, defaultP2PMileageRate) : defaultMileageRate;
+    const mileageRate = isCustomUnitRateIDForP2P(transaction) ? DistanceRequestUtils.getRateForP2P(policyCurrency, transaction) : defaultMileageRate;
     const {unit} = mileageRate ?? {};
 
     const getMarkerComponent = useCallback(

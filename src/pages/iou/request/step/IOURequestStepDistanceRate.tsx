@@ -64,7 +64,6 @@ function IOURequestStepDistanceRate({
     /* eslint-enable @typescript-eslint/prefer-nullish-coalescing */
 
     const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
-    const [defaultP2PMileageRate] = useOnyx(ONYXKEYS.DEFAULT_P2P_MILEAGE_RATE);
 
     const {policy} = usePolicyForTransaction({transaction, reportPolicyID: report?.policyID, action, iouType, policyDraft});
 
@@ -191,7 +190,6 @@ function IOURequestStepDistanceRate({
                     updatedTaxAmount: taxAmount,
                     updatedTaxCode: taxRateExternalID,
                     updatedTaxValue: taxValue,
-                    defaultP2PMileageRate,
                 });
             }
         }

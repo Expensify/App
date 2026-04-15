@@ -101,7 +101,6 @@ function IOURequestStepDistanceOdometer({
 
     const isArchived = useReportIsArchived(report?.reportID);
     const [lastSelectedDistanceRates] = useOnyx(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES);
-    const [defaultP2PMileageRate] = useOnyx(ONYXKEYS.DEFAULT_P2P_MILEAGE_RATE);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const reportAttributesDerived = useReportAttributes();
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
@@ -145,11 +144,7 @@ function IOURequestStepDistanceOdometer({
         [iouType, defaultExpensePolicy, amountOwed, userBillingGracePeriodEnds, ownerBillingGracePeriodEnd],
     );
 
-    const mileageRate = DistanceRequestUtils.getRate({
-        transaction: currentTransaction,
-        policy: shouldUseDefaultExpensePolicy ? defaultExpensePolicy : policy,
-        defaultP2PMileageRate,
-    });
+    const mileageRate = DistanceRequestUtils.getRate({transaction: currentTransaction, policy: shouldUseDefaultExpensePolicy ? defaultExpensePolicy : policy});
     const unit = mileageRate.unit;
     const rate = mileageRate.rate ?? 0;
 
@@ -426,7 +421,6 @@ function IOURequestStepDistanceOdometer({
                         odometerEnd: end,
                     },
                     policy,
-                    defaultP2PMileageRate,
                 );
                 Navigation.goBack();
                 return;
@@ -457,7 +451,6 @@ function IOURequestStepDistanceOdometer({
                     isASAPSubmitBetaEnabled: false,
                     parentReportNextStep,
                     recentWaypoints,
-                    defaultP2PMileageRate,
                 });
             }
             Navigation.goBack();
@@ -522,7 +515,6 @@ function IOURequestStepDistanceOdometer({
             amountOwed,
             userBillingGracePeriodEnds,
             ownerBillingGracePeriodEnd,
-            defaultP2PMileageRate,
             conciergeReportID,
         });
     };

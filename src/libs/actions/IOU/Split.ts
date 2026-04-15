@@ -82,7 +82,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
-import type DefaultP2PMileageRate from '@src/types/onyx/DefaultP2PMileageRate';
 import type {Attendee, Participant, Split, SplitExpense} from '@src/types/onyx/IOU';
 import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 import type {Unit} from '@src/types/onyx/Policy';
@@ -2368,7 +2367,6 @@ function setDraftSplitTransaction(
     splitTransactionDraft: OnyxEntry<OnyxTypes.Transaction>,
     transactionChanges: TransactionChanges = {},
     policy?: OnyxEntry<OnyxTypes.Policy>,
-    defaultP2PMileageRate?: DefaultP2PMileageRate,
 ) {
     if (!transactionID) {
         return undefined;
@@ -2387,7 +2385,6 @@ function setDraftSplitTransaction(
               shouldUpdateReceiptState: false,
               policy,
               isSplitTransaction: true,
-              defaultP2PMileageRate,
           })
         : null;
 
@@ -2619,7 +2616,6 @@ function addSplitExpenseField(
     draftTransaction: OnyxEntry<OnyxTypes.Transaction>,
     transactionReport: OnyxEntry<OnyxTypes.Report>,
     policy?: OnyxEntry<OnyxTypes.Policy>,
-    defaultP2PMileageRate?: DefaultP2PMileageRate,
 ) {
     if (!transaction || !draftTransaction) {
         return;
@@ -2640,7 +2636,7 @@ function addSplitExpenseField(
               }
             : undefined;
 
-        const mileageRate = DistanceRequestUtils.getRate({transaction, policy: policy ?? undefined, defaultP2PMileageRate});
+        const mileageRate = DistanceRequestUtils.getRate({transaction, policy: policy ?? undefined});
         const {unit, rate} = mileageRate;
 
         if (rate && rate > 0 && customUnit) {
@@ -2697,12 +2693,7 @@ function addSplitExpenseField(
  * - Works entirely on the provided `draftTransaction` to avoid direct Onyx reads.
  * - Uses `calculateAmount` utility to handle currency subunits and rounding consistently with existing logic.
  */
-function evenlyDistributeSplitExpenseAmounts(
-    draftTransaction: OnyxEntry<OnyxTypes.Transaction>,
-    transaction?: OnyxEntry<OnyxTypes.Transaction>,
-    policy?: OnyxEntry<OnyxTypes.Policy>,
-    defaultP2PMileageRate?: DefaultP2PMileageRate,
-) {
+function evenlyDistributeSplitExpenseAmounts(draftTransaction: OnyxEntry<OnyxTypes.Transaction>, transaction?: OnyxEntry<OnyxTypes.Transaction>, policy?: OnyxEntry<OnyxTypes.Policy>) {
     if (!draftTransaction) {
         return;
     }
@@ -2725,7 +2716,7 @@ function evenlyDistributeSplitExpenseAmounts(
     const splitCount = splitExpenses.length;
     const lastIndex = splitCount - 1;
 
-    const mileageRate = DistanceRequestUtils.getRate({transaction, policy: policy ?? undefined, defaultP2PMileageRate});
+    const mileageRate = DistanceRequestUtils.getRate({transaction, policy: policy ?? undefined});
     const {unit, rate} = mileageRate;
 
     const updatedSplitExpenses = splitExpenses.map((splitExpense, index) => {
@@ -2775,7 +2766,6 @@ function resetSplitExpensesByDateRange(
     startDate: string,
     endDate: string,
     policy?: OnyxEntry<OnyxTypes.Policy>,
-    defaultP2PMileageRate?: DefaultP2PMileageRate,
 ) {
     if (!transaction || !startDate || !endDate) {
         return;
@@ -2793,7 +2783,7 @@ function resetSplitExpensesByDateRange(
 
     const isDistanceRequest = isDistanceRequestTransactionUtils(transaction);
 
-    const mileageRate = DistanceRequestUtils.getRate({transaction, policy: policy ?? undefined, defaultP2PMileageRate});
+    const mileageRate = DistanceRequestUtils.getRate({transaction, policy: policy ?? undefined});
     const {unit, rate} = mileageRate;
 
     // Create split expenses for each date with proportional amounts
@@ -2868,7 +2858,6 @@ function updateSplitExpenseField(
     splitExpenseTransactionID: string,
     originalTransaction: OnyxEntry<OnyxTypes.Transaction>,
     policy?: OnyxEntry<OnyxTypes.Policy>,
-    defaultP2PMileageRate?: DefaultP2PMileageRate,
 ) {
     if (!splitExpenseDraftTransaction || !splitExpenseTransactionID || !originalTransactionDraft) {
         return;
@@ -2911,11 +2900,7 @@ function updateSplitExpenseField(
 
             // Recalculate amount for distance transactions when rate or distance changes
             if (isDistanceRequest && originalTransaction) {
-                const mileageRate = DistanceRequestUtils.getRate({
-                    transaction: splitExpenseDraftTransaction,
-                    policy: policy ?? undefined,
-                    defaultP2PMileageRate,
-                });
+                const mileageRate = DistanceRequestUtils.getRate({transaction: splitExpenseDraftTransaction, policy: policy ?? undefined});
                 const {unit, rate} = mileageRate;
 
                 if (rate && rate > 0) {
@@ -2959,13 +2944,7 @@ function updateSplitExpenseField(
     });
 }
 
-function updateSplitExpenseAmountField(
-    draftTransaction: OnyxEntry<OnyxTypes.Transaction>,
-    currentItemTransactionID: string,
-    amount: number,
-    policy?: OnyxEntry<OnyxTypes.Policy>,
-    defaultP2PMileageRate?: DefaultP2PMileageRate,
-) {
+function updateSplitExpenseAmountField(draftTransaction: OnyxEntry<OnyxTypes.Transaction>, currentItemTransactionID: string, amount: number, policy?: OnyxEntry<OnyxTypes.Policy>) {
     if (!draftTransaction?.transactionID || !currentItemTransactionID || Number.isNaN(amount)) {
         return;
     }
@@ -2988,7 +2967,7 @@ function updateSplitExpenseAmountField(
 
             // Update distance for distance transactions based on new amount and rate
             if (isDistanceRequest && originalTransaction && splitExpense.customUnit) {
-                const mileageRate = DistanceRequestUtils.getRate({transaction: originalTransaction, policy: policy ?? undefined, defaultP2PMileageRate});
+                const mileageRate = DistanceRequestUtils.getRate({transaction: originalTransaction, policy: policy ?? undefined});
                 const {rate: currentRate = 0} =
                     DistanceRequestUtils.getRateByCustomUnitRateID({policy, customUnitRateID: splitExpense.customUnit?.customUnitRateID ?? String(CONST.DEFAULT_NUMBER_ID)}) ?? {};
                 const {unit, rate: mileageRateValue} = mileageRate;

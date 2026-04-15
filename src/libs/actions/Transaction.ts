@@ -2,7 +2,6 @@ import {getUnixTime} from 'date-fns';
 import lodashClone from 'lodash/clone';
 import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxKey, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import * as API from '@libs/API';
 import type {
     ChangeTransactionsReportParams,
@@ -12,7 +11,7 @@ import type {
     MarkAsCashParams,
     TransactionThreadInfo,
 } from '@libs/API/parameters';
-import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as CollectionUtils from '@libs/CollectionUtils';
 import DateUtils from '@libs/DateUtils';
 import {buildNextStepNew, buildOptimisticNextStep} from '@libs/NextStepUtils';
@@ -834,10 +833,6 @@ function openDraftDistanceExpense() {
     API.read(READ_COMMANDS.OPEN_DRAFT_DISTANCE_EXPENSE, null, onyxData);
 }
 
-function getDefaultP2PMileageRate() {
-    API.read(READ_COMMANDS.GET_DEFAULT_P2P_MILEAGE_RATE, {});
-}
-
 /**
  * Returns a client generated 16 character hexadecimal value for the transactionID
  */
@@ -859,9 +854,6 @@ type ChangeTransactionsReportProps = {
     reportNextStep?: OnyxEntry<ReportNextStepDeprecated>;
     policyCategories?: OnyxEntry<PolicyCategories>;
     allTransactions: OnyxCollection<Transaction>;
-    translate: LocaleContextProps['translate'];
-    toLocaleDigit: LocaleContextProps['toLocaleDigit'];
-    defaultP2PMileageRate?: DefaultP2PMileageRate;
 };
 
 function changeTransactionsReport({
@@ -874,9 +866,6 @@ function changeTransactionsReport({
     reportNextStep,
     policyCategories,
     allTransactions,
-    translate,
-    toLocaleDigit,
-    defaultP2PMileageRate,
 }: ChangeTransactionsReportProps) {
     const reportID = newReport?.reportID ?? CONST.REPORT.UNREPORTED_REPORT_ID;
 
@@ -1063,9 +1052,7 @@ function changeTransactionsReport({
             }),
         };
 
-        const {comment, modifiedAmount, modifiedCurrency, modifiedMerchant} = isUnreported
-            ? recalculateUnreportedTransactionDetails(transaction, destinationCurrency, translate, toLocaleDigit, defaultP2PMileageRate)
-            : {};
+        const {comment} = isUnreported ? recalculateUnreportedTransactionDetails() : {};
 
         // 1. Optimistically update the transaction with full data and changed fields.
         // Spreading the full transaction ensures the TRANSACTION collection has complete data
@@ -1077,9 +1064,6 @@ function changeTransactionsReport({
                 ...transaction,
                 reportID,
                 comment,
-                ...(modifiedAmount !== undefined && {modifiedAmount}),
-                ...(modifiedCurrency !== undefined && {modifiedCurrency}),
-                ...(modifiedMerchant !== undefined && {modifiedMerchant}),
                 ...(shouldClearAmount && {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
                 ...(shouldClearAmount && {convertedAmount: null}),
                 ...(oldIOUAction ? {linkedTrackedExpenseReportAction: newIOUAction} : {}),
@@ -1101,9 +1085,6 @@ function changeTransactionsReport({
             value: {
                 reportID: transaction.reportID,
                 comment: transaction.comment,
-                modifiedAmount: transaction.modifiedAmount,
-                modifiedCurrency: transaction.modifiedCurrency,
-                modifiedMerchant: transaction.modifiedMerchant,
                 ...(shouldClearAmount && {pendingAction: transaction.pendingAction ?? null}),
                 ...(shouldClearAmount && {convertedAmount: transaction.convertedAmount}),
             },
@@ -1675,6 +1656,24 @@ function changeTransactionsReport({
     });
 }
 
+let storedDefaultP2PMileageRate: DefaultP2PMileageRate | undefined;
+
+function getDefaultP2PMileageRate() {
+    // eslint-disable-next-line rulesdir/no-api-side-effects-method
+    API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.GET_DEFAULT_P2P_MILEAGE_RATE, null).then((response) => {
+        const updates = response?.onyxData as Array<{key: string; value: unknown}> | undefined;
+        const rateUpdate = updates?.find((update) => update.key === 'defaultP2PMileageRate');
+        const value = rateUpdate?.value;
+        if (value && typeof value === 'object' && 'rate' in value && 'unit' in value) {
+            storedDefaultP2PMileageRate = value as DefaultP2PMileageRate;
+        }
+    });
+}
+
+function getStoredDefaultP2PMileageRate(): DefaultP2PMileageRate | undefined {
+    return storedDefaultP2PMileageRate;
+}
+
 function mergeTransactionIdsHighlightOnSearchRoute(type: SearchDataTypes, data: Record<string, boolean> | null) {
     return Onyx.merge(ONYXKEYS.TRANSACTION_IDS_HIGHLIGHT_ON_SEARCH_ROUTE, {[type]: data});
 }
@@ -1704,13 +1703,14 @@ export {
     setReviewDuplicatesKey,
     abandonReviewDuplicateTransactions,
     openDraftDistanceExpense,
-    getDefaultP2PMileageRate,
     sanitizeWaypointsForAPI,
     stringifyWaypointsForAPI,
     getLastModifiedExpense,
     revert,
     changeTransactionsReport,
     setTransactionReport,
+    getDefaultP2PMileageRate,
+    getStoredDefaultP2PMileageRate,
     mergeTransactionIdsHighlightOnSearchRoute,
     getDuplicateTransactionDetails,
 };

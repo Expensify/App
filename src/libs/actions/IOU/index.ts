@@ -93,7 +93,7 @@ import {
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
 import {buildOptimisticPolicyRecentlyUsedTags} from '@userActions/Policy/Tag';
 import {notifyNewAction} from '@userActions/Report';
-import {getDefaultP2PMileageRate, mergeTransactionIdsHighlightOnSearchRoute, sanitizeWaypointsForAPI} from '@userActions/Transaction';
+import {mergeTransactionIdsHighlightOnSearchRoute, sanitizeWaypointsForAPI} from '@userActions/Transaction';
 import {getRemoveDraftTransactionsByIDsData, removeDraftTransaction, removeDraftTransactionsByIDs} from '@userActions/TransactionEdit';
 import type {IOUAction, IOUActionParams, OdometerImageType} from '@src/CONST';
 import CONST from '@src/CONST';
@@ -102,7 +102,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
-import type DefaultP2PMileageRate from '@src/types/onyx/DefaultP2PMileageRate';
 import type {Accountant, Attendee, Participant, Split} from '@src/types/onyx/IOU';
 import type {ErrorFields, Errors, PendingAction, PendingFields} from '@src/types/onyx/OnyxCommon';
 import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
@@ -894,8 +893,6 @@ function initMoneyRequest({
             comment.odometerStartImage = undefined;
             comment.odometerEndImage = undefined;
         }
-
-        getDefaultP2PMileageRate();
     }
 
     if (newIouRequestType === CONST.IOU.REQUEST_TYPE.PER_DIEM) {
@@ -1138,13 +1135,7 @@ function setMoneyRequestReportID(transactionID: string, reportID: string) {
  * if passed transaction previously had it to make sure that transaction does not have inconsistent
  * states (for example distanceUnit not matching distance unit of the new customUnitRateID)
  */
-function setCustomUnitRateID(
-    transactionID: string,
-    customUnitRateID: string | undefined,
-    transaction: OnyxEntry<OnyxTypes.Transaction>,
-    policy: OnyxEntry<OnyxTypes.Policy>,
-    defaultP2PMileageRate?: DefaultP2PMileageRate,
-) {
+function setCustomUnitRateID(transactionID: string, customUnitRateID: string | undefined, transaction: OnyxEntry<OnyxTypes.Transaction>, policy: OnyxEntry<OnyxTypes.Policy>) {
     const isFakeP2PRate = customUnitRateID === CONST.CUSTOM_UNITS.FAKE_P2P_ID;
 
     let newDistanceUnit: Unit | undefined;
@@ -1152,7 +1143,7 @@ function setCustomUnitRateID(
 
     if (customUnitRateID && transaction) {
         const distanceRate = isFakeP2PRate
-            ? DistanceRequestUtils.getRate({transaction, useTransactionDistanceUnit: false, policy, defaultP2PMileageRate, isFakeP2PRate})
+            ? DistanceRequestUtils.getRate({transaction: undefined, policy: undefined, useTransactionDistanceUnit: false, isFakeP2PRate})
             : DistanceRequestUtils.getRateByCustomUnitRateID({policy, customUnitRateID});
 
         const transactionDistanceUnit = transaction.comment?.customUnit?.distanceUnit;

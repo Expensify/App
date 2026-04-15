@@ -89,7 +89,6 @@ function IOURequestStepDistanceManual({
     const {policyForMovingExpenses} = usePolicyForMovingExpenses();
     const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID}`);
     const [lastSelectedDistanceRates] = useOnyx(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES);
-    const [defaultP2PMileageRate] = useOnyx(ONYXKEYS.DEFAULT_P2P_MILEAGE_RATE);
     const reportAttributesDerived = useReportAttributes();
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
@@ -126,7 +125,6 @@ function IOURequestStepDistanceManual({
         transaction,
         policy: shouldUseDefaultExpensePolicy ? defaultExpensePolicy : policy,
         useTransactionDistanceUnit: false,
-        defaultP2PMileageRate,
     });
     const unit = mileageRate.unit;
     const rate = mileageRate.rate ?? 0;
@@ -183,7 +181,7 @@ function IOURequestStepDistanceManual({
             if (action === CONST.IOU.ACTION.EDIT) {
                 // In the split flow, when editing we use SPLIT_TRANSACTION_DRAFT to save draft value
                 if (isEditingSplit && transaction) {
-                    setDraftSplitTransaction(transaction.transactionID, splitDraftTransaction, {distance: distanceAsFloat}, policy, defaultP2PMileageRate);
+                    setDraftSplitTransaction(transaction.transactionID, splitDraftTransaction, {distance: distanceAsFloat}, policy);
                     Navigation.goBack(backTo);
                     return;
                 }
@@ -211,7 +209,6 @@ function IOURequestStepDistanceManual({
                         isASAPSubmitBetaEnabled,
                         parentReportNextStep,
                         recentWaypoints,
-                        defaultP2PMileageRate,
                     });
                 }
                 Navigation.goBack(backTo);
@@ -256,7 +253,6 @@ function IOURequestStepDistanceManual({
                 amountOwed,
                 userBillingGracePeriodEnds,
                 ownerBillingGracePeriodEnd,
-                defaultP2PMileageRate,
                 conciergeReportID,
             });
         },
@@ -303,9 +299,7 @@ function IOURequestStepDistanceManual({
             draftTransactionIDs,
             isSelfTourViewed,
             amountOwed,
-            userBillingGracePeriodEnds,
             ownerBillingGracePeriodEnd,
-            defaultP2PMileageRate,
             conciergeReportID,
         ],
     );

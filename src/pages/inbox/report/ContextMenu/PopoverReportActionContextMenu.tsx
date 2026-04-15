@@ -47,7 +47,7 @@ type PopoverReportActionContextMenuProps = {
 };
 
 function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuProps) {
-    const {translate, toLocaleDigit} = useLocalize();
+    const {translate} = useLocalize();
     const reportIDRef = useRef<string | undefined>(undefined);
     const typeRef = useRef<ContextMenuType | undefined>(undefined);
     const reportActionRef = useRef<NonNullable<OnyxEntry<ReportAction>> | null>(null);
@@ -330,7 +330,6 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
     const [selfDMReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`);
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
-    const [defaultP2PMileageRate] = useOnyx(ONYXKEYS.DEFAULT_P2P_MILEAGE_RATE);
     const {currentSearchHash} = useSearchStateContext();
     const {deleteTransactions} = useDeleteTransactions({
         report,
@@ -383,9 +382,6 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
                 allTransactionViolations,
                 bankAccountList,
                 hash: currentSearchHash,
-                defaultP2PMileageRate,
-                translate,
-                toLocaleDigit,
             });
         } else if (reportAction) {
             // eslint-disable-next-line @typescript-eslint/no-deprecated
@@ -424,7 +420,6 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
         bankAccountList,
         isOriginalReportArchived,
         visibleReportActionsData,
-        defaultP2PMileageRate,
     ]);
 
     const hideDeleteModal = () => {

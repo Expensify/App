@@ -5,7 +5,6 @@ import {usePersonalDetails, useSession} from '@components/OnyxListItemProvider';
 import {useSearchActionsContext} from '@components/Search/SearchContext';
 import type {ListItem} from '@components/SelectionList/types';
 import useConditionalCreateEmptyReportConfirmation from '@hooks/useConditionalCreateEmptyReportConfirmation';
-import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useOptimisticDraftTransactions from '@hooks/useOptimisticDraftTransactions';
 import usePermissions from '@hooks/usePermissions';
@@ -45,7 +44,6 @@ const getIOUActionsSelector = (actions: OnyxEntry<ReportActions>): ReportAction[
 };
 
 function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
-    const {translate, toLocaleDigit} = useLocalize();
     const {backTo, action, iouType, transactionID, reportID: reportIDFromRoute, reportActionID} = route.params;
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const isUnreported = transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
@@ -95,7 +93,6 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
     const perDiemOriginalPolicy = getPolicyByCustomUnitID(transaction, allPolicies);
     const [transactions] = useOptimisticDraftTransactions(transaction);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
-    const [defaultP2PMileageRate] = useOnyx(ONYXKEYS.DEFAULT_P2P_MILEAGE_RATE);
     const handleGoBack = () => {
         if (isEditing) {
             Navigation.dismissToSuperWideRHP();
@@ -187,9 +184,6 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
                         reportNextStep: undefined,
                         policyCategories: allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${item.policyID}`],
                         allTransactions,
-                        translate,
-                        toLocaleDigit,
-                        defaultP2PMileageRate,
                     });
                     removeTransaction(transaction.transactionID);
                 }
@@ -234,9 +228,6 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
                 email: session?.email ?? '',
                 policy: allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${personalPolicyID}`],
                 allTransactions,
-                translate,
-                toLocaleDigit,
-                defaultP2PMileageRate,
             });
             removeTransaction(transaction.transactionID);
         });

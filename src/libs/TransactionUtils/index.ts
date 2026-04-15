@@ -5,7 +5,6 @@ import lodashSet from 'lodash/set';
 import type {NullishDeep, OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
-import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import type {Coordinate} from '@components/MapView/MapViewTypes';
 import utils from '@components/MapView/utils';
 import type {UnreportedExpenseListItemType} from '@components/Search/SearchList/ListItem/types';
@@ -56,7 +55,6 @@ import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {
     Card,
-    DefaultP2PMileageRate,
     OnyxInputOrEntry,
     Policy,
     PolicyCategories,
@@ -674,7 +672,6 @@ function getUpdatedTransaction({
     shouldUpdateReceiptState = true,
     policy = undefined,
     isSplitTransaction = false,
-    defaultP2PMileageRate = undefined,
 }: {
     transaction: Transaction;
     transactionChanges: TransactionChanges;
@@ -682,7 +679,6 @@ function getUpdatedTransaction({
     shouldUpdateReceiptState?: boolean;
     policy?: OnyxEntry<Policy>;
     isSplitTransaction?: boolean;
-    defaultP2PMileageRate?: DefaultP2PMileageRate | null;
 }): Transaction {
     const isUnReportedExpense = transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
 
@@ -730,7 +726,7 @@ function getUpdatedTransaction({
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             updatedTransaction.modifiedMerchant = translateLocal('iou.fieldPending');
         } else {
-            const mileageRate = DistanceRequestUtils.getRate({transaction: updatedTransaction, policy, defaultP2PMileageRate});
+            const mileageRate = DistanceRequestUtils.getRate({transaction: updatedTransaction, policy});
             const {unit, rate} = mileageRate;
 
             const distanceInMeters = getDistanceInMeters(transaction, unit);
@@ -771,7 +767,7 @@ function getUpdatedTransaction({
         const existingDistanceUnit = transaction?.comment?.customUnit?.distanceUnit;
 
         // Get the new distance unit from the rate's unit
-        const newDistanceUnit = DistanceRequestUtils.getUpdatedDistanceUnit({transaction: updatedTransaction, policy, defaultP2PMileageRate});
+        const newDistanceUnit = DistanceRequestUtils.getUpdatedDistanceUnit({transaction: updatedTransaction, policy});
         lodashSet(updatedTransaction, 'comment.customUnit.distanceUnit', newDistanceUnit);
 
         // If the distanceUnit is set and the rate is changed to one that has a different unit, convert the distance to the new unit.
@@ -786,12 +782,7 @@ function getUpdatedTransaction({
             // When the waypoints are being fetched from the server, we have no information about the distance, and cannot recalculate the updated amount.
             // Otherwise, recalculate the fields based on the new rate.
 
-            const updatedMileageRate = DistanceRequestUtils.getRate({
-                transaction: updatedTransaction,
-                policy,
-                useTransactionDistanceUnit: false,
-                defaultP2PMileageRate,
-            });
+            const updatedMileageRate = DistanceRequestUtils.getRate({transaction: updatedTransaction, policy, useTransactionDistanceUnit: false});
             const {unit, rate} = updatedMileageRate;
 
             const distanceInMeters = getDistanceInMeters(updatedTransaction, unit);
@@ -876,12 +867,7 @@ function getUpdatedTransaction({
         lodashSet(updatedTransaction, 'comment.customUnit.quantity', distance);
         shouldStopSmartscan = true;
 
-        const updatedMileageRate = DistanceRequestUtils.getRate({
-            transaction: updatedTransaction,
-            policy,
-            useTransactionDistanceUnit: false,
-            defaultP2PMileageRate,
-        });
+        const updatedMileageRate = DistanceRequestUtils.getRate({transaction: updatedTransaction, policy, useTransactionDistanceUnit: false});
         const {unit, rate} = updatedMileageRate;
 
         const distanceInMeters = getDistanceInMeters(updatedTransaction, unit);
@@ -2806,54 +2792,14 @@ function shouldReuseInitialTransaction(
 
 /**
  * A utility that ensures unreported transactions are unheld.
- * For distance expenses, it also updates the `customUnit` and recalculates the transaction's `amount`, `merchant`, and `currency`.
  */
-function recalculateUnreportedTransactionDetails(
-    transaction?: OnyxEntry<Transaction>,
-    destinationCurrency?: string | undefined,
-    translateFn?: LocaleContextProps['translate'],
-    toLocaleDigitFn?: LocaleContextProps['toLocaleDigit'],
-    defaultP2PMileageRate?: DefaultP2PMileageRate | null,
-) {
+function recalculateUnreportedTransactionDetails() {
+    // If the transaction is on hold, we need to unhold it because unreported transactions (on selfDM) should never remain on hold.
     const comment: NullishDeep<Comment> = {
         hold: null,
     };
 
-    if (!transaction || !isDistanceRequest(transaction) || !translateFn || !toLocaleDigitFn) {
-        return {comment};
-    }
-
-    // For distance requests we need to update its custom unit ID to `_FAKE_P2P_ID_` so it's no longer tied to the policy's rate which would cause the "Rate out of policy" violation to appear.
-    // Let's also set the defaultP2PRate and update the distanceUnit, the quantity, the amount, the currency and the merchant to match the P2P rate.
-    const rate = defaultP2PMileageRate?.rate;
-    const unit = defaultP2PMileageRate?.unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES;
-    const currency = destinationCurrency ?? CONST.CURRENCY.USD;
-    const distance = parseFloat(
-        DistanceRequestUtils.getRoundedDistanceInUnits(getDistanceInMeters(transaction, transaction?.comment?.customUnit?.distanceUnit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES), unit),
-    );
-    const distanceInMeters = DistanceRequestUtils.convertToDistanceInMeters(distance, unit);
-    comment.customUnit = {
-        customUnitID: CONST.CUSTOM_UNITS.FAKE_P2P_ID,
-        customUnitRateID: CONST.CUSTOM_UNITS.FAKE_P2P_ID,
-        defaultP2PRate: rate,
-        distanceUnit: unit,
-        quantity: distance,
-    };
-    const modifiedAmount = -DistanceRequestUtils.getDistanceRequestAmount(distanceInMeters, unit, rate ?? 0);
-    const modifiedCurrency = currency;
-    const modifiedMerchant = DistanceRequestUtils.getDistanceMerchant(
-        true,
-        distanceInMeters,
-        unit,
-        rate,
-        currency,
-        translateFn,
-        toLocaleDigitFn,
-        getCurrencySymbol,
-        isManualDistanceRequest(transaction),
-    );
-
-    return {comment, modifiedAmount, modifiedCurrency, modifiedMerchant};
+    return {comment};
 }
 
 /**

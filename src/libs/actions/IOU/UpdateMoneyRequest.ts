@@ -41,7 +41,6 @@ import {stringifyWaypointsForAPI} from '@userActions/Transaction';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
-import type DefaultP2PMileageRate from '@src/types/onyx/DefaultP2PMileageRate';
 import type {Attendee} from '@src/types/onyx/IOU';
 import type RecentlyUsedTags from '@src/types/onyx/RecentlyUsedTags';
 import type {Routes, TransactionChanges, WaypointCollection} from '@src/types/onyx/Transaction';
@@ -483,7 +482,6 @@ type UpdateMoneyRequestDistanceParams = {
     odometerStart?: number;
     odometerEnd?: number;
     parentReportNextStep: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>;
-    defaultP2PMileageRate?: DefaultP2PMileageRate;
 };
 
 /** Updates the waypoints of a distance expense */
@@ -505,7 +503,6 @@ function updateMoneyRequestDistance({
     odometerStart,
     odometerEnd,
     parentReportNextStep,
-    defaultP2PMileageRate,
 }: UpdateMoneyRequestDistanceParams) {
     const transactionChanges: TransactionChanges = {
         // Don't sanitize waypoints here - keep all fields for Onyx optimistic data (e.g., keyForList)
@@ -519,7 +516,7 @@ function updateMoneyRequestDistance({
     let data: UpdateMoneyRequestData<UpdateMoneyRequestDataKeys | typeof ONYXKEYS.NVP_RECENT_WAYPOINTS>;
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     if (isTrackExpenseReport(transactionThreadReport) && isSelfDM(parentReport)) {
-        data = getUpdateTrackExpenseParams(transaction?.transactionID, transactionThreadReport?.reportID, transactionChanges, policy, true, defaultP2PMileageRate);
+        data = getUpdateTrackExpenseParams(transaction?.transactionID, transactionThreadReport?.reportID, transactionChanges, policy);
     } else {
         data = getUpdateMoneyRequestParams({
             transactionID: transaction?.transactionID,
@@ -533,7 +530,6 @@ function updateMoneyRequestDistance({
             currentUserEmailParam,
             isASAPSubmitBetaEnabled,
             iouReportNextStep: parentReportNextStep,
-            defaultP2PMileageRate,
         });
     }
     const {params, onyxData} = data;
@@ -710,7 +706,6 @@ function updateMoneyRequestDistanceRate({
     updatedTaxCode,
     updatedTaxValue,
     parentReportNextStep,
-    defaultP2PMileageRate,
 }: {
     transaction: OnyxEntry<OnyxTypes.Transaction>;
     transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
@@ -726,7 +721,6 @@ function updateMoneyRequestDistanceRate({
     updatedTaxCode?: string;
     updatedTaxValue?: string;
     parentReportNextStep: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>;
-    defaultP2PMileageRate?: DefaultP2PMileageRate;
 }) {
     const transactionChanges: TransactionChanges = {
         customUnitRateID: rateID,
@@ -751,7 +745,7 @@ function updateMoneyRequestDistanceRate({
     let data: UpdateMoneyRequestData<UpdateMoneyRequestDataKeys>;
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     if (isTrackExpenseReport(transactionThreadReport) && isSelfDM(parentReport)) {
-        data = getUpdateTrackExpenseParams(transaction?.transactionID, transactionThreadReport?.reportID, transactionChanges, policy, true, defaultP2PMileageRate);
+        data = getUpdateTrackExpenseParams(transaction?.transactionID, transactionThreadReport?.reportID, transactionChanges, policy);
     } else {
         data = getUpdateMoneyRequestParams({
             transactionID: transaction?.transactionID,
@@ -765,7 +759,6 @@ function updateMoneyRequestDistanceRate({
             currentUserEmailParam,
             isASAPSubmitBetaEnabled,
             iouReportNextStep: parentReportNextStep,
-            defaultP2PMileageRate,
         });
     }
     const {params, onyxData} = data;
@@ -873,7 +866,6 @@ type GetUpdateMoneyRequestParamsType = {
     policyRecentlyUsedCurrencies?: string[];
     iouReportNextStep: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>;
     isSplitTransaction?: boolean;
-    defaultP2PMileageRate?: DefaultP2PMileageRate;
 };
 
 type UpdateMoneyRequestDataKeys =
@@ -911,7 +903,6 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
         policyRecentlyUsedCurrencies,
         iouReportNextStep,
         isSplitTransaction,
-        defaultP2PMileageRate,
     } = params;
     const optimisticData: Array<
         OnyxUpdate<
@@ -958,7 +949,6 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
               isFromExpenseReport,
               isSplitTransaction,
               policy,
-              defaultP2PMileageRate,
           })
         : undefined;
 
@@ -1456,7 +1446,6 @@ function getUpdateTrackExpenseParams(
     transactionChanges: TransactionChanges,
     policy: OnyxEntry<OnyxTypes.Policy>,
     shouldBuildOptimisticModifiedExpenseReportAction = true,
-    defaultP2PMileageRate?: DefaultP2PMileageRate,
 ): UpdateMoneyRequestData<
     typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.TRANSACTION | typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.TRANSACTION_DRAFT
 > {
@@ -1479,7 +1468,6 @@ function getUpdateTrackExpenseParams(
               transactionChanges,
               isFromExpenseReport: false,
               policy,
-              defaultP2PMileageRate,
           })
         : null;
     const transactionDetails = getTransactionDetails(updatedTransaction);
