@@ -76,7 +76,7 @@ function TotalCell({shouldShowTooltip, transactionItem, canEdit, onSave}: TotalC
             style: 'currency',
             currency,
             minimumFractionDigits: decimals,
-            maximumFractionDigits: 2,
+            maximumFractionDigits: CONST.DEFAULT_CURRENCY_DECIMALS,
         });
 
         return parts.some((part) => part.type === 'literal' && part.value.trim() === '');
