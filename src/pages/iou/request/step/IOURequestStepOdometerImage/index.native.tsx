@@ -14,8 +14,10 @@ import Icon from '@components/Icon';
 import ImageSVG from '@components/ImageSVG';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import RenderHTML from '@components/RenderHTML';
+import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import useFilesValidation from '@hooks/useFilesValidation';
+import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNativeCamera from '@hooks/useNativeCamera';
@@ -28,6 +30,7 @@ import Log from '@libs/Log';
 import moveReceiptToDurableStorage from '@libs/moveReceiptToDurableStorage';
 import Navigation from '@libs/Navigation/Navigation';
 import {getOdometerImageUri} from '@libs/OdometerImageUtils';
+import {cancelSpan, endSpan, startSpan} from '@libs/telemetry/activeSpans';
 import NavigationAwareCamera from '@pages/iou/request/step/IOURequestStepScan/components/NavigationAwareCamera/Camera';
 import {cropImageToAspectRatio} from '@pages/iou/request/step/IOURequestStepScan/cropImageToAspectRatio';
 import type {ImageObject} from '@pages/iou/request/step/IOURequestStepScan/cropImageToAspectRatio';
@@ -58,6 +61,8 @@ function IOURequestStepOdometerImage({
     const viewfinderLayout = useRef<LayoutRectangle>(null);
     const isTransactionDraft = shouldUseTransactionDraft(action ?? CONST.IOU.ACTION.CREATE, iouType ?? CONST.IOU.TYPE.REQUEST);
 
+    const isInLandscapeMode = useIsInLandscapeMode();
+
     const {
         camera,
         device,
@@ -74,7 +79,12 @@ function IOURequestStepOdometerImage({
         tapGesture,
         cameraFocusIndicatorAnimatedStyle,
         cameraLoadingReasonAttributes,
-    } = useNativeCamera({context: 'IOURequestStepOdometerImage'});
+    } = useNativeCamera({
+        context: 'IOURequestStepOdometerImage',
+        onFocusCleanup: () => {
+            cancelSpan(CONST.TELEMETRY.SPAN_ODOMETER_IMAGE_CAPTURE);
+        },
+    });
     const {setIsLoaderVisible} = useFullScreenLoaderActions();
 
     const title = imageType === 'start' ? translate('distance.odometer.startTitle') : translate('distance.odometer.endTitle');
@@ -131,6 +141,15 @@ function IOURequestStepOdometerImage({
 
         setDidCapturePhoto(true);
 
+        startSpan(CONST.TELEMETRY.SPAN_ODOMETER_IMAGE_CAPTURE, {
+            name: CONST.TELEMETRY.SPAN_ODOMETER_IMAGE_CAPTURE,
+            op: CONST.TELEMETRY.SPAN_ODOMETER_IMAGE_CAPTURE,
+            attributes: {
+                [CONST.TELEMETRY.ATTRIBUTE_ODOMETER_IMAGE_TYPE]: imageType,
+                [CONST.TELEMETRY.ATTRIBUTE_PLATFORM]: 'native',
+            },
+        });
+
         const path = getReceiptsUploadFolderPath();
 
         ReactNativeBlobUtil.fs
@@ -171,15 +190,18 @@ function IOURequestStepOdometerImage({
                                     isTransactionDraft,
                                     false,
                                 );
+                                endSpan(CONST.TELEMETRY.SPAN_ODOMETER_IMAGE_CAPTURE);
                                 navigateBack();
                             })
                             .catch((error: unknown) => {
+                                cancelSpan(CONST.TELEMETRY.SPAN_ODOMETER_IMAGE_CAPTURE);
                                 setDidCapturePhoto(false);
                                 showCameraAlert();
                                 Log.warn('Error cropping photo', error instanceof Error ? error.message : String(error));
                             });
                     })
                     .catch((error: unknown) => {
+                        cancelSpan(CONST.TELEMETRY.SPAN_ODOMETER_IMAGE_CAPTURE);
                         setDidCapturePhoto(false);
                         showCameraAlert();
                         const errorMessage = error instanceof Error ? error.message : String(error);
@@ -203,26 +225,28 @@ function IOURequestStepOdometerImage({
         >
             <View style={styles.flex1}>
                 {cameraPermissionStatus !== RESULTS.GRANTED && (
-                    <View style={[styles.cameraView, styles.permissionView, styles.userSelectNone]}>
-                        <ImageSVG
-                            contentFit="contain"
-                            src={lazyIllustrationsOnly.Hand}
-                            width={CONST.RECEIPT.HAND_ICON_WIDTH}
-                            height={CONST.RECEIPT.HAND_ICON_HEIGHT}
-                            style={styles.pb5}
-                        />
+                    <ScrollView contentContainerStyle={styles.flexGrow1}>
+                        <View style={[styles.cameraView, isInLandscapeMode ? styles.permissionViewLandscape : styles.permissionView, styles.userSelectNone]}>
+                            <ImageSVG
+                                contentFit="contain"
+                                src={lazyIllustrationsOnly.Hand}
+                                width={CONST.RECEIPT.HAND_ICON_WIDTH}
+                                height={CONST.RECEIPT.HAND_ICON_HEIGHT}
+                                style={styles.pb5}
+                            />
 
-                        <Text style={[styles.textFileUpload]}>{translate('receipt.takePhoto')}</Text>
-                        <Text style={[styles.subTextFileUpload]}>{translate('distance.odometer.cameraAccessRequired')}</Text>
-                        <Button
-                            success
-                            text={translate('common.continue')}
-                            accessibilityLabel={translate('common.continue')}
-                            style={[styles.p9, styles.pt5]}
-                            onPress={capturePhoto}
-                            sentryLabel={CONST.SENTRY_LABEL.REQUEST_STEP.ODOMETER_IMAGE.CONTINUE_BUTTON}
-                        />
-                    </View>
+                            <Text style={[styles.textFileUpload]}>{translate('receipt.takePhoto')}</Text>
+                            <Text style={[styles.subTextFileUpload]}>{translate('distance.odometer.cameraAccessRequired')}</Text>
+                            <Button
+                                success
+                                text={translate('common.continue')}
+                                accessibilityLabel={translate('common.continue')}
+                                style={[styles.p9, styles.pt5]}
+                                onPress={capturePhoto}
+                                sentryLabel={CONST.SENTRY_LABEL.REQUEST_STEP.ODOMETER_IMAGE.CONTINUE_BUTTON}
+                            />
+                        </View>
+                    </ScrollView>
                 )}
                 {cameraPermissionStatus === RESULTS.GRANTED && device == null && (
                     <View style={[styles.cameraView]}>
