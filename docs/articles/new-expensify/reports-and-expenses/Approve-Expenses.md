@@ -38,7 +38,7 @@ To review and approve a report submitted to you for approval:
 
 1. Click the report to open it.
 2. Review details like the receipt, amount, and description.
-3. Click **Approve** at the top of the rport. 
+3. Click **Approve** at the top of the report. 
 
 ---
 
