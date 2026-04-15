@@ -204,6 +204,10 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
         [policy?.rulesDocumentURL, policyID, session?.encryptedAuthToken],
     );
 
+    const rulesDocumentThumbnailStyle = useMemo(() => ({width: variables.rulesDocumentThumbnailWidth, height: variables.rulesDocumentThumbnailHeight}), []);
+    const rulesDocumentMenuPositionStyle = useMemo(() => ({top: variables.spacing2, right: variables.spacing2}), []);
+    const rulesDocumentMenuIconStyle = useMemo(() => ({borderRadius: variables.componentSizeNormal / 2, backgroundColor: theme.cardBG}), [theme.cardBG]);
+
     const personalDetails = usePersonalDetails();
     const [accountIDToLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: accountIDToLoginSelector(reportsToArchive)});
     const [isCannotLeaveWorkspaceModalOpen, setIsCannotLeaveWorkspaceModalOpen] = useState(false);
@@ -816,7 +820,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                                 {({openPicker}) => {
                                     if (policy?.rulesDocumentURL) {
                                         return (
-                                            <View style={{width: variables.rulesDocumentThumbnailWidth, height: variables.rulesDocumentThumbnailHeight}}>
+                                            <View style={rulesDocumentThumbnailStyle}>
                                                 <PressableWithoutFeedback
                                                     onPress={() => {
                                                         if (!policyID) {
@@ -831,15 +835,15 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                                                 >
                                                     <PDFThumbnail
                                                         previewSourceURL={rulesDocumentSourceURL}
-                                                        style={{width: variables.rulesDocumentThumbnailWidth, height: variables.rulesDocumentThumbnailHeight}}
+                                                        style={rulesDocumentThumbnailStyle}
                                                     />
                                                 </PressableWithoutFeedback>
                                                 {isPolicyAdmin && (
-                                                    <View style={[styles.pAbsolute, {top: variables.spacing2, right: variables.spacing2}]}>
+                                                    <View style={[styles.pAbsolute, rulesDocumentMenuPositionStyle]}>
                                                         <ThreeDotsMenu
                                                             menuItems={getRulesDocumentMenuItems(openPicker)}
                                                             shouldSelfPosition
-                                                            iconStyles={[{borderRadius: variables.componentSizeNormal / 2, backgroundColor: theme.cardBG}]}
+                                                            iconStyles={[rulesDocumentMenuIconStyle]}
                                                         />
                                                     </View>
                                                 )}
