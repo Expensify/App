@@ -182,7 +182,7 @@ function getSpendRuleByCardID(expensifyCardSettingsCollection: OnyxCollection<Ex
     return undefined;
 }
 
-const MAX_SUMMARY_CHARS = 74;
+const MAX_SUMMARY_CHARS = 66;
 
 type MoreCountFormatter = (summary: string, hiddenCount: number, shownCount: number) => string;
 type SpendRuleSummaryPart = {
