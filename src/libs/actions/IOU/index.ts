@@ -4519,7 +4519,6 @@ export {
     getReceiptError,
     getSearchOnyxUpdate,
     getPolicyTags,
-    getPolicyTagsData,
     setMoneyRequestTimeRate,
     setMoneyRequestTimeCount,
     handleNavigateAfterExpenseCreate,
