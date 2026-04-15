@@ -261,6 +261,7 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
                                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true, [CONST.INNER_BOX_SHADOW_ELEMENT]: false}}
                                 id={transaction.transactionID}
                                 sentryLabel={CONST.SENTRY_LABEL.SEARCH.EXPANDED_TRANSACTION_ROW}
+                                wrapperStyle={shouldShowBottomBorder && styles.borderBottom}
                             >
                                 {transactionRow}
                             </PressableWithFeedback>

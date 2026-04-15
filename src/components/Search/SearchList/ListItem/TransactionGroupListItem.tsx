@@ -538,7 +538,11 @@ function TransactionGroupListItem<TItem extends ListItem>({
                     styles.userSelectNone,
                     isLargeScreenWidth
                         ? [StyleUtils.getSearchTableGroupRowBorderStyle(isFirstItem, isLastItem, isItemSelected), isLastItem && styles.overflowHidden]
-                        : [styles.borderBottom, isFirstItem && [styles.searchTableTopRadius, styles.overflowHidden], isLastItem && [styles.searchTableBottomRadius, styles.overflowHidden]],
+                        : [
+                              !isFirstItem && styles.borderTop,
+                              isFirstItem && [styles.searchTableTopRadius, styles.overflowHidden],
+                              isLastItem && [styles.searchTableBottomRadius, styles.overflowHidden],
+                          ],
                 ]}
             >
                 {({hovered}) => (
