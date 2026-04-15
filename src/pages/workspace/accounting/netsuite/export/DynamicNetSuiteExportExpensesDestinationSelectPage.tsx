@@ -34,7 +34,7 @@ function DynamicNetSuiteExportExpensesDestinationSelectPage({policy}: WithPolicy
     const config = policy?.connections?.netsuite?.options.config;
     const [isWarningModalVisible, setIsWarningModalVisible] = useState(false);
 
-    const route = useRoute<PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_EXPORT_EXPENSES_DESTINATION_SELECT>>();
+    const route = useRoute<PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_NETSUITE_EXPORT_EXPENSES_DESTINATION_SELECT>>();
     const params = route.params;
     const isReimbursable = params.expenseType === CONST.NETSUITE_EXPENSE_TYPE.REIMBURSABLE;
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT_EXPENSES_DESTINATION_SELECT.path);
@@ -50,8 +50,8 @@ function DynamicNetSuiteExportExpensesDestinationSelectPage({policy}: WithPolicy
     }));
 
     const goBack = useCallback(() => {
-        Navigation.goBack(params.backTo ?? backPath);
-    }, [params.backTo, backPath]);
+        Navigation.goBack(backPath);
+    }, [backPath]);
 
     const selectDestination = useCallback(
         (row: MenuListItem, isWarningConfirmed?: boolean) => {

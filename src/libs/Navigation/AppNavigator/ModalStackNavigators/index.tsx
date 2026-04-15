@@ -722,9 +722,9 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
         require<ReactComponentModule>('../../../../pages/workspace/accounting/netsuite/export/DynamicNetSuitePreferredExporterSelectPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_NETSUITE_DATE_SELECT]: () =>
         require<ReactComponentModule>('../../../../pages/workspace/accounting/netsuite/export/DynamicNetSuiteDateSelectPage').default,
-    [SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_EXPORT_EXPENSES]: () =>
+    [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_NETSUITE_EXPORT_EXPENSES]: () =>
         require<ReactComponentModule>('../../../../pages/workspace/accounting/netsuite/export/DynamicNetSuiteExportExpensesPage').default,
-    [SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_EXPORT_EXPENSES_DESTINATION_SELECT]: () =>
+    [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_NETSUITE_EXPORT_EXPENSES_DESTINATION_SELECT]: () =>
         require<ReactComponentModule>('../../../../pages/workspace/accounting/netsuite/export/DynamicNetSuiteExportExpensesDestinationSelectPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_NETSUITE_EXPORT_EXPENSES_VENDOR_SELECT]: () =>
         require<ReactComponentModule>('../../../../pages/workspace/accounting/netsuite/export/DynamicNetSuiteExportExpensesVendorSelectPage').default,
