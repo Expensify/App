@@ -233,19 +233,33 @@ type MiniReport = {
     lastVisibleActionCreated?: string;
 };
 
-function shouldDisplayReportInLHN(
-    report: Report,
-    reports: OnyxCollection<Report>,
-    currentReportId: string | undefined,
-    isInFocusMode: boolean,
-    betas: OnyxEntry<Beta[]>,
-    transactionViolations: OnyxCollection<TransactionViolation[]>,
-    draftComment: OnyxEntry<string>,
-    transactions: OnyxCollection<Transaction>,
-    isOffline: boolean,
-    isReportArchived?: boolean,
-    reportAttributes?: ReportAttributesDerivedValue['reports'],
-) {
+type ShouldDisplayReportInLHNParams = {
+    report: Report;
+    reports: OnyxCollection<Report>;
+    currentReportId: string | undefined;
+    isInFocusMode: boolean;
+    betas: OnyxEntry<Beta[]>;
+    transactionViolations: OnyxCollection<TransactionViolation[]>;
+    draftComment: OnyxEntry<string>;
+    transactions: OnyxCollection<Transaction>;
+    isOffline: boolean;
+    isReportArchived?: boolean;
+    reportAttributes?: ReportAttributesDerivedValue['reports'];
+};
+
+function shouldDisplayReportInLHN({
+    report,
+    reports,
+    currentReportId,
+    isInFocusMode,
+    betas,
+    transactionViolations,
+    draftComment,
+    transactions,
+    isOffline,
+    isReportArchived,
+    reportAttributes,
+}: ShouldDisplayReportInLHNParams) {
     if (!report) {
         return {shouldDisplay: false};
     }
@@ -330,19 +344,19 @@ function getReportsToDisplayInLHN(
 
         const reportDraftComment = draftComments?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${report.reportID}`];
 
-        const {shouldDisplay, hasErrorsOtherThanFailedReceipt} = shouldDisplayReportInLHN(
+        const {shouldDisplay, hasErrorsOtherThanFailedReceipt} = shouldDisplayReportInLHN({
             report,
             reports,
             currentReportId,
             isInFocusMode,
             betas,
             transactionViolations,
-            reportDraftComment,
+            draftComment: reportDraftComment,
             transactions,
             isOffline,
-            isArchivedReport(reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`]),
+            isReportArchived: isArchivedReport(reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`]),
             reportAttributes,
-        );
+        });
 
         if (shouldDisplay) {
             const requiresAttention = reportAttributes?.[report?.reportID]?.requiresAttention ?? false;
@@ -405,19 +419,19 @@ function updateReportsToDisplayInLHN({
         // This fixes the issue where the current report's draft comment was incorrectly used to filter all reports
         const reportDraftComment = draftComments?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${report.reportID}`];
 
-        const {shouldDisplay, hasErrorsOtherThanFailedReceipt} = shouldDisplayReportInLHN(
+        const {shouldDisplay, hasErrorsOtherThanFailedReceipt} = shouldDisplayReportInLHN({
             report,
             reports,
             currentReportId,
             isInFocusMode,
             betas,
             transactionViolations,
-            reportDraftComment,
+            draftComment: reportDraftComment,
             transactions,
             isOffline,
-            isArchivedReport(reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`] ?? {}),
+            isReportArchived: isArchivedReport(reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`] ?? {}),
             reportAttributes,
-        );
+        });
 
         if (shouldDisplay) {
             const requiresAttention = reportAttributes?.[report?.reportID]?.requiresAttention ?? false;

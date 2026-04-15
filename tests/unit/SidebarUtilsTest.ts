@@ -757,7 +757,17 @@ describe('SidebarUtils', () => {
                 });
             });
 
-            const result = SidebarUtils.shouldDisplayReportInLHN(MOCK_REPORT, MOCK_REPORTS as OnyxCollection<Report>, undefined, true, undefined, {}, undefined, MOCK_TRANSACTIONS, false);
+            const result = SidebarUtils.shouldDisplayReportInLHN({
+                report: MOCK_REPORT,
+                reports: MOCK_REPORTS as OnyxCollection<Report>,
+                currentReportId: undefined,
+                isInFocusMode: true,
+                betas: undefined,
+                transactionViolations: {},
+                draftComment: undefined,
+                transactions: MOCK_TRANSACTIONS,
+                isOffline: false,
+            });
 
             expect(result).toStrictEqual({shouldDisplay: true, hasErrorsOtherThanFailedReceipt: true});
         });
@@ -857,19 +867,98 @@ describe('SidebarUtils', () => {
                 });
             });
 
-            const result = SidebarUtils.shouldDisplayReportInLHN(
-                MOCK_TRANSACTION_THREAD_REPORT,
-                MOCK_REPORTS as OnyxCollection<Report>,
-                undefined,
-                true,
-                undefined,
-                {},
-                undefined,
-                MOCK_TRANSACTIONS,
-                false,
-            );
+            const result = SidebarUtils.shouldDisplayReportInLHN({
+                report: MOCK_TRANSACTION_THREAD_REPORT,
+                reports: MOCK_REPORTS as OnyxCollection<Report>,
+                currentReportId: undefined,
+                isInFocusMode: true,
+                betas: undefined,
+                transactionViolations: {},
+                draftComment: undefined,
+                transactions: MOCK_TRANSACTIONS,
+                isOffline: false,
+            });
 
             expect(result).toStrictEqual({shouldDisplay: true, hasErrorsOtherThanFailedReceipt: true});
+        });
+
+        it('returns shouldDisplay as false when report is falsy', () => {
+            const result = SidebarUtils.shouldDisplayReportInLHN({
+                report: undefined as unknown as Report,
+                reports: {},
+                currentReportId: undefined,
+                isInFocusMode: false,
+                betas: [],
+                transactionViolations: {},
+                draftComment: undefined,
+                transactions: {},
+                isOffline: false,
+            });
+
+            expect(result).toStrictEqual({shouldDisplay: false});
+        });
+
+        it('returns shouldDisplay as false for unsupported report type', () => {
+            const result = SidebarUtils.shouldDisplayReportInLHN({
+                report: {
+                    ...createRandomReport(1, undefined),
+                    type: CONST.REPORT.UNSUPPORTED_TYPE.PAYCHECK,
+                } as Report,
+                reports: {},
+                currentReportId: undefined,
+                isInFocusMode: false,
+                betas: [],
+                transactionViolations: {},
+                draftComment: undefined,
+                transactions: {},
+                isOffline: false,
+            });
+
+            expect(result).toStrictEqual({shouldDisplay: false});
+        });
+
+        it('accepts isOffline=true without error', () => {
+            const report = {
+                ...createRandomReport(1, undefined),
+                type: CONST.REPORT.TYPE.CHAT,
+            } as Report;
+
+            const result = SidebarUtils.shouldDisplayReportInLHN({
+                report,
+                reports: {[`${ONYXKEYS.COLLECTION.REPORT}1`]: report},
+                currentReportId: '1',
+                isInFocusMode: false,
+                betas: [],
+                transactionViolations: {},
+                draftComment: undefined,
+                transactions: {},
+                isOffline: true,
+            });
+
+            expect(result).toBeDefined();
+            expect(typeof result.shouldDisplay).toBe('boolean');
+        });
+
+        it('accepts isOffline=false without error', () => {
+            const report = {
+                ...createRandomReport(1, undefined),
+                type: CONST.REPORT.TYPE.CHAT,
+            } as Report;
+
+            const result = SidebarUtils.shouldDisplayReportInLHN({
+                report,
+                reports: {[`${ONYXKEYS.COLLECTION.REPORT}1`]: report},
+                currentReportId: '1',
+                isInFocusMode: false,
+                betas: [],
+                transactionViolations: {},
+                draftComment: undefined,
+                transactions: {},
+                isOffline: false,
+            });
+
+            expect(result).toBeDefined();
+            expect(typeof result.shouldDisplay).toBe('boolean');
         });
     });
 
