@@ -225,7 +225,17 @@ function IOURequestEditReportCommon({
             return;
         }
 
-        if (item?.policyID && shouldRestrictUserBillableActions(item.policyID, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed)) {
+        if (
+            item?.policyID &&
+            shouldRestrictUserBillableActions(
+                item.policyID,
+                ownerBillingGracePeriodEnd,
+                userBillingGracePeriodEnds,
+                amountOwed,
+                allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`],
+                currentUserPersonalDetails.accountID,
+            )
+        ) {
             Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(item.policyID));
             return;
         }
