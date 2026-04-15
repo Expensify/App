@@ -3,7 +3,15 @@ import type {NavigationRoute, ParamListBase, PartialState, Router, RouterConfigO
 import addPushParamsRouterExtension from '@libs/Navigation/AppNavigator/routerExtensions/addPushParamsRouterExtension';
 import type {CustomHistoryEntry, PushParamsRouterAction} from '@libs/Navigation/AppNavigator/routerExtensions/types';
 import type {PlatformStackRouterOptions} from '@libs/Navigation/PlatformStackNavigation/types';
+import {cancelPendingFocusRestore} from '@libs/NavigationFocusReturn';
 import CONST from '@src/CONST';
+
+jest.mock('@libs/NavigationFocusReturn', () => ({
+    cancelPendingFocusRestore: jest.fn(),
+    compoundParamsKey: (routeKey: string, params: unknown) => `${routeKey}::${JSON.stringify(params ?? null)}`,
+    notifyPushParamsBackward: jest.fn(),
+    notifyPushParamsForward: jest.fn(),
+}));
 
 type TestState = StackNavigationState<ParamListBase> & {history?: CustomHistoryEntry[]};
 
@@ -469,5 +477,25 @@ describe('addPushParamsRouterExtension', () => {
         state = enhancedRouter.getStateForAction(state, CommonActions.goBack(), CONFIG_OPTIONS) as TestState;
         expect((state.routes.at(0)?.params as {q: string}).q).toBe('v1');
         expect(state.history).toHaveLength(1);
+    });
+
+    it('non-adjacent same-key RESET cancels any stale pending focus restore', () => {
+        const factory = createMockRouterFactory();
+        const enhancedRouter = addPushParamsRouterExtension(factory)({} as PlatformStackRouterOptions);
+        const initial = makeRoute('Search', 'search-1', {q: 'A'});
+        let state: TestState = makeState([initial], {history: [{...initial}] as CustomHistoryEntry[]});
+
+        state = enhancedRouter.getStateForAction(state, {type: CONST.NAVIGATION.ACTION_TYPE.PUSH_PARAMS, payload: {params: {q: 'B'}}}, CONFIG_OPTIONS) as TestState;
+        state = enhancedRouter.getStateForAction(state, {type: CONST.NAVIGATION.ACTION_TYPE.PUSH_PARAMS, payload: {params: {q: 'C'}}}, CONFIG_OPTIONS) as TestState;
+        (cancelPendingFocusRestore as jest.Mock).mockClear();
+
+        // Jump from C (position 2) directly to a snapshot not at position ±1 — must cancel since handleStateChange classifies same-key as noop.
+        const resetToUnknown: PushParamsRouterAction = {
+            type: CONST.NAVIGATION.ACTION_TYPE.RESET,
+            payload: {routes: [{name: 'Search', key: 'search-1', params: {q: 'Z'}}], index: 0},
+        };
+        enhancedRouter.getStateForAction(state, resetToUnknown, CONFIG_OPTIONS);
+
+        expect(cancelPendingFocusRestore).toHaveBeenCalledTimes(1);
     });
 });

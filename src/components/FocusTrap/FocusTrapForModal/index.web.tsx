@@ -15,11 +15,15 @@ function FocusTrapForModal({children, active, initialFocus = false, shouldPreven
                     // Capture the launcher before blur — items inside the trap get removed on close.
                     const launcher = document.activeElement;
                     blurActiveElement();
-                    if (launcher instanceof HTMLElement && launcher !== document.body) {
+                    // Respect shouldReturnFocus={false} (e.g. DatePickerModal) — skip the launcher cache entirely.
+                    if (shouldReturnFocus && launcher instanceof HTMLElement && launcher !== document.body) {
                         setActivePopoverLauncher(launcher);
                     }
                 },
                 onPostDeactivate: () => {
+                    if (!shouldReturnFocus) {
+                        return;
+                    }
                     // Defer so popover paths that navigate after modal-hide can still consume the launcher.
                     scheduleClearActivePopoverLauncher();
                 },

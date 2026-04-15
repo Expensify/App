@@ -214,6 +214,9 @@ function addPushParamsRouterExtension<RouterOptions extends PlatformStackRouterO
                         // Browser-forward: cancel any pending backward restore — handleStateChange classifies same-key transitions as noop.
                         cancelPendingFocusRestore();
                         pushParamsHistoryPosition += 1;
+                    } else {
+                        // Non-adjacent same-key jump: handleStateChange classifies as noop and won't cancel, so drop any stale pending restore here.
+                        cancelPendingFocusRestore();
                     }
                 }
 
