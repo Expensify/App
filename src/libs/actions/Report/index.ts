@@ -1956,7 +1956,7 @@ function createTransactionThreadReport(
 function navigateToReport(reportID: string | undefined, shouldDismissModal = true) {
     if (shouldDismissModal) {
         Navigation.dismissModal({
-            callback: () => {
+            afterTransition: () => {
                 if (!reportID) {
                     return;
                 }
@@ -4116,11 +4116,6 @@ function shouldShowReportActionNotification(reportID: string, currentUserAccount
     // If this is a whisper targeted to someone else, don't show it
     if (action && ReportActionsUtils.isWhisperActionTargetedToOthers(action)) {
         Log.info(`${tag} No notification because the action is whispered to someone else`, false);
-        return false;
-    }
-
-    if (action && !ReportActionsUtils.isActionable(action, currentUserAccountID)) {
-        Log.info(`${tag} No notification because report action is not actionable`);
         return false;
     }
 

@@ -1366,6 +1366,7 @@ const translations = {
         }),
         settledExpensify: 'Paid',
         done: 'Done',
+        deleted: 'Deleted',
         settledElsewhere: 'Paid elsewhere',
         individual: 'Individual',
         business: 'Business',
@@ -2180,6 +2181,9 @@ const translations = {
             helpSite: 'Help site',
             conciergeChat: 'Concierge',
             conciergeChatDescription: 'Your personal AI agent',
+            accountManagerDescription: 'Your account manager',
+            partnerManagerDescription: 'Your partner manager',
+            guideDescription: 'Your setup specialist',
         },
         whatIsNew: "What's new",
         accountSettings: 'Account settings',
@@ -7591,6 +7595,7 @@ const translations = {
             unhold: 'Remove hold',
             reject: 'Reject',
             duplicateExpense: ({count}: {count: number}) => `Duplicate ${count === 1 ? 'expense' : 'expenses'}`,
+            undelete: 'Undelete',
             noOptionsAvailable: 'No options available for the selected group of expenses.',
         },
         filtersHeader: 'Filters',
@@ -7644,6 +7649,10 @@ const translations = {
             billable: 'Billable',
             reimbursable: 'Reimbursable',
             purchaseCurrency: 'Purchase currency',
+            sortOrder: {
+                [CONST.SEARCH.SORT_ORDER.ASC]: 'Ascending',
+                [CONST.SEARCH.SORT_ORDER.DESC]: 'Descending',
+            },
             groupBy: {
                 [CONST.SEARCH.GROUP_BY.FROM]: 'From',
                 [CONST.SEARCH.GROUP_BY.CARD]: 'Card',
@@ -7672,6 +7681,7 @@ const translations = {
         display: {
             label: 'Display',
             sortBy: 'Sort by',
+            sortOrder: 'Sort order',
             groupBy: 'Group by',
             limitResults: 'Limit results',
         },
@@ -7707,7 +7717,7 @@ const translations = {
         recentSearches: 'Recent searches',
         recentChats: 'Recent chats',
         searchIn: 'Search in',
-        searchPlaceholder: 'Search for something',
+        searchPlaceholder: 'Search for something...',
         suggestions: 'Suggestions',
         suggestionsAvailable: ({count}: {count: number}, query = '') => ({
             one: `Suggestions available${query ? ` for ${query}` : ''}. ${count} result.`,
