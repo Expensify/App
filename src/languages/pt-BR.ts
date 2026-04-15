@@ -5369,6 +5369,9 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
             gotIt: 'Entendi',
             goToConcierge: 'Ir para o Concierge',
             exportAsCSV: 'Exportar como CSV',
+            csvColumnType: 'Tipo',
+            csvColumnLimitType: 'Tipo de limite',
+            csvColumnLimit: 'Limite',
         },
         categories: {
             deleteCategories: 'Excluir categorias',

@@ -5415,6 +5415,9 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             gotIt: 'Compris',
             goToConcierge: 'Aller à Concierge',
             exportAsCSV: 'Exporter en CSV',
+            csvColumnType: 'Type',
+            csvColumnLimitType: 'Type de limite',
+            csvColumnLimit: 'Limite',
         },
         categories: {
             deleteCategories: 'Supprimer des catégories',

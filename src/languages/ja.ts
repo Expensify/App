@@ -5335,6 +5335,9 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             gotIt: '了解しました',
             goToConcierge: 'Concierge へ移動',
             exportAsCSV: 'CSVでエクスポート',
+            csvColumnType: 'タイプ',
+            csvColumnLimitType: '限度タイプ',
+            csvColumnLimit: '限度額',
         },
         categories: {
             deleteCategories: 'カテゴリを削除',
