@@ -1,4 +1,4 @@
-import {useRef, useState} from 'react';
+import React, {useRef, useState} from 'react';
 import {DeviceEventEmitter, InteractionManager} from 'react-native';
 import ConfirmModal from '@components/ConfirmModal';
 import type {ModalProps} from '@components/Modal/Global/ModalContext';
