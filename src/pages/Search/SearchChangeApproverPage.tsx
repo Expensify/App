@@ -210,6 +210,7 @@ function SearchChangeApproverPage() {
 
         if (approverTypes.length === 1 && selectedApproverType === approverTypes.at(0)?.keyForList) {
             hasAutoAppliedRef.current = true;
+            // eslint-disable-next-line react-hooks/set-state-in-effect -- intentionally triggering the single available action once reports are loaded
             changeApprover();
         }
     }, [approverTypes, selectedApproverType, changeApprover, isLoadingBulkChangeApproverPage, selectedReports, onyxReports]);
