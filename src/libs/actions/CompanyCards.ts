@@ -5,6 +5,7 @@ import type {CombinedCardFeeds} from '@hooks/useCardFeeds';
 import * as API from '@libs/API';
 import type {
     AssignCompanyCardParams,
+    ImportCSVCompanyCardsParams,
     OpenPolicyAddCardFeedPageParams,
     OpenPolicyCompanyCardsFeedParams,
     OpenPolicyExpensifyCardsPageParams,
@@ -14,16 +15,20 @@ import type {
     UpdateCardTransactionStartDateParams,
     UpdateCompanyCardNameParams,
 } from '@libs/API/parameters';
-import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as CardUtils from '@libs/CardUtils';
 import {getCardFeedWithDomainID} from '@libs/CardUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
+import Navigation from '@libs/Navigation/Navigation';
+import {rand64} from '@libs/NumberUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Card, Policy} from '@src/types/onyx';
+import ROUTES from '@src/ROUTES';
+import type {Card, CardFeeds, CurrencyList, Policy, WorkspaceCardsList} from '@src/types/onyx';
 import type {AssignCard, AssignCardData} from '@src/types/onyx/AssignCard';
+import type {ExpensifyCardDetails} from '@src/types/onyx/Card';
 import type {
     AddNewCardFeedData,
     AddNewCardFeedStep,
@@ -36,6 +41,7 @@ import type {
     StatementPeriodEndDay,
 } from '@src/types/onyx/CardFeeds';
 import type {OnyxData} from '@src/types/onyx/Request';
+import type Transaction from '@src/types/onyx/Transaction';
 
 type AddNewCompanyCardFlowData = {
     /** Step to be set in Onyx */
@@ -48,8 +54,104 @@ type AddNewCompanyCardFlowData = {
     data?: Partial<AddNewCardFeedData>;
 };
 
-function setAssignCardStepAndData({cardToAssign, isEditing, currentStep}: Partial<AssignCard>) {
-    Onyx.merge(ONYXKEYS.ASSIGN_CARD, {cardToAssign, isEditing, currentStep});
+type ImportCSVCompanyCardsData = {
+    policyID: string;
+    workspaceAccountID: number;
+    layoutName: string;
+    layoutType: string;
+    columnMappings: string[];
+    csvData: string[][];
+    existingCardsList?: WorkspaceCardsList;
+    lastSelectedFeed?: CompanyCardFeedWithDomainID;
+    workspaceCardFeeds?: OnyxEntry<CardFeeds>;
+};
+
+type OptimisticCompanyCardCSVTransaction = Pick<Transaction, 'transactionID' | 'amount' | 'created' | 'currency' | 'merchant' | 'category' | 'tag' | 'comment' | 'cardName' | 'bank'> & {
+    reportID: '0';
+    pendingAction: typeof CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD;
+};
+
+function getColumnIndex(columnMappings: string[], columnName: string): number {
+    return columnMappings.findIndex((column) => column === columnName);
+}
+
+function parseCSVAmount(value: string): number | undefined {
+    const sanitized = String(value).replaceAll(/[^\d.-]/g, '');
+    if (!sanitized) {
+        return undefined;
+    }
+    const parsedAmount = Math.round(Number(sanitized) * 100);
+    if (Number.isNaN(parsedAmount)) {
+        return undefined;
+    }
+    return parsedAmount;
+}
+
+function buildOptimisticCompanyCardCSVTransactions(
+    csvData: string[][],
+    columnMappings: string[],
+    feedName: CompanyCardFeed,
+): {
+    csvDataWithGeneratedIDs: string[][];
+    normalizedColumnMappings: string[];
+    transactions: OptimisticCompanyCardCSVTransaction[];
+} {
+    const normalizedColumnMappings = [...columnMappings];
+    const csvDataWithGeneratedIDs = csvData.map((row) => [...row]);
+
+    normalizedColumnMappings.push(CONST.CSV_IMPORT_COLUMNS.EXTERNAL_ID);
+    const externalIDColumnIndex = normalizedColumnMappings.length - 1;
+
+    const cardNumberColumnIndex = getColumnIndex(normalizedColumnMappings, CONST.CSV_IMPORT_COLUMNS.CARD_NUMBER);
+    const postedDateColumnIndex = getColumnIndex(normalizedColumnMappings, CONST.CSV_IMPORT_COLUMNS.POSTED_DATE);
+    const merchantColumnIndex = getColumnIndex(normalizedColumnMappings, CONST.CSV_IMPORT_COLUMNS.MERCHANT);
+    const amountColumnIndex = getColumnIndex(normalizedColumnMappings, CONST.CSV_IMPORT_COLUMNS.AMOUNT);
+    const currencyColumnIndex = getColumnIndex(normalizedColumnMappings, CONST.CSV_IMPORT_COLUMNS.CURRENCY);
+    const categoryColumnIndex = getColumnIndex(normalizedColumnMappings, CONST.CSV_IMPORT_COLUMNS.CATEGORY);
+    const tagColumnIndex = getColumnIndex(normalizedColumnMappings, CONST.CSV_IMPORT_COLUMNS.TAG);
+    const commentColumnIndex = getColumnIndex(normalizedColumnMappings, CONST.CSV_IMPORT_COLUMNS.COMMENT);
+
+    const transactions: OptimisticCompanyCardCSVTransaction[] = [];
+    for (const row of csvDataWithGeneratedIDs) {
+        const transactionID = rand64();
+        row[externalIDColumnIndex] = transactionID;
+
+        const cardName = row.at(cardNumberColumnIndex)?.trim();
+        const created = row.at(postedDateColumnIndex)?.trim();
+        const merchant = row.at(merchantColumnIndex)?.trim() ?? '';
+        const currency = row.at(currencyColumnIndex)?.trim();
+        const amountValue = row.at(amountColumnIndex) ?? '';
+        const amount = parseCSVAmount(amountValue);
+
+        if (!cardName || !created || !currency || amount === undefined) {
+            continue;
+        }
+
+        const category = categoryColumnIndex >= 0 ? (row.at(categoryColumnIndex)?.trim() ?? '') : '';
+        const tag = tagColumnIndex >= 0 ? (row.at(tagColumnIndex)?.trim() ?? '') : '';
+        const comment = commentColumnIndex >= 0 ? (row.at(commentColumnIndex)?.trim() ?? '') : '';
+
+        transactions.push({
+            transactionID,
+            amount,
+            created,
+            currency,
+            merchant,
+            category,
+            tag,
+            comment: {comment},
+            cardName,
+            bank: feedName,
+            reportID: '0',
+            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+        });
+    }
+
+    return {csvDataWithGeneratedIDs, normalizedColumnMappings, transactions};
+}
+
+function setAssignCardStepAndData({cardToAssign, isEditing, currentStep, isRefreshing}: Partial<AssignCard>) {
+    Onyx.merge(ONYXKEYS.ASSIGN_CARD, {cardToAssign, isEditing, currentStep, isRefreshing});
 }
 
 function setTransactionStartDate(startDate: string) {
@@ -148,9 +250,11 @@ function addNewCompanyCardsFeed(
     const parameters: RequestFeedSetupParams = {
         policyID,
         feedType,
-        feedDetails: Object.entries(feedDetails)
-            .map(([key, value]) => `${key}: ${value}`)
-            .join(', '),
+        feedDetails: feedDetails
+            ? Object.entries(feedDetails)
+                  .map(([key, value]) => `${key}: ${value}`)
+                  .join(', ')
+            : '',
         statementPeriodEnd,
         statementPeriodEndDay,
     };
@@ -218,9 +322,7 @@ function deleteWorkspaceCompanyCardFeed(
     cardIDs: string[],
     feedToOpen?: CompanyCardFeedWithDomainID,
 ) {
-    const isCustomFeed = CardUtils.isCustomFeed(bankName);
     const optimisticFeedUpdates = {[bankName]: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}};
-    const successFeedUpdates = {[bankName]: null};
     const failureFeedUpdates = {[bankName]: {pendingAction: null, errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')}};
     const optimisticCardUpdates = Object.fromEntries(cardIDs.map((cardID) => [cardID, {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}]));
     const successCardUpdates = Object.fromEntries(cardIDs.map((cardID) => [cardID, null]));
@@ -255,19 +357,8 @@ function deleteWorkspaceCompanyCardFeed(
         },
     ];
 
-    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER | typeof ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST | typeof ONYXKEYS.CARD_LIST>> = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${domainOrWorkspaceAccountID}`,
-            value: {
-                settings: {
-                    ...(isCustomFeed ? {companyCards: successFeedUpdates} : {oAuthAccountDetails: successFeedUpdates, companyCards: successFeedUpdates}),
-                    companyCardNicknames: {
-                        [bankName]: null,
-                    },
-                },
-            },
-        },
+    // Card collections only: API onyxData provides SHARED_NVP on success (avoid merge-after-set on that key).
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST | typeof ONYXKEYS.CARD_LIST>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${domainOrWorkspaceAccountID}_${bankName}`,
@@ -317,13 +408,19 @@ function deleteWorkspaceCompanyCardFeed(
     API.write(WRITE_COMMANDS.DELETE_COMPANY_CARD_FEED, parameters, {optimisticData, successData, failureData});
 }
 
-function assignWorkspaceCompanyCard(policy: OnyxEntry<Policy>, domainOrWorkspaceAccountID: number, translate: LocaleContextProps['translate'], data: Partial<AssignCardData>) {
+function assignWorkspaceCompanyCard(
+    policy: OnyxEntry<Policy>,
+    domainOrWorkspaceAccountID: number,
+    translate: LocaleContextProps['translate'],
+    data: Partial<AssignCardData>,
+    currentUserAccountID: number,
+) {
     if (!policy?.id) {
         return;
     }
     const {bankName, email = '', encryptedCardNumber = '', startDate = '', customCardName = ''} = data;
     const assigneeDetails = PersonalDetailsUtils.getPersonalDetailByEmail(email);
-    const optimisticCardAssignedReportAction = ReportUtils.buildOptimisticCardAssignedReportAction(assigneeDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID);
+    const optimisticCardAssignedReportAction = ReportUtils.buildOptimisticCardAssignedReportAction(assigneeDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID, currentUserAccountID);
 
     const parameters: AssignCompanyCardParams = {
         domainAccountID: domainOrWorkspaceAccountID,
@@ -585,8 +682,8 @@ function updateWorkspaceCompanyCard(domainOrWorkspaceAccountID: number, cardID: 
     };
 
     if (breakConnection) {
-        // Simulate "Account not found" error code for testing
-        parameters.breakConnection = 434;
+        // Simulate "Account refresh required" error code for testing
+        parameters.breakConnection = 438;
     }
 
     API.write(WRITE_COMMANDS.SYNC_CARD, parameters, {optimisticData, finallyData, failureData});
@@ -815,39 +912,48 @@ function clearCompanyCardErrorField(domainOrWorkspaceAccountID: number, cardID: 
 }
 
 function openPolicyCompanyCardsPage(policyID: string, domainOrWorkspaceAccountID: number, emailList: string[], translate: LocaleContextProps['translate']) {
-    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER>> = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${domainOrWorkspaceAccountID}`,
-            value: {
-                isLoading: true,
-                errors: null,
-            },
-        },
-    ];
+    // Skip loading state writes when domainOrWorkspaceAccountID is 0 since Onyx discards writes to collection keys with member ID '0'.
+    const onyxLoadingStateUpdates = domainOrWorkspaceAccountID !== CONST.DEFAULT_NUMBER_ID;
 
-    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER>> = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${domainOrWorkspaceAccountID}`,
-            value: {
-                isLoading: false,
-            },
-        },
-    ];
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER>> = onyxLoadingStateUpdates
+        ? [
+              {
+                  onyxMethod: Onyx.METHOD.MERGE,
+                  key: `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${domainOrWorkspaceAccountID}`,
+                  value: {
+                      isLoading: true,
+                      errors: null,
+                  },
+              },
+          ]
+        : [];
 
-    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER>> = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${domainOrWorkspaceAccountID}`,
-            value: {
-                isLoading: false,
-                errors: {
-                    [CONST.COMPANY_CARDS.WORKSPACE_FEEDS_LOAD_ERROR]: translate('workspace.companyCards.error.workspaceFeedsCouldNotBeLoadedMessage'),
-                },
-            },
-        },
-    ];
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER>> = onyxLoadingStateUpdates
+        ? [
+              {
+                  onyxMethod: Onyx.METHOD.MERGE,
+                  key: `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${domainOrWorkspaceAccountID}`,
+                  value: {
+                      isLoading: false,
+                  },
+              },
+          ]
+        : [];
+
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER>> = onyxLoadingStateUpdates
+        ? [
+              {
+                  onyxMethod: Onyx.METHOD.MERGE,
+                  key: `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${domainOrWorkspaceAccountID}`,
+                  value: {
+                      isLoading: false,
+                      errors: {
+                          [CONST.COMPANY_CARDS.WORKSPACE_FEEDS_LOAD_ERROR]: translate('workspace.companyCards.error.workspaceFeedsCouldNotBeLoadedMessage'),
+                      },
+                  },
+              },
+          ]
+        : [];
 
     const params: OpenPolicyExpensifyCardsPageParams = {
         policyID,
@@ -1041,6 +1147,228 @@ function setFeedStatementPeriodEndDay(
     API.write(WRITE_COMMANDS.SET_FEED_STATEMENT_PERIOD_END_DAY, parameters, {optimisticData, successData, failureData});
 }
 
+function importCSVCompanyCards({
+    policyID,
+    workspaceAccountID,
+    layoutName,
+    layoutType,
+    columnMappings,
+    csvData,
+    existingCardsList,
+    lastSelectedFeed,
+    workspaceCardFeeds,
+}: ImportCSVCompanyCardsData) {
+    const feedName = layoutType as CompanyCardFeed;
+    const {csvDataWithGeneratedIDs, normalizedColumnMappings, transactions: optimisticTransactions} = buildOptimisticCompanyCardCSVTransactions(csvData, columnMappings, feedName);
+    const instanceID = Date.now().toString();
+
+    const parameters: ImportCSVCompanyCardsParams = {
+        policyID,
+        settings: JSON.stringify({
+            columnMappings: normalizedColumnMappings,
+            instanceID,
+            layoutName,
+            layoutType,
+        }),
+        csvData: JSON.stringify(csvDataWithGeneratedIDs),
+    };
+
+    const feedNameWithDomainID = getCardFeedWithDomainID(feedName, workspaceAccountID);
+    const existingCompanyCards = workspaceCardFeeds?.settings?.companyCards ?? {};
+    const existingNicknames = workspaceCardFeeds?.settings?.companyCardNicknames ?? {};
+    const shouldCreateFeed = !existingCompanyCards?.[feedName];
+    const shouldSetNickname = !existingNicknames?.[feedName] && !!layoutName;
+
+    const cardNumberColumnIndex = normalizedColumnMappings.indexOf(CONST.CSV_IMPORT_COLUMNS.CARD_NUMBER);
+    const cardNumbersFromCSV = new Set<string>();
+    if (cardNumberColumnIndex !== -1 && optimisticTransactions.length > 0) {
+        for (const row of csvDataWithGeneratedIDs) {
+            const cardNumber = row?.at(cardNumberColumnIndex)?.trim();
+            if (cardNumber) {
+                cardNumbersFromCSV.add(cardNumber);
+            }
+        }
+    }
+
+    const existingCardNames = new Set<string>();
+    const existingCardList = existingCardsList?.cardList ?? {};
+    for (const cardName of Object.keys(existingCardList)) {
+        existingCardNames.add(cardName);
+    }
+    const {cardList, ...assignedCards} = existingCardsList ?? {};
+    for (const card of Object.values(assignedCards)) {
+        if (card?.cardName) {
+            existingCardNames.add(card.cardName);
+        }
+    }
+
+    const newCardEntries = Object.fromEntries([...cardNumbersFromCSV].filter((cardName) => !existingCardNames.has(cardName)).map((cardName) => [cardName, cardName]));
+    const mergedCardList = {...existingCardList, ...newCardEntries};
+    const newCardEntriesCount = Object.keys(newCardEntries).length;
+    const transactionsCount = optimisticTransactions.length;
+
+    const optimisticData: Array<
+        OnyxUpdate<
+            | typeof ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER
+            | typeof ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST
+            | typeof ONYXKEYS.COLLECTION.LAST_SELECTED_FEED
+            | typeof ONYXKEYS.COLLECTION.TRANSACTION
+        >
+    > = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`,
+            value: feedNameWithDomainID as CompanyCardFeedWithDomainID,
+        },
+    ];
+
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.IMPORTED_SPREADSHEET>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.IMPORTED_SPREADSHEET,
+            value: {
+                shouldFinalModalBeOpened: true,
+                importFinalModal: {
+                    titleKey: 'spreadsheet.importSuccessfulTitle',
+                    promptKey: 'spreadsheet.importCompanyCardTransactionsSuccessfulDescription',
+                    promptKeyParams: {
+                        transactions: transactionsCount,
+                    },
+                },
+            },
+        },
+    ];
+
+    const failureData: Array<
+        OnyxUpdate<
+            | typeof ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER
+            | typeof ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST
+            | typeof ONYXKEYS.COLLECTION.LAST_SELECTED_FEED
+            | typeof ONYXKEYS.IMPORTED_SPREADSHEET
+            | typeof ONYXKEYS.COLLECTION.TRANSACTION
+        >
+    > = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`,
+            value: lastSelectedFeed ?? null,
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.IMPORTED_SPREADSHEET,
+            value: {
+                shouldFinalModalBeOpened: true,
+                importFinalModal: {
+                    titleKey: 'spreadsheet.importFailedTitle',
+                    promptKey: 'spreadsheet.importFailedDescription',
+                },
+            },
+        },
+    ];
+
+    for (const transaction of optimisticTransactions) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
+            value: transaction,
+        });
+        failureData.push({
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
+            value: null,
+        });
+    }
+
+    if (shouldCreateFeed || shouldSetNickname) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`,
+            value: {
+                settings: {
+                    ...(shouldCreateFeed
+                        ? {
+                              companyCards: {
+                                  [feedName]: {
+                                      statementPeriodEndDay: null,
+                                      errors: null,
+                                  },
+                              },
+                          }
+                        : {}),
+                    ...(shouldSetNickname
+                        ? {
+                              companyCardNicknames: {
+                                  [feedName]: layoutName,
+                              },
+                          }
+                        : {}),
+                },
+            },
+        });
+
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`,
+            value: {
+                settings: {
+                    ...(shouldCreateFeed ? {companyCards: {[feedName]: null}} : {}),
+                    ...(shouldSetNickname ? {companyCardNicknames: {[feedName]: existingNicknames?.[feedName] ?? null}} : {}),
+                },
+            },
+        });
+    }
+
+    if (newCardEntriesCount > 0) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${feedName}`,
+            value: {
+                cardList: mergedCardList,
+            },
+        });
+
+        failureData.push({
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${feedName}`,
+            value: existingCardsList ?? null,
+        });
+    }
+
+    API.write(WRITE_COMMANDS.IMPORT_CSV_COMPANY_CARDS, parameters, {optimisticData, successData, failureData});
+}
+
+/**
+ * Seeds ASSIGN_CARD Onyx state for a card feed refresh flow. The correct connection step (Plaid vs OAuth) is
+ * derived from the feed type. For Plaid feeds, ADD_NEW_COMPANY_CARD.data.selectedCountry is also populated
+ * so that PlaidConnectionStep can open the correct institution login.
+ *
+ * Called directly after identity verification succeeds (from VerifyAccountPageBase.onValidationSuccess).
+ * Navigation to the refresh page is handled by the caller (VerifyAccountPageBase.navigateForwardTo).
+ */
+function seedCardFeedRefresh(feed: CompanyCardFeedWithDomainID, outputCurrency?: string, currencyList?: CurrencyList, countryByIp?: string) {
+    const isPlaidFeed = !!CardUtils.getPlaidInstitutionId(feed);
+    const currentStep = isPlaidFeed ? CONST.COMPANY_CARD.STEP.PLAID_CONNECTION : CONST.COMPANY_CARD.STEP.BANK_CONNECTION;
+
+    if (isPlaidFeed) {
+        const selectedCountry = CardUtils.getPlaidCountry(outputCurrency, currencyList, countryByIp);
+        Onyx.merge(ONYXKEYS.ADD_NEW_COMPANY_CARD, {data: {selectedCountry}});
+    }
+
+    setAssignCardStepAndData({currentStep, isRefreshing: true, isEditing: false});
+}
+
+/**
+ * Starts the card feed refresh flow for an already-validated user: seeds Onyx state and navigates
+ * directly to the refresh connection page.
+ *
+ * When identity validation is required first, use the VERIFY_ACCOUNT screen with seedCardFeedRefresh
+ * as the onValidationSuccess callback instead.
+ */
+function startCardFeedRefresh(policyID: string, feed: CompanyCardFeedWithDomainID, outputCurrency?: string, currencyList?: CurrencyList, countryByIp?: string) {
+    seedCardFeedRefresh(feed, outputCurrency, currencyList, countryByIp);
+    Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_REFRESH_CARD_FEED_CONNECTION.getRoute(policyID, feed));
+}
+
 function clearErrorField(bankName: CompanyCardFeedWithNumber, domainAccountID: number, fieldName: keyof CardFeedData) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${domainAccountID}`, {
         settings: {
@@ -1055,6 +1383,29 @@ function clearErrorField(bankName: CompanyCardFeedWithNumber, domainAccountID: n
     });
 }
 
+function linkCardFeedToPolicy(domainAccountID: number, policyID: string, feedType: string, feedCountry?: string, feedName?: CompanyCardFeedWithNumber) {
+    return new Promise((resolve, reject) => {
+        const parameters = {
+            policyID,
+            domainAccountID,
+            feedType,
+            feedName,
+            feedCountry: feedCountry && feedCountry.length > 0 ? feedCountry : CONST.COUNTRY.US,
+        };
+        // eslint-disable-next-line rulesdir/no-api-side-effects-method
+        API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.LINK_CARD_FEED_TO_POLICY, parameters)
+            .then((response) => {
+                if (response?.jsonCode !== CONST.JSON_CODE.SUCCESS) {
+                    // eslint-disable-next-line prefer-promise-reject-errors
+                    reject('common.genericErrorMessage');
+                    return;
+                }
+                resolve(response as ExpensifyCardDetails);
+            })
+            // eslint-disable-next-line prefer-promise-reject-errors
+            .catch(() => reject('common.genericErrorMessage'));
+    });
+}
 export {
     setWorkspaceCompanyCardFeedName,
     deleteWorkspaceCompanyCardFeed,
@@ -1078,6 +1429,10 @@ export {
     openPolicyAddCardFeedPage,
     setTransactionStartDate,
     setFeedStatementPeriodEndDay,
+    importCSVCompanyCards,
     clearErrorField,
     clearAssignCardErrors,
+    linkCardFeedToPolicy,
+    seedCardFeedRefresh,
+    startCardFeedRefresh,
 };

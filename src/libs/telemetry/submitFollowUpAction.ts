@@ -3,6 +3,7 @@
  * (e.g. dismiss modal and open report, dismiss modal only, navigate to search) is complete and the target screen is visible.
  * Uses submit_follow_up_action attribute to record which action was taken.
  */
+import type {SpanAttributeValue} from '@sentry/core';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import {cancelSpan, endSpanWithAttributes, getSpan} from './activeSpans';
@@ -28,7 +29,13 @@ function isSameFlowUpdate(pending: NonNullable<PendingSubmitFollowUpAction>, fol
         return true;
     }
     // Refinement: we first set DISMISS_MODAL_ONLY, then dismissModalWithReport's onBeforeNavigate refines it to DISMISS_MODAL_AND_OPEN_REPORT when the report will open. Same flow — update in place instead of cancelling.
-    return pending.followUpAction === CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_ONLY && followUpAction === CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_AND_OPEN_REPORT;
+    if (pending.followUpAction === CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_ONLY && followUpAction === CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_AND_OPEN_REPORT) {
+        return true;
+    }
+    // The fast path (pre-insert) sets NAVIGATE_TO_SEARCH before createTransaction runs.
+    // handleNavigateAfterExpenseCreate may later call with DISMISS_MODAL_ONLY because it
+    // sees the Search page as already on top. Treat this as same-flow - keep the original.
+    return pending.followUpAction === CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.NAVIGATE_TO_SEARCH && followUpAction === CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_ONLY;
 }
 
 /**
@@ -42,11 +49,21 @@ function setPendingSubmitFollowUpAction(followUpAction: SubmitFollowUpAction, re
     const pending = pendingSubmitFollowUpAction;
 
     if (pending !== null && span && isSameFlowUpdate(pending, followUpAction, reportID)) {
-        // Same flow: update in place instead of cancelling (e.g. dismissModalAndOpenReportInInboxTab sets pending, then onBeforeNavigate refines it).
-        pendingSubmitFollowUpAction = {followUpAction, reportID};
-        span.setAttribute(CONST.TELEMETRY.ATTRIBUTE_SUBMIT_FOLLOW_UP_ACTION, followUpAction);
-        if (reportID !== undefined) {
-            span.setAttribute(CONST.TELEMETRY.ATTRIBUTE_REPORT_ID, reportID);
+        // Same flow: only update when the new action is a genuine refinement (e.g.
+        // DISMISS_MODAL_ONLY -> DISMISS_MODAL_AND_OPEN_REPORT). When the fast path set
+        // NAVIGATE_TO_SEARCH and handleNavigateAfterExpenseCreate later calls with
+        // DISMISS_MODAL_ONLY (because Search is already on top), preserve the original
+        // action so telemetry correctly reflects the pre-insert path.
+        const isRefinement =
+            pending.followUpAction !== followUpAction &&
+            !(pending.followUpAction === CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.NAVIGATE_TO_SEARCH && followUpAction === CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_ONLY);
+
+        if (isRefinement) {
+            pendingSubmitFollowUpAction = {followUpAction, reportID};
+            span.setAttribute(CONST.TELEMETRY.ATTRIBUTE_SUBMIT_FOLLOW_UP_ACTION, followUpAction);
+            if (reportID !== undefined) {
+                span.setAttribute(CONST.TELEMETRY.ATTRIBUTE_REPORT_ID, reportID);
+            }
         }
         return;
     }
@@ -55,15 +72,20 @@ function setPendingSubmitFollowUpAction(followUpAction: SubmitFollowUpAction, re
         cancelSpan(CONST.TELEMETRY.SPAN_SUBMIT_TO_DESTINATION_VISIBLE);
         pendingSubmitFollowUpAction = null;
     }
-    pendingSubmitFollowUpAction = {followUpAction, reportID};
-    // Set the attribute on the span immediately so it is present when the transaction is serialized.
-    // When navigating away (e.g. to Search), the confirmation transaction can end and the SDK may cancel our span before the destination screen mounts to call endSubmitFollowUpActionSpan.
+
+    // Only set pending when the span is still active. On the fast path the span
+    // may have already been ended by SearchStaticList before createTransaction's
+    // rAF fires. Setting pending without a span leaves stale state that would
+    // cancel the next flow's span in the conflict check above.
     const spanAfter = getSpan(CONST.TELEMETRY.SPAN_SUBMIT_TO_DESTINATION_VISIBLE);
-    if (spanAfter) {
-        spanAfter.setAttribute(CONST.TELEMETRY.ATTRIBUTE_SUBMIT_FOLLOW_UP_ACTION, followUpAction);
-        if (reportID !== undefined) {
-            spanAfter.setAttribute(CONST.TELEMETRY.ATTRIBUTE_REPORT_ID, reportID);
-        }
+    if (!spanAfter) {
+        return;
+    }
+
+    pendingSubmitFollowUpAction = {followUpAction, reportID};
+    spanAfter.setAttribute(CONST.TELEMETRY.ATTRIBUTE_SUBMIT_FOLLOW_UP_ACTION, followUpAction);
+    if (reportID !== undefined) {
+        spanAfter.setAttribute(CONST.TELEMETRY.ATTRIBUTE_REPORT_ID, reportID);
     }
 }
 
@@ -86,7 +108,7 @@ function getPendingSubmitFollowUpAction(): PendingSubmitFollowUpAction {
  * End the submit-to-visible span and clear the pending action. Call from each screen when its main content is visible (e.g. onLayout).
  * Only ends the span if the passed followUpAction matches the current pending action (avoids races and wrong attribution).
  */
-function endSubmitFollowUpActionSpan(followUpAction: SubmitFollowUpAction, reportID?: string) {
+function endSubmitFollowUpActionSpan(followUpAction: SubmitFollowUpAction, reportID?: string, extraAttributes?: Record<string, SpanAttributeValue>) {
     if (!getSpan(CONST.TELEMETRY.SPAN_SUBMIT_TO_DESTINATION_VISIBLE)) {
         return;
     }
@@ -97,8 +119,9 @@ function endSubmitFollowUpActionSpan(followUpAction: SubmitFollowUpAction, repor
     if (pending.reportID !== undefined && pending.reportID !== reportID) {
         return;
     }
-    const attributes: Record<string, string> = {
+    const attributes: Record<string, SpanAttributeValue> = {
         [CONST.TELEMETRY.ATTRIBUTE_SUBMIT_FOLLOW_UP_ACTION]: followUpAction,
+        ...extraAttributes,
     };
     if (reportID !== undefined) {
         attributes[CONST.TELEMETRY.ATTRIBUTE_REPORT_ID] = reportID;

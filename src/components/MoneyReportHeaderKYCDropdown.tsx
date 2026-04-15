@@ -6,6 +6,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isSecondaryActionAPaymentOption} from '@libs/PaymentUtils';
 import type {KYCFlowEvent, TriggerKYCFlow} from '@libs/PaymentUtils';
+import shouldPopoverUseScrollView from '@libs/shouldPopoverUseScrollView';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
@@ -27,6 +28,9 @@ type MoneyReportHeaderKYCDropdownProps = Omit<KYCWallProps, 'children' | 'enable
 
     /** Ref for the inner ButtonWithDropdownMenu */
     dropdownMenuRef?: React.Ref<ButtonWithDropdownMenuRef>;
+
+    /** Callback fired when the dropdown menu hides */
+    onOptionsMenuHide?: () => void;
 };
 
 function MoneyReportHeaderKYCDropdown({
@@ -39,6 +43,7 @@ function MoneyReportHeaderKYCDropdown({
     customText,
     shouldShowSuccessStyle,
     dropdownMenuRef,
+    onOptionsMenuHide,
     ref,
     ...props
 }: MoneyReportHeaderKYCDropdownProps) {
@@ -78,12 +83,13 @@ function MoneyReportHeaderKYCDropdown({
                     }}
                     buttonRef={buttonRef}
                     shouldAlwaysShowDropdownMenu
-                    shouldPopoverUseScrollView={applicableSecondaryActions.length >= CONST.DROPDOWN_SCROLL_THRESHOLD}
+                    shouldPopoverUseScrollView={shouldPopoverUseScrollView(applicableSecondaryActions)}
                     customText={customText ?? translate('common.more')}
                     options={applicableSecondaryActions}
                     isSplitButton={false}
                     wrapperStyle={shouldDisplayNarrowVersion && [!primaryAction && !customText && styles.flex1, !!customText && styles.w100]}
                     shouldUseModalPaddingStyle
+                    onOptionsMenuHide={onOptionsMenuHide}
                     sentryLabel={CONST.SENTRY_LABEL.MORE_MENU.MORE_BUTTON}
                 />
             )}

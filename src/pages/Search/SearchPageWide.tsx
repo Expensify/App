@@ -7,15 +7,22 @@ import ReceiptScanDropZone from '@components/ReceiptScanDropZone';
 import ScreenWrapper from '@components/ScreenWrapper';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
 import Search from '@components/Search';
+import {useSearchStateContext} from '@components/Search/SearchContext';
+import SearchLoadingSkeleton from '@components/Search/SearchLoadingSkeleton';
 import SearchPageFooter from '@components/Search/SearchPageFooter';
 import SearchFiltersBar from '@components/Search/SearchPageHeader/SearchFiltersBar';
 import SearchPageHeader from '@components/Search/SearchPageHeader/SearchPageHeader';
 import type {SearchParams, SearchQueryJSON} from '@components/Search/types';
+import useNetwork from '@hooks/useNetwork';
+import useSearchLoadingState from '@hooks/useSearchLoadingState';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
 import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
+import {isSearchDataLoaded} from '@libs/SearchUIUtils';
+import {endSubmitFollowUpActionSpan, getPendingSubmitFollowUpAction} from '@libs/telemetry/submitFollowUpAction';
 import Navigation from '@navigation/Navigation';
+import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {SearchResults} from '@src/types/onyx';
@@ -47,9 +54,25 @@ function SearchPageWide({
     route,
     shouldShowFooter,
 }: SearchPageWideProps) {
+    const shouldShowLoadingSkeleton = useSearchLoadingState(queryJSON, searchResults);
     const styles = useThemeStyles();
+    const {isOffline} = useNetwork();
+    const {shouldUseLiveData} = useSearchStateContext();
     const {saveScrollOffset} = useContext(ScrollOffsetContext);
     const receiptDropTargetRef = useRef<View>(null);
+
+    // Wide layout doesn't need the focus+layout dual-gate (pre-insert is narrow-only),
+    // but the callback signature must match onDestinationVisible's type.
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const endSubmitNavigationSpans = useCallback((wasListEmpty: boolean, _source: 'focus' | 'layout') => {
+        const pending = getPendingSubmitFollowUpAction();
+        if (pending && pending.followUpAction !== CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_AND_OPEN_REPORT) {
+            endSubmitFollowUpActionSpan(pending.followUpAction, undefined, {
+                [CONST.TELEMETRY.ATTRIBUTE_IS_WARM]: true,
+                [CONST.TELEMETRY.ATTRIBUTE_WAS_LIST_EMPTY]: wasListEmpty,
+            });
+        }
+    }, []);
 
     const scrollHandler = useCallback(
         (e: NativeSyntheticEvent<NativeScrollEvent>) => {
@@ -100,16 +123,33 @@ function SearchPageWide({
                                 queryJSON={queryJSON}
                                 isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
                             />
-                            <Search
-                                key={queryJSON.hash}
-                                queryJSON={queryJSON}
-                                searchResults={searchResults}
-                                handleSearch={handleSearchAction}
-                                isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
-                                onSearchListScroll={scrollHandler}
-                                onSortPressedCallback={onSortPressedCallback}
-                                searchRequestResponseStatusCode={searchRequestResponseStatusCode}
-                            />
+                            {shouldShowLoadingSkeleton ? (
+                                <SearchLoadingSkeleton
+                                    containerStyle={styles.mt3}
+                                    reasonAttributes={{
+                                        context: 'SearchPage',
+                                        isOffline,
+                                        isDataLoaded: shouldUseLiveData || isSearchDataLoaded(searchResults, queryJSON),
+                                        isSearchLoading: !!searchResults?.search?.isLoading,
+                                        hasEmptyData: Array.isArray(searchResults?.data) && searchResults?.data.length === 0,
+                                        hasErrors: Object.keys(searchResults?.errors ?? {}).length > 0 && !isOffline,
+                                        hasPendingResponse: searchRequestResponseStatusCode === null,
+                                        shouldUseLiveData,
+                                    }}
+                                />
+                            ) : (
+                                <Search
+                                    key={queryJSON.hash}
+                                    queryJSON={queryJSON}
+                                    searchResults={searchResults}
+                                    handleSearch={handleSearchAction}
+                                    isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
+                                    onSearchListScroll={scrollHandler}
+                                    onSortPressedCallback={onSortPressedCallback}
+                                    searchRequestResponseStatusCode={searchRequestResponseStatusCode}
+                                    onDestinationVisible={endSubmitNavigationSpans}
+                                />
+                            )}
                             {shouldShowFooter && (
                                 <SearchPageFooter
                                     count={footerData.count}

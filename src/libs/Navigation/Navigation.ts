@@ -4,6 +4,7 @@ import {CommonActions, StackActions} from '@react-navigation/native';
 import {Str} from 'expensify-common';
 // eslint-disable-next-line you-dont-need-lodash-underscore/omit
 import omit from 'lodash/omit';
+import {nanoid} from 'nanoid/non-secure';
 import {DeviceEventEmitter, Dimensions, InteractionManager} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
@@ -26,6 +27,7 @@ import SCREENS, {PROTECTED_SCREENS} from '@src/SCREENS';
 import type {Account, SidePanel} from '@src/types/onyx';
 import getInitialSplitNavigatorState from './AppNavigator/createSplitNavigator/getInitialSplitNavigatorState';
 import originalCloseRHPFlow from './helpers/closeRHPFlow';
+import findMatchingDynamicSuffix from './helpers/dynamicRoutesUtils/findMatchingDynamicSuffix';
 import getPathFromState from './helpers/getPathFromState';
 import getStateFromPath from './helpers/getStateFromPath';
 import getTopmostReportParams from './helpers/getTopmostReportParams';
@@ -248,7 +250,7 @@ function getActiveRoute(): string {
 function getReportRHPActiveRoute(): string {
     // Safe handling when navigation is not yet initialized
     if (!navigationRef.isReady()) {
-        Log.warn('[src/libs/Navigation/Navigation.ts] NavigationRef is not ready. Returning empty string.');
+        Log.hmmm('[src/libs/Navigation/Navigation.ts] NavigationRef is not ready. Returning empty string.');
         return '';
     }
     if (isReportOpenInRHP(navigationRef.getRootState())) {
@@ -442,6 +444,22 @@ function goUp(backToRoute: Route, options?: GoBackOptions) {
 
     // If we need to pop more than one route from rootState, we replace the current route to not lose visited routes from the navigation state
     if (indexOfBackToRoute === -1 || (isRootNavigatorState(targetState) && distanceToPop > 1)) {
+        const actionPayload = minimalAction.payload as NavigationRoute;
+
+        // StackRouter's REPLACE drops `path`, use a targeted RESET for dynamic routes to preserve it.
+        if (actionPayload?.path && findMatchingDynamicSuffix(backToRoute)) {
+            const routes = targetState.routes.with(targetState.index ?? targetState.routes.length - 1, {
+                key: `${actionPayload.name}-${nanoid()}`,
+                name: actionPayload.name,
+                params: actionPayload.params,
+                path: actionPayload.path,
+            });
+
+            const resetAction = {type: CONST.NAVIGATION_ACTIONS.RESET, payload: {index: targetState.index, routes}, target: targetState.key} as NavigationAction;
+            navigationRef.current.dispatch(resetAction);
+            return;
+        }
+
         const replaceAction = {...minimalAction, type: CONST.NAVIGATION.ACTION_TYPE.REPLACE} as NavigationAction;
         navigationRef.current.dispatch(replaceAction);
         return;
@@ -506,17 +524,20 @@ function popToSidebar() {
         return;
     }
 
-    if (!isSplitNavigatorName(currentRoute?.name)) {
+    // WorkspaceSplitNavigator and DomainSplitNavigator are nested inside WorkspaceNavigator.
+    const activeRoute = currentRoute.name === NAVIGATORS.WORKSPACE_NAVIGATOR ? currentRoute.state?.routes.at(-1) : currentRoute;
+
+    if (!isSplitNavigatorName(activeRoute?.name)) {
         Log.hmmm('[popToSidebar] must be invoked only from SplitNavigator');
         return;
     }
 
-    const topRoute = currentRoute.state?.routes.at(0);
-    const lastRoute = currentRoute.state?.routes.at(-1);
+    const topRoute = activeRoute.state?.routes.at(0);
+    const lastRoute = activeRoute.state?.routes.at(-1);
 
-    const currentRouteName = currentRoute?.name as keyof typeof SPLIT_TO_SIDEBAR;
+    const currentRouteName = activeRoute.name as keyof typeof SPLIT_TO_SIDEBAR;
     if (topRoute?.name !== SPLIT_TO_SIDEBAR[currentRouteName]) {
-        const params = currentRoute.name === NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR || currentRoute.name === NAVIGATORS.DOMAIN_SPLIT_NAVIGATOR ? {...lastRoute?.params} : undefined;
+        const params = activeRoute.name === NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR || activeRoute.name === NAVIGATORS.DOMAIN_SPLIT_NAVIGATOR ? {...lastRoute?.params} : undefined;
 
         const sidebarName = SPLIT_TO_SIDEBAR[currentRouteName];
 
@@ -531,6 +552,8 @@ function popToSidebar() {
  * Reset the navigation state to Home page.
  */
 function resetToHome() {
+    clearFullscreenPreInsertedFlag();
+
     const isNarrowLayout = getIsNarrowLayout();
     const rootState = navigationRef.getRootState();
     navigationRef.dispatch({...StackActions.popToTop(), target: rootState.key});
@@ -942,6 +965,121 @@ function revealRouteBeforeDismissingModal(route: Route) {
     });
 }
 
+// Module-level state tracking the pre-inserted fullscreen route. This follows the same
+// pattern as other module-level navigation state in this file (e.g. pendingRoute).
+// It is only mutated from preInsertFullscreenUnderRHP / clearFullscreenPreInsertedFlag /
+// removePreInsertedFullscreenIfNeeded, which are always called from the JS thread.
+let isFullscreenPreInsertedUnderRHP = false;
+let preInsertedFullscreenRouteName: string | undefined;
+
+/**
+ * Pre-inserts a fullscreen route (e.g. Search) underneath the currently open RHP on narrow layout.
+ * The route renders behind the fullscreen RHP so that when the user later submits,
+ * we can simply dismiss the RHP to reveal the already-mounted screen.
+ *
+ * This is the mobile counterpart of revealRouteBeforeDismissingModal; the difference
+ * is that the insert happens eagerly (on confirmation screen mount) rather than at
+ * submission time, giving React time to mount the destination component tree while
+ * the user is still filling in details.
+ */
+function preInsertFullscreenUnderRHP(route: Route) {
+    if (!getIsNarrowLayout()) {
+        return;
+    }
+
+    if (isFullscreenPreInsertedUnderRHP) {
+        return;
+    }
+
+    if (!canNavigate('preInsertFullscreenUnderRHP', {route}) || !navigationRef.current) {
+        Log.hmmm(`[Navigation] Unable to pre-insert fullscreen under RHP. Can't navigate.`, {route});
+        return;
+    }
+
+    const stateFromPath = getStateFromPath(route);
+    const targetRouteName = stateFromPath?.routes.findLast((r) => isFullScreenName(r.name))?.name;
+
+    const stateBefore = navigationRef.current.getRootState();
+    const routeCountBefore = stateBefore.routes.length;
+    const lastKeyBefore = stateBefore.routes.at(-1)?.key;
+
+    navigationRef.current.dispatch({
+        type: CONST.NAVIGATION.ACTION_TYPE.REPLACE_FULLSCREEN_UNDER_RHP,
+        payload: {route},
+    });
+
+    const stateAfter = navigationRef.current.getRootState();
+    if (stateAfter.routes.length === routeCountBefore && stateAfter.routes.at(-1)?.key === lastKeyBefore) {
+        Log.hmmm(`[Navigation] preInsertFullscreenUnderRHP dispatch was ignored`, {route});
+        return;
+    }
+
+    isFullscreenPreInsertedUnderRHP = true;
+    preInsertedFullscreenRouteName = targetRouteName;
+
+    DeviceEventEmitter.emit(CONST.MODAL_EVENTS.DISABLE_RHP_ANIMATION);
+}
+
+function getIsFullscreenPreInsertedUnderRHP() {
+    return isFullscreenPreInsertedUnderRHP;
+}
+
+function clearFullscreenPreInsertedFlag() {
+    isFullscreenPreInsertedUnderRHP = false;
+    preInsertedFullscreenRouteName = undefined;
+}
+
+/**
+ * Removes a pre-inserted fullscreen route when the user backs out without submitting.
+ * If the RHP is still on top, the pre-inserted route is popped from under it.
+ * If the RHP is already gone (back-dismissed), the pre-inserted route is the topmost
+ * fullscreen and is popped directly.
+ */
+function removePreInsertedFullscreenIfNeeded() {
+    if (!isFullscreenPreInsertedUnderRHP) {
+        return;
+    }
+
+    const routeNameToRemove = preInsertedFullscreenRouteName;
+
+    isFullscreenPreInsertedUnderRHP = false;
+    preInsertedFullscreenRouteName = undefined;
+
+    DeviceEventEmitter.emit(CONST.MODAL_EVENTS.RESTORE_RHP_ANIMATION);
+
+    const rootState = navigationRef.getRootState();
+    if (!rootState) {
+        return;
+    }
+
+    const topRoute = rootState.routes.at(-1);
+    const isRHPStillOnTop = topRoute?.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR;
+
+    if (isRHPStillOnTop && routeNameToRemove) {
+        navigationRef.current?.dispatch({
+            type: CONST.NAVIGATION.ACTION_TYPE.REMOVE_FULLSCREEN_UNDER_RHP,
+            payload: {expectedRouteName: routeNameToRemove},
+        });
+        return;
+    }
+
+    // RHP already dismissed - the pre-inserted fullscreen is now the topmost route; pop it.
+    // Deferred to the next frame to avoid dispatching during a React commit.
+    // Capture the route key now so the rAF callback can match on identity, not just name.
+    const targetRouteKey = rootState.routes.at(-1)?.key;
+    requestAnimationFrame(() => {
+        const currentState = navigationRef.getRootState();
+        const topmostRoute = currentState?.routes.at(-1);
+        if (!topmostRoute || topmostRoute.key !== targetRouteKey || topmostRoute.name !== routeNameToRemove) {
+            return;
+        }
+        if (!navigationRef.current?.canGoBack()) {
+            return;
+        }
+        navigationRef.current.goBack();
+    });
+}
+
 function getTopmostSearchReportRouteParams(state = navigationRef.getRootState()): RightModalNavigatorParamList[typeof SCREENS.RIGHT_MODAL.SEARCH_REPORT] | undefined {
     if (!state) {
         return undefined;
@@ -1000,6 +1138,10 @@ export default {
     dismissToPreviousRHP,
     dismissToSuperWideRHP,
     revealRouteBeforeDismissingModal,
+    preInsertFullscreenUnderRHP,
+    getIsFullscreenPreInsertedUnderRHP,
+    clearFullscreenPreInsertedFlag,
+    removePreInsertedFullscreenIfNeeded,
     getTopmostSearchReportID,
     getTopmostSuperWideRHPReportParams,
     getTopmostSuperWideRHPReportID,
