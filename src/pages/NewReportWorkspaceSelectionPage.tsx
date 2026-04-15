@@ -76,7 +76,6 @@ function NewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelectionPag
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const [policies, fetchStatus] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
-    const [defaultP2PMileageRate] = useOnyx(ONYXKEYS.DEFAULT_P2P_MILEAGE_RATE);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
@@ -135,7 +134,6 @@ function NewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelectionPag
                     allTransactions,
                     translate,
                     toLocaleDigit,
-                    defaultP2PMileageRate,
                 });
 
                 // eslint-disable-next-line rulesdir/no-default-id-values
