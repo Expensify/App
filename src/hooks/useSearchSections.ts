@@ -48,9 +48,9 @@ function useSearchSections(): UseSearchSectionsResult {
     const [cardFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER);
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [allReportMetadata] = useOnyx(ONYXKEYS.COLLECTION.REPORT_METADATA);
+    const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
 
     const archivedReportsIdSet = useArchivedReportsIdSet();
-    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
 
     const {type, status, sortBy, sortOrder, groupBy} = lastSearchQuery?.queryJSON ?? {};
     const searchResultsData = currentSearchResults?.data;
@@ -76,7 +76,7 @@ function useSearchSections(): UseSearchSectionsResult {
             isActionLoadingSet,
             cardFeeds,
             allReportMetadata,
-            conciergeReportID,
+            reportAttributes: reportAttributesDerived?.reports,
         });
         results = getSortedSections(type, status ?? '', searchData, localeCompare, translate, sortBy, sortOrder, groupBy).map((value) => value.reportID);
     }
