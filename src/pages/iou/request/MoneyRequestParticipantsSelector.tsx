@@ -621,7 +621,6 @@ function MoneyRequestParticipantsSelector({
                 shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
                 onSelectRow={onSelectRow}
                 shouldSingleExecuteRowSelect
-                canShowProductTrainingTooltip={canShowManagerMcTest}
                 customListHeaderContent={importContactsButtonComponent}
                 customHeaderContent={
                     <ImportContactButton

@@ -88,18 +88,6 @@ function getNvpDismissedProductTraining(): OnyxEntry<DismissedProductTraining> {
             timestamp: '',
             dismissedMethod: 'click',
         },
-        [CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP]: {
-            timestamp: '',
-            dismissedMethod: 'click',
-        },
-        [CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP_MANAGER]: {
-            timestamp: '',
-            dismissedMethod: 'click',
-        },
-        [CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_CONFIRMATION]: {
-            timestamp: '',
-            dismissedMethod: 'click',
-        },
         [CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.OUTSTANDING_FILTER]: {
             timestamp: '',
             dismissedMethod: 'click',

@@ -1327,41 +1327,6 @@ describe('OptionsListUtils', () => {
             expect(result.personalDetails).not.toEqual(expect.arrayContaining([expect.objectContaining({login: CONST.EMAIL.MANAGER_MCTEST})]));
         });
 
-        it('should exclude Manager McTest from results if user dismissed the tooltip', () => {
-            return waitForBatchedUpdates()
-                .then(() =>
-                    // Given that the user has dismissed the tooltip
-                    Onyx.set(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {
-                        [CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP]: {
-                            timestamp: DateUtils.getDBTime(new Date().valueOf()),
-                        },
-                    }),
-                )
-                .then(() => {
-                    // When we call getValidOptions()
-                    const optionsWhenUserAlreadySubmittedExpense = getValidOptions(
-                        {reports: OPTIONS_WITH_MANAGER_MCTEST.reports, personalDetails: OPTIONS_WITH_MANAGER_MCTEST.personalDetails},
-                        allPolicies,
-                        {},
-                        nvpDismissedProductTraining,
-                        loginList,
-                        CURRENT_USER_ACCOUNT_ID,
-                        CURRENT_USER_EMAIL,
-                        undefined,
-                        {
-                            includeP2P: true,
-                            canShowManagerMcTest: true,
-                            betas: [CONST.BETAS.NEWDOT_MANAGER_MCTEST],
-                        },
-                    );
-
-                    // Then the result should include all personalDetails except the currently logged in user and Manager McTest
-                    expect(optionsWhenUserAlreadySubmittedExpense.personalDetails.length).toBe(Object.values(OPTIONS_WITH_MANAGER_MCTEST.personalDetails).length - 2);
-                    // Then the result should not include Manager McTest
-                    expect(optionsWhenUserAlreadySubmittedExpense.personalDetails).not.toEqual(expect.arrayContaining([expect.objectContaining({login: CONST.EMAIL.MANAGER_MCTEST})]));
-                });
-        });
-
         it('should keep admin rooms if specified', () => {
             // Given an admin room report search option
             const adminRoom: SearchOption<Report> = {
