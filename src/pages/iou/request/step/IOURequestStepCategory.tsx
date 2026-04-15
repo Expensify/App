@@ -231,7 +231,10 @@ function IOURequestStepCategory({
             return;
         }
         clearPendingCategorySelection();
-        updateCategory({searchText: categoryName, keyForList: categoryName, text: categoryName, isSelected: false});
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        InteractionManager.runAfterInteractions(() => {
+            updateCategory({searchText: categoryName, keyForList: categoryName, text: categoryName, isSelected: false});
+        });
     }, [pendingCategorySelection, policyCategories, transactionID, updateCategory]);
 
     return (
