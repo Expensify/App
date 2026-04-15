@@ -185,7 +185,7 @@ function useAttachmentUploadValidation({
 
     const onReceiptDropped = useCallback(
         (e: DragEvent) => {
-            if (policy && shouldRestrictUserBillableActions(policy.id, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed)) {
+            if (policy && shouldRestrictUserBillableActions(policy.id, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, policy, currentUserPersonalDetails.accountID)) {
                 Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
                 return;
             }
@@ -206,7 +206,7 @@ function useAttachmentUploadValidation({
             attachmentUploadType.current = 'receipt';
             validateFiles(files, items, {isValidatingReceipts: true});
         },
-        [policy, userBillingGracePeriodEnds, ownerBillingGracePeriodEnd, shouldAddOrReplaceReceipt, transactionID, validateFiles, amountOwed],
+        [policy, userBillingGracePeriodEnds, ownerBillingGracePeriodEnd, shouldAddOrReplaceReceipt, transactionID, validateFiles, amountOwed, currentUserPersonalDetails.accountID],
     );
 
     return {
