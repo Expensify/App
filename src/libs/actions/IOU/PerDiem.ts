@@ -1012,7 +1012,7 @@ function submitPerDiemExpense(submitPerDiemExpenseInformation: PerDiemExpenseInf
         notifyNewAction(activeReportID, undefined, participantParams.payeeAccountID === currentUserAccountIDParam);
     }
 
-    return {iouReport};
+    return {iouReport, transactionID: transaction.transactionID};
 }
 
 /**

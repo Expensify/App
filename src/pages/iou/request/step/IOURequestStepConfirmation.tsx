@@ -753,9 +753,10 @@ function IOURequestStepConfirmation({
                 if (result && activeReportID) {
                     navigateAfterExpenseCreate({
                         activeReportID,
-                        transactionID: transaction.transactionID,
+                        transactionID: result.transactionID,
                         isFromGlobalCreate: transaction.isFromFloatingActionButton ?? transaction.isFromGlobalCreate,
                         hasMultipleTransactions: reportTransactions.length > 0,
+                        shouldAddPendingNewTransactionIDs: activeReportID === chatReportID,
                     });
                 }
             }

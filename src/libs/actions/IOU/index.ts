@@ -5521,6 +5521,7 @@ export {
     getOrCreateOptimisticSplitChatReport,
     deletePendingNewTransactionIDs,
     getTransactionWithPreservedLocalReceiptSource,
+    addPendingNewTransactionIDs,
 };
 export type {
     GPSPoint as GpsPoint,
