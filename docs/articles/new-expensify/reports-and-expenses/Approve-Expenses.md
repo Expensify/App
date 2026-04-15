@@ -13,7 +13,7 @@ When an expense report is submitted to an individual (rather than on a workspace
 
 ---
 
-## What actions can be taken on expenses and reports submitted on a Workspace 
+## What actions can be taken on expenses and reports submitted on a Workspace
 
 On a submitted report, the approver can: 
 
@@ -89,7 +89,7 @@ To take an expense off hold, follow the same steps but select **Unhold**.
 
 Unapproving a report returns it to the Outstanding state. The last approver will be notified and can then revise or reject expenses on the report.
 
-**Note:** Only Approved and Done reports can be unapproved. Paid reports cannot be unapproved.
+**Note:** Only Approved reports can be unapproved. Paid and Done reports cannot be unapproved.
 
 ---
 
@@ -105,6 +105,8 @@ As the assigned approver, you can reject an entire expense report to return it t
 6. Enter a comment to explain why you will not approve the report. 
 7. If the report passed through previous approvers, choose who the report should be rejected back to for review.
 8. Click **Reject report** to confirm.
+
+---
 
 ## What happens after a report is rejected
 
@@ -131,7 +133,7 @@ The rejected expense will be removed from the report, and the submitter will be 
 Expensify Card expenses show as pending until the merchant posts them. This can take 1–3 business days. Hotel or rental car holds may take longer (up to 31 days for hotels). Only posted expenses can be approved. 
 
 ## Why can’t I see Bypass approvers?
-Only Workspace admins can bypass the prescribed approval workflow. If “Prevent Self-Approval” is enabled, an admin cannot bypass approvals to approve their own report. 
+Only Workspace admins can bypass the prescribed approval workflow. If **Prevent Self-Approval** is enabled, an admin cannot bypass approvals to approve their own report. 
 
 ## What’s the difference between rejecting a report and rejecting an expense?
 
