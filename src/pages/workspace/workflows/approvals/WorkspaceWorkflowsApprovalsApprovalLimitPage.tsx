@@ -211,6 +211,7 @@ function WorkspaceWorkflowsApprovalsApprovalLimitPage({policy, isLoadingReportDa
                                                     avatar={currentApprover.avatar}
                                                     displayName={currentApprover.displayName}
                                                     email={currentApprover.email}
+                                                    style={styles.userPillStandalone}
                                                 />
                                             ) : undefined
                                         }
@@ -257,6 +258,7 @@ function WorkspaceWorkflowsApprovalsApprovalLimitPage({policy, isLoadingReportDa
                                             avatar={selectedApproverPersonalDetails?.avatar}
                                             displayName={selectedApproverPersonalDetails?.displayName ?? selectedApproverEmail}
                                             email={selectedApproverEmail}
+                                            style={styles.userPillStandalone}
                                         />
                                     ) : undefined
                                 }

@@ -194,6 +194,7 @@ function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, polic
                                             avatar={approver.avatar}
                                             displayName={approver.displayName}
                                             email={approver.email}
+                                            style={styles.userPillStandalone}
                                         />
                                     ) : undefined
                                 }

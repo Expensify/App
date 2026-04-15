@@ -119,6 +119,7 @@ function ApprovalWorkflowSection({approvalWorkflow, onPress, currency = CONST.CU
                                     avatar={approver.avatar}
                                     displayName={approver.displayName}
                                     email={approver.email}
+                                    style={styles.userPillStandalone}
                                 />
                             }
                             helperText={getApprovalLimitDescription({approver, currency, translate, personalDetailsByEmail})}
