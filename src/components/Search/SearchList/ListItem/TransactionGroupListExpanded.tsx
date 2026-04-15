@@ -60,8 +60,9 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
     const {windowWidth} = useWindowDimensions();
     const currentUserDetails = useCurrentUserPersonalDetails();
     const {translate} = useLocalize();
-    const [isMobileSelectionModeEnabled] = useOnyx(ONYXKEYS.MOBILE_SELECTION_MODE);
+    const [isMobileSelectionModeEnabled] = useOnyx(ONYXKEYS.RAM_ONLY_MOBILE_SELECTION_MODE);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [visibleColumns] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {selector: columnsSelector});
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
 
@@ -124,6 +125,7 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
                     backTo,
                     currentUserDetails.email ?? '',
                     currentUserDetails.accountID,
+                    betas,
                     transactionItem?.reportAction?.childReportID,
                 );
                 return;
@@ -189,26 +191,29 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
 
     const content = (
         <View style={[styles.flexColumn, styles.flex1]}>
-            {isLargeScreenWidth && (
-                <View style={[styles.searchListHeaderContainerStyle, styles.groupSearchListTableContainerStyle, styles.bgTransparent, styles.pl9, styles.pr11]}>
-                    <SearchTableHeader
-                        canSelectMultiple
-                        type={CONST.SEARCH.DATA_TYPES.EXPENSE}
-                        onSortPress={() => {}}
-                        sortOrder={undefined}
-                        sortBy={undefined}
-                        shouldShowYear={dateColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE}
-                        isAmountColumnWide={amountColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE}
-                        isTaxAmountColumnWide={taxAmountColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE}
-                        shouldShowSorting={false}
-                        columns={currentColumns}
-                        groupBy={groupBy}
-                        isExpenseReportView
-                    />
-                </View>
+            {isLargeScreenWidth && !(isEmpty && shouldDisplayLoadingIndicator) && (
+                <>
+                    <View style={[styles.searchListHeaderContainerStyle, styles.groupSearchListTableContainerStyle, styles.bgTransparent, styles.pl8, styles.pr11, styles.borderNone]}>
+                        <SearchTableHeader
+                            canSelectMultiple
+                            type={CONST.SEARCH.DATA_TYPES.EXPENSE}
+                            onSortPress={() => {}}
+                            sortOrder={undefined}
+                            sortBy={undefined}
+                            shouldShowYear={dateColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE}
+                            isAmountColumnWide={amountColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE}
+                            isTaxAmountColumnWide={taxAmountColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE}
+                            shouldShowSorting={false}
+                            columns={currentColumns}
+                            groupBy={groupBy}
+                            isExpenseReportView
+                        />
+                    </View>
+                    <View style={[styles.borderBottom, styles.ml3, styles.mr3]} />
+                </>
             )}
             {visibleTransactions.map((transaction, index) => {
-                const shouldShowBottomBorder = !isLastTransaction(index) && !isLargeScreenWidth;
+                const shouldShowBottomBorder = !isLastTransaction(index);
                 const exportedReportActions = Object.values(transactionsSnapshot?.data?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transaction?.reportID}`] ?? {});
 
                 const transactionRow = (
@@ -230,7 +235,7 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
                         onButtonPress={() => {
                             openReportInRHP(transaction);
                         }}
-                        style={[styles.noBorderRadius, styles.p3, isLargeScreenWidth && [styles.pv1Half], styles.flex1]}
+                        style={[styles.noBorderRadius, styles.p3, isLargeScreenWidth && [styles.pv2, styles.searchTableRowHeight], styles.flex1]}
                         isReportItemChild
                         isInSingleTransactionReport={isInSingleTransactionReport}
                         shouldShowBottomBorder={shouldShowBottomBorder}

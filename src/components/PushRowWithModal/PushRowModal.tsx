@@ -3,7 +3,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Modal from '@components/Modal';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
-import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
+import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import searchOptions from '@libs/searchOptions';
@@ -99,7 +99,7 @@ function PushRowModal({isVisible, selectedOption, onOptionChange, onClose, optio
                 />
                 <SelectionList
                     data={searchResults}
-                    ListItem={SingleSelectListItem}
+                    ListItem={RadioListItem}
                     onSelectRow={handleSelectRow}
                     textInputOptions={textInputOptions}
                     initiallyFocusedItemKey={selectedOption}

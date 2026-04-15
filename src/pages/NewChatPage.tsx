@@ -1,16 +1,17 @@
 import {useFocusEffect} from '@react-navigation/native';
 import {hasSeenTourSelector} from '@selectors/Onboarding';
-import {sortedActionsSelector} from '@selectors/SortedReportActions';
+import passthroughPolicyTagListSelector from '@selectors/PolicyTagList';
 import reject from 'lodash/reject';
 import type {Ref} from 'react';
 import React, {useEffect, useImperativeHandle, useRef, useState} from 'react';
 import {Keyboard} from 'react-native';
 import Button from '@components/Button';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
+import {PressableWithFeedback} from '@components/Pressable';
 import ReferralProgramCTA from '@components/ReferralProgramCTA';
 import ScreenWrapper from '@components/ScreenWrapper';
-import NewChatListItem from '@components/Search/NewChatListItem';
-import SelectionCheckbox from '@components/SelectionList/components/SelectionCheckbox';
+import SelectCircle from '@components/SelectCircle';
+import UserListItem from '@components/SelectionList/ListItem/UserListItem';
 import SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
 import type {Section} from '@components/SelectionList/SelectionListWithSections/types';
 import type {ListItem, SelectionListWithSectionsHandle} from '@components/SelectionList/types';
@@ -46,6 +47,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import {sortedActionsSelector} from '@src/selectors/SortedReportActions';
 import type {ReportAttributesDerivedValue} from '@src/types/onyx/DerivedValues';
 import type {SelectedParticipant} from '@src/types/onyx/NewGroupChatDraft';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
@@ -74,8 +76,9 @@ function useOptions(reportAttributesDerived: ReportAttributesDerivedValue['repor
     const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT);
     const allPersonalDetails = usePersonalDetails();
     const isScreenFocusedRef = useIsFocusedRef();
-    const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
-    const [sortedActions] = useOnyx(ONYXKEYS.DERIVED.SORTED_REPORT_ACTIONS, {selector: sortedActionsSelector});
+    const [sortedActions] = useOnyx(ONYXKEYS.DERIVED.RAM_ONLY_SORTED_REPORT_ACTIONS, {selector: sortedActionsSelector});
+    const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {selector: passthroughPolicyTagListSelector});
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
 
     const {
         options: listOptions,
@@ -88,7 +91,7 @@ function useOptions(reportAttributesDerived: ReportAttributesDerivedValue['repor
         includeP2P: true,
         batchSize: 100,
         enablePagination: true,
-        searchTerm: debouncedSearchTerm,
+        isSearching: !!debouncedSearchTerm.trim(),
         betas,
     });
 
@@ -109,6 +112,7 @@ function useOptions(reportAttributesDerived: ReportAttributesDerivedValue['repor
         loginList,
         currentUserAccountID,
         currentUserEmail,
+        conciergeReportID,
         {
             betas: betas ?? [],
             includeSelfDM: true,
@@ -171,7 +175,6 @@ function useOptions(reportAttributesDerived: ReportAttributesDerivedValue['repor
                           personalDetails: allPersonalDetails,
                           loginList,
                           currentUserEmail: personalData.email ?? '',
-                          currentUserAccountID: personalData.accountID,
                       });
                   if (participantOption) {
                       result.push({
@@ -245,7 +248,7 @@ function NewChatPage({ref}: NewChatPageProps) {
     const currentUserAccountID = personalData.accountID;
     const {top} = useSafeAreaInsets();
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
-    const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false});
+    const [isSearchingForReports] = useOnyx(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
@@ -406,13 +409,19 @@ function NewChatPage({ref}: NewChatPageProps) {
 
         if (item.isSelected) {
             return (
-                <SelectionCheckbox
-                    item={item}
-                    onSelectRow={toggleOption}
-                    disabled={!!item.isDisabled}
+                <PressableWithFeedback
+                    sentryLabel={CONST.SENTRY_LABEL.NEW_CHAT.SELECT_PARTICIPANT}
+                    onPress={() => toggleOption(item)}
+                    disabled={item.isDisabled}
+                    role={CONST.ROLE.CHECKBOX}
                     accessibilityLabel={item.text ? translate('selectionList.userSelected', item.text) : ''}
-                    containerStyle={[styles.ml5]}
-                />
+                    style={[styles.flexRow, styles.alignItemsCenter, styles.ml5, styles.optionSelectCircle]}
+                >
+                    <SelectCircle
+                        isChecked={item.isSelected}
+                        selectCircleStyles={styles.ml0}
+                    />
+                </PressableWithFeedback>
             );
         }
         const buttonInnerStyles = isFocused ? styles.buttonDefaultHovered : {};
@@ -486,7 +495,7 @@ function NewChatPage({ref}: NewChatPageProps) {
         >
             <SelectionListWithSections<OptionWithKey>
                 ref={selectionListRef}
-                ListItem={NewChatListItem}
+                ListItem={UserListItem}
                 sections={areOptionsInitialized ? sections : getEmptyArray<Section<OptionWithKey>>()}
                 onSelectRow={selectOption}
                 shouldShowTextInput

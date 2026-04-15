@@ -219,9 +219,6 @@ type CommonListItemProps<TItem extends ListItem> = {
 
     /** Whether product training tooltips can be displayed */
     canShowProductTrainingTooltip?: boolean;
-
-    /** Whether to show the radio button */
-    shouldShowRadioButton?: boolean;
 } & TRightHandSideComponent<TItem> &
     WithSentryLabel;
 
@@ -297,6 +294,12 @@ type ListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
 
     /** Whether the network is offline */
     isOffline?: boolean;
+
+    /** Whether this is the last item in the list (for border radius on desktop) */
+    isLastItem?: boolean;
+
+    /** Whether this is the first item in the list (for border styling on desktop) */
+    isFirstItem?: boolean;
 };
 
 type ValidListItem =

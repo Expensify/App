@@ -4,7 +4,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Modal from '@components/Modal';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
-import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
+import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import type {CustomListSelectorType} from '@pages/workspace/accounting/netsuite/types';
@@ -92,7 +92,7 @@ function NetSuiteCustomListSelectorModal({isVisible, currentCustomListValue, onC
                     data={options}
                     textInputOptions={textInputOptions}
                     onSelectRow={onCustomListSelected}
-                    ListItem={SingleSelectListItem}
+                    ListItem={RadioListItem}
                     initiallyFocusedItemKey={currentCustomListValue}
                     shouldSingleExecuteRowSelect
                     shouldStopPropagation
