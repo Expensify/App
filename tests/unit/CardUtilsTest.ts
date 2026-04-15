@@ -12,6 +12,7 @@ import {
     filterAllInactiveCards,
     filterCardsByNonExpensify,
     filterInactiveCards,
+    filterInactiveCardsForWorkspace,
     flattenWorkspaceCardsList,
     formatCardExpiration,
     formatMaskedCardName,
@@ -3298,6 +3299,61 @@ describe('CardUtils', () => {
 
             const result = filterAllInactiveCards(cards);
             expect(Object.keys(result)).toHaveLength(0);
+        });
+
+        it('should include deactivated cards when includeDeactivated is true', () => {
+            const cards: CardList = {
+                '1': {cardID: 1, state: CONST.EXPENSIFY_CARD.STATE.OPEN, bank: 'vcf', cardName: 'a', domainName: '', fraud: 'none', lastFourPAN: '', lastScrape: '', lastUpdated: ''},
+                '2': {cardID: 2, state: CONST.EXPENSIFY_CARD.STATE.CLOSED, bank: 'vcf', cardName: 'b', domainName: '', fraud: 'none', lastFourPAN: '', lastScrape: '', lastUpdated: ''},
+                '3': {
+                    cardID: 3,
+                    state: CONST.EXPENSIFY_CARD.STATE.STATE_DEACTIVATED,
+                    bank: 'vcf',
+                    cardName: 'c',
+                    domainName: '',
+                    fraud: 'none',
+                    lastFourPAN: '',
+                    lastScrape: '',
+                    lastUpdated: '',
+                },
+                '4': {
+                    cardID: 4,
+                    state: CONST.EXPENSIFY_CARD.STATE.STATE_SUSPENDED,
+                    bank: 'vcf',
+                    cardName: 'd',
+                    domainName: '',
+                    fraud: 'none',
+                    lastFourPAN: '',
+                    lastScrape: '',
+                    lastUpdated: '',
+                },
+            } as unknown as CardList;
+
+            const result = filterAllInactiveCards(cards, true);
+            const ids = Object.values(result).map((c) => c.cardID);
+            expect(ids).toContain(1);
+            expect(ids).toContain(3);
+            expect(ids).not.toContain(2);
+            expect(ids).not.toContain(4);
+        });
+    });
+
+    describe('filterInactiveCardsForWorkspace', () => {
+        it('should include deactivated cards but exclude closed and non-frozen suspended', () => {
+            const cardsList = {
+                cardList: {assignable1: {cardID: 100}},
+                card1: {cardID: 1, state: CONST.EXPENSIFY_CARD.STATE.OPEN},
+                card2: {cardID: 2, state: CONST.EXPENSIFY_CARD.STATE.CLOSED},
+                card3: {cardID: 3, state: CONST.EXPENSIFY_CARD.STATE.STATE_DEACTIVATED},
+                card4: {cardID: 4, state: CONST.EXPENSIFY_CARD.STATE.STATE_SUSPENDED},
+            } as unknown as Parameters<typeof filterInactiveCardsForWorkspace>[0];
+
+            const result = filterInactiveCardsForWorkspace(cardsList);
+            expect(result.card1).toBeDefined();
+            expect(result.card3).toBeDefined();
+            expect(result.card2).toBeUndefined();
+            expect(result.card4).toBeUndefined();
+            expect(result.cardList).toBeDefined();
         });
     });
 
