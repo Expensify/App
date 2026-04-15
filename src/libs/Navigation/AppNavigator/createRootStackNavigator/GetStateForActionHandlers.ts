@@ -4,7 +4,7 @@ import type {ParamListBase, Router} from '@react-navigation/routers';
 import SCREENS_WITH_NAVIGATION_TAB_BAR from '@components/Navigation/TopLevelNavigationTabBar/SCREENS_WITH_NAVIGATION_TAB_BAR';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import Log from '@libs/Log';
-import getStateFromPath from '@libs/Navigation/helpers/getStateFromPath';
+import getAdaptedStateFromPath from '@libs/Navigation/helpers/getAdaptedStateFromPath';
 import {isFullScreenName, isSplitNavigatorName} from '@libs/Navigation/helpers/isNavigatorName';
 import isSideModalNavigator from '@libs/Navigation/helpers/isSideModalNavigator';
 import shouldStripRHPOnFullscreenPush from '@libs/Navigation/helpers/shouldStripRHPOnFullscreenPush';
@@ -222,7 +222,7 @@ function handleReplaceFullscreenUnderRHP(
     configOptions: RouterConfigOptions,
     stackRouter: Router<StackNavigationState<ParamListBase>, CommonActions.Action | StackActionType>,
 ) {
-    const stateFromPath = getStateFromPath(action.payload.route);
+    const stateFromPath = getAdaptedStateFromPath(action.payload.route);
     const targetRoute = stateFromPath?.routes.findLast((r) => isFullScreenName(r.name));
     if (!targetRoute) {
         return null;

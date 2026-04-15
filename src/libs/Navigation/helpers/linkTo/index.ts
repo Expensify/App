@@ -111,6 +111,10 @@ function shouldChangeToMatchingFullScreen(
     return newFocusedRoute?.name === SCREENS.SETTINGS.SUBSCRIPTION.ADD_PAYMENT_CARD && lastRouteInLastFullScreenRoute?.name !== SCREENS.SETTINGS.SUBSCRIPTION.ROOT;
 }
 
+function shouldReplaceHomeWithMatchingSettingsScreenUnderRHP(matchingFullScreenRoute: NavigationPartialRoute, lastFullScreenRoute: NavigationPartialRoute) {
+    return lastFullScreenRoute.name === SCREENS.HOME && matchingFullScreenRoute.name === NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR;
+}
+
 export default function linkTo(navigation: NavigationContainerRef<RootNavigatorParamList> | null, path: Route, options?: LinkToOptions) {
     if (!navigation) {
         throw new Error("Couldn't find a navigation object. Is your component inside a screen in a navigator?");
@@ -166,6 +170,8 @@ export default function linkTo(navigation: NavigationContainerRef<RootNavigatorP
         action.type = CONST.NAVIGATION.ACTION_TYPE.PUSH;
     }
 
+    let shouldReplaceMatchingSettingsScreenUnderRHP = false;
+
     // If we deep link to a RHP page, we want to make sure we have the correct full screen route under the overlay.
     if (shouldCheckFullScreenRouteMatching(action)) {
         const newFocusedRoute = findFocusedRoute(stateFromPath);
@@ -173,16 +179,22 @@ export default function linkTo(navigation: NavigationContainerRef<RootNavigatorP
             const matchingFullScreenRoute = getMatchingFullScreenRoute(newFocusedRoute);
 
             const lastFullScreenRoute = currentState.routes.findLast((route) => isFullScreenName(route.name));
-            if (matchingFullScreenRoute && lastFullScreenRoute && shouldChangeToMatchingFullScreen(newFocusedRoute, matchingFullScreenRoute, lastFullScreenRoute as NavigationPartialRoute)) {
-                if (isRoutePreloaded(currentState, matchingFullScreenRoute)) {
-                    navigation.dispatch(StackActions.push(matchingFullScreenRoute.name));
-                } else {
-                    const lastRouteInMatchingFullScreen = matchingFullScreenRoute.state?.routes?.at(-1);
-                    const additionalAction = StackActions.push(matchingFullScreenRoute.name, {
-                        screen: lastRouteInMatchingFullScreen?.name,
-                        params: lastRouteInMatchingFullScreen?.params,
-                    });
-                    navigation.dispatch(additionalAction);
+            if (matchingFullScreenRoute && lastFullScreenRoute) {
+                // For Settings RHP opened from Home, reveal the matching Settings split route under the modal
+                // after the modal has mounted. This mirrors reload behavior without using a route-specific CTA workaround.
+                if (shouldReplaceHomeWithMatchingSettingsScreenUnderRHP(matchingFullScreenRoute, lastFullScreenRoute as NavigationPartialRoute)) {
+                    shouldReplaceMatchingSettingsScreenUnderRHP = true;
+                } else if (shouldChangeToMatchingFullScreen(newFocusedRoute, matchingFullScreenRoute, lastFullScreenRoute as NavigationPartialRoute)) {
+                    if (isRoutePreloaded(currentState, matchingFullScreenRoute)) {
+                        navigation.dispatch(StackActions.push(matchingFullScreenRoute.name));
+                    } else {
+                        const lastRouteInMatchingFullScreen = matchingFullScreenRoute.state?.routes?.at(-1);
+                        const additionalAction = StackActions.push(matchingFullScreenRoute.name, {
+                            screen: lastRouteInMatchingFullScreen?.name,
+                            params: lastRouteInMatchingFullScreen?.params,
+                        });
+                        navigation.dispatch(additionalAction);
+                    }
                 }
             }
         }
@@ -190,4 +202,11 @@ export default function linkTo(navigation: NavigationContainerRef<RootNavigatorP
 
     const {action: minimalAction} = getMinimalAction(action, navigation.getRootState());
     navigation.dispatch(minimalAction);
+
+    if (shouldReplaceMatchingSettingsScreenUnderRHP) {
+        navigation.dispatch({
+            type: CONST.NAVIGATION.ACTION_TYPE.REPLACE_FULLSCREEN_UNDER_RHP,
+            payload: {route: normalizedPathAfterRedirection},
+        });
+    }
 }
