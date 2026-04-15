@@ -1,7 +1,6 @@
 import type {ForwardedRef, RefObject} from 'react';
-import React, {useContext, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useEffect, useMemo, useRef, useState} from 'react';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import {OptionsListStateContext, useOptionsList} from '@components/OptionListContextProvider';
 import OptionsListSkeletonView from '@components/OptionsListSkeletonView';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import type {ListItem as NewListItem, UserListItemProps} from '@components/SelectionList/ListItem/types';
@@ -13,6 +12,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useDebounce from '@hooks/useDebounce';
 import useDebouncedAccessibilityAnnouncement from '@hooks/useDebouncedAccessibilityAnnouncement';
 import useFeedKeysWithAssignedCards from '@hooks/useFeedKeysWithAssignedCards';
+import useFilteredOptions from '@hooks/useFilteredOptions';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -26,7 +26,7 @@ import Parser from '@libs/Parser';
 import {getAllTaxRates} from '@libs/PolicyUtils';
 import {getReportAction} from '@libs/ReportActionsUtils';
 import type {OptionData} from '@libs/ReportUtils';
-import {getReportOrDraftReport} from '@libs/ReportUtils';
+import {formatReportLastMessageText, getReportOrDraftReport, getReportSubtitlePrefix} from '@libs/ReportUtils';
 import {buildSearchQueryJSON, buildUserReadableQueryString, getQueryWithoutFilters, shouldHighlight} from '@libs/SearchQueryUtils';
 import StringUtils from '@libs/StringUtils';
 import {cancelSpan, endSpan, getSpan} from '@libs/telemetry/activeSpans';
@@ -94,6 +94,11 @@ const defaultListOptions = {
     categoryOptions: [],
 };
 
+const emptyOptionList = {
+    reports: [],
+    personalDetails: [],
+};
+
 const setPerformanceTimersEnd = () => {
     endSpan(CONST.TELEMETRY.SPAN_OPEN_SEARCH_ROUTER);
 };
@@ -159,13 +164,14 @@ function SearchAutocompleteList({
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
     const [policies = getEmptyObject<NonNullable<OnyxCollection<Policy>>>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [visibleReportActionsData] = useOnyx(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS);
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserEmail = currentUserPersonalDetails.email ?? '';
     const currentUserAccountID = currentUserPersonalDetails.accountID;
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['History', 'MagnifyingGlass']);
     const taxRates = getAllTaxRates(policies);
 
-    const {options, areOptionsInitialized} = useOptionsList();
+    const {options: listOptions, isLoading: isLoadingOptions} = useFilteredOptions({enabled: true, isSearching: !!autocompleteQueryValue.trim(), betas: betas ?? []});
 
     const isRecentSearchesDataLoaded = !isLoadingOnyxValue(recentSearchesMetadata);
 
@@ -175,7 +181,6 @@ function SearchAutocompleteList({
         };
     }, []);
 
-    const {areOptionsInitialized: contextAreOptionsInitialized} = useContext(OptionsListStateContext);
     const coldStartAttributeSet = useRef(false);
     useEffect(() => {
         if (coldStartAttributeSet.current) {
@@ -183,17 +188,17 @@ function SearchAutocompleteList({
         }
         const parentSpan = getSpan(CONST.TELEMETRY.SPAN_OPEN_SEARCH_ROUTER);
         if (parentSpan) {
-            parentSpan.setAttribute(CONST.TELEMETRY.ATTRIBUTE_COLD_START, !contextAreOptionsInitialized);
+            parentSpan.setAttribute(CONST.TELEMETRY.ATTRIBUTE_COLD_START, isLoadingOptions);
             coldStartAttributeSet.current = true;
         }
-    }, [contextAreOptionsInitialized]);
+    }, [isLoadingOptions]);
 
     const searchOptions = (() => {
-        if (!areOptionsInitialized) {
+        if (listOptions === null) {
             return defaultListOptions;
         }
         return getSearchOptions({
-            options,
+            options: listOptions,
             draftComments,
             nvpDismissedProductTraining,
             betas: betas ?? [],
@@ -213,6 +218,7 @@ function SearchAutocompleteList({
             currentUserEmail,
             policyCollection: policies,
             personalDetails,
+            conciergeReportID,
         });
     })();
 
@@ -277,7 +283,7 @@ function SearchAutocompleteList({
         autocompleteQueryValue,
         allCards,
         allFeeds,
-        options,
+        options: listOptions ?? emptyOptionList,
         draftComments,
         nvpDismissedProductTraining,
         betas,
@@ -294,9 +300,11 @@ function SearchAutocompleteList({
 
     const autocompleteQueryWithoutFilters = getQueryWithoutFilters(autocompleteQueryValue);
 
-    const sortedRecentSearches = Object.values(recentSearches ?? {}).sort((a, b) => localeCompare(b.timestamp, a.timestamp));
+    const sortedRecentSearches = Object.entries(recentSearches ?? {}).sort(([, firstRecentSearch], [, secondRecentSearch]) =>
+        localeCompare(secondRecentSearch.timestamp, firstRecentSearch.timestamp),
+    );
 
-    const recentSearchesData = sortedRecentSearches?.slice(0, 5).map(({query, timestamp}) => {
+    const recentSearchesData = sortedRecentSearches?.slice(0, 5).map(([recentSearchHash, {query}]) => {
         const searchQueryJSON = buildSearchQueryJSON(query);
         return {
             text: searchQueryJSON
@@ -317,7 +325,7 @@ function SearchAutocompleteList({
                 : query,
             singleIcon: expensifyIcons.History,
             searchQuery: query,
-            keyForList: timestamp,
+            keyForList: recentSearchHash,
             searchItemType: CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.SEARCH,
         };
     });
@@ -352,6 +360,12 @@ function SearchAutocompleteList({
         debounceHandleSearch();
     }, [autocompleteQueryWithoutFilters, debounceHandleSearch]);
 
+    const reasonAttributes: SkeletonSpanReasonAttributes = {
+        context: 'SearchAutocompleteList',
+        isRecentSearchesDataLoaded,
+        isLoadingOptions,
+    };
+
     /* Sections generation */
     const {sections, styledRecentReports, suggestionsCount} = useMemo(() => {
         const nextSections: Array<Section<AutocompleteListItem>> = [];
@@ -383,22 +397,51 @@ function SearchAutocompleteList({
         const nextStyledRecentReports = recentReportsOptions.map((option) => {
             const report = getReportOrDraftReport(option.reportID);
             const reportAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
-            const shouldParserToHTML = reportAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT;
+            const shouldParserToHTML = !!reportAction && reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT;
+            const shouldParseAlternateText = report?.lastActionType !== CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT;
             const keyForList = option.keyForList ?? option.reportID ?? (option.accountID ? String(option.accountID) : undefined);
             return {
                 ...option,
                 keyForList,
                 pressableStyle: styles.br2,
                 text: StringUtils.lineBreaksToSpaces(shouldParserToHTML ? Parser.htmlToText(option.text ?? '') : (option.text ?? '')),
+                alternateText: shouldParseAlternateText ? option.alternateText : getReportSubtitlePrefix(report) + formatReportLastMessageText(option.lastMessageText ?? ''),
                 wrapperStyle: [styles.pr3, styles.pl3],
             } as AutocompleteListItem;
         });
 
-        pushSection({
-            title: autocompleteQueryValue.trim() === '' ? translate('search.recentChats') : undefined,
-            data: nextStyledRecentReports,
-            sectionIndex: sectionIndex++,
-        });
+        if (!isLoadingOptions) {
+            pushSection({
+                title: autocompleteQueryValue.trim() === '' ? translate('search.recentChats') : undefined,
+                data: nextStyledRecentReports,
+                sectionIndex: sectionIndex++,
+            });
+        } else if (autocompleteQueryValue.trim() !== '' && nextStyledRecentReports.length > 0) {
+            // When options aren't fully initialized but we have a search query with available results,
+            // render them immediately so they're selectable instead of hiding the section entirely.
+            pushSection({
+                data: nextStyledRecentReports,
+                sectionIndex: sectionIndex++,
+            });
+        } else if (autocompleteQueryValue.trim() === '') {
+            pushSection({
+                title: translate('search.recentChats'),
+                data: [],
+                sectionIndex: sectionIndex++,
+                customHeader: (
+                    <OptionsListSkeletonView
+                        fixedNumItems={3}
+                        shouldStyleAsTable
+                        speed={CONST.TIMING.SKELETON_ANIMATION_SPEED}
+                        reasonAttributes={{
+                            context: 'SearchAutocompleteList',
+                            isRecentSearchesDataLoaded,
+                            isLoadingOptions,
+                        }}
+                    />
+                ),
+            });
+        }
 
         if (autocompleteSuggestions.length > 0) {
             const autocompleteData: AutocompleteListItem[] = autocompleteSuggestions.map(({filterKey, text, autocompleteID, mapKey}) => {
@@ -417,12 +460,25 @@ function SearchAutocompleteList({
         }
 
         return {sections: nextSections, styledRecentReports: nextStyledRecentReports, suggestionsCount: nextSuggestionsCount};
-    }, [autocompleteQueryValue, autocompleteSuggestions, expensifyIcons, getAdditionalSections, recentReportsOptions, recentSearchesData, searchOptions, searchQueryItem, styles, translate]);
+    }, [
+        autocompleteQueryValue,
+        autocompleteSuggestions,
+        expensifyIcons,
+        getAdditionalSections,
+        recentReportsOptions,
+        recentSearchesData,
+        searchOptions,
+        searchQueryItem,
+        styles,
+        translate,
+        isLoadingOptions,
+        isRecentSearchesDataLoaded,
+    ]);
 
     const sectionItemText = sections?.at(1)?.data?.[0]?.text ?? '';
     const normalizedReferenceText = sectionItemText.toLowerCase();
     const trimmedAutocompleteQueryValue = autocompleteQueryValue.trim();
-    const isLoading = !isRecentSearchesDataLoaded || !areOptionsInitialized;
+    const isLoading = !isRecentSearchesDataLoaded;
     const suggestionsAnnouncement = suggestionsCount > 0 ? translate('search.suggestionsAvailable', {count: suggestionsCount}, trimmedAutocompleteQueryValue) : '';
     useDebouncedAccessibilityAnnouncement(suggestionsAnnouncement, !!suggestionsAnnouncement, autocompleteQueryValue);
 
@@ -457,13 +513,13 @@ function SearchAutocompleteList({
     // because useState(initialFocusedIndex) in useArrowKeyFocusManager only reads the initial value.
     // Imperatively focus the first recent report once options become available (desktop only).
     useEffect(() => {
-        if (shouldUseNarrowLayout || !areOptionsInitialized || hasSetInitialFocusRef.current || firstRecentReportFlatIndex === -1) {
+        if (shouldUseNarrowLayout || isLoadingOptions || hasSetInitialFocusRef.current || firstRecentReportFlatIndex === -1) {
             return;
         }
         hasSetInitialFocusRef.current = true;
 
         innerListRef.current?.updateAndScrollToFocusedIndex(firstRecentReportFlatIndex, false);
-    }, [areOptionsInitialized, firstRecentReportFlatIndex, shouldUseNarrowLayout]);
+    }, [isLoadingOptions, firstRecentReportFlatIndex, shouldUseNarrowLayout]);
 
     useEffect(() => {
         const targetText = autocompleteQueryValue;
@@ -472,12 +528,6 @@ function SearchAutocompleteList({
             onHighlightFirstItem?.();
         }
     }, [autocompleteQueryValue, onHighlightFirstItem, normalizedReferenceText]);
-
-    const reasonAttributes: SkeletonSpanReasonAttributes = {
-        context: 'SearchAutocompleteList',
-        isRecentSearchesDataLoaded,
-        areOptionsInitialized,
-    };
 
     if (isLoading) {
         return (

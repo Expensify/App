@@ -71,6 +71,7 @@ function DisplayPopup({queryJSON, searchResults, closeOverlay, onSort}: DisplayP
                     description={translate('search.display.sortBy')}
                     title={translate(getSearchColumnTranslationKey(sortByValue))}
                     onPress={() => setSelectedDisplayFilter(CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_BY)}
+                    sentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_SORT_BY}
                 />
                 {(isExpenseType || isTripType) && (
                     <MenuItemWithTopDescription
@@ -78,6 +79,7 @@ function DisplayPopup({queryJSON, searchResults, closeOverlay, onSort}: DisplayP
                         description={translate('search.display.groupBy')}
                         title={groupByValue ? translate(`search.filters.groupBy.${groupByValue}`) : undefined}
                         onPress={() => setSelectedDisplayFilter(CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY)}
+                        sentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_GROUP_BY}
                     />
                 )}
                 {isExpenseType && !!groupByValue && (
@@ -86,6 +88,7 @@ function DisplayPopup({queryJSON, searchResults, closeOverlay, onSort}: DisplayP
                         description={translate('search.view.label')}
                         title={viewValue ? translate(`search.view.${viewValue}`) : undefined}
                         onPress={() => setSelectedDisplayFilter(CONST.SEARCH.SYNTAX_ROOT_KEYS.VIEW)}
+                        sentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_VIEW}
                     />
                 )}
                 {isExpenseType && (
@@ -94,6 +97,7 @@ function DisplayPopup({queryJSON, searchResults, closeOverlay, onSort}: DisplayP
                         description={translate('search.display.limitResults')}
                         title={limitValue}
                         onPress={() => setSelectedDisplayFilter(CONST.SEARCH.SYNTAX_ROOT_KEYS.LIMIT)}
+                        sentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_LIMIT}
                     />
                 )}
                 {shouldShowColumnsButton && (
@@ -125,7 +129,7 @@ function DisplayPopup({queryJSON, searchResults, closeOverlay, onSort}: DisplayP
             buildFilterQueryWithSortDefaults(
                 updatedFilterFormValues,
                 {view: searchAdvancedFilters.view, groupBy: searchAdvancedFilters.groupBy},
-                {sortBy: queryJSON.sortBy, sortOrder: queryJSON.sortOrder, limit: queryJSON.limit},
+                {sortBy: queryJSON.sortBy, sortOrder: queryJSON.sortOrder},
             ) ?? '';
         if (!queryString) {
             return;
@@ -193,7 +197,7 @@ function DisplayPopup({queryJSON, searchResults, closeOverlay, onSort}: DisplayP
         <View style={[!shouldUseNarrowLayout && styles.pv4]}>
             <HeaderWithBackButton
                 shouldDisplayHelpButton={false}
-                style={[styles.h10]}
+                style={[styles.h10, styles.pv1, styles.mb2]}
                 subtitle={subtitle[selectedDisplayFilter]}
                 onBackButtonPress={() => setSelectedDisplayFilter(null)}
             />
