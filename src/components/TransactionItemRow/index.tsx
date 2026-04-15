@@ -254,7 +254,7 @@ function TransactionItemRow({
     }, [transactionItem, translate, report]);
 
     const exchangeRateMessage = getExchangeRate(transactionItem, report?.currency);
-    const cardName = getCompanyCardDescription(transactionItem?.cardName, transactionItem?.cardID, nonPersonalAndWorkspaceCards);
+    const cardName = getCompanyCardDescription(translate, transactionItem?.cardName, transactionItem?.cardID, nonPersonalAndWorkspaceCards);
     const transactionAttendees = useMemo(() => getAttendees(transactionItem, currentUserPersonalDetails), [transactionItem, currentUserPersonalDetails]);
     const shouldShowAttendees = shouldShowAttendeesUtils(CONST.IOU.TYPE.SUBMIT, policy) && transactionAttendees.length > 0;
 
