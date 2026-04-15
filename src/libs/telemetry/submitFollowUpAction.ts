@@ -195,6 +195,7 @@ function endSubmitFollowUpActionSpan(followUpAction: SubmitFollowUpAction, repor
 function cancelSubmitFollowUpActionSpan() {
     cancelSpan(CONST.TELEMETRY.SPAN_SUBMIT_TO_DESTINATION_VISIBLE);
     clearPendingSubmitFollowUpAction();
+    trackingState = null;
 }
 
 // ---------------------------------------------------------------------------
@@ -270,11 +271,11 @@ function cancelTracking() {
     if (!trackingState) {
         return;
     }
+    const {skipSubmitExpenseSpan} = trackingState;
     cancelSubmitFollowUpActionSpan();
-    if (!trackingState.skipSubmitExpenseSpan) {
+    if (!skipSubmitExpenseSpan) {
         cancelSpan(CONST.TELEMETRY.SPAN_SUBMIT_EXPENSE);
     }
-    trackingState = null;
 }
 
 /**
