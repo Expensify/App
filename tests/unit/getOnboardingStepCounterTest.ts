@@ -280,9 +280,9 @@ describe('getOnboardingStepCounter', () => {
 
     describe('sub-page mappings', () => {
         it.each([
-            {label: 'WORKSPACE_CONFIRMATION', page: O.WORKSPACE_CONFIRMATION},
-            {label: 'WORKSPACE_CURRENCY', page: O.WORKSPACE_CURRENCY},
-            {label: 'WORKSPACE_INVITE', page: O.WORKSPACE_INVITE},
+            {label: 'WORKSPACE_CONFIRMATION', page: O.DYNAMIC_WORKSPACE_CONFIRMATION},
+            {label: 'WORKSPACE_CURRENCY', page: O.DYNAMIC_WORKSPACE_CURRENCY},
+            {label: 'WORKSPACE_INVITE', page: O.DYNAMIC_WORKSPACE_INVITE},
         ])('$label maps to the same step as DYNAMIC_WORKSPACE_OPTIONAL', ({page}) => {
             const ctx: OnboardingFlowContext = {signupQualifier: 'individual', purposeSelected: ONBOARDING_CHOICES.PERSONAL_SPEND};
             expect(getOnboardingStepCounter(page, ctx)).toEqual(getOnboardingStepCounter(O.DYNAMIC_WORKSPACE_OPTIONAL, ctx));
