@@ -83,6 +83,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
     isLastItem,
     userBillingGracePeriodEnds,
     ownerBillingGracePeriodEnd,
+    onUndelete,
 }: TransactionGroupListItemProps<TItem>) {
     const groupItem = item as unknown as TransactionGroupListItemType;
 
@@ -576,6 +577,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
                                 isInSingleTransactionReport={groupItem.transactions.length === 1}
                                 onLongPress={onExpandedRowLongPress}
                                 nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}
+                                onUndelete={onUndelete}
                             />
                         </AnimatedCollapsible>
                     </View>

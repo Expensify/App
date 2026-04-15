@@ -44,6 +44,7 @@ import {
     getCreated as getTransactionCreated,
     hasMissingSmartscanFields,
     isAmountMissing,
+    isDeletedTransaction as isDeletedTransactionUtil,
     isMerchantMissing,
     isScanning,
     isTimeRequest,
@@ -208,6 +209,7 @@ function TransactionItemRow({
     const expensicons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const transactionThreadReportID = reportActions ? getIOUActionForTransactionID(reportActions, transactionItem.transactionID)?.childReportID : undefined;
+    const isDeletedTransaction = isDeletedTransactionUtil(transactionItem);
 
     const isDateColumnWide = dateColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE;
     const isSubmittedColumnWide = submittedColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE;
@@ -417,7 +419,7 @@ function TransactionItemRow({
                                 action={transactionItem.action}
                                 isSelected={isSelected}
                                 isChildListItem={isReportItemChild}
-                                goToItem={onButtonPress}
+                                onButtonPress={onButtonPress}
                                 isLoading={isActionLoading}
                                 reportID={transactionItem.reportID}
                                 policyID={report?.policyID}
@@ -650,6 +652,7 @@ function TransactionItemRow({
                         <StatusCell
                             stateNum={transactionItem.report?.stateNum}
                             statusNum={transactionItem.report?.statusNum}
+                            isDeleted={isDeletedTransaction}
                         />
                     </View>
                 );
@@ -737,7 +740,7 @@ function TransactionItemRow({
                                 </View>
                             )}
                         </View>
-                        {!!shouldShowArrowRightOnNarrowLayout && (
+                        {!!shouldShowArrowRightOnNarrowLayout && !!onArrowRightPress && (
                             <View style={[styles.justifyContentEnd, styles.alignItemsEnd, styles.mbHalf, styles.ml1]}>
                                 <Icon
                                     src={expensicons.ArrowRight}
@@ -836,24 +839,27 @@ function TransactionItemRow({
                             />
                         </View>
                     )}
-                    {!!isLargeScreenWidth && !!onArrowRightPress && (
-                        <PressableWithFeedback
-                            disabled={!!isDisabled}
-                            onPress={() => onArrowRightPress?.()}
-                            style={[styles.pv2, styles.justifyContentCenter, styles.alignItemsEnd]}
-                            accessibilityRole={CONST.ROLE.BUTTON}
-                            accessibilityLabel={CONST.ROLE.BUTTON}
-                            sentryLabel={CONST.SENTRY_LABEL.TRANSACTION_ITEM_ROW.ARROW_RIGHT}
-                        >
-                            <Icon
-                                src={expensicons.ArrowRight}
-                                fill={theme.icon}
-                                additionalStyles={!isHover && styles.opacitySemiTransparent}
-                                width={variables.iconSizeNormal}
-                                height={variables.iconSizeNormal}
-                            />
-                        </PressableWithFeedback>
-                    )}
+                    {!!isLargeScreenWidth &&
+                        (onArrowRightPress ? (
+                            <PressableWithFeedback
+                                disabled={!!isDisabled}
+                                onPress={() => onArrowRightPress?.()}
+                                style={[styles.pv2, styles.justifyContentCenter, styles.alignItemsEnd]}
+                                accessibilityRole={CONST.ROLE.BUTTON}
+                                accessibilityLabel={CONST.ROLE.BUTTON}
+                                sentryLabel={CONST.SENTRY_LABEL.TRANSACTION_ITEM_ROW.ARROW_RIGHT}
+                            >
+                                <Icon
+                                    src={expensicons.ArrowRight}
+                                    fill={theme.icon}
+                                    additionalStyles={!isHover && styles.opacitySemiTransparent}
+                                    width={variables.iconSizeNormal}
+                                    height={variables.iconSizeNormal}
+                                />
+                            </PressableWithFeedback>
+                        ) : (
+                            <View style={[styles.p3Half, styles.pl0half, styles.pr0half, {width: variables.iconSizeNormal}]} />
+                        ))}
                 </View>
                 {shouldShowErrors && (
                     <TransactionItemRowRBR

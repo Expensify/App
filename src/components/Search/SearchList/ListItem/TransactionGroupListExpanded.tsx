@@ -24,7 +24,7 @@ import {getReportAction} from '@libs/ReportActionsUtils';
 import {getReportOrDraftReport} from '@libs/ReportUtils';
 import {createAndOpenSearchTransactionThread, getColumnsToShow, getTableMinWidth} from '@libs/SearchUIUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
-import {getTransactionViolations} from '@libs/TransactionUtils';
+import {getTransactionViolations, isDeletedTransaction} from '@libs/TransactionUtils';
 import type {TransactionPreviewData} from '@userActions/Search';
 import {setActiveTransactionIDs} from '@userActions/TransactionThreadNavigation';
 import CONST from '@src/CONST';
@@ -55,6 +55,7 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
     isInSingleTransactionReport,
     onLongPress,
     nonPersonalAndWorkspaceCards,
+    onUndelete,
 }: TransactionGroupListExpandedProps<TItem>) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -187,6 +188,14 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
         openReportInRHP(transaction);
     };
 
+    const handleButtonPress = (transaction: TransactionListItemType) => {
+        if (transaction.action === CONST.SEARCH.ACTION_TYPES.UNDELETE) {
+            onUndelete?.(transaction);
+            return;
+        }
+        openReportInRHP(transaction);
+    };
+
     const minTableWidth = getTableMinWidth(currentColumns.filter((column) => !column.startsWith(CONST.SEARCH.GROUP_COLUMN_PREFIX)) ?? []);
     const shouldScrollHorizontally = isLargeScreenWidth && minTableWidth > windowWidth;
 
@@ -194,7 +203,7 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
         <View style={[styles.flexColumn, styles.flex1]}>
             {isLargeScreenWidth && !(isEmpty && shouldDisplayLoadingIndicator) && (
                 <>
-                    <View style={[styles.searchListHeaderContainerStyle, styles.groupSearchListTableContainerStyle, styles.bgTransparent, styles.pl8, styles.pr11, styles.borderNone]}>
+                    <View style={[styles.searchListHeaderContainerStyle, styles.groupSearchListTableContainerStyle, styles.bgTransparent, styles.pl8, styles.borderNone]}>
                         <SearchTableHeader
                             canSelectMultiple
                             type={CONST.SEARCH.DATA_TYPES.EXPENSE}
@@ -233,14 +242,12 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
                         checkboxSentryLabel={CONST.SENTRY_LABEL.SEARCH.EXPANDED_TRANSACTION_ROW_CHECKBOX}
                         onCheckboxPress={() => onCheckboxPress?.(transaction as unknown as TItem)}
                         columns={currentColumns}
-                        onButtonPress={() => {
-                            openReportInRHP(transaction);
-                        }}
+                        onButtonPress={() => handleButtonPress(transaction)}
                         style={[styles.noBorderRadius, styles.p3, isLargeScreenWidth && [styles.pv2, styles.searchTableRowHeight], styles.flex1]}
                         isReportItemChild
                         isInSingleTransactionReport={isInSingleTransactionReport}
                         shouldShowBottomBorder={shouldShowBottomBorder}
-                        onArrowRightPress={() => openReportInRHP(transaction)}
+                        onArrowRightPress={isDeletedTransaction(transaction) ? undefined : () => openReportInRHP(transaction)}
                         shouldShowArrowRightOnNarrowLayout
                         reportActions={exportedReportActions}
                         nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}

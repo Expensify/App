@@ -423,6 +423,8 @@ type TransactionListItemProps<TItem extends ListItem> = ListItemProps<TItem> &
         violations?: Record<string, TransactionViolations | undefined> | undefined;
         /** Non-personal and workspace cards for company card display */
         nonPersonalAndWorkspaceCards?: CardList;
+        /** Callback to undelete a transaction */
+        onUndelete?: (transaction: Transaction) => void;
     };
 
 type TransactionGroupListItemProps<TItem extends ListItem> = ListItemProps<TItem> &
@@ -436,11 +438,13 @@ type TransactionGroupListItemProps<TItem extends ListItem> = ListItemProps<TItem
         violations?: Record<string, TransactionViolations | undefined> | undefined;
         /** Non-personal and workspace cards for company card display */
         nonPersonalAndWorkspaceCards?: CardList;
+        /** Callback to undelete a transaction */
+        onUndelete?: (transaction: Transaction) => void;
     };
 
 type TransactionGroupListExpandedProps<TItem extends ListItem> = Pick<
     TransactionGroupListItemProps<TItem>,
-    'showTooltip' | 'canSelectMultiple' | 'onCheckboxPress' | 'columns' | 'groupBy' | 'accountID' | 'isOffline' | 'violations' | 'onSelectRow' | 'nonPersonalAndWorkspaceCards'
+    'showTooltip' | 'canSelectMultiple' | 'onCheckboxPress' | 'columns' | 'groupBy' | 'accountID' | 'isOffline' | 'violations' | 'onSelectRow' | 'nonPersonalAndWorkspaceCards' | 'onUndelete'
 > & {
     transactions: TransactionListItemType[];
     transactionsVisibleLimit: number;
