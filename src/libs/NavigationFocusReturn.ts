@@ -143,11 +143,18 @@ function compoundParamsKey(routeKey: string, params: unknown): string {
 }
 
 function notifyPushParamsForward(routeKey: string, prevParams: unknown): void {
+    // Same-key transitions are classified as noop by handleStateChange, which doesn't cancel — do it here.
+    cancelPendingRestore();
     captureTriggerForRoute(compoundParamsKey(routeKey, prevParams));
 }
 
 function notifyPushParamsBackward(routeKey: string, targetParams: unknown): void {
     scheduleRestore(compoundParamsKey(routeKey, targetParams));
+}
+
+/** Cancel a queued restore without capturing anything — e.g. PUSH_PARAMS browser-forward RESET. */
+function cancelPendingFocusRestore(): void {
+    cancelPendingRestore();
 }
 
 function restoreTriggerForRoute(routeKey: string): boolean {
@@ -333,6 +340,7 @@ export {
     scheduleClearActivePopoverLauncher,
     notifyPushParamsForward,
     notifyPushParamsBackward,
+    cancelPendingFocusRestore,
     compoundParamsKey,
     resetForTests,
     setLastInteractiveElementForTests,

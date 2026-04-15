@@ -2,7 +2,7 @@ import {CommonActions} from '@react-navigation/native';
 import type {NavigationRoute, ParamListBase, PartialState, Router, RouterConfigOptions, StackActionType} from '@react-navigation/native';
 import type {PlatformStackNavigationState, PlatformStackRouterFactory, PlatformStackRouterOptions} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {GoBackAction, SetParamsAction} from '@libs/Navigation/types';
-import {compoundParamsKey, notifyPushParamsBackward, notifyPushParamsForward} from '@libs/NavigationFocusReturn';
+import {cancelPendingFocusRestore, compoundParamsKey, notifyPushParamsBackward, notifyPushParamsForward} from '@libs/NavigationFocusReturn';
 import CONST from '@src/CONST';
 import type {CustomHistoryEntry, PushParamsActionType, PushParamsRouterAction} from './types';
 import {enhanceStateWithHistory} from './utils';
@@ -182,7 +182,8 @@ function addPushParamsRouterExtension<RouterOptions extends PlatformStackRouterO
                 const newFocused = rehydratedState.routes.at(-1);
                 if (newFocused?.key) {
                     const history = state.history as CustomHistoryEntry[];
-                    if (pushParamsHistoryPosition < 0) {
+                    // Reinitialize when out of range — module-scoped cursor can survive history-shrinking events.
+                    if (pushParamsHistoryPosition < 0 || pushParamsHistoryPosition >= history.length) {
                         pushParamsHistoryPosition = history.length - 1;
                     }
                     const newCompound = compoundParamsKey(newFocused.key, newFocused.params);
@@ -200,6 +201,8 @@ function addPushParamsRouterExtension<RouterOptions extends PlatformStackRouterO
                         notifyPushParamsBackward(newFocused.key, newFocused.params);
                         pushParamsHistoryPosition -= 1;
                     } else if (matchAt(pushParamsHistoryPosition + 1)) {
+                        // Browser-forward: cancel any pending backward restore — handleStateChange classifies same-key transitions as noop.
+                        cancelPendingFocusRestore();
                         pushParamsHistoryPosition += 1;
                     }
                 }
