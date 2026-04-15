@@ -53,6 +53,10 @@ type UseLifecycleActionsResult = {
     isBlockSubmitDueToPreventSelfApproval: boolean;
 };
 
+/**
+ * Provides report lifecycle transition actions (submit, approve, unapprove, cancel payment, retract, reopen)
+ * and their associated guards (delegate access, hold, pending RTER, strict policy rules).
+ */
 function useLifecycleActions({reportID, startApprovedAnimation, startSubmittingAnimation, onHoldMenuOpen}: UseLifecycleActionsParams): UseLifecycleActionsResult {
     const [moneyRequestReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(moneyRequestReport?.policyID)}`);
