@@ -345,7 +345,7 @@ function MoneyRequestConfirmationListFooter({
     const {translate, toLocaleDigit, localeCompare, preferredLocale} = useLocalize();
     const {getCurrencySymbol, getCurrencyDecimals} = useCurrencyListActions();
     const {isOffline} = useNetwork();
-    const {windowWidth} = useWindowDimensions();
+    const {windowWidth, windowHeight} = useWindowDimensions();
 
     const {isBetaEnabled} = usePermissions();
     const isNewManualExpenseFlowEnabled = isBetaEnabled(CONST.BETAS.NEW_MANUAL_EXPENSE_FLOW);
@@ -1379,7 +1379,11 @@ function MoneyRequestConfirmationListFooter({
     }, [isCompactMode, compactReceiptMaxWidth, compactReceiptMaxHeight]);
 
     const receiptThumbnailContent = useMemo(() => {
-        const receiptContainerStyle = isCompactMode && compactReceiptContainerStyle ? compactReceiptContainerStyle : styles.expenseViewImageSmall;
+        const receiptMaxWidth = Math.min(windowWidth, windowHeight) - (styles.moneyRequestImage.marginHorizontal ?? 0) * 2;
+        const receiptContainerStyle =
+            isCompactMode && compactReceiptContainerStyle
+                ? compactReceiptContainerStyle
+                : [styles.expenseViewImageSmall, {maxWidth: receiptMaxWidth, height: Math.round(receiptMaxWidth * (9 / 16))}];
         const receiptThumbnailStyle = [styles.h100, styles.flex1];
 
         return (
@@ -1457,6 +1461,8 @@ function MoneyRequestConfirmationListFooter({
             </View>
         );
     }, [
+        windowWidth,
+        windowHeight,
         isCompactMode,
         compactReceiptContainerStyle,
         styles.expenseViewImageSmall,
