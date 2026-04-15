@@ -108,36 +108,47 @@ function addPushParamsRouterExtension<RouterOptions extends PlatformStackRouterO
                 const routeHistoryEntries = state.history.filter((entry): entry is NavigationRoute<ParamListBase, string> => typeof entry !== 'string');
 
                 if (routeHistoryEntries.length > state.routes.length) {
-                    const lastTwo = routeHistoryEntries.slice(-2);
+                    const lastRoute = state.routes.at(-1);
+                    if (lastRoute) {
+                        // Cursor-relative, not last-two: mid-cursor GO_BACK (web, after a browser-back RESET) would otherwise leave cursor and state out of sync.
+                        const history = state.history as CustomHistoryEntry[];
+                        const currentIdx = pushParamsHistoryPosition >= 0 && pushParamsHistoryPosition < history.length ? pushParamsHistoryPosition : history.length - 1;
+                        const currentEntry = history.at(currentIdx);
 
-                    // Only revert params when the last two history snapshots share the same route key,
-                    // meaning they are consecutive PUSH_PARAMS snapshots of the same screen. If the
-                    // keys differ, a different screen sits on top (e.g. Search{q=A} -> Search{q=B} -> OtherPage)
-                    // and standard POP should remove that screen instead.
-                    if (lastTwo.length === 2 && lastTwo.at(0)?.key === lastTwo.at(1)?.key) {
-                        const newHistory = [...state.history];
-                        newHistory.pop();
-
-                        const lastRoute = state.routes.at(-1);
-                        if (lastRoute) {
-                            const routes = [...state.routes];
-                            const targetParams = lastTwo.at(0)?.params;
-                            routes[state.routes.length - 1] = {
-                                ...lastRoute,
-                                params: targetParams,
-                            };
-
-                            // Same-key backward — the state-listener diff would classify this as noop, so notify directly.
-                            if (lastRoute.key) {
-                                notifyPushParamsBackward(lastRoute.key, targetParams);
+                        if (currentEntry && typeof currentEntry !== 'string' && currentEntry.key === lastRoute.key) {
+                            let prevIdx = -1;
+                            for (let i = currentIdx - 1; i >= 0; i -= 1) {
+                                const e = history.at(i);
+                                if (e && typeof e !== 'string' && e.key === lastRoute.key) {
+                                    prevIdx = i;
+                                    break;
+                                }
                             }
-                            pushParamsHistoryPosition = Math.max(pushParamsHistoryPosition - 1, 0);
 
-                            return {
-                                ...state,
-                                routes,
-                                history: newHistory,
-                            };
+                            if (prevIdx >= 0) {
+                                const prevEntry = history.at(prevIdx) as NavigationRoute<ParamListBase, string>;
+                                const targetParams = prevEntry.params;
+                                const routes = [...state.routes];
+                                routes[state.routes.length - 1] = {
+                                    ...lastRoute,
+                                    params: targetParams,
+                                };
+
+                                if (lastRoute.key) {
+                                    notifyPushParamsBackward(lastRoute.key, targetParams);
+                                }
+
+                                // Pop only when cursor was at the end; mid-cursor preserves so browser-forward can still reach skipped entries.
+                                const cursorAtEnd = currentIdx === history.length - 1;
+                                const newHistory = cursorAtEnd ? history.slice(0, -1) : history;
+                                pushParamsHistoryPosition = prevIdx;
+
+                                return {
+                                    ...state,
+                                    routes,
+                                    history: newHistory,
+                                };
+                            }
                         }
                     }
                 }
