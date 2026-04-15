@@ -434,14 +434,13 @@ function deletePolicyTaxes(policyData: PolicyData, taxesToDelete: string[], loca
                             return acc;
                         }, {}),
                     },
-                    ...(distanceRateCustomUnit &&
+                    // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
+                    customUnits: distanceRateCustomUnit &&
                         customUnitID && {
-                            customUnits: {
-                                [customUnitID]: {
-                                    rates: optimisticRates,
-                                },
+                            [customUnitID]: {
+                                rates: optimisticRates,
                             },
-                        }),
+                        },
                 },
             },
         ],
@@ -457,14 +456,13 @@ function deletePolicyTaxes(policyData: PolicyData, taxesToDelete: string[], loca
                             return acc;
                         }, {}),
                     },
-                    ...(distanceRateCustomUnit &&
+                    // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
+                    customUnits: distanceRateCustomUnit &&
                         customUnitID && {
-                            customUnits: {
-                                [customUnitID]: {
-                                    rates: successRates,
-                                },
+                            [customUnitID]: {
+                                rates: successRates,
                             },
-                        }),
+                        },
                 },
             },
         ],
@@ -484,14 +482,13 @@ function deletePolicyTaxes(policyData: PolicyData, taxesToDelete: string[], loca
                             return acc;
                         }, {}),
                     },
-                    ...(distanceRateCustomUnit &&
+                    // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
+                    customUnits: distanceRateCustomUnit &&
                         customUnitID && {
-                            customUnits: {
-                                [customUnitID]: {
-                                    rates: failureRates,
-                                },
+                            [customUnitID]: {
+                                rates: failureRates,
                             },
-                        }),
+                        },
                 },
             },
         ],
