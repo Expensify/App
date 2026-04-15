@@ -535,6 +535,23 @@ function isIntegrationMessageAction(reportAction: OnyxInputOrEntry<ReportAction>
     return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.INTEGRATIONS_MESSAGE;
 }
 
+// Actions that reset the approval state and invalidate previous exports (used by isExported in ReportUtils)
+const RESET_APPROVAL_ACTION_TYPES: ReadonlySet<string> = new Set([
+    CONST.REPORT.ACTIONS.TYPE.REJECTED_TO_SUBMITTER,
+    CONST.REPORT.ACTIONS.TYPE.RETRACTED,
+    CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
+    CONST.REPORT.ACTIONS.TYPE.ACTION_DELEGATE_SUBMIT,
+    CONST.REPORT.ACTIONS.TYPE.REOPENED,
+    CONST.REPORT.ACTIONS.TYPE.UNAPPROVED,
+]);
+
+// All action types that can affect export status (RESET_APPROVAL + integration types)
+const EXPORT_RELEVANT_ACTION_TYPES: ReadonlySet<string> = new Set([
+    ...RESET_APPROVAL_ACTION_TYPES,
+    CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION,
+    CONST.REPORT.ACTIONS.TYPE.INTEGRATIONS_MESSAGE,
+]);
+
 function isTravelUpdate(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.TRAVEL_UPDATE> {
     return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.TRAVEL_UPDATE);
 }
@@ -4662,6 +4679,8 @@ export {
     isMemberChangeAction,
     isExportIntegrationAction,
     isIntegrationMessageAction,
+    RESET_APPROVAL_ACTION_TYPES,
+    EXPORT_RELEVANT_ACTION_TYPES,
     isMessageDeleted,
     useTableReportViewActionRenderConditionals,
     isModifiedExpenseAction,
