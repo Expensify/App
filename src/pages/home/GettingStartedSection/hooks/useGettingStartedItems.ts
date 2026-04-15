@@ -15,7 +15,7 @@ import {
     isPolicyAdmin,
 } from '@libs/PolicyUtils';
 import isWithinGettingStartedPeriod from '@pages/home/GettingStartedSection/utils/isWithinGettingStartedPeriod';
-import {enableCompanyCards} from '@userActions/Policy/Policy';
+import {enableCompanyCards, enablePolicyConnections} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
@@ -95,6 +95,8 @@ function useGettingStartedItems(): UseGettingStartedItemsResult {
             label: integrationName ? translate('homePage.gettingStartedSection.connectAccounting', {integrationName}) : translate('homePage.gettingStartedSection.connectAccountingDefault'),
             isComplete: !!getValidConnectedIntegration(policy) || Object.values(policy?.connections ?? {}).some((conn) => !!conn?.lastSync?.successfulDate),
             route: ROUTES.WORKSPACE_ACCOUNTING.getRoute(activePolicyID),
+            isFeatureEnabled: policy.areConnectionsEnabled,
+            enableFeature: () => enablePolicyConnections(activePolicyID, true, false),
         });
     } else {
         items.push({

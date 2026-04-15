@@ -362,6 +362,37 @@ describe('useGettingStartedItems', () => {
             const categoriesItem = result.current.items.find((item) => item.key === 'customizeCategories');
             expect(categoriesItem).toBeDefined();
         });
+
+        it('should have isFeatureEnabled=true when accounting connections feature is enabled', async () => {
+            await setupManageTeamScenario({accounting: CONST.POLICY.CONNECTIONS.NAME.QBO, policy: {areConnectionsEnabled: true}});
+
+            const {result} = renderHook(() => useGettingStartedItems());
+
+            const connectItem = result.current.items.find((item) => item.key === 'connectAccounting');
+            expect(connectItem?.isFeatureEnabled).toBe(true);
+        });
+
+        it('should have isFeatureEnabled=false when accounting connections feature is not enabled but an existing connection makes the row visible', async () => {
+            await setupManageTeamScenario({
+                accounting: CONST.POLICY.CONNECTIONS.NAME.QBO,
+                policy: {
+                    areConnectionsEnabled: false,
+                    connections: {
+                        [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
+                            config: {},
+                            data: {},
+                            lastSync: {isConnected: true},
+                        },
+                    } as Policy['connections'],
+                },
+            });
+
+            const {result} = renderHook(() => useGettingStartedItems());
+
+            const connectItem = result.current.items.find((item) => item.key === 'connectAccounting');
+            expect(connectItem).toBeDefined();
+            expect(connectItem?.isFeatureEnabled).toBe(false);
+        });
     });
 
     describe('row 2b - Customize accounting categories', () => {
