@@ -2118,6 +2118,9 @@ const translations: TranslationDeepObject<typeof en> = {
             helpSite: 'Site d’aide',
             conciergeChat: 'Concierge',
             conciergeChatDescription: 'Votre agent IA personnel',
+            accountManagerDescription: 'Votre gestionnaire de compte',
+            partnerManagerDescription: 'Votre gestionnaire partenaire',
+            guideDescription: 'Votre spécialiste de configuration',
         },
     },
     closeAccountPage: {
