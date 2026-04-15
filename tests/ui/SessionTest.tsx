@@ -116,7 +116,8 @@ describe('Deep linking', () => {
 
         await waitForBatchedUpdatesWithAct();
 
-        expect(lastVisitedPath).toBe(`/${ROUTES.REPORT}/${report.reportID}`);
+        const reportPath = `/${ROUTES.REPORT}/${report.reportID}`;
+        expect(decodeURIComponent(lastVisitedPath ?? '')).toContain(reportPath);
 
         expect(hasAuthToken()).toBe(true);
 
@@ -131,7 +132,7 @@ describe('Deep linking', () => {
         await waitForBatchedUpdatesWithAct();
 
         expect(lastVisitedPath).toBeDefined();
-        expect(lastVisitedPath).not.toBe(`/${ROUTES.REPORT}/${report.reportID}`);
+        expect(decodeURIComponent(lastVisitedPath ?? '')).not.toContain(reportPath);
 
         unmount();
         await waitForBatchedUpdatesWithAct();

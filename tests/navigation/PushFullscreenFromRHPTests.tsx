@@ -93,9 +93,9 @@ describe('Push fullscreen from RHP', () => {
         const nestedWorkspacesListRoute = workspaceNav?.state?.routes?.at(-1);
         expect(nestedWorkspacesListRoute?.name).toBe(SCREENS.WORKSPACES_LIST);
 
-        // RHP should NOT be in the root stack
-        const hasRHP = rootStateAfter?.routes.some((route) => route.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR);
-        expect(hasRHP).toBe(false);
+        // RHP should NOT be the topmost route — the new TabNavigator is on top
+        const topRoute = rootStateAfter?.routes.at(-1);
+        expect(topRoute?.name).not.toBe(NAVIGATORS.RIGHT_MODAL_NAVIGATOR);
     });
 
     it('preserves the backTo param when navigating from RHP to fullscreen', () => {

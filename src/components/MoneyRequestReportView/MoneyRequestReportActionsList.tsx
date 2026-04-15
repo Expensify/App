@@ -430,7 +430,7 @@ function MoneyRequestReportActionsList({reportID: reportIDProp, onLayout}: Money
     prevUnreadMarkerReportActionID.current = unreadMarkerReportActionID;
 
     const {isFloatingMessageCounterVisible, setIsFloatingMessageCounterVisible, trackVerticalScrolling, onViewableItemsChanged} = useReportUnreadMessageScrollTracking({
-        reportID: report?.reportID ?? '',
+        reportID: report?.reportID ?? reportIDProp ?? '',
         currentVerticalScrollingOffsetRef: scrollingVerticalBottomOffset,
         readActionSkippedRef: readActionSkipped,
         unreadMarkerReportActionIndex,
@@ -527,9 +527,12 @@ function MoneyRequestReportActionsList({reportID: reportIDProp, onLayout}: Money
     );
 
     useEffect(() => {
+        if (!report?.reportID) {
+            return;
+        }
         // This callback is triggered when a new action arrives via Pusher and the event is emitted from Report.ts. This allows us to maintain
         // a single source of truth for the "new action" event instead of trying to derive that a new action has appeared from looking at props.
-        const unsubscribe = subscribeToNewActionEvent(report?.reportID ?? '', scrollToBottomForCurrentUserAction);
+        const unsubscribe = subscribeToNewActionEvent(report.reportID, scrollToBottomForCurrentUserAction);
 
         return () => {
             if (!unsubscribe) {
