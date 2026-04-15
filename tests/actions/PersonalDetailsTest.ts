@@ -743,7 +743,7 @@ describe('actions/PersonalDetails', () => {
             PersonalDetailsActions.updatePersonalDetailsAndShipExpensifyCards(mockValues, 'VALIDATE123', 1);
             await waitForBatchedUpdates();
 
-            expect(mergeSpy).toHaveBeenCalledWith(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, expect.objectContaining({errors: expect.anything()}));
+            expect(mergeSpy).toHaveBeenCalledWith(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, expect.objectContaining({errors: expect.anything() as Record<string, string>}));
         });
 
         it('should not merge error to Onyx when backend returns 200', async () => {
@@ -754,7 +754,7 @@ describe('actions/PersonalDetails', () => {
             PersonalDetailsActions.updatePersonalDetailsAndShipExpensifyCards(mockValues, 'VALIDATE123', 1);
             await waitForBatchedUpdates();
 
-            expect(mergeSpy).not.toHaveBeenCalledWith(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, expect.objectContaining({errors: expect.anything()}));
+            expect(mergeSpy).not.toHaveBeenCalledWith(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, expect.objectContaining({errors: expect.anything() as Record<string, string>}));
         });
 
         it('should not merge error to Onyx when response is undefined (e.g. network error)', async () => {
@@ -765,7 +765,7 @@ describe('actions/PersonalDetails', () => {
             PersonalDetailsActions.updatePersonalDetailsAndShipExpensifyCards(mockValues, 'VALIDATE123', 1);
             await waitForBatchedUpdates();
 
-            expect(mergeSpy).not.toHaveBeenCalledWith(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, expect.objectContaining({errors: expect.anything()}));
+            expect(mergeSpy).not.toHaveBeenCalledWith(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, expect.objectContaining({errors: expect.anything() as Record<string, string>}));
         });
     });
 
