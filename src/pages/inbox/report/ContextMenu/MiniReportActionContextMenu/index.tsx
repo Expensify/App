@@ -184,6 +184,7 @@ function MiniReportActionContextMenu() {
 
     const hideAndRun = (callback?: () => void) => {
         release();
+        hideMiniContextMenu();
         callback?.();
     };
 
@@ -470,7 +471,7 @@ function MiniReportActionContextMenu() {
 
     const hasEmoji = shouldShowEmojiReaction({reportAction}) && !!emojiData.reportAction && !!emojiData.reportActionID;
 
-    if (!rowMeasurements) {
+    if (!isVisible || !rowMeasurements) {
         return null;
     }
 
