@@ -1,3 +1,4 @@
+import {delegateEmailSelector} from '@selectors/Account';
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
@@ -31,6 +32,7 @@ import usePermissions from '@hooks/usePermissions';
 import usePolicyForTransaction from '@hooks/usePolicyForTransaction';
 import usePrivateIsArchivedMap from '@hooks/usePrivateIsArchivedMap';
 import useReportAttributes from '@hooks/useReportAttributes';
+import useReportTransactions from '@hooks/useReportTransactions';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {completeTestDriveTask} from '@libs/actions/Task';
@@ -48,12 +50,15 @@ import {
     getExistingTransactionID,
     isMovingTransactionFromTrackExpense as isMovingTransactionFromTrackExpenseIOUUtils,
     navigateToStartMoneyRequestStep,
+    resolveOptimisticChatReportID,
     shouldShowReceiptEmptyState,
     shouldUseTransactionDraft,
 } from '@libs/IOUUtils';
 import Log from '@libs/Log';
+import dismissModalAndOpenReportInInboxTabHelper from '@libs/Navigation/helpers/dismissModalAndOpenReportInInboxTab';
 import isReportTopmostSplitNavigator from '@libs/Navigation/helpers/isReportTopmostSplitNavigator';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
+import navigateAfterExpenseCreate from '@libs/Navigation/helpers/navigateAfterExpenseCreate';
 import navigateAfterInteraction from '@libs/Navigation/navigateAfterInteraction';
 import Navigation from '@libs/Navigation/Navigation';
 import {rand64, roundToTwoDecimalPlaces} from '@libs/NumberUtils';
@@ -200,6 +205,7 @@ function IOURequestStepConfirmation({
     const [gpsDraftDetails] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
 
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['ReplaceReceipt', 'SmartScan']);
 
@@ -256,6 +262,7 @@ function IOURequestStepConfirmation({
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
 
     const reportAttributesDerived = useReportAttributes();
+    const reportTransactions = useReportTransactions(report?.reportID);
     const [recentlyUsedDestinations] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_DESTINATIONS}${policyID}`);
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const transactionViolationsRef = useRef(transactionViolations);
@@ -523,6 +530,7 @@ function IOURequestStepConfirmation({
                         currentUserPersonalDetails.accountID,
                         hasOutstandingChildTask,
                         parentReportAction,
+                        delegateEmail,
                         false,
                     );
                 }
@@ -649,6 +657,7 @@ function IOURequestStepConfirmation({
             isViewTourTaskParentReportArchived,
             hasOutstandingChildTask,
             parentReportAction,
+            delegateEmail,
             translate,
             toLocaleDigit,
             betas,
@@ -689,7 +698,20 @@ function IOURequestStepConfirmation({
                     quickAction,
                 });
             } else {
-                submitPerDiemExpenseIOUActions({
+                const isExpenseReport = isMoneyRequestReport(report);
+                let existingChatReport = report;
+                if (isExpenseReport) {
+                    existingChatReport = getReportOrDraftReport(report?.chatReportID);
+                } else if (!report?.reportID && participant.isPolicyExpenseChat && participant.reportID) {
+                    existingChatReport = getReportOrDraftReport(participant.reportID);
+                }
+                const {optimisticChatReportID, chatReportID} = resolveOptimisticChatReportID(
+                    [participant.accountID ?? CONST.DEFAULT_NUMBER_ID, currentUserPersonalDetails.accountID],
+                    existingChatReport,
+                );
+                const activeReportID = isExpenseReport && Navigation.getTopmostReportId() === report?.reportID ? report?.reportID : chatReportID;
+
+                const result = submitPerDiemExpenseIOUActions({
                     report,
                     participantParams: {
                         payeeEmail: currentUserPersonalDetails.login,
@@ -726,7 +748,16 @@ function IOURequestStepConfirmation({
                     quickAction,
                     betas,
                     personalDetails,
+                    optimisticChatReportID,
                 });
+                if (result && activeReportID) {
+                    navigateAfterExpenseCreate({
+                        activeReportID,
+                        transactionID: transaction.transactionID,
+                        isFromGlobalCreate: transaction.isFromFloatingActionButton ?? transaction.isFromGlobalCreate,
+                        hasMultipleTransactions: reportTransactions.length > 0,
+                    });
+                }
             }
         },
         [
@@ -747,6 +778,7 @@ function IOURequestStepConfirmation({
             quickAction,
             betas,
             personalDetails,
+            reportTransactions.length,
         ],
     );
 
@@ -1226,38 +1258,31 @@ function IOURequestStepConfirmation({
                 return;
             }
 
+            const {optimisticChatReportID, chatReportID} = resolveOptimisticChatReportID([participant.accountID ?? CONST.DEFAULT_NUMBER_ID, currentUserPersonalDetails.accountID], report);
+            const sendMoneyParams = {
+                report,
+                quickAction,
+                amount: transaction.amount,
+                currency,
+                comment: trimmedComment,
+                currentUserAccountID: currentUserPersonalDetails.accountID,
+                recipient: participant,
+                created: transaction.created,
+                merchant: transaction.merchant,
+                receipt: receiptFiles[transaction.transactionID],
+                optimisticChatReportID,
+            };
+
             if (paymentMethod === CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
                 setIsConfirmed(true);
-                sendMoneyElsewhere(
-                    report,
-                    quickAction,
-                    transaction.amount,
-                    currency,
-                    trimmedComment,
-                    currentUserPersonalDetails.accountID,
-                    participant,
-                    transaction.created,
-                    transaction.merchant,
-                    receiptFiles[transaction.transactionID],
-                );
+                sendMoneyElsewhere(sendMoneyParams);
+            } else if (paymentMethod === CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
+                setIsConfirmed(true);
+                sendMoneyWithWallet(sendMoneyParams);
+            } else {
                 return;
             }
-
-            if (paymentMethod === CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
-                setIsConfirmed(true);
-                sendMoneyWithWallet(
-                    report,
-                    quickAction,
-                    transaction.amount,
-                    currency,
-                    trimmedComment,
-                    currentUserPersonalDetails.accountID,
-                    participant,
-                    transaction.created,
-                    transaction.merchant,
-                    receiptFiles[transaction.transactionID],
-                );
-            }
+            dismissModalAndOpenReportInInboxTabHelper(chatReportID, undefined, reportTransactions.length > 0);
         },
         [
             transaction?.currency,
@@ -1271,6 +1296,7 @@ function IOURequestStepConfirmation({
             currentUserPersonalDetails.accountID,
             receiptFiles,
             quickAction,
+            reportTransactions.length,
         ],
     );
 
