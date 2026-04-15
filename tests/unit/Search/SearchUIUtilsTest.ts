@@ -7303,34 +7303,34 @@ describe('SearchUIUtils', () => {
             expect(columns).toContain(CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT);
         });
 
-        test('Should hide empty ORIGINAL_AMOUNT column in expense report view with custom columns', () => {
+        test('Should hide empty TOTAL column in expense report view with custom columns', () => {
             const baseTransaction = searchResults.data[`transactions_${transactionID}`];
             const testTransaction = {
                 ...baseTransaction,
                 transactionID: 'test',
                 merchant: 'Test Merchant',
-                originalAmount: undefined,
+                convertedAmount: undefined,
             };
 
-            const visibleColumns = [CONST.SEARCH.TABLE_COLUMNS.DATE, CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT, CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT];
+            const visibleColumns = [CONST.SEARCH.TABLE_COLUMNS.DATE, CONST.SEARCH.TABLE_COLUMNS.TOTAL, CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT];
             const columns = SearchUIUtils.getColumnsToShow({currentAccountID: submitterAccountID, data: [testTransaction], visibleColumns, isExpenseReportView: true});
 
-            expect(columns).not.toContain(CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT);
+            expect(columns).not.toContain(CONST.SEARCH.TABLE_COLUMNS.TOTAL);
         });
 
-        test('Should show ORIGINAL_AMOUNT column when transaction has original amount', () => {
+        test('Should show TOTAL column when transaction has converted amount', () => {
             const baseTransaction = searchResults.data[`transactions_${transactionID}`];
             const testTransaction = {
                 ...baseTransaction,
                 transactionID: 'test',
                 merchant: 'Test Merchant',
-                originalAmount: 2500,
+                convertedAmount: 2500,
             };
 
-            const visibleColumns = [CONST.SEARCH.TABLE_COLUMNS.DATE, CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT, CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT];
+            const visibleColumns = [CONST.SEARCH.TABLE_COLUMNS.DATE, CONST.SEARCH.TABLE_COLUMNS.TOTAL, CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT];
             const columns = SearchUIUtils.getColumnsToShow({currentAccountID: submitterAccountID, data: [testTransaction], visibleColumns, isExpenseReportView: true});
 
-            expect(columns).toContain(CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT);
+            expect(columns).toContain(CONST.SEARCH.TABLE_COLUMNS.TOTAL);
         });
 
         test('Should show column if at least one transaction has data for it', () => {

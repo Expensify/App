@@ -7504,12 +7504,12 @@ const CONST = {
                 CATEGORY: this.TABLE_COLUMNS.CATEGORY,
                 TAG: this.TABLE_COLUMNS.TAG,
                 EXCHANGE_RATE: this.TABLE_COLUMNS.EXCHANGE_RATE,
-                ORIGINAL_AMOUNT: this.TABLE_COLUMNS.ORIGINAL_AMOUNT,
                 REIMBURSABLE: this.TABLE_COLUMNS.REIMBURSABLE,
                 BILLABLE: this.TABLE_COLUMNS.BILLABLE,
                 TAX_RATE: this.TABLE_COLUMNS.TAX_RATE,
                 TAX_AMOUNT: this.TABLE_COLUMNS.TAX_AMOUNT,
                 AMOUNT: this.TABLE_COLUMNS.TOTAL_AMOUNT,
+                TOTAL: this.TABLE_COLUMNS.TOTAL,
             };
         },
         get GROUP_CUSTOM_COLUMNS() {

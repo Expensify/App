@@ -4602,10 +4602,10 @@ function getColumnsToShow({
               [CONST.SEARCH.TABLE_COLUMNS.TAX_RATE]: false,
               [CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT]: false,
               [CONST.SEARCH.TABLE_COLUMNS.EXCHANGE_RATE]: false,
-              [CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT]: false,
               [CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE]: shouldShowReimbursableColumn,
               [CONST.SEARCH.TABLE_COLUMNS.BILLABLE]: shouldShowBillableColumn,
               [CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT]: true,
+              [CONST.SEARCH.TABLE_COLUMNS.TOTAL]: false,
               [CONST.SEARCH.TABLE_COLUMNS.COMMENTS]: shouldShowCommentsColumn,
           }
         : {
@@ -4741,9 +4741,12 @@ function getColumnsToShow({
             }
 
             const hasExchangeRate = getExchangeRate(transaction, reportCurrency) !== '';
-            if (hasExchangeRate || transaction.originalAmount) {
-                columns[CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT] = true;
+            if (hasExchangeRate) {
                 columns[CONST.SEARCH.TABLE_COLUMNS.EXCHANGE_RATE] = true;
+            }
+            // Show the Total column when the transaction has a converted amount or any exchange info.
+            if (hasExchangeRate || (transaction.convertedAmount != null && transaction.convertedAmount !== 0)) {
+                columns[CONST.SEARCH.TABLE_COLUMNS.TOTAL] = true;
             }
 
             if (!Array.isArray(data)) {

@@ -1308,18 +1308,20 @@ function getExchangeRate(transaction: TransactionWithOptionalSearchFields, repor
     const toCurrency = transaction.groupCurrency ?? reportCurrency ?? fromCurrency;
 
     // groupExchangeRate: search page rate (from→groupCurrency)
-    const groupRate = Number(transaction.groupExchangeRate);
-    if (groupRate && groupRate !== 1) {
-        return `${transaction.groupExchangeRate} ${fromCurrency}/${toCurrency}`;
+    if (transaction.groupExchangeRate != null && transaction.groupCurrency && fromCurrency !== transaction.groupCurrency) {
+        const groupRate = Number(transaction.groupExchangeRate);
+        if (groupRate !== 1) {
+            return `${transaction.groupExchangeRate} ${fromCurrency}/${toCurrency}`;
+        }
     }
 
-    // currencyConversionRate: report layout rate (from→policy outputCurrency)
-    // Only use when fromCurrency differs from toCurrency to avoid showing stale
-    // Onyx-merged rates when both currencies are the same (e.g. "USD/USD").
-    const conversionRate = Number(transaction.currencyConversionRate);
+    // currencyConversionRate: report layout rate (from→report currency).
     const conversionToCurrency = reportCurrency ?? (transaction.currency !== fromCurrency ? transaction.currency : toCurrency);
-    if (conversionRate && conversionRate !== 1 && fromCurrency !== conversionToCurrency) {
-        return `${transaction.currencyConversionRate} ${fromCurrency}/${conversionToCurrency}`;
+    if (transaction.currencyConversionRate != null && fromCurrency !== conversionToCurrency) {
+        const conversionRate = Number(transaction.currencyConversionRate);
+        if (conversionRate !== 1) {
+            return `${transaction.currencyConversionRate} ${fromCurrency}/${conversionToCurrency}`;
+        }
     }
 
     return '';
