@@ -283,7 +283,7 @@ function Search({
     const {isOffline} = useNetwork();
     const prevIsOffline = usePrevious(isOffline);
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
-    const {shouldUseNarrowLayout, isSmallScreenWidth, isLargeScreenWidth} = useResponsiveLayout();
+    const {shouldUseNarrowLayout, isSmallScreenWidth, isLargeScreenWidth, isInLandscapeMode} = useResponsiveLayout();
     const styles = useThemeStyles();
     const navigation = useNavigation<PlatformStackNavigationProp<SearchFullscreenNavigatorParamList>>();
     const isFocused = useIsFocused();
@@ -1076,7 +1076,7 @@ function Search({
             if (isTransactionGroupListItemType(item) && !isTransactionReportGroupListItemType(item) && item.transactionsQueryJSON) {
                 handleSearch({
                     queryJSON: item.transactionsQueryJSON,
-                    searchKey: currentSearchKey,
+                    searchKey: undefined,
                     offset: 0,
                     shouldCalculateTotals: false,
                     isLoading: false,
@@ -1550,12 +1550,14 @@ function Search({
     ) {
         cancelNavigationSpans();
         return (
-            <View style={[shouldUseNarrowLayout ? styles.searchListContentContainerStyles : styles.mt3, styles.flex1]}>
+            <View style={[styles.flex1, isInLandscapeMode ? undefined : [shouldUseNarrowLayout ? styles.searchListContentContainerStyles : styles.mt3]]}>
                 <EmptySearchView
                     similarSearchHash={similarSearchHash}
                     type={type}
                     hasResults={searchResults?.search?.hasResults}
                     queryJSON={queryJSON}
+                    onScroll={onSearchListScroll}
+                    contentContainerStyle={isInLandscapeMode ? styles.searchListContentContainerStyles : undefined}
                 />
             </View>
         );
@@ -1628,7 +1630,7 @@ function Search({
                     shouldPreventLongPressRow={isChat || isTask}
                     SearchTableHeader={
                         !shouldShowTableHeader ? undefined : (
-                            <View style={[!isTask && styles.pr8, styles.flex1]}>
+                            <View style={[!isTask && styles.pr9, styles.flex1]}>
                                 <SearchTableHeader
                                     canSelectMultiple={canSelectMultiple}
                                     columns={columnsToShow}
