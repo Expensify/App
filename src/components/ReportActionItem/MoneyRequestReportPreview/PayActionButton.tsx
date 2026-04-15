@@ -1,3 +1,4 @@
+import {delegateEmailSelector} from '@selectors/Account';
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import React from 'react';
 import type {ValueOf} from 'type-fest';
@@ -12,14 +13,9 @@ import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import useReportTransactionsCollection from '@hooks/useReportTransactionsCollection';
 import {getTotalAmountForIOUReportPreviewButton} from '@libs/MoneyRequestReportUtils';
-import {
-    hasHeldExpenses as hasHeldExpensesReportUtils,
-    hasOnlyNonReimbursableTransactions,
-    hasUpdatedTotal,
-    hasViolations as hasViolationsReportUtils,
-    isInvoiceReport as isInvoiceReportUtils,
-} from '@libs/ReportUtils';
-import {approveMoneyRequest, canIOUBePaid as canIOUBePaidIOUActions, payInvoice, payMoneyRequest} from '@userActions/IOU';
+import {hasHeldExpenses as hasHeldExpensesReportUtils, hasUpdatedTotal, hasViolations as hasViolationsReportUtils, isInvoiceReport as isInvoiceReportUtils} from '@libs/ReportUtils';
+import {payInvoice, payMoneyRequest} from '@userActions/IOU/PayMoneyRequest';
+import {approveMoneyRequest, canIOUBePaid as canIOUBePaidIOUActions} from '@userActions/IOU/ReportWorkflow';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -37,7 +33,6 @@ type PayActionButtonProps = {
     onPaymentOptionsShow?: () => void;
     onPaymentOptionsHide?: () => void;
     onHoldMenuOpen: (requestType: string, paymentType?: PaymentMethodType, canPay?: boolean) => void;
-    onNonReimbursablePaymentError?: () => void;
     buttonMaxWidth: {maxWidth?: number};
     reportPreviewAction: ValueOf<typeof CONST.REPORT.REPORT_PREVIEW_ACTIONS>;
 };
@@ -53,7 +48,6 @@ function PayActionButton({
     onPaymentOptionsShow,
     onPaymentOptionsHide,
     onHoldMenuOpen,
-    onNonReimbursablePaymentError,
     buttonMaxWidth,
     reportPreviewAction,
 }: PayActionButtonProps) {
@@ -80,6 +74,7 @@ function PayActionButton({
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
 
     const reportTransactionsCollection = useReportTransactionsCollection(iouReportID);
@@ -95,11 +90,8 @@ function PayActionButton({
     const hasViolations = hasViolationsReportUtils(iouReport?.reportID, transactionViolations, currentUserAccountID, currentUserEmail);
 
     const canIOUBePaid = canIOUBePaidIOUActions(iouReport, chatReport, policy, bankAccountList, transactions, false, undefined, invoiceReceiverPolicy);
-    const reportHasOnlyNonReimbursableTransactions = hasOnlyNonReimbursableTransactions(iouReport?.reportID, transactions);
-    const onlyShowPayElsewhere = reportHasOnlyNonReimbursableTransactions
-        ? false
-        : !canIOUBePaid && canIOUBePaidIOUActions(iouReport, chatReport, policy, bankAccountList, transactions, true, undefined, invoiceReceiverPolicy);
-    const shouldShowPayButton = isPaidAnimationRunning || canIOUBePaid || onlyShowPayElsewhere || (reportHasOnlyNonReimbursableTransactions && (iouReport?.total ?? 0) !== 0);
+    const onlyShowPayElsewhere = !canIOUBePaid && canIOUBePaidIOUActions(iouReport, chatReport, policy, bankAccountList, transactions, true, undefined, invoiceReceiverPolicy);
+    const shouldShowPayButton = isPaidAnimationRunning || canIOUBePaid || onlyShowPayElsewhere;
     const shouldShowOnlyPayElsewhere = !canIOUBePaid && onlyShowPayElsewhere;
     const canIOUBePaidAndApproved = canIOUBePaid;
 
@@ -113,6 +105,7 @@ function PayActionButton({
         } else {
             approveMoneyRequest({
                 expenseReport: iouReport,
+                expenseReportPolicy: policy,
                 policy: activePolicy,
                 currentUserAccountIDParam: currentUserAccountID,
                 currentUserEmailParam: currentUserEmail,
@@ -125,16 +118,13 @@ function PayActionButton({
                 ownerBillingGracePeriodEnd,
                 full: true,
                 onApproved: startApprovedAnimation,
+                delegateEmail,
             });
         }
     };
 
     const confirmPayment = ({paymentType: type, payAsBusiness, methodID, paymentMethod}: PaymentActionParams) => {
         if (!type) {
-            return;
-        }
-        if (!isInvoiceReportUtils(iouReport) && reportHasOnlyNonReimbursableTransactions && type !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
-            onNonReimbursablePaymentError?.();
             return;
         }
         if (isDelegateAccessRestricted) {

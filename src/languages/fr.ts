@@ -56,6 +56,7 @@ import type {
     StepCounterParams,
     SyncStageNameConnectionsParams,
     UnshareParams,
+    UnsupportedFormulaValueErrorParams,
     UpdatedBudgetParams,
     UpdatedPolicyApprovalRuleParams,
     UpdatedPolicyCategoryMaxAmountNoReceiptParams,
@@ -507,6 +508,10 @@ const translations: TranslationDeepObject<typeof en> = {
         approver: 'Approbateur',
         enterDigitLabel: ({digitIndex, totalDigits}: {digitIndex: number; totalDigits: number}) => `saisir le chiffre ${digitIndex} sur ${totalDigits}`,
         copyOfReportName: (reportName: string) => `Copie de ${reportName}`,
+        previousMonth: 'Mois précédent',
+        nextMonth: 'Le mois prochain',
+        previousYear: 'Année précédente',
+        nextYear: 'L’an prochain',
     },
     socials: {
         podcast: 'Suivez-nous sur Podcast',
@@ -1015,8 +1020,6 @@ const translations: TranslationDeepObject<typeof en> = {
                 sunglassesDescription: 'Temps de se détendre, mais restez à l’affût de ce qui arrive !',
                 f1FlagsTitle: 'Tout est à jour',
                 f1FlagsDescription: 'Vous avez terminé toutes les tâches en cours.',
-                fireworksTitle: 'Tout est à jour',
-                fireworksDescription: 'Les prochaines tâches apparaîtront ici.',
             },
         },
         upcomingTravel: 'Voyages à venir',
@@ -1041,6 +1044,14 @@ const translations: TranslationDeepObject<typeof en> = {
                 one: 'Temps restant : 1 jour',
                 other: (pluralCount: number) => `Temps restant : ${pluralCount} jours`,
             }),
+        },
+        gettingStartedSection: {
+            title: 'Premiers pas',
+            createWorkspace: 'Créer un espace de travail',
+            connectAccounting: ({integrationName}: {integrationName: string}) => `Se connecter à ${integrationName}`,
+            customizeCategories: 'Personnaliser les catégories comptables',
+            linkCompanyCards: 'Lier des cartes d’entreprise',
+            setupRules: 'Configurer les règles de dépense',
         },
     },
     allSettingsScreen: {
@@ -1144,7 +1155,6 @@ const translations: TranslationDeepObject<typeof en> = {
         flash: 'flash',
         multiScan: 'numérisation multiple',
         shutter: 'obturateur',
-        flipCamera: 'inverser la caméra',
         gallery: 'galerie',
         deleteReceipt: 'Supprimer le reçu',
         deleteConfirmation: 'Voulez-vous vraiment supprimer ce reçu ?',
@@ -1364,6 +1374,44 @@ const translations: TranslationDeepObject<typeof en> = {
         paidWithExpensify: (payer?: string) => `${payer ? `${payer} ` : ''}payé avec le portefeuille`,
         automaticallyPaidWithExpensify: (payer?: string) =>
             `${payer ? `${payer} ` : ''}payé avec Expensify via les <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">règles de l’espace de travail</a>`,
+        reimbursedThisReport: 'a remboursé cette note de frais',
+        paidThisBill: 'a payé cette facture',
+        reimbursedOnBehalfOf: (actor: string) => `au nom de ${actor}`,
+        reimbursedFromBankAccount: (debitBankAccount: string) => `à partir du compte bancaire se terminant par ${debitBankAccount}`,
+        reimbursedSubmitterAddedBankAccount: (submitter: string) => `${submitter} a ajouté un compte bancaire, retirant la note de frais de la mise en attente. Le remboursement est lancé`,
+        reimbursedWithFastACH: ({
+            isCurrentUser,
+            submitterLogin,
+            creditBankAccount,
+            expectedDate,
+        }: {
+            isCurrentUser: boolean;
+            submitterLogin: string;
+            creditBankAccount: string;
+            expectedDate: string;
+        }) =>
+            isCurrentUser
+                ? `. L’argent est en route vers votre ${creditBankAccount ? `compte bancaire se terminant par ${creditBankAccount}` : 'compte'}. Remboursement estimé pour être terminé le ${expectedDate}.`
+                : `. L’argent est en route vers le compte bancaire de ${submitterLogin}${creditBankAccount ? ` se terminant par ${creditBankAccount}` : ''}. Remboursement estimé pour le ${expectedDate}.`,
+        reimbursedWithCheck: ' par chèque.',
+        reimbursedWithStripeConnect: ({
+            isCurrentUser,
+            submitterLogin,
+            creditBankAccount,
+            isCard,
+        }: {
+            isCurrentUser: boolean;
+            submitterLogin: string;
+            creditBankAccount: string;
+            isCard: boolean;
+        }) => {
+            const paymentMethod = isCard ? 'carte' : 'compte bancaire';
+            return isCurrentUser
+                ? `. L’argent est en route vers votre ${creditBankAccount ? `compte bancaire se terminant par ${creditBankAccount}` : 'compte'} (payé via ${paymentMethod}). Cela peut prendre jusqu’à 10 jours ouvrables.`
+                : `. L’argent est en route vers le compte bancaire de ${submitterLogin}${creditBankAccount ? ` se terminant par ${creditBankAccount}` : ''} (payé via ${paymentMethod}). Cela peut prendre jusqu’à 10 jours ouvrés.`;
+        },
+        reimbursedWithACH: ({creditBankAccount, expectedDate}: {creditBankAccount?: string; expectedDate?: string}) =>
+            ` par dépôt direct (ACH)${creditBankAccount ? ` vers le compte bancaire se terminant par ${creditBankAccount}.` : '. '}${expectedDate ? `Le remboursement devrait être terminé d'ici le ${expectedDate}.` : 'Cela prend généralement 4 à 5 jours ouvrables.'}`,
         noReimbursableExpenses: 'Cette note de frais a un montant non valide',
         pendingConversionMessage: 'Le total sera mis à jour quand vous serez de nouveau en ligne',
         changedTheExpense: 'a modifié la dépense',
@@ -1426,11 +1474,6 @@ const translations: TranslationDeepObject<typeof en> = {
             manySplitsProvided: `Le nombre maximal de répartitions autorisées est de ${CONST.IOU.SPLITS_LIMIT}.`,
             dateRangeExceedsMaxDays: `La plage de dates ne peut pas dépasser ${CONST.IOU.SPLITS_LIMIT} jours.`,
             stitchOdometerImagesFailed: 'Échec de la combinaison des images de l’odomètre. Veuillez réessayer plus tard.',
-            nonReimbursablePayment: 'Impossible de payer via Expensify',
-            nonReimbursablePaymentDescription: (isMultiple?: boolean) =>
-                isMultiple
-                    ? 'Un ou plusieurs rapports sélectionnés ne contiennent pas de dépenses remboursables. Vérifiez les dépenses ou marquez-les manuellement comme payés.'
-                    : 'Le rapport ne contient pas de dépenses remboursables. Vérifiez les dépenses ou marquez-le manuellement comme payé.',
         },
         dismissReceiptError: 'Ignorer l’erreur',
         dismissReceiptErrorConfirmation: 'Attention ! Ignorer cette erreur supprimera complètement votre reçu téléversé. Êtes-vous sûr ?',
@@ -1627,6 +1670,11 @@ const translations: TranslationDeepObject<typeof en> = {
             `impossible d’approuver via les <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">règles de l’espace de travail</a>. ${reason}`,
         failedToApproveViaDEW: (reason: string) => `échec de l’approbation. ${reason}`,
         cannotDuplicateDistanceExpense: 'Vous ne pouvez pas dupliquer des dépenses de distance entre espaces de travail, car les taux peuvent différer d’un espace de travail à l’autre.',
+        taxDisabledAlert: {
+            title: 'Taxe désactivée',
+            prompt: 'Activez le suivi des taxes dans l’espace de travail pour modifier les détails de la dépense ou supprimer la taxe de cette dépense.',
+            confirmText: 'Supprimer la taxe',
+        },
     },
     transactionMerge: {
         listPage: {
@@ -1698,8 +1746,6 @@ const translations: TranslationDeepObject<typeof en> = {
         backdropLabel: 'Arrière-plan de la fenêtre modale',
     },
     nextStep: {
-        // All nextStep.message functions share a common positional signature (actor, actorType, eta, etaType) for type compatibility, so unused params are expected
-        /* eslint-disable @typescript-eslint/no-unused-vars */
         message: {
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_ADD_TRANSACTIONS]: (
                 actor: string,
@@ -1707,8 +1753,6 @@ const translations: TranslationDeepObject<typeof en> = {
                 _eta?: string,
                 _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
             ) => {
-                // Disabling the default-case lint rule here is actually safer as this forces us to make the switch cases exhaustive
-                // eslint-disable-next-line default-case
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
                         return `En attente que <strong>vous</strong> ajoutiez des dépenses.`;
@@ -1724,8 +1768,6 @@ const translations: TranslationDeepObject<typeof en> = {
                 _eta?: string,
                 _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
             ) => {
-                // Disabling the default-case lint rule here is actually safer as this forces us to make the switch cases exhaustive
-                // eslint-disable-next-line default-case
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
                         return `En attente que <strong>vous</strong> soumettiez des dépenses.`;
@@ -1747,8 +1789,6 @@ const translations: TranslationDeepObject<typeof en> = {
                 _eta?: string,
                 _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
             ) => {
-                // Disabling the default-case lint rule here is actually safer as this forces us to make the switch cases exhaustive
-                // eslint-disable-next-line default-case
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
                         return `En attente que <strong>vous</strong> ajoutiez un compte bancaire.`;
@@ -1768,8 +1808,6 @@ const translations: TranslationDeepObject<typeof en> = {
                 if (eta) {
                     formattedETA = etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? `le ${eta} de chaque mois` : ` ${eta}`;
                 }
-                // Disabling the default-case lint rule here is actually safer as this forces us to make the switch cases exhaustive
-                // eslint-disable-next-line default-case
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
                         return `En attente que <strong>vos</strong> dépenses soient automatiquement soumises${formattedETA}.`;
@@ -1785,8 +1823,6 @@ const translations: TranslationDeepObject<typeof en> = {
                 _eta?: string,
                 _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
             ) => {
-                // Disabling the default-case lint rule here is actually safer as this forces us to make the switch cases exhaustive
-                // eslint-disable-next-line default-case
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
                         return `En attente que <strong>vous</strong> corrigiez les problèmes.`;
@@ -1802,8 +1838,6 @@ const translations: TranslationDeepObject<typeof en> = {
                 _eta?: string,
                 _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
             ) => {
-                // Disabling the default-case lint rule here is actually safer as this forces us to make the switch cases exhaustive
-                // eslint-disable-next-line default-case
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
                         return `En attente de <strong>votre</strong> approbation des dépenses.`;
@@ -1819,8 +1853,6 @@ const translations: TranslationDeepObject<typeof en> = {
                 _eta?: string,
                 _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
             ) => {
-                // Disabling the default-case lint rule here is actually safer as this forces us to make the switch cases exhaustive
-                // eslint-disable-next-line default-case
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
                         return `En attente que <strong>vous</strong> exportiez cette note de frais.`;
@@ -1836,8 +1868,6 @@ const translations: TranslationDeepObject<typeof en> = {
                 _eta?: string,
                 _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
             ) => {
-                // Disabling the default-case lint rule here is actually safer as this forces us to make the switch cases exhaustive
-                // eslint-disable-next-line default-case
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
                         return `En attente que <strong>vous</strong> payiez les dépenses.`;
@@ -1853,8 +1883,6 @@ const translations: TranslationDeepObject<typeof en> = {
                 _eta?: string,
                 _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
             ) => {
-                // Disabling the default-case lint rule here is actually safer as this forces us to make the switch cases exhaustive
-                // eslint-disable-next-line default-case
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
                         return `En attente que <strong>vous</strong> terminiez la configuration d’un compte bancaire professionnel.`;
@@ -2090,6 +2118,9 @@ const translations: TranslationDeepObject<typeof en> = {
             helpSite: 'Site d’aide',
             conciergeChat: 'Concierge',
             conciergeChatDescription: 'Votre agent IA personnel',
+            accountManagerDescription: 'Votre gestionnaire de compte',
+            partnerManagerDescription: 'Votre gestionnaire partenaire',
+            guideDescription: 'Votre spécialiste de configuration',
         },
     },
     closeAccountPage: {
@@ -2874,6 +2905,7 @@ ${amount} pour ${merchant} - ${date}`,
         workspaceYouMayJoin: (domain: string, email: string) => `Quelqu’un de ${domain} a déjà créé un espace de travail. Veuillez saisir le code magique envoyé à ${email}.`,
         joinAWorkspace: 'Rejoindre un espace de travail',
         listOfWorkspaces: 'Voici la liste des espaces de travail que vous pouvez rejoindre. Ne vous inquiétez pas, vous pourrez toujours les rejoindre plus tard si vous préférez.',
+        skipForNow: 'Passer pour le moment',
         workspaceMemberList: (employeeCount: number, policyOwner: string) => `${employeeCount} membre${employeeCount > 1 ? 's' : ''} • ${policyOwner}`,
         whereYouWork: 'Où travaillez-vous ?',
         errorSelection: 'Sélectionnez une option pour continuer',
@@ -2992,7 +3024,7 @@ ${amount} pour ${merchant} - ${date}`,
                 description: dedent(`
                     *Soumettez une dépense* en saisissant un montant ou en scannant un reçu.
 
-                    1. Cliquez sur le bouton ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}.
+                    1. Cliquez sur le bouton *+*.
                     2. Choisissez *Créer une dépense*.
                     3. Saisissez un montant ou scannez un reçu.
                     4. Ajoutez l’e-mail ou le numéro de téléphone de votre responsable.
@@ -3006,7 +3038,7 @@ ${amount} pour ${merchant} - ${date}`,
                 description: dedent(`
                     *Soumettez une dépense* en saisissant un montant ou en scannant un reçu.
 
-                    1. Cliquez sur le bouton ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}.
+                    1. Cliquez sur le bouton *+*.
                     2. Choisissez *Créer une dépense*.
                     3. Saisissez un montant ou scannez un reçu.
                     4. Confirmez les détails.
@@ -3020,7 +3052,7 @@ ${amount} pour ${merchant} - ${date}`,
                 description: dedent(`
                     *Enregistrez une dépense* dans n’importe quelle devise, que vous ayez un reçu ou non.
 
-                    1. Cliquez sur le bouton ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}.
+                    1. Cliquez sur le bouton *+*.
                     2. Choisissez *Créer une dépense*.
                     3. Saisissez un montant ou scannez un reçu.
                     4. Choisissez votre espace *personnel*.
@@ -3117,7 +3149,7 @@ ${amount} pour ${merchant} - ${date}`,
                 description: dedent(`
                     *Lancez une discussion* avec n'importe qui en utilisant son e-mail ou son numéro de téléphone.
 
-                    1. Cliquez sur le bouton ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}.
+                    1. Cliquez sur le bouton *+*.
                     2. Choisissez *Démarrer une discussion*.
                     3. Saisissez une adresse e-mail ou un numéro de téléphone.
 
@@ -3131,7 +3163,7 @@ ${amount} pour ${merchant} - ${date}`,
                 description: dedent(`
                     *Répartissez les dépenses* avec une ou plusieurs personnes.
 
-                    1. Cliquez sur le bouton ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}.
+                    1. Cliquez sur le bouton *+*.
                     2. Choisissez *Démarrer une discussion*.
                     3. Saisissez des e-mails ou des numéros de téléphone.
                     4. Cliquez sur le bouton *+* gris dans la discussion > *Répartir la dépense*.
@@ -3155,7 +3187,7 @@ ${amount} pour ${merchant} - ${date}`,
                 description: dedent(`
                     Voici comment créer une note de frais :
 
-                    1. Cliquez sur le bouton ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}.
+                    1. Cliquez sur le bouton *+*.
                     2. Choisissez *Créer une note de frais*.
                     3. Cliquez sur *Ajouter une dépense*.
                     4. Ajoutez votre première dépense.
@@ -3184,8 +3216,7 @@ ${amount} pour ${merchant} - ${date}`,
                         # Votre essai gratuit a commencé ! Configurons tout cela.
                         👋 Bonjour, je suis votre spécialiste de configuration Expensify. Maintenant que vous avez créé un espace de travail, profitez au maximum de votre essai gratuit de 30 jours en suivant les étapes ci-dessous !
                     `),
-            onboardingTrackWorkspaceMessage:
-                '# Nous allons vous configurer tout ça\n👋 Bonjour, je suis votre spécialiste de configuration Expensify. J’ai déjà créé un espace de travail pour vous aider à gérer vos reçus et vos dépenses. Pour profiter pleinement de vos 30 jours d’essai gratuit, suivez simplement les dernières étapes de configuration ci-dessous !',
+            onboardingTrackWorkspaceMessage: 'Pour tirer le meilleur parti de votre essai gratuit de 30 jours, suivez les étapes restantes ci-dessous :',
             onboardingChatSplitMessage: 'Partager des notes de frais avec des amis est aussi simple que d’envoyer un message. Voici comment faire.',
             onboardingAdminMessage: 'Découvrez comment gérer l’espace de travail de votre équipe en tant qu’administrateur et soumettre vos propres dépenses.',
             onboardingTestDriveReceiverMessage: '*Vous bénéficiez de 3 mois gratuits ! Commencez ci-dessous.*',
@@ -3237,6 +3268,7 @@ ${amount} pour ${merchant} - ${date}`,
             dateShouldBeBefore: (dateString: string) => `La date doit être antérieure au ${dateString}`,
             dateShouldBeAfter: (dateString: string) => `La date doit être postérieure au ${dateString}`,
             hasInvalidCharacter: 'Le nom peut uniquement contenir des caractères latins',
+            cannotIncludeCommaOrSemicolon: 'Le nom ne peut pas contenir de virgule ni de point-virgule',
             incorrectZipFormat: (zipFormat?: string) => `Format de code postal incorrect${zipFormat ? `Format acceptable : ${zipFormat}` : ''}`,
             invalidPhoneNumber: `Veuillez vous assurer que le numéro de téléphone est valide (p. ex. ${CONST.EXAMPLE_PHONE_NUMBER})`,
         },
@@ -3945,7 +3977,7 @@ ${amount} pour ${merchant} - ${date}`,
         regulationRequiresUs: 'La réglementation nous oblige à vérifier l’identité de toute personne détenant plus de 25 % de l’entreprise.',
         iAmAuthorized: 'Je suis autorisé à utiliser le compte bancaire professionnel pour les dépenses professionnelles.',
         iCertify: 'Je certifie que les informations fournies sont exactes et véridiques.',
-        iAcceptTheTermsAndConditions: `J'accepte les <a href="https://cross-border.corpay.com/tc/">conditions générales</a>.`,
+        iAcceptTheTermsAndConditions: `J'accepte les <a href="https://www.corpay.com/cross-border/terms">conditions générales</a>.`,
         iAcceptTheTermsAndConditionsAccessibility: 'J’accepte les conditions générales.',
         accept: 'Accepter et ajouter un compte bancaire',
         iConsentToThePrivacyNotice: 'Je consens à l’<a href="https://payments.corpay.com/compliance">avis de confidentialité</a>.',
@@ -4560,7 +4592,7 @@ ${amount} pour ${merchant} - ${date}`,
                     [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Les dépenses payées de votre poche seront exportées une fois remboursées',
                 },
             },
-            travelInvoicing: 'Facturation des déplacements',
+            travelInvoicing: 'Exporter Expensify Travel à payer vers',
             travelInvoicingVendor: 'Fournisseur de voyage',
             travelInvoicingPayableAccount: 'Compte fournisseur de voyages',
         },
@@ -4999,7 +5031,7 @@ _Pour des instructions plus détaillées, [consultez notre site d’aide](${CONS
 
 _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.NETSUITE_IMPORT.HELP_LINKS.CUSTOM_SEGMENTS})._`,
                             customSegmentScriptIDTitle: 'Quel est l’ID du script ?',
-                            customSegmentScriptIDFooter: `Vous pouvez trouver les ID de script de segment personnalisé dans NetSuite sous : 
+                            customSegmentScriptIDFooter: `Vous pouvez trouver les ID de script de segment personnalisé dans NetSuite sous :
 
 1. *Customization > Lists, Records, & Fields > Custom Segments*.
 2. Cliquez sur un segment personnalisé.
@@ -5747,6 +5779,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             reportFieldNameRequiredError: 'Veuillez saisir un nom de champ de note de frais',
             reportFieldTypeRequiredError: 'Veuillez choisir un type de champ de note de frais',
             circularReferenceError: 'Ce champ ne peut pas faire référence à lui-même. Veuillez le mettre à jour.',
+            unsupportedFormulaValueError: ({value}: UnsupportedFormulaValueErrorParams) => `Champ de formule ${value} non reconnu`,
             reportFieldInitialValueRequiredError: 'Veuillez choisir une valeur initiale pour le champ de note de frais',
             genericFailureMessage: 'Une erreur s’est produite lors de la mise à jour du champ de note de frais. Veuillez réessayer.',
         },
@@ -6838,6 +6871,67 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
 
 Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’entreprise.`,
                 },
+                addSpendRule: 'Ajouter une règle de dépense',
+                cardPageTitle: 'Carte',
+                cardsSectionTitle: 'Cartes',
+                chooseCards: 'Choisir des cartes',
+                saveRule: 'Enregistrer la règle',
+                allow: 'Autoriser',
+                spendRuleSectionTitle: 'Règle de dépense',
+                restrictionType: 'Type de restriction',
+                restrictionTypeHelpAllow: 'Les frais sont approuvés s’ils correspondent à n’importe quel commerçant ou catégorie et ne dépassent pas un montant maximal.',
+                restrictionTypeHelpBlock: 'Les frais sont refusés s’ils correspondent à un commerçant ou à une catégorie, ou s’ils dépassent un montant maximal.',
+                addMerchant: 'Ajouter un commerçant',
+                merchantContains: 'Le commerçant contient',
+                merchantExactlyMatches: 'Le commerçant correspond exactement',
+                noBlockedMerchants: 'Aucun commerçant bloqué',
+                addMerchantToBlockSpend: 'Ajouter un commerçant pour bloquer les dépenses',
+                noAllowedMerchants: 'Aucun commerçant autorisé',
+                addMerchantToAllowSpend: 'Ajouter un commerçant pour autoriser les dépenses',
+                matchType: 'Type de correspondance',
+                matchTypeContains: 'Contient',
+                matchTypeExact: 'Correspond exactement',
+                spendCategory: 'Catégorie de dépense',
+                maxAmount: 'Montant maximal',
+                maxAmountHelp: 'Toute transaction supérieure à ce montant sera refusée, indépendamment des restrictions liées au commerçant et à la catégorie de dépense.',
+                currencyMismatchTitle: 'Incompatibilité de devise',
+                currencyMismatchPrompt: 'Pour définir un montant maximal, sélectionnez des cartes qui sont réglées dans la même devise.',
+                reviewSelectedCards: 'Examiner les cartes sélectionnées',
+                summaryMoreCount: ({summary, count}: {summary: string; count: number}) => `${summary}, +${count} de plus`,
+                confirmErrorApplyAtLeastOneSpendRuleToOneCard: 'Appliquez au moins une règle de dépense à une carte',
+                confirmErrorCardRequired: 'La carte est un champ obligatoire',
+                confirmErrorApplyAtLeastOneSpendRule: 'Appliquez au moins une règle de dépense',
+                categories: 'Catégories',
+                merchants: 'Commerçants',
+                noAvailableCards: 'Toutes les cartes ont déjà une règle',
+                noAvailableCardsSubtitle: 'Modifier une règle de carte existante pour apporter des changements',
+                max: 'Max',
+                categoryOptions: {
+                    [CONST.SPEND_RULES.CATEGORIES.AIRLINES]: 'Compagnies aériennes',
+                    [CONST.SPEND_RULES.CATEGORIES.ALCOHOL_AND_BARS]: 'Alcool et bars',
+                    [CONST.SPEND_RULES.CATEGORIES.AMAZON_AND_BOOKSTORES]: 'Amazon et les librairies',
+                    [CONST.SPEND_RULES.CATEGORIES.AUTOMOTIVE]: 'Automobile',
+                    [CONST.SPEND_RULES.CATEGORIES.CAR_RENTALS]: 'Locations de voiture',
+                    [CONST.SPEND_RULES.CATEGORIES.DINING]: 'Restauration',
+                    [CONST.SPEND_RULES.CATEGORIES.FUEL_AND_GAS]: 'Carburant et gaz',
+                    [CONST.SPEND_RULES.CATEGORIES.GOVERNMENT_AND_NON_PROFITS]: 'Secteur public et organisations à but non lucratif',
+                    [CONST.SPEND_RULES.CATEGORIES.GROCERIES]: 'Courses',
+                    [CONST.SPEND_RULES.CATEGORIES.GYMS_AND_FITNESS]: 'Salles de sport et fitness',
+                    [CONST.SPEND_RULES.CATEGORIES.HEALTHCARE]: 'Santé',
+                    [CONST.SPEND_RULES.CATEGORIES.HOTELS]: 'Hôtels',
+                    [CONST.SPEND_RULES.CATEGORIES.INTERNET_AND_PHONE]: 'Internet et téléphone',
+                    [CONST.SPEND_RULES.CATEGORIES.OFFICE_SUPPLIES]: 'Fournitures de bureau',
+                    [CONST.SPEND_RULES.CATEGORIES.PARKING_AND_TOLLS]: 'Parking et péages',
+                    [CONST.SPEND_RULES.CATEGORIES.PROFESSIONAL_SERVICES]: 'Services professionnels',
+                    [CONST.SPEND_RULES.CATEGORIES.RETAIL]: 'Vente au détail',
+                    [CONST.SPEND_RULES.CATEGORIES.SHIPPING_AND_DELIVERY]: 'Expédition et livraison',
+                    [CONST.SPEND_RULES.CATEGORIES.SOFTWARE]: 'Logiciel',
+                    [CONST.SPEND_RULES.CATEGORIES.TRANSIT_AND_RIDESHARE]: 'Transports en commun et VTC',
+                    [CONST.SPEND_RULES.CATEGORIES.TRAVEL_AGENCIES]: 'Agences de voyages',
+                },
+                editRuleTitle: 'Modifier la règle',
+                deleteRule: 'Supprimer la règle',
+                deleteRuleConfirmation: 'Êtes-vous sûr de vouloir supprimer cette règle ?',
             },
         },
         planTypePage: {
@@ -7338,8 +7432,6 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             `a modifié la formule du nom de note de frais personnalisée en « ${newDefaultTitle} » (précédemment « ${oldDefaultTitle} »)`,
         updatedOwnership: (oldOwnerEmail: string, oldOwnerName: string, policyName: string) => `a pris la responsabilité de ${policyName} à la place de ${oldOwnerName} (${oldOwnerEmail})`,
         updatedAutoHarvesting: (enabled: boolean) => `Soumission planifiée pour ${enabled ? 'activé' : 'désactivé'}`,
-        // This function requires 11 params to match the budget notification data model; reducing further would hurt readability
-        // eslint-disable-next-line @typescript-eslint/max-params
         updatedIndividualBudgetNotification: (
             budgetAmount: string,
             budgetFrequency: string,
@@ -7532,6 +7624,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             hold: 'En attente',
             unhold: 'Supprimer la mise en attente',
             reject: 'Rejeter',
+            duplicateExpense: ({count}: {count: number}) => `Dupliquer ${count === 1 ? 'la dépense' : 'les dépenses'}`,
             noOptionsAvailable: 'Aucune option n’est disponible pour le groupe de dépenses sélectionné.',
         },
         filtersHeader: 'Filtres',
@@ -7834,6 +7927,21 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         oooEventSummaryPartialDay: (summary: string, timePeriod: string, date: string) => `${summary} du ${timePeriod} le ${date}`,
         startTimer: 'Démarrer le minuteur',
         stopTimer: 'Arrêter le minuteur',
+        scheduleOOO: 'Planifier une absence',
+        scheduleOOOTitle: 'Planifier une absence du bureau',
+        date: 'Date',
+        time: 'Heure (format 24 heures)',
+        durationAmount: 'Durée',
+        durationUnit: 'Unité',
+        reason: 'Raison',
+        workingPercentage: 'Pourcentage de travail',
+        dateRequired: 'La date est obligatoire.',
+        invalidTimeFormat: 'Veuillez entrer une heure valide au format 24 heures (par ex. 14:30).',
+        enterANumber: 'Veuillez saisir un nombre.',
+        hour: 'heures',
+        day: 'jours',
+        week: 'semaines',
+        month: 'mois',
     },
     footer: {
         features: 'Fonctionnalités',
@@ -7949,6 +8057,11 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             'Rejoignez Expensify.org pour éliminer l’injustice dans le monde entier. La campagne actuelle « Teachers Unite » soutient les enseignants partout en partageant le coût des fournitures scolaires essentielles.',
         iKnowATeacher: 'Je connais un enseignant',
         iAmATeacher: 'Je suis enseignant',
+        personalKarma: {
+            title: 'Activer le Karma personnel',
+            description: 'Faites un don de 1 $ à Expensify.org pour chaque tranche de 500 $ dépensée chaque mois',
+            stopDonationsPrompt: 'Êtes-vous sûr de vouloir arrêter de faire des dons à Expensify.org ?',
+        },
         getInTouch: 'Excellent ! Veuillez partager leurs coordonnées afin que nous puissions les contacter.',
         introSchoolPrincipal: 'Présentation de la direction de votre école',
         schoolPrincipalVerifyExpense:
@@ -7974,6 +8087,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         personalCard: 'Carte personnelle',
         companyCard: 'Carte d’entreprise',
         expensifyCard: 'Carte Expensify',
+        centralInvoicing: 'Facturation centralisée',
     },
     distance: {
         addStop: 'Ajouter un arrêt',
@@ -8981,5 +9095,6 @@ Voici un *reçu test* pour vous montrer comment ça fonctionne :`,
         positiveButton: 'Oui !',
         negativeButton: 'Pas vraiment',
     },
+    monthPickerPage: {month: 'Mois', selectMonth: 'Veuillez sélectionner un mois'},
 };
 export default translations;

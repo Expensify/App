@@ -20,7 +20,7 @@ import useAndroidBackButtonHandler from '@hooks/useAndroidBackButtonHandler';
 import useCurrencyForExpensifyCard from '@hooks/useCurrencyForExpensifyCard';
 import useDefaultFundID from '@hooks/useDefaultFundID';
 import useEmptyViewHeaderHeight from '@hooks/useEmptyViewHeaderHeight';
-import useExpensifyCardFeeds from '@hooks/useExpensifyCardFeeds';
+import useExpensifyCardFeedsForFeedSelector from '@hooks/useExpensifyCardFeedsForFeedSelector';
 import useExpensifyCardUkEuSupported from '@hooks/useExpensifyCardUkEuSupported';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -33,9 +33,10 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import {clearIssueNewCardFormData, exportExpensifyCardListToCSV, setIssueNewCardStepAndData} from '@libs/actions/Card';
 import {clearDeletePaymentMethodError} from '@libs/actions/PaymentMethods';
 import {filterCardsByPersonalDetails, getCardsByCardholderName, getCardSettings, sortCardsByCardholderName} from '@libs/CardUtils';
+import {getExpensifyCardFeedDescription} from '@libs/ExpensifyCardFeedSelectorUtils';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
-import {getDescriptionForPolicyDomainCard, getMemberAccountIDsForWorkspace} from '@libs/PolicyUtils';
+import {getMemberAccountIDsForWorkspace} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
 import CONST from '@src/CONST';
@@ -73,10 +74,11 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [cardOnWaitlist] = useOnyx(`${ONYXKEYS.COLLECTION.NVP_EXPENSIFY_ON_CARD_WAITLIST}${policyID}`);
     const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${fundID}`);
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const settings = getCardSettings(cardSettings);
-    const allExpensifyCardFeeds = useExpensifyCardFeeds(policyID);
+    const {allFeeds: allAdminExpensifyCardFeeds} = useExpensifyCardFeedsForFeedSelector(policyID);
 
-    const shouldShowSelector = Object.keys(allExpensifyCardFeeds ?? {}).length > 1;
+    const shouldShowSelector = allAdminExpensifyCardFeeds.length >= 1;
 
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
@@ -323,8 +325,6 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
         return true;
     };
 
-    const policyCollection = policy?.id ? {[`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`]: policy} : undefined;
-
     useAndroidBackButtonHandler(handleBackButtonPress);
 
     return (
@@ -352,7 +352,7 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
                         onFeedSelect={() => Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_SELECT_FEED.getRoute(policyID))}
                         CardFeedIcon={cardFeedIcon}
                         feedName={translate('workspace.common.expensifyCard')}
-                        supportingText={getDescriptionForPolicyDomainCard(settings?.domainName ?? '', policyCollection)}
+                        supportingText={getExpensifyCardFeedDescription(cardSettings, allPolicies)}
                     />
                     {isBankAccountVerified && getHeaderButtons()}
                 </View>
