@@ -47,6 +47,8 @@ const dismiss = (options?: DismissKeyboardOptions): Promise<void> => {
             return;
         }
 
+        const transitionHandle = TransitionTracker.startTransition();
+
         const handleDismissResize = () => {
             const viewportHeight = window?.visualViewport?.height;
 
@@ -60,11 +62,10 @@ const dismiss = (options?: DismissKeyboardOptions): Promise<void> => {
             }
 
             window.visualViewport?.removeEventListener('resize', handleDismissResize);
-            TransitionTracker.endTransition();
+            TransitionTracker.endTransition(transitionHandle);
             return resolve();
         };
 
-        TransitionTracker.startTransition();
         window.visualViewport?.addEventListener('resize', handleDismissResize);
         Keyboard.dismiss();
 

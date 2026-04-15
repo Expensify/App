@@ -1,6 +1,7 @@
 import type {ParamListBase, ScreenLayoutArgs} from '@react-navigation/native';
-import React, {useLayoutEffect} from 'react';
+import React, {useLayoutEffect, useRef} from 'react';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
+import type {TransitionHandle} from '@libs/Navigation/TransitionTracker';
 import type {PlatformSpecificNavigationOptions, PlatformStackNavigationOptions, PlatformStackNavigationProp} from './types';
 
 // screenLayout is invoked as a render function (not JSX), so we need this wrapper to create a proper React component boundary for hooks.
@@ -19,12 +20,18 @@ function ScreenLayout({
     children,
     navigation,
 }: ScreenLayoutArgs<ParamListBase, string, PlatformSpecificNavigationOptions | PlatformStackNavigationOptions, PlatformStackNavigationProp<ParamListBase>>) {
+    const transitionHandleRef = useRef<TransitionHandle | null>(null);
+
     useLayoutEffect(() => {
         const transitionStartListener = navigation.addListener('transitionStart', () => {
-            TransitionTracker.startTransition();
+            transitionHandleRef.current = TransitionTracker.startTransition();
         });
         const transitionEndListener = navigation.addListener('transitionEnd', () => {
-            TransitionTracker.endTransition();
+            if (!transitionHandleRef.current) {
+                return;
+            }
+            TransitionTracker.endTransition(transitionHandleRef.current);
+            transitionHandleRef.current = null;
         });
 
         return () => {

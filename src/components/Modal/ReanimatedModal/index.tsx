@@ -10,6 +10,7 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import blurActiveElement from '@libs/Accessibility/blurActiveElement';
 import getPlatform from '@libs/getPlatform';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
+import type {TransitionHandle} from '@libs/Navigation/TransitionTracker';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import Backdrop from './Backdrop';
@@ -58,6 +59,7 @@ function ReanimatedModal({
 
     const backHandlerListener = useRef<NativeEventSubscription | null>(null);
     const handleRef = useRef<number | undefined>(undefined);
+    const transitionHandleRef = useRef<TransitionHandle | null>(null);
 
     const styles = useThemeStyles();
 
@@ -104,7 +106,10 @@ function ReanimatedModal({
                 // eslint-disable-next-line @typescript-eslint/no-deprecated
                 InteractionManager.clearInteractionHandle(handleRef.current);
             }
-            TransitionTracker.endTransition();
+            if (transitionHandleRef.current) {
+                TransitionTracker.endTransition(transitionHandleRef.current);
+                transitionHandleRef.current = null;
+            }
 
             setIsVisibleState(false);
             setIsContainerOpen(false);
@@ -117,7 +122,7 @@ function ReanimatedModal({
         if (isVisible && !isContainerOpen && !isTransitioning) {
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             handleRef.current = InteractionManager.createInteractionHandle();
-            TransitionTracker.startTransition();
+            transitionHandleRef.current = TransitionTracker.startTransition();
             onModalWillShow();
 
             setIsVisibleState(true);
@@ -125,7 +130,7 @@ function ReanimatedModal({
         } else if (!isVisible && isContainerOpen && !isTransitioning) {
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             handleRef.current = InteractionManager.createInteractionHandle();
-            TransitionTracker.startTransition();
+            transitionHandleRef.current = TransitionTracker.startTransition();
             onModalWillHide();
 
             blurActiveElement();
@@ -146,7 +151,10 @@ function ReanimatedModal({
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             InteractionManager.clearInteractionHandle(handleRef.current);
         }
-        TransitionTracker.endTransition();
+        if (transitionHandleRef.current) {
+            TransitionTracker.endTransition(transitionHandleRef.current);
+            transitionHandleRef.current = null;
+        }
         onModalShow();
     }, [onModalShow]);
 
@@ -157,7 +165,10 @@ function ReanimatedModal({
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             InteractionManager.clearInteractionHandle(handleRef.current);
         }
-        TransitionTracker.endTransition();
+        if (transitionHandleRef.current) {
+            TransitionTracker.endTransition(transitionHandleRef.current);
+            transitionHandleRef.current = null;
+        }
 
         // Because on Android, the Modal's onDismiss callback does not work reliably. There's a reported issue at:
         // https://stackoverflow.com/questions/58937956/react-native-modal-ondismiss-not-invoked
