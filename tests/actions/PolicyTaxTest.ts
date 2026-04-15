@@ -865,7 +865,7 @@ describe('actions/PolicyTax', () => {
                 );
         });
 
-        it('remaps transaction tax code when a matching-value tax still exists', async () => {
+        it('Update transaction tax code when the tax rate of the transaction is deleted and a matching-value tax still exists', async () => {
             const taxIDToDelete = 'id_TAX_RATE_1';
             const replacementTaxID = 'id_TAX_REPLACEMENT';
             const reportID = '111';
@@ -952,7 +952,7 @@ describe('actions/PolicyTax', () => {
             await waitForBatchedUpdates();
         });
 
-        it('keeps deleted tax code and adds violation when no matching-value tax exists', async () => {
+        it('Keep transaction tax code and add violation when the tax rate of the transaction is deleted and no matching-value tax exists', async () => {
             const taxIDToDelete = 'id_TAX_RATE_1';
             const reportID = '333';
             const transactionID = '444';
