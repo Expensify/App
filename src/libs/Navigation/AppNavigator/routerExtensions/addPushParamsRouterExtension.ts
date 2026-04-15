@@ -46,9 +46,7 @@ function isPopAction(action: PushParamsRouterAction): boolean {
  * SearchFullscreenNavigator. It may break if new screens are added to that navigator or if
  * other structural changes are made to the navigation hierarchy.
  */
-// Position cursor for PUSH_PARAMS history — needed because duplicate compounds (A → B → A) make
-// lastIndex ambiguous when classifying a RESET as back / forward / non-history nav. Singleton
-// because SearchFullscreenNavigator is the sole consumer of this extension.
+// Cursor into PUSH_PARAMS history — lastIndex is ambiguous for duplicate compounds (A → B → A). Singleton: SearchFullscreenNavigator is the sole consumer.
 let pushParamsHistoryPosition = -1;
 
 function addPushParamsRouterExtension<RouterOptions extends PlatformStackRouterOptions = PlatformStackRouterOptions>(

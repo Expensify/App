@@ -302,15 +302,13 @@ describe('focusFirstInteractiveElement', () => {
 
     describe('hadTabNavigation teardown', () => {
         it('should stop tracking Tab/mouse after teardown, and revert focus-skip behavior', () => {
-            // Tab is active; focus would normally proceed.
             simulateTab();
             const button = document.createElement('button');
             const spy = jest.spyOn(button, 'focus');
             expect(focusFirstInteractiveElement(createContainer(button))).toBe(true);
             expect(spy).toHaveBeenCalled();
 
-            // Tear down listeners; a subsequent mousedown should NOT clear the flag (listener is gone),
-            // so modality stays true — but focus still proceeds. Confirms no errors on torn-down state.
+            // After teardown, the mousedown listener is gone so the event must not throw.
             teardownHadTabNavigation();
             expect(() => simulateMouse()).not.toThrow();
         });

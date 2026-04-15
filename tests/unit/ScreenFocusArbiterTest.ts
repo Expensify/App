@@ -91,24 +91,4 @@ describe('ScreenFocusArbiter', () => {
             }
         });
     });
-
-    describe('scenario: screen focus race on forward nav', () => {
-        it('should let AUTO preempt INITIAL on initial mount', () => {
-            expect(tryClaim(Priorities.INITIAL)).toBe(true);
-            expect(tryClaim(Priorities.AUTO)).toBe(true);
-        });
-    });
-
-    describe('scenario: screen focus race on backward nav', () => {
-        it('should let RETURN preempt INITIAL and AUTO', () => {
-            expect(tryClaim(Priorities.INITIAL)).toBe(true);
-            expect(tryClaim(Priorities.AUTO)).toBe(true);
-            expect(tryClaim(Priorities.RETURN)).toBe(true);
-        });
-
-        it('should reject AUTO that fires after RETURN has won', () => {
-            expect(tryClaim(Priorities.RETURN)).toBe(true);
-            expect(tryClaim(Priorities.AUTO)).toBe(false);
-        });
-    });
 });

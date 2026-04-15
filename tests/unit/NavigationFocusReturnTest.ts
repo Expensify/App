@@ -62,6 +62,32 @@ function stackState(focused: number, routes: Array<{key: string; name: string; s
     };
 }
 
+function appendButton(): HTMLButtonElement {
+    const button = document.createElement('button');
+    document.body.appendChild(button);
+    return button;
+}
+
+function appendInput(): HTMLInputElement {
+    const input = document.createElement('input');
+    document.body.appendChild(input);
+    return input;
+}
+
+function fireFocusIn(el: HTMLElement): void {
+    el.focus();
+    el.dispatchEvent(new FocusEvent('focusin', {bubbles: true}));
+}
+
+function withFakeTimers<T>(fn: () => T): T {
+    jest.useFakeTimers();
+    try {
+        return fn();
+    } finally {
+        jest.useRealTimers();
+    }
+}
+
 beforeEach(() => {
     resetForTests();
     resetArbiter();
@@ -204,53 +230,8 @@ describe('captureTriggerForRoute', () => {
             simulateTab();
         });
 
-        it('should store the last interactive element against the given route key', () => {
-            const trigger = document.createElement('button');
-            document.body.appendChild(trigger);
-            trigger.focus();
-            setLastInteractiveElementForTests(trigger);
-
-            captureTriggerForRoute('route-a');
-
-            trigger.blur();
-            const spy = jest.spyOn(trigger, 'focus');
-            expect(restoreTriggerForRoute('route-a')).toBe(true);
-            expect(spy).toHaveBeenCalled();
-        });
-
-        it('should not store when lastInteractiveElement is null', () => {
-            setLastInteractiveElementForTests(null);
-            captureTriggerForRoute('route-a');
-            expect(restoreTriggerForRoute('route-a')).toBe(false);
-        });
-
-        it('should not store when the tracked element has left the DOM', () => {
-            const trigger = document.createElement('button');
-            document.body.appendChild(trigger);
-            setLastInteractiveElementForTests(trigger);
-            trigger.remove();
-
-            captureTriggerForRoute('route-a');
-            expect(restoreTriggerForRoute('route-a')).toBe(false);
-        });
-
-        it('should not store when active element has drifted to another non-body element', () => {
-            const tracked = document.createElement('button');
-            const other = document.createElement('input');
-            document.body.appendChild(tracked);
-            document.body.appendChild(other);
-
-            // Pin tracked AFTER other.focus() so the focusin listener doesn't overwrite it.
-            other.focus();
-            setLastInteractiveElementForTests(tracked);
-
-            captureTriggerForRoute('route-a');
-            expect(restoreTriggerForRoute('route-a')).toBe(false);
-        });
-
         it('should store when active element matches the tracked element', () => {
-            const trigger = document.createElement('button');
-            document.body.appendChild(trigger);
+            const trigger = appendButton();
             trigger.focus();
             setLastInteractiveElementForTests(trigger);
 
@@ -260,13 +241,39 @@ describe('captureTriggerForRoute', () => {
         });
 
         it('should store when active element is body (React Navigation blurred before state change)', () => {
-            const trigger = document.createElement('button');
-            document.body.appendChild(trigger);
+            const trigger = appendButton();
             setLastInteractiveElementForTests(trigger);
             expect(document.activeElement).toBe(document.body);
 
             captureTriggerForRoute('route-a');
             expect(restoreTriggerForRoute('route-a')).toBe(true);
+        });
+
+        it('should not store when lastInteractiveElement is null', () => {
+            setLastInteractiveElementForTests(null);
+            captureTriggerForRoute('route-a');
+            expect(restoreTriggerForRoute('route-a')).toBe(false);
+        });
+
+        it('should not store when the tracked element has left the DOM', () => {
+            const trigger = appendButton();
+            setLastInteractiveElementForTests(trigger);
+            trigger.remove();
+
+            captureTriggerForRoute('route-a');
+            expect(restoreTriggerForRoute('route-a')).toBe(false);
+        });
+
+        it('should not store when active element has drifted to another non-body element', () => {
+            const tracked = appendButton();
+            const other = appendInput();
+
+            // Pin tracked AFTER other.focus() so the focusin listener doesn't overwrite it.
+            other.focus();
+            setLastInteractiveElementForTests(tracked);
+
+            captureTriggerForRoute('route-a');
+            expect(restoreTriggerForRoute('route-a')).toBe(false);
         });
     });
 
@@ -354,13 +361,9 @@ describe('captureTriggerForRoute', () => {
         });
 
         it('should keep the launcher available across a deferred onPostDeactivate clear', () => {
-            jest.useFakeTimers();
-            try {
-                const launcher = document.createElement('button');
-                document.body.appendChild(launcher);
+            withFakeTimers(() => {
+                const launcher = appendButton();
                 setActivePopoverLauncher(launcher);
-
-                // Modal close triggers onPostDeactivate before the deferred navigate fires.
                 scheduleClearActivePopoverLauncher();
 
                 // Within the deferral window, capture should still see the launcher.
@@ -369,25 +372,18 @@ describe('captureTriggerForRoute', () => {
 
                 launcher.blur();
                 expect(restoreTriggerForRoute('route-a')).toBe(true);
-            } finally {
-                jest.useRealTimers();
-            }
+            });
         });
 
         it('should clear the launcher after the deferred window elapses', () => {
-            jest.useFakeTimers();
-            try {
-                const launcher = document.createElement('button');
-                document.body.appendChild(launcher);
+            withFakeTimers(() => {
+                const launcher = appendButton();
                 setActivePopoverLauncher(launcher);
                 scheduleClearActivePopoverLauncher();
-
                 jest.advanceTimersByTime(2000);
 
-                const fallback = document.createElement('button');
-                document.body.appendChild(fallback);
-                fallback.focus();
-                fallback.dispatchEvent(new FocusEvent('focusin', {bubbles: true}));
+                const fallback = appendButton();
+                fireFocusIn(fallback);
 
                 captureTriggerForRoute('route-a');
                 fallback.blur();
@@ -395,9 +391,7 @@ describe('captureTriggerForRoute', () => {
                 expect(restoreTriggerForRoute('route-a')).toBe(true);
                 // Expect the fallback was captured, not the (since-cleared) launcher.
                 expect(launcherSpy).not.toHaveBeenCalled();
-            } finally {
-                jest.useRealTimers();
-            }
+            });
         });
 
         it('should defer to lastInteractiveElement when the user moved on after popover closed', () => {
@@ -406,7 +400,7 @@ describe('captureTriggerForRoute', () => {
             document.body.appendChild(launcher);
             document.body.appendChild(otherButton);
 
-            // Popover opens then closes: launcher is set, scheduled-clear is pending, popoverIsActive=false.
+            // Popover opens then closes: launcher set, deferred clear pending.
             setActivePopoverLauncher(launcher);
             scheduleClearActivePopoverLauncher();
 
@@ -433,7 +427,7 @@ describe('captureTriggerForRoute', () => {
             document.body.appendChild(launcher);
             document.body.appendChild(menuItem);
 
-            // Popover open: launcher set, popoverIsActive=true (no scheduleClear yet).
+            // Popover still active: launcher set, no deferred clear scheduled.
             setActivePopoverLauncher(launcher);
             menuItem.focus();
             menuItem.dispatchEvent(new FocusEvent('focusin', {bubbles: true}));
@@ -448,12 +442,9 @@ describe('captureTriggerForRoute', () => {
         });
 
         it('should cancel a pending deferred clear when a new launcher is set', () => {
-            jest.useFakeTimers();
-            try {
-                const launcherA = document.createElement('button');
-                const launcherB = document.createElement('button');
-                document.body.appendChild(launcherA);
-                document.body.appendChild(launcherB);
+            withFakeTimers(() => {
+                const launcherA = appendButton();
+                const launcherB = appendButton();
 
                 setActivePopoverLauncher(launcherA);
                 scheduleClearActivePopoverLauncher();
@@ -470,9 +461,7 @@ describe('captureTriggerForRoute', () => {
                 const spyB = jest.spyOn(launcherB, 'focus');
                 expect(restoreTriggerForRoute('route-a')).toBe(true);
                 expect(spyB).toHaveBeenCalled();
-            } finally {
-                jest.useRealTimers();
-            }
+            });
         });
     });
 
@@ -519,44 +508,53 @@ describe('restoreTriggerForRoute', () => {
         expect(restoreTriggerForRoute('route-a')).toBe(false);
     });
 
-    it('should return false (and not take RETURN priority) when the trigger is disabled', () => {
-        const trigger = document.createElement('button');
-        document.body.appendChild(trigger);
-        trigger.focus();
-        setLastInteractiveElementForTests(trigger);
-        captureTriggerForRoute('route-a');
-        trigger.blur();
-        trigger.disabled = true;
-
-        const spy = jest.spyOn(trigger, 'focus');
-        expect(restoreTriggerForRoute('route-a')).toBe(false);
-        expect(spy).not.toHaveBeenCalled();
-    });
-
-    it('should return false when the trigger has aria-disabled="true"', () => {
-        const trigger = document.createElement('button');
-        document.body.appendChild(trigger);
-        trigger.focus();
-        setLastInteractiveElementForTests(trigger);
-        captureTriggerForRoute('route-a');
-        trigger.blur();
-        trigger.setAttribute('aria-disabled', 'true');
-
-        expect(restoreTriggerForRoute('route-a')).toBe(false);
-    });
-
-    it('should return false when the trigger is inside an aria-hidden container', () => {
-        const hidden = document.createElement('div');
-        hidden.setAttribute('aria-hidden', 'true');
-        const trigger = document.createElement('button');
-        hidden.appendChild(trigger);
-        document.body.appendChild(hidden);
-        trigger.focus();
-        setLastInteractiveElementForTests(trigger);
-        captureTriggerForRoute('route-a');
-        trigger.blur();
-
-        expect(restoreTriggerForRoute('route-a')).toBe(false);
+    describe('unfocusable trigger', () => {
+        it.each<[label: string, setup: () => HTMLButtonElement]>([
+            [
+                'disabled',
+                () => {
+                    const trigger = appendButton();
+                    trigger.focus();
+                    setLastInteractiveElementForTests(trigger);
+                    captureTriggerForRoute('route-a');
+                    trigger.blur();
+                    trigger.disabled = true;
+                    return trigger;
+                },
+            ],
+            [
+                'aria-disabled="true"',
+                () => {
+                    const trigger = appendButton();
+                    trigger.focus();
+                    setLastInteractiveElementForTests(trigger);
+                    captureTriggerForRoute('route-a');
+                    trigger.blur();
+                    trigger.setAttribute('aria-disabled', 'true');
+                    return trigger;
+                },
+            ],
+            [
+                'inside an aria-hidden container',
+                () => {
+                    const hidden = document.createElement('div');
+                    hidden.setAttribute('aria-hidden', 'true');
+                    const trigger = document.createElement('button');
+                    hidden.appendChild(trigger);
+                    document.body.appendChild(hidden);
+                    trigger.focus();
+                    setLastInteractiveElementForTests(trigger);
+                    captureTriggerForRoute('route-a');
+                    trigger.blur();
+                    return trigger;
+                },
+            ],
+        ])('should return false (and not take RETURN priority) when the trigger is %s', (_label, setup) => {
+            const trigger = setup();
+            const spy = jest.spyOn(trigger, 'focus');
+            expect(restoreTriggerForRoute('route-a')).toBe(false);
+            expect(spy).not.toHaveBeenCalled();
+        });
     });
 
     it('should preserve the entry on transient aria-hidden so a later retry can restore it', () => {
@@ -607,33 +605,21 @@ describe('restoreTriggerForRoute', () => {
         expect(restoreTriggerForRoute('route-a')).toBe(false);
     });
 
-    it('should pass focusVisible=true when user is keyboard-driven at restore time', () => {
+    it.each<[modality: string, beforeRestore: () => void, expectedFocusVisible: boolean]>([
+        ['keyboard', () => {}, true],
+        ['mouse', () => simulateMouse(), false],
+    ])('should pass focusVisible=%s when modality at restore time is %s', (_modality, beforeRestore, expectedFocusVisible) => {
         simulateTab();
-        const trigger = document.createElement('button');
-        document.body.appendChild(trigger);
+        const trigger = appendButton();
         trigger.focus();
         setLastInteractiveElementForTests(trigger);
         captureTriggerForRoute('route-a');
         trigger.blur();
+        beforeRestore();
 
         const spy = jest.spyOn(trigger, 'focus');
         expect(restoreTriggerForRoute('route-a')).toBe(true);
-        expect(spy).toHaveBeenCalledWith({preventScroll: true, focusVisible: true});
-    });
-
-    it('should pass focusVisible=false when user has switched to mouse by restore time', () => {
-        simulateTab();
-        const trigger = document.createElement('button');
-        document.body.appendChild(trigger);
-        trigger.focus();
-        setLastInteractiveElementForTests(trigger);
-        captureTriggerForRoute('route-a');
-        trigger.blur();
-        simulateMouse();
-
-        const spy = jest.spyOn(trigger, 'focus');
-        expect(restoreTriggerForRoute('route-a')).toBe(true);
-        expect(spy).toHaveBeenCalledWith({preventScroll: true, focusVisible: false});
+        expect(spy).toHaveBeenCalledWith({preventScroll: true, focusVisible: expectedFocusVisible});
     });
 });
 
@@ -686,24 +672,23 @@ describe('focusin listener', () => {
 });
 
 describe('handleStateChange integration', () => {
+    const onA = stackState(0, [{key: 'a', name: 'A'}]);
+    const onAB = stackState(1, [
+        {key: 'a', name: 'A'},
+        {key: 'b', name: 'B'},
+    ]);
+
     it('should capture the tracked element on forward navigation', () => {
         simulateTab();
-        const initial = stackState(0, [{key: 'a', name: 'A'}]);
-        handleStateChange(initial);
+        handleStateChange(onA);
 
-        const trigger = document.createElement('button');
-        document.body.appendChild(trigger);
-        trigger.focus();
-        trigger.dispatchEvent(new FocusEvent('focusin', {bubbles: true}));
+        const trigger = appendButton();
+        fireFocusIn(trigger);
 
-        const next = stackState(1, [
-            {key: 'a', name: 'A'},
-            {key: 'b', name: 'B'},
-        ]);
-        handleStateChange(next);
+        handleStateChange(onAB);
 
         trigger.blur();
-        handleStateChange(initial);
+        handleStateChange(onA);
         jest.runAllTimers();
 
         // Either the scheduled restore fired or we consume it manually — both prove capture happened.
@@ -713,33 +698,23 @@ describe('handleStateChange integration', () => {
 
     it('should do nothing when the focused route has not changed', () => {
         simulateTab();
-        const state = stackState(0, [{key: 'a', name: 'A'}]);
-        handleStateChange(state);
+        handleStateChange(onA);
 
-        const trigger = document.createElement('button');
-        document.body.appendChild(trigger);
+        const trigger = appendButton();
         setLastInteractiveElementForTests(trigger);
 
-        handleStateChange(state);
+        handleStateChange(onA);
         expect(restoreTriggerForRoute('a')).toBe(false);
     });
 
     it('should preserve a queued restore when a noop state change (same focused route) arrives', () => {
-        jest.useFakeTimers();
-        try {
+        withFakeTimers(() => {
             simulateTab();
-            const onA = stackState(0, [{key: 'a', name: 'A'}]);
             handleStateChange(onA);
 
-            const trigger = document.createElement('button');
-            document.body.appendChild(trigger);
-            trigger.focus();
-            trigger.dispatchEvent(new FocusEvent('focusin', {bubbles: true}));
+            const trigger = appendButton();
+            fireFocusIn(trigger);
 
-            const onAB = stackState(1, [
-                {key: 'a', name: 'A'},
-                {key: 'b', name: 'B'},
-            ]);
             handleStateChange(onAB);
 
             trigger.blur();
@@ -751,14 +726,11 @@ describe('handleStateChange integration', () => {
             const spy = jest.spyOn(trigger, 'focus');
             jest.runAllTimers();
             expect(spy).toHaveBeenCalled();
-        } finally {
-            jest.useRealTimers();
-        }
+        });
     });
 
     it('should cancel a queued restore when a lateral tab switch arrives before it fires', () => {
-        jest.useFakeTimers();
-        try {
+        withFakeTimers(() => {
             simulateTab();
             const onTab1 = stackState(0, [
                 {key: 'tab-1', name: 'Tab1'},
@@ -766,10 +738,8 @@ describe('handleStateChange integration', () => {
             ]);
             handleStateChange(onTab1);
 
-            const trigger = document.createElement('button');
-            document.body.appendChild(trigger);
-            trigger.focus();
-            trigger.dispatchEvent(new FocusEvent('focusin', {bubbles: true}));
+            const trigger = appendButton();
+            fireFocusIn(trigger);
 
             // Push a child onto tab-1 so the subsequent pop is a real backward nav.
             const onTab1Child = stackState(0, [
@@ -797,34 +767,23 @@ describe('handleStateChange integration', () => {
             const spy = jest.spyOn(trigger, 'focus');
             jest.runAllTimers();
             expect(spy).not.toHaveBeenCalled();
-        } finally {
-            jest.useRealTimers();
-        }
+        });
     });
 
     it('should cancel a queued restore when a new state change arrives before it fires', () => {
-        jest.useFakeTimers();
-        try {
+        withFakeTimers(() => {
             simulateTab();
-            const onA = stackState(0, [{key: 'a', name: 'A'}]);
             handleStateChange(onA);
 
-            const trigger = document.createElement('button');
-            document.body.appendChild(trigger);
-            trigger.focus();
-            trigger.dispatchEvent(new FocusEvent('focusin', {bubbles: true}));
+            const trigger = appendButton();
+            fireFocusIn(trigger);
 
-            const onAB = stackState(1, [
-                {key: 'a', name: 'A'},
-                {key: 'b', name: 'B'},
-            ]);
             handleStateChange(onAB);
 
-            // Backward to A queues a restore...
             trigger.blur();
             handleStateChange(onA);
 
-            // ...but a forward nav arrives before it fires (e.g. dismissModalWithReport).
+            // Forward nav arrives before the queued restore fires (e.g. dismissModalWithReport).
             const onAC = stackState(1, [
                 {key: 'a', name: 'A'},
                 {key: 'c', name: 'C'},
@@ -834,23 +793,16 @@ describe('handleStateChange integration', () => {
             const spy = jest.spyOn(trigger, 'focus');
             jest.runAllTimers();
             expect(spy).not.toHaveBeenCalled();
-        } finally {
-            jest.useRealTimers();
-        }
+        });
     });
 
     it('should drop triggers for routes that leave the tree entirely', () => {
         simulateTab();
-        const prev = stackState(0, [
-            {key: 'a', name: 'A'},
-            {key: 'b', name: 'B'},
-        ]);
-        const trigger = document.createElement('button');
-        document.body.appendChild(trigger);
+        const trigger = appendButton();
         setLastInteractiveElementForTests(trigger);
 
-        handleStateChange(stackState(0, [{key: 'a', name: 'A'}]));
-        handleStateChange(prev);
+        handleStateChange(onA);
+        handleStateChange(onAB);
 
         const next = stackState(0, [{key: 'z', name: 'Z'}]);
         handleStateChange(next);
@@ -859,23 +811,16 @@ describe('handleStateChange integration', () => {
     });
 
     it('should drop the stale entry after MAX_RESTORE_ATTEMPTS retries all fail', () => {
-        jest.useFakeTimers();
-        try {
+        withFakeTimers(() => {
             simulateTab();
             const hidden = document.createElement('div');
             hidden.setAttribute('aria-hidden', 'true');
             const trigger = document.createElement('button');
             hidden.appendChild(trigger);
             document.body.appendChild(hidden);
-            trigger.focus();
-            trigger.dispatchEvent(new FocusEvent('focusin', {bubbles: true}));
+            fireFocusIn(trigger);
 
-            const onA = stackState(0, [{key: 'a', name: 'A'}]);
             handleStateChange(onA);
-            const onAB = stackState(1, [
-                {key: 'a', name: 'A'},
-                {key: 'b', name: 'B'},
-            ]);
             handleStateChange(onAB);
             trigger.blur();
             handleStateChange(onA);
@@ -888,9 +833,34 @@ describe('handleStateChange integration', () => {
             hidden.removeAttribute('aria-hidden');
             expect(restoreTriggerForRoute('a')).toBe(false);
             expect(spy).not.toHaveBeenCalled();
-        } finally {
-            jest.useRealTimers();
-        }
+        });
+    });
+});
+
+describe('compoundParamsKey', () => {
+    it('should produce the same key regardless of property insertion order', () => {
+        expect(compoundParamsKey('search-x', {q: 'foo', sort: 'date'})).toBe(compoundParamsKey('search-x', {sort: 'date', q: 'foo'}));
+    });
+
+    it('should produce different keys for different params', () => {
+        expect(compoundParamsKey('search-x', {q: 'foo'})).not.toBe(compoundParamsKey('search-x', {q: 'bar'}));
+    });
+
+    it('should handle null / undefined params', () => {
+        expect(compoundParamsKey('r', null)).toBe('r::');
+        expect(compoundParamsKey('r', undefined)).toBe('r::');
+    });
+
+    it('should not collide with bare route keys', () => {
+        expect(compoundParamsKey('search-x', {q: 'foo'})).not.toBe('search-x');
+    });
+
+    it('should treat explicit-undefined fields as omitted (path rehydration parity)', () => {
+        expect(compoundParamsKey('search-x', {q: 'foo', rawQuery: undefined})).toBe(compoundParamsKey('search-x', {q: 'foo'}));
+    });
+
+    it('should distinguish explicit null from absent (null is a real value)', () => {
+        expect(compoundParamsKey('search-x', {q: 'foo', rawQuery: null})).not.toBe(compoundParamsKey('search-x', {q: 'foo'}));
     });
 });
 
@@ -899,106 +869,48 @@ describe('PUSH_PARAMS notifications', () => {
         simulateTab();
     });
 
-    describe('compoundParamsKey', () => {
-        it('should produce the same key regardless of property insertion order', () => {
-            const a = compoundParamsKey('search-x', {q: 'foo', sort: 'date'});
-            const b = compoundParamsKey('search-x', {sort: 'date', q: 'foo'});
-            expect(a).toBe(b);
-        });
-
-        it('should produce different keys for different params', () => {
-            const a = compoundParamsKey('search-x', {q: 'foo'});
-            const b = compoundParamsKey('search-x', {q: 'bar'});
-            expect(a).not.toBe(b);
-        });
-
-        it('should handle null / undefined params', () => {
-            expect(compoundParamsKey('r', null)).toBe('r::');
-            expect(compoundParamsKey('r', undefined)).toBe('r::');
-        });
-
-        it('should not collide with bare route keys', () => {
-            // A route key alone (used by the regular nav path) shouldn't match a compound key for the same route.
-            expect(compoundParamsKey('search-x', {q: 'foo'})).not.toBe('search-x');
-        });
-
-        it('should treat explicit-undefined fields as omitted (path rehydration parity)', () => {
-            // Saved-search dispatches `rawQuery: undefined`, but URL rebuild omits the field entirely.
-            const explicitUndef = compoundParamsKey('search-x', {q: 'foo', rawQuery: undefined});
-            const omitted = compoundParamsKey('search-x', {q: 'foo'});
-            expect(explicitUndef).toBe(omitted);
-        });
-
-        it('should still distinguish explicit null from absent (null is a real value)', () => {
-            const withNull = compoundParamsKey('search-x', {q: 'foo', rawQuery: null});
-            const omitted = compoundParamsKey('search-x', {q: 'foo'});
-            expect(withNull).not.toBe(omitted);
-        });
-    });
-
     it('should roundtrip: forward captures the trigger, backward restores it', () => {
-        jest.useFakeTimers();
-        try {
-            const trigger = document.createElement('input');
-            document.body.appendChild(trigger);
-            trigger.focus();
-            trigger.dispatchEvent(new FocusEvent('focusin', {bubbles: true}));
+        withFakeTimers(() => {
+            const trigger = appendInput();
+            fireFocusIn(trigger);
 
-            // User on /search?q=foo, focus on the search input. PUSH_PARAMS dispatches with q=bar.
             notifyPushParamsForward('search-x', {q: 'foo'});
-
-            // Focus moves elsewhere (new results render, etc.)
             trigger.blur();
 
-            // GO_BACK reverts params to q=foo.
             const spy = jest.spyOn(trigger, 'focus');
             notifyPushParamsBackward('search-x', {q: 'foo'});
             jest.runAllTimers();
-
             expect(spy).toHaveBeenCalled();
-        } finally {
-            jest.useRealTimers();
-        }
+        });
     });
 
     it('should drop compound entries when their bare route is removed from the tree', () => {
-        const trigger = document.createElement('input');
-        document.body.appendChild(trigger);
-        trigger.focus();
-        trigger.dispatchEvent(new FocusEvent('focusin', {bubbles: true}));
+        const trigger = appendInput();
+        fireFocusIn(trigger);
 
-        // Prime prev state, then capture a compound entry against (search-x, q=foo).
         handleStateChange(stackState(0, [{key: 'search-x', name: 'Search'}]));
         notifyPushParamsForward('search-x', {q: 'foo'});
 
-        // Now the search route leaves the tree entirely.
+        // Search route leaves the tree — its compound entries must be purged too.
         handleStateChange(stackState(0, [{key: 'other', name: 'Other'}]));
 
-        // Compound entry must be gone — restore returns false.
         trigger.blur();
         expect(restoreTriggerForRoute(compoundParamsKey('search-x', {q: 'foo'}))).toBe(false);
     });
 
     it('should not restore for a different params hash', () => {
-        jest.useFakeTimers();
-        try {
-            const trigger = document.createElement('input');
-            document.body.appendChild(trigger);
-            trigger.focus();
-            trigger.dispatchEvent(new FocusEvent('focusin', {bubbles: true}));
+        withFakeTimers(() => {
+            const trigger = appendInput();
+            fireFocusIn(trigger);
 
             notifyPushParamsForward('search-x', {q: 'foo'});
             trigger.blur();
 
-            // Backward to a different params snapshot — should not restore the foo trigger.
             const spy = jest.spyOn(trigger, 'focus');
             notifyPushParamsBackward('search-x', {q: 'baz'});
             jest.runAllTimers();
-
             expect(spy).not.toHaveBeenCalled();
-        } finally {
-            jest.useRealTimers();
-        }
+        });
     });
 });
 

@@ -20,7 +20,7 @@ const LAUNCHER_CLEAR_DELAY_MS = 1000;
 
 let lastInteractiveElement: HTMLElement | null = null;
 let activePopoverLauncher: HTMLElement | null = null;
-let popoverIsActive = false;
+// Timer undefined + launcher non-null ≡ popover active; timer set + launcher non-null ≡ popover deactivated, launcher held for deferred-nav consumption.
 let clearLauncherTimerId: ReturnType<typeof setTimeout> | undefined;
 const triggerMap = new Map<string, HTMLElement>();
 let prevState: NavigationState | undefined;
@@ -81,7 +81,8 @@ function captureTriggerForRoute(routeKey: string): void {
     }
     // Items inside an active FocusTrapForModal get removed on close; prefer the launcher unless the user has since moved on to a different in-DOM control.
     if (activePopoverLauncher && document.contains(activePopoverLauncher)) {
-        const userMovedOn = !popoverIsActive && lastInteractiveElement && lastInteractiveElement !== activePopoverLauncher && document.contains(lastInteractiveElement);
+        const popoverClosed = clearLauncherTimerId !== undefined;
+        const userMovedOn = popoverClosed && lastInteractiveElement && lastInteractiveElement !== activePopoverLauncher && document.contains(lastInteractiveElement);
         if (!userMovedOn) {
             triggerMap.set(routeKey, activePopoverLauncher);
             setActivePopoverLauncher(null);
@@ -105,15 +106,10 @@ function setActivePopoverLauncher(element: HTMLElement | null): void {
         clearLauncherTimerId = undefined;
     }
     activePopoverLauncher = element;
-    popoverIsActive = element !== null;
 }
 
-/**
- * Defer the launcher clear so deferred-navigation popover paths (e.g. close(() => navigateAfterInteraction(...)))
- * can still consume it. Marks popoverIsActive=false; a new setActivePopoverLauncher cancels the pending clear.
- */
+/** Defer the launcher clear so deferred-navigation popovers can still consume it. A new setActivePopoverLauncher cancels the pending clear. */
 function scheduleClearActivePopoverLauncher(): void {
-    popoverIsActive = false;
     if (clearLauncherTimerId !== undefined) {
         clearTimeout(clearLauncherTimerId);
     }
@@ -289,7 +285,7 @@ function setupNavigationFocusReturn(): void {
         };
         document.addEventListener('focusin', focusinHandler, true);
     }
-    // Absent before NavigationContainer mounts and in tests that mock navigationRef; NavigationRoot.onReady re-invokes this to install once the container is live.
+    // addListener is absent pre-mount and in test mocks; NavigationRoot.onReady re-invokes once the container is live.
     if (!stateUnsubscribe && typeof navigationRef?.addListener === 'function') {
         stateUnsubscribe = navigationRef.addListener('state', () => {
             handleStateChange(navigationRef.getRootState());
@@ -317,7 +313,6 @@ function resetForTests(): void {
     prevState = undefined;
     lastInteractiveElement = null;
     activePopoverLauncher = null;
-    popoverIsActive = false;
 }
 
 function setLastInteractiveElementForTests(element: HTMLElement | null): void {
