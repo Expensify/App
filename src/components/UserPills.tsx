@@ -29,7 +29,7 @@ type UserPillsProps = {
     maxVisible?: number;
 };
 
-const DEFAULT_MAX_VISIBLE = 9;
+const DEFAULT_MAX_VISIBLE = 6;
 
 function UserPills({users, maxVisible = DEFAULT_MAX_VISIBLE}: UserPillsProps) {
     const styles = useThemeStyles();
