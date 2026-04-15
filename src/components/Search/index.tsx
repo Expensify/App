@@ -55,7 +55,7 @@ import {
     shouldShowYear as shouldShowYearUtil,
 } from '@libs/SearchUIUtils';
 import {cancelSpan, endSpanWithAttributes, getSpan, startSpan} from '@libs/telemetry/activeSpans';
-import {cancelSubmitFollowUpActionSpan, endSubmitFollowUpActionSpan, getPendingSubmitFollowUpAction} from '@libs/telemetry/submitFollowUpAction';
+import {cancelSubmitFollowUpActionSpan, getPendingSubmitFollowUpAction} from '@libs/telemetry/submitFollowUpAction';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {getOriginalTransactionWithSplitInfo, hasValidModifiedAmount, isOnHold, isTransactionPendingDelete} from '@libs/TransactionUtils';
 import Navigation, {navigationRef} from '@navigation/Navigation';
@@ -91,8 +91,9 @@ type SearchProps = {
     searchRequestResponseStatusCode?: number | null;
     onContentReady?: () => void;
 
-    /** Pre-rendered content shown on the first frame while hooks initialize and heavy work is deferred. */
-    initialContent?: React.ReactNode;
+    /** Callback from the parent (SearchPageNarrow) to end submit-expense navigation spans.
+     *  Consolidates span-ending logic in one place. Accepts `wasListEmpty` for telemetry attributes. */
+    onDestinationVisible?: (wasListEmpty: boolean, source: 'focus' | 'layout') => void;
 };
 
 // Max time (ms) to keep the optimistic item cache/skeleton alive before
@@ -116,7 +117,7 @@ function mapTransactionItemToSelectedEntry(
     outstandingReportsByPolicyID?: OutstandingReportsByPolicyIDDerivedValue,
     allowNegativeAmount = true,
 ): [string, SelectedTransactionInfo] {
-    const {canHoldRequest, canUnholdRequest} = canHoldUnholdReportAction(item.report, item.reportAction, item.holdReportAction, item, item.policy);
+    const {canHoldRequest, canUnholdRequest} = canHoldUnholdReportAction(item.report, item.reportAction, item.holdReportAction, item, item.policy, currentUserAccountID);
     const canRejectRequest = item.report ? canRejectReportAction(currentUserLogin, item.report) : false;
     const amount = hasValidModifiedAmount(item) ? Number(item.modifiedAmount) : item.amount;
 
@@ -219,7 +220,7 @@ function Search({
     onSortPressedCallback,
     searchRequestResponseStatusCode,
     onContentReady,
-    initialContent,
+    onDestinationVisible,
 }: SearchProps) {
     const {type, status, sortBy, sortOrder, hash, similarSearchHash, groupBy, view} = queryJSON;
     // Deferred write: API.write() is postponed so the skeleton renders instantly.
@@ -231,7 +232,7 @@ function Search({
     const skipDeferralOnFocusRef = useRef(isSearchDataLoaded(searchResults, queryJSON) && !hasPendingWriteOnMountRef.current);
 
     const [shouldDeferHeavySearchWork, setShouldDeferHeavySearchWork] = useState(() => !isSearchDataLoaded(searchResults, queryJSON) || hasPendingWriteOnMountRef.current);
-    const [showPendingExpensePlaceholder, setShowPendingExpensePlaceholder] = useState(() => hasPendingWriteOnMountRef.current && optimisticWatchKeyRef.current != null);
+    const [showPendingExpensePlaceholder, setShowPendingExpensePlaceholder] = useState(() => hasPendingWriteOnMountRef.current);
     // Caches the optimistic list item once it first appears in sortedData.
     // Used by stableSortedData to re-inject the row if a stale snapshot temporarily removes it.
     // Cleared once the server-confirmed (non-optimistic) version arrives.
@@ -259,7 +260,7 @@ function Search({
     // stays visible at its sorted position until server-confirmed data arrives;
     // clearOptimisticTracking handles that cleanup when pendingAction !== ADD.
     useEffect(() => {
-        if (!hasPendingWriteOnMountRef.current || !optimisticWatchKeyRef.current) {
+        if (!hasPendingWriteOnMountRef.current) {
             return;
         }
         const id = setTimeout(() => setShowPendingExpensePlaceholder(false), OPTIMISTIC_TRACKING_TIMEOUT_MS);
@@ -462,8 +463,6 @@ function Search({
                 return;
             }
 
-            // Re-applying the defer only on the submit-return path keeps the optimization scoped to
-            // the transition we care about instead of slowing every search refocus.
             return deferHeavySearchWork(true);
         }, [deferHeavySearchWork]),
     );
@@ -653,6 +652,15 @@ function Search({
             return;
         }
 
+        // When mounting after the pre-insert fast path, the deferred write hasn't
+        // been flushed yet. Triggering a search now would race with the CREATE
+        // API call and return stale results that overwrite the optimistic row.
+        // Skip this call; the optimistic data from flushDeferredWrite will populate
+        // the list, and the next user-driven search will refresh from the server.
+        if (hasPendingWriteOnMountRef.current && hasDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH)) {
+            return;
+        }
+
         if (searchResults?.search?.isLoading) {
             if (validGroupBy || (shouldCalculateTotals && searchResults?.search?.count === undefined)) {
                 shouldRetrySearchWithTotalsOrGroupedRef.current = true;
@@ -752,6 +760,7 @@ function Search({
                         transactionItem.holdReportAction,
                         transactionItem,
                         transactionItem.policy,
+                        accountID,
                     );
                     const canRejectRequest = email && transactionItem.report ? canRejectReportAction(email, transactionItem.report) : false;
 
@@ -810,6 +819,7 @@ function Search({
                     transactionItem.holdReportAction,
                     transactionItem,
                     transactionItem.policy,
+                    accountID,
                 );
                 const canRejectRequest = email && transactionItem.report ? canRejectReportAction(email, transactionItem.report) : false;
 
@@ -1066,7 +1076,7 @@ function Search({
             if (isTransactionGroupListItemType(item) && !isTransactionReportGroupListItemType(item) && item.transactionsQueryJSON) {
                 handleSearch({
                     queryJSON: item.transactionsQueryJSON,
-                    searchKey: currentSearchKey,
+                    searchKey: undefined,
                     offset: 0,
                     shouldCalculateTotals: false,
                     isLoading: false,
@@ -1239,9 +1249,26 @@ function Search({
     // Server confirmed (pendingAction !== ADD) -> clear all tracking.
     // Disappeared after caching (rollback) -> schedule cleanup after grace period.
     useEffect(() => {
-        if (!optimisticWatchKeyRef.current) {
+        if (!hasPendingWriteOnMountRef.current || optimisticTrackingCleanedUpRef.current) {
             return;
         }
+
+        // The watch key may not be available at mount when the deferred write channel
+        // was only reserved (fast path: rAF hasn't fired yet). Try to resolve it lazily
+        // on each sortedData change. If data arrives before we ever get a key (e.g. the
+        // channel was flushed between renders), clear tracking since the list is populated.
+        if (!optimisticWatchKeyRef.current) {
+            const latestKey = getOptimisticWatchKey(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
+            if (latestKey) {
+                optimisticWatchKeyRef.current = latestKey;
+            } else if (sortedData.length > 0) {
+                clearOptimisticTracking();
+                return;
+            } else {
+                return;
+            }
+        }
+
         const optimisticItem = sortedData.find(
             (item): item is TransactionListItemType => 'transactionID' in item && `${ONYXKEYS.COLLECTION.TRANSACTION}${item.transactionID}` === optimisticWatchKeyRef.current,
         );
@@ -1372,18 +1399,12 @@ function Search({
 
     const onLayout = useCallback(() => {
         hasHadFirstLayout.current = true;
+        onDestinationVisible?.(isSearchResultsEmptyRef.current, 'layout');
         endSpanWithAttributes(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS, {[CONST.TELEMETRY.ATTRIBUTE_IS_WARM]: true});
-        const pending = getPendingSubmitFollowUpAction();
-        if (pending && pending.followUpAction !== CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_AND_OPEN_REPORT) {
-            endSubmitFollowUpActionSpan(pending.followUpAction, undefined, {
-                [CONST.TELEMETRY.ATTRIBUTE_IS_WARM]: true,
-                [CONST.TELEMETRY.ATTRIBUTE_WAS_LIST_EMPTY]: isSearchResultsEmptyRef.current,
-            });
-        }
         handleSelectionListScroll(stableSortedData, searchListRef.current);
         flushDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
         onContentReady?.();
-    }, [handleSelectionListScroll, stableSortedData, onContentReady]);
+    }, [handleSelectionListScroll, stableSortedData, onContentReady, onDestinationVisible]);
 
     // Must be a ref, not state: cancelNavigationSpans is called during render
     // (inside conditional returns), so using setState would trigger infinite re-renders.
@@ -1395,7 +1416,8 @@ function Search({
             cancelSubmitFollowUpActionSpan();
         }
         didBailToFallbackState.current = true;
-    }, []);
+        onContentReady?.();
+    }, [onContentReady]);
 
     // When the render bails to an error/empty state, the SelectionList never mounts
     // so its onLayout callback (the primary flush site) never fires. This effect
@@ -1422,19 +1444,13 @@ function Search({
             if (!hasHadFirstLayout.current) {
                 return;
             }
-            const pending = getPendingSubmitFollowUpAction();
-            if (pending && pending.followUpAction !== CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_AND_OPEN_REPORT) {
-                endSubmitFollowUpActionSpan(pending.followUpAction, undefined, {
-                    [CONST.TELEMETRY.ATTRIBUTE_IS_WARM]: !shouldShowLoadingState,
-                    [CONST.TELEMETRY.ATTRIBUTE_WAS_LIST_EMPTY]: isSearchResultsEmptyRef.current,
-                });
-            }
+            onDestinationVisible?.(isSearchResultsEmptyRef.current, 'focus');
             endSpanWithAttributes(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS, {
                 [CONST.TELEMETRY.ATTRIBUTE_IS_WARM]: !shouldShowLoadingState,
             });
             // On re-focus (e.g. DISMISS_MODAL_ONLY) onLayout won't re-fire — flush here.
             flushDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
-        }, [shouldShowLoadingState]),
+        }, [shouldShowLoadingState, onDestinationVisible]),
     );
 
     // Reset before conditional returns. Only cancelNavigationSpans (error/empty paths)
@@ -1487,19 +1503,6 @@ function Search({
     // The SearchPage skeleton (useSearchLoadingState) doesn't cover this case because
     // Search must mount for its onLayout to flush the deferred CreateMoneyRequest API write, which would block the JS thread causing a slowdown on post expense creation navigation
     if (shouldShowRowSkeleton) {
-        // When initialContent is provided (submit-expense flow), render it instead of the skeleton.
-        // This avoids a jarring "data, skeleton, data" flash. The user sees the same
-        // static list continuously until the FlashList is ready to take over.
-        if (initialContent) {
-            return (
-                <View
-                    style={styles.flex1}
-                    onLayout={onSkeletonLayout}
-                >
-                    {initialContent}
-                </View>
-            );
-        }
         return (
             <SearchRowSkeleton
                 shouldAnimate
