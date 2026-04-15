@@ -35,6 +35,7 @@ import usePrevious from '@hooks/usePrevious';
 import usePrivateSubscription from '@hooks/usePrivateSubscription';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useShouldBlockCurrencyChange from '@hooks/useShouldBlockCurrencyChange';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionViolationOfWorkspace from '@hooks/useTransactionViolationOfWorkspace';
 import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
@@ -45,14 +46,14 @@ import {
     clearAvatarErrors,
     clearDeleteWorkspaceError,
     clearPolicyErrorField,
+    deletePolicyRulesDocument,
     deleteWorkspace,
     deleteWorkspaceAvatar,
-    deleteWorkspaceRulesDocument,
     leaveWorkspace,
     openPolicyProfilePage,
     setIsComingFromGlobalReimbursementsFlow,
+    updatePolicyRulesDocument,
     updateWorkspaceAvatar,
-    updateWorkspaceRulesDocument,
 } from '@libs/actions/Policy/Policy';
 import {filterInactiveCards, getCardSettings} from '@libs/CardUtils';
 import {getLatestErrorField, getLatestErrorMessage} from '@libs/ErrorUtils';
@@ -77,6 +78,7 @@ import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import shouldRenderTransferOwnerButton from '@libs/shouldRenderTransferOwnerButton';
 import StringUtils from '@libs/StringUtils';
 import {isSubscriptionTypeOfInvoicing, shouldCalculateBillNewDot} from '@libs/SubscriptionUtils';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
@@ -93,6 +95,7 @@ import WorkspacePageWithSections from './WorkspacePageWithSections';
 type WorkspaceOverviewPageProps = WithPolicyProps & PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.PROFILE>;
 
 function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: WorkspaceOverviewPageProps) {
+    const theme = useTheme();
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -439,7 +442,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
         return translate('common.leaveWorkspaceConfirmation');
     };
 
-    const getPolicyDocumentMenuItems = (openPicker: (options: {onPicked: (files: FileObject[]) => void}) => void): PopoverMenuItem[] => [
+    const getRulesDocumentMenuItems = (openPicker: (options: {onPicked: (files: FileObject[]) => void}) => void): PopoverMenuItem[] => [
         {
             text: translate('common.replace'),
             icon: expensifyIcons.Upload,
@@ -449,7 +452,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                         if (!policyID || !files.length) {
                             return;
                         }
-                        updateWorkspaceRulesDocument(policyID, files.at(0) as File, policy?.rulesDocumentURL);
+                        updatePolicyRulesDocument(policyID, files.at(0) as File, policy?.rulesDocumentURL);
                     },
                 });
             },
@@ -461,7 +464,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                 if (!policyID || !policy?.rulesDocumentURL) {
                     return;
                 }
-                deleteWorkspaceRulesDocument(policyID, policy.rulesDocumentURL);
+                deletePolicyRulesDocument(policyID, policy.rulesDocumentURL);
             },
         },
     ];
@@ -813,7 +816,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                                 {({openPicker}) => {
                                     if (policy?.rulesDocumentURL) {
                                         return (
-                                            <View style={[styles.flexRow, styles.alignItemsStart]}>
+                                            <View style={{width: variables.rulesDocumentThumbnailWidth, height: variables.rulesDocumentThumbnailHeight}}>
                                                 <PressableWithoutFeedback
                                                     onPress={() => {
                                                         if (!policyID) {
@@ -823,18 +826,21 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                                                     }}
                                                     role={CONST.ROLE.BUTTON}
                                                     accessibilityLabel={translate('workspace.rules.customRules.policyDocument')}
-                                                    style={[styles.border, styles.borderRadiusComponentLarge, styles.overflowHidden, {width: 200, height: 260}]}
+                                                    style={[styles.border, styles.borderRadiusComponentLarge, styles.overflowHidden, styles.flex1]}
                                                 >
                                                     <PDFThumbnail
                                                         previewSourceURL={rulesDocumentSourceURL}
-                                                        style={{width: 200, height: 260}}
+                                                        style={{width: variables.rulesDocumentThumbnailWidth, height: variables.rulesDocumentThumbnailHeight}}
                                                     />
                                                 </PressableWithoutFeedback>
                                                 {isPolicyAdmin && (
-                                                    <ThreeDotsMenu
-                                                        menuItems={getPolicyDocumentMenuItems(openPicker)}
-                                                        shouldSelfPosition
-                                                    />
+                                                    <View style={[styles.pAbsolute, {top: variables.spacing2, right: variables.spacing2}]}>
+                                                        <ThreeDotsMenu
+                                                            menuItems={getRulesDocumentMenuItems(openPicker)}
+                                                            shouldSelfPosition
+                                                            iconStyles={[{borderRadius: variables.componentSizeNormal / 2, backgroundColor: theme.cardBG}]}
+                                                        />
+                                                    </View>
                                                 )}
                                             </View>
                                         );
@@ -845,20 +851,22 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                                     }
 
                                     return (
-                                        <Button
-                                            medium
-                                            text={translate('common.chooseFile')}
-                                            onPress={() => {
-                                                openPicker({
-                                                    onPicked: (files) => {
-                                                        if (!policyID || !files.length) {
-                                                            return;
-                                                        }
-                                                        updateWorkspaceRulesDocument(policyID, files.at(0) as File, policy?.rulesDocumentURL);
-                                                    },
-                                                });
-                                            }}
-                                        />
+                                        <View style={[styles.flexRow]}>
+                                            <Button
+                                                medium
+                                                text={translate('common.chooseFile')}
+                                                onPress={() => {
+                                                    openPicker({
+                                                        onPicked: (files) => {
+                                                            if (!policyID || !files.length) {
+                                                                return;
+                                                            }
+                                                            updatePolicyRulesDocument(policyID, files.at(0) as File, policy?.rulesDocumentURL);
+                                                        },
+                                                    });
+                                                }}
+                                            />
+                                        </View>
                                     );
                                 }}
                             </AttachmentPicker>
@@ -867,7 +875,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                         <OfflineWithFeedback pendingAction={policy?.pendingFields?.customRules}>
                             <MenuItemWithTopDescription
                                 title={policy?.customRules ?? ''}
-                                description={translate('workspace.editor.policy')}
+                                description={translate('workspace.rules.customRules.policyText')}
                                 sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.OVERVIEW.CUSTOM_RULES}
                                 shouldShowRightIcon={!readOnly}
                                 interactive={!readOnly}
