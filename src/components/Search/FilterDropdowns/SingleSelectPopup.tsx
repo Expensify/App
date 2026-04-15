@@ -145,7 +145,7 @@ function SingleSelectPopup<T extends string>({
                     ListItem={SingleSelectListItem}
                     onSelectRow={updateSelectedItem}
                     textInputOptions={textInputOptions}
-                    style={selectionListStyle}
+                    style={{contentContainerStyle: [styles.pb0], ...selectionListStyle}}
                     shouldUpdateFocusedIndex={isSearchable}
                     initiallyFocusedItemKey={isSearchable ? value?.value : undefined}
                     shouldShowLoadingPlaceholder={!noResultsFound}
