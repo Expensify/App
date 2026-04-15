@@ -36,7 +36,7 @@ import IntlStore from '@src/languages/IntlStore';
 import type {CardFeedForDisplay} from '@src/libs/CardFeedUtils';
 import {getCardDescriptionForSearchTable} from '@src/libs/CardUtils';
 import DateUtils from '@src/libs/DateUtils';
-import {getUserFriendlyValue} from '@src/libs/SearchQueryUtils';
+import {getDateRangeForPreset, getUserFriendlyValue} from '@src/libs/SearchQueryUtils';
 import * as SearchUIUtils from '@src/libs/SearchUIUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -3533,7 +3533,7 @@ describe('SearchUIUtils', () => {
             });
 
             it('should resolve LAST_12_MONTHS preset to span the current month and 11 preceding months', () => {
-                const range = SearchUIUtils.getDateRangeForPreset(CONST.SEARCH.DATE_PRESETS.LAST_12_MONTHS);
+                const range = getDateRangeForPreset(CONST.SEARCH.DATE_PRESETS.LAST_12_MONTHS);
 
                 // Clock is frozen at 2026-02-15, so last 12 months = March 2025 through February 2026
                 expect(range.start).toBe('2025-03-01');
