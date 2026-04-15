@@ -70,7 +70,6 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
 
     const paidGroupPolicy = Object.values(allPolicies ?? {}).find((policy) => isPaidGroupPolicy(policy) && isPolicyAdmin(policy, session?.email));
     const {isOffline} = useNetwork();
-    const [width, setWidth] = useState(0);
     const [isLoading, setIsLoading] = useState(false);
 
     const features: Feature[] = useMemo(() => {
@@ -329,8 +328,6 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
         });
     }, []);
 
-    const gap = styles.gap3.gap;
-
     const renderItem = useCallback(
         (item: Feature) => {
             const isSelected = selectedFeatures.includes(item.id);
@@ -343,7 +340,12 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
                     accessibilityLabel={item.title}
                     accessible={false}
                     hoverStyle={!isSelected ? styles.hoveredComponentBG : undefined}
-                    style={[styles.onboardingInterestedFeaturesItem, isSmallScreenWidth ? styles.flexBasis100 : {maxWidth: (width - gap) / 2}, isSelected && styles.activeComponentBG]}
+                    style={[
+                        styles.onboardingInterestedFeaturesItem,
+                        // 48.5% handles the gap between columns and keeps items aligned when the scrollbar appears
+                        isSmallScreenWidth ? styles.flexBasis100 : {flexBasis: '48.5%', maxWidth: '48.5%'},
+                        isSelected && styles.activeComponentBG,
+                    ]}
                     sentryLabel={CONST.SENTRY_LABEL.ONBOARDING.INTERESTED_FEATURES_ITEM}
                 >
                     <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap3]}>
@@ -364,7 +366,7 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
                 </PressableWithoutFeedback>
             );
         },
-        [styles, isSmallScreenWidth, selectedFeatures, handleFeatureSelect, width, gap],
+        [styles, isSmallScreenWidth, selectedFeatures, handleFeatureSelect],
     );
 
     const renderSection = useCallback(
@@ -404,14 +406,7 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
                 </Text>
             </View>
 
-            <ScrollView
-                onLayout={(e) => {
-                    setWidth(e.nativeEvent.layout.width);
-                }}
-                style={[onboardingIsMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5]}
-            >
-                {sections.map(renderSection)}
-            </ScrollView>
+            <ScrollView style={[onboardingIsMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5]}>{sections.map(renderSection)}</ScrollView>
 
             <FixedFooter style={[styles.pt3, styles.ph5]}>
                 <Button
