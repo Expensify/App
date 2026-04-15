@@ -22,7 +22,7 @@ describe('OnboardingFlow', () => {
                 onboardingValues: undefined,
             };
             const path = getOnboardingInitialPath(params);
-            expect(path).toBe('/onboarding/personal-details');
+            expect(path).toBe('/onboarding/purpose/personal-details');
         });
 
         it('should return the correct path for SMB', () => {
@@ -64,7 +64,7 @@ describe('OnboardingFlow', () => {
                 onboardingValues: undefined,
             };
             const path = getOnboardingInitialPath(params);
-            expect(path).toBe('/onboarding/accounting');
+            expect(path).toBe('/onboarding/purpose/accounting');
         });
 
         it('should return the correct path for SMB and is not from public domain', () => {
@@ -85,7 +85,7 @@ describe('OnboardingFlow', () => {
                 onboardingValues: undefined,
             };
             const path = getOnboardingInitialPath(params);
-            expect(path).toBe('/onboarding/employees');
+            expect(path).toBe('/onboarding/purpose/employees');
         });
     });
 });
