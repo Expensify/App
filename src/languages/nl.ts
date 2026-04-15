@@ -1618,6 +1618,11 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         moveExpenses: 'Verplaatsen naar rapport',
         moveExpensesError: 'Je kunt dagvergoedingdeclaraties niet naar rapporten in andere werkruimten verplaatsen, omdat de dagvergoedingsbedragen per werkruimte kunnen verschillen.',
+        submitReportTo: {
+            subtitle: 'Choose a workspace member or enter an email address for who should receive this submission.',
+            emailLabel: 'Email address',
+            workspaceMembers: 'Workspace members',
+        },
         changeApprover: {
             title: 'Goedkeurder wijzigen',
             header: (workflowSettingLink: string) =>

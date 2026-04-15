@@ -1615,6 +1615,11 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         moveExpenses: 'Mover para relatório',
         moveExpensesError: 'Você não pode mover despesas de diária para relatórios em outros workspaces, porque as tarifas de diária podem ser diferentes entre os workspaces.',
+        submitReportTo: {
+            subtitle: 'Choose a workspace member or enter an email address for who should receive this submission.',
+            emailLabel: 'Email address',
+            workspaceMembers: 'Workspace members',
+        },
         changeApprover: {
             title: 'Alterar aprovador',
             header: (workflowSettingLink: string) =>

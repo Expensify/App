@@ -1621,6 +1621,11 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         moveExpenses: 'Sposta nel report',
         moveExpensesError: 'Non puoi spostare le spese di diaria nei report di altri spazi di lavoro, perché le tariffe di diaria possono variare tra gli spazi di lavoro.',
+        submitReportTo: {
+            subtitle: 'Choose a workspace member or enter an email address for who should receive this submission.',
+            emailLabel: 'Email address',
+            workspaceMembers: 'Workspace members',
+        },
         changeApprover: {
             title: 'Cambia approvatore',
             header: (workflowSettingLink: string) =>

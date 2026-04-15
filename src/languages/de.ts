@@ -1623,6 +1623,11 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         moveExpenses: 'Zum Bericht verschieben',
         moveExpensesError: 'Sie können Pauschalspesen nicht in Berichte anderer Arbeitsbereiche verschieben, da die Pauschalsätze je nach Arbeitsbereich unterschiedlich sein können.',
+        submitReportTo: {
+            subtitle: 'Choose a workspace member or enter an email address for who should receive this submission.',
+            emailLabel: 'Email address',
+            workspaceMembers: 'Workspace members',
+        },
         changeApprover: {
             title: 'Genehmigende Person ändern',
             header: (workflowSettingLink: string) =>

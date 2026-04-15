@@ -1602,6 +1602,11 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         moveExpenses: 'レポートに移動',
         moveExpensesError: '日当経費は、ワークスペースごとに日当レートが異なる場合があるため、他のワークスペースのレポートに移動することはできません。',
+        submitReportTo: {
+            subtitle: 'Choose a workspace member or enter an email address for who should receive this submission.',
+            emailLabel: 'Email address',
+            workspaceMembers: 'Workspace members',
+        },
         changeApprover: {
             title: '承認者を変更',
             header: (workflowSettingLink: string) =>

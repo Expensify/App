@@ -31,6 +31,7 @@ import type {
     ReportDescriptionNavigatorParamList,
     ReportDetailsNavigatorParamList,
     ReportSettingsNavigatorParamList,
+    ReportSubmitToNavigatorParamList,
     ReportVerifyAccountNavigatorParamList,
     RestrictedActionParamList,
     RoomMembersNavigatorParamList,
@@ -266,6 +267,10 @@ const ReportChangeWorkspaceModalStackNavigator = createModalStackNavigator<Repor
 const ReportChangeApproverModalStackNavigator = createModalStackNavigator<ReportChangeApproverParamList>({
     [SCREENS.REPORT_CHANGE_APPROVER.ROOT]: () => require<ReactComponentModule>('../../../../pages/ReportChangeApproverPage').default,
     [SCREENS.REPORT_CHANGE_APPROVER.ADD_APPROVER]: () => require<ReactComponentModule>('../../../../pages/ReportAddApproverPage').default,
+});
+
+const ReportSubmitToModalStackNavigator = createModalStackNavigator<ReportSubmitToNavigatorParamList>({
+    [SCREENS.REPORT_SUBMIT_TO.ROOT]: () => require<ReactComponentModule>('../../../../pages/ReportSubmitToPage').default,
 });
 
 const ReportSettingsModalStackNavigator = createModalStackNavigator<ReportSettingsNavigatorParamList>({
@@ -1163,6 +1168,7 @@ export {
     ReferralModalStackNavigator,
     ReportCardActivateStackNavigator,
     ReportChangeApproverModalStackNavigator,
+    ReportSubmitToModalStackNavigator,
     ReportChangeWorkspaceModalStackNavigator,
     ChronosScheduleOOOModalStackNavigator,
     ReportDescriptionModalStackNavigator,

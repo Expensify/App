@@ -95,6 +95,7 @@ type SubmitReportFunctionParams = {
     onSubmitted?: () => void;
     ownerBillingGracePeriodEnd: OnyxEntry<number>;
     delegateEmail: string | undefined;
+    managerEmail?: string;
 };
 
 function canApproveIOU(
@@ -1222,6 +1223,7 @@ function submitReport({
     onSubmitted,
     ownerBillingGracePeriodEnd,
     delegateEmail,
+    managerEmail,
 }: SubmitReportFunctionParams) {
     if (!expenseReport) {
         return;
@@ -1274,7 +1276,10 @@ function submitReport({
               isUnapprove: true,
           });
     const approvalChain = getApprovalChain(policy, expenseReport);
-    const managerID = getAccountIDsByLogins(approvalChain).at(0);
+    const managerIDFromChain = getAccountIDsByLogins(approvalChain).at(0);
+    const trimmedManagerEmail = managerEmail?.trim();
+    const managerAccountIDFromEmail = trimmedManagerEmail ? getAccountIDsByLogins([trimmedManagerEmail]).at(0) : undefined;
+    const managerID = trimmedManagerEmail ? (managerAccountIDFromEmail ?? managerIDFromChain ?? expenseReport.managerID) : (managerIDFromChain ?? expenseReport.managerID);
 
     const optimisticData: Array<
         OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.NEXT_STEP | typeof ONYXKEYS.COLLECTION.REPORT_METADATA>
@@ -1478,10 +1483,16 @@ function submitReport({
         });
     }
 
+    const defaultManagerAccountID = getSubmitToAccountID(policy, expenseReport) ?? expenseReport.managerID;
     const parameters: SubmitReportParams = {
         reportID: expenseReport.reportID,
-        managerAccountID: getSubmitToAccountID(policy, expenseReport) ?? expenseReport.managerID,
         reportActionID: optimisticSubmittedReportAction.reportActionID,
+        ...(trimmedManagerEmail
+            ? {
+                  ...(managerAccountIDFromEmail !== undefined ? {managerAccountID: managerAccountIDFromEmail} : {}),
+                  managerEmail: trimmedManagerEmail,
+              }
+            : {managerAccountID: defaultManagerAccountID}),
     };
 
     onSubmitted?.();
