@@ -2092,10 +2092,14 @@ function getTransactionsSections({
             const transactionSection: TransactionListItemType = {
                 ...transactionItem,
                 ...(transactionPendingAction ? {pendingAction: transactionPendingAction} : {}),
-                comment: {
-                    ...transactionItem.comment,
-                    attendees: shouldShowAttendees ? transactionAttendees : [],
-                },
+                ...(transactionAttendees.length > 0
+                    ? {
+                          comment: {
+                              ...transactionItem.comment,
+                              attendees: shouldShowAttendees ? transactionAttendees : [],
+                          },
+                      }
+                    : {}),
                 keyForList: transactionItem.transactionID,
                 action: getAction(allActions),
                 allActions,
