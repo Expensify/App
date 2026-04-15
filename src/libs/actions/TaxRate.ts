@@ -336,11 +336,11 @@ function deletePolicyTaxes(policyData: PolicyData, taxesToDelete: string[], loca
     }
 
     const taxesToDeleteSet = new Set(taxesToDelete);
-    const remaningTaxes = Object.fromEntries(Object.entries(policyTaxes).filter(([taxID]) => !taxesToDeleteSet.has(taxID)));
+    const remainingTaxes = Object.fromEntries(Object.entries(policyTaxes).filter(([taxID]) => !taxesToDeleteSet.has(taxID)));
     const isForeignTaxRemoved = foreignTaxDefault && taxesToDelete.includes(foreignTaxDefault);
     const defaultTaxCode = currentPolicyTaxRates.defaultExternalID;
-    const defaultTaxValue = defaultTaxCode ? remaningTaxes[defaultTaxCode]?.value : undefined;
-    const taxCodeByValueMap = getTaxCodeByValueMap(remaningTaxes);
+    const defaultTaxValue = defaultTaxCode ? remainingTaxes[defaultTaxCode]?.value : undefined;
+    const taxCodeByValueMap = getTaxCodeByValueMap(remainingTaxes);
     const replacementTaxCodeByDeletedTaxCode: Record<string, string | undefined> = {};
 
     for (const taxCode of taxesToDelete) {
@@ -523,7 +523,7 @@ function deletePolicyTaxes(policyData: PolicyData, taxesToDelete: string[], loca
         {
             taxRates: {
                 ...currentPolicyTaxRates,
-                taxes: remaningTaxes,
+                taxes: remainingTaxes,
             },
         },
     );
