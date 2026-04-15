@@ -299,6 +299,13 @@ function getAdaptedState(state: PartialState<NavigationState<RootNavigatorParamL
         let currentState = state;
         if (focusedRoute?.path && isDynamicRouteScreen(focusedRoute.name as Screen)) {
             currentState = getDynamicRouteAdaptedState(state, focusedRoute.path) as PartialState<NavigationState<RootNavigatorParamList>>;
+
+            // getDynamicRouteAdaptedState may have already resolved the full screen route.
+            // In that case, skip the default full screen route injection below - the state is already complete.
+            const hasFullScreenRoute = currentState.routes.some((route) => isFullScreenName(route.name));
+            if (hasFullScreenRoute) {
+                return currentState;
+            }
         }
 
         if (focusedRoute) {
