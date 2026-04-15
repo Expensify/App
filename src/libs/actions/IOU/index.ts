@@ -712,12 +712,14 @@ function handleNavigateAfterExpenseCreate({
     isFromGlobalCreate,
     isInvoice,
     shouldHandleNavigation = true,
+    shouldAddPendingNewTransactionIDs = false,
 }: {
     activeReportID?: string;
     transactionID?: string;
     isFromGlobalCreate?: boolean;
     isInvoice?: boolean;
     shouldHandleNavigation?: boolean;
+    shouldAddPendingNewTransactionIDs?: boolean;
 }) {
     const isUserOnInbox = isReportTopmostSplitNavigator();
 
@@ -727,6 +729,9 @@ function handleNavigateAfterExpenseCreate({
     if (!isFromGlobalCreate || isUserOnInbox || !transactionID) {
         if (shouldHandleNavigation) {
             dismissModalAndOpenReportInInboxTab(activeReportID, isInvoice);
+        }
+        if (shouldAddPendingNewTransactionIDs) {
+            addPendingNewTransactionIDs(activeReportID, transactionID);
         }
         return;
     }
@@ -3460,6 +3465,33 @@ function getUpdateTrackExpenseParams(
     };
 }
 
+/**
+ * Mark the transaction for highlight/scroll when the target report first loads (cross-navigation case)
+ */
+function addPendingNewTransactionIDs(reportID: string | undefined, transactionID: string | undefined) {
+    if (!reportID || !transactionID) {
+        return;
+    }
+
+    Onyx.merge(
+        `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`,
+        // We are saving in object form so that consecutive onyx merge will not reset previous value.
+        {pendingNewTransactionIDs: {[transactionID]: true}},
+    );
+}
+
+function deletePendingNewTransactionIDs(reportID: string | undefined, transactionIDs: string[]) {
+    if (!reportID) {
+        return;
+    }
+
+    const pendingNewTransactionIDs = {};
+    for (const transactionID of transactionIDs) {
+        Object.assign(pendingNewTransactionIDs, {[transactionID]: null});
+    }
+    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`, {pendingNewTransactionIDs});
+}
+
 function getOrCreateOptimisticSplitChatReport(existingSplitChatReportID: string | undefined, participants: Participant[], participantAccountIDs: number[], currentUserAccountID: number) {
     // The existing chat report could be passed as reportID or exist on the sole "participant" (in this case a report option)
     const existingChatReportID = existingSplitChatReportID ?? participants.at(0)?.reportID;
@@ -4327,7 +4359,13 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
 
     if (shouldHandleNavigation) {
         highlightTransactionOnSearchRouteIfNeeded(isFromGlobalCreate, parameters.transactionID, CONST.SEARCH.DATA_TYPES.EXPENSE);
-        handleNavigateAfterExpenseCreate({activeReportID: backToReport ?? activeReportID, isFromGlobalCreate, transactionID: parameters.transactionID});
+        const navigationActiveReportID = backToReport ?? activeReportID;
+        handleNavigateAfterExpenseCreate({
+            activeReportID: navigationActiveReportID,
+            isFromGlobalCreate,
+            transactionID: parameters.transactionID,
+            shouldAddPendingNewTransactionIDs: navigationActiveReportID === parameters.chatReportID,
+        });
     }
 
     if (!isMoneyRequestReport) {
@@ -5485,7 +5523,9 @@ export {
     createSplitsAndOnyxData,
     getMoneyRequestInformation,
     getOrCreateOptimisticSplitChatReport,
+    deletePendingNewTransactionIDs,
     getTransactionWithPreservedLocalReceiptSource,
+    addPendingNewTransactionIDs,
 };
 export type {
     GPSPoint as GpsPoint,

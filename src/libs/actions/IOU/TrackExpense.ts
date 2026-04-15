@@ -1835,12 +1835,13 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
 
     if (!requestMoneyInformation.isRetry) {
         highlightTransactionOnSearchRouteIfNeeded(isFromGlobalCreate, transaction.transactionID, CONST.SEARCH.DATA_TYPES.EXPENSE);
-
+        const navigationReportID = backToReport ?? activeReportID;
         handleNavigateAfterExpenseCreate({
-            activeReportID: backToReport ?? activeReportID,
+            activeReportID: navigationReportID,
             transactionID: transaction.transactionID,
             isFromGlobalCreate,
             shouldHandleNavigation,
+            shouldAddPendingNewTransactionIDs: navigationReportID === chatReport.reportID,
         });
     }
 
@@ -2605,6 +2606,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
             transactionID: transaction?.transactionID,
             isFromGlobalCreate,
             shouldHandleNavigation,
+            shouldAddPendingNewTransactionIDs: action === CONST.IOU.ACTION.CATEGORIZE || action === CONST.IOU.ACTION.SHARE,
         });
     }
 
