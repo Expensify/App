@@ -4,32 +4,75 @@
 import {useNavigation} from '@react-navigation/native';
 import React, {useRef, useState} from 'react';
 import {View} from 'react-native';
-import type BaseModalProps from '@components/Modal/types';
-import {usePersonalDetails} from '@components/OnyxListItemProvider';
-import PopoverMenu from '@components/PopoverMenu';
-import type {PopoverMenuItem} from '@components/PopoverMenu';
 import type {SearchQueryJSON} from '@components/Search/types';
 import TabSelectorBase from '@components/TabSelector/TabSelectorBase';
 import TabSelectorContextProvider from '@components/TabSelector/TabSelectorContext';
-import type {TabSelectorBaseItem} from '@components/TabSelector/types';
+import TabSelectorItem from '@components/TabSelector/TabSelectorItem';
+import type {TabSelectorBaseItem, TabSelectorItemProps} from '@components/TabSelector/types';
 import useDeleteSavedSearch from '@hooks/useDeleteSavedSearch';
-import useFeedKeysWithAssignedCards from '@hooks/useFeedKeysWithAssignedCards';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import useReportAttributes from '@hooks/useReportAttributes';
 import useSearchTypeMenuSections from '@hooks/useSearchTypeMenuSections';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setSearchContext} from '@libs/actions/Search';
-import {mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
-import {getAllTaxRates} from '@libs/PolicyUtils';
-import {buildSearchQueryJSON, buildUserReadableQueryString} from '@libs/SearchQueryUtils';
-import {getItemBadgeText, getOverflowMenu} from '@libs/SearchUIUtils';
+import {getItemBadgeText} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {accountIDSelector} from '@src/selectors/Session';
 import todosReportCountsSelector from '@src/selectors/Todos';
+import SavedSearchOverflowMenu from './SavedSearchOverflowMenu';
+import SavedSearchTabSelectorItem from './SavedSearchTabSelectorItem';
+import {SavedSearchTitleDataProvider} from './SavedSearchTitleContext';
+
+function renderSearchPageTabItem(tab: TabSelectorBaseItem, props: TabSelectorItemProps) {
+    if (tab.requiresSavedSearchTitleResolution) {
+        return (
+            <SavedSearchTabSelectorItem
+                tabKey={props.tabKey}
+                icon={props.icon}
+                title={props.title}
+                onPress={props.onPress}
+                onLongPress={props.onLongPress}
+                backgroundColor={props.backgroundColor}
+                activeOpacity={props.activeOpacity}
+                inactiveOpacity={props.inactiveOpacity}
+                isActive={props.isActive}
+                shouldShowLabelWhenInactive={props.shouldShowLabelWhenInactive}
+                testID={props.testID}
+                sentryLabel={props.sentryLabel}
+                shouldShowProductTrainingTooltip={props.shouldShowProductTrainingTooltip}
+                renderProductTrainingTooltip={props.renderProductTrainingTooltip}
+                equalWidth={props.equalWidth}
+                badgeText={props.badgeText}
+                isDisabled={props.isDisabled}
+                pendingAction={props.pendingAction}
+            />
+        );
+    }
+    return (
+        <TabSelectorItem
+            tabKey={props.tabKey}
+            icon={props.icon}
+            title={props.title}
+            onPress={props.onPress}
+            onLongPress={props.onLongPress}
+            backgroundColor={props.backgroundColor}
+            activeOpacity={props.activeOpacity}
+            inactiveOpacity={props.inactiveOpacity}
+            isActive={props.isActive}
+            shouldShowLabelWhenInactive={props.shouldShowLabelWhenInactive}
+            testID={props.testID}
+            sentryLabel={props.sentryLabel}
+            shouldShowProductTrainingTooltip={props.shouldShowProductTrainingTooltip}
+            renderProductTrainingTooltip={props.renderProductTrainingTooltip}
+            equalWidth={props.equalWidth}
+            badgeText={props.badgeText}
+            isDisabled={props.isDisabled}
+            pendingAction={props.pendingAction}
+        />
+    );
+}
 
 type SearchPageTabSelectorProps = {
     /** Search query JSON */
@@ -46,9 +89,19 @@ type SearchPageTabSelectorContentProps = {
     onLongTabPress?: (key: string) => void;
     containerRef?: React.RefObject<View | null>;
     children?: React.ReactNode;
+    renderItem?: (tab: TabSelectorBaseItem, props: TabSelectorItemProps) => React.ReactNode;
 };
 
-function SearchPageTabSelectorContent({tabs, activeTabKey, onActiveTabPress, onTabPress: onTabPressContent, onLongTabPress, containerRef, children}: SearchPageTabSelectorContentProps) {
+function SearchPageTabSelectorContent({
+    tabs,
+    activeTabKey,
+    onActiveTabPress,
+    onTabPress: onTabPressContent,
+    onLongTabPress,
+    containerRef,
+    children,
+    renderItem,
+}: SearchPageTabSelectorContentProps) {
     const styles = useThemeStyles();
 
     return (
@@ -63,6 +116,7 @@ function SearchPageTabSelectorContent({tabs, activeTabKey, onActiveTabPress, onT
                     onActiveTabPress={onActiveTabPress}
                     onTabPress={onTabPressContent}
                     onLongTabPress={onLongTabPress}
+                    renderItem={renderItem}
                 />
             </TabSelectorContextProvider>
             {children}
@@ -70,27 +124,19 @@ function SearchPageTabSelectorContent({tabs, activeTabKey, onActiveTabPress, onT
     );
 }
 
-function SearchPageTabSelector({queryJSON, onTabPress}: SearchPageTabSelectorProps) {
+/**
+ * Inner body: no SavedSearchTitleContext consumption — title resolution lives in
+ * SavedSearchTabSelectorItem and SavedSearchOverflowMenu so Onyx-driven updates
+ * do not re-render this entire subtree.
+ */
+function SearchPageTabSelectorBase({queryJSON, onTabPress}: SearchPageTabSelectorProps) {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const navigation = useNavigation();
     const {typeMenuSections} = useSearchTypeMenuSections();
-    const personalDetails = usePersonalDetails();
-    const feedKeysWithCards = useFeedKeysWithAssignedCards();
-    const [restoreFocusType, setRestoreFocusType] = useState<BaseModalProps['restoreFocusType']>();
 
-    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
-    const [allFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER);
-    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
-    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
-    const [workspaceCardList] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST);
     const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES);
     const [reportCounts = CONST.EMPTY_TODOS_REPORT_COUNTS] = useOnyx(ONYXKEYS.DERIVED.TODOS, {selector: todosReportCountsSelector});
-    const [currentUserAccountID = -1] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
-    const reportAttributes = useReportAttributes();
-
-    const taxRates = getAllTaxRates(allPolicies);
-    const cardsForSavedSearchDisplay = mergeCardListWithWorkspaceFeeds(workspaceCardList ?? CONST.EMPTY_OBJECT, cardList);
 
     const [savedSearchToModifyKey, setSavedSearchToModifyKey] = useState<string | null>(null);
     const menuAnchorRef = useRef<View>(null);
@@ -120,7 +166,6 @@ function SearchPageTabSelector({queryJSON, onTabPress}: SearchPageTabSelectorPro
 
     const queryMap = new Map<string, {query: string; name?: string}>();
     const tabItems: TabSelectorBaseItem[] = [];
-    const savedSearchesPopoverMenuItems: Record<string, PopoverMenuItem[]> = {};
     let activeKey = '';
 
     const savedSearchesTabItems: TabSelectorBaseItem[] = savedSearches
@@ -130,38 +175,20 @@ function SearchPageTabSelector({queryJSON, onTabPress}: SearchPageTabSelectorPro
                       return null;
                   }
 
-                  let title = item.name;
-                  const itemJsonQuery = buildSearchQueryJSON(item.query);
-                  if (queryJSON && itemJsonQuery && title === item.query) {
-                      title = buildUserReadableQueryString({
-                          queryJSON: itemJsonQuery,
-                          PersonalDetails: personalDetails,
-                          reports,
-                          taxRates,
-                          cardList: cardsForSavedSearchDisplay,
-                          cardFeeds: allFeeds,
-                          policies: allPolicies,
-                          currentUserAccountID,
-                          autoCompleteWithSpace: false,
-                          translate,
-                          feedKeysWithCards,
-                          reportAttributes,
-                      });
-                  }
-
                   queryMap.set(key, {query: item.query ?? '', name: item.name});
-                  savedSearchesPopoverMenuItems[key] = getOverflowMenu(expensifyIcons, title, Number(key), item.query, translate, showDeleteModal, true, () =>
-                      setSavedSearchToModifyKey(null),
-                  );
 
                   if (queryJSON && Number(key) === queryJSON.hash) {
                       activeKey = key;
                   }
 
+                  const requiresSavedSearchTitleResolution = item.name === item.query;
+                  const title = requiresSavedSearchTitleResolution ? (item.query ?? '') : item.name;
+
                   return {
                       key,
                       icon: expensifyIcons.Bookmark,
                       title,
+                      requiresSavedSearchTitleResolution,
                       isDisabled: item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                       pendingAction: item.pendingAction,
                   };
@@ -191,9 +218,6 @@ function SearchPageTabSelector({queryJSON, onTabPress}: SearchPageTabSelectorPro
         }
     }
 
-    const popoverMenuItems = savedSearchToModifyKey ? savedSearchesPopoverMenuItems?.[savedSearchToModifyKey] : [];
-    const shouldShowSavedSearchPopover = savedSearchToModifyKey && popoverMenuItems.length > 0;
-
     const handleActiveTabPress = (tabKey: string) => {
         const searchData = queryMap.get(tabKey);
         if (!searchData) {
@@ -219,7 +243,7 @@ function SearchPageTabSelector({queryJSON, onTabPress}: SearchPageTabSelectorPro
     };
 
     const handleLongTabPress = (tabKey: string) => {
-        if (!savedSearchesPopoverMenuItems?.[tabKey]) {
+        if (!savedSearches?.[Number(tabKey)]) {
             return;
         }
 
@@ -234,28 +258,28 @@ function SearchPageTabSelector({queryJSON, onTabPress}: SearchPageTabSelectorPro
             onTabPress={handleTabPress}
             onLongTabPress={handleLongTabPress}
             containerRef={menuAnchorRef}
+            renderItem={renderSearchPageTabItem}
         >
-            <PopoverMenu
-                onClose={() => setSavedSearchToModifyKey(null)}
-                onModalHide={() => setRestoreFocusType(undefined)}
-                isVisible={!!shouldShowSavedSearchPopover}
-                // This component is only displayed when isSmallScreenWidth is true, so
-                // anchorPosition is ignored anyway
-                anchorPosition={{horizontal: 0, vertical: 0}}
-                anchorAlignment={{
-                    horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
-                    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
-                }}
-                onItemSelected={() => {
-                    setRestoreFocusType(CONST.MODAL.RESTORE_FOCUS_TYPE.PRESERVE);
-                    setSavedSearchToModifyKey(null);
-                }}
-                menuItems={popoverMenuItems}
-                anchorRef={menuAnchorRef}
-                shouldEnableNewFocusManagement
-                restoreFocusType={restoreFocusType}
+            <SavedSearchOverflowMenu
+                savedSearchToModifyKey={savedSearchToModifyKey}
+                savedSearches={savedSearches}
+                expensifyIcons={expensifyIcons}
+                showDeleteModal={showDeleteModal}
+                menuAnchorRef={menuAnchorRef}
+                onSetModifyKey={setSavedSearchToModifyKey}
             />
         </SearchPageTabSelectorContent>
+    );
+}
+
+function SearchPageTabSelector({queryJSON, onTabPress}: SearchPageTabSelectorProps) {
+    return (
+        <SavedSearchTitleDataProvider>
+            <SearchPageTabSelectorBase
+                queryJSON={queryJSON}
+                onTabPress={onTabPress}
+            />
+        </SavedSearchTitleDataProvider>
     );
 }
 

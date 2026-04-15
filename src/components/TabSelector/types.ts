@@ -1,4 +1,5 @@
 import type {MaterialTopTabBarProps} from '@react-navigation/material-top-tabs';
+import type React from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {Animated} from 'react-native';
 import type {ThemeColors} from '@styles/theme/types';
@@ -50,38 +51,12 @@ type TabSelectorBaseItem = WithSentryLabel & {
 
     /** Pending action for the tab. */
     pendingAction?: PendingAction;
-};
 
-type TabSelectorBaseProps = {
-    /** Tabs to render. */
-    tabs: TabSelectorBaseItem[];
-
-    /** Key of the currently active tab. */
-    activeTabKey: string;
-
-    /** Called when a tab is pressed with its key. */
-    onTabPress?: (key: string) => void;
-
-    /* Callback fired when tab is long pressed */
-    onLongTabPress?: (key: string) => void;
-
-    /* Callback fired when active tab is pressed */
-    onActiveTabPress?: (key: string) => void;
-
-    /** Animated position from a navigator (optional). */
-    position?: Animated.AnimatedInterpolation<number>;
-
-    /** Whether to show the label when the tab is inactive. */
-    shouldShowLabelWhenInactive?: boolean;
-
-    /** Whether tabs should have equal width. */
-    equalWidth?: boolean;
-
-    /** Determines whether the product training tooltip should be displayed to the user. */
-    shouldShowProductTrainingTooltip?: boolean;
-
-    /** Function to render the content of the product training tooltip. */
-    renderProductTrainingTooltip?: () => React.JSX.Element;
+    /**
+     * When true, callers may use a custom renderItem to resolve the display title
+     * (e.g. saved searches where name equals the raw query).
+     */
+    requiresSavedSearchTitleResolution?: boolean;
 };
 
 type TabSelectorItemProps = WithSentryLabel & {
@@ -135,6 +110,44 @@ type TabSelectorItemProps = WithSentryLabel & {
 
     /** Pending action for the tab. */
     pendingAction?: PendingAction;
+};
+
+type TabSelectorBaseProps = {
+    /** Tabs to render. */
+    tabs: TabSelectorBaseItem[];
+
+    /** Key of the currently active tab. */
+    activeTabKey: string;
+
+    /** Called when a tab is pressed with its key. */
+    onTabPress?: (key: string) => void;
+
+    /* Callback fired when tab is long pressed */
+    onLongTabPress?: (key: string) => void;
+
+    /* Callback fired when active tab is pressed */
+    onActiveTabPress?: (key: string) => void;
+
+    /** Animated position from a navigator (optional). */
+    position?: Animated.AnimatedInterpolation<number>;
+
+    /** Whether to show the label when the tab is inactive. */
+    shouldShowLabelWhenInactive?: boolean;
+
+    /** Whether tabs should have equal width. */
+    equalWidth?: boolean;
+
+    /** Determines whether the product training tooltip should be displayed to the user. */
+    shouldShowProductTrainingTooltip?: boolean;
+
+    /** Function to render the content of the product training tooltip. */
+    renderProductTrainingTooltip?: () => React.JSX.Element;
+
+    /**
+     * When provided, replaces the default TabSelectorItem for each tab.
+     * Receives the tab definition and the same props TabSelectorItem would get.
+     */
+    renderItem?: (tab: TabSelectorBaseItem, props: TabSelectorItemProps) => React.ReactNode;
 };
 
 type AnimationConfigBase = {
