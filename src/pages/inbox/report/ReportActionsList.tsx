@@ -114,10 +114,10 @@ type ReportActionsListProps = {
     hasNewerActions: boolean;
 
     /** The oldest unread report action */
-    oldestUnreadReportAction: OnyxEntry<OnyxTypes.ReportAction> | undefined;
+    oldestUnreadReportAction?: OnyxEntry<OnyxTypes.ReportAction> | undefined;
 
     /** The index of the oldest unread report action */
-    oldestUnreadReportActionIndex: number;
+    oldestUnreadReportActionIndex?: number;
 
     /** Full sorted report actions for collapsing stale pagination after a live-tail jump */
     sortedAllReportActionsForPagination: OnyxTypes.ReportAction[];
@@ -312,7 +312,7 @@ function ReportActionsList({
     }, [getLocalDateFromDatetime, isOffline, lastOfflineAt, lastOnlineAt, sortedReportActions]);
 
     const oldestUnreadReportActionMarker = useMemo<[string, number] | undefined>(
-        () => (!!oldestUnreadReportAction && !!oldestUnreadReportActionIndex ? [oldestUnreadReportAction.reportActionID, oldestUnreadReportActionIndex] : undefined),
+        () => (!!oldestUnreadReportAction && oldestUnreadReportActionIndex !== undefined ? [oldestUnreadReportAction.reportActionID, oldestUnreadReportActionIndex] : undefined),
         [oldestUnreadReportAction, oldestUnreadReportActionIndex],
     );
 
