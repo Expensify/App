@@ -1,6 +1,10 @@
 // Typed require with explicit .ts path — matches the project's test-file convention.
 /* eslint-disable @typescript-eslint/no-require-imports, import/extensions */
-const {resetCycle: resetArbiter} = require<{resetCycle: () => void}>('../../src/libs/ScreenFocusArbiter.ts');
+const {resetCycle: resetArbiter, tryClaim, Priorities} = require<{
+    resetCycle: () => void;
+    tryClaim: (priority: number) => boolean;
+    Priorities: {INITIAL: number; AUTO: number; RETURN: number};
+}>('../../src/libs/ScreenFocusArbiter.ts');
 const {
     diffNavigationState,
     collectRouteKeys,
@@ -641,6 +645,41 @@ describe('restoreTriggerForRoute', () => {
         const spy = jest.spyOn(trigger, 'focus');
         expect(restoreTriggerForRoute('route-a')).toBe(true);
         expect(spy).toHaveBeenCalled();
+    });
+
+    it("Status → Clear after → Esc: restores to 'Clear after' even when Status AUTO-focuses the Message input", () => {
+        withFakeTimers(() => {
+            // Exercise the real runtime path: forward+backward handleStateChange with scheduled restore.
+            const onStatus = stackState(0, [{key: 'status', name: 'Status'}]);
+            const onStatusClearAfter = stackState(1, [
+                {key: 'status', name: 'Status'},
+                {key: 'clear-after', name: 'ClearAfter'},
+            ]);
+            const messageInput = appendInput(); // Status page auto-focus target
+            const clearAfterButton = appendButton(); // the trigger
+
+            simulateTab();
+            handleStateChange(onStatus);
+
+            // User Tab+Enters "Clear after" → forward nav captures the trigger against the Status route.
+            fireFocusIn(clearAfterButton);
+            handleStateChange(onStatusClearAfter);
+            clearAfterButton.blur();
+
+            // User presses Esc → backward nav schedules a restore for Status.
+            handleStateChange(onStatus);
+
+            // Before the scheduled restore fires, Status's useAutoFocusInput races ahead and claims AUTO on Message.
+            expect(tryClaim(Priorities.AUTO)).toBe(true);
+
+            const messageSpy = jest.spyOn(messageInput, 'focus');
+            const clearSpy = jest.spyOn(clearAfterButton, 'focus');
+
+            // Scheduled restore fires; RETURN preempts AUTO and focus lands on "Clear after", not the Message input.
+            jest.runAllTimers();
+            expect(clearSpy).toHaveBeenCalled();
+            expect(messageSpy).not.toHaveBeenCalled();
+        });
     });
 
     it('should consume the entry so a second restore returns false', () => {
