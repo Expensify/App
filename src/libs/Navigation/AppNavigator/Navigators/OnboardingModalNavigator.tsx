@@ -165,7 +165,7 @@ function OnboardingModalNavigator() {
                                 component={OnboardingWorkspaceOptional}
                             />
                             <Stack.Screen
-                                name={SCREENS.ONBOARDING.WORKSPACE_CONFIRMATION}
+                                name={SCREENS.ONBOARDING.DYNAMIC_WORKSPACE_CONFIRMATION}
                                 component={OnboardingWorkspaceConfirmation}
                             />
                             <Stack.Screen

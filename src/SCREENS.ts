@@ -885,7 +885,7 @@ const SCREENS = {
         DYNAMIC_WORK_EMAIL: 'Dynamic_Onboarding_Work_Email',
         DYNAMIC_WORK_EMAIL_VALIDATION: 'Dynamic_Onboarding_Work_Email_Validation',
         DYNAMIC_WORKSPACE_OPTIONAL: 'Dynamic_Onboarding_Workspace_Optional',
-        WORKSPACE_CONFIRMATION: 'Onboarding_Workspace_Confirmation',
+        DYNAMIC_WORKSPACE_CONFIRMATION: 'Dynamic_Onboarding_Workspace_Confirmation',
         WORKSPACE_CURRENCY: 'Onboarding_Workspace_Currency',
         WORKSPACE_INVITE: 'Onboarding_Workspace_Invite',
     },
