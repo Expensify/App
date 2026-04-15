@@ -121,6 +121,7 @@ function revokeDevice(login: NewLogin) {
                     errorFields: {
                         revoke: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
                     },
+                    pendingAction: null,
                 },
             },
         },
