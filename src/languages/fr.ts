@@ -1676,6 +1676,7 @@ const translations: TranslationDeepObject<typeof en> = {
             confirmText: 'Supprimer la taxe',
         },
         bulkDuplicateLimit: `Vous pouvez dupliquer jusqu’à ${CONST.SEARCH.BULK_DUPLICATE_LIMIT} dépenses à la fois. Veuillez sélectionner moins de dépenses et réessayer.`,
+        deleted: 'Supprimé',
     },
     transactionMerge: {
         listPage: {
@@ -2119,6 +2120,9 @@ const translations: TranslationDeepObject<typeof en> = {
             helpSite: 'Site d’aide',
             conciergeChat: 'Concierge',
             conciergeChatDescription: 'Votre agent IA personnel',
+            accountManagerDescription: 'Votre gestionnaire de compte',
+            partnerManagerDescription: 'Votre gestionnaire partenaire',
+            guideDescription: 'Votre spécialiste de configuration',
         },
     },
     closeAccountPage: {
@@ -7623,6 +7627,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             reject: 'Rejeter',
             duplicateExpense: ({count}: {count: number}) => `Dupliquer ${count === 1 ? 'la dépense' : 'les dépenses'}`,
             noOptionsAvailable: 'Aucune option n’est disponible pour le groupe de dépenses sélectionné.',
+            undelete: 'Restaurer',
         },
         filtersHeader: 'Filtres',
         filters: {
@@ -7675,6 +7680,10 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             billable: 'Facturable',
             reimbursable: 'Remboursable',
             purchaseCurrency: 'Devise d’achat',
+            sortOrder: {
+                [CONST.SEARCH.SORT_ORDER.ASC]: 'Croissant',
+                [CONST.SEARCH.SORT_ORDER.DESC]: 'Descendant',
+            },
             groupBy: {
                 [CONST.SEARCH.GROUP_BY.FROM]: 'De',
                 [CONST.SEARCH.GROUP_BY.CARD]: 'Carte',
@@ -7703,6 +7712,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         display: {
             label: 'Affichage',
             sortBy: 'Trier par',
+            sortOrder: 'Ordre de tri',
             groupBy: 'Regrouper par',
             limitResults: 'Limiter les résultats',
         },
@@ -7738,7 +7748,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         recentSearches: 'Recherches récentes',
         recentChats: 'Discussions récentes',
         searchIn: 'Rechercher dans',
-        searchPlaceholder: 'Rechercher quelque chose',
+        searchPlaceholder: 'Rechercher quelque chose...',
         suggestions: 'Suggestions',
         suggestionsAvailable: (
             {

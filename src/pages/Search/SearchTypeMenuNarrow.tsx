@@ -1,4 +1,4 @@
-// NOTE: This component has a static twin in SearchPageNarrow/StaticTabSelector.tsx
+// NOTE: This component has a static twin in SearchPageNarrow/StaticSearchTypeMenu.tsx
 // used for fast perceived performance. If you change the UI here, verify the
 // static version still looks visually identical.
 import {useNavigation} from '@react-navigation/native';
@@ -31,14 +31,14 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import {accountIDSelector} from '@src/selectors/Session';
 import todosReportCountsSelector from '@src/selectors/Todos';
 
-type SearchPageTabSelectorProps = {
+type SearchTypeMenuNarrowProps = {
     /** Search query JSON */
     queryJSON?: SearchQueryJSON;
     /** Function to call when a tab is pressed */
     onTabPress?: () => void;
 };
 
-type SearchPageTabSelectorContentProps = {
+type SearchTypeMenuNarrowContentProps = {
     tabs: TabSelectorBaseItem[];
     activeTabKey: string;
     onActiveTabPress?: (key: string) => void;
@@ -48,7 +48,7 @@ type SearchPageTabSelectorContentProps = {
     children?: React.ReactNode;
 };
 
-function SearchPageTabSelectorContent({tabs, activeTabKey, onActiveTabPress, onTabPress: onTabPressContent, onLongTabPress, containerRef, children}: SearchPageTabSelectorContentProps) {
+function SearchTypeMenuNarrowContent({tabs, activeTabKey, onActiveTabPress, onTabPress: onTabPressContent, onLongTabPress, containerRef, children}: SearchTypeMenuNarrowContentProps) {
     const styles = useThemeStyles();
 
     return (
@@ -70,7 +70,7 @@ function SearchPageTabSelectorContent({tabs, activeTabKey, onActiveTabPress, onT
     );
 }
 
-function SearchPageTabSelector({queryJSON, onTabPress}: SearchPageTabSelectorProps) {
+function SearchTypeMenuNarrow({queryJSON, onTabPress}: SearchTypeMenuNarrowProps) {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const navigation = useNavigation();
@@ -227,7 +227,7 @@ function SearchPageTabSelector({queryJSON, onTabPress}: SearchPageTabSelectorPro
     };
 
     return (
-        <SearchPageTabSelectorContent
+        <SearchTypeMenuNarrowContent
             tabs={tabItems}
             activeTabKey={activeKey}
             onActiveTabPress={handleActiveTabPress}
@@ -255,9 +255,10 @@ function SearchPageTabSelector({queryJSON, onTabPress}: SearchPageTabSelectorPro
                 shouldEnableNewFocusManagement
                 restoreFocusType={restoreFocusType}
             />
-        </SearchPageTabSelectorContent>
+        </SearchTypeMenuNarrowContent>
     );
 }
 
-export {SearchPageTabSelectorContent};
-export default SearchPageTabSelector;
+export {SearchTypeMenuNarrowContent};
+export default SearchTypeMenuNarrow;
+export type {SearchTypeMenuNarrowProps};
