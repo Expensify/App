@@ -47,8 +47,8 @@ type SingleSelectPopupProps<T> = {
     /** Custom styles for the SelectionList */
     selectionListStyle?: SelectionListStyle;
 
-    /** Weather SelectionList of popup should stay mounted when popup is not visible. */
-    keepListMounted?: boolean;
+    /** Whether SelectionList of popup should stay mounted when popup is not visible. */
+    shouldShowList?: boolean;
 };
 
 function SingleSelectPopup<T extends string>({
@@ -62,7 +62,7 @@ function SingleSelectPopup<T extends string>({
     defaultValue,
     style,
     selectionListStyle,
-    keepListMounted = true,
+    shouldShowList = true,
 }: SingleSelectPopupProps<T>) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -143,7 +143,7 @@ function SingleSelectPopup<T extends string>({
             style={style}
         >
             <View style={[styles.getSelectionListPopoverHeight(options.length || 1, windowHeight, isSearchable ?? false, isInLandscapeMode, shouldShowLabel)]}>
-                <Activity mode={keepListMounted ? 'visible' : 'hidden'}>
+                <Activity mode={shouldShowList ? 'visible' : 'hidden'}>
                     <SelectionList
                         data={options}
                         shouldSingleExecuteRowSelect

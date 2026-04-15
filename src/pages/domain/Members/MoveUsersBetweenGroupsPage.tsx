@@ -59,7 +59,7 @@ function MoveUsersBetweenGroupsPage({route}: MoveUsersBetweenGroupsPageProps) {
         for (const accountIDString of selectedMemberAccountIDs) {
             const accountID = Number(accountIDString);
             const memberLogin = getLoginByAccountID(accountID);
-            const currentGroup = securityGroups?.find((g) => accountIDString in (g.details.shared ?? {}));
+            const currentGroup = securityGroups?.find((g) => !!g.details.shared?.[accountIDString]);
             const currentGroupData = currentGroup ? {key: `${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}${currentGroup.id}` as const, securityGroup: currentGroup.details} : undefined;
             const newSecurityGroupKey: `${typeof CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}${string}` = `${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}${selectedGroupId}`;
 
@@ -84,7 +84,6 @@ function MoveUsersBetweenGroupsPage({route}: MoveUsersBetweenGroupsPageProps) {
                 <HeaderWithBackButton
                     title={translate('domain.members.moveToGroup')}
                     onBackButtonPress={() => {
-                        clearDomainMembersSelectedForMove();
                         Navigation.goBack(ROUTES.DOMAIN_MEMBERS.getRoute(domainAccountID));
                     }}
                 />

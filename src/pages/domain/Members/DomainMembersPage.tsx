@@ -81,7 +81,7 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
             onChange={handleGroupChange}
             defaultValue={groupOptions.at(0)?.value}
             selectionListStyle={{listItemWrapperStyle: {minHeight: 40}}}
-            keepListMounted={isExpanded}
+            shouldShowList={isExpanded}
         />
     );
 
