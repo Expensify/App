@@ -35,6 +35,17 @@ import type {
 } from '@src/types/onyx/SearchResults';
 import type Transaction from '@src/types/onyx/Transaction';
 
+type SearchListActionProps = {
+    /** The last payment method used per policy */
+    lastPaymentMethod?: OnyxEntry<LastPaymentMethod>;
+    /** The user's personal policy ID */
+    personalPolicyID?: string;
+    /** Billing grace period end dates for workspace owners (shared across all list items) */
+    userBillingGracePeriodEnds?: OnyxCollection<BillingGraceEndPeriod>;
+    /** The workspace owner's billing grace period end date */
+    ownerBillingGracePeriodEnd?: OnyxEntry<number>;
+};
+
 type ChatListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
     queryJSONHash?: number;
 
@@ -54,25 +65,14 @@ type ChatListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
     userBillingFundID: number | undefined;
 };
 
-type ExpenseReportListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
-    /** The visible columns for the report */
-    columns?: SearchColumnType[];
+type ExpenseReportListItemProps<TItem extends ListItem> = ListItemProps<TItem> &
+    SearchListActionProps & {
+        /** The visible columns for the report */
+        columns?: SearchColumnType[];
 
-    /** Whether the item's action is loading */
-    isLoading?: boolean;
-
-    /** The last payment method used per policy */
-    lastPaymentMethod?: OnyxEntry<LastPaymentMethod>;
-
-    /** The user's personal policy ID */
-    personalPolicyID?: string;
-
-    /** Billing grace period end dates for workspace owners (shared across all list items) */
-    userBillingGracePeriodEnds?: OnyxCollection<BillingGraceEndPeriod>;
-
-    /** The workspace owner's billing grace period end date */
-    ownerBillingGracePeriodEnd?: OnyxEntry<number>;
-};
+        /** Whether the item's action is loading */
+        isLoading?: boolean;
+    };
 
 type TransactionListItemType = ListItem &
     Transaction & {
@@ -417,31 +417,25 @@ type TransactionQuarterGroupListItemType = TransactionGroupListItemType & {group
         sortKey: number;
     };
 
-type TransactionListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
-    /** Whether the item's action is loading */
-    isLoading?: boolean;
-    columns?: SearchColumnType[];
-    violations?: Record<string, TransactionViolations | undefined> | undefined;
-    customCardNames?: Record<number, string>;
-    /** The last payment method used per policy */
-    lastPaymentMethod?: OnyxEntry<LastPaymentMethod>;
-    /** The user's personal policy ID */
-    personalPolicyID?: string;
-};
+type TransactionListItemProps<TItem extends ListItem> = ListItemProps<TItem> &
+    SearchListActionProps & {
+        /** Whether the item's action is loading */
+        isLoading?: boolean;
+        columns?: SearchColumnType[];
+        violations?: Record<string, TransactionViolations | undefined> | undefined;
+        customCardNames?: Record<number, string>;
+    };
 
-type TransactionGroupListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
-    groupBy?: SearchGroupBy;
-    searchType?: SearchDataTypes;
-    policies?: OnyxCollection<Policy>;
-    accountID?: number;
-    columns?: SearchColumnType[];
-    newTransactionID?: string;
-    violations?: Record<string, TransactionViolations | undefined> | undefined;
-    /** The last payment method used per policy */
-    lastPaymentMethod?: OnyxEntry<LastPaymentMethod>;
-    /** The user's personal policy ID */
-    personalPolicyID?: string;
-};
+type TransactionGroupListItemProps<TItem extends ListItem> = ListItemProps<TItem> &
+    SearchListActionProps & {
+        groupBy?: SearchGroupBy;
+        searchType?: SearchDataTypes;
+        policies?: OnyxCollection<Policy>;
+        accountID?: number;
+        columns?: SearchColumnType[];
+        newTransactionID?: string;
+        violations?: Record<string, TransactionViolations | undefined> | undefined;
+    };
 
 type TransactionGroupListExpandedProps<TItem extends ListItem> = Pick<
     TransactionGroupListItemProps<TItem>,
@@ -467,6 +461,7 @@ type UnreportedExpenseListItemType = Transaction & {
 };
 
 export type {
+    SearchListActionProps,
     ChatListItemProps,
     ExpenseReportListItemProps,
     TransactionReportGroupListItemType,
