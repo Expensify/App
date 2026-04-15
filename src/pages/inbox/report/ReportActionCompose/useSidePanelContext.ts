@@ -21,7 +21,7 @@ function useSidePanelContext(reportID: string): OnyxTypes.SidePanelContext | und
         const contextReportID = currentRHPReportID ?? currentReportID ?? undefined;
         const selectedTransactionIDsForContext = !isEmptyObject(selectedTransactions)
             ? Object.entries(selectedTransactions)
-                  .filter(([, info]) => info.isSelected)
+                  .filter(([, info]) => info.isSelected && !!info.transaction)
                   .map(([id]) => id)
                   .join(',') || undefined
             : undefined;
