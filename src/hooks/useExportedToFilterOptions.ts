@@ -62,7 +62,7 @@ export default function useExportedToFilterOptions(): UseExportedToFilterDataRes
     }
 
     const combinedUniqueExportTemplates = Array.from(uniqueExportTemplatesByName.values());
-    const integrationConnectionNamesSet = new Set<string>(Object.values(CONST.POLICY.CONNECTIONS.NAME));
+    const integrationConnectionNamesSet = new Set<string>(CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES);
 
     const standardAndCustomExportTemplates: string[] = [];
     for (const template of combinedUniqueExportTemplates) {
