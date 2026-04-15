@@ -199,9 +199,6 @@ describe('actions/Duplicate', () => {
                 reimbursable: false,
                 tag: 'UpdatedProject',
                 taxCode: '',
-                taxAmount: 0,
-                taxName: '',
-                taxValue: '',
                 receiptID: 123,
                 reportID,
             };
@@ -284,9 +281,6 @@ describe('actions/Duplicate', () => {
                 reimbursable: false,
                 tag: 'UpdatedProject',
                 taxCode: '',
-                taxAmount: 0,
-                taxName: '',
-                taxValue: '',
                 receiptID: 123,
                 reportID,
             };
@@ -339,9 +333,6 @@ describe('actions/Duplicate', () => {
                 reimbursable: false,
                 tag: 'UpdatedProject',
                 taxCode: '',
-                taxAmount: 0,
-                taxName: '',
-                taxValue: '',
                 receiptID: 123,
                 reportID,
             };
@@ -537,9 +528,6 @@ describe('actions/Duplicate', () => {
                 reimbursable: false,
                 tag: 'UpdatedProject',
                 taxCode: '',
-                taxAmount: 0,
-                taxName: '',
-                taxValue: '',
                 receiptID: 123,
                 reportID,
             };
@@ -641,9 +629,6 @@ describe('actions/Duplicate', () => {
                 reimbursable: false,
                 tag: 'UpdatedProject',
                 taxCode: '',
-                taxAmount: 0,
-                taxName: '',
-                taxValue: '',
                 receiptID: 123,
                 reportID,
             };
@@ -785,9 +770,6 @@ describe('actions/Duplicate', () => {
                 reimbursable: false,
                 tag: 'UpdatedProject',
                 taxCode: '',
-                taxAmount: 0,
-                taxName: '',
-                taxValue: '',
                 receiptID: 123,
                 reportID,
             };
@@ -880,9 +862,6 @@ describe('actions/Duplicate', () => {
                 reimbursable: false,
                 tag: 'UpdatedProject',
                 taxCode: '',
-                taxAmount: 0,
-                taxName: '',
-                taxValue: '',
                 receiptID: 123,
                 reportID: 'report123',
             };
@@ -926,9 +905,6 @@ describe('actions/Duplicate', () => {
                 reimbursable: false,
                 tag: 'UpdatedProject',
                 taxCode: '',
-                taxAmount: 0,
-                taxName: '',
-                taxValue: '',
                 receiptID: 123,
                 reportID,
             };
@@ -986,9 +962,6 @@ describe('actions/Duplicate', () => {
                 reimbursable: false,
                 tag: 'UpdatedProject',
                 taxCode: '',
-                taxAmount: 0,
-                taxName: '',
-                taxValue: '',
                 receiptID: 123,
                 reportID,
             };
@@ -1066,9 +1039,6 @@ describe('actions/Duplicate', () => {
                 reimbursable: false,
                 tag: 'UpdatedProject',
                 taxCode: '',
-                taxAmount: 0,
-                taxName: '',
-                taxValue: '',
                 receiptID: 123,
                 reportID: reportA,
             };
@@ -1860,9 +1830,6 @@ describe('actions/Duplicate', () => {
                         reimbursable: true,
                         tag: '',
                         taxCode: '',
-                        taxAmount: 0,
-                        taxName: '',
-                        taxValue: '',
                         transactionIDList: [transaction2.transactionID],
                     });
                     return waitForBatchedUpdates();

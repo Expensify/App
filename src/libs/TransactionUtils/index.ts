@@ -2563,10 +2563,7 @@ function buildMergeDuplicatesParams(
     reviewDuplicates: OnyxEntry<ReviewDuplicates>,
     duplicatedTransactions: Array<OnyxEntry<Transaction>>,
     originalTransaction: Partial<Transaction>,
-    policy: OnyxEntry<Policy>,
 ): MergeDuplicatesParams {
-    const taxCode = reviewDuplicates?.taxCode ?? '';
-    const taxRate = taxCode ? policy?.taxRates?.taxes?.[taxCode] : undefined;
     return {
         amount: -getAmount(originalTransaction as OnyxEntry<Transaction>, true),
         reportID: originalTransaction?.reportID,
@@ -2579,10 +2576,7 @@ function buildMergeDuplicatesParams(
         reimbursable: reviewDuplicates?.reimbursable ?? false,
         category: reviewDuplicates?.category ?? '',
         tag: reviewDuplicates?.tag ?? '',
-        taxCode,
-        taxAmount: reviewDuplicates?.taxAmount ?? 0,
-        taxName: taxRate ? `${taxRate.name} (${taxRate.value})` : '',
-        taxValue: taxRate?.value ?? '',
+        taxCode: reviewDuplicates?.taxCode ?? '',
         merchant: reviewDuplicates?.merchant ?? '',
         comment: reviewDuplicates?.description ?? '',
     };
