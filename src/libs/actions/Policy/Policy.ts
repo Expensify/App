@@ -81,7 +81,7 @@ import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
-import {createFile} from '@libs/fileDownload/FileUtils';
+import {createFile, splitExtensionFromFileName} from '@libs/fileDownload/FileUtils';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import GoogleTagManager from '@libs/GoogleTagManager';
 // eslint-disable-next-line @typescript-eslint/no-deprecated
@@ -1810,6 +1810,14 @@ function deleteWorkspaceAvatar(policyID: string, currentAvatarURL: string, curre
 }
 
 function updatePolicyRulesDocument(policyID: string, file: File, currentDocumentURL: string | undefined) {
+    const isPDF = file.type === 'application/pdf' || splitExtensionFromFileName(file.name ?? '').fileExtension.toLowerCase() === 'pdf';
+    if (!isPDF) {
+        Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+            errorFields: {rulesDocumentURL: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('attachmentPicker.notAllowedExtension')},
+        });
+        return;
+    }
+
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,

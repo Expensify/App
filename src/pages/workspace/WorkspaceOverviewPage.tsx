@@ -204,10 +204,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
         [policy?.rulesDocumentURL, policyID, session?.encryptedAuthToken],
     );
 
-    const rulesDocumentThumbnailStyle = useMemo(
-        () => ({width: '100%' as const, maxWidth: variables.rulesDocumentThumbnailMaxWidth, height: variables.rulesDocumentThumbnailHeight}),
-        [],
-    );
+    const rulesDocumentThumbnailStyle = useMemo(() => ({maxWidth: variables.rulesDocumentThumbnailMaxWidth, height: variables.rulesDocumentThumbnailHeight}), []);
     const rulesDocumentMenuPositionStyle = useMemo(() => ({top: variables.spacing2, right: variables.spacing2}), []);
     const rulesDocumentMenuIconStyle = useMemo(() => ({borderRadius: variables.componentSizeNormal / 2, backgroundColor: theme.cardBG}), [theme.cardBG]);
 
@@ -449,18 +446,21 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
         return translate('common.leaveWorkspaceConfirmation');
     };
 
+    const handleRulesDocumentPicked = (files: FileObject[]) => {
+        const file = files.at(0);
+        if (!policyID || !file) {
+            return;
+        }
+        updatePolicyRulesDocument(policyID, file as File, policy?.rulesDocumentURL);
+    };
+
     const getRulesDocumentMenuItems = (openPicker: (options: {onPicked: (files: FileObject[]) => void}) => void): PopoverMenuItem[] => [
         {
             text: translate('common.replace'),
             icon: expensifyIcons.Upload,
             onSelected: () => {
                 openPicker({
-                    onPicked: (files: FileObject[]) => {
-                        if (!policyID || !files.length) {
-                            return;
-                        }
-                        updatePolicyRulesDocument(policyID, files.at(0) as File, policy?.rulesDocumentURL);
-                    },
+                    onPicked: handleRulesDocumentPicked,
                 });
             },
         },
@@ -817,13 +817,22 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                         subtitleTextStyles={[styles.textNormal, styles.colorMuted, styles.mr5]}
                         containerStyles={shouldUseNarrowLayout ? styles.p5 : styles.p8}
                     >
-                        <OfflineWithFeedback pendingAction={policy?.pendingFields?.rulesDocumentURL}>
+                        <OfflineWithFeedback
+                            pendingAction={policy?.pendingFields?.rulesDocumentURL}
+                            errors={getLatestErrorField(policy ?? {}, 'rulesDocumentURL')}
+                            onClose={() => {
+                                if (!policyID) {
+                                    return;
+                                }
+                                clearPolicyErrorField(policyID, 'rulesDocumentURL');
+                            }}
+                        >
                             <Text style={[styles.mutedTextLabel, styles.mb2]}>{translate('workspace.rules.customRules.policyDocument')}</Text>
                             <AttachmentPicker acceptedFileTypes={['pdf']}>
                                 {({openPicker}) => {
                                     if (policy?.rulesDocumentURL) {
                                         return (
-                                            <View style={rulesDocumentThumbnailStyle}>
+                                            <View style={[styles.w100, rulesDocumentThumbnailStyle]}>
                                                 <PressableWithoutFeedback
                                                     onPress={() => {
                                                         if (!policyID) {
@@ -865,12 +874,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                                                 text={translate('common.chooseFile')}
                                                 onPress={() => {
                                                     openPicker({
-                                                        onPicked: (files) => {
-                                                            if (!policyID || !files.length) {
-                                                                return;
-                                                            }
-                                                            updatePolicyRulesDocument(policyID, files.at(0) as File, policy?.rulesDocumentURL);
-                                                        },
+                                                        onPicked: handleRulesDocumentPicked,
                                                     });
                                                 }}
                                             />
