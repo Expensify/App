@@ -46,7 +46,8 @@ import {
     isThread,
 } from '@libs/ReportUtils';
 import {isInvalidMerchantValue} from '@libs/ValidationUtils';
-import type {IOURequestType, UpdateMoneyRequestDataKeys} from '@userActions/IOU';
+import type {IOURequestType} from '@userActions/IOU';
+import type {UpdateMoneyRequestDataKeys} from '@userActions/IOU/UpdateMoneyRequest';
 import CONST from '@src/CONST';
 import type {IOUType} from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
