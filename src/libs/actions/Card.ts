@@ -1905,7 +1905,7 @@ function getCardholderNameForCSV(card: Card, personalDetailsList: PersonalDetail
     return getDisplayNameOrDefault(details, '', false, false);
 }
 
-export type ExportExpensifyCardListToCSVParams = {
+type ExportExpensifyCardListToCSVParams = {
     /** Workspace policy ID (used in the download filename) */
     policyID: string;
 
@@ -1999,4 +1999,4 @@ export {
     setExpensifyCardRule,
     getSpendRuleFormValuesFromCardRule,
 };
-export type {ReplacementReason};
+export type {ExportExpensifyCardListToCSVParams, ReplacementReason};
