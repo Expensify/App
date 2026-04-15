@@ -251,6 +251,12 @@ const webViewStyles = (theme: ThemeColors) =>
         },
     }) satisfies WebViewStyle;
 
+const compactPopoverMenuItemBaseStyle = {
+    ...spacing.ph5,
+    ...spacing.pv1,
+    alignItems: 'center' as const,
+};
+
 const staticStyles = (theme: ThemeColors) =>
     StyleSheet.create({
         ...spacing,
@@ -1789,17 +1795,11 @@ const staticStyles = (theme: ThemeColors) =>
             paddingVertical: variables.componentBorderRadiusLarge,
         },
 
-        compactPopoverMenuItemBase: {
-            ...spacing.ph5,
-            ...spacing.pv1,
-            alignItems: 'center' as const,
-        },
+        compactPopoverMenuItemBase: compactPopoverMenuItemBaseStyle,
 
         compactPopoverMenuItem: {
+            ...compactPopoverMenuItemBaseStyle,
             height: variables.componentSizeLarge,
-            ...spacing.ph5,
-            ...spacing.pv1,
-            alignItems: 'center' as const,
         },
 
         createMenuHeaderText: {
@@ -4194,8 +4194,8 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         contextMenuItemPopoverMaxWidth: {
-            minWidth: 300,
-            maxWidth: 300,
+            minWidth: variables.compactPopoverMenuWidth,
+            maxWidth: variables.compactPopoverMenuWidth,
         },
 
         formSpaceVertical: {
