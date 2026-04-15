@@ -4,7 +4,7 @@ import SingleFieldStep from '@components/SubStepForms/SingleFieldStep';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useReimbursementAccountStepFormSubmit from '@hooks/useReimbursementAccountStepFormSubmit';
-import type {SubPageProps} from '@hooks/useSubPage/types';
+import type {SubStepProps} from '@hooks/useSubStep/types';
 import {getFieldRequiredErrors, isValidCompanyName} from '@libs/ValidationUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -13,7 +13,7 @@ import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 const COMPANY_NAME_KEY = INPUT_IDS.BUSINESS_INFO_STEP.COMPANY_NAME;
 const STEP_FIELDS = [COMPANY_NAME_KEY];
 
-function NameBusiness({onNext, onMove, isEditing}: SubPageProps) {
+function NameBusiness({onNext, onMove, isEditing}: SubStepProps) {
     const {translate} = useLocalize();
 
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
@@ -63,7 +63,6 @@ function NameBusiness({onNext, onMove, isEditing}: SubPageProps) {
             shouldUseDefaultValue={shouldDisableCompanyName}
             disabled={shouldDisableCompanyName}
             shouldShowHelpLinks={false}
-            shouldDelayAutoFocus
         />
     );
 }

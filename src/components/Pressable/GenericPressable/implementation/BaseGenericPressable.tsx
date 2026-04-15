@@ -177,7 +177,7 @@ function GenericPressable({
             hitSlop={shouldUseAutoHitSlop ? hitSlop : undefined}
             onLayout={shouldUseAutoHitSlop ? onLayout : undefined}
             ref={ref as ForwardedRef<View>}
-            disabled={fullDisabled || undefined}
+            disabled={fullDisabled}
             onPress={!isDisabled ? singleExecution(onPressHandler) : undefined}
             onLongPress={!isDisabled && onLongPress ? onLongPressHandler : undefined}
             onKeyDown={!isDisabled ? handleKeyDown : undefined}

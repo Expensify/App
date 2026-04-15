@@ -6,6 +6,7 @@ import React from 'react';
 import {Layer, Source} from 'react-map-gl';
 import {View} from 'react-native';
 import useThemeStyles from '@hooks/useThemeStyles';
+import CONST from '@src/CONST';
 import type {DirectionProps} from './MapViewTypes';
 
 function Direction({coordinates}: DirectionProps) {
@@ -20,7 +21,7 @@ function Direction({coordinates}: DirectionProps) {
         <View>
             {!!coordinates && (
                 <Source
-                    id="route"
+                    id={CONST.MAP_VIEW_LAYERS.ROUTE_SOURCE}
                     type="geojson"
                     data={{
                         type: 'Feature',
@@ -32,9 +33,9 @@ function Direction({coordinates}: DirectionProps) {
                     }}
                 >
                     <Layer
-                        id="route"
+                        id={CONST.MAP_VIEW_LAYERS.ROUTE_FILL}
                         type="line"
-                        source="route"
+                        source={CONST.MAP_VIEW_LAYERS.ROUTE_SOURCE}
                         paint={layerPointStyle}
                         layout={layerLayoutStyle}
                     />
