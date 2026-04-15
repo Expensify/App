@@ -24,7 +24,7 @@ type Login = OnyxValueWithOfflineFeedback<{
 
         /** The device name where this account is logged in */
         deviceName: string;
-        
+
         /** The device version where this account is logged in */
         deviceVersion?: string;
 
