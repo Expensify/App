@@ -66,7 +66,11 @@ function BaseVideoPlayer({
     const [isEnded, setIsEnded] = useState(false);
     const [isFirstLoad, setIsFirstLoad] = useState(true);
     // we add "#t=0.001" at the end of the URL to skip first millisecond of the video and always be able to show proper video preview when video is paused at the beginning
-    const [sourceURL] = useState(() => VideoUtils.addSkipTimeTagToURL(url.includes('blob:') || url.includes('file:///') ? url : addEncryptedAuthTokenToURL(url, encryptedAuthToken), 0.001));
+    const isLocalFileSource = url.includes('blob:') || url.includes('file:///');
+    const sourceURL = useMemo(
+        () => VideoUtils.addSkipTimeTagToURL(isLocalFileSource ? url : addEncryptedAuthTokenToURL(url, encryptedAuthToken), 0.001),
+        [isLocalFileSource, url, encryptedAuthToken],
+    );
     const [isPopoverVisible, setIsPopoverVisible] = useState(false);
     const [popoverAnchorPosition, setPopoverAnchorPosition] = useState({horizontal: 0, vertical: 0});
     const [controlStatusState, setControlStatusState] = useState(controlsStatus);
@@ -87,6 +91,17 @@ function BaseVideoPlayer({
         }),
     );
     /* eslint-enable no-param-reassign */
+
+    // When sourceURL changes (e.g. after cache clear refreshes the auth token),
+    // update the player source so the video remains playable.
+    const currentSourceURLRef = useRef(sourceURL);
+    useEffect(() => {
+        if (currentSourceURLRef.current === sourceURL) {
+            return;
+        }
+        currentSourceURLRef.current = sourceURL;
+        videoPlayerRef.current.replaceAsync(sourceURL);
+    }, [sourceURL]);
 
     const isPlaying = videoPlayerRef.current.playing;
     const {currentTime, bufferedPosition} = useEvent(videoPlayerRef.current, 'timeUpdate', {currentTime: 0, bufferedPosition: 0} as TimeUpdateEventPayload);
