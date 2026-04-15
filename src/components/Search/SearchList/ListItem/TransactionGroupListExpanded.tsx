@@ -53,6 +53,7 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
     shouldDisplayEmptyView,
     searchTransactions,
     isInSingleTransactionReport,
+    policyForMovingExpenses,
     onLongPress,
 }: TransactionGroupListExpandedProps<TItem>) {
     const theme = useTheme();
@@ -242,6 +243,7 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
                         onArrowRightPress={() => openReportInRHP(transaction)}
                         shouldShowArrowRightOnNarrowLayout
                         reportActions={exportedReportActions}
+                        policyForMovingExpenses={policyForMovingExpenses}
                     />
                 );
                 return (

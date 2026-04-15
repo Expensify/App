@@ -17,6 +17,7 @@ import useLocalize from '@hooks/useLocalize';
 import useMultipleSnapshots from '@hooks/useMultipleSnapshots';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchHighlightAndScroll from '@hooks/useSearchHighlightAndScroll';
@@ -328,6 +329,8 @@ function Search({
         selector: selectFilteredReportActions,
     });
 
+    const {policyForMovingExpenses} = usePolicyForMovingExpenses();
+
     const [cardFeeds, cardFeedsResult] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER);
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [onyxPersonalDetailsList] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
@@ -528,6 +531,7 @@ function Search({
             allReportMetadata,
             conciergeReportID,
             onyxPersonalDetailsList,
+            policyForMovingExpenses,
         });
         return [filteredData1, filteredData1.length, allLength];
     }, [
@@ -554,6 +558,7 @@ function Search({
         allReportMetadata,
         conciergeReportID,
         onyxPersonalDetailsList,
+        policyForMovingExpenses,
     ]);
 
     // For group-by views, each grouped item has a transactionsQueryJSON with a hash pointing to a separate snapshot
@@ -1678,6 +1683,7 @@ function Search({
                     newTransactions={newTransactions}
                     hasLoadedAllTransactions={hasLoadedAllTransactions}
                     customCardNames={customCardNames}
+                    policyForMovingExpenses={policyForMovingExpenses}
                 />
             </Animated.View>
         </SearchScopeProvider>

@@ -4,7 +4,7 @@ import type {NativeSyntheticEvent} from 'react-native';
 import type {SearchListItem} from '@components/Search/SearchList/ListItem/types';
 import type {SearchColumnType, SelectedTransactions} from '@components/Search/types';
 import type {ExtendedTargetedEvent} from '@components/SelectionList/ListItem/types';
-import type {Transaction} from '@src/types/onyx';
+import type {Policy, Transaction} from '@src/types/onyx';
 
 type BaseSearchListProps = Pick<
     FlashListProps<SearchListItem>,
@@ -47,6 +47,9 @@ type BaseSearchListProps = Pick<
 
     /** Custom card names for triggering re-render via extraData */
     customCardNames?: Record<number, string>;
+
+    /** Policy for moving expenses for triggering re-render via extraData */
+    policyForMovingExpenses?: Policy;
 };
 
 export default BaseSearchListProps;

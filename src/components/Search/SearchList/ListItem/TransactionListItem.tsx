@@ -58,6 +58,7 @@ function TransactionListItem<TItem extends ListItem>({
     isLastItem,
     userBillingGracePeriodEnds,
     ownerBillingGracePeriodEnd,
+    policyForMovingExpenses,
 }: TransactionListItemProps<TItem>) {
     const transactionItem = item as unknown as TransactionListItemType;
     const styles = useThemeStyles();
@@ -254,6 +255,7 @@ function TransactionListItem<TItem extends ListItem>({
                             isHover={hovered}
                             customCardNames={customCardNames}
                             reportActions={exportedReportActions}
+                            policyForMovingExpenses={policyForMovingExpenses}
                         />
                     </>
                 )}

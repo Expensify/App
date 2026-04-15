@@ -424,6 +424,7 @@ type TransactionListItemProps<TItem extends ListItem> = ListItemProps<TItem> &
         columns?: SearchColumnType[];
         violations?: Record<string, TransactionViolations | undefined> | undefined;
         customCardNames?: Record<number, string>;
+        policyForMovingExpenses?: Policy;
     };
 
 type TransactionGroupListItemProps<TItem extends ListItem> = ListItemProps<TItem> &
@@ -435,11 +436,12 @@ type TransactionGroupListItemProps<TItem extends ListItem> = ListItemProps<TItem
         columns?: SearchColumnType[];
         newTransactionID?: string;
         violations?: Record<string, TransactionViolations | undefined> | undefined;
+        policyForMovingExpenses?: Policy;
     };
 
 type TransactionGroupListExpandedProps<TItem extends ListItem> = Pick<
     TransactionGroupListItemProps<TItem>,
-    'showTooltip' | 'canSelectMultiple' | 'onCheckboxPress' | 'columns' | 'groupBy' | 'accountID' | 'isOffline' | 'violations' | 'onSelectRow'
+    'showTooltip' | 'canSelectMultiple' | 'onCheckboxPress' | 'columns' | 'groupBy' | 'accountID' | 'isOffline' | 'violations' | 'onSelectRow' | 'policyForMovingExpenses'
 > & {
     transactions: TransactionListItemType[];
     transactionsVisibleLimit: number;
