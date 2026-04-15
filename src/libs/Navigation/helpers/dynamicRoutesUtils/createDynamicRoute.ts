@@ -54,13 +54,13 @@ const combinePathAndSuffix = (basePath: string, suffixWithQuery: string): Route 
     return `${combinedPath}${mergedQuery}` as Route;
 };
 
-/** Adds dynamic route name (with optional query params) to the current URL and returns it 
+/** Adds dynamic route name (with optional query params) to the current URL and returns it
  *
  * @param dynamicRouteSuffixWithParams - The dynamic route suffix with optional query params
  * @param basePath - The base path to use for the dynamic route
  *
- * @returns The combined dynamic route path and query string 
-*/
+ * @returns The combined dynamic route path and query string
+ */
 const createDynamicRoute = (dynamicRouteSuffixWithParams: string, basePath?: string): Route => {
     const [suffixPath] = splitPathAndQuery(dynamicRouteSuffixWithParams);
 
