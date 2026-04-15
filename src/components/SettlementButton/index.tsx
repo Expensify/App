@@ -254,6 +254,7 @@ function SettlementButton({
             isSelfTourViewed,
             betas,
             amountOwed,
+            delegateEmail,
         ],
     );
 
