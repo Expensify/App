@@ -6,5 +6,5 @@ export default function useCurrencyForExpensifyCard({policyID}: {policyID?: stri
     const policy = usePolicy(policyID);
     const isUkEuCurrencySupported = useExpensifyCardUkEuSupported(policyID);
 
-    return isUkEuCurrencySupported ? policy?.outputCurrency : CONST.CURRENCY.USD;
+    return isUkEuCurrencySupported ? (policy?.outputCurrency ?? CONST.CURRENCY.USD) : CONST.CURRENCY.USD;
 }
