@@ -286,7 +286,7 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
             {hasTravelProvisioningErrors && (
                 <View style={styles.mt4}>
                     <FormHelpMessageRowWithRetryButton
-                        message="We weren't able to provision some of the members of your workspace for central invoicing. Please try again later or reach out to Concierge for assistance."
+                        message={translate('workspace.moreFeatures.travel.travelInvoicing.centralInvoicingSection.subsections.provisioningError')}
                         onRetry={() => retryTravelCardsProvisioning(policyID, workspaceAccountID)}
                     />
                 </View>
