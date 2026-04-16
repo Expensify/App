@@ -9,7 +9,8 @@
  *  • This component intentionally avoids expensive hooks and Onyx reads.
  *    Do NOT add new subscriptions unless absolutely necessary for correctness.
  */
-import React, {useRef, useState} from 'react';
+import {useFocusEffect} from '@react-navigation/native';
+import React, {useCallback, useRef, useState} from 'react';
 import {FlatList, View} from 'react-native';
 import type {ListRenderItemInfo, StyleProp, ViewStyle} from 'react-native';
 import Button from '@components/Button';
@@ -24,7 +25,7 @@ import {hasDeferredWrite} from '@libs/deferredLayoutWrite';
 import Navigation from '@libs/Navigation/Navigation';
 import {isOneTransactionReport} from '@libs/ReportUtils';
 import {createAndOpenSearchTransactionThread, getSections, getSortedSections, getValidGroupBy, isCorrectSearchUserName} from '@libs/SearchUIUtils';
-import {endSubmitFollowUpActionSpan, getPendingSubmitFollowUpAction} from '@libs/telemetry/submitFollowUpAction';
+import {getPendingSubmitFollowUpAction} from '@libs/telemetry/submitFollowUpAction';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
@@ -42,6 +43,7 @@ type SearchStaticListProps = {
     queryJSON: SearchQueryJSON;
     contentContainerStyle?: StyleProp<ViewStyle>;
     onLayout?: () => void;
+    onDestinationVisible?: (wasListEmpty: boolean, source: 'focus' | 'layout') => void;
 };
 
 function StaticActionButton({action}: {action: SearchTransactionAction | undefined}) {
@@ -64,7 +66,7 @@ function StaticActionButton({action}: {action: SearchTransactionAction | undefin
     );
 }
 
-function SearchStaticList({searchResults, queryJSON, contentContainerStyle, onLayout: onLayoutProp}: SearchStaticListProps) {
+function SearchStaticList({searchResults, queryJSON, contentContainerStyle, onLayout: onLayoutProp, onDestinationVisible}: SearchStaticListProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate, localeCompare, formatPhoneNumber} = useLocalize();
@@ -72,7 +74,9 @@ function SearchStaticList({searchResults, queryJSON, contentContainerStyle, onLa
     const accountID = session?.accountID ?? CONST.DEFAULT_NUMBER_ID;
     const email = session?.email;
 
-    const [showPendingExpensePlaceholder] = useState(() => hasDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH));
+    const [showPendingExpensePlaceholder, setShowPendingExpensePlaceholder] = useState(
+        () => hasDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH) || Navigation.getIsFullscreenPreInsertedUnderRHP(),
+    );
 
     const {type, status, sortBy, sortOrder, groupBy} = queryJSON;
     const validGroupBy = getValidGroupBy(groupBy);
@@ -96,9 +100,26 @@ function SearchStaticList({searchResults, queryJSON, contentContainerStyle, onLa
         });
 
         return getSortedSections(type, status, filteredData, localeCompare, translate, sortBy, sortOrder, validGroupBy)
-            .filter((item): item is TransactionListItemType => 'transactionID' in item)
+            .filter((item): item is TransactionListItemType => 'transactionID' in item && item.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
             .slice(0, STATIC_LIST_MAX_ITEMS);
     })();
+
+    // Sync the pending-expense placeholder on focus and notify the parent that
+    // the destination is visible (focus signal for the dual-gate span ending).
+    useFocusEffect(
+        useCallback(() => {
+            const hasPendingAction = getPendingSubmitFollowUpAction()?.followUpAction === CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.NAVIGATE_TO_SEARCH;
+            if (!showPendingExpensePlaceholder && hasPendingAction) {
+                setShowPendingExpensePlaceholder(true);
+            } else if (showPendingExpensePlaceholder && !hasPendingAction && sortedData.length > 0) {
+                // Only clear the placeholder once real data is available to avoid
+                // a blank flash when the stale snapshot has been filtered empty.
+                setShowPendingExpensePlaceholder(false);
+            }
+
+            onDestinationVisible?.(sortedData.length === 0, 'focus');
+        }, [showPendingExpensePlaceholder, sortedData.length, onDestinationVisible]),
+    );
 
     const onPressItem = (item: TransactionListItemType) => {
         const backTo = Navigation.getActiveRoute();
@@ -197,14 +218,7 @@ function SearchStaticList({searchResults, queryJSON, contentContainerStyle, onLa
         }
         hasEndedSpanRef.current = true;
 
-        const pending = getPendingSubmitFollowUpAction();
-        if (pending && pending.followUpAction !== CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_AND_OPEN_REPORT) {
-            endSubmitFollowUpActionSpan(pending.followUpAction, undefined, {
-                [CONST.TELEMETRY.ATTRIBUTE_IS_WARM]: true,
-                [CONST.TELEMETRY.ATTRIBUTE_WAS_LIST_EMPTY]: sortedData.length === 0,
-            });
-        }
-
+        onDestinationVisible?.(sortedData.length === 0, 'layout');
         onLayoutProp?.();
     };
 
@@ -264,5 +278,6 @@ export default React.memo(
         prev.searchResults?.data === next.searchResults?.data &&
         prev.queryJSON === next.queryJSON &&
         prev.contentContainerStyle === next.contentContainerStyle &&
-        prev.onLayout === next.onLayout,
+        prev.onLayout === next.onLayout &&
+        prev.onDestinationVisible === next.onDestinationVisible,
 );

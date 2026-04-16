@@ -1,10 +1,10 @@
 import Onyx from 'react-native-onyx';
 import {reauthenticate} from '@libs/Authentication';
 import Log from '@libs/Log';
+import {getIsOffline} from '@libs/NetworkState';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type Session from '@src/types/onyx/Session';
 
-let isOffline = false;
 let active = false;
 let currentActiveSession: Session = {};
 let timer: NodeJS.Timeout;
@@ -12,19 +12,6 @@ let timer: NodeJS.Timeout;
 // When the session is expired we will give it this time to reauthenticate via normal flows, like the Reauthentication middleware, in an attempt to not duplicate authentication requests
 // also, this is an arbitrary number so we may tweak as needed
 const TIMING_BEFORE_REAUTHENTICATION_MS = 3500; // 3.5s
-
-// We subscribe to network's online/offline status
-// We do not depend on updates on the UI to check for the offline status
-// So we can use `connectWithoutView` here.
-Onyx.connectWithoutView({
-    key: ONYXKEYS.NETWORK,
-    callback: (network) => {
-        if (!network) {
-            return;
-        }
-        isOffline = !!network.shouldForceOffline || !!network.isOffline;
-    },
-});
 
 // We subscribe to sessions changes
 // We do not depend on updates on the UI to call the `deactivate` function
@@ -56,7 +43,7 @@ function deactivate() {
  * @returns
  */
 function activate(session: Session) {
-    if (!session || isSameSession(session) || isOffline) {
+    if (!session || isSameSession(session) || getIsOffline()) {
         return;
     }
     currentActiveSession = session;
@@ -65,7 +52,7 @@ function activate(session: Session) {
 }
 
 function tryReauthenticate() {
-    if (isOffline || !active) {
+    if (getIsOffline() || !active) {
         return;
     }
     reauthenticate().catch((error) => {
