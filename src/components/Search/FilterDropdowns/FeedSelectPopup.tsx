@@ -8,15 +8,16 @@ import {openSearchCardFiltersPage} from '@libs/actions/Search';
 import {getFeedOptions} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {SearchAdvancedFiltersForm} from '@src/types/form';
 import MultiSelectFilterPopup from '../SearchPageHeader/MultiSelectFilterPopup';
 
 type FeedFilterPopupProps = {
     isExpanded: boolean;
     closeOverlay: () => void;
-    onChangeCallback: (items: Array<MultiSelectItem<string>>) => void;
+    updateFilterForm: (values: Partial<SearchAdvancedFiltersForm>) => void;
 };
 
-function FeedSelectPopup({closeOverlay, isExpanded, onChangeCallback}: FeedFilterPopupProps) {
+function FeedSelectPopup({closeOverlay, isExpanded, updateFilterForm}: FeedFilterPopupProps) {
     const {isOffline} = useNetwork();
     const {translate, localeCompare} = useLocalize();
     const feedKeysWithCards = useFeedKeysWithAssignedCards();
@@ -46,7 +47,6 @@ function FeedSelectPopup({closeOverlay, isExpanded, onChangeCallback}: FeedFilte
             loading={shouldShowLoadingState}
             translationKey="search.filters.feed"
             closeOverlay={closeOverlay}
-            onChangeCallback={onChangeCallback}
         />
     );
 }
