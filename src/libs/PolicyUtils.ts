@@ -1,7 +1,7 @@
 import {Str} from 'expensify-common';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
+import type {TupleToUnion, ValueOf} from 'type-fest';
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 import type {SelectorType} from '@components/SelectionScreen';
 import CONST from '@src/CONST';
@@ -50,7 +50,7 @@ import {shouldShowQBOReimbursableExportDestinationAccountError} from './actions/
 import {getCategoryApproverRule} from './CategoryUtils';
 import {convertToBackendAmount} from './CurrencyUtils';
 import Navigation from './Navigation/Navigation';
-import {isOffline as isOfflineNetworkStore} from './Network/NetworkStore';
+import {getIsOffline} from './NetworkState';
 import {formatMemberForList} from './OptionsListUtils';
 import type {MemberForList} from './OptionsListUtils';
 import {getAccountIDsByLogins, getLoginByAccountID, getLoginsByAccountIDs, getPersonalDetailByEmail} from './PersonalDetailsUtils';
@@ -60,6 +60,9 @@ import {isPublicDomain} from './ValidationUtils';
 type MemberEmailsToAccountIDs = Record<string, number>;
 
 type TravelStep = ValueOf<typeof CONST.TRAVEL.STEPS>;
+
+type AccountingConnectionName = TupleToUnion<typeof CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES>;
+type HRConnectionName = TupleToUnion<typeof CONST.POLICY.CONNECTIONS.HR_CONNECTION_NAMES>;
 
 type WorkspaceDetails = {
     policyID: string | undefined;
@@ -164,8 +167,9 @@ function hasPolicyCategoriesError(policyCategories: OnyxEntry<PolicyCategories>)
 /**
  * Checks if the policy had a sync error.
  */
-function shouldShowSyncError(policy: OnyxEntry<Policy>, isSyncInProgress: boolean): boolean {
-    return isPolicyAdmin(policy) && (Object.keys(policy?.connections ?? {}) as ConnectionName[]).some((connection) => !!hasSynchronizationErrorMessage(policy, connection, isSyncInProgress));
+function shouldShowSyncError(policy: OnyxEntry<Policy>, isSyncInProgress: boolean, connectionNames?: readonly ConnectionName[]): boolean {
+    const connectionsToCheck = connectionNames ?? (Object.keys(policy?.connections ?? {}) as ConnectionName[]);
+    return isPolicyAdmin(policy) && connectionsToCheck.some((connection) => !!hasSynchronizationErrorMessage(policy, connection, isSyncInProgress));
 }
 
 /**
@@ -383,7 +387,7 @@ function getPolicyBrickRoadIndicatorStatus(policy: OnyxEntry<Policy>, isConnecti
         shouldShowEmployeeListError(policy) ||
         shouldShowCustomUnitsError(policy) ||
         shouldShowPolicyErrorFields(policy) ||
-        shouldShowSyncError(policy, isConnectionInProgress) ||
+        shouldShowSyncError(policy, isConnectionInProgress, getAccountingConnectionNames()) ||
         shouldShowQBOReimbursableExportDestinationAccountError(policy)
     ) {
         return CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
@@ -688,6 +692,25 @@ function hasCustomCategories(policyCategories: OnyxEntry<PolicyCategories>): boo
 }
 
 /**
+ * Checks if a policy has any non-default rules configured.
+ * Defaults are: no approval/expense/coding rules and no custom rules text.
+ */
+function hasNonDefaultRules(policy: OnyxEntry<Policy>): boolean {
+    if (!policy) {
+        return false;
+    }
+
+    const hasCustomRules = !!policy.customRules && policy.customRules.trim().length > 0;
+
+    const {rules} = policy;
+    const hasApprovalRules = !!rules?.approvalRules && rules.approvalRules.length > 0;
+    const hasExpenseRules = !!rules?.expenseRules && rules.expenseRules.length > 0;
+    const hasCodingRules = !!rules?.codingRules && Object.keys(rules.codingRules).length > 0;
+
+    return hasCustomRules || hasApprovalRules || hasExpenseRules || hasCodingRules;
+}
+
+/**
  * Gets a tag list of a policy by a tag index
  */
 function getTagList(policyTagList: OnyxEntry<PolicyTagLists>, tagIndex: number): ValueOf<PolicyTagLists> {
@@ -927,6 +950,10 @@ function hasAccountingConnections(policy: OnyxEntry<Policy>) {
     return !!getCurrentConnectionName(policy) || hasSupportedOnlyOnOldDotIntegration(policy);
 }
 
+function hasAccountingFeatureConnection(policy: OnyxEntry<Policy>) {
+    return hasAccountingConnections(policy) || hasUnsupportedIntegration(policy);
+}
+
 function getPolicyEmployeeListByIdWithoutCurrentUser(policies: OnyxCollection<Pick<Policy, 'employeeList'>>, currentPolicyID?: string, currentUserAccountID?: number) {
     const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${currentPolicyID}`] ?? null;
     const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(policy?.employeeList);
@@ -1014,7 +1041,7 @@ function isPolicyFeatureEnabled(policy: OnyxEntry<Policy>, featureName: PolicyFe
         return !!policy?.tax?.trackingEnabled;
     }
     if (featureName === CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED) {
-        return policy?.[featureName] ? !!policy?.[featureName] : !isEmptyObject(policy?.connections);
+        return policy?.[featureName] ? !!policy?.[featureName] : hasAccountingFeatureConnection(policy);
     }
     if (featureName === CONST.POLICY.MORE_FEATURES.ARE_RECEIPT_PARTNERS_ENABLED) {
         return policy?.receiptPartners?.enabled ?? false;
@@ -1216,13 +1243,13 @@ function getAdminEmployees(policy: OnyxEntry<Policy>): PolicyEmployee[] {
 /** Return active policies where current user is an admin */
 function getActiveAdminWorkspaces(policies: OnyxCollection<Policy> | null, currentUserLogin: string | undefined): Policy[] {
     const activePolicies = getActivePolicies(policies, currentUserLogin);
-    return activePolicies.filter((policy) => shouldShowPolicy(policy, isOfflineNetworkStore(), currentUserLogin) && isPolicyAdmin(policy, currentUserLogin));
+    return activePolicies.filter((policy) => shouldShowPolicy(policy, getIsOffline(), currentUserLogin) && isPolicyAdmin(policy, currentUserLogin));
 }
 
 /** Return active policies where current user is an employee (of the role "user") */
 function getActiveEmployeeWorkspaces(policies: OnyxCollection<Policy> | null, currentUserLogin: string | undefined): Policy[] {
     const activePolicies = getActivePolicies(policies, currentUserLogin);
-    return activePolicies.filter((policy) => shouldShowPolicy(policy, isOfflineNetworkStore(), currentUserLogin) && isPolicyUser(policy, currentUserLogin));
+    return activePolicies.filter((policy) => shouldShowPolicy(policy, getIsOffline(), currentUserLogin) && isPolicyUser(policy, currentUserLogin));
 }
 
 /**
@@ -1662,14 +1689,28 @@ function navigateToExpensifyCardPage(policyID: string) {
     });
 }
 
-function getConnectedIntegration(policy: Policy | undefined, accountingIntegrations?: ConnectionName[]) {
-    return (accountingIntegrations ?? Object.values(CONST.POLICY.CONNECTIONS.NAME)).find((integration) => !!policy?.connections?.[integration]);
+function getAccountingConnectionNames(): AccountingConnectionName[] {
+    return [...CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES];
 }
 
-function getValidConnectedIntegration(policy: Policy | undefined, accountingIntegrations?: ConnectionName[]) {
-    return (accountingIntegrations ?? Object.values(CONST.POLICY.CONNECTIONS.NAME)).find(
-        (integration) => !!policy?.connections?.[integration] && !isConnectionUnverified(policy, integration),
-    );
+function isAccountingConnectionName(connectionName?: ConnectionName): connectionName is AccountingConnectionName {
+    return connectionName !== undefined && getAccountingConnectionNames().some((accountingConnectionName) => accountingConnectionName === connectionName);
+}
+
+function getHRConnectionNames(): HRConnectionName[] {
+    return [...CONST.POLICY.CONNECTIONS.HR_CONNECTION_NAMES];
+}
+
+function isGustoConnected(policy?: OnyxEntry<Policy>) {
+    return !!policy?.connections?.gusto;
+}
+
+function getConnectedIntegration(policy: Policy | undefined, connectionNames: readonly ConnectionName[] = getAccountingConnectionNames()) {
+    return connectionNames.find((integration) => !!policy?.connections?.[integration]);
+}
+
+function getValidConnectedIntegration(policy: Policy | undefined, connectionNames: readonly ConnectionName[] = getAccountingConnectionNames()) {
+    return connectionNames.find((integration) => !!policy?.connections?.[integration] && !isConnectionUnverified(policy, integration));
 }
 
 /**
@@ -1687,7 +1728,7 @@ function getConnectedIntegrationNamesForPolicies(policies: OnyxCollection<Policy
     const policiesToCheck = hasWorkspaceFilter ? policyIDs.map((id) => policies[`${ONYXKEYS.COLLECTION.POLICY}${id}`]) : Object.values(policies);
 
     for (const policy of policiesToCheck) {
-        const connectedIntegration = getValidConnectedIntegration(policy);
+        const connectedIntegration = getValidConnectedIntegration(policy, getAccountingConnectionNames());
         if (connectedIntegration) {
             connectedIntegrationNames.add(connectedIntegration);
         }
@@ -1697,7 +1738,11 @@ function getConnectedIntegrationNamesForPolicies(policies: OnyxCollection<Policy
 }
 
 function hasIntegrationAutoSync(policy: Policy | undefined, connectedIntegration?: ConnectionName) {
-    return (connectedIntegration && policy?.connections?.[connectedIntegration]?.config?.autoSync?.enabled) ?? false;
+    if (!isAccountingConnectionName(connectedIntegration)) {
+        return false;
+    }
+
+    return policy?.connections?.[connectedIntegration]?.config?.autoSync?.enabled ?? false;
 }
 
 function hasUnsupportedIntegration(policy: Policy | undefined) {
@@ -1709,7 +1754,7 @@ function hasSupportedOnlyOnOldDotIntegration(policy: Policy | undefined) {
 }
 
 function getCurrentConnectionName(policy: Policy | undefined): string | undefined {
-    const accountingIntegrations = Object.values(CONST.POLICY.CONNECTIONS.NAME);
+    const accountingIntegrations = getAccountingConnectionNames();
     const connectionKey = accountingIntegrations.find((integration) => !!policy?.connections?.[integration]);
     return connectionKey ? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionKey] : undefined;
 }
@@ -2059,6 +2104,7 @@ export {
     escapeTagName,
     getActivePolicies,
     getAdminEmployees,
+    getAccountingConnectionNames,
     getCleanedTagName,
     getCommaSeparatedTagNameWithSanitizedColons,
     getConnectedIntegration,
@@ -2068,6 +2114,7 @@ export {
     getCountOfEnabledTagsOfList,
     getIneligibleInvitees,
     getMemberAccountIDsForWorkspace,
+    getHRConnectionNames,
     getGuideAndAccountManagerInfo,
     getSoftExclusionsForGuideAndAccountManager,
     filterGuideAndAccountManager,
@@ -2085,10 +2132,12 @@ export {
     getTagLists,
     hasTags,
     hasCustomCategories,
+    hasNonDefaultRules,
     getTaxByID,
     getUnitRateValue,
     getRateDisplayValue,
     goBackFromInvalidPolicy,
+    hasAccountingFeatureConnection,
     hasAccountingConnections,
     shouldShowSyncError,
     shouldShowCustomUnitsError,
@@ -2174,6 +2223,7 @@ export {
     isControlPolicy,
     isAttendeeTrackingEnabled,
     isCollectPolicy,
+    isGustoConnected,
     isNetSuiteCustomSegmentRecord,
     getNameFromNetSuiteCustomField,
     isNetSuiteCustomFieldPropertyEditable,

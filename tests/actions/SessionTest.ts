@@ -12,6 +12,7 @@ import * as SignInRedirect from '@libs/actions/SignInRedirect';
 import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import asyncOpenURL from '@libs/asyncOpenURL';
 import HttpUtils from '@libs/HttpUtils';
+import {setHasRadio} from '@libs/NetworkState';
 import PushNotification from '@libs/Notification/PushNotification';
 // This lib needs to be imported, but it has nothing to export since all it contains is an Onyx connection
 import '@libs/Notification/PushNotification/subscribeToPushNotifications';
@@ -51,7 +52,10 @@ Onyx.init({
 });
 
 OnyxUpdateManager();
-beforeEach(() => Onyx.clear().then(waitForBatchedUpdates));
+beforeEach(() => {
+    setHasRadio(true);
+    return Onyx.clear().then(waitForBatchedUpdates);
+});
 
 describe('Session', () => {
     test('Authenticate is called with saved credentials when a session expires', async () => {
@@ -135,7 +139,8 @@ describe('Session', () => {
     test('ReconnectApp should push request to the queue', async () => {
         await TestHelper.signInWithTestUser();
         await Onyx.set(ONYXKEYS.HAS_LOADED_APP, true);
-        await Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
+        setHasRadio(false);
+        await waitForBatchedUpdates();
 
         confirmReadyToOpenApp();
         reconnectApp();
@@ -145,7 +150,8 @@ describe('Session', () => {
         expect(getAllPersistedRequests().length).toBe(1);
         expect(getAllPersistedRequests().at(0)?.command).toBe(WRITE_COMMANDS.RECONNECT_APP);
 
-        await Onyx.set(ONYXKEYS.NETWORK, {isOffline: false});
+        setHasRadio(true);
+        await waitForBatchedUpdates();
 
         await waitForBatchedUpdates();
 
@@ -155,7 +161,8 @@ describe('Session', () => {
     test('ReconnectApp should open if app is not loaded', async () => {
         await TestHelper.signInWithTestUser();
         await Onyx.set(ONYXKEYS.HAS_LOADED_APP, false);
-        await Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
+        setHasRadio(false);
+        await waitForBatchedUpdates();
 
         confirmReadyToOpenApp();
         reconnectApp();
@@ -165,7 +172,8 @@ describe('Session', () => {
         expect(getAllPersistedRequests().length).toBe(1);
         expect(getAllPersistedRequests().at(0)?.command).toBe(WRITE_COMMANDS.OPEN_APP);
 
-        await Onyx.set(ONYXKEYS.NETWORK, {isOffline: false});
+        setHasRadio(true);
+        await waitForBatchedUpdates();
 
         await waitForBatchedUpdates();
 
@@ -175,7 +183,8 @@ describe('Session', () => {
     test('ReconnectApp should replace same requests from the queue', async () => {
         await TestHelper.signInWithTestUser();
         await Onyx.set(ONYXKEYS.HAS_LOADED_APP, true);
-        await Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
+        setHasRadio(false);
+        await waitForBatchedUpdates();
 
         confirmReadyToOpenApp();
         reconnectApp();
@@ -188,14 +197,16 @@ describe('Session', () => {
         expect(getAllPersistedRequests().length).toBe(1);
         expect(getAllPersistedRequests().at(0)?.command).toBe(WRITE_COMMANDS.RECONNECT_APP);
 
-        await Onyx.set(ONYXKEYS.NETWORK, {isOffline: false});
+        setHasRadio(true);
+        await waitForBatchedUpdates();
 
         expect(getAllPersistedRequests().length).toBe(0);
     });
 
     test('OpenApp should push request to the queue', async () => {
         await TestHelper.signInWithTestUser();
-        await Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
+        setHasRadio(false);
+        await waitForBatchedUpdates();
 
         openApp();
 
@@ -204,7 +215,8 @@ describe('Session', () => {
         expect(getAllPersistedRequests().length).toBe(1);
         expect(getAllPersistedRequests().at(0)?.command).toBe(WRITE_COMMANDS.OPEN_APP);
 
-        await Onyx.set(ONYXKEYS.NETWORK, {isOffline: false});
+        setHasRadio(true);
+        await waitForBatchedUpdates();
 
         await waitForBatchedUpdates();
 
@@ -213,7 +225,8 @@ describe('Session', () => {
 
     test('OpenApp should replace same requests from the queue', async () => {
         await TestHelper.signInWithTestUser();
-        await Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
+        setHasRadio(false);
+        await waitForBatchedUpdates();
 
         openApp();
         openApp();
@@ -225,14 +238,16 @@ describe('Session', () => {
         expect(getAllPersistedRequests().length).toBe(1);
         expect(getAllPersistedRequests().at(0)?.command).toBe(WRITE_COMMANDS.OPEN_APP);
 
-        await Onyx.set(ONYXKEYS.NETWORK, {isOffline: false});
+        setHasRadio(true);
+        await waitForBatchedUpdates();
 
         expect(getAllPersistedRequests().length).toBe(0);
     });
 
     test('SignOut should return a promise with response containing hasOldDotAuthCookies', async () => {
         await TestHelper.signInWithTestUser();
-        await Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
+        setHasRadio(false);
+        await waitForBatchedUpdates();
 
         (HttpUtils.xhr as jest.MockedFunction<typeof HttpUtils.xhr>)
             // This will make the call to OpenApp below return with an expired session code
@@ -252,7 +267,8 @@ describe('Session', () => {
             hasOldDotAuthCookies: true,
         });
 
-        await Onyx.set(ONYXKEYS.NETWORK, {isOffline: false});
+        setHasRadio(true);
+        await waitForBatchedUpdates();
 
         expect(getAllPersistedRequests().length).toBe(0);
     });
@@ -260,7 +276,8 @@ describe('Session', () => {
     describe('SignOutAndRedirectToSignIn', () => {
         test('SignOutAndRedirectToSignIn should redirect to OldDot when LogOut returns truthy hasOldDotAuthCookies', async () => {
             await TestHelper.signInWithTestUser();
-            await Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
+            setHasRadio(false);
+            await waitForBatchedUpdates();
 
             (HttpUtils.xhr as jest.MockedFunction<typeof HttpUtils.xhr>)
                 // This will make the call to OpenApp below return with an expired session code
@@ -284,7 +301,8 @@ describe('Session', () => {
 
         test('SignOutAndRedirectToSignIn should not redirect to OldDot when LogOut return falsy hasOldDotAuthCookies', async () => {
             await TestHelper.signInWithTestUser();
-            await Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
+            setHasRadio(false);
+            await waitForBatchedUpdates();
 
             (HttpUtils.xhr as jest.MockedFunction<typeof HttpUtils.xhr>)
                 // This will make the call to OpenApp below return with an expired session code
@@ -339,6 +357,41 @@ describe('Session', () => {
 
             expect(buildOldDotURL).toHaveBeenCalledWith(CONST.OLDDOT_URLS.SUPPORTAL_RESTORE_STASHED_LOGIN);
             expect(openExternalLink).toHaveBeenCalledWith('mockOldDotURL', undefined, true);
+        });
+
+        test('SignOutAndRedirectToSignIn should preserve SESSION and restore stashed session when shouldForceUseStashedSession is true', async () => {
+            jest.spyOn(SessionUtil, 'isSupportAuthToken').mockReturnValue(false);
+            jest.spyOn(SessionUtil, 'hasStashedSession').mockReturnValue(true);
+            jest.spyOn(SessionUtil, 'signOut').mockResolvedValue(undefined);
+            jest.spyOn(Onyx, 'clear').mockResolvedValue(undefined);
+            jest.spyOn(Onyx, 'multiSet').mockResolvedValue(undefined);
+
+            const testStashedCredentials = {login: 'delegate@expensify.com', autoGeneratedLogin: 'delegateAutoLogin', autoGeneratedPassword: 'delegateAutoPassword'};
+            const testStashedSession = {authToken: 'delegateAuthToken', email: 'delegate@expensify.com', accountID: 456, creationDate: new Date().getTime()};
+
+            await Onyx.set(ONYXKEYS.STASHED_CREDENTIALS, testStashedCredentials);
+            await Onyx.set(ONYXKEYS.STASHED_SESSION, testStashedSession);
+
+            await waitForBatchedUpdates();
+
+            const onyxClearSpy = Onyx.clear as jest.Mock;
+            const onyxMultiSetSpy = Onyx.multiSet as jest.Mock;
+            const redirectToSignInSpy = jest.spyOn(SignInRedirect, 'default').mockImplementation(() => Promise.resolve());
+
+            signOutAndRedirectToSignIn(true, false, true, true);
+
+            await waitForBatchedUpdates();
+
+            expect(SessionUtil.signOut).not.toHaveBeenCalled();
+
+            // Should use Onyx.clear with KEYS_TO_PRESERVE_SUPPORTAL (preserving SESSION) instead of redirectToSignIn
+            expect(onyxClearSpy).toHaveBeenCalledWith(KEYS_TO_PRESERVE_SUPPORTAL);
+            expect(redirectToSignInSpy).not.toHaveBeenCalled();
+
+            expect(onyxMultiSetSpy).toHaveBeenCalledWith({
+                [ONYXKEYS.CREDENTIALS]: testStashedCredentials,
+                [ONYXKEYS.SESSION]: testStashedSession,
+            });
         });
     });
 

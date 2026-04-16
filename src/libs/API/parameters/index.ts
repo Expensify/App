@@ -297,6 +297,7 @@ export type {default as UpdateSubscriptionTypeParams} from './UpdateSubscription
 export type {default as SignUpUserParams} from './SignUpUserParams';
 export type {default as UpdateSubscriptionAutoRenewParams} from './UpdateSubscriptionAutoRenewParams';
 export type {default as UpdateSubscriptionAddNewUsersAutomaticallyParams} from './UpdateSubscriptionAddNewUsersAutomaticallyParams';
+export type {default as UpdatePersonalKarmaParams} from './UpdatePersonalKarmaParams';
 export type {default as GenerateSpotnanaTokenParams} from './GenerateSpotnanaTokenParams';
 export type {default as UpdateSubscriptionSizeParams} from './UpdateSubscriptionSizeParams';
 export type {default as SetPromoCodeParams} from './SetPromoCodeParams';
@@ -391,6 +392,7 @@ export type {default as ConfigureTravelInvoicingForPolicyParams} from './Configu
 export type {default as DeactivateTravelInvoicingParams} from './DeactivateTravelInvoicingParams';
 export type {default as SetTravelInvoicingSettlementAccountParams} from './SetTravelInvoicingSettlementAccountParams';
 export type {default as PayTravelInvoicingSpendParams} from './PayTravelInvoicingSpendParams';
+export type {default as UpdateTravelInvoicingMonthlyLimitParams} from './UpdateTravelInvoicingMonthlyLimitParams';
 export type {default as UpdateTravelInvoicingSettlementFrequencyParams} from './UpdateTravelInvoicingSettlementFrequencyParams';
 export type {default as GetTravelInvoiceStatementPDFParams} from './GetTravelInvoiceStatementPDFParams';
 export type {default as ExportTravelInvoiceStatementCSVParams} from './ExportTravelInvoiceStatementCSVParams';
