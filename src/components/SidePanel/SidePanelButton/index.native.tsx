@@ -4,7 +4,6 @@ import Icon from '@components/Icon';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import Tooltip from '@components/Tooltip';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import useIsInConciergeChat from '@hooks/useIsInConciergeChat';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -25,9 +24,8 @@ function SidePanelButton({style}: SidePanelButtonProps) {
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [betas] = useOnyx(ONYXKEYS.BETAS);
-    const isInConciergeChat = useIsInConciergeChat();
 
-    if (shouldHideHelpButton || isInConciergeChat) {
+    if (shouldHideHelpButton) {
         return null;
     }
 
