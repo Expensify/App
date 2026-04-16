@@ -628,12 +628,15 @@ function getCombinedCardFeedsFromAllFeeds(
 
             // When we have card data, filter out stale feeds:
             // - Direct feeds without oAuthAccountDetails AND no assigned cards
-            // - "Gray zone" feeds (not commercial, not direct) without assigned cards
+            // - "Gray zone" feeds (not commercial, not direct, not CSV upload) without assigned cards
+            // CSV upload feeds are always shown when they exist in settings, since their
+            // unassigned cards are loaded on-demand when the feed is selected.
+            const isCSVUploadFeed = feedName.toLowerCase().startsWith(CONST.COMPANY_CARD.FEED_BANK_NAME.CSV) || feedName.toLowerCase().startsWith('csv');
             if (feedKeysWithCards) {
                 if (isDirectFeed(feedName) && !oAuthAccountDetails && !feedHasCards(feedName, domainID, feedKeysWithCards)) {
                     continue;
                 }
-                if (!isCustomFeed(feedName) && !isDirectFeed(feedName) && !feedHasCards(feedName, domainID, feedKeysWithCards)) {
+                if (!isCustomFeed(feedName) && !isDirectFeed(feedName) && !isCSVUploadFeed && !feedHasCards(feedName, domainID, feedKeysWithCards)) {
                     continue;
                 }
             }
