@@ -11,7 +11,7 @@ import useLocalize from '@hooks/useLocalize';
 import useScreenWrapperTransitionStatus from '@hooks/useScreenWrapperTransitionStatus';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getDecodedCategoryName} from '@libs/CategoryUtils';
+import {getDecodedLeafCategoryName} from '@libs/CategoryUtils';
 import {convertToDisplayStringWithoutCurrency} from '@libs/CurrencyUtils';
 import {getCommaSeparatedTagNameWithSanitizedColons} from '@libs/PolicyUtils';
 import variables from '@styles/variables';
@@ -100,7 +100,7 @@ function SplitListItem<TItem extends ListItem>({
     const textContentAccessibilityLabel = [
         splitItem.headerText,
         splitItem.merchant,
-        splitItem.category ? getDecodedCategoryName(splitItem.category) : undefined,
+        splitItem.category ? getDecodedLeafCategoryName(splitItem.category) : undefined,
         splitItem.tags?.at(0) ? getCommaSeparatedTagNameWithSanitizedColons(splitItem.tags.at(0) ?? '') : undefined,
     ]
         .filter(Boolean)
@@ -181,7 +181,7 @@ function SplitListItem<TItem extends ListItem>({
                                         numberOfLines={1}
                                         style={[styles.textMicroSupporting, styles.pre, styles.flexShrink1]}
                                     >
-                                        {getDecodedCategoryName(splitItem.category)}
+                                        {getDecodedLeafCategoryName(splitItem.category)}
                                     </Text>
                                 </View>
                             )}

@@ -22,7 +22,7 @@ import useReportIsArchived from '@hooks/useReportIsArchived';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getBrokenConnectionUrlToFixPersonalCard} from '@libs/CardUtils';
-import {getDecodedCategoryName} from '@libs/CategoryUtils';
+import {getDecodedLeafCategoryName} from '@libs/CategoryUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {calculateAmount} from '@libs/IOUUtils';
 import Parser from '@libs/Parser';
@@ -390,7 +390,7 @@ function TransactionPreviewContent({
                                                         numberOfLines={1}
                                                         style={[isDeleted && styles.lineThrough, styles.textMicroSupporting, styles.pre, styles.flexShrink1]}
                                                     >
-                                                        {getDecodedCategoryName(category ?? '')}
+                                                        {getDecodedLeafCategoryName(category ?? '')}
                                                     </Text>
                                                 </View>
                                             )}
