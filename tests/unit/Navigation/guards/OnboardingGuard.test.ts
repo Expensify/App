@@ -452,7 +452,7 @@ describe('OnboardingGuard', () => {
         it('should still redirect when onboarding is in routes but not focused', async () => {
             // Given a user who needs onboarding, and a state where OnboardingModalNavigator
             // exists in routes but HOME is focused (index: 0)
-            const stateWithOnboardingNotFocused: NavigationState = {
+            const stateWithOnboardingUnfocused: NavigationState = {
                 key: 'root',
                 index: 0,
                 routeNames: [SCREENS.HOME, NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR],
@@ -473,7 +473,7 @@ describe('OnboardingGuard', () => {
             await waitForBatchedUpdates();
 
             // When the guard evaluates while onboarding is NOT focused
-            const result = OnboardingGuard.evaluate(stateWithOnboardingNotFocused, mockAction, authenticatedContext) as {type: 'REDIRECT'; route: string};
+            const result = OnboardingGuard.evaluate(stateWithOnboardingUnfocused, mockAction, authenticatedContext) as {type: 'REDIRECT'; route: string};
 
             // Then the guard should still redirect because the user isn't actively on onboarding
             expect(result.type).toBe('REDIRECT');
