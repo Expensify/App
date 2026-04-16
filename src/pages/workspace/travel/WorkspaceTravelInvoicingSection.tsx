@@ -287,7 +287,8 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
                 <View style={styles.mt4}>
                     <FormHelpMessageRowWithRetryButton
                         message={translate('workspace.moreFeatures.travel.travelInvoicing.centralInvoicingSection.subsections.provisioningError')}
-                        onRetry={() => retryTravelCardsProvisioning(policyID, workspaceAccountID)}
+                        isButtonSmall
+                        onRetry={() => retryTravelCardsProvisioning(policyID, workspaceAccountID, domainMemberData?.settings?.travelInvoicing?.errors ?? [])}
                         danger
                         shouldAlignButtonToMessage
                     />

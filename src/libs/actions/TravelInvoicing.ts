@@ -399,13 +399,15 @@ function clearTravelInvoicingErrors(workspaceAccountID: number) {
 
 /**
  * Retries travel card provisioning for workspace members that failed.
- * Optimistically clears provisioning errors and calls the backend to clear errors and re-queue the provisioning job.
+ * Optimistically clears provisioning errors and restores the previous banner if the retry fails.
  */
-function retryTravelCardsProvisioning(policyID: string, workspaceAccountID: number) {
+function retryTravelCardsProvisioning(policyID: string, workspaceAccountID: number, currentProvisioningErrors: string[]) {
+    const travelInvoicingKey = `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`;
+
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`,
+            key: travelInvoicingKey,
             value: {
                 settings: {
                     travelInvoicing: {
@@ -416,12 +418,16 @@ function retryTravelCardsProvisioning(policyID: string, workspaceAccountID: numb
         },
     ];
 
-    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS>> = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`,
+            key: travelInvoicingKey,
             value: {
-                errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                settings: {
+                    travelInvoicing: {
+                        errors: currentProvisioningErrors,
+                    },
+                },
             },
         },
     ];
