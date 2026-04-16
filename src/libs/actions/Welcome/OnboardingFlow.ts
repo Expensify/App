@@ -298,13 +298,6 @@ const getOnboardingMessages = (locale?: Locale) => {
         description: ({workspaceSettingsLink}) => translate(resolvedLocale, 'onboarding.tasks.reviewWorkspaceSettingsTask.description', {workspaceSettingsLink}),
     };
 
-    const inviteAccountantTask: OnboardingTask = {
-        type: CONST.ONBOARDING_TASK_TYPE.INVITE_ACCOUNTANT,
-        autoCompleted: false,
-        title: ({workspaceMembersLink}) => translate(resolvedLocale, 'onboarding.tasks.inviteAccountantTask.title', {workspaceMembersLink}),
-        description: ({workspaceMembersLink}) => translate(resolvedLocale, 'onboarding.tasks.inviteAccountantTask.description', {workspaceMembersLink}),
-    };
-
     const onboardingEmployerOrSubmitMessage: OnboardingMessage = {
         message: translate(resolvedLocale, 'onboarding.messages.onboardingEmployerOrSubmitMessage'),
         tasks: [testDriveEmployeeTask, adminSubmitExpenseTask],
@@ -349,7 +342,7 @@ const getOnboardingMessages = (locale?: Locale) => {
             width: 1280,
             height: 960,
         },
-        tasks: [createWorkspaceTask, testDriveAdminTask, createReportTask, setupCategoriesTask, inviteAccountantTask, reviewWorkspaceSettingsTask],
+        tasks: [testDriveAdminTask, createReportTask, setupCategoriesTask],
     };
 
     const onboardingChatSplitMessage: OnboardingMessage = {
