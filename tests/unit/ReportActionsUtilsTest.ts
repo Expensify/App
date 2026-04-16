@@ -29,6 +29,7 @@ import {
     getOriginalMessage,
     getPolicyChangeLogMaxExpenseAgeMessage,
     getPolicyChangeLogMaxExpenseAmountMessage,
+    getPolicyChangeLogMaxExpenseAmountNoItemizedReceiptMessage,
     getPolicyChangeLogMaxExpenseAmountNoReceiptMessage,
     getRemovedCardFeedMessage,
     getRenamedCardFeedMessage,
@@ -3427,6 +3428,53 @@ describe('ReportActionsUtils', () => {
             } as ReportAction;
             const result = getPolicyChangeLogMaxExpenseAmountNoReceiptMessage(translateLocal, action);
             expect(result).toBe('changed receipt required amount to "$75.00" (previously "$25.00")');
+        });
+    });
+
+    describe('getPolicyChangeLogMaxExpenseAmountNoItemizedReceiptMessage', () => {
+        it('should return set message when setting from disabled to a value', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MAX_EXPENSE_AMOUNT_NO_ITEMIZED_RECEIPT,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    oldMaxExpenseAmountNoItemizedReceipt: CONST.DISABLED_MAX_EXPENSE_VALUE,
+                    newMaxExpenseAmountNoItemizedReceipt: 2500,
+                    currency: 'USD',
+                },
+            } as ReportAction;
+            const result = getPolicyChangeLogMaxExpenseAmountNoItemizedReceiptMessage(translateLocal, action);
+            expect(result).toBe('set itemized receipt required amount to "$25.00"');
+        });
+
+        it('should return removed message when setting to disabled', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MAX_EXPENSE_AMOUNT_NO_ITEMIZED_RECEIPT,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    oldMaxExpenseAmountNoItemizedReceipt: 2500,
+                    newMaxExpenseAmountNoItemizedReceipt: CONST.DISABLED_MAX_EXPENSE_VALUE,
+                    currency: 'USD',
+                },
+            } as ReportAction;
+            const result = getPolicyChangeLogMaxExpenseAmountNoItemizedReceiptMessage(translateLocal, action);
+            expect(result).toBe('removed itemized receipt required amount (previously "$25.00")');
+        });
+
+        it('should return changed message when changing from one value to another', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MAX_EXPENSE_AMOUNT_NO_ITEMIZED_RECEIPT,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    oldMaxExpenseAmountNoItemizedReceipt: 2500,
+                    newMaxExpenseAmountNoItemizedReceipt: 7500,
+                    currency: 'USD',
+                },
+            } as ReportAction;
+            const result = getPolicyChangeLogMaxExpenseAmountNoItemizedReceiptMessage(translateLocal, action);
+            expect(result).toBe('changed itemized receipt required amount to "$75.00" (previously "$25.00")');
         });
     });
 
