@@ -402,12 +402,10 @@ function clearTravelInvoicingErrors(workspaceAccountID: number) {
  * Optimistically clears provisioning errors and restores the previous banner if the retry fails.
  */
 function retryTravelCardsProvisioning(policyID: string, workspaceAccountID: number, currentProvisioningErrors: string[]) {
-    const travelInvoicingKey = `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`;
-
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: travelInvoicingKey,
+            key: `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`,
             value: {
                 settings: {
                     travelInvoicing: {
@@ -421,7 +419,7 @@ function retryTravelCardsProvisioning(policyID: string, workspaceAccountID: numb
     const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: travelInvoicingKey,
+            key: `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`,
             value: {
                 settings: {
                     travelInvoicing: {
