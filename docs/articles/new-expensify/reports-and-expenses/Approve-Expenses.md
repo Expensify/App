@@ -79,14 +79,9 @@ To take an expense off hold, follow the same steps but select **Unhold**.
 
 ---
 
-1. In the navigation tabs (on the left on web, and at the bottom on mobile), head to **Spend > Expenses**.
-2. Locate the held expense using the search bar or filters.
-3. Click **View**.
-4. Open the **More** dropdown at the top of the expense.
-5. Select **Unhold**.
-6. Then follow the steps above to **Approve**.
+## How to unapprove a report 
 
-1. In the navigation tabs (on the left on web, and at the bottom on mobile), go to **Reports > Reports**.
+1. In the navigation tabs (on the left on web, and at the bottom on mobile), go to **Spend > Reports**.
 2. Locate the Approved report you want to unapprove. 
 3. Click the report to open it. 
 4. Click **More** at the top of the report. 
@@ -100,11 +95,14 @@ Unapproving a report returns it to the Outstanding state. The last approver will
 
 ## How to reject a report 
 
-1. In the navigation tabs (on the left on web, and at the bottom on mobile), head to **Spend** > **Reports**.
-2. Locate the report using the search bar or filters.
-3. Click **View**.
-4. Open the **More** dropdown at the top of the report.
-5. Select **Unapprove**.
+1. In the navigation tabs (on the left on web, and at the bottom on mobile), go to **Spend > Approve**.
+2. Locate the Outstanding report you want to reject.
+3. Click the report to open it.
+4. Click **More** at the top of the report.
+5. Select **Reject**.
+6. Enter a comment to explain why you will not approve the report.
+7. If the report passed through previous approvers, choose who the report should be rejected back to for review.
+8. Click **Reject report** to confirm.
 
 ## What happens after a report is rejected
 
