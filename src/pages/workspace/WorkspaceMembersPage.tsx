@@ -382,9 +382,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                 return;
             }
 
-            if (item.accountID) {
-                clearAddMemberError(route.params.policyID, item.login, item.accountID);
-            }
+            clearAddMemberError(route.params.policyID, item.login, item.accountID);
         },
         [route.params.policyID],
     );
