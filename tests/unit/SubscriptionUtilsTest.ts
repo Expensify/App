@@ -19,6 +19,7 @@ import {
     shouldShowDiscountBanner,
     shouldShowPreTrialBillingBanner,
     shouldShowTrialEndedUI,
+    shouldUseSimplifiedCollectSubscriptionUI,
 } from '@libs/SubscriptionUtils';
 import {getPrivatePromoDiscountInfo} from '@pages/settings/Subscription/utils';
 import CONST from '@src/CONST';
@@ -1095,6 +1096,24 @@ describe('SubscriptionUtils', () => {
                 [ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL]: formatDate(addDays(new Date(), 10), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING),
             });
             expect(shouldShowDiscountBanner(ownerAccountID, true, 'corporate', firstDayFreeTrial, undefined, undefined, {})).toBeFalsy();
+        });
+    });
+
+    describe('shouldUseSimplifiedCollectSubscriptionUI', () => {
+        it('returns false for Team workspaces with Team 2025 pricing', () => {
+            expect(shouldUseSimplifiedCollectSubscriptionUI(CONST.POLICY.TYPE.TEAM, true)).toBeFalsy();
+        });
+
+        it('returns true for Team workspaces without Team 2025 pricing', () => {
+            expect(shouldUseSimplifiedCollectSubscriptionUI(CONST.POLICY.TYPE.TEAM, false)).toBeTruthy();
+        });
+
+        it('returns false for Corporate workspaces without Team 2025 pricing', () => {
+            expect(shouldUseSimplifiedCollectSubscriptionUI(CONST.POLICY.TYPE.CORPORATE, false)).toBeFalsy();
+        });
+
+        it('returns false for Corporate workspaces with Team 2025 pricing', () => {
+            expect(shouldUseSimplifiedCollectSubscriptionUI(CONST.POLICY.TYPE.CORPORATE, true)).toBeFalsy();
         });
     });
 
