@@ -224,6 +224,8 @@ function createPolicyTag({
             currentUserAccountID,
             setupTagsHasOutstandingChildTask ?? false,
             setupTagsParentReportAction,
+            // Will be refactored in next PR; buildOptimisticTaskReportAction falls back to module-level Onyx.connect value; tracked in https://github.com/Expensify/App/issues/66417
+            undefined,
         );
     }
 
@@ -236,6 +238,8 @@ function createPolicyTag({
             currentUserAccountID,
             setupCategoriesAndTagsHasOutstandingChildTask ?? false,
             setupCategoriesAndTagsParentReportAction,
+            // Will be refactored in next PR; buildOptimisticTaskReportAction falls back to module-level Onyx.connect value; tracked in https://github.com/Expensify/App/issues/66417
+            undefined,
         );
     }
 }
