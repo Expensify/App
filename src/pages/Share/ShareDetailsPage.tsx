@@ -97,12 +97,7 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
         Navigation.navigate(ROUTES.SHARE_DETAILS_ATTACHMENT);
     }, [reportAttachmentsContext, fileSource, validateFileName, icons.FallbackAvatar]);
 
-    const setShareError = useCallback((errorTitleArg: string, errorMessageArg: string) => {
-        setErrorTitle(errorTitleArg);
-        setErrorMessage(errorMessageArg);
-    }, []);
-
-    useShareFileSizeValidation(currentAttachment?.content, setShareError, !errorTitle && shouldShowAttachment);
+    useShareFileSizeValidation(currentAttachment?.content, setErrorTitle, setErrorMessage, !errorTitle && shouldShowAttachment);
 
     useEffect(() => {
         if (!errorTitle || !errorMessage) {

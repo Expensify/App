@@ -114,12 +114,7 @@ function SubmitDetailsPage({
     const fileType = shouldUsePreValidatedFile ? (validFilesToUpload?.type ?? CONST.RECEIPT_ALLOWED_FILE_TYPES.JPEG) : (currentAttachment?.mimeType ?? '');
     const [hasOnlyPersonalPolicies = false] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: hasOnlyPersonalPoliciesUtil});
 
-    const setShareError = useCallback((title: string, message: string) => {
-        setErrorTitle(title);
-        setErrorMessage(message);
-    }, []);
-
-    useShareFileSizeValidation(currentAttachment?.content, setShareError, !errorTitle);
+    useShareFileSizeValidation(currentAttachment?.content, setErrorTitle, setErrorMessage, !errorTitle);
 
     useEffect(() => {
         if (!errorTitle || !errorMessage) {
