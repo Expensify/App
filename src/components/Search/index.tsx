@@ -43,6 +43,7 @@ import {
     getSortedSections,
     getValidGroupBy,
     getWideAmountIndicators,
+    hasDeletedTransactionInData,
     isGroupedItemArray,
     isReportActionListItemType,
     isSearchDataLoaded,
@@ -1488,6 +1489,8 @@ function Search({
         [searchResults?.data],
     );
 
+    const hasDeletedTransaction = useMemo(() => (searchResults?.data ? hasDeletedTransactionInData(searchResults.data) : false), [searchResults?.data]);
+
     const onSortPress = useCallback(
         (column: SearchColumnType, order: SortOrder) => {
             clearSelectedTransactions();
@@ -1652,6 +1655,7 @@ function Search({
                                     shouldShowSorting
                                     groupBy={validGroupBy}
                                     isExpenseReportView={isExpenseReportType}
+                                    isActionColumnWide={isTask || hasDeletedTransaction}
                                 />
                             </View>
                         )
@@ -1683,6 +1687,7 @@ function Search({
                     newTransactions={newTransactions}
                     hasLoadedAllTransactions={hasLoadedAllTransactions}
                     nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}
+                    isActionColumnWide={isTask || hasDeletedTransaction}
                 />
             </Animated.View>
         </SearchScopeProvider>

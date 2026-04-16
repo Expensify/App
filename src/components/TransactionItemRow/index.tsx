@@ -145,6 +145,7 @@ type TransactionItemRowProps = {
     checkboxSentryLabel?: string;
     isLargeScreenWidth?: boolean;
     nonPersonalAndWorkspaceCards?: CardList;
+    isActionColumnWide?: boolean;
 };
 
 const EMPTY_ACTIVE_STYLE: StyleProp<ViewStyle> = [];
@@ -198,6 +199,7 @@ function TransactionItemRow({
     checkboxSentryLabel,
     nonPersonalAndWorkspaceCards = {},
     isLargeScreenWidth: isLargeScreenWidthProp,
+    isActionColumnWide: isActionColumnWideProp,
 }: TransactionItemRowProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -412,7 +414,7 @@ function TransactionItemRow({
                 return (
                     <View
                         key={column}
-                        style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.ACTION)]}
+                        style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.ACTION, {isActionColumnWide: isActionColumnWideProp ?? isDeletedTransaction})]}
                     >
                         {!!transactionItem.action && (
                             <ActionCell
