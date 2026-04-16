@@ -110,6 +110,7 @@ const translations: TranslationDeepObject<typeof en> = {
         newFeature: 'Neue Funktion',
         search: 'Suche',
         reports: 'Berichte',
+        spend: 'Ausgaben',
         find: 'Finden',
         searchWithThreeDots: 'Suchen...',
         next: 'Weiter',
