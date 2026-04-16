@@ -3,14 +3,14 @@ import TextWithIconCell from '@components/Search/SearchList/ListItem/TextWithIco
 import TextWithTooltip from '@components/TextWithTooltip';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getDecodedCategoryName, isCategoryMissing} from '@libs/CategoryUtils';
+import {getDecodedLeafCategoryName, isCategoryMissing} from '@libs/CategoryUtils';
 import type TransactionDataCellProps from './TransactionDataCellProps';
 
 function CategoryCell({shouldUseNarrowLayout, shouldShowTooltip, transactionItem}: TransactionDataCellProps) {
     const icons = useMemoizedLazyExpensifyIcons(['Folder']);
     const styles = useThemeStyles();
 
-    const categoryForDisplay = isCategoryMissing(transactionItem?.category) ? '' : getDecodedCategoryName(transactionItem?.category ?? '');
+    const categoryForDisplay = isCategoryMissing(transactionItem?.category) ? '' : getDecodedLeafCategoryName(transactionItem?.category ?? '');
 
     return shouldUseNarrowLayout ? (
         <TextWithIconCell
