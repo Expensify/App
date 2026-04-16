@@ -192,7 +192,7 @@ function SearchActionsBarCreateButton() {
                                 userBillingGracePeriodEnds,
                                 amountOwed,
                                 undefined,
-                                session?.accountID,
+                                currentUserPersonalDetails.accountID,
                             ) &&
                                 groupPoliciesWithChatEnabled.length > 1)
                         ) {
@@ -208,7 +208,7 @@ function SearchActionsBarCreateButton() {
                                 userBillingGracePeriodEnds,
                                 amountOwed,
                                 undefined,
-                                session?.accountID,
+                                currentUserPersonalDetails.accountID,
                             )
                         ) {
                             // Check if empty report confirmation should be shown
@@ -239,7 +239,7 @@ function SearchActionsBarCreateButton() {
             openCreateReportConfirmation,
             handleCreateWorkspaceReport,
             amountOwed,
-            session?.accountID,
+            currentUserPersonalDetails.accountID,
         ],
     );
 

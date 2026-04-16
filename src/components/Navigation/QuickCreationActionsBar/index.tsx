@@ -183,7 +183,7 @@ function QuickCreationActionsBar() {
                         userBillingGracePeriodEnds,
                         amountOwed,
                         defaultChatEnabledPolicy,
-                        session?.accountID,
+                        currentUserPersonalDetails.accountID,
                     ) &&
                         groupPoliciesWithChatEnabled.length > 1)
                 ) {
@@ -198,7 +198,7 @@ function QuickCreationActionsBar() {
                         userBillingGracePeriodEnds,
                         amountOwed,
                         defaultChatEnabledPolicy,
-                        session?.accountID,
+                        currentUserPersonalDetails.accountID,
                     )
                 ) {
                     if (shouldShowEmptyReportConfirmationForDefaultChatEnabledPolicy) {
@@ -224,7 +224,7 @@ function QuickCreationActionsBar() {
             shouldShowEmptyReportConfirmationForDefaultChatEnabledPolicy,
             openCreateReportConfirmation,
             handleCreateWorkspaceReport,
-            session?.accountID,
+            currentUserPersonalDetails.accountID,
         ],
     );
 
