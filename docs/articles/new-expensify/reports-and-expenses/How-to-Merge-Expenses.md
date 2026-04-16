@@ -67,7 +67,7 @@ Use this method when you already see both duplicate expenses on the Expenses pag
 
 Use this method when both expenses are inside the same report.
 
-1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Spend** 
+1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Spend > Reports** 
 2. Click the report to open it. 
 3. Select the two expenses you want to merge
 4. Choose **Selected**, then select **Merge**.
