@@ -1,4 +1,5 @@
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import cleanupAndNavigateAfterExpenseCreate from '@libs/cleanupAndNavigateAfterExpenseCreate';
 import {getCurrencySymbol} from '@libs/CurrencyUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import getCurrentPosition from '@libs/getCurrentPosition';
@@ -79,8 +80,8 @@ type CreateTransactionParams = {
     personalDetails: OnyxEntry<PersonalDetailsList>;
     recentWaypoints: OnyxEntry<RecentWaypoint[]>;
 
-    /** Fires after the batch loop completes. UI uses this for draft cleanup and post-creation navigation. */
-    onTransactionsCreated?: () => void;
+    /** Fires after the batch loop with the last file's transactionID. UI uses this for cleanup + navigation. */
+    onTransactionsCreated?: (lastTransactionID: string | undefined) => void;
 };
 
 type InitialTransactionParams = {
@@ -128,7 +129,7 @@ type MoneyRequestStepScanParticipantsFlowParams = {
     recentWaypoints: OnyxEntry<RecentWaypoint[]>;
     participants: Participant[];
     participantsPolicyTags: Record<string, PolicyTagLists>;
-    onTransactionsCreated?: () => void;
+    onTransactionsCreated?: (lastTransactionID: string | undefined) => void;
     amountOwed: OnyxEntry<number>;
     userBillingGracePeriodEnds: OnyxCollection<BillingGraceEndPeriod>;
     ownerBillingGracePeriodEnd?: OnyxEntry<number>;
@@ -287,7 +288,7 @@ function createTransaction({
             });
         }
     }
-    onTransactionsCreated?.();
+    onTransactionsCreated?.(files.at(-1)?.transactionID);
 }
 
 function getMoneyRequestParticipantOptions(
@@ -716,10 +717,17 @@ function handleMoneyRequestStepDistanceNavigation({
                     introSelected,
                     activePolicyID,
                     quickAction,
-                    draftTransactionIDs,
                     recentWaypoints,
                     betas,
                     isSelfTourViewed,
+                });
+                cleanupAndNavigateAfterExpenseCreate({
+                    report,
+                    draftTransactionIDs,
+                    transactionID: transaction?.transactionID,
+                    isFromGlobalCreate: transaction?.isFromFloatingActionButton ?? transaction?.isFromGlobalCreate,
+                    hasMultipleTransactions: false,
+                    backToReport,
                 });
                 return;
             }

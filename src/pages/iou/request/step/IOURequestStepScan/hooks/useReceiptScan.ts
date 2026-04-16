@@ -1,7 +1,6 @@
 import shouldStartLocationPermissionFlowSelector from '@selectors/LocationPermission';
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import {useMemo, useState} from 'react';
-import {InteractionManager} from 'react-native';
 import TestReceipt from '@assets/images/fake-receipt.png';
 import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
 import useFilesValidation from '@hooks/useFilesValidation';
@@ -18,8 +17,8 @@ import useReportTransactions from '@hooks/useReportTransactions';
 import useSelfDMReport from '@hooks/useSelfDMReport';
 import {getMoneyRequestParticipantOptions, handleMoneyRequestStepScanParticipants} from '@libs/actions/IOU/MoneyRequest';
 import setTestReceipt from '@libs/actions/setTestReceipt';
-import navigateAfterExpenseCreate from '@libs/Navigation/helpers/navigateAfterExpenseCreate';
-import {getReportOrDraftReport, isMoneyRequestReport, isPolicyExpenseChat} from '@libs/ReportUtils';
+import cleanupAndNavigateAfterExpenseCreate from '@libs/cleanupAndNavigateAfterExpenseCreate';
+import {isPolicyExpenseChat} from '@libs/ReportUtils';
 import {getSpan, startSpan} from '@libs/telemetry/activeSpans';
 import {getDefaultTaxCode, getTaxValue, hasReceipt, shouldReuseInitialTransaction} from '@libs/TransactionUtils';
 import type {ReceiptFile, UseReceiptScanParams} from '@pages/iou/request/step/IOURequestStepScan/types';
@@ -155,17 +154,14 @@ function useReceiptScan({
             allTransactionDrafts,
             participants,
             participantsPolicyTags,
-            onTransactionsCreated: () => {
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
-                InteractionManager.runAfterInteractions(() => removeDraftTransactionsByIDs(draftTransactionIDs));
-                const isExpenseReport = isMoneyRequestReport(report);
-                const linkedChatReport = isExpenseReport ? getReportOrDraftReport(report?.chatReportID) : undefined;
-                const activeReportID = isExpenseReport ? report?.reportID : (linkedChatReport?.reportID ?? report?.reportID);
-                navigateAfterExpenseCreate({
-                    activeReportID: backToReport ?? activeReportID,
-                    transactionID: initialTransactionID,
+            onTransactionsCreated: (lastTransactionID) => {
+                cleanupAndNavigateAfterExpenseCreate({
+                    report,
+                    draftTransactionIDs,
+                    transactionID: lastTransactionID ?? initialTransactionID,
                     isFromGlobalCreate: initialTransaction?.isFromGlobalCreate,
                     hasMultipleTransactions: reportTransactions.length > 0,
+                    backToReport,
                 });
             },
             amountOwed,

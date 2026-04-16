@@ -2,7 +2,7 @@ import type {StackScreenProps} from '@react-navigation/stack';
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import {validTransactionDraftsSelector} from '@selectors/TransactionDraft';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
-import {InteractionManager, View} from 'react-native';
+import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -31,20 +31,19 @@ import {
 } from '@libs/actions/IOU';
 import {setMoneyRequestReceipt} from '@libs/actions/IOU/Receipt';
 import {requestMoney, trackExpense} from '@libs/actions/IOU/TrackExpense';
-import {removeDraftTransactionsByIDs} from '@libs/actions/TransactionEdit';
+import cleanupAndNavigateAfterExpenseCreate from '@libs/cleanupAndNavigateAfterExpenseCreate';
 import DateUtils from '@libs/DateUtils';
 import {getFileName, readFileAsync} from '@libs/fileDownload/FileUtils';
 import getCurrentPosition from '@libs/getCurrentPosition';
 import {getExistingTransactionID} from '@libs/IOUUtils';
 import Log from '@libs/Log';
-import navigateAfterExpenseCreate from '@libs/Navigation/helpers/navigateAfterExpenseCreate';
 import navigateAfterInteraction from '@libs/Navigation/navigateAfterInteraction';
 import Navigation from '@libs/Navigation/Navigation';
 import type {ShareNavigatorParamList} from '@libs/Navigation/types';
 import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
 import {hasOnlyPersonalPolicies as hasOnlyPersonalPoliciesUtil, isPaidGroupPolicy} from '@libs/PolicyUtils';
 import {shouldValidateFile} from '@libs/ReceiptUtils';
-import {getReportOrDraftReport, isMoneyRequestReport, isSelfDM} from '@libs/ReportUtils';
+import {getReportOrDraftReport, isSelfDM} from '@libs/ReportUtils';
 import {getDefaultTaxCode, getTaxValue} from '@libs/TransactionUtils';
 import DraftWorkspaceOpener from '@pages/iou/request/step/confirmation/DraftWorkspaceOpener';
 import CONST from '@src/CONST';
@@ -272,13 +271,9 @@ function SubmitDetailsPage({
                 personalDetails,
             });
         }
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        InteractionManager.runAfterInteractions(() => removeDraftTransactionsByIDs(draftTransactionIDs));
-        const isExpenseReport = isMoneyRequestReport(report);
-        const linkedChatReport = isExpenseReport ? getReportOrDraftReport(report?.chatReportID) : undefined;
-        const activeReportID = isExpenseReport ? report?.reportID : (linkedChatReport?.reportID ?? report?.reportID);
-        navigateAfterExpenseCreate({
-            activeReportID,
+        cleanupAndNavigateAfterExpenseCreate({
+            report,
+            draftTransactionIDs,
             transactionID: transaction.transactionID,
             isFromGlobalCreate: transaction.isFromFloatingActionButton ?? transaction.isFromGlobalCreate,
             hasMultipleTransactions: reportTransactions.length > 0,

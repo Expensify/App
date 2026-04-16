@@ -2,7 +2,7 @@ import {delegateEmailSelector} from '@selectors/Account';
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {InteractionManager, View} from 'react-native';
+import {View} from 'react-native';
 import DragAndDropConsumer from '@components/DragAndDrop/Consumer';
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
 import DropZoneUI from '@components/DropZone/DropZoneUI';
@@ -36,6 +36,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {completeTestDriveTask} from '@libs/actions/Task';
 import {isMobileSafari} from '@libs/Browser';
+import cleanupAndNavigateAfterExpenseCreate from '@libs/cleanupAndNavigateAfterExpenseCreate';
 import {getCurrencySymbol} from '@libs/CurrencyUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
@@ -100,7 +101,7 @@ import {getReceiverType, sendInvoice} from '@userActions/IOU/SendInvoice';
 import {sendMoneyElsewhere, sendMoneyWithWallet} from '@userActions/IOU/SendMoney';
 import {splitBill, splitBillAndOpenReport, startSplitBill} from '@userActions/IOU/Split';
 import {requestMoney as requestMoneyIOUActions, trackExpense as trackExpenseIOUActions} from '@userActions/IOU/TrackExpense';
-import {removeDraftTransaction, removeDraftTransactionsByIDs, replaceDefaultDraftTransaction} from '@userActions/TransactionEdit';
+import {removeDraftTransaction, replaceDefaultDraftTransaction} from '@userActions/TransactionEdit';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -622,24 +623,15 @@ function IOURequestStepConfirmation({
             if (!lastTransaction) {
                 return;
             }
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            InteractionManager.runAfterInteractions(() => removeDraftTransactionsByIDs(draftTransactionIDs));
-
-            const trackReport = Navigation.getReportRouteByID(lastTransaction.linkedTrackedExpenseReportAction?.childReportID);
-            if (trackReport?.key) {
-                Navigation.removeScreenByKey(trackReport.key);
-            }
-
-            const isExpenseReport = isMoneyRequestReport(report);
-            const linkedChatReport = isExpenseReport ? getReportOrDraftReport(report?.chatReportID) : undefined;
-            const activeReportID =
-                isExpenseReport && Navigation.getTopmostReportId() === report?.reportID ? report?.reportID : (linkedChatReport?.reportID ?? report?.reportID ?? optimisticChatReportID);
-
-            navigateAfterExpenseCreate({
-                activeReportID: backToReport ?? activeReportID,
+            cleanupAndNavigateAfterExpenseCreate({
+                report,
+                draftTransactionIDs,
                 transactionID: lastTransaction.transactionID,
                 isFromGlobalCreate: lastTransaction.isFromFloatingActionButton ?? lastTransaction.isFromGlobalCreate,
                 hasMultipleTransactions: reportTransactions.length > 0,
+                backToReport,
+                optimisticChatReportID,
+                linkedTrackedExpenseReportAction: lastTransaction.linkedTrackedExpenseReportAction,
             });
         },
         [
@@ -878,15 +870,9 @@ function IOURequestStepConfirmation({
             if (!lastTransaction) {
                 return;
             }
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            InteractionManager.runAfterInteractions(() => removeDraftTransactionsByIDs(draftTransactionIDs));
-
-            const isExpenseReport = isMoneyRequestReport(report);
-            const linkedChatReport = isExpenseReport ? getReportOrDraftReport(report?.chatReportID) : undefined;
-            const activeReportID = isExpenseReport ? report?.reportID : (linkedChatReport?.reportID ?? report?.reportID);
-
-            navigateAfterExpenseCreate({
-                activeReportID,
+            cleanupAndNavigateAfterExpenseCreate({
+                report,
+                draftTransactionIDs,
                 transactionID: lastTransaction.transactionID,
                 isFromGlobalCreate: lastTransaction.isFromFloatingActionButton ?? lastTransaction.isFromGlobalCreate,
                 hasMultipleTransactions: reportTransactions.length > 0,

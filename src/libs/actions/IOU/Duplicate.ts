@@ -949,7 +949,6 @@ type BulkDuplicateExpensesParams = {
     policyRecentlyUsedCurrencies: string[];
     isSelfTourViewed: boolean;
     transactionDrafts: Record<string, OnyxTypes.Transaction> | undefined;
-    draftTransactionIDs: string[];
     betas: OnyxEntry<OnyxTypes.Beta[]>;
     recentWaypoints: OnyxEntry<OnyxTypes.RecentWaypoint[]>;
 };
@@ -970,7 +969,6 @@ function bulkDuplicateExpenses({
     policyRecentlyUsedCurrencies,
     isSelfTourViewed,
     transactionDrafts,
-    draftTransactionIDs,
     betas,
     recentWaypoints,
 }: BulkDuplicateExpensesParams) {
@@ -1013,7 +1011,6 @@ function bulkDuplicateExpenses({
             targetPolicyCategories: targetPolicyCategories ?? {},
             targetReport: currentTargetReport,
             existingTransactionDraft,
-            draftTransactionIDs,
             betas,
             personalDetails,
             recentWaypoints,

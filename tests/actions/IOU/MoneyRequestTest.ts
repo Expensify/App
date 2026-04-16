@@ -54,6 +54,19 @@ jest.mock('@libs/actions/IOU/Split', () => {
 jest.mock('@src/libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
     goBack: jest.fn(),
+    dismissModal: jest.fn(),
+    dismissModalWithReport: jest.fn(),
+    revealRouteBeforeDismissingModal: jest.fn(),
+    getReportRouteByID: jest.fn(() => undefined),
+    removeScreenByKey: jest.fn(),
+    getTopmostReportId: jest.fn(() => undefined),
+    getIsFullscreenPreInsertedUnderRHP: jest.fn(() => false),
+    clearFullscreenPreInsertedFlag: jest.fn(),
+    isNavigationReady: jest.fn(() => Promise.resolve()),
+    navigationRef: {
+        getRootState: jest.fn(() => ({routes: []})),
+        isReady: jest.fn(() => true),
+    },
 }));
 
 jest.mock('@libs/getCurrentPosition');
@@ -239,6 +252,8 @@ describe('MoneyRequest', () => {
             // Callback must fire once per batch (not per file) and only after all action calls — UI relies on this for cleanup + navigation timing
             expect(onTransactionsCreated).toHaveBeenCalledTimes(1);
             expect(callOrder).toEqual(['trackExpense', 'trackExpense', 'trackExpense', 'onTransactionsCreated']);
+            // Must be the LAST file's ID so multi-receipt scans highlight the right expense
+            expect(onTransactionsCreated).toHaveBeenCalledWith('333');
         });
 
         it('should not throw when onTransactionsCreated callback is undefined', () => {
@@ -1302,7 +1317,6 @@ describe('MoneyRequest', () => {
                 quickAction: baseParams.quickAction,
                 recentWaypoints: baseParams.recentWaypoints,
                 betas: [CONST.BETAS.ALL],
-                draftTransactionIDs: [baseParams.transactionID],
             });
 
             // The function must return after trackExpense and not call createDistanceRequest

@@ -229,7 +229,6 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
                 targetPolicyCategories: activePolicyCategoriesMap,
                 targetReport: activePolicyExpenseChat,
                 existingTransactionDraft,
-                draftTransactionIDs,
                 betas,
                 personalDetails,
                 recentWaypoints,
