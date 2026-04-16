@@ -1,0 +1,114 @@
+diff --git a/node_modules/@shopify/flash-list/dist/recyclerview/hooks/useRecyclerViewController.js b/node_modules/@shopify/flash-list/dist/recyclerview/hooks/useRecyclerViewController.js
+index 70f856a..52546f7 100644
+--- a/node_modules/@shopify/flash-list/dist/recyclerview/hooks/useRecyclerViewController.js
++++ b/node_modules/@shopify/flash-list/dist/recyclerview/hooks/useRecyclerViewController.js
+@@ -1,5 +1,5 @@
+ import { useCallback, useImperativeHandle, useMemo, useRef, useState, } from "react";
+-import { I18nManager } from "react-native";
++import { I18nManager, Platform } from "react-native";
+ import { adjustOffsetForRTL } from "../utils/adjustOffsetForRTL";
+ import { PlatformConfig } from "../../native/config/PlatformHelper";
+ import { WarningMessages } from "../../errors/WarningMessages";
+@@ -25,6 +25,8 @@ export function useRecyclerViewController(recyclerViewManager, ref, scrollViewRe
+     const isUnmounted = useUnmountFlag();
+     const [_, setRenderId] = useState(0);
+     const pauseOffsetCorrection = useRef(false);
++    const pendingAndroidInvertedRafId = useRef(null);
++    const skipNextAndroidInvertedCorrection = useRef(false);
+     const lastDataLengthRef = useRef(recyclerViewManager.getDataLength());
+     const { setTimeout } = useUnmountAwareTimeout();
+     // Track the first visible item for maintaining scroll position
+@@ -79,7 +81,7 @@ export function useRecyclerViewController(recyclerViewManager, ref, scrollViewRe
+      */
+     const applyOffsetCorrection = useCallback(() => {
+         var _a, _b, _c;
+-        const { horizontal, data } = recyclerViewManager.props;
++        const { horizontal, data, inverted } = recyclerViewManager.props;
+         // Execute all pending callbacks from previous scroll offset updates
+         // This ensures any scroll operations that were waiting for render are completed
+         const callbacks = pendingScrollCallbacks.current;
+@@ -91,6 +93,11 @@ export function useRecyclerViewController(recyclerViewManager, ref, scrollViewRe
+             currentDataLength > 0 &&
+             recyclerViewManager.shouldMaintainVisibleContentPosition()) {
+             const hasDataChanged = currentDataLength !== lastDataLengthRef.current;
++            // Read and reset the skip flag so it never persists across multiple correction cycles
++            const shouldSkipAndroidInvertedCorrection = hasDataChanged && inverted && Platform.OS === 'android' && skipNextAndroidInvertedCorrection.current;
++            if (shouldSkipAndroidInvertedCorrection) {
++                skipNextAndroidInvertedCorrection.current = false;
++            }
+             // If we have a tracked first visible item, maintain its position
+             if (firstVisibleItemKey.current) {
+                 const currentIndexOfFirstVisibleItem = (_a = recyclerViewManager
+@@ -115,10 +122,31 @@ export function useRecyclerViewController(recyclerViewManager, ref, scrollViewRe
+                         !pauseOffsetCorrection.current &&
+                         !recyclerViewManager.animationOptimizationsEnabled) {
+                         // console.log("diff", diff, firstVisibleItemKey.current);
+-                        if (PlatformConfig.supportsOffsetCorrection) {
+-                            // console.log("scrollBy", diff);
++                        const useAndroidInvertedFallback = hasDataChanged && inverted && Platform.OS === 'android';
++                        if (PlatformConfig.supportsOffsetCorrection && !useAndroidInvertedFallback) {
+                             (_b = scrollAnchorRef.current) === null || _b === void 0 ? void 0 : _b.scrollBy(diff);
+                         }
++                        else if (useAndroidInvertedFallback) {
++                            if (!shouldSkipAndroidInvertedCorrection) {
++                                const scrollToParams = horizontal
++                                    ? {
++                                        x: recyclerViewManager.getAbsoluteLastScrollOffset() + diff,
++                                        animated: false,
++                                    }
++                                    : {
++                                        y: recyclerViewManager.getAbsoluteLastScrollOffset() + diff,
++                                        animated: false,
++                                    };
++                                if (pendingAndroidInvertedRafId.current !== null) {
++                                    cancelAnimationFrame(pendingAndroidInvertedRafId.current);
++                                }
++                                // rAF scrollTo to correct after native layout commits
++                                pendingAndroidInvertedRafId.current = requestAnimationFrame(() => {
++                                    pendingAndroidInvertedRafId.current = null;
++                                    (_c = scrollViewRef.current) === null || _c === void 0 ? void 0 : _c.scrollTo(scrollToParams);
++                                });
++                            }
++                        }
+                         else {
+                             const scrollToParams = horizontal
+                                 ? {
+@@ -162,6 +190,13 @@ export function useRecyclerViewController(recyclerViewManager, ref, scrollViewRe
+              * Handles RTL layouts and first item offset adjustments.
+              */
+             scrollToOffset: ({ offset, animated, skipFirstItemOffset = true, }) => {
++                if (pendingAndroidInvertedRafId.current !== null) {
++                    cancelAnimationFrame(pendingAndroidInvertedRafId.current);
++                    pendingAndroidInvertedRafId.current = null;
++                }
++                if (recyclerViewManager.props.inverted && Platform.OS === 'android') {
++                    skipNextAndroidInvertedCorrection.current = true;
++                }
+                 const { horizontal } = recyclerViewManager.props;
+                 if (scrollViewRef.current) {
+                     // Adjust offset for RTL layouts in horizontal mode
+@@ -205,6 +240,13 @@ export function useRecyclerViewController(recyclerViewManager, ref, scrollViewRe
+              * Scrolls to the end of the list.
+              */
+             scrollToEnd: async ({ animated } = {}) => {
++                if (pendingAndroidInvertedRafId.current !== null) {
++                    cancelAnimationFrame(pendingAndroidInvertedRafId.current);
++                    pendingAndroidInvertedRafId.current = null;
++                }
++                if (recyclerViewManager.props.inverted && Platform.OS === 'android') {
++                    skipNextAndroidInvertedCorrection.current = true;
++                }
+                 const { data } = recyclerViewManager.props;
+                 if (data && data.length > 0) {
+                     const lastIndex = data.length - 1;
+@@ -235,6 +277,10 @@ export function useRecyclerViewController(recyclerViewManager, ref, scrollViewRe
+              * Returns a Promise that resolves when the scroll is complete.
+              */
+             scrollToIndex: ({ index, animated, viewPosition, viewOffset, }) => {
++                if (pendingAndroidInvertedRafId.current !== null) {
++                    cancelAnimationFrame(pendingAndroidInvertedRafId.current);
++                    pendingAndroidInvertedRafId.current = null;
++                }
+                 return new Promise((resolve) => {
+                     const { horizontal } = recyclerViewManager.props;
+                     if (scrollViewRef.current &&
