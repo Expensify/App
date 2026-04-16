@@ -1976,6 +1976,7 @@ function updateSplitTransactions({
                         IOUTransactionID: null,
                     },
                     errors: null,
+                    childReportID: null,
                 },
             };
 
