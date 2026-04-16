@@ -80,6 +80,8 @@ function ActionCell({
 
     const text = translate(actionTranslationsMap[action]);
 
+    const shouldBeDisabledInOffline = action !== CONST.SEARCH.ACTION_TYPES.UNDELETE && isOffline;
+
     return (
         <Button
             text={text}
@@ -89,7 +91,7 @@ function ActionCell({
             style={[styles.w100, shouldDisablePointerEvents && styles.pointerEventsNone]}
             isLoading={isLoading}
             success={action !== CONST.SEARCH.ACTION_TYPES.UNDELETE}
-            isDisabled={isOffline || shouldDisablePointerEvents}
+            isDisabled={shouldBeDisabledInOffline || shouldDisablePointerEvents}
             shouldStayNormalOnDisable={shouldDisablePointerEvents}
             isNested
             sentryLabel={CONST.SENTRY_LABEL.SEARCH.ACTION_CELL_ACTION}
