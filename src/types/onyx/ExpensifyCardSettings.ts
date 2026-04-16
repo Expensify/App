@@ -43,6 +43,9 @@ type ExpensifyCardSettingsBase = {
     /** The preferred policy for the domain card */
     preferredPolicy?: string;
 
+    /** Policy IDs linked to this Expensify Card feed (when present, drives feed grouping in the admin selector) */
+    linkedPolicyIDs?: string[];
+
     /** The Marqeta business token */
     marqetaBusinessToken?: number;
 
@@ -64,6 +67,9 @@ type ExpensifyCardSettingsBase = {
     /** Credit limit for the card program */
     limit?: number;
 
+    /** Per-user monthly spend limit for travel invoicing cards (in cents) */
+    monthlySpendLimitPerUser?: number;
+
     /** Currency for the card program (e.g. USD, GBP, EUR) */
     currency?: string;
 
@@ -84,7 +90,7 @@ type ExpensifyCardRuleFilter = {
 };
 
 /** Expensify card rule data model */
-type ExpensifyCardRule = {
+type ExpensifyCardRule = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Date the rule was created */
     created: string;
 
@@ -93,7 +99,7 @@ type ExpensifyCardRule = {
 
     /** Action to take when the rule is matched */
     action: ValueOf<typeof CONST.SPEND_RULES.ACTION>;
-};
+}>;
 
 /** Model of Expensify card settings for a workspace - can have nested feed types from backend */
 type ExpensifyCardSettings = OnyxCommon.OnyxValueWithOfflineFeedback<

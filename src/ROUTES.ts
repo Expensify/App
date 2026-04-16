@@ -161,6 +161,14 @@ const DYNAMIC_ROUTES = {
         path: 'credit-card-account',
         entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSES],
     },
+    POLICY_ACCOUNTING_SAGE_INTACCT_AUTO_SYNC: {
+        path: 'sage-intacct-autosync',
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_ADVANCED],
+    },
+    POLICY_ACCOUNTING_SAGE_INTACCT_ACCOUNTING_METHOD: {
+        path: 'sage-intacct-accounting-method',
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_SAGE_INTACCT_AUTO_SYNC, SCREENS.WORKSPACE.ACCOUNTING.CARD_RECONCILIATION_SAGE_INTACCT_AUTO_SYNC],
+    },
     POLICY_ACCOUNTING_XERO_EXPORT_BANK_ACCOUNT_SELECT: {
         path: 'bank-account-select',
         entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.XERO_EXPORT],
@@ -170,7 +178,7 @@ const DYNAMIC_ROUTES = {
         entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.XERO_EXPORT],
     },
     POLICY_ACCOUNTING_XERO_AUTO_SYNC: {
-        path: 'autosync',
+        path: 'xero-autosync',
         entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.XERO_ADVANCED, SCREENS.WORKSPACE.ACCOUNTING.CARD_RECONCILIATION],
     },
     POLICY_ACCOUNTING_XERO_ACCOUNTING_METHOD: {
@@ -814,6 +822,7 @@ const ROUTES = {
     },
 
     SETTINGS_SAVE_THE_WORLD: 'settings/teachersunite',
+    SETTINGS_SAVE_THE_WORLD_ADD_PAYMENT_CARD: 'settings/teachersunite/add-payment-card',
 
     NEW: 'new',
     NEW_CHAT: 'new/chat',
@@ -994,6 +1003,10 @@ const ROUTES = {
     REPORT_SETTINGS_COLUMNS: {
         route: 'r/:reportID/settings/columns',
         getRoute: (reportID: string) => `r/${reportID}/settings/columns` as const,
+    },
+    CHRONOS_SCHEDULE_OOO: {
+        route: 'r/:reportID/chronos/schedule-ooo',
+        getRoute: (reportID: string) => `r/${reportID}/chronos/schedule-ooo` as const,
     },
     SPLIT_BILL_DETAILS: {
         route: 'r/:reportID/split/:reportActionID',
@@ -2738,9 +2751,16 @@ const ROUTES = {
     },
     WORKSPACE_EXPENSIFY_CARD_SELECT_FEED: {
         route: 'workspaces/:policyID/expensify-card/select-feed',
-
         // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
         getRoute: (policyID: string, backTo?: string) => getUrlWithBackToParam(`workspaces/${policyID}/expensify-card/select-feed`, backTo),
+    },
+    WORKSPACE_EXPENSIFY_CARD_ADD_WORK_EMAIL: {
+        route: 'workspaces/:policyID/expensify-card/:fundID/work-email',
+        getRoute: (policyID: string, fundID: number) => `workspaces/${policyID}/expensify-card/${encodeURIComponent(fundID)}/work-email` as const,
+    },
+    WORKSPACE_EXPENSIFY_CARD_VERIFY_WORK_EMAIL: {
+        route: 'workspaces/:policyID/expensify-card/:fundID/verify-work-email',
+        getRoute: (policyID: string, fundID: number) => `workspaces/${policyID}/expensify-card/${encodeURIComponent(fundID)}/verify-work-email` as const,
     },
     WORKSPACE_EXPENSIFY_CARD_SETTINGS_FREQUENCY: {
         route: 'workspaces/:policyID/expensify-card/settings/frequency',
@@ -2801,6 +2821,10 @@ const ROUTES = {
     WORKSPACE_TRAVEL_SETTINGS_FREQUENCY: {
         route: 'workspaces/:policyID/travel/settings/frequency',
         getRoute: (policyID: string) => `workspaces/${policyID}/travel/settings/frequency` as const,
+    },
+    WORKSPACE_TRAVEL_SETTINGS_MONTHLY_LIMIT: {
+        route: 'workspaces/:policyID/travel/settings/monthly-limit',
+        getRoute: (policyID: string) => `workspaces/${policyID}/travel/settings/monthly-limit` as const,
     },
     WORKSPACE_TRAVEL_MISSING_PERSONAL_DETAILS: {
         route: 'workspaces/:policyID/travel/missing-personal-details',
@@ -3003,25 +3027,29 @@ const ROUTES = {
         route: 'workspaces/:policyID/rules/spend-rules/new',
         getRoute: (policyID: string) => `workspaces/${policyID}/rules/spend-rules/new` as const,
     },
+    RULES_SPEND_EDIT: {
+        route: 'workspaces/:policyID/rules/spend-rules/:ruleID',
+        getRoute: (policyID: string, ruleID: string) => `workspaces/${policyID}/rules/spend-rules/${ruleID}` as const,
+    },
     RULES_SPEND_CARD: {
-        route: 'workspaces/:policyID/rules/spend-rules/new/card',
-        getRoute: (policyID: string) => `workspaces/${policyID}/rules/spend-rules/new/card` as const,
+        route: 'workspaces/:policyID/rules/spend-rules/:ruleID/card',
+        getRoute: (policyID: string, ruleID?: string) => `workspaces/${policyID}/rules/spend-rules/${ruleID ?? ROUTES.NEW}/card` as const,
     },
     RULES_SPEND_CATEGORY: {
-        route: 'workspaces/:policyID/rules/spend-rules/new/category',
-        getRoute: (policyID: string) => `workspaces/${policyID}/rules/spend-rules/new/category` as const,
+        route: 'workspaces/:policyID/rules/spend-rules/:ruleID/category',
+        getRoute: (policyID: string, ruleID?: string) => `workspaces/${policyID}/rules/spend-rules/${ruleID ?? ROUTES.NEW}/category` as const,
     },
     RULES_SPEND_MAX_AMOUNT: {
-        route: 'workspaces/:policyID/rules/spend-rules/new/max-amount',
-        getRoute: (policyID: string) => `workspaces/${policyID}/rules/spend-rules/new/max-amount` as const,
+        route: 'workspaces/:policyID/rules/spend-rules/:ruleID/max-amount',
+        getRoute: (policyID: string, ruleID?: string) => `workspaces/${policyID}/rules/spend-rules/${ruleID ?? ROUTES.NEW}/max-amount` as const,
     },
     RULES_SPEND_MERCHANTS: {
-        route: 'workspaces/:policyID/rules/spend-rules/new/merchants',
-        getRoute: (policyID: string) => `workspaces/${policyID}/rules/spend-rules/new/merchants` as const,
+        route: 'workspaces/:policyID/rules/spend-rules/:ruleID/merchants',
+        getRoute: (policyID: string, ruleID?: string) => `workspaces/${policyID}/rules/spend-rules/${ruleID ?? ROUTES.NEW}/merchants` as const,
     },
     RULES_SPEND_MERCHANT_EDIT: {
-        route: 'workspaces/:policyID/rules/spend-rules/new/merchants/:merchantIndex',
-        getRoute: (policyID: string, merchantIndex: string) => `workspaces/${policyID}/rules/spend-rules/new/merchants/${merchantIndex}` as const,
+        route: 'workspaces/:policyID/rules/spend-rules/:ruleID/merchants/:merchantIndex',
+        getRoute: (policyID: string, ruleID: string, merchantIndex: string) => `workspaces/${policyID}/rules/spend-rules/${ruleID}/merchants/${merchantIndex}` as const,
     },
     RULES_MERCHANT_MERCHANT_TO_MATCH: {
         route: 'workspaces/:policyID/rules/merchant-rules/:ruleID/merchant-to-match',
@@ -3874,25 +3902,6 @@ const ROUTES = {
                 Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_SAGE_INTACCT_PAYMENT_ACCOUNT route');
             }
             return `workspaces/${policyID}/accounting/sage-intacct/advanced/payment-account` as const;
-        },
-    },
-    POLICY_ACCOUNTING_SAGE_INTACCT_AUTO_SYNC: {
-        route: 'workspaces/:policyID/accounting/sage-intacct/advanced/autosync',
-        getRoute: (policyID: string | undefined, backTo?: string) => {
-            if (!policyID) {
-                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_SAGE_INTACCT_AUTO_SYNC route');
-            }
-            // eslint-disable-next-line no-restricted-syntax
-            return getUrlWithBackToParam(`workspaces/${policyID}/accounting/sage-intacct/advanced/autosync` as const, backTo);
-        },
-    },
-    POLICY_ACCOUNTING_SAGE_INTACCT_ACCOUNTING_METHOD: {
-        route: 'workspaces/:policyID/accounting/sage-intacct/advanced/autosync/accounting-method',
-        getRoute: (policyID: string | undefined) => {
-            if (!policyID) {
-                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_SAGE_INTACCT_ACCOUNTING_METHOD route');
-            }
-            return `workspaces/${policyID}/accounting/sage-intacct/advanced/autosync/accounting-method` as const;
         },
     },
     ADD_UNREPORTED_EXPENSE: {
