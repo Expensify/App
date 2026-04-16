@@ -7,7 +7,7 @@ internalScope: Audience is all members. Covers exporting reports to CSV using ex
 
 # How to export reports 
 
-Export reportsto a CSV file using export templates, and download individual reports as PDFs.
+Export reports to a CSV file using export templates, and download individual reports as PDFs.
 
 If you’re trying to export a specific type of data, use the guides below:
 
