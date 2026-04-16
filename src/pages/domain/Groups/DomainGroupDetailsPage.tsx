@@ -41,22 +41,23 @@ function DomainGroupDetailsPage({route}: DomainGroupDetailsPageProps) {
                 testID="DomainGroupDetailsPage"
             >
                 <HeaderWithBackButton
-                    title={group?.name ?? translate('domain.groups.title')}
+                    title={group?.name}
                     onBackButtonPress={() => Navigation.goBack(ROUTES.DOMAIN_GROUPS.getRoute(domainAccountID))}
                 />
                 <ScrollView>
-                    <OfflineWithFeedback pendingAction={namePendingAction}>
+                    <OfflineWithFeedback
+                        pendingAction={namePendingAction}
+                        errors={nameErrors}
+                        onClose={() => clearDomainSecurityGroupSettingError(domainAccountID, groupID, 'nameErrors')}
+                        errorRowStyles={[styles.mh5, styles.mt3]}
+                    >
                         <MenuItemWithTopDescription
                             description={translate('common.name')}
-                            title={group?.name ?? ''}
+                            title={group?.name}
                             shouldShowRightIcon
                             onPress={() => Navigation.navigate(ROUTES.DOMAIN_GROUP_EDIT_NAME.getRoute(domainAccountID, groupID))}
                         />
-                        <ErrorMessageRow
-                            errors={nameErrors}
-                            onDismiss={() => clearDomainSecurityGroupSettingError(domainAccountID, groupID, 'nameErrors')}
-                            errorRowStyles={[styles.mh5, styles.mt3]}
-                        />
+                        <ErrorMessageRow />
                     </OfflineWithFeedback>
                 </ScrollView>
             </ScreenWrapper>

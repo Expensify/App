@@ -9140,6 +9140,7 @@ ${amount} para ${merchant} - ${date}`,
             forceTwoFactorAuthDescription: `<muted-text>Requiere la autenticación de dos factores para todos los miembros de este dominio. Se les pedirá a los miembros del dominio que configuren la autenticación de dos factores en su cuenta cuando inicien sesión.</muted-text>`,
             forceTwoFactorAuthError: 'No se pudo cambiar la autenticación de dos factores forzada. Por favor, inténtalo de nuevo más tarde.',
             resetTwoFactorAuth: 'Restablecer la autenticación de dos factores',
+            error: 'No se pudo guardar este cambio. Por favor, inténtalo de nuevo.',
         },
         groups: {
             title: 'Grupos',
@@ -9148,9 +9149,6 @@ ${amount} para ${merchant} - ${date}`,
                     one: '1 miembro',
                     other: (count: number) => `${count} miembros`,
                 };
-            },
-            error: {
-                settings: 'No se pudo guardar este cambio. Inténtalo de nuevo.',
             },
         },
     },

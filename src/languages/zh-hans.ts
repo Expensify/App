@@ -8590,11 +8590,11 @@ ${reportName}
             forceTwoFactorAuthDescription: `<muted-text>要求此域的所有成员使用双重身份验证。域成员在登录时将被提示为其账户设置双重身份验证。</muted-text>`,
             forceTwoFactorAuthError: '无法更改强制启用双重身份验证设置。请稍后再试。',
             resetTwoFactorAuth: '重置双重身份验证',
+            error: '无法保存此更改。请重试。',
         },
         groups: {
             title: '群组',
             memberCount: () => ({one: '1 名成员', other: (count: number) => `${count} 名成员`}),
-            error: {settings: '<rbr>无法保存此更改。请重试或<concierge-link>联系Concierge</concierge-link>获取更多支持。</rbr>'},
         },
     },
     proactiveAppReview: {title: '喜欢全新的 Expensify 吗？', description: '请告诉我们，这样我们就能帮助您让报销体验变得更好。', positiveButton: '太棒了！', negativeButton: '不太是'},

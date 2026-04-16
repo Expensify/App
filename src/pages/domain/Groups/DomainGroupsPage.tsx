@@ -67,6 +67,7 @@ function DomainGroupsPage({route}: DomainGroupsPageProps) {
                 leftHeaderText={translate('common.name')}
                 rightHeaderText={translate('common.members')}
                 shouldDivideEqualWidth
+                shouldShowRightCaret
             />
         );
     };

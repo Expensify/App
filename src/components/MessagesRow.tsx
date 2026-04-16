@@ -1,4 +1,3 @@
-import type {ReactElement} from 'react';
 import React from 'react';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {View} from 'react-native';
@@ -10,7 +9,6 @@ import CONST from '@src/CONST';
 import type {TranslationKeyError} from '@src/types/onyx/OnyxCommon';
 import type {ReceiptError} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import type WithSentryLabel from '@src/types/utils/SentryLabel';
 import DotIndicatorMessage from './DotIndicatorMessage';
 import Icon from './Icon';
 import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
@@ -18,7 +16,7 @@ import Tooltip from './Tooltip';
 
 type MessagesRowProps = {
     /** The messages to display */
-    messages: Record<string, string | ReceiptError | TranslationKeyError | ReactElement>;
+    messages: Record<string, string | ReceiptError | TranslationKeyError>;
 
     /** The type of message, 'error' shows a red dot, 'success' shows a green dot */
     type: 'error' | 'success';
@@ -34,17 +32,9 @@ type MessagesRowProps = {
 
     /** A function to dismiss error */
     dismissError?: () => void;
-} & WithSentryLabel;
+};
 
-function MessagesRow({
-    messages = {},
-    type,
-    onDismiss,
-    containerStyles,
-    dismissError = () => {},
-    errorTextStyles,
-    sentryLabel = CONST.SENTRY_LABEL.MESSAGES_ROW.DISMISS_BUTTON,
-}: MessagesRowProps) {
+function MessagesRow({messages = {}, type, onDismiss, containerStyles, dismissError = () => {}, errorTextStyles}: MessagesRowProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -73,7 +63,6 @@ function MessagesRow({
                         onPress={onDismiss}
                         role={CONST.ROLE.BUTTON}
                         accessibilityLabel={dismissText}
-                        sentryLabel={sentryLabel}
                     >
                         <Icon
                             fill={theme.icon}

@@ -8866,9 +8866,6 @@ const translations = {
                     other: (count: number) => `${count} members`,
                 };
             },
-            error: {
-                settings: 'Couldn\'t save this change. Please try again.',
-            },
         },
     },
 };

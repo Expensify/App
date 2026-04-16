@@ -8823,11 +8823,11 @@ Oto *paragon testowy*, żeby pokazać Ci, jak to działa:`,
             forceTwoFactorAuthDescription: `<muted-text>Wymagaj uwierzytelniania dwuskładnikowego od wszystkich członków tej domeny. Członkowie domeny zostaną poproszeni o skonfigurowanie uwierzytelniania dwuskładnikowego na swoim koncie po zalogowaniu.</muted-text>`,
             forceTwoFactorAuthError: 'Nie udało się zmienić wymuszania uwierzytelniania dwuskładnikowego. Spróbuj ponownie później.',
             resetTwoFactorAuth: 'Zresetuj uwierzytelnianie dwuskładnikowe',
+            error: 'Nie udało się zapisać tej zmiany. Spróbuj ponownie.',
         },
         groups: {
             title: 'Grupy',
             memberCount: () => ({one: '1 członek', other: (count: number) => `${count} członków`}),
-            error: {settings: '<rbr>Nie udało się zapisać tej zmiany. Spróbuj ponownie lub <concierge-link>skontaktuj się z Concierge</concierge-link>, aby uzyskać pomoc.</rbr>'},
         },
     },
     proactiveAppReview: {

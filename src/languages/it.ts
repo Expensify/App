@@ -8868,11 +8868,11 @@ Ecco una *ricevuta di prova* per mostrarti come funziona:`,
             forceTwoFactorAuthDescription: `<muted-text>Richiedi l’autenticazione a due fattori per tutti i membri di questo dominio. Ai membri del dominio verrà chiesto di configurare l’autenticazione a due fattori sul proprio account quando effettuano l’accesso.</muted-text>`,
             forceTwoFactorAuthError: 'Impossibile modificare l’impostazione “Forza l’autenticazione a due fattori”. Riprova più tardi.',
             resetTwoFactorAuth: 'Reimposta l’autenticazione a due fattori',
+            error: 'Impossibile salvare questa modifica. Riprova.',
         },
         groups: {
             title: 'Gruppi',
             memberCount: () => ({one: '1 membro', other: (count: number) => `${count} membri`}),
-            error: {settings: '<rbr>Non è stato possibile salvare questa modifica. Riprova o <concierge-link>contatta Concierge</concierge-link> per ulteriore assistenza.</rbr>'},
         },
     },
     proactiveAppReview: {

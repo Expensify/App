@@ -9430,9 +9430,6 @@ const CONST = {
         SAFE_AREA: {
             DISMISS_KEYBOARD_LANDSCAPE_MODE: 'SafeArea-DismissKeyboardLandscapeMode',
         },
-        MESSAGES_ROW: {
-            DISMISS_BUTTON: 'MessagesRow-DismissButton',
-        },
     },
 
     DOMAIN: {

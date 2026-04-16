@@ -8833,11 +8833,11 @@ Aqui está um *comprovante de teste* para mostrar como funciona:`,
             forceTwoFactorAuthDescription: `<muted-text>Exigir autenticação em duas etapas para todos os membros deste domínio. Os membros do domínio serão solicitados a configurar a autenticação em duas etapas na conta ao fazer login.</muted-text>`,
             forceTwoFactorAuthError: 'Não foi possível alterar a exigência de autenticação em duas etapas. Tente novamente mais tarde.',
             resetTwoFactorAuth: 'Redefinir autenticação de dois fatores',
+            error: 'Não foi possível salvar esta alteração. Tente novamente.',
         },
         groups: {
             title: 'Grupos',
             memberCount: () => ({one: '1 membro', other: (count: number) => `${count} membros`}),
-            error: {settings: '<rbr>Não foi possível salvar esta alteração. Tente novamente ou <concierge-link>entre em contato com o Concierge</concierge-link> para mais suporte.</rbr>'},
         },
     },
     proactiveAppReview: {

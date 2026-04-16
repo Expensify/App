@@ -1766,7 +1766,7 @@ function updateDomainSecurityGroup(
             key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
             value: {
                 [SECURITY_GROUP_KEY]: {
-                    [`${settingsName}Errors`]: getMicroSecondOnyxErrorWithTranslationKey(`domain.groups.error.settings`),
+                    [`${settingsName}Errors`]: getMicroSecondOnyxErrorWithTranslationKey(`domain.common.error`),
                 },
             },
         },
