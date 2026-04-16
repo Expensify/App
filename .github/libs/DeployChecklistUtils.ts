@@ -172,8 +172,12 @@ async function generateDeployChecklistBodyAndAssignees({
     const noQAPRNumbers = Array.isArray(data) ? data.filter((PR) => /\[No\s?QA]/i.test(PR.title)).map((item) => item.number) : [];
     console.log('Found the following NO QA PRs:', noQAPRNumbers);
 
+    const mobileExpensifyData = PRListMobileExpensify.length > 0 ? await GithubUtils.fetchAllPullRequests(PRListMobileExpensify, CONST.MOBILE_EXPENSIFY_REPO) : [];
+    const noQAMobileExpensifyPRNumbers = Array.isArray(mobileExpensifyData) ? mobileExpensifyData.filter((PR) => /\[No\s?QA]/i.test(PR.title)).map((item) => item.number) : [];
+    console.log('Found the following NO QA Mobile-Expensify PRs:', noQAMobileExpensifyPRNumbers);
+
     const verifiedAppPRs = new Set([...verifiedPRList, ...noQAPRNumbers]);
-    const verifiedMobileExpensifyPRs = new Set(verifiedPRListMobileExpensify);
+    const verifiedMobileExpensifyPRs = new Set([...verifiedPRListMobileExpensify, ...noQAMobileExpensifyPRNumbers]);
     const resolvedInternalQAPRSet = new Set(resolvedInternalQAPRs);
     const resolvedDeployBlockerSet = new Set(resolvedDeployBlockers);
 

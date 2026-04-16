@@ -448,8 +448,12 @@ function getReimbursedMessage(translate: LocalizedTranslate, reportAction: OnyxI
     // Real-time Pusher updates only carry `method`, so we fall back to it here for compatibility.
     const effectivePaymentMethod = originalMessage?.paymentMethod ?? originalMessage?.method;
 
-    // If no structured data, fall back to message fragments from backend (old actions)
-    if (!effectivePaymentMethod || !originalMessage) {
+    // If no structured data, or if this is a Pusher-only payload for a payment method that requires
+    // bank account digits (ACH, Fast_ACH, StripeConnect) but `creditBankAccountLast4` hasn't been
+    // populated yet by the openReport path, fall back to the pre-formatted server message fragments
+    // which already contain the correct account info. Check payments don't need enriched fields, so
+    // they are excluded from this fallback.
+    if (!effectivePaymentMethod || !originalMessage || (!originalMessage.paymentMethod && effectivePaymentMethod !== 'Check' && !originalMessage.creditBankAccountLast4)) {
         const messageFragments = reportAction?.message;
         let fallback = getReportActionMessageText(reportAction as OnyxEntry<ReportAction>);
         if (Array.isArray(messageFragments) && messageFragments.length > 1) {
@@ -1153,8 +1157,11 @@ function isResolvedActionableWhisper(reportAction: OnyxEntry<ReportAction>, allA
         const reportID = reportAction.reportID;
         const actions = allActionsForReport ?? (reportID ? allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`] : undefined);
         if (actions) {
-            const parentOffset = isActionableReportMentionWhisper(reportAction) ? 2n : 1n;
-            const parentActionID = String(BigInt(reportAction.reportActionID) - parentOffset);
+            // Prefer the stored reportActionID from the whisper's originalMessage when available (set for
+            // whispers created during message edits, which don't follow the parentID+1 ID convention).
+            // Fall back to offset arithmetic for legacy whispers that predate this field.
+            const storedParentID = isActionableMentionWhisper(reportAction) ? (originalMessage as {parentReportActionID?: string}).parentReportActionID : undefined;
+            const parentActionID = storedParentID ?? String(BigInt(reportAction.reportActionID) - (isActionableReportMentionWhisper(reportAction) ? 2n : 1n));
             const parentAction = actions[parentActionID];
             if (parentAction && !isDeletedAction(parentAction)) {
                 return false;
@@ -1213,7 +1220,10 @@ function shouldReportActionBeVisible(
 
     if (actionName === CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION) {
         const unreportedTransactionOriginalMessage = getOriginalMessage(reportAction as OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION>>) ?? {};
-        const {fromReportID} = unreportedTransactionOriginalMessage as OriginalMessageUnreportedTransaction;
+        const {fromReportID, reasoning} = unreportedTransactionOriginalMessage as OriginalMessageUnreportedTransaction;
+        if (reasoning) {
+            return !!fromReportID;
+        }
         const fromReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${fromReportID}`];
         return !!fromReport;
     }

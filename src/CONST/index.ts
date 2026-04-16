@@ -234,6 +234,8 @@ const CONST = {
     },
     ANIMATION_IN_TIMING: 100,
     COMPOSER_FOCUS_DELAY: 150,
+    MAX_TRANSITION_DURATION_MS: 1000,
+    MAX_TRANSITION_START_WAIT_MS: 1000,
     ANIMATION_DIRECTION: {
         IN: 'in',
         OUT: 'out',
@@ -1309,6 +1311,7 @@ const CONST = {
         MAX_COUNT_BEFORE_FOCUS_UPDATE: 30,
         MIN_INITIAL_REPORT_ACTION_COUNT: 15,
         UNREPORTED_REPORT_ID: '0',
+        TRASH_REPORT_ID: '-1',
         SPLIT_REPORT_ID: '-2',
         SECONDARY_ACTIONS: {
             SUBMIT: 'submit',
@@ -2019,6 +2022,7 @@ const CONST = {
         ATTRIBUTE_IS_FROM_GLOBAL_CREATE: 'is_from_global_create',
         /** Sentry span attribute: follow-up action taken after submit (e.g. dismiss_modal_and_open_report, navigate_to_search). */
         ATTRIBUTE_SUBMIT_FOLLOW_UP_ACTION: 'submit_follow_up_action',
+        ATTRIBUTE_FAST_PATH_HANDLER: 'fast_path_handler',
         ATTRIBUTE_COMMAND: 'command',
         ATTRIBUTE_JSON_CODE: 'json_code',
         ATTRIBUTE_COLD_START: 'cold_start',
@@ -2031,6 +2035,19 @@ const CONST = {
             DISMISS_MODAL_AND_OPEN_REPORT: 'dismiss_modal_and_open_report',
             NAVIGATE_TO_SEARCH: 'navigate_to_search',
             DISMISS_MODAL_ONLY: 'dismiss_modal_only',
+        },
+        FAST_PATH_HANDLER: {
+            SEARCH_PRE_INSERT: 'search_pre_insert',
+            REPORT_PRE_INSERT: 'report_pre_insert',
+            DISMISS_MODAL: 'dismiss_modal',
+            REPORT_IN_RHP_DISMISS: 'report_in_rhp_dismiss',
+            SEARCH_DISMISS: 'search_dismiss',
+            DEFAULT: 'default',
+        },
+        SUBMIT_OPTIMIZATION: {
+            PRE_INSERT: 'pre_insert',
+            DISMISS_FIRST: 'dismiss_first',
+            DEFERRED_WRITE: 'deferred_write',
         },
         /** Trigger for useSubmitToDestinationVisible: end span on focus vs on layout. */
         SUBMIT_TO_DESTINATION_VISIBLE_TRIGGER: {
@@ -7486,6 +7503,7 @@ const CONST = {
             DONE: 'done',
             EXPORT_TO_ACCOUNTING: 'exportToAccounting',
             PAID: 'paid',
+            UNDELETE: 'undelete',
         },
         HAS_VALUES: {
             RECEIPT: 'receipt',
@@ -7509,6 +7527,7 @@ const CONST = {
             CHANGE_REPORT: 'changeReport',
             SPLIT: 'split',
             DUPLICATE: 'duplicate',
+            UNDELETE: 'undelete',
         },
         TRANSACTION_TYPE: {
             CASH: 'cash',
@@ -7689,8 +7708,6 @@ const CONST = {
                     this.TABLE_COLUMNS.MERCHANT,
                     this.TABLE_COLUMNS.FROM,
                     this.TABLE_COLUMNS.CATEGORY,
-                    this.TABLE_COLUMNS.ATTENDEES,
-                    this.TABLE_COLUMNS.TOTAL_PER_ATTENDEE,
                     this.TABLE_COLUMNS.TAG,
                     this.TABLE_COLUMNS.TOTAL_AMOUNT,
                 ],
@@ -7747,6 +7764,7 @@ const CONST = {
                 APPROVED: 'approved',
                 DONE: 'done',
                 PAID: 'paid',
+                DELETED: 'deleted',
             },
             EXPENSE_REPORT: {
                 ALL: '',
@@ -8714,7 +8732,6 @@ const CONST = {
     },
 
     MODAL_EVENTS: {
-        CLOSED: 'modalClosed',
         DISABLE_RHP_ANIMATION: 'disableRHPAnimation',
         RESTORE_RHP_ANIMATION: 'restoreRHPAnimation',
     },
@@ -8829,22 +8846,11 @@ const CONST = {
             SELECT_ALL_BUTTON: 'Search-SelectAllButton',
             TYPE_MENU_BUTTON: 'Search-TypeMenuButton',
             FILTER_DISPLAY: 'Search-FilterDisplay',
-            FILTER_TYPE: 'Search-FilterType',
-            FILTER_STATUS: 'Search-FilterStatus',
-            FILTER_DATE: 'Search-FilterDate',
-            FILTER_FROM: 'Search-FilterFrom',
-            FILTER_WORKSPACE: 'Search-FilterWorkspace',
             FILTER_GROUP_BY: 'Search-FilterGroupBy',
             FILTER_SORT_BY: 'Search-FilterSortBy',
             FILTER_GROUP_CURRENCY: 'Search-FilterGroupCurrency',
             FILTER_VIEW: 'Search-FilterView',
             FILTER_LIMIT: 'Search-FilterLimit',
-            FILTER_FEED: 'Search-FilterFeed',
-            FILTER_POSTED: 'Search-FilterPosted',
-            FILTER_WITHDRAWN: 'Search-FilterWithdrawn',
-            FILTER_WITHDRAWAL_TYPE: 'Search-FilterWithdrawalType',
-            FILTER_HAS: 'Search-FilterHas',
-            FILTER_IS: 'Search-FilterIs',
             ADVANCED_FILTERS_BUTTON: 'Search-AdvancedFiltersButton',
             COLUMNS_BUTTON: 'Search-ColumnsButton',
             SELECT_ALL_MATCHING_BUTTON: 'Search-SelectAllMatchingButton',

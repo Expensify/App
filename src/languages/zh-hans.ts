@@ -1614,6 +1614,7 @@ const translations: TranslationDeepObject<typeof en> = {
         failedToApproveViaDEW: (reason: string) => `批准失败。${reason}`,
         cannotDuplicateDistanceExpense: '你无法在不同工作区之间复制里程报销，因为各个工作区的费率可能不同。',
         taxDisabledAlert: {title: '税费已禁用', prompt: '请在工作区中启用税费跟踪，以便编辑此报销的详细信息或从该报销中删除税费。', confirmText: '删除税费'},
+        deleted: '已删除',
     },
     transactionMerge: {
         listPage: {
@@ -5357,6 +5358,10 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                             settlementAccountLabel: '结算账户',
                             settlementFrequencyLabel: '结算频率',
                             settlementFrequencyDescription: 'Expensify 从您的企业银行账户中扣款以结算最近 Expensify Travel 交易的频率。',
+                            monthlySpendLimitLabel: '每位成员的月度支出限额',
+                            monthlySpendLimitDescription: '每位成员每月可用于出差的最高金额。',
+                            reduceLimitTitle: '降低出差支出限额？',
+                            reduceLimitWarning: '如果您降低限额，已超出该金额的成员将无法进行新的出差预订，直至下个月。',
                         },
                     },
                     disableModal: {title: '关闭差旅开票？', body: '即将到来的酒店和汽车租赁预订可能需要使用不同的付款方式重新预订，以避免被取消。', confirm: '关闭'},
@@ -7377,6 +7382,7 @@ ${reportName}
             reject: '拒绝',
             duplicateExpense: ({count}: {count: number}) => `复制${count === 1 ? '报销' : '报销费用'}`,
             noOptionsAvailable: '所选报销的费用组没有可用选项。',
+            undelete: '取消删除',
         },
         filtersHeader: '筛选器',
         filters: {
@@ -7429,6 +7435,10 @@ ${reportName}
             billable: '可计费',
             reimbursable: '可报销',
             purchaseCurrency: '购买货币',
+            sortOrder: {
+                [CONST.SEARCH.SORT_ORDER.ASC]: '升序',
+                [CONST.SEARCH.SORT_ORDER.DESC]: '降序',
+            },
             groupBy: {
                 [CONST.SEARCH.GROUP_BY.FROM]: '来自',
                 [CONST.SEARCH.GROUP_BY.CARD]: '卡片',
@@ -7457,6 +7467,7 @@ ${reportName}
         display: {
             label: '显示',
             sortBy: '按排序',
+            sortOrder: '排序顺序',
             groupBy: '分组依据',
             limitResults: '限制结果',
         },
@@ -7486,7 +7497,7 @@ ${reportName}
         recentSearches: '最近搜索',
         recentChats: '最近聊天',
         searchIn: '搜索范围',
-        searchPlaceholder: '搜索内容',
+        searchPlaceholder: '搜索内容...',
         suggestions: '建议',
         suggestionsAvailable: (
             {
