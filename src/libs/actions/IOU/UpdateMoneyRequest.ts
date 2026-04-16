@@ -964,6 +964,7 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
         ...dataToIncludeInParams,
         reportID: iouReport?.reportID,
         transactionID,
+        policyID: policy?.id,
     };
 
     const hasPendingWaypoints = 'waypoints' in transactionChanges;
@@ -1482,6 +1483,7 @@ function getUpdateTrackExpenseParams(
         ...dataToIncludeInParams,
         reportID: chatReport?.reportID,
         transactionID,
+        policyID: policy?.id,
     };
 
     const hasPendingWaypoints = 'waypoints' in transactionChanges;
