@@ -5490,6 +5490,8 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                             monthlySpendLimitDescription: 'O valor máximo que cada membro pode gastar em viagens por mês.',
                             reduceLimitTitle: 'Reduzir o limite de gastos com viagens?',
                             reduceLimitWarning: 'Se você reduzir o limite, os membros que já gastaram mais do que esse valor não poderão fazer novas reservas de viagem até o próximo mês.',
+                            provisioningError:
+                                'Não conseguimos provisionar alguns membros do seu workspace para faturamento centralizado. Tente novamente mais tarde ou entre em contato com o Concierge para obter ajuda.',
                         },
                     },
                     disableModal: {

@@ -5535,9 +5535,11 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                                 'Fréquence à laquelle Expensify prélèvera sur votre compte bancaire professionnel pour régler les transactions récentes d’Expensify Travel.',
                             monthlySpendLimitLabel: 'Limite de dépenses mensuelle par membre',
                             monthlySpendLimitDescription: 'Le montant maximum que chaque membre peut dépenser en déplacements par mois.',
-                            reduceLimitTitle: 'Réduire la limite de dépenses de voyage\u00A0?',
+                            reduceLimitTitle: 'Réduire la limite de dépenses de voyage ?',
                             reduceLimitWarning:
                                 'Si vous réduisez la limite, les membres ayant déjà dépensé plus que ce montant ne pourront pas effectuer de nouvelles réservations de voyage avant le mois prochain.',
+                            provisioningError:
+                                'Nous n’avons pas pu configurer certains membres de votre espace de travail pour la facturation centralisée. Veuillez réessayer plus tard ou contacter Concierge pour obtenir de l’aide.',
                         },
                     },
                     disableModal: {
