@@ -39,15 +39,9 @@ const useRestartOnOdometerImagesFailure = (transaction: OnyxEntry<Transaction>, 
             return;
         }
 
-        // Capture all values from this render — the effect runs intentionally once per
-        // draftTransactionsMetadata load, so we pin the snapshot explicitly.
-        const capturedTransaction = transaction;
-        const capturedIouType = iouType;
-        const capturedReportID = reportID;
-
-        const startImage = capturedTransaction.comment?.odometerStartImage;
-        const endImage = capturedTransaction.comment?.odometerEndImage;
-        const stitchedUri = capturedTransaction.receipt?.source?.toString();
+        const startImage = transaction.comment?.odometerStartImage;
+        const endImage = transaction.comment?.odometerEndImage;
+        const stitchedUri = transaction.receipt?.source?.toString();
 
         const urlsToCheck = [
             {
@@ -61,7 +55,7 @@ const useRestartOnOdometerImagesFailure = (transaction: OnyxEntry<Transaction>, 
                 type: typeof endImage === 'object' ? endImage?.type : undefined,
             },
             {
-                filename: capturedTransaction.receipt?.filename,
+                filename: transaction.receipt?.filename,
                 path: stitchedUri,
                 type: undefined,
             },
@@ -86,13 +80,13 @@ const useRestartOnOdometerImagesFailure = (transaction: OnyxEntry<Transaction>, 
                 ),
             ),
         )?.then(() => {
-            const requestType = getRequestType(capturedTransaction);
+            const requestType = getRequestType(transaction);
             if (canBeRead || requestType !== CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER) {
                 return;
             }
 
-            clearOdometerTransactionState(capturedTransaction, true);
-            navigateToStartMoneyRequestStep(requestType, capturedIouType, capturedTransaction.transactionID, capturedReportID);
+            clearOdometerTransactionState(transaction, true);
+            navigateToStartMoneyRequestStep(requestType, iouType, transaction.transactionID, reportID);
         });
 
         // We want this hook to run once after Onyx finishes loading the draft transactions
