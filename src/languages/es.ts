@@ -33,6 +33,7 @@ const translations: TranslationDeepObject<typeof en> = {
         center: 'Centrar',
         search: 'Buscar',
         reports: 'Informes',
+        spend: 'Gastos',
         find: 'Encontrar',
         searchWithThreeDots: 'Buscar...',
         select: 'Seleccionar',
