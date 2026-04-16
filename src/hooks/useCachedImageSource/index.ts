@@ -25,7 +25,7 @@ function useCachedImageSource(source: ImageSource | undefined): ImageSource | nu
     const {attachmentID} = useContext(AttachmentIDContext);
     const [cachedUri, setCachedUri] = useState<string | null>(null);
     const [hasError, setHasError] = useState(false);
-    const [attachment, attachmentMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.ATTACHMENT}${attachmentID ?? CONST.DEFAULT_NUMBER_ID}`);
+    const [attachment, attachmentMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.ATTACHMENT}${attachmentID}`);
 
     useEffect(() => {
         setCachedUri(null);
@@ -35,7 +35,7 @@ function useCachedImageSource(source: ImageSource | undefined): ImageSource | nu
             return;
         }
 
-        if (attachmentMetadata.status === 'loading') {
+        if (attachmentID && attachmentMetadata.status === 'loading') {
             return;
         }
 
@@ -56,12 +56,12 @@ function useCachedImageSource(source: ImageSource | undefined): ImageSource | nu
                     URL.revokeObjectURL(cachedSource);
                 }
             })
-            .catch((error) => {
+            .catch(() => {
                 if (!revoked) {
                     setHasError(true);
                 }
-                const errorMessage = error.message ?? error?.toString();
-                Log.hmmm(errorMessage);
+                // TODO: Improve error loging
+                Log.hmmm('[AttachmentCache] Failed to get cached attachment');
             });
 
         return () => {

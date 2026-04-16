@@ -27,7 +27,7 @@ async function fetchExternalAttachment(source: string): Promise<Response> {
     ctx.drawImage(img, 0, 0);
 
     const blob = await new Promise<Blob>((resolve, reject) => {
-        canvas.toBlob((b) => (b ? resolve(b) : reject(new Error('Canvas toBlob returned null'))), 'image/png');
+        canvas.toBlob((b) => (b ? resolve(b) : reject(new Error('Canvas toBlob returned null'))));
     });
 
     const response = new Response(blob, {
@@ -93,6 +93,7 @@ async function getCachedAttachment({attachmentID, attachment, source}: GetCached
     if (isEmptyObject(source) || !source.uri || source.uri.startsWith('blob:')) {
         return;
     }
+
     const isAuthRemoteAttachment = !isEmptyObject(source.headers) && !attachmentID;
     const imageSource = source.uri;
 

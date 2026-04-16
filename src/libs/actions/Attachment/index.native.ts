@@ -18,7 +18,7 @@ async function cacheAttachment({attachmentID, source, mimeType}: CacheAttachment
         return;
     }
 
-    // create attachment directory if it's not yet exists, else don't
+    // Create attachment directory if it's not yet exists
     const isAttachmentDirExists = await RNFS.exists(ATTACHMENT_DIR);
     if (!isAttachmentDirExists) {
         await RNFS.mkdir(ATTACHMENT_DIR);
@@ -98,9 +98,9 @@ async function getCachedAttachment({attachmentID, attachment, source}: GetCached
         return cachedUri;
     }
 
-    const localSource = attachment?.source;
-    if (localSource) {
-        return localSource;
+    const cachedSource = attachment?.source;
+    if (cachedSource) {
+        return cachedSource;
     }
 
     return imageSource;
@@ -132,12 +132,6 @@ async function clearCachedAttachments(): Promise<void> {
     } catch (error) {
         Log.warn('[AttachmentCache] Failed to clear cached attachments', {error});
     }
-}
-
-function init() {
-    RNFS.mkdir(ATTACHMENT_DIR).catch(() => {
-        console.error('[AttachmentCache] Failed to create attachment directory');
-    });
 }
 
 export {cacheAttachment, getCachedAttachment, removeCachedAttachment, clearCachedAttachments};

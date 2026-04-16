@@ -10,10 +10,10 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 function useCachedImageSource(source: ImageSource | undefined): ImageSource | null | undefined {
     const uri = typeof source === 'object' ? source.uri : undefined;
     const hasHeaders = typeof source === 'object' && !isEmptyObject(source.headers);
+    const {attachmentID} = useContext(AttachmentIDContext);
     const [cachedUri, setCachedUri] = useState<string | null>(null);
     const [hasError, setHasError] = useState(false);
-    const {attachmentID} = useContext(AttachmentIDContext);
-    const [attachment] = useOnyx(`${ONYXKEYS.COLLECTION.ATTACHMENT}${attachmentID}`);
+    const [attachment, attachmentMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.ATTACHMENT}${attachmentID}`);
 
     useEffect(() => {
         setCachedUri(null);
@@ -22,6 +22,10 @@ function useCachedImageSource(source: ImageSource | undefined): ImageSource | nu
         // On native, expo-image handles auth headers natively — no caching needed
         // Only cache non-auth attachments (images with attachmentID but no headers)
         if (!attachmentID || hasHeaders || !uri) {
+            return;
+        }
+
+        if (attachmentID && attachmentMetadata.status === 'loading') {
             return;
         }
 
@@ -39,12 +43,12 @@ function useCachedImageSource(source: ImageSource | undefined): ImageSource | nu
                     setCachedUri(cachedSource);
                 }
             })
-            .catch((error) => {
+            .catch(() => {
                 if (!revoked) {
                     setHasError(true);
                 }
-                const errorMessage = error.message ?? error?.toString();
-                Log.hmmm(errorMessage);
+                // TODO: Improve error loging
+                Log.hmmm('[AttachmentCache] Failed to get cached attachment');
             });
 
         return () => {
