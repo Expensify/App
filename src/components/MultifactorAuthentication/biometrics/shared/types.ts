@@ -10,7 +10,6 @@ type BaseRegisterResult = {
 type RegisterResult =
     | ({
           success: true;
-          reason: MultifactorAuthenticationReason;
       } & BaseRegisterResult)
     | ({
           success: false;
@@ -24,7 +23,6 @@ type AuthorizeParams = {
 
 type AuthorizeResultSuccess = {
     success: true;
-    reason: MultifactorAuthenticationReason;
     signedChallenge: SignedChallenge;
     authenticationMethod: AuthTypeInfo;
 };

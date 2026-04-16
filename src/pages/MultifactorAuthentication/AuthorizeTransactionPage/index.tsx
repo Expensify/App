@@ -102,11 +102,12 @@ function MultifactorAuthenticationScenarioAuthorizeTransactionPage({route}: Mult
         setIsDenyingTransaction(true);
         denyTransaction({transactionID}).then(({reason, httpStatusCode, message}) => {
             addBreadcrumb('Deny completed', {transactionID, reason, httpStatusCode, message});
-            if (reason === CONST.MULTIFACTOR_AUTHENTICATION.REASON.BACKEND.TRANSACTION_DENIED) {
+            if (reason === CONST.MULTIFACTOR_AUTHENTICATION.REASON.CLIENT_ERRORS.TRANSACTION_DENIED) {
                 setDenyOutcomeScreen(<DeniedTransactionSuccessScreen />);
                 return;
             }
-            setDenyOutcomeScreen(authorizeTransactionConfig.failureScreens[reason] ?? <DeniedTransactionServerFailureScreen />);
+            const failureScreen = reason ? authorizeTransactionConfig.failureScreens[reason] : undefined;
+            setDenyOutcomeScreen(failureScreen ?? <DeniedTransactionServerFailureScreen />);
         });
     };
 

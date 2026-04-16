@@ -2,19 +2,12 @@ import React from 'react';
 import {DefaultClientFailureScreen} from '@components/MultifactorAuthentication/components/OutcomeScreen';
 import {useMultifactorAuthenticationState} from '@components/MultifactorAuthentication/Context';
 import type {ErrorState} from '@components/MultifactorAuthentication/Context/State';
-import type {MultifactorAuthenticationReason} from '@libs/MultifactorAuthentication/shared/types';
 import CONST from '@src/CONST';
 
-/**
- * Server failure screen generally represents "unknown error" so also show when status is unknown (e.g. network/parse error).
- * TODO: This is a temporary solution until proper error handling is implemented (https://github.com/Expensify/App/issues/83036).
- */
-function isServerError(error: ErrorState): boolean {
-    const routineDeviceFailures: MultifactorAuthenticationReason[] = [CONST.MULTIFACTOR_AUTHENTICATION.REASON.HSM.CANCELED, CONST.MULTIFACTOR_AUTHENTICATION.REASON.GENERIC.CANCELED];
-    if (routineDeviceFailures.includes(error.reason)) {
-        return false;
-    }
-    return error.httpStatusCode === undefined || error.httpStatusCode >= 500;
+function shouldShowServerFailureScreen(error: ErrorState): boolean {
+    return (
+        error.reason === CONST.MULTIFACTOR_AUTHENTICATION.REASON.SERVER_ERRORS.UNRECOGNIZED || error.reason === CONST.MULTIFACTOR_AUTHENTICATION.REASON.LOCAL_ERRORS.UNHANDLED_API_RESPONSE
+    );
 }
 
 function MultifactorAuthenticationOutcomePage() {
@@ -33,7 +26,7 @@ function MultifactorAuthenticationOutcomePage() {
         return reasonScreen;
     }
 
-    if (isServerError(error)) {
+    if (shouldShowServerFailureScreen(error)) {
         return scenario.defaultServerFailureScreen;
     }
 

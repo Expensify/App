@@ -127,9 +127,18 @@ function extractAAGUID(authData: ArrayBuffer): string | undefined {
     return [hex.slice(0, 8), hex.slice(8, 12), hex.slice(12, 16), hex.slice(16, 20), hex.slice(20, 32)].join('-');
 }
 
-function isWebAuthnReason(name: string): name is MultifactorAuthenticationReason {
-    return Object.values<string>(VALUES.REASON.WEBAUTHN).includes(name);
-}
+/**
+ * Maps DOMException.name strings to REASON values.
+ * Follows the same pattern as SIGN_ERROR_CODE_MAP in NativeBiometricsHSM/helpers.ts.
+ */
+const DOM_EXCEPTION_NAME_MAP: Record<string, MultifactorAuthenticationReason> = {
+    NotAllowedError: VALUES.REASON.LOCAL_ERRORS.WEBAUTHN.NOT_ALLOWED,
+    InvalidStateError: VALUES.REASON.LOCAL_ERRORS.WEBAUTHN.INVALID_STATE,
+    SecurityError: VALUES.REASON.LOCAL_ERRORS.WEBAUTHN.SECURITY_ERROR,
+    AbortError: VALUES.REASON.LOCAL_ERRORS.WEBAUTHN.ABORT,
+    NotSupportedError: VALUES.REASON.LOCAL_ERRORS.WEBAUTHN.NOT_SUPPORTED,
+    ConstraintError: VALUES.REASON.LOCAL_ERRORS.WEBAUTHN.CONSTRAINT_ERROR,
+};
 
 type DecodedWebAuthnError = {
     reason: MultifactorAuthenticationReason;
@@ -139,11 +148,14 @@ type DecodedWebAuthnError = {
 /** Decodes WebAuthn DOMException errors and maps them to authentication error reasons. */
 function decodeWebAuthnError(error: unknown): DecodedWebAuthnError {
     Log.info('[Passkey] WebAuthn error', false, {error: getErrorMessage(error)});
-    if (error instanceof DOMException && isWebAuthnReason(error.name)) {
-        return {reason: error.name};
+    if (error instanceof DOMException) {
+        const reason = DOM_EXCEPTION_NAME_MAP[error.name];
+        if (reason) {
+            return {reason, message: error.message};
+        }
     }
 
-    return {reason: VALUES.REASON.WEBAUTHN.GENERIC, message: getErrorMessage(error)};
+    return {reason: VALUES.REASON.LOCAL_ERRORS.WEBAUTHN.GENERIC, message: getErrorMessage(error)};
 }
 
 export {

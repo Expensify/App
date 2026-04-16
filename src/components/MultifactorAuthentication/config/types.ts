@@ -66,7 +66,7 @@ type MultifactorAuthenticationOutcomeScreens = {
  */
 type MultifactorAuthenticationScenarioResponse = {
     httpStatusCode: number | undefined;
-    reason: MultifactorAuthenticationReason;
+    reason: MultifactorAuthenticationReason | undefined;
     message: string | undefined;
 
     /** Optional response body containing scenario-specific data (e.g., {pin: number} for PIN reveal) */
@@ -111,7 +111,7 @@ type MultifactorAuthenticationScenarioBase<T extends Record<string, unknown> = E
     /**
      * Called when the user cancels the MFA flow. When provided, cancel() awaits this function
      * and uses the returned reason (and optional payload) to navigate to the appropriate failure screen.
-     * When absent, cancel() falls back to the default behavior (SET_ERROR with GENERIC.CANCELED).
+     * When absent, cancel() falls back to the default behavior (SET_ERROR with LOCAL_ERRORS.CANCELED).
      */
     onCancel?: (
         payload: MultifactorAuthenticationScenarioAdditionalParams<MultifactorAuthenticationScenario> | undefined,

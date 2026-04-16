@@ -496,7 +496,7 @@ describe('revokeMultifactorAuthenticationCredentials', () => {
         const result = await revokeMultifactorAuthenticationCredentials({});
 
         expect(result.httpStatusCode).toBe(200);
-        expect(result.reason).toBe(CONST.MULTIFACTOR_AUTHENTICATION.REASON.BACKEND.REVOKE_SUCCESSFUL);
+        expect(result.reason).toBeUndefined();
     });
 
     it('should return error response when API returns non-200', async () => {
@@ -513,6 +513,6 @@ describe('revokeMultifactorAuthenticationCredentials', () => {
         const result = await revokeMultifactorAuthenticationCredentials({onlyKeyID: 'key-123'});
 
         expect(result.httpStatusCode).toBe(0);
-        expect(result.reason).toBe(CONST.MULTIFACTOR_AUTHENTICATION.REASON.GENERIC.UNKNOWN_RESPONSE);
+        expect(result.reason).toBe(CONST.MULTIFACTOR_AUTHENTICATION.REASON.LOCAL_ERRORS.UNHANDLED_API_RESPONSE);
     });
 });

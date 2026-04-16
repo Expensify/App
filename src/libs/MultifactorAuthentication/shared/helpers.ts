@@ -23,14 +23,23 @@ const getHttpStatusCategory = (httpStatusCode: number): HttpStatusCategory | und
 
 const httpStatusCategoryIsDefined = (source: ParseHTTPSource, category: HttpStatusCategory): category is keyof ParseHTTPSource => Object.keys(source).some((key) => key === category);
 
-const findMessageInSource = (source: ParseHTTPSource[keyof ParseHTTPSource], message: string | undefined): MultifactorAuthenticationReason => {
-    if (!message) {
-        return VALUES.REASON.GENERIC.UNKNOWN_RESPONSE;
+const getCategoryFallbackReason = (httpStatusCategory: HttpStatusCategory): MultifactorAuthenticationReason | undefined => {
+    if (httpStatusCategory === VALUES.HTTP_STATUS.CLIENT_ERROR) {
+        return VALUES.REASON.CLIENT_ERRORS.UNRECOGNIZED;
     }
+    if (httpStatusCategory === VALUES.HTTP_STATUS.SERVER_ERROR) {
+        return VALUES.REASON.SERVER_ERRORS.UNRECOGNIZED;
+    }
+    if (httpStatusCategory === VALUES.HTTP_STATUS.SUCCESS) {
+        return undefined;
+    }
+    return VALUES.REASON.LOCAL_ERRORS.UNHANDLED_API_RESPONSE;
+};
 
-    const sourceEntries = Object.entries(source) as Array<[string, MultifactorAuthenticationReason]>;
-    const [, value] = sourceEntries.find(([backendMessage]) => message.endsWith(backendMessage)) ?? [];
-    return value ?? VALUES.REASON.GENERIC.UNKNOWN_RESPONSE;
+const findMessageInSource = (source: Record<string, MultifactorAuthenticationReason>, message: string): MultifactorAuthenticationReason | undefined => {
+    const lowerMessage = message.toLowerCase();
+    const entry = Object.entries(source).find(([backendMessage]) => lowerMessage.endsWith(backendMessage.toLowerCase()));
+    return entry?.[1];
 };
 
 /**
@@ -42,16 +51,26 @@ function parseHttpRequest(
     message: string | undefined,
 ): {
     httpStatusCode: number;
-    reason: MultifactorAuthenticationReason;
+    reason: MultifactorAuthenticationReason | undefined;
     message: string | undefined;
 } {
     const httpStatusCode = Number(jsonCode ?? 0);
     const httpStatusCategory = getHttpStatusCategory(httpStatusCode);
 
-    if (!httpStatusCategory || !httpStatusCategoryIsDefined(source, httpStatusCategory)) {
+    if (!httpStatusCategory) {
         return {
             httpStatusCode,
-            reason: VALUES.REASON.GENERIC.UNKNOWN_RESPONSE,
+            reason: VALUES.REASON.LOCAL_ERRORS.UNHANDLED_API_RESPONSE,
+            message,
+        };
+    }
+
+    const fallback = getCategoryFallbackReason(httpStatusCategory);
+
+    if (!httpStatusCategoryIsDefined(source, httpStatusCategory)) {
+        return {
+            httpStatusCode,
+            reason: fallback,
             message,
         };
     }
@@ -66,9 +85,13 @@ function parseHttpRequest(
         };
     }
 
+    if (!message) {
+        return {httpStatusCode, reason: fallback, message};
+    }
+
     return {
         httpStatusCode,
-        reason: findMessageInSource(responseMapEntry, message),
+        reason: findMessageInSource(responseMapEntry, message) ?? fallback,
         message,
     };
 }
