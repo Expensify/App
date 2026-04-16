@@ -2,12 +2,12 @@
 title: How to Export Reports
 description: Learn how to export reports to CSV or download them as PDFs.
 keywords: [New Expensify, export reports, CSV export, PDF download, download report, report export template, bulk export reports, report data]
-internalScope: Audience is all members. Covers exporting reports from the Spend page to CSV using export templates (individually and in bulk), and downloading individual reports as PDF. Does not cover exporting individual expenses from the Expenses page (see Export-Expenses.md), exporting to an accounting integration, or company card reconciliation.
+internalScope: Audience is all members. Covers exporting reports to CSV using export templates (individually and in bulk), and downloading individual reports as PDF. Does not cover exporting individual expenses from the Expenses page (see Export-Expenses.md), exporting to an accounting integration, or company card reconciliation.
 ---
 
 # How to export reports 
 
-Export reports from the Spend page to a CSV file using export templates, and download individual reports as PDFs.
+Export reportsto a CSV file using export templates, and download individual reports as PDFs.
 
 If you’re trying to export a specific type of data, use the guides below:
 
