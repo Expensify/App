@@ -15,6 +15,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
+import usePolicyForTransaction from '@hooks/usePolicyForTransaction';
 import usePrivateIsArchivedMap from '@hooks/usePrivateIsArchivedMap';
 import useReportAttributes from '@hooks/useReportAttributes';
 import useReportIsArchived from '@hooks/useReportIsArchived';
@@ -157,6 +158,16 @@ function SubmitDetailsPage({
     const iouType = isSelfDM(report) ? CONST.IOU.TYPE.TRACK : CONST.IOU.TYPE.SUBMIT;
     const {isOffline} = useNetwork();
     const isCreatingTrackExpense = iouType === CONST.IOU.TYPE.TRACK;
+
+    // Self-DM has a FAKE report policyID — resolve via the same hook MoneyRequestConfirmationList uses, so we pick up the active workspace after upgrade.
+    const {policy: resolvedPolicy} = usePolicyForTransaction({
+        transaction,
+        reportPolicyID: getIOURequestPolicyID(transaction, report),
+        action: CONST.IOU.ACTION.CREATE,
+        iouType,
+        isPerDiemRequest: false,
+    });
+    const resolvedPolicyID = resolvedPolicy?.id;
 
     // Initialize billable/reimbursable from policy defaults (mirrors IOURequestStepConfirmation)
     const defaultBillable = !!policy?.defaultBillable;
@@ -315,12 +326,17 @@ function SubmitDetailsPage({
             return;
         }
 
+        // Prefer the transaction draft's receipt — reflects Replace/Crop updates.
+        const uploadSource = typeof transaction?.receipt?.source === 'string' ? transaction.receipt.source : receiptSource;
+        const uploadFileName = getFileName(transaction?.receipt?.filename ?? '') || receiptFileName;
+        const uploadFileType = transaction?.receipt?.type ?? receiptFileType;
+
         readFileAsync(
-            receiptSource,
-            receiptFileName,
+            uploadSource,
+            uploadFileName,
             (file) => onSuccess(participant, file, shouldStartLocationPermissionFlow),
             () => {},
-            receiptFileType,
+            uploadFileType,
         );
     };
 
@@ -329,8 +345,8 @@ function SubmitDetailsPage({
             <FullPageNotFoundView shouldShow={!reportOrAccountID}>
                 <DraftWorkspaceOpener
                     isCreatingTrackExpense={isCreatingTrackExpense}
-                    policyID={policy?.id}
-                    policyPendingAction={policy?.pendingAction}
+                    policyID={resolvedPolicyID}
+                    policyPendingAction={resolvedPolicy?.pendingAction}
                     policyExpenseChatPolicyID={policyExpenseChatPolicyID}
                     senderPolicyID={senderPolicyID}
                     isOffline={isOffline}
@@ -359,7 +375,7 @@ function SubmitDetailsPage({
                         onToggleBillable={setBillable}
                         onToggleReimbursable={setReimbursable}
                         isPolicyExpenseChat={isPolicyExpenseChat}
-                        policyID={policy?.id}
+                        policyID={resolvedPolicyID}
                         onConfirm={(updatedParticipants) => onConfirm(updatedParticipants, true)}
                         receiptPath={receiptSource}
                         receiptFilename={receiptFileName}
