@@ -105,7 +105,7 @@ function DotIndicatorMessage({messages = {}, style, type, textStyles, dismissErr
                     <Text style={[StyleUtils.getDotIndicatorTextStyles(isErrorMessage), textStyles]}>{translate('iou.error.receiptFailureMessageShort')}</Text>
                 </View>
                 <View style={[styles.flexRow, styles.gap3, styles.mt3]}>
-                    <View style={styles.flex1}>
+                    <View style={shouldUseNarrowLayout ? styles.flex1 : styles.mnw200}>
                         <Button
                             medium
                             text={translate('iou.error.downloadReceipt')}
@@ -114,7 +114,7 @@ function DotIndicatorMessage({messages = {}, style, type, textStyles, dismissErr
                             }}
                         />
                     </View>
-                    <View style={styles.flex1}>
+                    <View style={shouldUseNarrowLayout ? styles.flex1 : styles.mnw200}>
                         <Button
                             medium
                             success
