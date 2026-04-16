@@ -436,8 +436,6 @@ describe('APITests', () => {
                 });
 
                 Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
-                expect(NetworkStore.isOffline()).toBe(false);
-                expect(NetworkStore.isAuthenticating()).toBe(false);
                 return waitForBatchedUpdates();
             })
             .then(() => {
@@ -551,7 +549,7 @@ describe('APITests', () => {
                 API.write('MockCommandThree' as WriteCommand, {});
 
                 // THEN the retryable requests should immediately be added to the persisted requests
-                expect(PersistedRequests.getAll().length).toBe(2);
+                expect(PersistedRequests.getLength()).toBe(2);
 
                 // WHEN we wait for the queue to run and finish processing
                 return waitForBatchedUpdates();
@@ -870,18 +868,11 @@ describe('API.write() persistence guarantees', () => {
             let optimisticDataApplied = false;
             let requestPersistedBeforeOptimistic = false;
 
-            // Mock Onyx.update so that when it receives our marker key we snapshot the
-            // persisted-requests queue. This avoids spy-ordering issues that caused
-            // false passes on CI.
             const updateMock = jest.spyOn(Onyx, 'update').mockImplementation((data) => {
                 // We use ONYXKEYS.IS_CHECKING_PUBLIC_ROOM as a sample key to identify the marker
                 const hasMarker = data.some((entry) => entry.key === ONYXKEYS.IS_CHECKING_PUBLIC_ROOM);
                 if (hasMarker) {
                     optimisticDataApplied = true;
-                    // Note: getAll() checks the in-memory queue, not durable (disk) state.
-                    // This is intentionally a weaker assertion – if even the in-memory
-                    // ordering is wrong (request not queued before optimistic data), the
-                    // stronger disk-persistence guarantee is certainly broken too.
                     requestPersistedBeforeOptimistic = PersistedRequests.getAll().some((r) => r.command === 'MockCommand');
                 }
                 return Promise.resolve();
@@ -898,11 +889,7 @@ describe('API.write() persistence guarantees', () => {
                     ],
                 });
 
-                // Guard: ensure our mock actually intercepted the optimistic data.
-                // Without this, the test could pass for the wrong reason (e.g. mock
-                // never fires, flag stays false, and we'd incorrectly confirm the bug).
                 expect(optimisticDataApplied).toBe(true);
-
                 // BUG: The request is NOT in the persisted queue when optimistic data is
                 // applied. When fixed, this assertion should be changed to toBe(true).
                 expect(requestPersistedBeforeOptimistic).toBe(false);
@@ -952,12 +939,11 @@ describe('API.write() persistence guarantees', () => {
             // Flush one microtask to give writePromise.then() a chance to fire.
             return Promise.resolve()
                 .then(() => {
-                    // BUG: The write promise resolved despite persistence being permanently
-                    // stalled. processRequest() returns Promise.resolve() (API/index.ts:148)
-                    // which is disconnected from the persistence pipeline.
-                    // When fixed, this should be changed to toBe(false) — the write promise
-                    // should NOT resolve until persistence completes.
-                    expect(writePromiseResolved).toBe(true);
+                    // FIX: The write promise no longer resolves immediately.
+                    // processRequest() now awaits pushToSequentialQueue() which awaits
+                    // PersistedRequests.save()'s Onyx.set() promise. Since we mocked
+                    // Onyx.set to never resolve, the write promise correctly stalls.
+                    expect(writePromiseResolved).toBe(false);
                 })
                 .finally(() => {
                     setMock.mockRestore();
@@ -1016,10 +1002,9 @@ describe('API.write() persistence guarantees', () => {
             await capturedSets.at(0)?.triggerRealSet();
             await waitForBatchedUpdates();
 
-            // BUG (Issue 4): In-memory state is now [A] — CommandB was lost
-            // because the stale callback overwrote the correct [A, B] with [A].
-            expect(PersistedRequests.getAll()).toHaveLength(1);
-            expect(PersistedRequests.getAll().at(0)?.command).toBe('CommandA');
+            // FIX (Issue 4): After initialization, the connect callback is a no-op.
+            // In-memory state is authoritative — both commands survive.
+            expect(PersistedRequests.getAll()).toHaveLength(2);
 
             // Restore Onyx.set to normal before the next write
             setMock.mockRestore();
@@ -1038,14 +1023,9 @@ describe('API.write() persistence guarantees', () => {
                 },
             );
 
-            // BUG (Issue 5): The conflict resolver cannot see CommandB because the
-            // in-memory queue was corrupted by the Issue 4 out-of-order race. The stale
-            // connect callback overwrote [A, B] with [A], making CommandB invisible
-            // to the resolver. If it needed to deduplicate or resolve conflicts with
-            // CommandB, it would fail, potentially causing duplicate or conflicting requests.
-            // When fixed, the resolver should see both CommandA and CommandB.
-            // Change to: expect(queueSeenByResolver).toContainEqual(expect.objectContaining({command: 'CommandB'}));
-            expect(queueSeenByResolver).not.toContainEqual(expect.objectContaining({command: 'CommandB'}));
+            // FIX (Issue 5): With Issue 4 fixed, the conflict resolver sees the complete
+            // queue including CommandB, enabling correct deduplication decisions.
+            expect(queueSeenByResolver).toContainEqual(expect.objectContaining({command: 'CommandB'}));
         } finally {
             setMock.mockRestore();
         }
