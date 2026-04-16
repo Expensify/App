@@ -120,7 +120,7 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
     useEffect(() => {
         setSelectedCardIDs((prev) => {
             const next = prev.filter((id) => selectableCardIDs.includes(id));
-            if (next.length === prev.length && next.every((id, index) => id === prev[index])) {
+            if (next.length === prev.length && next.every((id, index) => id === prev.at(index))) {
                 return prev;
             }
             return next;
