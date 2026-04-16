@@ -57,6 +57,7 @@ function Confirmation() {
     const [reviewDuplicatesReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reviewDuplicates?.reportID}`);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getNonEmptyStringOnyxID(reviewDuplicatesReport?.policyID)}`);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`);
+    const [duplicatedTransactionPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(reviewDuplicatesReport?.policyID)}`);
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(reviewDuplicatesReport?.policyID)}`);
     const compareResult = TransactionUtils.compareDuplicateTransactionFields(policyTags ?? {}, transaction, allDuplicates, reviewDuplicatesReport, undefined, policy, policyCategories);
     const {goBack} = useReviewDuplicatesNavigation(Object.keys(compareResult.change ?? {}), 'confirmation', route.params.threadReportID, route.params.backTo);
@@ -75,7 +76,7 @@ function Confirmation() {
     );
     const taxData = useMemo(() => {
         const taxCode = reviewDuplicates?.taxCode ?? '';
-        const taxRate = taxCode ? policy?.taxRates?.taxes?.[taxCode] : undefined;
+        const taxRate = taxCode ? duplicatedTransactionPolicy?.taxRates?.taxes?.[taxCode] : undefined;
         // Preserve taxAmount and taxValue if taxCode is deleted or remains unchanged compared to duplicatedTransaction?.taxCode.
         if (!taxRate || (taxCode && duplicatedTransaction?.taxCode === taxCode) || reviewDuplicates?.taxAmount === undefined) {
             return;
@@ -86,7 +87,7 @@ function Confirmation() {
             taxValue: taxRate?.value,
             taxCode,
         };
-    }, [reviewDuplicates?.taxCode, reviewDuplicates?.taxAmount, policy?.taxRates?.taxes, duplicatedTransaction?.taxCode]);
+    }, [reviewDuplicates?.taxCode, reviewDuplicates?.taxAmount, duplicatedTransactionPolicy?.taxRates?.taxes, duplicatedTransaction?.taxCode]);
     const isReportOwner = iouReport?.ownerAccountID === currentUserPersonalDetails?.accountID;
 
     const handleMergeDuplicates = useCallback(() => {
