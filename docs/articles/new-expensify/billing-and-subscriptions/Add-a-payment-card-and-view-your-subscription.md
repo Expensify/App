@@ -1,13 +1,15 @@
 ---
 title: Manage Expensify Subscription
 description: Learn how to manage your subscription, update billing details, cancel early, or delete a workspace in New Expensify.
-keywords: [New Expensify, billing owner, manage subscription, update payment card, cancel subscription, delete workspace, billing and subscriptions, subscription settings, can't delete workspace, can't cancel subscription]
+keywords: [New Expensify, billing owner, manage subscription, update payment card, cancel subscription, cancel Expensify, cancel plan, delete workspace, delete subscription, billing and subscriptions, subscription settings, can't delete workspace, can't cancel subscription, how to cancel Expensify, stop Expensify billing]
 internalScope: Audience is billing owners and Workspace Admins. Covers how to manage a paid subscription in New Expensify, including billing permissions and ownership transfer. Does not cover free workspaces or plan upgrades.
 ---
 
-You can manage your Expensify subscription anytime from your account settings—update your billing info, request early cancellation, or delete a workspace if you're the billing owner.
+You can manage your Expensify subscription anytime from your account settings—update your billing info, request early cancellation (cancel your plan), or delete a workspace if you're the billing owner.
 
 View and manage your subscription under **Account > Subscription**.
+
+**Looking to cancel Expensify entirely?** To stop all billing, you'll need to delete all paid workspaces or transfer billing ownership. If you also want to delete your account, see [Close Account](https://help.expensify.com/articles/new-expensify/settings/Close-Account).
 
 ---
 

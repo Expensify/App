@@ -1,10 +1,12 @@
 ---
 title: Close or Reopen an Account
-description: Learn how to close or reopen an Expensify account.
-keywords: [Expensify Classic, close account, reopen account]
+description: Learn how to close, cancel, or delete your Expensify account — or reopen a previously closed one.
+keywords: [Expensify Classic, close account, reopen account, delete account, cancel account, delete Expensify account, cancel Expensify, deactivate account, how to delete Expensify, how to cancel Expensify]
 ---
   
-Closing an Expensify account deletes the data tied to it. However, transactions shared with others, including approved and reimbursed company expenses, remain visible to the Admins on the workspace where those reports were submitted. Some transaction records may also be retained for legal compliance.
+Closing (deleting) an Expensify account permanently removes the data tied to it. However, transactions shared with others, including approved and reimbursed company expenses, remain visible to the Admins on the workspace where those reports were submitted. Some transaction records may also be retained for legal compliance.
+
+**Note:** In Expensify, "closing" your account is the same as deleting or canceling it — the account and its personal data are permanently removed.
 
 If you need to leave a **Company Workspace** but want to keep your data:
 - Ask the **Workspace Admin** to remove you from the workspace.
