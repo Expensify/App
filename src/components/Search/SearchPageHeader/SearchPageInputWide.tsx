@@ -97,7 +97,7 @@ function SearchPageInputWide({queryJSON, handleSearch}: SearchPageInputWideProps
                     onKeyPress={handleKeyPress}
                 />
                 {isAutocompleteListVisible && (
-                    <View style={[styles.mh65vh]}>
+                    <View style={[styles.mh65vh, styles.mt3]}>
                         <SearchAutocompleteList
                             autocompleteQueryValue={autocompleteQueryValue}
                             handleSearch={handleSearchAction}
