@@ -670,7 +670,7 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
             ref={wrapperViewRef}
         >
             <SelectionToolbar
-                reportID={report.reportID}
+                reportID={reportIDFromRoute}
                 transactions={transactions}
                 reportActions={reportActions}
             />

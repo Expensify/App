@@ -53,7 +53,7 @@ function ReportActionsList() {
         return <MoneyRequestReportActionsList />;
     }
 
-    return <ReportActionsView reportID={report.reportID} />;
+    return <ReportActionsView reportID={reportIDFromRoute} />;
 }
 
 export default ReportActionsList;
