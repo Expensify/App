@@ -650,6 +650,11 @@ describe('PersonalDetailsUtils', () => {
                 displayName: 'Test User',
             });
         });
+
+        it('should return undefined when email is undefined', async () => {
+            const result = getPersonalDetailByEmail(undefined);
+            expect(result).toBeUndefined();
+        });
     });
 
     describe('createPersonalDetailsLookupByAccountID', () => {
