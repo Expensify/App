@@ -21,11 +21,11 @@ namespace margelo::nitro::utils {
   class JHybridAppStartTimeModuleSpec: public virtual HybridAppStartTimeModuleSpec, public virtual JHybridObject {
   public:
     struct JavaPart: public jni::JavaClass<JavaPart, JHybridObject::JavaPart> {
-      static auto constexpr kJavaDescriptor = "Lcom/margelo/nitro/utils/HybridAppStartTimeModuleSpec;";
+      static constexpr auto kJavaDescriptor = "Lcom/margelo/nitro/utils/HybridAppStartTimeModuleSpec;";
       std::shared_ptr<JHybridAppStartTimeModuleSpec> getJHybridAppStartTimeModuleSpec();
     };
     struct CxxPart: public jni::HybridClass<CxxPart, JHybridObject::CxxPart> {
-      static auto constexpr kJavaDescriptor = "Lcom/margelo/nitro/utils/HybridAppStartTimeModuleSpec$CxxPart;";
+      static constexpr auto kJavaDescriptor = "Lcom/margelo/nitro/utils/HybridAppStartTimeModuleSpec$CxxPart;";
       static jni::local_ref<jhybriddata> initHybrid(jni::alias_ref<jhybridobject> jThis);
       static void registerNatives();
       using HybridBase::HybridBase;
