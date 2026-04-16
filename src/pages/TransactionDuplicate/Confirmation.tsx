@@ -76,11 +76,17 @@ function Confirmation() {
     const taxData = useMemo(() => {
         const taxCode = reviewDuplicates?.taxCode ?? '';
         const taxRate = taxCode ? policy?.taxRates?.taxes?.[taxCode] : undefined;
+        // Preserve taxAmount and taxValue if taxCode is deleted or remains unchanged compared to duplicatedTransaction?.taxCode.
+        if (!taxRate || (taxCode && duplicatedTransaction?.taxCode === taxCode) || reviewDuplicates?.taxAmount === undefined) {
+            return;
+        }
+
         return {
-            taxAmount: -(reviewDuplicates?.taxAmount ?? 0),
-            taxValue: taxRate?.value ?? '',
+            taxAmount: -reviewDuplicates.taxAmount,
+            taxValue: taxRate?.value,
+            taxCode,
         };
-    }, [reviewDuplicates?.taxCode, reviewDuplicates?.taxAmount, policy?.taxRates?.taxes]);
+    }, [reviewDuplicates?.taxCode, reviewDuplicates?.taxAmount, policy?.taxRates?.taxes, duplicatedTransaction?.taxCode]);
     const isReportOwner = iouReport?.ownerAccountID === currentUserPersonalDetails?.accountID;
 
     const handleMergeDuplicates = useCallback(() => {
