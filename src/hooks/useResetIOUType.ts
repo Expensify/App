@@ -1,6 +1,7 @@
 import {useFocusEffect} from '@react-navigation/native';
 import {hasOnlyPersonalPoliciesSelector} from '@selectors/Policy';
 import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
+import {useRef} from 'react';
 import {Keyboard} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {IOURequestType} from '@userActions/IOU';
@@ -83,7 +84,7 @@ function useResetIOUType({
             personalPolicy,
             isFromGlobalCreate,
             isTrackDistanceExpense,
-            isFromFloatingActionButton: isFromGlobalCreate,
+            isFromFloatingActionButton: transaction?.isFromFloatingActionButton ?? transaction?.isFromGlobalCreate ?? isFromGlobalCreate,
             currentIouRequestType: transaction?.iouRequestType,
             newIouRequestType: newIOUType,
             report,
@@ -96,11 +97,24 @@ function useResetIOUType({
         });
     };
 
+    const tabSelectedTypeRef = useRef<IOURequestType | null>(null);
+
+    const onTabSelected = (newIouType: IOURequestType) => {
+        tabSelectedTypeRef.current = newIouType;
+        resetIOUTypeIfChanged(newIouType);
+    };
+
     const prevTransactionReportID = usePrevious(transaction?.reportID);
     const personalPolicyID = personalPolicy?.id;
 
     // Clear out the temporary expense if the reportID in the URL has changed from the transaction's reportID.
     useFocusEffect(() => {
+        // Skip until transactionRequestType catches up with the tab onTabSelected already set.
+        if (tabSelectedTypeRef.current && transactionRequestType !== tabSelectedTypeRef.current) {
+            return;
+        }
+        tabSelectedTypeRef.current = null;
+
         // The test transaction can change the reportID of the transaction on the flow so we should prevent the reportID from being reverted again.
         if (
             transaction?.reportID === reportID ||
@@ -115,7 +129,7 @@ function useResetIOUType({
         resetIOUTypeIfChanged(transactionRequestType);
     });
 
-    return resetIOUTypeIfChanged;
+    return onTabSelected;
 }
 
 export default useResetIOUType;

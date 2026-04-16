@@ -42,7 +42,7 @@ To create an expense using distance between the starting and ending locations of
    - Distance
    - Amount
    - Date
-   - (Optional) Add a description, category, or tag. 
+   - Other optional fields
 6. Select **Create expense**. 
 
 ---
@@ -59,7 +59,7 @@ To create an expense by inputting a distance manually:
    - Distance
    - Amount
    - Date
-   - (Optional) Add a description, category, tag or receipt.
+   - Other optional fields
 6. Select **Create expense**.
 
 ---
