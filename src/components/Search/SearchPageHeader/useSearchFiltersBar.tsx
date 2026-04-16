@@ -7,6 +7,7 @@ import CategorySelectPopup from '@components/Search/FilterDropdowns/CategorySele
 import CurrencySelectPopup from '@components/Search/FilterDropdowns/CurrencySelectPopup';
 import type {PopoverComponentProps} from '@components/Search/FilterDropdowns/DropdownButton';
 import ExportedToSelectPopup from '@components/Search/FilterDropdowns/ExportedToSelectPopup';
+import FeedSelectPopup from '@components/Search/FilterDropdowns/FeedSelectPopup';
 import InSelectPopup from '@components/Search/FilterDropdowns/InSelectPopup';
 import ReportFieldPopup from '@components/Search/FilterDropdowns/ReportFieldPopup';
 import SingleSelectPopup from '@components/Search/FilterDropdowns/SingleSelectPopup';
@@ -230,7 +231,17 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON): UseSearchFiltersBarRes
                     sentryLabel: getFilterSentryLabel(filterKey),
                 };
             }
-            case FILTER_KEYS.FEED:
+            case FILTER_KEYS.FEED: {
+                return {
+                    PopoverComponent: ({closeOverlay}) => (
+                        <FeedSelectPopup
+                            updateFilterForm={updateFilterForm}
+                            closeOverlay={closeOverlay}
+                        />
+                    ),
+                    sentryLabel: getFilterSentryLabel(filterKey),
+                };
+            }
             case FILTER_KEYS.CARD_ID: {
                 return {
                     PopoverComponent: ({closeOverlay, isExpanded}) => (

@@ -8875,6 +8875,8 @@ const CONST = {
             FILTER_POPUP_APPLY_REPORT_FIELD: 'Search-FilterPopupApplyReportField',
             FILTER_POPUP_RESET_CARD: 'Search-FilterPopupResetCard',
             FILTER_POPUP_APPLY_CARD: 'Search-FilterPopupApplyCard',
+            FILTER_POPUP_RESET_FEED: 'Search-FilterPopupResetFeed',
+            FILTER_POPUP_APPLY_FEED: 'Search-FilterPopupApplyFeed',
             TRANSACTION_LIST_ITEM_CHECKBOX: 'Search-TransactionListItemCheckbox',
             EXPANDED_TRANSACTION_ROW: 'Search-ExpandedTransactionRow',
             EXPANDED_TRANSACTION_ROW_CHECKBOX: 'Search-ExpandedTransactionRowCheckbox',
