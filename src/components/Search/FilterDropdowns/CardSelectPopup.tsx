@@ -174,6 +174,7 @@ function CardSelectPopup({isExpanded, updateFilterForm, closeOverlay}: CardSelec
             onApply={applyChanges}
             resetSentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_RESET_CARD}
             applySentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY_CARD}
+            style={styles.getSelectionListPopoverMaxHeight(windowHeight, isInLandscapeMode)}
         >
             {!!shouldShowLoadingState && (
                 <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsCenter]}>
@@ -186,28 +187,16 @@ function CardSelectPopup({isExpanded, updateFilterForm, closeOverlay}: CardSelec
                 </View>
             )}
             {!shouldShowLoadingState && (
-                <View
-                    style={[
-                        styles.getSelectionListPopoverHeight(
-                            sections.flatMap((section) => section.data).length || 1,
-                            windowHeight,
-                            shouldShowSearchInput,
-                            isInLandscapeMode,
-                            isSmallScreenWidth,
-                        ),
-                    ]}
-                >
-                    <SelectionListWithSections<CardFilterItem>
-                        sections={sections}
-                        ListItem={CardListItem}
-                        onSelectRow={updateNewCards}
-                        shouldPreventDefaultFocusOnSelectRow={false}
-                        shouldShowTextInput={shouldShowSearchInput}
-                        textInputOptions={textInputOptions}
-                        shouldStopPropagation
-                        canSelectMultiple
-                    />
-                </View>
+                <SelectionListWithSections<CardFilterItem>
+                    sections={sections}
+                    ListItem={CardListItem}
+                    onSelectRow={updateNewCards}
+                    shouldPreventDefaultFocusOnSelectRow={false}
+                    shouldShowTextInput={shouldShowSearchInput}
+                    textInputOptions={textInputOptions}
+                    shouldStopPropagation
+                    canSelectMultiple
+                />
             )}
         </BasePopup>
     );
