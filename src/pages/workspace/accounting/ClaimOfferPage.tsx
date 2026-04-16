@@ -49,14 +49,14 @@ function ClaimOfferPage({route, policy}: ClaimOfferPageProps) {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const {startIntegrationFlow} = useAccountingActions();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['TreasureChestGreenWithSparkle'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['TreasureChestGreenWithSparkle']);
     const integrations = policy?.receiptPartners;
     const {isUberConnected} = useGetReceiptPartnersIntegrationData(policyID);
     const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policyID}`);
 
-    const connectionNames = CONST.POLICY.CONNECTIONS.NAME;
-    const accountingIntegrations = Object.values(connectionNames);
-    const connectedIntegration = getConnectedIntegration(policy, accountingIntegrations) ?? connectionSyncProgress?.connectionName;
+    const accountingIntegrations = CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES;
+    const syncingAccountingIntegration = accountingIntegrations.find((integrationName) => integrationName === connectionSyncProgress?.connectionName);
+    const connectedIntegration = getConnectedIntegration(policy, accountingIntegrations) ?? syncingAccountingIntegration;
 
     const isConnectedToIntegration = useMemo(() => {
         if (integration === CONST.POLICY.CONNECTIONS.NAME.XERO) {

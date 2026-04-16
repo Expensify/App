@@ -9,7 +9,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useReportWithTransactionsAndViolations from '@hooks/useReportWithTransactionsAndViolations';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {canIOUBePaid} from '@libs/actions/IOU';
+import {canIOUBePaid} from '@libs/actions/IOU/ReportWorkflow';
 import {getPayMoneyOnSearchInvoiceParams, payMoneyRequestOnSearch} from '@libs/actions/Search';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import {isInvoiceReport} from '@libs/ReportUtils';

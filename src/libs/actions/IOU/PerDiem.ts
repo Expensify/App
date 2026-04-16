@@ -6,10 +6,12 @@ import type {CreatePerDiemRequestParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import {convertAmountToDisplayString, convertToFrontendAmountAsString} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
+import {registerDeferredWrite} from '@libs/deferredLayoutWrite';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import {updateIOUOwnerAndTotal} from '@libs/IOUUtils';
 import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import {validateAmount} from '@libs/MoneyRequestUtils';
+import isReportTopmostSplitNavigator from '@libs/Navigation/helpers/isReportTopmostSplitNavigator';
 import Navigation from '@libs/Navigation/Navigation';
 // eslint-disable-next-line @typescript-eslint/no-deprecated
 import {buildNextStepNew, buildOptimisticNextStep} from '@libs/NextStepUtils';
@@ -46,7 +48,6 @@ import type {Attendee, Participant} from '@src/types/onyx/IOU';
 import type {OnyxData} from '@src/types/onyx/Request';
 import type {TransactionCustomUnit} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import type {BasePolicyParams, MoneyRequestInformation, RequestMoneyParticipantParams} from '.';
 import {
     buildMinimalTransactionForFormula,
     buildOnyxDataForMoneyRequest,
@@ -57,11 +58,12 @@ import {
     getPolicyTags,
     getReportPreviewAction,
     getUserAccountID,
-    handleNavigateAfterExpenseCreate,
     highlightTransactionOnSearchRouteIfNeeded,
     mergePolicyRecentlyUsedCategories,
     mergePolicyRecentlyUsedCurrencies,
 } from '.';
+import type {BaseTransactionParams, MoneyRequestInformation, RequestMoneyParticipantParams} from './index';
+import type BasePolicyParams from './types/BasePolicyParams';
 
 function removeSubrate(transaction: OnyxEntry<OnyxTypes.Transaction>, currentIndex: string) {
     // Index comes from the route params and is a string
@@ -186,9 +188,9 @@ function computePerDiemExpenseMerchant(customUnit: TransactionCustomUnit, policy
     return `${locationName}, ${formattedTime}`;
 }
 
-function isValidPerDiemExpenseAmount(customUnit: TransactionCustomUnit, iouCurrencyCode: string | undefined, decimals: number) {
+function isValidPerDiemExpenseAmount(customUnit: TransactionCustomUnit, decimals: number) {
     const perDiemAmountInCents = computePerDiemExpenseAmount(customUnit);
-    const perDiemAmountString = convertToFrontendAmountAsString(perDiemAmountInCents, iouCurrencyCode);
+    const perDiemAmountString = convertToFrontendAmountAsString(perDiemAmountInCents, decimals);
     return validateAmount(perDiemAmountString, decimals, undefined, true);
 }
 
@@ -202,23 +204,6 @@ function computeDefaultPerDiemExpenseComment(customUnit: TransactionCustomUnit, 
     });
     return subRateComments.join(', ');
 }
-
-type BaseTransactionParams = {
-    amount: number;
-    modifiedAmount?: number;
-    currency: string;
-    created: string;
-    merchant: string;
-    comment: string;
-    category?: string;
-    tag?: string;
-    taxCode?: string;
-    taxAmount?: number;
-    billable?: boolean;
-    reimbursable?: boolean;
-    customUnitRateID?: string;
-    isFromGlobalCreate?: boolean;
-};
 
 type PerDiemExpenseTransactionParams = Omit<BaseTransactionParams, 'amount' | 'merchant' | 'customUnitRateID' | 'taxAmount' | 'taxCode' | 'comment'> & {
     attendees?: Attendee[];
@@ -246,10 +231,10 @@ type PerDiemExpenseInformation = {
     betas: OnyxEntry<OnyxTypes.Beta[]>;
     customUnitPolicyID?: string;
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
-    shouldHandleNavigation?: boolean;
     shouldPlaySound?: boolean;
     optimisticReportPreviewActionID?: string;
     shouldDeferAutoSubmit?: boolean;
+    optimisticChatReportID?: string;
 };
 
 type PerDiemExpenseInformationParams = {
@@ -269,6 +254,7 @@ type PerDiemExpenseInformationParams = {
     betas: OnyxEntry<OnyxTypes.Beta[]>;
     optimisticReportPreviewActionID?: string;
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
+    optimisticChatReportID?: string;
 };
 
 type PerDiemExpenseInformationForSelfDM = {
@@ -317,6 +303,7 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
         betas,
         optimisticReportPreviewActionID,
         personalDetails,
+        optimisticChatReportID,
     } = perDiemExpenseInformation;
     const {payeeAccountID = getUserAccountID(), payeeEmail = getCurrentUserEmail(), participant} = participantParams;
     const {policy, policyCategories, policyTagList, policyRecentlyUsedCategories, policyRecentlyUsedTags} = policyParams;
@@ -354,6 +341,8 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
         isNewChatReport = true;
         chatReport = buildOptimisticChatReport({
             participantList: [payerAccountID, payeeAccountID],
+            optimisticReportID: optimisticChatReportID,
+            currentUserAccountID: currentUserAccountIDParam,
         });
     }
 
@@ -513,6 +502,7 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
 
     // STEP 5: Build Onyx Data
     const {optimisticData, successData, failureData} = buildOnyxDataForMoneyRequest({
+        participant,
         isNewChatReport,
         shouldCreateNewMoneyRequestReport,
         policyParams: {
@@ -902,12 +892,11 @@ function submitPerDiemExpense(submitPerDiemExpenseInformation: PerDiemExpenseInf
         betas,
         customUnitPolicyID,
         personalDetails,
-        shouldHandleNavigation = true,
         shouldPlaySound: shouldPlaySoundParam = true,
         optimisticReportPreviewActionID,
         shouldDeferAutoSubmit,
+        optimisticChatReportID,
     } = submitPerDiemExpenseInformation;
-    const {payeeAccountID} = participantParams;
     const {currency, comment = '', category, tag, created, customUnit, attendees, isFromGlobalCreate} = transactionParams;
 
     if (
@@ -956,6 +945,7 @@ function submitPerDiemExpense(submitPerDiemExpenseInformation: PerDiemExpenseInf
         betas,
         optimisticReportPreviewActionID,
         personalDetails,
+        optimisticChatReportID,
     });
 
     const activeReportID = isMoneyRequestReport && Navigation.getTopmostReportId() === report?.reportID ? report?.reportID : chatReport.reportID;
@@ -999,17 +989,27 @@ function submitPerDiemExpense(submitPerDiemExpenseInformation: PerDiemExpenseInf
     if (shouldPlaySoundParam) {
         playSound(SOUNDS.DONE);
     }
-    API.write(WRITE_COMMANDS.CREATE_PER_DIEM_REQUEST, parameters, onyxData);
+
+    const shouldDeferWrite = isFromGlobalCreate && !isReportTopmostSplitNavigator();
+    const apiWrite = () => {
+        API.write(WRITE_COMMANDS.CREATE_PER_DIEM_REQUEST, parameters, onyxData);
+    };
+
+    if (shouldDeferWrite) {
+        registerDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH, apiWrite, {
+            optimisticWatchKey: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
+        });
+    } else {
+        apiWrite();
+    }
 
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     InteractionManager.runAfterInteractions(() => removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID));
 
     highlightTransactionOnSearchRouteIfNeeded(isFromGlobalCreate, transaction.transactionID, CONST.SEARCH.DATA_TYPES.EXPENSE);
 
-    handleNavigateAfterExpenseCreate({activeReportID, transactionID: transaction.transactionID, isFromGlobalCreate, shouldHandleNavigation});
-
     if (activeReportID) {
-        notifyNewAction(activeReportID, undefined, payeeAccountID === currentUserAccountIDParam);
+        notifyNewAction(activeReportID, undefined, participantParams.payeeAccountID === currentUserAccountIDParam);
     }
 
     return {iouReport};

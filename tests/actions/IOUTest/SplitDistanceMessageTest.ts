@@ -1,5 +1,5 @@
 import Onyx from 'react-native-onyx';
-import {getUpdateMoneyRequestParams} from '@libs/actions/IOU';
+import {getUpdateMoneyRequestParams} from '@libs/actions/IOU/UpdateMoneyRequest';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';

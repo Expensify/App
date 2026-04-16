@@ -9,11 +9,10 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useStyleUtils from '@hooks/useStyleUtils';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getCardCurrency, getCardDescription, getDisplayableExpensifyCards} from '@libs/CardUtils';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
-import getButtonState from '@libs/getButtonState';
 import Navigation from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -25,7 +24,7 @@ function AssignedCardsSection() {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const StyleUtils = useStyleUtils();
+    const theme = useTheme();
     const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
     const [allCardSettings] = useOnyx(ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS);
     const icons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
@@ -67,10 +66,10 @@ function AssignedCardsSection() {
                                             {hasLimitData && <RemainingLimitCircle spentFraction={spentFraction} />}
                                             <Icon
                                                 src={icons.ArrowRight}
-                                                fill={StyleUtils.getIconFillColor(getButtonState(isHovered))}
-                                                width={variables.iconSizeSmall}
-                                                height={variables.iconSizeSmall}
-                                                additionalStyles={styles.opacitySemiTransparent}
+                                                fill={theme.icon}
+                                                width={variables.iconSizeNormal}
+                                                height={variables.iconSizeNormal}
+                                                additionalStyles={!isHovered && styles.opacitySemiTransparent}
                                             />
                                         </View>
                                     }
