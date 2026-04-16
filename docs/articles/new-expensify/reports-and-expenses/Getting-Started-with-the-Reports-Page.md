@@ -87,7 +87,7 @@ Filters help you narrow down expenses or reports so you can find exactly what yo
 
 You can filter your **expenses** and **reports** using dropdowns, search bars, and chips. 
 
-- **Expenses:** can be filtered by `Date`, `Merchant`, `Category`, `Tag`, `Amount`, `Reimbursable`, `Billable`, `Status` (e.g. Unreported)
+- **Expenses:** can be filtered by `Date`, `Merchant`, `Category`, `Tag`, `Amount`, `Reimbursable`, `Billable`, `Status` (e.g. Unreported, Deleted)
 
 - **Reports:** can be filtered by `Submitter`, `Workspace`, `Report Status` (e.g. Draft, Outstanding, Approved, Paid), `Date`
 
