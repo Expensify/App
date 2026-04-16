@@ -2802,6 +2802,10 @@ const staticStyles = (theme: ThemeColors) =>
             paddingHorizontal: 20,
         },
 
+        numberWithSymbolFormInputContainerLandscape: {
+            width: 400,
+        },
+
         avatarSectionWrapper: {
             width: '100%',
             alignItems: 'center',

@@ -236,6 +236,14 @@ const DYNAMIC_ROUTES = {
         path: 'workspace-address',
         entryScreens: [SCREENS.WORKSPACE.PROFILE],
     },
+    WORKSPACE_CATEGORIES_IMPORT: {
+        path: 'import',
+        entryScreens: [SCREENS.WORKSPACE.CATEGORIES],
+    },
+    WORKSPACE_CATEGORIES_IMPORTED: {
+        path: 'imported',
+        entryScreens: [SCREENS.WORKSPACE.CATEGORIES],
+    },
     WORKSPACE_INVITE: {
         path: 'invite',
         entryScreens: [SCREENS.WORKSPACE.PROFILE, SCREENS.WORKSPACE.MEMBERS],
@@ -2271,14 +2279,6 @@ const ROUTES = {
     WORKSPACE_CATEGORIES_SETTINGS: {
         route: 'workspaces/:policyID/categories/settings',
         getRoute: (policyID: string) => `workspaces/${policyID}/categories/settings` as const,
-    },
-    WORKSPACE_CATEGORIES_IMPORT: {
-        route: 'workspaces/:policyID/categories/import',
-        getRoute: (policyID: string) => `workspaces/${policyID}/categories/import` as const,
-    },
-    WORKSPACE_CATEGORIES_IMPORTED: {
-        route: 'workspaces/:policyID/categories/imported',
-        getRoute: (policyID: string) => `workspaces/${policyID}/categories/imported` as const,
     },
     WORKSPACE_CATEGORY_CREATE: {
         route: 'workspaces/:policyID/categories/new',

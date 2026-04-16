@@ -219,7 +219,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
     const transactionTaxAmount = transaction?.taxAmount ?? 0;
     const transactionTaxValue = transaction?.taxValue ?? getTaxValue(policy, transaction, transactionTaxCode) ?? '';
 
-    function requestMoney(selectedParticipantsArg: Participant[], gpsPoint?: GpsPoint) {
+    function requestMoney(selectedParticipantsArg: Participant[], shouldHandleNav: boolean, gpsPoint?: GpsPoint) {
         if (!transactions.length) {
             return;
         }
@@ -328,7 +328,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                     isFromGlobalCreate: item?.isFromFloatingActionButton ?? item?.isFromGlobalCreate,
                     ...(isTimeRequest ? {type: CONST.TRANSACTION.TYPE.TIME, count: item.comment?.units?.count, rate: item.comment?.units?.rate, unit: CONST.TIME_TRACKING.UNIT.HOUR} : {}),
                 },
-                shouldHandleNavigation: index === transactions.length - 1,
+                shouldHandleNavigation: shouldHandleNav && index === transactions.length - 1,
                 shouldGenerateTransactionThreadReport,
                 backToReport,
                 isASAPSubmitBetaEnabled,
@@ -347,7 +347,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         }
     }
 
-    function submitPerDiemExpense(selectedParticipantsArg: Participant[], trimmedComment: string, policyRecentlyUsedCategoriesParam?: RecentlyUsedCategories) {
+    function submitPerDiemExpense(selectedParticipantsArg: Participant[], trimmedComment: string, shouldHandleNav: boolean, policyRecentlyUsedCategoriesParam?: RecentlyUsedCategories) {
         if (!transaction) {
             return;
         }
@@ -429,7 +429,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 personalDetails,
                 optimisticChatReportID,
             });
-            if (result && activeReportID) {
+            if (shouldHandleNav && result && activeReportID) {
                 navigateAfterExpenseCreate({
                     activeReportID,
                     transactionID: transaction.transactionID,
@@ -440,7 +440,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         }
     }
 
-    function trackExpense(selectedParticipantsArg: Participant[], gpsPoint?: GpsPoint) {
+    function trackExpense(selectedParticipantsArg: Participant[], shouldHandleNav: boolean, gpsPoint?: GpsPoint) {
         if (!transactions.length) {
             return;
         }
@@ -498,7 +498,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 accountantParams: {
                     accountant: item.accountant,
                 },
-                shouldHandleNavigation: index === transactions.length - 1,
+                shouldHandleNavigation: shouldHandleNav && index === transactions.length - 1,
                 isASAPSubmitBetaEnabled,
                 currentUserAccountIDParam: currentUserPersonalDetails.accountID,
                 currentUserEmailParam: currentUserPersonalDetails.login ?? '',
@@ -513,7 +513,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         }
     }
 
-    function createDistanceRequest(selectedParticipantsArg: Participant[], trimmedComment: string) {
+    function createDistanceRequest(selectedParticipantsArg: Participant[], trimmedComment: string, shouldHandleNav = true) {
         if (!transaction) {
             return;
         }
@@ -564,10 +564,14 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
             personalDetails,
             recentWaypoints,
             betas,
+            shouldHandleNavigation: shouldHandleNav,
         });
     }
 
-    function createTransaction(selectedParticipantsArg: Participant[], locationPermissionGranted = false) {
+    // shouldHandleNavigation is a function parameter, not a closure variable, so it does not
+    // need to appear in any dependency array. The handle* functions pass it at call time
+    // (e.g. createTransaction(participants, false, false) for fast paths).
+    function createTransaction(selectedParticipantsArg: Participant[], locationPermissionGranted = false, shouldHandleNavigation = true) {
         setIsConfirmed(true);
         let splitParticipants = selectedParticipantsArg;
 
@@ -594,13 +598,16 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         // Telemetry spans (SPAN_SUBMIT_EXPENSE, SPAN_SUBMIT_TO_DESTINATION_VISIBLE)
         // are started by SubmitExpenseOrchestrator before calling createTransaction.
         if (iouType !== CONST.IOU.TYPE.TRACK && isDistanceRequest && !isMovingTransactionFromTrackExpense && !isUnreported) {
-            createDistanceRequest(iouType === CONST.IOU.TYPE.SPLIT ? splitParticipants : selectedParticipantsArg, trimmedComment);
+            createDistanceRequest(iouType === CONST.IOU.TYPE.SPLIT ? splitParticipants : selectedParticipantsArg, trimmedComment, shouldHandleNavigation);
             markSubmitExpenseEnd();
             return;
         }
 
         const currentTransactionReceiptFile = transaction?.transactionID ? receiptFiles[transaction.transactionID] : undefined;
 
+        // Split (startSplitBill, splitBill, splitBillAndOpenReport) and invoice (sendInvoice)
+        // flows handle their own navigation internally and don't participate in the
+        // dismiss-modal fast path. shouldHandleNavigation is not threaded through to them.
         if (iouType === CONST.IOU.TYPE.SPLIT && Object.values(receiptFiles).filter((receipt) => !!receipt).length) {
             const currentUserLogin = currentUserPersonalDetails.login;
             if (currentUserLogin) {
@@ -740,7 +747,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 // If the transaction amount is zero, then the money is being requested through the "Scan" flow and the GPS coordinates need to be included.
                 if (transaction.amount === 0 && !isSharingTrackExpense && !isCategorizingTrackExpense && locationPermissionGranted) {
                     if (userLocation) {
-                        trackExpense(selectedParticipantsArg, {
+                        trackExpense(selectedParticipantsArg, shouldHandleNavigation, {
                             lat: userLocation.latitude,
                             long: userLocation.longitude,
                         });
@@ -748,22 +755,22 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                         return;
                     }
 
-                    getCurrentPositionWithGeolocationSpan((gpsCoords) => trackExpense(selectedParticipantsArg, gpsCoords));
+                    getCurrentPositionWithGeolocationSpan((gpsCoords) => trackExpense(selectedParticipantsArg, shouldHandleNavigation, gpsCoords));
                     return;
                 }
 
                 // Otherwise, the money is being requested through the "Manual" flow with an attached image and the GPS coordinates are not needed.
-                trackExpense(selectedParticipantsArg);
+                trackExpense(selectedParticipantsArg, shouldHandleNavigation);
                 markSubmitExpenseEnd();
                 return;
             }
-            trackExpense(selectedParticipantsArg);
+            trackExpense(selectedParticipantsArg, shouldHandleNavigation);
             markSubmitExpenseEnd();
             return;
         }
 
         if (isPerDiemRequest) {
-            submitPerDiemExpense(selectedParticipantsArg, trimmedComment, policyRecentlyUsedCategories);
+            submitPerDiemExpense(selectedParticipantsArg, trimmedComment, shouldHandleNavigation, policyRecentlyUsedCategories);
             markSubmitExpenseEnd();
             return;
         }
@@ -778,7 +785,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 !selectedParticipantsArg.some((participant) => isSelectedManagerMcTest(participant.login))
             ) {
                 if (userLocation) {
-                    requestMoney(selectedParticipantsArg, {
+                    requestMoney(selectedParticipantsArg, shouldHandleNavigation, {
                         lat: userLocation.latitude,
                         long: userLocation.longitude,
                     });
@@ -786,17 +793,17 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                     return;
                 }
 
-                getCurrentPositionWithGeolocationSpan((gpsCoords) => requestMoney(selectedParticipantsArg, gpsCoords));
+                getCurrentPositionWithGeolocationSpan((gpsCoords) => requestMoney(selectedParticipantsArg, shouldHandleNavigation, gpsCoords));
                 return;
             }
 
             // Otherwise, the money is being requested through the "Manual" flow with an attached image and the GPS coordinates are not needed.
-            requestMoney(selectedParticipantsArg);
+            requestMoney(selectedParticipantsArg, shouldHandleNavigation);
             markSubmitExpenseEnd();
             return;
         }
 
-        requestMoney(selectedParticipantsArg);
+        requestMoney(selectedParticipantsArg, shouldHandleNavigation);
         markSubmitExpenseEnd();
     }
 
