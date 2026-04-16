@@ -327,7 +327,7 @@ describe('useNativeBiometricsHSM hook', () => {
             const keyAlias = '12345_HSM_KEY';
             mockGetAllKeys.mockResolvedValue({keys: [{alias: keyAlias, publicKey: 'abc+def/ghi='}]});
             mockSha256.mockResolvedValue({hash: Buffer.alloc(32).toString('base64')});
-            mockSignWithOptions.mockResolvedValue({success: true, signature: 'c2lnbmF0dXJl', authType: AuthType.FaceID});
+            mockSignWithOptions.mockResolvedValue({success: true, signature: 'dGVzdC1zaWduYXR1cmU=', authType: AuthType.FaceID});
         });
 
         it('should sign challenge and return success', async () => {
@@ -445,7 +445,7 @@ describe('useNativeBiometricsHSM hook', () => {
             // Given the biometric sign operation succeeds but returns an unrecognized authType number
             // When mapAuthTypeNumber cannot map the authType to a known value and returns undefined
             // Then onResult should receive a failure with BAD_REQUEST because the response cannot be trusted without a valid auth type
-            mockSignWithOptions.mockResolvedValue({success: true, signature: 'c2lnbmF0dXJl', authType: 999});
+            mockSignWithOptions.mockResolvedValue({success: true, signature: 'dGVzdC1zaWduYXR1cmU=', authType: 999});
 
             const {result} = renderHook(() => useNativeBiometricsHSM());
             const onResult = jest.fn();

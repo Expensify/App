@@ -907,7 +907,8 @@
         "Wintrust",
         "Zürcher",
         "CARDFROZEN",
-        "CARDUNFROZEN"
+        "CARDUNFROZEN",
+        "backgrounded"
     ],
     "ignorePaths": [
         "src/languages/de.ts",
