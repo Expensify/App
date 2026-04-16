@@ -137,7 +137,7 @@ function navigateToSubmitWorkspaceAfterOnboarding(policyID?: string) {
     if (policyID) {
         setOnboardingRHPVariant(CONST.ONBOARDING_RHP_VARIANT.RHP_ADMINS_ROOM);
         Navigation.navigate(ROUTES.WORKSPACE_CATEGORIES.getRoute(policyID));
-        SidePanelActions.openSidePanel(true);
+        SidePanelActions.openSidePanel(false);
     } else {
         Navigation.navigate(ROUTES.HOME);
     }
