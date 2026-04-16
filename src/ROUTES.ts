@@ -2830,6 +2830,10 @@ const ROUTES = {
         route: 'workspaces/:policyID/travel/settings/frequency',
         getRoute: (policyID: string) => `workspaces/${policyID}/travel/settings/frequency` as const,
     },
+    WORKSPACE_TRAVEL_SETTINGS_MONTHLY_LIMIT: {
+        route: 'workspaces/:policyID/travel/settings/monthly-limit',
+        getRoute: (policyID: string) => `workspaces/${policyID}/travel/settings/monthly-limit` as const,
+    },
     WORKSPACE_TRAVEL_MISSING_PERSONAL_DETAILS: {
         route: 'workspaces/:policyID/travel/missing-personal-details',
         getRoute: (policyID: string) => `workspaces/${policyID}/travel/missing-personal-details` as const,

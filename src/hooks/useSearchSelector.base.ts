@@ -5,7 +5,8 @@ import type {PermissionStatus} from 'react-native-permissions';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import {useOptionsList} from '@components/OptionListContextProvider';
 import type {GetOptionsConfig, Option, Options, SearchOption} from '@libs/OptionsListUtils';
-import {getEmptyOptions, getPersonalDetailSearchTerms, getSearchOptions, getSearchValueForPhoneOrEmail, getValidOptions} from '@libs/OptionsListUtils';
+import {getEmptyOptions, getSearchOptions, getSearchValueForPhoneOrEmail, getValidOptions} from '@libs/OptionsListUtils';
+import {getPersonalDetailSearchTerms} from '@libs/OptionsListUtils/searchMatchUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -239,6 +240,7 @@ function useSearchSelectorBase({
                     currentUserAccountID,
                     currentUserEmail,
                     personalDetails,
+                    conciergeReportID,
                 });
             case CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_MEMBER_INVITE:
                 return getValidOptions(optionsWithContacts, allPolicies, draftComments, nvpDismissedProductTraining, loginList, currentUserAccountID, currentUserEmail, conciergeReportID, {

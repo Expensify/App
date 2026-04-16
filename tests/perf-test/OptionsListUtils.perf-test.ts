@@ -141,6 +141,7 @@ describe('OptionsListUtils', () => {
                 currentUserEmail: MOCK_CURRENT_USER_EMAIL,
                 policyCollection: allPolicies,
                 personalDetails,
+                conciergeReportID: undefined,
             }),
         );
     });
@@ -311,6 +312,7 @@ describe('OptionsListUtils', () => {
                 policyCollection: allPolicies,
                 personalDetails,
                 maxResults: 20,
+                conciergeReportID: undefined,
             }),
         );
     });
