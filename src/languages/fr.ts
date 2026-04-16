@@ -8900,7 +8900,7 @@ Voici un *reçu test* pour vous montrer comment ça fonctionne :`,
             forceTwoFactorAuthSAMLEnabledDescription: (samlPageUrl: string) =>
                 `<muted-text>Veuillez désactiver <a href="${samlPageUrl}">SAML</a> pour imposer l’authentification à deux facteurs.</muted-text>`,
             forceTwoFactorAuthDescription: `<muted-text>Exiger l’authentification à deux facteurs pour tous les membres de ce domaine. Les membres du domaine seront invités à configurer l’authentification à deux facteurs sur leur compte lorsqu’ils se connectent.</muted-text>`,
-            forceTwoFactorAuthError: "L’activation forcée de l’authentification à deux facteurs n’a pas pu être modifiée. Veuillez réessayer plus tard.",
+            forceTwoFactorAuthError: 'L’activation forcée de l’authentification à deux facteurs n’a pas pu être modifiée. Veuillez réessayer plus tard.',
             resetTwoFactorAuth: 'Réinitialiser l’authentification à deux facteurs',
             error: 'Impossible d’enregistrer cette modification. Veuillez réessayer.',
         },
