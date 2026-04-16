@@ -1,7 +1,7 @@
 ---
 title: Using Your Expensify Card in New Expensify
 description: Learn how to activate, use, and manage your physical and virtual Expensify Card, including Smart Limits, notifications, and troubleshooting.
-keywords: [New Expensify, Expensify Card, Smart Limit, activate card, virtual card, card notifications, card declined, eReceipts]
+keywords: [New Expensify, Expensify Card, Smart Limit, activate card, virtual card, card notifications, card declined, eReceipts, freeze card, unfreeze card]
 ---
 
 Once you receive your Expensify Visa® Commercial Card, you can activate it and start using it immediately. When you use your Expensify Card, expenses are automatically created, and SmartScanned receipts are matched to the corresponding transactions. For most purchases, excluding lodging, Expensify also generates IRS-compliant eReceipts. If your organization doesn't require itemized receipts, you can rely on eReceipts to meet documentation requirements.
@@ -93,6 +93,30 @@ A virtual card is a secure, flexible way to manage online spending:
 4. Tap **Add to Apple Wallet** or **Add to Google Pay** and follow the prompts.
 
 For more details on adding a card to Apple or Android Pay, see this [guide](https://help.expensify.com/articles/new-expensify/expensify-card/Add-Expensify-Card-to-Apple-or-Google-Pay).
+
+---
+
+# How to freeze or unfreeze your Expensify Card
+
+Need to temporarily pause spending? You can freeze your Expensify Card at any time - without canceling or reissuing it.
+
+Freezing your card:
+- Immediately blocks new purchases on the card
+- Keeps your card number, CVV, and expiration date intact
+- Can be reversed at any time
+
+## To freeze or unfreeze your card
+
+1. From the navigation tabs (on the left on web, and at the bottom on mobile), go to **Account > Wallet > Expensify Card**.
+2. Click your Expensify Card to view its details.
+3. Click **Freeze card** or **Unfreeze card**, depending on the card's current state.
+4. Click **Confirm** in the dialog that appears.
+
+Once frozen:
+- You'll see a **Frozen** badge and a scarf graphic over your card
+- All new transactions will be declined until you unfreeze it
+
+**Note:** If your workspace admin froze the card, you'll need to contact them directly via Expensify Chat to request that they unfreeze it.
 
 ---
 
