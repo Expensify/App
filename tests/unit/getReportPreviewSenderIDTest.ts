@@ -239,7 +239,7 @@ describe('getReportPreviewSenderID', () => {
                     modifiedAmount: 50000,
                     modifiedCreated: '2021-03-18 00:00:00',
                     modifiedCurrency: 'INR',
-                    modifiedMerchant: 'Airtel',
+                    modifiedMerchant: 'merchant',
                     receipt: {source: 'receipt.jpg'},
                 }),
             ],
