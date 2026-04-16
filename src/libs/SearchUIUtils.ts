@@ -98,7 +98,7 @@ import type {TransactionPreviewData} from './actions/Search';
 import {setOptimisticDataForTransactionThreadPreview} from './actions/Search';
 import type {CardFeedForDisplay} from './CardFeedUtils';
 import {getCardFeedsForDisplay} from './CardFeedUtils';
-import {doesCardFeedExist, getCardDescriptionForSearchTable, getFeedNameForDisplay} from './CardUtils';
+import {getCardDescriptionForSearchTable, getFeedNameForDisplay} from './CardUtils';
 import {getDecodedCategoryName} from './CategoryUtils';
 import {convertToDisplayString, convertToDisplayStringWithoutCurrency} from './CurrencyUtils';
 import DateUtils from './DateUtils';
@@ -248,7 +248,6 @@ type GetTransactionSectionsParams = {
     allReportMetadata: OnyxCollection<OnyxTypes.ReportMetadata>;
     reportActions?: Record<string, OnyxTypes.ReportAction[]>;
     queryJSON?: SearchQueryJSON;
-    cardFeeds?: OnyxCollection<OnyxTypes.CardFeeds>;
 };
 
 const transactionColumnNamesToSortingProperty: TransactionSorting = {
@@ -2024,7 +2023,6 @@ function getTransactionsSections({
     allReportMetadata,
     reportActions = {},
     queryJSON,
-    cardFeeds,
 }: GetTransactionSectionsParams): [TransactionListItemType[], number] {
     const {
         transactionKeys,
@@ -2082,8 +2080,6 @@ function getTransactionsSections({
             const from = fromAccountID ? (personalDetailsMap.get(fromAccountID.toString()) ?? emptyPersonalDetails) : emptyPersonalDetails;
             const to = getToFieldValueForTransaction(transactionItem, report, data.personalDetailsList, reportAction);
             const isIOUReport = report?.type === CONST.REPORT.TYPE.IOU;
-            // Check if the card feed has been deleted. If cardFeeds is still loading (undefined), return undefined to avoid showing incorrect state.
-            const isCardFeedDeleted = cardFeeds === undefined ? undefined : !!transactionItem.bank && !doesCardFeedExist(transactionItem.bank as OnyxTypes.CompanyCardFeed, cardFeeds);
 
             const {formattedFrom, formattedTo, formattedTotal, formattedMerchant, date, submitted, approved, posted} = getTransactionItemCommonFormattedProperties(
                 transactionItem,
@@ -2113,7 +2109,6 @@ function getTransactionsSections({
                 formattedTo: shouldShowBlankTo ? '' : formattedTo,
                 formattedTotal,
                 formattedMerchant,
-                isCardFeedDeleted,
                 date,
                 submitted,
                 approved,
@@ -3442,7 +3437,6 @@ function getSections({
         allReportMetadata,
         reportActions,
         queryJSON,
-        cardFeeds,
     });
 }
 
@@ -5480,6 +5474,7 @@ function getColumnsToShow({
  * State mapping confirmed by backend team (@JS00001):
  * - 5, 6, 7: Failed
  * - 8: Cleared (succeeded and complete)
+ * - 9: Cleared (settled, pending batch processing)
  * - All others: Pending (processing)
  */
 const settlementStatusMap = new Map<number, ValueOf<typeof CONST.SEARCH.SETTLEMENT_STATUS>>([
@@ -5487,6 +5482,7 @@ const settlementStatusMap = new Map<number, ValueOf<typeof CONST.SEARCH.SETTLEME
     [6, CONST.SEARCH.SETTLEMENT_STATUS.FAILED],
     [7, CONST.SEARCH.SETTLEMENT_STATUS.FAILED],
     [8, CONST.SEARCH.SETTLEMENT_STATUS.CLEARED],
+    [9, CONST.SEARCH.SETTLEMENT_STATUS.CLEARED],
 ]);
 
 function getSettlementStatus(state: number | undefined): ValueOf<typeof CONST.SEARCH.SETTLEMENT_STATUS> | undefined {
