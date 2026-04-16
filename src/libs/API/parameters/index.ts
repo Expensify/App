@@ -394,6 +394,7 @@ export type {default as SetTravelInvoicingSettlementAccountParams} from './SetTr
 export type {default as PayTravelInvoicingSpendParams} from './PayTravelInvoicingSpendParams';
 export type {default as UpdateTravelInvoicingMonthlyLimitParams} from './UpdateTravelInvoicingMonthlyLimitParams';
 export type {default as UpdateTravelInvoicingSettlementFrequencyParams} from './UpdateTravelInvoicingSettlementFrequencyParams';
+export type {default as RetryTravelCardsProvisioningParams} from './RetryTravelCardsProvisioningParams';
 export type {default as GetTravelInvoiceStatementPDFParams} from './GetTravelInvoiceStatementPDFParams';
 export type {default as ExportTravelInvoiceStatementCSVParams} from './ExportTravelInvoiceStatementCSVParams';
 export type {default as SetCompanyCardFeedName} from './SetCompanyCardFeedName';

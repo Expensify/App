@@ -8,6 +8,7 @@ import type {
     DeactivateTravelInvoicingParams,
     OpenPolicyTravelPageParams,
     PayTravelInvoicingSpendParams,
+    RetryTravelCardsProvisioningParams,
     SetTravelInvoicingSettlementAccountParams,
     UpdateTravelInvoicingMonthlyLimitParams,
     UpdateTravelInvoicingSettlementFrequencyParams,
@@ -397,6 +398,42 @@ function clearTravelInvoicingErrors(workspaceAccountID: number) {
 }
 
 /**
+ * Retries travel card provisioning for workspace members that failed.
+ * Optimistically clears provisioning errors and calls the backend to clear errors and re-queue the provisioning job.
+ */
+function retryTravelCardsProvisioning(policyID: string, workspaceAccountID: number) {
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`,
+            value: {
+                settings: {
+                    travelInvoicing: {
+                        errors: [],
+                    },
+                },
+            },
+        },
+    ];
+
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`,
+            value: {
+                errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+            },
+        },
+    ];
+
+    const params: RetryTravelCardsProvisioningParams = {
+        policyID,
+    };
+
+    API.write(WRITE_COMMANDS.RETRY_TRAVEL_CARDS_PROVISIONING, params, {optimisticData, failureData});
+}
+
+/**
  * Pays the outstanding Travel Invoicing balance for a workspace.
  * Optimistically sets the manual billing flag to true (payment queued state).
  * The backend will send updates for private_expensifyCardManualBilling_ to clear it when billing runs.
@@ -580,6 +617,7 @@ export {
     configureTravelInvoicingForPolicy,
     deactivateTravelInvoicing,
     clearTravelInvoicingErrors,
+    retryTravelCardsProvisioning,
     updateTravelInvoicingMonthlyLimit,
     clearTravelInvoicingMonthlyLimitErrors,
 };
