@@ -39,8 +39,8 @@ function FeedFilterPopup({closeOverlay, items, value, isExpanded, onChangeCallba
 
     return (
         <MultiSelectFilterPopup
-            items={items}
-            value={value}
+            items={feedOptions}
+            value={feed}
             loading={shouldShowLoadingState}
             translationKey="search.filters.feed"
             closeOverlay={closeOverlay}
