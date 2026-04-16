@@ -80,7 +80,7 @@ function ActionCell({
 
     const text = translate(actionTranslationsMap[action]);
 
-    const buttonInnerStyles = isSelected ? styles.buttonDefaultSelected : {};
+    const buttonInnerStyles = isSelected && action === CONST.SEARCH.ACTION_TYPES.UNDELETE ? styles.buttonDefaultSelected : {};
 
     return (
         <Button
