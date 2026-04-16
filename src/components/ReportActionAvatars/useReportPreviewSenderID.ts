@@ -66,10 +66,10 @@ function isExplicitlyDeletedIOUAction(iouAction: ReportAction): boolean {
     const message = iouAction.message;
 
     if (Array.isArray(message)) {
-        return message.some((fragment) => !!fragment?.deleted);
+        return message.some((fragment) => !!fragment?.deleted || fragment?.html === '');
     }
 
-    return !!message?.deleted;
+    return !!message?.deleted || message?.html === '';
 }
 
 type GetReportPreviewSenderIDParams = {
