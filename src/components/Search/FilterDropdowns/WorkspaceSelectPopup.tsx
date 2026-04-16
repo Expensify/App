@@ -6,13 +6,13 @@ import useOnyx from '@hooks/useOnyx';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
-import type {PopoverComponentProps} from './DropdownButton';
 import type {MultiSelectItem} from './MultiSelectPopup';
 import MultiSelectPopup from './MultiSelectPopup';
 
-type WorkspaceSelectPopupProps = PopoverComponentProps & {
-    updateFilterForm: (values: Partial<SearchAdvancedFiltersForm>) => void;
+type WorkspaceSelectPopupProps = {
     policyIDQuery: string[] | undefined;
+    updateFilterForm: (values: Partial<SearchAdvancedFiltersForm>) => void;
+    closeOverlay: () => void;
 };
 
 function filterPolicyIDSelector(searchAdvancedFiltersForm: OnyxEntry<SearchAdvancedFiltersForm>) {
