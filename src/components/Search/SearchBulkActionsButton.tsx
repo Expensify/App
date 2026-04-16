@@ -175,7 +175,6 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
                             <ButtonWithDropdownMenu
                                 onPress={() => null}
                                 shouldAlwaysShowDropdownMenu
-                                buttonSize={CONST.DROPDOWN_BUTTON_SIZE.SMALL}
                                 customText={selectionButtonText}
                                 options={headerButtonsOptions}
                                 shouldPopoverUseScrollView={popoverUseScrollView}

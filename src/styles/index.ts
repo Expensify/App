@@ -4901,7 +4901,7 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         searchBulkActionsButton: {
-            marginVertical: 3,
+            marginVertical: -3,
         },
 
         filtersBar: {
