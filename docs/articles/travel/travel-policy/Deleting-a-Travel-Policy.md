@@ -8,7 +8,7 @@ Remove outdated or unused travel policies to keep your Expensify Travel setup or
 
 ## How to access Expensify Travel
 
-- **In New Expensify:** Click the green **+** button in the bottom-left corner of your screen, then select **Book travel**.
+- **In New Expensify:** Click the **+** button in the bottom-left corner of your screen, then select **Book travel**.
 - **In Classic Expensify:** Click **Travel** in the left-hand menu, then select **Book or manage travel**.
 
 Note: Only Travel Admins can create or manage travel policies in Expensify Travel.
