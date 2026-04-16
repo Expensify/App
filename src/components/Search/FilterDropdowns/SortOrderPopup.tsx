@@ -7,6 +7,7 @@ import {close} from '@libs/actions/Modal';
 import Navigation from '@libs/Navigation/Navigation';
 import {buildSearchQueryString} from '@libs/SearchQueryUtils';
 import {getSortOrderOptions} from '@libs/SearchUIUtils';
+import CONST from '@src/CONST';
 import SingleSelectPopup from './SingleSelectPopup';
 
 type SortOrderPopupProps = {
@@ -39,7 +40,7 @@ function SortOrderPopup({queryJSON, onSort, closeOverlay}: SortOrderPopupProps) 
             items={sortOrderOptions}
             value={sortOrder}
             closeOverlay={closeOverlay}
-            defaultValue={sortOrderOptions.at(0)?.value}
+            defaultValue={CONST.SEARCH.SORT_ORDER.DESC}
             onChange={(item) => {
                 if (!item) {
                     return;
