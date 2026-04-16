@@ -5443,6 +5443,10 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                             settlementAccountLabel: '決済口座',
                             settlementFrequencyLabel: '清算頻度',
                             settlementFrequencyDescription: 'Expensify が直近の Expensify Travel 取引を精算するために、あなたのビジネス銀行口座から資金を引き落とす頻度。',
+                            monthlySpendLimitLabel: 'メンバーごとの月間支出上限',
+                            monthlySpendLimitDescription: '各メンバーが1か月に出張に使える最大金額。',
+                            reduceLimitTitle: '出張支出上限を引き下げますか？',
+                            reduceLimitWarning: 'この上限を引き下げると、すでにこの金額を超えて支出しているメンバーは、翌月まで新しい出張予約ができなくなります。',
                         },
                     },
                     disableModal: {

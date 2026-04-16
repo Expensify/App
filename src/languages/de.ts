@@ -5516,6 +5516,11 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                             settlementAccountLabel: 'Verrechnungskonto',
                             settlementFrequencyLabel: 'Auszahlungsfrequenz',
                             settlementFrequencyDescription: 'Wie oft Expensify Ihr Geschäftskonto belastet, um aktuelle Expensify Travel-Transaktionen zu begleichen.',
+                            monthlySpendLimitLabel: 'Monatliches Ausgabelimit pro Mitglied',
+                            monthlySpendLimitDescription: 'Der maximale Betrag, den jedes Mitglied pro Monat für Reisen ausgeben kann.',
+                            reduceLimitTitle: 'Reise-Ausgabelimit reduzieren?',
+                            reduceLimitWarning:
+                                'Wenn Sie das Limit reduzieren, können Mitglieder, die diesen Betrag bereits überschritten haben, bis zum nächsten Monat keine neuen Reisebuchungen vornehmen.',
                         },
                     },
                     disableModal: {
