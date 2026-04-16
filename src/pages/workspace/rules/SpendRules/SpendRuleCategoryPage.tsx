@@ -4,6 +4,7 @@ import BlockingView from '@components/BlockingViews/BlockingView';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
+import ScrollView from '@components/ScrollView';
 import SelectionList from '@components/SelectionList';
 import MultiSelectListItem from '@components/SelectionList/ListItem/MultiSelectListItem';
 import type {ListItem} from '@components/SelectionList/types';
@@ -125,12 +126,14 @@ function SpendRuleCategoryPage({route}: SpendRuleCategoryPageProps) {
                 shouldUpdateFocusedIndex
                 shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
                 listEmptyContent={
-                    <BlockingView
-                        icon={illustrations.Telescope}
-                        iconWidth={variables.emptyListIconWidth}
-                        iconHeight={variables.emptyListIconHeight}
-                        title={translate('common.noResultsFound')}
-                    />
+                    <ScrollView contentContainerStyle={[styles.flexGrow1]}>
+                        <BlockingView
+                            icon={illustrations.Telescope}
+                            iconWidth={variables.emptyListIconWidth}
+                            iconHeight={variables.emptyListIconHeight}
+                            title={translate('common.noResultsFound')}
+                        />
+                    </ScrollView>
                 }
                 footerContent={
                     <FormAlertWithSubmitButton

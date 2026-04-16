@@ -10,6 +10,7 @@ import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import OptionsListContextProvider from '@components/OptionListContextProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import {openLink} from '@libs/actions/Link';
+import {setHasRadio} from '@libs/NetworkState';
 import Parser from '@libs/Parser';
 import {getIOUActionForReportID} from '@libs/ReportActionsUtils';
 import PureReportActionItem from '@pages/inbox/report/PureReportActionItem';
@@ -71,8 +72,8 @@ describe('PureReportActionItem', () => {
 
     beforeEach(async () => {
         wrapOnyxWithWaitForBatchedUpdates(Onyx);
+        setHasRadio(true);
         await act(async () => {
-            await Onyx.merge(ONYXKEYS.NETWORK, {isOffline: false});
             await Onyx.merge(`${ONYXKEYS.PERSONAL_DETAILS_LIST}`, {
                 [ACTOR_ACCOUNT_ID]: {
                     accountID: ACTOR_ACCOUNT_ID,
@@ -929,11 +930,6 @@ describe('PureReportActionItem', () => {
                 translationKey: 'violations.resolvedDuplicates' as TranslationPaths,
             },
             {
-                testTitle: 'RECEIPT_SCAN_FAILED action',
-                actionName: CONST.REPORT.ACTIONS.TYPE.RECEIPT_SCAN_FAILED,
-                translationKey: 'iou.receiptScanningFailed' as TranslationPaths,
-            },
-            {
                 testTitle: 'UNAPPROVED action',
                 actionName: CONST.REPORT.ACTIONS.TYPE.UNAPPROVED,
                 translationKey: 'iou.unapproved' as TranslationPaths,
@@ -956,6 +952,29 @@ describe('PureReportActionItem', () => {
             await waitForBatchedUpdatesWithAct();
 
             expect(screen.getByText(translateLocal(translationKey))).toBeOnTheScreen();
+        });
+
+        it('RECEIPT_SCAN_FAILED action shows message from action data', async () => {
+            // Given a RECEIPT_SCAN_FAILED message with a html message from server.
+            // Then verify server message is rendered.
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.RECEIPT_SCAN_FAILED, {});
+            action.message = [
+                {
+                    type: 'COMMENT',
+                    html: "the date couldn't be read from this receipt. Please enter it manually.",
+                    text: "the date couldn't be read from this receipt. Please enter it manually.",
+                },
+            ];
+            renderItemWithAction(action);
+            await waitForBatchedUpdatesWithAct();
+            expect(screen.getByText("the date couldn't be read from this receipt. Please enter it manually.")).toBeOnTheScreen();
+
+            // Given an RECEIPT_SCAN_FAILED with no server side message
+            // Then verify generic translation phrase is rendered
+            action.message = [{type: 'COMMENT', html: '', text: ''}];
+            renderItemWithAction(action);
+            await waitForBatchedUpdatesWithAct();
+            expect(screen.getByText(translateLocal('iou.receiptScanningFailed'))).toBeOnTheScreen();
         });
 
         it('HOLD_COMMENT action renders via ReportActionItemBasicMessage', async () => {

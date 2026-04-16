@@ -1,4 +1,4 @@
-import React, {useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import StatusBadge from '@components/StatusBadge';
 import useLocalize from '@hooks/useLocalize';
@@ -15,15 +15,18 @@ type StatusCellProps = {
 
     /** Whether the report's state/status is pending */
     isPending?: boolean;
+
+    /** Whether the transaction is deleted */
+    isDeleted?: boolean;
 };
 
-function StatusCell({stateNum, statusNum, isPending}: StatusCellProps) {
+function StatusCell({stateNum, statusNum, isPending, isDeleted}: StatusCellProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
 
-    const statusText = useMemo(() => getReportStatusTranslation({stateNum, statusNum, translate}), [stateNum, statusNum, translate]);
-    const reportStatusColorStyle = useMemo(() => getReportStatusColorStyle(theme, stateNum, statusNum), [theme, stateNum, statusNum]);
+    const statusText = getReportStatusTranslation({stateNum, statusNum, isDeleted, translate});
+    const reportStatusColorStyle = getReportStatusColorStyle(theme, stateNum, statusNum, isDeleted);
 
     if (!statusText || !reportStatusColorStyle) {
         return null;

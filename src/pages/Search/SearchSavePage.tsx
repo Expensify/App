@@ -1,10 +1,13 @@
 import React, {useState} from 'react';
+import {View} from 'react-native';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
-import useFilterFeedValue from '@components/Search/hooks/useFilterFeedValue';
-import useFilterFromValue from '@components/Search/hooks/useFilterFromValue';
+import useFilterCardValue from '@components/Search/hooks/useFilterCardValue';
+import useFilterReportValue from '@components/Search/hooks/useFilterReportValue';
+import useFilterTaxRateValue from '@components/Search/hooks/useFilterTaxRateValue';
+import useFilterUserValue from '@components/Search/hooks/useFilterUserValue';
 import useFilterWorkspaceValue from '@components/Search/hooks/useFilterWorkspaceValue';
 import {useSearchStateContext} from '@components/Search/SearchContext';
 import Text from '@components/Text';
@@ -33,29 +36,45 @@ type FilterValueWithKeyProps = FilterValueProps & {
     filterKey: SearchAdvancedFiltersKey;
 };
 
-function FilterFromValue({value}: FilterValueProps) {
-    return useFilterFromValue(value);
+function FilterUserValue({value}: FilterValueProps) {
+    return useFilterUserValue(value);
 }
 
 function FilterWorkspaceValue({value}: FilterValueProps) {
     return useFilterWorkspaceValue(value);
 }
 
-function FilterFeedValue({value}: FilterValueProps) {
-    return useFilterFeedValue(value);
+function FilterCardValue() {
+    return useFilterCardValue();
+}
+
+function FilterTaxRateValue() {
+    return useFilterTaxRateValue();
+}
+
+function FilterReportValue({value}: FilterValueProps) {
+    return useFilterReportValue(value);
 }
 
 function FilterValue({filterKey, value}: FilterValueWithKeyProps) {
-    if (filterKey === FILTER_KEYS.FROM) {
-        return <FilterFromValue value={value} />;
+    if (filterKey === FILTER_KEYS.FROM || filterKey === FILTER_KEYS.TO || filterKey === FILTER_KEYS.ATTENDEE || filterKey === FILTER_KEYS.ASSIGNEE) {
+        return <FilterUserValue value={value} />;
     }
 
     if (filterKey === FILTER_KEYS.POLICY_ID) {
         return <FilterWorkspaceValue value={value} />;
     }
 
-    if (filterKey === FILTER_KEYS.FEED) {
-        return <FilterFeedValue value={value} />;
+    if (filterKey === FILTER_KEYS.FEED || filterKey === FILTER_KEYS.CARD_ID) {
+        return <FilterCardValue />;
+    }
+
+    if (filterKey === FILTER_KEYS.TAX_RATE) {
+        return <FilterTaxRateValue />;
+    }
+
+    if (filterKey === FILTER_KEYS.IN) {
+        return <FilterReportValue value={value} />;
     }
 
     return value;
@@ -63,7 +82,7 @@ function FilterValue({filterKey, value}: FilterValueWithKeyProps) {
 
 function SearchSavePage() {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, localeCompare} = useLocalize();
     const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES);
     const [searchAdvancedFiltersForm = getEmptyObject<Partial<SearchAdvancedFiltersForm>>()] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
     const [name, setName] = useState('');
@@ -86,7 +105,7 @@ function SearchSavePage() {
         Navigation.goBack();
     };
 
-    const appliedFilters = mapFiltersFormToLabelValueList(searchAdvancedFiltersForm, undefined, translate);
+    const appliedFilters = mapFiltersFormToLabelValueList(searchAdvancedFiltersForm, undefined, undefined, translate, localeCompare);
 
     const {inputCallbackRef} = useAutoFocusInput();
 
@@ -118,17 +137,19 @@ function SearchSavePage() {
                 <Text style={[styles.textLabelSupporting, styles.mb2, styles.mt5]}>{translate('search.appliedFilters')}:</Text>
                 {appliedFilters.length > 0 ? (
                     appliedFilters.map((filter) => (
-                        <Text
+                        <View
+                            style={[styles.flexRow]}
                             key={filter.key}
-                            style={[styles.label]}
                         >
                             <Text style={[styles.label, styles.ph2]}>{CONST.DOT_SEPARATOR}</Text>
-                            <Text style={[styles.labelStrong]}>{filter.label}: </Text>
-                            <FilterValue
-                                filterKey={filter.key}
-                                value={filter.value}
-                            />
-                        </Text>
+                            <Text style={[styles.label]}>
+                                <Text style={[styles.labelStrong]}>{filter.label}: </Text>
+                                <FilterValue
+                                    filterKey={filter.key}
+                                    value={filter.value}
+                                />
+                            </Text>
+                        </View>
                     ))
                 ) : (
                     <Text>{translate('common.none')}</Text>

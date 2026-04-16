@@ -43,6 +43,35 @@ describe('createDynamicRoute', () => {
         expect(mockGetActiveRoute).toHaveBeenCalled();
     });
 
+    it('should append suffix using provided base path', () => {
+        const suffix = 'verify-account';
+        const basePath = 'workspace/123/categories';
+        const expectedPath = 'workspace/123/categories/verify-account';
+
+        const result = createDynamicRoute(suffix, basePath);
+
+        expect(result).toBe(expectedPath);
+        expect(mockGetActiveRoute).not.toHaveBeenCalled();
+    });
+
+    it('should append suffix using provided base path with query params', () => {
+        const suffix = 'verify-account';
+        const basePath = 'workspace/123/categories?foo=bar';
+        const expectedPath = 'workspace/123/categories/verify-account?foo=bar';
+
+        const result = createDynamicRoute(suffix, basePath);
+
+        expect(result).toBe(expectedPath);
+        expect(mockGetActiveRoute).not.toHaveBeenCalled();
+    });
+
+    it('should return suffix when provided base path is empty', () => {
+        const result = createDynamicRoute('verify-account', '');
+
+        expect(result).toBe('verify-account');
+        expect(mockGetActiveRoute).not.toHaveBeenCalled();
+    });
+
     it('should append suffix and preserve query parameters at the end', () => {
         const activeRoute = 'report/123?sortBy=date';
         const suffix = 'details';

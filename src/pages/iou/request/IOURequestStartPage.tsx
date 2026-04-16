@@ -222,8 +222,11 @@ function IOURequestStartPage({
         ],
     );
 
+    const tabSelectedTypeRef = useRef<IOURequestType | null>(null);
+
     const onTabSelected = useCallback(
         (newIouType: IOURequestType) => {
+            tabSelectedTypeRef.current = newIouType;
             resetIOUTypeIfChanged(newIouType);
         },
         [resetIOUTypeIfChanged],
@@ -232,6 +235,12 @@ function IOURequestStartPage({
     // Clear out the temporary expense if the reportID in the URL has changed from the transaction's reportID.
     useFocusEffect(
         useCallback(() => {
+            // Skip until transactionRequestType catches up with the tab onTabSelected already set.
+            if (tabSelectedTypeRef.current && transactionRequestType !== tabSelectedTypeRef.current) {
+                return;
+            }
+            tabSelectedTypeRef.current = null;
+
             // The test transaction can change the reportID of the transaction on the flow so we should prevent the reportID from being reverted again.
             if (
                 transaction?.reportID === reportID ||
