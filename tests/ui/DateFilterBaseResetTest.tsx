@@ -63,5 +63,4 @@ describe('DateFilterBase reset', () => {
         expect(onReset).toHaveBeenCalledTimes(1);
         expect(onReset).toHaveBeenCalledWith(emptyDateValues);
     });
-
 });
