@@ -2212,16 +2212,6 @@ const translations: TranslationDeepObject<typeof en> = {
         passwordUpdated: '密码已更新！',
         allSet: '一切就绪。请妥善保管你的新密码。',
     },
-    privateNotes: {
-        title: '私人备注',
-        personalNoteMessage: '在这里记录此聊天的备注。只有你可以添加、编辑或查看这些备注。',
-        sharedNoteMessage: '在此记录关于本次聊天的备注。Expensify 员工和 team.expensify.com 域中的其他成员都可以查看这些备注。',
-        composerLabel: '备注',
-        myNote: '我的备注',
-        error: {
-            genericFailureMessage: '无法保存私人备注',
-        },
-    },
     billingCurrency: {
         error: {
             securityCode: '请输入有效的安全码',

@@ -43,7 +43,6 @@ function AttachmentModalBaseContent({
     isAuthTokenRequired = false,
     maybeIcon = false,
     type,
-    accountID,
     attachmentLink = '',
     report,
     reportID,
@@ -232,7 +231,6 @@ function AttachmentModalBaseContent({
 
         return !isEmptyObject(report) && shouldShowCarousel && type !== CONST.ATTACHMENT_TYPE.SEARCH ? (
             <AttachmentCarousel
-                accountID={accountID}
                 type={type}
                 attachmentID={attachmentID}
                 report={report}
@@ -268,7 +266,6 @@ function AttachmentModalBaseContent({
         );
     }, [
         AttachmentContent,
-        accountID,
         attachmentID,
         stateValue,
         actionsValue,

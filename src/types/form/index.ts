@@ -28,7 +28,6 @@ export type {ChangeBillingCurrencyForm} from './ChangeBillingCurrencyForm';
 export type {NewRoomForm} from './NewRoomForm';
 export type {NewTaskForm} from './NewTaskForm';
 export type {PersonalBankAccountForm} from './PersonalBankAccountForm';
-export type {PrivateNotesForm} from './PrivateNotesForm';
 export type {ProfileSettingsForm} from './ProfileSettingsForm';
 export type {ReimbursementAccountForm} from './ReimbursementAccountForm';
 export type {ReportDescriptionForm} from './ReportDescriptionForm';

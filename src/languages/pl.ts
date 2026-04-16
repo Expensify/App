@@ -2266,16 +2266,6 @@ const translations: TranslationDeepObject<typeof en> = {
         passwordUpdated: 'Hasło zaktualizowane!',
         allSet: 'Wszystko gotowe. Zachowaj nowe hasło w bezpiecznym miejscu.',
     },
-    privateNotes: {
-        title: 'Prywatne notatki',
-        personalNoteMessage: 'Zapisuj notatki o tej rozmowie tutaj. Tylko Ty możesz je dodawać, edytować lub przeglądać.',
-        sharedNoteMessage: 'Zapisuj tutaj notatki dotyczące tej rozmowy. Pracownicy Expensify oraz inni członkowie w domenie team.expensify.com mogą je zobaczyć.',
-        composerLabel: 'Notatki',
-        myNote: 'Moja notatka',
-        error: {
-            genericFailureMessage: 'Nie udało się zapisać prywatnych notatek',
-        },
-    },
     billingCurrency: {
         error: {
             securityCode: 'Wprowadź prawidłowy kod zabezpieczający',

@@ -8,7 +8,6 @@ import {canUserPerformWriteAction} from '@libs/ReportUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
 import CONST from '@src/CONST';
 import type {Report, ReportAction, ReportActions, VisibleReportActionsDerivedValue} from '@src/types/onyx';
-import type {Note} from '@src/types/onyx/Report';
 
 /**
  * Constructs the initial component state from report actions
@@ -16,16 +15,12 @@ import type {Note} from '@src/types/onyx/Report';
 function extractAttachments(
     type: ValueOf<typeof CONST.ATTACHMENT_TYPE>,
     {
-        privateNotes,
-        accountID,
         parentReportAction,
         reportActions,
         report,
         isReportArchived,
         visibleReportActionsData,
     }: {
-        privateNotes?: Record<number, Note>;
-        accountID?: number;
         parentReportAction?: OnyxEntry<ReportAction>;
         reportActions?: OnyxEntry<ReportActions>;
         report: OnyxEntry<Report>;
@@ -33,7 +28,6 @@ function extractAttachments(
         visibleReportActionsData?: VisibleReportActionsDerivedValue;
     },
 ) {
-    const targetNote = privateNotes?.[Number(accountID)]?.note ?? '';
     const description = report?.description ?? '';
     const attachments: Attachment[] = [];
     const canUserPerformAction = canUserPerformWriteAction(report, isReportArchived);
@@ -102,13 +96,6 @@ function extractAttachments(
             currentLink = '';
         },
     });
-
-    if (type === CONST.ATTACHMENT_TYPE.NOTE) {
-        htmlParser.write(targetNote);
-        htmlParser.end();
-
-        return attachments.reverse();
-    }
 
     if (type === CONST.ATTACHMENT_TYPE.ONBOARDING) {
         htmlParser.write(description);

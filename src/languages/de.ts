@@ -2273,16 +2273,6 @@ const translations: TranslationDeepObject<typeof en> = {
         passwordUpdated: 'Passwort aktualisiert!',
         allSet: 'Alles erledigt. Bewahre dein neues Passwort sicher auf.',
     },
-    privateNotes: {
-        title: 'Private Notizen',
-        personalNoteMessage: 'Notizen zu diesem Chat hier festhalten. Nur du kannst diese Notizen hinzufügen, bearbeiten oder anzeigen.',
-        sharedNoteMessage: 'Führe hier Notizen zu diesem Chat. Expensify-Mitarbeitende und andere Mitglieder mit der Domain team.expensify.com können diese Notizen einsehen.',
-        composerLabel: 'Notizen',
-        myNote: 'Meine Notiz',
-        error: {
-            genericFailureMessage: 'Private Notizen konnten nicht gespeichert werden',
-        },
-    },
     billingCurrency: {
         error: {
             securityCode: 'Bitte gib einen gültigen Sicherheitscode ein',

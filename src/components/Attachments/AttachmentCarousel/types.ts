@@ -27,9 +27,6 @@ type AttachmentCarouselProps = {
     /** The type of the attachment */
     type?: ValueOf<typeof CONST.ATTACHMENT_TYPE>;
 
-    /** If the attachment originates from a note, the accountID will represent the author of that note. */
-    accountID?: number;
-
     /** A callback that is called when swipe-down-to-close gesture happens */
     onSwipeDown?: () => void;
 

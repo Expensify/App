@@ -376,11 +376,6 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                                     component={ModalStackNavigators.ReferralModalStackNavigator}
                                 />
                                 <Stack.Screen
-                                    name={SCREENS.RIGHT_MODAL.PRIVATE_NOTES}
-                                    component={ModalStackNavigators.PrivateNotesModalStackNavigator}
-                                    options={hideKeyboardOnSwipe}
-                                />
-                                <Stack.Screen
                                     name={SCREENS.RIGHT_MODAL.TRANSACTION_DUPLICATE}
                                     component={ModalStackNavigators.TransactionDuplicateStackNavigator}
                                 />

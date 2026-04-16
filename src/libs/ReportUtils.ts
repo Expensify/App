@@ -6218,29 +6218,6 @@ function navigateToDetailsPage(report: OnyxEntry<Report>, backTo?: string, shoul
     }
 }
 
-/**
- * Go back to the details page of a given report
- */
-function goBackToDetailsPage(report: OnyxEntry<Report>, backTo?: string, shouldGoBackToDetailsPage = false) {
-    const isOneOnOneChatReport = isOneOnOneChat(report);
-    const participantAccountID = getParticipantsAccountIDsForDisplay(report);
-
-    if (isOneOnOneChatReport) {
-        Navigation.goBack(ROUTES.PROFILE.getRoute(participantAccountID.at(0), backTo));
-        return;
-    }
-
-    if (report?.reportID) {
-        if (shouldGoBackToDetailsPage) {
-            Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report.reportID, backTo));
-        } else {
-            Navigation.goBack(ROUTES.REPORT_SETTINGS.getRoute(report.reportID, backTo));
-        }
-    } else {
-        Log.warn('Missing reportID during navigation back to the details page');
-    }
-}
-
 function navigateBackOnDeleteTransaction(backRoute: Route | undefined) {
     if (!backRoute) {
         return;
@@ -6256,30 +6233,6 @@ function navigateBackOnDeleteTransaction(backRoute: Route | undefined) {
     Navigation.isNavigationReady().then(() => {
         Navigation.goBack(backRoute);
     });
-}
-
-/**
- * Go back to the previous page from the edit private page of a given report
- */
-function goBackFromPrivateNotes(report: OnyxEntry<Report>, accountID?: number, backTo?: string) {
-    if (isEmpty(report) || !accountID) {
-        return;
-    }
-    const currentUserPrivateNote = report.privateNotes?.[accountID]?.note ?? '';
-    if (isEmpty(currentUserPrivateNote)) {
-        const participantAccountIDs = getParticipantsAccountIDsForDisplay(report);
-
-        if (isOneOnOneChat(report)) {
-            Navigation.goBack(ROUTES.PROFILE.getRoute(participantAccountIDs.at(0), backTo));
-            return;
-        }
-
-        if (report?.reportID) {
-            Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report?.reportID, backTo));
-            return;
-        }
-    }
-    Navigation.goBack(ROUTES.PRIVATE_NOTES_LIST.getRoute(report.reportID, backTo));
 }
 
 function navigateOnDeleteExpense(backToRoute: Route) {
@@ -10841,21 +10794,6 @@ function shouldAutoFocusOnKeyPress(event: KeyboardEvent): boolean {
 }
 
 /**
- * Navigates to the appropriate screen based on the presence of a private note for the current user.
- */
-function navigateToPrivateNotes(report: OnyxEntry<Report>, accountID: number, backTo?: string) {
-    if (isEmpty(report) || !accountID) {
-        return;
-    }
-    const currentUserPrivateNote = report.privateNotes?.[accountID]?.note ?? '';
-    if (isEmpty(currentUserPrivateNote)) {
-        Navigation.navigate(ROUTES.PRIVATE_NOTES_EDIT.getRoute(report.reportID, accountID, backTo));
-        return;
-    }
-    Navigation.navigate(ROUTES.PRIVATE_NOTES_LIST.getRoute(report.reportID, backTo));
-}
-
-/**
  * Get all held transactions of a iouReport
  */
 function getAllHeldTransactions(iouReportID?: string): Transaction[] {
@@ -13627,8 +13565,6 @@ export {
     getWhisperDisplayNames,
     getWorkspaceChats,
     getWorkspaceIcon,
-    goBackToDetailsPage,
-    goBackFromPrivateNotes,
     getHarvestOriginalReportID,
     getPayeeName,
     getReportSummariesForEmptyCheck,
@@ -13754,7 +13690,6 @@ export {
     getDefaultNotificationPreferenceForReport,
     canWriteInReport,
     navigateToDetailsPage,
-    navigateToPrivateNotes,
     navigateBackOnDeleteTransaction,
     parseReportRouteParams,
     parseReportActionHtmlToText,

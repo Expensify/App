@@ -2271,16 +2271,6 @@ const translations: TranslationDeepObject<typeof en> = {
         passwordUpdated: 'Password aggiornata!',
         allSet: 'Tutto pronto. Conserva al sicuro la tua nuova password.',
     },
-    privateNotes: {
-        title: 'Note private',
-        personalNoteMessage: 'Tieni qui le note su questa chat. Solo tu puoi aggiungere, modificare o visualizzare queste note.',
-        sharedNoteMessage: 'Tieni traccia delle note su questa chat qui. I dipendenti Expensify e gli altri membri con dominio team.expensify.com possono visualizzare queste note.',
-        composerLabel: 'Note',
-        myNote: 'La mia nota',
-        error: {
-            genericFailureMessage: 'Impossibile salvare le note private',
-        },
-    },
     billingCurrency: {
         error: {
             securityCode: 'Inserisci un codice di sicurezza valido',
