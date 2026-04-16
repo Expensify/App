@@ -90,7 +90,7 @@ function ChronosTimerHeaderButton({report}: ChronosTimerHeaderButtonProps) {
                     callFunctionIfActionIsAllowed(sendCommentToChronos)();
                 }}
                 options={options}
-                style={styles.flex1}
+                wrapperStyle={styles.flex1}
                 sentryLabel={CONST.SENTRY_LABEL.HEADER_VIEW.CHRONOS_TIMER_BUTTON}
             />
         </View>
