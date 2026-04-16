@@ -8,6 +8,7 @@ import type {MergeDuplicatesParams, ResolveDuplicatesParams} from '@libs/API/par
 import {WRITE_COMMANDS} from '@libs/API/types';
 import DateUtils from '@libs/DateUtils';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
+import {getExistingTransactionID} from '@libs/IOUUtils';
 import * as NumberUtils from '@libs/NumberUtils';
 import Parser from '@libs/Parser';
 import {getIOUActionForReportID, getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
@@ -17,6 +18,7 @@ import {
     buildOptimisticHoldReportAction,
     buildOptimisticResolvedDuplicatesReportAction,
     buildTransactionThread,
+    generateReportID,
     getTransactionDetails,
 } from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
@@ -46,11 +48,11 @@ import {
     getAllReports,
     getAllTransactions,
     getAllTransactionViolations,
-    getCleanUpTransactionThreadReportOnyxData,
     getCurrentUserEmail,
     getMoneyRequestParticipantsFromReport,
     getUserAccountID,
 } from '.';
+import {getCleanUpTransactionThreadReportOnyxData} from './DeleteMoneyRequest';
 import type {PerDiemExpenseInformation} from './PerDiem';
 import {submitPerDiemExpense} from './PerDiem';
 import type {CreateTrackExpenseParams} from './TrackExpense';
@@ -73,7 +75,7 @@ function getIOUActionForTransactions(transactionIDList: Array<string | undefined
 }
 
 /** Merge several transactions into one by updating the fields of the one we want to keep and deleting the rest */
-function mergeDuplicates({transactionThreadReportID: optimisticTransactionThreadReportID, ...params}: MergeDuplicatesParams) {
+function mergeDuplicates({transactionThreadReportID: optimisticTransactionThreadReportID, taxAmount, taxValue, ...params}: MergeDuplicatesParams & {taxAmount: number; taxValue: string}) {
     const allParams: MergeDuplicatesParams = {...params};
     const allTransactions = getAllTransactions();
     const allTransactionViolations = getAllTransactionViolations();
@@ -98,6 +100,9 @@ function mergeDuplicates({transactionThreadReportID: optimisticTransactionThread
             modifiedMerchant: params.merchant,
             reimbursable: params.reimbursable,
             tag: params.tag,
+            taxCode: params.taxCode,
+            taxAmount,
+            taxValue,
         },
     };
 
@@ -346,7 +351,7 @@ function mergeDuplicates({transactionThreadReportID: optimisticTransactionThread
 }
 
 /** Instead of merging the duplicates, it updates the transaction we want to keep and puts the others on hold without deleting them */
-function resolveDuplicates(params: MergeDuplicatesParams) {
+function resolveDuplicates({taxAmount, taxValue, ...params}: MergeDuplicatesParams & {taxAmount: number; taxValue: string}) {
     if (!params.transactionID) {
         return;
     }
@@ -371,6 +376,9 @@ function resolveDuplicates(params: MergeDuplicatesParams) {
             modifiedMerchant: params.merchant,
             reimbursable: params.reimbursable,
             tag: params.tag,
+            taxCode: params.taxCode,
+            taxAmount,
+            taxValue,
         },
     };
 
@@ -656,6 +664,8 @@ type DuplicateExpenseTransactionParams = {
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
     recentWaypoints: OnyxEntry<OnyxTypes.RecentWaypoint[]>;
     targetPolicyTags: OnyxEntry<OnyxTypes.PolicyTagLists>;
+    shouldPlaySound?: boolean;
+    shouldDeferAutoSubmit?: boolean;
 };
 
 function duplicateExpenseTransaction({
@@ -678,6 +688,8 @@ function duplicateExpenseTransaction({
     personalDetails,
     recentWaypoints,
     targetPolicyTags,
+    shouldPlaySound = true,
+    shouldDeferAutoSubmit = false,
 }: DuplicateExpenseTransactionParams) {
     if (!transaction) {
         return;
@@ -705,6 +717,7 @@ function duplicateExpenseTransaction({
         action: CONST.IOU.ACTION.CREATE,
         transactionParams,
         shouldHandleNavigation: false,
+        shouldPlaySound,
         shouldGenerateTransactionThreadReport: true,
         isASAPSubmitBetaEnabled,
         currentUserAccountIDParam: userAccountID,
@@ -717,6 +730,7 @@ function duplicateExpenseTransaction({
         isSelfTourViewed,
         betas,
         personalDetails,
+        shouldDeferAutoSubmit,
     };
 
     // If no workspace is provided the expense should be unreported
@@ -928,5 +942,102 @@ function duplicateReport({
     playSound(SOUNDS.DONE);
 }
 
-export {getIOUActionForTransactions, mergeDuplicates, resolveDuplicates, duplicateExpenseTransaction, duplicateReport};
-export type {DuplicateExpenseTransactionParams, DuplicateReportParams};
+type BulkDuplicateExpensesParams = {
+    transactionIDs: string[];
+    allTransactions: NonNullable<OnyxCollection<OnyxTypes.Transaction>>;
+    sourcePolicyIDMap: Record<string, string | undefined>;
+    targetPolicy: OnyxEntry<OnyxTypes.Policy>;
+    targetPolicyCategories: OnyxEntry<OnyxTypes.PolicyCategories>;
+    targetPolicyTags: OnyxEntry<OnyxTypes.PolicyTagLists>;
+    targetReport: OnyxEntry<OnyxTypes.Report>;
+    personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
+    isASAPSubmitBetaEnabled: boolean;
+    introSelected: OnyxEntry<OnyxTypes.IntroSelected>;
+    activePolicyID: string | undefined;
+    quickAction: OnyxEntry<OnyxTypes.QuickAction>;
+    policyRecentlyUsedCurrencies: string[];
+    isSelfTourViewed: boolean;
+    transactionDrafts: Record<string, OnyxTypes.Transaction> | undefined;
+    draftTransactionIDs: string[];
+    betas: OnyxEntry<OnyxTypes.Beta[]>;
+    recentWaypoints: OnyxEntry<OnyxTypes.RecentWaypoint[]>;
+};
+
+function bulkDuplicateExpenses({
+    transactionIDs,
+    allTransactions,
+    sourcePolicyIDMap,
+    targetPolicy,
+    targetPolicyCategories,
+    targetPolicyTags,
+    targetReport,
+    personalDetails,
+    isASAPSubmitBetaEnabled,
+    introSelected,
+    activePolicyID,
+    quickAction,
+    policyRecentlyUsedCurrencies,
+    isSelfTourViewed,
+    transactionDrafts,
+    draftTransactionIDs,
+    betas,
+    recentWaypoints,
+}: BulkDuplicateExpensesParams) {
+    const transactionsToDuplicate = transactionIDs.map((id) => allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`]).filter((t): t is OnyxTypes.Transaction => !!t);
+
+    if (transactionsToDuplicate.length === 0) {
+        return;
+    }
+
+    const optimisticChatReportID = generateReportID();
+    const optimisticIOUReportID = generateReportID();
+
+    // After the first iteration creates a new optimistic IOU report, subsequent
+    // iterations must know its ID so getMoneyRequestInformation can find and
+    // MERGE into it instead of SET-overwriting it.  We carry a local copy of
+    // targetReport whose iouReportID is patched after the first pass.
+    let currentTargetReport = targetReport;
+
+    for (let i = 0; i < transactionsToDuplicate.length; i++) {
+        const item = transactionsToDuplicate.at(i);
+        if (!item) {
+            continue;
+        }
+        const isLastExpense = i === transactionsToDuplicate.length - 1;
+        const existingTransactionID = getExistingTransactionID(item.linkedTrackedExpenseReportAction);
+        const existingTransactionDraft = existingTransactionID ? transactionDrafts?.[existingTransactionID] : undefined;
+
+        duplicateExpenseTransaction({
+            transaction: item,
+            optimisticChatReportID,
+            optimisticIOUReportID,
+            isASAPSubmitBetaEnabled,
+            introSelected,
+            activePolicyID,
+            quickAction,
+            policyRecentlyUsedCurrencies,
+            isSelfTourViewed,
+            customUnitPolicyID: (isDistanceRequest(item) ? sourcePolicyIDMap[item.transactionID] : undefined) ?? targetPolicy?.id,
+            targetPolicy: targetPolicy ?? undefined,
+            targetPolicyCategories: targetPolicyCategories ?? {},
+            targetReport: currentTargetReport,
+            existingTransactionDraft,
+            draftTransactionIDs,
+            betas,
+            personalDetails,
+            recentWaypoints,
+            targetPolicyTags,
+            shouldPlaySound: false,
+            shouldDeferAutoSubmit: !isLastExpense,
+        });
+
+        if (currentTargetReport && !currentTargetReport.iouReportID) {
+            currentTargetReport = {...currentTargetReport, iouReportID: optimisticIOUReportID};
+        }
+    }
+
+    playSound(SOUNDS.DONE);
+}
+
+export {getIOUActionForTransactions, mergeDuplicates, resolveDuplicates, duplicateExpenseTransaction, bulkDuplicateExpenses, duplicateReport};
+export type {DuplicateExpenseTransactionParams, BulkDuplicateExpensesParams, DuplicateReportParams};

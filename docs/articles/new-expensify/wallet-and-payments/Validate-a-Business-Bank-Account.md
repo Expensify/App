@@ -1,48 +1,70 @@
 ---
 title: Validate a Business Bank Account
-description: Finish connecting your business bank account by verifying test transactions in Expensify.
-keywords: [New Expensify, bank account verification, test deposits, ACH validation, business bank account, workspace payments]
+description: Enter test transaction amounts to complete validation of a business bank account in Expensify.
+keywords: [New Expensify, validate bank account, test deposits, ACH validation, business bank verification, confirm test transactions, micro-transactions, pending bank account]
+internalScope: Audience is all members with a pending business bank account. Covers entering test transactions to validate a bank account. Does not cover initial bank account setup, sharing, unsharing, or unlocking.
 ---
 
-Once your business bank account connection is approved in Expensify, you’ll receive a series of **test deposits** to confirm the connection. This step is required before you can start using the account for reimbursements or payments.
+# Validate a Business Bank Account
+
+After your business bank account is approved, Expensify sends three test transactions to confirm ownership. You’ll also receive a message from Concierge that says “Your bank account is almost set up!”.
+
+The three transactions (two small withdrawals and one small deposit) typically arrive within one–two business days. Once they appear in your bank account, enter the exact amounts in Expensify to complete validation and start using the account for reimbursements or payments.
 
 ---
 
-# How to Validate Your Bank Account
+## Who can validate a business bank account
 
-1. Go to **Workspaces > [Workspace Name] > Bank Account**.
-2. Review the account status:
-   - **Verifying** – Expensify requested more info. Check your email for the next steps.
-   - **Pending** – Your account is ready for validation. Continue with the steps below.
-3. Within **1–2 business days**, Expensify will send **three test transactions** to your business bank account.
-4. Return to **Workspaces > [Workspace Name] > Bank Account**.
-5. Enter the exact **transaction amounts** when prompted.
+Any member who has a **Pending** business bank account in **Wallet** can validate it using the test transactions. 
 
-Once submitted correctly, your account will be fully validated and ready to use.
+---
+
+## When can a business bank account be validated
+
+After your business bank account is approved: 
+ - Expensify sends three test transactions to your bank account - two small withdrawals and one small deposit.
+ - When the test transactions are sent, Concierge will send a message to notify you that says "Your bank account is almost set up!".
+ - The test transactions will arrive 1-2 days after sending. 
+
+## How to validate a business bank account with test transactions
+
+When you see the three test amounts post to your bank account: 
+
+1. In the navigation tabs (on the left on web, on the bottom on mobile) go to **Account > Wallet**.
+2. In the **Bank accounts** section, click the business bank account with the **Pending** badge. 
+3. Enter all three amounts exactly as they appear.
+4. Click **Validate**.
+
+Once the values are confirmed, your business bank account is fully connected and ready to use.
+
+---
+
+## What to do if test transactions don't arrive
+
+If the test deposits don't appear after two business days:
+
+1. Confirm that your bank account supports ACH direct debits.
+2. Share the following ACH details with your bank:
+   - **ACH Company IDs:** 1270239450, 4270239450, 2270239450
+   - **ACH Originator Name:** Expensify
+3. If still missing, contact Concierge to re-trigger the test transactions.
 
 ---
 
 # FAQ
 
-## How Many Test Deposits Will I Receive?
+## How many test transactions will I receive?
 
-You’ll see **three transactions**:
-- **Two small withdrawals**
-- **One small deposit**
+Three total: two small withdrawals and one small deposit. These are temporary and used only for verification.
 
-These are temporary and used to confirm your ownership of the account.
+## What happens if I enter the wrong amounts?
 
-## What If I Don’t See the Test Transactions?
+You’ll be prompted to try again. Multiple failed attempts may temporarily lock validation.
 
-If the test deposits don’t appear after two business days:
+## Can I skip validation if the account was shared with me?
 
-- Your bank account may not support **ACH direct debits** yet.
-- Provide your bank with the following information to enable ACH access:
+No. US bank accounts require validation by entering test transactions. Some non-US accounts may not require this step.
 
-  - **ACH Company IDs**:  
-    `1270239450`, `4270239450`, `2270239450`
-  - **ACH Originator Name**:  
-    `Expensify`
+## What if I don’t have access to the bank account?
 
-Still not seeing them? Contact **Expensify Support via Concierge**, and we’ll help investigate.
-
+Another member with access to the bank account must complete the validation.

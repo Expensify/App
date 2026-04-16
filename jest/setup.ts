@@ -262,7 +262,7 @@ jest.mock('../src/components/Icon/IllustrationLoader.ts', () => ({
 }));
 
 jest.mock(
-    '@components/FlatList/InvertedFlatList/RenderTaskQueue',
+    '@components/FlatList/RenderTaskQueue',
     () =>
         class SyncRenderTaskQueue {
             private handler: (info: unknown) => void = () => {};
@@ -380,11 +380,4 @@ jest.mock('@src/hooks/useDomainDocumentTitle', () => ({
     // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: jest.fn(),
-}));
-
-jest.mock('react-native-vision-camera', () => ({
-    Camera: 'Camera',
-    useCameraDevice: jest.fn(() => null),
-    useCameraFormat: jest.fn(() => null),
-    useCameraPermission: jest.fn(() => ({hasPermission: false, requestPermission: jest.fn()})),
 }));
