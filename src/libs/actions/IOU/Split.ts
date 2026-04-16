@@ -1290,6 +1290,7 @@ function updateSplitTransactions({
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport?.reportID}`,
             value: {
                 [updatedReportPreviewAction?.reportActionID ?? CONST.DEFAULT_NUMBER_ID]: {
+                    childMoneyRequestCount: originalReportPreviewAction?.childMoneyRequestCount,
                     childVisibleActionCount: originalReportPreviewAction?.childVisibleActionCount,
                     childCommenterCount: originalReportPreviewAction?.childCommenterCount,
                     childLastVisibleActionCreated: originalReportPreviewAction?.childLastVisibleActionCreated,
@@ -2048,6 +2049,17 @@ function updateSplitTransactions({
         });
 
         if (firstIOU) {
+            // Clear pendingAction on the firstIOU report action after API success
+            onyxData.successData?.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport?.reportID}`,
+                value: {
+                    [firstIOU.reportActionID]: {
+                        pendingAction: null,
+                    },
+                },
+            });
+
             onyxData.failureData?.push({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport?.reportID}`,
