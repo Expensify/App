@@ -96,7 +96,6 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
     const localizedFrequency = isMonthlySettlementFrequency ? translate('workspace.expensifyCard.frequency.monthly') : translate('workspace.expensifyCard.frequency.daily');
 
     const shouldShowPayButton = travelSpend > 0 && isMonthlySettlementFrequency && !hasPendingSettlement;
-    // Always show real current balance so the user sees truthful spend data
     const formattedSpend = convertToDisplayString(travelSpend, CONST.CURRENCY.USD);
 
     // The pending settlement amount for the "payment queued" subtitle
