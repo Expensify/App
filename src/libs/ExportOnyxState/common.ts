@@ -95,7 +95,7 @@ const ONYX_KEY_EXPORT_RULES: Record<string, ExportRule> = {
     },
 };
 
-const onyxKeysToRemove = new Set<ValueOf<typeof ONYXKEYS>>([
+const onyxKeysToRemove = new Set<ValueOf<typeof ONYXKEYS> | string>([
     ONYXKEYS.NVP_PRIVATE_PUSH_NOTIFICATION_ID,
     ONYXKEYS.NVP_PRIVATE_STRIPE_CUSTOMER_ID,
     ONYXKEYS.NVP_PRIVATE_BILLING_DISPUTE_PENDING,
