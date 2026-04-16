@@ -14,6 +14,7 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import {getParticipantsOption} from '@libs/OptionsListUtils';
 import type {OptionData} from '@libs/ReportUtils';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import BasePopup from './BasePopup';
@@ -176,7 +177,16 @@ function UserSelectPopup({value, label, closeOverlay, onChange, isSearchable}: U
             onApply={applyChanges}
             resetSentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_RESET_USER}
             applySentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY_USER}
-            style={[styles.getUserSelectionListPopoverHeight(listData.length || 1, windowHeight, shouldUseNarrowLayout, isInLandscapeMode, shouldShowSearchInput)]}
+            style={[
+                styles.getCommonSelectionListPopoverHeight(
+                    listData.length || 1,
+                    variables.optionRowHeightCompact,
+                    windowHeight,
+                    shouldUseNarrowLayout,
+                    isInLandscapeMode,
+                    shouldShowSearchInput,
+                ),
+            ]}
         >
             <SelectionList
                 data={listData}
@@ -188,6 +198,7 @@ function UserSelectPopup({value, label, closeOverlay, onChange, isSearchable}: U
                 isLoadingNewOptions={isLoadingNewOptions}
                 shouldShowLoadingPlaceholder={!areOptionsInitialized}
                 onEndReached={onListEndReached}
+                style={{contentContainerStyle: [styles.pb0]}}
             />
         </BasePopup>
     );

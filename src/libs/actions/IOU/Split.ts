@@ -59,8 +59,7 @@ import {
     updateReportPreview,
 } from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
-import {getSpan} from '@libs/telemetry/activeSpans';
-import {setPendingSubmitFollowUpAction} from '@libs/telemetry/submitFollowUpAction';
+import {isTracking, setPendingSubmitFollowUpAction} from '@libs/telemetry/submitFollowUpAction';
 import {
     buildOptimisticTransaction,
     getAmount,
@@ -103,13 +102,14 @@ import {
     getOrCreateOptimisticSplitChatReport,
     getReceiptError,
     getReportPreviewAction,
-    getUpdateMoneyRequestParams,
     getUserAccountID,
     mergePolicyRecentlyUsedCategories,
     mergePolicyRecentlyUsedCurrencies,
 } from './index';
-import type {BuildOnyxDataForMoneyRequestKeys, MoneyRequestInformationParams, OneOnOneIOUReport, StartSplitBilActionParams, UpdateMoneyRequestDataKeys} from './index';
+import type {BuildOnyxDataForMoneyRequestKeys, MoneyRequestInformationParams, OneOnOneIOUReport, StartSplitBilActionParams} from './index';
 import {getDeleteTrackExpenseInformation} from './TrackExpense';
+import {getUpdateMoneyRequestParams} from './UpdateMoneyRequest';
+import type {UpdateMoneyRequestDataKeys} from './UpdateMoneyRequest';
 
 type IOURequestType = ValueOf<typeof CONST.IOU.REQUEST_TYPE>;
 
@@ -2296,7 +2296,7 @@ function updateSplitTransactionsFromSplitExpensesFlow(params: UpdateSplitTransac
 
     const targetReportID = params.expenseReport?.reportID ?? String(CONST.DEFAULT_NUMBER_ID);
 
-    if (getSpan(CONST.TELEMETRY.SPAN_SUBMIT_TO_DESTINATION_VISIBLE)) {
+    if (isTracking()) {
         setPendingSubmitFollowUpAction(CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_AND_OPEN_REPORT, targetReportID);
     }
     Navigation.dismissModalWithReport({reportID: targetReportID});
