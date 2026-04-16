@@ -1,3 +1,4 @@
+import {delegateEmailSelector} from '@selectors/Account';
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import {useRef, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -200,6 +201,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [gpsDraftDetails] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS);
     const [recentWaypoints] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS);
+    const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
 
     // Onboarding task data
     const {
@@ -252,6 +254,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                     currentUserPersonalDetails.accountID,
                     hasOutstandingChildTask,
                     parentReportAction,
+                    delegateEmail,
                     false,
                 );
             }
