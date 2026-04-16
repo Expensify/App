@@ -86,6 +86,7 @@ type SendInvoiceOptions = {
     policyRecentlyUsedTags?: OnyxEntry<OnyxTypes.RecentlyUsedTags>;
     isFromGlobalCreate?: boolean;
     senderPolicyTags: OnyxEntry<OnyxTypes.PolicyTagLists>;
+    shouldHandleNavigation?: boolean;
 };
 
 type BuildOnyxDataForInvoiceParams = {
@@ -735,6 +736,7 @@ function sendInvoice({
     policyRecentlyUsedTags,
     isFromGlobalCreate,
     senderPolicyTags,
+    shouldHandleNavigation = true,
 }: SendInvoiceOptions) {
     const parsedComment = getParsedComment(transaction?.comment?.comment?.trim() ?? '');
     if (transaction?.comment) {
@@ -820,6 +822,7 @@ function sendInvoice({
         transactionID,
         isFromGlobalCreate,
         isInvoice: true,
+        shouldHandleNavigation,
     });
 
     notifyNewAction(invoiceRoom.reportID, undefined, true);

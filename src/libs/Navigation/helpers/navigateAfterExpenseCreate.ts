@@ -17,6 +17,7 @@ type NavigateAfterExpenseCreateParams = {
     isFromGlobalCreate?: boolean;
     isInvoice?: boolean;
     hasMultipleTransactions: boolean;
+    shouldHandleNavigation?: boolean;
 };
 
 /**
@@ -26,14 +27,27 @@ type NavigateAfterExpenseCreateParams = {
  * - If it is created on the inbox tab, it will open the chat report containing that expense.
  * - If it is created elsewhere, it will navigate to Reports > Expense and highlight the newly created expense.
  */
-function navigateAfterExpenseCreate({activeReportID, transactionID, isFromGlobalCreate, isInvoice, hasMultipleTransactions}: NavigateAfterExpenseCreateParams) {
+function navigateAfterExpenseCreate({
+    activeReportID,
+    transactionID,
+    isFromGlobalCreate,
+    isInvoice,
+    hasMultipleTransactions,
+    shouldHandleNavigation = true,
+}: NavigateAfterExpenseCreateParams) {
     const isUserOnInbox = isReportTopmostSplitNavigator();
 
     // If the expense is not created from global create or is currently on the inbox tab,
     // we just need to dismiss the money request flow screens
     // and open the report chat containing the IOU report
     if (!isFromGlobalCreate || isUserOnInbox || !transactionID) {
-        dismissModalAndOpenReportInInboxTab(activeReportID, isInvoice, hasMultipleTransactions);
+        if (shouldHandleNavigation) {
+            dismissModalAndOpenReportInInboxTab(activeReportID, isInvoice, hasMultipleTransactions);
+        }
+        return;
+    }
+
+    if (!shouldHandleNavigation) {
         return;
     }
 
@@ -64,7 +78,7 @@ function navigateAfterExpenseCreate({activeReportID, transactionID, isFromGlobal
             if (!alreadyOnSearchRoot || !isSameSearchType || isRHPStillOnTop) {
                 Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: queryString}), {forceReplace: true});
             } else {
-                Log.info('[IOU] navigateToSearch: already on matching Search root with RHP dismissed — no-op');
+                Log.info('[IOU] navigateToSearch: already on matching Search root with RHP dismissed - no-op');
             }
         } else {
             Navigation.revealRouteBeforeDismissingModal(ROUTES.SEARCH_ROOT.getRoute({query: queryString}));
