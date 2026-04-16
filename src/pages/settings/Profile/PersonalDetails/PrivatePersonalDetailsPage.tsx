@@ -2,6 +2,7 @@ import {useRoute} from '@react-navigation/native';
 import {subYears} from 'date-fns';
 import React, {useCallback, useEffect, useMemo} from 'react';
 import {View} from 'react-native';
+import CountrySelector from '@components/CountrySelector';
 import DatePicker from '@components/DatePicker';
 import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import FormProvider from '@components/Form/FormProvider';
@@ -10,6 +11,7 @@ import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
+import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -203,6 +205,7 @@ function PrivatePersonalDetailsPage() {
                     submitButtonText={translate('common.save')}
                     enabledWhenOffline
                 >
+                    <Text style={[styles.sectionTitle, styles.mt2]}>{translate('privatePersonalDetails.basicDetails')}</Text>
                     <View style={styles.mb4}>
                         <InputWrapper
                             InputComponent={TextInput}
@@ -261,6 +264,7 @@ function PrivatePersonalDetailsPage() {
                             autoFocus={fieldToFocus === INPUT_IDS.PHONE_NUMBER}
                         />
                     </View>
+                    <Text style={[styles.sectionTitle, styles.mt2]}>{translate('privatePersonalDetails.address')}</Text>
                     <View style={styles.mb4}>
                         <InputWrapper
                             InputComponent={TextInput}
@@ -329,15 +333,10 @@ function PrivatePersonalDetailsPage() {
                     </View>
                     <View style={styles.mb4}>
                         <InputWrapper
-                            InputComponent={TextInput}
+                            InputComponent={CountrySelector}
                             inputID={INPUT_IDS.COUNTRY}
-                            label={translate('common.country')}
-                            aria-label={translate('common.country')}
-                            role={CONST.ROLE.PRESENTATION}
-                            defaultValue={country}
+                            value={country}
                             shouldSaveDraft
-                            spellCheck={false}
-                            autoComplete="country"
                         />
                     </View>
                 </FormProvider>
