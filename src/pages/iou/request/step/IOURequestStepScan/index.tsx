@@ -28,14 +28,12 @@ import type IOURequestStepScanProps from './types';
 function IOURequestStepScan({
     report,
     route: {
+        name: routeName,
         params: {action, iouType, reportID, transactionID: initialTransactionID, backTo, backToReport},
     },
     transaction: initialTransaction,
     currentUserPersonalDetails,
     onLayout,
-    isMultiScanEnabled = false,
-    isStartingScan = false,
-    setIsMultiScanEnabled,
 }: Omit<IOURequestStepScanProps, 'user'>) {
     const isMobileWeb = isMobile();
     const policy = usePolicy(report?.policyID);
@@ -63,6 +61,9 @@ function IOURequestStepScan({
 
     const {
         transactions,
+        isMultiScanEnabled,
+        setIsMultiScanEnabled,
+        isStartingScan,
         isEditing,
         isReplacingReceipt,
         shouldAcceptMultipleFiles,
@@ -86,8 +87,7 @@ function IOURequestStepScan({
         currentUserPersonalDetails,
         backTo,
         backToReport,
-        isMultiScanEnabled,
-        isStartingScan,
+        routeName,
         updateScanAndNavigate,
         getSource,
     });
@@ -128,7 +128,7 @@ function IOURequestStepScan({
             if (isAllScanFilesCanBeRead) {
                 return;
             }
-            setIsMultiScanEnabled?.(false);
+            setIsMultiScanEnabled(false);
             removeTransactionReceipt(CONST.IOU.OPTIMISTIC_TRANSACTION_ID);
             removeDraftTransactionsByIDs(draftTransactionIDs, true);
         });
