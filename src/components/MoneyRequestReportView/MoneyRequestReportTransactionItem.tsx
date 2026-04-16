@@ -196,7 +196,6 @@ function MoneyRequestReportTransactionItem({
                         onArrowRightPress={() => onArrowRightPress?.(transaction.transactionID)}
                         isHover={hovered}
                         nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}
-                        customCardNames={customCardNames}
                         canEditDate={canEditDate}
                         canEditMerchant={canEditMerchant}
                         canEditDescription={canEditDescription}
