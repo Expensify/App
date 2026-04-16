@@ -1,7 +1,6 @@
 /* eslint-disable max-lines */
 import {format as timezoneFormat, toZonedTime} from 'date-fns-tz';
 import {Str} from 'expensify-common';
-import isEmpty from 'lodash/isEmpty';
 import {DeviceEventEmitter, InteractionManager, Linking} from 'react-native';
 import type {NullishDeep, OnyxCollection, OnyxCollectionInputValue, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
@@ -183,7 +182,6 @@ import {
     resolveEditCommentWithNewAddCommentRequest,
     resolveOpenReportDuplicationConflictAction,
 } from '@userActions/RequestConflictUtils';
-import {isAnonymousUser} from '@userActions/Session';
 import {onServerDataReady} from '@userActions/Welcome';
 import {getOnboardingMessages} from '@userActions/Welcome/OnboardingFlow';
 import type {OnboardingCompanySize, OnboardingMessage} from '@userActions/Welcome/OnboardingFlow';

@@ -29,7 +29,6 @@ function ReportAddAttachmentModalContent({route, navigation}: AttachmentModalScr
         isAuthTokenRequired,
         attachmentLink,
         originalFileName,
-        accountID = CONST.DEFAULT_NUMBER_ID,
         reportID,
         shouldDisableSendButton,
         headerTitle,
