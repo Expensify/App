@@ -64,6 +64,10 @@ function ReviewTaxRate() {
     );
     const getTaxAmount = useCallback(
         (taxID: string) => {
+            // If the tax code remains unchanged, preserve the tax amount to avoid resetting it to the default value when resolving duplicates.
+            if (taxID === transaction?.taxCode) {
+                return;
+            }
             const taxPercentage = getTaxValue(policy, transaction, taxID);
             const decimals = getCurrencyDecimals(transaction?.currency);
             return convertToBackendAmount(calculateTaxAmount(taxPercentage ?? '', getAmount(transaction), decimals));
