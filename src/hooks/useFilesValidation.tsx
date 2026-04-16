@@ -57,6 +57,7 @@ function useFilesValidation(onFilesValidated: (files: FileObject[], dataTransfer
     const dataTransferItemList = useRef<DataTransferItem[]>([]);
     const collectedErrors = useRef<FileValidationError[]>([]);
     const originalFileOrder = useRef<Map<string, number>>(new Map());
+    const loaderTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
 
     const updateFileOrderMapping = (oldFile: FileObject | undefined, newFile: FileObject) => {
         const originalIndex = originalFileOrder.current.get(oldFile?.uri ?? '');
@@ -78,6 +79,10 @@ function useFilesValidation(onFilesValidated: (files: FileObject[], dataTransfer
     };
 
     const reset = () => {
+        if (loaderTimeoutRef.current) {
+            clearTimeout(loaderTimeoutRef.current);
+            loaderTimeoutRef.current = undefined;
+        }
         setIsValidatingFiles(false);
         setIsValidatingReceipts(undefined);
         setIsErrorModalVisible(false);
@@ -274,7 +279,7 @@ function useFilesValidation(onFilesValidated: (files: FileObject[], dataTransfer
             }
 
             if (collectedErrors.current.length > 0) {
-                const uniqueErrors = Array.from(new Set(collectedErrors.current.map((error) => JSON.stringify(error)))).map((errorStr) => JSON.parse(errorStr) as FileValidationError);
+                const uniqueErrors = deduplicateErrors(collectedErrors.current);
                 setErrorQueue(uniqueErrors);
                 setCurrentErrorIndex(0);
                 const firstError = uniqueErrors.at(0);
@@ -308,7 +313,7 @@ function useFilesValidation(onFilesValidated: (files: FileObject[], dataTransfer
                 return;
             }
 
-            setTimeout(() => {
+            loaderTimeoutRef.current = setTimeout(() => {
                 hideLoaderAndHandleNext();
             }, MIN_LOADER_VISIBLE_DURATION_MS - elapsedTime);
         };
