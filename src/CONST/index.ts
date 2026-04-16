@@ -3914,6 +3914,7 @@ const CONST = {
             AMEX_DIRECT: 'oauth.americanexpressfdx.com',
             AMEX_FILE_DOWNLOAD: 'americanexpressfd.us',
             CSV: 'ccupload',
+            CSV_CLASSIC: 'csv',
             MOCK_BANK: 'oauth.mockbank.com',
             UPLOAD: 'upload',
         },
