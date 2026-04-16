@@ -87,6 +87,37 @@ When an expense is submitted on a workspace with an approval workflow configured
 
 ---
 
+# Held expense(s) when advanced approvals is enabled
+
+If your workspace uses **advanced approvals** (multi-level approvers), held expenses now flow through the approval process without disrupting the rest of the report.
+
+### What happens when an expense is held
+
+When an approver clicks **Hold** on one or more expenses and chooses to **approve only unheld expenses**:
+
+- A new **processing report** is automatically created for the held expenses.
+- Unheld expenses move forward to the next approver as usual.
+- The processing report:
+  - Starts at the same approval level where the expense was held.
+  - Copies over approval history from the original report.
+  - Includes a system message linking back to the original report.
+
+**Note:** Held expenses also won’t be submitted automatically via delayed submission — they’ll remain in a draft processing report until manually approved.
+
+### Where to review and approve held expenses
+
+- **Web:** Go to the **Reports** tab on the left > open a report with held expenses.
+- **Mobile:** Tap the hamburger menu (☰) > **Reports** > select a report to approve.
+
+### Why this matters
+
+This update streamlines complex approvals by:
+- Letting you clarify questionable expenses without rejecting the whole report.
+- Keeping held items organized and traceable.
+- Preventing approval duplication and resubmission errors.
+
+---
+
 # Unapprove a report
 
 1. In the navigation tabs (on the left on web, and at the bottom on mobile), head to **Reports > Reports**.
