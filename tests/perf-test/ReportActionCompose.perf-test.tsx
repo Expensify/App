@@ -6,6 +6,7 @@ import {measureRenders} from 'reassure';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import type {EmojiPickerRef} from '@libs/actions/EmojiPickerAction';
 import type Navigation from '@libs/Navigation/Navigation';
+import {setHasRadio} from '@libs/NetworkState';
 import ReportActionCompose from '@pages/inbox/report/ReportActionCompose/ReportActionCompose';
 import ComposeProviders from '@src/components/ComposeProviders';
 import {LocaleContextProvider} from '@src/components/LocaleContextProvider';
@@ -77,7 +78,7 @@ beforeAll(() =>
 
 // Initialize the network key for OfflineWithFeedback and seed report data
 beforeEach(() => {
-    Onyx.merge(ONYXKEYS.NETWORK, {isOffline: false});
+    setHasRadio(true);
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}1`, {
         reportID: '1',
         reportName: 'Test Report',
