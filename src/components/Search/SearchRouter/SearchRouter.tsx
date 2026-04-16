@@ -88,19 +88,21 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
     });
     const [contextualReportPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${contextualReport?.policyID}`);
 
-    const contextualPoliciesMap = useMemo(() => {
+    const contextualPoliciesMap = (() => {
         if (!contextualReport?.policyID || !contextualReportPolicy) {
             return {};
         }
-        return {[`${ONYXKEYS.COLLECTION.POLICY}${contextualReport.policyID}`]: contextualReportPolicy};
-    }, [contextualReport?.policyID, contextualReportPolicy]);
+        const policyKey = `${ONYXKEYS.COLLECTION.POLICY}${contextualReport.policyID}`;
+        return {[policyKey]: contextualReportPolicy};
+    })();
 
-    const contextualReportsMap = useMemo(() => {
+    const contextualReportsMap = (() => {
         if (!contextualReportID || !contextualReport) {
             return {};
         }
-        return {[`${ONYXKEYS.COLLECTION.REPORT}${contextualReportID}`]: contextualReport};
-    }, [contextualReportID, contextualReport]);
+        const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${contextualReportID}`;
+        return {[reportKey]: contextualReport};
+    })();
 
     const getAdditionalSections: GetAdditionalSectionsCallback = useCallback(
         ({recentReports}, sectionIndex) => {
