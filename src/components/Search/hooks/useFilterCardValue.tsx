@@ -14,6 +14,7 @@ function useFilterCardValue(): string {
 
     const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
     const [allFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER);
+    const [personalAndWorkspaceCards] = useOnyx(ONYXKEYS.DERIVED.PERSONAL_AND_WORKSPACE_CARD_LIST);
 
     const cardIdsFilter = searchAdvancedFiltersForm?.[CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID] ?? [];
     const feedFilter = searchAdvancedFiltersForm?.[CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED] ?? [];
@@ -22,7 +23,7 @@ function useFilterCardValue(): string {
         .filter((card) => cardIdsFilter.includes(card.cardID.toString()) && !feedFilter.includes(createCardFeedKey(card.fundID, card.bank)))
         .map((card) => getCardDescription(card, translate));
 
-    const feedAutoCompleteList = Object.values(getCardFeedsForDisplay(allFeeds, {}, translate, feedKeysWithCards));
+    const feedAutoCompleteList = Object.values(getCardFeedsForDisplay(allFeeds, personalAndWorkspaceCards, translate, feedKeysWithCards));
     const filteredFeeds = feedAutoCompleteList.filter((feed) => feedFilter.includes(feed.id)).map((feed) => feed.name);
 
     return [...filteredFeeds, ...cardNames].join(', ');
