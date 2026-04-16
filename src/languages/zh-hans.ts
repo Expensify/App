@@ -2152,6 +2152,7 @@ const translations: TranslationDeepObject<typeof en> = {
         title: '设备管理',
         description: '管理您使用 Expensify 账户登录过的所有设备。<a href="">了解更多</a>',
         revoke: '撤销',
+        unknownDevice: '未知设备',
     },
     twoFactorAuth: {
         headerTitle: '双重身份验证',

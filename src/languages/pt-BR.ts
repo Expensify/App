@@ -2202,6 +2202,7 @@ const translations: TranslationDeepObject<typeof en> = {
         title: 'Gerenciamento de dispositivos',
         description: 'Gerencie todos os dispositivos nos quais você fez login com sua conta do Expensify. <a href="">Saiba mais</a>',
         revoke: 'Revogar',
+        unknownDevice: 'Dispositivo Desconhecido',
     },
     twoFactorAuth: {
         headerTitle: 'Autenticação de dois fatores',

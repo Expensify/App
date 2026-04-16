@@ -2206,6 +2206,7 @@ const translations: TranslationDeepObject<typeof en> = {
         title: 'Apparaatbeheer',
         description: 'Beheer alle apparaten waarop u bent ingelogd met uw Expensify-account. <a href="">Meer informatie</a>',
         revoke: 'Intrekken',
+        unknownDevice: 'Onbekend Apparaat',
     },
     twoFactorAuth: {
         headerTitle: 'Tweeledige verificatie',

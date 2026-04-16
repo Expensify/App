@@ -2217,6 +2217,7 @@ const translations: TranslationDeepObject<typeof en> = {
         title: 'Gestion des appareils',
         description: 'Gérez tous les appareils sur lesquels vous vous êtes connecté avec votre compte Expensify. <a href="">En savoir plus</a>',
         revoke: 'Révoquer',
+        unknownDevice: 'Appareil Inconnu',
     },
     twoFactorAuth: {
         headerTitle: 'Authentification à deux facteurs',

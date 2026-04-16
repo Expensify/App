@@ -17,7 +17,7 @@ type Login = OnyxValueWithOfflineFeedback<{
     validatedDate: string | null;
 
     /** Additional data */
-    additionalData: {
+    additionalData?: {
         // @typescript-eslint/naming-convention
         /** The app version used where this account is logged in */
         app_version: string;

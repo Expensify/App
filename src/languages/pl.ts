@@ -2205,6 +2205,7 @@ const translations: TranslationDeepObject<typeof en> = {
         title: 'Zarządzanie urządzeniami',
         description: 'Zarządzaj wszystkimi urządzeniami, na których zalogowałeś się za pomocą swojego konta Expensify. <a href="">Dowiedz się więcej</a>',
         revoke: 'Cofnąć',
+        unknownDevice: 'Nieznane Urządzenie',
     },
     twoFactorAuth: {
         headerTitle: 'Uwierzytelnianie dwuskładnikowe',

@@ -2283,6 +2283,7 @@ const translations = {
         title: 'Device management',
         description: 'Manage all the devices that you have logged into with your Expensify Account. <a href="">Learn more</a>',
         revoke: 'Revoke',
+        unknownDevice: 'Unknown Device',
     },
     twoFactorAuth: {
         headerTitle: 'Two-factor authentication',

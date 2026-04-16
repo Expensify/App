@@ -24,7 +24,7 @@ function DeviceManagementPage() {
     const [logins] = useOnyx(ONYXKEYS.LOGINS);
 
     const renderItem = ({item}: ListRenderItemInfo<Login>) => {
-        const {deviceName, deviceVersion, os, osVersion} = item.additionalData;
+        const {deviceName, deviceVersion, os, osVersion} = item.additionalData ?? {};
         return (
             <OfflineWithFeedback
                 pendingAction={item.pendingAction}
@@ -34,9 +34,7 @@ function DeviceManagementPage() {
             >
                 <View style={[styles.flex1, styles.flexColumn, styles.gap1]}>
                     <Text style={[styles.textLabelSupporting]}>{datetimeToRelative(item.lastLogin)}</Text>
-                    <Text>
-                        {deviceName} {deviceVersion ? `${deviceVersion} ` : ''}({os} {osVersion})
-                    </Text>
+                    <Text>{item.additionalData ? `${deviceName} ${deviceVersion ? `${deviceVersion} ` : ''}(${os} ${osVersion})` : translate('deviceManagementPage.unknownDevice')}</Text>
                 </View>
                 <Button
                     danger

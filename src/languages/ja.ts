@@ -2189,6 +2189,7 @@ const translations: TranslationDeepObject<typeof en> = {
         title: 'デバイス管理',
         description: 'Expensifyアカウントでログインしたすべてのデバイスを管理します。<a href="">詳細はこちら</a>',
         revoke: '取り消す',
+        unknownDevice: '不明なデバイス',
     },
     twoFactorAuth: {
         headerTitle: '2要素認証',
