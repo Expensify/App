@@ -8,82 +8,39 @@ At Expensify, we are early adopters of this tool and aim to fully leverage its c
 
 ## React Compiler compliance checker
 
-We provide a script, `scripts/react-compiler-compliance-check.ts`, which checks for "Rules of React" compliance locally and enforces these in PRs adding or changing React code through a CI check.
+We provide a script, `scripts/react-compiler-compliance-check.ts`, which checks whether React components and hooks compile with React Compiler. It runs in CI on every PR and can also be used locally for quick feedback.
 
-### What it does
+### How it works
 
-Runs `react-compiler-healthcheck` in verbose mode, parses output, and summarizes which files compiled and which failed, including file, line, column, and reason. It can:
+The script uses `@babel/core`'s `transformSync` with `babel-plugin-react-compiler` directly (no intermediate tools). For each file, the compiler reports whether components/hooks compiled successfully, failed, or weren't found. This produces a three-state result per file: `COMPILED`, `FAILED`, or `SKIPPED` (no components/hooks).
 
-- Check all files or a specific file/glob
-- Check only files changed relative to a base branch
-- Optionally generate a machine-readable report `react-compiler-report.json`
-- Exit with non-zero code when failures are found (useful for CI)
+### CI enforcement (two rules)
+
+The CI check (`check-changed`) enforces two rules on changed `.ts` and `.tsx` files:
+
+1. **New files**: If a new file contains components or hooks that fail to compile, the check fails.
+2. **Modified files**: If a file compiled successfully on `main` but fails on the PR branch, the check fails (regression).
+
+Files with no React components or hooks are silently skipped.
 
 ### Usage
 
-> [!NOTE]
-> This script uses `origin` as the base remote by default. If your GH remote is named differently, use the `--remote <name>` flag.
-
-#### Check entire codebase or a specific file/glob
+#### Check specific files
 
 ```bash
-npm run react-compiler-compliance-check check                        # Check all files
-npm run react-compiler-compliance-check check src/path/Component.tsx # Check specific file
-npm run react-compiler-compliance-check check "src/**/*.tsx"         # Check glob pattern
+npm run react-compiler-compliance-check check src/components/Foo.tsx src/hooks/useBar.ts
 ```
 
-#### Check only changed files (against main)
+#### Check changed files (CI mode, also works locally)
 
 ```bash
 npm run react-compiler-compliance-check check-changed
 ```
 
-#### Generate a detailed report (saved as `./react-compiler-report.json`)
+#### Flags
 
-You can use the `--report` flag with both of the above commands:
-
-```bash
-npm run react-compiler-compliance-check check --report
-npm run react-compiler-compliance-check check-changed --report
-```
-
-#### Additional flags
-
-**Filter by diff changes (`--filterByDiff`)**
-
-Only check files that have been modified in the current diff. This is useful when you want to focus on files that have actual changes:
-
-```bash
-npm run react-compiler-compliance-check check --filterByDiff
-npm run react-compiler-compliance-check check-changed --filterByDiff
-```
-
-**Print successful compilations (`--printSuccesses`)**
-
-By default, the script only shows compilation failures. Use this flag to also display files that compiled successfully:
-
-```bash
-npm run react-compiler-compliance-check check --printSuccesses
-npm run react-compiler-compliance-check check-changed --printSuccesses
-```
-
-**Custom report filename (`--reportFileName`)**
-
-Specify a custom filename for the generated report instead of the default `react-compiler-report.json`:
-
-```bash
-npm run react-compiler-compliance-check check --report --reportFileName my-custom-report.json
-npm run react-compiler-compliance-check check-changed --report --reportFileName my-custom-report.json
-```
-
-**Custom remote name (`--remote`)**
-
-By default, the script uses `origin` as the base remote. If your GitHub remote is named differently, specify it with this flag:
-
-```bash
-npm run react-compiler-compliance-check check-changed --remote upstream
-npm run react-compiler-compliance-check check --filterByDiff --remote my-remote
-```
+- `--verbose` — Show detailed output including skipped files and files that compiled successfully.
+- `--remote <name>` — Git remote name for the base branch (default: `origin`).
 
 ## How to fix a particular problem?
 
