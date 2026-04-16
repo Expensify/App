@@ -45,11 +45,13 @@ function useDiscardChangesConfirmation({getHasUnsavedChanges, onCancel, onVisibi
             if (result.action === ModalActions.CONFIRM) {
                 Promise.resolve()
                     .then(() => onConfirm?.())
+                    .then(() => {
+                        setNavigationActionToMicrotaskQueue(navigateBack);
+                    })
                     .catch((error: unknown) => {
                         Log.warn('[useDiscardChangesConfirmation] Failed to run onConfirm callback', {error});
-                    })
-                    .finally(() => {
-                        setNavigationActionToMicrotaskQueue(navigateBack);
+                        blockedNavigationAction.current = undefined;
+                        shouldNavigateBack.current = false;
                     });
             } else {
                 blockedNavigationAction.current = undefined;

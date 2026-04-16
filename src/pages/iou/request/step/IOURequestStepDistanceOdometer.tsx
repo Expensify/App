@@ -564,8 +564,8 @@ function IOURequestStepDistanceOdometer({
         },
         onConfirm: isEditingConfirmation
             ? async () => {
-                  backupHandledManually.current = true;
                   await restoreOriginalTransactionFromBackupWithImageCleanup(transactionID, isTransactionDraft);
+                  backupHandledManually.current = true;
               }
             : undefined,
     });

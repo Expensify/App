@@ -49,10 +49,11 @@ function useDiscardChangesConfirmation({getHasUnsavedChanges, onVisibilityChange
                     };
                     Promise.resolve()
                         .then(() => onConfirm?.())
+                        .then(confirmNavigation)
                         .catch((error: unknown) => {
                             Log.warn('[useDiscardChangesConfirmation] Failed to run onConfirm callback', {error});
-                        })
-                        .finally(confirmNavigation);
+                            blockedNavigationAction.current = undefined;
+                        });
                 });
             },
             [getHasUnsavedChanges, onVisibilityChange, onConfirm, showConfirmModal, translate],
