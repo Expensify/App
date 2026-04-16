@@ -443,7 +443,7 @@ function signOutAndRedirectToSignIn(shouldResetToHome?: boolean, shouldStashSess
                         });
                     });
                 });
-            } else if (shouldRestoreStashedSession && !shouldStashSession && hasStashedSession(stashedCredentials)) {
+            } else if (shouldRestoreStashedSession && !shouldStashSession && hasStashedSession(stashedSession, stashedCredentials)) {
                 // Preserve SESSION during clear to avoid a login page flash, then restore the stashed session.
                 Onyx.clear(KEYS_TO_PRESERVE_SUPPORTAL).then(() => {
                     Onyx.multiSet(onyxSetParams).then(() => {
