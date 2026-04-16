@@ -47,12 +47,12 @@ const REASON = {
         /** No HTTP status code present — typically a network failure, JSON parse error, or unhandled exception in an action function. */
         UNHANDLED_API_RESPONSE: 'Local error',
         WEBAUTHN: {
-            NOT_ALLOWED: 'NotAllowedError',
-            INVALID_STATE: 'InvalidStateError',
-            SECURITY_ERROR: 'SecurityError',
-            ABORT: 'AbortError',
-            NOT_SUPPORTED: 'NotSupportedError',
-            CONSTRAINT_ERROR: 'ConstraintError',
+            NOT_ALLOWED: 'WebAuthn operation not allowed',
+            INVALID_STATE: 'WebAuthn invalid state',
+            SECURITY_ERROR: 'WebAuthn security error',
+            ABORT: 'WebAuthn operation aborted',
+            NOT_SUPPORTED: 'WebAuthn not supported',
+            CONSTRAINT_ERROR: 'WebAuthn constraint error',
             REGISTRATION_REQUIRED: 'No matching passkey credentials found locally',
             UNEXPECTED_RESPONSE: 'WebAuthn credential response type is unexpected',
             GENERIC: 'An unknown WebAuthn error occurred',
