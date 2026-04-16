@@ -10,43 +10,17 @@ import ReviewDuplicatesPrimaryAction from './ReviewDuplicatesPrimaryAction';
 import SubmitPrimaryAction from './SubmitPrimaryAction';
 import type {MoneyReportHeaderPrimaryActionProps} from './types';
 
-function MoneyReportHeaderPrimaryAction({
-    reportID,
-    chatReportID,
-    primaryAction,
-    isPaidAnimationRunning,
-    isApprovedAnimationRunning,
-    isSubmittingAnimationRunning,
-    stopAnimation,
-    startAnimation,
-    startApprovedAnimation,
-    startSubmittingAnimation,
-    onHoldMenuOpen,
-    onExportModalOpen,
-}: MoneyReportHeaderPrimaryActionProps) {
+function MoneyReportHeaderPrimaryAction({reportID, chatReportID, primaryAction, onExportModalOpen}: MoneyReportHeaderPrimaryActionProps) {
     if (!primaryAction) {
         return null;
     }
 
     if (primaryAction === CONST.REPORT.PRIMARY_ACTIONS.SUBMIT) {
-        return (
-            <SubmitPrimaryAction
-                reportID={reportID}
-                isSubmittingAnimationRunning={isSubmittingAnimationRunning}
-                stopAnimation={stopAnimation}
-                startSubmittingAnimation={startSubmittingAnimation}
-            />
-        );
+        return <SubmitPrimaryAction reportID={reportID} />;
     }
 
     if (primaryAction === CONST.REPORT.PRIMARY_ACTIONS.APPROVE) {
-        return (
-            <ApprovePrimaryAction
-                reportID={reportID}
-                startApprovedAnimation={startApprovedAnimation}
-                onHoldMenuOpen={onHoldMenuOpen}
-            />
-        );
+        return <ApprovePrimaryAction reportID={reportID} />;
     }
 
     if (primaryAction === CONST.REPORT.PRIMARY_ACTIONS.PAY) {
@@ -54,12 +28,6 @@ function MoneyReportHeaderPrimaryAction({
             <PayPrimaryAction
                 reportID={reportID}
                 chatReportID={chatReportID}
-                isPaidAnimationRunning={isPaidAnimationRunning}
-                isApprovedAnimationRunning={isApprovedAnimationRunning}
-                stopAnimation={stopAnimation}
-                startAnimation={startAnimation}
-                startApprovedAnimation={startApprovedAnimation}
-                onHoldMenuOpen={onHoldMenuOpen}
             />
         );
     }

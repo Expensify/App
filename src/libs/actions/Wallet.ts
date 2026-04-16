@@ -178,6 +178,7 @@ function acceptWalletTerms(parameters: AcceptWalletTermsParams) {
             value: {
                 isPendingOnfidoResult: null,
                 shouldShowFailedKYC: true,
+                hasFailedOnfido: true,
             },
         },
         {
