@@ -515,7 +515,7 @@ function getSubscriptionPrice(
 }
 
 function shouldUseSimplifiedCollectSubscriptionUI(plan: PersonalPolicyTypeExcludedProps | null, hasTeam2025Pricing: boolean): boolean {
-    return plan === CONST.POLICY.TYPE.TEAM && !hasTeam2025Pricing;
+    return plan === CONST.POLICY.TYPE.TEAM && hasTeam2025Pricing;
 }
 
 function getSubscriptionPlanInfo(
