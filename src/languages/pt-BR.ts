@@ -1045,6 +1045,7 @@ const translations: TranslationDeepObject<typeof en> = {
             title: 'Introdução',
             createWorkspace: 'Criar um workspace',
             connectAccounting: ({integrationName}: {integrationName: string}) => `Conectar ao ${integrationName}`,
+            connectAccountingDefault: 'Conectar à contabilidade',
             customizeCategories: 'Personalizar categorias contábeis',
             linkCompanyCards: 'Vincular cartões corporativos',
             setupRules: 'Configurar regras de gasto',

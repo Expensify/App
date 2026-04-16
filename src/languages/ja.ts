@@ -1030,6 +1030,7 @@ const translations: TranslationDeepObject<typeof en> = {
             title: 'はじめに',
             createWorkspace: 'ワークスペースを作成',
             connectAccounting: ({integrationName}: {integrationName: string}) => `${integrationName}に接続する`,
+            connectAccountingDefault: '会計ソフトに接続',
             customizeCategories: '会計カテゴリをカスタマイズする',
             linkCompanyCards: '会社カードを連携',
             setupRules: '支出ルールを設定',
