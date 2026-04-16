@@ -1661,6 +1661,7 @@ const translations: TranslationDeepObject<typeof en> = {
             prompt: 'Ative o acompanhamento de impostos no espaço de trabalho para editar os detalhes da despesa ou excluir o imposto desta despesa.',
             confirmText: 'Excluir imposto',
         },
+        deleted: 'Excluído',
     },
     transactionMerge: {
         listPage: {
@@ -2103,6 +2104,9 @@ const translations: TranslationDeepObject<typeof en> = {
             helpSite: 'Site de ajuda',
             conciergeChat: 'Concierge',
             conciergeChatDescription: 'Seu agente de IA pessoal',
+            accountManagerDescription: 'Seu gerente de conta',
+            partnerManagerDescription: 'Seu gerente de parcerias',
+            guideDescription: 'Seu especialista de configuração',
         },
     },
     closeAccountPage: {
@@ -5481,6 +5485,10 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                             settlementFrequencyLabel: 'Frequência de liquidação',
                             settlementFrequencyDescription:
                                 'Com que frequência o Expensify vai debitar da sua conta bancária empresarial para liquidar as transações recentes do Expensify Travel.',
+                            monthlySpendLimitLabel: 'Limite de gastos mensal por membro',
+                            monthlySpendLimitDescription: 'O valor máximo que cada membro pode gastar em viagens por mês.',
+                            reduceLimitTitle: 'Reduzir o limite de gastos com viagens?',
+                            reduceLimitWarning: 'Se você reduzir o limite, os membros que já gastaram mais do que esse valor não poderão fazer novas reservas de viagem até o próximo mês.',
                         },
                     },
                     disableModal: {
@@ -7558,6 +7566,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             reject: 'Rejeitar',
             duplicateExpense: ({count}: {count: number}) => `Duplicar ${count === 1 ? 'despesa' : 'despesas'}`,
             noOptionsAvailable: 'Nenhuma opção disponível para o grupo de despesas selecionado.',
+            undelete: 'Restaurar',
         },
         filtersHeader: 'Filtros',
         filters: {
@@ -7610,6 +7619,10 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             billable: 'Faturável',
             reimbursable: 'Reembolsável',
             purchaseCurrency: 'Moeda de compra',
+            sortOrder: {
+                [CONST.SEARCH.SORT_ORDER.ASC]: 'Ascendente',
+                [CONST.SEARCH.SORT_ORDER.DESC]: 'Descendo',
+            },
             groupBy: {
                 [CONST.SEARCH.GROUP_BY.FROM]: 'De',
                 [CONST.SEARCH.GROUP_BY.CARD]: 'Cartão',
@@ -7638,6 +7651,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
         display: {
             label: 'Exibir',
             sortBy: 'Ordenar por',
+            sortOrder: 'Ordem de classificação',
             groupBy: 'Agrupar por',
             limitResults: 'Limitar resultados',
         },
@@ -7657,7 +7671,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
         recentSearches: 'Pesquisas recentes',
         recentChats: 'Chats recentes',
         searchIn: 'Pesquisar em',
-        searchPlaceholder: 'Pesquisar algo',
+        searchPlaceholder: 'Pesquisar algo...',
         suggestions: 'Sugestões',
         suggestionsAvailable: (
             {

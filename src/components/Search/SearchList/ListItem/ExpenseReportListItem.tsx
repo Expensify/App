@@ -129,6 +129,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
 
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
+    const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
 
     const handleOnButtonPress = useCallback(() => {
         handleActionButtonPress({
@@ -144,6 +145,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
             onDelegateAccessRestricted: showDelegateNoAccessModal,
             personalPolicyID,
             ownerBillingGracePeriodEnd,
+            amountOwed,
         });
     }, [
         currentSearchHash,
@@ -158,6 +160,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
         isDelegateAccessRestricted,
         showDelegateNoAccessModal,
         ownerBillingGracePeriodEnd,
+        amountOwed,
     ]);
 
     const handleCheckboxPress = useCallback(() => {
