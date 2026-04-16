@@ -632,7 +632,7 @@ function createWorkspaceWithPolicyDraftAndNavigateToIt(params: CreateWorkspaceWi
             Navigation.navigate(routeToNavigate);
         } else if (Navigation.isTopmostRouteModalScreen()) {
             Navigation.dismissModal({
-                callback: () => Navigation.navigate(routeToNavigate),
+                afterTransition: () => Navigation.navigate(routeToNavigate),
             });
         } else {
             Navigation.navigate(routeToNavigate, {forceReplace: true});

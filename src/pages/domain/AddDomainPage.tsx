@@ -60,7 +60,7 @@ function AddDomainPage() {
         )?.accountID;
         if (accountID) {
             Navigation.dismissModal({
-                callback: () => {
+                afterTransition: () => {
                     Navigation.navigate(ROUTES.WORKSPACES_DOMAIN_ADDED.getRoute(accountID), {forceReplace: true});
                 },
             });
