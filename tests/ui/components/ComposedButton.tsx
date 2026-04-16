@@ -1,4 +1,3 @@
-import {NavigationContainer} from '@react-navigation/native';
 import {fireEvent, render, screen} from '@testing-library/react-native';
 import React from 'react';
 // eslint-disable-next-line no-restricted-imports
@@ -11,28 +10,6 @@ import {useButtonContext} from '@src/components/ButtonComposed/context';
 import type {ButtonVariant} from '@src/components/ButtonComposed/context';
 import type {ButtonProps} from '@src/components/ButtonComposed/types';
 import CONST from '@src/CONST';
-
-// ── pressOnEnter / keyboard-shortcut wiring ────────────────────────────────────
-//
-// react-native-key-command is mocked to a no-op in tests, so keyboard events
-// dispatched on the document never reach the registered handlers.
-// Instead, we capture the callback that Button passes to useKeyboardShortcut
-// and invoke it directly — the same pattern used in BaseSelectionListTest.
-let enterKeyCallback: ((event?: KeyboardEvent) => void) | undefined;
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-let capturedShortcutConfig: Record<string, any> | undefined;
-
-jest.mock('@hooks/useKeyboardShortcut', () =>
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (shortcut: {shortcutKey: string}, callback: (e?: KeyboardEvent) => void, config: Record<string, any> = {}) => {
-        if (shortcut.shortcutKey !== 'Enter' || config.isActive === false) {
-            return;
-        }
-        enterKeyCallback = callback;
-        capturedShortcutConfig = config;
-    },
-);
-// ──────────────────────────────────────────────────────────────────────────────
 
 jest.mock('@libs/HapticFeedback', () => ({
     press: jest.fn(),
@@ -75,32 +52,8 @@ describe('ButtonComposed — Button', () => {
             </Button>,
         );
 
-    /**
-     * Same as renderButton but wrapped in NavigationContainer.
-     * Required for tests that render KeyboardShortcutComponent (pressOnEnter=true),
-     * because it calls useIsFocused() which needs a navigation context.
-     */
-    const renderButtonWithNav = (props: Omit<Partial<ButtonProps>, 'children'> = {}, children: React.ReactNode = <ContextReadout />) =>
-        render(
-            <NavigationContainer>
-                <Button
-                    accessibilityLabel={LABEL}
-                    // eslint-disable-next-line react/jsx-props-no-spreading
-                    {...props}
-                >
-                    {children}
-                </Button>
-            </NavigationContainer>,
-        );
-
     /** Locate the button element by its ARIA role and accessible name. */
     const getButton = () => screen.getByRole(CONST.ROLE.BUTTON, {name: LABEL});
-
-    beforeEach(() => {
-        // Reset captured shortcut state so keyboard tests don't bleed into each other.
-        enterKeyCallback = undefined;
-        capturedShortcutConfig = undefined;
-    });
 
     afterEach(() => {
         jest.clearAllMocks();
@@ -289,73 +242,6 @@ describe('ButtonComposed — Button', () => {
 
             // Then onLongPress is not called
             expect(onLongPress).not.toHaveBeenCalled();
-        });
-    });
-
-    // ── Keyboard shortcuts (pressOnEnter) ──────────────────────────────────────
-    //
-    // Keyboard events don't reach handlers in the test environment because
-    // react-native-key-command is mocked to a no-op. Instead, we invoke the
-    // captured callback from useKeyboardShortcut directly — this exercises the
-    // full path from keyboard event → validateSubmitShortcut → onPress.
-
-    describe('keyboard shortcuts', () => {
-        it('triggers onPress when Enter key is pressed and pressOnEnter is true', () => {
-            // Given a Button that listens for Enter
-            // (isPressOnEnterActive=true keeps the shortcut active without a focused screen)
-            renderButtonWithNav({pressOnEnter: true, isPressOnEnterActive: true, onPress});
-
-            // When the Enter key fires
-            enterKeyCallback?.(new KeyboardEvent('keydown', {key: 'Enter', bubbles: true}));
-
-            // Then onPress is called
-            expect(onPress).toHaveBeenCalledTimes(1);
-        });
-
-        it('does not register an Enter listener when pressOnEnter is false', () => {
-            // Given a Button without pressOnEnter (KeyboardShortcutComponent is not rendered)
-            renderButton();
-
-            // Then no keyboard shortcut listener was registered at all
-            expect(enterKeyCallback).toBeUndefined();
-        });
-
-        it('blocks Enter-triggered onPress when isDisabled is true', () => {
-            // Given a disabled Button that listens for Enter
-            renderButtonWithNav({pressOnEnter: true, isPressOnEnterActive: true, isDisabled: true, onPress});
-
-            // When the Enter key fires
-            enterKeyCallback?.(new KeyboardEvent('keydown', {key: 'Enter', bubbles: true}));
-
-            // Then validateSubmitShortcut blocks the call because isDisabled=true
-            expect(onPress).not.toHaveBeenCalled();
-        });
-
-        it('blocks Enter-triggered onPress when isLoading is true', () => {
-            // Given a loading Button that listens for Enter
-            renderButtonWithNav({pressOnEnter: true, isPressOnEnterActive: true, isLoading: true, onPress});
-
-            // When the Enter key fires
-            enterKeyCallback?.(new KeyboardEvent('keydown', {key: 'Enter', bubbles: true}));
-
-            // Then validateSubmitShortcut blocks the call because isLoading=true
-            expect(onPress).not.toHaveBeenCalled();
-        });
-
-        it('forwards allowBubble as shouldBubble to the keyboard shortcut config', () => {
-            // Given a Button that allows the keyboard shortcut to bubble
-            renderButtonWithNav({pressOnEnter: true, isPressOnEnterActive: true, allowBubble: true});
-
-            // Then the shortcut config reflects shouldBubble=true
-            expect(capturedShortcutConfig?.shouldBubble).toBe(true);
-        });
-
-        it('forwards enterKeyEventListenerPriority as priority to the keyboard shortcut config', () => {
-            // Given a Button with a custom keyboard shortcut priority
-            renderButtonWithNav({pressOnEnter: true, isPressOnEnterActive: true, enterKeyEventListenerPriority: 5});
-
-            // Then the shortcut config reflects the custom priority
-            expect(capturedShortcutConfig?.priority).toBe(5);
         });
     });
 

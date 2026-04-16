@@ -3,31 +3,33 @@ import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import Button from '@components/ButtonComposed/Button';
 import ButtonDoubleLineText from '@components/ButtonComposed/primitives/ButtonDoubleLineText';
 import {ButtonIconLeft, ButtonIconRight} from '@components/ButtonComposed/primitives/ButtonIcons';
+import ButtonKeyboardShortcut from '@components/ButtonComposed/primitives/ButtonKeyboardShortcut';
 import ButtonText from '@components/ButtonComposed/primitives/ButtonText';
-import type {BaseButtonProps} from '@components/ButtonComposed/types';
+import type {BaseButtonProps, ButtonKeyboardShortcutProps} from '@components/ButtonComposed/types';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
 
-type ButtonWithIconsProps = BaseButtonProps & {
-    // Icon Left Props
-    iconLeft?: IconAsset;
-    iconLeftFill?: string;
-    iconLeftHoverFill?: string;
-    iconLeftStyles?: StyleProp<ViewStyle>;
-    // Text Props
-    text?: string;
-    secondLineText?: string;
-    textHoverStyles?: StyleProp<TextStyle>;
-    textStyles?: StyleProp<TextStyle>;
-    textNumberOfLines?: number;
-    // Icon Right Props
-    iconRight?: IconAsset;
-    iconRightFill?: string;
-    iconRightHoverFill?: string;
-    iconRightStyles?: StyleProp<ViewStyle>;
-};
+type ButtonWithIconsProps = BaseButtonProps &
+    ButtonKeyboardShortcutProps & {
+        // Icon Left Props
+        iconLeft?: IconAsset;
+        iconLeftFill?: string;
+        iconLeftHoverFill?: string;
+        iconLeftStyles?: StyleProp<ViewStyle>;
+        // Text Props
+        text?: string;
+        secondLineText?: string;
+        textHoverStyles?: StyleProp<TextStyle>;
+        textStyles?: StyleProp<TextStyle>;
+        textNumberOfLines?: number;
+        // Icon Right Props
+        iconRight?: IconAsset;
+        iconRightFill?: string;
+        iconRightHoverFill?: string;
+        iconRightStyles?: StyleProp<ViewStyle>;
+    };
 
 function ButtonWithIcons({
     allowBubble = false,
@@ -80,7 +82,6 @@ function ButtonWithIcons({
     const buttonPaddingStyle = StyleUtils.getButtonPaddingStyle(styles, size, !!iconLeft, text?.length > 0, !!iconRight);
     return (
         <Button
-            allowBubble={allowBubble}
             contentContainerStyle={contentContainerStyle}
             size={size}
             isLoading={isLoading}
@@ -91,8 +92,6 @@ function ButtonWithIcons({
             onPressIn={onPressIn}
             onPressOut={onPressOut}
             onMouseDown={onMouseDown}
-            pressOnEnter={pressOnEnter}
-            enterKeyEventListenerPriority={enterKeyEventListenerPriority}
             style={style}
             disabledStyle={disabledStyle}
             innerStyles={[buttonPaddingStyle, !!text && !!iconRight && styles.alignItemsStretch, innerStyles]}
@@ -105,13 +104,23 @@ function ButtonWithIcons({
             id={id}
             testID={testID}
             accessibilityLabel={accessibilityLabel}
-            isPressOnEnterActive={isPressOnEnterActive}
             isNested={isNested}
             shouldBlendOpacity={shouldBlendOpacity}
             shouldStayNormalOnDisable={shouldStayNormalOnDisable}
             sentryLabel={sentryLabel}
             ref={ref}
         >
+            {!!pressOnEnter && (
+                <ButtonKeyboardShortcut
+                    pressOnEnter={pressOnEnter}
+                    allowBubble={allowBubble}
+                    enterKeyEventListenerPriority={enterKeyEventListenerPriority}
+                    isPressOnEnterActive={isPressOnEnterActive}
+                    isDisabled={isDisabled}
+                    isLoading={isLoading}
+                    onPress={onPress}
+                />
+            )}
             {!!iconLeft && (
                 <ButtonIconLeft
                     src={iconLeft}

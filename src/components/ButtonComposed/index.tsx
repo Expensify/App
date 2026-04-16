@@ -22,6 +22,7 @@ import withNavigationFallback from '@components/withNavigationFallback';
 import ButtonComponent from './Button';
 import ButtonDoubleLineText from './primitives/ButtonDoubleLineText';
 import {ButtonIconLeft, ButtonIconRight} from './primitives/ButtonIcons';
+import ButtonKeyboardShortcut from './primitives/ButtonKeyboardShortcut';
 import ButtonText from './primitives/ButtonText';
 
 const Button = Object.assign(withNavigationFallback(ButtonComponent), {
@@ -29,6 +30,7 @@ const Button = Object.assign(withNavigationFallback(ButtonComponent), {
     Text: ButtonText,
     IconRight: ButtonIconRight,
     DoubleLineText: ButtonDoubleLineText,
+    KeyboardShortcut: ButtonKeyboardShortcut,
 });
 
 export default Button;

@@ -33,18 +33,6 @@ type ButtonBehaviorProps = {
     /** Indicates whether the button should be disabled */
     isDisabled?: boolean;
 
-    /** Call the onPress function when Enter key is pressed */
-    pressOnEnter?: boolean;
-
-    /** The priority to assign the enter key event listener. 0 is the highest priority. */
-    enterKeyEventListenerPriority?: number;
-
-    /** Whether the Enter keyboard listening is active whether or not the screen that contains the button is focused */
-    isPressOnEnterActive?: boolean;
-
-    /** Should the press event bubble across multiple instances when Enter key triggers it. */
-    allowBubble?: boolean;
-
     /** Should enable the haptic feedback? */
     shouldEnableHapticFeedback?: boolean;
 
@@ -65,6 +53,34 @@ type ButtonBehaviorProps = {
 
     /** Should enable the haptic feedback? */
     shouldStayNormalOnDisable?: boolean;
+};
+
+/**
+ * Props for the ButtonKeyboardShortcut primitive.
+ * Groups all Enter-key shortcut configuration in one place so the parent Button
+ * does not need to know about keyboard-shortcut internals.
+ */
+type ButtonKeyboardShortcutProps = {
+    /** Call the onPress function when Enter key is pressed */
+    pressOnEnter?: boolean;
+
+    /** The priority to assign the enter key event listener. 0 is the highest priority. */
+    enterKeyEventListenerPriority?: number;
+
+    /** Whether the Enter keyboard listening is active whether or not the screen that contains the button is focused */
+    isPressOnEnterActive?: boolean;
+
+    /** Should the press event bubble across multiple instances when Enter key triggers it. */
+    allowBubble?: boolean;
+
+    /** Whether the button is disabled — used by validateSubmitShortcut to block the callback */
+    isDisabled?: boolean;
+
+    /** Whether the button is loading — used by validateSubmitShortcut to block the callback */
+    isLoading?: boolean;
+
+    /** The callback to fire when Enter is pressed and the shortcut is active */
+    onPress?: (event?: GestureResponderEvent | KeyboardEvent) => void | Promise<void>;
 };
 
 type ButtonStyleProps = {
@@ -120,9 +136,4 @@ type ButtonProps = BaseButtonProps & {
     children: React.ReactNode;
 };
 
-type KeyboardShortcutComponentProps = Pick<
-    BaseButtonProps,
-    'isDisabled' | 'isLoading' | 'onPress' | 'pressOnEnter' | 'allowBubble' | 'enterKeyEventListenerPriority' | 'isPressOnEnterActive'
->;
-
-export type {ButtonEventsProps, ButtonBehaviorProps, ButtonStyleProps, BaseButtonProps, ButtonProps, KeyboardShortcutComponentProps};
+export type {ButtonEventsProps, ButtonBehaviorProps, ButtonStyleProps, BaseButtonProps, ButtonProps, ButtonKeyboardShortcutProps};
