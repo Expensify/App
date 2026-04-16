@@ -1,8 +1,7 @@
 import {InteractionManager} from 'react-native';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
-import {getSpan} from '@libs/telemetry/activeSpans';
-import {endSubmitFollowUpActionSpan, setPendingSubmitFollowUpAction} from '@libs/telemetry/submitFollowUpAction';
+import {endSubmitFollowUpActionSpan, isTracking as isSubmitTracking, setPendingSubmitFollowUpAction} from '@libs/telemetry/submitFollowUpAction';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import isReportOpenInRHP from './isReportOpenInRHP';
@@ -16,15 +15,15 @@ import setNavigationActionToMicrotaskQueue from './setNavigationActionToMicrotas
  */
 function dismissModalAndOpenReportInInboxTab(reportID: string | undefined, isInvoice: boolean | undefined, hasMultipleTransactions: boolean) {
     const rootState = navigationRef.getRootState();
-    const hasSubmitToDestinationVisibleSpan = !!getSpan(CONST.TELEMETRY.SPAN_SUBMIT_TO_DESTINATION_VISIBLE);
+    const hasActiveTracking = isSubmitTracking();
 
     if (!isInvoice && isReportOpenInRHP(rootState)) {
         const rhpKey = rootState.routes.at(-1)?.state?.key;
         if (rhpKey) {
             const isSuperWideRHP = isReportOpenInSuperWideRHP(rootState);
 
-            // submit_follow_up_action: only set when the span was started.
-            if (hasSubmitToDestinationVisibleSpan) {
+            // submit_follow_up_action: only set when tracking is active.
+            if (hasActiveTracking) {
                 if (isSuperWideRHP) {
                     setPendingSubmitFollowUpAction(CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_ONLY, reportID);
                 } else if (hasMultipleTransactions && reportID) {
@@ -58,11 +57,11 @@ function dismissModalAndOpenReportInInboxTab(reportID: string | undefined, isInv
         }
     }
     if (isSearchTopmostFullScreenRoute() || !reportID) {
-        if (hasSubmitToDestinationVisibleSpan) {
+        if (hasActiveTracking) {
             setPendingSubmitFollowUpAction(CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_ONLY);
         }
         Navigation.dismissModal();
-        if (hasSubmitToDestinationVisibleSpan) {
+        if (hasActiveTracking) {
             // eslint-disable-next-line @typescript-eslint/no-deprecated -- we need to wait for the modal to be dismissed before marking the span
             InteractionManager.runAfterInteractions(() => {
                 endSubmitFollowUpActionSpan(CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_ONLY);
@@ -70,7 +69,7 @@ function dismissModalAndOpenReportInInboxTab(reportID: string | undefined, isInv
         }
         return;
     }
-    if (hasSubmitToDestinationVisibleSpan) {
+    if (hasActiveTracking) {
         Navigation.dismissModalWithReport({reportID}, undefined, {
             onBeforeNavigate: (willOpenReport) => {
                 setPendingSubmitFollowUpAction(

@@ -421,6 +421,7 @@ type TransactionListItemProps<TItem extends ListItem> = ListItemProps<TItem> &
         isLoading?: boolean;
         columns?: SearchColumnType[];
         violations?: Record<string, TransactionViolations | undefined> | undefined;
+        policyForMovingExpenses?: Policy;
         /** Non-personal and workspace cards for company card display */
         nonPersonalAndWorkspaceCards?: CardList;
         /** Callback to undelete a transaction */
@@ -436,6 +437,7 @@ type TransactionGroupListItemProps<TItem extends ListItem> = ListItemProps<TItem
         columns?: SearchColumnType[];
         newTransactionID?: string;
         violations?: Record<string, TransactionViolations | undefined> | undefined;
+        policyForMovingExpenses?: Policy;
         /** Non-personal and workspace cards for company card display */
         nonPersonalAndWorkspaceCards?: CardList;
         /** Callback to undelete a transaction */
@@ -444,7 +446,18 @@ type TransactionGroupListItemProps<TItem extends ListItem> = ListItemProps<TItem
 
 type TransactionGroupListExpandedProps<TItem extends ListItem> = Pick<
     TransactionGroupListItemProps<TItem>,
-    'showTooltip' | 'canSelectMultiple' | 'onCheckboxPress' | 'columns' | 'groupBy' | 'accountID' | 'isOffline' | 'violations' | 'onSelectRow' | 'nonPersonalAndWorkspaceCards' | 'onUndelete'
+    | 'showTooltip'
+    | 'canSelectMultiple'
+    | 'onCheckboxPress'
+    | 'columns'
+    | 'groupBy'
+    | 'accountID'
+    | 'isOffline'
+    | 'violations'
+    | 'onSelectRow'
+    | 'nonPersonalAndWorkspaceCards'
+    | 'onUndelete'
+    | 'policyForMovingExpenses'
 > & {
     transactions: TransactionListItemType[];
     transactionsVisibleLimit: number;
