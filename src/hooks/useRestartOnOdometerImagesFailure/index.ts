@@ -1,30 +1,16 @@
 import {useEffect} from 'react';
-import {Platform} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {removeMoneyRequestOdometerImage, setMoneyRequestOdometerReading} from '@libs/actions/IOU';
-import {checkIfLocalFileIsAccessible, setMoneyRequestReceipt} from '@libs/actions/IOU/Receipt';
-import {removeDraftTransactionsByIDs} from '@libs/actions/TransactionEdit';
+import useOnyx from '@hooks/useOnyx';
+import {checkIfLocalFileIsAccessible} from '@libs/actions/IOU/Receipt';
 import {navigateToStartMoneyRequestStep} from '@libs/IOUUtils';
 import {getOdometerImageUri} from '@libs/OdometerImageUtils';
-import {getRequestType} from '@libs/TransactionUtils';
+import clearOdometerTransactionState from '@libs/OdometerTransactionUtils';
 import type {IOUAction, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {validTransactionDraftIDsSelector} from '@src/selectors/TransactionDraft';
 import type {Transaction} from '@src/types/onyx';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
-import useOnyx from './useOnyx';
-
-function clearOdometerTransactionState(transaction: OnyxEntry<Transaction>, isDraft: boolean): void {
-    if (!transaction) {
-        return;
-    }
-    setMoneyRequestReceipt(transaction.transactionID, '', '', isDraft);
-    setMoneyRequestOdometerReading(transaction.transactionID, null, null, isDraft);
-    removeMoneyRequestOdometerImage(transaction, CONST.IOU.ODOMETER_IMAGE_TYPE.START, isDraft, true);
-    removeMoneyRequestOdometerImage(transaction, CONST.IOU.ODOMETER_IMAGE_TYPE.END, isDraft, true);
-    removeDraftTransactionsByIDs([transaction.transactionID], true);
-}
 
 // When the component mounts, if there are odometer images or a stitched receipt, see if the files can be read from the disk.
 // If not, redirect the user to the starting step of the flow.
@@ -35,10 +21,9 @@ const useRestartOnOdometerImagesFailure = (transaction: OnyxEntry<Transaction>, 
     const [, draftTransactionsMetadata] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
 
     useEffect(() => {
-        if (Platform.OS !== 'web' || !transaction || action !== CONST.IOU.ACTION.CREATE || isLoadingOnyxValue(draftTransactionsMetadata)) {
+        if (!transaction || action !== CONST.IOU.ACTION.CREATE || isLoadingOnyxValue(draftTransactionsMetadata)) {
             return;
         }
-
 
         const startImage = transaction.comment?.odometerStartImage;
         const endImage = transaction.comment?.odometerEndImage;
@@ -94,5 +79,4 @@ const useRestartOnOdometerImagesFailure = (transaction: OnyxEntry<Transaction>, 
     }, [draftTransactionsMetadata]);
 };
 
-export {clearOdometerTransactionState};
 export default useRestartOnOdometerImagesFailure;
