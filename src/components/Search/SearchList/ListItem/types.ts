@@ -6,6 +6,7 @@ import type {ListItem} from '@components/SelectionList/types';
 import type CONST from '@src/CONST';
 import type {
     BillingGraceEndPeriod,
+    CardList,
     LastPaymentMethod,
     PersonalDetails,
     PersonalDetailsList,
@@ -117,9 +118,6 @@ type TransactionListItemType = ListItem &
 
         /** final and formatted "merchant" value used for displaying and sorting */
         formattedMerchant: string;
-
-        /** Whether the card feed has been deleted */
-        isCardFeedDeleted?: boolean;
 
         /** The original amount of the transaction */
         originalAmount?: number;
@@ -423,8 +421,11 @@ type TransactionListItemProps<TItem extends ListItem> = ListItemProps<TItem> &
         isLoading?: boolean;
         columns?: SearchColumnType[];
         violations?: Record<string, TransactionViolations | undefined> | undefined;
-        customCardNames?: Record<number, string>;
         policyForMovingExpenses?: Policy;
+        /** Non-personal and workspace cards for company card display */
+        nonPersonalAndWorkspaceCards?: CardList;
+        /** Callback to undelete a transaction */
+        onUndelete?: (transaction: Transaction) => void;
     };
 
 type TransactionGroupListItemProps<TItem extends ListItem> = ListItemProps<TItem> &
@@ -437,11 +438,26 @@ type TransactionGroupListItemProps<TItem extends ListItem> = ListItemProps<TItem
         newTransactionID?: string;
         violations?: Record<string, TransactionViolations | undefined> | undefined;
         policyForMovingExpenses?: Policy;
+        /** Non-personal and workspace cards for company card display */
+        nonPersonalAndWorkspaceCards?: CardList;
+        /** Callback to undelete a transaction */
+        onUndelete?: (transaction: Transaction) => void;
     };
 
 type TransactionGroupListExpandedProps<TItem extends ListItem> = Pick<
     TransactionGroupListItemProps<TItem>,
-    'showTooltip' | 'canSelectMultiple' | 'onCheckboxPress' | 'columns' | 'groupBy' | 'accountID' | 'isOffline' | 'violations' | 'onSelectRow' | 'policyForMovingExpenses'
+    | 'showTooltip'
+    | 'canSelectMultiple'
+    | 'onCheckboxPress'
+    | 'columns'
+    | 'groupBy'
+    | 'accountID'
+    | 'isOffline'
+    | 'violations'
+    | 'onSelectRow'
+    | 'nonPersonalAndWorkspaceCards'
+    | 'onUndelete'
+    | 'policyForMovingExpenses'
 > & {
     transactions: TransactionListItemType[];
     transactionsVisibleLimit: number;
