@@ -205,7 +205,7 @@ function PrivatePersonalDetailsPage() {
                     submitButtonText={translate('common.save')}
                     enabledWhenOffline
                 >
-                    <Text style={[styles.textStrong, styles.mt5, styles.mb2]}>{translate('privatePersonalDetails.basicDetails')}</Text>
+                    <Text style={[styles.textStrong, styles.mb2]}>{translate('privatePersonalDetails.basicDetails')}</Text>
                     <View style={styles.mb4}>
                         <InputWrapper
                             InputComponent={TextInput}
@@ -264,7 +264,7 @@ function PrivatePersonalDetailsPage() {
                             autoFocus={fieldToFocus === INPUT_IDS.PHONE_NUMBER}
                         />
                     </View>
-                    <Text style={[styles.textStrong, styles.mt5, styles.mb2]}>{translate('privatePersonalDetails.address')}</Text>
+                    <Text style={[styles.textStrong, styles.mb2]}>{translate('privatePersonalDetails.address')}</Text>
                     <View style={styles.mb4}>
                         <InputWrapper
                             InputComponent={TextInput}
