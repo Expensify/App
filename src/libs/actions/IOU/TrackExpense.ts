@@ -100,19 +100,17 @@ import type ReportAction from '@src/types/onyx/ReportAction';
 import type {OnyxData} from '@src/types/onyx/Request';
 import type {Receipt, ReceiptSource} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import {deleteMoneyRequest, getCleanUpTransactionThreadReportOnyxData, getNavigationUrlOnMoneyRequestDelete} from './DeleteMoneyRequest';
 import type {BuildOnyxDataForMoneyRequestKeys, ReplaceReceipt, RequestMoneyInformation, StartSplitBilActionParams} from './index';
 import {
     buildMinimalTransactionForFormula,
-    deleteMoneyRequest,
     getAllReports,
     getAllTransactionDrafts,
     getAllTransactions,
     getAllTransactionViolations,
-    getCleanUpTransactionThreadReportOnyxData,
     getCurrentUserEmail,
     getMoneyRequestInformation,
     getMoneyRequestPolicyTags,
-    getNavigationUrlOnMoneyRequestDelete,
     getReceiptError,
     getReportPreviewAction,
     getSearchOnyxUpdate,
@@ -209,6 +207,7 @@ type DeleteTrackExpenseParams = {
     isChatIOUReportArchived: boolean | undefined;
     allTransactionViolationsParam: OnyxCollection<OnyxTypes.TransactionViolations>;
     currentUserAccountID: number;
+    currentUserEmail: string;
 };
 
 type BuildOnyxDataForTrackExpenseParams = {
@@ -2680,6 +2679,7 @@ function deleteTrackExpense({
     isChatIOUReportArchived,
     allTransactionViolationsParam,
     currentUserAccountID,
+    currentUserEmail,
 }: DeleteTrackExpenseParams) {
     if (!chatReportID || !transactionID) {
         return;
@@ -2692,8 +2692,8 @@ function deleteTrackExpense({
         reportAction,
         iouReport,
         chatIOUReport,
-        isSingleTransactionView,
         isChatIOUReportArchived,
+        isSingleTransactionView,
     );
 
     // STEP 1: Get all collections we're updating
@@ -2709,7 +2709,7 @@ function deleteTrackExpense({
             isSingleTransactionView,
             allTransactionViolationsParam,
             currentUserAccountID,
-            currentUserEmail: getCurrentUserEmail(),
+            currentUserEmail,
         });
         return urlToNavigateBack;
     }
