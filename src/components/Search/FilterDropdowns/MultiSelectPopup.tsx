@@ -7,6 +7,7 @@ import MultiSelectListItem from '@components/SelectionList/ListItem/MultiSelectL
 import type {ListItem} from '@components/SelectionList/ListItem/types';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -52,6 +53,9 @@ function MultiSelectPopup<T extends string>({label, loading, value, items, close
     const theme = useTheme();
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
+    const {isSmallScreenWidth, isInLandscapeMode} = useResponsiveLayout();
     const {windowHeight} = useWindowDimensions();
     const [selectedItems, setSelectedItems] = useState(value);
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
@@ -115,7 +119,7 @@ function MultiSelectPopup<T extends string>({label, loading, value, items, close
             resetSentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_RESET_MULTI_SELECT}
             applySentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY_MULTI_SELECT}
         >
-            <View style={[styles.getSelectionListPopoverHeight(listData.length || 1, windowHeight, isSearchable ?? false)]}>
+            <View style={[styles.getSelectionListPopoverHeight(listData.length || 1, windowHeight, isSearchable ?? false, isInLandscapeMode, isSmallScreenWidth)]}>
                 {!!loading && (
                     <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter]}>
                         <ActivityIndicator
@@ -133,6 +137,7 @@ function MultiSelectPopup<T extends string>({label, loading, value, items, close
                         ListItem={MultiSelectListItem}
                         onSelectRow={updateSelectedItems}
                         textInputOptions={textInputOptions}
+                        style={{contentContainerStyle: [styles.pb0]}}
                     />
                 )}
             </View>

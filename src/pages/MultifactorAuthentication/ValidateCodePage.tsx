@@ -16,6 +16,7 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePrimaryContactMethod from '@hooks/usePrimaryContactMethod';
 import useThemeStyles from '@hooks/useThemeStyles';
 import AccountUtils from '@libs/AccountUtils';
 import {getLatestErrorField, getLatestErrorMessage} from '@libs/ErrorUtils';
@@ -42,7 +43,7 @@ function MultifactorAuthenticationValidateCodePage() {
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [validateActionCode] = useOnyx(ONYXKEYS.VALIDATE_ACTION_CODE);
-    const contactMethod = account?.primaryLogin ?? '';
+    const contactMethod = usePrimaryContactMethod();
 
     // Local state
     const [inputCode, setInputCode] = useState('');

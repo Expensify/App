@@ -206,6 +206,7 @@ import type {
     NewGroupChatDraft,
     Onboarding,
     OnboardingPurpose,
+    OnboardingRHPVariant,
     PersonalDetailsList,
     Policy,
     PolicyEmployee,
@@ -1955,7 +1956,7 @@ function createTransactionThreadReport(
 function navigateToReport(reportID: string | undefined, shouldDismissModal = true) {
     if (shouldDismissModal) {
         Navigation.dismissModal({
-            callback: () => {
+            afterTransition: () => {
                 if (!reportID) {
                     return;
                 }
@@ -2031,7 +2032,13 @@ function navigateToAndCreateGroupChat(
  *
  * @param participantAccountIDs of user logins to start a chat report with.
  */
-function navigateToAndOpenReportWithAccountIDs(participantAccountIDs: number[], currentUserAccountID: number, introSelected: OnyxEntry<IntroSelected>, betas: OnyxEntry<Beta[]>) {
+function navigateToAndOpenReportWithAccountIDs(
+    participantAccountIDs: number[],
+    currentUserAccountID: number,
+    introSelected: OnyxEntry<IntroSelected>,
+    isSelfTourViewed: boolean | undefined,
+    betas: OnyxEntry<Beta[]>,
+) {
     let newChat: OptimisticChatReport | undefined;
     const chat = getChatByParticipants([...participantAccountIDs, currentUserAccountID]);
     if (!chat) {
@@ -2043,6 +2050,7 @@ function navigateToAndOpenReportWithAccountIDs(participantAccountIDs: number[], 
         openReport({
             reportID: newChat?.reportID,
             introSelected,
+            isSelfTourViewed,
             newReportObject: newChat,
             parentReportActionID: '0',
             participantAccountIDList: participantAccountIDs,
@@ -2556,6 +2564,22 @@ function deleteReportComment(
         const originalMessage = ReportActionsUtils.getOriginalMessage(reportMentionWhisperAction);
         if (!originalMessage?.resolution && !originalMessage?.deleted) {
             unresolvedMentionWhisperIDs.push(reportMentionWhisperID);
+        }
+    }
+
+    // Whispers created during a message edit receive a random ID (not parentID+1/+2), but the
+    // backend stores the parent's reportActionID in originalMessage.parentReportActionID. Scan
+    // all actions to catch any such whispers that the offset lookup above would miss.
+    for (const [actionID, action] of Object.entries(reportActionsForReport)) {
+        if (unresolvedMentionWhisperIDs.includes(actionID)) {
+            continue;
+        }
+        if (!ReportActionsUtils.isActionableMentionWhisper(action) && !ReportActionsUtils.isActionableReportMentionWhisper(action)) {
+            continue;
+        }
+        const originalMessage = ReportActionsUtils.getOriginalMessage(action);
+        if (originalMessage?.parentReportActionID === reportActionID && !originalMessage?.resolution && !originalMessage?.deleted) {
+            unresolvedMentionWhisperIDs.push(actionID);
         }
     }
 
@@ -3937,6 +3961,7 @@ function clearCreateChatError(
     introSelected: OnyxEntry<IntroSelected>,
     currentUserAccountID: number,
     betas: OnyxEntry<Beta[]>,
+    isSelfTourViewed: boolean | undefined,
 ) {
     const metaData = getReportMetadata(report?.reportID);
     const isOptimisticReport = metaData?.isOptimisticReport;
@@ -3945,8 +3970,7 @@ function clearCreateChatError(
         return;
     }
 
-    // TODO: We'll pass isSelfTourViewed in the next PR. Refactor issue: https://github.com/Expensify/App/issues/66424
-    navigateToConciergeChatAndDeleteReport(report?.reportID, conciergeReportID, currentUserAccountID, introSelected, undefined, betas, undefined, true);
+    navigateToConciergeChatAndDeleteReport(report?.reportID, conciergeReportID, currentUserAccountID, introSelected, isSelfTourViewed, betas, undefined, true);
 }
 
 /**
@@ -4108,11 +4132,6 @@ function shouldShowReportActionNotification(reportID: string, currentUserAccount
     // If this is a whisper targeted to someone else, don't show it
     if (action && ReportActionsUtils.isWhisperActionTargetedToOthers(action)) {
         Log.info(`${tag} No notification because the action is whispered to someone else`, false);
-        return false;
-    }
-
-    if (action && !ReportActionsUtils.isActionable(action, currentUserAccountID)) {
-        Log.info(`${tag} No notification because report action is not actionable`);
         return false;
     }
 
@@ -5103,6 +5122,14 @@ async function completeOnboarding({
     return API.write(WRITE_COMMANDS.COMPLETE_GUIDED_SETUP, parameters, {optimisticData, successData, failureData});
 }
 
+/**
+ * Extracts the onboarding RHP variant directly from the completeOnboarding API response
+ * to avoid a race condition where the Onyx callback hasn't fired yet when navigateAfterOnboarding is called.
+ */
+function extractRHPVariantFromResponse(response: Awaited<ReturnType<typeof completeOnboarding>>): OnboardingRHPVariant | undefined {
+    return response?.onyxData?.find((update) => (update.key as string) === ONYXKEYS.NVP_ONBOARDING_RHP_VARIANT)?.value as OnboardingRHPVariant | undefined;
+}
+
 /** Loads necessary data for rendering the RoomMembersPage */
 function openRoomMembersPage(reportID: string) {
     const parameters: OpenRoomMembersPageParams = {reportID};
@@ -5312,7 +5339,7 @@ function resolveActionableMentionWhisper(
 
 function resolveActionableMentionConfirmWhisper(
     report: OnyxEntry<Report>,
-    reportAction: OnyxEntry<ReportAction>,
+    reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_INVITE_TO_SUBMIT_EXPENSE_CONFIRM_WHISPER>,
     resolution: ValueOf<typeof CONST.REPORT.ACTIONABLE_MENTION_INVITE_TO_SUBMIT_EXPENSE_CONFIRM_WHISPER>,
     isReportArchived: boolean,
 ) {
@@ -7284,6 +7311,7 @@ export {
     clearPrivateNotesError,
     clearReportFieldKeyErrors,
     completeOnboarding,
+    extractRHPVariantFromResponse,
     createNewReport,
     deleteReport,
     deleteReportActionDraft,

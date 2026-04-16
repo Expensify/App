@@ -1,30 +1,21 @@
-// NOTE: This component has a static twin in SearchPageNarrow/StaticFiltersBar.tsx
-// used for fast perceived performance. If you change the UI here, verify the
-// static version still looks visually identical.
 import React, {useRef} from 'react';
-import {FlatList, View} from 'react-native';
-import Button from '@components/Button';
-import DropdownButton from '@components/Search/FilterDropdowns/DropdownButton';
-import SearchBulkActionsButton from '@components/Search/SearchBulkActionsButton';
+import {FlatList} from 'react-native';
 import type {SearchQueryJSON} from '@components/Search/types';
-import SearchActionsSkeleton from '@components/Skeletons/SearchActionsSkeleton';
+import SearchFiltersSkeleton from '@components/Skeletons/SearchFiltersSkeleton';
+import type {SearchFilter} from '@libs/SearchUIUtils';
 import shouldAdjustScroll from '@libs/shouldAdjustScroll';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
-import CONST from '@src/CONST';
-import type {FilterItem} from './useSearchFiltersBar';
+import SearchFilterBar from './SearchFilterBar';
 import useSearchFiltersBar from './useSearchFiltersBar';
+import type {FilterItem} from './useSearchFiltersBar';
 
 type SearchFiltersBarNarrowProps = {
     queryJSON: SearchQueryJSON;
-    isMobileSelectionModeEnabled: boolean;
 };
 
-function SearchFiltersBarNarrow({queryJSON, isMobileSelectionModeEnabled}: SearchFiltersBarNarrowProps) {
-    const scrollRef = useRef<FlatList<FilterItem>>(null);
-    const {filters, hasErrors, shouldShowFiltersBarLoading, shouldShowSelectedDropdown, filterButtonText, openAdvancedFilters, expensifyIcons, theme, styles} = useSearchFiltersBar(
-        queryJSON,
-        isMobileSelectionModeEnabled,
-    );
+function SearchFiltersBarNarrow({queryJSON}: SearchFiltersBarNarrowProps) {
+    const scrollRef = useRef<FlatList<SearchFilter & FilterItem>>(null);
+    const {filters, hasErrors, shouldShowFiltersBarLoading, styles} = useSearchFiltersBar(queryJSON);
 
     const adjustScroll = (info: {distanceFromEnd: number}) => {
         // Workaround for a known React Native bug on Android (https://github.com/facebook/react-native/issues/27504):
@@ -38,31 +29,7 @@ function SearchFiltersBarNarrow({queryJSON, isMobileSelectionModeEnabled}: Searc
         scrollRef.current?.scrollToEnd();
     };
 
-    const renderFilterItem = ({item}: {item: FilterItem}) => (
-        <DropdownButton
-            label={item.label}
-            value={item.value}
-            PopoverComponent={item.PopoverComponent}
-            sentryLabel={item.sentryLabel}
-        />
-    );
-
-    const renderListFooter = () => (
-        <View style={[styles.flexRow, styles.gap2]}>
-            <Button
-                link
-                small
-                shouldUseDefaultHover={false}
-                text={filterButtonText}
-                iconFill={theme.link}
-                iconHoverFill={theme.linkHover}
-                icon={expensifyIcons.Filter}
-                textStyles={[styles.textMicroBold]}
-                onPress={openAdvancedFilters}
-                sentryLabel={CONST.SENTRY_LABEL.SEARCH.ADVANCED_FILTERS_BUTTON}
-            />
-        </View>
-    );
+    const renderFilterItem = ({item}: {item: SearchFilter & FilterItem}) => <SearchFilterBar item={item} />;
 
     if (hasErrors) {
         return null;
@@ -74,7 +41,7 @@ function SearchFiltersBarNarrow({queryJSON, isMobileSelectionModeEnabled}: Searc
             shouldShowFiltersBarLoading,
         };
         return (
-            <SearchActionsSkeleton
+            <SearchFiltersSkeleton
                 shouldAnimate
                 reasonAttributes={skeletonReasonAttributes}
             />
@@ -82,29 +49,23 @@ function SearchFiltersBarNarrow({queryJSON, isMobileSelectionModeEnabled}: Searc
     }
 
     return (
-        <View style={[shouldShowSelectedDropdown && styles.ph5, styles.mb2, styles.searchFiltersBarContainer]}>
-            {shouldShowSelectedDropdown ? (
-                <SearchBulkActionsButton queryJSON={queryJSON} />
-            ) : (
-                <FlatList
-                    horizontal
-                    keyboardShouldPersistTaps="always"
-                    style={[styles.flexRow, styles.overflowScroll, styles.flexGrow0]}
-                    contentContainerStyle={[styles.flexRow, styles.flexGrow0, styles.gap2, styles.ph5]}
-                    ref={scrollRef}
-                    showsHorizontalScrollIndicator={false}
-                    data={filters}
-                    keyExtractor={(item) => item.label}
-                    renderItem={renderFilterItem}
-                    ListFooterComponent={renderListFooter}
-                    onEndReached={adjustScroll}
-                    onEndReachedThreshold={0.75}
-                />
-            )}
-        </View>
+        <FlatList
+            horizontal
+            keyboardShouldPersistTaps="always"
+            style={[styles.flexRow, styles.overflowScroll, styles.flexGrow0, !!filters.length && styles.mb4]}
+            contentContainerStyle={[styles.flexRow, styles.flexGrow0, styles.gap2, styles.ph5]}
+            ref={scrollRef}
+            showsHorizontalScrollIndicator={false}
+            data={filters}
+            keyExtractor={(item) => item.key}
+            renderItem={renderFilterItem}
+            onEndReached={adjustScroll}
+            onEndReachedThreshold={0.75}
+        />
     );
 }
 
 SearchFiltersBarNarrow.displayName = 'SearchFiltersBarNarrow';
 
 export default SearchFiltersBarNarrow;
+export type {SearchFiltersBarNarrowProps};
