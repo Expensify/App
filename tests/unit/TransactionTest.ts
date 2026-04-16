@@ -132,8 +132,6 @@ describe('Transaction', () => {
                 newReport: report,
                 policy: undefined,
                 allTransactions,
-                translate: TestHelper.translateLocal,
-                toLocaleDigit: TestHelper.toLocaleDigit,
                 policyTagList: undefined,
             });
             await waitForBatchedUpdates();
@@ -171,8 +169,6 @@ describe('Transaction', () => {
                 newReport: report,
                 policy: undefined,
                 allTransactions,
-                translate: TestHelper.translateLocal,
-                toLocaleDigit: TestHelper.toLocaleDigit,
                 policyTagList: undefined,
             });
             await waitForBatchedUpdates();
@@ -224,8 +220,6 @@ describe('Transaction', () => {
                 policy: undefined,
                 reportNextStep: mockReportNextStep,
                 allTransactions,
-                translate: TestHelper.translateLocal,
-                toLocaleDigit: TestHelper.toLocaleDigit,
                 policyTagList: undefined,
             });
             await waitForBatchedUpdates();
@@ -279,8 +273,6 @@ describe('Transaction', () => {
                 policy: undefined,
                 reportNextStep: mockReportNextStep,
                 allTransactions,
-                translate: TestHelper.translateLocal,
-                toLocaleDigit: TestHelper.toLocaleDigit,
                 policyTagList: undefined,
             });
             await waitForBatchedUpdates();
@@ -322,8 +314,6 @@ describe('Transaction', () => {
                 policy: undefined,
                 reportNextStep: undefined,
                 allTransactions,
-                translate: TestHelper.translateLocal,
-                toLocaleDigit: TestHelper.toLocaleDigit,
                 policyTagList: undefined,
             });
             await waitForBatchedUpdates();
@@ -377,8 +367,6 @@ describe('Transaction', () => {
                 newReport: report,
                 policy: undefined,
                 allTransactions,
-                translate: TestHelper.translateLocal,
-                toLocaleDigit: TestHelper.toLocaleDigit,
                 policyTagList: undefined,
             });
             await waitForBatchedUpdates();
@@ -424,8 +412,6 @@ describe('Transaction', () => {
                 newReport: report,
                 policy: undefined,
                 allTransactions,
-                translate: TestHelper.translateLocal,
-                toLocaleDigit: TestHelper.toLocaleDigit,
                 policyTagList: undefined,
             });
             await waitForBatchedUpdates();
@@ -468,8 +454,6 @@ describe('Transaction', () => {
                 newReport: report,
                 policy: undefined,
                 allTransactions,
-                translate: TestHelper.translateLocal,
-                toLocaleDigit: TestHelper.toLocaleDigit,
                 policyTagList: undefined,
             });
             await waitForBatchedUpdates();
@@ -518,8 +502,6 @@ describe('Transaction', () => {
                 newReport: expenseReport,
                 policy: undefined,
                 allTransactions,
-                translate: TestHelper.translateLocal,
-                toLocaleDigit: TestHelper.toLocaleDigit,
                 policyTagList: undefined,
             });
             await waitForBatchedUpdates();
@@ -568,8 +550,6 @@ describe('Transaction', () => {
                 newReport: expenseReport,
                 policy: undefined,
                 allTransactions,
-                translate: TestHelper.translateLocal,
-                toLocaleDigit: TestHelper.toLocaleDigit,
                 policyTagList: undefined,
             });
             await waitForBatchedUpdates();
@@ -625,8 +605,6 @@ describe('Transaction', () => {
                 newReport: newExpenseReport,
                 policy: undefined,
                 allTransactions,
-                translate: TestHelper.translateLocal,
-                toLocaleDigit: TestHelper.toLocaleDigit,
                 policyTagList: undefined,
             });
             await waitForBatchedUpdates();
@@ -681,8 +659,6 @@ describe('Transaction', () => {
                 newReport: newExpenseReport,
                 policy: undefined,
                 allTransactions,
-                translate: TestHelper.translateLocal,
-                toLocaleDigit: TestHelper.toLocaleDigit,
                 policyTagList: undefined,
             });
             await waitForBatchedUpdates();
@@ -730,8 +706,6 @@ describe('Transaction', () => {
                 newReport: fakeReport,
                 policy: undefined,
                 allTransactions,
-                translate: TestHelper.translateLocal,
-                toLocaleDigit: TestHelper.toLocaleDigit,
                 policyTagList: undefined,
             });
             await waitForBatchedUpdates();
@@ -781,8 +755,6 @@ describe('Transaction', () => {
                 newReport: fakeReport,
                 policy: undefined,
                 allTransactions,
-                translate: TestHelper.translateLocal,
-                toLocaleDigit: TestHelper.toLocaleDigit,
                 policyTagList: undefined,
             });
             await waitForBatchedUpdates();
@@ -838,8 +810,6 @@ describe('Transaction', () => {
                 reportNextStep: undefined,
                 policyCategories,
                 allTransactions,
-                translate: TestHelper.translateLocal,
-                toLocaleDigit: TestHelper.toLocaleDigit,
                 policyTagList: undefined,
             });
 
@@ -894,8 +864,6 @@ describe('Transaction', () => {
                 reportNextStep: undefined,
                 policyCategories: undefined,
                 allTransactions,
-                translate: TestHelper.translateLocal,
-                toLocaleDigit: TestHelper.toLocaleDigit,
                 policyTagList: undefined,
             });
 
@@ -951,8 +919,6 @@ describe('Transaction', () => {
                 newReport: expenseReport,
                 policy: undefined,
                 allTransactions,
-                translate: TestHelper.translateLocal,
-                toLocaleDigit: TestHelper.toLocaleDigit,
                 policyTagList: undefined,
             });
             await waitForBatchedUpdates();
@@ -992,8 +958,6 @@ describe('Transaction', () => {
                 newReport: report,
                 policy: undefined,
                 allTransactions,
-                translate: TestHelper.translateLocal,
-                toLocaleDigit: TestHelper.toLocaleDigit,
                 policyTagList: undefined,
             });
             await waitForBatchedUpdates();
@@ -1028,8 +992,6 @@ describe('Transaction', () => {
                 newReport: undefined,
                 policy: undefined,
                 allTransactions,
-                translate: TestHelper.translateLocal,
-                toLocaleDigit: TestHelper.toLocaleDigit,
                 policyTagList: undefined,
             });
             await waitForBatchedUpdates();
@@ -1077,8 +1039,6 @@ describe('Transaction', () => {
                 newReport: newExpenseReport,
                 policy: undefined,
                 allTransactions,
-                translate: TestHelper.translateLocal,
-                toLocaleDigit: TestHelper.toLocaleDigit,
                 policyTagList: undefined,
             });
             await waitForBatchedUpdates();
