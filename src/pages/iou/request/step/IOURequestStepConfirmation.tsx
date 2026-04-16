@@ -601,7 +601,7 @@ function IOURequestStepConfirmation({
                             : {}),
                     },
                     shouldHandleNavigation: shouldHandleNav && index === transactions.length - 1,
-                    false,
+                    shouldGenerateTransactionThreadReport: false,
                     backToReport,
                     isASAPSubmitBetaEnabled,
                     currentUserAccountIDParam: currentUserPersonalDetails.accountID,

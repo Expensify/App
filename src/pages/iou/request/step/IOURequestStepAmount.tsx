@@ -291,7 +291,7 @@ function IOURequestStepAmount({
                             reimbursable: defaultReimbursable,
                         },
                         backToReport,
-                        false,
+                        shouldGenerateTransactionThreadReport: false,
                         isASAPSubmitBetaEnabled,
                         currentUserAccountIDParam,
                         currentUserEmailParam,
