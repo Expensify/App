@@ -46,7 +46,8 @@ import {
     isThread,
 } from '@libs/ReportUtils';
 import {isInvalidMerchantValue} from '@libs/ValidationUtils';
-import type {IOURequestType, UpdateMoneyRequestDataKeys} from '@userActions/IOU';
+import type {IOURequestType} from '@userActions/IOU';
+import type {UpdateMoneyRequestDataKeys} from '@userActions/IOU/UpdateMoneyRequest';
 import CONST from '@src/CONST';
 import type {IOUType} from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
@@ -136,6 +137,10 @@ type BuildOptimisticTransactionParams = {
     transactionParams: TransactionParams;
     isDemoTransactionParam?: boolean;
 };
+
+function isDeletedTransaction(transaction: {reportID?: string}): boolean {
+    return transaction.reportID === CONST.REPORT.TRASH_REPORT_ID;
+}
 
 function hasDistanceCustomUnit(transaction: OnyxEntry<Transaction> | Partial<Transaction>): boolean {
     return transaction?.comment?.type === CONST.TRANSACTION.TYPE.CUSTOM_UNIT && transaction?.comment?.customUnit?.name === CONST.CUSTOM_UNITS.NAME_DISTANCE;
@@ -2554,6 +2559,8 @@ function buildNewTransactionAfterReviewingDuplicates(reviewDuplicateTransaction:
         modifiedMerchant: reviewDuplicateTransaction?.merchant,
         merchant: reviewDuplicateTransaction?.merchant,
         comment: {...reviewDuplicateTransaction?.comment, comment: reviewDuplicateTransaction?.description},
+        // Clear stale taxName/taxValue so MoneyRequestView derives them fresh from the policy using the updated taxCode
+        ...(reviewDuplicateTransaction?.taxCode !== undefined && {taxName: undefined, taxValue: undefined}),
     };
 }
 
@@ -2574,6 +2581,7 @@ function buildMergeDuplicatesParams(
         reimbursable: reviewDuplicates?.reimbursable ?? false,
         category: reviewDuplicates?.category ?? '',
         tag: reviewDuplicates?.tag ?? '',
+        taxCode: reviewDuplicates?.taxCode ?? '',
         merchant: reviewDuplicates?.merchant ?? '',
         comment: reviewDuplicates?.description ?? '',
     };
@@ -2943,6 +2951,7 @@ export {
     isDistanceTypeRequest,
     recalculateUnreportedTransactionDetails,
     hasSmartScanFailedWithMissingFields,
+    isDeletedTransaction,
 };
 
 export type {TransactionChanges};

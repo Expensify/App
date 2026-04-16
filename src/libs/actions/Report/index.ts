@@ -207,6 +207,7 @@ import type {
     NewGroupChatDraft,
     Onboarding,
     OnboardingPurpose,
+    OnboardingRHPVariant,
     PersonalDetailsList,
     Policy,
     PolicyEmployee,
@@ -1956,7 +1957,7 @@ function createTransactionThreadReport(
 function navigateToReport(reportID: string | undefined, shouldDismissModal = true) {
     if (shouldDismissModal) {
         Navigation.dismissModal({
-            callback: () => {
+            afterTransition: () => {
                 if (!reportID) {
                     return;
                 }
@@ -2564,6 +2565,22 @@ function deleteReportComment(
         const originalMessage = ReportActionsUtils.getOriginalMessage(reportMentionWhisperAction);
         if (!originalMessage?.resolution && !originalMessage?.deleted) {
             unresolvedMentionWhisperIDs.push(reportMentionWhisperID);
+        }
+    }
+
+    // Whispers created during a message edit receive a random ID (not parentID+1/+2), but the
+    // backend stores the parent's reportActionID in originalMessage.parentReportActionID. Scan
+    // all actions to catch any such whispers that the offset lookup above would miss.
+    for (const [actionID, action] of Object.entries(reportActionsForReport)) {
+        if (unresolvedMentionWhisperIDs.includes(actionID)) {
+            continue;
+        }
+        if (!ReportActionsUtils.isActionableMentionWhisper(action) && !ReportActionsUtils.isActionableReportMentionWhisper(action)) {
+            continue;
+        }
+        const originalMessage = ReportActionsUtils.getOriginalMessage(action);
+        if (originalMessage?.parentReportActionID === reportActionID && !originalMessage?.resolution && !originalMessage?.deleted) {
+            unresolvedMentionWhisperIDs.push(actionID);
         }
     }
 
@@ -4119,11 +4136,6 @@ function shouldShowReportActionNotification(reportID: string, currentUserAccount
         return false;
     }
 
-    if (action && !ReportActionsUtils.isActionable(action, currentUserAccountID)) {
-        Log.info(`${tag} No notification because report action is not actionable`);
-        return false;
-    }
-
     return true;
 }
 
@@ -5109,6 +5121,14 @@ async function completeOnboarding({
     // API calls are not chained in this case
     // eslint-disable-next-line rulesdir/no-multiple-api-calls
     return API.write(WRITE_COMMANDS.COMPLETE_GUIDED_SETUP, parameters, {optimisticData, successData, failureData});
+}
+
+/**
+ * Extracts the onboarding RHP variant directly from the completeOnboarding API response
+ * to avoid a race condition where the Onyx callback hasn't fired yet when navigateAfterOnboarding is called.
+ */
+function extractRHPVariantFromResponse(response: Awaited<ReturnType<typeof completeOnboarding>>): OnboardingRHPVariant | undefined {
+    return response?.onyxData?.find((update) => (update.key as string) === ONYXKEYS.NVP_ONBOARDING_RHP_VARIANT)?.value as OnboardingRHPVariant | undefined;
 }
 
 /** Loads necessary data for rendering the RoomMembersPage */
@@ -7292,6 +7312,7 @@ export {
     clearPrivateNotesError,
     clearReportFieldKeyErrors,
     completeOnboarding,
+    extractRHPVariantFromResponse,
     createNewReport,
     deleteReport,
     deleteReportActionDraft,
