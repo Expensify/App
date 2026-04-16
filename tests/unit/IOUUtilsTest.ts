@@ -306,6 +306,18 @@ describe('IOUUtils', () => {
         test('Return multiple tags when hasMultipleTagLists is true', () => {
             expect(IOUUtils.insertTagIntoTransactionTagsString('East:NY:California', 'NewTag', 1, true)).toBe('East:NewTag:California');
         });
+
+        test('Should not produce a leading colon when transactionTags is empty and tagIndex > 0', () => {
+            expect(IOUUtils.insertTagIntoTransactionTagsString('', 'Alpha', 1, true)).toBe(':Alpha');
+        });
+
+        test('Should produce correct result when transactionTags is empty and tagIndex is 0', () => {
+            expect(IOUUtils.insertTagIntoTransactionTagsString('', 'Alpha', 0, true)).toBe('Alpha');
+        });
+
+        test('Should fill sparse slots when tagIndex exceeds current array length', () => {
+            expect(IOUUtils.insertTagIntoTransactionTagsString('First', 'Third', 2, true)).toBe('First::Third');
+        });
     });
 });
 
