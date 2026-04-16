@@ -1330,6 +1330,7 @@ describe('actions/IOU/ReportWorkflow', () => {
 
             approveMoneyRequest({
                 expenseReport,
+                expenseReportPolicy: createRandomPolicy(Number(expenseReport.policyID)),
                 policy: {} as Policy,
                 currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
                 currentUserEmailParam: CARLOS_EMAIL,
@@ -1366,6 +1367,7 @@ describe('actions/IOU/ReportWorkflow', () => {
 
             approveMoneyRequest({
                 expenseReport,
+                expenseReportPolicy: createRandomPolicy(Number(expenseReport.policyID)),
                 policy: {} as Policy,
                 currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
                 currentUserEmailParam: CARLOS_EMAIL,
@@ -1943,6 +1945,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             // Admin approves the report
             approveMoneyRequest({
                 expenseReport,
+                expenseReportPolicy: policy,
                 policy,
                 currentUserAccountIDParam: adminAccountID,
                 currentUserEmailParam: adminEmail,
@@ -1994,6 +1997,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             // Manager approves the report
             approveMoneyRequest({
                 expenseReport,
+                expenseReportPolicy: policy,
                 policy,
                 currentUserAccountIDParam: managerAccountID,
                 currentUserEmailParam: managerEmail,
@@ -2041,6 +2045,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             // Admin approves the report
             approveMoneyRequest({
                 expenseReport,
+                expenseReportPolicy: policy,
                 policy,
                 currentUserAccountIDParam: adminAccountID,
                 currentUserEmailParam: adminEmail,
@@ -2164,6 +2169,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             // Manager approves the report (no take control actions)
             approveMoneyRequest({
                 expenseReport,
+                expenseReportPolicy: policy,
                 policy,
                 currentUserAccountIDParam: managerAccountID,
                 currentUserEmailParam: managerEmail,
@@ -2194,6 +2200,7 @@ describe('actions/IOU/ReportWorkflow', () => {
 
             approveMoneyRequest({
                 expenseReport,
+                expenseReportPolicy: policy,
                 policy,
                 currentUserAccountIDParam: managerAccountID,
                 currentUserEmailParam: managerEmail,
@@ -2222,6 +2229,7 @@ describe('actions/IOU/ReportWorkflow', () => {
 
             approveMoneyRequest({
                 expenseReport: updatedReport,
+                expenseReportPolicy: policy,
                 policy,
                 currentUserAccountIDParam: adminAccountID,
                 currentUserEmailParam: adminEmail,
@@ -2280,6 +2288,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             // Manager approves the report
             approveMoneyRequest({
                 expenseReport: singleApproverReport,
+                expenseReportPolicy: singleApproverPolicy,
                 policy: singleApproverPolicy,
                 currentUserAccountIDParam: managerAccountID,
                 currentUserEmailParam: managerEmail,
@@ -2394,6 +2403,7 @@ describe('actions/IOU/ReportWorkflow', () => {
 
             const newExpenseReportID = approveMoneyRequest({
                 expenseReport,
+                expenseReportPolicy: policy,
                 policy,
                 currentUserAccountIDParam: adminAccountID,
                 currentUserEmailParam: adminEmail,

@@ -110,6 +110,7 @@ const translations: TranslationDeepObject<typeof en> = {
         newFeature: 'Nuova funzionalità',
         search: 'Cerca',
         reports: 'Report',
+        spend: 'Spese',
         find: 'Trova',
         searchWithThreeDots: 'Cerca...',
         next: 'Avanti',
@@ -1468,11 +1469,6 @@ const translations: TranslationDeepObject<typeof en> = {
             manySplitsProvided: `Il numero massimo di suddivisioni consentite è ${CONST.IOU.SPLITS_LIMIT}.`,
             dateRangeExceedsMaxDays: `L’intervallo di date non può superare ${CONST.IOU.SPLITS_LIMIT} giorni.`,
             stitchOdometerImagesFailed: 'Impossibile combinare le immagini del contachilometri. Riprova più tardi.',
-            nonReimbursablePayment: 'Impossibile pagare tramite Expensify',
-            nonReimbursablePaymentDescription: (isMultiple?: boolean) =>
-                isMultiple
-                    ? 'Uno o più report selezionati non contengono spese rimborsabili. Ricontrolla le spese oppure contrassegnali manualmente come pagati.'
-                    : 'Il report non contiene spese rimborsabili. Ricontrolla le spese oppure contrassegnalo manualmente come pagato.',
         },
         dismissReceiptError: 'Ignora errore',
         dismissReceiptErrorConfirmation: 'Attenzione! Chiudere questo errore rimuoverà completamente la ricevuta che hai caricato. Sei sicuro?',
@@ -1673,6 +1669,7 @@ const translations: TranslationDeepObject<typeof en> = {
             prompt: 'Abilita il monitoraggio delle imposte nello spazio di lavoro per modificare i dettagli della spesa o eliminare l’imposta da questa spesa.',
             confirmText: 'Elimina imposta',
         },
+        deleted: 'Eliminato',
     },
     transactionMerge: {
         listPage: {
@@ -2116,6 +2113,9 @@ const translations: TranslationDeepObject<typeof en> = {
             helpSite: 'Sito di assistenza',
             conciergeChat: 'Concierge',
             conciergeChatDescription: 'Il tuo assistente IA personale',
+            accountManagerDescription: 'Il tuo account manager',
+            partnerManagerDescription: 'Il tuo partner manager',
+            guideDescription: 'Il tuo specialista di configurazione',
         },
     },
     closeAccountPage: {
@@ -3205,8 +3205,7 @@ ${amount} per ${merchant} - ${date}`,
                         # La tua prova gratuita è iniziata! Configuriamo il tuo account.
                         👋 Ciao, sono il tuo specialista di configurazione Expensify. Ora che hai creato uno spazio di lavoro, sfrutta al massimo i tuoi 30 giorni di prova gratuita seguendo i passaggi qui sotto!
                     `),
-            onboardingTrackWorkspaceMessage:
-                '# Configuriamo il tuo account\n👋 Ciao, sono il tuo specialista di configurazione Expensify. Ho già creato uno spazio di lavoro per aiutarti a gestire ricevute e spese. Per sfruttare al massimo la tua prova gratuita di 30 giorni, segui i passaggi di configurazione rimanenti qui sotto!',
+            onboardingTrackWorkspaceMessage: 'Per sfruttare al massimo la tua prova gratuita di 30 giorni, segui i passaggi rimanenti qui sotto:',
             onboardingChatSplitMessage: 'Dividere le spese con gli amici è facile come inviare un messaggio. Ecco come fare.',
             onboardingAdminMessage: 'Scopri come gestire lo spazio di lavoro del tuo team come amministratore e inviare le tue spese.',
             onboardingTestDriveReceiverMessage: '*Hai 3 mesi gratis! Inizia qui sotto.*',
@@ -4569,7 +4568,7 @@ ${amount} per ${merchant} - ${date}`,
                     [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Le spese anticipate verranno esportate al momento del pagamento',
                 },
             },
-            travelInvoicing: 'Fatturazione viaggi',
+            travelInvoicing: 'Esporta debiti di Expensify Travel verso',
             travelInvoicingVendor: 'Fornitore di viaggi',
             travelInvoicingPayableAccount: 'Conto debiti per viaggi',
         },
@@ -5273,7 +5272,7 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
             chooseCard: 'Scegli una carta',
             chooseCardFor: (assignee: string) =>
                 `Scegli una carta per <strong>${assignee}</strong>. Non riesci a trovare la carta che stai cercando? <concierge-link>Facci sapere.</concierge-link>`,
-            noAvailableCards: 'Tutte le carte hanno già una regola',
+            noActiveCards: 'Nessuna carta attiva in questo feed',
             somethingMightBeBroken:
                 '<muted-text><centered-text>Oppure potrebbe esserci un problema. In ogni caso, se hai domande, <concierge-link>contatta Concierge</concierge-link>.</centered-text></muted-text>',
             chooseTransactionStartDate: 'Scegli una data di inizio transazione',
@@ -5307,7 +5306,6 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
             },
             deletedCard: 'Carta eliminata',
             assignNewCards: {title: 'Assegna nuove carte', description: 'Ottieni le ultime carte da assegnare dalla tua banca'},
-            noAvailableCardsSubtitle: 'Modifica una regola della carta esistente per apportare modifiche',
         },
         expensifyCard: {
             issueAndManageCards: 'Emetti e gestisci le tue Carte Expensify',
@@ -5506,6 +5504,11 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                             settlementFrequencyLabel: 'Frequenza di regolamento',
                             settlementFrequencyDescription:
                                 'Con quale frequenza Expensify preleverà dal tuo conto bancario aziendale per saldare le recenti transazioni di Expensify Travel.',
+                            monthlySpendLimitLabel: 'Limite di spesa mensile per membro',
+                            monthlySpendLimitDescription: "L'importo massimo che ciascun membro può spendere in viaggi al mese.",
+                            reduceLimitTitle: 'Ridurre il limite di spesa per i viaggi?',
+                            reduceLimitWarning:
+                                'Se riduci il limite, i membri che hanno già speso più di questo importo non potranno effettuare nuove prenotazioni di viaggio fino al mese prossimo.',
                         },
                     },
                     disableModal: {
@@ -6869,6 +6872,8 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                 confirmErrorApplyAtLeastOneSpendRule: 'Applica almeno una regola di spesa',
                 categories: 'Categorie',
                 merchants: 'Esercenti',
+                noAvailableCards: 'Tutte le carte hanno già una regola',
+                noAvailableCardsSubtitle: 'Modifica una regola carta esistente per apportare modifiche',
                 max: 'Massimo',
                 categoryOptions: {
                     [CONST.SPEND_RULES.CATEGORIES.AIRLINES]: 'Compagnie aeree',
@@ -7593,6 +7598,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             reject: 'Rifiuta',
             duplicateExpense: ({count}: {count: number}) => `Duplica ${count === 1 ? 'spesa' : 'spese'}`,
             noOptionsAvailable: 'Nessuna opzione disponibile per il gruppo di spese selezionato.',
+            undelete: 'Ripristina',
         },
         filtersHeader: 'Filtri',
         filters: {
@@ -7645,6 +7651,10 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             billable: 'Fatturabile',
             reimbursable: 'Rimborsabile',
             purchaseCurrency: 'Valuta di acquisto',
+            sortOrder: {
+                [CONST.SEARCH.SORT_ORDER.ASC]: 'In ordine crescente',
+                [CONST.SEARCH.SORT_ORDER.DESC]: 'In discesa',
+            },
             groupBy: {
                 [CONST.SEARCH.GROUP_BY.FROM]: 'Da',
                 [CONST.SEARCH.GROUP_BY.CARD]: 'Carta',
@@ -7673,6 +7683,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
         display: {
             label: 'Visualizza',
             sortBy: 'Ordina per',
+            sortOrder: 'Ordine di visualizzazione',
             groupBy: 'Raggruppa per',
             limitResults: 'Limita i risultati',
         },
@@ -7708,7 +7719,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
         recentSearches: 'Ricerche recenti',
         recentChats: 'Chat recenti',
         searchIn: 'Cerca in',
-        searchPlaceholder: 'Cerca qualcosa',
+        searchPlaceholder: 'Cerca qualcosa...',
         suggestions: 'Suggerimenti',
         suggestionsAvailable: (
             {
@@ -7894,6 +7905,21 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
         oooEventSummaryPartialDay: (summary: string, timePeriod: string, date: string) => `${summary} dal ${timePeriod} del ${date}`,
         startTimer: 'Avvia timer',
         stopTimer: 'Ferma timer',
+        scheduleOOO: 'Pianifica OOO',
+        scheduleOOOTitle: 'Programma assenza dall’ufficio',
+        date: 'Data',
+        time: 'Ora (formato 24 ore)',
+        durationAmount: 'Durata',
+        durationUnit: 'Unità',
+        reason: 'Motivo',
+        workingPercentage: 'Percentuale lavorativa',
+        dateRequired: 'La data è obbligatoria.',
+        invalidTimeFormat: 'Inserisci un orario valido nel formato 24 ore (ad es. 14:30).',
+        enterANumber: 'Inserisci un numero.',
+        hour: 'ore',
+        day: 'giorni',
+        week: 'settimane',
+        month: 'mesi',
     },
     footer: {
         features: 'Funzionalità',
