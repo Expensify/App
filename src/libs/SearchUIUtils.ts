@@ -5403,7 +5403,7 @@ function getColumnsToShow({
                 columns[CONST.SEARCH.TABLE_COLUMNS.EXCHANGE_RATE] = true;
             }
             // Show the Total column when the transaction has a converted amount or any exchange info.
-            if (hasExchangeRate || (transaction.convertedAmount != null && transaction.convertedAmount !== 0)) {
+            if (hasExchangeRate || (transaction.convertedAmount != null && transaction.convertedAmount !== transaction.amount)) {
                 columns[CONST.SEARCH.TABLE_COLUMNS.TOTAL] = true;
             }
 

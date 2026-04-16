@@ -1294,8 +1294,12 @@ function getExchangeRate(transaction: TransactionWithOptionalSearchFields, repor
     const fromCurrency = getCurrency(transaction);
     const toCurrency = transaction.groupCurrency ?? reportCurrency ?? fromCurrency;
 
+    // Only show exchange rate when a conversion actually occurred.
+    // The backend sets rates even for same-currency expenses; convertedAmount === amount means no conversion.
+    const wasActuallyConverted = transaction.convertedAmount != null && transaction.convertedAmount !== transaction.amount;
+
     // groupExchangeRate: search page rate (from→groupCurrency)
-    if (transaction.groupExchangeRate != null && transaction.groupCurrency && fromCurrency !== transaction.groupCurrency) {
+    if (wasActuallyConverted && transaction.groupExchangeRate != null && transaction.groupCurrency && fromCurrency !== transaction.groupCurrency) {
         const groupRate = Number(transaction.groupExchangeRate);
         if (groupRate !== 1) {
             return `${transaction.groupExchangeRate} ${fromCurrency}/${toCurrency}`;
@@ -1304,7 +1308,7 @@ function getExchangeRate(transaction: TransactionWithOptionalSearchFields, repor
 
     // currencyConversionRate: report layout rate (from→report currency).
     const conversionToCurrency = reportCurrency ?? (transaction.currency !== fromCurrency ? transaction.currency : toCurrency);
-    if (transaction.currencyConversionRate != null && fromCurrency !== conversionToCurrency) {
+    if (wasActuallyConverted && transaction.currencyConversionRate != null && fromCurrency !== conversionToCurrency) {
         const conversionRate = Number(transaction.currencyConversionRate);
         if (conversionRate !== 1) {
             return `${transaction.currencyConversionRate} ${fromCurrency}/${conversionToCurrency}`;
