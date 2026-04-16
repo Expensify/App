@@ -262,7 +262,7 @@ jest.mock('../src/components/Icon/IllustrationLoader.ts', () => ({
 }));
 
 jest.mock(
-    '@components/FlatList/RenderTaskQueue',
+    '@components/FlatList/InvertedFlatList/RenderTaskQueue',
     () =>
         class SyncRenderTaskQueue {
             private handler: (info: unknown) => void = () => {};
