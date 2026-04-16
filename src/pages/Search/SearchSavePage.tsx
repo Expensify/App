@@ -89,17 +89,14 @@ function SearchSavePage() {
     const {currentSearchQueryJSON} = useSearchStateContext();
 
     const onSaveSearch = () => {
+        const newName = name?.trim() || currentSearchQueryJSON?.inputQuery;
+
         if (!currentSearchQueryJSON) {
             Navigation.goBack();
             return;
         }
 
-        if (name) {
-            saveSearch({queryJSON: currentSearchQueryJSON, newName: name});
-        } else {
-            saveSearch({queryJSON: currentSearchQueryJSON});
-        }
-
+        saveSearch({queryJSON: currentSearchQueryJSON, newName});
         Navigation.goBack();
     };
 
