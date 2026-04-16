@@ -7,6 +7,7 @@ import {
     getMarkedReimbursedMessage,
     getOriginalMessage,
     getRemovedFromApprovalChainMessage,
+    getReportActionMessageText,
     getReportActionText,
     isActionOfType,
     isRejectedAction,
@@ -88,7 +89,8 @@ function SimpleMessageContent({action}: SimpleMessageContentProps) {
         return <ReportActionItemBasicMessage message={translate('violations.resolvedDuplicates')} />;
     }
     if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.RECEIPT_SCAN_FAILED)) {
-        return <ReportActionItemBasicMessage message={translate('iou.receiptScanningFailed')} />;
+        const htmlMessage = getReportActionMessageText(action) || translate('iou.receiptScanningFailed');
+        return <ReportActionItemBasicMessage message={htmlMessage} />;
     }
     if (isUnapprovedAction(action)) {
         return <ReportActionItemBasicMessage message={translate('iou.unapproved')} />;

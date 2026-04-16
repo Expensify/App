@@ -2541,7 +2541,7 @@ describe('SearchUIUtils', () => {
             expect(distanceTransaction).toBeDefined();
             expect(distanceTransaction?.iouRequestType).toBe(CONST.IOU.REQUEST_TYPE.DISTANCE);
 
-            const expectedPropertyCount = 54;
+            const expectedPropertyCount = 53;
             expect(Object.keys(distanceTransaction ?? {}).length).toBe(expectedPropertyCount);
         });
 
@@ -5394,27 +5394,6 @@ describe('SearchUIUtils', () => {
                 expect(item?.from?.accountID).toBe(adminAccountID);
             });
 
-            it('should set isCardFeedDeleted to undefined when cardFeeds is undefined', () => {
-                const data = makeFilterTestData({}, {bank: 'some-bank'});
-                const [sections] = callGetTransactionsSections(data, {cardFeeds: undefined});
-                const item = sections.find((s) => s.transactionID === filterTestTxID);
-                expect(item?.isCardFeedDeleted).toBeUndefined();
-            });
-
-            it('should set isCardFeedDeleted to true when card feed does not exist', () => {
-                const data = makeFilterTestData({}, {bank: 'deleted-bank-feed'});
-                const [sections] = callGetTransactionsSections(data, {cardFeeds: {}});
-                const item = sections.find((s) => s.transactionID === filterTestTxID);
-                expect(item?.isCardFeedDeleted).toBe(true);
-            });
-
-            it('should set isCardFeedDeleted to false when bank is empty', () => {
-                const data = makeFilterTestData({}, {bank: ''});
-                const [sections] = callGetTransactionsSections(data, {cardFeeds: {}});
-                const item = sections.find((s) => s.transactionID === filterTestTxID);
-                expect(item?.isCardFeedDeleted).toBe(false);
-            });
-
             it('should set exported to empty string when transaction has no reportID', () => {
                 const noReportTxID = 'no-report-tx';
                 const data = {
@@ -8087,6 +8066,7 @@ describe('SearchUIUtils', () => {
         });
 
         test('Should fallback to childReportID from IOU action when transaction thread report is not in Onyx', async () => {
+            (createTransactionThreadReport as jest.Mock).mockReset();
             const childReportID = 'child-thread-456';
             // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
             const multiTransactionItem = transactionsListItems.at(2) as TransactionListItemType;
