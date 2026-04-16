@@ -8,6 +8,7 @@ import AttachmentModalContainer from '@pages/media/AttachmentModalScreen/Attachm
 import type {AttachmentModalScreenProps} from '@pages/media/AttachmentModalScreen/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
+import useDownloadAttachment from './hooks/useDownloadAttachment';
 
 function WorkspaceDocumentModalContent({navigation, route}: AttachmentModalScreenProps<typeof SCREENS.WORKSPACE_DOCUMENT>) {
     const {policyID} = route.params;
@@ -28,6 +29,8 @@ function WorkspaceDocumentModalContent({navigation, route}: AttachmentModalScree
         [policy?.rulesDocumentURL, policyID, session?.encryptedAuthToken],
     );
 
+    const onDownloadAttachment = useDownloadAttachment();
+
     const contentProps = useMemo<AttachmentModalBaseContentProps>(
         () => ({
             source: rulesDocumentSourceURL,
@@ -35,9 +38,10 @@ function WorkspaceDocumentModalContent({navigation, route}: AttachmentModalScree
             originalFileName: `${policyID}-policy-document.pdf`,
             shouldShowNotFoundPage,
             isLoading,
+            onDownloadAttachment,
             shouldCloseOnSwipeDown: true,
         }),
-        [rulesDocumentSourceURL, translate, policyID, shouldShowNotFoundPage, isLoading],
+        [rulesDocumentSourceURL, translate, policyID, shouldShowNotFoundPage, isLoading, onDownloadAttachment],
     );
 
     return (
