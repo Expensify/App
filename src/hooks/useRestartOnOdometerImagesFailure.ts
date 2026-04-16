@@ -39,6 +39,7 @@ const useRestartOnOdometerImagesFailure = (transaction: OnyxEntry<Transaction>, 
             return;
         }
 
+
         const startImage = transaction.comment?.odometerStartImage;
         const endImage = transaction.comment?.odometerEndImage;
         const stitchedUri = transaction.receipt?.source?.toString();
@@ -80,13 +81,12 @@ const useRestartOnOdometerImagesFailure = (transaction: OnyxEntry<Transaction>, 
                 ),
             ),
         )?.then(() => {
-            const requestType = getRequestType(transaction);
-            if (canBeRead || requestType !== CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER) {
+            if (canBeRead) {
                 return;
             }
 
             clearOdometerTransactionState(transaction, true);
-            navigateToStartMoneyRequestStep(requestType, iouType, transaction.transactionID, reportID);
+            navigateToStartMoneyRequestStep(CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER, iouType, transaction.transactionID, reportID);
         });
 
         // We want this hook to run once after Onyx finishes loading the draft transactions
