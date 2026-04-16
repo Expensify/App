@@ -13,7 +13,7 @@ type CurrencyListActionsContextType = {
     getCurrencyDecimals: (currencyCode: string | undefined) => number;
 
     /** Function to convert amount in cents to display string based on the currency and locale */
-    convertToDisplayString: (amount: number, currencyCode: string) => string;
+    convertToDisplayString: (amount: number | undefined, currencyCode: string | undefined) => string;
 };
 
 export type {CurrencyListStateContextType, CurrencyListActionsContextType};

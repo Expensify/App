@@ -5,6 +5,7 @@ import type Animated from 'react-native-reanimated';
 import {measureRenders} from 'reassure';
 import type {EmojiPickerRef} from '@libs/actions/EmojiPickerAction';
 import type Navigation from '@libs/Navigation/Navigation';
+import {setHasRadio} from '@libs/NetworkState';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report} from '@src/types/onyx';
@@ -73,7 +74,7 @@ beforeAll(() =>
 
 // Initialize the network key for OfflineWithFeedback and seed report data
 beforeEach(() => {
-    Onyx.merge(ONYXKEYS.NETWORK, {isOffline: false});
+    setHasRadio(true);
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}1`, {
         reportID: '1',
         reportName: 'Test Report',
