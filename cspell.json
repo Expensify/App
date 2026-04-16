@@ -649,6 +649,7 @@
         "RPID",
         "RRGGBB",
         "rstrip",
+        "recyclerview",
         "RTER",
         "s3uqn2oe4m85tufi6mqflbfbuajrm2i3",
         "SAASPASS",
@@ -909,7 +910,8 @@
         "Wintrust",
         "Zürcher",
         "CARDFROZEN",
-        "CARDUNFROZEN"
+        "CARDUNFROZEN",
+        "Kolkata"
     ],
     "ignorePaths": [
         "src/languages/de.ts",

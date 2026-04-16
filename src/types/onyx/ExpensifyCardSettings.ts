@@ -67,11 +67,17 @@ type ExpensifyCardSettingsBase = {
     /** Credit limit for the card program */
     limit?: number;
 
+    /** Per-user monthly spend limit for travel invoicing cards (in cents) */
+    monthlySpendLimitPerUser?: number;
+
     /** Currency for the card program (e.g. USD, GBP, EUR) */
     currency?: string;
 
     /** Owner email for the card program */
     ownerEmail?: string;
+
+    /** Amount (in cents) of in-flight settlement that has been billed but not yet settled at the bank */
+    pendingSettlementAmount?: number;
 };
 
 /** Spend rule filter condition */
