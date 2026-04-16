@@ -1100,12 +1100,12 @@ describe('SubscriptionUtils', () => {
     });
 
     describe('shouldUseSimplifiedCollectSubscriptionUI', () => {
-        it('returns false for Team workspaces with Team 2025 pricing', () => {
-            expect(shouldUseSimplifiedCollectSubscriptionUI(CONST.POLICY.TYPE.TEAM, true)).toBeFalsy();
+        it('returns true for Team workspaces with Team 2025 pricing', () => {
+            expect(shouldUseSimplifiedCollectSubscriptionUI(CONST.POLICY.TYPE.TEAM, true)).toBeTruthy();
         });
 
-        it('returns true for Team workspaces without Team 2025 pricing', () => {
-            expect(shouldUseSimplifiedCollectSubscriptionUI(CONST.POLICY.TYPE.TEAM, false)).toBeTruthy();
+        it('returns false for Team workspaces without Team 2025 pricing', () => {
+            expect(shouldUseSimplifiedCollectSubscriptionUI(CONST.POLICY.TYPE.TEAM, false)).toBeFalsy();
         });
 
         it('returns false for Corporate workspaces without Team 2025 pricing', () => {
