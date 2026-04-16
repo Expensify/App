@@ -45,21 +45,16 @@ function navigateToMigratedUserWelcomeModalIfReady() {
     Navigation.navigate(ROUTES.MIGRATED_USER_WELCOME_MODAL.getRoute());
 }
 
-Onyx.connectWithoutView({
-    key: ONYXKEYS.SESSION,
-    callback: (value) => {
-        session = value;
-        navigateToMigratedUserWelcomeModalIfReady();
-    },
-});
-
-Onyx.connectWithoutView({
-    key: ONYXKEYS.IS_LOADING_APP,
-    callback: (value) => {
-        isLoadingApp = value ?? true;
-        navigateToMigratedUserWelcomeModalIfReady();
-    },
-});
+/**
+ * Called by guards/index.ts when session or loading app state changes.
+ * Reuses the shared Onyx subscriptions from guards/index.ts to avoid duplicate connections
+ * that cause extra renders in performance tests.
+ */
+function onSessionOrLoadingAppChanged(sessionValue: OnyxEntry<Session>, isLoadingAppValue: boolean) {
+    session = sessionValue;
+    isLoadingApp = isLoadingAppValue;
+    navigateToMigratedUserWelcomeModalIfReady();
+}
 
 Onyx.connectWithoutView({
     key: ONYXKEYS.NVP_TRY_NEW_DOT,
@@ -138,4 +133,4 @@ const MigratedUserWelcomeModalGuard: NavigationGuard = {
 };
 
 export default MigratedUserWelcomeModalGuard;
-export {resetSessionFlag};
+export {resetSessionFlag, onSessionOrLoadingAppChanged};
