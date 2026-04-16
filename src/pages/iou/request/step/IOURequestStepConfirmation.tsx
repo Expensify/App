@@ -638,7 +638,6 @@ function IOURequestStepConfirmation({
             transactionTaxValue,
             customUnitRateID,
             isTimeRequest,
-            shouldGenerateTransactionThreadReport,
             backToReport,
             isASAPSubmitBetaEnabled,
             policyRecentlyUsedCurrencies,
