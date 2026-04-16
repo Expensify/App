@@ -24,6 +24,7 @@ function SpendCategorySelectorListItem<TItem extends ListItem>({item, onSelectRo
             onSelectRow={onSelectRow}
             isFocused={isFocused}
             showTooltip
+            shouldShowSelectionButton={false}
             keyForList={item.keyForList}
             pendingAction={item.pendingAction}
         >

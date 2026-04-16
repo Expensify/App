@@ -119,6 +119,7 @@ function SplitListItem<TItem extends ListItem>({
             pressableStyle={[styles.br2, styles.bgTransparent]}
             isDisabled={isDisabled}
             showTooltip={showTooltip}
+            shouldShowSelectionButton={false}
             onSelectRow={onSelectRow}
             shouldPreventEnterKeySubmit={shouldPreventEnterKeySubmit}
             rightHandSideComponent={rightHandSideComponent}

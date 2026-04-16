@@ -49,6 +49,7 @@ function SearchQueryListItem({item, isFocused, showTooltip, onSelectRow, onFocus
             wrapperStyle={[styles.flexRow, styles.flex1, styles.justifyContentBetween, styles.userSelectNone, styles.alignItemsCenter]}
             isFocused={isFocused}
             onSelectRow={onSelectRow}
+            shouldShowSelectionButton={false}
             keyForList={item.keyForList}
             onFocus={onFocus}
             hoverStyle={item.isSelected && styles.activeComponentBG}

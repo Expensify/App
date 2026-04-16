@@ -91,7 +91,7 @@ function InviteMemberListItem<TItem extends ListItem>({
             onFocus={onFocus}
             shouldSyncFocus={shouldSyncFocus}
             shouldDisplayRBR={!(canSelectMultiple && !item.isDisabled)}
-            shouldShowSelectionButton={!item.isDisabled && shouldShowSelectionButton}
+            shouldShowSelectionButton={shouldShowSelectionButton}
             onCheckboxPress={onCheckboxPress}
             testID={item.text}
         >

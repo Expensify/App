@@ -102,7 +102,7 @@ function BaseListItem<TItem extends ListItem>({
     accessible,
     accessibilityRole = getButtonRole(true),
     forwardedFSClass,
-    shouldShowSelectionButton = false,
+    shouldShowSelectionButton = true,
     selectionButtonPosition = CONST.SELECTION_BUTTON_POSITION.RIGHT,
 }: BaseListItemProps<TItem>) {
     const theme = useTheme();

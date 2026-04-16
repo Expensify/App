@@ -30,6 +30,7 @@ function UserSelectionListItem<TItem extends ListItem>({
     shouldSyncFocus,
     wrapperStyle,
     pressableStyle,
+    shouldShowSelectionButton = true,
 }: UserSelectionListItemProps<TItem>) {
     const styles = useThemeStyles();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -74,7 +75,7 @@ function UserSelectionListItem<TItem extends ListItem>({
             keyForList={item.keyForList}
             onFocus={onFocus}
             shouldSyncFocus={shouldSyncFocus}
-            shouldShowSelectionButton
+            shouldShowSelectionButton={shouldShowSelectionButton}
         >
             <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.h13, styles.gap3]}>
                 {!!item.icons?.length && (
