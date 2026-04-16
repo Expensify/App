@@ -343,18 +343,22 @@ function flush(shouldResetPromise = true) {
         callback: () => {
             Log.info('[SequentialQueue] PERSISTED_REQUESTS loaded, starting process()', false, {
                 requestsLength: getAllPersistedRequests().length,
+                ongoingCommand: getPersistedOngoingRequest()?.command ?? 'null',
             });
             Onyx.disconnect(connection);
             process().finally(() => {
-                const remainingRequests = getAllPersistedRequests().length;
+                const remainingPersistedRequests = getAllPersistedRequests().length;
+                const hasOngoingRequest = !!getPersistedOngoingRequest();
+                const hasRemainingRequests = remainingPersistedRequests > 0 || hasOngoingRequest;
                 Log.info('[SequentialQueue] Finished processing queue.', false, {
-                    remainingRequests,
+                    remainingRequests: remainingPersistedRequests,
+                    hasOngoingRequest,
                     isOffline: isOffline(),
-                    willResolvePromise: isOffline() || remainingRequests === 0,
+                    willResolvePromise: isOffline() || !hasRemainingRequests,
                 });
 
                 isSequentialQueueRunning = false;
-                if (isOffline() || remainingRequests === 0) {
+                if (isOffline() || !hasRemainingRequests) {
                     Log.info('[SequentialQueue] Resolving isReadyPromise', false, {
                         reason: isOffline() ? 'offline' : 'queue empty',
                     });
@@ -363,7 +367,7 @@ function flush(shouldResetPromise = true) {
                 currentRequestPromise = null;
 
                 // The queue can be paused when we sync the data with backend so we should only update the Onyx data when the queue is empty
-                if (remainingRequests === 0) {
+                if (!hasRemainingRequests) {
                     Log.info('[SequentialQueue] Queue is empty, flushing Onyx updates');
                     flushOnyxUpdatesQueue()?.then(() => {
                         const queueFlushedData = getQueueFlushedData();
@@ -383,7 +387,8 @@ function flush(shouldResetPromise = true) {
                     });
                 } else {
                     Log.info('[SequentialQueue] Queue still has requests, NOT flushing Onyx updates', false, {
-                        remainingRequests,
+                        remainingRequests: remainingPersistedRequests,
+                        hasOngoingRequest,
                     });
                 }
             });
