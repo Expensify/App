@@ -1386,7 +1386,6 @@ function updateSplitTransactions({
                 odometerStart: splitExpense.odometerStart,
                 odometerEnd: splitExpense.odometerEnd,
             };
-            requestMoneyInformation.existingTransaction = undefined;
         }
 
         const {participantParams, policyParams, transactionParams, parentChatReport, existingTransaction} = requestMoneyInformation;
@@ -1410,7 +1409,7 @@ function updateSplitTransactions({
             newReportTotal: reportTotals.get(splitExpense?.reportID ?? String(CONST.DEFAULT_NUMBER_ID)) ?? 0,
             newNonReimbursableTotal: (transactionReport?.nonReimbursableTotal ?? 0) - changesInReportTotal,
             isSplitExpense: true,
-            currentReportActionID: !isReverseSplitOperation ? currentReportAction?.reportActionID : undefined,
+            currentReportActionID: !isReverseSplitOperation ? currentReportAction?.reportActionID : firstIOU?.reportActionID,
             isASAPSubmitBetaEnabled,
             currentUserAccountIDParam: currentUserPersonalDetails?.accountID,
             currentUserEmailParam: currentUserPersonalDetails?.login ?? '',
@@ -2039,6 +2038,28 @@ function updateSplitTransactions({
                 errors: null,
             },
         });
+
+        // Restore the original transaction to its pre-split state on failure
+        // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
+        onyxData.failureData?.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`,
+            value: originalTransaction,
+        });
+
+        if (firstIOU) {
+            onyxData.failureData?.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport?.reportID}`,
+                value: {
+                    [firstIOU.reportActionID]: {
+                        ...firstIOU,
+                        pendingAction: null,
+                    },
+                },
+            });
+        }
+
         pushUpdatedReportPreviewActionToOnyxData();
         const isLastTransactionInReport = Object.values(allTransactionsList ?? {}).filter((itemTransaction) => itemTransaction?.reportID === expenseReportID).length === 1;
         if (isLastTransactionInReport) {
