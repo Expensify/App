@@ -1,22 +1,4 @@
-import {
-    addMonths,
-    addYears,
-    endOfDay,
-    endOfMonth,
-    endOfYear,
-    format,
-    getYear,
-    isSameDay,
-    parseISO,
-    setDate,
-    setMonth,
-    setYear,
-    startOfDay,
-    startOfMonth,
-    startOfYear,
-    subMonths,
-    subYears,
-} from 'date-fns';
+import {addMonths, addYears, format, isSameDay, parseISO, setDate, setMonth, setYear, startOfDay, subMonths, subYears} from 'date-fns';
 import {Str} from 'expensify-common';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
@@ -99,11 +81,8 @@ function CalendarPicker({
     const initialHeight = (calendarDaysMatrix?.length || CONST.MAX_CALENDAR_PICKER_ROWS) * CONST.CALENDAR_PICKER_DAY_HEIGHT;
     const heightValue = useSharedValue(initialHeight);
 
-    const minYear = getYear(new Date(minDate));
-    const maxYear = getYear(new Date(maxDate));
-
     const [years, setYears] = useState<CalendarPickerListItem[]>(() =>
-        Array.from({length: maxYear - minYear + 1}, (v, i) => i + minYear).map((year) => ({
+        Array.from({length: CONST.CALENDAR_PICKER.MAX_YEAR - CONST.CALENDAR_PICKER.MIN_YEAR + 1}, (v, i) => i + CONST.CALENDAR_PICKER.MIN_YEAR).map((year) => ({
             text: year.toString(),
             value: year,
             keyForList: year.toString(),
@@ -181,10 +160,7 @@ function CalendarPicker({
 
     const moveToPrevYear = () => {
         setCurrentDateView((prev) => {
-            let prevYear = subYears(new Date(prev), 1);
-            if (prevYear < new Date(minDate)) {
-                prevYear = new Date(minDate);
-            }
+            const prevYear = subYears(new Date(prev), 1);
             setYears((prevYears) => prevYears.map((item) => ({...item, isSelected: item.value === prevYear.getFullYear()})));
             return prevYear;
         });
@@ -192,10 +168,7 @@ function CalendarPicker({
 
     const moveToNextYear = () => {
         setCurrentDateView((prev) => {
-            let nextYear = addYears(new Date(prev), 1);
-            if (nextYear > new Date(maxDate)) {
-                nextYear = new Date(maxDate);
-            }
+            const nextYear = addYears(new Date(prev), 1);
             setYears((prevYears) => prevYears.map((item) => ({...item, isSelected: item.value === nextYear.getFullYear()})));
             return nextYear;
         });
@@ -203,11 +176,6 @@ function CalendarPicker({
 
     const monthNames = DateUtils.getMonthNames().map((month) => Str.UCFirst(month));
     const daysOfWeek = DateUtils.getDaysOfWeek().map((day) => day.toUpperCase());
-    const hasAvailableDatesNextMonth = startOfDay(new Date(maxDate)) > endOfMonth(new Date(currentDateView));
-    const hasAvailableDatesPrevMonth = endOfDay(new Date(minDate)) < startOfMonth(new Date(currentDateView));
-    const hasAvailableDatesNextYear = startOfDay(new Date(maxDate)) > endOfYear(new Date(currentDateView));
-    const hasAvailableDatesPrevYear = endOfDay(new Date(minDate)) < startOfYear(new Date(currentDateView));
-
     useEffect(() => {
         if (isSmallScreenWidth || isFirstRender.current) {
             isFirstRender.current = false;
@@ -247,17 +215,13 @@ function CalendarPicker({
                     <PressableWithFeedback
                         shouldUseAutoHitSlop={false}
                         testID="prev-month-arrow"
-                        disabled={!hasAvailableDatesPrevMonth}
                         onPress={moveToPrevMonth}
                         hoverDimmingValue={1}
                         accessibilityLabel={translate('common.previousMonth')}
                         role={CONST.ROLE.BUTTON}
                         sentryLabel={CONST.SENTRY_LABEL.CALENDAR_PICKER.PREV_MONTH}
                     >
-                        <ArrowIcon
-                            disabled={!hasAvailableDatesPrevMonth}
-                            direction={CONST.DIRECTION.LEFT}
-                        />
+                        <ArrowIcon direction={CONST.DIRECTION.LEFT} />
                     </PressableWithFeedback>
                     <View style={[themeStyles.flex1, themeStyles.alignItemsCenter]}>
                         <PressableWithFeedback
@@ -286,31 +250,26 @@ function CalendarPicker({
                     <PressableWithFeedback
                         shouldUseAutoHitSlop={false}
                         testID="next-month-arrow"
-                        disabled={!hasAvailableDatesNextMonth}
                         onPress={moveToNextMonth}
                         hoverDimmingValue={1}
                         accessibilityLabel={translate('common.nextMonth')}
                         role={CONST.ROLE.BUTTON}
                         sentryLabel={CONST.SENTRY_LABEL.CALENDAR_PICKER.NEXT_MONTH}
                     >
-                        <ArrowIcon disabled={!hasAvailableDatesNextMonth} />
+                        <ArrowIcon />
                     </PressableWithFeedback>
                 </View>
                 <View style={[themeStyles.alignItemsCenter, themeStyles.flexRow, {flex: 2}]}>
                     <PressableWithFeedback
                         shouldUseAutoHitSlop={false}
                         testID="prev-year-arrow"
-                        disabled={!hasAvailableDatesPrevYear}
                         onPress={moveToPrevYear}
                         hoverDimmingValue={1}
                         accessibilityLabel={translate('common.previousYear')}
                         role={CONST.ROLE.BUTTON}
                         sentryLabel={CONST.SENTRY_LABEL.CALENDAR_PICKER.PREV_YEAR}
                     >
-                        <ArrowIcon
-                            disabled={!hasAvailableDatesPrevYear}
-                            direction={CONST.DIRECTION.LEFT}
-                        />
+                        <ArrowIcon direction={CONST.DIRECTION.LEFT} />
                     </PressableWithFeedback>
                     <View style={[themeStyles.flex1, themeStyles.alignItemsCenter]}>
                         <PressableWithFeedback
@@ -322,7 +281,6 @@ function CalendarPicker({
                             style={[themeStyles.alignItemsCenter]}
                             wrapperStyle={[themeStyles.alignItemsCenter]}
                             hoverDimmingValue={1}
-                            disabled={years.length <= 1}
                             testID="currentYearButton"
                             accessibilityLabel={`${currentYearView}, ${translate('common.currentYear')}`}
                             role={CONST.ROLE.BUTTON}
@@ -339,14 +297,13 @@ function CalendarPicker({
                     <PressableWithFeedback
                         shouldUseAutoHitSlop={false}
                         testID="next-year-arrow"
-                        disabled={!hasAvailableDatesNextYear}
                         onPress={moveToNextYear}
                         hoverDimmingValue={1}
                         accessibilityLabel={translate('common.nextYear')}
                         role={CONST.ROLE.BUTTON}
                         sentryLabel={CONST.SENTRY_LABEL.CALENDAR_PICKER.NEXT_YEAR}
                     >
-                        <ArrowIcon disabled={!hasAvailableDatesNextYear} />
+                        <ArrowIcon />
                     </PressableWithFeedback>
                 </View>
             </View>
@@ -432,9 +389,6 @@ function CalendarPicker({
             <MonthPickerModal
                 isVisible={isMonthPickerVisible}
                 currentMonth={currentMonthView}
-                currentYear={currentYearView}
-                minDate={minDate}
-                maxDate={maxDate}
                 onMonthChange={onMonthSelected}
                 onClose={() => setIsMonthPickerVisible(false)}
             />
