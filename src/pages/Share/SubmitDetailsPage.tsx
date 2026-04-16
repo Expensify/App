@@ -65,8 +65,16 @@ function SubmitDetailsPage({
     const [personalDetails] = useOnyx(`${ONYXKEYS.PERSONAL_DETAILS_LIST}`);
     const report: OnyxEntry<ReportType> = getReportOrDraftReport(reportOrAccountID);
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`);
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`);
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`);
+    const iouType = isSelfDM(report) ? CONST.IOU.TYPE.TRACK : CONST.IOU.TYPE.SUBMIT;
+    // Self-DM has a FAKE report policyID — usePolicyForTransaction (same hook MoneyRequestConfirmationList uses) returns the active workspace for self-DM track expense, covering the upgrade-from-free flow.
+    const {policy} = usePolicyForTransaction({
+        transaction,
+        reportPolicyID: getIOURequestPolicyID(transaction, report),
+        action: CONST.IOU.ACTION.CREATE,
+        iouType,
+        isPerDiemRequest: false,
+    });
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getIOURequestPolicyID(transaction, report)}`);
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getIOURequestPolicyID(transaction, report)}`);
     const [lastLocationPermissionPrompt] = useOnyx(ONYXKEYS.NVP_LAST_LOCATION_PERMISSION_PROMPT);
@@ -131,18 +139,24 @@ function SubmitDetailsPage({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [reportOrAccountID, policy, personalPolicy, report, parentReport, currentDate, currentUserPersonalDetails, hasOnlyPersonalPolicies]);
 
-    // Set receipt on the transaction draft so isScanRequest() returns true and
-    // compact mode, "Automatic" labels, and receipt image rendering all work correctly
-    const receiptSource = currentAttachment?.content ?? fileUri;
-    const receiptFileName = getFileName(currentAttachment?.content ?? '') || fileName;
-    const receiptFileType = currentAttachment?.mimeType ?? fileType;
+    // The original file from the OS share extension — seeded into the transaction draft below.
+    const sharedFileSource = currentAttachment?.content ?? fileUri;
+    const sharedFileName = getFileName(currentAttachment?.content ?? '') || fileName;
+    const sharedFileType = currentAttachment?.mimeType ?? fileType;
 
+    // Seed the transaction draft so isScanRequest() returns true and compact mode, "Automatic" labels, and receipt image rendering all work correctly.
     useEffect(() => {
-        if (!receiptSource) {
+        if (!sharedFileSource) {
             return;
         }
-        setMoneyRequestReceipt(CONST.IOU.OPTIMISTIC_TRANSACTION_ID, receiptSource, receiptFileName, true, receiptFileType);
-    }, [receiptSource, receiptFileName, receiptFileType]);
+        setMoneyRequestReceipt(CONST.IOU.OPTIMISTIC_TRANSACTION_ID, sharedFileSource, sharedFileName, true, sharedFileType);
+    }, [sharedFileSource, sharedFileName, sharedFileType]);
+
+    // The current receipt — prefers the transaction draft (reflects Replace/Crop), falls back to the shared file; used for both display and upload so they stay in sync.
+    const currentReceiptSource = typeof transaction?.receipt?.source === 'string' ? transaction.receipt.source : sharedFileSource;
+    // Strip filesystem path segments without URL-decoding — getFileName() decodes via decodeURIComponent and would throw on raw filenames containing a literal '%' (e.g., "Receipt 100%.jpg").
+    const currentReceiptName = (transaction?.receipt?.filename?.split('/').pop() ?? '') || sharedFileName;
+    const currentReceiptType = transaction?.receipt?.type ?? sharedFileType;
 
     const selectedParticipants = unknownUserDetails ? [unknownUserDetails] : getMoneyRequestParticipantsFromReport(report, currentUserPersonalDetails.accountID);
     const participants = selectedParticipants.map((participant) => {
@@ -155,19 +169,8 @@ function SubmitDetailsPage({
     const isPolicyExpenseChat = useMemo(() => participants?.some((participant) => participant.isPolicyExpenseChat), [participants]);
     const policyExpenseChatPolicyID = participants?.find((participant) => participant.isPolicyExpenseChat)?.policyID;
     const senderPolicyID = participants?.find((participant) => !!participant && 'isSender' in participant && participant.isSender)?.policyID;
-    const iouType = isSelfDM(report) ? CONST.IOU.TYPE.TRACK : CONST.IOU.TYPE.SUBMIT;
     const {isOffline} = useNetwork();
     const isCreatingTrackExpense = iouType === CONST.IOU.TYPE.TRACK;
-
-    // Self-DM has a FAKE report policyID — resolve via the same hook MoneyRequestConfirmationList uses, so we pick up the active workspace after upgrade.
-    const {policy: resolvedPolicy} = usePolicyForTransaction({
-        transaction,
-        reportPolicyID: getIOURequestPolicyID(transaction, report),
-        action: CONST.IOU.ACTION.CREATE,
-        iouType,
-        isPerDiemRequest: false,
-    });
-    const resolvedPolicyID = resolvedPolicy?.id;
 
     // Initialize billable/reimbursable from policy defaults (mirrors IOURequestStepConfirmation)
     const defaultBillable = !!policy?.defaultBillable;
@@ -326,17 +329,12 @@ function SubmitDetailsPage({
             return;
         }
 
-        // Prefer the transaction draft's receipt — reflects Replace/Crop updates.
-        const uploadSource = typeof transaction?.receipt?.source === 'string' ? transaction.receipt.source : receiptSource;
-        const uploadFileName = getFileName(transaction?.receipt?.filename ?? '') || receiptFileName;
-        const uploadFileType = transaction?.receipt?.type ?? receiptFileType;
-
         readFileAsync(
-            uploadSource,
-            uploadFileName,
+            currentReceiptSource,
+            currentReceiptName,
             (file) => onSuccess(participant, file, shouldStartLocationPermissionFlow),
             () => {},
-            uploadFileType,
+            currentReceiptType,
         );
     };
 
@@ -345,8 +343,8 @@ function SubmitDetailsPage({
             <FullPageNotFoundView shouldShow={!reportOrAccountID}>
                 <DraftWorkspaceOpener
                     isCreatingTrackExpense={isCreatingTrackExpense}
-                    policyID={resolvedPolicyID}
-                    policyPendingAction={resolvedPolicy?.pendingAction}
+                    policyID={policy?.id}
+                    policyPendingAction={policy?.pendingAction}
                     policyExpenseChatPolicyID={policyExpenseChatPolicyID}
                     senderPolicyID={senderPolicyID}
                     isOffline={isOffline}
@@ -375,10 +373,10 @@ function SubmitDetailsPage({
                         onToggleBillable={setBillable}
                         onToggleReimbursable={setReimbursable}
                         isPolicyExpenseChat={isPolicyExpenseChat}
-                        policyID={resolvedPolicyID}
+                        policyID={policy?.id}
                         onConfirm={(updatedParticipants) => onConfirm(updatedParticipants, true)}
-                        receiptPath={receiptSource}
-                        receiptFilename={receiptFileName}
+                        receiptPath={currentReceiptSource}
+                        receiptFilename={currentReceiptName}
                         reportID={reportOrAccountID}
                         shouldShowSmartScanFields={false}
                         shouldDisplayReceipt
