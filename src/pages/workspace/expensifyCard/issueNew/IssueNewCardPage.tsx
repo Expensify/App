@@ -26,7 +26,7 @@ import SetExpiryOptionsStep from './SetExpiryOptionsStep';
 type IssueNewCardPageProps = WithPolicyAndFullscreenLoadingProps & PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.EXPENSIFY_CARD_ISSUE_NEW>;
 
 function getStartStepIndex(issueNewCard: OnyxEntry<IssueNewCard>): number {
-    if (!issueNewCard) {
+    if (!issueNewCard?.currentStep) {
         return 0;
     }
 

@@ -765,12 +765,7 @@ function setDraftInviteAccountID(assigneeEmail: string | undefined, assigneeAcco
 }
 
 function clearIssueNewCardFlow(policyID: string | undefined) {
-    Onyx.set(`${ONYXKEYS.COLLECTION.RAM_ONLY_ISSUE_NEW_EXPENSIFY_CARD}${policyID}`, {
-        currentStep: null,
-        data: {},
-        isSuccessful: false,
-        isLoading: false,
-    });
+    Onyx.set(`${ONYXKEYS.COLLECTION.RAM_ONLY_ISSUE_NEW_EXPENSIFY_CARD}${policyID}`, null);
 }
 
 function clearIssueNewCardFormData() {
