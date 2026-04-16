@@ -160,15 +160,20 @@ function QuickCreationActionsBar() {
                 if (shouldNavigateToUpgradePath) {
                     const freshReportID = generateReportID();
                     const freshTransactionID = generateReportID();
-                    Navigation.navigate(
-                        ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
-                            action: CONST.IOU.ACTION.CREATE,
-                            iouType: CONST.IOU.TYPE.CREATE,
-                            transactionID: freshTransactionID,
-                            reportID: freshReportID,
-                            upgradePath: CONST.UPGRADE_PATHS.REPORTS,
-                        }),
-                    );
+                    // Navigate to the Reports page first so the upgrade flow opens in the Reports context
+                    // instead of staying on Home underneath the right modal.
+                    Navigation.navigate(getReportsRootRoute());
+                    Navigation.setNavigationActionToMicrotaskQueue(() => {
+                        Navigation.navigate(
+                            ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
+                                action: CONST.IOU.ACTION.CREATE,
+                                iouType: CONST.IOU.TYPE.CREATE,
+                                transactionID: freshTransactionID,
+                                reportID: freshReportID,
+                                upgradePath: CONST.UPGRADE_PATHS.REPORTS,
+                            }),
+                        );
+                    });
                     return;
                 }
 
