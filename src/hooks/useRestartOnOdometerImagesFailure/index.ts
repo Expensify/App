@@ -1,4 +1,4 @@
-import {useEffect} from 'react';
+import {useEffect, useRef} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import useOnyx from '@hooks/useOnyx';
 import {checkIfLocalFileIsAccessible} from '@libs/actions/IOU/Receipt';
@@ -19,11 +19,20 @@ import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 // The best way for the user to recover from this is to start over from the start of the request process.
 const useRestartOnOdometerImagesFailure = (transaction: OnyxEntry<Transaction>, reportID: string, iouType: IOUType, action: IOUAction) => {
     const [, draftTransactionsMetadata] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
+    const hasCheckedRef = useRef(false);
 
     useEffect(() => {
         if (!transaction || action !== CONST.IOU.ACTION.CREATE || isLoadingOnyxValue(draftTransactionsMetadata)) {
             return;
         }
+
+        // Run only once after Onyx finishes loading — blob:// URLs are ephemeral and only need
+        // to be verified on the first render after the data is available.
+        // It has to be resolved this way in order to have a complete dependency array for the useEffect hook.
+        if (hasCheckedRef.current) {
+            return;
+        }
+        hasCheckedRef.current = true;
 
         const startImage = transaction.comment?.odometerStartImage;
         const endImage = transaction.comment?.odometerEndImage;
@@ -51,21 +60,21 @@ const useRestartOnOdometerImagesFailure = (transaction: OnyxEntry<Transaction>, 
             return;
         }
 
-        let canBeRead = true;
-
         Promise.all(
-            urlsToCheck.map(({filename, path, type}) =>
-                checkIfLocalFileIsAccessible(
-                    filename,
-                    path,
-                    type,
-                    () => {},
-                    () => {
-                        canBeRead = false;
-                    },
-                ),
+            urlsToCheck.map(
+                ({filename, path, type}) =>
+                    new Promise<boolean>((resolve) => {
+                        checkIfLocalFileIsAccessible(
+                            filename,
+                            path,
+                            type,
+                            () => resolve(true),
+                            () => resolve(false),
+                        );
+                    }),
             ),
-        )?.then(() => {
+        ).then((results) => {
+            const canBeRead = results.every(Boolean);
             if (canBeRead) {
                 return;
             }
@@ -73,10 +82,7 @@ const useRestartOnOdometerImagesFailure = (transaction: OnyxEntry<Transaction>, 
             clearOdometerTransactionState(transaction, true);
             navigateToStartMoneyRequestStep(CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER, iouType, transaction.transactionID, reportID);
         });
-
-        // We want this hook to run once after Onyx finishes loading the draft transactions
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [draftTransactionsMetadata]);
+    }, [draftTransactionsMetadata, transaction, action, iouType, reportID]);
 };
 
 export default useRestartOnOdometerImagesFailure;
