@@ -1192,7 +1192,6 @@ describe('MoneyRequest', () => {
             recentWaypoints: [] as RecentWaypoint[],
             isSelfTourViewed: false,
             amountOwed: 0,
-            draftTransactionIDs: undefined,
             userBillingGracePeriodEnds: undefined,
             conciergeReportID: undefined,
         };
@@ -1227,17 +1226,6 @@ describe('MoneyRequest', () => {
             handleMoneyRequestStepDistanceNavigation({
                 ...baseParams,
                 backTo,
-                draftTransactionIDs: [baseParams.transactionID],
-            });
-
-            expect(Navigation.goBack).toHaveBeenCalledWith(backTo);
-        });
-
-        it('should default draftTransactionIDs to empty array when undefined is passed', () => {
-            handleMoneyRequestStepDistanceNavigation({
-                ...baseParams,
-                backTo,
-                draftTransactionIDs: undefined,
             });
 
             expect(Navigation.goBack).toHaveBeenCalledWith(backTo);
@@ -1255,7 +1243,6 @@ describe('MoneyRequest', () => {
                 manualDistance: undefined,
                 shouldSkipConfirmation: true,
                 iouType: CONST.IOU.TYPE.TRACK,
-                draftTransactionIDs: [baseParams.transactionID],
             });
 
             expect(Split.resetSplitShares).toHaveBeenCalledWith(splitTransaction);
@@ -1267,7 +1254,6 @@ describe('MoneyRequest', () => {
                 manualDistance: 20,
                 shouldSkipConfirmation: true,
                 iouType: CONST.IOU.TYPE.TRACK,
-                draftTransactionIDs: [baseParams.transactionID],
             });
 
             expect(Split.resetSplitShares).not.toHaveBeenCalled();
@@ -1323,6 +1309,64 @@ describe('MoneyRequest', () => {
             expect(IOU.createDistanceRequest).not.toHaveBeenCalled();
         });
 
+        it('should fire onTransactionsCreated exactly once after trackExpense in the TRACK skip-confirm branch with the transactionID', () => {
+            const callOrder: string[] = [];
+            (TrackExpense.trackExpense as jest.Mock).mockImplementation(() => {
+                callOrder.push('trackExpense');
+            });
+            const onTransactionsCreated = jest.fn((transactionID?: string) => {
+                callOrder.push(`onTransactionsCreated:${transactionID}`);
+            });
+
+            handleMoneyRequestStepDistanceNavigation({
+                ...baseParams,
+                manualDistance: 20,
+                shouldSkipConfirmation: true,
+                iouType: CONST.IOU.TYPE.TRACK,
+                onTransactionsCreated,
+            });
+
+            // Callback must fire exactly once, AFTER trackExpense — UI relies on this ordering for cleanup + navigation
+            expect(TrackExpense.trackExpense).toHaveBeenCalledTimes(1);
+            expect(onTransactionsCreated).toHaveBeenCalledTimes(1);
+            expect(onTransactionsCreated).toHaveBeenCalledWith(fakeTransaction.transactionID);
+            expect(callOrder).toEqual(['trackExpense', `onTransactionsCreated:${fakeTransaction.transactionID}`]);
+        });
+
+        it('should NOT fire onTransactionsCreated on early-return paths (backTo) or non-TRACK paths (createDistanceRequest)', () => {
+            const onTransactionsCreated = jest.fn();
+
+            // backTo short-circuits the function before any expense is created
+            handleMoneyRequestStepDistanceNavigation({
+                ...baseParams,
+                backTo,
+                onTransactionsCreated,
+            });
+            expect(onTransactionsCreated).not.toHaveBeenCalled();
+
+            // Non-TRACK skip-confirm path delegates to createDistanceRequest, which owns its own post-create flow
+            handleMoneyRequestStepDistanceNavigation({
+                ...baseParams,
+                shouldSkipConfirmation: true,
+                manualDistance: 20,
+                iouType: CONST.IOU.TYPE.SUBMIT,
+                onTransactionsCreated,
+            });
+            expect(IOU.createDistanceRequest).toHaveBeenCalled();
+            expect(onTransactionsCreated).not.toHaveBeenCalled();
+        });
+
+        it('should not throw when onTransactionsCreated is undefined in the TRACK skip-confirm branch', () => {
+            expect(() =>
+                handleMoneyRequestStepDistanceNavigation({
+                    ...baseParams,
+                    manualDistance: 20,
+                    shouldSkipConfirmation: true,
+                    iouType: CONST.IOU.TYPE.TRACK,
+                }),
+            ).not.toThrow();
+        });
+
         it('should call trackExpense for TRACK iouType with valid waypoints when not from manual distance step and skipping confirmation', async () => {
             const policyForMovingExpenses: Policy = {
                 ...fakePolicy,
@@ -1355,7 +1399,6 @@ describe('MoneyRequest', () => {
                 manualDistance: undefined,
                 shouldSkipConfirmation: true,
                 iouType: CONST.IOU.TYPE.TRACK,
-                draftTransactionIDs: [baseParams.transactionID],
             });
 
             await waitForBatchedUpdates();
@@ -1421,7 +1464,6 @@ describe('MoneyRequest', () => {
                 shouldSkipConfirmation: true,
                 manualDistance: 20,
                 iouType: CONST.IOU.TYPE.SUBMIT,
-                draftTransactionIDs: [baseParams.transactionID],
             });
 
             expect(IOU.createDistanceRequest).toHaveBeenCalledWith(
@@ -1460,7 +1502,6 @@ describe('MoneyRequest', () => {
                 shouldSkipConfirmation: true,
                 manualDistance: undefined,
                 iouType: CONST.IOU.TYPE.SUBMIT,
-                draftTransactionIDs: [baseParams.transactionID],
             });
 
             expect(IOU.createDistanceRequest).toHaveBeenCalledWith(
@@ -1498,7 +1539,6 @@ describe('MoneyRequest', () => {
                 ...baseParams,
                 shouldSkipConfirmation: false,
                 iouType: CONST.IOU.TYPE.SUBMIT,
-                draftTransactionIDs: [baseParams.transactionID],
             });
 
             await waitForBatchedUpdates();
@@ -1534,7 +1574,6 @@ describe('MoneyRequest', () => {
                 defaultExpensePolicy,
                 isAutoReporting: true,
                 iouType: CONST.IOU.TYPE.CREATE,
-                draftTransactionIDs: [baseParams.transactionID],
             });
             await waitForBatchedUpdates();
 
@@ -1575,7 +1614,6 @@ describe('MoneyRequest', () => {
                 report: undefined,
                 defaultExpensePolicy,
                 iouType: CONST.IOU.TYPE.CREATE,
-                draftTransactionIDs: [baseParams.transactionID],
             });
             await waitForBatchedUpdates();
 
@@ -1587,7 +1625,6 @@ describe('MoneyRequest', () => {
             handleMoneyRequestStepDistanceNavigation({
                 ...baseParams,
                 iouType: CONST.IOU.TYPE.CREATE,
-                draftTransactionIDs: [baseParams.transactionID],
             });
 
             expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(CONST.IOU.TYPE.CREATE, baseParams.transactionID, baseParams.reportID));
@@ -1626,7 +1663,6 @@ describe('MoneyRequest', () => {
                 iouType: CONST.IOU.TYPE.SUBMIT,
                 shouldSkipConfirmation: false,
                 isArchivedExpenseReport: false,
-                draftTransactionIDs: [baseParams.transactionID],
                 conciergeReportID,
             });
 
@@ -1642,7 +1678,6 @@ describe('MoneyRequest', () => {
                 iouType: CONST.IOU.TYPE.SUBMIT,
                 shouldSkipConfirmation: false,
                 isArchivedExpenseReport: false,
-                draftTransactionIDs: [baseParams.transactionID],
                 conciergeReportID: undefined,
             });
 

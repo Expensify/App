@@ -1,5 +1,4 @@
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import cleanupAndNavigateAfterExpenseCreate from '@libs/cleanupAndNavigateAfterExpenseCreate';
 import {getCurrencySymbol} from '@libs/CurrencyUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import getCurrentPosition from '@libs/getCurrentPosition';
@@ -165,7 +164,6 @@ type MoneyRequestStepDistanceNavigationParams = {
     introSelected?: IntroSelected;
     activePolicyID?: string;
     privateIsArchived?: boolean;
-    draftTransactionIDs: string[] | undefined;
     selfDMReport: OnyxEntry<Report>;
     gpsCoordinates?: string;
     gpsDistance?: number;
@@ -181,6 +179,9 @@ type MoneyRequestStepDistanceNavigationParams = {
     userBillingGracePeriodEnds: OnyxCollection<BillingGraceEndPeriod>;
     ownerBillingGracePeriodEnd?: OnyxEntry<number>;
     conciergeReportID: string | undefined;
+
+    /** Fires after the track-expense branch creates the transaction. UI uses this for cleanup + navigation. */
+    onTransactionsCreated?: (lastTransactionID: string | undefined) => void;
 };
 
 function createTransaction({
@@ -591,7 +592,6 @@ function handleMoneyRequestStepDistanceNavigation({
     introSelected,
     activePolicyID,
     privateIsArchived,
-    draftTransactionIDs = [],
     selfDMReport,
     gpsCoordinates,
     gpsDistance,
@@ -608,6 +608,7 @@ function handleMoneyRequestStepDistanceNavigation({
     userBillingGracePeriodEnds,
     ownerBillingGracePeriodEnd,
     conciergeReportID,
+    onTransactionsCreated,
 }: MoneyRequestStepDistanceNavigationParams) {
     const isManualDistance = manualDistance !== undefined;
     const isOdometerDistance = odometerDistance !== undefined;
@@ -721,14 +722,7 @@ function handleMoneyRequestStepDistanceNavigation({
                     betas,
                     isSelfTourViewed,
                 });
-                cleanupAndNavigateAfterExpenseCreate({
-                    report,
-                    draftTransactionIDs,
-                    transactionID: transaction?.transactionID,
-                    isFromGlobalCreate: transaction?.isFromFloatingActionButton ?? transaction?.isFromGlobalCreate,
-                    hasMultipleTransactions: false,
-                    backToReport,
-                });
+                onTransactionsCreated?.(transaction?.transactionID);
                 return;
             }
 
