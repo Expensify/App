@@ -44,6 +44,7 @@ import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import Visibility from '@libs/Visibility';
+import * as Device from '@userActions/Device';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -187,9 +188,10 @@ function requestContactMethodValidateCode(contactMethod: string) {
         },
     ];
 
-    const parameters: RequestContactMethodValidateCodeParams = {email: contactMethod};
-
-    API.write(WRITE_COMMANDS.REQUEST_CONTACT_METHOD_VALIDATE_CODE, parameters, {optimisticData, successData, failureData});
+    Device.getDeviceInfoWithID().then((deviceInfo) => {
+        const parameters: RequestContactMethodValidateCodeParams = {email: contactMethod, deviceInfo};
+        API.write(WRITE_COMMANDS.REQUEST_CONTACT_METHOD_VALIDATE_CODE, parameters, {optimisticData, successData, failureData});
+    });
 }
 
 /**
