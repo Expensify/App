@@ -47,6 +47,7 @@ Report actions guide the submitter, approver, and payer regarding the report's s
 | **Unapprove** | After approval, before payment | Approver | Reverts the approval if the report hasn’t been re-approved or paid |
 | **Mark as exported** | On approved/paid reports when integrated to an accounting system| Admin, Exporter | Marks the report as manually exported for tracking purposes |
 | **Export to [accounting system]** | When an accounting system is connected | Admin, Exporter | Sends the report to an external system such as Xero or QuickBooks Online |
+| **Undelete** | On deleted expenses (accessible via Reports > Expenses with Status = Deleted filter) | Submitter | Restores the deleted expense back to your account |
 | **Duplicate expense** | On non-card expenses in any state | Submitter | Creates a copy of the expense on your primary workspace with the same details. Date is set to today and receipts are not copied |
 | **Duplicate report** | On reports the submitter owns, in any state | Submitter | Creates a copy of the report and its non-card expenses. Date is set to today and receipts are not copied |
 | **Download** | Any report state | All roles | Downloads a copy of the report as a PDF |
