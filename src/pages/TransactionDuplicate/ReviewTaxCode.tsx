@@ -31,6 +31,7 @@ function ReviewTaxRate() {
     const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${route.params.threadReportID}`);
     const transactionID = getTransactionID(transactionThreadReport);
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`);
+    const [duplicatedTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(reviewDuplicates?.transactionID)}`);
     const [transactionViolations] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`);
     const allDuplicateIDs = useMemo(
         () => transactionViolations?.find((violation) => violation.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION)?.data?.duplicates ?? [],
@@ -64,11 +65,15 @@ function ReviewTaxRate() {
     );
     const getTaxAmount = useCallback(
         (taxID: string) => {
+            // If the tax code remains unchanged, preserve the tax amount to avoid resetting it to the default value when resolving duplicates.
+            if (taxID === duplicatedTransaction?.taxCode) {
+                return;
+            }
             const taxPercentage = getTaxValue(policy, transaction, taxID);
             const decimals = getCurrencyDecimals(transaction?.currency);
             return convertToBackendAmount(calculateTaxAmount(taxPercentage ?? '', getAmount(transaction), decimals));
         },
-        [policy, transaction, getCurrencyDecimals],
+        [policy, transaction, getCurrencyDecimals, duplicatedTransaction?.taxCode],
     );
 
     const setTaxCode = useCallback(
