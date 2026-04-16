@@ -1,5 +1,5 @@
 import {Str} from 'expensify-common';
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import type {SelectionListApprover} from '@components/ApproverSelectionList';
 import ApproverSelectionList from '@components/ApproverSelectionList';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
@@ -166,38 +166,35 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
         />
     );
 
-    const toggleMember = useCallback(
-        (members: SelectionListApprover[]) => {
-            // Only show warning when creating a new workflow and a member is being added (not removed)
-            if (isCreateAction && members.length > selectedMembers.length) {
-                // Find the newly added member by comparing with current selection
-                const newMember = members.find((m) => !selectedMembers.some((s) => s.login === m.login));
-                const existingApproverEmail = newMember?.login ? membersInExistingWorkflows.get(newMember.login) : undefined;
+    const toggleMember = (members: SelectionListApprover[]) => {
+        // Only show warning when creating a new workflow and a member is being added (not removed)
+        if (isCreateAction && members.length > selectedMembers.length) {
+            // Find the newly added member by comparing with current selection
+            const newMember = members.find((m) => !selectedMembers.some((s) => s.login === m.login));
+            const existingApproverEmail = newMember?.login ? membersInExistingWorkflows.get(newMember.login) : undefined;
 
-                if (newMember && existingApproverEmail) {
-                    const memberName = Str.removeSMSDomain(newMember.text ?? newMember.login ?? '');
-                    const approverDetails = getPersonalDetailByEmail(existingApproverEmail);
-                    const approverName = Str.removeSMSDomain(approverDetails?.displayName ?? existingApproverEmail);
+            if (newMember && existingApproverEmail) {
+                const memberName = Str.removeSMSDomain(newMember.text ?? newMember.login ?? '');
+                const approverDetails = getPersonalDetailByEmail(existingApproverEmail);
+                const approverName = Str.removeSMSDomain(approverDetails?.displayName ?? existingApproverEmail);
 
-                    showConfirmModal({
-                        title: translate('workflowsExpensesFromPage.memberAlreadyInWorkflowTitle'),
-                        prompt: translate('workflowsExpensesFromPage.memberAlreadyInWorkflowPrompt', {memberName, approverName}),
-                        confirmText: translate('common.confirm'),
-                        cancelText: translate('common.cancel'),
-                    }).then((result) => {
-                        if (result.action !== ModalActions.CONFIRM) {
-                            return;
-                        }
-                        setSelectedMembers(members);
-                    });
-                    return;
-                }
+                showConfirmModal({
+                    title: translate('workflowsExpensesFromPage.memberAlreadyInWorkflowTitle'),
+                    prompt: translate('workflowsExpensesFromPage.memberAlreadyInWorkflowPrompt', {memberName, approverName}),
+                    confirmText: translate('common.confirm'),
+                    cancelText: translate('common.cancel'),
+                }).then((result) => {
+                    if (result.action !== ModalActions.CONFIRM) {
+                        return;
+                    }
+                    setSelectedMembers(members);
+                });
+                return;
             }
+        }
 
-            setSelectedMembers(members);
-        },
-        [isCreateAction, membersInExistingWorkflows, selectedMembers, showConfirmModal, translate],
-    );
+        setSelectedMembers(members);
+    };
 
     return (
         <AccessOrNotFoundWrapper
