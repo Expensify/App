@@ -51,7 +51,7 @@ const CurrentReportIDActionsContext = createContext<CurrentReportIDActionsContex
 
 function CurrentReportIDContextProvider(props: CurrentReportIDContextProviderProps) {
     const [currentReportID, setCurrentReportID] = useState<string | undefined>('');
-    const [currentRHPReportID, setCurrentModalReportID] = useState<string | undefined>(undefined);
+    const [currentRHPReportID, setCurrentRHPReportID] = useState<string | undefined>(undefined);
 
     /**
      * This function is used to update the currentReportID and currentRHPReportID
@@ -83,11 +83,11 @@ function CurrentReportIDContextProvider(props: CurrentReportIDContextProviderPro
             const modalReportID = focusedTopRoute?.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR && focusedTopRoute.state ? getFocusedRouteReportID(focusedTopRoute.state) : undefined;
 
             if (currentRHPReportID !== modalReportID && (currentRHPReportID || modalReportID)) {
-                setCurrentModalReportID(modalReportID);
+                setCurrentRHPReportID(modalReportID);
             }
         },
         // eslint-disable-next-line react-hooks/exhaustive-deps -- we don't want to re-render when onSetCurrentReportID changes
-        [setCurrentReportID, currentReportID, setCurrentModalReportID, currentRHPReportID],
+        [setCurrentReportID, currentReportID, setCurrentRHPReportID, currentRHPReportID],
     );
 
     const actionsContextValue = useMemo<CurrentReportIDActionsContextType>(

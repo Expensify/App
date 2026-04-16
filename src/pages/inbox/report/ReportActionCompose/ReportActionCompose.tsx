@@ -422,6 +422,7 @@ function ReportActionCompose({reportID}: ReportActionComposeProps) {
                     timezone: currentUserPersonalDetails.timezone,
                     shouldPlaySound: true,
                     isInSidePanel,
+                    sidePanelContext,
                 });
                 attachmentFileRef.current = null;
             } else {

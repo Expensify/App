@@ -379,6 +379,7 @@ type AddAttachmentWithCommentParams = {
     timezone?: Timezone;
     shouldPlaySound?: boolean;
     isInSidePanel?: boolean;
+    sidePanelContext?: SidePanelContext;
 };
 
 const addNewMessageWithText = new Set<string>([WRITE_COMMANDS.ADD_COMMENT, WRITE_COMMANDS.ADD_TEXT_AND_ATTACHMENT]);
@@ -807,7 +808,7 @@ function addActions({
         }
     }
 
-    if (isInSidePanel && isConciergeChat && sidePanelContext) {
+    if (isInSidePanel && isConciergeChat && sidePanelContext && commandName === WRITE_COMMANDS.ADD_COMMENT) {
         parameters.sidePanelContext = JSON.stringify(sidePanelContext);
     }
 
@@ -936,6 +937,7 @@ function addAttachmentWithComment({
     timezone = CONST.DEFAULT_TIME_ZONE,
     shouldPlaySound = false,
     isInSidePanel = false,
+    sidePanelContext,
 }: AddAttachmentWithCommentParams) {
     if (!report?.reportID) {
         return;
@@ -950,17 +952,17 @@ function addAttachmentWithComment({
 
     // Single attachment
     if (!Array.isArray(attachments)) {
-        addActions({report, notifyReportID, ancestors, timezoneParam: timezone, currentUserAccountID, text, file: attachments, isInSidePanel});
+        addActions({report, notifyReportID, ancestors, timezoneParam: timezone, currentUserAccountID, text, file: attachments, isInSidePanel, sidePanelContext});
         handlePlaySound();
         return;
     }
 
     // Multiple attachments - first: combine text + first attachment as a single action
-    addActions({report, notifyReportID, ancestors, timezoneParam: timezone, currentUserAccountID, text, file: attachments?.at(0), isInSidePanel});
+    addActions({report, notifyReportID, ancestors, timezoneParam: timezone, currentUserAccountID, text, file: attachments?.at(0), isInSidePanel, sidePanelContext});
 
     // Remaining: attachment-only actions (no text duplication)
     for (let i = 1; i < attachments?.length; i += 1) {
-        addActions({report, notifyReportID, ancestors, timezoneParam: timezone, currentUserAccountID, text: '', file: attachments?.at(i), isInSidePanel});
+        addActions({report, notifyReportID, ancestors, timezoneParam: timezone, currentUserAccountID, text: '', file: attachments?.at(i), isInSidePanel, sidePanelContext});
     }
 
     // Play sound once
