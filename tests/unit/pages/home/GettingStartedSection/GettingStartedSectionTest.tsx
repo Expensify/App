@@ -67,7 +67,7 @@ async function setManageTeamUserState(overrides?: {
         role: CONST.POLICY.ROLE.ADMIN,
         areCompanyCardsEnabled: overrides?.areCompanyCardsEnabled ?? true,
         areRulesEnabled: overrides?.areRulesEnabled ?? true,
-        areAccountingEnabled: overrides?.areAccountingEnabled,
+        areConnectionsEnabled: overrides?.areAccountingEnabled,
         areCategoriesEnabled: overrides?.areCategoriesEnabled,
     };
 

@@ -698,52 +698,63 @@ function hasConfiguredRules(policy: OnyxEntry<Policy>): boolean {
     if (!policy) {
         return false;
     }
-    const hasCustomRules = !!policy.customRules && policy.customRules.trim().length > 0;
+
+    if (!!policy.customRules && policy.customRules.trim().length > 0) {
+        return true;
+    }
 
     const {rules} = policy;
-    const hasApprovalRules = !!rules?.approvalRules && rules.approvalRules.length > 0;
-    const hasExpenseRules = !!rules?.expenseRules && rules.expenseRules.length > 0;
-    const hasCodingRules = !!rules?.codingRules && Object.keys(rules.codingRules).length > 0;
+    if (!!rules?.approvalRules && rules.approvalRules.length > 0) {
+        return true;
+    }
+    if (!!rules?.expenseRules && rules.expenseRules.length > 0) {
+        return true;
+    }
+    if (!!rules?.codingRules && Object.keys(rules.codingRules).length > 0) {
+        return true;
+    }
 
-    const hasModifiedMaxExpenseAmount =
-        !!policy.maxExpenseAmount && policy.maxExpenseAmount !== CONST.DISABLED_MAX_EXPENSE_VALUE && policy.maxExpenseAmount !== CONST.POLICY.DEFAULT_MAX_EXPENSE_AMOUNT;
-    const hasModifiedMaxExpenseAge = !!policy.maxExpenseAge && policy.maxExpenseAge !== CONST.DISABLED_MAX_EXPENSE_VALUE && policy.maxExpenseAge !== CONST.POLICY.DEFAULT_MAX_EXPENSE_AGE;
-    const hasModifiedMaxExpenseAmountNoReceipt =
+    if (!!policy.maxExpenseAmount && policy.maxExpenseAmount !== CONST.DISABLED_MAX_EXPENSE_VALUE && policy.maxExpenseAmount !== CONST.POLICY.DEFAULT_MAX_EXPENSE_AMOUNT) {
+        return true;
+    }
+    if (!!policy.maxExpenseAge && policy.maxExpenseAge !== CONST.DISABLED_MAX_EXPENSE_VALUE && policy.maxExpenseAge !== CONST.POLICY.DEFAULT_MAX_EXPENSE_AGE) {
+        return true;
+    }
+    if (
         !!policy.maxExpenseAmountNoReceipt &&
         policy.maxExpenseAmountNoReceipt !== CONST.DISABLED_MAX_EXPENSE_VALUE &&
-        policy.maxExpenseAmountNoReceipt !== CONST.POLICY.DEFAULT_MAX_AMOUNT_NO_RECEIPT;
-    const hasModifiedMaxExpenseAmountNoItemizedReceipt =
+        policy.maxExpenseAmountNoReceipt !== CONST.POLICY.DEFAULT_MAX_AMOUNT_NO_RECEIPT
+    ) {
+        return true;
+    }
+    if (
         !!policy.maxExpenseAmountNoItemizedReceipt &&
         policy.maxExpenseAmountNoItemizedReceipt !== CONST.DISABLED_MAX_EXPENSE_VALUE &&
-        policy.maxExpenseAmountNoItemizedReceipt !== CONST.POLICY.DEFAULT_MAX_AMOUNT_NO_ITEMIZED_RECEIPT;
+        policy.maxExpenseAmountNoItemizedReceipt !== CONST.POLICY.DEFAULT_MAX_AMOUNT_NO_ITEMIZED_RECEIPT
+    ) {
+        return true;
+    }
 
-    const hasModifiedBillable = !!policy.defaultBillable;
-    const hasModifiedReimbursable = policy.defaultReimbursable === false;
-    const hasEReceiptsEnabled = !!policy.eReceipts;
-    const hasRequireCompanyCardsEnabled = !!policy.requireCompanyCardsEnabled;
+    if (policy.defaultBillable) {
+        return true;
+    }
+    if (policy.defaultReimbursable === false) {
+        return true;
+    }
+    if (policy.eReceipts) {
+        return true;
+    }
+    if (policy.requireCompanyCardsEnabled) {
+        return true;
+    }
 
     const {prohibitedExpenses} = policy;
-    const hasModifiedProhibitedExpenses =
+    return (
         !!prohibitedExpenses &&
         Object.entries(CONST.POLICY.DEFAULT_PROHIBITED_EXPENSES).some(([key, defaultValue]) => {
             const value = prohibitedExpenses[key as keyof typeof CONST.POLICY.DEFAULT_PROHIBITED_EXPENSES];
             return value !== undefined && value !== defaultValue;
-        });
-
-    return (
-        hasCustomRules ||
-        hasApprovalRules ||
-        hasExpenseRules ||
-        hasCodingRules ||
-        hasModifiedMaxExpenseAmount ||
-        hasModifiedMaxExpenseAge ||
-        hasModifiedMaxExpenseAmountNoReceipt ||
-        hasModifiedMaxExpenseAmountNoItemizedReceipt ||
-        hasModifiedBillable ||
-        hasModifiedReimbursable ||
-        hasEReceiptsEnabled ||
-        hasRequireCompanyCardsEnabled ||
-        hasModifiedProhibitedExpenses
+        })
     );
 }
 
