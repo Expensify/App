@@ -100,7 +100,7 @@ function CardSelectPopup({isExpanded, updateFilterForm, closeOverlay}: CardSelec
         !!item.cardName?.toLocaleLowerCase().includes(debouncedSearchTerm.toLocaleLowerCase()) ||
         (item.isVirtual && translate('workspace.expensifyCard.virtual').toLocaleLowerCase().includes(debouncedSearchTerm.toLocaleLowerCase()));
 
-    let sections: Section<CardFilterItem>[] = [];
+    let sections: Array<Section<CardFilterItem>> = [];
     let itemCount;
     let sectionHeaderCount = 0;
 
@@ -185,6 +185,7 @@ function CardSelectPopup({isExpanded, updateFilterForm, closeOverlay}: CardSelec
             onApply={applyChanges}
             resetSentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_RESET_CARD}
             applySentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY_CARD}
+            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing - we want to fallback to 1 when it's 0
             style={styles.getCardSelectionListPopoverHeight(itemCount || 1, sectionHeaderCount, windowHeight, shouldUseNarrowLayout, isInLandscapeMode, shouldShowSearchInput)}
         >
             {!!shouldShowLoadingState && (
