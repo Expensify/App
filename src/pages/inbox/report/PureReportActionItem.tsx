@@ -270,6 +270,9 @@ type PureReportActionItemProps = {
     /** Whether the room is a chronos report */
     isChronosReport?: boolean;
 
+    /** Whether the original report is archived */
+    isOriginalReportArchived?: boolean;
+
     /** All cards */
     cardList?: OnyxTypes.CardList;
 
@@ -400,6 +403,7 @@ function PureReportActionItem({
     deleteReportActionDraft = () => {},
     isArchivedRoom,
     isChronosReport,
+    isOriginalReportArchived,
     toggleEmojiReaction = () => {},
     resolveActionableReportMentionWhisper = () => {},
     resolveActionableMentionWhisper = () => {},
@@ -1126,6 +1130,7 @@ function PureReportActionItem({
                     moderationDecision={moderationDecision}
                     updateHiddenState={updateHiddenState}
                     isArchivedRoom={isArchivedRoom}
+                    isOriginalReportArchived={!!isOriginalReportArchived}
                     composerTextInputRef={composerTextInputRef}
                     isOnSearch={isOnSearch}
                     currentSearchHash={currentSearchHash}

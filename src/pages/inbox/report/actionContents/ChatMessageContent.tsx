@@ -16,7 +16,6 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePreferredPolicy from '@hooks/usePreferredPolicy';
-import useReportIsArchived from '@hooks/useReportIsArchived';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {resolveSuggestedFollowup} from '@libs/actions/Report/SuggestedFollowup';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
@@ -60,6 +59,7 @@ type ChatMessageContentProps = {
     moderationDecision: OnyxTypes.DecisionName;
     updateHiddenState: (isHiddenValue: boolean) => void;
     isArchivedRoom?: boolean;
+    isOriginalReportArchived: boolean;
     composerTextInputRef: React.RefObject<TextInput | HTMLTextAreaElement | null>;
     isOnSearch: boolean;
     currentSearchHash: number | undefined;
@@ -95,6 +95,7 @@ function ChatMessageContent({
     moderationDecision,
     updateHiddenState,
     isArchivedRoom,
+    isOriginalReportArchived,
     composerTextInputRef,
     isOnSearch,
     currentSearchHash,
@@ -109,7 +110,6 @@ function ChatMessageContent({
     const personalDetail = useCurrentUserPersonalDetails();
     const {isRestrictedToPreferredPolicy, preferredPolicyID} = usePreferredPolicy();
     const activePolicy = useActivePolicy();
-    const isOriginalReportArchived = useReportIsArchived(originalReportID);
 
     const blockedFromConcierge = useBlockedFromConcierge();
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});

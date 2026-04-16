@@ -143,6 +143,7 @@ function ReportActionItem({
             deleteReportActionDraft={deleteReportActionDraft}
             isArchivedRoom={isArchivedNonExpenseReport(originalReport, isOriginalReportArchived)}
             isChronosReport={chatIncludesChronosWithID(originalReportID)}
+            isOriginalReportArchived={isOriginalReportArchived}
             toggleEmojiReaction={toggleEmojiReaction}
             resolveActionableReportMentionWhisper={resolveActionableReportMentionWhisper}
             resolveActionableMentionWhisper={resolveActionableMentionWhisper}
