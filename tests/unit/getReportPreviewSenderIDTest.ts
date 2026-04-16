@@ -225,6 +225,29 @@ describe('getReportPreviewSenderID', () => {
         expect(result).toBe(OWNER_ACCOUNT_ID);
     });
 
+    it('returns childOwnerAccountID after cache clear when a receipt-backed transaction is rehydrated as manual but modifiedAmount reveals the direction', () => {
+        const result = getReportPreviewSenderID({
+            ...baseParams,
+            iouReport: makeIOUReport({transactionCount: 2}),
+            action: makeAction({childMoneyRequestCount: 2}),
+            iouActions: [],
+            transactions: [
+                makeTransaction(1200, 'user@test.com', {transactionID: 'tr-1'}),
+                makeTransaction(0, 'user@test.com', {
+                    transactionID: 'tr-2',
+                    iouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL,
+                    modifiedAmount: 50000,
+                    modifiedCreated: '2021-03-18 00:00:00',
+                    modifiedCurrency: 'INR',
+                    modifiedMerchant: 'Airtel',
+                    receipt: {source: 'receipt.jpg'},
+                }),
+            ],
+        });
+
+        expect(result).toBe(OWNER_ACCOUNT_ID);
+    });
+
     it('returns undefined when the report preview has not loaded all child transactions yet', () => {
         const result = getReportPreviewSenderID({
             ...baseParams,
