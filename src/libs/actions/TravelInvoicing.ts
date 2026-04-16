@@ -9,6 +9,7 @@ import type {
     OpenPolicyTravelPageParams,
     PayTravelInvoicingSpendParams,
     SetTravelInvoicingSettlementAccountParams,
+    UpdateTravelInvoicingMonthlyLimitParams,
     UpdateTravelInvoicingSettlementFrequencyParams,
 } from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
@@ -488,6 +489,85 @@ function exportTravelInvoiceStatementCSV(policyID: string, startDate: string, en
     fileDownload(translate, commandURL, filename, '', false, formData, CONST.NETWORK.METHOD.POST, onDownloadFailed);
 }
 
+/**
+ * Updates the per-user monthly spend limit for Travel Invoicing cards.
+ */
+function updateTravelInvoicingMonthlyLimit(workspaceAccountID: number, monthlySpendLimitPerUser: number, currentMonthlySpendLimitPerUser?: number) {
+    const cardSettingsKey = getTravelInvoicingCardSettingsKey(workspaceAccountID);
+
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: cardSettingsKey,
+            value: {
+                [CONST.TRAVEL.PROGRAM_TRAVEL_US]: {
+                    monthlySpendLimitPerUser,
+                },
+                pendingFields: {
+                    monthlySpendLimitPerUser: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                },
+                errorFields: {
+                    monthlySpendLimitPerUser: null,
+                },
+            },
+        },
+    ];
+
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: cardSettingsKey,
+            value: {
+                pendingFields: {
+                    monthlySpendLimitPerUser: null,
+                },
+                errorFields: {
+                    monthlySpendLimitPerUser: null,
+                },
+            },
+        },
+    ];
+
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: cardSettingsKey,
+            value: {
+                [CONST.TRAVEL.PROGRAM_TRAVEL_US]: {
+                    monthlySpendLimitPerUser: currentMonthlySpendLimitPerUser ?? null,
+                },
+                pendingFields: {
+                    monthlySpendLimitPerUser: null,
+                },
+                errorFields: {
+                    monthlySpendLimitPerUser: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                },
+            },
+        },
+    ];
+
+    const params: UpdateTravelInvoicingMonthlyLimitParams = {
+        domainAccountID: workspaceAccountID,
+        monthlySpendLimitPerUser,
+    };
+
+    API.write(WRITE_COMMANDS.UPDATE_TRAVEL_INVOICING_MONTHLY_LIMIT, params, {optimisticData, successData, failureData});
+}
+
+/**
+ * Clears any errors from the Travel Invoicing monthly limit settings.
+ */
+function clearTravelInvoicingMonthlyLimitErrors(workspaceAccountID: number) {
+    Onyx.merge(getTravelInvoicingCardSettingsKey(workspaceAccountID), {
+        pendingFields: {
+            monthlySpendLimitPerUser: null,
+        },
+        errorFields: {
+            monthlySpendLimitPerUser: null,
+        },
+    });
+}
+
 export {
     openPolicyTravelPage,
     setTravelInvoicingSettlementAccount,
@@ -500,4 +580,6 @@ export {
     configureTravelInvoicingForPolicy,
     deactivateTravelInvoicing,
     clearTravelInvoicingErrors,
+    updateTravelInvoicingMonthlyLimit,
+    clearTravelInvoicingMonthlyLimitErrors,
 };

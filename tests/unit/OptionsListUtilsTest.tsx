@@ -24,13 +24,11 @@ import {
     filterWorkspaceChats,
     formatMemberForList,
     formatSectionsFromSearchTerm,
-    getCurrentUserSearchTerms,
     getFilteredRecentAttendees,
     getIOUReportIDOfLastAction,
     getLastActorDisplayName,
     getLastActorDisplayNameFromLastVisibleActions,
     getLastMessageTextForReport,
-    getPersonalDetailSearchTerms,
     getPolicyExpenseReportOption,
     getReportDisplayOption,
     getReportOption,
@@ -45,6 +43,7 @@ import {
     shouldShowLastActorDisplayName,
     sortAlphabetically,
 } from '@libs/OptionsListUtils';
+import {getCurrentUserSearchTerms, getPersonalDetailSearchTerms} from '@libs/OptionsListUtils/searchMatchUtils';
 import Parser from '@libs/Parser';
 import {
     getAddedCardFeedMessage,
@@ -815,6 +814,7 @@ describe('OptionsListUtils', () => {
                 currentUserEmail: CURRENT_USER_EMAIL,
                 policyCollection: allPolicies,
                 personalDetails: PERSONAL_DETAILS,
+                conciergeReportID: undefined,
             });
 
             // Then all personal details (including those that have reports) should be returned
@@ -844,6 +844,7 @@ describe('OptionsListUtils', () => {
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 currentUserEmail: CURRENT_USER_EMAIL,
                 personalDetails: PERSONAL_DETAILS,
+                conciergeReportID: undefined,
             });
 
             // Then the current user should be included in personalDetails
@@ -875,6 +876,7 @@ describe('OptionsListUtils', () => {
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 currentUserEmail: CURRENT_USER_EMAIL,
                 personalDetails: PERSONAL_DETAILS,
+                conciergeReportID: undefined,
             });
 
             // Then the current user should not be included in personalDetails
@@ -904,6 +906,7 @@ describe('OptionsListUtils', () => {
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 currentUserEmail: CURRENT_USER_EMAIL,
                 personalDetails: PERSONAL_DETAILS,
+                conciergeReportID: undefined,
             });
 
             // Then recent reports should include the workspace room
@@ -933,6 +936,7 @@ describe('OptionsListUtils', () => {
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 currentUserEmail: CURRENT_USER_EMAIL,
                 personalDetails: PERSONAL_DETAILS,
+                conciergeReportID: undefined,
             });
 
             // Then it should still return personal details
@@ -961,6 +965,7 @@ describe('OptionsListUtils', () => {
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 currentUserEmail: CURRENT_USER_EMAIL,
                 personalDetails: PERSONAL_DETAILS,
+                conciergeReportID: undefined,
             });
 
             // Then it should still return personal details
@@ -968,6 +973,81 @@ describe('OptionsListUtils', () => {
 
             // Then it should still return recent reports
             expect(results.recentReports.length).toBeGreaterThan(0);
+        });
+
+        it('should pass conciergeReportID through to results when provided', () => {
+            // Given a set of options that includes Concierge and a valid conciergeReportID
+            const conciergeReportID = '11';
+            // When we call getSearchOptions with conciergeReportID
+            const results = getSearchOptions({
+                options: OPTIONS_WITH_CONCIERGE,
+                reportAttributesDerived: MOCK_REPORT_ATTRIBUTES_DERIVED_WITH_CONCIERGE,
+                draftComments: {},
+                nvpDismissedProductTraining,
+                loginList,
+                betas: [CONST.BETAS.ALL],
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                currentUserEmail: CURRENT_USER_EMAIL,
+                policyCollection: allPolicies,
+                personalDetails: PERSONAL_DETAILS_WITH_CONCIERGE,
+                conciergeReportID,
+            });
+
+            // Then the Concierge report should be included in recent reports
+            const conciergeOption = results.recentReports.find((option) => option.login === 'concierge@expensify.com');
+            expect(conciergeOption).toBeDefined();
+            // And the concierge option's reportID should match the provided conciergeReportID
+            expect(conciergeOption?.reportID).toBe(conciergeReportID);
+        });
+
+        it('should handle undefined conciergeReportID without errors', () => {
+            // Given a set of options with Concierge
+            // When we call getSearchOptions with conciergeReportID set to undefined
+            const results = getSearchOptions({
+                options: OPTIONS_WITH_CONCIERGE,
+                reportAttributesDerived: MOCK_REPORT_ATTRIBUTES_DERIVED_WITH_CONCIERGE,
+                draftComments: {},
+                nvpDismissedProductTraining,
+                loginList,
+                betas: [CONST.BETAS.ALL],
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                currentUserEmail: CURRENT_USER_EMAIL,
+                policyCollection: allPolicies,
+                personalDetails: PERSONAL_DETAILS_WITH_CONCIERGE,
+                conciergeReportID: undefined,
+            });
+
+            // Then the function should complete without errors
+            expect(results.recentReports).toBeDefined();
+            expect(results.personalDetails).toBeDefined();
+            // And the Concierge report should still appear in recent reports
+            const conciergeOption = results.recentReports.find((option) => option.login === 'concierge@expensify.com');
+            expect(conciergeOption).toBeDefined();
+        });
+
+        it('should include Concierge in results with matching conciergeReportID when searching', () => {
+            // Given a search query that matches Concierge
+            const conciergeReportID = '11';
+            // When we call getSearchOptions with a search query matching Concierge
+            const results = getSearchOptions({
+                options: OPTIONS_WITH_CONCIERGE,
+                reportAttributesDerived: MOCK_REPORT_ATTRIBUTES_DERIVED_WITH_CONCIERGE,
+                draftComments: {},
+                nvpDismissedProductTraining,
+                loginList,
+                betas: [CONST.BETAS.ALL],
+                searchQuery: 'Concierge',
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                currentUserEmail: CURRENT_USER_EMAIL,
+                policyCollection: allPolicies,
+                personalDetails: PERSONAL_DETAILS_WITH_CONCIERGE,
+                conciergeReportID,
+            });
+
+            // Then the Concierge report should be in recent reports
+            const conciergeOption = results.recentReports.find((option) => option.login === 'concierge@expensify.com');
+            expect(conciergeOption).toBeDefined();
+            expect(conciergeOption?.reportID).toBe(conciergeReportID);
         });
     });
 
@@ -2169,6 +2249,7 @@ describe('OptionsListUtils', () => {
                 currentUserEmail: CURRENT_USER_EMAIL,
                 policyCollection: allPolicies,
                 personalDetails: PERSONAL_DETAILS,
+                conciergeReportID: undefined,
             });
             // When we pass the returned options to filterAndOrderOptions with an empty search value
             const filteredOptions = filterAndOrderOptions(options, '', COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS);
@@ -2192,6 +2273,7 @@ describe('OptionsListUtils', () => {
                 currentUserEmail: CURRENT_USER_EMAIL,
                 policyCollection: allPolicies,
                 personalDetails: PERSONAL_DETAILS,
+                conciergeReportID: undefined,
             });
             // When we pass the returned options to filterAndOrderOptions with a search value and sortByReportTypeInSearch param
             const filteredOptions = filterAndOrderOptions(options, searchText, COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS, {
@@ -2224,6 +2306,7 @@ describe('OptionsListUtils', () => {
                 currentUserEmail: CURRENT_USER_EMAIL,
                 policyCollection: allPolicies,
                 personalDetails: PERSONAL_DETAILS,
+                conciergeReportID: undefined,
             });
             // When we pass the returned options to filterAndOrderOptions with a search value
             const filteredOptions = filterAndOrderOptions(options, searchText, COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS);
@@ -2253,6 +2336,7 @@ describe('OptionsListUtils', () => {
                 currentUserEmail: CURRENT_USER_EMAIL,
                 policyCollection: allPolicies,
                 personalDetails: PERSONAL_DETAILS,
+                conciergeReportID: undefined,
             });
             // When we pass the returned options to filterAndOrderOptions with a search value
             const filteredOptions = filterAndOrderOptions(options, searchText, COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS);
@@ -2279,6 +2363,7 @@ describe('OptionsListUtils', () => {
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 currentUserEmail: CURRENT_USER_EMAIL,
                 personalDetails: PERSONAL_DETAILS_WITH_PERIODS,
+                conciergeReportID: undefined,
             });
             // When we pass the returned options to filterAndOrderOptions with a search value and sortByReportTypeInSearch param
             const filteredOptions = filterAndOrderOptions(options, searchText, COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS_WITH_PERIODS, {
@@ -2305,6 +2390,7 @@ describe('OptionsListUtils', () => {
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 currentUserEmail: CURRENT_USER_EMAIL,
                 personalDetails: PERSONAL_DETAILS,
+                conciergeReportID: undefined,
             });
             // When we pass the returned options to filterAndOrderOptions with a search value
             const filteredOptions = filterAndOrderOptions(options, searchText, COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS);
@@ -2329,6 +2415,7 @@ describe('OptionsListUtils', () => {
                 currentUserEmail: CURRENT_USER_EMAIL,
                 policyCollection: allPolicies,
                 personalDetails: PERSONAL_DETAILS,
+                conciergeReportID: undefined,
             });
             // When we pass the returned options to filterAndOrderOptions with a search value
             const filteredOptions = filterAndOrderOptions(options, searchText, COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS);
@@ -2361,6 +2448,7 @@ describe('OptionsListUtils', () => {
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 currentUserEmail: CURRENT_USER_EMAIL,
                 personalDetails: PERSONAL_DETAILS,
+                conciergeReportID: undefined,
             });
             // When we pass the returned options to filterAndOrderOptions with a search value
             const filterOptions = filterAndOrderOptions(options, searchText, COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS);
@@ -2385,6 +2473,7 @@ describe('OptionsListUtils', () => {
                 currentUserEmail: CURRENT_USER_EMAIL,
                 policyCollection: allPolicies,
                 personalDetails: PERSONAL_DETAILS,
+                conciergeReportID: undefined,
             });
             // When we call filterAndOrderOptions with a search value
             const filteredOptions = filterAndOrderOptions(options, searchText, COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS);
@@ -2410,6 +2499,7 @@ describe('OptionsListUtils', () => {
                 currentUserEmail: CURRENT_USER_EMAIL,
                 policyCollection: allPolicies,
                 personalDetails: PERSONAL_DETAILS,
+                conciergeReportID: undefined,
             });
             // When we call filterAndOrderOptions with a search value
             const filteredOptions = filterAndOrderOptions(options, searchText, COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS);
@@ -2456,6 +2546,7 @@ describe('OptionsListUtils', () => {
                 currentUserEmail: CURRENT_USER_EMAIL,
                 policyCollection: allPolicies,
                 personalDetails: PERSONAL_DETAILS,
+                conciergeReportID: undefined,
             });
             // When we call filterAndOrderOptions with a search value and excludeLogins
             const filteredOptions = filterAndOrderOptions(options, searchText, COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS, {
@@ -2479,6 +2570,7 @@ describe('OptionsListUtils', () => {
                 currentUserEmail: CURRENT_USER_EMAIL,
                 policyCollection: allPolicies,
                 personalDetails: PERSONAL_DETAILS,
+                conciergeReportID: undefined,
             });
             // When we call filterAndOrderOptions with a search value and maxRecentReportsToShow set to 2
             const filteredOptions = filterAndOrderOptions(options, searchText, COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS, {
@@ -2512,6 +2604,7 @@ describe('OptionsListUtils', () => {
                 currentUserEmail: CURRENT_USER_EMAIL,
                 policyCollection: allPolicies,
                 personalDetails: PERSONAL_DETAILS,
+                conciergeReportID: undefined,
             });
             // When we call filterAndOrderOptions with a search value
             const filteredOptions = filterAndOrderOptions(options, searchText, COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS);
@@ -2705,6 +2798,7 @@ describe('OptionsListUtils', () => {
                 personalDetails: PERSONAL_DETAILS,
                 searchQuery: 'Spider-Man',
                 policyCollection: allPolicies,
+                conciergeReportID: undefined,
             });
 
             // Then one report should be returned
@@ -2746,6 +2840,7 @@ describe('OptionsListUtils', () => {
                 personalDetails: PERSONAL_DETAILS,
                 searchQuery: 'peterparker@expensify.com',
                 policyCollection: allPolicies,
+                conciergeReportID: undefined,
             });
 
             // Then one report should be returned
@@ -2787,6 +2882,7 @@ describe('OptionsListUtils', () => {
                 personalDetails: PERSONAL_DETAILS,
                 searchQuery: 'Black Panther',
                 policyCollection: allPolicies,
+                conciergeReportID: undefined,
             });
 
             // Then one report should be returned
@@ -2828,6 +2924,7 @@ describe('OptionsListUtils', () => {
                 personalDetails: PERSONAL_DETAILS,
                 searchQuery: 'Wolverine',
                 policyCollection: allPolicies,
+                conciergeReportID: undefined,
             });
 
             // Then no reports should be returned
@@ -2865,6 +2962,7 @@ describe('OptionsListUtils', () => {
                 currentUserEmail: CURRENT_USER_EMAIL,
                 personalDetails: PERSONAL_DETAILS,
                 policyCollection: allPolicies,
+                conciergeReportID: undefined,
             });
 
             // When we pass the returned options to filterAndOrderOptions with any search value
@@ -3187,6 +3285,7 @@ describe('OptionsListUtils', () => {
                 currentUserEmail: CURRENT_USER_EMAIL,
                 policyCollection: allPolicies,
                 personalDetails: PERSONAL_DETAILS,
+                conciergeReportID: undefined,
             });
             // When we call filterAndOrderOptions with a search value that matches a personal detail
             const filteredOptions = filterAndOrderOptions(options, 'spider', COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS);
@@ -3209,6 +3308,7 @@ describe('OptionsListUtils', () => {
                 currentUserEmail: CURRENT_USER_EMAIL,
                 policyCollection: allPolicies,
                 personalDetails: PERSONAL_DETAILS,
+                conciergeReportID: undefined,
             });
             // When we call filterAndOrderOptions with a search value that matches multiple items
             const filteredOptions = filterAndOrderOptions(options, 'fantastic', COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS);
@@ -3235,6 +3335,7 @@ describe('OptionsListUtils', () => {
                         currentUserEmail: CURRENT_USER_EMAIL,
                         policyCollection: allPolicies,
                         personalDetails: PERSONAL_DETAILS_WITH_PERIODS,
+                        conciergeReportID: undefined,
                     });
                     // When we pass the returned options to filterAndOrderOptions with a search value
                     const filteredResults = filterAndOrderOptions(
@@ -3275,6 +3376,7 @@ describe('OptionsListUtils', () => {
                 currentUserEmail: CURRENT_USER_EMAIL,
                 policyCollection: allPolicies,
                 personalDetails: PERSONAL_DETAILS,
+                conciergeReportID: undefined,
             });
             // When we call filterAndOrderOptions with a an empty search value
             const filteredOptions = filterAndOrderOptions(options, '', COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS);
@@ -3301,6 +3403,7 @@ describe('OptionsListUtils', () => {
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 currentUserEmail: CURRENT_USER_EMAIL,
                 personalDetails: PERSONAL_DETAILS,
+                conciergeReportID: undefined,
             });
             // When we call filterAndOrderOptions with a search value
             const filteredOptions = filterAndOrderOptions(options, searchTerm, COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS);
@@ -6773,6 +6876,7 @@ describe('OptionsListUtils', () => {
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 currentUserEmail: CURRENT_USER_EMAIL,
                 personalDetails: PERSONAL_DETAILS,
+                conciergeReportID: undefined,
             });
 
             // Then the function should complete without errors and return valid results
