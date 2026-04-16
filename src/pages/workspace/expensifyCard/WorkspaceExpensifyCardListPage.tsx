@@ -108,10 +108,23 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
 
     const [selectedCardIDs, setSelectedCardIDs] = useState<number[]>([]);
 
-    const selectableCardIDs = useMemo(() => filteredSortedCards.map((card) => card.cardID), [filteredSortedCards]);
+    // Serialized so this stays referentially stable when useSearchResults returns a new array with the same cards.
+    const selectableCardIDsKey = filteredSortedCards.map((card) => card.cardID).join(',');
+    const selectableCardIDs = useMemo(() => {
+        if (selectableCardIDsKey.length === 0) {
+            return [];
+        }
+        return selectableCardIDsKey.split(',').map(Number);
+    }, [selectableCardIDsKey]);
 
     useEffect(() => {
-        setSelectedCardIDs((prev) => prev.filter((id) => selectableCardIDs.includes(id)));
+        setSelectedCardIDs((prev) => {
+            const next = prev.filter((id) => selectableCardIDs.includes(id));
+            if (next.length === prev.length && next.every((id, index) => id === prev[index])) {
+                return prev;
+            }
+            return next;
+        });
     }, [selectableCardIDs]);
 
     const toggleCardSelection = useCallback((cardID: number) => {
