@@ -8874,7 +8874,7 @@ function buildOptimisticMoneyRequestEntities({
     const createdActionForTransactionThread = !!existingTransactionThreadReportID || !shouldGenerateTransactionThreadReport ? null : buildOptimisticCreatedReportAction(payeeEmail);
 
     // The IOU action and the transactionThread are co-dependent as parent-child, so we need to link them together
-    iouAction.childReportID = existingTransactionThreadReportID ?? transactionThread?.reportID;
+    iouAction.childReportID = transactionThread?.reportID ?? existingTransactionThreadReportID;
 
     return [createdActionForChat, createdActionForIOUReport, iouAction, transactionThread, createdActionForTransactionThread];
 }
