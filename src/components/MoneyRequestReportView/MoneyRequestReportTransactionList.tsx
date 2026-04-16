@@ -250,14 +250,14 @@ function MoneyRequestReportTransactionList({
         return [...transactions].sort((a, b) => {
             // When on default sort (Date/ASC), prioritize RBR-flagged transactions
             if (isDefaultSort && allTransactionViolations) {
-                const rbrComparison = compareByRBR(a, b, allTransactionViolations);
+                const rbrComparison = compareByRBR(a, b, allTransactionViolations, currentUserDetails?.login ?? '', currentUserDetails?.accountID, report, policy);
                 if (rbrComparison !== 0) {
                     return rbrComparison;
                 }
             }
             return compareValues(getTransactionSortValue(a, sortBy, report, policy), getTransactionSortValue(b, sortBy, report, policy), sortOrder, sortBy, localeCompare, true);
         });
-    }, [sortBy, sortOrder, transactions, localeCompare, report, policy, isDefaultSort, allTransactionViolations]);
+    }, [sortBy, sortOrder, transactions, localeCompare, report, policy, isDefaultSort, allTransactionViolations, currentUserDetails?.login, currentUserDetails?.accountID]);
 
     const resolvedTransactions = useMemo(() => resolveTransactionCardFields(sortedTransactions, cardList, cardFeeds, translate), [sortedTransactions, cardList, cardFeeds, translate]);
 

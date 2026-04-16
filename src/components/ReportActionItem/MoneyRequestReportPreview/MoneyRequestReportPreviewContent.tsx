@@ -18,6 +18,7 @@ import type {ActionHandledType} from '@components/ProcessMoneyReportHoldMenu';
 import {showContextMenuForReport} from '@components/ShowContextMenuContext';
 import StatusBadge from '@components/StatusBadge';
 import Text from '@components/Text';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNonReimbursablePaymentModal from '@hooks/useNonReimbursablePaymentModal';
@@ -137,6 +138,7 @@ function MoneyRequestReportPreviewContent({
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+    const currentUserDetails = useCurrentUserPersonalDetails();
     const {translate, formatPhoneNumber} = useLocalize();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
@@ -334,9 +336,9 @@ function MoneyRequestReportPreviewContent({
         if (shouldShowAccessPlaceHolder) {
             return [];
         }
-        const sorted = [...transactions].sort((a, b) => compareByRBR(a, b, transactionViolations));
+        const sorted = [...transactions].sort((a, b) => compareByRBR(a, b, transactionViolations, currentUserDetails?.login ?? '', currentUserDetails?.accountID, iouReport, policy));
         return sorted.slice(0, 11);
-    }, [shouldShowAccessPlaceHolder, transactions, transactionViolations]);
+    }, [shouldShowAccessPlaceHolder, transactions, transactionViolations, currentUserDetails?.login, currentUserDetails?.accountID, iouReport, policy]);
     const prevCarouselTransactionLength = useRef(0);
 
     useEffect(() => {
