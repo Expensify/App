@@ -2,7 +2,6 @@ import {hasSeenTourSelector} from '@selectors/Onboarding';
 import React from 'react';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import {useMoneyReportHeaderModals} from '@components/MoneyReportHeaderModalsContext';
-import {usePaymentAnimationsContext} from '@components/PaymentAnimationsContext';
 import {useSearchStateContext} from '@components/Search/SearchContext';
 import AnimatedSettlementButton from '@components/SettlementButton/AnimatedSettlementButton';
 import type {PaymentActionParams} from '@components/SettlementButton/types';
@@ -30,10 +29,14 @@ import useTransactionThreadData from './useTransactionThreadData';
 type PayPrimaryActionProps = {
     reportID: string | undefined;
     chatReportID: string | undefined;
+    isPaidAnimationRunning: boolean;
+    isApprovedAnimationRunning: boolean;
+    stopAnimation: () => void;
+    startAnimation: () => void;
+    startApprovedAnimation: () => void;
 };
 
-function PayPrimaryAction({reportID, chatReportID}: PayPrimaryActionProps) {
-    const {isPaidAnimationRunning, isApprovedAnimationRunning, stopAnimation, startAnimation, startApprovedAnimation} = usePaymentAnimationsContext();
+function PayPrimaryAction({reportID, chatReportID, isPaidAnimationRunning, isApprovedAnimationRunning, stopAnimation, startAnimation, startApprovedAnimation}: PayPrimaryActionProps) {
     const {isOffline} = useNetwork();
     const {accountID, email} = useCurrentUserPersonalDetails();
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
