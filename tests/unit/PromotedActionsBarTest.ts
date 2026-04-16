@@ -136,7 +136,7 @@ describe('PromotedActions.message', () => {
 
         action.onSelected();
 
-        expect(mockNavigateToAndOpenReportWithAccountIDs).toHaveBeenCalledWith([42], 1, introSelected, true, undefined);
+        expect(mockNavigateToAndOpenReportWithAccountIDs).toHaveBeenCalledWith([42], 1, introSelected, true, undefined, {});
     });
 
     it('should pass betas to navigateToAndOpenReport when login is provided', () => {

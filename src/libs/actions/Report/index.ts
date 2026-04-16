@@ -2075,11 +2075,8 @@ function navigateToAndOpenReportWithAccountIDs(
 ) {
     let newChat: OptimisticChatReport | undefined;
     const participants = participantAccountIDs.map((accountID): ParticipantInfo => {
-        // TODO: allPersonalDetails fallback should be removed in follow-up PRs https://github.com/Expensify/App/issues/73656
-        const personalDetail = (personalDetails ?? allPersonalDetails)?.[accountID];
-
         return {
-            login: personalDetail?.login ?? '',
+            login: '',
             accountID,
         };
     });
