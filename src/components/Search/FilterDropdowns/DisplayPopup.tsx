@@ -2,7 +2,7 @@ import React, {useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import MenuItem from '@components/MenuItem';
+import MenuItem, {CompactMenuContext} from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import type {SearchQueryJSON} from '@components/Search/types';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -117,15 +117,17 @@ function DisplayPopup({queryJSON, searchResults, closeOverlay, onSort}: DisplayP
                     />
                 )}
                 {shouldShowColumnsButton && (
-                    <MenuItem
-                        icon={expensifyIcons.Columns}
-                        title={translate('search.editColumns')}
-                        onPress={() => {
-                            closeOverlay();
-                            openSearchColumns();
-                        }}
-                        sentryLabel={CONST.SENTRY_LABEL.SEARCH.COLUMNS_BUTTON}
-                    />
+                    <CompactMenuContext.Provider value>
+                        <MenuItem
+                            icon={expensifyIcons.Columns}
+                            title={translate('search.editColumns')}
+                            onPress={() => {
+                                closeOverlay();
+                                openSearchColumns();
+                            }}
+                            sentryLabel={CONST.SENTRY_LABEL.SEARCH.COLUMNS_BUTTON}
+                        />
+                    </CompactMenuContext.Provider>
                 )}
             </View>
         );
