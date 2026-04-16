@@ -98,7 +98,7 @@ import type {TransactionPreviewData} from './actions/Search';
 import {setOptimisticDataForTransactionThreadPreview} from './actions/Search';
 import type {CardFeedForDisplay} from './CardFeedUtils';
 import {getCardFeedsForDisplay} from './CardFeedUtils';
-import {doesCardFeedExist, getCardDescriptionForSearchTable, getFeedNameForDisplay} from './CardUtils';
+import {getCardDescriptionForSearchTable, getFeedNameForDisplay} from './CardUtils';
 import {getDecodedCategoryName} from './CategoryUtils';
 import {convertToDisplayString, convertToDisplayStringWithoutCurrency} from './CurrencyUtils';
 import DateUtils from './DateUtils';
@@ -175,6 +175,8 @@ import {
 import StringUtils from './StringUtils';
 import {getIOUPayerAndReceiver} from './TransactionPreviewUtils';
 import {
+    getAmount,
+    getAttendees,
     getCategory,
     getDescription,
     getExchangeRate,
@@ -190,7 +192,7 @@ import {
     isPending,
     isScanning,
     isViolationDismissed,
-    shouldShowAttendees,
+    shouldShowAttendees as shouldShowAttendeesUtils,
     shouldShowViolation,
 } from './TransactionUtils';
 import {isInvalidMerchantValue} from './ValidationUtils';
@@ -248,7 +250,7 @@ type GetTransactionSectionsParams = {
     allReportMetadata: OnyxCollection<OnyxTypes.ReportMetadata>;
     reportActions?: Record<string, OnyxTypes.ReportAction[]>;
     queryJSON?: SearchQueryJSON;
-    cardFeeds?: OnyxCollection<OnyxTypes.CardFeeds>;
+    policyForMovingExpenses?: OnyxTypes.Policy;
 };
 
 const transactionColumnNamesToSortingProperty: TransactionSorting = {
@@ -463,8 +465,6 @@ type TransactionKey = `${typeof ONYXKEYS.COLLECTION.TRANSACTION}${string}`;
 
 type ReportActionKey = `${typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS}${string}`;
 
-type PolicyKey = `${typeof ONYXKEYS.COLLECTION.POLICY}${string}`;
-
 type ViolationKey = `${typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${string}`;
 
 type SearchGroupKey = `${typeof CONST.SEARCH.GROUP_PREFIX}${string}`;
@@ -554,6 +554,7 @@ type GetSectionsParams = {
     allReportMetadata: OnyxCollection<OnyxTypes.ReportMetadata>;
     conciergeReportID: string | undefined;
     onyxPersonalDetailsList?: OnyxTypes.PersonalDetailsList;
+    policyForMovingExpenses?: OnyxTypes.Policy;
 };
 
 /**
@@ -1221,13 +1222,6 @@ function isReportActionEntry(key: string): key is ReportActionKey {
  */
 function isTransactionEntry(key: string): key is TransactionKey {
     return key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION);
-}
-
-/**
- * @private
- */
-function isPolicyEntry(key: string): key is PolicyKey {
-    return key.startsWith(ONYXKEYS.COLLECTION.POLICY);
 }
 
 /**
@@ -2024,7 +2018,7 @@ function getTransactionsSections({
     allReportMetadata,
     reportActions = {},
     queryJSON,
-    cardFeeds,
+    policyForMovingExpenses,
 }: GetTransactionSectionsParams): [TransactionListItemType[], number] {
     const {
         transactionKeys,
@@ -2043,6 +2037,7 @@ function getTransactionsSections({
     } = classifyAndPreprocess(data);
 
     const personalDetailsMap = new Map(Object.entries(data.personalDetailsList ?? {}));
+    const currentUserPersonalDetails = personalDetailsMap.get(currentAccountID.toString()) ?? emptyPersonalDetails;
 
     const transactionsSections: TransactionListItemType[] = [];
 
@@ -2082,8 +2077,6 @@ function getTransactionsSections({
             const from = fromAccountID ? (personalDetailsMap.get(fromAccountID.toString()) ?? emptyPersonalDetails) : emptyPersonalDetails;
             const to = getToFieldValueForTransaction(transactionItem, report, data.personalDetailsList, reportAction);
             const isIOUReport = report?.type === CONST.REPORT.TYPE.IOU;
-            // Check if the card feed has been deleted. If cardFeeds is still loading (undefined), return undefined to avoid showing incorrect state.
-            const isCardFeedDeleted = cardFeeds === undefined ? undefined : !!transactionItem.bank && !doesCardFeedExist(transactionItem.bank as OnyxTypes.CompanyCardFeed, cardFeeds);
 
             const {formattedFrom, formattedTo, formattedTotal, formattedMerchant, date, submitted, approved, posted} = getTransactionItemCommonFormattedProperties(
                 transactionItem,
@@ -2097,9 +2090,21 @@ function getTransactionsSections({
             const reportMetadata = allReportMetadata?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${transactionItem.reportID}`] ?? {};
             const allActions = getActions(data, allViolations, key, currentSearch, currentUserEmail, currentAccountID, bankAccountList, reportMetadata, actions);
             const transactionPendingAction = getTransactionPendingAction(transactionItem);
+            const transactionAttendees = getAttendees(transactionItem, currentUserPersonalDetails);
+            const isUnreported = transactionItem.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
+            const shouldShowAttendees = shouldShowAttendeesUtils(CONST.IOU.TYPE.SUBMIT, isUnreported ? policyForMovingExpenses : policy) && transactionAttendees.length > 0;
+
             const transactionSection: TransactionListItemType = {
                 ...transactionItem,
                 ...(transactionPendingAction ? {pendingAction: transactionPendingAction} : {}),
+                ...(transactionAttendees.length > 0
+                    ? {
+                          comment: {
+                              ...transactionItem.comment,
+                              attendees: shouldShowAttendees ? transactionAttendees : [],
+                          },
+                      }
+                    : {}),
                 keyForList: transactionItem.transactionID,
                 action: getAction(allActions),
                 allActions,
@@ -2113,7 +2118,6 @@ function getTransactionsSections({
                 formattedTo: shouldShowBlankTo ? '' : formattedTo,
                 formattedTotal,
                 formattedMerchant,
-                isCardFeedDeleted,
                 date,
                 submitted,
                 approved,
@@ -3376,6 +3380,7 @@ function getSections({
     allReportMetadata,
     conciergeReportID,
     onyxPersonalDetailsList,
+    policyForMovingExpenses,
 }: GetSectionsParams) {
     if (type === CONST.SEARCH.DATA_TYPES.CHAT) {
         return getReportActionsSections(data, visibleReportActionsData);
@@ -3442,7 +3447,7 @@ function getSections({
         allReportMetadata,
         reportActions,
         queryJSON,
-        cardFeeds,
+        policyForMovingExpenses,
     });
 }
 
@@ -3677,6 +3682,31 @@ function getSortedTransactionData(
             const aValue = getOriginalAmountForDisplay(a, a.report?.type === CONST.REPORT.TYPE.EXPENSE);
             const bValue = getOriginalAmountForDisplay(b, b.report?.type === CONST.REPORT.TYPE.EXPENSE);
             return compareValues(aValue, bValue, sortOrder, sortBy, localeCompare, true);
+        });
+    }
+
+    if (sortBy === CONST.SEARCH.TABLE_COLUMNS.ATTENDEES) {
+        return data.sort((a, b) => {
+            const aValue = a.comment?.attendees?.length ?? 0;
+            const bValue = b.comment?.attendees?.length ?? 0;
+            return compareValues(aValue, bValue, sortOrder, sortBy, localeCompare);
+        });
+    }
+
+    if (sortBy === CONST.SEARCH.TABLE_COLUMNS.TOTAL_PER_ATTENDEE) {
+        const getTotalPerAttendee = (t: TransactionListItemType) => {
+            const attendeesCount = t.comment?.attendees?.length ?? 0;
+            if (!attendeesCount) {
+                return 0;
+            }
+            const totalAmount = getAmount(t, t.report?.type === CONST.REPORT.TYPE.EXPENSE);
+            return totalAmount / attendeesCount;
+        };
+
+        return data.sort((a, b) => {
+            const aValue = getTotalPerAttendee(a);
+            const bValue = getTotalPerAttendee(b);
+            return compareValues(aValue, bValue, sortOrder, sortBy, localeCompare);
         });
     }
 
@@ -5094,7 +5124,6 @@ function getColumnsToShow({
     shouldShowReimbursableColumn = false,
     reportCurrency,
     shouldUseStrictDefaultExpenseColumns = false,
-    policy,
 }: {
     currentAccountID: number | undefined;
     data: OnyxTypes.SearchResults['data'] | OnyxTypes.Transaction[];
@@ -5106,7 +5135,6 @@ function getColumnsToShow({
     shouldShowBillableColumn?: boolean;
     shouldShowReimbursableColumn?: boolean;
     shouldUseStrictDefaultExpenseColumns?: boolean;
-    policy?: OnyxTypes.Policy;
     reportCurrency?: string;
 }): SearchColumnType[] {
     if (type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT) {
@@ -5216,8 +5244,6 @@ function getColumnsToShow({
               [CONST.SEARCH.TABLE_COLUMNS.MERCHANT]: false,
               [CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION]: false,
               [CONST.SEARCH.TABLE_COLUMNS.CATEGORY]: false,
-              [CONST.SEARCH.TABLE_COLUMNS.ATTENDEES]: false,
-              [CONST.SEARCH.TABLE_COLUMNS.TOTAL_PER_ATTENDEE]: false,
               [CONST.SEARCH.TABLE_COLUMNS.TAG]: false,
               [CONST.SEARCH.TABLE_COLUMNS.CARD]: false,
               [CONST.SEARCH.TABLE_COLUMNS.TAX_RATE]: false,
@@ -5246,8 +5272,6 @@ function getColumnsToShow({
               [CONST.SEARCH.TABLE_COLUMNS.POLICY_NAME]: false,
               [CONST.SEARCH.TABLE_COLUMNS.CARD]: false,
               [CONST.SEARCH.TABLE_COLUMNS.CATEGORY]: false,
-              [CONST.SEARCH.TABLE_COLUMNS.ATTENDEES]: false,
-              [CONST.SEARCH.TABLE_COLUMNS.TOTAL_PER_ATTENDEE]: false,
               [CONST.SEARCH.TABLE_COLUMNS.TAG]: false,
               [CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE]: false,
               [CONST.SEARCH.TABLE_COLUMNS.BILLABLE]: false,
@@ -5429,18 +5453,8 @@ function getColumnsToShow({
         for (const item of data) {
             updateColumns(item);
         }
-        if (shouldShowAttendees(CONST.IOU.TYPE.SUBMIT, policy)) {
-            columns[CONST.SEARCH.TABLE_COLUMNS.ATTENDEES] = true;
-            columns[CONST.SEARCH.TABLE_COLUMNS.TOTAL_PER_ATTENDEE] = true;
-        }
     } else {
         for (const key of Object.keys(data)) {
-            if (isPolicyEntry(key)) {
-                if (shouldShowAttendees(CONST.IOU.TYPE.SUBMIT, data[key])) {
-                    columns[CONST.SEARCH.TABLE_COLUMNS.ATTENDEES] = true;
-                    columns[CONST.SEARCH.TABLE_COLUMNS.TOTAL_PER_ATTENDEE] = true;
-                }
-            }
             if (!isTransactionEntry(key)) {
                 continue;
             }
@@ -5466,6 +5480,8 @@ function getColumnsToShow({
             CONST.SEARCH.TABLE_COLUMNS.REPORT_ID,
             CONST.SEARCH.TABLE_COLUMNS.TITLE,
             CONST.SEARCH.TABLE_COLUMNS.ACTION,
+            CONST.SEARCH.TABLE_COLUMNS.ATTENDEES,
+            CONST.SEARCH.TABLE_COLUMNS.TOTAL_PER_ATTENDEE,
         ]);
 
         return customResult.filter((col) => nonDataColumns.has(col) || columns[col]);
@@ -5479,6 +5495,7 @@ function getColumnsToShow({
  * State mapping confirmed by backend team (@JS00001):
  * - 5, 6, 7: Failed
  * - 8: Cleared (succeeded and complete)
+ * - 9: Cleared (settled, pending batch processing)
  * - All others: Pending (processing)
  */
 const settlementStatusMap = new Map<number, ValueOf<typeof CONST.SEARCH.SETTLEMENT_STATUS>>([
@@ -5486,6 +5503,7 @@ const settlementStatusMap = new Map<number, ValueOf<typeof CONST.SEARCH.SETTLEME
     [6, CONST.SEARCH.SETTLEMENT_STATUS.FAILED],
     [7, CONST.SEARCH.SETTLEMENT_STATUS.FAILED],
     [8, CONST.SEARCH.SETTLEMENT_STATUS.CLEARED],
+    [9, CONST.SEARCH.SETTLEMENT_STATUS.CLEARED],
 ]);
 
 function getSettlementStatus(state: number | undefined): ValueOf<typeof CONST.SEARCH.SETTLEMENT_STATUS> | undefined {
