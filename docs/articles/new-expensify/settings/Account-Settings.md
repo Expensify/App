@@ -128,8 +128,11 @@ Your photo helps teammates identify you easily in chats, reports, and notificati
 ## Will changing my language affect reports?
 No. It only changes the language of your user interface, not the content of your reports.
 
-## Can I disable all Expensify notifications?
+## Can I disable all Expensify app notifications?
 Yes. From the navigation tabs, go to **Account > Preferences** and toggle off both update and sound notifications.
+
+## Can I disable email notifications for reports that I approve for reimbursement?
+No. To comply with regulations in several US states, Expensify is required to send you an email whenever you send money to another individual.
 
 ## Will theme preferences sync across devices?
 Yes! Your chosen theme applies across web, mobile, and desktop versions of Expensify.

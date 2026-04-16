@@ -2,7 +2,7 @@ import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} fr
 import type {LayoutChangeEvent} from 'react-native';
 // Animated required for side panel navigation
 // eslint-disable-next-line no-restricted-imports
-import {Animated, DeviceEventEmitter, View} from 'react-native';
+import {Animated, View} from 'react-native';
 import ColorSchemeWrapper from '@components/ColorSchemeWrapper';
 import NavigationBar from '@components/NavigationBar';
 import ScreenWrapperOfflineIndicatorContext from '@components/ScreenWrapper/ScreenWrapperOfflineIndicatorContext';
@@ -169,8 +169,6 @@ function BaseModal({
         // eslint-disable-next-line react-hooks/exhaustive-deps
         [],
     );
-
-    useEffect(() => () => DeviceEventEmitter.emit(CONST.MODAL_EVENTS.CLOSED), []);
 
     const handleShowModal = useCallback(() => {
         if (shouldSetModalVisibility) {

@@ -52,7 +52,7 @@ describe('PromotedActions.message', () => {
 
         action.onSelected();
 
-        expect(mockNavigateToAndOpenReportWithAccountIDs).toHaveBeenCalledWith([42], 1, introSelected, undefined);
+        expect(mockNavigateToAndOpenReportWithAccountIDs).toHaveBeenCalledWith([42], 1, introSelected, false, undefined);
     });
 
     it('should pass undefined introSelected when not provided', () => {
@@ -66,7 +66,7 @@ describe('PromotedActions.message', () => {
 
         action.onSelected();
 
-        expect(mockNavigateToAndOpenReportWithAccountIDs).toHaveBeenCalledWith([42], 1, undefined, undefined);
+        expect(mockNavigateToAndOpenReportWithAccountIDs).toHaveBeenCalledWith([42], 1, undefined, undefined, undefined);
     });
 
     it('should navigate to report directly when reportID is provided', () => {
@@ -114,7 +114,22 @@ describe('PromotedActions.message', () => {
 
         action.onSelected();
 
-        expect(mockNavigateToAndOpenReportWithAccountIDs).toHaveBeenCalledWith([42], 1, introSelected, betas);
+        expect(mockNavigateToAndOpenReportWithAccountIDs).toHaveBeenCalledWith([42], 1, introSelected, false, betas);
+    });
+
+    it('should call navigateToAndOpenReportWithAccountIDs with isSelfTourViewed=true when self tour has been viewed and accountID is provided', () => {
+        const introSelected = {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM};
+        const action = PromotedActions.message({
+            accountID: 42,
+            currentUserAccountID: 1,
+            introSelected,
+            isSelfTourViewed: true,
+            betas: undefined,
+        });
+
+        action.onSelected();
+
+        expect(mockNavigateToAndOpenReportWithAccountIDs).toHaveBeenCalledWith([42], 1, introSelected, true, undefined);
     });
 
     it('should pass betas to navigateToAndOpenReport when login is provided', () => {

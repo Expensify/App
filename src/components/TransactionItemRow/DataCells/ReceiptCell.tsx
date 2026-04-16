@@ -9,17 +9,17 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getFileName} from '@libs/fileDownload/FileUtils';
 import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
 import {hasReceiptSource, isPerDiemRequest} from '@libs/TransactionUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
 import variables from '@styles/variables';
 import type {Transaction} from '@src/types/onyx';
 
-function ReceiptCell({transactionItem, isSelected, style}: {transactionItem: Transaction; isSelected: boolean; style?: ViewStyle}) {
+function ReceiptCell({transactionItem, isSelected, style, shouldUseNarrowLayout}: {transactionItem: Transaction; isSelected: boolean; style?: ViewStyle; shouldUseNarrowLayout?: boolean}) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+    const isLargeScreenWidth = !shouldUseNarrowLayout;
     const icons = useMemoizedLazyExpensifyIcons(['Receipt']);
     const backgroundStyles = isSelected ? StyleUtils.getBackgroundColorStyle(theme.buttonHoveredBG) : StyleUtils.getBackgroundColorStyle(theme.border);
     const {hovered, bind} = useHover();
@@ -38,25 +38,20 @@ function ReceiptCell({transactionItem, isSelected, style}: {transactionItem: Tra
     const isMissingReceiptSource = !hasReceiptSource(transactionItem);
     const isEReceipt = transactionItem.hasEReceipt && isMissingReceiptSource;
     const isPerDiem = isPerDiemRequest(transactionItem) && isMissingReceiptSource;
-    let source = transactionItem?.receipt?.source ?? '';
-    let previewSource = transactionItem?.receipt?.source ?? '';
+    const receiptURIs = getThumbnailAndImageURIs(transactionItem, null, null);
+    const filename = receiptURIs.filename ?? '';
 
-    if (source && typeof source === 'string') {
-        const filename = getFileName(source);
-        const receiptURIs = getThumbnailAndImageURIs(transactionItem, null, filename);
+    // Use 320px thumbnail for the receipt cell image
+    const source = tryResolveUrlFromApiRoot(receiptURIs.thumbnail320 ?? receiptURIs.thumbnail ?? receiptURIs.image ?? '');
 
-        // Use 320px thumbnail for the receipt cell image
-        source = tryResolveUrlFromApiRoot(receiptURIs.thumbnail320 ?? receiptURIs.thumbnail ?? receiptURIs.image ?? '');
-
-        // Use full size receipt image for the hovered preview
-        const previewImageURI = Str.isImage(filename) ? receiptURIs.image : receiptURIs.thumbnail;
-        previewSource = tryResolveUrlFromApiRoot(previewImageURI ?? '');
-    }
+    // Use full size receipt image for the hovered preview
+    const previewImageURI = Str.isImage(filename) ? receiptURIs.image : receiptURIs.thumbnail;
+    const previewSource = tryResolveUrlFromApiRoot(previewImageURI ?? '');
 
     return (
         <View
             style={[
-                StyleUtils.getWidthAndHeightStyle(variables.h36, variables.w40),
+                StyleUtils.getWidthAndHeightStyle(isLargeScreenWidth ? variables.w28 : variables.h36, isLargeScreenWidth ? variables.h32 : variables.w40),
                 StyleUtils.getBorderRadiusStyle(variables.componentBorderRadiusSmall),
                 styles.overflowHidden,
                 backgroundStyles,
