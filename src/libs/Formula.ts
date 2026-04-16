@@ -4,7 +4,7 @@ import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import type {PersonalDetails, Policy, PolicyReportField, Report, Transaction} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import {convertToDisplayString, convertToDisplayStringWithoutCurrency, isValidCurrencyCode} from './CurrencyUtils';
+import {convertToDisplayString, convertToDisplayStringWithoutCurrency} from './CurrencyUtils';
 import {formatDate} from './FormulaDatetime';
 import getBase62ReportID from './getBase62ReportID';
 import Log from './Log';
@@ -573,11 +573,6 @@ function formatAmount(amount: number | undefined, currency: string | undefined, 
                 return convertToDisplayStringWithoutCurrency(absoluteAmount, currency);
             }
 
-            // Check if format is a valid currency code (e.g., USD, EUR, eur)
-            if (!isValidCurrencyCode(trimmedDisplayCurrency)) {
-                return '';
-            }
-
             // If a currency conversion is needed (displayCurrency differs from the source),
             // return null so the backend can compute it.
             // We can only compute the value optimistically when the amount is 0.
@@ -588,7 +583,7 @@ function formatAmount(amount: number | undefined, currency: string | undefined, 
             return convertToDisplayString(absoluteAmount, trimmedDisplayCurrency);
         }
 
-        if (currency && isValidCurrencyCode(currency)) {
+        if (currency) {
             return convertToDisplayString(absoluteAmount, currency, true);
         }
 
@@ -973,4 +968,4 @@ function resolveReportFieldValue(
 
 export {FORMULA_PART_TYPES, compute, parse, hasCircularReferences, resolveReportFieldValue};
 
-export type {FormulaContext, FieldList, MinimalTransaction};
+export type {FormulaContext, FieldList, FormulaPart, MinimalTransaction};
