@@ -7,6 +7,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import usePolicyData from '@hooks/usePolicyData';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -19,30 +20,32 @@ import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import {renamePolicyTag} from '@userActions/Policy/Tag';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/WorkspaceTagForm';
 
 type EditTagPageProps =
     | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TAG_EDIT>
-    | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS_TAGS.SETTINGS_TAG_EDIT>;
+    | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS_TAGS.DYNAMIC_TAG_EDIT>;
 
 function EditTagPage({route}: EditTagPageProps) {
-    const {backTo, policyID} = route.params;
+    const {policyID} = route.params;
+    const {orderWeight} = route.params;
     const policyData = usePolicyData(policyID);
     const {tags: policyTags} = policyData;
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
     const currentTagName = getCleanedTagName(route.params.tagName);
-    const isQuickSettingsFlow = route.name === SCREENS.SETTINGS_TAGS.SETTINGS_TAG_EDIT;
+    const isQuickSettingsFlow = route.name === SCREENS.SETTINGS_TAGS.DYNAMIC_TAG_EDIT;
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.SETTINGS_TAG_EDIT.path);
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_TAG_FORM>) => {
             const errors: FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_TAG_FORM> = {};
             const tagName = values.tagName.trim();
             const escapedTagName = escapeTagName(values.tagName.trim());
-            const {tags} = getTagListByOrderWeight(policyTags, route.params.orderWeight);
+            const {tags} = getTagListByOrderWeight(policyTags, orderWeight);
             if (!isRequiredFulfilled(tagName)) {
                 errors.tagName = translate('workspace.tags.tagRequiredError');
             } else if (escapedTagName === '0') {
@@ -56,7 +59,7 @@ function EditTagPage({route}: EditTagPageProps) {
 
             return errors;
         },
-        [policyTags, route.params.orderWeight, currentTagName, translate],
+        [policyTags, orderWeight, currentTagName, translate],
     );
 
     const editTag = useCallback(
@@ -64,16 +67,12 @@ function EditTagPage({route}: EditTagPageProps) {
             const tagName = values.tagName.trim();
             // Do not call the API if the edited tag name is the same as the current tag name
             if (currentTagName !== tagName) {
-                renamePolicyTag(policyData, {oldName: route.params.tagName, newName: values.tagName.trim()}, route.params.orderWeight);
+                renamePolicyTag(policyData, {oldName: route.params.tagName, newName: values.tagName.trim()}, orderWeight);
             }
             Keyboard.dismiss();
-            Navigation.goBack(
-                isQuickSettingsFlow
-                    ? ROUTES.SETTINGS_TAG_SETTINGS.getRoute(policyID, route.params.orderWeight, route.params.tagName, backTo)
-                    : ROUTES.WORKSPACE_TAG_SETTINGS.getRoute(policyID, route.params.orderWeight, route.params.tagName),
-            );
+            Navigation.goBack(isQuickSettingsFlow ? backPath : ROUTES.WORKSPACE_TAG_SETTINGS.getRoute(policyID, orderWeight, route.params.tagName));
         },
-        [policyData, currentTagName, policyID, route.params.tagName, route.params.orderWeight, isQuickSettingsFlow, backTo],
+        [policyData, currentTagName, policyID, route.params.tagName, orderWeight, isQuickSettingsFlow, backPath],
     );
 
     return (
@@ -91,11 +90,7 @@ function EditTagPage({route}: EditTagPageProps) {
                 <HeaderWithBackButton
                     title={translate('workspace.tags.editTag')}
                     onBackButtonPress={() =>
-                        Navigation.goBack(
-                            isQuickSettingsFlow
-                                ? ROUTES.SETTINGS_TAG_SETTINGS.getRoute(route?.params?.policyID, route.params.orderWeight, route.params.tagName, backTo)
-                                : ROUTES.WORKSPACE_TAG_SETTINGS.getRoute(route?.params?.policyID, route.params.orderWeight, route.params.tagName),
-                        )
+                        Navigation.goBack(isQuickSettingsFlow ? backPath : ROUTES.WORKSPACE_TAG_SETTINGS.getRoute(route?.params?.policyID, orderWeight, route.params.tagName))
                     }
                 />
                 <FormProvider

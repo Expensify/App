@@ -20,7 +20,7 @@ type TagApproverPageProps =
     | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS_TAGS.SETTINGS_TAG_APPROVER>;
 
 function TagApproverPage({route}: TagApproverPageProps) {
-    const {policyID, tagName, orderWeight, backTo} = route.params;
+    const {policyID, tagName, orderWeight} = route.params;
 
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -30,9 +30,7 @@ function TagApproverPage({route}: TagApproverPageProps) {
     const isQuickSettingsFlow = route.name === SCREENS.SETTINGS_TAGS.SETTINGS_TAG_APPROVER;
 
     const goBack = () => {
-        Navigation.goBack(
-            isQuickSettingsFlow ? ROUTES.SETTINGS_TAG_SETTINGS.getRoute(policyID, orderWeight, tagName, backTo) : ROUTES.WORKSPACE_TAG_SETTINGS.getRoute(policyID, orderWeight, tagName),
-        );
+        Navigation.goBack(isQuickSettingsFlow ? undefined : ROUTES.WORKSPACE_TAG_SETTINGS.getRoute(policyID, orderWeight, tagName));
     };
 
     return (

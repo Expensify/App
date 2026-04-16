@@ -142,7 +142,7 @@ function getUrlWithParams<TBase extends string, TParams extends UrlParams>(baseU
     const searchParams = new URLSearchParams(existingQuery || '');
 
     for (const [key, value] of Object.entries(params)) {
-        if (value) {
+        if (value !== undefined && value !== '') {
             searchParams.set(key, String(value));
         }
     }
