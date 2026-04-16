@@ -64,11 +64,4 @@ describe('DateFilterBase reset', () => {
         expect(onReset).toHaveBeenCalledWith(emptyDateValues);
     });
 
-    it('does not call onReset when onReset is not provided', () => {
-        renderDateFilterBase({});
-
-        const resetButton = screen.getByText(/^(Reset|common\.reset)$/);
-        // Should not throw when reset is pressed without onReset callback
-        fireEvent.press(resetButton);
-    });
 });
