@@ -137,8 +137,10 @@ function MiniReportActionContextMenu() {
             el.removeEventListener('blur', onBlurCapture, true);
             el.removeEventListener('keydown', onKeyDown);
         };
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- anchor is a ref object, only its .current matters
-    }, [hideMiniContextMenu, anchor?.current]);
+        // Depending on the ref object rather than anchor?.current avoids accessing
+        // refs during render (required for React Compiler compliance); the ref identity is stable.
+        // eslint-disable-next-line rulesdir/prefer-narrow-hook-dependencies
+    }, [hideMiniContextMenu, anchor]);
 
     useEffect(() => {
         if (!isVisible) {

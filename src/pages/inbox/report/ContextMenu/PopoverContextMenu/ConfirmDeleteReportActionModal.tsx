@@ -1,4 +1,4 @@
-import React, {useRef, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {DeviceEventEmitter, InteractionManager} from 'react-native';
 import ConfirmModal from '@components/ConfirmModal';
 import type {ModalProps} from '@components/Modal/Global/ModalContext';
@@ -31,9 +31,13 @@ function ConfirmDeleteReportActionModal({closeModal, reportID, reportActionID, a
     const {currentSearchHash} = useSearchStateContext();
 
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`);
+    // Track the latest reportActions so runAfterInteractions sees post-click updates
+    // (e.g. another action deleted in the meantime). Updated inside an effect so the
+    // ref isn't touched during render.
     const reportActionsRef = useRef(reportActions);
-    // eslint-disable-next-line react-hooks/refs
-    reportActionsRef.current = reportActions;
+    useEffect(() => {
+        reportActionsRef.current = reportActions;
+    }, [reportActions]);
     const [sourceReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${actionSourceReportID}`);
     const actionReportActions = reportActions?.[reportActionID] ? reportActions : sourceReportActions;
     const reportAction = actionReportActions?.[reportActionID];

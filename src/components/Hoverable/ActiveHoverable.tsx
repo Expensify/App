@@ -85,9 +85,10 @@ function ActiveHoverable({onHoverIn, onHoverOut, shouldHandleScroll, isFocused =
     }, [isFocused]);
 
     useEffect(() => {
-        if (elementRef.current?.matches(':hover') && !isHoveredRef.current && !isVisibilityHidden.current) {
-            updateIsHovered(true);
+        if (!elementRef.current?.matches(':hover') || isHoveredRef.current || isVisibilityHidden.current) {
+            return;
         }
+        updateIsHovered(true);
     }, [updateIsHovered]);
 
     const handleMouseEvents = useCallback(

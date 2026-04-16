@@ -1,9 +1,9 @@
 import {PortalProvider} from '@gorhom/portal';
 import * as NativeNavigation from '@react-navigation/native';
 import {act, render} from '@testing-library/react-native';
+import type {RenderResult} from '@testing-library/react-native';
 import React, {useRef} from 'react';
 import Onyx from 'react-native-onyx';
-import type {ReactTestInstance} from 'react-test-renderer';
 import ComposeProviders from '@components/ComposeProviders';
 import DelegateNoAccessModalProvider from '@components/DelegateNoAccessModalProvider';
 import HTMLEngineProvider from '@components/HTMLEngineProvider';
@@ -33,7 +33,7 @@ const REPORT_ID = 'testReport';
  * — MenuItem → PressableWithSecondaryInteraction → … — all of which expose
  * the same `sentryLabel`).
  */
-function collectSentryLabels(root: ReactTestInstance): string[] {
+function collectSentryLabels(root: RenderResult['root']): string[] {
     const matches = root.findAll((el) => {
         const label: unknown = el.props?.sentryLabel;
         return typeof label === 'string' && label.startsWith('ContextMenu-');
