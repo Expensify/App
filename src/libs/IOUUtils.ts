@@ -11,7 +11,7 @@ import {getCurrencyUnit} from './CurrencyUtils';
 import Navigation from './Navigation/Navigation';
 import {isPaidGroupPolicy} from './PolicyUtils';
 import {getOriginalMessage, isMoneyRequestAction} from './ReportActionsUtils';
-import {isSelfDM} from './ReportUtils';
+import {generateReportID, getChatByParticipants, isSelfDM} from './ReportUtils';
 import {endSpan, getSpan, startSpan} from './telemetry/activeSpans';
 import {getTagArrayFromName} from './TransactionUtils';
 
@@ -284,8 +284,15 @@ function insertTagIntoTransactionTagsString(transactionTags: string, tag: string
         return tag;
     }
 
-    const tagArray = getTagArrayFromName(transactionTags);
+    const tagArray = transactionTags ? getTagArrayFromName(transactionTags) : [];
     tagArray[tagIndex] = tag;
+
+    // Fill any sparse slots created when tagIndex > tagArray.length
+    for (let i = 0; i < tagArray.length; i++) {
+        if (tagArray.at(i) === undefined) {
+            tagArray[i] = '';
+        }
+    }
 
     while (tagArray.length > 0 && !tagArray.at(-1)) {
         tagArray.pop();
@@ -349,7 +356,7 @@ function navigateToConfirmationPage(
     startSpan(CONST.TELEMETRY.SPAN_CONFIRMATION_MOUNT, {
         name: CONST.TELEMETRY.SPAN_CONFIRMATION_MOUNT,
         op: CONST.TELEMETRY.SPAN_CONFIRMATION_MOUNT,
-        parentSpan: getSpan(CONST.TELEMETRY.SPAN_SHUTTER_TO_CONFIRMATION),
+        parentSpan: getSpan(CONST.TELEMETRY.SPAN_SHUTTER_TO_CONFIRMATION) ?? getSpan(CONST.TELEMETRY.SPAN_ODOMETER_TO_CONFIRMATION),
     });
     switch (iouType) {
         case CONST.IOU.TYPE.REQUEST:
@@ -449,6 +456,16 @@ function getInitialPerDiemTargetReport(
     return {targetReport, targetIouType, transactionReportID};
 }
 
+/**
+ * Resolves the chat report ID for navigation, generating an optimistic ID if no existing chat is found.
+ */
+function resolveOptimisticChatReportID(participantAccountIDs: number[], existingReport?: OnyxInputOrEntry<Report>) {
+    const existingChat = existingReport?.reportID ? existingReport : getChatByParticipants(participantAccountIDs);
+    const optimisticChatReportID = existingChat?.reportID ? undefined : generateReportID();
+    const chatReportID = existingChat?.reportID ?? optimisticChatReportID;
+    return {optimisticChatReportID, chatReportID};
+}
+
 export {
     calculateAmount,
     calculateSplitAmountFromPercentage,
@@ -466,4 +483,5 @@ export {
     navigateToConfirmationPage,
     calculateDefaultReimbursable,
     getInitialPerDiemTargetReport,
+    resolveOptimisticChatReportID,
 };
