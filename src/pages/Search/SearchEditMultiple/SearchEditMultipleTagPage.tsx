@@ -6,7 +6,7 @@ import TagPicker from '@components/TagPicker';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useSearchBulkEditPolicyID from '@hooks/useSearchBulkEditPolicyID';
-import {updateBulkEditDraftTransaction} from '@libs/actions/IOU';
+import {updateBulkEditDraftTransaction} from '@libs/actions/IOU/BulkEdit';
 import Navigation from '@libs/Navigation/Navigation';
 import {getTagList, hasDependentTags as hasDependentTagsPolicyUtils} from '@libs/PolicyUtils';
 import type {OptionData} from '@libs/ReportUtils';
