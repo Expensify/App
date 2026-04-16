@@ -17,7 +17,7 @@ If you’re trying to export a specific type of data, use the guides below:
 
 ## How to export a single report to CSV
 
-1. In the navigation tabs (on the left on web, on the bottom on mobile), go to **Spend**.
+1. In the navigation tabs (on the left on web, on the bottom on mobile), go to **Spend > Reports**.
 2. Open the report you want to export.
 3. Select **More**.
 4. Select **Export**.
@@ -27,7 +27,7 @@ You'll receive the exported CSV file in a message from Concierge.
 
 ## How to export multiple reports
 
-1. In the navigation tabs (on the left on web, on the bottom on mobile), go to **Spend**. 
+1. In the navigation tabs (on the left on web, on the bottom on mobile), go to **Spend > Reports**. 
 2. Select the checkbox next to each report you want to export, or use the top checkbox to select all.
 3. Select **Selected** at the top.
 4. Select **Export**.
@@ -45,10 +45,10 @@ Expensify offers pre-built export templates, or you can build your own custom ex
    - **Custom templates** - Any custom template created by you or your Workspace Admin, if available.
 
 **Note** Currently, it's not possible to build custom export templates on New Expensify, they can only be created on Expensify Classic. However, once built they will be available on New Expensify when exporting reports. [Learn how to build a custom export template in Expensify Classic](/articles/expensify-classic/spending-insights/Export-Expenses-And-Reports#create-a-custom-export-template).  
-## How to download a report as a PDF
-# How to download a report as a PDF
 
-1. In the navigation tabs (on the left on web, on the bottom on mobile), go to **Spend**. 
+## How to download a report as a PDF
+
+1. In the navigation tabs (on the left on web, on the bottom on mobile), go to **Spend > Reports**. 
 2. Open the report you want to download.
 3. Select **More**.
 4. Select **Download as PDF**.
