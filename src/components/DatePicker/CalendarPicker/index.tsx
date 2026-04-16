@@ -1,4 +1,4 @@
-import {addMonths, addYears, format, isSameDay, parseISO, setDate, setMonth, setYear, startOfDay, subMonths, subYears} from 'date-fns';
+import {addMonths, addYears, format, getYear, isSameDay, parseISO, setDate, setMonth, setYear, startOfDay, subMonths, subYears} from 'date-fns';
 import {Str} from 'expensify-common';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
@@ -81,8 +81,11 @@ function CalendarPicker({
     const initialHeight = (calendarDaysMatrix?.length || CONST.MAX_CALENDAR_PICKER_ROWS) * CONST.CALENDAR_PICKER_DAY_HEIGHT;
     const heightValue = useSharedValue(initialHeight);
 
+    const minYear = Math.min(getYear(new Date(minDate)), CONST.CALENDAR_PICKER.MIN_YEAR);
+    const maxYear = Math.max(getYear(new Date(maxDate)), CONST.CALENDAR_PICKER.MAX_YEAR);
+
     const [years, setYears] = useState<CalendarPickerListItem[]>(() =>
-        Array.from({length: CONST.CALENDAR_PICKER.MAX_YEAR - CONST.CALENDAR_PICKER.MIN_YEAR + 1}, (v, i) => i + CONST.CALENDAR_PICKER.MIN_YEAR).map((year) => ({
+        Array.from({length: maxYear - minYear + 1}, (v, i) => i + minYear).map((year) => ({
             text: year.toString(),
             value: year,
             keyForList: year.toString(),
