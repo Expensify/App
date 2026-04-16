@@ -544,7 +544,7 @@ function MoneyRequestReportTransactionList({
                           pendingAction={selectionState.pendingAction}
                           shouldUseNarrowLayout={shouldUseNarrowLayout}
                       />
-                      {group.transactions.map((transaction) => {
+                      {group.transactions.map((transaction, index) => {
                           const isLastItem = transaction.transactionID === lastTransactionID;
                           return (
                               <MoneyRequestReportTransactionItem
