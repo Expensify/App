@@ -17,7 +17,6 @@ import {
     getOriginalMessage,
     getReportActionMessage,
     isActionableAddPaymentCard,
-    isActionableMentionInviteToSubmitExpenseConfirmWhisper,
     isActionableTrackExpense,
     isConciergeCategoryOptions,
     isConciergeDescriptionOptions,
@@ -26,7 +25,7 @@ import {
 } from '@libs/ReportActionsUtils';
 import {createDraftTransactionAndNavigateToParticipantSelector} from '@libs/ReportUtils';
 import shouldRenderAddPaymentCard from '@libs/shouldRenderAppPaymentCard';
-import {dismissTrackExpenseActionableWhisper, resolveActionableMentionConfirmWhisper, resolveConciergeCategoryOptions, resolveConciergeDescriptionOptions} from '@userActions/Report';
+import {dismissTrackExpenseActionableWhisper, resolveConciergeCategoryOptions, resolveConciergeDescriptionOptions} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -41,20 +40,9 @@ type ChatActionableButtonsProps = {
     userBillingFundID: number | undefined;
     introSelected: OnyxEntry<OnyxTypes.IntroSelected>;
     currentUserAccountID: number;
-    isOriginalReportArchived: boolean;
 };
 
-function ChatActionableButtons({
-    action,
-    report,
-    originalReport,
-    reportID,
-    originalReportID,
-    userBillingFundID,
-    introSelected,
-    currentUserAccountID,
-    isOriginalReportArchived,
-}: ChatActionableButtonsProps) {
+function ChatActionableButtons({action, report, originalReport, reportID, originalReportID, userBillingFundID, introSelected, currentUserAccountID}: ChatActionableButtonsProps) {
     const styles = useThemeStyles();
     const personalDetail = useCurrentUserPersonalDetails();
     const {isRestrictedToPreferredPolicy, preferredPolicyID} = usePreferredPolicy();
@@ -229,23 +217,6 @@ function ChatActionableButtons({
                 },
             });
             return options;
-        }
-
-        if (isActionableMentionInviteToSubmitExpenseConfirmWhisper(action)) {
-            return [
-                {
-                    text: 'common.buttonConfirm',
-                    key: `${action.reportActionID}-actionableReportMentionConfirmWhisper-${CONST.REPORT.ACTIONABLE_MENTION_INVITE_TO_SUBMIT_EXPENSE_CONFIRM_WHISPER.DONE}`,
-                    onPress: () =>
-                        resolveActionableMentionConfirmWhisper(
-                            reportActionReport,
-                            action,
-                            CONST.REPORT.ACTIONABLE_MENTION_INVITE_TO_SUBMIT_EXPENSE_CONFIRM_WHISPER.DONE,
-                            isOriginalReportArchived,
-                        ),
-                    isPrimary: true,
-                },
-            ];
         }
 
         return [];

@@ -14,7 +14,6 @@ import {parseFollowupsFromHtml} from '@libs/ReportActionFollowupUtils';
 import {
     getReportActionMessage,
     isActionableAddPaymentCard,
-    isActionableMentionInviteToSubmitExpenseConfirmWhisper,
     isActionableTrackExpense,
     isConciergeCategoryOptions,
     isConciergeDescriptionOptions,
@@ -42,7 +41,6 @@ type ChatMessageContentProps = {
     moderationDecision: OnyxTypes.DecisionName;
     updateHiddenState: (isHiddenValue: boolean) => void;
     isArchivedRoom?: boolean;
-    isOriginalReportArchived: boolean;
     composerTextInputRef: React.RefObject<TextInput | HTMLTextAreaElement | null>;
     isOnSearch: boolean;
     currentSearchHash: number | undefined;
@@ -78,7 +76,6 @@ function ChatMessageContent({
     moderationDecision,
     updateHiddenState,
     isArchivedRoom,
-    isOriginalReportArchived,
     composerTextInputRef,
     isOnSearch,
     currentSearchHash,
@@ -106,7 +103,6 @@ function ChatMessageContent({
         isConciergeCategoryOptions(action) ||
         isConciergeDescriptionOptions(action) ||
         isActionableTrackExpense(action) ||
-        isActionableMentionInviteToSubmitExpenseConfirmWhisper(action) ||
         !!(messageHtml && parseFollowupsFromHtml(messageHtml)?.length);
 
     return (
@@ -147,7 +143,6 @@ function ChatMessageContent({
                                         userBillingFundID={userBillingFundID}
                                         introSelected={introSelected}
                                         currentUserAccountID={currentUserAccountID}
-                                        isOriginalReportArchived={isOriginalReportArchived}
                                     />
                                 )}
                             </View>
