@@ -290,6 +290,7 @@ function BaseReportActionContextMenu({
                 iouTransaction,
                 transactions,
                 isHarvestReport,
+                currentUserAccountID: currentUserPersonalDetails?.accountID,
             }),
     );
 

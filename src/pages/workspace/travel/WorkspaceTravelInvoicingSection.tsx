@@ -15,6 +15,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
 import {
     clearTravelInvoicingErrors,
+    clearTravelInvoicingMonthlyLimitErrors,
     clearTravelInvoicingSettlementAccountErrors,
     clearTravelInvoicingSettlementFrequencyErrors,
     configureTravelInvoicingForPolicy,
@@ -26,7 +27,7 @@ import {getCardSettings, getEligibleBankAccountsForCard} from '@libs/CardUtils';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {areTravelPersonalDetailsMissing} from '@libs/PersonalDetailsUtils';
-import {hasInProgressUSDVBBA} from '@libs/ReimbursementAccountUtils';
+import {hasInProgressUSDVBBA, REIMBURSEMENT_ACCOUNT_ROUTE_NAMES} from '@libs/ReimbursementAccountUtils';
 import {
     getIsTravelInvoicingEnabled,
     getTravelInvoicingCardSettingsKey,
@@ -128,6 +129,9 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
     const hasSettlementAccountError = !!settlementAccountErrors;
     const hasSettlementFrequencyError = !!cardSettings?.errorFields?.[CONST.TRAVEL.MONTHLY_SETTLEMENT_DATE];
     const settlementFrequencyErrors = hasSettlementFrequencyError ? cardSettings?.errorFields?.[CONST.TRAVEL.MONTHLY_SETTLEMENT_DATE] : null;
+    const hasMonthlyLimitError = !!cardSettings?.errorFields?.monthlySpendLimitPerUser;
+    const monthlyLimitErrors = hasMonthlyLimitError ? cardSettings?.errorFields?.monthlySpendLimitPerUser : null;
+    const formattedMonthlyLimit = convertToDisplayString(travelSettings?.monthlySpendLimitPerUser ?? 0, CONST.CURRENCY.USD);
 
     // Bank account eligibility for toggle handler
     const isSetupUnfinished = hasInProgressUSDVBBA(reimbursementAccount?.achData);
@@ -167,6 +171,7 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
             Navigation.navigate(
                 ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute({
                     policyID,
+                    stepToOpen: REIMBURSEMENT_ACCOUNT_ROUTE_NAMES.NEW,
                     backTo: ROUTES.WORKSPACE_TRAVEL.getRoute(policyID),
                 }),
             );
@@ -341,6 +346,24 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
                     descriptionTextStyle={styles.textLabelSupportingNormal}
                     shouldShowRightIcon
                     brickRoadIndicator={hasSettlementFrequencyError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                />
+            </OfflineWithFeedback>
+            <OfflineWithFeedback
+                errors={monthlyLimitErrors}
+                pendingAction={cardSettings?.pendingFields?.monthlySpendLimitPerUser}
+                onClose={() => clearTravelInvoicingMonthlyLimitErrors(workspaceAccountID)}
+                errorRowStyles={styles.mh2half}
+                errorRowTextStyles={styles.mr3}
+            >
+                <MenuItemWithTopDescription
+                    description={translate('workspace.moreFeatures.travel.travelInvoicing.centralInvoicingSection.subsections.monthlySpendLimitLabel')}
+                    title={formattedMonthlyLimit}
+                    onPress={() => Navigation.navigate(ROUTES.WORKSPACE_TRAVEL_SETTINGS_MONTHLY_LIMIT.getRoute(policyID))}
+                    wrapperStyle={[styles.sectionMenuItemTopDescription]}
+                    titleStyle={styles.textNormalThemeText}
+                    descriptionTextStyle={styles.textLabelSupportingNormal}
+                    shouldShowRightIcon
+                    brickRoadIndicator={hasMonthlyLimitError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                 />
             </OfflineWithFeedback>
         </>

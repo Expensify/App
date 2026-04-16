@@ -28,7 +28,15 @@ import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
-import {canPolicyAccessFeature, getDistanceRateCustomUnit, getPerDiemCustomUnit, hasAccountingConnections, isControlPolicy, isTimeTrackingEnabled} from '@libs/PolicyUtils';
+import {
+    canPolicyAccessFeature,
+    getDistanceRateCustomUnit,
+    getPerDiemCustomUnit,
+    hasAccountingConnections,
+    hasAccountingFeatureConnection,
+    isControlPolicy,
+    isTimeTrackingEnabled,
+} from '@libs/PolicyUtils';
 import {enablePolicyCategories} from '@userActions/Policy/Category';
 import {enablePolicyDistanceRates} from '@userActions/Policy/DistanceRate';
 import {enablePerDiem} from '@userActions/Policy/PerDiem';
@@ -90,7 +98,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
     const {translate} = useLocalize();
     const {isBetaEnabled} = usePermissions();
     const hasAccountingConnection = hasAccountingConnections(policy);
-    const isAccountingEnabled = !!policy?.areConnectionsEnabled || !isEmptyObject(policy?.connections);
+    const isAccountingEnabled = !!policy?.areConnectionsEnabled || hasAccountingFeatureConnection(policy);
     const isSyncTaxEnabled =
         !!policy?.connections?.quickbooksOnline?.config?.syncTax ||
         !!policy?.connections?.xero?.config?.importTaxRates ||

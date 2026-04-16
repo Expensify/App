@@ -27,6 +27,7 @@ import createModalStyleUtils from './generators/ModalStyleUtils';
 import createReportActionContextMenuStyleUtils from './generators/ReportActionContextMenuStyleUtils';
 import createTooltipStyleUtils from './generators/TooltipStyleUtils';
 import getContextMenuItemStyles from './getContextMenuItemStyles';
+import getHiddenChatContentStyle from './getHiddenChatContentStyle';
 import getHighResolutionInfoWrapperStyle from './getHighResolutionInfoWrapperStyle';
 import getMoneyRequestReportPreviewStyle from './getMoneyRequestReportPreviewStyle';
 import getNavigationBarType from './getNavigationBarType/index';
@@ -62,6 +63,8 @@ type GetReportTableColumnStylesParams = {
     isPostedColumnWide?: boolean;
     isExportedColumnWide?: boolean;
     shouldRemoveTotalColumnFlex?: boolean;
+    isWithdrawnColumnWide?: boolean;
+    isActionColumnWide?: boolean;
 };
 
 const workspaceColorOptions: SVGAvatarColorStyle[] = LETTER_AVATAR_COLOR_OPTIONS.map(({backgroundColor, fillColor}) => ({backgroundColor, fill: fillColor}));
@@ -1433,6 +1436,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
     getCompactContentContainerStyles: () => compactContentContainerStyles(styles),
     getContextMenuItemStyles: (windowWidth?: number) => getContextMenuItemStyles(styles, windowWidth),
     getContainerComposeStyles: () => containerComposeStyles(styles),
+    getHiddenChatContentStyle: () => getHiddenChatContentStyle(styles),
 
     /**
      * Gets styles for AutoCompleteSuggestion row
@@ -1804,6 +1808,32 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
         return isDragging ? styles.cursorGrabbing : styles.cursorZoomOut;
     },
 
+    getSearchTableRowBorderStyle: (isLastItem?: boolean, isSelected?: boolean): ViewStyle => ({
+        borderRadius: 0,
+        borderBottomWidth: isLastItem ? 0 : 1,
+        borderColor: isSelected ? theme.buttonHoveredBG : theme.border,
+        ...(isLastItem ? styles.searchTableBottomRadius : {}),
+    }),
+
+    getSearchTableGroupRowBorderStyle: (isFirstItem?: boolean, isLastItem?: boolean, isSelected?: boolean): ViewStyle => ({
+        borderRadius: 0,
+        borderTopWidth: isFirstItem ? 0 : 1,
+        borderColor: isSelected ? theme.buttonHoveredBG : theme.border,
+        ...(isLastItem ? styles.searchTableBottomRadius : {}),
+    }),
+
+    getSearchTableRowPressableStyle: (isLastItem?: boolean, isSelected?: boolean, padding?: {vertical?: number; horizontal?: number}): ViewStyle => ({
+        minHeight: variables.tableRowHeight,
+        borderRadius: 0,
+        borderBottomWidth: isLastItem ? 0 : 1,
+        borderColor: isSelected ? theme.buttonHoveredBG : theme.border,
+        ...(isLastItem ? styles.searchTableBottomRadius : {}),
+        ...(padding?.vertical !== undefined && {paddingVertical: padding.vertical}),
+        ...(padding?.horizontal !== undefined && {paddingHorizontal: padding.horizontal}),
+    }),
+
+    getSearchTableHighlightBorderRadius: (isLargeScreenWidth: boolean): number => (isLargeScreenWidth ? 0 : variables.componentBorderRadius),
+
     getReportTableColumnStyles: (columnName: string, options: GetReportTableColumnStylesParams = {}): ViewStyle => {
         const {
             isSubmittedColumnWide,
@@ -1814,16 +1844,20 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
             isTaxAmountColumnWide,
             isAmountColumnWide,
             shouldRemoveTotalColumnFlex,
+            isWithdrawnColumnWide,
+            isActionColumnWide,
         } = options;
 
         let columnWidth;
         switch (columnName) {
             case CONST.SEARCH.TABLE_COLUMNS.COMMENTS:
-            case CONST.SEARCH.TABLE_COLUMNS.RECEIPT:
                 columnWidth = {...getWidthStyle(variables.w36), ...styles.alignItemsCenter};
                 break;
+            case CONST.SEARCH.TABLE_COLUMNS.RECEIPT:
+                columnWidth = {...getWidthStyle(variables.w28), ...styles.alignItemsCenter};
+                break;
             case CONST.SEARCH.TABLE_COLUMNS.AVATAR:
-                columnWidth = {...getWidthStyle(variables.w40), ...styles.alignItemsCenter};
+                columnWidth = {...getWidthStyle(variables.w28), ...styles.alignItemsCenter};
                 break;
             case CONST.SEARCH.TABLE_COLUMNS.STATUS:
                 columnWidth = {...getWidthStyle(variables.w80), ...styles.alignItemsCenter};
@@ -1848,7 +1882,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
                 break;
             case CONST.SEARCH.TABLE_COLUMNS.WITHDRAWN:
             case CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWN:
-                columnWidth = {...getWidthStyle(variables.w96)};
+                columnWidth = {...getWidthStyle(isWithdrawnColumnWide ? variables.w92 : variables.w72)};
                 break;
             case CONST.SEARCH.TABLE_COLUMNS.CATEGORY:
             case CONST.SEARCH.TABLE_COLUMNS.GROUP_CATEGORY:
@@ -1877,7 +1911,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
                 columnWidth = {...getWidthStyle(isAmountColumnWide ? variables.w130 : variables.w96), ...(!shouldRemoveTotalColumnFlex && styles.flex1), ...styles.alignItemsEnd};
                 break;
             case CONST.SEARCH.TABLE_COLUMNS.TYPE:
-                columnWidth = {...getWidthStyle(variables.w20), ...styles.alignItemsCenter};
+                columnWidth = {...getWidthStyle(variables.w16), ...styles.alignItemsCenter};
                 break;
             case CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE:
             case CONST.SEARCH.TABLE_COLUMNS.BILLABLE:
@@ -1887,7 +1921,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
                 columnWidth = {...getWidthStyle(variables.w92), ...styles.flex1};
                 break;
             case CONST.SEARCH.TABLE_COLUMNS.ACTION:
-                columnWidth = {...getWidthStyle(variables.w80), ...styles.alignItemsCenter};
+                columnWidth = {...getWidthStyle(isActionColumnWide ? variables.w80 : variables.w68), ...styles.alignItemsCenter};
                 break;
             case CONST.SEARCH.TABLE_COLUMNS.EXPORTED_TO:
                 columnWidth = {...getWidthStyle(variables.w72), ...styles.alignItemsCenter};
