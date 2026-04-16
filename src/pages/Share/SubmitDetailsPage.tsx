@@ -114,8 +114,6 @@ function SubmitDetailsPage({
     const fileType = shouldUsePreValidatedFile ? (validFilesToUpload?.type ?? CONST.RECEIPT_ALLOWED_FILE_TYPES.JPEG) : (currentAttachment?.mimeType ?? '');
     const [hasOnlyPersonalPolicies = false] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: hasOnlyPersonalPoliciesUtil});
 
-    useShareFileSizeValidation(currentAttachment?.content, setErrorTitle, setErrorMessage, !errorTitle);
-
     useEffect(() => {
         if (!errorTitle || !errorMessage) {
             return;
@@ -159,6 +157,9 @@ function SubmitDetailsPage({
     // Strip filesystem path segments without URL-decoding — getFileName() decodes via decodeURIComponent and would throw on raw filenames containing a literal '%' (e.g., "Receipt 100%.jpg").
     const currentReceiptName = (transaction?.receipt?.filename?.split('/').pop() ?? '') || sharedFileName;
     const currentReceiptType = transaction?.receipt?.type ?? sharedFileType;
+
+    // Validate the same source that performUpload reads — so Replace/Crop to an oversized file is still caught before submit.
+    useShareFileSizeValidation(currentReceiptSource, setErrorTitle, setErrorMessage, !errorTitle);
 
     const selectedParticipants = unknownUserDetails ? [unknownUserDetails] : getMoneyRequestParticipantsFromReport(report, currentUserPersonalDetails.accountID);
     const participants = selectedParticipants.map((participant) => {
