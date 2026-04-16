@@ -44,7 +44,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Card, WorkspaceCardsList} from '@src/types/onyx';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import EmptyCardView from './EmptyCardView';
 import WorkspaceCardListHeader from './WorkspaceCardListHeader';
 import WorkspaceCardListLabels from './WorkspaceCardListLabels';
@@ -110,6 +109,8 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
         return getCardsByCardholderName(cardsList, policyMembersAccountIDs);
     }, [cardsList, policy?.employeeList]);
 
+    const isCardListEmpty = allCards.length === 0;
+
     const filterCard = useCallback((card: Card, searchInput: string) => filterCardsByPersonalDetails(card, searchInput, personalDetails), [personalDetails]);
     const sortCards = useCallback((cards: Card[]) => sortCardsByCardholderName(cards, personalDetails, localeCompare), [personalDetails, localeCompare]);
     const [inputValue, setInputValue, filteredSortedCards] = useSearchResults(allCards, filterCard, sortCards);
@@ -143,7 +144,7 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
 
     const getHeaderButtons = () => (
         <View style={[styles.flexRow, styles.gap2, !shouldShowSelector && shouldUseNarrowLayout && styles.mb3, shouldShowSelector && shouldChangeLayout && styles.mt3]}>
-            {!isEmptyObject(cardsList) && (
+            {!isCardListEmpty && (
                 <Button
                     success
                     onPress={handleIssueCardPress}
@@ -160,7 +161,7 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
                 options={secondaryActions}
                 isSplitButton={false}
                 shouldUseOptionIcon
-                wrapperStyle={isEmptyObject(cardsList) ? styles.flexGrow1 : styles.flexGrow0}
+                wrapperStyle={isCardListEmpty ? styles.flexGrow1 : styles.flexGrow0}
                 sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.EXPENSIFY_CARD.MORE_DROPDOWN}
             />
         </View>
@@ -256,10 +257,10 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
                 shouldDisplayHelpButton
                 onBackButtonPress={handleBackButtonPress}
             >
-                {!shouldShowSelector && !shouldUseNarrowLayout && isBankAccountVerified && getHeaderButtons()}
+                {!isCardListEmpty && !shouldShowSelector && !shouldUseNarrowLayout && isBankAccountVerified && getHeaderButtons()}
             </HeaderWithBackButton>
-            {!shouldShowSelector && shouldUseNarrowLayout && isBankAccountVerified && <View style={styles.ph5}>{getHeaderButtons()}</View>}
-            {shouldShowSelector && (
+            {!isCardListEmpty && !shouldShowSelector && shouldUseNarrowLayout && isBankAccountVerified && <View style={styles.ph5}>{getHeaderButtons()}</View>}
+            {!isCardListEmpty && shouldShowSelector && (
                 <View style={[styles.w100, styles.ph5, styles.pb3, !shouldChangeLayout && [styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween]]}>
                     <FeedSelector
                         onFeedSelect={() => Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_SELECT_FEED.getRoute(policyID))}
@@ -270,7 +271,7 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
                     {isBankAccountVerified && getHeaderButtons()}
                 </View>
             )}
-            {isEmptyObject(cardsList) ? (
+            {isCardListEmpty ? (
                 <EmptyCardView
                     isBankAccountVerified={isBankAccountVerified}
                     policyID={policyID}
