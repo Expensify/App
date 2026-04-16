@@ -51,7 +51,8 @@ function DotIndicatorMessage({messages = {}, style, type, textStyles, dismissErr
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['DotIndicator']);
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
+    const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
     const {showConfirmModal} = useConfirmModal();
 
     if (Object.keys(messages).length === 0) {
@@ -105,7 +106,7 @@ function DotIndicatorMessage({messages = {}, style, type, textStyles, dismissErr
                     <Text style={[StyleUtils.getDotIndicatorTextStyles(isErrorMessage), textStyles]}>{translate('iou.error.receiptFailureMessageShort')}</Text>
                 </View>
                 <View style={[styles.flexRow, styles.gap3, styles.mt3]}>
-                    <View style={shouldUseNarrowLayout ? styles.flex1 : styles.mnw200}>
+                    <View style={isSmallScreenWidth && styles.flex1}>
                         <Button
                             medium
                             text={translate('iou.error.downloadReceipt')}
@@ -114,7 +115,7 @@ function DotIndicatorMessage({messages = {}, style, type, textStyles, dismissErr
                             }}
                         />
                     </View>
-                    <View style={shouldUseNarrowLayout ? styles.flex1 : styles.mnw200}>
+                    <View style={isSmallScreenWidth && styles.flex1}>
                         <Button
                             medium
                             success
