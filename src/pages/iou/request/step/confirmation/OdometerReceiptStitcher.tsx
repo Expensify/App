@@ -7,7 +7,9 @@ import {navigateToStartMoneyRequestStep, shouldUseTransactionDraft} from '@libs/
 import Log from '@libs/Log';
 import {getOdometerImageName, getOdometerImageType, getOdometerImageUri} from '@libs/OdometerImageUtils';
 import stitchOdometerImages from '@libs/stitchOdometerImages';
+import {cancelSpan, endSpan, startSpan} from '@libs/telemetry/activeSpans';
 import {checkIfLocalFileIsAccessible, setMoneyRequestReceipt} from '@userActions/IOU/Receipt';
+import CONST from '@src/CONST';
 import type {IOUAction, IOURequestType, IOUType} from '@src/CONST';
 import type {Transaction} from '@src/types/onyx';
 import type {FileObject} from '@src/types/utils/Attachment';
@@ -94,9 +96,15 @@ function OdometerReceiptStitcher({
         onStitchError('');
 
         const runStitch = () => {
+            startSpan(CONST.TELEMETRY.SPAN_ODOMETER_IMAGE_STITCH, {
+                name: CONST.TELEMETRY.SPAN_ODOMETER_IMAGE_STITCH,
+                op: CONST.TELEMETRY.SPAN_ODOMETER_IMAGE_STITCH,
+            });
+
             stitchOdometerImages(odometerStartImage, odometerEndImage)
                 .then((stitchedImage) => {
                     if (ignore || !stitchedImage) {
+                        cancelSpan(CONST.TELEMETRY.SPAN_ODOMETER_IMAGE_STITCH);
                         return;
                     }
                     setMoneyRequestReceipt(
@@ -107,8 +115,10 @@ function OdometerReceiptStitcher({
                         getOdometerImageType(stitchedImage),
                     );
                     lastStitchedImages.current = {startImage: odometerStartImage, endImage: odometerEndImage};
+                    endSpan(CONST.TELEMETRY.SPAN_ODOMETER_IMAGE_STITCH);
                 })
                 .catch((error: unknown) => {
+                    cancelSpan(CONST.TELEMETRY.SPAN_ODOMETER_IMAGE_STITCH);
                     if (ignore) {
                         return;
                     }
@@ -163,6 +173,7 @@ function OdometerReceiptStitcher({
 
         return () => {
             ignore = true;
+            cancelSpan(CONST.TELEMETRY.SPAN_ODOMETER_IMAGE_STITCH);
         };
     }, [
         isOdometerDistanceRequest,
