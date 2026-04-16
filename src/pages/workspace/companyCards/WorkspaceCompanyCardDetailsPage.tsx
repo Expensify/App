@@ -1,13 +1,13 @@
 import {format, parseISO} from 'date-fns';
 import {Str} from 'expensify-common';
-import React, {useMemo, useRef, useState} from 'react';
+import React, {useMemo, useRef} from 'react';
 import {View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
-import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ImageSVG from '@components/ImageSVG';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PlaidCardFeedIcon from '@components/PlaidCardFeedIcon';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -15,6 +15,7 @@ import ScrollView from '@components/ScrollView';
 import useCardFeeds from '@hooks/useCardFeeds';
 import useCardsList from '@hooks/useCardsList';
 import {useCompanyCardFeedIcons} from '@hooks/useCompanyCardIcons';
+import useConfirmModal from '@hooks/useConfirmModal';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -57,7 +58,6 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
     const [shouldUseStagingServer = isUsingStagingApi()] = useOnyx(ONYXKEYS.SHOULD_USE_STAGING_SERVER);
     const policy = usePolicy(policyID);
     const workspaceAccountID = policy?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;
-    const [isUnassignModalVisible, setIsUnassignModalVisible] = useState(false);
     const isUnassigningRef = useRef(false);
     const {translate, getLocalDateFromDatetime} = useLocalize();
     const styles = useThemeStyles();
@@ -67,8 +67,10 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['FallbackAvatar', 'Hourglass', 'MoneySearch', 'RemoveMembers', 'Sync', 'Trashcan']);
 
     const {isOffline} = useNetwork();
-    const accountingIntegrations = Object.values(CONST.POLICY.CONNECTIONS.NAME);
-    const connectedIntegration = getConnectedIntegration(policy, accountingIntegrations) ?? connectionSyncProgress?.connectionName;
+    const accountingIntegrations = CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES;
+    const syncingAccountingIntegration = accountingIntegrations.find((integration) => integration === connectionSyncProgress?.connectionName);
+    const connectedIntegration = getConnectedIntegration(policy, accountingIntegrations) ?? syncingAccountingIntegration;
+    const {showConfirmModal} = useConfirmModal();
 
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [allBankCards, allBankCardsMetadata] = useCardsList(feedName);
@@ -94,12 +96,11 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
     const plaidUrl = getPlaidInstitutionIconUrl(feedName);
 
     const unassignCard = () => {
-        setIsUnassignModalVisible(false);
         if (card) {
             isUnassigningRef.current = true;
             unassignWorkspaceCompanyCard(domainOrWorkspaceAccountID, bank, card);
         }
-        Navigation.goBack();
+        Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.goBack());
     };
 
     const updateCard = () => {
@@ -293,19 +294,23 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
                         icon={expensifyIcons.RemoveMembers}
                         title={translate('workspace.moreFeatures.companyCards.unassignCard')}
                         style={styles.mb1}
-                        onPress={() => setIsUnassignModalVisible(true)}
+                        onPress={() => {
+                            showConfirmModal({
+                                shouldSetModalVisibility: false,
+                                title: translate('workspace.moreFeatures.companyCards.unassignCard'),
+                                prompt: translate('workspace.moreFeatures.companyCards.unassignCardDescription'),
+                                confirmText: translate('workspace.moreFeatures.companyCards.unassign'),
+                                cancelText: translate('common.cancel'),
+                                danger: true,
+                            }).then((result) => {
+                                if (result.action !== ModalActions.CONFIRM) {
+                                    return;
+                                }
+
+                                unassignCard();
+                            });
+                        }}
                         sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.COMPANY_CARDS.UNASSIGN_CARD}
-                    />
-                    <ConfirmModal
-                        title={translate('workspace.moreFeatures.companyCards.unassignCard')}
-                        isVisible={isUnassignModalVisible}
-                        onConfirm={unassignCard}
-                        onCancel={() => setIsUnassignModalVisible(false)}
-                        shouldSetModalVisibility={false}
-                        prompt={translate('workspace.moreFeatures.companyCards.unassignCardDescription')}
-                        confirmText={translate('workspace.moreFeatures.companyCards.unassign')}
-                        cancelText={translate('common.cancel')}
-                        danger
                     />
                 </ScrollView>
             </ScreenWrapper>
