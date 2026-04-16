@@ -8935,12 +8935,15 @@ ${reportName}
                 removeMember: 'このユーザーを削除できません。もう一度お試しください。',
                 addMember: 'このメンバーを追加できませんでした。もう一度お試しください。',
                 vacationDelegate: 'このユーザーを休暇代理人として設定できませんでした。もう一度お試しください。',
+                moveMember: 'このメンバーを移動できませんでした。もう一度お試しください。',
             },
             cannotSetVacationDelegateForMember: (email: string) => `${email} に休暇代理人を設定できません。現在、このユーザーは次のメンバーの代理人になっています。`,
             reportSuspiciousActivityPrompt: (email: string) =>
                 `本当によろしいですか？これにより、<strong>${email}</strong> さんのアカウントがロックされます。<br /><br />その後、当社のチームがアカウントを確認し、不正アクセスを削除します。アクセスを回復するには、Concierge と連携して対応してもらう必要があります。`,
             reportSuspiciousActivityConfirmationPrompt: 'アカウントが安全にロック解除できることを確認するために審査し、質問がある場合はConciergeを通じてご連絡します。',
             emptyMembers: {title: 'このグループにはメンバーがいません', subtitle: 'メンバーを追加するか、上のフィルターを変更してみてください。'},
+            moveToGroup: 'グループへ移動',
+            chooseWhereToMove: ({count}: {count: number}) => `${count} ${count === 1 ? 'メンバー' : 'メンバー'} を移動する先を選択してください。`,
         },
         common: {
             settings: '設定',
