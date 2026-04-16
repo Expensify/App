@@ -423,7 +423,7 @@ function retryTravelCardsProvisioning(policyID: string, workspaceAccountID: numb
             value: {
                 settings: {
                     travelInvoicing: {
-                        errors: currentProvisioningErrors,
+                        errors: [...currentProvisioningErrors],
                     },
                 },
             },
