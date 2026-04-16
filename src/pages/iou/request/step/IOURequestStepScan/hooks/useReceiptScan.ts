@@ -1,6 +1,7 @@
 import shouldStartLocationPermissionFlowSelector from '@selectors/LocationPermission';
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import {useMemo, useState} from 'react';
+import {InteractionManager} from 'react-native';
 import TestReceipt from '@assets/images/fake-receipt.png';
 import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
 import useFilesValidation from '@hooks/useFilesValidation';
@@ -13,10 +14,12 @@ import usePolicy from '@hooks/usePolicy';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import useReportAttributes from '@hooks/useReportAttributes';
 import useReportIsArchived from '@hooks/useReportIsArchived';
+import useReportTransactions from '@hooks/useReportTransactions';
 import useSelfDMReport from '@hooks/useSelfDMReport';
 import {getMoneyRequestParticipantOptions, handleMoneyRequestStepScanParticipants} from '@libs/actions/IOU/MoneyRequest';
 import setTestReceipt from '@libs/actions/setTestReceipt';
-import {isPolicyExpenseChat} from '@libs/ReportUtils';
+import navigateAfterExpenseCreate from '@libs/Navigation/helpers/navigateAfterExpenseCreate';
+import {getReportOrDraftReport, isMoneyRequestReport, isPolicyExpenseChat} from '@libs/ReportUtils';
 import {getSpan, startSpan} from '@libs/telemetry/activeSpans';
 import {getDefaultTaxCode, getTaxValue, hasReceipt, shouldReuseInitialTransaction} from '@libs/TransactionUtils';
 import type {ReceiptFile, UseReceiptScanParams} from '@pages/iou/request/step/IOURequestStepScan/types';
@@ -70,6 +73,7 @@ function useReceiptScan({
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const draftTransactionIDs = Object.keys(allTransactionDrafts ?? {});
+    const reportTransactions = useReportTransactions(report?.reportID);
     const [isMultiScanEnabled, setIsMultiScanEnabled] = useState(false);
     const isStartingScan = routeName === SCREENS.MONEY_REQUEST.CREATE;
 
@@ -152,6 +156,19 @@ function useReceiptScan({
             allTransactionDrafts,
             participants,
             participantsPolicyTags,
+            onTransactionsCreated: () => {
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
+                InteractionManager.runAfterInteractions(() => removeDraftTransactionsByIDs(draftTransactionIDs));
+                const isExpenseReport = isMoneyRequestReport(report);
+                const linkedChatReport = isExpenseReport ? getReportOrDraftReport(report?.chatReportID) : undefined;
+                const activeReportID = isExpenseReport ? report?.reportID : (linkedChatReport?.reportID ?? report?.reportID);
+                navigateAfterExpenseCreate({
+                    activeReportID: backToReport ?? activeReportID,
+                    transactionID: initialTransactionID,
+                    isFromGlobalCreate: initialTransaction?.isFromGlobalCreate,
+                    hasMultipleTransactions: reportTransactions.length > 0,
+                });
+            },
             amountOwed,
             userBillingGracePeriodEnds,
             ownerBillingGracePeriodEnd,

@@ -2,6 +2,7 @@ import {useFocusEffect} from '@react-navigation/native';
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import {validTransactionDraftsSelector} from '@selectors/TransactionDraft';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {InteractionManager} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import isTextInputFocused from '@components/TextInput/BaseTextInput/isTextInputFocused';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
@@ -33,6 +34,7 @@ import {
     resolveOptimisticChatReportID,
 } from '@libs/IOUUtils';
 import dismissModalAndOpenReportInInboxTabHelper from '@libs/Navigation/helpers/dismissModalAndOpenReportInInboxTab';
+import navigateAfterExpenseCreate from '@libs/Navigation/helpers/navigateAfterExpenseCreate';
 import Navigation from '@libs/Navigation/Navigation';
 import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
 import {getPolicyExpenseChat, getReportOrDraftReport, getTransactionDetails, isMoneyRequestReport, isPolicyExpenseChat, isSelfDM, shouldEnableNegative} from '@libs/ReportUtils';
@@ -44,6 +46,7 @@ import {sendMoneyElsewhere, sendMoneyWithWallet} from '@userActions/IOU/SendMone
 import {resetSplitShares, setDraftSplitTransaction, setSplitShares} from '@userActions/IOU/Split';
 import {trackExpense} from '@userActions/IOU/TrackExpense';
 import {updateMoneyRequestAmountAndCurrency} from '@userActions/IOU/UpdateMoneyRequest';
+import {removeDraftTransactionsByIDs} from '@userActions/TransactionEdit';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -291,7 +294,6 @@ function IOURequestStepAmount({
                             attendees: transaction?.comment?.attendees,
                             reimbursable: defaultReimbursable,
                         },
-                        backToReport,
                         shouldGenerateTransactionThreadReport,
                         isASAPSubmitBetaEnabled,
                         currentUserAccountIDParam,
@@ -300,13 +302,10 @@ function IOURequestStepAmount({
                         quickAction,
                         policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
                         existingTransactionDraft,
-                        draftTransactionIDs,
                         isSelfTourViewed,
                         personalDetails,
                     });
-                    return;
-                }
-                if (iouType === CONST.IOU.TYPE.TRACK) {
+                } else if (iouType === CONST.IOU.TYPE.TRACK) {
                     trackExpense({
                         report,
                         isDraftPolicy: false,
@@ -330,11 +329,20 @@ function IOURequestStepAmount({
                         quickAction,
                         recentWaypoints,
                         betas,
-                        draftTransactionIDs,
                         isSelfTourViewed,
                     });
+                } else {
                     return;
                 }
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
+                InteractionManager.runAfterInteractions(() => removeDraftTransactionsByIDs(draftTransactionIDs));
+                navigateAfterExpenseCreate({
+                    activeReportID: backToReport ?? report?.reportID,
+                    transactionID,
+                    isFromGlobalCreate: transaction?.isFromFloatingActionButton ?? transaction?.isFromGlobalCreate,
+                    hasMultipleTransactions: reportTransactions.length > 0,
+                });
+                return;
             }
             if (isSplitBill && !report.isOwnPolicyExpenseChat && report.participants) {
                 const participantAccountIDs = Object.keys(report.participants).map((accountID) => Number(accountID));

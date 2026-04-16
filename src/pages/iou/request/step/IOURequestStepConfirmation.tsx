@@ -2,7 +2,7 @@ import {delegateEmailSelector} from '@selectors/Account';
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {View} from 'react-native';
+import {InteractionManager, View} from 'react-native';
 import DragAndDropConsumer from '@components/DragAndDrop/Consumer';
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
 import DropZoneUI from '@components/DropZone/DropZoneUI';
@@ -107,7 +107,7 @@ import {getReceiverType, sendInvoice} from '@userActions/IOU/SendInvoice';
 import {sendMoneyElsewhere, sendMoneyWithWallet} from '@userActions/IOU/SendMoney';
 import {splitBill, splitBillAndOpenReport, startSplitBill} from '@userActions/IOU/Split';
 import {requestMoney as requestMoneyIOUActions, trackExpense as trackExpenseIOUActions} from '@userActions/IOU/TrackExpense';
-import {removeDraftTransaction, replaceDefaultDraftTransaction} from '@userActions/TransactionEdit';
+import {removeDraftTransaction, removeDraftTransactionsByIDs, replaceDefaultDraftTransaction} from '@userActions/TransactionEdit';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -512,7 +512,7 @@ function IOURequestStepConfirmation({
             const optimisticReportPreviewActionID = rand64();
             let existingIOUReport: Report | undefined;
 
-            for (const [index, item] of transactions.entries()) {
+            for (const item of transactions) {
                 const receipt = receiptFiles[item.transactionID];
                 const isTestReceipt = receipt?.isTestReceipt ?? false;
                 const isTestDriveReceipt = receipt?.isTestDriveReceipt ?? false;
@@ -608,9 +608,7 @@ function IOURequestStepConfirmation({
                             ? {type: CONST.TRANSACTION.TYPE.TIME, count: item.comment?.units?.count, rate: item.comment?.units?.rate, unit: CONST.TIME_TRACKING.UNIT.HOUR}
                             : {}),
                     },
-                    shouldHandleNavigation: index === transactions.length - 1,
                     shouldGenerateTransactionThreadReport,
-                    backToReport,
                     isASAPSubmitBetaEnabled,
                     currentUserAccountIDParam: currentUserPersonalDetails.accountID,
                     currentUserEmailParam: currentUserPersonalDetails.email ?? '',
@@ -618,13 +616,36 @@ function IOURequestStepConfirmation({
                     policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
                     quickAction,
                     existingTransactionDraft,
-                    draftTransactionIDs,
                     isSelfTourViewed,
                     betas,
                     personalDetails,
                 });
                 existingIOUReport = iouReport;
             }
+
+            const lastTransaction = transactions.at(-1);
+            if (!lastTransaction) {
+                return;
+            }
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
+            InteractionManager.runAfterInteractions(() => removeDraftTransactionsByIDs(draftTransactionIDs));
+
+            const trackReport = Navigation.getReportRouteByID(lastTransaction.linkedTrackedExpenseReportAction?.childReportID);
+            if (trackReport?.key) {
+                Navigation.removeScreenByKey(trackReport.key);
+            }
+
+            const isExpenseReport = isMoneyRequestReport(report);
+            const linkedChatReport = isExpenseReport ? getReportOrDraftReport(report?.chatReportID) : undefined;
+            const activeReportID =
+                isExpenseReport && Navigation.getTopmostReportId() === report?.reportID ? report?.reportID : (linkedChatReport?.reportID ?? report?.reportID ?? optimisticChatReportID);
+
+            navigateAfterExpenseCreate({
+                activeReportID: backToReport ?? activeReportID,
+                transactionID: lastTransaction.transactionID,
+                isFromGlobalCreate: lastTransaction.isFromFloatingActionButton ?? lastTransaction.isFromGlobalCreate,
+                hasMultipleTransactions: reportTransactions.length > 0,
+            });
         },
         [
             transactions,
@@ -664,6 +685,7 @@ function IOURequestStepConfirmation({
             personalDetails,
             isGPSDistanceRequest,
             draftTransactionIDs,
+            reportTransactions.length,
         ],
     );
 
@@ -793,7 +815,7 @@ function IOURequestStepConfirmation({
             if (!participant) {
                 return;
             }
-            for (const [index, item] of transactions.entries()) {
+            for (const item of transactions) {
                 const isLinkedTrackedExpenseReportArchived =
                     !!item.linkedTrackedExpenseReportID && privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${item.linkedTrackedExpenseReportID}`];
                 const itemDistance = isManualDistanceRequest || isOdometerDistanceRequest || isGPSDistanceRequest ? (item.comment?.customUnit?.quantity ?? undefined) : undefined;
@@ -843,7 +865,6 @@ function IOURequestStepConfirmation({
                     accountantParams: {
                         accountant: item.accountant,
                     },
-                    shouldHandleNavigation: index === transactions.length - 1,
                     isASAPSubmitBetaEnabled,
                     currentUserAccountIDParam: currentUserPersonalDetails.accountID,
                     currentUserEmailParam: currentUserPersonalDetails.login ?? '',
@@ -852,10 +873,27 @@ function IOURequestStepConfirmation({
                     quickAction,
                     recentWaypoints,
                     betas,
-                    draftTransactionIDs,
                     isSelfTourViewed,
                 });
             }
+
+            const lastTransaction = transactions.at(-1);
+            if (!lastTransaction) {
+                return;
+            }
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
+            InteractionManager.runAfterInteractions(() => removeDraftTransactionsByIDs(draftTransactionIDs));
+
+            const isExpenseReport = isMoneyRequestReport(report);
+            const linkedChatReport = isExpenseReport ? getReportOrDraftReport(report?.chatReportID) : undefined;
+            const activeReportID = isExpenseReport ? report?.reportID : (linkedChatReport?.reportID ?? report?.reportID);
+
+            navigateAfterExpenseCreate({
+                activeReportID,
+                transactionID: lastTransaction.transactionID,
+                isFromGlobalCreate: lastTransaction.isFromFloatingActionButton ?? lastTransaction.isFromGlobalCreate,
+                hasMultipleTransactions: reportTransactions.length > 0,
+            });
         },
         [
             transactions,
@@ -885,6 +923,7 @@ function IOURequestStepConfirmation({
             betas,
             draftTransactionIDs,
             isSelfTourViewed,
+            reportTransactions.length,
         ],
     );
 

@@ -60,7 +60,6 @@ type CreateTransactionParams = {
     report: OnyxEntry<Report>;
     currentUserAccountID: number;
     currentUserEmail?: string;
-    backToReport?: string;
     shouldGenerateTransactionThreadReport: boolean;
     isASAPSubmitBetaEnabled: boolean;
     transactionViolations?: OnyxCollection<TransactionViolation[]>;
@@ -79,6 +78,9 @@ type CreateTransactionParams = {
     betas: OnyxEntry<Beta[]>;
     personalDetails: OnyxEntry<PersonalDetailsList>;
     recentWaypoints: OnyxEntry<RecentWaypoint[]>;
+
+    /** Fires after the batch loop completes. UI uses this for draft cleanup and post-creation navigation. */
+    onTransactionsCreated?: () => void;
 };
 
 type InitialTransactionParams = {
@@ -126,6 +128,7 @@ type MoneyRequestStepScanParticipantsFlowParams = {
     recentWaypoints: OnyxEntry<RecentWaypoint[]>;
     participants: Participant[];
     participantsPolicyTags: Record<string, PolicyTagLists>;
+    onTransactionsCreated?: () => void;
     amountOwed: OnyxEntry<number>;
     userBillingGracePeriodEnds: OnyxCollection<BillingGraceEndPeriod>;
     ownerBillingGracePeriodEnd?: OnyxEntry<number>;
@@ -185,7 +188,6 @@ function createTransaction({
     report,
     currentUserAccountID,
     currentUserEmail,
-    backToReport,
     shouldGenerateTransactionThreadReport,
     isASAPSubmitBetaEnabled,
     transactionViolations,
@@ -204,10 +206,9 @@ function createTransaction({
     betas,
     personalDetails,
     recentWaypoints,
+    onTransactionsCreated,
 }: CreateTransactionParams) {
-    const draftTransactionIDs = Object.keys(allTransactionDrafts ?? {});
-
-    for (const [index, receiptFile] of files.entries()) {
+    for (const receiptFile of files) {
         const transaction = transactions.find((item) => item.transactionID === receiptFile.transactionID);
         const receipt: Receipt = receiptFile.file ?? {};
         receipt.source = receiptFile.source;
@@ -237,14 +238,12 @@ function createTransaction({
                     taxAmount,
                 },
                 ...(policyParams ?? {}),
-                shouldHandleNavigation: index === files.length - 1,
                 isASAPSubmitBetaEnabled,
                 currentUserAccountIDParam: currentUserAccountID,
                 currentUserEmailParam: currentUserEmail ?? '',
                 introSelected,
                 activePolicyID,
                 quickAction,
-                draftTransactionIDs,
                 recentWaypoints,
                 betas,
                 isSelfTourViewed,
@@ -275,8 +274,6 @@ function createTransaction({
                     taxCode,
                     taxAmount,
                 },
-                shouldHandleNavigation: index === files.length - 1,
-                backToReport,
                 shouldGenerateTransactionThreadReport,
                 isASAPSubmitBetaEnabled,
                 currentUserAccountIDParam: currentUserAccountID,
@@ -285,12 +282,12 @@ function createTransaction({
                 quickAction,
                 policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
                 existingTransactionDraft,
-                draftTransactionIDs,
                 isSelfTourViewed,
                 personalDetails,
             });
         }
     }
+    onTransactionsCreated?.();
 }
 
 function getMoneyRequestParticipantOptions(
@@ -345,6 +342,7 @@ function handleMoneyRequestStepScanParticipants({
     recentWaypoints,
     participants,
     participantsPolicyTags,
+    onTransactionsCreated,
     amountOwed,
     userBillingGracePeriodEnds,
     ownerBillingGracePeriodEnd,
@@ -441,7 +439,6 @@ function handleMoneyRequestStepScanParticipants({
                             report,
                             currentUserAccountID,
                             currentUserEmail: currentUserLogin,
-                            backToReport,
                             shouldGenerateTransactionThreadReport,
                             isASAPSubmitBetaEnabled,
                             transactionViolations,
@@ -460,6 +457,7 @@ function handleMoneyRequestStepScanParticipants({
                             betas,
                             personalDetails,
                             recentWaypoints,
+                            onTransactionsCreated,
                         });
                     },
                     (errorData) => {
@@ -471,7 +469,6 @@ function handleMoneyRequestStepScanParticipants({
                             report,
                             currentUserAccountID,
                             currentUserEmail: currentUserLogin,
-                            backToReport,
                             shouldGenerateTransactionThreadReport,
                             isASAPSubmitBetaEnabled,
                             transactionViolations,
@@ -488,6 +485,7 @@ function handleMoneyRequestStepScanParticipants({
                             betas,
                             personalDetails,
                             recentWaypoints,
+                            onTransactionsCreated,
                         });
                     },
                 );
@@ -499,7 +497,6 @@ function handleMoneyRequestStepScanParticipants({
                 report,
                 currentUserAccountID,
                 currentUserEmail: currentUserLogin,
-                backToReport,
                 shouldGenerateTransactionThreadReport,
                 isASAPSubmitBetaEnabled,
                 transactionViolations,
@@ -516,6 +513,7 @@ function handleMoneyRequestStepScanParticipants({
                 betas,
                 personalDetails,
                 recentWaypoints,
+                onTransactionsCreated,
             });
             return;
         }

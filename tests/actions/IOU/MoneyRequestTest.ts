@@ -150,12 +150,9 @@ describe('MoneyRequest', () => {
                         reimbursable: true,
                         gpsPoint: undefined,
                     }),
-                    shouldHandleNavigation: true,
                     isASAPSubmitBetaEnabled: false,
                 }),
             );
-
-            expect(TrackExpense.trackExpense).toHaveBeenLastCalledWith(expect.objectContaining({shouldHandleNavigation: true}));
         });
 
         it('should call requestMoney for non-TRACK (SEND) iouType', () => {
@@ -190,8 +187,6 @@ describe('MoneyRequest', () => {
                         billable: undefined,
                         reimbursable: true,
                     }),
-                    shouldHandleNavigation: true,
-                    backToReport: undefined,
                     shouldGenerateTransactionThreadReport: false,
                     isASAPSubmitBetaEnabled: false,
                     currentUserAccountIDParam: 111,
@@ -201,7 +196,7 @@ describe('MoneyRequest', () => {
             );
         });
 
-        it('should pass shouldHandleNavigation as true for last file only', () => {
+        it('should call trackExpense for every file in the batch', () => {
             const files = [
                 {...fakeReceiptFile, transactionID: '111'},
                 {...fakeReceiptFile, transactionID: '222'},
@@ -216,25 +211,44 @@ describe('MoneyRequest', () => {
             });
 
             expect(TrackExpense.trackExpense).toHaveBeenCalledTimes(files.length);
+        });
 
-            expect(TrackExpense.trackExpense).toHaveBeenNthCalledWith(
-                1,
-                expect.objectContaining({
-                    shouldHandleNavigation: false,
+        it('should call onTransactionsCreated exactly once after all batch action calls (not once per file)', () => {
+            const files = [
+                {...fakeReceiptFile, transactionID: '111'},
+                {...fakeReceiptFile, transactionID: '222'},
+                {...fakeReceiptFile, transactionID: '333'},
+            ];
+            const callOrder: string[] = [];
+            (TrackExpense.trackExpense as jest.Mock).mockImplementation(() => {
+                callOrder.push('trackExpense');
+            });
+            const onTransactionsCreated = jest.fn(() => {
+                callOrder.push('onTransactionsCreated');
+            });
+
+            createTransaction({
+                ...baseParams,
+                iouType: CONST.IOU.TYPE.TRACK,
+                files,
+                allTransactionDrafts: {},
+                onTransactionsCreated,
+            });
+
+            expect(TrackExpense.trackExpense).toHaveBeenCalledTimes(files.length);
+            // Callback must fire once per batch (not per file) and only after all action calls — UI relies on this for cleanup + navigation timing
+            expect(onTransactionsCreated).toHaveBeenCalledTimes(1);
+            expect(callOrder).toEqual(['trackExpense', 'trackExpense', 'trackExpense', 'onTransactionsCreated']);
+        });
+
+        it('should not throw when onTransactionsCreated callback is undefined', () => {
+            expect(() =>
+                createTransaction({
+                    ...baseParams,
+                    iouType: CONST.IOU.TYPE.TRACK,
+                    allTransactionDrafts: {},
                 }),
-            );
-            expect(TrackExpense.trackExpense).toHaveBeenNthCalledWith(
-                2,
-                expect.objectContaining({
-                    shouldHandleNavigation: false,
-                }),
-            );
-            expect(TrackExpense.trackExpense).toHaveBeenNthCalledWith(
-                3,
-                expect.objectContaining({
-                    shouldHandleNavigation: true,
-                }),
-            );
+            ).not.toThrow();
         });
 
         it('should default receipt source and state correctly when file is missing', () => {
@@ -272,7 +286,7 @@ describe('MoneyRequest', () => {
             );
         });
 
-        it('should pass existingTransactionDraft and draftTransactionIDs to requestMoney when allTransactionDrafts is provided', () => {
+        it('should pass existingTransactionDraft to requestMoney when allTransactionDrafts is provided', () => {
             const draftTransaction = createRandomTransaction(99);
             const linkedAction = {
                 reportActionID: 'action1',
@@ -300,20 +314,6 @@ describe('MoneyRequest', () => {
             expect(TrackExpense.requestMoney).toHaveBeenCalledWith(
                 expect.objectContaining({
                     existingTransactionDraft: draftTransaction,
-                    draftTransactionIDs: [draftTransaction.transactionID],
-                }),
-            );
-        });
-
-        it('should default draftTransactionIDs to empty array when allTransactionDrafts is undefined', () => {
-            createTransaction({
-                ...baseParams,
-                allTransactionDrafts: undefined,
-            });
-
-            expect(TrackExpense.requestMoney).toHaveBeenCalledWith(
-                expect.objectContaining({
-                    draftTransactionIDs: [],
                 }),
             );
         });
@@ -345,26 +345,6 @@ describe('MoneyRequest', () => {
             expect(TrackExpense.requestMoney).toHaveBeenCalledWith(
                 expect.objectContaining({
                     existingTransactionDraft: undefined,
-                    draftTransactionIDs: [],
-                }),
-            );
-        });
-
-        it('should compute draftTransactionIDs from allTransactionDrafts', () => {
-            const draft1 = createRandomTransaction(101);
-            const draft2 = createRandomTransaction(102);
-
-            createTransaction({
-                ...baseParams,
-                allTransactionDrafts: {
-                    [draft1.transactionID]: draft1,
-                    [draft2.transactionID]: draft2,
-                },
-            });
-
-            expect(TrackExpense.requestMoney).toHaveBeenCalledWith(
-                expect.objectContaining({
-                    draftTransactionIDs: expect.arrayContaining([draft1.transactionID, draft2.transactionID]),
                 }),
             );
         });
@@ -786,6 +766,42 @@ describe('MoneyRequest', () => {
             );
         });
 
+        it('should fulfill full post-create contract in the GPS-granted branch (action called with gpsPoint, then callback fires once after action)', async () => {
+            const mockGetCurrentPosition = getCurrentPosition as jest.MockedFunction<typeof getCurrentPosition>;
+            mockGetCurrentPosition.mockImplementation((successCallback) => {
+                successCallback({
+                    coords: {latitude: TEST_LATITUDE, longitude: TEST_LONGITUDE, altitude: null, accuracy: null, altitudeAccuracy: null, heading: null, speed: null},
+                    timestamp: 1000,
+                });
+                return Promise.resolve();
+            });
+            const callOrder: string[] = [];
+            (TrackExpense.trackExpense as jest.Mock).mockImplementation(() => {
+                callOrder.push('trackExpense');
+            });
+            const onTransactionsCreated = jest.fn(() => {
+                callOrder.push('onTransactionsCreated');
+            });
+
+            handleMoneyRequestStepScanParticipants({
+                ...baseParams,
+                iouType: CONST.IOU.TYPE.TRACK,
+                shouldSkipConfirmation: true,
+                initialTransaction: {...baseParams.initialTransaction, isFromGlobalCreate: false},
+                locationPermissionGranted: true,
+                onTransactionsCreated,
+            });
+
+            expect(TrackExpense.trackExpense).toHaveBeenCalledTimes(1);
+            expect(TrackExpense.trackExpense).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    transactionParams: expect.objectContaining({gpsPoint: {lat: TEST_LATITUDE, long: TEST_LONGITUDE}}),
+                }),
+            );
+            expect(onTransactionsCreated).toHaveBeenCalledTimes(1);
+            expect(callOrder).toEqual(['trackExpense', 'onTransactionsCreated']);
+        });
+
         it('should track expense without GPS coordinates when location permission is denied', async () => {
             const mockGetCurrentPosition = getCurrentPosition as jest.MockedFunction<typeof getCurrentPosition>;
             mockGetCurrentPosition.mockImplementation((successCallback, errorCallback) => {
@@ -814,6 +830,82 @@ describe('MoneyRequest', () => {
                     }),
                 }),
             );
+        });
+
+        it('should fulfill full post-create contract in the GPS-denied branch (action called without gpsPoint, then callback fires once after action)', async () => {
+            const mockGetCurrentPosition = getCurrentPosition as jest.MockedFunction<typeof getCurrentPosition>;
+            mockGetCurrentPosition.mockImplementation((successCallback, errorCallback) => {
+                errorCallback({code: GeolocationErrorCode.PERMISSION_DENIED, message: 'Permission Denied'});
+                return Promise.resolve();
+            });
+            const callOrder: string[] = [];
+            (TrackExpense.trackExpense as jest.Mock).mockImplementation(() => {
+                callOrder.push('trackExpense');
+            });
+            const onTransactionsCreated = jest.fn(() => {
+                callOrder.push('onTransactionsCreated');
+            });
+
+            handleMoneyRequestStepScanParticipants({
+                ...baseParams,
+                iouType: CONST.IOU.TYPE.TRACK,
+                shouldSkipConfirmation: true,
+                initialTransaction: {...baseParams.initialTransaction, isFromGlobalCreate: false},
+                locationPermissionGranted: true,
+                onTransactionsCreated,
+            });
+
+            expect(TrackExpense.trackExpense).toHaveBeenCalledTimes(1);
+            expect(TrackExpense.trackExpense).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    transactionParams: expect.objectContaining({gpsPoint: undefined}),
+                }),
+            );
+            // Callback must still fire when GPS fails — UI cleanup and navigation are not gated on geolocation success
+            expect(onTransactionsCreated).toHaveBeenCalledTimes(1);
+            expect(callOrder).toEqual(['trackExpense', 'onTransactionsCreated']);
+        });
+
+        it('should fulfill full post-create contract in the non-location path (action called once, then callback fires once after action)', async () => {
+            const callOrder: string[] = [];
+            (TrackExpense.trackExpense as jest.Mock).mockImplementation(() => {
+                callOrder.push('trackExpense');
+            });
+            const onTransactionsCreated = jest.fn(() => {
+                callOrder.push('onTransactionsCreated');
+            });
+
+            handleMoneyRequestStepScanParticipants({
+                ...baseParams,
+                iouType: CONST.IOU.TYPE.TRACK,
+                shouldSkipConfirmation: true,
+                initialTransaction: {...baseParams.initialTransaction, isFromGlobalCreate: false},
+                locationPermissionGranted: false,
+                onTransactionsCreated,
+            });
+
+            await waitForBatchedUpdates();
+            expect(TrackExpense.trackExpense).toHaveBeenCalledTimes(1);
+            expect(onTransactionsCreated).toHaveBeenCalledTimes(1);
+            expect(callOrder).toEqual(['trackExpense', 'onTransactionsCreated']);
+        });
+
+        it('should NOT call onTransactionsCreated when no createTransaction path is taken (early-return paths)', async () => {
+            const onTransactionsCreated = jest.fn();
+
+            // backTo triggers Navigation.goBack and skips the create flow entirely
+            handleMoneyRequestStepScanParticipants({
+                ...baseParams,
+                backTo,
+                allTransactionDrafts: {},
+                onTransactionsCreated,
+            });
+
+            await waitForBatchedUpdates();
+            expect(TrackExpense.trackExpense).not.toHaveBeenCalled();
+            expect(TrackExpense.requestMoney).not.toHaveBeenCalled();
+            // Firing the callback here would trigger UI cleanup and navigation despite no expense being created
+            expect(onTransactionsCreated).not.toHaveBeenCalled();
         });
 
         it('should trackExpense for TRACK iouType when not from global create menu and skipping confirmation', async () => {
@@ -858,7 +950,6 @@ describe('MoneyRequest', () => {
                     currentUserAccountIDParam: baseParams.currentUserAccountID,
                     currentUserEmailParam: baseParams.currentUserLogin,
                     quickAction: baseParams.quickAction,
-                    shouldHandleNavigation: true,
                     recentWaypoints,
                 }),
             );
