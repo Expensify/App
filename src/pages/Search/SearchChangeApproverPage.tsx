@@ -1,8 +1,7 @@
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useEffect, useLayoutEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxCollection} from 'react-native-onyx';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
-import FormHelpMessage from '@components/FormHelpMessage';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import RenderHTML from '@components/RenderHTML';
@@ -40,21 +39,19 @@ type SelectedReportRef = {reportID: string | undefined};
  * the permission check that drives `approverTypes` can report a stale value.
  */
 function shouldAutoApplyApprover({
-    hasAutoApplied,
     isLoadingBulkChangeApproverPage,
     selectedReports,
     onyxReports,
     approverTypes,
     selectedApproverType,
 }: {
-    hasAutoApplied: boolean;
     isLoadingBulkChangeApproverPage: boolean;
     selectedReports: SelectedReportRef[];
     onyxReports: Record<string, Report> | undefined;
     approverTypes: Array<{keyForList: ApproverType}>;
     selectedApproverType: ApproverType | undefined;
 }): boolean {
-    if (hasAutoApplied || isLoadingBulkChangeApproverPage || selectedReports.length === 0) {
+    if (isLoadingBulkChangeApproverPage || selectedReports.length === 0) {
         return false;
     }
 
@@ -74,7 +71,6 @@ function SearchChangeApproverPage() {
     const {environmentURL} = useEnvironment();
     const currentUserDetails = useCurrentUserPersonalDetails();
     const [selectedApproverType, setSelectedApproverType] = useState<ApproverType>(APPROVER_TYPE.ADD_APPROVER);
-    const [hasError, setHasError] = useState(false);
     const {isBetaEnabled} = usePermissions();
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
@@ -85,7 +81,6 @@ function SearchChangeApproverPage() {
     const [hasLoadedApp] = useOnyx(ONYXKEYS.HAS_LOADED_APP);
     const [isLoadingBulkChangeApproverPage = true] = useOnyx(ONYXKEYS.IS_LOADING_BULK_CHANGE_APPROVER_PAGE);
     const {isOffline} = useNetwork();
-    const [isSaving, setIsSaving] = useState(false);
 
     const getOnyxReports = (allReports: OnyxCollection<Report>) => {
         const reports = Object.create(null) as Record<string, Report>;
@@ -124,11 +119,6 @@ function SearchChangeApproverPage() {
     const selectedPolicies = getSelectedPolicies();
 
     const changeApprover = () => {
-        if (!selectedApproverType) {
-            setHasError(true);
-            return;
-        }
-
         if (selectedApproverType === APPROVER_TYPE.ADD_APPROVER) {
             const policiesToUpgrade = selectedPolicies.filter((policy) => !isControlPolicy(policy));
             if (policiesToUpgrade.length > 1) {
@@ -147,7 +137,6 @@ function SearchChangeApproverPage() {
             return;
         }
 
-        setIsSaving(true);
         for (const selectedReport of selectedReports) {
             const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${selectedReport.policyID}`];
             const report = selectedReport.reportID ? onyxReports?.[selectedReport.reportID] : undefined;
@@ -212,7 +201,9 @@ function SearchChangeApproverPage() {
     };
     const approverTypes = getApproverTypes();
 
-    useEffect(() => {
+    // useLayoutEffect (not useEffect) so the RHP closes before the browser paints,
+    // avoiding a single-frame flash of an empty list after reports are cleared.
+    useLayoutEffect(() => {
         if (selectedReports.length && approverTypes.at(0)) {
             return;
         }
@@ -222,24 +213,22 @@ function SearchChangeApproverPage() {
         });
     }, [approverTypes, selectedReports.length]);
 
+    const shouldAutoApply = shouldAutoApplyApprover({
+        isLoadingBulkChangeApproverPage,
+        selectedReports,
+        onyxReports,
+        approverTypes,
+        selectedApproverType,
+    });
+
     useEffect(() => {
-        if (
-            !shouldAutoApplyApprover({
-                hasAutoApplied: hasAutoAppliedRef.current,
-                isLoadingBulkChangeApproverPage,
-                selectedReports,
-                onyxReports,
-                approverTypes,
-                selectedApproverType,
-            })
-        ) {
+        if (hasAutoAppliedRef.current || !shouldAutoApply) {
             return;
         }
 
         hasAutoAppliedRef.current = true;
-        // eslint-disable-next-line react-hooks/set-state-in-effect -- intentionally triggering the single available action once reports are loaded
         changeApprover();
-    }, [approverTypes, selectedApproverType, changeApprover, isLoadingBulkChangeApproverPage, selectedReports, onyxReports]);
+    }, [shouldAutoApply, changeApprover]);
 
     const confirmButtonOptions = {
         showButton: true,
@@ -256,7 +245,7 @@ function SearchChangeApproverPage() {
             <Text style={[styles.ph5, styles.mb5]}>{translate('iou.changeApprover.bulkSubtitle')}</Text>
         );
 
-    if ((!isOffline && isLoadingBulkChangeApproverPage) || isSaving) {
+    if (!isOffline && isLoadingBulkChangeApproverPage) {
         return (
             <FullScreenLoadingIndicator
                 shouldUseGoBackButton
@@ -291,21 +280,12 @@ function SearchChangeApproverPage() {
                             return;
                         }
                         setSelectedApproverType(option.keyForList);
-                        setHasError(false);
                     }}
                     confirmButtonOptions={confirmButtonOptions}
                     shouldUpdateFocusedIndex
                     customListHeader={listHeader}
                     initiallyFocusedItemKey={selectedApproverType}
-                >
-                    {hasError && (
-                        <FormHelpMessage
-                            isError
-                            style={[styles.ph5, styles.mb3]}
-                            message={translate('common.error.pleaseSelectOne')}
-                        />
-                    )}
-                </SelectionList>
+                />
             )}
         </ScreenWrapper>
     );
