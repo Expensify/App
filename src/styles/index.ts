@@ -6340,12 +6340,6 @@ const dynamicStyles = (theme: ThemeColors) =>
             return {height};
         },
 
-        getSelectionListPopoverMaxHeight: (windowHeight: number, isInLandscapeMode: boolean) => {
-            const maxPopoverHeight = isInLandscapeMode ? CONST.MODAL_MAX_HEIGHT_TO_WINDOW_HEIGHT_RATIO_LANDSCAPE_MODE * windowHeight : CONST.POPOVER_DROPDOWN_MAX_HEIGHT;
-            const maxHeight = Math.min(maxPopoverHeight, windowHeight * 0.9);
-            return {maxHeight};
-        },
-
         testDriveModalContainer: (shouldUseNarrowLayout: boolean) => ({
             // On small/medium screens, we need to remove the top padding
             paddingTop: 0,
