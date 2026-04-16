@@ -87,7 +87,6 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
     const hasSettlementAccount = hasTravelInvoicingSettlementAccount(travelSettings);
     const travelSpend = getTravelSpend(travelSettings);
 
-    // Derive pending settlement state from backend-computed field
     const pendingSettlementAmount = travelSettings?.pendingSettlementAmount ?? 0;
     const hasPendingSettlement = pendingSettlementAmount > 0;
     const travelLimit = getTravelLimit(travelSettings);
