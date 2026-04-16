@@ -9575,12 +9575,6 @@ const CONST = {
     HOME: {
         ANNOUNCEMENTS: [
             {
-                title: 'Smarter spend controls & Concierge anywhere',
-                subtitle: 'Product update',
-                url: 'https://use.expensify.com/blog/expensify-february-2026-product-update',
-                publishedDate: '2026-02-19',
-            },
-            {
                 title: 'More power, right where you need it',
                 subtitle: 'Product update',
                 url: 'https://use.expensify.com/blog/expensify-march-2026-product-update',
@@ -9591,6 +9585,12 @@ const CONST = {
                 subtitle: 'Newsletter',
                 url: 'https://use.expensify.com/blog/expensify-new-integrations-march-2026',
                 publishedDate: '2026-03-25',
+            },
+            {
+                title: 'Smarter cards, mileage, and approvals',
+                subtitle: 'Product update',
+                url: 'https://use.expensify.com/blog/expensify-april-2026-product-update',
+                publishedDate: '2026-04-15',
             },
         ],
     },
