@@ -545,6 +545,7 @@ function MoneyRequestReportTransactionList({
                           shouldUseNarrowLayout={shouldUseNarrowLayout}
                       />
                       {group.transactions.map((transaction, index) => {
+                          const isLastInGroup = index === group.transactions.length - 1;
                           const isLastItem = transaction.transactionID === lastTransactionID;
                           return (
                               <MoneyRequestReportTransactionItem
@@ -565,7 +566,7 @@ function MoneyRequestReportTransactionList({
                                   scrollToNewTransaction={transaction.transactionID === newTransactions?.at(0)?.transactionID ? scrollToNewTransaction : undefined}
                                   onArrowRightPress={handleArrowRightPress}
                                   nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards ?? {}}
-                                  isLastItem={isLastItem}
+                                  isLastItem={isLastItem || isLastInGroup}
                               />
                           );
                       })}
