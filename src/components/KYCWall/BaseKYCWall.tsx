@@ -78,7 +78,7 @@ function KYCWall({
     const personalDetails = usePersonalDetails();
     const employeeEmail = personalDetails?.[iouReport?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID]?.login ?? '';
     const reportTransactions = useReportTransactions(iouReport?.reportID);
-    const {filteredReportActions} = useAllPolicyExpenseChatReportActions();
+    const filteredReportActions = useAllPolicyExpenseChatReportActions();
     const anchorRef = useRef<HTMLDivElement | View>(null);
     const transferBalanceButtonRef = useRef<HTMLDivElement | View | null>(null);
 
@@ -182,6 +182,7 @@ function KYCWall({
                             localCurrency,
                             lastWorkspaceNumber,
                             translate,
+                            filteredReportActions,
                         ) ?? {};
                     if (policyID && iouReport?.policyID) {
                         savePreferredPaymentMethod(iouReport.policyID, policyID, CONST.LAST_PAYMENT_METHOD.IOU, lastPaymentMethod?.[iouReport?.policyID]);

@@ -50,6 +50,7 @@ function QuickCreationActionsBar() {
     const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`);
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
+    const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const [primaryLogin] = useOnyx(ONYXKEYS.ACCOUNT, {selector: primaryLoginSelector});
     const [travelSettings] = useOnyx(ONYXKEYS.NVP_TRAVEL_SETTINGS);
 
@@ -175,14 +176,14 @@ function QuickCreationActionsBar() {
 
                 if (
                     !workspaceIDForReportCreation ||
-                    (shouldRestrictUserBillableActions(workspaceIDForReportCreation, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, undefined, defaultChatEnabledPolicy) &&
+                    (shouldRestrictUserBillableActions(workspaceIDForReportCreation, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, defaultChatEnabledPolicy) &&
                         groupPoliciesWithChatEnabled.length > 1)
                 ) {
                     navigateToCreateReportWorkspaceSelection();
                     return;
                 }
 
-                if (!shouldRestrictUserBillableActions(workspaceIDForReportCreation, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, undefined, defaultChatEnabledPolicy)) {
+                if (!shouldRestrictUserBillableActions(workspaceIDForReportCreation, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, defaultChatEnabledPolicy)) {
                     if (shouldShowEmptyReportConfirmationForDefaultChatEnabledPolicy) {
                         openCreateReportConfirmation();
                     } else {
@@ -200,6 +201,7 @@ function QuickCreationActionsBar() {
             defaultChatEnabledPolicyID,
             userBillingGracePeriodEnds,
             ownerBillingGracePeriodEnd,
+            amountOwed,
             defaultChatEnabledPolicy,
             groupPoliciesWithChatEnabled.length,
             shouldShowEmptyReportConfirmationForDefaultChatEnabledPolicy,
