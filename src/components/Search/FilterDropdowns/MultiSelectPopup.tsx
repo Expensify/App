@@ -137,6 +137,7 @@ function MultiSelectPopup<T extends string>({label, loading, value, items, close
                         ListItem={MultiSelectListItem}
                         onSelectRow={updateSelectedItems}
                         textInputOptions={textInputOptions}
+                        style={{contentContainerStyle: [styles.pb0]}}
                     />
                 )}
             </View>
