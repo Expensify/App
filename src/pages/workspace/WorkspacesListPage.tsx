@@ -207,7 +207,7 @@ function WorkspacesListPage() {
     const isPendingDelete = isPendingDeletePolicy(policyToDelete);
     const hasDeleteWorkspaceExpensifyCardsError = !!hasExpensifyCard && !!isOffline;
 
-    const [prevIsPendingDelete, setPrevIsPendingDelete] = useState(isPendingDelete);
+    const prevIsPendingDeleteRef = useRef(isPendingDelete);
 
     const continueDeleteWorkspace = useCallback(() => {
         // Read from refs to avoid stale closures when called from usePayAndDowngrade
@@ -295,30 +295,6 @@ function WorkspacesListPage() {
         leaveWorkspace(currentUserPersonalDetails.accountID, currentUserPersonalDetails?.email ?? '', policyToLeave);
     };
 
-    if (prevIsPendingDelete !== isPendingDelete) {
-        setPrevIsPendingDelete(isPendingDelete);
-        if (prevIsPendingDelete && !isPendingDelete && policyIDToDelete) {
-            closeModal();
-
-            if (isFocused && policyToDeleteLatestErrorMessage) {
-                showConfirmModal({
-                    title: translate('workspace.common.delete'),
-                    prompt: policyToDeleteLatestErrorMessage,
-                    confirmText: translate('common.buttonConfirm'),
-                    cancelText: translate('common.cancel'),
-                    success: false,
-                    shouldShowCancelButton: false,
-                    // eslint-disable-next-line react-hooks/refs
-                }).then(() => {
-                    hideDeleteWorkspaceErrorModal();
-                });
-            } else {
-                // eslint-disable-next-line react-hooks/refs
-                hideDeleteWorkspaceErrorModal();
-            }
-        }
-    }
-
     const confirmModalPrompt = () => {
         const exporters = getConnectionExporters(policyToLeave);
         const userEmail = currentUserPersonalDetails?.email ?? '';
@@ -361,6 +337,9 @@ function WorkspacesListPage() {
     }, []);
 
     useEffect(() => {
+        const prevIsPendingDelete = prevIsPendingDeleteRef.current;
+        prevIsPendingDeleteRef.current = isPendingDelete;
+
         // Handle showing error modal when offline and error occurs
         if (isOffline && policyToDeleteLatestErrorMessage) {
             showConfirmModal({
@@ -370,7 +349,6 @@ function WorkspacesListPage() {
                 cancelText: translate('common.cancel'),
                 success: false,
                 shouldShowCancelButton: false,
-                // eslint-disable-next-line react-hooks/refs
             }).then(() => {
                 hideDeleteWorkspaceErrorModal();
             });
@@ -380,7 +358,11 @@ function WorkspacesListPage() {
         if (!prevIsPendingDelete || isPendingDelete || !policyIDToDelete) {
             return;
         }
+
+        closeModal();
+
         if (!isFocused || !policyToDeleteLatestErrorMessage) {
+            hideDeleteWorkspaceErrorModal();
             return;
         }
 
@@ -391,11 +373,10 @@ function WorkspacesListPage() {
             cancelText: translate('common.cancel'),
             success: false,
             shouldShowCancelButton: false,
-            // eslint-disable-next-line react-hooks/refs
         }).then(() => {
             hideDeleteWorkspaceErrorModal();
         });
-    }, [isOffline, hideDeleteWorkspaceErrorModal, showConfirmModal, translate, policyToDeleteLatestErrorMessage, isPendingDelete, prevIsPendingDelete, isFocused, policyIDToDelete]);
+    }, [isOffline, hideDeleteWorkspaceErrorModal, showConfirmModal, translate, policyToDeleteLatestErrorMessage, isPendingDelete, isFocused, policyIDToDelete, closeModal]);
     const startChangeOwnershipFlow = (policyID: string | undefined) => {
         if (!policyID) {
             return;

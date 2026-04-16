@@ -1,4 +1,4 @@
-import {useCallback, useEffect, useRef} from 'react';
+import {useCallback, useEffect, useLayoutEffect, useRef} from 'react';
 import {close} from '@libs/actions/Modal';
 import Navigation from '@libs/Navigation/Navigation';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -19,8 +19,9 @@ function usePayAndDowngrade(continueAction: () => void) {
     // without needing to include it in the dependency array (which would cause unnecessary re-runs
     // or require callers to memoize their callback).
     const continueActionRef = useRef(continueAction);
-    // eslint-disable-next-line react-hooks/refs
-    continueActionRef.current = continueAction;
+    useLayoutEffect(() => {
+        continueActionRef.current = continueAction;
+    });
 
     useEffect(() => {
         if (!isDeletingPaidWorkspaceRef.current || isLoadingBill) {
