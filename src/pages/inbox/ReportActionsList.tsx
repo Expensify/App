@@ -50,10 +50,10 @@ function ReportActionsList() {
     }
 
     if (shouldDisplayMoneyRequestActionsList) {
-        return <MoneyRequestReportActionsList reportID={report.reportID} />;
+        return <MoneyRequestReportActionsList />;
     }
 
-    return <ReportActionsView reportID={report.reportID} />;
+    return <ReportActionsView reportID={reportIDFromRoute} />;
 }
 
 export default ReportActionsList;
