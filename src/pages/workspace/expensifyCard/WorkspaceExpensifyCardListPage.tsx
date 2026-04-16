@@ -92,14 +92,11 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
     const headerHeight = useEmptyViewHeaderHeight(shouldUseNarrowLayout, isBankAccountVerified);
     const [footerHeight, setFooterHeight] = useState(0);
 
-    const cardFeedIcon = useMemo(
-        () => (
-            <CardFeedIcon
-                isExpensifyCardFeed
-                iconProps={{height: variables.cardIconHeight, width: variables.cardIconWidth, additionalStyles: styles.cardIcon}}
-            />
-        ),
-        [styles.cardIcon],
+    const cardFeedIcon = (
+        <CardFeedIcon
+            isExpensifyCardFeed
+            iconProps={{height: variables.cardIconHeight, width: variables.cardIconWidth, additionalStyles: styles.cardIcon}}
+        />
     );
 
     const settlementCurrency = useCurrencyForExpensifyCard({policyID});

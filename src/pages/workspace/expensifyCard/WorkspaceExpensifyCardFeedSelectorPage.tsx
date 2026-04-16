@@ -137,9 +137,13 @@ function WorkspaceExpensifyCardFeedSelectorPage({route}: WorkspaceExpensifyCardF
         setFeedWithError(undefined);
     };
 
-    const selectOtherFeed = (feed: ExpensifyFeedListItem) => {
+    const resetCardFlowState = () => {
         clearIssueNewCardFlow(policyID);
         clearIssueNewCardFormData();
+    };
+
+    const selectOtherFeed = (feed: ExpensifyFeedListItem) => {
+        resetCardFlowState();
         const isUserFromPublicDomain = isEmailPublicDomain(primaryContactMethod);
         if (!isUserValidated || isUserFromPublicDomain) {
             Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_ADD_WORK_EMAIL.getRoute(policyID, feed.value));
@@ -167,8 +171,7 @@ function WorkspaceExpensifyCardFeedSelectorPage({route}: WorkspaceExpensifyCardF
     };
 
     const selectFeed = (feed: ExpensifyFeedListItem) => {
-        clearIssueNewCardFlow(policyID);
-        clearIssueNewCardFormData();
+        resetCardFlowState();
         updateSelectedExpensifyCardFeed(feed.value, policyID);
         goBack();
     };
