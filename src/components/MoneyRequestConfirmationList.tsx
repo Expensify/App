@@ -36,16 +36,12 @@ import {
     areRequiredFieldsEmpty,
     calculateTaxAmount,
     getAttendees,
-    getBillable,
     getCategory,
-    getCreated,
     getCurrency,
     getDefaultTaxCode,
-    getDescription,
     getDistanceInMeters,
     getMerchant,
     getRateID,
-    getReimbursable,
     getTag,
     getTaxValue,
     hasMissingSmartscanFields,
@@ -293,15 +289,9 @@ function MoneyRequestConfirmationList({
     const isGPSDistanceRequest = isGPSDistanceRequestUtil(transaction);
 
     const iouAmount = hasValidModifiedAmount(transaction) ? Number(transaction?.modifiedAmount) : (transaction?.amount ?? 0);
-    const iouComment = getDescription(transaction);
     const iouCurrencyCode = getCurrency(transaction);
     const iouMerchant = getMerchant(transaction);
-    const iouCreated = getCreated(transaction);
     const iouCategory = getCategory(transaction);
-    const iouIsBillable = getBillable(transaction);
-    const iouIsReimbursable = getReimbursable(transaction);
-    const iouTimeCount = transaction?.comment?.units?.count;
-    const iouTimeRate = transaction?.comment?.units?.rate;
     const iouAttendees = useMemo(() => getAttendees(transaction, currentUserPersonalDetails), [transaction, currentUserPersonalDetails]);
 
     const isTypeRequest = iouType === CONST.IOU.TYPE.SUBMIT;
@@ -1084,16 +1074,7 @@ function MoneyRequestConfirmationList({
                 formattedAmountPerAttendee={formattedAmountPerAttendee}
                 formError={formError}
                 hasRoute={hasRoute}
-                iouAttendees={iouAttendees}
-                iouCategory={iouCategory}
-                iouComment={iouComment}
-                iouCreated={iouCreated}
-                iouCurrencyCode={iouCurrencyCode}
-                iouIsBillable={iouIsBillable}
-                iouMerchant={iouMerchant}
                 iouType={iouType}
-                iouTimeCount={iouTimeCount}
-                iouTimeRate={iouTimeRate}
                 isCategoryRequired={isCategoryRequired}
                 isDistanceRequest={isDistanceRequest}
                 isManualDistanceRequest={isManualDistanceRequest}
@@ -1102,7 +1083,6 @@ function MoneyRequestConfirmationList({
                 isGPSDistanceRequest={isGPSDistanceRequest}
                 isPerDiemRequest={isPerDiemRequest}
                 isTimeRequest={isTimeRequest}
-                isMerchantEmpty={isMerchantEmpty}
                 isMerchantRequired={isMerchantRequired}
                 isPolicyExpenseChat={isPolicyExpenseChat}
                 isReadOnly={isReadOnly}
@@ -1131,7 +1111,6 @@ function MoneyRequestConfirmationList({
                 unit={unit}
                 onPDFLoadError={onPDFLoadError}
                 onPDFPassword={onPDFPassword}
-                iouIsReimbursable={iouIsReimbursable}
                 onToggleReimbursable={onToggleReimbursable}
                 isReceiptEditable={isReceiptEditable}
                 isDescriptionRequired={isDescriptionRequired}
