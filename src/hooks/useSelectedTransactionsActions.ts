@@ -4,7 +4,7 @@ import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import {useSearchActionsContext, useSearchStateContext} from '@components/Search/SearchContext';
-import {initBulkEditDraftTransaction} from '@libs/actions/IOU';
+import {initBulkEditDraftTransaction} from '@libs/actions/IOU/BulkEdit';
 import {unholdRequest} from '@libs/actions/IOU/Hold';
 import {setupMergeTransactionDataAndNavigate} from '@libs/actions/MergeTransaction';
 import {exportReportToCSV} from '@libs/actions/Report';
@@ -290,7 +290,7 @@ function useSelectedTransactionsActions({
             }
             const iouReportAction = getIOUActionForTransactionID(reportActions, selectedTransaction.transactionID);
             const holdReportAction = getReportAction(iouReportAction?.childReportID, `${selectedTransaction?.comment?.hold ?? ''}`);
-            const {canHoldRequest, canUnholdRequest} = canHoldUnholdReportAction(report, iouReportAction, holdReportAction, selectedTransaction, policy);
+            const {canHoldRequest, canUnholdRequest} = canHoldUnholdReportAction(report, iouReportAction, holdReportAction, selectedTransaction, policy, currentUserAccountID);
 
             canHoldTransactions = canHoldTransactions && canHoldRequest;
             canUnholdTransactions = canUnholdTransactions && canUnholdRequest;

@@ -372,6 +372,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
                     isChatIOUReportArchived,
                     allTransactionViolationsParam: allTransactionViolations,
                     currentUserAccountID,
+                    currentUserEmail: email ?? '',
                 });
             } else if (originalMessage?.IOUTransactionID) {
                 deleteTransactions([originalMessage.IOUTransactionID], duplicateTransactions, duplicateTransactionViolations, undefined);

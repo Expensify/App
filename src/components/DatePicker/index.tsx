@@ -39,8 +39,7 @@ function DatePicker({
     const {translate} = useLocalize();
 
     const [isModalVisible, setIsModalVisible] = useState(false);
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const [selectedDate, setSelectedDate] = useState(value || defaultValue || undefined);
+    const [selectedDate, setSelectedDate] = useState(() => value ?? defaultValue ?? '');
     const [popoverPosition, setPopoverPosition] = useState({horizontal: 0, vertical: 0});
     const textInputRef = useRef<BaseTextInputRef>(null);
     const anchorRef = useRef<View>(null);
@@ -51,7 +50,10 @@ function DatePicker({
         if (shouldSaveDraft && formID) {
             setDraftValues(formID, {[inputID]: selectedDate});
         }
-        if (selectedDate === value || !value) {
+        if (selectedDate === value) {
+            return;
+        }
+        if (value === undefined) {
             return;
         }
 

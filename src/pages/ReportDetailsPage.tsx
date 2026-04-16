@@ -1,4 +1,5 @@
 import {StackActions} from '@react-navigation/native';
+import {delegateEmailSelector} from '@selectors/Account';
 import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
 import React, {useCallback, useEffect, useMemo} from 'react';
 import {InteractionManager, View} from 'react-native';
@@ -197,6 +198,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
+    const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {showConfirmModal} = useConfirmModal();
     const isPolicyAdmin = useMemo(() => isPolicyAdminUtil(policy), [policy]);
@@ -356,7 +358,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
         leaveChat();
     }, [showConfirmModal, translate, leaveChat]);
 
-    const shouldShowLeaveButton = canLeaveChat(report, policy, !!reportNameValuePairs?.private_isArchived);
+    const shouldShowLeaveButton = canLeaveChat(report, policy, currentUserPersonalDetails?.accountID, !!reportNameValuePairs?.private_isArchived);
     const shouldShowGoToWorkspace = shouldShowPolicy(policy, false, currentUserPersonalDetails?.email) && !policy?.isJoinRequestPending;
 
     const reportForHeader = useMemo(() => getReportForHeader(report), [report]);
@@ -548,7 +550,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                     isAnonymousAction: false,
                     action: callFunctionIfActionIsAllowed(() => {
                         Navigation.goBack(backTo);
-                        reopenTask(report, parentReport, currentUserPersonalDetails?.accountID);
+                        reopenTask(report, parentReport, currentUserPersonalDetails?.accountID, delegateEmail);
                     }),
                 });
             }
@@ -607,7 +609,6 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
         isSelfDM,
         isArchivedRoom,
         isGroupChat,
-        expensifyIcons,
         isDefaultRoom,
         isChatThread,
         isPolicyEmployee,
@@ -627,28 +628,40 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
         shouldShowGoToWorkspace,
         shouldShowLeaveButton,
         isDebugModeEnabled,
+        expensifyIcons.Users,
+        expensifyIcons.Gear,
+        expensifyIcons.Send,
+        expensifyIcons.Folder,
+        expensifyIcons.UserPlus,
+        expensifyIcons.Pencil,
+        expensifyIcons.Checkmark,
+        expensifyIcons.Building,
+        expensifyIcons.Exit,
+        expensifyIcons.Bug,
         shouldOpenRoomMembersPage,
         backTo,
         parentReportAction,
+        reportActionsForOriginalReportID,
         iouTransactionID,
         moneyRequestReport?.reportID,
-        currentUserPersonalDetails.accountID,
-        isTaskActionable,
-        isRootGroupChat,
-        leaveChat,
-        showLastMemberLeavingModal,
-        isSmallScreenWidth,
-        isRestrictedToPreferredPolicy,
-        preferredPolicyID,
         introSelected,
         draftTransactionIDs,
         activePolicy,
-        parentReport,
-        reportActionsForOriginalReportID,
         userBillingGracePeriodEnds,
         amountOwed,
         ownerBillingGracePeriodEnd,
+        isRestrictedToPreferredPolicy,
+        preferredPolicyID,
         iouTransaction,
+        currentUserPersonalDetails.accountID,
+        currentUserPersonalDetails.email,
+        isTaskActionable,
+        parentReport,
+        delegateEmail,
+        isSmallScreenWidth,
+        isRootGroupChat,
+        leaveChat,
+        showLastMemberLeavingModal,
     ]);
 
     const displayNamesWithTooltips = useMemo(() => {
@@ -851,7 +864,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
     const fieldKey = getReportFieldKey(titleField?.fieldID);
     const isFieldDisabled = isReportFieldDisabled(report, titleField, policy);
 
-    const shouldShowEditableTitleField = caseID !== CASES.MONEY_REQUEST && canEditReportTitle(report, policy);
+    const shouldShowEditableTitleField = caseID !== CASES.MONEY_REQUEST && canEditReportTitle(report, policy, currentUserPersonalDetails?.accountID);
 
     const nameSectionFurtherDetailsContent = (
         <ParentNavigationSubtitle
@@ -897,7 +910,17 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
 
     const deleteTransaction = useCallback(() => {
         if (caseID === CASES.DEFAULT) {
-            deleteTask(report, parentReport, isReportArchived, currentUserPersonalDetails.accountID, hasOutstandingChildTask, parentReportAction, conciergeReportID, ancestors);
+            deleteTask(
+                report,
+                parentReport,
+                isReportArchived,
+                currentUserPersonalDetails.accountID,
+                hasOutstandingChildTask,
+                parentReportAction,
+                conciergeReportID,
+                delegateEmail,
+                ancestors,
+            );
             return;
         }
 
@@ -923,6 +946,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                 isChatIOUReportArchived,
                 allTransactionViolationsParam: allTransactionViolations,
                 currentUserAccountID: currentUserPersonalDetails.accountID,
+                currentUserEmail: currentUserPersonalDetails.email ?? '',
             });
         } else if (iouTransactionID) {
             deleteTransactions([iouTransactionID], duplicateTransactions, duplicateTransactionViolations, undefined, isSingleTransactionView);
@@ -931,13 +955,18 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
     }, [
         caseID,
         requestParentReportAction,
+        iouTransaction,
+        iouOriginalTransaction,
         iouTransactionID,
         report,
         parentReport,
         isReportArchived,
         currentUserPersonalDetails.accountID,
+        currentUserPersonalDetails.email,
         hasOutstandingChildTask,
         parentReportAction,
+        conciergeReportID,
+        delegateEmail,
         ancestors,
         moneyRequestReport,
         iouReport,
@@ -950,9 +979,6 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
         allTransactionViolations,
         deleteTransactions,
         removeTransaction,
-        conciergeReportID,
-        iouTransaction,
-        iouOriginalTransaction,
     ]);
 
     // Where to navigate back to after deleting the transaction and its report.

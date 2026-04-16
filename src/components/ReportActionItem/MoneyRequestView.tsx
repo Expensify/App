@@ -298,7 +298,7 @@ function MoneyRequestView({
     const transactionOriginalAmount = transaction && getOriginalAmountForDisplay(transaction, isExpenseReport(moneyRequestReport));
     const formattedOriginalAmount = transactionOriginalAmount && transactionOriginalCurrency && convertToDisplayString(transactionOriginalAmount, transactionOriginalCurrency);
     const isFromCardImport = isCardTransactionTransactionUtils(transaction);
-    const cardProgramName = getCompanyCardDescription(transaction?.cardName, transaction?.cardID, nonPersonalAndWorkspaceCards);
+    const cardProgramName = getCompanyCardDescription(translate, transaction?.cardName, transaction?.cardID, nonPersonalAndWorkspaceCards);
     const shouldShowCard = isFromCardImport && cardProgramName;
 
     const taxRates = policy?.taxRates;
@@ -452,7 +452,7 @@ function MoneyRequestView({
     const getPendingFieldAction = (fieldPath: TransactionPendingFieldsKey) => (pendingAction ? undefined : transaction?.pendingFields?.[fieldPath]);
 
     const isTaxEnabled = isTaxTrackingEnabled(isPolicyExpenseChat || isExpenseUnreported, policy, isDistanceRequest, isPerDiemRequest, isTimeRequest);
-    const shouldShowTaxDisabledAlert = !isTaxEnabled && !!transaction?.taxCode;
+    const shouldShowTaxDisabledAlert = !isTaxEnabled && !!transaction?.taxCode && !isTimeRequest && !isPerDiemRequest;
     const shouldShowTax = isTaxEnabled || !!transaction?.taxName || shouldShowTaxDisabledAlert;
 
     let amountDescription = `${translate('iou.amount')}`;
