@@ -1154,7 +1154,7 @@ const translations: TranslationDeepObject<typeof en> = {
         approved: '已批准',
         cash: '现金',
         card: '卡片',
-        original: '原始',
+        purchase: '购买',
         split: '拆分',
         splitExpense: '拆分报销',
         splitDates: '拆分日期',
