@@ -4,14 +4,15 @@ import {EditableCell, useInlineEditState} from '@components/Table/EditableCell';
 import type {EditableProps} from '@components/Table/EditableCell';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import TextWithTooltip from '@components/TextWithTooltip';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {convertToBackendAmount, convertToDisplayString, convertToFrontendAmountAsString, getCurrencyDecimals} from '@libs/CurrencyUtils';
+import {convertToBackendAmount, convertToFrontendAmountAsString, getCurrencyDecimals} from '@libs/CurrencyUtils';
 import {formatToParts} from '@libs/NumberFormatUtils';
 import {parseFloatAnyLocale, roundToTwoDecimalPlaces} from '@libs/NumberUtils';
 import {getTransactionDetails} from '@libs/ReportUtils';
-import {getCurrency as getTransactionCurrency, isScanning} from '@libs/TransactionUtils';
+import {getCurrency as getTransactionCurrency, isDeletedTransaction, isScanning} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import type TransactionDataCellProps from './TransactionDataCellProps';
 
@@ -20,9 +21,11 @@ type TotalCellProps = TransactionDataCellProps & EditableProps<number>;
 function TotalCell({shouldShowTooltip, transactionItem, canEdit, onSave}: TotalCellProps) {
     const styles = useThemeStyles();
     const {translate, preferredLocale} = useLocalize();
+    const {convertToDisplayString} = useCurrencyListActions();
     const currency = getTransactionCurrency(transactionItem);
 
-    const amount = getTransactionDetails(transactionItem)?.amount;
+    const isDeleted = isDeletedTransaction(transactionItem);
+    const amount = getTransactionDetails(transactionItem, undefined, undefined, isDeleted)?.amount;
     let amountToDisplay = convertToDisplayString(amount, currency);
     if (isScanning(transactionItem)) {
         amountToDisplay = translate('iou.receiptStatusTitle');

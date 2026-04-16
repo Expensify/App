@@ -20,7 +20,7 @@ import canUseTouchScreen from '@libs/DeviceCapabilities/canUseTouchScreen';
 import {getTransactionPendingAction, isTransactionPendingDelete} from '@libs/TransactionUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
-import type {Policy, Report} from '@src/types/onyx';
+import type {CardList, Policy, Report} from '@src/types/onyx';
 import type {TransactionWithOptionalHighlight} from './MoneyRequestReportTransactionList';
 
 type MoneyRequestReportTransactionItemProps = {
@@ -69,8 +69,8 @@ type MoneyRequestReportTransactionItemProps = {
     /** Whether this transaction should be highlighted as newly added */
     shouldBeHighlighted: boolean;
 
-    /** Custom card names mapping cardID to display name */
-    customCardNames?: Record<number, string>;
+    /** List of cards for the user */
+    nonPersonalAndWorkspaceCards: CardList;
 };
 
 function MoneyRequestReportTransactionItem({
@@ -89,7 +89,7 @@ function MoneyRequestReportTransactionItem({
     scrollToNewTransaction,
     onArrowRightPress,
     shouldBeHighlighted,
-    customCardNames,
+    nonPersonalAndWorkspaceCards,
 }: MoneyRequestReportTransactionItemProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -195,6 +195,7 @@ function MoneyRequestReportTransactionItem({
                         }}
                         onArrowRightPress={() => onArrowRightPress?.(transaction.transactionID)}
                         isHover={hovered}
+                        nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}
                         customCardNames={customCardNames}
                         canEditDate={canEditDate}
                         canEditMerchant={canEditMerchant}

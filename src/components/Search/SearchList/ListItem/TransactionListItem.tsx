@@ -31,7 +31,7 @@ import {syncMissingAttendeesViolation} from '@libs/AttendeeUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {isAttendeeTrackingEnabled} from '@libs/PolicyUtils';
 import {isInvoiceReport} from '@libs/ReportUtils';
-import {isExpenseUnreported, isViolationDismissed, mergeProhibitedViolations, shouldShowViolation} from '@libs/TransactionUtils';
+import {isDeletedTransaction as isDeletedTransactionUtil, isExpenseUnreported, isViolationDismissed, mergeProhibitedViolations, shouldShowViolation} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isActionLoadingSelector} from '@src/selectors/ReportMetaData';
@@ -54,12 +54,17 @@ function TransactionListItem<TItem extends ListItem>({
     columns,
     isLoading,
     violations,
-    customCardNames,
+    nonPersonalAndWorkspaceCards,
     lastPaymentMethod,
     personalPolicyID,
     isLastItem,
+    userBillingGracePeriodEnds,
+    ownerBillingGracePeriodEnd,
+    policyForMovingExpenses,
+    onUndelete,
 }: TransactionListItemProps<TItem>) {
     const transactionItem = item as unknown as TransactionListItemType;
+    const isDeletedTransaction = isDeletedTransactionUtil(transactionItem);
     const styles = useThemeStyles();
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
@@ -68,13 +73,12 @@ function TransactionListItem<TItem extends ListItem>({
     const {currentSearchHash, currentSearchKey, currentSearchResults, currentSearchQueryJSON} = useSearchStateContext();
     const snapshotReport = (currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionItem.reportID}`] ?? {}) as Report;
 
-    const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [isActionLoading] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${transactionItem.reportID}`, {selector: isActionLoadingSelector});
 
     // Use active policy (user's current workspace) as fallback for self DM tracking expenses
     // This matches MoneyRequestView's approach via usePolicyForMovingExpenses()
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
-    const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
+    const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
 
     const [parentReport] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(transactionItem.reportID)}`);
     const [transactionThreadReport] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionItem?.reportAction?.childReportID}`);
@@ -216,6 +220,9 @@ function TransactionListItem<TItem extends ListItem>({
         if (isEditingCell) {
             return;
         }
+        if (isDeletedTransaction && !canSelectMultiple) {
+            return;
+        }
         onSelectRow(item, transactionPreviewData);
     };
 
@@ -242,6 +249,8 @@ function TransactionListItem<TItem extends ListItem>({
             onDelegateAccessRestricted: showDelegateNoAccessModal,
             personalPolicyID,
             ownerBillingGracePeriodEnd,
+            amountOwed,
+            onUndelete: () => onUndelete?.(transactionItem),
         });
     };
 
@@ -257,7 +266,7 @@ function TransactionListItem<TItem extends ListItem>({
                 onPress={handleOnPress}
                 disabled={isDisabled && !item.isSelected}
                 accessibilityLabel={item.text ?? ''}
-                role={getButtonRole(true)}
+                role={!isDeletedTransaction ? getButtonRole(true) : 'none'}
                 isNested
                 onMouseDown={handleOnMouseDown}
                 onHoverIn={() => setShouldDisableHoverStyle(false)}
@@ -268,6 +277,7 @@ function TransactionListItem<TItem extends ListItem>({
                 style={[
                     pressableStyle,
                     isFocused && StyleUtils.getItemBackgroundColorStyle(!!item.isSelected, !!isFocused, !!item.isDisabled, theme.activeComponentBG, theme.hoverComponentBG),
+                    isDeletedTransaction && styles.cursorDefault,
                 ]}
                 onFocus={onFocus}
                 wrapperStyle={[
@@ -285,7 +295,7 @@ function TransactionListItem<TItem extends ListItem>({
                             <UserInfoAndActionButtonRow
                                 item={transactionItem}
                                 handleActionButtonPress={handleActionButtonPress}
-                                shouldShowUserInfo={!!transactionItem?.from}
+                                shouldShowUserInfo={!isDeletedTransaction && !!transactionItem?.from}
                                 isInMobileSelectionMode={shouldUseNarrowLayout && !!canSelectMultiple}
                                 isDisabledItem={!!isDisabled}
                             />
@@ -314,10 +324,11 @@ function TransactionListItem<TItem extends ListItem>({
                             checkboxSentryLabel={CONST.SENTRY_LABEL.SEARCH.TRANSACTION_LIST_ITEM_CHECKBOX}
                             style={[styles.p3, styles.pv2, shouldUseNarrowLayout ? styles.pt2 : isLargeScreenWidth && styles.noBorderRadius]}
                             violations={transactionViolations}
-                            onArrowRightPress={() => onSelectRow(item, transactionPreviewData)}
+                            onArrowRightPress={isDeletedTransaction ? undefined : () => onSelectRow(item, transactionPreviewData)}
                             isHover={hovered}
-                            customCardNames={customCardNames}
+                            nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}
                             reportActions={exportedReportActions}
+                            policyForMovingExpenses={policyForMovingExpenses}
                             onEditDate={onEditDate}
                             onEditMerchant={onEditMerchant}
                             onEditDescription={onEditDescription}
