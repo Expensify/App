@@ -37,7 +37,7 @@ You’ll receive a message from **Concierge** with the exported file.
 
 1. In the navigation tabs (on the left on web, and at the bottom on mobile) at the bottom, select **Spend** > **Reports**.
 2. Tap the three-line icon in the top-right corner.
-3. Choose between **Reports** or **Expenses** (under **Explore**).
+3. Choose between **Reports** or **Expenses**.
 4. Check the box next to the items you want to export, or use the top checkbox to select all.
 5. Tap **Selected**, then choose **Export**.
 6. Choose a default or custom export template as described above.
