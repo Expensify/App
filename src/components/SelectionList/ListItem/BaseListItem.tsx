@@ -209,6 +209,7 @@ function BaseListItem<TItem extends ListItem>({
                     e.preventDefault();
                 }}
                 id={keyForList ?? ''}
+                testID={`${CONST.BASE_LIST_ITEM_TEST_ID}${item.keyForList}`}
                 style={[
                     pressableStyle,
                     isFocused &&
@@ -229,7 +230,6 @@ function BaseListItem<TItem extends ListItem>({
                 wrapperStyle={pressableWrapperStyle}
             >
                 <View
-                    testID={`${CONST.BASE_LIST_ITEM_TEST_ID}${item.keyForList}`}
                     style={[
                         isFocused &&
                             StyleUtils.getItemBackgroundColorStyle(
