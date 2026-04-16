@@ -184,6 +184,80 @@ describe('MoneyRequestView edit fields', () => {
         });
     });
 
+    it('should show tax fields when tax tracking is disabled but transaction has tax data', async () => {
+        const threadReport = {
+            ...LHNTestUtils.getFakeReport(),
+            parentReportID: expenseReportID,
+            parentReportActionID,
+        };
+
+        await setupTestData();
+
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
+                taxCode: 'TAX_10',
+                taxAmount: 500,
+                taxValue: '10%',
+            });
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        renderMoneyRequestView(threadReport, {tax: {trackingEnabled: false}});
+        await waitForBatchedUpdatesWithAct();
+
+        await waitFor(() => {
+            expect(screen.getByTestId('menu-item-common.tax')).toBeOnTheScreen();
+            expect(screen.getByTestId('menu-item-iou.taxAmount')).toBeOnTheScreen();
+        });
+    });
+
+    it('should not show tax fields when tax tracking is disabled and transaction has no tax data', async () => {
+        const threadReport = {
+            ...LHNTestUtils.getFakeReport(),
+            parentReportID: expenseReportID,
+            parentReportActionID,
+        };
+
+        await setupTestData();
+        await waitForBatchedUpdatesWithAct();
+
+        renderMoneyRequestView(threadReport, {tax: {trackingEnabled: false}});
+        await waitForBatchedUpdatesWithAct();
+
+        await waitFor(() => {
+            expect(screen.queryByTestId('menu-item-common.tax')).not.toBeOnTheScreen();
+            expect(screen.queryByTestId('menu-item-iou.taxAmount')).not.toBeOnTheScreen();
+        });
+    });
+
+    it('should not show tax fields for time expenses even when transaction has tax data', async () => {
+        const threadReport = {
+            ...LHNTestUtils.getFakeReport(),
+            parentReportID: expenseReportID,
+            parentReportActionID,
+        };
+
+        await setupTestData();
+
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
+                taxCode: 'TAX_10',
+                taxAmount: 500,
+                taxValue: '10%',
+                comment: {type: CONST.TRANSACTION.TYPE.TIME},
+            });
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        renderMoneyRequestView(threadReport, {tax: {trackingEnabled: true}});
+        await waitForBatchedUpdatesWithAct();
+
+        await waitFor(() => {
+            expect(screen.queryByTestId('menu-item-common.tax')).not.toBeOnTheScreen();
+            expect(screen.queryByTestId('menu-item-iou.taxAmount')).not.toBeOnTheScreen();
+        });
+    });
+
     it('should show amount and merchant as readonly when report is settled', async () => {
         const threadReport = {
             ...LHNTestUtils.getFakeReport(),

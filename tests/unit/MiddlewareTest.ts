@@ -28,7 +28,7 @@ beforeAll(() => {
 beforeEach(async () => {
     await Onyx.clear();
     await waitForBatchedUpdates();
-    SequentialQueue.pause();
+    SequentialQueue.resetQueue();
     MainQueue.clear();
     HttpUtils.cancelPendingRequests();
     NetworkStore.checkRequiredData();

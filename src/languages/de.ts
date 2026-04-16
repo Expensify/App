@@ -56,6 +56,7 @@ import type {
     StepCounterParams,
     SyncStageNameConnectionsParams,
     UnshareParams,
+    UnsupportedFormulaValueErrorParams,
     UpdatedBudgetParams,
     UpdatedPolicyApprovalRuleParams,
     UpdatedPolicyCategoryMaxAmountNoReceiptParams,
@@ -1016,8 +1017,6 @@ const translations: TranslationDeepObject<typeof en> = {
                 sunglassesDescription: 'Zeit zum Entspannen, aber bleiben Sie gespannt auf das, was kommt!',
                 f1FlagsTitle: 'Alles erledigt',
                 f1FlagsDescription: 'Sie haben alle offenen Aufgaben abgeschlossen.',
-                fireworksTitle: 'Alles erledigt',
-                fireworksDescription: 'Anstehende Aufgaben erscheinen hier.',
             },
         },
         upcomingTravel: 'Bevorstehende Reisen',
@@ -1029,6 +1028,14 @@ const translations: TranslationDeepObject<typeof en> = {
             inOneWeek: 'In 1 Woche',
             inDays: () => ({one: 'In 1 Tag', other: (count: number) => `In ${count} Tagen`}),
             today: 'Heute',
+        },
+        gettingStartedSection: {
+            title: 'Erste Schritte',
+            createWorkspace: 'Workspace erstellen',
+            connectAccounting: ({integrationName}: {integrationName: string}) => `Mit ${integrationName} verbinden`,
+            customizeCategories: 'Buchhaltungskategorien anpassen',
+            linkCompanyCards: 'Firmenkarten verknüpfen',
+            setupRules: 'Ausgabelimits einrichten',
         },
         freeTrialSection: {
             title: ({days}: {days: number}) => `Kostenlose Testversion: Noch ${days} ${days === 1 ? 'Tag' : 'Tage'}!`,
@@ -1144,7 +1151,6 @@ const translations: TranslationDeepObject<typeof en> = {
         flash: 'Blitz',
         multiScan: 'Mehrfachscan',
         shutter: 'Verschluss',
-        flipCamera: 'Kamera wechseln',
         gallery: 'Galerie',
         deleteReceipt: 'Beleg löschen',
         deleteConfirmation: 'Sind Sie sicher, dass Sie diesen Beleg löschen möchten?',
@@ -1365,6 +1371,45 @@ const translations: TranslationDeepObject<typeof en> = {
         paidWithExpensify: (payer?: string) => `${payer ? `${payer} ` : ''}mit Wallet bezahlt`,
         automaticallyPaidWithExpensify: (payer?: string) =>
             `${payer ? `${payer} ` : ''}mit Expensify über <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">Workspace-Regeln</a> bezahlt`,
+        reimbursedThisReport: 'diesen Bericht erstattet',
+        paidThisBill: 'diese Rechnung bezahlt',
+        reimbursedOnBehalfOf: (actor: string) => `im Namen von ${actor}`,
+        reimbursedFromBankAccount: (debitBankAccount: string) => `vom Bankkonto mit der Endung ${debitBankAccount}`,
+        reimbursedSubmitterAddedBankAccount: (submitter: string) =>
+            `${submitter} hat ein Bankkonto hinzugefügt und den Bericht aus der Warteschleife genommen. Die Erstattung wurde eingeleitet`,
+        reimbursedWithFastACH: ({
+            isCurrentUser,
+            submitterLogin,
+            creditBankAccount,
+            expectedDate,
+        }: {
+            isCurrentUser: boolean;
+            submitterLogin: string;
+            creditBankAccount: string;
+            expectedDate: string;
+        }) =>
+            isCurrentUser
+                ? `. Das Geld ist auf dem Weg zu Ihrem ${creditBankAccount ? `Bankkonto mit der Endung ${creditBankAccount}` : 'Konto'}. Die Erstattung wird voraussichtlich bis zum ${expectedDate} abgeschlossen.`
+                : `. Das Geld ist auf dem Weg zum Bankkonto von ${submitterLogin}${creditBankAccount ? ` mit der Endung ${creditBankAccount}` : ''}. Die Erstattung wird voraussichtlich am ${expectedDate} abgeschlossen.`,
+        reimbursedWithCheck: ' per Scheck.',
+        reimbursedWithStripeConnect: ({
+            isCurrentUser,
+            submitterLogin,
+            creditBankAccount,
+            isCard,
+        }: {
+            isCurrentUser: boolean;
+            submitterLogin: string;
+            creditBankAccount: string;
+            isCard: boolean;
+        }) => {
+            const paymentMethod = isCard ? 'Karte' : 'Bankkonto';
+            return isCurrentUser
+                ? `. Das Geld ist auf dem Weg zu Ihrem ${creditBankAccount ? `Bankkonto mit der Endung ${creditBankAccount}` : 'Konto'} (bezahlt über ${paymentMethod}). Dies kann bis zu 10 Werktage dauern.`
+                : `. Das Geld ist auf dem Weg zum Bankkonto von ${submitterLogin}${creditBankAccount ? ` mit der Endung ${creditBankAccount}` : ''} (bezahlt über ${paymentMethod}). Dies kann bis zu 10 Werktage dauern.`;
+        },
+        reimbursedWithACH: ({creditBankAccount, expectedDate}: {creditBankAccount?: string; expectedDate?: string}) =>
+            ` mit Direkteinzahlung (ACH)${creditBankAccount ? ` auf das Bankkonto mit der Endziffer ${creditBankAccount}.` : '. '}${expectedDate ? `Die Rückerstattung wird voraussichtlich bis zum ${expectedDate} abgeschlossen sein.` : 'Dies dauert in der Regel 4–5 Werktage.'}`,
         noReimbursableExpenses: 'Dieser Bericht enthält einen ungültigen Betrag',
         pendingConversionMessage: 'Die Gesamtsumme wird aktualisiert, sobald du wieder online bist',
         changedTheExpense: 'hat die Ausgabe geändert',
@@ -1426,11 +1471,6 @@ const translations: TranslationDeepObject<typeof en> = {
             manySplitsProvided: `Die maximale Anzahl zulässiger Aufteilungen beträgt ${CONST.IOU.SPLITS_LIMIT}.`,
             dateRangeExceedsMaxDays: `Der Datumsbereich darf ${CONST.IOU.SPLITS_LIMIT} Tage nicht überschreiten.`,
             stitchOdometerImagesFailed: 'Kilometerzählerbilder konnten nicht zusammengeführt werden. Bitte versuchen Sie es später noch einmal.',
-            nonReimbursablePayment: 'Kann nicht über Expensify bezahlt werden',
-            nonReimbursablePaymentDescription: (isMultiple?: boolean) =>
-                isMultiple
-                    ? 'Einer oder mehrere ausgewählte Berichte enthalten keine erstattungsfähigen Ausgaben. Überprüfe die Ausgaben erneut oder markiere sie manuell als bezahlt.'
-                    : 'Der Bericht enthält keine erstattungsfähigen Ausgaben. Überprüfe die Ausgaben erneut oder markiere ihn manuell als bezahlt.',
         },
         dismissReceiptError: 'Fehler ausblenden',
         dismissReceiptErrorConfirmation: 'Achtung! Wenn du diesen Fehler schließt, wird deine hochgeladene Quittung vollständig entfernt. Bist du sicher?',
@@ -1626,6 +1666,12 @@ const translations: TranslationDeepObject<typeof en> = {
         failedToApproveViaDEW: (reason: string) => `Genehmigung fehlgeschlagen. ${reason}`,
         cannotDuplicateDistanceExpense:
             'Sie können Entfernungsausgaben nicht über mehrere Arbeitsbereiche hinweg duplizieren, da sich die Sätze zwischen den Arbeitsbereichen unterscheiden können.',
+        taxDisabledAlert: {
+            title: 'Steuer deaktiviert',
+            prompt: 'Aktivieren Sie die Steuerverfolgung im Workspace, um die Ausgabendetails zu bearbeiten oder die Steuer aus dieser Ausgabe zu löschen.',
+            confirmText: 'Steuer löschen',
+        },
+        deleted: 'Gelöscht',
     },
     transactionMerge: {
         listPage: {
@@ -1697,8 +1743,6 @@ const translations: TranslationDeepObject<typeof en> = {
         backdropLabel: 'Modal-Hintergrund',
     },
     nextStep: {
-        // All nextStep.message functions share a common positional signature (actor, actorType, eta, etaType) for type compatibility, so unused params are expected
-        /* eslint-disable @typescript-eslint/no-unused-vars */
         message: {
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_ADD_TRANSACTIONS]: (
                 actor: string,
@@ -1706,8 +1750,6 @@ const translations: TranslationDeepObject<typeof en> = {
                 _eta?: string,
                 _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
             ) => {
-                // Disabling the default-case lint rule here is actually safer as this forces us to make the switch cases exhaustive
-                // eslint-disable-next-line default-case
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
                         return `Warte darauf, dass <strong>Sie</strong> Spesen hinzufügen.`;
@@ -1723,8 +1765,6 @@ const translations: TranslationDeepObject<typeof en> = {
                 _eta?: string,
                 _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
             ) => {
-                // Disabling the default-case lint rule here is actually safer as this forces us to make the switch cases exhaustive
-                // eslint-disable-next-line default-case
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
                         return `Wartet darauf, dass <strong>Sie</strong> Spesen einreichen.`;
@@ -1746,8 +1786,6 @@ const translations: TranslationDeepObject<typeof en> = {
                 _eta?: string,
                 _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
             ) => {
-                // Disabling the default-case lint rule here is actually safer as this forces us to make the switch cases exhaustive
-                // eslint-disable-next-line default-case
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
                         return `Warten darauf, dass <strong>Sie</strong> ein Bankkonto hinzufügen.`;
@@ -1767,8 +1805,6 @@ const translations: TranslationDeepObject<typeof en> = {
                 if (eta) {
                     formattedETA = etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? `am ${eta} eines jeden Monats` : ` ${eta}`;
                 }
-                // Disabling the default-case lint rule here is actually safer as this forces us to make the switch cases exhaustive
-                // eslint-disable-next-line default-case
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
                         return `Warten darauf, dass <strong>Ihre</strong> Ausgaben automatisch eingereicht werden${formattedETA}.`;
@@ -1784,8 +1820,6 @@ const translations: TranslationDeepObject<typeof en> = {
                 _eta?: string,
                 _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
             ) => {
-                // Disabling the default-case lint rule here is actually safer as this forces us to make the switch cases exhaustive
-                // eslint-disable-next-line default-case
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
                         return `Warten auf <strong>Sie</strong>, um die Probleme zu beheben.`;
@@ -1801,8 +1835,6 @@ const translations: TranslationDeepObject<typeof en> = {
                 _eta?: string,
                 _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
             ) => {
-                // Disabling the default-case lint rule here is actually safer as this forces us to make the switch cases exhaustive
-                // eslint-disable-next-line default-case
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
                         return `Es wird darauf gewartet, dass <strong>Sie</strong> Spesen genehmigen.`;
@@ -1818,8 +1850,6 @@ const translations: TranslationDeepObject<typeof en> = {
                 _eta?: string,
                 _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
             ) => {
-                // Disabling the default-case lint rule here is actually safer as this forces us to make the switch cases exhaustive
-                // eslint-disable-next-line default-case
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
                         return `Warte darauf, dass <strong>Sie</strong> diesen Bericht exportieren.`;
@@ -1835,8 +1865,6 @@ const translations: TranslationDeepObject<typeof en> = {
                 _eta?: string,
                 _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
             ) => {
-                // Disabling the default-case lint rule here is actually safer as this forces us to make the switch cases exhaustive
-                // eslint-disable-next-line default-case
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
                         return `Wartet darauf, dass <strong>Sie</strong> Spesen bezahlen.`;
@@ -1852,8 +1880,6 @@ const translations: TranslationDeepObject<typeof en> = {
                 _eta?: string,
                 _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
             ) => {
-                // Disabling the default-case lint rule here is actually safer as this forces us to make the switch cases exhaustive
-                // eslint-disable-next-line default-case
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
                         return `Warten darauf, dass <strong>Sie</strong> die Einrichtung eines Geschäftskontos abschließen.`;
@@ -2089,6 +2115,9 @@ const translations: TranslationDeepObject<typeof en> = {
             helpSite: 'Hilfeseite',
             conciergeChat: 'Concierge',
             conciergeChatDescription: 'Ihr persönlicher KI-Agent',
+            accountManagerDescription: 'Ihre Kundenbetreuung',
+            partnerManagerDescription: 'Ihre Partnermanagerin / Ihr Partnermanager',
+            guideDescription: 'Ihre Einrichtungsfachkraft',
         },
     },
     closeAccountPage: {
@@ -2871,6 +2900,7 @@ ${amount} für ${merchant} – ${date}`,
             `Jemand von ${domain} hat bereits einen Workspace erstellt. Bitte gib den magischen Code ein, der an ${email} gesendet wurde.`,
         joinAWorkspace: 'Einem Arbeitsbereich beitreten',
         listOfWorkspaces: 'Hier ist die Liste der Arbeitsbereiche, denen du beitreten kannst. Keine Sorge, du kannst ihnen auch später jederzeit beitreten, wenn du möchtest.',
+        skipForNow: 'Vorerst überspringen',
         workspaceMemberList: (employeeCount: number, policyOwner: string) => `${employeeCount} Mitglied${employeeCount > 1 ? 's' : ''} • ${policyOwner}`,
         whereYouWork: 'Wo arbeitest du?',
         errorSelection: 'Wähle eine Option, um fortzufahren',
@@ -2989,7 +3019,7 @@ ${amount} für ${merchant} – ${date}`,
                 description: dedent(`
                     *Reiche eine Ausgabe ein*, indem du einen Betrag eingibst oder einen Beleg einscannst.
 
-                    1. Klicke auf die Schaltfläche ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}.
+                    1. Klicke auf die Schaltfläche *+*.
                     2. Wähle *Ausgabe erstellen*.
                     3. Gib einen Betrag ein oder scanne einen Beleg.
                     4. Füge die E-Mail-Adresse oder Telefonnummer deiner Führungskraft hinzu.
@@ -3003,7 +3033,7 @@ ${amount} für ${merchant} – ${date}`,
                 description: dedent(`
                     *Reiche eine Ausgabe ein*, indem du einen Betrag eingibst oder einen Beleg scannst.
 
-                    1. Klicke auf die Schaltfläche ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}.
+                    1. Klicke auf die Schaltfläche *+*.
                     2. Wähle *Ausgabe erstellen*.
                     3. Gib einen Betrag ein oder scanne einen Beleg.
                     4. Bestätige die Details.
@@ -3017,7 +3047,7 @@ ${amount} für ${merchant} – ${date}`,
                 description: dedent(`
                     *Verfolge eine Ausgabe* in jeder Währung, egal ob du eine Quittung hast oder nicht.
 
-                    1. Klicke auf die Schaltfläche ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}.
+                    1. Klicke auf die Schaltfläche *+*.
                     2. Wähle *Ausgabe erstellen*.
                     3. Gib einen Betrag ein oder scanne eine Quittung.
                     4. Wähle deinen *persönlichen* Bereich.
@@ -3114,7 +3144,7 @@ ${amount} für ${merchant} – ${date}`,
                 description: dedent(`
                     *Starte einen Chat* mit jeder Person über ihre E‑Mail-Adresse oder Telefonnummer.
 
-                    1. Klicke auf die Schaltfläche ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}.
+                    1. Klicke auf die Schaltfläche *+*.
                     2. Wähle *Chat starten*.
                     3. Gib eine E‑Mail-Adresse oder Telefonnummer ein.
 
@@ -3128,7 +3158,7 @@ ${amount} für ${merchant} – ${date}`,
                 description: dedent(`
                     *Spalte Ausgaben* mit einer oder mehreren Personen.
 
-                    1. Klicke auf die Schaltfläche ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}.
+                    1. Klicke auf die Schaltfläche *+*.
                     2. Wähle *Chat starten*.
                     3. Gib E-Mail-Adressen oder Telefonnummern ein.
                     4. Klicke im Chat auf die graue *+*-Schaltfläche > *Ausgabe aufteilen*.
@@ -3152,7 +3182,7 @@ ${amount} für ${merchant} – ${date}`,
                 description: dedent(`
                     So erstellst du einen Bericht:
 
-                    1. Klicke auf die Schaltfläche ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}.
+                    1. Klicke auf die Schaltfläche *+*.
                     2. Wähle *Bericht erstellen*.
                     3. Klicke auf *Ausgabe hinzufügen*.
                     4. Füge deine erste Ausgabe hinzu.
@@ -3181,8 +3211,7 @@ ${amount} für ${merchant} – ${date}`,
                         # Deine kostenlose Testversion hat begonnen! Lass uns alles einrichten.
                         👋 Hallo, ich bin deine Expensify-Einrichtungsspezialist*in. Nachdem du jetzt einen Arbeitsbereich erstellt hast, nutze deine 30-tägige kostenlose Testversion optimal, indem du die folgenden Schritte befolgst!
                     `),
-            onboardingTrackWorkspaceMessage:
-                '# Lass uns alles einrichten\n👋 Hallo, ich bin deine Expensify-Einrichtungsspezialist*in. Ich habe bereits einen Workspace erstellt, um dir bei der Verwaltung deiner Belege und Ausgaben zu helfen. Um das Beste aus deiner 30-tägigen kostenlosen Testphase herauszuholen, folge einfach den verbleibenden Einrichtungsschritten unten!',
+            onboardingTrackWorkspaceMessage: 'Um das Beste aus Ihrer 30-tägigen kostenlosen Testversion zu machen, folgen Sie den verbleibenden Schritten unten:',
             onboardingChatSplitMessage: 'Rechnungen mit Freund*innen zu teilen ist so einfach wie das Senden einer Nachricht. So geht’s.',
             onboardingAdminMessage: 'Erfahre, wie du als Admin den Arbeitsbereich deines Teams verwaltest und deine eigenen Ausgaben einreichst.',
             onboardingTestDriveReceiverMessage: '*Du erhältst 3 Monate gratis! Leg unten los.*',
@@ -3234,6 +3263,7 @@ ${amount} für ${merchant} – ${date}`,
             dateShouldBeBefore: (dateString: string) => `Datum muss vor dem ${dateString} liegen`,
             dateShouldBeAfter: (dateString: string) => `Datum muss nach ${dateString} liegen`,
             hasInvalidCharacter: 'Name darf nur lateinische Zeichen enthalten',
+            cannotIncludeCommaOrSemicolon: 'Name darf kein Komma oder Semikolon enthalten',
             incorrectZipFormat: (zipFormat?: string) => `Ungültiges Postleitzahlenformat${zipFormat ? `Zulässiges Format: ${zipFormat}` : ''}`,
             invalidPhoneNumber: `Bitte stelle sicher, dass die Telefonnummer gültig ist (z. B. ${CONST.EXAMPLE_PHONE_NUMBER})`,
         },
@@ -3938,7 +3968,7 @@ ${amount} für ${merchant} – ${date}`,
         regulationRequiresUs: 'Vorschriften verpflichten uns, die Identität jeder Person zu überprüfen, die mehr als 25 % des Unternehmens besitzt.',
         iAmAuthorized: 'Ich bin berechtigt, das Geschäftskonto für Geschäftsausgaben zu verwenden.',
         iCertify: 'Ich bestätige, dass die bereitgestellten Angaben wahr und korrekt sind.',
-        iAcceptTheTermsAndConditions: `Ich akzeptiere die <a href="https://cross-border.corpay.com/tc/">Allgemeinen Geschäftsbedingungen</a>.`,
+        iAcceptTheTermsAndConditions: `Ich akzeptiere die <a href="https://www.corpay.com/cross-border/terms">Allgemeinen Geschäftsbedingungen</a>.`,
         iAcceptTheTermsAndConditionsAccessibility: 'Ich akzeptiere die Geschäftsbedingungen.',
         accept: 'Akzeptieren und Bankkonto hinzufügen',
         iConsentToThePrivacyNotice: 'Ich stimme der <a href="https://payments.corpay.com/compliance">Datenschutzerklärung</a> zu.',
@@ -4553,7 +4583,7 @@ ${amount} für ${merchant} – ${date}`,
                     [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Auslagenausgaben werden beim Bezahlen exportiert',
                 },
             },
-            travelInvoicing: 'Reiseabrechnung',
+            travelInvoicing: 'Expensify Travel-Verbindlichkeiten exportieren an',
             travelInvoicingVendor: 'Reiseanbieter',
             travelInvoicingPayableAccount: 'Verbindlichkeitenkonto Reisen',
         },
@@ -5484,6 +5514,11 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                             settlementAccountLabel: 'Verrechnungskonto',
                             settlementFrequencyLabel: 'Auszahlungsfrequenz',
                             settlementFrequencyDescription: 'Wie oft Expensify Ihr Geschäftskonto belastet, um aktuelle Expensify Travel-Transaktionen zu begleichen.',
+                            monthlySpendLimitLabel: 'Monatliches Ausgabelimit pro Mitglied',
+                            monthlySpendLimitDescription: 'Der maximale Betrag, den jedes Mitglied pro Monat für Reisen ausgeben kann.',
+                            reduceLimitTitle: 'Reise-Ausgabelimit reduzieren?',
+                            reduceLimitWarning:
+                                'Wenn Sie das Limit reduzieren, können Mitglieder, die diesen Betrag bereits überschritten haben, bis zum nächsten Monat keine neuen Reisebuchungen vornehmen.',
                         },
                     },
                     disableModal: {
@@ -5729,6 +5764,7 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             reportFieldNameRequiredError: 'Bitte gib einen Berichtsfeldnamen ein',
             reportFieldTypeRequiredError: 'Bitte wähle einen Berichtsfeldtyp aus',
             circularReferenceError: 'Dieses Feld kann nicht auf sich selbst verweisen. Bitte aktualisieren.',
+            unsupportedFormulaValueError: ({value}: UnsupportedFormulaValueErrorParams) => `Formelfeld ${value} nicht erkannt`,
             reportFieldInitialValueRequiredError: 'Bitte wähle einen Anfangswert für ein Berichtsfeld aus',
             genericFailureMessage: 'Beim Aktualisieren des Berichtfelds ist ein Fehler aufgetreten. Bitte versuche es erneut.',
         },
@@ -6850,6 +6886,8 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 confirmErrorApplyAtLeastOneSpendRule: 'Wenden Sie mindestens eine Ausgabenregel an',
                 categories: 'Kategorien',
                 merchants: 'Händler',
+                noAvailableCards: 'Alle Karten haben bereits eine Regel',
+                noAvailableCardsSubtitle: 'Bearbeiten Sie eine vorhandene Kartenregel, um Änderungen vorzunehmen',
                 max: 'Max',
                 categoryOptions: {
                     [CONST.SPEND_RULES.CATEGORIES.AIRLINES]: 'Fluggesellschaften',
@@ -6874,6 +6912,9 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                     [CONST.SPEND_RULES.CATEGORIES.TRANSIT_AND_RIDESHARE]: 'Öffentlicher Nahverkehr und Fahrgemeinschaften',
                     [CONST.SPEND_RULES.CATEGORIES.TRAVEL_AGENCIES]: 'Reisebüros',
                 },
+                editRuleTitle: 'Regel bearbeiten',
+                deleteRule: 'Regel löschen',
+                deleteRuleConfirmation: 'Sind Sie sicher, dass Sie diese Regel löschen möchten?',
             },
         },
         planTypePage: {
@@ -7373,8 +7414,6 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         updatedDefaultTitle: (newDefaultTitle: string, oldDefaultTitle: string) => `benutzerdefinierte Berichtstitelformel in „${newDefaultTitle}“ geändert (zuvor „${oldDefaultTitle}“)`,
         updatedOwnership: (oldOwnerEmail: string, oldOwnerName: string, policyName: string) => `hat die Inhaberschaft von ${policyName} von ${oldOwnerName} (${oldOwnerEmail}) übernommen`,
         updatedAutoHarvesting: (enabled: boolean) => `${enabled ? 'aktiviert' : 'deaktiviert'} geplante Einreichung`,
-        // This function requires 11 params to match the budget notification data model; reducing further would hurt readability
-        // eslint-disable-next-line @typescript-eslint/max-params
         updatedIndividualBudgetNotification: (
             budgetAmount: string,
             budgetFrequency: string,
@@ -7568,7 +7607,9 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             hold: 'Warteschleife',
             unhold: 'Zurückhalten aufheben',
             reject: 'Ablehnen',
+            duplicateExpense: ({count}: {count: number}) => `${count === 1 ? 'Ausgabe' : 'Ausgaben'} duplizieren`,
             noOptionsAvailable: 'Für die ausgewählte Ausgabengruppe sind keine Optionen verfügbar.',
+            undelete: 'Wiederherstellen',
         },
         filtersHeader: 'Filter',
         filters: {
@@ -7621,6 +7662,10 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             billable: 'Abrechenbar',
             reimbursable: 'Erstattungsfähig',
             purchaseCurrency: 'Kaufwährung',
+            sortOrder: {
+                [CONST.SEARCH.SORT_ORDER.ASC]: 'Aufsteigend',
+                [CONST.SEARCH.SORT_ORDER.DESC]: 'Absteigend',
+            },
             groupBy: {
                 [CONST.SEARCH.GROUP_BY.FROM]: 'Von',
                 [CONST.SEARCH.GROUP_BY.CARD]: 'Karte',
@@ -7649,6 +7694,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         display: {
             label: 'Anzeige',
             sortBy: 'Sortieren nach',
+            sortOrder: 'Sortierreihenfolge',
             groupBy: 'Gruppieren nach',
             limitResults: 'Ergebnisse einschränken',
         },
@@ -7684,7 +7730,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         recentSearches: 'Letzte Suchen',
         recentChats: 'Neueste Chats',
         searchIn: 'Suchen in',
-        searchPlaceholder: 'Nach etwas suchen',
+        searchPlaceholder: 'Nach etwas suchen...',
         suggestions: 'Vorschläge',
         suggestionsAvailable: (
             {
@@ -7870,6 +7916,21 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         oooEventSummaryPartialDay: (summary: string, timePeriod: string, date: string) => `${summary} von ${timePeriod} am ${date}`,
         startTimer: 'Timer starten',
         stopTimer: 'Timer stoppen',
+        scheduleOOO: 'Abwesenheit planen',
+        scheduleOOOTitle: 'Abwesenheit planen',
+        date: 'Datum',
+        time: 'Zeit (24-Stunden-Format)',
+        durationAmount: 'Dauer',
+        durationUnit: 'Einheit',
+        reason: 'Grund',
+        workingPercentage: 'Arbeitsprozentsatz',
+        dateRequired: 'Datum ist erforderlich.',
+        invalidTimeFormat: 'Bitte geben Sie eine gültige Uhrzeit im 24‑Stunden-Format ein (z. B. 14:30).',
+        enterANumber: 'Bitte geben Sie eine Zahl ein.',
+        hour: 'Stunden',
+        day: 'Tage',
+        week: 'Wochen',
+        month: 'Monate',
     },
     footer: {
         features: 'Funktionen',
@@ -7985,6 +8046,11 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             'Schließ dich Expensify.org an, um Ungerechtigkeit auf der ganzen Welt zu beseitigen. Die aktuelle „Teachers Unite“-Kampagne unterstützt Lehrkräfte überall, indem sie die Kosten für grundlegende Schulmaterialien teilt.',
         iKnowATeacher: 'Ich kenne eine Lehrkraft',
         iAmATeacher: 'Ich bin Lehrer',
+        personalKarma: {
+            title: 'Persönliches Karma aktivieren',
+            description: 'Spende 1 $ an Expensify.org für je 500 $, die du jeden Monat ausgibst',
+            stopDonationsPrompt: 'Bist du sicher, dass du nicht mehr an Expensify.org spenden möchtest?',
+        },
         getInTouch: 'Ausgezeichnet! Bitte teile ihre Kontaktdaten, damit wir sie erreichen können.',
         introSchoolPrincipal: 'Einführung für Ihre Schulleitung',
         schoolPrincipalVerifyExpense:
@@ -8010,6 +8076,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         personalCard: 'Private Karte',
         companyCard: 'Firmenkarte',
         expensifyCard: 'Expensify Karte',
+        centralInvoicing: 'Zentrale Rechnungsstellung',
     },
     distance: {
         addStop: 'Stopp hinzufügen',
