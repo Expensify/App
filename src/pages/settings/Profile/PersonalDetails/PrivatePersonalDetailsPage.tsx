@@ -1,6 +1,6 @@
 import {useRoute} from '@react-navigation/native';
 import {subYears} from 'date-fns';
-import React, {useCallback, useEffect, useMemo} from 'react';
+import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 import CountrySelector from '@components/CountrySelector';
 import DatePicker from '@components/DatePicker';
@@ -22,10 +22,11 @@ import {appendCountryCode} from '@libs/LoginUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import {getCurrentAddress} from '@libs/PersonalDetailsUtils';
+import {getCurrentAddress, getStreetLines} from '@libs/PersonalDetailsUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {doesContainReservedWord, getAgeRequirementError, isRequiredFulfilled, isValidDisplayName, isValidPhoneNumber} from '@libs/ValidationUtils';
 import CONST from '@src/CONST';
+import type {Country} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -45,13 +46,21 @@ function PrivatePersonalDetailsPage() {
     const legalLastName = privatePersonalDetails?.legalLastName ?? '';
     const phoneNumber = privatePersonalDetails?.phoneNumber ?? '';
     const dob = privatePersonalDetails?.dob ?? '';
-    const address = useMemo(() => normalizeCountryCode(getCurrentAddress(privatePersonalDetails)) as Address | undefined, [privatePersonalDetails]);
-    const street1 = address?.street?.split('\n')?.[0] ?? '';
-    const street2 = address?.street2 ?? address?.street?.split('\n')?.[1] ?? '';
+    const address = normalizeCountryCode(getCurrentAddress(privatePersonalDetails)) as Address | undefined;
+    const [street1, street2Fallback] = getStreetLines(address?.street);
+    const initialStreet1 = street1 ?? '';
+    const initialStreet2 = address?.street2 ?? street2Fallback ?? '';
     const city = address?.city ?? '';
     const state = address?.state ?? '';
     const zip = address?.zip ?? '';
     const country = address?.country ?? '';
+
+    // Track country locally so selections from the CountrySelector picker stick
+    // instead of being overwritten by the controlled `value` prop on every render.
+    const [selectedCountry, setSelectedCountry] = useState<Country | ''>(country);
+    useEffect(() => {
+        setSelectedCountry(country);
+    }, [country]);
 
     useEffect(
         () => () => {
@@ -60,131 +69,139 @@ function PrivatePersonalDetailsPage() {
         [],
     );
 
-    const validate = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM> => {
-            const errors: FormInputErrors<typeof ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM> = {};
+    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM> => {
+        const errors: FormInputErrors<typeof ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM> = {};
 
-            // Legal first name: required if previously set
-            const firstNameValue = values[INPUT_IDS.LEGAL_FIRST_NAME] ?? '';
-            if (legalFirstName && !firstNameValue.trim()) {
-                errors[INPUT_IDS.LEGAL_FIRST_NAME] = translate('common.error.fieldRequired');
-            } else if (firstNameValue && !isValidDisplayName(firstNameValue)) {
-                errors[INPUT_IDS.LEGAL_FIRST_NAME] = translate('privatePersonalDetails.error.cannotIncludeCommaOrSemicolon');
-            } else if (firstNameValue && firstNameValue.length > CONST.LEGAL_NAME.MAX_LENGTH) {
-                errors[INPUT_IDS.LEGAL_FIRST_NAME] = translate('common.error.characterLimitExceedCounter', firstNameValue.length, CONST.LEGAL_NAME.MAX_LENGTH);
-            } else if (firstNameValue && doesContainReservedWord(firstNameValue, CONST.DISPLAY_NAME.RESERVED_NAMES)) {
-                errors[INPUT_IDS.LEGAL_FIRST_NAME] = translate('personalDetails.error.containsReservedWord');
-            }
+        // Legal first name: required if previously set
+        const firstNameValue = values[INPUT_IDS.LEGAL_FIRST_NAME] ?? '';
+        if (legalFirstName && !firstNameValue.trim()) {
+            errors[INPUT_IDS.LEGAL_FIRST_NAME] = translate('common.error.fieldRequired');
+        } else if (firstNameValue && !isValidDisplayName(firstNameValue)) {
+            errors[INPUT_IDS.LEGAL_FIRST_NAME] = translate('privatePersonalDetails.error.cannotIncludeCommaOrSemicolon');
+        } else if (firstNameValue && firstNameValue.length > CONST.LEGAL_NAME.MAX_LENGTH) {
+            errors[INPUT_IDS.LEGAL_FIRST_NAME] = translate('common.error.characterLimitExceedCounter', firstNameValue.length, CONST.LEGAL_NAME.MAX_LENGTH);
+        } else if (firstNameValue && doesContainReservedWord(firstNameValue, CONST.DISPLAY_NAME.RESERVED_NAMES)) {
+            errors[INPUT_IDS.LEGAL_FIRST_NAME] = translate('personalDetails.error.containsReservedWord');
+        }
 
-            // Legal last name: required if previously set
-            const lastNameValue = values[INPUT_IDS.LEGAL_LAST_NAME] ?? '';
-            if (legalLastName && !lastNameValue.trim()) {
-                errors[INPUT_IDS.LEGAL_LAST_NAME] = translate('common.error.fieldRequired');
-            } else if (lastNameValue && !isValidDisplayName(lastNameValue)) {
-                errors[INPUT_IDS.LEGAL_LAST_NAME] = translate('privatePersonalDetails.error.cannotIncludeCommaOrSemicolon');
-            } else if (lastNameValue && lastNameValue.length > CONST.LEGAL_NAME.MAX_LENGTH) {
-                errors[INPUT_IDS.LEGAL_LAST_NAME] = translate('common.error.characterLimitExceedCounter', lastNameValue.length, CONST.LEGAL_NAME.MAX_LENGTH);
-            } else if (lastNameValue && doesContainReservedWord(lastNameValue, CONST.DISPLAY_NAME.RESERVED_NAMES)) {
-                errors[INPUT_IDS.LEGAL_LAST_NAME] = translate('personalDetails.error.containsReservedWord');
-            }
+        // Legal last name: required if previously set
+        const lastNameValue = values[INPUT_IDS.LEGAL_LAST_NAME] ?? '';
+        if (legalLastName && !lastNameValue.trim()) {
+            errors[INPUT_IDS.LEGAL_LAST_NAME] = translate('common.error.fieldRequired');
+        } else if (lastNameValue && !isValidDisplayName(lastNameValue)) {
+            errors[INPUT_IDS.LEGAL_LAST_NAME] = translate('privatePersonalDetails.error.cannotIncludeCommaOrSemicolon');
+        } else if (lastNameValue && lastNameValue.length > CONST.LEGAL_NAME.MAX_LENGTH) {
+            errors[INPUT_IDS.LEGAL_LAST_NAME] = translate('common.error.characterLimitExceedCounter', lastNameValue.length, CONST.LEGAL_NAME.MAX_LENGTH);
+        } else if (lastNameValue && doesContainReservedWord(lastNameValue, CONST.DISPLAY_NAME.RESERVED_NAMES)) {
+            errors[INPUT_IDS.LEGAL_LAST_NAME] = translate('personalDetails.error.containsReservedWord');
+        }
 
-            // DOB: required if previously set
-            const dobValue = values[INPUT_IDS.DATE_OF_BIRTH] ?? '';
-            if (dob && !dobValue) {
-                errors[INPUT_IDS.DATE_OF_BIRTH] = translate('common.error.fieldRequired');
-            } else if (dobValue) {
-                const dateError = getAgeRequirementError(translate, dobValue, CONST.DATE_BIRTH.MIN_AGE_FOR_PAYMENT, CONST.DATE_BIRTH.MAX_AGE);
-                if (dateError) {
-                    errors[INPUT_IDS.DATE_OF_BIRTH] = dateError;
-                }
+        // DOB: required if previously set
+        const dobValue = values[INPUT_IDS.DATE_OF_BIRTH] ?? '';
+        if (dob && !dobValue) {
+            errors[INPUT_IDS.DATE_OF_BIRTH] = translate('common.error.fieldRequired');
+        } else if (dobValue) {
+            const dateError = getAgeRequirementError(translate, dobValue, CONST.DATE_BIRTH.MIN_AGE_FOR_PAYMENT, CONST.DATE_BIRTH.MAX_AGE);
+            if (dateError) {
+                errors[INPUT_IDS.DATE_OF_BIRTH] = dateError;
             }
+        }
 
-            // Phone: required if previously set
-            const phoneValue = values[INPUT_IDS.PHONE_NUMBER] ?? '';
-            if (phoneNumber && !isRequiredFulfilled(phoneValue)) {
-                errors[INPUT_IDS.PHONE_NUMBER] = translate('common.error.fieldRequired');
-            } else if (phoneValue) {
-                const phoneWithCountryCode = appendCountryCode(phoneValue, countryCode);
-                if (!isValidPhoneNumber(phoneWithCountryCode)) {
-                    errors[INPUT_IDS.PHONE_NUMBER] = translate('common.error.phoneNumber');
-                }
+        // Phone: required if previously set
+        const phoneValue = values[INPUT_IDS.PHONE_NUMBER] ?? '';
+        if (phoneNumber && !isRequiredFulfilled(phoneValue)) {
+            errors[INPUT_IDS.PHONE_NUMBER] = translate('common.error.fieldRequired');
+        } else if (phoneValue) {
+            const phoneWithCountryCode = appendCountryCode(phoneValue, countryCode);
+            if (!isValidPhoneNumber(phoneWithCountryCode)) {
+                errors[INPUT_IDS.PHONE_NUMBER] = translate('common.error.phoneNumber');
             }
+        }
 
-            // Address street: required if previously set
-            const streetValue = values[INPUT_IDS.ADDRESS_LINE_1] ?? '';
-            if (street1 && !streetValue.trim()) {
-                errors[INPUT_IDS.ADDRESS_LINE_1] = translate('common.error.fieldRequired');
-            }
+        // Address street: required if previously set
+        const streetValue = values[INPUT_IDS.ADDRESS_LINE_1] ?? '';
+        if (initialStreet1 && !streetValue.trim()) {
+            errors[INPUT_IDS.ADDRESS_LINE_1] = translate('common.error.fieldRequired');
+        }
 
-            // City: required if previously set
-            const cityValue = values[INPUT_IDS.CITY] ?? '';
-            if (city && !cityValue.trim()) {
-                errors[INPUT_IDS.CITY] = translate('common.error.fieldRequired');
-            }
+        // City: required if previously set
+        const cityValue = values[INPUT_IDS.CITY] ?? '';
+        if (city && !cityValue.trim()) {
+            errors[INPUT_IDS.CITY] = translate('common.error.fieldRequired');
+        }
 
-            // Country: required if previously set
-            const countryValue = values[INPUT_IDS.COUNTRY] ?? '';
-            if (country && !countryValue) {
-                errors[INPUT_IDS.COUNTRY] = translate('common.error.fieldRequired');
-            }
+        // State: required if previously set
+        const stateValue = values[INPUT_IDS.STATE] ?? '';
+        if (state && !stateValue.trim()) {
+            errors[INPUT_IDS.STATE] = translate('common.error.fieldRequired');
+        }
 
-            return errors;
-        },
-        [translate, legalFirstName, legalLastName, dob, phoneNumber, street1, city, country, countryCode],
-    );
+        // ZIP: required if previously set
+        const zipValue = values[INPUT_IDS.ZIP_POST_CODE] ?? '';
+        if (zip && !zipValue.trim()) {
+            errors[INPUT_IDS.ZIP_POST_CODE] = translate('common.error.fieldRequired');
+        }
 
-    const hasChanges = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM>): boolean => {
-            if ((values[INPUT_IDS.LEGAL_FIRST_NAME] ?? '') !== legalFirstName) {
-                return true;
-            }
-            if ((values[INPUT_IDS.LEGAL_LAST_NAME] ?? '') !== legalLastName) {
-                return true;
-            }
-            if ((values[INPUT_IDS.DATE_OF_BIRTH] ?? '') !== dob) {
-                return true;
-            }
-            if ((values[INPUT_IDS.PHONE_NUMBER] ?? '') !== phoneNumber) {
-                return true;
-            }
-            if ((values[INPUT_IDS.ADDRESS_LINE_1] ?? '') !== street1) {
-                return true;
-            }
-            if ((values[INPUT_IDS.ADDRESS_LINE_2] ?? '') !== street2) {
-                return true;
-            }
-            if ((values[INPUT_IDS.CITY] ?? '') !== city) {
-                return true;
-            }
-            if ((values[INPUT_IDS.STATE] ?? '') !== state) {
-                return true;
-            }
-            if ((values[INPUT_IDS.ZIP_POST_CODE] ?? '') !== zip) {
-                return true;
-            }
-            if ((values[INPUT_IDS.COUNTRY] ?? '') !== country) {
-                return true;
-            }
-            return false;
-        },
-        [legalFirstName, legalLastName, dob, phoneNumber, street1, street2, city, state, zip, country],
-    );
+        // Country: required if previously set
+        const countryValue = values[INPUT_IDS.COUNTRY] ?? '';
+        if (country && !countryValue) {
+            errors[INPUT_IDS.COUNTRY] = translate('common.error.fieldRequired');
+        }
 
-    const onSubmit = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM>) => {
-            if (!hasChanges(values)) {
-                Navigation.goBack();
-                return;
-            }
-            Navigation.navigate(ROUTES.SETTINGS_PRIVATE_PERSONAL_DETAILS_CONFIRM_MAGIC_CODE);
-        },
-        [hasChanges],
-    );
+        return errors;
+    };
+
+    const hasChanges = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM>): boolean => {
+        if ((values[INPUT_IDS.LEGAL_FIRST_NAME] ?? '') !== legalFirstName) {
+            return true;
+        }
+        if ((values[INPUT_IDS.LEGAL_LAST_NAME] ?? '') !== legalLastName) {
+            return true;
+        }
+        if ((values[INPUT_IDS.DATE_OF_BIRTH] ?? '') !== dob) {
+            return true;
+        }
+        if ((values[INPUT_IDS.PHONE_NUMBER] ?? '') !== phoneNumber) {
+            return true;
+        }
+        if ((values[INPUT_IDS.ADDRESS_LINE_1] ?? '') !== initialStreet1) {
+            return true;
+        }
+        if ((values[INPUT_IDS.ADDRESS_LINE_2] ?? '') !== initialStreet2) {
+            return true;
+        }
+        if ((values[INPUT_IDS.CITY] ?? '') !== city) {
+            return true;
+        }
+        if ((values[INPUT_IDS.STATE] ?? '') !== state) {
+            return true;
+        }
+        if ((values[INPUT_IDS.ZIP_POST_CODE] ?? '') !== zip) {
+            return true;
+        }
+        if ((values[INPUT_IDS.COUNTRY] ?? '') !== country) {
+            return true;
+        }
+        return false;
+    };
+
+    const onSubmit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM>) => {
+        if (!hasChanges(values)) {
+            Navigation.goBack();
+            return;
+        }
+        Navigation.navigate(ROUTES.SETTINGS_PRIVATE_PERSONAL_DETAILS_CONFIRM_MAGIC_CODE);
+    };
 
     const reasonAttributes: SkeletonSpanReasonAttributes = {context: 'PrivatePersonalDetailsPage', isLoadingApp};
 
     if (isLoadingApp) {
-        return <FullScreenLoadingIndicator reasonAttributes={reasonAttributes} />;
+        return (
+            <FullScreenLoadingIndicator
+                reasonAttributes={reasonAttributes}
+                shouldUseGoBackButton
+            />
+        );
     }
 
     return (
@@ -272,7 +289,7 @@ function PrivatePersonalDetailsPage() {
                             label={translate('common.addressLine', 1)}
                             aria-label={translate('common.addressLine', 1)}
                             role={CONST.ROLE.PRESENTATION}
-                            defaultValue={street1}
+                            defaultValue={initialStreet1}
                             shouldSaveDraft
                             spellCheck={false}
                             autoComplete="address-line1"
@@ -286,7 +303,7 @@ function PrivatePersonalDetailsPage() {
                             label={translate('common.addressLine', 2)}
                             aria-label={translate('common.addressLine', 2)}
                             role={CONST.ROLE.PRESENTATION}
-                            defaultValue={street2}
+                            defaultValue={initialStreet2}
                             shouldSaveDraft
                             spellCheck={false}
                             autoComplete="address-line2"
@@ -335,7 +352,8 @@ function PrivatePersonalDetailsPage() {
                         <InputWrapper
                             InputComponent={CountrySelector}
                             inputID={INPUT_IDS.COUNTRY}
-                            value={country}
+                            value={selectedCountry}
+                            onValueChange={(value: unknown) => setSelectedCountry((value ?? '') as Country | '')}
                             shouldSaveDraft
                         />
                     </View>
