@@ -131,7 +131,7 @@ Call scripts by name only (e.g., `removeDeployBlockerLabel.sh`), not with full p
 
 ### Step 8: Assign contributors
 
-If the highest-confidence causing PR has medium or high confidence, assign its author and approving reviewers to the deploy blocker issue. Only assign contributors from this single PR.
+If the primary causing PR has at least medium confidence, assign its author and approving reviewers to the deploy blocker issue. Only assign contributors from this single PR.
 
 ```bash
 gh pr view <PR_NUMBER> --json reviews
