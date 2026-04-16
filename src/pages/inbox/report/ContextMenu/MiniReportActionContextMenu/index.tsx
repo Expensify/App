@@ -146,7 +146,15 @@ function MiniReportActionContextMenu() {
         if (!isVisible) {
             return;
         }
-        const onScroll = () => {
+        const onScroll = (event: Event) => {
+            // Ignore scrolls that originate from inside the anchored row itself, e.g. the
+            // horizontal carousel on a report preview. Those don't move the row, so the
+            // menu is still correctly positioned and shouldn't flicker away.
+            const anchorEl = anchor?.current as unknown as HTMLElement | null;
+            const target = event.target as Node | null;
+            if (anchorEl && target && anchorEl.contains(target)) {
+                return;
+            }
             release();
             hideMiniContextMenu();
         };
@@ -154,7 +162,10 @@ function MiniReportActionContextMenu() {
         return () => {
             window.removeEventListener('scroll', onScroll, true);
         };
-    }, [isVisible, release, hideMiniContextMenu]);
+        // Depending on the ref object rather than anchor?.current avoids accessing
+        // refs during render (required for React Compiler compliance); the ref identity is stable.
+        // eslint-disable-next-line rulesdir/prefer-narrow-hook-dependencies
+    }, [isVisible, release, hideMiniContextMenu, anchor]);
 
     useEffect(() => {
         const el = localMenuContainerRef.current as unknown as HTMLElement | null;
