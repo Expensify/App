@@ -1390,6 +1390,28 @@ function getWideAmountIndicators(data: TransactionListItemType[] | TransactionGr
     };
 }
 
+function hasDeletedTransactionInData(data: TransactionListItemType[] | TransactionGroupListItemType[] | TaskListItemType[] | OnyxTypes.SearchResults['data']): boolean {
+    if (Array.isArray(data)) {
+        return data.some((item) => {
+            if (isTransactionGroupListItemType(item)) {
+                return item.transactions.some((transaction) => transaction.reportID === CONST.REPORT.TRASH_REPORT_ID);
+            }
+            if (isTransactionListItemType(item)) {
+                return item.reportID === CONST.REPORT.TRASH_REPORT_ID;
+            }
+            return false;
+        });
+    }
+
+    return Object.keys(data).some((key) => {
+        if (isTransactionEntry(key)) {
+            const item = data[key];
+            return item?.reportID === CONST.REPORT.TRASH_REPORT_ID;
+        }
+        return false;
+    });
+}
+
 type ShouldShowYearResult = {
     shouldShowYearCreated: boolean;
     shouldShowYearSubmitted: boolean;
@@ -1724,6 +1746,7 @@ type PreprocessingContext = {
     shouldShowYearExportedReport: boolean;
     shouldShowAmountInWideColumn: boolean;
     shouldShowTaxAmountInWideColumn: boolean;
+    hasDeletedTransaction: boolean;
     currentYear: number;
 };
 
@@ -1749,6 +1772,7 @@ function createPreprocessingContext(): PreprocessingContext {
         shouldShowYearExportedReport: false,
         shouldShowAmountInWideColumn: false,
         shouldShowTaxAmountInWideColumn: false,
+        hasDeletedTransaction: false,
         currentYear: new Date().getFullYear(),
     };
 }
@@ -1831,6 +1855,9 @@ function processTransactionEntry(ctx: PreprocessingContext, transaction: OnyxTyp
     }
     if (!ctx.shouldShowTaxAmountInWideColumn) {
         ctx.shouldShowTaxAmountInWideColumn = isTransactionTaxAmountTooLong(transaction);
+    }
+    if (!ctx.hasDeletedTransaction) {
+        ctx.hasDeletedTransaction = transaction.reportID === CONST.REPORT.TRASH_REPORT_ID;
     }
 
     if (!ctx.shouldShowYearCreated) {
@@ -2034,6 +2061,7 @@ function getTransactionsSections({
         shouldShowYearExported,
         shouldShowAmountInWideColumn,
         shouldShowTaxAmountInWideColumn,
+        hasDeletedTransaction,
     } = classifyAndPreprocess(data);
 
     const personalDetailsMap = new Map(Object.entries(data.personalDetailsList ?? {}));
@@ -2131,6 +2159,7 @@ function getTransactionsSections({
                 shouldShowYearExported,
                 isAmountColumnWide: shouldShowAmountInWideColumn,
                 isTaxAmountColumnWide: shouldShowTaxAmountInWideColumn,
+                isActionColumnWide: hasDeletedTransaction,
                 violations: transactionViolations,
                 category: isIOUReport ? '' : transactionItem?.category,
                 errors: undefined,
@@ -2632,6 +2661,7 @@ function getReportSections({
         shouldShowYearExportedReport,
         shouldShowAmountInWideColumn,
         shouldShowTaxAmountInWideColumn,
+        hasDeletedTransaction,
     } = classifyAndPreprocess(data);
 
     const currentQueryJSON = queryJSON ?? getCurrentSearchQueryJSON();
@@ -2730,6 +2760,7 @@ function getReportSections({
                     nonReimbursableSpend,
                     reimbursableSpend,
                     isAmountColumnWide: shouldShowAmountInWideColumn,
+                    isActionColumnWide: hasDeletedTransaction,
                     isAllScanning: false,
                     ...avatarProps,
                 };
@@ -2790,6 +2821,7 @@ function getReportSections({
                 violations: transactionViolations,
                 isAmountColumnWide: shouldShowAmountInWideColumn,
                 isTaxAmountColumnWide: shouldShowTaxAmountInWideColumn,
+                isActionColumnWide: hasDeletedTransaction,
                 category: isIOUReport ? '' : transactionItem?.category,
                 errors: undefined,
             };
@@ -5610,7 +5642,7 @@ function getTransactionFromTransactionListItem(item: TransactionListItemType): O
     return transaction as OnyxTypes.Transaction;
 }
 
-function getTableMinWidth(columns: SearchColumnType[], type?: SearchDataTypes) {
+function getTableMinWidth(columns: SearchColumnType[], type?: SearchDataTypes, isActionColumnWide?: boolean) {
     // Starts at 24px to account for the checkbox width
     let minWidth = 24;
 
@@ -5624,7 +5656,7 @@ function getTableMinWidth(columns: SearchColumnType[], type?: SearchDataTypes) {
         } else if (column === CONST.SEARCH.TABLE_COLUMNS.STATUS) {
             minWidth += 80;
         } else if (column === CONST.SEARCH.TABLE_COLUMNS.ACTION) {
-            minWidth += type === CONST.SEARCH.DATA_TYPES.TASK ? 80 : 68;
+            minWidth += (isActionColumnWide ?? type === CONST.SEARCH.DATA_TYPES.TASK) ? 80 : 68;
         } else if (column === CONST.SEARCH.TABLE_COLUMNS.DATE) {
             minWidth += 48;
         } else if (
@@ -5857,6 +5889,7 @@ export {
     getCurrencyOptions,
     getFeedOptions,
     getWideAmountIndicators,
+    hasDeletedTransactionInData,
     isTransactionAmountTooLong,
     isTransactionTaxAmountTooLong,
     getDatePresets,

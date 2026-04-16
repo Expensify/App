@@ -160,6 +160,11 @@ type TransactionListItemType = ListItem &
 
         isTaxAmountColumnWide: boolean;
 
+        /** Whether the action column should use its wider variant.
+         * This is true if at least one transaction in the dataset is deleted.
+         */
+        isActionColumnWide: boolean;
+
         /** Key used internally by React */
         keyForList: string;
 
