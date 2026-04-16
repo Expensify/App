@@ -86,7 +86,7 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
                     return null;
                 }
 
-                const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(employeeList);
+                const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(employeeList, false, false);
                 const accountID = Number(policyMemberEmailsToAccountIDs[email] ?? '');
 
                 if (!accountID) {
@@ -159,7 +159,7 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
             }
 
             const newSelectedEmail = approver?.login ?? '';
-            const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(employeeList);
+            const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(employeeList, false, false);
             const accountID = Number(newSelectedEmail ? policyMemberEmailsToAccountIDs[newSelectedEmail] : '');
             const {avatar, displayName = newSelectedEmail} = personalDetails?.[accountID] ?? {};
 
