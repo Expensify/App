@@ -2,7 +2,6 @@ import {useFocusEffect} from '@react-navigation/native';
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import React, {useState} from 'react';
 import {View} from 'react-native';
-import Onyx from 'react-native-onyx';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -26,7 +25,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import {isCurrentUserValidated} from '@libs/UserUtils';
 import {askToJoinPolicy, joinAccessiblePolicy} from '@userActions/Policy/Member';
-import {getAccessiblePolicies} from '@userActions/Policy/Policy';
+import {getAccessiblePolicies, setPolicyLoading} from '@userActions/Policy/Policy';
 import {completeOnboarding} from '@userActions/Report';
 import {setOnboardingAdminsChatReportID, setOnboardingPolicyID} from '@userActions/Welcome';
 import CONST from '@src/CONST';
@@ -101,7 +100,7 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
         setOnboardingPolicyID(policy.policyID);
 
         if (isEmployerWithSubmit && policy.automaticJoiningEnabled) {
-            Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.policyID}`, {isLoading: true});
+            setPolicyLoading(policy.policyID, true);
             navigateToSubmitWorkspaceAfterOnboardingWithMicrotaskQueue(policy.policyID);
             return;
         }
