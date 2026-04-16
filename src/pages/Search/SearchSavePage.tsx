@@ -83,7 +83,6 @@ function FilterValue({filterKey, value}: FilterValueWithKeyProps) {
 function SearchSavePage() {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
-    const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES);
     const [searchAdvancedFiltersForm = getEmptyObject<Partial<SearchAdvancedFiltersForm>>()] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
     const [name, setName] = useState('');
 
