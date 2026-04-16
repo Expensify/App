@@ -1,6 +1,6 @@
 import {delegateEmailSelector} from '@selectors/Account';
 import {hasSeenTourSelector} from '@selectors/Onboarding';
-import {useRef, useState} from 'react';
+import {useEffect, useRef, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
 import useOnboardingTaskInformation from '@hooks/useOnboardingTaskInformation';
@@ -162,8 +162,9 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
     // Transaction violations – ref keeps callbacks always reading the latest value without re-creating them.
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const transactionViolationsRef = useRef(transactionViolations);
-    // eslint-disable-next-line react-hooks/refs
-    transactionViolationsRef.current = transactionViolations;
+    useEffect(() => {
+        transactionViolationsRef.current = transactionViolations;
+    }, [transactionViolations]);
     const hasViolations = hasViolationsReportUtils(report?.reportID, transactionViolations, currentUserPersonalDetails.accountID, currentUserPersonalDetails.login ?? '');
 
     // Policy-scoped Onyx data
