@@ -644,7 +644,7 @@ function getCombinedCardFeedsFromAllFeeds(
             const combinedCardFeed: CombinedCardFeed = {
                 ...feedSettings,
                 ...oAuthAccountDetails,
-                customFeedName,
+                customFeedName: customFeedName || feedSettings?.uploadLayoutSettings?.layoutName,
                 domainID,
                 feed: feedName,
                 status,

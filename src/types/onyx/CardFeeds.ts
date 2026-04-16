@@ -119,6 +119,12 @@ type CustomCardFeedData = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Plaid access token */
     plaidAccessToken?: string;
 
+    /** CSV upload layout settings (present on ccupload feeds) */
+    uploadLayoutSettings?: {
+        layoutName?: string;
+        [key: string]: unknown;
+    };
+
     /** Field-specific error messages */
     errorFields?: OnyxCommon.ErrorFields<'statementPeriodEndDay'>;
 
