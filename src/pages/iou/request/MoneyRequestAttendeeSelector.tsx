@@ -83,7 +83,8 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
     const initialSelectedOptions = attendees.map((attendee) => ({
         ...attendee,
         reportID: CONST.DEFAULT_NUMBER_ID.toString(),
-        keyForList: String(attendee.accountID) ?? (attendee.email || attendee.displayName),
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        keyForList: String(attendee.accountID) || attendee.email || attendee.displayName,
         selected: true,
         // Use || to fall back to displayName for name-only attendees (empty email)
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
