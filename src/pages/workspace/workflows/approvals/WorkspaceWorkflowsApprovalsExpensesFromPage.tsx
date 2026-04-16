@@ -1,5 +1,5 @@
 import {Str} from 'expensify-common';
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import type {SelectionListApprover} from '@components/ApproverSelectionList';
 import ApproverSelectionList from '@components/ApproverSelectionList';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
@@ -49,7 +49,7 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
     const isCreateAction = approvalWorkflow?.action === CONST.APPROVAL_WORKFLOW.ACTION.CREATE;
 
     // Build a map of member emails to their existing workflow's approver email (for non-default workflows only)
-    const membersInExistingWorkflows = useMemo(() => {
+    const membersInExistingWorkflows = (() => {
         const employees = policy?.employeeList ?? {};
         const defaultApprover = getDefaultApprover(policy);
         const map = new Map<string, string>();
@@ -64,7 +64,7 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
             }
         }
         return map;
-    }, [policy]);
+    })();
 
     useEffect(() => {
         if (!approvalWorkflow?.members) {
