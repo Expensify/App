@@ -1,7 +1,7 @@
 ---
 title: Expense and Report Actions
 description: Learn how actions such as Approve, Pay, Export, and Hold behave in Expensify based on member roles and report status.
-keywords: [New Expensify, report actions, approver actions, submitter actions]
+keywords: [New Expensify, report actions, approver actions, submitter actions, invite member to report, add member to expense report]
 ---
 
 
@@ -52,6 +52,7 @@ Report actions guide the submitter, approver, and payer regarding the report's s
 | **Print** | Any report state | All roles | Opens the report in a printable format and triggers the browser's print dialog |
 | **Submit** | For draft reports | Submitter, Admin (on behalf of submitter) | Kicks off report approval workflow |
 | **Approve** | For outstanding reports | Admin | Skips current approver  |
+| **Invite member** | On expense reports, via report header > **Members** | All roles | Adds a new member to the expense report so they can view and follow updates |
 | **View details** | Any report | All roles | Opens details view with options to share, pin, view members |
 | **Cancel payment** | After payment is initiated, but before the payment has been processed, or always for a manual payment | Payer | Cancels pending payment |
 
@@ -76,6 +77,10 @@ The process works just like manual exports for automatic export issues, so you c
 The **Cancel payment** option is only available for in-app payments and only before Expensify starts processing the withdrawal. This is usually between 12 PM and 3 PM Pacific Time each day.
 
 This option won't be available if the payment was made manually outside of Expensify. In that case, use **Unapprove** instead.
+
+## How do I invite a member to an expense report?
+
+Open the expense report, tap the report header, select **Members**, and then tap **Invite**. Search for the person by name, email, or phone number and select them to add them to the report.
 
 ## Why can’t I see “Bypass approvers”?
 
