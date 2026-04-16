@@ -19,7 +19,7 @@ const BACKEND_MESSAGE = {
 const REASON = {
     SERVER_ERRORS: {
         /** Unrecognized 5xx response from the backend. */
-        UNHANDLED: 'Unrecognized server error',
+        UNRECOGNIZED: 'Unrecognized server error',
     },
     CLIENT_ERRORS: {
         REGISTRATION_REQUIRED: 'Registration required',
@@ -33,7 +33,7 @@ const REASON = {
         ALREADY_REVIEWED: 'Transaction already reviewed',
         BAD_REQUEST: 'Bad request',
         /** Unrecognized 4xx response from the backend with no specific handler. */
-        UNHANDLED: 'Unrecognized client error',
+        UNRECOGNIZED: 'Unrecognized client error',
     },
     LOCAL_ERRORS: {
         SIGNATURE_MISSING: 'Signed challenge is missing from authentication result',
@@ -84,7 +84,7 @@ const HTTP_STATUS = {
  * Values are the internal REASON constants returned to the caller.
  *
  * Only errors with explicit custom handling are listed. All other 4xx/5xx responses
- * fall through to REASON.CLIENT_ERRORS.UNHANDLED or REASON.SERVER_ERRORS.UNHANDLED.
+ * fall through to REASON.CLIENT_ERRORS.UNRECOGNIZED or REASON.SERVER_ERRORS.UNRECOGNIZED.
  */
 const API_RESPONSE_MAP = {
     REQUEST_AUTHENTICATION_CHALLENGE: {
@@ -178,8 +178,8 @@ const ROUTINE_FAILURES = new Set<ReasonValue>([
 const ANOMALOUS_FAILURES = new Set<ReasonValue>([
     REASON.CLIENT_ERRORS.REGISTRATION_REQUIRED,
     REASON.CLIENT_ERRORS.BAD_REQUEST,
-    REASON.CLIENT_ERRORS.UNHANDLED,
-    REASON.SERVER_ERRORS.UNHANDLED,
+    REASON.CLIENT_ERRORS.UNRECOGNIZED,
+    REASON.SERVER_ERRORS.UNRECOGNIZED,
     REASON.LOCAL_ERRORS.UNHANDLED_API_RESPONSE,
     REASON.LOCAL_ERRORS.UNHANDLED_EXCEPTION,
     REASON.LOCAL_ERRORS.SIGNATURE_MISSING,

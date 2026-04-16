@@ -25,10 +25,10 @@ const httpStatusCategoryIsDefined = (source: ParseHTTPSource, category: HttpStat
 
 const getCategoryFallbackReason = (httpStatusCategory: HttpStatusCategory): MultifactorAuthenticationReason | undefined => {
     if (httpStatusCategory === VALUES.HTTP_STATUS.CLIENT_ERROR) {
-        return VALUES.REASON.CLIENT_ERRORS.UNHANDLED;
+        return VALUES.REASON.CLIENT_ERRORS.UNRECOGNIZED;
     }
     if (httpStatusCategory === VALUES.HTTP_STATUS.SERVER_ERROR) {
-        return VALUES.REASON.SERVER_ERRORS.UNHANDLED;
+        return VALUES.REASON.SERVER_ERRORS.UNRECOGNIZED;
     }
     if (httpStatusCategory === VALUES.HTTP_STATUS.SUCCESS) {
         return undefined;

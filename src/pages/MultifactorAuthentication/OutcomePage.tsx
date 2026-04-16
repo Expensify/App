@@ -5,7 +5,9 @@ import type {ErrorState} from '@components/MultifactorAuthentication/Context/Sta
 import CONST from '@src/CONST';
 
 function shouldShowServerFailureScreen(error: ErrorState): boolean {
-    return error.reason === CONST.MULTIFACTOR_AUTHENTICATION.REASON.SERVER_ERRORS.UNHANDLED || error.reason === CONST.MULTIFACTOR_AUTHENTICATION.REASON.LOCAL_ERRORS.UNHANDLED_API_RESPONSE;
+    return (
+        error.reason === CONST.MULTIFACTOR_AUTHENTICATION.REASON.SERVER_ERRORS.UNRECOGNIZED || error.reason === CONST.MULTIFACTOR_AUTHENTICATION.REASON.LOCAL_ERRORS.UNHANDLED_API_RESPONSE
+    );
 }
 
 function MultifactorAuthenticationOutcomePage() {

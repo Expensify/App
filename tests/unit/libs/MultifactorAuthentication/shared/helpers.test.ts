@@ -58,7 +58,7 @@ describe('MultifactorAuthentication shared helpers', () => {
             const result = parseHttpRequest(403, responseMap, 'Some unrecognized error');
 
             expect(result.httpStatusCode).toBe(403);
-            expect(result.reason).toBe(VALUES.REASON.CLIENT_ERRORS.UNHANDLED);
+            expect(result.reason).toBe(VALUES.REASON.CLIENT_ERRORS.UNRECOGNIZED);
         });
 
         it('should fall back to SERVER_ERROR for a 5xx response with no matching message', () => {
@@ -66,7 +66,7 @@ describe('MultifactorAuthentication shared helpers', () => {
             const result = parseHttpRequest(503, responseMap, 'Service unavailable');
 
             expect(result.httpStatusCode).toBe(503);
-            expect(result.reason).toBe(VALUES.REASON.SERVER_ERRORS.UNHANDLED);
+            expect(result.reason).toBe(VALUES.REASON.SERVER_ERRORS.UNRECOGNIZED);
         });
 
         it('should return the string reason directly when SUCCESS maps to a string (DENY_TRANSACTION)', () => {
@@ -82,7 +82,7 @@ describe('MultifactorAuthentication shared helpers', () => {
             const result = parseHttpRequest(400, responseMap, 'Some error');
 
             expect(result.httpStatusCode).toBe(400);
-            expect(result.reason).toBe(VALUES.REASON.CLIENT_ERRORS.UNHANDLED);
+            expect(result.reason).toBe(VALUES.REASON.CLIENT_ERRORS.UNRECOGNIZED);
         });
 
         it('should match backend message via endsWith when response has a prefix', () => {
