@@ -526,6 +526,20 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.SETTINGS.SUBSCRIPTION.SUBSCRIPTION_DOWNGRADE_BLOCKED]: {
                             path: ROUTES.SETTINGS_SUBSCRIPTION_DOWNGRADE_BLOCKED.route,
                         },
+                        [SCREENS.SETTINGS.SHARE_CODE]: {
+                            path: ROUTES.SETTINGS_SHARE_CODE,
+                        },
+                        [SCREENS.SETTINGS.EXIT_SURVEY.REASON]: {
+                            path: ROUTES.SETTINGS_EXIT_SURVEY_REASON,
+                        },
+                        [SCREENS.SETTINGS.EXIT_SURVEY.CONFIRM]: {
+                            path: ROUTES.SETTINGS_EXIT_SURVEY_CONFIRM.route,
+                        },
+                        [SCREENS.SETTINGS.DYNAMIC_KEYBOARD_SHORTCUTS]: DYNAMIC_ROUTES.KEYBOARD_SHORTCUTS.path,
+                    },
+                },
+                [SCREENS.RIGHT_MODAL.WORKSPACE]: {
+                    screens: {
                         [SCREENS.WORKSPACE.CURRENCY]: {
                             path: ROUTES.WORKSPACE_OVERVIEW_CURRENCY.route,
                         },
@@ -1187,17 +1201,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             exact: true,
                         },
                         [SCREENS.REIMBURSEMENT_ACCOUNT_ENTER_SIGNER_INFO]: ROUTES.BANK_ACCOUNT_ENTER_SIGNER_INFO.route,
-                        [SCREENS.SETTINGS.DYNAMIC_KEYBOARD_SHORTCUTS]: DYNAMIC_ROUTES.KEYBOARD_SHORTCUTS.path,
                         [SCREENS.WORKSPACE.NAME]: ROUTES.WORKSPACE_OVERVIEW_NAME.route,
-                        [SCREENS.SETTINGS.SHARE_CODE]: {
-                            path: ROUTES.SETTINGS_SHARE_CODE,
-                        },
-                        [SCREENS.SETTINGS.EXIT_SURVEY.REASON]: {
-                            path: ROUTES.SETTINGS_EXIT_SURVEY_REASON,
-                        },
-                        [SCREENS.SETTINGS.EXIT_SURVEY.CONFIRM]: {
-                            path: ROUTES.SETTINGS_EXIT_SURVEY_CONFIRM.route,
-                        },
                         [SCREENS.WORKSPACE.TAX_CREATE]: {
                             path: ROUTES.WORKSPACE_TAX_CREATE.route,
                         },

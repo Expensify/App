@@ -238,6 +238,10 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                                     component={ModalStackNavigators.SettingsModalStackNavigator}
                                 />
                                 <Stack.Screen
+                                    name={SCREENS.RIGHT_MODAL.WORKSPACE}
+                                    component={ModalStackNavigators.WorkspaceModalStackNavigator}
+                                />
+                                <Stack.Screen
                                     name={SCREENS.RIGHT_MODAL.TWO_FACTOR_AUTH}
                                     component={ModalStackNavigators.TwoFactorAuthenticatorStackNavigator}
                                     listeners={{
