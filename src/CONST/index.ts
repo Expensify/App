@@ -7708,8 +7708,6 @@ const CONST = {
                     this.TABLE_COLUMNS.MERCHANT,
                     this.TABLE_COLUMNS.FROM,
                     this.TABLE_COLUMNS.CATEGORY,
-                    this.TABLE_COLUMNS.ATTENDEES,
-                    this.TABLE_COLUMNS.TOTAL_PER_ATTENDEE,
                     this.TABLE_COLUMNS.TAG,
                     this.TABLE_COLUMNS.TOTAL_AMOUNT,
                 ],
