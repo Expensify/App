@@ -85,7 +85,7 @@ function useOnboardingFlowRouter() {
             // Skip onboarding for migrated users or users who were invited/have workspace policies
             const isMigratedUser = hasBeenAddedToNudgeMigration ?? false;
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-            const isInvitedOrGroupMember = !!(hasNonPersonalPolicy || wasInvitedToNewDot);
+            const isInvitedOrGroupMember = (!CONFIG.IS_HYBRID_APP && (hasNonPersonalPolicy || wasInvitedToNewDot)) ?? false;
             if (isMigratedUser || isInvitedOrGroupMember) {
                 return;
             }
