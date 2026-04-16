@@ -95,7 +95,7 @@ const ONYX_KEY_EXPORT_RULES: Record<string, ExportRule> = {
     },
 };
 
-const onyxKeysToRemove = new Set<ValueOf<typeof ONYXKEYS> | string>([
+const onyxKeysToRemove = new Set<string>([
     ONYXKEYS.NVP_PRIVATE_PUSH_NOTIFICATION_ID,
     ONYXKEYS.NVP_PRIVATE_STRIPE_CUSTOMER_ID,
     ONYXKEYS.NVP_PRIVATE_BILLING_DISPUTE_PENDING,
@@ -361,7 +361,7 @@ const removePrivateOnyxKeys = (onyxState: OnyxState): OnyxState => {
     const newState: OnyxState = {};
 
     for (const key of Object.keys(onyxState)) {
-        if (onyxKeysToRemove.has(key as ValueOf<typeof ONYXKEYS>)) {
+        if (onyxKeysToRemove.has(key)) {
             continue;
         }
         newState[key] = onyxState[key];
