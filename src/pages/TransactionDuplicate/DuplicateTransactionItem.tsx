@@ -55,7 +55,7 @@ function DuplicateTransactionItem({transaction, index, onPreviewPressed}: Duplic
 
     const {editingMessage, editingReportAction} = useReportActionActiveEdit();
 
-    const draftMessage = editingReportAction?.reportActionID === action?.reportActionID ? (editingMessage ?? undefined) : undefined;
+    const draftMessage = editingReportAction && action && editingReportAction.reportActionID === action.reportActionID ? (editingMessage ?? undefined) : undefined;
 
     if (!action || !report) {
         return null;
