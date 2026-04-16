@@ -90,9 +90,7 @@ function SearchSavePage() {
     const {currentSearchQueryJSON} = useSearchStateContext();
 
     const onSaveSearch = () => {
-        const savedSearchKeys = Object.keys(savedSearches ?? {});
-        if (!currentSearchQueryJSON || (savedSearches && savedSearchKeys.includes(String(currentSearchQueryJSON.hash)))) {
-            // If the search is already saved, we only display the results as we don't need to save it.
+        if (!currentSearchQueryJSON) {
             Navigation.goBack();
             return;
         }
@@ -102,6 +100,7 @@ function SearchSavePage() {
         } else {
             saveSearch({queryJSON: currentSearchQueryJSON});
         }
+
         Navigation.goBack();
     };
 
