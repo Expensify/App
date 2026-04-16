@@ -49,7 +49,7 @@ function DomainGroupDetailsPage({route}: DomainGroupDetailsPageProps) {
                         pendingAction={namePendingAction}
                         errors={nameErrors}
                         onClose={() => clearDomainSecurityGroupSettingError(domainAccountID, groupID, 'nameErrors')}
-                        errorRowStyles={[styles.mh5, styles.mt3]}
+                        errorRowStyles={[styles.mh5]}
                     >
                         <MenuItemWithTopDescription
                             description={translate('common.name')}
