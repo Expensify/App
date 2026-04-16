@@ -1054,6 +1054,9 @@ function changeTransactionsReport({
 
         const {comment} = isUnreported ? recalculateUnreportedTransactionDetails() : {};
 
+        const shouldCopyOriginalAmount = transaction.originalAmount !== undefined && transaction.originalAmount !== transaction.amount;
+        const shouldCopyOriginalCurrency = transaction.originalCurrency !== undefined && transaction.originalCurrency !== transaction.currency;
+
         // 1. Optimistically update the transaction with full data and changed fields.
         // Spreading the full transaction ensures the TRANSACTION collection has complete data
         // (e.g. amount) even when the existing entry was incomplete from search results.
@@ -1064,6 +1067,8 @@ function changeTransactionsReport({
                 ...transaction,
                 reportID,
                 comment,
+                originalAmount: shouldCopyOriginalAmount ? transaction.originalAmount : null,
+                originalCurrency: shouldCopyOriginalCurrency ? transaction.originalCurrency : null,
                 ...(shouldClearAmount && {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
                 ...(shouldClearAmount && {convertedAmount: null}),
                 ...(oldIOUAction ? {linkedTrackedExpenseReportAction: newIOUAction} : {}),
