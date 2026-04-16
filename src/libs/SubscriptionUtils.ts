@@ -459,7 +459,7 @@ function shouldRestrictUserBillableActions(
     userBillingGracePeriodEnds: OnyxCollection<BillingGraceEndPeriod>,
     amountOwed: OnyxEntry<number>,
     policy: OnyxEntry<Policy> = deprecatedAllPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`],
-    currentUserAccountID?: number,
+    currentUserAccountID: number = deprecatedCurrentUserAccountID,
 ): boolean {
     const currentDate = new Date();
 
@@ -482,7 +482,7 @@ function shouldRestrictUserBillableActions(
     // If it reached here it means that the user is actually the workspace's owner.
     // We should restrict the workspace's owner actions if it's past its grace period end date and it's owing some amount.
     if (
-        isPolicyOwner(policy, currentUserAccountID ?? deprecatedCurrentUserAccountID) &&
+        isPolicyOwner(policy, currentUserAccountID) &&
         ownerBillingGracePeriodEnd &&
         amountOwed !== undefined &&
         amountOwed > 0 &&
