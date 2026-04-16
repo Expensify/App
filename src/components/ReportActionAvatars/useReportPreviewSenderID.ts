@@ -8,7 +8,6 @@ import {getAllNonDeletedTransactions} from '@libs/MoneyRequestReportUtils';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import {getIOUActionForTransactionID, getOriginalMessage, isDeletedParentAction, isMoneyRequestAction, isSentMoneyReportAction} from '@libs/ReportActionsUtils';
 import {isDM, isIOUReport} from '@libs/ReportUtils';
-import {isScanRequest} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {OriginalMessageIOU, Policy, Report, ReportAction, ReportActions, Transaction} from '@src/types/onyx';
@@ -44,12 +43,10 @@ function getTransactionDirectionSign(transaction: Transaction): number | undefin
         return Math.sign(transaction.amount);
     }
 
-    if (isScanRequest(transaction)) {
-        const modifiedAmount = Number(transaction.modifiedAmount);
+    const modifiedAmount = Number(transaction.modifiedAmount);
 
-        if (Number.isFinite(modifiedAmount) && modifiedAmount !== 0) {
-            return Math.sign(modifiedAmount);
-        }
+    if (Number.isFinite(modifiedAmount) && modifiedAmount !== 0) {
+        return Math.sign(modifiedAmount);
     }
 
     return undefined;
