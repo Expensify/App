@@ -1043,6 +1043,9 @@ function isPolicyFeatureEnabled(policy: OnyxEntry<Policy>, featureName: PolicyFe
     if (featureName === CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED) {
         return policy?.[featureName] ? !!policy?.[featureName] : hasAccountingFeatureConnection(policy);
     }
+    if (featureName === CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED) {
+        return policy?.isHREnabled === true || !!policy?.connections?.gusto;
+    }
     if (featureName === CONST.POLICY.MORE_FEATURES.ARE_RECEIPT_PARTNERS_ENABLED) {
         return policy?.receiptPartners?.enabled ?? false;
     }
@@ -1053,7 +1056,34 @@ function isPolicyFeatureEnabled(policy: OnyxEntry<Policy>, featureName: PolicyFe
         return isAttendeeTrackingEnabled(policy);
     }
 
-    return !!policy?.[featureName];
+    switch (featureName) {
+        case CONST.POLICY.MORE_FEATURES.ARE_CATEGORIES_ENABLED:
+            return !!policy?.areCategoriesEnabled;
+        case CONST.POLICY.MORE_FEATURES.ARE_TAGS_ENABLED:
+            return !!policy?.areTagsEnabled;
+        case CONST.POLICY.MORE_FEATURES.ARE_DISTANCE_RATES_ENABLED:
+            return !!policy?.areDistanceRatesEnabled;
+        case CONST.POLICY.MORE_FEATURES.ARE_WORKFLOWS_ENABLED:
+            return !!policy?.areWorkflowsEnabled;
+        case CONST.POLICY.MORE_FEATURES.ARE_REPORT_FIELDS_ENABLED:
+            return !!policy?.areReportFieldsEnabled;
+        case CONST.POLICY.MORE_FEATURES.ARE_COMPANY_CARDS_ENABLED:
+            return !!policy?.areCompanyCardsEnabled;
+        case CONST.POLICY.MORE_FEATURES.ARE_EXPENSIFY_CARDS_ENABLED:
+            return !!policy?.areExpensifyCardsEnabled;
+        case CONST.POLICY.MORE_FEATURES.ARE_INVOICES_ENABLED:
+            return !!policy?.areInvoicesEnabled;
+        case CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED:
+            return !!policy?.areRulesEnabled;
+        case CONST.POLICY.MORE_FEATURES.ARE_PER_DIEM_RATES_ENABLED:
+            return !!policy?.arePerDiemRatesEnabled;
+        case CONST.POLICY.MORE_FEATURES.IS_TRAVEL_ENABLED:
+            return !!policy?.isTravelEnabled;
+        case CONST.POLICY.MORE_FEATURES.REQUIRE_COMPANY_CARDS_ENABLED:
+            return !!policy?.requireCompanyCardsEnabled;
+        default:
+            return false;
+    }
 }
 
 function getApprovalWorkflow(policy: OnyxEntry<Policy>): ValueOf<typeof CONST.POLICY.APPROVAL_MODE> {
