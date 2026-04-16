@@ -84,6 +84,7 @@ function MoneyRequestReportNavigation({reportID, shouldDisplayNarrowVersion}: Mo
                 shouldCalculateTotals: false,
                 searchKey: lastSearchQuery.searchKey,
                 isLoading: isSearchLoading,
+                shouldUpdateLastSearchParams: true,
             });
         }
 
