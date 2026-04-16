@@ -1290,6 +1290,9 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.TRAVEL_SETTINGS_FREQUENCY]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.TRAVEL_SETTINGS_MONTHLY_LIMIT]: {
+        policyID: string;
+    };
     [SCREENS.WORKSPACE.TRAVEL_EXPORT]: {
         policyID: string;
     };
