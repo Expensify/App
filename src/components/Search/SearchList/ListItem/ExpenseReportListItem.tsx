@@ -279,6 +279,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
             shouldShowRightCaret={false}
             isDisabled={isPendingDelete}
             shouldDisableHoverStyle={isPendingDelete}
+            shouldShowSelectionButton={false}
         >
             {(hovered) => (
                 <View style={[styles.flex1]}>
