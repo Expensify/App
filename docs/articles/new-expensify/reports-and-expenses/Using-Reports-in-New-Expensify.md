@@ -141,7 +141,7 @@ Each report type has specific filters and search tools for finding the informati
 - Search by merchant, category, or tag
 - Helpful for tracking unsubmitted or reimbursed expenses
 
-## Reports (expense reports)
+## Reports
 
 - Filter by status: Draft, Outstanding, Approved, Paid, or Done
 - Search by submitter or workspace
