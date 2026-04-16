@@ -1,6 +1,13 @@
 import type {ReactNode, RefObject} from 'react';
-import React, {createContext, useContext, useRef, useState} from 'react';
+import React, {createContext, useContext, useEffect, useRef, useState} from 'react';
 import type {ContextMenuAnchor} from './ReportActionContextMenu';
+
+/**
+ * Grace period between a hide being requested (e.g. row mouseleave) and the menu actually hiding.
+ * Gives the menu's own Hoverable a window to cancel the hide when the cursor lands on it, enabling
+ * seamless row → menu hover transitions without the menu flickering off.
+ */
+const HIDE_GRACE_PERIOD_MS = 80;
 
 type RowMeasurements = {
     top: number;
@@ -32,7 +39,12 @@ type MiniContextMenuActions = {
     /** Display the mini context menu with the given parameters. */
     showMiniContextMenu: (params: ShowMiniContextMenuParams) => void;
 
-    /** Hide the mini context menu immediately. No-op while `keepOpen` is active; the hide intent is deferred until `release`. */
+    /**
+     * Schedule hiding the mini context menu after a short grace period. The hide is cancellable
+     * by a subsequent `showMiniContextMenu` or `keepOpen` call — this is what allows the cursor
+     * to transition from the hovered row onto the menu itself without the menu flickering away.
+     * While `keepOpen` is active the hide intent is deferred until `release` is called.
+     */
     hideMiniContextMenu: () => void;
 
     /**
@@ -68,41 +80,48 @@ type MiniContextMenuProviderProps = {
 
 function MiniContextMenuProvider({children}: MiniContextMenuProviderProps) {
     const [state, setState] = useState<MiniContextMenuState | null>(null);
+    // Explicit lock for sub-interactions that must keep the menu pinned (overflow popover,
+    // emoji picker, right-click popover). Unrelated to the grace-period hide timer below.
     const shouldKeepOpenRef = useRef(false);
+    // Set when a hide was requested while locked; drained when `release()` is called.
     const pendingHideRef = useRef(false);
+    const hideTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const onMenuHideRef = useRef<(() => void) | null>(null);
     const activeReportActionIDRef = useRef<string | undefined>(undefined);
     const menuContainerRef = useRef<HTMLElement | null>(null);
 
     const [actions] = useState<MiniContextMenuActions>(() => {
-        const isGuarded = () => shouldKeepOpenRef.current;
-
-        // Deferred to a microtask so that all event handlers in the current
-        // task (e.g. both mouseleave on the row AND mouseenter on the menu)
-        // finish and update refs before we decide whether to actually hide.
-        const performHide = () => {
-            queueMicrotask(() => {
-                if (isGuarded()) {
-                    pendingHideRef.current = true;
-                    return;
-                }
-                setState((prev) => (prev ? {...prev, isVisible: false} : null));
-                onMenuHideRef.current?.();
-                onMenuHideRef.current = null;
-                activeReportActionIDRef.current = undefined;
-            });
-        };
-
-        const drainPendingHide = () => {
-            if (!pendingHideRef.current || isGuarded()) {
+        const cancelScheduledHide = () => {
+            if (!hideTimeoutRef.current) {
                 return;
             }
-            pendingHideRef.current = false;
-            performHide();
+            clearTimeout(hideTimeoutRef.current);
+            hideTimeoutRef.current = null;
+        };
+
+        const performHide = () => {
+            hideTimeoutRef.current = null;
+            setState((prev) => (prev ? {...prev, isVisible: false} : null));
+            onMenuHideRef.current?.();
+            onMenuHideRef.current = null;
+            activeReportActionIDRef.current = undefined;
+        };
+
+        const scheduleHide = () => {
+            if (shouldKeepOpenRef.current) {
+                pendingHideRef.current = true;
+                return;
+            }
+            if (hideTimeoutRef.current) {
+                return;
+            }
+            hideTimeoutRef.current = setTimeout(performHide, HIDE_GRACE_PERIOD_MS);
         };
 
         return {
             showMiniContextMenu: (params: ShowMiniContextMenuParams) => {
+                cancelScheduledHide();
+                pendingHideRef.current = false;
                 const isSameRow = params.reportActionID === activeReportActionIDRef.current;
                 if (!isSameRow) {
                     onMenuHideRef.current?.();
@@ -110,37 +129,46 @@ function MiniContextMenuProvider({children}: MiniContextMenuProviderProps) {
                 activeReportActionIDRef.current = params.reportActionID;
                 const {onMenuHide, ...stateParams} = params;
                 onMenuHideRef.current = onMenuHide ?? null;
-                pendingHideRef.current = false;
-                shouldKeepOpenRef.current = true;
                 setState({...stateParams, isVisible: true});
             },
             hideMiniContextMenu: () => {
-                if (isGuarded()) {
-                    pendingHideRef.current = true;
-                    return;
-                }
-                performHide();
+                scheduleHide();
             },
             hideMiniContextMenuWithoutNotification: () => {
+                cancelScheduledHide();
                 shouldKeepOpenRef.current = false;
                 pendingHideRef.current = false;
-                queueMicrotask(() => {
-                    setState((prev) => (prev ? {...prev, isVisible: false} : null));
-                    onMenuHideRef.current = null;
-                    activeReportActionIDRef.current = undefined;
-                });
+                setState((prev) => (prev ? {...prev, isVisible: false} : null));
+                onMenuHideRef.current = null;
+                activeReportActionIDRef.current = undefined;
             },
             keepOpen: () => {
                 shouldKeepOpenRef.current = true;
+                cancelScheduledHide();
                 pendingHideRef.current = false;
             },
             release: () => {
                 shouldKeepOpenRef.current = false;
-                drainPendingHide();
+                if (!pendingHideRef.current) {
+                    return;
+                }
+                pendingHideRef.current = false;
+                performHide();
             },
             menuContainerRef,
         };
     });
+
+    useEffect(
+        () => () => {
+            if (!hideTimeoutRef.current) {
+                return;
+            }
+            clearTimeout(hideTimeoutRef.current);
+            hideTimeoutRef.current = null;
+        },
+        [],
+    );
 
     return (
         <MiniContextMenuActionsContext.Provider value={actions}>
