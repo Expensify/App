@@ -288,6 +288,8 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
                     <FormHelpMessageRowWithRetryButton
                         message={translate('workspace.moreFeatures.travel.travelInvoicing.centralInvoicingSection.subsections.provisioningError')}
                         onRetry={() => retryTravelCardsProvisioning(policyID, workspaceAccountID)}
+                        danger
+                        shouldAlignButtonToMessage
                     />
                 </View>
             )}
