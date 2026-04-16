@@ -702,7 +702,7 @@ A dynamic route is a URL suffix (e.g. `verify-account`) that can be appended to 
 
 Do not use dynamic routes when:
 - Your use case falls under the [current limitations](#current-limitations-work-in-progress):
-  - You need path parameters in dynamic suffixes (e.g. `a/:reportID`).
+  - You need optional path parameters in dynamic suffixes (e.g. `a/:reportID?`).
 - The screen has a single, fixed entry and a fixed back destination. In this case, use a normal static route instead.
 
 ### Dynamic routes configuration
@@ -712,10 +712,10 @@ Do not use dynamic routes when:
 - `path`: The URL suffix (e.g. `'verify-account'`).
 - `entryScreens`: List of screen names that are allowed to have this suffix appended (access control; see [Entry Screens (Access Control)](#entry-screens-access-control)). Use `['*']` to allow all screens.
 
-`createDynamicRoute(suffix)` — [`createDynamicRoute.ts`](src/libs/Navigation/helpers/createDynamicRoute.ts). Accepts a `DynamicRouteSuffix` (from `DYNAMIC_ROUTES`), appends it to the current active route and returns the full route. Use the following when navigating to a dynamic route:
+`createDynamicRoute(suffix)` — [`createDynamicRoute.ts`](src/libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute.ts). Accepts a `DynamicRouteSuffix` (from `DYNAMIC_ROUTES`), appends it to the current active route and returns the full route. Use the following when navigating to a dynamic route:
 
 ```ts
-import createDynamicRoute from '@libs/Navigation/helpers/createDynamicRoute';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 
@@ -751,9 +751,9 @@ KEYBOARD_SHORTCUTS: {
 
 ### Current limitations (work in progress)
 
-- **Path parameters:** Suffixes must not include path params (e.g. `a/:reportID`). Query parameters are supported - see [Dynamic routes with query parameters](#dynamic-routes-with-query-parameters).
+- **Optional path parameters:** Suffixes must not include optional path params (e.g. `a/:reportID?`). Required path parameters (e.g. `flag/:reportActionID`) and query parameters are supported - see [Dynamic routes with query parameters](#dynamic-routes-with-query-parameters).
 
-If you try to use dynamic routes for this case now, you will either fail to navigate to the page at all or end up on a non-existent page, and the navigation will be broken.
+If you try to use dynamic routes with optional path parameters now, you will either fail to navigate to the page at all or end up on a non-existent page, and the navigation will be broken.
 
 ### Multi-segment dynamic routes
 
@@ -892,9 +892,7 @@ and [`src/pages/settings/Profile/PersonalDetails/DynamicCountrySelectionPage.tsx
 ### How to add a new dynamic route
 
 1. Add to `DYNAMIC_ROUTES` in [`src/ROUTES.ts`](../src/ROUTES.ts): define `path` and
-`entryScreens` (screen names that may open this route).
-If the suffix needs query parameters, also define `getRoute`
-and `queryParams` - see
+`entryScreens` (screen names that may open this route). If the suffix needs path parameters, define `path` with `:param` placeholders and a `getRoute` function. If the suffix needs query parameters, also define `getRoute` and `queryParams` - see
 [Dynamic routes with query parameters](#dynamic-routes-with-query-parameters).
 2. Add a screen constant in [`src/SCREENS.ts`](../src/SCREENS.ts).
 The name must start with the `DYNAMIC_` prefix

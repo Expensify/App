@@ -23,6 +23,7 @@ import {openExternalLink} from '@libs/actions/Link';
 import {addMembersToWorkspace, clearWorkspaceInviteApproverDraft, clearWorkspaceInviteRoleDraft} from '@libs/actions/Policy/Member';
 import {setWorkspaceInviteMessageDraft} from '@libs/actions/Policy/Policy';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
 import {getDisplayNameOrDefault, getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
@@ -32,7 +33,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import AccessOrNotFoundWrapper from '@src/pages/workspace/AccessOrNotFoundWrapper';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {Route as Routes} from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/WorkspaceInviteMessageForm';
 import type {PersonalDetails} from '@src/types/onyx';
@@ -166,7 +167,7 @@ function WorkspaceInviteMessageComponent({
         }
 
         if ((backTo as string)?.endsWith('members')) {
-            Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.dismissModal());
+            Navigation.dismissModal();
             return;
         }
 
@@ -175,8 +176,8 @@ function WorkspaceInviteMessageComponent({
             return;
         }
 
-        Navigation.setNavigationActionToMicrotaskQueue(() => {
-            Navigation.dismissModal({callback: () => Navigation.navigate(ROUTES.WORKSPACE_MEMBERS.getRoute(policyID))});
+        Navigation.dismissModal({
+            afterTransition: () => Navigation.navigate(ROUTES.WORKSPACE_MEMBERS.getRoute(policyID)),
         });
     };
 
@@ -275,7 +276,7 @@ function WorkspaceInviteMessageComponent({
                                 description={translate('common.role')}
                                 shouldShowRightIcon
                                 onPress={() => {
-                                    Navigation.navigate(ROUTES.WORKSPACE_INVITE_MESSAGE_ROLE.getRoute(policyID, Navigation.getActiveRoute()));
+                                    Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_INVITE_MESSAGE_ROLE.path));
                                 }}
                             />
                             {!!shouldShowApproverRow && (

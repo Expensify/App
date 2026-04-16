@@ -32,7 +32,7 @@ function BaseSearchList({
     flattenedItemsLength,
     newTransactions,
     selectedTransactions,
-    customCardNames,
+    nonPersonalAndWorkspaceCards,
 }: BaseSearchListProps) {
     const hasKeyBeenPressed = useRef(false);
     const isFocused = useIsFocused();
@@ -106,8 +106,8 @@ function BaseSearchList({
     }, [setHasKeyBeenPressed]);
 
     const extraData = useMemo(
-        () => [focusedIndex, columns, newTransactions, selectedTransactions, customCardNames],
-        [focusedIndex, columns, newTransactions, selectedTransactions, customCardNames],
+        () => [focusedIndex, columns, newTransactions, selectedTransactions, nonPersonalAndWorkspaceCards],
+        [focusedIndex, columns, newTransactions, selectedTransactions, nonPersonalAndWorkspaceCards],
     );
 
     return (
@@ -116,7 +116,7 @@ function BaseSearchList({
             renderItem={renderItemWithKeyboardFocus}
             keyExtractor={keyExtractor}
             onScroll={onScroll}
-            showsVerticalScrollIndicator
+            showsVerticalScrollIndicator={false}
             ref={ref}
             extraData={extraData}
             onEndReached={onEndReached}

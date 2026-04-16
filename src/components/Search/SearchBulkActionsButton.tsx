@@ -24,6 +24,7 @@ import shouldPopoverUseScrollView from '@libs/shouldPopoverUseScrollView';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import BulkDuplicateHandler from './BulkDuplicateHandler';
 import {useSearchActionsContext, useSearchStateContext} from './SearchContext';
 import type {BulkPaySelectionData, SearchQueryJSON} from './types';
 
@@ -44,11 +45,11 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
     const {showLockedAccountModal} = useLockedAccountActions();
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
-    const [userBillingGraceEndPeriods] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
+    const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isUserValidatedSelector});
     const activeAdminPolicies = useSortedActiveAdminPolicies();
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
-    const [ownerBillingGraceEndPeriod] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
+    const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
 
     const {
         headerButtonsOptions,
@@ -66,8 +67,12 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
         handleDownloadErrorModalClose,
         dismissModalAndUpdateUseHold,
         dismissRejectModalBasedOnAction,
+        isDuplicateOptionVisible,
+        setDuplicateHandler,
+        allTransactions,
+        allReports,
+        searchData,
     } = useSearchBulkActions({queryJSON});
-
     const currentSelectedPolicyID = selectedPolicyIDs?.at(0);
     const currentSelectedReportID = selectedTransactionReportIDs?.at(0) ?? selectedReportIDs?.at(0);
     const currentPolicy = usePolicy(currentSelectedPolicyID);
@@ -79,7 +84,6 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
     const isExpenseReportType = queryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
 
     const popoverUseScrollView = shouldPopoverUseScrollView(headerButtonsOptions);
-
     const selectedItemsCount = useMemo(() => {
         if (!selectedTransactions) {
             return 0;
@@ -101,6 +105,15 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
 
     return (
         <>
+            {isDuplicateOptionVisible && (
+                <BulkDuplicateHandler
+                    selectedTransactionsKeys={selectedTransactionsKeys}
+                    allTransactions={allTransactions}
+                    allReports={allReports}
+                    searchData={searchData}
+                    onHandlerReady={setDuplicateHandler}
+                />
+            )}
             <KYCWall
                 ref={kycWallRef}
                 chatReportID={currentSelectedReportID}
@@ -138,9 +151,9 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
                                         isDelegateAccessRestricted,
                                         showDelegateNoAccessModal,
                                         confirmPayment,
-                                        userBillingGraceEndPeriods,
+                                        userBillingGracePeriodEnds,
                                         amountOwed,
-                                        ownerBillingGraceEndPeriod,
+                                        ownerBillingGracePeriodEnd,
                                         setPendingPaymentAdditionalData: (data) => {
                                             pendingPaymentAdditionalDataRef.current = data;
                                         },
@@ -179,9 +192,9 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
                                         isDelegateAccessRestricted,
                                         showDelegateNoAccessModal,
                                         confirmPayment,
-                                        userBillingGraceEndPeriods,
+                                        userBillingGracePeriodEnds,
                                         amountOwed,
-                                        ownerBillingGraceEndPeriod,
+                                        ownerBillingGracePeriodEnd,
                                         setPendingPaymentAdditionalData: (data) => {
                                             pendingPaymentAdditionalDataRef.current = data;
                                         },

@@ -139,14 +139,24 @@ const Pagination: Middleware = (requestResponse, request) => {
             value: mergedPages,
         });
 
-        // Store the newest action ID from this pagination response
+        // Store cursor IDs scoped to pagination direction so backfill (getOlderActions)
+        // doesn't overwrite the forward cursor used by auto-pagination.
         if (resourceCollectionKey === ONYXKEYS.COLLECTION.REPORT_ACTIONS) {
             const newestFetchedID = newPage.find((id) => id !== CONST.PAGINATION_START_ID && id !== CONST.PAGINATION_END_ID);
-            if (newestFetchedID) {
+            const oldestFetchedID = newPage.findLast((id) => id !== CONST.PAGINATION_START_ID && id !== CONST.PAGINATION_END_ID);
+            const isOlderDirection = type === 'previous';
+            const value: Record<string, string> = {};
+            if (newestFetchedID && !isOlderDirection) {
+                value.newestFetchedReportActionID = newestFetchedID;
+            }
+            if (oldestFetchedID && isOlderDirection) {
+                value.oldestFetchedReportActionID = oldestFetchedID;
+            }
+            if (Object.keys(value).length > 0) {
                 (response.onyxData as AnyOnyxUpdate[]).push({
                     key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${resourceID}`,
                     onyxMethod: Onyx.METHOD.MERGE,
-                    value: {newestFetchedReportActionID: newestFetchedID},
+                    value,
                 });
             }
         }

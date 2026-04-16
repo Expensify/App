@@ -71,7 +71,7 @@ function getLogoForWorkspace(report: OnyxEntry<Report>, policy?: OnyxEntry<Polic
 }
 
 function ShareCodePage({report, policy, backTo}: ShareCodePageProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['Cash', 'Checkmark', 'Copy', 'Download', 'FallbackAvatar'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Cash', 'Checkmark', 'Copy', 'Download', 'FallbackAvatar']);
     const themeStyles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate, formatPhoneNumber} = useLocalize();
