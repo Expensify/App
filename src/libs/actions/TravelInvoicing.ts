@@ -403,12 +403,7 @@ function clearTravelInvoicingErrors(workspaceAccountID: number) {
 function payTravelInvoicingSpend(workspaceAccountID: number, travelSpend: number) {
     const cardSettingsKey = getTravelInvoicingCardSettingsKey(workspaceAccountID);
 
-    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_MANUAL_BILLING | typeof ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS>> = [
-        {
-            onyxMethod: Onyx.METHOD.SET,
-            key: `${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_MANUAL_BILLING}${workspaceAccountID}`,
-            value: true,
-        },
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: cardSettingsKey,
@@ -420,12 +415,7 @@ function payTravelInvoicingSpend(workspaceAccountID: number, travelSpend: number
         },
     ];
 
-    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_MANUAL_BILLING | typeof ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS>> = [
-        {
-            onyxMethod: Onyx.METHOD.SET,
-            key: `${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_MANUAL_BILLING}${workspaceAccountID}`,
-            value: false,
-        },
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: cardSettingsKey,
