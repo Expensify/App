@@ -58,7 +58,7 @@ If your Workspace Admin has created custom export templates, you can select one 
 
 ## Why don't I see certain export templates?
 
-Report-level templates (such as All Data - Report Level Export) only appear when exporting from the Spend page with full reports selected. When exporting individual expenses from the Expenses page, only expense-level templates are available.
+Report-level templates (such as All Data - Report Level Export) only appear when exporting from **Spend > Reports** page with full reports selected. When exporting individual expenses from the Expenses page, only expense-level templates are available.
 
 ## The data looks wrong in Excel. How can I fix it?
 
