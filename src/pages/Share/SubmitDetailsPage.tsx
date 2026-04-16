@@ -1,7 +1,7 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import {validTransactionDraftsSelector} from '@selectors/TransactionDraft';
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
@@ -102,6 +102,10 @@ function SubmitDetailsPage({
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const personalPolicy = usePersonalPolicy();
     const [startLocationPermissionFlow, setStartLocationPermissionFlow] = useState(false);
+    const [selectedParticipantList, setSelectedParticipantList] = useState<Participant[]>([]);
+    const [isConfirming, setIsConfirming] = useState(false);
+    const formHasBeenSubmitted = useRef(false);
+    const [userLocation] = useOnyx(ONYXKEYS.USER_LOCATION);
 
     const [errorTitle, setErrorTitle] = useState<string | undefined>(undefined);
     const [errorMessage, setErrorMessage] = useState<string | undefined>(undefined);
@@ -294,39 +298,54 @@ function SubmitDetailsPage({
     const onSuccess = (participant: Participant, file: File, locationPermissionGranted?: boolean) => {
         const receipt: Receipt = file;
         receipt.state = file && CONST.IOU.RECEIPT_STATE.SCAN_READY;
-        if (locationPermissionGranted) {
-            getCurrentPosition(
-                (successData) => {
-                    finishRequestAndNavigate(participant, receipt, {
-                        lat: successData.coords.latitude,
-                        long: successData.coords.longitude,
-                    });
-                },
-                (errorData) => {
-                    Log.info('[SubmitDetailsPage] getCurrentPosition failed', false, errorData);
-                    finishRequestAndNavigate(participant, receipt);
-                },
-            );
+        if (!locationPermissionGranted) {
+            finishRequestAndNavigate(participant, receipt);
             return;
         }
-        finishRequestAndNavigate(participant, receipt);
+        // Use cached userLocation when available — avoids an extra getCurrentPosition round-trip.
+        if (userLocation) {
+            finishRequestAndNavigate(participant, receipt, {
+                lat: userLocation.latitude,
+                long: userLocation.longitude,
+            });
+            return;
+        }
+        getCurrentPosition(
+            (successData) => {
+                finishRequestAndNavigate(participant, receipt, {
+                    lat: successData.coords.latitude,
+                    long: successData.coords.longitude,
+                });
+            },
+            (errorData) => {
+                Log.info('[SubmitDetailsPage] getCurrentPosition failed', false, errorData);
+                finishRequestAndNavigate(participant, receipt);
+            },
+        );
     };
 
     // Extracted from onConfirm — re-entering onConfirm from the permission modal deadlocked when OS permission was pre-granted.
     const performUpload = (participant: Participant, locationPermissionGranted: boolean) => {
-        if (!currentAttachment) {
+        if (formHasBeenSubmitted.current || !currentAttachment) {
+            setIsConfirming(false);
             return;
         }
+        formHasBeenSubmitted.current = true;
         readFileAsync(
             currentReceiptSource,
             currentReceiptName,
             (file) => onSuccess(participant, file, locationPermissionGranted),
-            () => {},
+            () => {
+                // Allow retry after a file-read failure.
+                formHasBeenSubmitted.current = false;
+                setIsConfirming(false);
+            },
             currentReceiptType,
         );
     };
 
     const onConfirm = (listOfParticipants?: Participant[], gpsRequired?: boolean) => {
+        setIsConfirming(true);
         const shouldStartLocationPermissionFlow =
             gpsRequired &&
             (!lastLocationPermissionPrompt ||
@@ -334,12 +353,14 @@ function SubmitDetailsPage({
                     DateUtils.getDifferenceInDaysFromNow(new Date(lastLocationPermissionPrompt ?? '')) > CONST.IOU.LOCATION_PERMISSION_PROMPT_THRESHOLD_DAYS));
 
         if (shouldStartLocationPermissionFlow) {
+            setSelectedParticipantList(listOfParticipants ?? selectedParticipants);
             setStartLocationPermissionFlow(true);
             return;
         }
 
         const participant = listOfParticipants?.at(0) ?? selectedParticipants.at(0);
         if (!participant) {
+            setIsConfirming(false);
             return;
         }
         performUpload(participant, false);
@@ -362,11 +383,15 @@ function SubmitDetailsPage({
                 />
                 <LocationPermissionModal
                     startPermissionFlow={startLocationPermissionFlow}
-                    resetPermissionFlow={() => setStartLocationPermissionFlow(false)}
+                    resetPermissionFlow={() => {
+                        setStartLocationPermissionFlow(false);
+                        setIsConfirming(false);
+                    }}
                     onGrant={() => {
                         setStartLocationPermissionFlow(false);
-                        const participant = selectedParticipants.at(0);
+                        const participant = selectedParticipantList.at(0) ?? selectedParticipants.at(0);
                         if (!participant) {
+                            setIsConfirming(false);
                             return;
                         }
                         navigateAfterInteraction(() => performUpload(participant, true));
@@ -374,12 +399,14 @@ function SubmitDetailsPage({
                     onDeny={() => {
                         updateLastLocationPermissionPrompt();
                         setStartLocationPermissionFlow(false);
-                        const participant = selectedParticipants.at(0);
+                        const participant = selectedParticipantList.at(0) ?? selectedParticipants.at(0);
                         if (!participant) {
+                            setIsConfirming(false);
                             return;
                         }
                         navigateAfterInteraction(() => performUpload(participant, false));
                     }}
+                    onInitialGetLocationCompleted={() => setIsConfirming(false)}
                 />
                 <View style={[styles.containerWithSpaceBetween, styles.pointerEventsBoxNone]}>
                     <MoneyRequestConfirmationList
@@ -390,6 +417,7 @@ function SubmitDetailsPage({
                         onToggleReimbursable={setReimbursable}
                         isPolicyExpenseChat={isPolicyExpenseChat}
                         policyID={policy?.id}
+                        isConfirming={isConfirming}
                         onConfirm={(updatedParticipants) => onConfirm(updatedParticipants, true)}
                         receiptPath={currentReceiptSource}
                         receiptFilename={currentReceiptName}
