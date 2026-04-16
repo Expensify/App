@@ -449,6 +449,37 @@ describe('OnboardingGuard', () => {
             expect(result.route).toContain('onboarding');
         });
 
+        it('should still redirect when onboarding is in routes but not focused', async () => {
+            // Given a user who needs onboarding, and a state where OnboardingModalNavigator
+            // exists in routes but HOME is focused (index: 0)
+            const stateWithOnboardingNotFocused: NavigationState = {
+                key: 'root',
+                index: 0,
+                routeNames: [SCREENS.HOME, NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR],
+                routes: [
+                    {key: 'home', name: SCREENS.HOME},
+                    {key: 'onboarding-modal', name: NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR},
+                ],
+                stale: false,
+                type: 'stack',
+            };
+
+            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {
+                hasCompletedGuidedSetupFlow: false,
+            });
+            await Onyx.merge(ONYXKEYS.ACCOUNT, {
+                isFromPublicDomain: true,
+            });
+            await waitForBatchedUpdates();
+
+            // When the guard evaluates while onboarding is NOT focused
+            const result = OnboardingGuard.evaluate(stateWithOnboardingNotFocused, mockAction, authenticatedContext) as {type: 'REDIRECT'; route: string};
+
+            // Then the guard should still redirect because the user isn't actively on onboarding
+            expect(result.type).toBe('REDIRECT');
+            expect(result.route).toContain('onboarding');
+        });
+
         it('should still BLOCK RESET to non-onboarding even when on onboarding', async () => {
             // Given a user on onboarding who has not completed it
             await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {

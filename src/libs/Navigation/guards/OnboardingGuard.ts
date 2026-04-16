@@ -198,11 +198,11 @@ const OnboardingGuard: NavigationGuard = {
             return {type: 'ALLOW'};
         }
 
-        // If the OnboardingModalNavigator is already in the navigation state, the user is already
+        // If the OnboardingModalNavigator is the currently focused route, the user is already
         // on the onboarding flow. Redirecting again would produce a redundant state reset that
         // triggers further actions, creating an infinite navigation loop (APP-7FR).
-        const isAlreadyOnOnboarding = state.routes.some((route) => route.name === NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR);
-        if (isAlreadyOnOnboarding) {
+        const isOnboardingFocused = state.routes[state.index]?.name === NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR;
+        if (isOnboardingFocused) {
             return {type: 'ALLOW'};
         }
 
