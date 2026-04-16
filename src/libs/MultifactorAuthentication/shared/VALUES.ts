@@ -19,7 +19,7 @@ const BACKEND_MESSAGE = {
 const REASON = {
     SERVER_ERRORS: {
         /** Unrecognized 5xx response from the backend. */
-        UNHANDLED: 'Server error',
+        UNHANDLED: 'Unrecognized server error',
     },
     CLIENT_ERRORS: {
         REGISTRATION_REQUIRED: 'Registration required',
@@ -33,10 +33,10 @@ const REASON = {
         ALREADY_REVIEWED: 'Transaction already reviewed',
         BAD_REQUEST: 'Bad request',
         /** Unrecognized 4xx response from the backend with no specific handler. */
-        UNHANDLED: 'Client error',
+        UNHANDLED: 'Unrecognized client error',
     },
     LOCAL_ERRORS: {
-        SIGNATURE_MISSING: 'Signature is missing',
+        SIGNATURE_MISSING: 'Signed challenge is missing from authentication result',
         /** The device type is correct for this scenario but no authentication methods are enrolled (e.g. no fingerprint/face/passcode set up in device settings). */
         NO_AUTHENTICATION_METHODS_ENROLLED: 'No authentication methods enrolled',
         /** The scenario does not allow this device's authentication type (e.g. biometrics-only scenario on web, or passkeys-only scenario on mobile). */
@@ -45,7 +45,7 @@ const REASON = {
         REQUESTED_TRANSACTION_UNAVAILABLE: 'Requested transaction is unavailable',
         CANCELED: 'Flow canceled by user',
         /** No HTTP status code present — typically a network failure, JSON parse error, or unhandled exception in an action function. */
-        UNHANDLED_API_RESPONSE: 'Local error',
+        UNHANDLED_API_RESPONSE: 'Missing HTTP status in API response',
         WEBAUTHN: {
             NOT_ALLOWED: 'WebAuthn operation not allowed',
             INVALID_STATE: 'WebAuthn invalid state',
@@ -62,9 +62,9 @@ const REASON = {
             NOT_AVAILABLE: 'Biometric authentication not available',
             LOCKOUT: 'Biometric authentication locked out',
             LOCKOUT_PERMANENT: 'Biometric authentication permanently locked out',
-            KEY_NOT_FOUND: 'Key not found',
-            SIGNATURE_FAILED: 'Signature creation failed',
-            KEY_CREATION_FAILED: 'Key creation failed',
+            KEY_NOT_FOUND: 'HSM cryptographic key not found',
+            SIGNATURE_FAILED: 'HSM signature creation failed',
+            KEY_CREATION_FAILED: 'HSM key creation failed',
             KEY_ACCESS_FAILED: 'Failed to access cryptographic key',
             AUTHENTICATION_FAILED: 'Biometric authentication failed',
             GENERIC: 'An HSM error occurred',
