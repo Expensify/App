@@ -121,6 +121,7 @@ type CustomCardFeedData = OnyxCommon.OnyxValueWithOfflineFeedback<{
 
     /** CSV upload layout settings (present on ccupload feeds) */
     uploadLayoutSettings?: {
+        /** User-defined name for the CSV upload layout */
         layoutName?: string;
         [key: string]: unknown;
     };
