@@ -259,7 +259,7 @@ describe('getReportPreviewSenderID', () => {
             transactions: [
                 makeTransaction(100, 'user@test.com', {
                     comment: {
-                        attendees: [{avatarUrl: "", displayName: 'Login Only User'}],
+                        attendees: [{avatarUrl: '', displayName: 'Login Only User'}],
                     },
                 }),
             ],
