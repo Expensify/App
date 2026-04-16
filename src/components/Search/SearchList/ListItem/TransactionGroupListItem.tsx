@@ -78,6 +78,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
     newTransactionID,
     lastPaymentMethod,
     personalPolicyID,
+    nonPersonalAndWorkspaceCards,
     isFirstItem,
     isLastItem,
     userBillingGracePeriodEnds,
@@ -578,6 +579,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
                                 searchTransactions={searchTransactions}
                                 isInSingleTransactionReport={groupItem.transactions.length === 1}
                                 onLongPress={onExpandedRowLongPress}
+                                nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}
                                 onUndelete={onUndelete}
                             />
                         </AnimatedCollapsible>

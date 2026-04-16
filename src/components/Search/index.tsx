@@ -17,6 +17,7 @@ import useLocalize from '@hooks/useLocalize';
 import useMultipleSnapshots from '@hooks/useMultipleSnapshots';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchHighlightAndScroll from '@hooks/useSearchHighlightAndScroll';
@@ -319,6 +320,7 @@ function Search({
     const [allReportMetadata] = useOnyx(ONYXKEYS.COLLECTION.REPORT_METADATA);
     const [visibleColumns] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {selector: columnsSelector});
     const [customCardNames] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES);
+    const [nonPersonalAndWorkspaceCards] = useOnyx(ONYXKEYS.DERIVED.NON_PERSONAL_AND_WORKSPACE_CARD_LIST);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
 
     const isExpenseReportType = type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
@@ -329,6 +331,8 @@ function Search({
         canEvict: false,
         selector: selectFilteredReportActions,
     });
+
+    const {policyForMovingExpenses} = usePolicyForMovingExpenses();
 
     const [cardFeeds, cardFeedsResult] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER);
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
@@ -530,6 +534,7 @@ function Search({
             allReportMetadata,
             conciergeReportID,
             onyxPersonalDetailsList,
+            policyForMovingExpenses,
         });
         return [filteredData1, filteredData1.length, allLength];
     }, [
@@ -556,6 +561,7 @@ function Search({
         allReportMetadata,
         conciergeReportID,
         onyxPersonalDetailsList,
+        policyForMovingExpenses,
     ]);
 
     // For group-by views, each grouped item has a transactionsQueryJSON with a hash pointing to a separate snapshot
@@ -1681,7 +1687,8 @@ function Search({
                     shouldAnimate={type === CONST.SEARCH.DATA_TYPES.EXPENSE}
                     newTransactions={newTransactions}
                     hasLoadedAllTransactions={hasLoadedAllTransactions}
-                    customCardNames={customCardNames}
+                    policyForMovingExpenses={policyForMovingExpenses}
+                    nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}
                 />
             </Animated.View>
         </SearchScopeProvider>
