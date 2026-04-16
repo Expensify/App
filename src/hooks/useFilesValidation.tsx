@@ -1,5 +1,5 @@
 import {Str} from 'expensify-common';
-import React, {useRef, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {InteractionManager} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import ConfirmModal from '@components/ConfirmModal';
@@ -78,11 +78,17 @@ function useFilesValidation(onFilesValidated: (files: FileObject[], dataTransfer
         });
     };
 
-    const reset = () => {
-        if (loaderTimeoutRef.current) {
+    useEffect(() => {
+        return () => {
+            if (!loaderTimeoutRef.current) {
+                return;
+            }
             clearTimeout(loaderTimeoutRef.current);
             loaderTimeoutRef.current = undefined;
-        }
+        };
+    }, []);
+
+    const reset = () => {
         setIsValidatingFiles(false);
         setIsValidatingReceipts(undefined);
         setIsErrorModalVisible(false);
