@@ -8,6 +8,7 @@ import {loadIllustration} from '@components/Icon/IllustrationLoader';
 import type {IllustrationName} from '@components/Icon/IllustrationLoader';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
+import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import {useMemoizedLazyAsset} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -67,27 +68,29 @@ function OutcomeScreenBase({headerTitle, illustration, iconWidth, iconHeight, ti
                 onBackButtonPress={onClose}
                 shouldShowBackButton
             />
-            <View style={styles.flex1}>
-                <BlockingView
-                    icon={icon}
-                    contentFitImage="fill"
-                    iconWidth={iconWidth}
-                    iconHeight={iconHeight}
-                    title={title}
-                    titleStyles={styles.mb2}
-                    CustomSubtitle={CustomSubtitle}
-                    containerStyle={[styles.ph5, padding]}
-                    testID={OutcomeScreenBase.displayName}
-                />
-            </View>
-            <View style={[styles.flexRow, styles.m5, styles.mt0]}>
-                <Button
-                    large
-                    success
-                    style={styles.flex1}
-                    onPress={onClose}
-                    text={translate('common.buttonConfirm')}
-                />
+            <View style={[styles.flex1, styles.gap2]}>
+                <ScrollView contentContainerStyle={[styles.flexGrow1, styles.justifyContentCenter]}>
+                    <BlockingView
+                        icon={icon}
+                        contentFitImage="fill"
+                        iconWidth={iconWidth}
+                        iconHeight={iconHeight}
+                        title={title}
+                        titleStyles={styles.mb2}
+                        CustomSubtitle={CustomSubtitle}
+                        containerStyle={[styles.ph5, padding]}
+                        testID={OutcomeScreenBase.displayName}
+                    />
+                </ScrollView>
+                <View style={[styles.flexRow, styles.m5, styles.mt0]}>
+                    <Button
+                        large
+                        success
+                        style={styles.flex1}
+                        onPress={onClose}
+                        text={translate('common.buttonConfirm')}
+                    />
+                </View>
             </View>
         </ScreenWrapper>
     );

@@ -100,6 +100,7 @@ function SecondaryOverlay() {
 
 const loadRHPReportScreen = () => require<ReactComponentModule>('../../../../pages/inbox/RHPReportScreen').default;
 const loadSearchMoneyRequestReportPage = () => require<ReactComponentModule>('../../../../pages/Search/SearchMoneyRequestReportPage').default;
+const loadSearchSavePage = () => require<ReactComponentModule>('../../../../pages/Search/SearchSavePage').default;
 
 function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
@@ -113,6 +114,22 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
     const modalStackScreenOptions = useModalStackScreenOptions();
     const styles = useThemeStyles();
     const {sidePanelOffset} = useSidePanelState();
+
+    // When a fullscreen route is pre-inserted under the RHP, disable the slide-out animation
+    // so the dismiss reveals the destination instantly. If the pre-insert is later cleaned up
+    // (user backs out without submitting), restore the default animation for that session.
+    useEffect(() => {
+        const disableSub = DeviceEventEmitter.addListener(CONST.MODAL_EVENTS.DISABLE_RHP_ANIMATION, () => {
+            navigation.setOptions({animation: Animations.NONE});
+        });
+        const restoreSub = DeviceEventEmitter.addListener(CONST.MODAL_EVENTS.RESTORE_RHP_ANIMATION, () => {
+            navigation.setOptions({animation: Animations.SLIDE_FROM_RIGHT});
+        });
+        return () => {
+            disableSub.remove();
+            restoreSub.remove();
+        };
+    }, [navigation]);
 
     // Animation should be disabled when we open the wide rhp from the narrow one.
     // When the wide rhp page is opened as first one, it will be animated with the entire RightModalNavigator.
@@ -192,8 +209,6 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
         }, [syncRHPKeys, clearWideRHPKeysAfterTabChanged]),
     );
 
-    useEffect(() => () => DeviceEventEmitter.emit(CONST.MODAL_EVENTS.CLOSED), []);
-
     return (
         <NarrowPaneContextProvider>
             <MultifactorAuthenticationContextProviders>
@@ -271,6 +286,10 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                                 <Stack.Screen
                                     name={SCREENS.RIGHT_MODAL.REPORT_DESCRIPTION}
                                     component={ModalStackNavigators.ReportDescriptionModalStackNavigator}
+                                />
+                                <Stack.Screen
+                                    name={SCREENS.RIGHT_MODAL.CHRONOS_SCHEDULE_OOO}
+                                    component={ModalStackNavigators.ChronosScheduleOOOModalStackNavigator}
                                 />
                                 <Stack.Screen
                                     name={SCREENS.RIGHT_MODAL.REPORT_VERIFY_ACCOUNT}
@@ -380,6 +399,10 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                                 <Stack.Screen
                                     name={SCREENS.RIGHT_MODAL.RESTRICTED_ACTION}
                                     component={ModalStackNavigators.RestrictedActionModalStackNavigator}
+                                />
+                                <Stack.Screen
+                                    name={SCREENS.RIGHT_MODAL.SEARCH_SAVE}
+                                    getComponent={loadSearchSavePage}
                                 />
                                 <Stack.Screen
                                     name={SCREENS.RIGHT_MODAL.SEARCH_ADVANCED_FILTERS}

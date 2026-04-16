@@ -21,7 +21,6 @@ import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import useNonReimbursablePaymentModal from '@hooks/useNonReimbursablePaymentModal';
 import useOnyx from '@hooks/useOnyx';
 import usePaymentAnimations from '@hooks/usePaymentAnimations';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -161,7 +160,6 @@ function MoneyRequestReportPreviewContent({
 
     const [isHoldMenuVisible, setIsHoldMenuVisible] = useState(false);
     const [requestType, setRequestType] = useState<ActionHandledType>();
-    const {showNonReimbursablePaymentErrorModal} = useNonReimbursablePaymentModal(iouReport, transactions);
     const [paymentType, setPaymentType] = useState<PaymentMethodType>();
     const [shouldShowPayButton, setShouldShowPayButton] = useState(false);
     const hasOnlyHeldExpenses = hasOnlyHeldExpensesReportUtils(iouReport?.reportID);
@@ -720,7 +718,6 @@ function MoneyRequestReportPreviewContent({
                                                 onPaymentOptionsHide={onPaymentOptionsHide}
                                                 openReportFromPreview={openReportFromPreview}
                                                 onHoldMenuOpen={handleHoldMenuOpen}
-                                                onNonReimbursablePaymentError={showNonReimbursablePaymentErrorModal}
                                                 transactionPreviewCarouselWidth={reportPreviewStyles.transactionPreviewCarouselStyle.width}
                                             />
                                             {transactions.length > 1 && !shouldShowAccessPlaceHolder && (
@@ -757,7 +754,6 @@ function MoneyRequestReportPreviewContent({
                                 chatReport={chatReport}
                                 moneyRequestReport={iouReport}
                                 transactionCount={numberOfRequests}
-                                transactions={transactions}
                                 hasNonHeldExpenses={!hasOnlyHeldExpenses}
                                 onConfirm={() => {
                                     if (requestType === CONST.IOU.REPORT_ACTION_TYPE.APPROVE) {

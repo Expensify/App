@@ -4,6 +4,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNonPersonalCardList from '@hooks/useNonPersonalCardList';
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
+import usePrimaryContactMethod from '@hooks/usePrimaryContactMethod';
 import {clearCardListErrors, reportVirtualExpensifyCardFraud} from '@libs/actions/Card';
 import {requestValidateCodeAction, resetValidateActionCodeSent} from '@libs/actions/User';
 import {getLatestErrorFieldForAnyField} from '@libs/ErrorUtils';
@@ -26,12 +27,11 @@ function ReportVirtualCardFraudVerifyAccountPage({
     const cardList = useNonPersonalCardList();
     const virtualCard = cardList?.[cardID];
     const {translate} = useLocalize();
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [validateCodeAction] = useOnyx(ONYXKEYS.VALIDATE_ACTION_CODE);
     const [formData] = useOnyx(ONYXKEYS.FORMS.REPORT_VIRTUAL_CARD_FRAUD);
     const latestIssuedVirtualCardID = Object.keys(cardList ?? {})?.pop();
 
-    const primaryLogin = account?.primaryLogin ?? '';
+    const primaryLogin = usePrimaryContactMethod();
     const cardError = getLatestErrorFieldForAnyField(virtualCard);
     const codeError = getLatestErrorFieldForAnyField(validateCodeAction);
     const prevIsLoading = usePrevious(formData?.isLoading);
@@ -70,7 +70,7 @@ function ReportVirtualCardFraudVerifyAccountPage({
     return (
         <ValidateCodeActionContent
             title={translate('cardPage.validateCardTitle')}
-            descriptionPrimary={translate('cardPage.enterMagicCode', primaryLogin)}
+            descriptionPrimary={translate('cardPage.enterMagicCode', primaryLogin ?? '')}
             sendValidateCode={() => requestValidateCodeAction()}
             validateCodeActionErrorField="reportVirtualCard"
             handleSubmitForm={handleValidateCodeEntered}
