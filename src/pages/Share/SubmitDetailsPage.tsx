@@ -52,6 +52,7 @@ import type {Report as ReportType} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import type {Receipt} from '@src/types/onyx/Transaction';
 import {showErrorAlert} from './ShareRootPage';
+import useShareFileSizeValidation from './useShareFileSizeValidation';
 
 type ShareDetailsPageProps = StackScreenProps<ShareNavigatorParamList, typeof SCREENS.SHARE.SUBMIT_DETAILS>;
 function SubmitDetailsPage({
@@ -113,6 +114,13 @@ function SubmitDetailsPage({
     const fileType = shouldUsePreValidatedFile ? (validFilesToUpload?.type ?? CONST.RECEIPT_ALLOWED_FILE_TYPES.JPEG) : (currentAttachment?.mimeType ?? '');
     const [hasOnlyPersonalPolicies = false] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: hasOnlyPersonalPoliciesUtil});
 
+    const setShareError = useCallback((title: string, message: string) => {
+        setErrorTitle(title);
+        setErrorMessage(message);
+    }, []);
+
+    useShareFileSizeValidation(currentAttachment?.content, setShareError, !errorTitle);
+
     useEffect(() => {
         if (!errorTitle || !errorMessage) {
             return;
@@ -139,12 +147,11 @@ function SubmitDetailsPage({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [reportOrAccountID, policy, personalPolicy, report, parentReport, currentDate, currentUserPersonalDetails, hasOnlyPersonalPolicies]);
 
-    // The original file from the OS share extension — seeded into the transaction draft below.
     const sharedFileSource = currentAttachment?.content ?? fileUri;
     const sharedFileName = getFileName(currentAttachment?.content ?? '') || fileName;
     const sharedFileType = currentAttachment?.mimeType ?? fileType;
 
-    // Seed the transaction draft so isScanRequest() returns true and compact mode, "Automatic" labels, and receipt image rendering all work correctly.
+    // Seed the transaction draft so isScanRequest() returns true and compact mode / "Automatic" labels / receipt rendering work.
     useEffect(() => {
         if (!sharedFileSource) {
             return;
