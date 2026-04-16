@@ -9,6 +9,7 @@ import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -37,6 +38,8 @@ function CardSelectPopup({isExpanded, updateFilterForm, closeOverlay}: CardSelec
     const illustrations = useThemeIllustrations();
     const companyCardFeedIcons = useCompanyCardFeedIcons();
     const {windowHeight} = useWindowDimensions();
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
+    const {isSmallScreenWidth, isInLandscapeMode} = useResponsiveLayout();
 
     const [areCardsLoaded] = useOnyx(ONYXKEYS.IS_SEARCH_FILTERS_CARD_DATA_LOADED);
     const [userCardList, userCardListMetadata] = useOnyx(ONYXKEYS.CARD_LIST);
@@ -183,7 +186,17 @@ function CardSelectPopup({isExpanded, updateFilterForm, closeOverlay}: CardSelec
                 </View>
             )}
             {!shouldShowLoadingState && (
-                <View style={[styles.getSelectionListPopoverHeight(sections.flatMap((section) => section.data).length || 1, windowHeight, shouldShowSearchInput)]}>
+                <View
+                    style={[
+                        styles.getSelectionListPopoverHeight(
+                            sections.flatMap((section) => section.data).length || 1,
+                            windowHeight,
+                            shouldShowSearchInput,
+                            isInLandscapeMode,
+                            isSmallScreenWidth,
+                        ),
+                    ]}
+                >
                     <SelectionListWithSections<CardFilterItem>
                         sections={sections}
                         ListItem={CardListItem}
