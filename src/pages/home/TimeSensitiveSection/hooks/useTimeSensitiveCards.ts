@@ -19,6 +19,10 @@ function useTimeSensitiveCards() {
             continue;
         }
 
+        if (card.nameValuePairs?.hasCustomUnapprovedExpenseLimit && card.nameValuePairs?.unapprovedExpenseLimit === 0) {
+            continue;
+        }
+
         if (isCardWithPotentialFraud(card) && card.nameValuePairs?.possibleFraud?.fraudAlertReportID) {
             cardsWithFraud.push(card);
         }

@@ -220,4 +220,52 @@ describe('useTimeSensitiveCards', () => {
         expect(result.current.cardsWithFraud.at(0)?.cardID).toBe(1);
         expect(result.current.shouldShowReviewCardFraud).toBe(true);
     });
+
+    it('should exclude cards with custom $0 limit from shipping address to-dos', async () => {
+        const zeroLimitCard: Card = {
+            ...createRandomExpensifyCard(1, {state: CONST.EXPENSIFY_CARD.STATE.STATE_NOT_ISSUED}),
+            nameValuePairs: {hasCustomUnapprovedExpenseLimit: true, unapprovedExpenseLimit: 0} as Card['nameValuePairs'],
+        };
+        const cardList: CardList = {'1': zeroLimitCard};
+
+        await Onyx.merge(ONYXKEYS.CARD_LIST, cardList);
+        await waitForBatchedUpdates();
+
+        const {result} = renderHook(() => useTimeSensitiveCards());
+
+        expect(result.current.cardsNeedingShippingAddress).toHaveLength(0);
+        expect(result.current.shouldShowAddShippingAddress).toBe(false);
+    });
+
+    it('should exclude cards with custom $0 limit from activation to-dos', async () => {
+        const zeroLimitCard: Card = {
+            ...createRandomExpensifyCard(1, {state: CONST.EXPENSIFY_CARD.STATE.NOT_ACTIVATED}),
+            nameValuePairs: {hasCustomUnapprovedExpenseLimit: true, unapprovedExpenseLimit: 0} as Card['nameValuePairs'],
+        };
+        const cardList: CardList = {'1': zeroLimitCard};
+
+        await Onyx.merge(ONYXKEYS.CARD_LIST, cardList);
+        await waitForBatchedUpdates();
+
+        const {result} = renderHook(() => useTimeSensitiveCards());
+
+        expect(result.current.cardsNeedingActivation).toHaveLength(0);
+        expect(result.current.shouldShowActivateCard).toBe(false);
+    });
+
+    it('should not exclude cards without custom limit even if unapprovedExpenseLimit is 0', async () => {
+        const groupLimitCard: Card = {
+            ...createRandomExpensifyCard(1, {state: CONST.EXPENSIFY_CARD.STATE.NOT_ACTIVATED}),
+            nameValuePairs: {hasCustomUnapprovedExpenseLimit: false, unapprovedExpenseLimit: 0} as Card['nameValuePairs'],
+        };
+        const cardList: CardList = {'1': groupLimitCard};
+
+        await Onyx.merge(ONYXKEYS.CARD_LIST, cardList);
+        await waitForBatchedUpdates();
+
+        const {result} = renderHook(() => useTimeSensitiveCards());
+
+        expect(result.current.cardsNeedingActivation).toHaveLength(1);
+        expect(result.current.shouldShowActivateCard).toBe(true);
+    });
 });
