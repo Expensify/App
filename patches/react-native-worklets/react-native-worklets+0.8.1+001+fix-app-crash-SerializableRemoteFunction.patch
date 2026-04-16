@@ -1,8 +1,8 @@
 diff --git a/node_modules/react-native-worklets/Common/cpp/worklets/NativeModules/JSIWorkletsModuleProxy.cpp b/node_modules/react-native-worklets/Common/cpp/worklets/NativeModules/JSIWorkletsModuleProxy.cpp
-index a7cb25ddf3..c6bd17a90d 100644
+index 2d4e78a..b105c1d 100644
 --- a/node_modules/react-native-worklets/Common/cpp/worklets/NativeModules/JSIWorkletsModuleProxy.cpp
 +++ b/node_modules/react-native-worklets/Common/cpp/worklets/NativeModules/JSIWorkletsModuleProxy.cpp
-@@ -321,8 +321,8 @@ jsi::Value JSIWorkletsModuleProxy::get(jsi::Runtime &rt, const jsi::PropNameID &
+@@ -320,8 +320,8 @@ jsi::Value JSIWorkletsModuleProxy::get(jsi::Runtime &rt, const jsi::PropNameID &
  
    if (name == "createSerializableFunction") {
      return jsi::Function::createFromHostFunction(
@@ -14,10 +14,10 @@ index a7cb25ddf3..c6bd17a90d 100644
    }
  
 diff --git a/node_modules/react-native-worklets/Common/cpp/worklets/SharedItems/Serializable.cpp b/node_modules/react-native-worklets/Common/cpp/worklets/SharedItems/Serializable.cpp
-index 67ff75a9a5..6f8a29055d 100644
+index 62672f7..8a6a572 100644
 --- a/node_modules/react-native-worklets/Common/cpp/worklets/SharedItems/Serializable.cpp
 +++ b/node_modules/react-native-worklets/Common/cpp/worklets/SharedItems/Serializable.cpp
-@@ -31,7 +31,7 @@ jsi::Value makeSerializableClone(
+@@ -32,7 +32,7 @@ jsi::Value makeSerializableClone(
      } else if (!object.getProperty(rt, "__init").isUndefined()) {
        return makeSerializableInitializer(rt, object);
      } else if (object.isFunction(rt)) {
@@ -26,22 +26,7 @@ index 67ff75a9a5..6f8a29055d 100644
      } else if (object.isArray(rt)) {
        if (shouldRetainRemote.isBool() && shouldRetainRemote.getBool()) {
          serializable = std::make_shared<RetainingSerializable<SerializableArray>>(rt, object.asArray(rt));
-@@ -121,12 +121,12 @@ jsi::Value makeSerializableInitializer(jsi::Runtime &rt, const jsi::Object &init
-   return SerializableJSRef::newNativeStateObject(rt, serializable);
- }
- 
--jsi::Value makeSerializableFunction(jsi::Runtime &rt, jsi::Function function) {
-+jsi::Value makeSerializableFunction(jsi::Runtime &rt, jsi::Function function, double id) {
-   std::shared_ptr<Serializable> serializable;
-   if (function.isHostFunction(rt)) {
-     serializable = std::make_shared<SerializableHostFunction>(rt, std::move(function));
-   } else {
--    serializable = std::make_shared<SerializableRemoteFunction>(rt, std::move(function));
-+    serializable = std::make_shared<SerializableRemoteFunction>(rt, id);
-   }
-   return SerializableJSRef::newNativeStateObject(rt, serializable);
- }
-@@ -369,7 +369,11 @@ jsi::Value SerializableImport::toJSValue(jsi::Runtime &rt) {
+@@ -240,7 +240,11 @@ jsi::Value SerializableImport::toJSValue(jsi::Runtime &rt) {
  
  jsi::Value SerializableRemoteFunction::toJSValue(jsi::Runtime &rt) {
    if (&rt == runtime_) {
@@ -55,19 +40,10 @@ index 67ff75a9a5..6f8a29055d 100644
  #ifndef NDEBUG
      return getValueUnpacker(rt).call(
 diff --git a/node_modules/react-native-worklets/Common/cpp/worklets/SharedItems/Serializable.h b/node_modules/react-native-worklets/Common/cpp/worklets/SharedItems/Serializable.h
-index 771b6be96c..5e60aa7e11 100644
+index 1c20158..85ddc43 100644
 --- a/node_modules/react-native-worklets/Common/cpp/worklets/SharedItems/Serializable.h
 +++ b/node_modules/react-native-worklets/Common/cpp/worklets/SharedItems/Serializable.h
-@@ -162,7 +162,7 @@ jsi::Value makeSerializableSet(jsi::Runtime &rt, const jsi::Array &values);
- 
- jsi::Value makeSerializableInitializer(jsi::Runtime &rt, const jsi::Object &initializerObject);
- 
--jsi::Value makeSerializableFunction(jsi::Runtime &rt, jsi::Function function);
-+jsi::Value makeSerializableFunction(jsi::Runtime &rt, jsi::Function function, double id);
- 
- jsi::Value makeSerializableWorklet(jsi::Runtime &rt, const jsi::Object &object, const bool &shouldRetainRemote);
- 
-@@ -295,21 +295,19 @@ class SerializableRemoteFunction : public Serializable,
+@@ -233,21 +233,19 @@ class SerializableRemoteFunction : public Serializable,
  #ifndef NDEBUG
    const std::string name_;
  #endif
@@ -94,11 +70,43 @@ index 771b6be96c..5e60aa7e11 100644
  
    jsi::Value toJSValue(jsi::Runtime &rt) override;
  };
+diff --git a/node_modules/react-native-worklets/Common/cpp/worklets/SharedItems/SerializableFactory.cpp b/node_modules/react-native-worklets/Common/cpp/worklets/SharedItems/SerializableFactory.cpp
+index 5dee2b6..748478b 100644
+--- a/node_modules/react-native-worklets/Common/cpp/worklets/SharedItems/SerializableFactory.cpp
++++ b/node_modules/react-native-worklets/Common/cpp/worklets/SharedItems/SerializableFactory.cpp
+@@ -51,12 +51,12 @@ jsi::Value makeSerializableInitializer(jsi::Runtime &rt, const jsi::Object &init
+   return SerializableJSRef::newNativeStateObject(rt, serializable);
+ }
+ 
+-jsi::Value makeSerializableFunction(jsi::Runtime &rt, jsi::Function function) {
++jsi::Value makeSerializableFunction(jsi::Runtime &rt, jsi::Function function, double id) {
+   std::shared_ptr<Serializable> serializable;
+   if (function.isHostFunction(rt)) {
+     serializable = std::make_shared<SerializableHostFunction>(rt, std::move(function));
+   } else {
+-    serializable = std::make_shared<SerializableRemoteFunction>(rt, std::move(function));
++    serializable = std::make_shared<SerializableRemoteFunction>(rt, id);
+   }
+   return SerializableJSRef::newNativeStateObject(rt, serializable);
+ }
+diff --git a/node_modules/react-native-worklets/Common/cpp/worklets/SharedItems/SerializableFactory.h b/node_modules/react-native-worklets/Common/cpp/worklets/SharedItems/SerializableFactory.h
+index a8bf711..91c40ff 100644
+--- a/node_modules/react-native-worklets/Common/cpp/worklets/SharedItems/SerializableFactory.h
++++ b/node_modules/react-native-worklets/Common/cpp/worklets/SharedItems/SerializableFactory.h
+@@ -43,7 +43,7 @@ jsi::Value makeSerializableSet(jsi::Runtime &rt, const jsi::Array &values);
+ 
+ jsi::Value makeSerializableInitializer(jsi::Runtime &rt, const jsi::Object &initializerObject);
+ 
+-jsi::Value makeSerializableFunction(jsi::Runtime &rt, jsi::Function function);
++jsi::Value makeSerializableFunction(jsi::Runtime &rt, jsi::Function function, double id);
+ 
+ jsi::Value makeSerializableWorklet(jsi::Runtime &rt, const jsi::Object &object, const bool &shouldRetainRemote);
+ 
 diff --git a/node_modules/react-native-worklets/Common/cpp/worklets/WorkletRuntime/WorkletRuntimeDecorator.cpp b/node_modules/react-native-worklets/Common/cpp/worklets/WorkletRuntime/WorkletRuntimeDecorator.cpp
-index d64c04647e..6d5b604d3a 100644
+index 914811d..b2b8020 100644
 --- a/node_modules/react-native-worklets/Common/cpp/worklets/WorkletRuntime/WorkletRuntimeDecorator.cpp
 +++ b/node_modules/react-native-worklets/Common/cpp/worklets/WorkletRuntime/WorkletRuntimeDecorator.cpp
-@@ -141,7 +141,7 @@ void WorkletRuntimeDecorator::decorate(
+@@ -197,7 +197,7 @@ void WorkletRuntimeDecorator::decorate(
    });
  
    jsi_utils::installJsiFunction(rt, "_createSerializableFunction", [](jsi::Runtime &rt, const jsi::Value &value) {
@@ -107,11 +115,61 @@ index d64c04647e..6d5b604d3a 100644
    });
  
    jsi_utils::installJsiFunction(rt, "_createSerializableSynchronizable", [](jsi::Runtime &rt, const jsi::Value &value) {
+diff --git a/node_modules/react-native-worklets/android/build/intermediates/prefab_package_header_only/prefab_publication.json/debug b/node_modules/react-native-worklets/android/build/intermediates/prefab_package_header_only/prefab_publication.json/debug
+new file mode 100644
+index 0000000..a86273c
+--- /dev/null
++++ b/node_modules/react-native-worklets/android/build/intermediates/prefab_package_header_only/prefab_publication.json/debug
+@@ -0,0 +1,18 @@
++{
++  "installationFolder": "/Users/chris/Projects/Margelo/ExpensifyApp3/node_modules/react-native-worklets/android/build/intermediates/prefab_package/debug/prefab",
++  "gradlePath": ":react-native-worklets",
++  "packageInfo": {
++    "packageName": "react-native-worklets",
++    "packageVersion": "0.8.1",
++    "packageSchemaVersion": 2,
++    "packageDependencies": [],
++    "modules": [
++      {
++        "moduleName": "worklets",
++        "moduleHeaders": "/Users/chris/Projects/Margelo/ExpensifyApp3/node_modules/react-native-worklets/android/build/prefab-headers/worklets",
++        "moduleExportLibraries": [],
++        "abis": []
++      }
++    ]
++  }
++}
+\ No newline at end of file
+diff --git a/node_modules/react-native-worklets/android/build/intermediates/prefab_package_header_only/prefab_publication.json/release b/node_modules/react-native-worklets/android/build/intermediates/prefab_package_header_only/prefab_publication.json/release
+new file mode 100644
+index 0000000..a621265
+--- /dev/null
++++ b/node_modules/react-native-worklets/android/build/intermediates/prefab_package_header_only/prefab_publication.json/release
+@@ -0,0 +1,18 @@
++{
++  "installationFolder": "/Users/chris/Projects/Margelo/ExpensifyApp3/node_modules/react-native-worklets/android/build/intermediates/prefab_package/release/prefab",
++  "gradlePath": ":react-native-worklets",
++  "packageInfo": {
++    "packageName": "react-native-worklets",
++    "packageVersion": "0.8.1",
++    "packageSchemaVersion": 2,
++    "packageDependencies": [],
++    "modules": [
++      {
++        "moduleName": "worklets",
++        "moduleHeaders": "/Users/chris/Projects/Margelo/ExpensifyApp3/node_modules/react-native-worklets/android/build/prefab-headers/worklets",
++        "moduleExportLibraries": [],
++        "abis": []
++      }
++    ]
++  }
++}
+\ No newline at end of file
 diff --git a/node_modules/react-native-worklets/src/WorkletsModule/NativeWorklets.native.ts b/node_modules/react-native-worklets/src/WorkletsModule/NativeWorklets.native.ts
-index 9a12fada57..ada9bf467e 100644
+index e9ac98b..3297997 100644
 --- a/node_modules/react-native-worklets/src/WorkletsModule/NativeWorklets.native.ts
 +++ b/node_modules/react-native-worklets/src/WorkletsModule/NativeWorklets.native.ts
-@@ -140,9 +140,10 @@ See https://docs.swmansion.com/react-native-worklets/docs/guides/troubleshooting
+@@ -146,9 +146,11 @@ See https://docs.swmansion.com/react-native-worklets/docs/guides/troubleshooting
    }
  
    createSerializableFunction<TArgs extends unknown[], TReturn>(
@@ -122,11 +180,12 @@ index 9a12fada57..ada9bf467e 100644
 +    id: number
 +  ): SerializableRef<TReturn> {
 +    return this.#workletsModuleProxy.createSerializableFunction(func, id);
++
    }
  
    createSerializableWorklet(worklet: object, shouldPersistRemote: boolean) {
 diff --git a/node_modules/react-native-worklets/src/WorkletsModule/workletsModuleProxy.ts b/node_modules/react-native-worklets/src/WorkletsModule/workletsModuleProxy.ts
-index b7d9fb2f11..c9bfd6dca1 100644
+index 7781c76..02ff8fc 100644
 --- a/node_modules/react-native-worklets/src/WorkletsModule/workletsModuleProxy.ts
 +++ b/node_modules/react-native-worklets/src/WorkletsModule/workletsModuleProxy.ts
 @@ -61,7 +61,8 @@ export interface WorkletsModuleProxy {
@@ -140,14 +199,14 @@ index b7d9fb2f11..c9bfd6dca1 100644
  
    createSerializableWorklet(
 diff --git a/node_modules/react-native-worklets/src/memory/serializable.native.ts b/node_modules/react-native-worklets/src/memory/serializable.native.ts
-index 1b5f579011..fb82e3127e 100644
+index a48d2fd..58d93bb 100644
 --- a/node_modules/react-native-worklets/src/memory/serializable.native.ts
 +++ b/node_modules/react-native-worklets/src/memory/serializable.native.ts
-@@ -428,10 +428,18 @@ function cloneArray<T extends unknown[]>(
+@@ -433,10 +433,19 @@ function cloneArray<T extends unknown[]>(
    return clone;
  }
  
-+// eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
++// eslint-disable-next-line @typescript-eslint/o-unsafe-function-type
 +const remoteFunctionCache = new Map<number, Function>();
 +// @ts-expect-error it's ok
 +globalThis.__remoteFunctionCache = remoteFunctionCache;
@@ -160,6 +219,7 @@ index 1b5f579011..fb82e3127e 100644
 +  const currentIndex = index++;
 +  remoteFunctionCache.set(currentIndex, value);
 +  const clone = WorkletsModule.createSerializableFunction(value, currentIndex);
++
    serializableMappingCache.set(value, clone);
    serializableMappingCache.set(clone);
  
