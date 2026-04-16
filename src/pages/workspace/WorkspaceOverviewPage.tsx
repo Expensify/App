@@ -204,6 +204,11 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
         [policy?.rulesDocumentURL, policyID, session?.encryptedAuthToken],
     );
 
+    const hasRulesDocument = !!policy?.rulesDocumentURL;
+    const hasCustomRulesText = !StringUtils.isEmptyString(policy?.customRules ?? '');
+    const shouldShowExpensePolicySection = isBetaEnabled(CONST.BETAS.CUSTOM_RULES) && (isPolicyAdmin || hasRulesDocument || hasCustomRulesText);
+    const shouldShowRulesDocumentSubSection = isPolicyAdmin || hasRulesDocument;
+
     const rulesDocumentThumbnailStyle = useMemo(() => ({maxWidth: variables.rulesDocumentThumbnailMaxWidth, height: variables.rulesDocumentThumbnailHeight}), []);
     const rulesDocumentMenuPositionStyle = useMemo(() => ({top: variables.spacing2, right: variables.spacing2}), []);
     const rulesDocumentMenuIconStyle = useMemo(() => ({borderRadius: variables.componentSizeNormal / 2, backgroundColor: theme.cardBG}), [theme.cardBG]);
@@ -807,17 +812,17 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                         </OfflineWithFeedback>
                     )}
                 </Section>
-                {isBetaEnabled(CONST.BETAS.CUSTOM_RULES) && (isPolicyAdmin || !!policy?.rulesDocumentURL || !StringUtils.isEmptyString(policy?.customRules ?? '')) ? (
+                {shouldShowExpensePolicySection ? (
                     <Section
                         isCentralPane
                         title={translate('workspace.rules.customRules.title')}
                         titleStyles={[styles.textHeadline, styles.cardSectionTitle, styles.accountSettingsSectionTitle, styles.mb0]}
                         subtitle={translate('workspace.rules.customRules.cardSubtitle')}
-                        subtitleStyles={[isPolicyAdmin || !!policy?.rulesDocumentURL ? styles.mb6 : styles.mb2]}
+                        subtitleStyles={[shouldShowRulesDocumentSubSection ? styles.mb6 : styles.mb2]}
                         subtitleTextStyles={[styles.textNormal, styles.colorMuted, styles.mr5]}
                         containerStyles={shouldUseNarrowLayout ? styles.p5 : styles.p8}
                     >
-                        {(isPolicyAdmin || !!policy?.rulesDocumentURL) && (
+                        {shouldShowRulesDocumentSubSection && (
                             <OfflineWithFeedback
                                 pendingAction={policy?.pendingFields?.rulesDocumentURL}
                                 errors={getLatestErrorField(policy ?? {}, 'rulesDocumentURL')}
@@ -886,7 +891,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                             </OfflineWithFeedback>
                         )}
 
-                        {(isPolicyAdmin || !StringUtils.isEmptyString(policy?.customRules ?? '')) && (
+                        {(isPolicyAdmin || hasCustomRulesText) && (
                             <OfflineWithFeedback pendingAction={policy?.pendingFields?.customRules}>
                                 <MenuItemWithTopDescription
                                     title={policy?.customRules ?? ''}
@@ -894,7 +899,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.OVERVIEW.CUSTOM_RULES}
                                     shouldShowRightIcon={!readOnly}
                                     interactive={!readOnly}
-                                    wrapperStyle={[styles.sectionMenuItemTopDescription, (isPolicyAdmin || !!policy?.rulesDocumentURL) && styles.mt4]}
+                                    wrapperStyle={[styles.sectionMenuItemTopDescription, shouldShowRulesDocumentSubSection && styles.mt4]}
                                     onPress={() => Navigation.navigate(ROUTES.RULES_CUSTOM.getRoute(route.params.policyID))}
                                     shouldRenderAsHTML
                                 />

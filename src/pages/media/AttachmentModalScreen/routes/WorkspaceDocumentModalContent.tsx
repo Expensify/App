@@ -20,8 +20,7 @@ function WorkspaceDocumentModalContent({navigation, route}: AttachmentModalScree
 
     const policyKeysLength = Object.keys(policy ?? {}).length;
 
-    // eslint-disable-next-line rulesdir/no-negated-variables
-    const shouldShowNotFoundPage = (policyKeysLength === 0 && !isLoadingApp) || !policy?.rulesDocumentURL;
+    const isDocumentAvailable = (policyKeysLength > 0 || !!isLoadingApp) && !!policy?.rulesDocumentURL;
     const isLoading = policyKeysLength === 0 && !!isLoadingApp;
 
     const rulesDocumentSourceURL = useMemo(
@@ -36,12 +35,12 @@ function WorkspaceDocumentModalContent({navigation, route}: AttachmentModalScree
             source: rulesDocumentSourceURL,
             headerTitle: translate('workspace.rules.customRules.policyDocument'),
             originalFileName: `${policyID}-policy-document.pdf`,
-            shouldShowNotFoundPage,
+            shouldShowNotFoundPage: !isDocumentAvailable,
             isLoading,
             onDownloadAttachment,
             shouldCloseOnSwipeDown: true,
         }),
-        [rulesDocumentSourceURL, translate, policyID, shouldShowNotFoundPage, isLoading, onDownloadAttachment],
+        [rulesDocumentSourceURL, translate, policyID, isDocumentAvailable, isLoading, onDownloadAttachment],
     );
 
     return (
