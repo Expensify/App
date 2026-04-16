@@ -2055,6 +2055,9 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Whether the Company Cards feature is enabled */
         areCompanyCardsEnabled?: boolean;
 
+        /** Whether the HR feature is enabled */
+        isHREnabled?: boolean;
+
         /** The verified bank account linked to the policy */
         achAccount?: ACHAccount;
 
