@@ -27,6 +27,7 @@ import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useUndeleteTransactions from '@hooks/useUndeleteTransactions';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import DateUtils from '@libs/DateUtils';
@@ -36,9 +37,10 @@ import variables from '@styles/variables';
 import type {TransactionPreviewData} from '@userActions/Search';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Transaction, TransactionViolations} from '@src/types/onyx';
+import type {CardList, Policy, Transaction, TransactionViolations} from '@src/types/onyx';
 import BaseSearchList from './BaseSearchList';
 import type ChatListItem from './ListItem/ChatListItem';
+import type ExpenseReportListItem from './ListItem/ExpenseReportListItem';
 import type TaskListItem from './ListItem/TaskListItem';
 import type TransactionGroupListItem from './ListItem/TransactionGroupListItem';
 import type TransactionListItem from './ListItem/TransactionListItem';
@@ -62,7 +64,7 @@ const easing = Easing.bezier(0.76, 0.0, 0.24, 1.0);
 let savedHorizontalScrollOffset = 0;
 
 type SearchListItem = TransactionListItemType | TransactionGroupListItemType | ReportActionListItemType | TaskListItemType;
-type SearchListItemComponentType = typeof TransactionListItem | typeof ChatListItem | typeof TransactionGroupListItem | typeof TaskListItem;
+type SearchListItemComponentType = typeof TransactionListItem | typeof ChatListItem | typeof TransactionGroupListItem | typeof TaskListItem | typeof ExpenseReportListItem;
 
 type SearchListHandle = {
     scrollToIndex: (index: number, animated?: boolean) => void;
@@ -123,14 +125,16 @@ type SearchListProps = Pick<FlashListProps<SearchListItem>, 'onScroll' | 'conten
     /** Violations indexed by transaction ID */
     violations?: Record<string, TransactionViolations | undefined> | undefined;
 
-    /** Custom card names */
-    customCardNames?: Record<number, string>;
-
     /** Selected transactions for determining isSelected state */
     selectedTransactions: SelectedTransactions;
 
+    /** Non-personal and workspace cards (same drill path as former custom card names for rows) */
+    nonPersonalAndWorkspaceCards?: CardList;
+
     /** Whether all transactions have been loaded from snapshots in group-by views */
     hasLoadedAllTransactions?: boolean;
+
+    policyForMovingExpenses?: Policy;
 
     /** Reference to the outer element */
     ref?: ForwardedRef<SearchListHandle>;
@@ -213,9 +217,10 @@ function SearchList({
     isMobileSelectionModeEnabled,
     newTransactions = [],
     violations,
-    customCardNames,
+    nonPersonalAndWorkspaceCards,
     selectedTransactions,
     hasLoadedAllTransactions,
+    policyForMovingExpenses,
     ref,
 }: SearchListProps) {
     const styles = useThemeStyles();
@@ -301,6 +306,11 @@ function SearchList({
     const [userBillingFundID] = useOnyx(ONYXKEYS.NVP_BILLING_FUND_ID);
     const [lastPaymentMethod] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD);
     const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
+    const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
+    const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
+    const undeleteTransactions = useUndeleteTransactions();
+
+    const handleUndelete = (transaction: Transaction) => undeleteTransactions([transaction]);
 
     const route = useRoute();
     const {getScrollOffset} = useContext(ScrollOffsetContext);
@@ -436,20 +446,24 @@ function SearchList({
                         queryJSONHash={hash}
                         columns={columns}
                         policies={policies}
+                        policyForMovingExpenses={policyForMovingExpenses}
                         isDisabled={isDisabled}
                         groupBy={groupBy}
                         searchType={type}
                         lastPaymentMethod={lastPaymentMethod}
                         personalPolicyID={personalPolicyID}
+                        userBillingGracePeriodEnds={userBillingGracePeriodEnds}
+                        ownerBillingGracePeriodEnd={ownerBillingGracePeriodEnd}
                         userWalletTierName={userWalletTierName}
                         isUserValidated={isUserValidated}
                         personalDetails={personalDetails}
                         userBillingFundID={userBillingFundID}
                         isOffline={isOffline}
                         violations={violations}
-                        customCardNames={customCardNames}
+                        nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}
                         onFocus={onFocus}
                         newTransactionID={newTransactionID}
+                        onUndelete={handleUndelete}
                         keyForList={item.keyForList}
                         isFirstItem={index === 0}
                         isLastItem={index === data.length - 1 && !ListFooterComponent}
@@ -482,9 +496,13 @@ function SearchList({
             violations,
             lastPaymentMethod,
             personalPolicyID,
-            customCardNames,
+            userBillingGracePeriodEnds,
+            ownerBillingGracePeriodEnd,
+            nonPersonalAndWorkspaceCards,
             selectedTransactions,
             ListFooterComponent,
+            policyForMovingExpenses,
+            handleUndelete,
         ],
     );
 
@@ -551,7 +569,8 @@ function SearchList({
                 contentContainerStyle={contentContainerStyle}
                 newTransactions={newTransactions}
                 selectedTransactions={selectedTransactions}
-                customCardNames={customCardNames}
+                policyForMovingExpenses={policyForMovingExpenses}
+                nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}
             />
             <Modal
                 isVisible={isModalVisible}
