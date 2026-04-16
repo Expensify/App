@@ -311,6 +311,20 @@ function SubmitDetailsPage({
         finishRequestAndNavigate(participant, receipt);
     };
 
+    // Extracted from onConfirm — re-entering onConfirm from the permission modal deadlocked when OS permission was pre-granted.
+    const performUpload = (participant: Participant, locationPermissionGranted: boolean) => {
+        if (!currentAttachment) {
+            return;
+        }
+        readFileAsync(
+            currentReceiptSource,
+            currentReceiptName,
+            (file) => onSuccess(participant, file, locationPermissionGranted),
+            () => {},
+            currentReceiptType,
+        );
+    };
+
     const onConfirm = (listOfParticipants?: Participant[], gpsRequired?: boolean) => {
         const shouldStartLocationPermissionFlow =
             gpsRequired &&
@@ -322,22 +336,12 @@ function SubmitDetailsPage({
             setStartLocationPermissionFlow(true);
             return;
         }
-        if (!currentAttachment) {
-            return;
-        }
 
         const participant = listOfParticipants?.at(0) ?? selectedParticipants.at(0);
         if (!participant) {
             return;
         }
-
-        readFileAsync(
-            currentReceiptSource,
-            currentReceiptName,
-            (file) => onSuccess(participant, file, shouldStartLocationPermissionFlow),
-            () => {},
-            currentReceiptType,
-        );
+        performUpload(participant, false);
     };
 
     return (
@@ -358,13 +362,22 @@ function SubmitDetailsPage({
                 <LocationPermissionModal
                     startPermissionFlow={startLocationPermissionFlow}
                     resetPermissionFlow={() => setStartLocationPermissionFlow(false)}
-                    onGrant={() => onConfirm(undefined, true)}
+                    onGrant={() => {
+                        setStartLocationPermissionFlow(false);
+                        const participant = selectedParticipants.at(0);
+                        if (!participant) {
+                            return;
+                        }
+                        navigateAfterInteraction(() => performUpload(participant, true));
+                    }}
                     onDeny={() => {
                         updateLastLocationPermissionPrompt();
                         setStartLocationPermissionFlow(false);
-                        navigateAfterInteraction(() => {
-                            onConfirm(undefined, false);
-                        });
+                        const participant = selectedParticipants.at(0);
+                        if (!participant) {
+                            return;
+                        }
+                        navigateAfterInteraction(() => performUpload(participant, false));
                     }}
                 />
                 <View style={[styles.containerWithSpaceBetween, styles.pointerEventsBoxNone]}>
