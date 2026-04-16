@@ -331,7 +331,7 @@ function PrivatePersonalDetailsPage() {
                             autoComplete="postal-code"
                         />
                     </View>
-                    <View style={styles.mb4}>
+                    <View style={styles.mhn5}>
                         <InputWrapper
                             InputComponent={CountrySelector}
                             inputID={INPUT_IDS.COUNTRY}
