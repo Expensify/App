@@ -1,9 +1,10 @@
-import emojis, {localeEmojis} from '@assets/emojis';
+import emojis, {importEmojiLocale, localeEmojis} from '@assets/emojis';
 import type {Emoji, HeaderEmoji} from '@assets/emojis/types';
 import CONST from '@src/CONST';
 import {FULLY_SUPPORTED_LOCALES} from '@src/CONST/LOCALES';
 import type {FullySupportedLocale} from '@src/CONST/LOCALES';
 import StringUtils from './StringUtils';
+import {endSpan, startSpan} from './telemetry/activeSpans';
 import Trie from './Trie';
 
 type EmojiMetaData = {
@@ -24,27 +25,21 @@ type EmojiTrieForLocale = Partial<Record<FullySupportedLocale, Trie<EmojiMetaDat
  * @param shouldPrependKeyword Prepend the keyword (instead of append) to the suggestions
  */
 function addKeywordsToTrie(trie: Trie<EmojiMetaData>, keywords: string[], item: Emoji, name: string, shouldPrependKeyword = false) {
+    const suggestion = {code: item.code, types: item.types, name};
     for (const keyword of keywords) {
-        const keywordNode = trie.search(keyword);
-        const normalizedKeyword = StringUtils.normalizeAccents(keyword);
-
-        if (!keywordNode) {
-            const metadata = {suggestions: [{code: item.code, types: item.types, name}]};
-            if (normalizedKeyword !== keyword) {
-                trie.add(normalizedKeyword, metadata);
-            }
-            trie.add(keyword, metadata);
+        const {node, isNew} = trie.getOrCreate(keyword);
+        if (isNew) {
+            node.metaData = {suggestions: [suggestion]};
+        } else if (shouldPrependKeyword) {
+            (node.metaData.suggestions ??= []).unshift(suggestion);
         } else {
-            const suggestion = {code: item.code, types: item.types, name};
-            const suggestions = shouldPrependKeyword ? [suggestion, ...(keywordNode.metaData.suggestions ?? [])] : [...(keywordNode.metaData.suggestions ?? []), suggestion];
-            const newMetadata = {
-                ...keywordNode.metaData,
-                suggestions,
-            };
-            if (normalizedKeyword !== keyword) {
-                trie.update(normalizedKeyword, newMetadata);
-            }
-            trie.update(keyword, newMetadata);
+            (node.metaData.suggestions ??= []).push(suggestion);
+        }
+
+        const normalizedKeyword = StringUtils.normalizeAccents(keyword);
+        if (normalizedKeyword !== keyword) {
+            const {node: normNode} = trie.getOrCreate(normalizedKeyword);
+            normNode.metaData = node.metaData;
         }
     }
 }
@@ -56,8 +51,13 @@ function addKeywordsToTrie(trie: Trie<EmojiMetaData>, keywords: string[], item: 
  * @returns An array containing the name parts
  */
 function getNameParts(name: string): string[] {
-    const nameSplit = name.split('_');
-    return nameSplit.map((namePart, index) => nameSplit.slice(index).join('_'));
+    const parts: string[] = [name];
+    let idx = name.indexOf('_');
+    while (idx !== -1) {
+        parts.push(name.slice(idx + 1));
+        idx = name.indexOf('_', idx + 1);
+    }
+    return parts;
 }
 
 function createTrie(lang: FullySupportedLocale = CONST.LOCALES.DEFAULT): Trie<EmojiMetaData> {
@@ -77,19 +77,15 @@ function createTrie(lang: FullySupportedLocale = CONST.LOCALES.DEFAULT): Trie<Em
         const localeName = langEmojis?.[emoji.code]?.name ?? englishName;
         const normalizedName = StringUtils.normalizeAccents(localeName);
 
-        const node = trie.search(localeName);
-        if (!node) {
-            const metadata = {code: emoji.code, types: emoji.types, name: localeName, suggestions: []};
-            if (normalizedName !== localeName) {
-                trie.add(normalizedName, metadata);
-            }
-            trie.add(localeName, metadata);
+        const {node, isNew} = trie.getOrCreate(localeName);
+        if (isNew) {
+            node.metaData = {code: emoji.code, types: emoji.types, name: localeName, suggestions: []};
         } else {
-            const newMetadata = {code: emoji.code, types: emoji.types, name: localeName, suggestions: node.metaData.suggestions};
-            if (normalizedName !== localeName) {
-                trie.update(normalizedName, newMetadata);
-            }
-            trie.update(localeName, newMetadata);
+            node.metaData = {suggestions: [...((node.metaData.suggestions as Emoji[] | undefined) ?? [])], code: emoji.code, types: emoji.types, name: localeName};
+        }
+        if (normalizedName !== localeName) {
+            const {node: normNode} = trie.getOrCreate(normalizedName);
+            normNode.metaData = node.metaData;
         }
 
         const nameParts = getNameParts(localeName).slice(1); // We remove the first part because we already index the full name.
@@ -119,10 +115,35 @@ const emojiTrieForLocale: EmojiTrieForLocale = Object.values(FULLY_SUPPORTED_LOC
 
 const buildEmojisTrie = (locale: FullySupportedLocale) => {
     if (emojiTrieForLocale[locale]) {
-        return; // Return early if the locale is not supported or the trie is already built
+        return; // Return early if the trie is already built
     }
+    // Don't build and cache the trie if locale emoji data hasn't been loaded yet,
+    // otherwise we'd permanently cache a trie with only English fallback names.
+    if (!localeEmojis[locale]) {
+        startSpan(CONST.TELEMETRY.SPAN_LOCALE.EMOJI_IMPORT, {
+            name: CONST.TELEMETRY.SPAN_LOCALE.EMOJI_IMPORT,
+            op: CONST.TELEMETRY.SPAN_LOCALE.EMOJI_IMPORT,
+        });
+        importEmojiLocale(locale).then(() => {
+            endSpan(CONST.TELEMETRY.SPAN_LOCALE.EMOJI_IMPORT);
+        });
+        return;
+    }
+    startSpan(CONST.TELEMETRY.SPAN_LOCALE.EMOJI_TRIE_BUILD, {
+        name: CONST.TELEMETRY.SPAN_LOCALE.EMOJI_TRIE_BUILD,
+        op: CONST.TELEMETRY.SPAN_LOCALE.EMOJI_TRIE_BUILD,
+    });
     emojiTrieForLocale[locale] = createTrie(locale);
+    endSpan(CONST.TELEMETRY.SPAN_LOCALE.EMOJI_TRIE_BUILD);
+};
+
+/**
+ * Returns the trie for the given locale, building it lazily on first access.
+ */
+const getEmojiTrie = (locale: FullySupportedLocale): Trie<EmojiMetaData> | undefined => {
+    buildEmojisTrie(locale);
+    return emojiTrieForLocale[locale];
 };
 
 export default emojiTrieForLocale;
-export {buildEmojisTrie};
+export {buildEmojisTrie, getEmojiTrie};
