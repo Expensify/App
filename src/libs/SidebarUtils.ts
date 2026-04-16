@@ -472,6 +472,8 @@ function categorizeReportsForLHN(
     reportAttributes: ReportAttributesDerivedValue['reports'] | undefined,
     reportNameValuePairs?: OnyxCollection<ReportNameValuePairs>,
 ) {
+    sortKeyCache.clear();
+
     const pinnedAndGBRReports: MiniReport[] = [];
     const errorReports: MiniReport[] = [];
     const draftReports: MiniReport[] = [];
@@ -1415,7 +1417,12 @@ function getRoomWelcomeMessage(
 }
 
 // Exported for unit testing only. Do not use directly in production code.
-export {categorizeReportsForLHN as _categorizeReportsForLHN, sortCategorizedReports as _sortCategorizedReports, combineReportCategories as _combineReportCategories};
+export {
+    categorizeReportsForLHN as _categorizeReportsForLHN,
+    sortCategorizedReports as _sortCategorizedReports,
+    combineReportCategories as _combineReportCategories,
+    buildSortKey as _buildSortKey,
+};
 
 export default {
     getOptionData,

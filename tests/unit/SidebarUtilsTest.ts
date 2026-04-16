@@ -10,7 +10,7 @@ import {getLastActorDisplayName} from '@libs/OptionsListUtils';
 import type * as PolicyUtils from '@libs/PolicyUtils';
 import {getOriginalMessage, getReportActionMessageText} from '@libs/ReportActionsUtils';
 import {formatReportLastMessageText, generateReportID, getAllReportErrors, getReasonAndReportActionThatRequiresAttention, getReportPreviewMessage} from '@libs/ReportUtils';
-import SidebarUtils, {_categorizeReportsForLHN, _combineReportCategories, _sortCategorizedReports} from '@libs/SidebarUtils';
+import SidebarUtils, {_buildSortKey, _categorizeReportsForLHN, _combineReportCategories, _sortCategorizedReports} from '@libs/SidebarUtils';
 import initOnyxDerivedValues from '@userActions/OnyxDerived';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
@@ -3364,6 +3364,30 @@ describe('SidebarUtils', () => {
                 // Then the non-archived reports are sorted by display name
                 expect(result.nonArchivedReports.at(0)?.displayName).toBe('Alpha');
                 expect(result.nonArchivedReports.at(1)?.displayName).toBe('Beta');
+            });
+        });
+
+        describe('buildSortKey', () => {
+            it('should sort accented characters by Unicode code point, not locale-aware order', () => {
+                // Given names with accented characters
+                const cafeAccented = _buildSortKey('Café');
+                const cafePlain = _buildSortKey('Cafe');
+
+                // Then accented "é" sorts after plain "e" by code point
+                expect(cafeAccented > cafePlain).toBe(true);
+            });
+
+            it('should be case-insensitive', () => {
+                expect(_buildSortKey('Alpha')).toBe(_buildSortKey('alpha'));
+                expect(_buildSortKey('ZEBRA')).toBe(_buildSortKey('zebra'));
+            });
+
+            it('should zero-pad numeric segments for natural sort order', () => {
+                const report2 = _buildSortKey('Report 2');
+                const report10 = _buildSortKey('Report 10');
+
+                // Then "Report 2" sorts before "Report 10"
+                expect(report2 < report10).toBe(true);
             });
         });
 
