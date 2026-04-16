@@ -38,6 +38,7 @@ import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {getMemberAccountIDsForWorkspace} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -92,7 +93,15 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
     const headerHeight = useEmptyViewHeaderHeight(shouldUseNarrowLayout, isBankAccountVerified);
     const [footerHeight, setFooterHeight] = useState(0);
 
-    const cardFeedIcon = useMemo(() => <CardFeedIcon selectedFeed={undefined} />, []);
+    const cardFeedIcon = useMemo(
+        () => (
+            <CardFeedIcon
+                isExpensifyCardFeed
+                iconProps={{height: variables.cardIconHeight, width: variables.cardIconWidth, additionalStyles: styles.cardIcon}}
+            />
+        ),
+        [styles.cardIcon],
+    );
 
     const settlementCurrency = useCurrencyForExpensifyCard({policyID});
 
