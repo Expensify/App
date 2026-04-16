@@ -23,7 +23,6 @@ import Navigation from '@libs/Navigation/Navigation';
 import {rand64, roundToTwoDecimalPlaces} from '@libs/NumberUtils';
 import {findSelfDMReportID, generateReportID, getReportOrDraftReport, hasViolations as hasViolationsReportUtils, isMoneyRequestReport, isSelectedManagerMcTest} from '@libs/ReportUtils';
 import {endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
-import getSubmitExpenseScenario from '@libs/telemetry/getSubmitExpenseScenario';
 import markSubmitExpenseEnd from '@libs/telemetry/markSubmitExpenseEnd';
 import {
     getDefaultTaxCode,
@@ -134,7 +133,6 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         participants,
         iouType,
         action,
-        requestType,
         isDistanceRequest,
         isManualDistanceRequest,
         isOdometerDistanceRequest,
@@ -593,45 +591,8 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
 
         formHasBeenSubmitted.current = true;
 
-        const hasReceiptFiles = Object.values(receiptFiles).some((receipt) => !!receipt);
-        const isFromGlobalCreate = transaction?.isFromGlobalCreate ?? transaction?.isFromFloatingActionButton ?? false;
-
-        const scenario = getSubmitExpenseScenario({
-            iouType,
-            isDistanceRequest,
-            isMovingTransactionFromTrackExpense,
-            isUnreported,
-            isCategorizingTrackExpense,
-            isSharingTrackExpense,
-            isPerDiemRequest,
-            isFromGlobalCreate,
-            hasReceiptFiles,
-        });
-
-        const submitSpanAttributes = {
-            [CONST.TELEMETRY.ATTRIBUTE_SCENARIO]: scenario,
-            [CONST.TELEMETRY.ATTRIBUTE_HAS_RECEIPT]: hasReceiptFiles,
-            [CONST.TELEMETRY.ATTRIBUTE_IS_FROM_GLOBAL_CREATE]: isFromGlobalCreate,
-            [CONST.TELEMETRY.ATTRIBUTE_IOU_TYPE]: iouType,
-            [CONST.TELEMETRY.ATTRIBUTE_IOU_REQUEST_TYPE]: requestType ?? 'unknown',
-        };
-
-        startSpan(CONST.TELEMETRY.SPAN_SUBMIT_EXPENSE, {
-            name: 'submit-expense',
-            op: CONST.TELEMETRY.SPAN_SUBMIT_EXPENSE,
-            attributes: submitSpanAttributes,
-        });
-
-        startSpan(CONST.TELEMETRY.SPAN_SUBMIT_TO_DESTINATION_VISIBLE, {
-            name: 'submit-to-destination-visible',
-            op: CONST.TELEMETRY.SPAN_SUBMIT_TO_DESTINATION_VISIBLE,
-            attributes: submitSpanAttributes,
-        });
-
-        // IMPORTANT: Every branch below must call markSubmitExpenseEnd() after dispatching the expense action.
-        // The submit follow-up action span above is ended by the target screen (ReportScreen, Search, etc.) or by runAfterInteractions for dismiss_modal_only.
-        // This ensures the telemetry span started above is always closed, including inside async getCurrentPosition callbacks.
-        // If missed, the impact is benign (an orphaned Sentry span), but it pollutes telemetry data.
+        // Telemetry spans (SPAN_SUBMIT_EXPENSE, SPAN_SUBMIT_TO_DESTINATION_VISIBLE)
+        // are started by SubmitExpenseOrchestrator before calling createTransaction.
         if (iouType !== CONST.IOU.TYPE.TRACK && isDistanceRequest && !isMovingTransactionFromTrackExpense && !isUnreported) {
             createDistanceRequest(iouType === CONST.IOU.TYPE.SPLIT ? splitParticipants : selectedParticipantsArg, trimmedComment);
             markSubmitExpenseEnd();

@@ -7,7 +7,6 @@ import DropZoneUI from '@components/DropZone/DropZoneUI';
 import FormHelpMessage from '@components/FormHelpMessage';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import LocationPermissionModal from '@components/LocationPermissionModal';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import MoneyRequestConfirmationList from '@components/MoneyRequestConfirmationList';
 import {usePersonalDetails, usePolicyCategories} from '@components/OnyxListItemProvider';
@@ -28,8 +27,6 @@ import useReportAttributes from '@hooks/useReportAttributes';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isMobileSafari} from '@libs/Browser';
-import DateUtils from '@libs/DateUtils';
-import {reserveDeferredWriteChannel} from '@libs/deferredLayoutWrite';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
@@ -41,12 +38,10 @@ import {
 } from '@libs/IOUUtils';
 import isReportTopmostSplitNavigator from '@libs/Navigation/helpers/isReportTopmostSplitNavigator';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
-import navigateAfterInteraction from '@libs/Navigation/navigateAfterInteraction';
 import Navigation from '@libs/Navigation/Navigation';
 import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
 import {getReportOrDraftReport, isMoneyRequestReport, isProcessingReport, isReportOutstanding, isSelectedManagerMcTest} from '@libs/ReportUtils';
 import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
-import {setPendingSubmitFollowUpAction} from '@libs/telemetry/submitFollowUpAction';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {
     getRequestType,
@@ -56,14 +51,13 @@ import {
     isOdometerDistanceRequest as isOdometerDistanceRequestTransactionUtils,
     isScanRequest,
 } from '@libs/TransactionUtils';
-import {getIOURequestPolicyID, setMoneyRequestBillable, setMoneyRequestParticipantsFromReport, setMoneyRequestReimbursable, updateLastLocationPermissionPrompt} from '@userActions/IOU';
+import {getIOURequestPolicyID, setMoneyRequestBillable, setMoneyRequestParticipantsFromReport, setMoneyRequestReimbursable} from '@userActions/IOU';
 import {setMoneyRequestReceipt} from '@userActions/IOU/Receipt';
 import {removeDraftTransaction, replaceDefaultDraftTransaction} from '@userActions/TransactionEdit';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {Participant} from '@src/types/onyx/IOU';
 import type {Receipt} from '@src/types/onyx/Transaction';
 import type {FileObject} from '@src/types/utils/Attachment';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
@@ -73,6 +67,7 @@ import ExpenseDefaultsSetter from './confirmation/ExpenseDefaultsSetter';
 import MoneyRequestInitializer from './confirmation/MoneyRequestInitializer';
 import OdometerReceiptStitcher from './confirmation/OdometerReceiptStitcher';
 import ReceiptFileValidator from './confirmation/ReceiptFileValidator';
+import SubmitExpenseOrchestrator from './confirmation/SubmitExpenseOrchestrator';
 import TelemetrySpanManager from './confirmation/TelemetrySpanManager';
 import useExpenseSubmission from './confirmation/useExpenseSubmission';
 import type {WithFullTransactionOrNotFoundProps} from './withFullTransactionOrNotFound';
@@ -188,8 +183,8 @@ function IOURequestStepConfirmation({
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const {showConfirmModal} = useConfirmModal();
-    const [startLocationPermissionFlow, setStartLocationPermissionFlow] = useState(false);
-    const [selectedParticipantList, setSelectedParticipantList] = useState<Participant[]>([]);
+    // isConfirming, selectedParticipantList, and startLocationPermissionFlow state
+    // moved to SubmitExpenseOrchestrator.
 
     const [receiptFiles, setReceiptFiles] = useState<Record<string, Receipt>>({});
     const isDistanceRequest = isDistanceRequestTransactionUtils(transaction);
@@ -208,7 +203,6 @@ function IOURequestStepConfirmation({
     const isTestTransaction = transaction?.participants?.some((participant) => isSelectedManagerMcTest(participant.login));
 
     const gpsRequired = transaction?.amount === 0 && iouType !== CONST.IOU.TYPE.SPLIT && Object.values(receiptFiles).length && !isTestTransaction && isScanRequest(transaction);
-    const [isConfirming, setIsConfirming] = useState(false);
     const [isStitchingReceipt, setIsStitchingReceipt] = useState(false);
     const [stitchError, setStitchError] = useState('');
     const headerTitle = useMemo(() => {
@@ -258,7 +252,7 @@ function IOURequestStepConfirmation({
     const odometerStartImage = transaction?.comment?.odometerStartImage;
     const odometerEndImage = transaction?.comment?.odometerEndImage;
 
-    // Pre-insert is only useful for flows whose submit ends in handleNavigateAfterExpenseCreate
+    // Pre-insert Search is only useful for flows whose submit ends in handleNavigateAfterExpenseCreate
     // (which navigates to Search). Flows that use dismissModalAndOpenReportInInboxTab (PAY,
     // SPLIT-from-global-create, per-diem self-DM track) navigate to a specific report instead,
     // so pre-inserting Search would leave a stale route in the stack.
@@ -295,28 +289,28 @@ function IOURequestStepConfirmation({
 
     const hasPreInsertFired = useRef(false);
     const isTransactionReady = !!transaction;
-
     useEffect(() => {
-        if (
-            hasPreInsertFired.current ||
-            !isTransactionReady ||
-            !getIsNarrowLayout() ||
-            !isFromGlobalCreate ||
-            !canPreInsertSearch ||
-            isReportTopmostSplitNavigator() ||
-            isSearchTopmostFullScreenRoute()
-        ) {
+        if (hasPreInsertFired.current || !isTransactionReady || !getIsNarrowLayout()) {
+            return;
+        }
+
+        // Search pre-insert: global create flows that navigate to Search after submit.
+        // Report pre-insert is intentionally omitted here — it requires the fast-path
+        // handlers (handleReportPreInsert) introduced in the follow-up PR to clear the
+        // pre-insert flag on submit; without them the flag would get stuck.
+        const shouldPreInsertSearch = isFromGlobalCreate && canPreInsertSearch && !isReportTopmostSplitNavigator() && !isSearchTopmostFullScreenRoute();
+
+        if (!shouldPreInsertSearch) {
             return;
         }
 
         hasPreInsertFired.current = true;
 
         const type = iouType === CONST.IOU.TYPE.INVOICE ? CONST.SEARCH.DATA_TYPES.INVOICE : CONST.SEARCH.DATA_TYPES.EXPENSE;
-        const queryString = buildCannedSearchQuery({type});
-        const searchRoute = ROUTES.SEARCH_ROOT.getRoute({query: queryString});
+        const route = ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery({type})});
 
         const timer = setTimeout(() => {
-            Navigation.preInsertFullscreenUnderRHP(searchRoute);
+            Navigation.preInsertFullscreenUnderRHP(route);
         }, CONST.PRE_INSERT_FULLSCREEN_DELAY);
 
         return () => {
@@ -330,8 +324,8 @@ function IOURequestStepConfirmation({
             Navigation.removePreInsertedFullscreenIfNeeded();
         };
         // isFromGlobalCreate, iouType, and canPreInsertSearch are stable for the lifetime of
-        // this screen instance. isTransactionReady may flip from false to true once, which
-        // re-triggers the effect so the pre-insert fires even when the transaction loads late.
+        // this screen instance. isTransactionReady flips once (false → true) as data loads
+        // asynchronously, re-triggering the effect. hasPreInsertFired prevents double-firing.
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isTransactionReady]);
 
@@ -417,46 +411,8 @@ function IOURequestStepConfirmation({
     // To prevent the component from rendering with the wrong currency, we show a loading indicator until the correct currency is set.
     const isLoading = !!transaction?.originalCurrency;
 
-    const onConfirm = (listOfParticipants: Participant[]) => {
-        setIsConfirming(true);
-        setSelectedParticipantList(listOfParticipants);
-
-        if (gpsRequired) {
-            const shouldStartLocationPermissionFlow =
-                !lastLocationPermissionPrompt ||
-                (DateUtils.isValidDateString(lastLocationPermissionPrompt ?? '') &&
-                    DateUtils.getDifferenceInDaysFromNow(new Date(lastLocationPermissionPrompt ?? '')) > CONST.IOU.LOCATION_PERMISSION_PROMPT_THRESHOLD_DAYS);
-
-            if (shouldStartLocationPermissionFlow) {
-                setStartLocationPermissionFlow(true);
-                return;
-            }
-        }
-
-        // Fast path: the Search page was pre-inserted under the RHP (see useEffect above).
-        // Dismiss the RHP immediately so the user sees the Search page, then run the
-        // heavy createTransaction work in the next frame - "dismiss first, compute later".
-        // Reserve the deferred write channel synchronously so that the Search component
-        // always sees hasDeferredWrite=true on mount (on iOS, rAF fires after
-        // startTransition resolves, so without the reservation Search would mount first).
-        if (Navigation.getIsFullscreenPreInsertedUnderRHP()) {
-            setPendingSubmitFollowUpAction(CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.NAVIGATE_TO_SEARCH);
-            Navigation.clearFullscreenPreInsertedFlag();
-            reserveDeferredWriteChannel(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
-            Navigation.dismissModal();
-            requestAnimationFrame(() => {
-                createTransaction(listOfParticipants);
-                setIsConfirming(false);
-            });
-        } else {
-            requestAnimationFrame(() => {
-                createTransaction(listOfParticipants);
-                requestAnimationFrame(() => {
-                    setIsConfirming(false);
-                });
-            });
-        }
-    };
+    // Submit orchestration (fast-path selection, telemetry, navigation) is handled
+    // by SubmitExpenseOrchestrator which wraps MoneyRequestConfirmationList below.
 
     /**
      * Sets the Receipt object when dragging and dropping a file
@@ -627,56 +583,57 @@ function IOURequestStepConfirmation({
                         />
                     </DragAndDropConsumer>
                     {ErrorModal}
-                    {!!gpsRequired && (
-                        <LocationPermissionModal
-                            startPermissionFlow={startLocationPermissionFlow}
-                            resetPermissionFlow={() => setStartLocationPermissionFlow(false)}
-                            onGrant={() => {
-                                navigateAfterInteraction(() => {
-                                    createTransaction(selectedParticipantList, true);
-                                });
-                            }}
-                            onDeny={() => {
-                                updateLastLocationPermissionPrompt();
-                                navigateAfterInteraction(() => {
-                                    createTransaction(selectedParticipantList, false);
-                                });
-                            }}
-                            onInitialGetLocationCompleted={() => {
-                                setIsConfirming(false);
-                            }}
-                        />
-                    )}
                     {!!stitchError && <FormHelpMessage message={stitchError} />}
-                    <MoneyRequestConfirmationList
-                        transaction={transaction}
-                        selectedParticipants={participants}
-                        onToggleBillable={setBillable}
-                        onConfirm={onConfirm}
-                        onSendMoney={sendMoney}
-                        showRemoveExpenseConfirmModal={() => {
-                            confirmRemoveCurrentTransaction();
-                        }}
-                        receiptPath={receiptPath}
-                        receiptFilename={receiptFilename}
+                    <SubmitExpenseOrchestrator
+                        createTransaction={createTransaction}
                         iouType={iouType}
-                        reportID={reportID}
-                        shouldDisplayReceipt={!isMovingTransactionFromTrackExpense && (!isDistanceRequest || isManualDistanceRequest || isOdometerDistanceRequest) && !isPerDiemRequest}
-                        isPolicyExpenseChat={isPolicyExpenseChat}
-                        policyID={policyID}
-                        isOdometerDistanceRequest={isOdometerDistanceRequest}
-                        isLoadingReceipt={isStitchingReceipt}
+                        requestType={requestType}
+                        gpsRequired={!!gpsRequired}
+                        lastLocationPermissionPrompt={lastLocationPermissionPrompt}
+                        isDistanceRequest={isDistanceRequest}
+                        isMovingTransactionFromTrackExpense={isMovingTransactionFromTrackExpense}
+                        isUnreported={isUnreported}
+                        isCategorizingTrackExpense={isCategorizingTrackExpense}
+                        isSharingTrackExpense={isSharingTrackExpense}
                         isPerDiemRequest={isPerDiemRequest}
-                        shouldShowSmartScanFields={shouldShowSmartScanFields}
-                        action={action}
-                        isConfirmed={isConfirmed}
-                        isConfirming={isConfirming}
-                        onToggleReimbursable={setReimbursable}
-                        expensesNumber={transactions.length}
-                        isReceiptEditable
-                        isTimeRequest={isTimeRequest}
-                        shouldHideToSection={shouldHideToSection}
-                    />
+                        receiptFiles={receiptFiles}
+                        isFromGlobalCreateOnTransaction={!!transaction?.isFromGlobalCreate}
+                        isFromFloatingActionButtonOnTransaction={!!transaction?.isFromFloatingActionButton}
+                    >
+                        {({onConfirm, isConfirming}) => (
+                            <MoneyRequestConfirmationList
+                                transaction={transaction}
+                                selectedParticipants={participants}
+                                onToggleBillable={setBillable}
+                                onConfirm={onConfirm}
+                                onSendMoney={sendMoney}
+                                showRemoveExpenseConfirmModal={() => {
+                                    confirmRemoveCurrentTransaction();
+                                }}
+                                receiptPath={receiptPath}
+                                receiptFilename={receiptFilename}
+                                iouType={iouType}
+                                reportID={reportID}
+                                shouldDisplayReceipt={
+                                    !isMovingTransactionFromTrackExpense && (!isDistanceRequest || isManualDistanceRequest || isOdometerDistanceRequest) && !isPerDiemRequest
+                                }
+                                isPolicyExpenseChat={isPolicyExpenseChat}
+                                policyID={policyID}
+                                isOdometerDistanceRequest={isOdometerDistanceRequest}
+                                isLoadingReceipt={isStitchingReceipt}
+                                isPerDiemRequest={isPerDiemRequest}
+                                shouldShowSmartScanFields={shouldShowSmartScanFields}
+                                action={action}
+                                isConfirmed={isConfirmed}
+                                isConfirming={isConfirming}
+                                onToggleReimbursable={setReimbursable}
+                                expensesNumber={transactions.length}
+                                isReceiptEditable
+                                isTimeRequest={isTimeRequest}
+                                shouldHideToSection={shouldHideToSection}
+                            />
+                        )}
+                    </SubmitExpenseOrchestrator>
                 </View>
             </DragAndDropProvider>
         </ScreenWrapper>
