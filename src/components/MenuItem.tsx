@@ -10,7 +10,6 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import ControlSelection from '@libs/ControlSelection';
 import convertToLTR from '@libs/convertToLTR';
 import {canUseTouchScreen, hasHoverSupport} from '@libs/DeviceCapabilities';
@@ -615,8 +614,7 @@ function MenuItem({
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const combinedStyle = [styles.popoverMenuItem, style];
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const {isSmallScreenWidth} = useWindowDimensions();
+    const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
     const {isExecuting} = useMenuItemGroupState() ?? {};
     const {singleExecution, waitForNavigate} = useMenuItemGroupActions() ?? {};
     const popoverAnchor = useRef<View>(null);
