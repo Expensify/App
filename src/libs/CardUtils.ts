@@ -197,18 +197,27 @@ function getCardDescriptionForSearchTable(card: Card, translate: LocalizedTransl
 }
 
 /**
- * @param transactionCardName
- * @param cardID
- * @param cards
- * @returns company card name
+ * Returns the formatted card name for a company card. Returns an empty string
+ * if the card is not a real card, but a cash expense
  */
-function getCompanyCardDescription(transactionCardName?: string, cardID?: number, cards?: CardList) {
-    if (!cardID || !cards?.[cardID] || isExpensifyCard(cards[cardID])) {
-        return transactionCardName;
+function getCompanyCardDescription(translate: LocalizedTranslate, transactionCardName?: string, cardID?: number, cards?: CardList) {
+    const formattedTransactionCardName = transactionCardName === CONST.EXPENSE.TYPE.CASH_CARD_NAME ? '' : transactionCardName;
+
+    if (!cardID || !cards?.[cardID]) {
+        return formattedTransactionCardName;
     }
+
     const card = cards[cardID];
 
-    return card.cardName;
+    if (isTravelCard(card)) {
+        return translate('cardTransactions.centralInvoicing');
+    }
+
+    if (isExpensifyCard(card)) {
+        return formattedTransactionCardName;
+    }
+
+    return card.cardName === CONST.EXPENSE.TYPE.CASH_CARD_NAME ? '' : card.cardName;
 }
 
 function isCard(item: Card | Record<string, string>): item is Card {
@@ -1660,15 +1669,10 @@ function getCardHintText(validFrom: string | undefined, validThru: string | unde
 
 /**
  * Resolves card-related fields on transactions for report layout display.
- * The search API pre-resolves cardName and isCardFeedDeleted, but local Onyx transactions have raw values.
+ * The search API pre-resolves cardName, but local Onyx transactions have raw values.
  * This ensures the report layout matches the search page.
  */
-function resolveTransactionCardFields<T extends Transaction>(
-    transactions: T[],
-    cardList: CardList | undefined,
-    cardFeeds: OnyxCollection<CardFeeds> | undefined,
-    translate: LocalizedTranslate,
-): Array<T & {isCardFeedDeleted?: boolean}> {
+function resolveTransactionCardFields<T extends Transaction>(transactions: T[], cardList: CardList | undefined, translate: LocalizedTranslate): Array<T & {isCardFeedDeleted?: boolean}> {
     return transactions.map((transaction) => {
         let updates: Partial<T & {isCardFeedDeleted?: boolean}> = {};
 
@@ -1683,14 +1687,10 @@ function resolveTransactionCardFields<T extends Transaction>(
             }
         }
 
-        // Resolve isCardFeedDeleted
-        if (cardFeeds !== undefined) {
-            updates = {...updates, isCardFeedDeleted: !!transaction.bank && !doesCardFeedExist(transaction.bank as CompanyCardFeed, cardFeeds)};
-        }
-
         if (Object.keys(updates).length === 0) {
             return transaction;
         }
+
         return {...transaction, ...updates};
     });
 }
