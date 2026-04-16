@@ -4555,21 +4555,6 @@ function getCurrencyOptions(currencyList: OnyxTypes.CurrencyList, getCurrencySym
     );
 }
 
-function getFeedOptions(
-    allCardFeeds: OnyxCollection<OnyxTypes.CardFeeds>,
-    allCards: OnyxTypes.CardList | undefined,
-    translate: LocalizedTranslate,
-    localeCompare: LocaleContextProps['localeCompare'],
-    feedKeysWithCards?: FeedKeysWithAssignedCards,
-) {
-    return Object.values(getCardFeedsForDisplay(allCardFeeds, allCards, translate, feedKeysWithCards))
-        .map<SingleSelectItem<string>>((cardFeed) => ({
-            text: cardFeed.name,
-            value: cardFeed.id,
-        }))
-        .sort((a, b) => localeCompare(a.text, b.text));
-}
-
 function getDatePresets(filterKey: SearchDateFilterKeys, hasFeed: boolean): SearchDatePreset[] {
     const commonPresets = [CONST.SEARCH.DATE_PRESETS.THIS_MONTH, CONST.SEARCH.DATE_PRESETS.LAST_MONTH, CONST.SEARCH.DATE_PRESETS.YEAR_TO_DATE, CONST.SEARCH.DATE_PRESETS.LAST_12_MONTHS];
 
