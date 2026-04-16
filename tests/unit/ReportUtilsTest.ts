@@ -15898,7 +15898,7 @@ describe('ReportUtils', () => {
                     policy: testPolicy,
                     userBillingGracePeriodEnds: undefined,
                     draftTransactionIDs: undefined,
-                    amountOwed: undefined,
+                    amountOwed: 100,
                     ownerBillingGracePeriodEnd: gracePeriodEnd,
                 });
                 options.at(2)?.onSelected?.();

@@ -284,8 +284,15 @@ function insertTagIntoTransactionTagsString(transactionTags: string, tag: string
         return tag;
     }
 
-    const tagArray = getTagArrayFromName(transactionTags);
+    const tagArray = transactionTags ? getTagArrayFromName(transactionTags) : [];
     tagArray[tagIndex] = tag;
+
+    // Fill any sparse slots created when tagIndex > tagArray.length
+    for (let i = 0; i < tagArray.length; i++) {
+        if (tagArray.at(i) === undefined) {
+            tagArray[i] = '';
+        }
+    }
 
     while (tagArray.length > 0 && !tagArray.at(-1)) {
         tagArray.pop();
