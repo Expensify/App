@@ -314,7 +314,7 @@ function IOURequestStepConfirmation({
     const isEditingReceipt = hasReceipt(transaction);
     const customUnitRateID = getRateID(transaction) ?? '';
     const defaultTaxCode = getDefaultTaxCode(policy, transaction);
-    const transactionTaxCode = (transaction?.taxCode ? transaction?.taxCode : defaultTaxCode) ?? '';
+    const transactionTaxCode = isTimeRequest ? '' : ((transaction?.taxCode ? transaction?.taxCode : defaultTaxCode) ?? '');
     const transactionTaxAmount = transaction?.taxAmount ?? 0;
     const transactionTaxValue = transaction?.taxValue ?? getTaxValue(policy, transaction, transactionTaxCode) ?? '';
     const isSharingTrackExpense = action === CONST.IOU.ACTION.SHARE;
