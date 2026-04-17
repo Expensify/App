@@ -1832,11 +1832,10 @@ function updateSplitTransactions({
                 commentActions: allCommentActionsFromOriginalTransactionThread,
                 isSourceTransactionOnHold: isTransactionOnHold,
             });
-            // Use the actual count of actions being copied rather than firstIOU.childVisibleActionCount,
-            // which can be undefined or stale (e.g. for unreported expenses). When the original transaction
-            // is on hold, addHoldToTransactionThread inserts an extra HOLD action in addition to the hold
-            // comment already counted in allCommentActionsFromOriginalTransactionThread.
-            const copiedActionCount = allCommentActionsFromOriginalTransactionThread.length + (isTransactionOnHold && !!holdReportAction ? 1 : 0);
+            // Only count visible (ADD_COMMENT) actions — HOLD actions are system actions and not visible.
+            // Fall back to firstIOU.childVisibleActionCount when thread actions are unavailable in Onyx
+            // (e.g., cleared before the split completes).
+            const copiedActionCount = allCommentActionsFromOriginalTransactionThread.length || (firstIOU?.childVisibleActionCount ?? 0);
             updatedIOUAction = updateParentActions(iouAction, copiedActionCount);
         }
 
