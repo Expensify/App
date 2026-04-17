@@ -1,13 +1,16 @@
-import React, {useState} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
+import useDebouncedState from '@hooks/useDebouncedState';
+import useInitialSelection from '@hooks/useInitialSelection';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import searchOptions from '@libs/searchOptions';
 import type {Option} from '@libs/searchOptions';
+import {moveInitialSelectionToTopByValue} from '@libs/SelectionListOrderUtils';
 import StringUtils from '@libs/StringUtils';
 import Text from '@src/components/Text';
 import type {TranslationPaths} from '@src/languages/types';
@@ -36,7 +39,9 @@ function CountrySelectionList({isEditing, selectedCountry, countries, onCountryS
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const styles = useThemeStyles();
-    const [searchValue, setSearchValue] = useState('');
+    const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
+    const initialSelectedValue = useInitialSelection(selectedCountry ?? undefined, {resetOnFocus: true});
+    const initialSelectedValues = initialSelectedValue ? [initialSelectedValue] : [];
 
     const onSelectionChange = (country: Option) => {
         onCountrySelected(country.value);
@@ -53,13 +58,14 @@ function CountrySelectionList({isEditing, selectedCountry, countries, onCountryS
         };
     });
 
-    const searchResults = searchOptions(searchValue, countriesList);
+    const orderedCountries = moveInitialSelectionToTopByValue(countriesList, initialSelectedValues);
+    const searchResults = searchOptions(debouncedSearchValue, debouncedSearchValue ? countriesList : orderedCountries);
 
     const textInputOptions = {
         label: translate('common.search'),
         value: searchValue,
         onChangeText: setSearchValue,
-        headerMessage: searchValue.trim() && !searchResults.length ? translate('common.noResultsFound') : '',
+        headerMessage: debouncedSearchValue.trim() && !searchResults.length ? translate('common.noResultsFound') : '',
     };
 
     const confirmButtonOptions = {
@@ -79,12 +85,15 @@ function CountrySelectionList({isEditing, selectedCountry, countries, onCountryS
                 ListItem={RadioListItem}
                 onSelectRow={onSelectionChange}
                 textInputOptions={textInputOptions}
+                searchValueForFocusSync={debouncedSearchValue}
                 confirmButtonOptions={confirmButtonOptions}
-                initiallyFocusedItemKey={selectedCountry}
+                initiallyFocusedItemKey={initialSelectedValue}
                 footerContent={footerContent}
                 disableMaintainingScrollPosition
-                shouldSingleExecuteRowSelect
                 shouldUpdateFocusedIndex
+                shouldSingleExecuteRowSelect
+                shouldScrollToFocusedIndex={false}
+                shouldScrollToFocusedIndexOnMount={false}
                 shouldStopPropagation
             />
         </FullPageOfflineBlockingView>

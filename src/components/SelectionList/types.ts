@@ -56,6 +56,9 @@ type BaseSelectionListProps<TItem extends ListItem> = {
     /** Configuration options for the text input */
     textInputOptions?: TextInputOptions;
 
+    /** Search value used for focus synchronization. Defaults to textInputOptions.value */
+    searchValueForFocusSync?: string;
+
     /** Whether to show the text input */
     shouldShowTextInput?: boolean;
 
