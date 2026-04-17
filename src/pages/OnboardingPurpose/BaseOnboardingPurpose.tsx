@@ -18,6 +18,7 @@ import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import OnboardingRefManager from '@libs/OnboardingRefManager';
 import type {TOnboardingRef} from '@libs/OnboardingRefManager';
@@ -26,7 +27,7 @@ import {completeOnboarding} from '@userActions/Report';
 import {setOnboardingErrorMessage, setOnboardingPurposeSelected} from '@userActions/Welcome';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {OnboardingPurpose} from '@src/types/onyx';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
@@ -43,7 +44,7 @@ function getOnboardingChoices(customChoices: OnboardingPurpose[]) {
     return selectableOnboardingChoices.filter((choice) => customChoices.includes(choice));
 }
 
-function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, route}: BaseOnboardingPurposeProps) {
+function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight}: BaseOnboardingPurposeProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const illustrations = useMemoizedLazyIllustrations(['Abacus', 'Binoculars', 'ReceiptUpload', 'PiggyBank', 'SplitBill']);
@@ -98,7 +99,7 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
                 setOnboardingPurposeSelected(choice);
                 setOnboardingErrorMessage(null);
                 if (choice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM) {
-                    Navigation.navigate(ROUTES.ONBOARDING_EMPLOYEES.getRoute(route.params?.backTo));
+                    Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.ONBOARDING_EMPLOYEES.path));
                     return;
                 }
 
@@ -123,7 +124,7 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
                     return;
                 }
 
-                Navigation.navigate(ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute(route.params?.backTo));
+                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.ONBOARDING_PERSONAL_DETAILS.path));
             },
         };
     });

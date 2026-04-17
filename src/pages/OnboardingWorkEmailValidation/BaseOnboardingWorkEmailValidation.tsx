@@ -14,12 +14,13 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import AccountUtils from '@libs/AccountUtils';
 import {openOldDotLink} from '@libs/actions/Link';
 import {setOnboardingErrorMessage, setOnboardingMergeAccountStepValue, updateOnboardingValuesAndNavigation} from '@libs/actions/Welcome';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {MergeIntoAccountAndLogin} from '@userActions/Session';
 import {resendValidateCode} from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {BaseOnboardingWorkEmailValidationProps} from './types';
 
@@ -53,12 +54,12 @@ function BaseOnboardingWorkEmailValidation({shouldUseNativeStyles}: BaseOnboardi
         // Once we verify that shouldValidate is false, we need to force replace the screen
         // so that we don't navigate back on back button press
         if (isVsb) {
-            Navigation.navigate(ROUTES.ONBOARDING_ACCOUNTING.getRoute(), {forceReplace: true});
+            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.ONBOARDING_ACCOUNTING.path), {forceReplace: true});
             return;
         }
 
         if (isSmb) {
-            Navigation.navigate(ROUTES.ONBOARDING_EMPLOYEES.getRoute(), {forceReplace: true});
+            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.ONBOARDING_EMPLOYEES.path), {forceReplace: true});
             return;
         }
 

@@ -52,7 +52,7 @@ function OnboardingModalNavigator() {
     let initialRouteName: ValueOf<typeof SCREENS.ONBOARDING> = SCREENS.ONBOARDING.PURPOSE;
 
     if (isOnPrivateDomainAndHasAccessiblePolicies) {
-        initialRouteName = SCREENS.ONBOARDING.PERSONAL_DETAILS;
+        initialRouteName = SCREENS.ONBOARDING.DYNAMIC_PERSONAL_DETAILS;
     }
 
     if (account?.isFromPublicDomain) {
@@ -129,7 +129,7 @@ function OnboardingModalNavigator() {
                                 component={OnboardingPurpose}
                             />
                             <Stack.Screen
-                                name={SCREENS.ONBOARDING.PERSONAL_DETAILS}
+                                name={SCREENS.ONBOARDING.DYNAMIC_PERSONAL_DETAILS}
                                 component={OnboardingPersonalDetails}
                             />
                             <Stack.Screen
@@ -141,7 +141,7 @@ function OnboardingModalNavigator() {
                                 component={OnboardingWorkEmailValidation}
                             />
                             <Stack.Screen
-                                name={SCREENS.ONBOARDING.PRIVATE_DOMAIN}
+                                name={SCREENS.ONBOARDING.DYNAMIC_PRIVATE_DOMAIN}
                                 component={OnboardingPrivateDomain}
                             />
                             <Stack.Screen
@@ -149,11 +149,11 @@ function OnboardingModalNavigator() {
                                 component={OnboardingWorkspaces}
                             />
                             <Stack.Screen
-                                name={SCREENS.ONBOARDING.EMPLOYEES}
+                                name={SCREENS.ONBOARDING.DYNAMIC_EMPLOYEES}
                                 component={OnboardingEmployees}
                             />
                             <Stack.Screen
-                                name={SCREENS.ONBOARDING.ACCOUNTING}
+                                name={SCREENS.ONBOARDING.DYNAMIC_ACCOUNTING}
                                 component={OnboardingAccounting}
                             />
                             <Stack.Screen

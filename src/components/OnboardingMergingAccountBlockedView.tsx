@@ -3,11 +3,12 @@ import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';
 import {setOnboardingErrorMessage} from '@userActions/Welcome';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import BlockingView from './BlockingViews/BlockingView';
 import Button from './Button';
 
@@ -51,7 +52,7 @@ function OnboardingMergingAccountBlockedView({workEmail, isVsb}: OnboardingMergi
                 onPress={() => {
                     setOnboardingErrorMessage(null);
                     if (isVsb) {
-                        Navigation.navigate(ROUTES.ONBOARDING_ACCOUNTING.getRoute());
+                        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.ONBOARDING_ACCOUNTING.path));
                         return;
                     }
                     Navigation.navigate(ROUTES.ONBOARDING_PURPOSE.getRoute());

@@ -2823,14 +2823,11 @@ type DomainSplitNavigatorParamList = {
 };
 
 type OnboardingModalNavigatorParamList = {
-    [SCREENS.ONBOARDING.PERSONAL_DETAILS]: {
+    [SCREENS.ONBOARDING.DYNAMIC_PERSONAL_DETAILS]: {
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
         backTo?: string;
     };
-    [SCREENS.ONBOARDING.PRIVATE_DOMAIN]: {
-        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
-        backTo?: string;
-    };
+    [SCREENS.ONBOARDING.DYNAMIC_PRIVATE_DOMAIN]: undefined;
     [SCREENS.ONBOARDING.WORKSPACES]: {
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
         backTo?: string;
@@ -2839,14 +2836,8 @@ type OnboardingModalNavigatorParamList = {
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
         backTo?: string;
     };
-    [SCREENS.ONBOARDING.EMPLOYEES]: {
-        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
-        backTo?: string;
-    };
-    [SCREENS.ONBOARDING.ACCOUNTING]: {
-        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
-        backTo?: string;
-    };
+    [SCREENS.ONBOARDING.DYNAMIC_EMPLOYEES]: undefined;
+    [SCREENS.ONBOARDING.DYNAMIC_ACCOUNTING]: undefined;
     [SCREENS.ONBOARDING.INTERESTED_FEATURES]: {
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
         backTo?: string;

@@ -14,7 +14,7 @@ import IntlStore from '@src/languages/IntlStore';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import {hasCompletedGuidedSetupFlowSelector} from '@src/selectors/Onboarding';
 import type {Locale, Onboarding} from '@src/types/onyx';
 
@@ -134,26 +134,27 @@ function getOnboardingInitialPath(getOnboardingInitialPathParams: GetOnboardingI
         if (onboardingInitialPath) {
             return onboardingInitialPath;
         }
-        return `/${ROUTES.ONBOARDING_PERSONAL_DETAILS.route}`;
+        return `/${ROUTES.ONBOARDING_PURPOSE.route}/${DYNAMIC_ROUTES.ONBOARDING_PERSONAL_DETAILS.path}`;
     }
 
     if (isVsb) {
-        return `/${ROUTES.ONBOARDING_ACCOUNTING.route}`;
+        return `/${ROUTES.ONBOARDING_PURPOSE.route}/${DYNAMIC_ROUTES.ONBOARDING_ACCOUNTING.path}`;
     }
+
     if (isSmb) {
-        return `/${ROUTES.ONBOARDING_EMPLOYEES.route}`;
+        return `/${ROUTES.ONBOARDING_PURPOSE.route}/${DYNAMIC_ROUTES.ONBOARDING_EMPLOYEES.path}`;
     }
 
     if (state?.routes?.at(-1)?.name !== NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR) {
         return `/${ROUTES.ONBOARDING_ROOT.route}`;
     }
 
-    if (onboardingInitialPath.includes(ROUTES.ONBOARDING_EMPLOYEES.route) && currentOnboardingPurposeSelected !== null && !isCurrentOnboardingPurposeManageTeam) {
+    if (onboardingInitialPath.includes(`/${DYNAMIC_ROUTES.ONBOARDING_EMPLOYEES.path}`) && currentOnboardingPurposeSelected !== null && !isCurrentOnboardingPurposeManageTeam) {
         return `/${ROUTES.ONBOARDING_PURPOSE.route}`;
     }
 
     if (
-        onboardingInitialPath.includes(ROUTES.ONBOARDING_ACCOUNTING.route) &&
+        onboardingInitialPath.includes(`/${DYNAMIC_ROUTES.ONBOARDING_ACCOUNTING.path}`) &&
         ((currentOnboardingPurposeSelected !== null && !isCurrentOnboardingPurposeManageTeam) || (currentOnboardingCompanySize === null && currentOnboardingPurposeSelected !== null))
     ) {
         return `/${ROUTES.ONBOARDING_PURPOSE.route}`;

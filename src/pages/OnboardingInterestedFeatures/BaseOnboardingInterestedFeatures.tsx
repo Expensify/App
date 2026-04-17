@@ -34,11 +34,11 @@ import {isPaidGroupPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import type {Route} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {BaseOnboardingInterestedFeaturesProps, Feature, SectionObject} from './types';
 
-function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardingInterestedFeaturesProps) {
+function BaseOnboardingInterestedFeatures({shouldUseNativeStyles, route}: BaseOnboardingInterestedFeaturesProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {onboardingMessages} = useOnboardingMessages();
@@ -389,7 +389,7 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
                 shouldShowBackButton
                 stepCounter={onboardingStep?.stepCounter}
                 progressBarPercentage={onboardingStep?.progressBarPercentage}
-                onBackButtonPress={() => Navigation.goBack(ROUTES.ONBOARDING_ACCOUNTING.getRoute())}
+                onBackButtonPress={() => Navigation.goBack(route.params?.backTo as Route | undefined)}
                 shouldDisplayHelpButton={false}
             />
             <View style={[onboardingIsMediumOrLargerScreenWidth && styles.mt5, onboardingIsMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5]}>

@@ -9,13 +9,14 @@ import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import {CurrentReportIDContextProvider} from '@hooks/useCurrentReportID';
 import * as useResponsiveLayoutModule from '@hooks/useResponsiveLayout';
 import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import type {OnboardingModalNavigatorParamList} from '@libs/Navigation/types';
 import OnboardingWorkspaces from '@pages/OnboardingWorkspaces';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
@@ -91,7 +92,7 @@ describe('OnboardingWorkspaces Page', () => {
         fireEvent.press(skipButton, mockEvent);
 
         await waitFor(() => {
-            expect(navigate).toHaveBeenCalledWith(ROUTES.ONBOARDING_EMPLOYEES.getRoute());
+            expect(navigate).toHaveBeenCalledWith(createDynamicRoute(DYNAMIC_ROUTES.ONBOARDING_EMPLOYEES.path));
         });
 
         unmount();
@@ -124,7 +125,7 @@ describe('OnboardingWorkspaces Page', () => {
         fireEvent.press(skipButton, mockEvent);
 
         await waitFor(() => {
-            expect(navigate).toHaveBeenCalledWith(ROUTES.ONBOARDING_ACCOUNTING.getRoute());
+            expect(navigate).toHaveBeenCalledWith(createDynamicRoute(DYNAMIC_ROUTES.ONBOARDING_ACCOUNTING.path));
         });
 
         unmount();
@@ -141,7 +142,9 @@ describe('OnboardingWorkspaces Page', () => {
             });
         });
 
-        const {unmount} = renderOnboardingWorkspacesPage(SCREENS.ONBOARDING.WORKSPACES, {backTo: ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute()});
+        const {unmount} = renderOnboardingWorkspacesPage(SCREENS.ONBOARDING.WORKSPACES, {
+            backTo: `${ROUTES.ONBOARDING_PURPOSE.route}/${DYNAMIC_ROUTES.ONBOARDING_PERSONAL_DETAILS.path}`,
+        });
 
         await waitForBatchedUpdatesWithAct();
 
@@ -162,7 +165,9 @@ describe('OnboardingWorkspaces Page', () => {
             });
         });
 
-        const {unmount} = renderOnboardingWorkspacesPage(SCREENS.ONBOARDING.WORKSPACES, {backTo: ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute()});
+        const {unmount} = renderOnboardingWorkspacesPage(SCREENS.ONBOARDING.WORKSPACES, {
+            backTo: `${ROUTES.ONBOARDING_PURPOSE.route}/${DYNAMIC_ROUTES.ONBOARDING_PERSONAL_DETAILS.path}`,
+        });
 
         await waitForBatchedUpdatesWithAct();
 
