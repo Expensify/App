@@ -110,6 +110,7 @@ import {
     getAllTransactionViolations,
     getCurrentUserEmail,
     getMoneyRequestInformation,
+    getMoneyRequestPolicyTags,
     getReceiptError,
     getReportPreviewAction,
     getSearchOnyxUpdate,
@@ -206,6 +207,7 @@ type DeleteTrackExpenseParams = {
     isChatIOUReportArchived: boolean | undefined;
     allTransactionViolationsParam: OnyxCollection<OnyxTypes.TransactionViolations>;
     currentUserAccountID: number;
+    currentUserEmail: string;
 };
 
 type BuildOnyxDataForTrackExpenseParams = {
@@ -1644,7 +1646,16 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
         parentChatReport: isMovingTransactionFromTrackExpense ? undefined : currentChatReport,
         existingIOUReport,
         participantParams,
-        policyParams,
+        policyParams: {
+            ...policyParams,
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
+            policyTagList: getMoneyRequestPolicyTags({
+                existingIOUReport,
+                moneyRequestReportID,
+                parentChatReport: isMovingTransactionFromTrackExpense ? undefined : currentChatReport,
+                participant: participantParams.participant,
+            }),
+        },
         transactionParams,
         moneyRequestReportID,
         existingTransactionID,
@@ -1998,6 +2009,14 @@ function convertBulkTrackedExpensesToIOU({
             policyRecentlyUsedCurrencies,
             personalDetails,
             betas,
+            policyParams: {
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
+                policyTagList: getMoneyRequestPolicyTags({
+                    moneyRequestReportID: iouReportID,
+                    parentChatReport: chatReport,
+                    participant: participantParams.participant,
+                }),
+            },
         });
 
         const isDistanceRequest = isDistanceRequestTransactionUtils(transaction);
@@ -2660,6 +2679,7 @@ function deleteTrackExpense({
     isChatIOUReportArchived,
     allTransactionViolationsParam,
     currentUserAccountID,
+    currentUserEmail,
 }: DeleteTrackExpenseParams) {
     if (!chatReportID || !transactionID) {
         return;
@@ -2672,8 +2692,8 @@ function deleteTrackExpense({
         reportAction,
         iouReport,
         chatIOUReport,
-        isSingleTransactionView,
         isChatIOUReportArchived,
+        isSingleTransactionView,
     );
 
     // STEP 1: Get all collections we're updating
@@ -2689,7 +2709,7 @@ function deleteTrackExpense({
             isSingleTransactionView,
             allTransactionViolationsParam,
             currentUserAccountID,
-            currentUserEmail: getCurrentUserEmail(),
+            currentUserEmail,
         });
         return urlToNavigateBack;
     }

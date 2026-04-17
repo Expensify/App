@@ -35,13 +35,11 @@ function EnablePaymentsPage() {
             return;
         }
 
-        if (isEmptyObject(userWallet)) {
-            openEnablePaymentsPage();
-        }
-    }, [isOffline, userWallet]);
+        openEnablePaymentsPage();
+    }, [isOffline]);
 
     const isUserWalletEmpty = isEmptyObject(userWallet);
-    if (isUserWalletEmpty) {
+    if (isUserWalletEmpty || userWallet?.isLoading) {
         const reasonAttributes: SkeletonSpanReasonAttributes = {
             context: 'EnablePaymentsPage',
             isUserWalletEmpty,
