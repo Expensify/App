@@ -1,5 +1,5 @@
 import type {RefObject} from 'react';
-import {useEffect, useLayoutEffect, useRef, useState} from 'react';
+import {useEffect, useLayoutEffect, useState} from 'react';
 import {DeviceEventEmitter} from 'react-native';
 import {wasMessageReceivedWhileOffline} from '@libs/ReportActionsUtils';
 import {getUnreadMarkerReportAction} from '@pages/inbox/report/shouldDisplayNewMarkerOnReportAction';
@@ -102,11 +102,6 @@ function useUnreadMarker({reportID, sortedVisibleReportActions, sortedReportActi
         }
     }
 
-    // Tracks the previous render's computed marker ID. The value is written in a post-commit
-    // effect (below) so render stays side-effect free. getUnreadMarkerReportAction only null-checks
-    // this value, so staleness by one render is harmless.
-    const prevUnreadMarkerReportActionIDRef = useRef<string | null>(null);
-
     const [unreadMarkerReportActionID, unreadMarkerReportActionIndex] = getUnreadMarkerReportAction({
         visibleReportActions: sortedVisibleReportActions,
         earliestReceivedOfflineMessageIndex,
@@ -114,15 +109,10 @@ function useUnreadMarker({reportID, sortedVisibleReportActions, sortedReportActi
         prevSortedVisibleReportActionsObjects,
         unreadMarkerTime,
         scrollingVerticalOffset: scrollingVerticalOffset.current ?? 0,
-        prevUnreadMarkerReportActionID: prevUnreadMarkerReportActionIDRef.current,
         isOffline,
         isReversed: false,
         isAnonymousUser,
     });
-
-    useEffect(() => {
-        prevUnreadMarkerReportActionIDRef.current = unreadMarkerReportActionID;
-    }, [unreadMarkerReportActionID]);
 
     /**
      * When the user reads a new message as it is received, push unreadMarkerTime down to the

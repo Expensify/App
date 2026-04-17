@@ -24,9 +24,6 @@ type ShouldDisplayNewMarkerOnReportActionParams = {
     /** Current value for vertical offset */
     scrollingVerticalOffset: number;
 
-    /** The id of reportAction that was last marked as read */
-    prevUnreadMarkerReportActionID: string | null;
-
     /** Whether the network is offline */
     isOffline: boolean;
 };
@@ -42,7 +39,6 @@ const shouldDisplayNewMarkerOnReportAction = ({
     unreadMarkerTime,
     currentUserAccountID,
     prevSortedVisibleReportActionsObjects,
-    prevUnreadMarkerReportActionID,
     scrollingVerticalOffset,
     isOffline,
 }: ShouldDisplayNewMarkerOnReportActionParams): boolean => {
@@ -69,7 +65,7 @@ const shouldDisplayNewMarkerOnReportAction = ({
         return action?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD;
     };
 
-    // If no unread marker exists, don't set an unread marker for newly added messages from the current user.
+    // Don't set an unread marker for newly added messages from the current user.
     const isFromCurrentUser = currentUserAccountID === (isReportPreviewAction(message) ? message.childLastActorAccountID : message.actorAccountID);
     const isNewMessage = !prevSortedVisibleReportActionsObjects[message.reportActionID];
 
@@ -80,7 +76,18 @@ const shouldDisplayNewMarkerOnReportAction = ({
     const isPreviouslyOptimistic =
         (isPendingAdd(prevSortedVisibleReportActionsObjects[message.reportActionID]) && !isPendingAdd(message)) ||
         (!!prevSortedVisibleReportActionsObjects[message.reportActionID]?.isOptimisticAction && !message.isOptimisticAction);
-    const shouldIgnoreUnreadForCurrentUserMessage = !prevUnreadMarkerReportActionID && isFromCurrentUser && (isNewMessage || isPreviouslyOptimistic);
+
+    // BEHAVIOR CHANGE vs. the pre-migration logic:
+    // The original implementation gated this suppression on "no marker has ever been placed"
+    // (`!prevUnreadMarkerReportActionID`). That gate allowed the marker to land on the user's own
+    // just-sent message in a narrow corner case (a prior marker existed on someone else's message,
+    // that message then became read, and the only remaining unread was the user's own new message).
+    // The gate was undocumented, only observable in rare edge cases, and produced UX that most users
+    // would read as a bug (a "new messages" marker on your own just-sent message). Removing it makes
+    // the rule consistent: the marker NEVER lands on the user's own new or just-confirmed message —
+    // regardless of whether a marker existed previously. This also removes path-dependent state
+    // (previous render's marker ID) from the hook, eliminating a useRef + effect-write workaround.
+    const shouldIgnoreUnreadForCurrentUserMessage = isFromCurrentUser && (isNewMessage || isPreviouslyOptimistic);
 
     if (isFromCurrentUser) {
         return !shouldIgnoreUnreadForCurrentUserMessage;
@@ -110,9 +117,6 @@ type GetUnreadMarkerReportActionParams = {
     /** Current value for vertical offset */
     scrollingVerticalOffset: number;
 
-    /** The id of reportAction that was last marked as read */
-    prevUnreadMarkerReportActionID: string | null;
-
     /** Whether the network is offline */
     isOffline: boolean;
 
@@ -134,7 +138,6 @@ const getUnreadMarkerReportAction = ({
     prevSortedVisibleReportActionsObjects,
     unreadMarkerTime,
     scrollingVerticalOffset,
-    prevUnreadMarkerReportActionID,
     isOffline,
     isReversed,
     isAnonymousUser = false,
@@ -176,7 +179,6 @@ const getUnreadMarkerReportAction = ({
                 prevSortedVisibleReportActionsObjects,
                 unreadMarkerTime,
                 scrollingVerticalOffset,
-                prevUnreadMarkerReportActionID,
                 isOffline,
             });
 
