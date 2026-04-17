@@ -1116,6 +1116,15 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
             key: `${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReport.reportID}`,
             value: {
                 lastActorAccountID: updatedReportAction.actorAccountID,
+                lastVisibleActionCreated: updatedReportAction.created,
+            },
+        });
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReport.reportID}`,
+            value: {
+                lastActorAccountID: transactionThreadReport.lastActorAccountID,
+                lastVisibleActionCreated: transactionThreadReport.lastVisibleActionCreated,
             },
         });
     }
