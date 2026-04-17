@@ -1,4 +1,5 @@
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import {isExportRelevantAction} from '@libs/ReportActionsUtils';
 import {isApproveAction, isExportAction, isPrimaryPayAction, isSubmitAction} from '@libs/ReportPrimaryActionUtils';
 import {hasOnlyNonReimbursableTransactions} from '@libs/ReportUtils';
 import createOnyxDerivedValueConfig from '@userActions/OnyxDerived/createOnyxDerivedValueConfig';
@@ -87,6 +88,86 @@ const createTodosReportsAndTransactions = ({
     return {reportsToSubmit, reportsToApprove, reportsToPay, reportsToExport, transactionsByReportID};
 };
 
+// Previous snapshots used to diff and find only new/changed data
+let prevReportActions: OnyxCollection<ReportActions>;
+let prevReports: OnyxCollection<Report>;
+let prevReportMetadata: OnyxCollection<ReportMetadata>;
+
+// Report fields that affect todos (submit/approve/pay/export checks).
+// Changes to other fields (lastMessageText, lastReadTime, etc.) are irrelevant.
+const TODO_RELEVANT_REPORT_KEYS: ReadonlyArray<keyof Report> = [
+    'type',
+    'reportID',
+    'stateNum',
+    'statusNum',
+    'ownerAccountID',
+    'managerID',
+    'policyID',
+    'chatReportID',
+    'iouReportID',
+    'isWaitingOnBankAccount',
+    'isExportedToIntegration',
+    'hasExportError',
+    'total',
+    'nonReimbursableTotal',
+];
+
+function hasNewExportRelevantActions(changedReportKeys: string[], allReportActions: OnyxCollection<ReportActions>): boolean {
+    for (const reportKey of changedReportKeys) {
+        const currentActions = allReportActions?.[reportKey];
+        const previousActions = prevReportActions?.[reportKey];
+        if (!currentActions && !previousActions) {
+            continue;
+        }
+        // Check added or changed actions
+        for (const [actionID, action] of Object.entries(currentActions ?? {})) {
+            if (previousActions?.[actionID] !== action && isExportRelevantAction(action)) {
+                return true;
+            }
+        }
+        // Check deleted actions
+        for (const [actionID, action] of Object.entries(previousActions ?? {})) {
+            if (!currentActions?.[actionID] && isExportRelevantAction(action)) {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+function hasTodoRelevantMetadataChange(changedKeys: string[], allReportMetadata: OnyxCollection<ReportMetadata>): boolean {
+    for (const key of changedKeys) {
+        const current = allReportMetadata?.[key];
+        const previous = prevReportMetadata?.[key];
+        if (current?.pendingExpenseAction !== previous?.pendingExpenseAction) {
+            return true;
+        }
+    }
+    return false;
+}
+
+function hasTodoRelevantReportChange(changedReportKeys: string[], allReports: OnyxCollection<Report>): boolean {
+    for (const reportKey of changedReportKeys) {
+        const currentReport = allReports?.[reportKey];
+        const previousReport = prevReports?.[reportKey];
+        if (!currentReport || !previousReport) {
+            return true;
+        }
+        for (const field of TODO_RELEVANT_REPORT_KEYS) {
+            const currentFieldValue = currentReport[field];
+            const previousFieldValue = previousReport[field];
+            if (currentFieldValue !== previousFieldValue) {
+                // managerID: 0 and undefined/null both mean "not set"
+                if (field === 'managerID' && !currentFieldValue && !previousFieldValue) {
+                    continue;
+                }
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
 export default createOnyxDerivedValueConfig({
     key: ONYXKEYS.DERIVED.TODOS,
     dependencies: [
@@ -100,7 +181,36 @@ export default createOnyxDerivedValueConfig({
         ONYXKEYS.SESSION,
         ONYXKEYS.PERSONAL_DETAILS_LIST,
     ],
-    compute: ([allReports, allPolicies, allReportNameValuePairs, allTransactions, allReportActions, allReportMetadata, bankAccountList, session, personalDetailsList]) => {
+    compute: (
+        [allReports, allPolicies, allReportNameValuePairs, allTransactions, allReportActions, allReportMetadata, bankAccountList, session, personalDetailsList],
+        {sourceValues, currentValue},
+    ) => {
+        if (currentValue && sourceValues) {
+            // REPORT_ACTIONS: only affects todos via isExportAction (isExported / hasExportError).
+            const reportActionsUpdates = sourceValues[ONYXKEYS.COLLECTION.REPORT_ACTIONS];
+            if (reportActionsUpdates && prevReportActions && !hasNewExportRelevantActions(Object.keys(reportActionsUpdates), allReportActions)) {
+                prevReportActions = allReportActions;
+                return currentValue;
+            }
+
+            // REPORT: only todo-relevant fields (stateNum, statusNum, total, etc.) matter.
+            const reportUpdates = sourceValues[ONYXKEYS.COLLECTION.REPORT];
+            if (reportUpdates && prevReports && !hasTodoRelevantReportChange(Object.keys(reportUpdates), allReports)) {
+                prevReports = allReports;
+                return currentValue;
+            }
+
+            // REPORT_METADATA: only pendingExpenseAction matters for todos (DEW submit/approve).
+            const reportMetadataUpdates = sourceValues[ONYXKEYS.COLLECTION.REPORT_METADATA];
+            if (reportMetadataUpdates && prevReportMetadata && !hasTodoRelevantMetadataChange(Object.keys(reportMetadataUpdates), allReportMetadata)) {
+                prevReportMetadata = allReportMetadata;
+                return currentValue;
+            }
+        }
+        prevReportActions = allReportActions;
+        prevReports = allReports;
+        prevReportMetadata = allReportMetadata;
+
         const userAccountID = session?.accountID ?? CONST.DEFAULT_NUMBER_ID;
         const login = personalDetailsList?.[userAccountID]?.login ?? session?.email ?? '';
 

@@ -225,6 +225,7 @@ import {
     isTransactionThread,
     isTripPreview,
     isWhisperAction,
+    RESET_APPROVAL_ACTION_TYPES,
     wasActionTakenByCurrentUser,
 } from './ReportActionsUtils';
 import type {LastVisibleMessage} from './ReportActionsUtils';
@@ -12667,22 +12668,13 @@ function isExported(reportActions: OnyxEntry<ReportActions> | ReportAction[], re
 
     const reportActionList = Array.isArray(reportActions) ? reportActions : Object.values(reportActions);
 
-    // Actions that reset the approval state and invalidate previous exports
-    const resetApprovalActionTypes = new Set<string>([
-        CONST.REPORT.ACTIONS.TYPE.REJECTED_TO_SUBMITTER,
-        CONST.REPORT.ACTIONS.TYPE.RETRACTED,
-        CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
-        CONST.REPORT.ACTIONS.TYPE.ACTION_DELEGATE_SUBMIT,
-        CONST.REPORT.ACTIONS.TYPE.REOPENED,
-        CONST.REPORT.ACTIONS.TYPE.UNAPPROVED,
-    ]);
     const validExportLabels = new Set<string>(Object.values(CONST.EXPORT_LABELS));
 
     let lastResetCreated = '';
     let lastSuccessfulExportCreated = '';
 
     for (const action of reportActionList) {
-        if (resetApprovalActionTypes.has(action.actionName)) {
+        if (RESET_APPROVAL_ACTION_TYPES.has(action.actionName)) {
             if (action.created > lastResetCreated) {
                 lastResetCreated = action.created;
             }
