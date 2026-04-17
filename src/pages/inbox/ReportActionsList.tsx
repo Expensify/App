@@ -1,5 +1,5 @@
 import {useRoute} from '@react-navigation/native';
-import React from 'react';
+import React, {useEffect, useState} from 'react';
 import MoneyRequestReportActionsList from '@components/MoneyRequestReportView/MoneyRequestReportActionsList';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
 import useNetwork from '@hooks/useNetwork';
@@ -45,8 +45,17 @@ function ReportActionsList() {
     const shouldWaitForTransactions = shouldWaitForTransactionsUtil(report, reportTransactions, reportMetadata, isOffline);
     const shouldDisplayMoneyRequestActionsList = isMoneyRequestOrInvoiceReport && shouldDisplayReportTableView(report, reportTransactions);
 
-    if (!report || shouldWaitForTransactions) {
-        return <ReportActionsSkeletonView />;
+    // Commit the skeleton for one frame before starting the content render. React holds the
+    // prior committed tree while reconciling the new one, so the skeleton (even though blank
+    // for its first 300ms) stays on screen throughout any slow render that follows.
+    const [isDeferred, setIsDeferred] = useState(true);
+    useEffect(() => {
+        const requestedFrame = requestAnimationFrame(() => setIsDeferred(false));
+        return () => cancelAnimationFrame(requestedFrame);
+    }, []);
+
+    if (isDeferred || !report || shouldWaitForTransactions) {
+        return <ReportActionsSkeletonView shouldDelay />;
     }
 
     if (shouldDisplayMoneyRequestActionsList) {

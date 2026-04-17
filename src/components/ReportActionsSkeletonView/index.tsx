@@ -1,8 +1,10 @@
-import React from 'react';
+import React, {useEffect, useState} from 'react';
 import {Dimensions, View} from 'react-native';
 import type {LayoutChangeEvent} from 'react-native';
 import CONST from '@src/CONST';
 import SkeletonViewLines from './SkeletonViewLines';
+
+const SKELETON_VISIBLE_DELAY_MS = 300;
 
 type ReportActionsSkeletonViewProps = {
     /** Whether to animate the skeleton view */
@@ -13,9 +15,22 @@ type ReportActionsSkeletonViewProps = {
 
     /** Callback executed on layout */
     onLayout?: (event: LayoutChangeEvent) => void;
+
+    /** When true, the skeleton stays hidden for SKELETON_VISIBLE_DELAY_MS before appearing */
+    shouldDelay?: boolean;
 };
 
-function ReportActionsSkeletonView({shouldAnimate = true, possibleVisibleContentItems = 0, onLayout}: ReportActionsSkeletonViewProps) {
+function ReportActionsSkeletonView({shouldAnimate = true, possibleVisibleContentItems = 0, onLayout, shouldDelay = false}: ReportActionsSkeletonViewProps) {
+    const [isVisible, setIsVisible] = useState(!shouldDelay);
+    useEffect(() => {
+        const timer = setTimeout(() => setIsVisible(true), SKELETON_VISIBLE_DELAY_MS);
+        return () => clearTimeout(timer);
+    }, []);
+
+    if (!isVisible) {
+        return null;
+    }
+
     const contentItems = possibleVisibleContentItems || Math.ceil(Dimensions.get('screen').height / CONST.CHAT_SKELETON_VIEW.AVERAGE_ROW_HEIGHT);
     const skeletonViewLines: React.ReactNode[] = [];
     for (let index = 0; index < contentItems; index++) {
