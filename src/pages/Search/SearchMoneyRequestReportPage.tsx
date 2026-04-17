@@ -1,6 +1,6 @@
 import {PortalHost} from '@gorhom/portal';
 import {useIsFocused} from '@react-navigation/native';
-import React, {useCallback, useEffect, useMemo, useRef} from 'react';
+import React, {useCallback, useEffect, useLayoutEffect, useMemo, useRef} from 'react';
 import {InteractionManager} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
@@ -18,7 +18,6 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
 import useParentReportAction from '@hooks/useParentReportAction';
-import usePrevious from '@hooks/usePrevious';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSubmitToDestinationVisible from '@hooks/useSubmitToDestinationVisible';
@@ -38,7 +37,7 @@ import {
     isMoneyRequestAction,
 } from '@libs/ReportActionsUtils';
 import {getReportName} from '@libs/ReportNameUtils';
-import {isMoneyRequestReport, isMoneyRequestReportPendingDeletion, isValidReportIDFromPath} from '@libs/ReportUtils';
+import {isMoneyRequestReportPendingDeletion, isValidReportIDFromPath} from '@libs/ReportUtils';
 import {cancelSpansByPrefix} from '@libs/telemetry/activeSpans';
 import {doesDeleteNavigateBackUrlIncludeDuplicatesReview, getParentReportActionDeletionStatus, hasLoadedReportActions, isThreadReportDeleted} from '@libs/TransactionNavigationUtils';
 import Navigation from '@navigation/Navigation';
@@ -55,6 +54,11 @@ type SearchMoneyRequestPageProps =
     | PlatformStackScreenProps<RightModalNavigatorParamList, typeof SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT>
     | PlatformStackScreenProps<RightModalNavigatorParamList, typeof SCREENS.RIGHT_MODAL.EXPENSE_REPORT>;
 
+type SearchMoneyRequestReportPageContentProps = {
+    route: SearchMoneyRequestPageProps['route'];
+    reportIDFromRoute: string | undefined;
+};
+
 const defaultReportMetadata = {
     isLoadingInitialReportActions: true,
     isLoadingOlderReportActions: false,
@@ -65,14 +69,11 @@ const defaultReportMetadata = {
     hasOnceLoadedReportActions: false,
 };
 
-function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
+function SearchMoneyRequestReportPageContent({route, reportIDFromRoute}: SearchMoneyRequestReportPageContentProps) {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
-    const reportIDFromRoute = getNonEmptyStringOnyxID(route.params?.reportID);
     const {currentSearchResults: snapshot} = useSearchStateContext();
-
-    const firstRenderRef = useRef(true);
 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDFromRoute}`);
     const [deleteTransactionNavigateBackUrl] = useOnyx(ONYXKEYS.NVP_DELETE_TRANSACTION_NAVIGATE_BACK_URL);
@@ -86,28 +87,12 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
     );
 
     const [parentReportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report?.parentReportID}`);
-    const prevReport = usePrevious(report);
     const {email: currentUserEmail, accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const isFocused = useIsFocused();
 
-    // Dismiss modal when the money request report is removed (e.g. deleted or merged).
-    useEffect(() => {
-        // Skip first run so we don't dismiss on mount when report may still be loading.
-        if (firstRenderRef.current) {
-            firstRenderRef.current = false;
-            return;
-        }
-
-        // Report is gone now but we had a money request report before → it was removed.
-        const isRemovalExpectedForReportType = !report && isMoneyRequestReport(prevReport);
-
-        if (isRemovalExpectedForReportType) {
-            if (!isFocused) {
-                return;
-            }
-            Navigation.dismissModal();
-        }
-    }, [report, isFocused, prevReport]);
+    // Refs accessed only inside effects (compiler-safe — no reads/writes during render).
+    const hasEverHadReportRef = useRef(false);
+    const isInitialMountRef = useRef(true);
 
     useEffect(() => {
         // Update last visit time when the expense super wide RHP report is focused
@@ -165,6 +150,27 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
 
     const doesReportIDLookValid = isValidReportIDFromPath(reportID);
     const hasLoadedReportActionsForAccessError = hasLoadedReportActions(reportMetadata, isOffline);
+
+    // Dismiss modal when the money request report is removed (e.g. deleted or merged).
+    // The key={reportIDFromRoute} wrapper forces a remount on navigation, so this effect
+    // only needs to handle the lifecycle of a single report.
+    // hasEverHadReportRef is mount-scoped (reset by key change) — it starts false,
+    // so the transient undefined during Onyx hydration won't trigger dismissal.
+    // Once the report loads, the ref becomes true. If the report is then deleted
+    // (becomes undefined), we dismiss.
+    // useLayoutEffect ensures dismissal fires before the browser paints, preventing
+    // a brief flash of the "not found" page when a report is deleted from another device.
+    useLayoutEffect(() => {
+        if (report) {
+            hasEverHadReportRef.current = true;
+            return;
+        }
+        if (!hasEverHadReportRef.current || !isFocused) {
+            return;
+        }
+        Navigation.dismissModal();
+    }, [report, isFocused]);
+
     const isReportPendingDeletion = isMoneyRequestReportPendingDeletion(report);
     const isThreadReportDeletedForReview = isThreadReportDeleted(report, reportMetadata, isOffline);
     const {wasParentActionDeleted} = getParentReportActionDeletionStatus({
@@ -202,16 +208,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
 
     useShowSuperWideRHPVersion(shouldShowSuperWideRHP);
 
-    // Tracks initial mount to ensure openReport is called once for multi-transaction reports
-    const isInitialMountRef = useRef(true);
-    const prevReportIDFromRoute = usePrevious(reportIDFromRoute);
-
     useEffect(() => {
-        // Reset flag when reportID changes (screen stays mounted but navigates to different report)
-        if (prevReportIDFromRoute !== reportIDFromRoute) {
-            isInitialMountRef.current = true;
-        }
-
         // Guard prevents calling openReport for multi-transaction reports
         if (visibleTransactions.length > 2 && !isInitialMountRef.current) {
             return;
@@ -326,6 +323,13 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
             return false;
         }
 
+        // Hydration guard: after remount (key change), Onyx may not have resolved the
+        // new report yet. Suppress the error page until report actions have been loaded,
+        // which bounds this guard so genuinely non-existent reports still show the error.
+        if (!!reportIDFromRoute && !reportID && !hasLoadedReportActionsForAccessError) {
+            return false;
+        }
+
         if (!!reportID && !doesReportIDLookValid) {
             return true;
         }
@@ -340,6 +344,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [
         reportID,
+        reportIDFromRoute,
         hasLoadedReportActionsForAccessError,
         doesReportIDLookValid,
         isReportPendingDeletion,
@@ -414,6 +419,20 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
                 </ReactionListWrapper>
             </ActionListContext.Provider>
         </WideRHPOverlayWrapper>
+    );
+}
+
+function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
+    const reportIDFromRoute = getNonEmptyStringOnyxID(route.params?.reportID);
+
+    // key forces a full remount when navigating between reports via prev/next arrows,
+    // resetting all hooks and refs cleanly without manual tracking.
+    return (
+        <SearchMoneyRequestReportPageContent
+            key={reportIDFromRoute}
+            route={route}
+            reportIDFromRoute={reportIDFromRoute}
+        />
     );
 }
 
