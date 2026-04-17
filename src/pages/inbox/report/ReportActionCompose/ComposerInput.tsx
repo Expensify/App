@@ -119,7 +119,6 @@ function ComposerInput({reportID, submitForm, onPasteFile}: ComposerInputProps) 
             onPasteFile={onPasteFile}
             onClear={submitForm}
             disabled={isBlockedFromConcierge || isEmojiPickerVisible()}
-            setIsCommentEmpty={() => {}}
             onEnterKeyPress={handleSendMessage}
             shouldShowComposeInput={shouldShowComposeInput}
             onFocus={onFocus}
