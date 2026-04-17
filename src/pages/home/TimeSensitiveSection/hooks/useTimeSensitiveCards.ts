@@ -1,5 +1,5 @@
 import useOnyx from '@hooks/useOnyx';
-import {isCard, isCardPendingActivate, isCardPendingIssue, isCardWithPotentialFraud, isExpensifyCard} from '@libs/CardUtils';
+import {isCard, isCardPendingActivate, isCardPendingIssue, isCardWithCustomZeroLimit, isCardWithPotentialFraud, isExpensifyCard} from '@libs/CardUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Card} from '@src/types/onyx';
 
@@ -19,12 +19,12 @@ function useTimeSensitiveCards() {
             continue;
         }
 
-        if (card.nameValuePairs?.hasCustomUnapprovedExpenseLimit && card.nameValuePairs?.unapprovedExpenseLimit === 0) {
-            continue;
-        }
-
         if (isCardWithPotentialFraud(card) && card.nameValuePairs?.possibleFraud?.fraudAlertReportID) {
             cardsWithFraud.push(card);
+        }
+
+        if (isCardWithCustomZeroLimit(card)) {
+            continue;
         }
 
         const isPhysicalCard = !card.nameValuePairs?.isVirtual;
