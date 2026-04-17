@@ -1,6 +1,6 @@
 import {findFocusedRoute, useFocusEffect, useIsFocused, useNavigation} from '@react-navigation/native';
 import * as Sentry from '@sentry/react-native';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {startTransition, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {NativeScrollEvent, NativeSyntheticEvent, StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -1120,6 +1120,17 @@ function Search({
 
             if (isTransactionGroupListItemType(item)) {
                 const firstTransaction = item.transactions.at(0);
+
+                Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID, backTo}));
+
+                startTransition(() => {
+                    if (item.transactions.length > 1) {
+                        markReportIDAsMultiTransactionExpense(reportID);
+                    } else {
+                        unmarkReportIDAsMultiTransactionExpense(reportID);
+                    }
+                });
+
                 if (item.isOneTransactionReport && firstTransaction && transactionPreviewData) {
                     if (!firstTransaction?.reportAction?.childReportID) {
                         createAndOpenSearchTransactionThread(
@@ -1138,13 +1149,6 @@ function Search({
                     }
                 }
 
-                if (item.transactions.length > 1) {
-                    markReportIDAsMultiTransactionExpense(reportID);
-                } else {
-                    unmarkReportIDAsMultiTransactionExpense(reportID);
-                }
-
-                requestAnimationFrame(() => Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID, backTo})));
                 return;
             }
 
@@ -1160,17 +1164,19 @@ function Search({
             }
 
             if (isTaskListItemType(item)) {
-                requestAnimationFrame(() => Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID, backTo})));
+                Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID, backTo}));
                 return;
             }
 
-            markReportIDAsExpense(reportID);
+            Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID, backTo}));
+
+            startTransition(() => {
+                markReportIDAsExpense(reportID);
+            });
 
             if (isTransactionItem && transactionPreviewData) {
                 setOptimisticDataForTransactionThreadPreview(transactionItem, transactionPreviewData, transactionItem?.reportAction?.childReportID);
             }
-
-            requestAnimationFrame(() => Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID, backTo})));
         },
         [
             isMobileSelectionModeEnabled,
