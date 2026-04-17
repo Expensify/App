@@ -86,14 +86,14 @@ function ReportActionsList() {
     if (shouldDisplayMoneyRequestActionsList) {
         return (
             <View style={{flex: 1}}>
-                <MoneyRequestReportActionsList reportID={report.reportID} />
+                <MoneyRequestReportActionsList />
             </View>
         );
     }
 
     return (
         <View style={{flex: 1}}>
-            <ReportActionsView reportID={report.reportID} />
+            <ReportActionsView reportID={reportIDFromRoute} />
         </View>
     );
 }

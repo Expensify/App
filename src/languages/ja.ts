@@ -110,6 +110,7 @@ const translations: TranslationDeepObject<typeof en> = {
         newFeature: '新機能',
         search: '検索',
         reports: 'レポート',
+        spend: '支出',
         find: '検索',
         searchWithThreeDots: '検索…',
         next: '次へ',
@@ -1029,6 +1030,7 @@ const translations: TranslationDeepObject<typeof en> = {
             title: 'はじめに',
             createWorkspace: 'ワークスペースを作成',
             connectAccounting: ({integrationName}: {integrationName: string}) => `${integrationName}に接続する`,
+            connectAccountingDefault: '会計ソフトに接続',
             customizeCategories: '会計カテゴリをカスタマイズする',
             linkCompanyCards: '会社カードを連携',
             setupRules: '支出ルールを設定',
@@ -1648,6 +1650,7 @@ const translations: TranslationDeepObject<typeof en> = {
             prompt: '経費の詳細を編集したり、この経費から税金を削除したりするには、ワークスペースで税金の追跡を有効にしてください。',
             confirmText: '税を削除',
         },
+        deleted: '削除済み',
     },
     transactionMerge: {
         listPage: {
@@ -2090,6 +2093,9 @@ const translations: TranslationDeepObject<typeof en> = {
             helpSite: 'ヘルプサイト',
             conciergeChat: 'Concierge',
             conciergeChatDescription: 'あなた専用のAIエージェント',
+            accountManagerDescription: 'お客様のアカウントマネージャー',
+            partnerManagerDescription: 'パートナーマネージャー',
+            guideDescription: 'お客様のセットアップ担当者',
         },
     },
     closeAccountPage: {
@@ -2879,11 +2885,13 @@ ${date} の ${merchant} への ${amount}`,
         },
         employees: {
             title: '従業員は何人いますか？',
+            [CONST.ONBOARDING_COMPANY_SIZE.MICRO_SMALL]: '1～4名の従業員',
+            [CONST.ONBOARDING_COMPANY_SIZE.MICRO_MEDIUM]: '5～10人の従業員',
             [CONST.ONBOARDING_COMPANY_SIZE.MICRO]: '従業員数 1～10 人',
-            [CONST.ONBOARDING_COMPANY_SIZE.SMALL]: '従業員数 11～50 人',
-            [CONST.ONBOARDING_COMPANY_SIZE.MEDIUM_SMALL]: '従業員数 51～100 人',
+            [CONST.ONBOARDING_COMPANY_SIZE.SMALL]: '11～50名の従業員',
+            [CONST.ONBOARDING_COMPANY_SIZE.MEDIUM_SMALL]: '51～100人の従業員',
             [CONST.ONBOARDING_COMPANY_SIZE.MEDIUM]: '101～1,000人の従業員',
-            [CONST.ONBOARDING_COMPANY_SIZE.LARGE]: '1,000人を超える従業員',
+            [CONST.ONBOARDING_COMPANY_SIZE.LARGE]: '1,000人超の従業員',
         },
         accounting: {
             title: '会計ソフトを利用していますか？',
@@ -5437,6 +5445,12 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                             settlementAccountLabel: '決済口座',
                             settlementFrequencyLabel: '清算頻度',
                             settlementFrequencyDescription: 'Expensify が直近の Expensify Travel 取引を精算するために、あなたのビジネス銀行口座から資金を引き落とす頻度。',
+                            monthlySpendLimitLabel: 'メンバーごとの月間支出上限',
+                            monthlySpendLimitDescription: '各メンバーが1か月に出張に使える最大金額。',
+                            reduceLimitTitle: '出張支出上限を引き下げますか？',
+                            reduceLimitWarning: 'この上限を引き下げると、すでにこの金額を超えて支出しているメンバーは、翌月まで新しい出張予約ができなくなります。',
+                            provisioningError:
+                                'ワークスペース内の一部メンバーを集中請求用にプロビジョニングできませんでした。時間をおいてもう一度お試しいただくか、サポートが必要な場合は Concierge までお問い合わせください。',
                         },
                     },
                     disableModal: {
@@ -7498,6 +7512,7 @@ ${reportName}
             reject: '却下',
             duplicateExpense: ({count}: {count: number}) => `${count === 1 ? '経費を複製' : '経費を一括複製'}`,
             noOptionsAvailable: '選択した経費グループには利用できるオプションがありません。',
+            undelete: '削除を取り消す',
         },
         filtersHeader: 'フィルター',
         filters: {
@@ -7550,6 +7565,10 @@ ${reportName}
             billable: '請求可能',
             reimbursable: '払い戻し対象',
             purchaseCurrency: '購入通貨',
+            sortOrder: {
+                [CONST.SEARCH.SORT_ORDER.ASC]: '昇順',
+                [CONST.SEARCH.SORT_ORDER.DESC]: '降順',
+            },
             groupBy: {
                 [CONST.SEARCH.GROUP_BY.FROM]: '差出人',
                 [CONST.SEARCH.GROUP_BY.CARD]: 'カード',
@@ -7578,6 +7597,7 @@ ${reportName}
         display: {
             label: '表示',
             sortBy: '並べ替え',
+            sortOrder: '並べ替え順',
             groupBy: 'グループ化基準',
             limitResults: '結果の絞り込み',
         },
@@ -7607,7 +7627,7 @@ ${reportName}
         recentSearches: '最近の検索',
         recentChats: '最近のチャット',
         searchIn: '検索対象',
-        searchPlaceholder: '何かを検索',
+        searchPlaceholder: '何かを検索...',
         suggestions: '提案',
         suggestionsAvailable: (
             {
@@ -8920,12 +8940,15 @@ ${reportName}
                 removeMember: 'このユーザーを削除できません。もう一度お試しください。',
                 addMember: 'このメンバーを追加できませんでした。もう一度お試しください。',
                 vacationDelegate: 'このユーザーを休暇代理人として設定できませんでした。もう一度お試しください。',
+                moveMember: 'このメンバーを移動できませんでした。もう一度お試しください。',
             },
             cannotSetVacationDelegateForMember: (email: string) => `${email} に休暇代理人を設定できません。現在、このユーザーは次のメンバーの代理人になっています。`,
             reportSuspiciousActivityPrompt: (email: string) =>
                 `本当によろしいですか？これにより、<strong>${email}</strong> さんのアカウントがロックされます。<br /><br />その後、当社のチームがアカウントを確認し、不正アクセスを削除します。アクセスを回復するには、Concierge と連携して対応してもらう必要があります。`,
             reportSuspiciousActivityConfirmationPrompt: 'アカウントが安全にロック解除できることを確認するために審査し、質問がある場合はConciergeを通じてご連絡します。',
             emptyMembers: {title: 'このグループにはメンバーがいません', subtitle: 'メンバーを追加するか、上のフィルターを変更してみてください。'},
+            moveToGroup: 'グループへ移動',
+            chooseWhereToMove: ({count}: {count: number}) => `${count} ${count === 1 ? 'メンバー' : 'メンバー'} を移動する先を選択してください。`,
         },
         common: {
             settings: '設定',
