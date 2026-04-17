@@ -2,6 +2,7 @@ import {PortalHost} from '@gorhom/portal';
 import React from 'react';
 import type {ViewStyle} from 'react-native';
 import {View} from 'react-native';
+import CollapsibleHeaderOnKeyboard from '@components/CollapsibleHeaderOnKeyboard';
 import ScreenWrapper from '@components/ScreenWrapper';
 import WideRHPOverlayWrapper from '@components/WideRHPOverlayWrapper';
 import useActionListContextValue from '@hooks/useActionListContextValue';
@@ -73,8 +74,10 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                             <LinkedActionNotFoundGuard>
                                 <ReportDragAndDropProvider>
                                     <ReportLifecycleHandler reportID={reportIDFromRoute} />
-                                    <ReportHeader />
-                                    <AccountManagerBanner reportID={reportIDFromRoute} />
+                                    <CollapsibleHeaderOnKeyboard>
+                                        <ReportHeader />
+                                        <AccountManagerBanner reportID={reportIDFromRoute} />
+                                    </CollapsibleHeaderOnKeyboard>
                                     <View style={[styles.flex1, styles.flexRow]}>
                                         <WideRHPReceiptPanel />
                                         <AgentZeroStatusProvider reportID={reportIDFromRoute}>

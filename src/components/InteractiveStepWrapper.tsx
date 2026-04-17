@@ -4,6 +4,7 @@ import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
+import CollapsibleHeaderOnKeyboard from './CollapsibleHeaderOnKeyboard';
 import HeaderWithBackButton from './HeaderWithBackButton';
 import InteractiveStepSubHeader from './InteractiveStepSubHeader';
 import ScreenWrapper from './ScreenWrapper';
@@ -67,6 +68,8 @@ type InteractiveStepWrapperProps = {
     ref?: ForwardedRef<View>;
 };
 
+const INPUT_HEADER_HEIGHT = 27;
+
 function InteractiveStepWrapper({
     children,
     wrapperID,
@@ -101,19 +104,22 @@ function InteractiveStepWrapper({
             shouldKeyboardOffsetBottomSafeAreaPadding={shouldKeyboardOffsetBottomSafeAreaPadding}
             onEntryTransitionEnd={onEntryTransitionEnd}
         >
-            <HeaderWithBackButton
-                title={headerTitle}
-                subtitle={headerSubtitle}
-                onBackButtonPress={handleBackButtonPress}
-            />
-            {!!stepNames && (
-                <View style={[styles.ph5, styles.mb5, styles.mt3, {height: CONST.BANK_ACCOUNT.STEPS_HEADER_HEIGHT}]}>
-                    <InteractiveStepSubHeader
-                        startStepIndex={startStepIndex}
-                        stepNames={stepNames}
-                    />
-                </View>
-            )}
+            <CollapsibleHeaderOnKeyboard collapsibleHeaderOffset={INPUT_HEADER_HEIGHT}>
+                <HeaderWithBackButton
+                    title={headerTitle}
+                    subtitle={headerSubtitle}
+                    onBackButtonPress={handleBackButtonPress}
+                />
+                {!!stepNames && (
+                    <View style={[styles.ph5, styles.mb5, styles.mt3, {height: CONST.BANK_ACCOUNT.STEPS_HEADER_HEIGHT}]}>
+                        <InteractiveStepSubHeader
+                            startStepIndex={startStepIndex}
+                            stepNames={stepNames}
+                        />
+                    </View>
+                )}
+            </CollapsibleHeaderOnKeyboard>
+
             {children}
         </ScreenWrapper>
     );

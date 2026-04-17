@@ -1,6 +1,7 @@
 import {useRoute} from '@react-navigation/native';
 import React, {useState} from 'react';
 import {View} from 'react-native';
+import CollapsibleHeaderOnKeyboard from '@components/CollapsibleHeaderOnKeyboard';
 import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -108,12 +109,14 @@ function SelectCountryStep({policyID}: CountryStepProps) {
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight
         >
-            <HeaderWithBackButton
-                title={translate('workspace.companyCards.addCards')}
-                onBackButtonPress={handleBackButtonPress}
-            />
+            <CollapsibleHeaderOnKeyboard>
+                <HeaderWithBackButton
+                    title={translate('workspace.companyCards.addCards')}
+                    onBackButtonPress={handleBackButtonPress}
+                />
+                <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mv3]}>{translate('workspace.companyCards.addNewCard.whereIsYourBankLocated')}</Text>
+            </CollapsibleHeaderOnKeyboard>
 
-            <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mv3]}>{translate('workspace.companyCards.addNewCard.whereIsYourBankLocated')}</Text>
             <SelectionList
                 data={searchResults}
                 ListItem={RadioListItem}

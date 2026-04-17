@@ -20,6 +20,9 @@ type SplitListProps = {
     /** Footer content to render at the bottom of the list. */
     listFooterContent?: React.JSX.Element | null;
 
+    /** Header content to render at the top of the list. */
+    listHeaderContent?: React.JSX.Element | null;
+
     /** The split mode to use (amount, percentage, or date). */
     mode: ValueOf<typeof CONST.TAB.SPLIT>;
 };
@@ -31,7 +34,7 @@ type SplitListItemProps = React.ComponentProps<typeof SplitListItem>;
  * Renders split items with the appropriate input type based on mode,
  * managing its own scroll/height state.
  */
-function SplitList({data, initiallyFocusedOptionKey, onSelectRow, listFooterContent, mode}: SplitListProps) {
+function SplitList({data, initiallyFocusedOptionKey, onSelectRow, listFooterContent, listHeaderContent, mode}: SplitListProps) {
     const styles = useThemeStyles();
     const listRef = useRef<SelectionListHandle<SplitListItemType>>(null);
 
@@ -65,6 +68,7 @@ function SplitList({data, initiallyFocusedOptionKey, onSelectRow, listFooterCont
             initiallyFocusedItemKey={initiallyFocusedOptionKey}
             ListItem={SplitListItemWithInputFocus}
             style={{containerStyle: styles.flexBasisAuto}}
+            customListHeaderContent={listHeaderContent}
             listFooterContent={listFooterContent}
             shouldPreventDefaultFocusOnSelectRow
             shouldScrollToFocusedIndex={false}

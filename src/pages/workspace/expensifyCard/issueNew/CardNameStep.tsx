@@ -6,6 +6,7 @@ import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
+import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -35,6 +36,7 @@ function CardNameStep({policyID, stepNames, startStepIndex}: CardNameStepProps) 
     const styles = useThemeStyles();
     const {inputCallbackRef} = useAutoFocusInput();
     const [issueNewCard] = useOnyx(`${ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD}${policyID}`);
+    const isInLandscapeMode = useIsInLandscapeMode();
 
     const isEditing = issueNewCard?.isEditing;
     const data = issueNewCard?.data;
@@ -94,7 +96,7 @@ function CardNameStep({policyID, stepNames, startStepIndex}: CardNameStepProps) 
             stepNames={stepNames}
             enableEdgeToEdgeBottomSafeAreaPadding
         >
-            <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mv3]}>{translate('workspace.card.issueNewCard.giveItName')}</Text>
+            {!isInLandscapeMode && <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mv3]}>{translate('workspace.card.issueNewCard.giveItName')}</Text>}
             <FormProvider
                 formID={ONYXKEYS.FORMS.ISSUE_NEW_EXPENSIFY_CARD_FORM}
                 submitButtonText={translate(isEditing ? 'common.confirm' : 'common.next')}
@@ -105,6 +107,7 @@ function CardNameStep({policyID, stepNames, startStepIndex}: CardNameStepProps) 
                 shouldHideFixErrorsAlert
                 addBottomSafeAreaPadding
             >
+                {isInLandscapeMode && <Text style={[styles.textHeadlineLineHeightXXL, styles.mv3]}>{translate('workspace.card.issueNewCard.giveItName')}</Text>}
                 <InputWrapper
                     InputComponent={TextInput}
                     inputID={INPUT_IDS.CARD_TITLE}
