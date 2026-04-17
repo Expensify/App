@@ -1,5 +1,5 @@
 import {CommonActions, StackRouter} from '@react-navigation/native';
-import type {RouterConfigOptions, StackActionType, StackNavigationState} from '@react-navigation/native';
+import type {NavigationState, PartialState, RouterConfigOptions, StackActionType, StackNavigationState} from '@react-navigation/native';
 import type {ParamListBase} from '@react-navigation/routers';
 import {createGuardContext, evaluateGuards} from '@libs/Navigation/guards';
 import getAdaptedStateFromPath from '@libs/Navigation/helpers/getAdaptedStateFromPath';
@@ -70,6 +70,12 @@ function isPreloadAction(action: RootStackNavigatorAction): action is PreloadAct
     return action.type === CONST.NAVIGATION.ACTION_TYPE.PRELOAD;
 }
 
+const MODAL_GUARD_REDIRECT_TARGETS = new Set<string>([NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR, NAVIGATORS.MIGRATED_USER_MODAL_NAVIGATOR]);
+
+function isModalGuardRedirectTarget(name: string) {
+    return MODAL_GUARD_REDIRECT_TARGETS.has(name);
+}
+
 /**
  * Evaluates navigation guards and handles BLOCK/REDIRECT results
  *
@@ -100,10 +106,23 @@ function handleNavigationGuards(
             return null;
         }
 
+        const isModalRedirect = redirectState.routes.some((route) => isModalGuardRedirectTarget(route.name));
+
+        let resetRoutes: typeof redirectState.routes = redirectState.routes;
+        if (isModalRedirect) {
+            const redirectRoute = redirectState.routes.at(-1);
+            const existingFullScreenRoute = state.routes.findLast((route) => isFullScreenName(route.name));
+            // When the current stack already has a fullscreen route (e.g., a deep-linked report),
+            // append only the redirect target on top of the existing routes so the user returns
+            // to them after the redirect screen is dismissed. Otherwise (fresh app with no stack),
+            // use the full redirect state which includes the base route (e.g., Home).
+            resetRoutes = existingFullScreenRoute && redirectRoute ? ([existingFullScreenRoute, redirectRoute] as typeof redirectState.routes) : redirectState.routes;
+        }
+
         const resetAction = CommonActions.reset({
-            index: redirectState.index ?? redirectState.routes.length - 1,
-            routes: redirectState.routes,
-        });
+            index: resetRoutes.length - 1,
+            routes: resetRoutes,
+        } as PartialState<NavigationState>);
 
         return stackRouter.getStateForAction(state, resetAction, configOptions);
     }
