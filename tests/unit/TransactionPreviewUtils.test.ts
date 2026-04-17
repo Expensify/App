@@ -7,6 +7,7 @@ import {
     getTransactionPreviewTextAndTranslationPaths,
     getUniqueActionErrorsForTransaction,
     getViolationTranslatePath,
+    transactionHasRBR,
 } from '@libs/TransactionPreviewUtils';
 import {buildOptimisticTransaction} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
@@ -27,6 +28,7 @@ const basicProps = {
             comment: '',
             attendees: [],
             created: '2024-01-01',
+            merchant: 'Test Merchant',
         },
     }),
     translate: jest.fn().mockImplementation((key: string) => key),
@@ -114,7 +116,7 @@ describe('TransactionPreviewUtils', () => {
             const functionArgs = {
                 ...basicProps,
                 iouReport: {...basicProps.iouReport, type: CONST.REPORT.TYPE.EXPENSE},
-                transaction: {...basicProps.transaction, created: '', amount: 100},
+                transaction: {...basicProps.transaction, created: '', amount: 100, merchant: ''},
                 originalTransaction: undefined,
                 shouldShowRBR: true,
             };
@@ -783,6 +785,63 @@ describe('TransactionPreviewUtils', () => {
             } as unknown as ReportActions;
 
             expect(getUniqueActionErrorsForTransaction(actions, undefined)).toEqual(['Error B', 'Error D']);
+        });
+    });
+
+    describe('transactionHasRBR', () => {
+        const rbrEmail = basicProps.currentUserEmail;
+        const rbrAccountID = basicProps.currentUserAccountID;
+        const rbrReport = basicProps.iouReport;
+        const rbrPolicy = basicProps.policy;
+
+        it('should return false for a clean transaction with no violations', () => {
+            expect(transactionHasRBR(basicProps.transaction, [], rbrEmail, rbrAccountID, rbrReport, rbrPolicy)).toBe(false);
+        });
+
+        it('should return true for a transaction with violation-type violations', () => {
+            const violations = [{name: CONST.VIOLATIONS.MISSING_CATEGORY, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true}];
+            expect(transactionHasRBR(basicProps.transaction, violations, rbrEmail, rbrAccountID, rbrReport, rbrPolicy)).toBe(true);
+        });
+
+        it('should return true for a transaction with warning-type violations', () => {
+            const violations = [{name: CONST.VIOLATIONS.CUSTOM_RULES, type: CONST.VIOLATION_TYPES.WARNING, showInReview: true}];
+            expect(transactionHasRBR(basicProps.transaction, violations, rbrEmail, rbrAccountID, rbrReport, rbrPolicy)).toBe(true);
+        });
+
+        it('should return true for a transaction on hold', () => {
+            const heldTransaction = {...basicProps.transaction, comment: {hold: 'true'}};
+            expect(transactionHasRBR(heldTransaction, [], rbrEmail, rbrAccountID, rbrReport, rbrPolicy)).toBe(true);
+        });
+
+        it('should return true for a transaction with missing merchant on an expense report', () => {
+            const expenseReport = {...basicProps.iouReport, type: CONST.REPORT.TYPE.EXPENSE};
+            const transactionMissingMerchant = {...basicProps.transaction, merchant: '', modifiedMerchant: '', created: '2024-01-01'};
+            expect(transactionHasRBR(transactionMissingMerchant, [], rbrEmail, rbrAccountID, expenseReport, rbrPolicy)).toBe(true);
+        });
+
+        it('should return true for a transaction with receipt error', () => {
+            const transactionWithReceiptError = {
+                ...basicProps.transaction,
+                errors: {
+                    error1: {
+                        error: CONST.IOU.RECEIPT_ERROR,
+                        source: 'source.com',
+                        filename: 'file_name.png',
+                        action: 'replaceReceipt',
+                        retryParams: {transactionID: basicProps.transaction.transactionID, source: 'source.com', transactionPolicy: undefined},
+                    },
+                },
+            };
+            expect(transactionHasRBR(transactionWithReceiptError, [], rbrEmail, rbrAccountID, rbrReport, rbrPolicy)).toBe(true);
+        });
+
+        it('should return false for undefined transaction', () => {
+            expect(transactionHasRBR(undefined, [], rbrEmail, rbrAccountID, rbrReport, rbrPolicy)).toBe(false);
+        });
+
+        it('should return false for notice-type violations only', () => {
+            const violations = [{name: CONST.VIOLATIONS.CUSTOM_RULES, type: CONST.VIOLATION_TYPES.NOTICE, showInReview: true}];
+            expect(transactionHasRBR(basicProps.transaction, violations, rbrEmail, rbrAccountID, rbrReport, rbrPolicy)).toBe(false);
         });
     });
 });

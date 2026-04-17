@@ -2,6 +2,7 @@ import truncate from 'lodash/truncate';
 import type {OnyxEntry} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -455,6 +456,79 @@ function createTransactionPreviewConditionals({
     };
 }
 
+/**
+ * Lightweight check for whether a transaction has any RBR (Red Brick Road) indicator.
+ * Evaluates transaction-level signals (violations, hold, missing fields, receipt errors)
+ * with proper context for dismissed violations and report settlement/approval status.
+ */
+function transactionHasRBR(
+    transaction: OnyxEntry<OnyxTypes.Transaction>,
+    violations: OnyxTypes.TransactionViolations,
+    currentUserEmail: string,
+    currentUserAccountID: number,
+    iouReport: OnyxEntry<OnyxTypes.Report>,
+    policy: OnyxEntry<OnyxTypes.Policy>,
+): boolean {
+    if (!transaction) {
+        return false;
+    }
+
+    // Check for non-dismissed violation-type or warning-type violations
+    if (
+        hasViolation(transaction, violations, currentUserEmail, currentUserAccountID, iouReport, policy, true) ||
+        hasWarningTypeViolation(transaction, violations, currentUserEmail, currentUserAccountID, iouReport, policy)
+    ) {
+        return true;
+    }
+
+    // Check if transaction is on hold — only counts as RBR when the report
+    // is not fully settled and not fully approved (matching createTransactionPreviewConditionals)
+    const isSettlementOrApprovalPartial = !!iouReport?.pendingFields?.partial;
+    const isFullySettled = isSettled(iouReport?.reportID) && !isSettlementOrApprovalPartial;
+    const isFullyApproved = isReportApproved({report: iouReport}) && !isSettlementOrApprovalPartial;
+    if (!isFullySettled && !isFullyApproved && isOnHold(transaction)) {
+        return true;
+    }
+
+    // Check if transaction has missing required fields
+    // Merchant is only required on expense reports; amount check needs the correct isFromExpenseReport flag
+    const isFromExpenseReport = isExpenseReport(iouReport);
+    if ((isFromExpenseReport && isMerchantMissing(transaction)) || isAmountMissing(transaction, isFromExpenseReport)) {
+        return true;
+    }
+
+    // Check if transaction has receipt error
+    if (hasReceiptError(transaction)) {
+        return true;
+    }
+
+    return false;
+}
+
+/**
+ * Compare two transactions by their RBR (Red Brick Road) status.
+ * Transactions with RBR indicators are sorted before those without.
+ * Returns 0 when both transactions have the same RBR status.
+ */
+function compareByRBR(
+    a: OnyxTypes.Transaction,
+    b: OnyxTypes.Transaction,
+    violations: Record<string, OnyxTypes.TransactionViolations | undefined> | undefined,
+    currentUserEmail: string,
+    currentUserAccountID: number,
+    iouReport: OnyxEntry<OnyxTypes.Report>,
+    policy: OnyxEntry<OnyxTypes.Policy>,
+): number {
+    const aViolations = violations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${a.transactionID}`] ?? [];
+    const bViolations = violations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${b.transactionID}`] ?? [];
+    const aHasRBR = transactionHasRBR(a, aViolations, currentUserEmail, currentUserAccountID, iouReport, policy);
+    const bHasRBR = transactionHasRBR(b, bViolations, currentUserEmail, currentUserAccountID, iouReport, policy);
+    if (aHasRBR === bHasRBR) {
+        return 0;
+    }
+    return aHasRBR ? -1 : 1;
+}
+
 export {
     getReviewNavigationRoute,
     getIOUPayerAndReceiver,
@@ -463,5 +537,7 @@ export {
     getViolationTranslatePath,
     getUniqueActionErrorsForTransaction,
     formatLastFourPAN,
+    transactionHasRBR,
+    compareByRBR,
 };
 export type {TranslationPathOrText};
