@@ -1965,9 +1965,10 @@ function updateSplitTransactions({
 
         if (isSelfDMSplit && optimisticTransactionFromGetMoneyRequest && hasChanges) {
             // For initial splits, both optimistic transactions reuse originalTransactionID as their transactionID.
-            // Generate snapshot-only IDs so two distinct entries appear in Reports > Expenses while offline.
-            // When the user comes back online, the search refreshes and replaces these with server-generated IDs.
-            const snapshotTransactionID = isCreationOfSplits ? String(NumberUtils.rand64()) : optimisticTransactionFromGetMoneyRequest.transactionID;
+            // Use splitExpense.transactionID (the real draft ID) for snapshot entries so they share the same key
+            // as the Onyx transactions. This prevents getChildTransactions from treating them as separate
+            // orphaned children on the next edit, which would incorrectly delete them from the snapshot.
+            const snapshotTransactionID = isCreationOfSplits ? splitExpense.transactionID : optimisticTransactionFromGetMoneyRequest.transactionID;
             newSelfDMSplitTransactions.push({
                 ...optimisticTransactionFromGetMoneyRequest,
                 transactionID: snapshotTransactionID,

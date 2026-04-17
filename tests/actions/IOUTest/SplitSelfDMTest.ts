@@ -7,7 +7,7 @@ import {buildOptimisticIOUReportAction} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import DateUtils from '@src/libs/DateUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Report, ReportNameValuePairs} from '@src/types/onyx';
+import type {Report, ReportNameValuePairs, SearchResults} from '@src/types/onyx';
 import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import type Transaction from '@src/types/onyx/Transaction';
@@ -308,6 +308,263 @@ describe('updateSplitTransactionsFromSplitExpensesFlow - selfDM', () => {
         // selfDM split transactions should keep UNREPORTED_REPORT_ID (not get assigned to an IOU report)
         expect(splitTxn1?.reportID).toBe(CONST.REPORT.UNREPORTED_REPORT_ID);
         expect(splitTxn2?.reportID).toBe(CONST.REPORT.UNREPORTED_REPORT_ID);
+    });
+
+    it('snapshot entries after creation use real transaction IDs (not random snap IDs)', async () => {
+        const {selfDMReport, originalTransaction, trackIouAction} = await setupSelfDMTrackedExpense();
+
+        const splitTxnId1 = 'snap-real-txn-1';
+        const splitTxnId2 = 'snap-real-txn-2';
+
+        // Set up a snapshot that contains the original transaction, simulating the state
+        // where the user is on the Expenses screen and the snapshot has the tracked expense
+        const snapshotKey = `${ONYXKEYS.COLLECTION.SNAPSHOT}-2` as `${typeof ONYXKEYS.COLLECTION.SNAPSHOT}${string}`;
+        const originalTransactionSnapshotKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransaction.transactionID}`;
+        await Onyx.merge(snapshotKey, {
+            data: {[originalTransactionSnapshotKey]: originalTransaction},
+            search: {type: CONST.SEARCH.DATA_TYPES.EXPENSE, status: CONST.SEARCH.STATUS.EXPENSE.ALL, isLoading: false},
+        } as unknown as SearchResults);
+        await waitForBatchedUpdates();
+
+        let allTransactions: OnyxCollection<Transaction>;
+        let allReports: OnyxCollection<Report>;
+        let allReportNameValuePairs: OnyxCollection<ReportNameValuePairs>;
+        let allSnapshots: OnyxCollection<SearchResults>;
+
+        await getOnyxData({
+            key: ONYXKEYS.COLLECTION.TRANSACTION,
+            waitForCollectionCallback: true,
+            callback: (value) => {
+                allTransactions = value;
+            },
+        });
+        await getOnyxData({
+            key: ONYXKEYS.COLLECTION.REPORT,
+            waitForCollectionCallback: true,
+            callback: (value) => {
+                allReports = value;
+            },
+        });
+        await getOnyxData({
+            key: ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS,
+            waitForCollectionCallback: true,
+            callback: (value) => {
+                allReportNameValuePairs = value;
+            },
+        });
+        await getOnyxData({
+            key: ONYXKEYS.COLLECTION.SNAPSHOT,
+            waitForCollectionCallback: true,
+            callback: (value) => {
+                allSnapshots = value as OnyxCollection<SearchResults>;
+            },
+        });
+
+        updateSplitTransactionsFromSplitExpensesFlow({
+            allTransactionsList: allTransactions,
+            allReportsList: allReports,
+            allReportNameValuePairsList: allReportNameValuePairs,
+            allSnapshots,
+            transactionData: {
+                reportID: selfDMReport.reportID,
+                originalTransactionID: originalTransaction.transactionID,
+                splitExpenses: [
+                    {
+                        transactionID: splitTxnId1,
+                        amount: 1000,
+                        reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+                        created: DateUtils.getDBTime(),
+                        merchant: 'Grocery Store',
+                    },
+                    {
+                        transactionID: splitTxnId2,
+                        amount: 1000,
+                        reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+                        created: DateUtils.getDBTime(),
+                        merchant: 'Grocery Store',
+                    },
+                ],
+                splitExpensesTotal: 2000,
+            },
+            searchContext: {currentSearchHash: -2},
+            policyCategories: undefined,
+            policy: undefined,
+            policyRecentlyUsedCategories: [],
+            iouReport: undefined,
+            firstIOU: trackIouAction,
+            isASAPSubmitBetaEnabled: false,
+            currentUserPersonalDetails,
+            transactionViolations: {},
+            policyRecentlyUsedCurrencies: [],
+            quickAction: undefined,
+            iouReportNextStep: undefined,
+            betas: [CONST.BETAS.ALL],
+            policyTags: {},
+            personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
+            transactionReport: selfDMReport,
+            expenseReport: undefined,
+        });
+
+        await waitForBatchedUpdates();
+        await waitForNetworkPromises();
+        await waitForBatchedUpdates();
+
+        // Snapshot should contain entries with the real draft IDs, not random IDs from rand64().
+        // If random IDs were used, useAllTransactions() would merge them alongside the real Onyx
+        // entries causing getChildTransactions to find fake children on the next edit and incorrectly
+        // delete them from the snapshot.
+        const snapshot = (await getOnyxValue(snapshotKey)) as SearchResults | undefined;
+        const snapshotData = snapshot?.data ?? {};
+        const snapshotTransactionKeys = Object.keys(snapshotData).filter((key) => key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION));
+
+        expect(snapshotTransactionKeys).toContain(`${ONYXKEYS.COLLECTION.TRANSACTION}${splitTxnId1}`);
+        expect(snapshotTransactionKeys).toContain(`${ONYXKEYS.COLLECTION.TRANSACTION}${splitTxnId2}`);
+        // Original transaction should be removed from snapshot and replaced by splits
+        expect(snapshotTransactionKeys).not.toContain(originalTransactionSnapshotKey);
+    });
+
+    it('split transactions remain visible after editing selfDM splits', async () => {
+        const {selfDMReport, originalTransaction, trackIouAction} = await setupSelfDMTrackedExpense();
+
+        let allTransactions: OnyxCollection<Transaction>;
+        let allReports: OnyxCollection<Report>;
+        let allReportNameValuePairs: OnyxCollection<ReportNameValuePairs>;
+
+        await getOnyxData({
+            key: ONYXKEYS.COLLECTION.TRANSACTION,
+            waitForCollectionCallback: true,
+            callback: (value) => {
+                allTransactions = value;
+            },
+        });
+        await getOnyxData({
+            key: ONYXKEYS.COLLECTION.REPORT,
+            waitForCollectionCallback: true,
+            callback: (value) => {
+                allReports = value;
+            },
+        });
+        await getOnyxData({
+            key: ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS,
+            waitForCollectionCallback: true,
+            callback: (value) => {
+                allReportNameValuePairs = value;
+            },
+        });
+
+        // Step 1: Create the splits
+        updateSplitTransactionsFromSplitExpensesFlow({
+            allTransactionsList: allTransactions,
+            allReportsList: allReports,
+            allReportNameValuePairsList: allReportNameValuePairs,
+            transactionData: {
+                reportID: selfDMReport.reportID,
+                originalTransactionID: originalTransaction.transactionID,
+                splitExpenses: [
+                    {
+                        transactionID: 'edit-txn-1',
+                        amount: 1000,
+                        reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+                        created: DateUtils.getDBTime(),
+                        merchant: 'Grocery Store',
+                    },
+                    {
+                        transactionID: 'edit-txn-2',
+                        amount: 1000,
+                        reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+                        created: DateUtils.getDBTime(),
+                        merchant: 'Grocery Store',
+                    },
+                ],
+                splitExpensesTotal: 2000,
+            },
+            searchContext: {currentSearchHash: -2},
+            policyCategories: undefined,
+            policy: undefined,
+            policyRecentlyUsedCategories: [],
+            iouReport: undefined,
+            firstIOU: trackIouAction,
+            isASAPSubmitBetaEnabled: false,
+            currentUserPersonalDetails,
+            transactionViolations: {},
+            policyRecentlyUsedCurrencies: [],
+            quickAction: undefined,
+            iouReportNextStep: undefined,
+            betas: [CONST.BETAS.ALL],
+            policyTags: {},
+            personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
+            transactionReport: selfDMReport,
+            expenseReport: undefined,
+        });
+
+        await waitForBatchedUpdates();
+        await waitForNetworkPromises();
+        await waitForBatchedUpdates();
+
+        // Step 2: Re-fetch allTransactions (now contains the created children)
+        await getOnyxData({
+            key: ONYXKEYS.COLLECTION.TRANSACTION,
+            waitForCollectionCallback: true,
+            callback: (value) => {
+                allTransactions = value;
+            },
+        });
+
+        // Step 3: Edit the splits (change amounts)
+        updateSplitTransactionsFromSplitExpensesFlow({
+            allTransactionsList: allTransactions,
+            allReportsList: allReports,
+            allReportNameValuePairsList: allReportNameValuePairs,
+            transactionData: {
+                reportID: selfDMReport.reportID,
+                originalTransactionID: originalTransaction.transactionID,
+                splitExpenses: [
+                    {
+                        transactionID: 'edit-txn-1',
+                        amount: 1500,
+                        reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+                        created: DateUtils.getDBTime(),
+                        merchant: 'Grocery Store',
+                    },
+                    {
+                        transactionID: 'edit-txn-2',
+                        amount: 500,
+                        reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+                        created: DateUtils.getDBTime(),
+                        merchant: 'Grocery Store',
+                    },
+                ],
+                splitExpensesTotal: 2000,
+            },
+            searchContext: {currentSearchHash: -2},
+            policyCategories: undefined,
+            policy: undefined,
+            policyRecentlyUsedCategories: [],
+            iouReport: undefined,
+            firstIOU: trackIouAction,
+            isASAPSubmitBetaEnabled: false,
+            currentUserPersonalDetails,
+            transactionViolations: {},
+            policyRecentlyUsedCurrencies: [],
+            quickAction: undefined,
+            iouReportNextStep: undefined,
+            betas: [CONST.BETAS.ALL],
+            policyTags: {},
+            personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
+            transactionReport: selfDMReport,
+            expenseReport: undefined,
+        });
+
+        await waitForBatchedUpdates();
+        await waitForNetworkPromises();
+        await waitForBatchedUpdates();
+
+        // After editing, split transactions should still exist with UNREPORTED_REPORT_ID
+        const childTxn1AfterEdit = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}edit-txn-1`);
+        const childTxn2AfterEdit = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}edit-txn-2`);
+
+        expect(childTxn1AfterEdit?.reportID).toBe(CONST.REPORT.UNREPORTED_REPORT_ID);
+        expect(childTxn2AfterEdit?.reportID).toBe(CONST.REPORT.UNREPORTED_REPORT_ID);
     });
 
     it('does NOT create a new IOU expense report when splitting a selfDM tracked expense', async () => {
