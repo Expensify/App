@@ -80,7 +80,7 @@ function ActionCell({
 
     const text = translate(actionTranslationsMap[action]);
 
-    const shouldBeDisabledInOffline = action !== CONST.SEARCH.ACTION_TYPES.UNDELETE && isOffline;
+    const shouldBeDisabledOffline = action !== CONST.SEARCH.ACTION_TYPES.UNDELETE && isOffline;
 
     return (
         <Button
