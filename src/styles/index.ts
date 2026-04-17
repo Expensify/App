@@ -5511,6 +5511,35 @@ const staticStyles = (theme: ThemeColors) =>
             paddingBottom: 0,
         },
 
+        userPillsContainer: {
+            gap: 4,
+        },
+
+        userPill: {
+            backgroundColor: theme.border,
+            borderRadius: 12,
+            paddingHorizontal: 6,
+            paddingVertical: 2,
+            gap: 4,
+        },
+
+        userPillText: {
+            fontSize: variables.fontSizeSmall,
+            lineHeight: 16,
+            flexShrink: 1,
+        },
+
+        userPillMore: {
+            paddingHorizontal: 6,
+            paddingVertical: 2,
+        },
+
+        userPillMoreText: {
+            fontSize: variables.fontSizeSmall,
+            lineHeight: 16,
+            color: theme.link,
+        },
+
         integrationIcon: {
             overflow: 'hidden',
             borderRadius: variables.buttonBorderRadius,
