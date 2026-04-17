@@ -93,7 +93,7 @@ function createApprovalWorkflow({approvalWorkflow, policy, addExpenseApprovalsTa
         (addExpenseApprovalsTaskReport.stateNum !== CONST.REPORT.STATE_NUM.APPROVED || addExpenseApprovalsTaskReport.statusNum !== CONST.REPORT.STATUS_NUM.APPROVED)
     ) {
         // Will be refactored in next PR; buildOptimisticTaskReportAction falls back to module-level Onyx.connect value; tracked in https://github.com/Expensify/App/issues/66417
-        completeTask(addExpenseApprovalsTaskReport, false, false, undefined, undefined);
+        completeTask(addExpenseApprovalsTaskReport, false, false, undefined, undefined, undefined, false);
     }
 }
 
