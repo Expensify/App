@@ -20,7 +20,7 @@ type OdometerReceiptStitcherProps = {
     odometerStartImage: FileObject | string | null | undefined;
     odometerEndImage: FileObject | string | null | undefined;
     transaction: OnyxEntry<Transaction>;
-    requestType: IOURequestType | undefined;
+    requestType: IOURequestType;
     reportID: string;
     backToReport: string | undefined;
     action: IOUAction;
@@ -160,9 +160,7 @@ function OdometerReceiptStitcher({
                 if (hasExpiredImages) {
                     onStitchingChange(false);
                     clearOdometerTransactionState(transaction, shouldUseTransactionDraft(action, iouType));
-                    if (requestType) {
-                        navigateToStartMoneyRequestStep(requestType, iouType, currentTransactionID, reportID, action, backToReport);
-                    }
+                    navigateToStartMoneyRequestStep(requestType, iouType, currentTransactionID, reportID, action, backToReport);
                     return;
                 }
                 runStitch();
