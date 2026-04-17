@@ -23,7 +23,7 @@ import {
 } from '@libs/actions/Policy/Tag';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PolicyTagLists, PolicyTags, RecentlyUsedTags} from '@src/types/onyx';
+import type {Policy, PolicyTagLists, PolicyTags, RecentlyUsedTags} from '@src/types/onyx';
 import createRandomPolicy from '../utils/collections/policies';
 import createRandomPolicyTags from '../utils/collections/policyTags';
 import * as TestHelper from '../utils/TestHelper';
@@ -1168,6 +1168,148 @@ describe('actions/Policy', () => {
             for (const tagName of tagsToDelete) {
                 expect(updatePolicyTags?.[tagListName]?.tags[tagName]).toBeFalsy();
             }
+        });
+
+        it('should clear coding rule tag references when deleting tags referenced by coding rules', async () => {
+            const fakePolicy = createRandomPolicy(0);
+            fakePolicy.areTagsEnabled = true;
+
+            const tagListName = 'Fake tag';
+            const fakePolicyTags = createRandomPolicyTags(tagListName, 2);
+            const tagNames = Object.keys(fakePolicyTags?.[tagListName]?.tags ?? {});
+            const tagsToDelete = [tagNames[0]];
+
+            // Set up coding rules that reference the tag being deleted
+            fakePolicy.rules = {
+                codingRules: {
+                    rule1: {
+                        filters: {left: 'merchant', operator: 'eq', right: 'test'},
+                        tag: tagNames[0],
+                    },
+                    rule2: {
+                        filters: {left: 'merchant', operator: 'eq', right: 'other'},
+                        tag: tagNames[1],
+                    },
+                },
+            };
+
+            mockFetch?.pause?.();
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`, fakePolicyTags);
+
+            const {result: policyData} = renderHook(() => usePolicyData(fakePolicy.id), {wrapper: OnyxListItemProvider});
+            await act(async () => {
+                await waitForBatchedUpdates();
+            });
+            deletePolicyTags(policyData.current, tagsToDelete);
+
+            await waitForBatchedUpdates();
+
+            // Verify optimistic data: coding rule for deleted tag should have tag nullified
+            let updatedPolicy: Policy | undefined;
+            await TestHelper.getOnyxData({
+                key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
+                callback: (val) => (updatedPolicy = val),
+            });
+
+            // Onyx merge with null removes the key, so tag becomes undefined
+            expect(updatedPolicy?.rules?.codingRules?.rule1?.tag).toBeUndefined();
+            // Rule2 references a tag that was NOT deleted, so it should remain unchanged
+            expect(updatedPolicy?.rules?.codingRules?.rule2?.tag).toBe(tagNames[1]);
+
+            await mockFetch?.resume?.();
+            await waitForBatchedUpdates();
+        });
+
+        it('should restore coding rule tag references on api failure', async () => {
+            const fakePolicy = createRandomPolicy(0);
+            fakePolicy.areTagsEnabled = true;
+
+            const tagListName = 'Fake tag';
+            const fakePolicyTags = createRandomPolicyTags(tagListName, 2);
+            const tagNames = Object.keys(fakePolicyTags?.[tagListName]?.tags ?? {});
+            const tagsToDelete = [tagNames[0]];
+
+            fakePolicy.rules = {
+                codingRules: {
+                    rule1: {
+                        filters: {left: 'merchant', operator: 'eq', right: 'test'},
+                        tag: tagNames[0],
+                    },
+                },
+            };
+
+            mockFetch?.pause?.();
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`, fakePolicyTags);
+
+            const {result: policyData} = renderHook(() => usePolicyData(fakePolicy.id), {wrapper: OnyxListItemProvider});
+            await act(async () => {
+                await waitForBatchedUpdates();
+            });
+
+            mockFetch?.fail?.();
+            deletePolicyTags(policyData.current, tagsToDelete);
+            await waitForBatchedUpdates();
+
+            await mockFetch?.resume?.();
+            await waitForBatchedUpdates();
+
+            // Verify failure data: coding rule tag should be restored
+            let updatedPolicy: Policy | undefined;
+            await TestHelper.getOnyxData({
+                key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
+                callback: (val) => (updatedPolicy = val),
+            });
+
+            expect(updatedPolicy?.rules?.codingRules?.rule1?.tag).toBe(tagNames[0]);
+        });
+
+        it('should not add coding rule updates when no coding rules reference deleted tags', async () => {
+            const fakePolicy = createRandomPolicy(0);
+            fakePolicy.areTagsEnabled = true;
+
+            const tagListName = 'Fake tag';
+            const fakePolicyTags = createRandomPolicyTags(tagListName, 2);
+            const tagNames = Object.keys(fakePolicyTags?.[tagListName]?.tags ?? {});
+            const tagsToDelete = [tagNames[0]];
+
+            // Coding rule references a different tag that is NOT being deleted
+            fakePolicy.rules = {
+                codingRules: {
+                    rule1: {
+                        filters: {left: 'merchant', operator: 'eq', right: 'test'},
+                        tag: tagNames[1],
+                    },
+                },
+            };
+
+            mockFetch?.pause?.();
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`, fakePolicyTags);
+
+            const {result: policyData} = renderHook(() => usePolicyData(fakePolicy.id), {wrapper: OnyxListItemProvider});
+            await act(async () => {
+                await waitForBatchedUpdates();
+            });
+            deletePolicyTags(policyData.current, tagsToDelete);
+
+            await waitForBatchedUpdates();
+
+            // Verify the coding rule tag reference is unchanged
+            let updatedPolicy: Policy | undefined;
+            await TestHelper.getOnyxData({
+                key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
+                callback: (val) => (updatedPolicy = val),
+            });
+
+            expect(updatedPolicy?.rules?.codingRules?.rule1?.tag).toBe(tagNames[1]);
+
+            await mockFetch?.resume?.();
+            await waitForBatchedUpdates();
         });
     });
 
