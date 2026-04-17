@@ -51,7 +51,7 @@ function OdometerReceiptStitcher({
     } | null>(null);
 
     useEffect(() => {
-        if (!isOdometerDistanceRequest || !isFocused) {
+        if (!isOdometerDistanceRequest || !isFocused || !transaction) {
             return;
         }
 
@@ -74,7 +74,7 @@ function OdometerReceiptStitcher({
                 return;
             }
 
-            setMoneyRequestReceipt(transaction?.transactionID ?? '', getOdometerImageUri(singleImage), getOdometerImageName(singleImage), true, getOdometerImageType(singleImage));
+            setMoneyRequestReceipt(transaction.transactionID, getOdometerImageUri(singleImage), getOdometerImageName(singleImage), true, getOdometerImageType(singleImage));
             lastStitchedImages.current = {startImage: odometerStartImage, endImage: odometerEndImage};
             return;
         }
@@ -95,13 +95,7 @@ function OdometerReceiptStitcher({
                         cancelSpan(CONST.TELEMETRY.SPAN_ODOMETER_IMAGE_STITCH);
                         return;
                     }
-                    setMoneyRequestReceipt(
-                        transaction?.transactionID ?? '',
-                        getOdometerImageUri(stitchedImage),
-                        getOdometerImageName(stitchedImage),
-                        true,
-                        getOdometerImageType(stitchedImage),
-                    );
+                    setMoneyRequestReceipt(transaction.transactionID, getOdometerImageUri(stitchedImage), getOdometerImageName(stitchedImage), true, getOdometerImageType(stitchedImage));
                     lastStitchedImages.current = {startImage: odometerStartImage, endImage: odometerEndImage};
                     endSpan(CONST.TELEMETRY.SPAN_ODOMETER_IMAGE_STITCH);
                 })
@@ -148,7 +142,7 @@ function OdometerReceiptStitcher({
                 if (hasExpiredImages) {
                     onStitchingChange(false);
                     clearOdometerTransactionState(transaction, true);
-                    navigateToStartMoneyRequestStep(CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER, iouType, transaction?.transactionID ?? '', reportID, CONST.IOU.ACTION.CREATE, backToReport);
+                    navigateToStartMoneyRequestStep(CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER, iouType, transaction.transactionID, reportID, CONST.IOU.ACTION.CREATE, backToReport);
                     return;
                 }
                 runStitch();
