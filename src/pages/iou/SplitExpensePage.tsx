@@ -48,7 +48,7 @@ import OnyxTabNavigator, {TabScreenWithFocusTrapWrapper, TopTab} from '@libs/Nav
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SplitExpenseParamList} from '@libs/Navigation/types';
 import {isSplitAction} from '@libs/ReportSecondaryActionUtils';
-import {getReportOrDraftReport, getTransactionDetails, isReportApproved, isSettled as isSettledReportUtils} from '@libs/ReportUtils';
+import {canEditFieldOfMoneyRequest, getReportOrDraftReport, getTransactionDetails, isReportApproved, isSettled as isSettledReportUtils} from '@libs/ReportUtils';
 import type {TransactionDetails} from '@libs/ReportUtils';
 import {getActiveGroupSearchHashes} from '@libs/SearchUIUtils';
 import {computeSplitSaveErrorMessage, computeSplitWarningMessage} from '@libs/SplitExpenseUtils';
@@ -147,6 +147,11 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     const isCard = isManagedCardTransaction(transaction);
     const originalTransactionID = draftTransaction?.comment?.originalTransactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID;
     const iouActions = getIOUActionForTransactions([originalTransactionID], expenseReport?.reportID);
+
+    const isEditingSplitExpense = !!Number(splitExpenseTransactionID);
+    const splitTransactionIOUAction = getIOUActionForTransactions([splitExpenseTransactionID], expenseReport?.reportID).at(0);
+    const canEditSplitExpense = canEditFieldOfMoneyRequest(splitTransactionIOUAction, CONST.EDIT_REQUEST_FIELD.AMOUNT);
+
     const {iouReport} = useGetIOUReportFromReportAction(iouActions.at(0));
     const [iouReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${getNonEmptyStringOnyxID(iouReport?.reportID)}`);
 
@@ -337,6 +342,10 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         const isCancelled = currentItemReport && currentItemReport?.isCancelledIOU;
         const percentage = adjustedPercentages.at(index) ?? 0;
 
+        const isEditable =
+            !currentTransaction ||
+            canEditFieldOfMoneyRequest(getIOUActionForTransactions([currentTransaction?.transactionID], currentItemReport?.reportID).at(0), CONST.EDIT_REQUEST_FIELD.AMOUNT);
+
         const date = DateUtils.formatWithUTCTimeZone(
             item.created,
             DateUtils.doesDateBelongToAPastYear(item.created) ? CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT : CONST.DATE.MONTH_DAY_ABBR_FORMAT,
@@ -369,7 +378,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
             onSplitExpenseValueChange,
             isSelected: splitExpenseTransactionID === item.transactionID,
             keyForList: item?.transactionID,
-            isEditable: isSplitExpenseEditable(item),
+            isEditable,
         };
     });
 
@@ -451,7 +460,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     const initiallyFocusedOptionKey = options.find((option) => option.transactionID === splitExpenseTransactionID)?.keyForList;
 
     let headerTitle = translate('iou.split');
-    if (Number(splitExpenseTransactionID)) {
+    if (isEditingSplitExpense) {
         headerTitle = translate('iou.editSplits');
     } else if (isPercentageMode) {
         headerTitle = translate('iou.splitByPercentage');
@@ -477,6 +486,9 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         });
     };
 
+    // eslint-disable-next-line rulesdir/no-negated-variables
+    const shouldShowNotFoundPage = !reportID || isEmptyObject(draftTransaction) || (isEditingSplitExpense ? !canEditSplitExpense : !isSplitAvailable);
+
     if (isLoadingDraftTransaction) {
         const reasonAttributes: SkeletonSpanReasonAttributes = {
             context: 'SplitExpensePage',
@@ -496,7 +508,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
             shouldEnableMaxHeight={canUseTouchScreen()}
             shouldDismissKeyboardBeforeClose={false}
         >
-            <FullPageNotFoundView shouldShow={!reportID || isEmptyObject(draftTransaction) || !isSplitAvailable}>
+            <FullPageNotFoundView shouldShow={shouldShowNotFoundPage}>
                 <View style={styles.flex1}>
                     <HeaderWithBackButton
                         title={headerTitle}

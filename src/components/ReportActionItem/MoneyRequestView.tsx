@@ -935,7 +935,7 @@ function MoneyRequestView({
                                 return;
                             }
 
-                            if (shouldShowSplitIndicator && isSplitAvailable) {
+                            if (shouldShowSplitIndicator && (isSplitAvailable || canEditAmount)) {
                                 initSplitExpense(transaction, policy);
                                 return;
                             }

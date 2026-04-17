@@ -18,6 +18,7 @@ import usePolicy from '@hooks/usePolicy';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {ViolationField} from '@hooks/useViolations';
+import {getIOUActionForTransactions} from '@libs/actions/IOU/Duplicate';
 import {initDraftSplitExpenseDataForEdit, removeSplitExpenseField, updateSplitExpenseField} from '@libs/actions/IOU/Split';
 import {openPolicyCategoriesPage} from '@libs/actions/Policy/Category';
 import {openPolicyTagsPage} from '@libs/actions/Policy/Tag';
@@ -33,7 +34,7 @@ import {getTagLists} from '@libs/PolicyUtils';
 import {getReportName} from '@libs/ReportNameUtils';
 import {isSplitAction} from '@libs/ReportSecondaryActionUtils';
 import type {TransactionDetails} from '@libs/ReportUtils';
-import {getParsedComment, getReportOrDraftReport, getTransactionDetails} from '@libs/ReportUtils';
+import {canEditFieldOfMoneyRequest, getParsedComment, getReportOrDraftReport, getTransactionDetails} from '@libs/ReportUtils';
 import {getTagVisibility, hasEnabledTags} from '@libs/TagsOptionsListUtils';
 import {getDistanceInMeters, getRateID, getTag, getTagForDisplay, isDistanceRequest, isManualDistanceRequest, isOdometerDistanceRequest} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
@@ -63,9 +64,14 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
 
     const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`];
     const originalTransaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transaction?.comment?.originalTransactionID)}`];
+    const splitExpenseTransaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(splitExpenseTransactionID)}`];
 
     const report = getReportOrDraftReport(reportID);
     const currentReport = report ?? currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportID)}`];
+
+    const isEditingSplitExpense = !!splitExpenseTransaction;
+    const splitTransactionIOUAction = getIOUActionForTransactions([splitExpenseTransactionID], currentReport?.reportID).at(0);
+    const canEditSplitExpense = canEditFieldOfMoneyRequest(splitTransactionIOUAction, CONST.EDIT_REQUEST_FIELD.AMOUNT);
 
     const policy = usePolicy(currentReport?.policyID);
     const currentPolicy = Object.keys(policy?.employeeList ?? {}).length
@@ -126,6 +132,7 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
 
     const previousTagsVisibility = usePrevious(tagVisibility.map((v) => v.shouldShow)) ?? [];
 
+    // eslint-disable-next-line rulesdir/no-negated-variables
     const isDistance = isDistanceRequest(splitExpenseDraftTransaction);
     const isManualDistance = isManualDistanceRequest(splitExpenseDraftTransaction);
     const isOdometerDistance = isOdometerDistanceRequest(splitExpenseDraftTransaction);
@@ -219,9 +226,12 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
         </>
     ) : null;
 
+    // eslint-disable-next-line rulesdir/no-negated-variables
+    const shouldShowNotFoundPage = !reportID || isEmptyObject(splitExpenseDraftTransaction) || (isEditingSplitExpense ? !canEditSplitExpense : !isSplitAvailable);
+
     return (
         <ScreenWrapper testID="SplitExpenseEditPage">
-            <FullPageNotFoundView shouldShow={!reportID || isEmptyObject(splitExpenseDraftTransaction) || !isSplitAvailable}>
+            <FullPageNotFoundView shouldShow={shouldShowNotFoundPage}>
                 <View style={[styles.flex1]}>
                     <HeaderWithBackButton
                         title={translate(
