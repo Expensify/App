@@ -1327,6 +1327,10 @@ function isCardPendingActivate(card?: Card) {
     return card?.state === CONST.EXPENSIFY_CARD.STATE.NOT_ACTIVATED;
 }
 
+function isCardWithCustomZeroLimit(card: Card): boolean {
+    return !!card.nameValuePairs?.hasCustomUnapprovedExpenseLimit && card.nameValuePairs?.unapprovedExpenseLimit === 0;
+}
+
 /**
  * Check if a card has potential fraud that needs review.
  * Returns true if the card has fraud type 'domain' or 'individual'.
@@ -1548,7 +1552,8 @@ function hasDisplayableAssignedCards(cardList: CardList | undefined): boolean {
             CONST.EXPENSIFY_CARD.ACTIVE_STATES.includes(card.state ?? 0) &&
             (isExpensifyCard(card) || !!card.domainName || isPersonalCard(card)) &&
             card.cardName !== CONST.COMPANY_CARDS.CARD_NAME.CASH &&
-            (!isExpensifyCard(card) || !isExpiredCard(card)),
+            (!isExpensifyCard(card) || !isExpiredCard(card)) &&
+            (!isExpensifyCard(card) || !isCardWithCustomZeroLimit(card)),
     );
 }
 
@@ -1597,7 +1602,7 @@ function getDisplayableExpensifyCards(cardList: CardList | undefined): Card[] {
 
     const activeCards = filterAllInactiveCards(cardList);
     const activeExpensifyCards = Object.values(activeCards).filter(
-        (card) => isExpensifyCard(card) && !isExpiredCard(card) && card.cardName !== CONST.COMPANY_CARDS.CARD_NAME.CASH && !isTravelCard(card),
+        (card) => isExpensifyCard(card) && !isExpiredCard(card) && card.cardName !== CONST.COMPANY_CARDS.CARD_NAME.CASH && !isTravelCard(card) && !isCardWithCustomZeroLimit(card),
     );
 
     const sortedCards = lodashSortBy(activeExpensifyCards, getAssignedCardSortKey);
@@ -1805,6 +1810,7 @@ export {
     getPersonalBankCardDetailsImage,
     isCardPendingIssue,
     isCardPendingActivate,
+    isCardWithCustomZeroLimit,
     hasPendingExpensifyCardAction,
     isExpensifyCardPendingAction,
     getFundIdFromSettingsKey,
