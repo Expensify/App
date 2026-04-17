@@ -44,7 +44,6 @@ import {
     getSortedSections,
     getValidGroupBy,
     getWideAmountIndicators,
-    hasDeletedTransactionInData,
     isGroupedItemArray,
     isReportActionListItemType,
     isSearchDataLoaded,
@@ -501,19 +500,19 @@ function Search({
 
     const prevIsSearchResultEmpty = usePrevious(isSearchResultsEmpty);
 
-    const [baseFilteredData, filteredDataLength, allDataLength] = useMemo(() => {
+    const {baseFilteredData, filteredDataLength, allDataLength, hasDeletedTransaction} = useMemo(() => {
         if (shouldDeferHeavySearchWork || searchResults === undefined || !isDataLoaded) {
-            return [[], 0, 0];
+            return {baseFilteredData: [], filteredDataLength: 0, allDataLength: 0, hasDeletedTransaction: false};
         }
 
         // Group-by option cannot be used for chats or tasks
         const isChat = type === CONST.SEARCH.DATA_TYPES.CHAT;
         const isTask = type === CONST.SEARCH.DATA_TYPES.TASK;
         if (validGroupBy && (isChat || isTask)) {
-            return [[], 0, 0];
+            return {baseFilteredData: [], filteredDataLength: 0, allDataLength: 0, hasDeletedTransaction: false};
         }
 
-        const [filteredData1, allLength] = getSections({
+        const [filteredData1, allLength, hasDeletedTransactionFromSections] = getSections({
             type,
             data: searchResults.data,
             policies,
@@ -537,7 +536,12 @@ function Search({
             onyxPersonalDetailsList,
             policyForMovingExpenses,
         });
-        return [filteredData1, filteredData1.length, allLength];
+        return {
+            baseFilteredData: filteredData1,
+            filteredDataLength: filteredData1.length,
+            allDataLength: allLength,
+            hasDeletedTransaction: hasDeletedTransactionFromSections,
+        };
     }, [
         currentSearchKey,
         isOffline,
@@ -1493,8 +1497,6 @@ function Search({
         () => (searchResults?.data ? getWideAmountIndicators(searchResults.data) : {shouldShowAmountInWideColumn: false, shouldShowTaxAmountInWideColumn: false}),
         [searchResults?.data],
     );
-
-    const hasDeletedTransaction = useMemo(() => (searchResults?.data ? hasDeletedTransactionInData(searchResults.data) : false), [searchResults?.data]);
 
     const onSortPress = useCallback(
         (column: SearchColumnType, order: SortOrder) => {

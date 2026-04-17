@@ -531,6 +531,26 @@ type SearchDateModifierLower = Lowercase<SearchDateModifier>;
 
 type ArchivedReportsIDSet = ReadonlySet<string>;
 
+/** Row array returned by `getSections`, plus total count and whether any transaction is in the trash (wide action column). */
+type GetSectionsReturnTuple = readonly [
+    | ReportActionListItemType[]
+    | TaskListItemType[]
+    | TransactionListItemType[]
+    | TransactionGroupListItemType[]
+    | TransactionMemberGroupListItemType[]
+    | TransactionCardGroupListItemType[]
+    | TransactionWithdrawalIDGroupListItemType[]
+    | TransactionCategoryGroupListItemType[]
+    | TransactionMerchantGroupListItemType[]
+    | TransactionTagGroupListItemType[]
+    | TransactionMonthGroupListItemType[]
+    | TransactionWeekGroupListItemType[]
+    | TransactionYearGroupListItemType[]
+    | TransactionQuarterGroupListItemType[],
+    number,
+    boolean,
+];
+
 type GetSectionsParams = {
     type: SearchDataTypes;
     data: OnyxTypes.SearchResults['data'];
@@ -2046,7 +2066,7 @@ function getTransactionsSections({
     reportActions = {},
     queryJSON,
     policyForMovingExpenses,
-}: GetTransactionSectionsParams): [TransactionListItemType[], number] {
+}: GetTransactionSectionsParams): [TransactionListItemType[], number, boolean] {
     const {
         transactionKeys,
         violations: allViolations,
@@ -2168,7 +2188,7 @@ function getTransactionsSections({
             transactionsSections.push(transactionSection);
         }
     }
-    return [transactionsSections, transactionsSections.length];
+    return [transactionsSections, transactionsSections.length, hasDeletedTransaction];
 }
 
 /**
@@ -2640,7 +2660,7 @@ function getReportSections({
     allReportMetadata,
     queryJSON,
     onyxPersonalDetailsList,
-}: GetReportSectionsParams): [TransactionGroupListItemType[], number] {
+}: GetReportSectionsParams): [TransactionGroupListItemType[], number, boolean] {
     const {
         transactionKeys,
         reportKeys,
@@ -2836,7 +2856,7 @@ function getReportSections({
     }
 
     const reportIDToTransactionsValues = Object.values(reportIDToTransactions);
-    return [reportIDToTransactionsValues, reportIDToTransactionsValues.length];
+    return [reportIDToTransactionsValues, reportIDToTransactionsValues.length, hasDeletedTransaction];
 }
 
 function buildSpecificGroupQuery(queryJSON: SearchQueryJSON, filterKey: SearchFilterKey, filterValue: string | number): SearchQueryJSON | undefined {
@@ -3413,12 +3433,12 @@ function getSections({
     conciergeReportID,
     onyxPersonalDetailsList,
     policyForMovingExpenses,
-}: GetSectionsParams) {
+}: GetSectionsParams): GetSectionsReturnTuple {
     if (type === CONST.SEARCH.DATA_TYPES.CHAT) {
-        return getReportActionsSections(data, visibleReportActionsData);
+        return [...getReportActionsSections(data, visibleReportActionsData), false];
     }
     if (type === CONST.SEARCH.DATA_TYPES.TASK) {
-        return getTaskSections(data, formatPhoneNumber, conciergeReportID, archivedReportsIDList);
+        return [...getTaskSections(data, formatPhoneNumber, conciergeReportID, archivedReportsIDList), false];
     }
 
     if (type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT) {
@@ -3446,25 +3466,25 @@ function getSections({
         // eslint-disable-next-line default-case
         switch (groupBy) {
             case CONST.SEARCH.GROUP_BY.FROM:
-                return getMemberSections(data, queryJSON, formatPhoneNumber);
+                return [...getMemberSections(data, queryJSON, formatPhoneNumber), hasDeletedTransactionInData(data)];
             case CONST.SEARCH.GROUP_BY.CARD:
-                return getCardSections(data, queryJSON, translate, cardFeeds, customCardNames);
+                return [...getCardSections(data, queryJSON, translate, cardFeeds, customCardNames), hasDeletedTransactionInData(data)];
             case CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID:
-                return getWithdrawalIDSections(data, queryJSON);
+                return [...getWithdrawalIDSections(data, queryJSON), hasDeletedTransactionInData(data)];
             case CONST.SEARCH.GROUP_BY.CATEGORY:
-                return getCategorySections(data, queryJSON);
+                return [...getCategorySections(data, queryJSON), hasDeletedTransactionInData(data)];
             case CONST.SEARCH.GROUP_BY.MERCHANT:
-                return getMerchantSections(data, queryJSON, translate);
+                return [...getMerchantSections(data, queryJSON, translate), hasDeletedTransactionInData(data)];
             case CONST.SEARCH.GROUP_BY.TAG:
-                return getTagSections(data, queryJSON, translate);
+                return [...getTagSections(data, queryJSON, translate), hasDeletedTransactionInData(data)];
             case CONST.SEARCH.GROUP_BY.MONTH:
-                return getMonthSections(data, queryJSON);
+                return [...getMonthSections(data, queryJSON), hasDeletedTransactionInData(data)];
             case CONST.SEARCH.GROUP_BY.WEEK:
-                return getWeekSections(data, queryJSON);
+                return [...getWeekSections(data, queryJSON), hasDeletedTransactionInData(data)];
             case CONST.SEARCH.GROUP_BY.YEAR:
-                return getYearSections(data, queryJSON);
+                return [...getYearSections(data, queryJSON), hasDeletedTransactionInData(data)];
             case CONST.SEARCH.GROUP_BY.QUARTER:
-                return getQuarterSections(data, queryJSON);
+                return [...getQuarterSections(data, queryJSON), hasDeletedTransactionInData(data)];
         }
     }
 

@@ -276,6 +276,9 @@ type TransactionReportGroupListItemType = TransactionGroupListItemType & {groupe
         /** Whether the amount column should use the wide layout */
         isAmountColumnWide?: boolean;
 
+        /** Whether the action column should use its wider variant when any transaction in the dataset is deleted */
+        isActionColumnWide?: boolean;
+
         /** Pre-computed flag indicating whether all transactions are scanning */
         isAllScanning?: boolean;
 
