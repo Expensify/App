@@ -143,6 +143,7 @@ describe('OptionsListUtils', () => {
                 policyCollection: allPolicies,
                 personalDetails,
                 sortedActions: undefined,
+                conciergeReportID: undefined,
             }),
         );
     });
@@ -315,6 +316,7 @@ describe('OptionsListUtils', () => {
                 personalDetails,
                 maxResults: 20,
                 sortedActions: undefined,
+                conciergeReportID: undefined,
             }),
         );
     });

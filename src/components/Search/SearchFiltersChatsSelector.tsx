@@ -98,6 +98,7 @@ function SearchFiltersChatsSelector({initialReportIDs, onFiltersUpdate, isScreen
                   personalDetails,
                   policyCollection: allPolicies,
                   sortedActions,
+                  conciergeReportID,
               });
 
     const chatOptions = filterAndOrderOptions(defaultOptions, cleanSearchTerm, countryCode, loginList, currentUserEmail, currentUserAccountID, personalDetails, {
