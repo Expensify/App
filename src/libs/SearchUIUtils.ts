@@ -5401,9 +5401,15 @@ function getColumnsToShow({
             if (hasExchangeRate) {
                 columns[CONST.SEARCH.TABLE_COLUMNS.EXCHANGE_RATE] = true;
             }
-            // Show the Total column when the transaction has a converted amount or any exchange info.
-            if (hasExchangeRate || (transaction.convertedAmount != null && transaction.convertedAmount !== transaction.amount)) {
-                columns[CONST.SEARCH.TABLE_COLUMNS.TOTAL] = true;
+            // Expense report view: show TOTAL column (converted amount in workspace currency).
+            // Search page: show ORIGINAL_AMOUNT column (transaction's original amount).
+            const hasConversion = hasExchangeRate || (transaction.convertedAmount != null && transaction.convertedAmount !== transaction.amount);
+            if (hasConversion) {
+                if (isExpenseReportView) {
+                    columns[CONST.SEARCH.TABLE_COLUMNS.TOTAL] = true;
+                } else {
+                    columns[CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT] = true;
+                }
             }
 
             if (!Array.isArray(data)) {
