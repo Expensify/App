@@ -87,7 +87,7 @@ describe('useBulkDuplicateReportAction', () => {
         await Onyx.clear();
     });
 
-    it('should call bulkDuplicateReports with correct reportIDs', async () => {
+    it('should call bulkDuplicateReports with correct selectedReports', async () => {
         const policyID = 'policy1';
         mockDefaultExpensePolicy = {id: policyID, type: CONST.POLICY.TYPE.TEAM, name: 'Test WS'} as Policy;
 
@@ -115,7 +115,7 @@ describe('useBulkDuplicateReportAction', () => {
         expect(bulkDuplicateReports).toHaveBeenCalledTimes(1);
         expect(bulkDuplicateReports).toHaveBeenCalledWith(
             expect.objectContaining({
-                reportIDs: expect.arrayContaining(['rpt1', 'rpt2']),
+                selectedReports,
             }),
         );
     });
@@ -179,7 +179,7 @@ describe('useBulkDuplicateReportAction', () => {
         expect(mockClearSelectedTransactions).toHaveBeenCalledWith(undefined, true);
     });
 
-    it('should filter out reports with undefined reportID', async () => {
+    it('should pass all selectedReports including those with undefined reportID', async () => {
         const policyID = 'policy1';
         mockDefaultExpensePolicy = {id: policyID, type: CONST.POLICY.TYPE.TEAM, name: 'Test WS'} as Policy;
 
@@ -205,7 +205,7 @@ describe('useBulkDuplicateReportAction', () => {
 
         expect(bulkDuplicateReports).toHaveBeenCalledWith(
             expect.objectContaining({
-                reportIDs: ['rpt1'],
+                selectedReports,
             }),
         );
     });

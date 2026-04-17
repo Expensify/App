@@ -7,6 +7,7 @@ import type {SelectedReports} from './types';
 type BulkDuplicateReportHandlerProps = {
     selectedReports: SelectedReports[];
     allReports: OnyxCollection<Report> | undefined;
+    searchData: Record<string, unknown> | undefined;
     onHandlerReady: (handler: () => void) => void;
 };
 
@@ -15,8 +16,8 @@ type BulkDuplicateReportHandlerProps = {
  * Only mounted when the duplicate report option is visible, avoiding unnecessary global
  * subscriptions on the search page for users who aren't duplicating.
  */
-function BulkDuplicateReportHandler({selectedReports, allReports, onHandlerReady}: BulkDuplicateReportHandlerProps) {
-    const handleDuplicateReports = useBulkDuplicateReportAction({selectedReports, allReports});
+function BulkDuplicateReportHandler({selectedReports, allReports, searchData, onHandlerReady}: BulkDuplicateReportHandlerProps) {
+    const handleDuplicateReports = useBulkDuplicateReportAction({selectedReports, allReports, searchData});
 
     useEffect(() => {
         onHandlerReady(handleDuplicateReports);

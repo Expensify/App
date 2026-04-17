@@ -17,9 +17,10 @@ import usePermissions from './usePermissions';
 type UseBulkDuplicateReportActionParams = {
     selectedReports: SelectedReports[];
     allReports: OnyxCollection<Report> | undefined;
+    searchData: Record<string, unknown> | undefined;
 };
 
-function useBulkDuplicateReportAction({selectedReports, allReports}: UseBulkDuplicateReportActionParams) {
+function useBulkDuplicateReportAction({selectedReports, allReports, searchData}: UseBulkDuplicateReportActionParams) {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {clearSelectedTransactions} = useSearchActionsContext();
     const defaultExpensePolicy = useDefaultExpensePolicy();
@@ -43,11 +44,10 @@ function useBulkDuplicateReportAction({selectedReports, allReports}: UseBulkDupl
     const handleDuplicateReports = () => {
         const activePolicyExpenseChat = getPolicyExpenseChat(currentUserPersonalDetails.accountID, defaultExpensePolicy?.id);
 
-        const reportIDs = selectedReports.map((r) => r.reportID).filter((id): id is string => !!id);
-
         bulkDuplicateReports({
-            reportIDs,
+            selectedReports,
             allReports: allReports ?? {},
+            searchData,
             allPolicies,
             allPolicyCategories,
             allPolicyTags,
