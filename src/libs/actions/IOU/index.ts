@@ -1081,7 +1081,9 @@ function setMoneyRequestCurrency(transactionID: string, currency: string, isEdit
 }
 
 function setMoneyRequestDescription(transactionID: string, comment: string, isDraft: boolean, shouldStopSmartscan = false) {
-    Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {comment: {comment: comment.trim()}});
+    // Trim only when persisting to the real transaction (not a draft) to avoid
+    // stripping trailing spaces/newlines while the user is still typing.
+    Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {comment: {comment: isDraft ? comment : comment.trim()}});
     setMoneyRequestReceiptState(transactionID, isDraft, shouldStopSmartscan);
 }
 
