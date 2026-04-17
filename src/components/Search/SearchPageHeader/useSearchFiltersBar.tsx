@@ -2,6 +2,7 @@ import React from 'react';
 import type {ReactNode} from 'react';
 import type {OnyxCollection} from 'react-native-onyx';
 import AmountPopup from '@components/Search/FilterDropdowns/AmountPopup';
+import CardSelectPopup from '@components/Search/FilterDropdowns/CardSelectPopup';
 import CategorySelectPopup from '@components/Search/FilterDropdowns/CategorySelectPopup';
 import CurrencySelectPopup from '@components/Search/FilterDropdowns/CurrencySelectPopup';
 import type {PopoverComponentProps} from '@components/Search/FilterDropdowns/DropdownButton';
@@ -51,7 +52,7 @@ type UseSearchFiltersBarResult = {
     translate: ReturnType<typeof useLocalize>['translate'];
 };
 
-const SKIPPED_FILTERS = new Set<SearchAdvancedFiltersKey>([FILTER_KEYS.GROUP_BY, FILTER_KEYS.GROUP_CURRENCY, FILTER_KEYS.LIMIT, FILTER_KEYS.TYPE, FILTER_KEYS.VIEW, FILTER_KEYS.CARD_ID]);
+const SKIPPED_FILTERS = new Set<SearchAdvancedFiltersKey>([FILTER_KEYS.GROUP_BY, FILTER_KEYS.GROUP_CURRENCY, FILTER_KEYS.LIMIT, FILTER_KEYS.TYPE, FILTER_KEYS.VIEW]);
 
 function getFilterSentryLabel(filterKey: SearchAdvancedFiltersKey | SearchFilterKey | ReportFieldKey) {
     return `Search-Filter-${filterKey}`;
@@ -223,6 +224,18 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON): UseSearchFiltersBarRes
                 return {
                     PopoverComponent: ({closeOverlay}) => (
                         <PopupComponent
+                            updateFilterForm={updateFilterForm}
+                            closeOverlay={closeOverlay}
+                        />
+                    ),
+                    sentryLabel: getFilterSentryLabel(filterKey),
+                };
+            }
+            case FILTER_KEYS.CARD_ID: {
+                return {
+                    PopoverComponent: ({closeOverlay, isExpanded}) => (
+                        <CardSelectPopup
+                            isExpanded={isExpanded}
                             updateFilterForm={updateFilterForm}
                             closeOverlay={closeOverlay}
                         />
