@@ -124,7 +124,7 @@ import {linkingConfig} from './Navigation/linkingConfig';
 import Navigation, {navigationRef} from './Navigation/Navigation';
 import type {MoneyRequestNavigatorParamList, ReportsSplitNavigatorParamList} from './Navigation/types';
 import {getCurrentUserEmail} from './Network/NetworkStore';
-import NetworkConnection from './NetworkConnection';
+import {getDBTimeWithSkew} from './NetworkState';
 import {rand64} from './NumberUtils';
 import Parser from './Parser';
 import {getParsedMessageWithShortMentions} from './ParsingUtils';
@@ -980,6 +980,7 @@ type GetReportNameParams = {
 type GetReportStatusParams = {
     stateNum?: number;
     statusNum?: number;
+    isDeleted?: boolean;
     translate: LocaleContextProps['translate'];
 };
 
@@ -5093,6 +5094,19 @@ function canEditReportAction(reportAction: OnyxInputOrEntry<ReportAction>, linke
     const isCommentOrIOU = reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT || reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU;
     const message = reportAction ? getReportActionMessageReportUtils(reportAction) : undefined;
 
+    // For money request actions on settled/approved/closed expense reports, the action cannot be edited.
+    // canEditMoneyRequest has an admin/manager bypass for field-level edits (via canEditFieldOfMoneyRequest),
+    // but that bypass should not allow the "Edit expense" action on finalized reports.
+    if (isMoneyRequestAction(reportAction)) {
+        const moneyRequestReportID = getOriginalMessage(reportAction)?.IOUReportID;
+        if (moneyRequestReportID) {
+            const moneyRequestReport = getReportOrDraftReport(String(moneyRequestReportID));
+            if (isSettled(moneyRequestReport?.reportID) || isReportApproved({report: moneyRequestReport}) || isClosedReport(moneyRequestReport)) {
+                return false;
+            }
+        }
+    }
+
     return !!(
         reportAction?.actorAccountID === deprecatedCurrentUserAccountID &&
         isCommentOrIOU &&
@@ -6426,7 +6440,7 @@ function buildOptimisticAddCommentReportAction({
             ],
             automatic: false,
             avatar: allPersonalDetails?.[accountID]?.avatar,
-            created: NetworkConnection.getDBTimeWithSkew(Date.now() + createdOffset),
+            created: getDBTimeWithSkew(Date.now() + createdOffset),
             message: [
                 {
                     translationKey: isAttachmentOnly ? CONST.TRANSLATION_KEYS.ATTACHMENT : '',
@@ -7836,7 +7850,7 @@ function buildOptimisticTaskReportAction(
         ],
         reportActionID: rand64(),
         shouldShow: true,
-        created: NetworkConnection.getDBTimeWithSkew(Date.now() + createdOffset),
+        created: getDBTimeWithSkew(Date.now() + createdOffset),
         isFirstItem: false,
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
         delegateAccountID: delegateAccountDetails?.accountID,
@@ -13231,7 +13245,10 @@ function buildOptimisticMarkedAsResolvedReportAction(created = DateUtils.getDBTi
  * ========================================
  */
 
-function getReportStatusTranslation({stateNum, statusNum, translate}: GetReportStatusParams): string {
+function getReportStatusTranslation({stateNum, statusNum, isDeleted, translate}: GetReportStatusParams): string {
+    if (isDeleted) {
+        return translate('iou.deleted');
+    }
     if (stateNum === undefined || statusNum === undefined) {
         return '';
     }
@@ -13259,7 +13276,10 @@ function getReportStatusTranslation({stateNum, statusNum, translate}: GetReportS
     return '';
 }
 
-function getReportStatusColorStyle(theme: ThemeColors, stateNum?: number, statusNum?: number): {backgroundColor?: ColorValue; textColor?: ColorValue} | undefined {
+function getReportStatusColorStyle(theme: ThemeColors, stateNum?: number, statusNum?: number, isDeleted?: boolean): {backgroundColor?: ColorValue; textColor?: ColorValue} | undefined {
+    if (isDeleted) {
+        return theme.reportStatusBadge.deleted;
+    }
     if (stateNum === undefined || statusNum === undefined) {
         return undefined;
     }

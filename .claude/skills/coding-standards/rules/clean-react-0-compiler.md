@@ -18,7 +18,7 @@ Manual memoization is therefore:
 The codebase enforces this via:
 - **Babel plugin**: `babel-plugin-react-compiler` in `babel.config.js`
 - **ESLint processor**: `eslint-plugin-react-compiler-compat` suppresses redundant lint rules when files compile successfully
-- **CI compliance check**: `scripts/react-compiler-compliance-check.ts` blocks PRs with manual memoization in new files
+- **CI compliance check**: `scripts/react-compiler-compliance-check.ts` enforces that new components/hooks compile and that existing compiled files don't regress
 
 Reference: [React Compiler documentation](https://react.dev/learn/react-compiler)
 

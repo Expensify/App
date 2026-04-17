@@ -110,6 +110,7 @@ const translations: TranslationDeepObject<typeof en> = {
         newFeature: 'Nuova funzionalità',
         search: 'Cerca',
         reports: 'Report',
+        spend: 'Spese',
         find: 'Trova',
         searchWithThreeDots: 'Cerca...',
         next: 'Avanti',
@@ -1046,6 +1047,7 @@ const translations: TranslationDeepObject<typeof en> = {
             title: 'Per iniziare',
             createWorkspace: 'Crea uno spazio di lavoro',
             connectAccounting: ({integrationName}: {integrationName: string}) => `Connetti a ${integrationName}`,
+            connectAccountingDefault: 'Connetti alla contabilità',
             customizeCategories: 'Personalizza le categorie contabili',
             linkCompanyCards: 'Collega carte aziendali',
             setupRules: 'Configura le regole di spesa',
@@ -1668,6 +1670,7 @@ const translations: TranslationDeepObject<typeof en> = {
             prompt: 'Abilita il monitoraggio delle imposte nello spazio di lavoro per modificare i dettagli della spesa o eliminare l’imposta da questa spesa.',
             confirmText: 'Elimina imposta',
         },
+        deleted: 'Eliminato',
     },
     transactionMerge: {
         listPage: {
@@ -2111,6 +2114,9 @@ const translations: TranslationDeepObject<typeof en> = {
             helpSite: 'Sito di assistenza',
             conciergeChat: 'Concierge',
             conciergeChatDescription: 'Il tuo assistente IA personale',
+            accountManagerDescription: 'Il tuo account manager',
+            partnerManagerDescription: 'Il tuo partner manager',
+            guideDescription: 'Il tuo specialista di configurazione',
         },
     },
     closeAccountPage: {
@@ -2905,10 +2911,12 @@ ${amount} per ${merchant} - ${date}`,
         },
         employees: {
             title: 'Quanti dipendenti hai?',
+            [CONST.ONBOARDING_COMPANY_SIZE.MICRO_SMALL]: '1-4 dipendenti',
+            [CONST.ONBOARDING_COMPANY_SIZE.MICRO_MEDIUM]: '5-10 dipendenti',
             [CONST.ONBOARDING_COMPANY_SIZE.MICRO]: '1-10 dipendenti',
             [CONST.ONBOARDING_COMPANY_SIZE.SMALL]: '11-50 dipendenti',
             [CONST.ONBOARDING_COMPANY_SIZE.MEDIUM_SMALL]: '51-100 dipendenti',
-            [CONST.ONBOARDING_COMPANY_SIZE.MEDIUM]: '101-1.000 dipendenti',
+            [CONST.ONBOARDING_COMPANY_SIZE.MEDIUM]: 'Da 101 a 1.000 dipendenti',
             [CONST.ONBOARDING_COMPANY_SIZE.LARGE]: 'Più di 1.000 dipendenti',
         },
         accounting: {
@@ -5499,6 +5507,13 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                             settlementFrequencyLabel: 'Frequenza di regolamento',
                             settlementFrequencyDescription:
                                 'Con quale frequenza Expensify preleverà dal tuo conto bancario aziendale per saldare le recenti transazioni di Expensify Travel.',
+                            monthlySpendLimitLabel: 'Limite di spesa mensile per membro',
+                            monthlySpendLimitDescription: "L'importo massimo che ciascun membro può spendere in viaggi al mese.",
+                            reduceLimitTitle: 'Ridurre il limite di spesa per i viaggi?',
+                            reduceLimitWarning:
+                                'Se riduci il limite, i membri che hanno già speso più di questo importo non potranno effettuare nuove prenotazioni di viaggio fino al mese prossimo.',
+                            provisioningError:
+                                'Non siamo riusciti a configurare alcuni membri del tuo spazio di lavoro per la fatturazione centralizzata. Riprova più tardi o contatta Concierge per assistenza.',
                         },
                     },
                     disableModal: {
@@ -7588,6 +7603,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             reject: 'Rifiuta',
             duplicateExpense: ({count}: {count: number}) => `Duplica ${count === 1 ? 'spesa' : 'spese'}`,
             noOptionsAvailable: 'Nessuna opzione disponibile per il gruppo di spese selezionato.',
+            undelete: 'Ripristina',
         },
         filtersHeader: 'Filtri',
         filters: {
@@ -7640,6 +7656,10 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             billable: 'Fatturabile',
             reimbursable: 'Rimborsabile',
             purchaseCurrency: 'Valuta di acquisto',
+            sortOrder: {
+                [CONST.SEARCH.SORT_ORDER.ASC]: 'In ordine crescente',
+                [CONST.SEARCH.SORT_ORDER.DESC]: 'In discesa',
+            },
             groupBy: {
                 [CONST.SEARCH.GROUP_BY.FROM]: 'Da',
                 [CONST.SEARCH.GROUP_BY.CARD]: 'Carta',
@@ -7668,6 +7688,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
         display: {
             label: 'Visualizza',
             sortBy: 'Ordina per',
+            sortOrder: 'Ordine di visualizzazione',
             groupBy: 'Raggruppa per',
             limitResults: 'Limita i risultati',
         },
@@ -7703,7 +7724,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
         recentSearches: 'Ricerche recenti',
         recentChats: 'Chat recenti',
         searchIn: 'Cerca in',
-        searchPlaceholder: 'Cerca qualcosa',
+        searchPlaceholder: 'Cerca qualcosa...',
         suggestions: 'Suggerimenti',
         suggestionsAvailable: (
             {
@@ -9033,12 +9054,15 @@ Ecco una *ricevuta di prova* per mostrarti come funziona:`,
                 removeMember: 'Impossibile rimuovere questo utente. Riprova.',
                 addMember: 'Impossibile aggiungere questo membro. Riprova.',
                 vacationDelegate: 'Impossibile impostare questo utente come delegato per le ferie. Riprova.',
+                moveMember: 'Impossibile spostare questo membro. Riprova.',
             },
             cannotSetVacationDelegateForMember: (email: string) => `Non puoi impostare un delegato per le vacanze per ${email} perché al momento è il delegato per i seguenti membri:`,
             reportSuspiciousActivityPrompt: (email: string) =>
                 `Sei sicuro? Questo bloccherà l’account di <strong>${email}</strong>. <br /><br /> Il nostro team esaminerà quindi l’account e rimuoverà qualsiasi accesso non autorizzato. Per riottenere l’accesso, dovranno collaborare con Concierge.`,
             reportSuspiciousActivityConfirmationPrompt: 'Esamineremo l’account per verificare che sia sicuro sbloccarlo e ti contatteremo tramite Concierge per qualsiasi domanda.',
             emptyMembers: {title: 'Nessun membro in questo gruppo', subtitle: 'Aggiungi un membro o prova a cambiare il filtro qui sopra.'},
+            moveToGroup: 'Sposta nel gruppo',
+            chooseWhereToMove: ({count}: {count: number}) => `Scegli dove spostare ${count} ${count === 1 ? 'membro' : 'membri'}.`,
         },
         common: {
             settings: 'Impostazioni',
