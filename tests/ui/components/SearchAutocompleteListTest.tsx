@@ -113,8 +113,6 @@ describe('SearchAutocompleteList', () => {
             });
         });
 
-        const reports = {[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]: reportData};
-
         render(
             <OnyxListItemProvider>
                 <LocaleContextProvider>
@@ -122,10 +120,6 @@ describe('SearchAutocompleteList', () => {
                         autocompleteQueryValue=""
                         handleSearch={jest.fn()}
                         onListItemPress={jest.fn()}
-                        personalDetails={undefined}
-                        reports={reports}
-                        allFeeds={undefined}
-                        allCards={undefined}
                     />
                 </LocaleContextProvider>
             </OnyxListItemProvider>,
@@ -150,15 +144,12 @@ describe('SearchAutocompleteList', () => {
             parentReportID,
             parentReportActionID: parentActionID,
         };
-
         await act(async () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, reportData);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`, {
                 [parentActionID]: parentReportAction,
             });
         });
-
-        const reports = {[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]: reportData};
 
         render(
             <OnyxListItemProvider>
@@ -167,10 +158,6 @@ describe('SearchAutocompleteList', () => {
                         autocompleteQueryValue=""
                         handleSearch={jest.fn()}
                         onListItemPress={jest.fn()}
-                        personalDetails={undefined}
-                        reports={reports}
-                        allFeeds={undefined}
-                        allCards={undefined}
                     />
                 </LocaleContextProvider>
             </OnyxListItemProvider>,

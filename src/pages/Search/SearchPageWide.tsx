@@ -10,9 +10,10 @@ import Search from '@components/Search';
 import {useSearchStateContext} from '@components/Search/SearchContext';
 import SearchLoadingSkeleton from '@components/Search/SearchLoadingSkeleton';
 import SearchPageFooter from '@components/Search/SearchPageFooter';
-import SearchFiltersBar from '@components/Search/SearchPageHeader/SearchFiltersBar';
-import SearchPageHeader from '@components/Search/SearchPageHeader/SearchPageHeader';
+import SearchActionsBarWide from '@components/Search/SearchPageHeader/SearchActionsBarWide';
+import SearchPageHeaderWide from '@components/Search/SearchPageHeader/SearchPageHeaderWide';
 import type {SearchParams, SearchQueryJSON} from '@components/Search/types';
+import useEndSubmitNavigationSpans from '@hooks/useEndSubmitNavigationSpans';
 import useNetwork from '@hooks/useNetwork';
 import useSearchLoadingState from '@hooks/useSearchLoadingState';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -59,6 +60,8 @@ function SearchPageWide({
     const {saveScrollOffset} = useContext(ScrollOffsetContext);
     const receiptDropTargetRef = useRef<View>(null);
 
+    const endSubmitNavigationSpans = useEndSubmitNavigationSpans({requireLayout: false});
+
     const scrollHandler = useCallback(
         (e: NativeSyntheticEvent<NativeScrollEvent>) => {
             if (!e.nativeEvent.contentOffset.y) {
@@ -99,14 +102,12 @@ function SearchPageWide({
                 >
                     {!!queryJSON && (
                         <>
-                            <SearchPageHeader
+                            <SearchPageHeaderWide queryJSON={queryJSON} />
+                            <SearchActionsBarWide
                                 queryJSON={queryJSON}
+                                searchResults={searchResults}
+                                onSort={onSortPressedCallback}
                                 handleSearch={handleSearchAction}
-                                isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
-                            />
-                            <SearchFiltersBar
-                                queryJSON={queryJSON}
-                                isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
                             />
                             {shouldShowLoadingSkeleton ? (
                                 <SearchLoadingSkeleton
@@ -132,6 +133,7 @@ function SearchPageWide({
                                     onSearchListScroll={scrollHandler}
                                     onSortPressedCallback={onSortPressedCallback}
                                     searchRequestResponseStatusCode={searchRequestResponseStatusCode}
+                                    onDestinationVisible={endSubmitNavigationSpans}
                                 />
                             )}
                             {shouldShowFooter && (
