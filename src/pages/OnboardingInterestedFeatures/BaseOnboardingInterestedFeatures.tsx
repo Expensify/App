@@ -334,12 +334,11 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
                     }}
                     accessibilityLabel={item.title}
                     accessible={false}
-                    hoverStyle={!isSelected ? styles.hoveredComponentBG : undefined}
+                    hoverStyle={styles.hoveredComponentBG}
                     style={[
                         styles.onboardingInterestedFeaturesItem,
                         // 48.5% handles the gap between columns and keeps items aligned when the scrollbar appears
                         isSmallScreenWidth ? styles.flexBasis100 : {flexBasis: '48.5%', maxWidth: '48.5%'},
-                        isSelected && styles.activeComponentBG,
                     ]}
                     sentryLabel={CONST.SENTRY_LABEL.ONBOARDING.INTERESTED_FEATURES_ITEM}
                 >
