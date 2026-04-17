@@ -52,6 +52,8 @@ type TabSelectorBaseItem = WithSentryLabel & {
     pendingAction?: PendingAction;
 };
 
+type TabSelectorSize = 'default' | 'small';
+
 type TabSelectorBaseProps = {
     /** Tabs to render. */
     tabs: TabSelectorBaseItem[];
@@ -76,6 +78,9 @@ type TabSelectorBaseProps = {
 
     /** Whether tabs should have equal width. */
     equalWidth?: boolean;
+
+    /** Size variant for the tabs. 'small' uses a compact 28px height. */
+    size?: TabSelectorSize;
 
     /** Determines whether the product training tooltip should be displayed to the user. */
     shouldShowProductTrainingTooltip?: boolean;
@@ -120,6 +125,9 @@ type TabSelectorItemProps = WithSentryLabel & {
 
     /** Whether tabs should have equal width */
     equalWidth?: boolean;
+
+    /** Size variant for the tabs. */
+    size?: TabSelectorSize;
 
     /** Determines whether the product training tooltip should be displayed to the user. */
     shouldShowProductTrainingTooltip?: boolean;
@@ -182,4 +190,4 @@ type BackgroundColor = Animated.AnimatedInterpolation<string> | string;
 
 type Opacity = 1 | 0 | Animated.AnimatedInterpolation<number>;
 
-export type {TabSelectorProps, BackgroundColor, GetBackgroundColorConfig, Opacity, GetOpacityConfig, TabSelectorBaseProps, TabSelectorBaseItem, TabSelectorItemProps};
+export type {TabSelectorProps, BackgroundColor, GetBackgroundColorConfig, Opacity, GetOpacityConfig, TabSelectorBaseProps, TabSelectorBaseItem, TabSelectorItemProps, TabSelectorSize};

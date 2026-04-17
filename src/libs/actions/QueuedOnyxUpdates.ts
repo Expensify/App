@@ -35,7 +35,6 @@ function flushQueue(): Promise<void> {
     if (!currentAccountID && !CONFIG.IS_TEST_ENV) {
         const preservedKeys = new Set<OnyxKey>([
             ONYXKEYS.NVP_TRY_NEW_DOT,
-            ONYXKEYS.NVP_TRY_FOCUS_MODE,
             ONYXKEYS.PREFERRED_THEME,
             ONYXKEYS.NVP_PREFERRED_LOCALE,
             ONYXKEYS.RAM_ONLY_ARE_TRANSLATIONS_LOADING,

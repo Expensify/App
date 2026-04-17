@@ -4359,6 +4359,11 @@ const staticStyles = (theme: ThemeColors) =>
             scrollMarginInline: variables.tabSelectorScrollMarginInline,
         },
 
+        tabSelectorButtonSmall: {
+            height: variables.componentSizeSmall,
+            paddingHorizontal: 12,
+        },
+
         tabSelector: {
             flexDirection: 'row',
             paddingHorizontal: 20,
@@ -4369,6 +4374,11 @@ const staticStyles = (theme: ThemeColors) =>
             flexGrow: 1,
             paddingBottom: 12,
             paddingHorizontal: 20,
+        },
+
+        tabSelectorContentContainerSmall: {
+            paddingTop: 4,
+            paddingBottom: 4,
         },
 
         scrollableTabSelector: {
@@ -6208,6 +6218,11 @@ const dynamicStyles = (theme: ThemeColors) =>
                 lineHeight: variables.lineHeightLarge,
                 fontSize: variables.fontSizeLabel,
             }) satisfies TextStyle,
+
+        tabTextSmall: {
+            fontSize: variables.fontSizeSmall,
+            lineHeight: 16,
+        } satisfies TextStyle,
 
         tabBackground: (hovered: boolean, isFocused: boolean, isDisabled: boolean, background: string | Animated.AnimatedInterpolation<string>) => {
             if (isDisabled) {

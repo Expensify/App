@@ -18,7 +18,6 @@ import type {
     SetContactMethodAsDefaultParams,
     SetNameValuePairParams,
     TogglePlatformMuteParams,
-    UpdateChatPriorityModeParams,
     UpdateNewsletterSubscriptionParams,
     UpdatePreferredEmojiSkinToneParams,
     UpdateStatusParams,
@@ -950,37 +949,8 @@ function updatePreferredSkinTone(skinTone: number) {
     API.write(WRITE_COMMANDS.UPDATE_PREFERRED_EMOJI_SKIN_TONE, parameters, {optimisticData});
 }
 
-/**
- * Sync user chat priority mode with Onyx and Server
- * @param mode
- * @param [automatic] if we changed the mode automatically
- */
-function updateChatPriorityMode(mode: ValueOf<typeof CONST.PRIORITY_MODE>, automatic = false) {
-    const autoSwitchedToFocusMode = mode === CONST.PRIORITY_MODE.GSD && automatic;
-    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.NVP_PRIORITY_MODE | typeof ONYXKEYS.NVP_TRY_FOCUS_MODE>> = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.NVP_PRIORITY_MODE,
-            value: mode,
-        },
-    ];
-
-    optimisticData.push({
-        onyxMethod: Onyx.METHOD.MERGE,
-        key: ONYXKEYS.NVP_TRY_FOCUS_MODE,
-        value: true,
-    });
-
-    const parameters: UpdateChatPriorityModeParams = {
-        value: mode,
-        automatic,
-    };
-
-    API.write(WRITE_COMMANDS.UPDATE_CHAT_PRIORITY_MODE, parameters, {optimisticData});
-
-    if (!autoSwitchedToFocusMode) {
-        Navigation.goBack();
-    }
+function setInboxTab(tab: ValueOf<typeof CONST.INBOX_TAB>) {
+    Onyx.merge(ONYXKEYS.NVP_INBOX_TAB, tab);
 }
 
 function setShouldUseStagingServer(shouldUseStagingServer: boolean) {
@@ -1907,12 +1877,12 @@ export {
     isBlockedFromConcierge,
     subscribeToUserEvents,
     updatePreferredSkinTone,
+    setInboxTab,
     setShouldUseStagingServer,
     togglePlatformMute,
     joinScreenShare,
     clearScreenShareRequest,
     generateStatementPDF,
-    updateChatPriorityMode,
     setContactMethodAsDefault,
     updateTheme,
     resetContactMethodValidateCodeSentState,

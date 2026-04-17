@@ -138,7 +138,6 @@ describe('SidebarLinksData', () => {
         await waitForBatchedUpdates();
         await act(async () => {
             await Onyx.multiSet({
-                [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.GSD,
                 [ONYXKEYS.BETAS]: betas,
                 [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
                 [ONYXKEYS.IS_LOADING_APP]: false,
@@ -396,9 +395,7 @@ describe('SidebarLinksData', () => {
 
             await waitForBatchedUpdatesWithAct();
 
-            // When the user is in the default mode
             await act(async () => {
-                await Onyx.merge(ONYXKEYS.NVP_PRIORITY_MODE, CONST.PRIORITY_MODE.DEFAULT);
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${archivedReport.reportID}`, reportNameValuePairs);
             });
 
@@ -440,12 +437,6 @@ describe('SidebarLinksData', () => {
             await waitForBatchedUpdatesWithAct();
 
             // When the user is in focus mode
-            await act(async () => {
-                await Onyx.merge(ONYXKEYS.NVP_PRIORITY_MODE, CONST.PRIORITY_MODE.GSD);
-            });
-
-            await waitForBatchedUpdatesWithAct();
-
             // Then the report should appear in the sidebar because it's unread
             expect(getOptionRows()).toHaveLength(1);
 
@@ -704,25 +695,8 @@ describe('SidebarLinksData', () => {
 
             await waitForBatchedUpdatesWithAct();
 
-            // And the user is in default mode
-            await act(async () => {
-                await Onyx.merge(ONYXKEYS.NVP_PRIORITY_MODE, CONST.PRIORITY_MODE.DEFAULT);
-            });
-
-            await waitForBatchedUpdatesWithAct();
-
             // Then the report should appear in the sidebar
             expect(getOptionRows()).toHaveLength(1);
-
-            await act(async () => {
-                // When the user is in focus mode
-                await Onyx.merge(ONYXKEYS.NVP_PRIORITY_MODE, CONST.PRIORITY_MODE.GSD);
-            });
-
-            await waitForBatchedUpdatesWithAct();
-
-            // Then the report should not disappear in the sidebar because it's read
-            expect(getOptionRows()).toHaveLength(0);
         });
 
         it('should not display an empty submitted report having only a CREATED action', async () => {

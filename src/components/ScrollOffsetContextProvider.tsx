@@ -60,22 +60,22 @@ function getKey(route: PlatformStackRouteProp<ParamListBase> | NavigationPartial
 }
 
 function ScrollOffsetContextProvider({children}: ScrollOffsetContextProviderProps) {
-    const [priorityMode] = useOnyx(ONYXKEYS.NVP_PRIORITY_MODE);
+    const [inboxTab] = useOnyx(ONYXKEYS.NVP_INBOX_TAB);
     const scrollOffsetsRef = useRef<Record<string, number>>({});
-    const previousPriorityMode = usePrevious(priorityMode);
+    const previousInboxTab = usePrevious(inboxTab);
 
     useEffect(() => {
-        if (previousPriorityMode === null || previousPriorityMode === priorityMode) {
+        if (previousInboxTab === null || previousInboxTab === inboxTab) {
             return;
         }
 
-        // If the priority mode changes, we need to clear the scroll offsets for the home and search screens because it affects the size of the elements and scroll positions wouldn't be correct.
+        // If the inbox tab changes, we need to clear the scroll offsets for the home and search screens because it affects the size of the elements and scroll positions wouldn't be correct.
         for (const key of Object.keys(scrollOffsetsRef.current)) {
             if (key.includes(SCREENS.INBOX) || key.includes(SCREENS.SEARCH.ROOT)) {
                 delete scrollOffsetsRef.current[key];
             }
         }
-    }, [priorityMode, previousPriorityMode]);
+    }, [inboxTab, previousInboxTab]);
 
     const saveScrollOffset: ScrollOffsetContextValue['saveScrollOffset'] = useCallback((route, scrollOffset) => {
         scrollOffsetsRef.current[getKey(route)] = scrollOffset;

@@ -4,12 +4,10 @@ import React, {useCallback, useEffect, useRef} from 'react';
 import {View} from 'react-native';
 import type {EdgeInsets} from 'react-native-safe-area-context';
 import useLocalize from '@hooks/useLocalize';
-import useOnyx from '@hooks/useOnyx';
 import {useSidebarOrderedReportsState} from '@hooks/useSidebarOrderedReports';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {cancelSpan, endSpan, getSpan} from '@libs/telemetry/activeSpans';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import SidebarLinks from './SidebarLinks';
 
 type SidebarLinksDataProps = {
@@ -21,7 +19,6 @@ function SidebarLinksData({insets}: SidebarLinksDataProps) {
     const isFocused = useIsFocused();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [priorityMode = CONST.PRIORITY_MODE.DEFAULT] = useOnyx(ONYXKEYS.NVP_PRIORITY_MODE);
 
     const {orderedReports, currentReportID} = useSidebarOrderedReportsState('SidebarLinksData');
 
@@ -75,10 +72,7 @@ function SidebarLinksData({insets}: SidebarLinksDataProps) {
             onLayout={onLayout}
         >
             <SidebarLinks
-                // Forwarded props:
                 insets={insets}
-                priorityMode={priorityMode ?? CONST.PRIORITY_MODE.DEFAULT}
-                // Data props:
                 isActiveReport={isActiveReport}
                 optionListItems={orderedReports}
             />

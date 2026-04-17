@@ -2657,20 +2657,11 @@ ${amount} para ${merchant} - ${date}`,
         receiveRelevantFeatureUpdatesAndExpensifyNews: 'Recibir noticias sobre Expensify y actualizaciones del producto',
         muteAllSounds: 'Silenciar todos los sonidos de Expensify',
     },
-    priorityModePage: {
-        priorityMode: 'Modo prioridad',
-        explainerText:
-            'Elige #concentración si deseas enfocarte sólo en los chats no leídos y en los anclados, o mostrarlo todo con los chats más recientes y los anclados en la parte superior.',
-        priorityModes: {
-            default: {
-                label: 'Más recientes',
-                description: 'Mostrar todos los chats ordenados desde el más reciente',
-            },
-            gsd: {
-                label: '#concentración',
-                description: 'Mostrar sólo los no leídos ordenados alfabéticamente',
-            },
-        },
+    inboxTabs: {
+        all: 'All',
+        unreads: 'Unread',
+        expenses: 'Expenses',
+        directMessages: 'Direct messages',
     },
     reportDetailsPage: {
         inWorkspace: (policyName) => `en ${policyName}`,
@@ -3218,11 +3209,6 @@ ${amount} para ${merchant} - ${date}`,
     monthPickerPage: {
         month: 'Mes',
         selectMonth: 'Por favor, selecciona un mes',
-    },
-    focusModeUpdateModal: {
-        title: '¡Bienvenido al modo #concentración!',
-        prompt: (priorityModePageUrl) =>
-            `Mantente al tanto de todo viendo sólo los chats no leídos o los que necesitan tu atención. No te preocupes, puedes cambiar el ajuste en cualquier momento desde la <a href="${priorityModePageUrl}">configuración</a>.`,
     },
     notFound: {
         chatYouLookingForCannotBeFound: 'El chat que estás buscando no se pudo encontrar.',

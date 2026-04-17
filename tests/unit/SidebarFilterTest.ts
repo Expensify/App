@@ -17,7 +17,6 @@ jest.mock('@libs/Permissions');
 const ONYXKEYS = {
     PERSONAL_DETAILS_LIST: 'personalDetailsList',
     IS_LOADING_APP: 'isLoadingApp',
-    NVP_PRIORITY_MODE: 'nvp_priorityMode',
     SESSION: 'session',
     BETAS: 'betas',
     COLLECTION: {
@@ -372,7 +371,6 @@ xdescribe('Sidebar', () => {
                             // When Onyx is updated to contain that data and the sidebar re-renders
                             .then(() =>
                                 Onyx.multiSet({
-                                    [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.GSD,
                                     [ONYXKEYS.BETAS]: betas,
                                     [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
                                     [ONYXKEYS.IS_LOADING_APP]: false,
@@ -421,7 +419,6 @@ xdescribe('Sidebar', () => {
                     // When Onyx is updated to contain that data and the sidebar re-renders
                     .then(() =>
                         Onyx.multiSet({
-                            [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.GSD,
                             [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
                             [ONYXKEYS.IS_LOADING_APP]: false,
                             ...reportCollectionDataSet,
@@ -492,7 +489,6 @@ xdescribe('Sidebar', () => {
                     // When Onyx is updated to contain that data and the sidebar re-renders
                     .then(() =>
                         Onyx.multiSet({
-                            [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.GSD,
                             [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
                             [ONYXKEYS.IS_LOADING_APP]: false,
                             [`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${draftReport.reportID}`]: 'draft report message',
@@ -546,7 +542,6 @@ xdescribe('Sidebar', () => {
                     // When Onyx is updated to contain that data and the sidebar re-renders
                     .then(() =>
                         Onyx.multiSet({
-                            [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.GSD,
                             [ONYXKEYS.BETAS]: betas,
                             [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
                             [ONYXKEYS.IS_LOADING_APP]: false,
@@ -612,7 +607,6 @@ xdescribe('Sidebar', () => {
                     // When Onyx is updated to contain that data and the sidebar re-renders
                     .then(() =>
                         Onyx.multiSet({
-                            [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.GSD,
                             [ONYXKEYS.BETAS]: betas,
                             [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
                             [ONYXKEYS.IS_LOADING_APP]: false,
@@ -714,7 +708,6 @@ xdescribe('Sidebar', () => {
                         // When Onyx is updated to contain that data and the sidebar re-renders
                         .then(() =>
                             Onyx.multiSet({
-                                [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.GSD,
                                 [ONYXKEYS.BETAS]: betas,
                                 [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
                                 [ONYXKEYS.IS_LOADING_APP]: false,
@@ -769,7 +762,6 @@ xdescribe('Sidebar', () => {
                         // When Onyx is updated to contain that data and the sidebar re-renders
                         .then(() =>
                             Onyx.multiSet({
-                                [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.DEFAULT,
                                 [ONYXKEYS.BETAS]: betas,
                                 [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
                                 [ONYXKEYS.IS_LOADING_APP]: false,
@@ -822,7 +814,6 @@ xdescribe('Sidebar', () => {
                         // When Onyx is updated to contain that data and the sidebar re-renders
                         .then(() =>
                             Onyx.multiSet({
-                                [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.GSD,
                                 [ONYXKEYS.BETAS]: betas,
                                 [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
                                 [ONYXKEYS.IS_LOADING_APP]: false,
@@ -873,7 +864,6 @@ xdescribe('Sidebar', () => {
                         // When Onyx is updated to contain that data and the sidebar re-renders
                         .then(() =>
                             Onyx.multiSet({
-                                [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.GSD,
                                 [ONYXKEYS.BETAS]: betas,
                                 [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
                                 [ONYXKEYS.IS_LOADING_APP]: false,
@@ -920,7 +910,6 @@ xdescribe('Sidebar', () => {
                         // When Onyx is updated to contain that data and the sidebar re-renders
                         .then(() =>
                             Onyx.multiSet({
-                                [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.GSD,
                                 [ONYXKEYS.BETAS]: betas,
                                 [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
                                 [ONYXKEYS.IS_LOADING_APP]: false,
@@ -956,7 +945,6 @@ xdescribe('Sidebar', () => {
                         // When Onyx is updated to contain that data and the sidebar re-renders
                         .then(() =>
                             Onyx.multiSet({
-                                [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.GSD,
                                 [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
                                 [ONYXKEYS.IS_LOADING_APP]: false,
                                 ...reportCollectionDataSet,

@@ -1,8 +1,6 @@
 import React, {memo, useCallback, useEffect, useMemo} from 'react';
 import {StyleSheet, View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import type {EdgeInsets} from 'react-native-safe-area-context';
-import type {ValueOf} from 'type-fest';
 import LHNEmptyState from '@components/LHNOptionsList/LHNEmptyState';
 import LHNOptionsList from '@components/LHNOptionsList/LHNOptionsList';
 import OptionsListSkeletonView from '@components/OptionsListSkeletonView';
@@ -28,14 +26,11 @@ type SidebarLinksProps = {
     /** List of options to display */
     optionListItems: Report[];
 
-    /** The chat priority mode */
-    priorityMode?: OnyxEntry<ValueOf<typeof CONST.PRIORITY_MODE>>;
-
     /** Method to change currently active report */
     isActiveReport: (reportID: string) => boolean;
 };
 
-function SidebarLinks({insets, optionListItems, priorityMode = CONST.PRIORITY_MODE.DEFAULT, isActiveReport}: SidebarLinksProps) {
+function SidebarLinks({insets, optionListItems, isActiveReport}: SidebarLinksProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -74,8 +69,6 @@ function SidebarLinks({insets, optionListItems, priorityMode = CONST.PRIORITY_MO
         [shouldUseNarrowLayout, isActiveReport],
     );
 
-    const viewMode = priorityMode === CONST.PRIORITY_MODE.GSD ? CONST.OPTION_MODE.COMPACT : CONST.OPTION_MODE.DEFAULT;
-
     const sidebarSkeletonReasonAttributes: SkeletonSpanReasonAttributes = {
         context: 'SidebarLinks',
         isLoadingReportData,
@@ -101,7 +94,7 @@ function SidebarLinks({insets, optionListItems, priorityMode = CONST.PRIORITY_MO
                         data={optionListItems}
                         onSelectRow={showReportPage}
                         shouldDisableFocusOptions={shouldUseNarrowLayout}
-                        optionMode={viewMode}
+                        optionMode={CONST.OPTION_MODE.DEFAULT}
                         onFirstItemRendered={setSidebarLoaded}
                     />
                 )}

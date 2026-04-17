@@ -6,7 +6,7 @@ import SCREENS from '@src/SCREENS';
  * This means that going back from RHP will take the user directly to the sidebar. On wide layout the default central screen will be used to fill the space.
  */
 const SIDEBAR_TO_RHP: Partial<Record<SplitNavigatorSidebarScreen, string[]>> = {
-    [SCREENS.SETTINGS.ROOT]: [SCREENS.SETTINGS.SHARE_CODE, SCREENS.SETTINGS.PROFILE.STATUS, SCREENS.SETTINGS.PREFERENCES.PRIORITY_MODE],
+    [SCREENS.SETTINGS.ROOT]: [SCREENS.SETTINGS.SHARE_CODE, SCREENS.SETTINGS.PROFILE.STATUS],
 };
 
 export default SIDEBAR_TO_RHP;

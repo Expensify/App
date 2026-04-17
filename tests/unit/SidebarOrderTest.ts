@@ -122,7 +122,6 @@ describe('Sidebar', () => {
                     // When Onyx is updated with the data and the sidebar re-renders
                     .then(() =>
                         Onyx.multiSet({
-                            [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.DEFAULT,
                             [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
                             [ONYXKEYS.IS_LOADING_APP]: false,
                             ...reportCollectionDataSet,
@@ -160,7 +159,6 @@ describe('Sidebar', () => {
                     // When Onyx is updated with the data and the sidebar re-renders
                     .then(() =>
                         Onyx.multiSet({
-                            [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.DEFAULT,
                             [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
                             [ONYXKEYS.IS_LOADING_APP]: false,
                             ...reportCollectionDataSet,
@@ -209,7 +207,6 @@ describe('Sidebar', () => {
                     // When Onyx is updated with the data and the sidebar re-renders
                     .then(() =>
                         Onyx.multiSet({
-                            [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.DEFAULT,
                             [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
                             [ONYXKEYS.IS_LOADING_APP]: false,
                             [`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${report1.reportID}`]: 'report1 draft',
@@ -256,7 +253,6 @@ describe('Sidebar', () => {
                     // When Onyx is updated with the data and the sidebar re-renders
                     .then(() =>
                         Onyx.multiSet({
-                            [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.DEFAULT,
                             [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
                             [ONYXKEYS.IS_LOADING_APP]: false,
                             ...reportCollectionDataSet,
@@ -319,7 +315,6 @@ describe('Sidebar', () => {
                     // When Onyx is updated with the data and the sidebar re-renders
                     .then(() =>
                         Onyx.multiSet({
-                            [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.DEFAULT,
                             [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
                             [ONYXKEYS.IS_LOADING_APP]: false,
                             ...reportCollectionDataSet,
@@ -393,7 +388,6 @@ describe('Sidebar', () => {
                     // When Onyx is updated with the data and the sidebar re-renders
                     .then(() =>
                         Onyx.multiSet({
-                            [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.DEFAULT,
                             [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
                             [ONYXKEYS.IS_LOADING_APP]: false,
                             ...reportCollectionDataSet,
@@ -472,7 +466,6 @@ describe('Sidebar', () => {
                     // When Onyx is updated with the data and the sidebar re-renders
                     .then(() =>
                         Onyx.multiSet({
-                            [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.DEFAULT,
                             [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
                             [ONYXKEYS.IS_LOADING_APP]: false,
                             [`${ONYXKEYS.COLLECTION.POLICY}${fakeReport.policyID}`]: fakePolicy,
@@ -523,7 +516,6 @@ describe('Sidebar', () => {
                     // When Onyx is updated with the data and the sidebar re-renders
                     .then(() =>
                         Onyx.multiSet({
-                            [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.DEFAULT,
                             [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
                             [ONYXKEYS.IS_LOADING_APP]: false,
                             [ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT + report2.reportID]: 'This is a draft',
@@ -570,7 +562,6 @@ describe('Sidebar', () => {
                     // When Onyx is updated with the data and the sidebar re-renders
                     .then(() =>
                         Onyx.multiSet({
-                            [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.DEFAULT,
                             [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
                             [ONYXKEYS.IS_LOADING_APP]: false,
                             [`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${report.reportID}`]: 'This is a draft',
@@ -612,7 +603,6 @@ describe('Sidebar', () => {
                     // When Onyx is updated with the data and the sidebar re-renders
                     .then(() =>
                         Onyx.multiSet({
-                            [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.DEFAULT,
                             [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
                             [ONYXKEYS.IS_LOADING_APP]: false,
                             ...reportCollectionDataSet,
@@ -696,7 +686,6 @@ describe('Sidebar', () => {
                     // When Onyx is updated with the data and the sidebar re-renders
                     .then(() =>
                         Onyx.multiSet({
-                            [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.DEFAULT,
                             [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
                             [ONYXKEYS.IS_LOADING_APP]: false,
                             [`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${report2.reportID}`]: 'Report2 draft comment',
@@ -754,7 +743,6 @@ describe('Sidebar', () => {
                     // When Onyx is updated with the data and the sidebar re-renders
                     .then(() =>
                         Onyx.multiSet({
-                            [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.DEFAULT,
                             [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
                             [ONYXKEYS.IS_LOADING_APP]: false,
                             ...reportCollectionDataSet,
@@ -816,7 +804,6 @@ describe('Sidebar', () => {
                     // When Onyx is updated with the data and the sidebar re-renders
                     .then(() =>
                         Onyx.multiSet({
-                            [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.DEFAULT,
                             [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
                             [ONYXKEYS.IS_LOADING_APP]: false,
                             ...reportDraftCommentCollectionDataSet,
@@ -888,7 +875,6 @@ describe('Sidebar', () => {
                     .then(() =>
                         Onyx.multiSet({
                             [ONYXKEYS.BETAS]: betas,
-                            [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.DEFAULT,
                             [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
                             [ONYXKEYS.IS_LOADING_APP]: false,
                             ...reportNameValuePairsCollectionDataSet,
@@ -932,7 +918,6 @@ describe('Sidebar', () => {
                     // When Onyx is updated with the data and the sidebar re-renders
                     .then(() =>
                         Onyx.multiSet({
-                            [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.DEFAULT,
                             [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
                             [ONYXKEYS.IS_LOADING_APP]: false,
                             ...reportCollectionDataSet,
@@ -973,7 +958,6 @@ describe('Sidebar', () => {
                     // with all reports having unread comments
                     .then(() =>
                         Onyx.multiSet({
-                            [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.GSD,
                             [ONYXKEYS.IS_LOADING_APP]: false,
                             ...reportCollectionDataSet,
                         }),
@@ -1035,7 +1019,6 @@ describe('Sidebar', () => {
                     .then(() =>
                         Onyx.multiSet({
                             [ONYXKEYS.BETAS]: betas,
-                            [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.GSD,
                             [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
                             [ONYXKEYS.IS_LOADING_APP]: false,
                             ...reportNameValuePairsCollectionDataSet,

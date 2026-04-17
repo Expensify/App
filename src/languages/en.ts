@@ -2840,19 +2840,11 @@ const translations = {
         receiveRelevantFeatureUpdatesAndExpensifyNews: 'Receive relevant feature updates and Expensify news',
         muteAllSounds: 'Mute all sounds from Expensify',
     },
-    priorityModePage: {
-        priorityMode: 'Priority mode',
-        explainerText: 'Choose whether to #focus on unread and pinned chats only, or show everything with the most recent and pinned chats at the top.',
-        priorityModes: {
-            default: {
-                label: 'Most recent',
-                description: 'Show all chats sorted by most recent',
-            },
-            gsd: {
-                label: '#focus',
-                description: 'Only show unread sorted alphabetically',
-            },
-        },
+    inboxTabs: {
+        all: 'All',
+        unreads: 'Unread',
+        expenses: 'Expenses',
+        directMessages: 'Direct messages',
     },
     reportDetailsPage: {
         inWorkspace: (policyName: string) => `in ${policyName}`,
@@ -3409,11 +3401,6 @@ const translations = {
     monthPickerPage: {
         month: 'Month',
         selectMonth: 'Please select a month',
-    },
-    focusModeUpdateModal: {
-        title: 'Welcome to #focus mode!',
-        prompt: (priorityModePageUrl: string) =>
-            `Stay on top of things by only seeing unread chats or chats that need your attention. Don’t worry, you can change this at any point in <a href="${priorityModePageUrl}">settings</a>.`,
     },
     notFound: {
         chatYouLookingForCannotBeFound: 'The chat you are looking for cannot be found.',

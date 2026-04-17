@@ -14,6 +14,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {isMobile} from '@libs/Browser';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import ONYXKEYS from '@src/ONYXKEYS';
+import InboxTabSelector from './InboxTabSelector';
 import SidebarLinksData from './SidebarLinksData';
 
 // Once the app finishes loading for the first time, we never show the skeleton again
@@ -59,6 +60,7 @@ function BaseSidebarScreen() {
                         shouldDisplaySearch={shouldUseNarrowLayout}
                         shouldDisplayHelpButton={shouldUseNarrowLayout}
                     />
+                    {!shouldShowSkeleton && <InboxTabSelector />}
                     <View style={[styles.flex1]}>
                         {shouldShowSkeleton ? (
                             <OptionsListSkeletonView

@@ -3471,10 +3471,10 @@ describe('SidebarUtils', () => {
                 ]);
 
                 const mockLocaleCompare = (a: string, b: string) => a.localeCompare(b);
-                const priorityMode = CONST.PRIORITY_MODE.DEFAULT;
+                const useAlphabeticalSort = false;
 
                 // When the reports are sorted
-                const result = SidebarUtils.sortReportsToDisplayInLHN(reports, priorityMode, mockLocaleCompare, undefined, undefined, undefined);
+                const result = SidebarUtils.sortReportsToDisplayInLHN(reports, useAlphabeticalSort, mockLocaleCompare, undefined, undefined, undefined);
 
                 // Then the reports are sorted in the correct order
                 expect(result).toEqual(['0', '1', '2']); // Pinned first, Error second, Normal third
@@ -3499,11 +3499,11 @@ describe('SidebarUtils', () => {
 
                 const mockLocaleCompare = (a: string, b: string) => a.localeCompare(b);
 
-                // When the reports are sorted in default mode
-                const defaultResult = SidebarUtils.sortReportsToDisplayInLHN(reports, CONST.PRIORITY_MODE.DEFAULT, mockLocaleCompare, undefined, undefined, undefined);
+                // When the reports are sorted in default mode (not alphabetical)
+                const defaultResult = SidebarUtils.sortReportsToDisplayInLHN(reports, false, mockLocaleCompare, undefined, undefined, undefined);
 
-                // When the reports are sorted in GSD mode
-                const gsdResult = SidebarUtils.sortReportsToDisplayInLHN(reports, CONST.PRIORITY_MODE.GSD, mockLocaleCompare, undefined, undefined, undefined);
+                // When the reports are sorted in alphabetical mode
+                const gsdResult = SidebarUtils.sortReportsToDisplayInLHN(reports, true, mockLocaleCompare, undefined, undefined, undefined);
 
                 // Then the reports are sorted in the correct order
                 expect(defaultResult).toEqual(['1', '0']); // Most recent first (index 1 has later date)
@@ -3523,7 +3523,6 @@ describe('SidebarUtils', () => {
                     reports,
                     updatedReportsKeys: [`${ONYXKEYS.COLLECTION.REPORT}999`],
                     currentReportId: '1',
-                    isInFocusMode: false,
                     betas: [],
                     transactions: {},
                     transactionViolations: {},
@@ -3544,7 +3543,6 @@ describe('SidebarUtils', () => {
                     reports,
                     updatedReportsKeys: ['0'],
                     currentReportId: undefined,
-                    isInFocusMode: false,
                     betas: [],
                     transactions: {},
                     transactionViolations: {},

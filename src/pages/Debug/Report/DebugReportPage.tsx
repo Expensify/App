@@ -69,7 +69,6 @@ function DebugReportPage({
         [reportAttributesSelector],
     );
     const [draftComment] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`);
-    const [priorityMode] = useOnyx(ONYXKEYS.NVP_PRIORITY_MODE);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
@@ -106,7 +105,6 @@ function DebugReportPage({
             doesReportHaveViolations: shouldDisplayViolations,
             hasRBR,
             isReportArchived,
-            isInFocusMode: priorityMode === CONST.PRIORITY_MODE.GSD,
             draftComment,
         });
 
@@ -153,7 +151,7 @@ function DebugReportPage({
                         : undefined,
             },
         ];
-    }, [report, transactionViolations, isReportArchived, chatReport, reportActions, transactions, reportAttributes?.reportErrors, betas, priorityMode, draftComment, translate]);
+    }, [report, transactionViolations, isReportArchived, chatReport, reportActions, transactions, reportAttributes?.reportErrors, betas, draftComment, translate]);
 
     const icons = useMemoizedLazyExpensifyIcons(['Eye']);
 

@@ -32,8 +32,6 @@ function PreferencesPage() {
     const {getCurrencySymbol} = useCurrencyListActions();
     const illustrations = useMemoizedLazyIllustrations(['Gears']);
     const preferencesIllustration = usePreferencesSectionIllustration();
-    const [priorityMode] = useOnyx(ONYXKEYS.NVP_PRIORITY_MODE);
-
     const platform = getPlatform(true);
     const [mutedPlatforms = getEmptyObject<Partial<Record<Platform, true>>>()] = useOnyx(ONYXKEYS.NVP_MUTED_PLATFORMS);
     const isPlatformMuted = mutedPlatforms[platform];
@@ -113,14 +111,6 @@ function PreferencesPage() {
                                     />
                                 </View>
                             </View>
-                            <MenuItemWithTopDescription
-                                shouldShowRightIcon
-                                title={translate(`priorityModePage.priorityModes.${priorityMode ?? CONST.PRIORITY_MODE.DEFAULT}.label`)}
-                                description={translate('priorityModePage.priorityMode')}
-                                onPress={() => Navigation.navigate(ROUTES.SETTINGS_PRIORITY_MODE)}
-                                wrapperStyle={styles.sectionMenuItemTopDescription}
-                                sentryLabel={CONST.SENTRY_LABEL.SETTINGS_PREFERENCES.PRIORITY_MODE}
-                            />
                             <MenuItemWithTopDescription
                                 shouldShowRightIcon
                                 title={preferredLocale ? LOCALE_TO_LANGUAGE_STRING[preferredLocale] : undefined}

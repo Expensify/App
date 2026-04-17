@@ -21,7 +21,6 @@ import updateSessionAuthTokens from './Session/updateSessionAuthTokens';
 import updateSessionUser from './Session/updateSessionUser';
 
 const KEYS_TO_PRESERVE_DELEGATE_ACCESS = [
-    ONYXKEYS.NVP_TRY_FOCUS_MODE,
     ONYXKEYS.PREFERRED_THEME,
     ONYXKEYS.NVP_PREFERRED_LOCALE,
     ONYXKEYS.RAM_ONLY_ARE_TRANSLATIONS_LOADING,
