@@ -9231,6 +9231,7 @@ const CONST = {
             SELECT_PARTICIPANT: 'NewChat-SelectParticipant',
         },
         WORKSPACE_EXPENSIFY_CARD: {
+            BULK_ACTIONS_DROPDOWN: 'WorkspaceExpensifyCard-BulkActionsDropdown',
             CARD_LIST_ROW: 'WorkspaceExpensifyCard-CardListRow',
         },
         WORKSPACE: {
