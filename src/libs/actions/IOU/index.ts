@@ -5876,6 +5876,7 @@ export {
     setGPSTransactionDraftData,
     setCustomUnitID,
     setMoneyRequestAmount,
+    clearMoneyRequestAmount,
     setMoneyRequestAttendees,
     setMoneyRequestAccountant,
     setMoneyRequestBillable,
