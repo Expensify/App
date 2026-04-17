@@ -40,7 +40,6 @@ import * as MainQueue from '@libs/Network/MainQueue';
 import * as NetworkStore from '@libs/Network/NetworkStore';
 import {getCurrentUserEmail} from '@libs/Network/NetworkStore';
 import * as SequentialQueue from '@libs/Network/SequentialQueue';
-import NetworkConnection from '@libs/NetworkConnection';
 import Pusher from '@libs/Pusher';
 import {getReportIDFromLink, parseReportRouteParams as parseReportRouteParamsReportUtils} from '@libs/ReportUtils';
 import * as SessionUtils from '@libs/SessionUtils';
@@ -443,6 +442,26 @@ function signOutAndRedirectToSignIn(shouldResetToHome?: boolean, shouldStashSess
                         });
                     });
                 });
+            } else if (shouldRestoreStashedSession && !shouldStashSession && hasStashedSession(stashedCredentials)) {
+                // Preserve SESSION during clear to avoid a login page flash, then restore the stashed session.
+                Onyx.clear(KEYS_TO_PRESERVE_SUPPORTAL).then(() => {
+                    Onyx.multiSet(onyxSetParams).then(() => {
+                        Onyx.set(ONYXKEYS.STASHED_CREDENTIALS, {});
+                        Onyx.set(ONYXKEYS.STASHED_SESSION, {});
+
+                        confirmReadyToOpenApp();
+                        openApp();
+
+                        if (CONFIG.IS_HYBRID_APP && hasSwitchedAccountInHybridMode) {
+                            HybridAppModule.switchAccount({
+                                newDotCurrentAccountEmail: stashedSession.email ?? '',
+                                authToken: stashedSession.authToken ?? '',
+                                policyID: '',
+                                accountID: '',
+                            });
+                        }
+                    });
+                });
             } else {
                 redirectToSignIn().then(() => {
                     Onyx.multiSet(onyxSetParams);
@@ -497,9 +516,10 @@ function resendValidateCode(login = credentials.login) {
         },
     ];
 
-    const params: RequestNewValidateCodeParams = {email: login};
-
-    API.write(WRITE_COMMANDS.REQUEST_NEW_VALIDATE_CODE, params, {optimisticData, finallyData});
+    Device.getDeviceInfoWithID().then((deviceInfo) => {
+        const params: RequestNewValidateCodeParams = {email: login, deviceInfo};
+        API.write(WRITE_COMMANDS.REQUEST_NEW_VALIDATE_CODE, params, {optimisticData, finallyData});
+    });
 }
 
 /**
@@ -556,9 +576,10 @@ function signInAttemptState(): OnyxData<typeof ONYXKEYS.ACCOUNT | typeof ONYXKEY
 function beginSignIn(email: string) {
     const {optimisticData, successData, failureData} = signInAttemptState();
 
-    const params: BeginSignInParams = {email};
-
-    API.read(READ_COMMANDS.BEGIN_SIGNIN, params, {optimisticData, successData, failureData});
+    Device.getDeviceInfoWithID().then((deviceInfo) => {
+        const params: BeginSignInParams = {email, deviceInfo};
+        API.read(READ_COMMANDS.BEGIN_SIGNIN, params, {optimisticData, successData, failureData});
+    });
 }
 
 /**
@@ -1012,7 +1033,6 @@ function cleanupSession() {
     MainQueue.clear();
     HttpUtils.cancelPendingRequests();
     PersistedRequests.clear();
-    NetworkConnection.clearReconnectionCallbacks();
     SessionUtils.resetDidUserLogInDuringSession();
     resetNavigationState();
     clearCache().then(() => {

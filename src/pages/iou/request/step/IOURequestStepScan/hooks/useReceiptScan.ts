@@ -20,10 +20,11 @@ import {isPolicyExpenseChat} from '@libs/ReportUtils';
 import {getSpan, startSpan} from '@libs/telemetry/activeSpans';
 import {getDefaultTaxCode, getTaxValue, hasReceipt, shouldReuseInitialTransaction} from '@libs/TransactionUtils';
 import type {ReceiptFile, UseReceiptScanParams} from '@pages/iou/request/step/IOURequestStepScan/types';
-import {setMoneyRequestReceipt} from '@userActions/IOU';
+import {setMoneyRequestReceipt} from '@userActions/IOU/Receipt';
 import {buildOptimisticTransactionAndCreateDraft, removeDraftTransactionsByIDs} from '@userActions/TransactionEdit';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import SCREENS from '@src/SCREENS';
 import {validTransactionDraftsSelector} from '@src/selectors/TransactionDraft';
 import type Transaction from '@src/types/onyx/Transaction';
 import type {FileObject} from '@src/types/utils/Attachment';
@@ -38,6 +39,7 @@ function useReceiptScan({
     currentUserPersonalDetails,
     backTo,
     backToReport,
+    routeName,
     updateScanAndNavigate,
     getSource,
 }: UseReceiptScanParams) {
@@ -69,12 +71,11 @@ function useReceiptScan({
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const draftTransactionIDs = Object.keys(allTransactionDrafts ?? {});
     const [isMultiScanEnabled, setIsMultiScanEnabled] = useState(false);
+    const isStartingScan = routeName === SCREENS.MONEY_REQUEST.CREATE;
 
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isReplacingReceipt = (isEditing && hasReceipt(initialTransaction)) || (!!initialTransaction?.receipt && !!backTo);
-    const isStartingScan = action === CONST.IOU.ACTION.CREATE && !isReplacingReceipt;
     const shouldAcceptMultipleFiles = !isEditing && !backTo;
-    const shouldGenerateTransactionThreadReport = !isBetaEnabled(CONST.BETAS.NO_OPTIMISTIC_TRANSACTION_THREADS);
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
 
     const defaultTaxCode = getDefaultTaxCode(policy, initialTransaction);
@@ -91,10 +92,11 @@ function useReceiptScan({
     const [receiptFiles, setReceiptFiles] = useState<ReceiptFile[]>([]);
 
     const [recentWaypoints] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS);
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
 
     const participants = useMemo(
-        () => getMoneyRequestParticipantOptions(currentUserPersonalDetails.accountID, report, policy, personalDetails, isArchived, reportAttributesDerived),
-        [currentUserPersonalDetails.accountID, report, policy, personalDetails, isArchived, reportAttributesDerived],
+        () => getMoneyRequestParticipantOptions(currentUserPersonalDetails.accountID, report, policy, personalDetails, conciergeReportID, isArchived, reportAttributesDerived),
+        [currentUserPersonalDetails.accountID, report, policy, personalDetails, conciergeReportID, isArchived, reportAttributesDerived],
     );
 
     const participantsPolicyTags = useParticipantsPolicyTags(participants);
@@ -129,7 +131,7 @@ function useReceiptScan({
             backToReport,
             shouldSkipConfirmation,
             defaultExpensePolicy,
-            shouldGenerateTransactionThreadReport,
+            shouldGenerateTransactionThreadReport: false,
             isArchivedExpenseReport: isArchived,
             isAutoReporting: !!personalPolicy?.autoReporting,
             isASAPSubmitBetaEnabled,
