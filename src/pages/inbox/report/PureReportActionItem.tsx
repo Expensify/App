@@ -126,7 +126,6 @@ import {
 } from '@libs/ReportActionsUtils';
 import type {CreateDraftTransactionParams, MissingPaymentMethod} from '@libs/ReportUtils';
 import {
-    canWriteInReport,
     chatIncludesConcierge,
     getChatListItemReportName,
     getDisplayNamesWithTooltips,
@@ -167,8 +166,7 @@ import PaymentContent from './actionContents/PaymentContent';
 import PolicyChangeLogContent, {isHandledPolicyChangeLogAction} from './actionContents/PolicyChangeLogContent';
 import ReportMentionWhisperContent from './actionContents/ReportMentionWhisperContent';
 import SimpleMessageContent, {isSimpleMessageAction} from './actionContents/SimpleMessageContent';
-import {RestrictedReadOnlyContextMenuActions} from './ContextMenu/ContextMenuActions';
-import MiniReportActionContextMenu from './ContextMenu/MiniReportActionContextMenu';
+import {useMiniContextMenuActions} from './ContextMenu/MiniContextMenuProvider';
 import type {ContextMenuAnchor} from './ContextMenu/ReportActionContextMenu';
 import {hideContextMenu, hideDeleteModal, isActiveReportAction, showContextMenu} from './ContextMenu/ReportActionContextMenu';
 import LinkPreviewer from './LinkPreviewer';
@@ -291,9 +289,6 @@ type PureReportActionItemProps = {
 
     /** Whether the room is archived */
     isArchivedRoom?: boolean;
-
-    /** Whether the room is a chronos report */
-    isChronosReport?: boolean;
 
     /** All cards */
     cardList?: OnyxTypes.CardList;
@@ -438,7 +433,6 @@ function PureReportActionItem({
     originalReport,
     deleteReportActionDraft = () => {},
     isArchivedRoom,
-    isChronosReport,
     toggleEmojiReaction = () => {},
     createDraftTransactionAndNavigateToParticipantSelector = () => {},
     resolveActionableReportMentionWhisper = () => {},
@@ -473,6 +467,7 @@ function PureReportActionItem({
     const {transitionActionSheetState} = ActionSheetAwareScrollView.useActionSheetAwareScrollViewActions();
     const {translate, formatPhoneNumber, localeCompare, formatTravelDate, datetimeToCalendarTime} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
+    const {showMiniContextMenu, hideMiniContextMenu, hideMiniContextMenuWithoutNotification, menuContainerRef} = useMiniContextMenuActions();
     const personalDetail = useCurrentUserPersonalDetails();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const reportID = report?.reportID ?? action?.reportID;
@@ -492,6 +487,7 @@ function PureReportActionItem({
     const kycWallRef = useContext(KYCWallContext);
     const composerTextInputRef = useRef<TextInput | HTMLTextAreaElement>(null);
     const popoverAnchorRef = useRef<Exclude<ContextMenuAnchor, TextInput>>(null);
+    const isPointerOverReportActionRowRef = useRef(false);
     const downloadedPreviews = useRef<string[]>([]);
     const prevDraftMessage = usePrevious(draftMessage);
     const isReportActionLinked = linkedReportActionID && action.reportActionID && linkedReportActionID === action.reportActionID;
@@ -662,6 +658,31 @@ function PureReportActionItem({
         setIsHidden(false);
     }, [latestDecision, action]);
 
+    useEffect(() => {
+        if (!isContextMenuActive) {
+            return;
+        }
+        const el = popoverAnchorRef.current as unknown as HTMLElement | null;
+        if (!el) {
+            return;
+        }
+
+        const onKeyDown = (e: KeyboardEvent) => {
+            if (e.key !== 'Tab' || e.shiftKey) {
+                return;
+            }
+            const firstButton = menuContainerRef.current?.querySelector('[role="button"]') as HTMLElement | null;
+            if (!firstButton) {
+                return;
+            }
+            e.preventDefault();
+            firstButton.focus();
+        };
+
+        el.addEventListener('keydown', onKeyDown);
+        return () => el.removeEventListener('keydown', onKeyDown);
+    }, [isContextMenuActive, menuContainerRef]);
+
     const toggleContextMenuFromActiveReportAction = useCallback(() => {
         setIsContextMenuActive(isActiveReportAction(action.reportActionID));
     }, [action.reportActionID]);
@@ -689,8 +710,6 @@ function PureReportActionItem({
         [transitionActionSheetState],
     );
 
-    const disabledActions = useMemo(() => (!canWriteInReport(report) ? RestrictedReadOnlyContextMenuActions : []), [report]);
-
     /**
      * Show the ReportActionContextMenu modal popover.
      *
@@ -704,6 +723,7 @@ function PureReportActionItem({
             }
 
             handleShowContextMenu(() => {
+                hideMiniContextMenuWithoutNotification();
                 setIsContextMenuActive(true);
                 const selection = SelectionScraper.getCurrentSelection();
                 showContextMenu({
@@ -714,20 +734,42 @@ function PureReportActionItem({
                     report: {
                         reportID,
                         originalReportID,
-                        isArchivedRoom,
-                        isChronos: isChronosReport,
                     },
                     reportAction: {
                         reportActionID: action.reportActionID,
                         draftMessage,
-                        isThreadReportParentAction,
                     },
                     callbacks: {
                         onShow: toggleContextMenuFromActiveReportAction,
-                        onHide: toggleContextMenuFromActiveReportAction,
+                        onHide: () => {
+                            setIsContextMenuActive(false);
+                            if (isPointerOverReportActionRowRef.current && shouldDisplayContextMenuValue && draftMessage === undefined && isEmptyValueObject(action.errors)) {
+                                const node = popoverAnchorRef.current;
+                                if (!node || !('getBoundingClientRect' in node)) {
+                                    return;
+                                }
+                                const rect = node.getBoundingClientRect();
+                                showMiniContextMenu({
+                                    reportID,
+                                    reportActionID: action.reportActionID,
+                                    originalReportID,
+                                    anchor: popoverAnchorRef,
+                                    displayAsGroup: !!displayAsGroup,
+                                    draftMessage,
+                                    checkIfContextMenuActive: toggleContextMenuFromActiveReportAction,
+                                    setIsEmojiPickerActive,
+                                    rowMeasurements: {
+                                        top: rect.top,
+                                        height: rect.height,
+                                        right: rect.right,
+                                    },
+                                    onMenuHide: () => setIsContextMenuActive(false),
+                                });
+                                setIsContextMenuActive(true);
+                            }
+                        },
                         setIsEmojiPickerActive: setIsEmojiPickerActive as () => void,
                     },
-                    disabledOptions: disabledActions,
                 });
             });
         },
@@ -739,11 +781,10 @@ function PureReportActionItem({
             toggleContextMenuFromActiveReportAction,
             originalReportID,
             shouldDisplayContextMenuValue,
-            disabledActions,
-            isArchivedRoom,
-            isChronosReport,
             handleShowContextMenu,
-            isThreadReportParentAction,
+            hideMiniContextMenuWithoutNotification,
+            showMiniContextMenu,
+            displayAsGroup,
         ],
     );
 
@@ -1651,31 +1692,42 @@ function PureReportActionItem({
                     shouldFreezeCapture={isPaymentMethodPopoverActive}
                     onHoverIn={() => {
                         setIsReportActionActive(false);
+                        if (!shouldDisplayContextMenuValue || draftMessage !== undefined || hasErrors) {
+                            return;
+                        }
+                        isPointerOverReportActionRowRef.current = true;
+                        const node = popoverAnchorRef.current;
+                        if (!node || !('getBoundingClientRect' in node)) {
+                            return;
+                        }
+                        const rect = node.getBoundingClientRect();
+                        showMiniContextMenu({
+                            reportID,
+                            reportActionID: action.reportActionID,
+                            originalReportID,
+                            anchor: popoverAnchorRef,
+                            displayAsGroup: !!displayAsGroup,
+                            draftMessage,
+                            checkIfContextMenuActive: toggleContextMenuFromActiveReportAction,
+                            setIsEmojiPickerActive,
+                            rowMeasurements: {
+                                top: rect.top,
+                                height: rect.height,
+                                right: rect.right,
+                            },
+                            onMenuHide: () => setIsContextMenuActive(false),
+                        });
+                        setIsContextMenuActive(true);
                     }}
                     onHoverOut={() => {
+                        isPointerOverReportActionRowRef.current = false;
                         setIsReportActionActive(!!isReportActionLinked);
+                        hideMiniContextMenu();
                     }}
                 >
                     {(hovered) => (
                         <View style={highlightedBackgroundColorIfNeeded}>
                             {shouldDisplayNewMarker && (!shouldUseThreadDividerLine || !isFirstVisibleReportAction) && <UnreadActionIndicator reportActionID={action.reportActionID} />}
-                            {shouldDisplayContextMenuValue && (
-                                <MiniReportActionContextMenu
-                                    reportID={reportID}
-                                    reportActionID={action.reportActionID}
-                                    anchor={popoverAnchorRef}
-                                    originalReportID={originalReportID}
-                                    isArchivedRoom={isArchivedRoom}
-                                    displayAsGroup={displayAsGroup}
-                                    disabledActions={disabledActions}
-                                    isVisible={hovered && draftMessage === undefined && !hasErrors}
-                                    isThreadReportParentAction={isThreadReportParentAction}
-                                    draftMessage={draftMessage}
-                                    isChronosReport={isChronosReport}
-                                    checkIfContextMenuActive={toggleContextMenuFromActiveReportAction}
-                                    setIsEmojiPickerActive={setIsEmojiPickerActive}
-                                />
-                            )}
                             <View
                                 style={StyleUtils.getReportActionItemStyle(
                                     hovered || isWhisper || isContextMenuActive || !!isEmojiPickerActive || draftMessage !== undefined || isPaymentMethodPopoverActive,
@@ -1782,7 +1834,6 @@ export default memo(PureReportActionItem, (prevProps, nextProps) => {
         prevProps.originalReportID === nextProps.originalReportID &&
         deepEqual(prevProps.originalReport?.participants, nextProps.originalReport?.participants) &&
         prevProps.isArchivedRoom === nextProps.isArchivedRoom &&
-        prevProps.isChronosReport === nextProps.isChronosReport &&
         prevProps.isClosedExpenseReportWithNoExpenses === nextProps.isClosedExpenseReportWithNoExpenses &&
         deepEqual(prevProps.missingPaymentMethod, nextProps.missingPaymentMethod) &&
         prevProps.reimbursementDeQueuedOrCanceledActionMessage === nextProps.reimbursementDeQueuedOrCanceledActionMessage &&

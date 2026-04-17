@@ -7,7 +7,7 @@ import ScreenShareRequestModal from './components/ScreenShareRequestModal';
 import UpdateAppModal from './components/UpdateAppModal';
 import * as EmojiPickerAction from './libs/actions/EmojiPickerAction';
 import {growlRef} from './libs/Growl';
-import PopoverReportActionContextMenu from './pages/inbox/report/ContextMenu/PopoverReportActionContextMenu';
+import PopoverContextMenu from './pages/inbox/report/ContextMenu/PopoverContextMenu';
 import * as ReportActionContextMenu from './pages/inbox/report/ContextMenu/ReportActionContextMenu';
 
 /**
@@ -21,7 +21,7 @@ function GlobalModals() {
             <GrowlNotification ref={growlRef} />
             <DelegateNoAccessModalProvider>
                 {/* eslint-disable-next-line react-hooks/refs -- module-level createRef, safe to pass as ref prop */}
-                <PopoverReportActionContextMenu ref={ReportActionContextMenu.contextMenuRef} />
+                <PopoverContextMenu ref={ReportActionContextMenu.contextMenuRef} />
             </DelegateNoAccessModalProvider>
             {/* eslint-disable-next-line react-hooks/refs -- module-level createRef, safe to pass as ref prop */}
             <EmojiPicker ref={EmojiPickerAction.emojiPickerRef} />

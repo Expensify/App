@@ -84,6 +84,13 @@ function ActiveHoverable({onHoverIn, onHoverOut, shouldHandleScroll, isFocused =
         setIsHovered(false);
     }, [isFocused]);
 
+    useEffect(() => {
+        if (!elementRef.current?.matches(':hover') || isHoveredRef.current || isVisibilityHidden.current) {
+            return;
+        }
+        updateIsHovered(true);
+    }, [updateIsHovered]);
+
     const handleMouseEvents = useCallback(
         (type: 'enter' | 'leave') => () => {
             if (shouldFreezeCapture) {

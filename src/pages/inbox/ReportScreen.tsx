@@ -1,7 +1,7 @@
 import {PortalHost} from '@gorhom/portal';
 import React from 'react';
 import type {ViewStyle} from 'react-native';
-import {View} from 'react-native';
+import {StyleSheet, View} from 'react-native';
 import ScreenWrapper from '@components/ScreenWrapper';
 import WideRHPOverlayWrapper from '@components/WideRHPOverlayWrapper';
 import useActionListContextValue from '@hooks/useActionListContextValue';
@@ -20,6 +20,8 @@ import {AgentZeroStatusProvider} from './AgentZeroStatusContext';
 import DeleteTransactionNavigateBackHandler from './DeleteTransactionNavigateBackHandler';
 import LinkedActionNotFoundGuard from './LinkedActionNotFoundGuard';
 import ReactionListWrapper from './ReactionListWrapper';
+import {MiniContextMenuProvider} from './report/ContextMenu/MiniContextMenuProvider';
+import MiniReportActionContextMenu from './report/ContextMenu/MiniReportActionContextMenu';
 import ReportFooter from './report/ReportFooter';
 import ReportActionsList from './ReportActionsList';
 import ReportDragAndDropProvider from './ReportDragAndDropProvider';
@@ -82,7 +84,16 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                                                 style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}
                                                 testID="report-actions-view-wrapper"
                                             >
-                                                <ReportActionsList />
+                                                <MiniContextMenuProvider>
+                                                    <ReportActionsList />
+                                                    <MiniReportActionContextMenu />
+                                                    <View
+                                                        style={StyleSheet.absoluteFill}
+                                                        pointerEvents="box-none"
+                                                    >
+                                                        <PortalHost name={CONST.PORTAL_HOST_NAMES.CONTEXT_MENU} />
+                                                    </View>
+                                                </MiniContextMenuProvider>
                                                 <ReportFooter />
                                             </View>
                                         </AgentZeroStatusProvider>

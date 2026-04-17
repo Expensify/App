@@ -8758,6 +8758,10 @@ const CONST = {
         },
     },
 
+    PORTAL_HOST_NAMES: {
+        CONTEXT_MENU: 'contextMenu',
+    },
+
     SENTRY_LABEL: {
         NAVIGATION_TAB_BAR: {
             EXPENSIFY_LOGO: 'NavigationTabBar-ExpensifyLogo',
