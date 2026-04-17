@@ -1005,12 +1005,12 @@ function checkIfNewFeedConnected(prevFeedsData: CombinedCardFeeds, currentFeedsD
     };
 }
 
-function filterAllInactiveCards(cards: CardList | undefined) {
+function filterAllInactiveCards(cards: CardList | undefined, includeDeactivated = false) {
     if (!cards) {
         return {};
     }
 
-    const closedStates = new Set<number>([CONST.EXPENSIFY_CARD.STATE.CLOSED, CONST.EXPENSIFY_CARD.STATE.STATE_DEACTIVATED]);
+    const closedStates = new Set<number>(includeDeactivated ? [CONST.EXPENSIFY_CARD.STATE.CLOSED] : [CONST.EXPENSIFY_CARD.STATE.CLOSED, CONST.EXPENSIFY_CARD.STATE.STATE_DEACTIVATED]);
     const filteredCards = filterObject(cards, (_key, card) => {
         if (card.state === CONST.EXPENSIFY_CARD.STATE.STATE_SUSPENDED) {
             // Only include suspended cards that are frozen.
@@ -1033,11 +1033,22 @@ function filterInactiveCards(cardsList: WorkspaceCardsList | undefined) {
     } as WorkspaceCardsList;
 }
 
+function filterInactiveCardsForWorkspace(cardsList: WorkspaceCardsList | undefined) {
+    const {cardList, ...assignedCards} = cardsList ?? {};
+    const filteredAssignedCards = filterAllInactiveCards(assignedCards, true);
+
+    return {
+        ...(cardList ? {cardList} : {}),
+        ...filteredAssignedCards,
+    } as WorkspaceCardsList;
+}
+
 function getAllCardsForWorkspace(
     workspaceAccountID: number,
     allCardList: OnyxCollection<WorkspaceCardsList>,
     cardFeeds?: CombinedCardFeeds,
     expensifyCardSettings?: OnyxCollection<ExpensifyCardSettings>,
+    includeDeactivated = false,
 ): CardList {
     const cards: CardList = {};
     const companyCardsDomainFeeds = Object.entries(cardFeeds ?? {}).map(([feedName, feedData]) => ({domainID: feedData.domainID, feedName}));
@@ -1051,7 +1062,7 @@ function getAllCardsForWorkspace(
         const isExpensifyDomainCards = expensifyCardsDomainIDs.some((domainID) => key.includes(domainID.toString()) && key.includes(CONST.EXPENSIFY_CARD.BANK));
         if ((isWorkspaceAccountCards || isCompanyDomainCards || isExpensifyDomainCards) && values) {
             const {cardList: assignableCards, ...assignedCards} = values ?? {};
-            const filteredCards = filterInactiveCards(assignedCards);
+            const filteredCards = filterAllInactiveCards(assignedCards, includeDeactivated);
             Object.assign(cards, filteredCards);
         }
     }
@@ -1802,6 +1813,7 @@ export {
     isPolicyIDInLinkedExpensifyCardPolicyList,
     filterAllInactiveCards,
     filterInactiveCards,
+    filterInactiveCardsForWorkspace,
     getPersonalBankCardDetailsImage,
     isCardPendingIssue,
     isCardPendingActivate,
