@@ -241,9 +241,6 @@ type ReportActionBase = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** The accountID of the copilot who took this action on behalf of the user */
     delegateAccountID?: number;
 
-    /** The accountID of the human agent assisting Concierge when "Reply as yourself" is used */
-    humanAgentAccountID?: number;
-
     /** Server side errors keyed by microtime */
     errors?: OnyxCommon.Errors | OnyxCommon.ErrorFields;
 

@@ -710,7 +710,6 @@ function validateReportActionDraftProperty(key: keyof ReportAction, value: strin
         case 'childMoneyRequestCount':
         case 'adminAccountID':
         case 'delegateAccountID':
-        case 'humanAgentAccountID':
             return validateNumber(value);
         case 'isLoading':
         case 'automatic':
@@ -777,7 +776,6 @@ function validateReportActionDraftProperty(key: keyof ReportAction, value: strin
                 whisperedToAccountIDs: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 reportActionTimestamp: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 timestamp: CONST.RED_BRICK_ROAD_PENDING_ACTION,
-                humanAgentAccountID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
             });
         case 'actionName':
             return validateConstantEnum(value, CONST.REPORT.ACTIONS.TYPE);
@@ -1303,7 +1301,6 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                 timestamp: 'string',
                 originalMessage: 'object',
                 previousMessage: 'object',
-                humanAgentAccountID: 'number',
             });
     }
 }
