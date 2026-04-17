@@ -2981,7 +2981,7 @@ function getMemberSections(
     data: OnyxTypes.SearchResults['data'],
     queryJSON: SearchQueryJSON | undefined,
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
-): [TransactionMemberGroupListItemType[], number] {
+): [TransactionMemberGroupListItemType[], number, boolean] {
     const memberSections: Record<string, TransactionMemberGroupListItemType> = {};
 
     for (const key in data) {
@@ -3004,7 +3004,7 @@ function getMemberSections(
     }
 
     const memberSectionsValues = Object.values(memberSections);
-    return [memberSectionsValues, memberSectionsValues.length];
+    return [memberSectionsValues, memberSectionsValues.length, hasDeletedTransactionInData(data)];
 }
 
 function formattedCardNameWithDotAndLastFour(formattedCardName: string, lastFour: string): string {
@@ -3023,7 +3023,7 @@ function getCardSections(
     translate: LocalizedTranslate,
     cardFeeds?: OnyxCollection<OnyxTypes.CardFeeds>,
     customCardNames?: Record<number, string>,
-): [TransactionCardGroupListItemType[], number] {
+): [TransactionCardGroupListItemType[], number, boolean] {
     const cardSections: Record<string, TransactionCardGroupListItemType> = {};
     const cardDescriptionByCardID = new Map<number, string>();
 
@@ -3073,7 +3073,7 @@ function getCardSections(
     }
 
     const cardSectionsValues = Object.values(cardSections);
-    return [cardSectionsValues, cardSectionsValues.length];
+    return [cardSectionsValues, cardSectionsValues.length, hasDeletedTransactionInData(data)];
 }
 
 /**
@@ -3082,7 +3082,7 @@ function getCardSections(
  *
  * Do not use directly, use only via `getSections()` facade.
  */
-function getWithdrawalIDSections(data: OnyxTypes.SearchResults['data'], queryJSON: SearchQueryJSON | undefined): [TransactionWithdrawalIDGroupListItemType[], number] {
+function getWithdrawalIDSections(data: OnyxTypes.SearchResults['data'], queryJSON: SearchQueryJSON | undefined): [TransactionWithdrawalIDGroupListItemType[], number, boolean] {
     const {shouldShowYearWithdrawn} = shouldShowYear(data);
     const withdrawalIDSections: Record<string, TransactionWithdrawalIDGroupListItemType> = {};
 
@@ -3109,7 +3109,7 @@ function getWithdrawalIDSections(data: OnyxTypes.SearchResults['data'], queryJSO
     }
 
     const withdrawalIDSectionsValues = Object.values(withdrawalIDSections);
-    return [withdrawalIDSectionsValues, withdrawalIDSectionsValues.length];
+    return [withdrawalIDSectionsValues, withdrawalIDSectionsValues.length, hasDeletedTransactionInData(data)];
 }
 
 /**
@@ -3118,7 +3118,7 @@ function getWithdrawalIDSections(data: OnyxTypes.SearchResults['data'], queryJSO
  *
  * Do not use directly, use only via `getSections()` facade.
  */
-function getCategorySections(data: OnyxTypes.SearchResults['data'], queryJSON: SearchQueryJSON | undefined): [TransactionCategoryGroupListItemType[], number] {
+function getCategorySections(data: OnyxTypes.SearchResults['data'], queryJSON: SearchQueryJSON | undefined): [TransactionCategoryGroupListItemType[], number, boolean] {
     const categorySections: Record<string, TransactionCategoryGroupListItemType> = {};
 
     for (const key in data) {
@@ -3146,7 +3146,7 @@ function getCategorySections(data: OnyxTypes.SearchResults['data'], queryJSON: S
     }
 
     const categorySectionsValues = Object.values(categorySections);
-    return [categorySectionsValues, categorySectionsValues.length];
+    return [categorySectionsValues, categorySectionsValues.length, hasDeletedTransactionInData(data)];
 }
 
 /**
@@ -3155,7 +3155,7 @@ function getCategorySections(data: OnyxTypes.SearchResults['data'], queryJSON: S
  *
  * Do not use directly, use only via `getSections()` facade.
  */
-function getMerchantSections(data: OnyxTypes.SearchResults['data'], queryJSON: SearchQueryJSON | undefined, translate: LocalizedTranslate): [TransactionMerchantGroupListItemType[], number] {
+function getMerchantSections(data: OnyxTypes.SearchResults['data'], queryJSON: SearchQueryJSON | undefined, translate: LocalizedTranslate): [TransactionMerchantGroupListItemType[], number, boolean] {
     const merchantSections: Record<string, TransactionMerchantGroupListItemType> = {};
 
     for (const key in data) {
@@ -3191,7 +3191,7 @@ function getMerchantSections(data: OnyxTypes.SearchResults['data'], queryJSON: S
     }
 
     const merchantSectionsValues = Object.values(merchantSections);
-    return [merchantSectionsValues, merchantSectionsValues.length];
+    return [merchantSectionsValues, merchantSectionsValues.length, hasDeletedTransactionInData(data)];
 }
 
 /**
@@ -3200,7 +3200,7 @@ function getMerchantSections(data: OnyxTypes.SearchResults['data'], queryJSON: S
  *
  * Do not use directly, use only via `getSections()` facade.
  */
-function getTagSections(data: OnyxTypes.SearchResults['data'], queryJSON: SearchQueryJSON | undefined, translate: LocalizedTranslate): [TransactionTagGroupListItemType[], number] {
+function getTagSections(data: OnyxTypes.SearchResults['data'], queryJSON: SearchQueryJSON | undefined, translate: LocalizedTranslate): [TransactionTagGroupListItemType[], number, boolean] {
     const tagSections: Record<string, TransactionTagGroupListItemType> = {};
 
     for (const key in data) {
@@ -3233,7 +3233,7 @@ function getTagSections(data: OnyxTypes.SearchResults['data'], queryJSON: Search
     }
 
     const tagSectionsValues = Object.values(tagSections);
-    return [tagSectionsValues, tagSectionsValues.length];
+    return [tagSectionsValues, tagSectionsValues.length, hasDeletedTransactionInData(data)];
 }
 
 /**
@@ -3242,7 +3242,7 @@ function getTagSections(data: OnyxTypes.SearchResults['data'], queryJSON: Search
  *
  * Do not use directly, use only via `getSections()` facade.
  */
-function getMonthSections(data: OnyxTypes.SearchResults['data'], queryJSON: SearchQueryJSON | undefined): [TransactionMonthGroupListItemType[], number] {
+function getMonthSections(data: OnyxTypes.SearchResults['data'], queryJSON: SearchQueryJSON | undefined): [TransactionMonthGroupListItemType[], number, boolean] {
     const monthSections: Record<string, TransactionMonthGroupListItemType> = {};
     for (const key in data) {
         if (isGroupEntry(key)) {
@@ -3270,14 +3270,14 @@ function getMonthSections(data: OnyxTypes.SearchResults['data'], queryJSON: Sear
     }
 
     const monthSectionsValues = Object.values(monthSections);
-    return [monthSectionsValues, monthSectionsValues.length];
+    return [monthSectionsValues, monthSectionsValues.length, hasDeletedTransactionInData(data)];
 }
 
 /**
  * Returns sections for week-grouped search results.
  * Do not use directly, use only via `getSections()` facade.
  */
-function getWeekSections(data: OnyxTypes.SearchResults['data'], queryJSON: SearchQueryJSON | undefined): [TransactionWeekGroupListItemType[], number] {
+function getWeekSections(data: OnyxTypes.SearchResults['data'], queryJSON: SearchQueryJSON | undefined): [TransactionWeekGroupListItemType[], number, boolean] {
     const weekSections: Record<string, TransactionWeekGroupListItemType> = {};
     for (const key in data) {
         if (isGroupEntry(key)) {
@@ -3302,14 +3302,14 @@ function getWeekSections(data: OnyxTypes.SearchResults['data'], queryJSON: Searc
     }
 
     const weekSectionsValues = Object.values(weekSections);
-    return [weekSectionsValues, weekSectionsValues.length];
+    return [weekSectionsValues, weekSectionsValues.length, hasDeletedTransactionInData(data)];
 }
 
 /**
  * Returns sections for year-grouped search results.
  * Do not use directly, use only via `getSections()` facade.
  */
-function getYearSections(data: OnyxTypes.SearchResults['data'], queryJSON: SearchQueryJSON | undefined): [TransactionYearGroupListItemType[], number] {
+function getYearSections(data: OnyxTypes.SearchResults['data'], queryJSON: SearchQueryJSON | undefined): [TransactionYearGroupListItemType[], number, boolean] {
     const yearSections: Record<string, TransactionYearGroupListItemType> = {};
     for (const key in data) {
         if (isGroupEntry(key)) {
@@ -3334,10 +3334,10 @@ function getYearSections(data: OnyxTypes.SearchResults['data'], queryJSON: Searc
     }
 
     const yearSectionsValues = Object.values(yearSections);
-    return [yearSectionsValues, yearSectionsValues.length];
+    return [yearSectionsValues, yearSectionsValues.length, hasDeletedTransactionInData(data)];
 }
 
-function getQuarterSections(data: OnyxTypes.SearchResults['data'], queryJSON: SearchQueryJSON | undefined): [TransactionQuarterGroupListItemType[], number] {
+function getQuarterSections(data: OnyxTypes.SearchResults['data'], queryJSON: SearchQueryJSON | undefined): [TransactionQuarterGroupListItemType[], number, boolean] {
     const quarterSections: Record<string, TransactionQuarterGroupListItemType> = {};
     for (const key in data) {
         if (isGroupEntry(key)) {
@@ -3364,7 +3364,7 @@ function getQuarterSections(data: OnyxTypes.SearchResults['data'], queryJSON: Se
     }
 
     const quarterSectionsValues = Object.values(quarterSections);
-    return [quarterSectionsValues, quarterSectionsValues.length];
+    return [quarterSectionsValues, quarterSectionsValues.length, hasDeletedTransactionInData(data)];
 }
 
 /**
@@ -3446,25 +3446,25 @@ function getSections({
         // eslint-disable-next-line default-case
         switch (groupBy) {
             case CONST.SEARCH.GROUP_BY.FROM:
-                return [...getMemberSections(data, queryJSON, formatPhoneNumber), hasDeletedTransactionInData(data)];
+                return getMemberSections(data, queryJSON, formatPhoneNumber);
             case CONST.SEARCH.GROUP_BY.CARD:
-                return [...getCardSections(data, queryJSON, translate, cardFeeds, customCardNames), hasDeletedTransactionInData(data)];
+                return getCardSections(data, queryJSON, translate, cardFeeds, customCardNames);
             case CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID:
-                return [...getWithdrawalIDSections(data, queryJSON), hasDeletedTransactionInData(data)];
+                return getWithdrawalIDSections(data, queryJSON);
             case CONST.SEARCH.GROUP_BY.CATEGORY:
-                return [...getCategorySections(data, queryJSON), hasDeletedTransactionInData(data)];
+                return getCategorySections(data, queryJSON);
             case CONST.SEARCH.GROUP_BY.MERCHANT:
-                return [...getMerchantSections(data, queryJSON, translate), hasDeletedTransactionInData(data)];
+                return getMerchantSections(data, queryJSON, translate);
             case CONST.SEARCH.GROUP_BY.TAG:
-                return [...getTagSections(data, queryJSON, translate), hasDeletedTransactionInData(data)];
+                return getTagSections(data, queryJSON, translate);
             case CONST.SEARCH.GROUP_BY.MONTH:
-                return [...getMonthSections(data, queryJSON), hasDeletedTransactionInData(data)];
+                return getMonthSections(data, queryJSON);
             case CONST.SEARCH.GROUP_BY.WEEK:
-                return [...getWeekSections(data, queryJSON), hasDeletedTransactionInData(data)];
+                return getWeekSections(data, queryJSON);
             case CONST.SEARCH.GROUP_BY.YEAR:
-                return [...getYearSections(data, queryJSON), hasDeletedTransactionInData(data)];
+                return getYearSections(data, queryJSON);
             case CONST.SEARCH.GROUP_BY.QUARTER:
-                return [...getQuarterSections(data, queryJSON), hasDeletedTransactionInData(data)];
+                return getQuarterSections(data, queryJSON);
         }
     }
 
