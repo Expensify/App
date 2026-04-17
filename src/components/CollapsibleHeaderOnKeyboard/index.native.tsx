@@ -42,14 +42,20 @@ function CollapsibleHeaderOnKeyboard({children, collapsibleHeaderOffset = 0}: Co
         collapsibleHeaderOffsetSV.set(collapsibleHeaderOffset);
     }, [collapsibleHeaderOffset]); // eslint-disable-line react-hooks/exhaustive-deps
 
-    // Measure natural height exactly once. Subsequent onLayout fires (triggered by our own height
-    // animation collapsing the view to 0) are ignored via the naturalHeightRef guard.
     const onLayout = (e: LayoutChangeEvent) => {
-        const h = e.nativeEvent.layout.height;
-        if (naturalHeightRef.current === -1 && h > 0) {
-            naturalHeightRef.current = h;
-            naturalHeight.set(h);
-            animatedHeight.set(h);
+        const height = e.nativeEvent.layout.height;
+        console.log('height', height);
+
+        if (height <= 0) {
+            return;
+        }
+        // First measurement, or content changed while header is fully open
+        // (to skip onLayout calls triggered by our own height animation collapsing the view to 0)
+        if (naturalHeightRef.current === -1 || animatedHeight.get() >= naturalHeightRef.current) {
+            console.log('setting natural height', height);
+            naturalHeightRef.current = height;
+            naturalHeight.set(height);
+            animatedHeight.set(height);
         }
     };
 
