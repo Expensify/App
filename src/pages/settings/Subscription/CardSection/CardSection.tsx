@@ -188,7 +188,7 @@ function CardSection() {
         BillingBanner = <PreTrialBillingBanner />;
     } else if (isUserOnFreeTrial(firstDayFreeTrial, lastDayFreeTrial)) {
         BillingBanner = <TrialStartedBillingBanner />;
-    } else if (shouldShowTrialEndedUI(lastDayFreeTrial, userBillingFundID, allPolicies, isGrandfatheredFree, account?.isFromInternalDomain, privateSubscription?.type)) {
+    } else if (shouldShowTrialEndedUI(session?.accountID, lastDayFreeTrial, userBillingFundID, allPolicies, isGrandfatheredFree, account?.isFromInternalDomain, privateSubscription?.type)) {
         BillingBanner = <TrialEndedBillingBanner />;
     }
     if (billingStatus) {

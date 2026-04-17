@@ -301,10 +301,14 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON): UseSearchFiltersBarRes
             case FILTER_KEYS.IS:
             case FILTER_KEYS.EXPENSE_TYPE:
             case FILTER_KEYS.STATUS: {
-                const formValues = searchAdvancedFiltersForm[filterKey];
-                const formValuesAsArray = Array.isArray(formValues) ? formValues : [formValues];
+                let formValues = searchAdvancedFiltersForm[filterKey] ?? [];
+
+                if (filterKey === FILTER_KEYS.STATUS) {
+                    formValues = Array.isArray(formValues) ? formValues : formValues.split(',');
+                }
+
                 const items = getMultiSelectFilterOptions(filterKey, type, translate);
-                const value = items.filter((item) => formValuesAsArray.includes(item.value));
+                const value = items.filter((item) => formValues.includes(item.value));
 
                 const multiSelectComponent = ({closeOverlay}: PopoverComponentProps) => (
                     <MultiSelectFilterPopup

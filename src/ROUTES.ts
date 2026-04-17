@@ -129,11 +129,11 @@ const DYNAMIC_ROUTES = {
     },
     POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_PREFERRED_EXPORTER: {
         path: 'preferred-exporter',
-        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_EXPORT],
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_QUICKBOOKS_ONLINE_EXPORT],
     },
     POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT_OUT_OF_POCKET_EXPENSES: {
         path: 'out-of-pocket-expense',
-        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_EXPORT],
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_QUICKBOOKS_ONLINE_EXPORT],
     },
     POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT_OUT_OF_POCKET_EXPENSES_ACCOUNT_SELECT: {
         path: 'account-select',
@@ -145,7 +145,27 @@ const DYNAMIC_ROUTES = {
     },
     POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT_DATE_SELECT: {
         path: 'date-select',
-        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_EXPORT],
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_QUICKBOOKS_ONLINE_EXPORT],
+    },
+    POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT: {
+        path: 'quickbooks-online/export',
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.ROOT, SCREENS.WORKSPACE.COMPANY_CARD_EXPORT],
+    },
+    POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_ACCOUNT: {
+        path: 'company-card-expense-account',
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_QUICKBOOKS_ONLINE_EXPORT],
+    },
+    POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_ACCOUNT_SELECT: {
+        path: 'company-card-expense-account-select',
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_QUICKBOOKS_ONLINE_EXPORT, SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_ACCOUNT],
+    },
+    POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_CARD_SELECT: {
+        path: 'card-select',
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_ACCOUNT],
+    },
+    POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_INVOICE_ACCOUNT_SELECT: {
+        path: 'invoice-account-select',
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_QUICKBOOKS_ONLINE_EXPORT],
     },
     POLICY_ACCOUNTING_SAGE_INTACCT_NON_REIMBURSABLE_DESTINATION: {
         path: 'destination',
@@ -215,6 +235,14 @@ const DYNAMIC_ROUTES = {
     WORKSPACE_OVERVIEW_ADDRESS: {
         path: 'workspace-address',
         entryScreens: [SCREENS.WORKSPACE.PROFILE],
+    },
+    WORKSPACE_CATEGORIES_IMPORT: {
+        path: 'import',
+        entryScreens: [SCREENS.WORKSPACE.CATEGORIES],
+    },
+    WORKSPACE_CATEGORIES_IMPORTED: {
+        path: 'imported',
+        entryScreens: [SCREENS.WORKSPACE.CATEGORIES],
     },
     WORKSPACE_INVITE: {
         path: 'invite',
@@ -1777,23 +1805,6 @@ const ROUTES = {
             return getUrlWithBackToParam(`workspaces/${policyID}/accounting/quickbooks-online/export` as const, backTo, false);
         },
     },
-    POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_ACCOUNT: {
-        route: 'workspaces/:policyID/accounting/quickbooks-online/export/company-card-expense-account',
-
-        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-        getRoute: (policyID: string, backTo?: string) => getUrlWithBackToParam(`workspaces/${policyID}/accounting/quickbooks-online/export/company-card-expense-account` as const, backTo),
-    },
-    POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_ACCOUNT_SELECT: {
-        route: 'workspaces/:policyID/accounting/quickbooks-online/export/company-card-expense-account/account-select',
-        getRoute: (policyID: string | undefined, backTo?: string) => {
-            if (!policyID) {
-                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_ACCOUNT_SELECT route');
-            }
-
-            // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-            return getUrlWithBackToParam(`workspaces/${policyID}/accounting/quickbooks-online/export/company-card-expense-account/account-select` as const, backTo);
-        },
-    },
     POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_NON_REIMBURSABLE_DEFAULT_VENDOR_SELECT: {
         route: 'workspaces/:policyID/accounting/quickbooks-online/export/company-card-expense-account/default-vendor-select',
         getRoute: (policyID: string | undefined) => {
@@ -1813,12 +1824,6 @@ const ROUTES = {
             // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
             return getUrlWithBackToParam(`workspaces/${policyID}/accounting/quickbooks-online/export/company-card-expense-account/card-select` as const, backTo);
         },
-    },
-    POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_INVOICE_ACCOUNT_SELECT: {
-        route: 'workspaces/:policyID/accounting/quickbooks-online/export/invoice-account-select',
-
-        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-        getRoute: (policyID: string, backTo?: string) => getUrlWithBackToParam(`workspaces/${policyID}/accounting/quickbooks-online/export/invoice-account-select` as const, backTo),
     },
     POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_TRAVEL_INVOICING_CONFIGURATION: {
         route: 'workspaces/:policyID/accounting/quickbooks-online/export/travel-invoicing',
@@ -2274,14 +2279,6 @@ const ROUTES = {
     WORKSPACE_CATEGORIES_SETTINGS: {
         route: 'workspaces/:policyID/categories/settings',
         getRoute: (policyID: string) => `workspaces/${policyID}/categories/settings` as const,
-    },
-    WORKSPACE_CATEGORIES_IMPORT: {
-        route: 'workspaces/:policyID/categories/import',
-        getRoute: (policyID: string) => `workspaces/${policyID}/categories/import` as const,
-    },
-    WORKSPACE_CATEGORIES_IMPORTED: {
-        route: 'workspaces/:policyID/categories/imported',
-        getRoute: (policyID: string) => `workspaces/${policyID}/categories/imported` as const,
     },
     WORKSPACE_CATEGORY_CREATE: {
         route: 'workspaces/:policyID/categories/new',
@@ -4089,6 +4086,10 @@ const ROUTES = {
     DOMAIN_MEMBER_RESET_TWO_FACTOR_AUTH: {
         route: 'domain/:domainAccountID/members/:accountID/reset-two-factor-auth',
         getRoute: (domainAccountID: number, accountID: number) => `domain/${domainAccountID}/members/${accountID}/reset-two-factor-auth` as const,
+    },
+    DOMAIN_MEMBERS_MOVE_TO_GROUP: {
+        route: 'domain/:domainAccountID/members/move',
+        getRoute: (domainAccountID: number) => `domain/${domainAccountID}/members/move` as const,
     },
 
     MULTIFACTOR_AUTHENTICATION_MAGIC_CODE: `multifactor-authentication/magic-code`,
