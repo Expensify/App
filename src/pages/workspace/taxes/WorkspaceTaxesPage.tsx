@@ -355,7 +355,7 @@ function WorkspaceTaxesPage({
     const shouldDisplayNarrowHeaderButton = isInLandscapeMode || !shouldUseNarrowLayout;
 
     const headerButtons = !shouldShowBulkActionsButton ? (
-        <View style={[styles.w100, styles.flexRow, styles.gap2, !shouldDisplayNarrowHeaderButton && styles.mb3]}>
+        <View style={[!isInLandscapeMode && styles.w100, styles.flexRow, styles.gap2, !shouldDisplayNarrowHeaderButton && styles.mb3]}>
             {!hasAccountingConnections && (
                 <Button
                     success

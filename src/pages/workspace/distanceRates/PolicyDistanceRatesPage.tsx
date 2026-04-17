@@ -431,8 +431,8 @@ function PolicyDistanceRatesPage({
     const shouldDisplayNarrowHeaderButton = isInLandscapeMode || !shouldUseNarrowLayout;
 
     const headerButtons = (
-        <View style={[styles.w100, styles.flexRow, styles.gap2, !shouldDisplayNarrowHeaderButton && styles.mb3]}>
-            {(!shouldDisplayNarrowHeaderButton ? !isMobileSelectionModeEnabled : selectedDistanceRates.length === 0) ? (
+        <View style={[!isInLandscapeMode && styles.w100, styles.flexRow, styles.gap2, !shouldDisplayNarrowHeaderButton && styles.mb3]}>
+            {(shouldUseNarrowLayout ? !isMobileSelectionModeEnabled : selectedDistanceRates.length === 0) ? (
                 <>
                     <Button
                         text={translate('workspace.distanceRates.addRate')}
@@ -462,7 +462,7 @@ function PolicyDistanceRatesPage({
                     onPress={() => null}
                     options={getBulkActionsButtonOptions()}
                     style={[!shouldDisplayNarrowHeaderButton && styles.flexGrow1]}
-                    wrapperStyle={styles.w100}
+                    wrapperStyle={!isInLandscapeMode ? styles.w100 : undefined}
                     isSplitButton={false}
                     isDisabled={!selectedDistanceRates.length}
                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.DISTANCE_RATES.BULK_ACTIONS_DROPDOWN}

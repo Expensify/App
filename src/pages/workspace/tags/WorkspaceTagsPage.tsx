@@ -628,7 +628,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                         sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.TAGS.MORE_DROPDOWN}
                         options={secondaryActions}
                         isSplitButton={false}
-                        wrapperStyle={hasPrimaryActions ? styles.flexGrow0 : styles.flexGrow1}
+                        wrapperStyle={isInLandscapeMode || hasPrimaryActions ? styles.flexGrow0 : styles.flexGrow1}
                     />
                 </View>
             );
