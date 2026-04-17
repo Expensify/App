@@ -12,6 +12,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
 import BasePopup from './BasePopup';
@@ -111,6 +112,8 @@ function MultiSelectPopup<T extends string>({label, loading, value, items, close
 
     const reasonAttributes: SkeletonSpanReasonAttributes = {context: 'MultiSelectPopupDataLoading'};
 
+    const hasTitle = isSmallScreenWidth && !!label;
+
     return (
         <BasePopup
             label={label}
@@ -118,29 +121,28 @@ function MultiSelectPopup<T extends string>({label, loading, value, items, close
             onApply={applyChanges}
             resetSentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_RESET_MULTI_SELECT}
             applySentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY_MULTI_SELECT}
+            style={[styles.getSelectionListPopoverHeight({itemCount: listData.length || 1, windowHeight, isInLandscapeMode, hasTitle})]}
         >
-            <View style={[styles.getSelectionListPopoverHeight(listData.length || 1, windowHeight, isSearchable ?? false, isInLandscapeMode, isSmallScreenWidth)]}>
-                {!!loading && (
-                    <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter]}>
-                        <ActivityIndicator
-                            size={CONST.ACTIVITY_INDICATOR_SIZE.SMALL}
-                            color={theme.spinner}
-                            reasonAttributes={reasonAttributes}
-                        />
-                    </View>
-                )}
-
-                {!loading && (
-                    <SelectionList
-                        shouldSingleExecuteRowSelect
-                        data={listData}
-                        ListItem={MultiSelectListItem}
-                        onSelectRow={updateSelectedItems}
-                        textInputOptions={textInputOptions}
-                        style={{contentContainerStyle: [styles.pb0]}}
+            {!!loading && (
+                <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter]}>
+                    <ActivityIndicator
+                        size={CONST.ACTIVITY_INDICATOR_SIZE.SMALL}
+                        color={theme.spinner}
+                        reasonAttributes={reasonAttributes}
                     />
-                )}
-            </View>
+                </View>
+            )}
+
+            {!loading && (
+                <SelectionList
+                    shouldSingleExecuteRowSelect
+                    data={listData}
+                    ListItem={MultiSelectListItem}
+                    onSelectRow={updateSelectedItems}
+                    textInputOptions={textInputOptions}
+                    style={{contentContainerStyle: [styles.pb0]}}
+                />
+            )}
         </BasePopup>
     );
 }

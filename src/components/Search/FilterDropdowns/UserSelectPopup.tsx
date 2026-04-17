@@ -14,7 +14,6 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import {getParticipantsOption} from '@libs/OptionsListUtils';
 import type {OptionData} from '@libs/ReportUtils';
-import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import BasePopup from './BasePopup';
@@ -24,7 +23,7 @@ type UserSelectPopupProps = {
     value: string[];
 
     /** The popup label */
-    label?: string;
+    label: string;
 
     /** Function to call to close the overlay when changes are applied */
     closeOverlay: () => void;
@@ -46,7 +45,8 @@ function UserSelectPopup({value, label, closeOverlay, onChange, isSearchable}: U
     const {translate} = useLocalize();
     const personalDetails = usePersonalDetails();
     const {windowHeight} = useWindowDimensions();
-    const {shouldUseNarrowLayout, isInLandscapeMode} = useResponsiveLayout();
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
+    const {isSmallScreenWidth, isInLandscapeMode} = useResponsiveLayout();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserAccountID = currentUserPersonalDetails.accountID;
     const shouldFocusInputOnScreenFocus = canFocusInputOnScreenFocus();
@@ -178,14 +178,13 @@ function UserSelectPopup({value, label, closeOverlay, onChange, isSearchable}: U
             resetSentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_RESET_USER}
             applySentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY_USER}
             style={[
-                styles.getCommonSelectionListPopoverHeight(
-                    listData.length || 1,
-                    variables.optionRowHeightCompact,
+                styles.getSelectionListPopoverHeight({
+                    itemCount: listData.length || 1,
                     windowHeight,
-                    shouldUseNarrowLayout,
                     isInLandscapeMode,
-                    shouldShowSearchInput,
-                ),
+                    hasTitle: isSmallScreenWidth,
+                    isSearchable: shouldShowSearchInput,
+                }),
             ]}
         >
             <SelectionList

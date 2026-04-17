@@ -2,7 +2,10 @@ import React from 'react';
 import DateSelectPopup from '@components/Search/FilterDropdowns/DateSelectPopup';
 import type {PopoverComponentProps} from '@components/Search/FilterDropdowns/DropdownButton';
 import type {SearchDateFilterKeys} from '@components/Search/types';
+import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import type {SearchDateValues} from '@libs/SearchQueryUtils';
 import {getDatePresets} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
@@ -18,6 +21,9 @@ type DatePickerFilterPopupProps = PopoverComponentProps & {
 
 function DatePickerFilterPopup({closeOverlay, setPopoverWidth, filterKey, value, translationKey, updateFilterForm}: DatePickerFilterPopupProps) {
     const {translate} = useLocalize();
+    const styles = useThemeStyles();
+    const {windowHeight} = useWindowDimensions();
+    const isInLandscapeMode = useIsInLandscapeMode();
     const onChange = (selectedDates: SearchDateValues) => {
         const dateFormValues: Record<string, string | undefined> = {};
         dateFormValues[`${filterKey}On`] = selectedDates[CONST.SEARCH.DATE_MODIFIERS.ON];
@@ -34,6 +40,7 @@ function DatePickerFilterPopup({closeOverlay, setPopoverWidth, filterKey, value,
             closeOverlay={closeOverlay}
             setPopoverWidth={setPopoverWidth}
             presets={getDatePresets(filterKey, true)}
+            style={[styles.getPopoverMaxHeight(windowHeight, isInLandscapeMode)]}
         />
     );
 }

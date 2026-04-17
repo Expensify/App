@@ -490,8 +490,8 @@ function MoneyRequestReportTransactionList({
 
     const groupByPopoverComponent = useCallback(
         (props: {closeOverlay: () => void}) => (
-            <View style={[!isSmallScreenWidth && styles.pv4]}>
-                <View style={styles.getSelectionListPopoverHeight(groupByOptions.length || 1, windowHeight, false, isInLandscapeMode, false)}>
+            <View style={[styles.pv4]}>
+                <View style={styles.getSelectionListPopoverHeight({itemCount: groupByOptions.length || 1, windowHeight, isInLandscapeMode})}>
                     <SelectionList
                         data={groupByOptions}
                         shouldSingleExecuteRowSelect
