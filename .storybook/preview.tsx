@@ -19,9 +19,6 @@ import './fonts.css';
 
 Onyx.init({
     keys: ONYXKEYS,
-    initialKeyStates: {
-        [ONYXKEYS.NETWORK]: {isOffline: false},
-    },
 });
 
 IntlStore.load(CONST.LOCALES.EN);

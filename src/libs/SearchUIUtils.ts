@@ -4806,6 +4806,7 @@ const FILTER_LABEL_MAP: Partial<Record<SearchAdvancedFiltersKey, TranslationPath
     [FILTER_KEYS.STATUS]: 'common.status',
     [FILTER_KEYS.TAG]: 'common.tag',
     [FILTER_KEYS.TAX_RATE]: 'workspace.taxes.taxRate',
+    [FILTER_KEYS.TYPE]: 'common.type',
     [FILTER_KEYS.TO]: 'common.to',
     [FILTER_KEYS.TITLE]: 'common.title',
     [FILTER_KEYS.WITHDRAWAL_ID]: 'common.withdrawalID',
@@ -4915,6 +4916,14 @@ function getDisplayValue(
     translate: LocalizedTranslate,
     localeCompare: LocaleContextProps['localeCompare'],
 ) {
+    if (key === FILTER_KEYS.TYPE) {
+        const filterValue = form[key];
+        if (filterValue === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT) {
+            return translate('common.expenseReport');
+        }
+        return filterValue ? translate(`common.${filterValue}`) : undefined;
+    }
+
     if (key === FILTER_KEYS.TAG || key === FILTER_KEYS.CATEGORY) {
         const mapFn =
             key === FILTER_KEYS.TAG

@@ -6,6 +6,7 @@ import type {ListItem} from '@components/SelectionList/types';
 import SelectionScreen from '@components/SelectionScreen';
 import type {SelectorType} from '@components/SelectionScreen';
 import Text from '@components/Text';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updateNetSuiteAccountingMethod} from '@libs/actions/connections/NetSuiteCommands';
@@ -15,24 +16,19 @@ import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnec
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
-import ROUTES from '@src/ROUTES';
-import type {Route} from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 
 type MenuListItem = ListItem & {
     value: ValueOf<typeof COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD>;
 };
 
-type NetSuiteAccountingMethodPageRouteParams = {
-    backTo?: Route;
-};
-
-function NetSuiteAccountingMethodPage({policy, route}: WithPolicyConnectionsProps) {
+function DynamicNetSuiteAccountingMethodPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
     const policyID = policy?.id;
-    const {backTo} = route.params as NetSuiteAccountingMethodPageRouteParams;
     const styles = useThemeStyles();
     const config = policy?.connections?.netsuite?.options?.config;
     const autoSyncConfig = policy?.connections?.netsuite?.config;
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.NETSUITE_ACCOUNTING_METHOD.path);
     const accountingMethod = config?.accountingMethod ?? COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH;
     const data: MenuListItem[] = Object.values(COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD).map((accountingMethodType) => ({
         value: accountingMethodType,
@@ -59,9 +55,9 @@ function NetSuiteAccountingMethodPage({policy, route}: WithPolicyConnectionsProp
             if (row.value !== config?.accountingMethod) {
                 updateNetSuiteAccountingMethod(policyID, row.value, config?.accountingMethod ?? COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH);
             }
-            Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_AUTO_SYNC.getRoute(policyID, backTo));
+            Navigation.goBack(backPath);
         },
-        [config?.accountingMethod, policyID, backTo],
+        [backPath, config?.accountingMethod, policyID],
     );
 
     return (
@@ -75,11 +71,11 @@ function NetSuiteAccountingMethodPage({policy, route}: WithPolicyConnectionsProp
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
-            onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_AUTO_SYNC.getRoute(policyID, backTo))}
+            onBackButtonPress={() => Navigation.goBack(backPath)}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.NETSUITE}
             pendingAction={pendingAction}
         />
     );
 }
 
-export default withPolicyConnections(NetSuiteAccountingMethodPage);
+export default withPolicyConnections(DynamicNetSuiteAccountingMethodPage);
