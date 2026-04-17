@@ -929,11 +929,6 @@ describe('PureReportActionItem', () => {
                 translationKey: 'violations.resolvedDuplicates' as TranslationPaths,
             },
             {
-                testTitle: 'RECEIPT_SCAN_FAILED action',
-                actionName: CONST.REPORT.ACTIONS.TYPE.RECEIPT_SCAN_FAILED,
-                translationKey: 'iou.receiptScanningFailed' as TranslationPaths,
-            },
-            {
                 testTitle: 'UNAPPROVED action',
                 actionName: CONST.REPORT.ACTIONS.TYPE.UNAPPROVED,
                 translationKey: 'iou.unapproved' as TranslationPaths,
@@ -956,6 +951,29 @@ describe('PureReportActionItem', () => {
             await waitForBatchedUpdatesWithAct();
 
             expect(screen.getByText(translateLocal(translationKey))).toBeOnTheScreen();
+        });
+
+        it('RECEIPT_SCAN_FAILED action shows message from action data', async () => {
+            // Given a RECEIPT_SCAN_FAILED message with a html message from server.
+            // Then verify server message is rendered.
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.RECEIPT_SCAN_FAILED, {});
+            action.message = [
+                {
+                    type: 'COMMENT',
+                    html: "the date couldn't be read from this receipt. Please enter it manually.",
+                    text: "the date couldn't be read from this receipt. Please enter it manually.",
+                },
+            ];
+            renderItemWithAction(action);
+            await waitForBatchedUpdatesWithAct();
+            expect(screen.getByText("the date couldn't be read from this receipt. Please enter it manually.")).toBeOnTheScreen();
+
+            // Given an RECEIPT_SCAN_FAILED with no server side message
+            // Then verify generic translation phrase is rendered
+            action.message = [{type: 'COMMENT', html: '', text: ''}];
+            renderItemWithAction(action);
+            await waitForBatchedUpdatesWithAct();
+            expect(screen.getByText(translateLocal('iou.receiptScanningFailed'))).toBeOnTheScreen();
         });
 
         it('HOLD_COMMENT action renders via ReportActionItemBasicMessage', async () => {
@@ -1547,6 +1565,98 @@ describe('PureReportActionItem', () => {
 
             expect(screen.getByText(/8765/)).toBeOnTheScreen();
         });
+
+        it('IOU PAY with bankAccountID and payAsBusiness renders settleInvoiceBusiness message', async () => {
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.IOU, {
+                type: CONST.IOU.REPORT_ACTION_TYPE.PAY,
+                paymentType: CONST.IOU.PAYMENT_TYPE.EXPENSIFY,
+                automaticAction: false,
+                bankAccountID: 55555,
+                payAsBusiness: true,
+                amount: 5000,
+                currency: 'USD',
+            });
+            render(
+                <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, HTMLEngineProvider]}>
+                    <OptionsListContextProvider>
+                        <ScreenWrapper testID="test">
+                            <PortalProvider>
+                                <PureReportActionItem
+                                    personalPolicyID={undefined}
+                                    currentUserEmail={undefined}
+                                    report={undefined}
+                                    parentReportAction={undefined}
+                                    action={action}
+                                    displayAsGroup={false}
+                                    shouldDisplayNewMarker={false}
+                                    index={0}
+                                    isFirstVisibleReportAction={false}
+                                    taskReport={undefined}
+                                    linkedReport={undefined}
+                                    iouReportOfLinkedReport={undefined}
+                                    currentUserAccountID={ACTOR_ACCOUNT_ID}
+                                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                                    bankAccountList={{55555: {accountData: {accountNumber: '000012345'}} as never}}
+                                    betas={undefined}
+                                    draftTransactionIDs={[]}
+                                    userBillingGracePeriodEnds={undefined}
+                                />
+                            </PortalProvider>
+                        </ScreenWrapper>
+                    </OptionsListContextProvider>
+                </ComposeProviders>,
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByText(/with business account/i)).toBeOnTheScreen();
+            expect(screen.getByText(/2345/)).toBeOnTheScreen();
+        });
+
+        it('IOU PAY with bankAccountID and no payAsBusiness renders settleInvoicePersonal message', async () => {
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.IOU, {
+                type: CONST.IOU.REPORT_ACTION_TYPE.PAY,
+                paymentType: CONST.IOU.PAYMENT_TYPE.EXPENSIFY,
+                automaticAction: false,
+                bankAccountID: 77777,
+                payAsBusiness: false,
+                amount: 3000,
+                currency: 'USD',
+            });
+            render(
+                <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, HTMLEngineProvider]}>
+                    <OptionsListContextProvider>
+                        <ScreenWrapper testID="test">
+                            <PortalProvider>
+                                <PureReportActionItem
+                                    personalPolicyID={undefined}
+                                    currentUserEmail={undefined}
+                                    report={undefined}
+                                    parentReportAction={undefined}
+                                    action={action}
+                                    displayAsGroup={false}
+                                    shouldDisplayNewMarker={false}
+                                    index={0}
+                                    isFirstVisibleReportAction={false}
+                                    taskReport={undefined}
+                                    linkedReport={undefined}
+                                    iouReportOfLinkedReport={undefined}
+                                    currentUserAccountID={ACTOR_ACCOUNT_ID}
+                                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                                    bankAccountList={{77777: {accountData: {accountNumber: '000067890'}} as never}}
+                                    betas={undefined}
+                                    draftTransactionIDs={[]}
+                                    userBillingGracePeriodEnds={undefined}
+                                />
+                            </PortalProvider>
+                        </ScreenWrapper>
+                    </OptionsListContextProvider>
+                </ComposeProviders>,
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByText(/with personal account/i)).toBeOnTheScreen();
+            expect(screen.getByText(/7890/)).toBeOnTheScreen();
+        });
     });
 
     describe('Default rendering fallbacks', () => {
@@ -2120,6 +2230,29 @@ describe('PureReportActionItem', () => {
             await waitForBatchedUpdatesWithAct();
 
             expect(screen.getByText(/requested to join/i)).toBeOnTheScreen();
+        });
+
+        it('isActionableReportMentionWhisper renders message and yes/no buttons', async () => {
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_REPORT_MENTION_WHISPER, {});
+            const messageText = "Heads up, #test5 doesn't exist yet. Do you want to create it?";
+            action.message = [{type: 'COMMENT', html: messageText, text: messageText}];
+            renderItemWithAction(action);
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByText(/Heads up, #test5 doesn't exist yet/)).toBeOnTheScreen();
+            expect(screen.getByText(translateLocal('common.yes'))).toBeOnTheScreen();
+            expect(screen.getByText(translateLocal('common.no'))).toBeOnTheScreen();
+        });
+
+        it('isActionableMentionInviteToSubmitExpenseConfirmWhisper renders message and confirm button', async () => {
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_INVITE_TO_SUBMIT_EXPENSE_CONFIRM_WHISPER, {});
+            const messageText = "Great, you chose to invite them to the workspace! I've invited user and they'll submit expenses in their expense chat.";
+            action.message = [{type: 'COMMENT', html: messageText, text: messageText}];
+            renderItemWithAction(action);
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByText(/Great, you chose to invite them/)).toBeOnTheScreen();
+            expect(screen.getByText(translateLocal('common.buttonConfirm'))).toBeOnTheScreen();
         });
 
         it('isCardIssuedAction renders card issued message', async () => {
