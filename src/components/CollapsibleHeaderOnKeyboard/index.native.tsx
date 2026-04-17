@@ -4,7 +4,7 @@ import {useReanimatedKeyboardAnimation} from 'react-native-keyboard-controller';
 import Reanimated, {useAnimatedReaction, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import isInLandscapeMode from '@libs/isInLandscapeMode';
-import {CollapsibleHeaderOnKeyboardProps} from './types';
+import type {CollapsibleHeaderOnKeyboardProps} from './types';
 
 const COLLAPSE_DURATION = 200;
 const RESTORE_DURATION = 300;
