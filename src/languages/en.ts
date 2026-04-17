@@ -2565,6 +2565,7 @@ const translations = {
         changeYourPin: 'Enter a new PIN for your card.',
         confirmYourChangedPin: 'Confirm your new PIN.',
         pinMustBeFourDigits: 'PIN must be exactly 4 digits.',
+        invalidCardLimit: 'Your card limit is $0. Please ask your workspace admin to set a non-zero spending limit, then try again.',
         invalidPin: 'Please choose a more secure PIN.',
         pinMismatch: 'PINs do not match. Please try again.',
         revealPin: 'Reveal PIN',

@@ -2510,6 +2510,8 @@ ${amount} für ${merchant} – ${date}`,
         changeYourPin: 'Geben Sie eine neue PIN für Ihre Karte ein.',
         confirmYourChangedPin: 'Bestätigen Sie Ihre neue PIN.',
         pinMustBeFourDigits: 'Die PIN muss genau 4 Ziffern lang sein.',
+        invalidCardLimit:
+            'Ihr Kartenlimit beträgt 0 $. Bitte bitten Sie Ihre Workspace-Administratorin bzw. Ihren Workspace-Administrator, ein Limit größer als 0 festzulegen, und versuchen Sie es dann erneut.',
         invalidPin: 'Bitte wählen Sie eine sicherere PIN.',
         pinMismatch: 'PINs stimmen nicht überein. Bitte versuchen Sie es erneut.',
         revealPin: 'PIN anzeigen',

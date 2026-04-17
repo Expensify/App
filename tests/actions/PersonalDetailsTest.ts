@@ -1,7 +1,7 @@
 /* eslint-disable no-restricted-syntax */
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
-import {WRITE_COMMANDS} from '@libs/API/types';
+import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
@@ -700,6 +700,72 @@ describe('actions/PersonalDetails', () => {
             await waitForBatchedUpdates();
 
             expect(mockAPI.write).not.toHaveBeenCalled();
+        });
+    });
+
+    describe('updatePersonalDetailsAndShipExpensifyCards', () => {
+        const mockValues = {
+            legalFirstName: 'Jane',
+            legalLastName: 'Doe',
+            phoneNumber: '5551234567',
+            city: 'San Francisco',
+            addressLine1: '123 Main St',
+            addressLine2: '',
+            zipPostCode: '94105',
+            country: CONST.COUNTRY.US as Country,
+            addressState: 'CA',
+            state: 'CA',
+            dob: '1990-01-01',
+        };
+
+        it('should call API.makeRequestWithSideEffects with correct command and Onyx data', async () => {
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls
+            const makeRequestSpy = jest.spyOn(API, 'makeRequestWithSideEffects').mockResolvedValue(undefined);
+
+            PersonalDetailsActions.updatePersonalDetailsAndShipExpensifyCards(mockValues, 'VALIDATE123', 1);
+            await waitForBatchedUpdates();
+
+            expect(makeRequestSpy).toHaveBeenCalledWith(
+                SIDE_EFFECT_REQUEST_COMMANDS.SET_PERSONAL_DETAILS_AND_SHIP_EXPENSIFY_CARDS,
+                expect.objectContaining({validateCode: 'VALIDATE123'}),
+                expect.objectContaining({
+                    optimisticData: [expect.objectContaining({key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS, value: {isLoading: true}})],
+                    finallyData: [expect.objectContaining({key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS, value: {isLoading: false}})],
+                }),
+            );
+        });
+
+        it('should merge invalidCardLimit error to Onyx when backend returns 400', async () => {
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls
+            jest.spyOn(API, 'makeRequestWithSideEffects').mockResolvedValue({jsonCode: CONST.JSON_CODE.BAD_REQUEST} as never);
+            const mergeSpy = jest.spyOn(Onyx, 'merge');
+
+            PersonalDetailsActions.updatePersonalDetailsAndShipExpensifyCards(mockValues, 'VALIDATE123', 1);
+            await waitForBatchedUpdates();
+
+            expect(mergeSpy).toHaveBeenCalledWith(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, expect.objectContaining({errors: expect.anything() as Record<string, string>}));
+        });
+
+        it('should not merge error to Onyx when backend returns 200', async () => {
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls
+            jest.spyOn(API, 'makeRequestWithSideEffects').mockResolvedValue({jsonCode: CONST.JSON_CODE.SUCCESS} as never);
+            const mergeSpy = jest.spyOn(Onyx, 'merge');
+
+            PersonalDetailsActions.updatePersonalDetailsAndShipExpensifyCards(mockValues, 'VALIDATE123', 1);
+            await waitForBatchedUpdates();
+
+            expect(mergeSpy).not.toHaveBeenCalledWith(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, expect.objectContaining({errors: expect.anything() as Record<string, string>}));
+        });
+
+        it('should not merge error to Onyx when response is undefined (e.g. network error)', async () => {
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls
+            jest.spyOn(API, 'makeRequestWithSideEffects').mockResolvedValue(undefined);
+            const mergeSpy = jest.spyOn(Onyx, 'merge');
+
+            PersonalDetailsActions.updatePersonalDetailsAndShipExpensifyCards(mockValues, 'VALIDATE123', 1);
+            await waitForBatchedUpdates();
+
+            expect(mergeSpy).not.toHaveBeenCalledWith(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, expect.objectContaining({errors: expect.anything() as Record<string, string>}));
         });
     });
 
