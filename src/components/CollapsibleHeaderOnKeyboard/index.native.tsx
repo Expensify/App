@@ -4,19 +4,12 @@ import {useReanimatedKeyboardAnimation} from 'react-native-keyboard-controller';
 import Reanimated, {useAnimatedReaction, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import isInLandscapeMode from '@libs/isInLandscapeMode';
+import {CollapsibleHeaderOnKeyboardProps} from './types';
 
 const COLLAPSE_DURATION = 200;
 const RESTORE_DURATION = 300;
 // Assumed vertical space for the focused input field — used to reserve space above the keyboard.
 const VERTICAL_SPACE_FOR_FOCUSED_INPUT = 120;
-
-type CollapsibleHeaderOnKeyboardProps = {
-    children: React.ReactNode;
-    /** Additional vertical space (in px) occupied on screen by elements other than the wrapped
-     *  component, keyboard, and focused input — e.g. a tab bar below the list.
-     *  The collapse target is reduced by this amount so those elements are not counted twice. */
-    collapsibleHeaderOffset?: number;
-};
 
 /**
  * Wraps a header and collapses it upward when the keyboard is open and there is not enough
