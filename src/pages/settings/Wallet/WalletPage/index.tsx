@@ -36,16 +36,25 @@ import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {isPersonalBankAccountMissingInfo} from '@libs/BankAccountUtils';
 import {hasDisplayableAssignedCards, isDirectFeed, maskCardNumber} from '@libs/CardUtils';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {formatPaymentMethods, getPaymentMethodDescription} from '@libs/PaymentUtils';
+import {getStreetLines} from '@libs/PersonalDetailsUtils';
 import {getActiveAdminWorkspaces, getDescriptionForPolicyDomainCard, hasActiveAdminWorkspaces, hasEligibleActiveAdminFromWorkspaces, isPaidGroupPolicy} from '@libs/PolicyUtils';
 import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import PaymentMethodList from '@pages/settings/Wallet/PaymentMethodList';
-import {deletePaymentBankAccount, openPersonalBankAccountSetupView, pressLockedBankAccount, setPersonalBankAccountContinueKYCOnSuccess} from '@userActions/BankAccounts';
+import {getFirstPageName} from '@pages/settings/Wallet/UpdatePersonalBankAccountPage';
+import {
+    deletePaymentBankAccount,
+    openPersonalBankAccountSetupView,
+    pressLockedBankAccount,
+    resetPersonalBankAccountForUpdate,
+    setPersonalBankAccountContinueKYCOnSuccess,
+} from '@userActions/BankAccounts';
 import {deletePersonalCard} from '@userActions/Card';
 import {close as closeModal} from '@userActions/Modal';
 import {clearWalletError, clearWalletTermsError, deletePaymentCard, getPaymentMethods, makeDefaultPaymentMethod as makeDefaultPaymentMethodPaymentMethods} from '@userActions/PaymentMethods';
@@ -65,6 +74,7 @@ const fundListSelector = (allFunds: OnyxEntry<OnyxTypes.FundList>) =>
 
 function WalletPage() {
     const [bankAccountList = getEmptyObject<OnyxTypes.BankAccountList>()] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
+    const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
     const [cardList = getEmptyObject<OnyxTypes.CardList>()] = useOnyx(ONYXKEYS.CARD_LIST);
     const [fundList = getEmptyObject<OnyxTypes.FundList>()] = useOnyx(ONYXKEYS.FUND_LIST, {
         selector: fundListSelector,
@@ -186,6 +196,34 @@ function WalletPage() {
     };
 
     const onBankAccountRowPressed = ({accountData}: PaymentMethodPressHandlerParams) => {
+        if (isPersonalBankAccountMissingInfo(accountData, privatePersonalDetails) && accountData?.bankAccountID) {
+            const additionalData = accountData?.additionalData;
+            const [street1, street2] = additionalData?.addressStreet ? getStreetLines(additionalData.addressStreet) : [];
+            resetPersonalBankAccountForUpdate(
+                accountData.bankAccountID,
+                {
+                    legalFirstName: additionalData?.firstName,
+                    legalLastName: additionalData?.lastName,
+                    addressStreet: street1,
+                    addressStreet2: street2 ?? '',
+                    addressCity: additionalData?.addressCity,
+                    addressState: additionalData?.addressState,
+                    addressZipCode: additionalData?.addressZipCode,
+                    phoneNumber: additionalData?.companyPhone,
+                },
+                {
+                    addressLine1: street1,
+                    addressLine2: street2 ?? '',
+                    city: additionalData?.addressCity,
+                    state: additionalData?.addressState,
+                    zipPostCode: additionalData?.addressZipCode,
+                    country: CONST.COUNTRY.US,
+                },
+            );
+            Navigation.navigate(ROUTES.SETTINGS_UPDATE_PERSONAL_BANK_ACCOUNT.getRoute(getFirstPageName(bankAccountList, accountData.bankAccountID, privatePersonalDetails)));
+            return;
+        }
+
         const accountPolicyID = accountData?.additionalData?.policyID;
         const bankAccountID = accountData?.bankAccountID;
 
