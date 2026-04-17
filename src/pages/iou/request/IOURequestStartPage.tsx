@@ -305,7 +305,7 @@ function IOURequestStartPage({
             allPolicies={allPolicies}
         >
             <ScreenWrapper
-                shouldEnableKeyboardAvoidingView={false}
+                shouldEnableKeyboardAvoidingView={isNewManualExpenseFlowEnabled}
                 shouldEnableMaxHeight={selectedTab === CONST.TAB_REQUEST.PER_DIEM}
                 shouldEnableMinHeight={canUseTouchScreen()}
                 testID="IOURequestStartPage"
