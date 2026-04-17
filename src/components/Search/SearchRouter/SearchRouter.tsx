@@ -193,6 +193,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
             personalDetails,
             contextualReportNVP,
             contextualReportPolicy,
+            reports,
         ],
     );
 
