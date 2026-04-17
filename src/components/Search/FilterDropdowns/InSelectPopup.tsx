@@ -10,6 +10,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePrivateIsArchivedMap from '@hooks/usePrivateIsArchivedMap';
 import useReportAttributes from '@hooks/useReportAttributes';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSortedActions from '@hooks/useSortedActions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {searchInServer} from '@libs/actions/Report';
@@ -59,6 +60,8 @@ function InSelectPopup({closeOverlay, updateFilterForm}: InSelectPopupProps) {
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [inReportIDs] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {selector: inSelector});
+    const sortedActions = useSortedActions();
+
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserAccountID = currentUserPersonalDetails.accountID;
     const currentUserEmail = currentUserPersonalDetails.email ?? '';
@@ -100,6 +103,7 @@ function InSelectPopup({closeOverlay, updateFilterForm}: InSelectPopupProps) {
               currentUserEmail,
               personalDetails,
               policyCollection: allPolicies,
+              sortedActions,
               conciergeReportID,
           });
 
