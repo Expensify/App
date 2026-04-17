@@ -22,7 +22,7 @@ function WorkspaceCompanyCardExpensifyCardPromotionBanner({policy}: WorkspaceCom
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const StyleUtils = useStyleUtils();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {shouldUseNarrowLayout, isInLandscapeMode} = useResponsiveLayout();
     const policyID = policy?.id;
     const areExpensifyCardsEnabled = policy?.areExpensifyCardsEnabled;
 
@@ -42,19 +42,19 @@ function WorkspaceCompanyCardExpensifyCardPromotionBanner({policy}: WorkspaceCom
     }, [policyID, areExpensifyCardsEnabled]);
 
     const rightComponent = useMemo(() => {
-        const smallScreenStyle = shouldUseNarrowLayout ? [styles.flex0, styles.flexBasis100, styles.justifyContentCenter] : [];
+        const smallScreenStyle = shouldUseNarrowLayout && !isInLandscapeMode ? [styles.flex0, styles.justifyContentCenter] : [];
         return (
             <View style={[styles.flexRow, styles.gap2, smallScreenStyle]}>
                 <Button
                     success
                     onPress={handleLearnMore}
-                    style={shouldUseNarrowLayout && styles.flex1}
+                    style={shouldUseNarrowLayout && !isInLandscapeMode && styles.flex1}
                     text={translate('workspace.moreFeatures.companyCards.expensifyCardBannerLearnMoreButton')}
                     accessibilityLabel={`${translate('workspace.moreFeatures.companyCards.expensifyCardBannerLearnMoreButton')}, ${translate('workspace.moreFeatures.companyCards.expensifyCardBannerTitle')}`}
                 />
             </View>
         );
-    }, [styles, shouldUseNarrowLayout, translate, handleLearnMore]);
+    }, [styles, shouldUseNarrowLayout, isInLandscapeMode, translate, handleLearnMore]);
 
     return (
         <View style={[styles.ph4, styles.mb4]}>
