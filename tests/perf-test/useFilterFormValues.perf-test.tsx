@@ -3,7 +3,7 @@ import {View} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
 import Onyx, {useOnyx} from 'react-native-onyx';
 import {measureFunction, measureRenders} from 'reassure';
-import {typeOptionsPoliciesSelector} from '@components/Search/SearchPageHeader/useSearchActionsBar';
+import {typeOptionsPoliciesSelector} from '@components/Search/SearchPageHeader/useSearchFiltersBar';
 import {advancedSearchPoliciesSelector} from '@hooks/useAdvancedSearchFilters';
 import {exportedToPoliciesSelector} from '@hooks/useExportedToFilterOptions';
 import {policiesSelector, policyCategoriesSelector, policyTagsSelector, reportsSelector} from '@hooks/useFilterFormValues';
