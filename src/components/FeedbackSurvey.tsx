@@ -113,7 +113,7 @@ function FeedbackSurvey({title, description, onSubmit, footerText, isNoteRequire
                     InputComponent={RadioButtons}
                     inputID={INPUT_IDS.REASON}
                     items={options}
-                    onPress={handleOptionSelect}
+                    onSelect={handleOptionSelect}
                     shouldSaveDraft
                 />
                 {!!reason && (

@@ -21,7 +21,7 @@ type RadioButtonsProps = ForwardedFSClassProps & {
     defaultCheckedValue?: string;
 
     /** Callback to fire when selecting a radio button */
-    onPress: (value: string) => void;
+    onSelect: (value: string) => void;
 
     /** Potential error text provided by a form InputWrapper */
     errorText?: string;
@@ -36,7 +36,7 @@ type RadioButtonsProps = ForwardedFSClassProps & {
     ref?: ForwardedRef<View>;
 };
 
-function RadioButtons({items, onPress, defaultCheckedValue = '', errorText, onInputChange = () => {}, value, forwardedFSClass, ref}: RadioButtonsProps) {
+function RadioButtons({items, onSelect, defaultCheckedValue = '', errorText, onInputChange = () => {}, value, forwardedFSClass, ref}: RadioButtonsProps) {
     const styles = useThemeStyles();
     const [localValue, setLocalValue] = useState(defaultCheckedValue);
     const checkedValue = value !== undefined ? value : localValue;
@@ -55,7 +55,7 @@ function RadioButtons({items, onPress, defaultCheckedValue = '', errorText, onIn
                         onPress={() => {
                             setLocalValue(item.value);
                             onInputChange(item.value);
-                            return onPress(item.value);
+                            return onSelect(item.value);
                         }}
                         label={item.label}
                         forwardedFSClass={forwardedFSClass}

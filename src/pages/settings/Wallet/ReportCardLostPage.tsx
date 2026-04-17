@@ -172,7 +172,7 @@ function ReportCardLostPage({
                             <RadioButtons
                                 items={radioItems}
                                 value={reason?.key}
-                                onPress={handleOptionSelect}
+                                onSelect={handleOptionSelect}
                             />
                         </View>
                         <View style={styles.mh5}>

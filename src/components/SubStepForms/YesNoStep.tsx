@@ -80,7 +80,7 @@ function YesNoStep({title, description, defaultValue, onSelectedValue, submitBut
             <Text style={[styles.pv3, styles.textSupporting, styles.mh5]}>{description}</Text>
             <RadioButtons
                 items={options}
-                onPress={handleSelectValue}
+                onSelect={handleSelectValue}
                 defaultCheckedValue={defaultValue.toString()}
             />
             {children}

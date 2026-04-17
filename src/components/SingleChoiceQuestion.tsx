@@ -31,7 +31,7 @@ function SingleChoiceQuestion({prompt, errorText, possibleAnswers, currentQuesti
             <RadioButtons
                 items={possibleAnswers}
                 key={currentQuestionIndex}
-                onPress={onInputChange}
+                onSelect={onInputChange}
                 errorText={errorText}
                 forwardedFSClass={forwardedFSClass}
             />
