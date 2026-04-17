@@ -180,7 +180,6 @@ function SubmitDetailsPage({
     const {isOffline} = useNetwork();
     const isCreatingTrackExpense = iouType === CONST.IOU.TYPE.TRACK;
 
-    // Initialize billable/reimbursable from policy defaults (mirrors IOURequestStepConfirmation)
     const defaultBillable = !!policy?.defaultBillable;
     useEffect(() => {
         setMoneyRequestBillable(CONST.IOU.OPTIMISTIC_TRANSACTION_ID, defaultBillable);
@@ -221,6 +220,7 @@ function SubmitDetailsPage({
                 policyParams: {policy, policyTagList: policyTags, policyCategories},
                 action: CONST.IOU.TYPE.CREATE,
                 transactionParams: {
+                    attendees: transaction.comment?.attendees,
                     amount: transactionAmount,
                     currency: transaction.currency,
                     comment: trimmedComment,
@@ -238,9 +238,7 @@ function SubmitDetailsPage({
                     linkedTrackedExpenseReportAction: transaction.linkedTrackedExpenseReportAction,
                     linkedTrackedExpenseReportID: transaction.linkedTrackedExpenseReportID,
                     isLinkedTrackedExpenseReportArchived,
-                    attendees: transaction.comment?.attendees,
                     gpsPoint,
-                    isFromGlobalCreate: transaction.isFromFloatingActionButton ?? transaction.isFromGlobalCreate,
                 },
                 isASAPSubmitBetaEnabled,
                 currentUserAccountIDParam: currentUserPersonalDetails.accountID,
@@ -282,10 +280,6 @@ function SubmitDetailsPage({
                     linkedTrackedExpenseReportAction: transaction.linkedTrackedExpenseReportAction,
                     linkedTrackedExpenseReportID: transaction.linkedTrackedExpenseReportID,
                     isLinkedTrackedExpenseReportArchived,
-                    isFromGlobalCreate: transaction.isFromFloatingActionButton ?? transaction.isFromGlobalCreate,
-                    isTestDrive: transaction.receipt?.isTestDriveReceipt,
-                    originalTransactionID: transaction.comment?.originalTransactionID,
-                    source: transaction.comment?.source,
                 },
                 shouldGenerateTransactionThreadReport: false,
                 isASAPSubmitBetaEnabled,
