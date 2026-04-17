@@ -201,6 +201,7 @@ function IOURequestStepParticipants({
                 isTrackDistanceExpense: isDistanceRequest(transaction),
                 policy: policyForMovingExpenses,
                 isPolicyExpenseChat: false,
+                lastSelectedDistanceRates,
             });
             setCustomUnitRateID(transaction.transactionID, rateID, transaction, policyForMovingExpenses);
             const shouldSetParticipantAutoAssignment = iouType === CONST.IOU.TYPE.CREATE;
@@ -238,6 +239,7 @@ function IOURequestStepParticipants({
         isActivePolicyRequest,
         backTo,
         policyForMovingExpenses,
+        lastSelectedDistanceRates,
     ]);
 
     const addParticipant = useCallback(
@@ -269,8 +271,8 @@ function IOURequestStepParticipants({
             }
 
             if (!isMovingTransactionFromTrackExpense || !isPolicyExpenseChat) {
-                // If not moving the transaction from track expense, select the default rate automatically.
-                // Otherwise, keep the original p2p rate and let the user manually change it to the one they want from the workspace.
+                // If not moving the transaction from track expense to a workspace, select the default rate automatically.
+                // Otherwise, keep the original rate and let the user manually change it to the one they want from the workspace.
                 const rateID = DistanceRequestUtils.getCustomUnitRateID({reportID: firstParticipantReportID, isPolicyExpenseChat, policy, lastSelectedDistanceRates});
 
                 if (draftTransactions.length > 0) {

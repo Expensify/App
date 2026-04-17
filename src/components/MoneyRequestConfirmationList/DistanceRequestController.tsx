@@ -168,9 +168,7 @@ function DistanceRequestController({
     }, [customUnitRateID, transactionID, lastSelectedRate, isDistanceRequest, isPolicyExpenseChat, isMovingTransactionFromTrackExpense, transaction, policy, selectedParticipants]);
 
     useEffect(() => {
-        if (!isDistanceRequest || (isMovingTransactionFromTrackExpense && !isPolicyExpenseChat) || !transactionID || isReadOnly) {
-            // We don't want to recalculate the distance merchant when moving a transaction from Track Expense to a 1:1 chat, because the distance rate will be the same default P2P rate.
-            // When moving to a policy chat (e.g. sharing with an accountant), we should recalculate the distance merchant with the policy's rate.
+        if (!isDistanceRequest || !transactionID || isReadOnly) {
             return;
         }
 
@@ -203,11 +201,9 @@ function DistanceRequestController({
         translate,
         toLocaleDigit,
         isDistanceRequest,
-        isPolicyExpenseChat,
         transaction,
         transactionID,
         isReadOnly,
-        isMovingTransactionFromTrackExpense,
         getCurrencySymbol,
         isManualDistanceRequest,
     ]);
