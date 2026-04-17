@@ -23,17 +23,16 @@ To retry:
 2. Click Replace.
 3. Take a photo or upload a receipt image file from your device.
 
-## How troubleshoot stuck or delayed Smartscans
+## How to troubleshoot stuck or delayed scans
 
 SmartScan usually completes within a few seconds, but delays can happen.
 
 - **Wait a few minutes**. Scans may take longer during high-traffic periods.
-- **Check your internet connection**. SartScan requires an active connection to process. If you were offline when you took the photo, the scan will begin once you reconnect.
-- **Check the photo library on your device**. If Smartscan fails to process the images, it will be saved to the photo library on your device. 
-- 
+- **Check your internet connection**. SmartScan requires an active connection to process. If you were offline when you took the photo, the scan will begin once you reconnect.
+- **Check the photo library on your device**. If SmartScan fails to process the images, it will be saved to the photo library on your device.
 If the scan is still stuck after several minutes, you can try again by [replacing the receipt](https://help.expensify.com/articles/new-expensify/reports-and-expenses/Attach-and-edit-receipts-on-expenses#how-to-replace-an-existing-receipt) with a new photo to trigger a fresh scan.
 
-## How to fix incorrect Smartscans 
+## How to fix incorrect scans
 
 SmartScan extracts data automatically, but it may misread certain receipts — especially handwritten receipts, faded ink, or unusual formats.
 
@@ -41,7 +40,7 @@ If the details of the expense are wrong, you can:
  - [Ask Concierge to fix it for you](/articles/new-expensify/concierge-ai/What-Concierge-Can-Do#what-actions-concierge-can-take-on-expenses), or
  - Edit the expense manually.
 
-[Learn how to edit expenses](/articles/new-expensify/reports-and-expenses/Managing-Expenses-in-a-Report#who-can-edit-or-modify-expenses-in-a-report)). 
+[Learn how to edit expenses](/articles/new-expensify/reports-and-expenses/Managing-Expenses-in-a-Report#who-can-edit-or-modify-expenses-in-a-report).
 
 ---
 
