@@ -1,5 +1,6 @@
 import React, {useEffect} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
+import MultiSelectFilterPopup from '@components/Search/SearchPageHeader/MultiSelectFilterPopup';
 import useFeedKeysWithAssignedCards from '@hooks/useFeedKeysWithAssignedCards';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -8,7 +9,6 @@ import {openSearchCardFiltersPage} from '@libs/actions/Search';
 import {getFeedOptions} from '@libs/SearchUIUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
-import MultiSelectFilterPopup from '../SearchPageHeader/MultiSelectFilterPopup';
 
 type FeedSelectPopupProps = {
     isExpanded: boolean;

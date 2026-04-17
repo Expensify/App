@@ -20,7 +20,7 @@ function useFilterFeedValue(): string {
 
     const feedOptions = getFeedOptions(allFeeds, personalAndWorkspaceCards, translate, localeCompare, feedKeysWithCards);
     const feedValue = feed ? feedOptions.filter((option) => feed.includes(option.value)) : [];
-    return feedValue.map((feed) => feed.text).join(', ');
+    return feedValue.map((item) => item.text).join(', ');
 }
 
 export default useFilterFeedValue;

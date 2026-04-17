@@ -2,11 +2,11 @@ import React from 'react';
 import type {ReactNode} from 'react';
 import type {OnyxCollection} from 'react-native-onyx';
 import AmountPopup from '@components/Search/FilterDropdowns/AmountPopup';
-import CardSelectPopup from '@components/Search/FilterDropdowns/CardSelectPopup';
 import CategorySelectPopup from '@components/Search/FilterDropdowns/CategorySelectPopup';
 import CurrencySelectPopup from '@components/Search/FilterDropdowns/CurrencySelectPopup';
 import type {PopoverComponentProps} from '@components/Search/FilterDropdowns/DropdownButton';
 import ExportedToSelectPopup from '@components/Search/FilterDropdowns/ExportedToSelectPopup';
+import FeedFilterPopup from '@components/Search/FilterDropdowns/FeedSelectPopup';
 import InSelectPopup from '@components/Search/FilterDropdowns/InSelectPopup';
 import ReportFieldPopup from '@components/Search/FilterDropdowns/ReportFieldPopup';
 import SingleSelectPopup from '@components/Search/FilterDropdowns/SingleSelectPopup';
@@ -35,7 +35,6 @@ import type {ExpenseTypeValues, HasFilterValues, IsFilterValues, SearchAdvancedF
 import type {Policy} from '@src/types/onyx';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
 import type WithSentryLabel from '@src/types/utils/SentryLabel';
-import FeedFilterPopup from '../FilterDropdowns/FeedSelectPopup';
 import DatePickerFilterPopup from './DatePickerFilterPopup';
 import MultiSelectFilterPopup from './MultiSelectFilterPopup';
 
