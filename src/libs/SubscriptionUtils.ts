@@ -494,9 +494,6 @@ function shouldRestrictUserBillableActions(
     return false;
 }
 
-/**
- * @param currentUserAccountID — Session account ID of the current user (used to count owned paid policies).
- */
 function shouldCalculateBillNewDot(currentUserAccountID: number | undefined, canDowngrade: boolean | undefined, policies: OnyxCollection<Policy>): boolean {
     return (canDowngrade ?? false) && getOwnedPaidPolicies(policies, currentUserAccountID).length === 1;
 }
