@@ -275,7 +275,6 @@ function openReportFromDeepLink(
         return;
     }
 
-
     // Navigate to the report after sign-in/sign-up.
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     InteractionManager.runAfterInteractions(() => {
