@@ -14,6 +14,7 @@ import type {
     ChangePolicyUberBillingAccountPageParams,
     CreateWorkspaceFromIOUPaymentParams,
     CreateWorkspaceParams,
+    DeletePolicyRulesDocumentParams,
     DeleteWorkspaceAvatarParams,
     DeleteWorkspaceParams,
     DisablePolicyApprovalsParams,
@@ -66,6 +67,7 @@ import type {
     UpdateInvoiceCompanyNameParams,
     UpdateInvoiceCompanyWebsiteParams,
     UpdatePolicyAddressParams,
+    UpdatePolicyRulesDocumentParams,
     UpdateWorkspaceAvatarParams,
     UpdateWorkspaceClientIDParams,
     UpdateWorkspaceDescriptionParams,
@@ -79,7 +81,7 @@ import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
-import {createFile} from '@libs/fileDownload/FileUtils';
+import {createFile, splitExtensionFromFileName} from '@libs/fileDownload/FileUtils';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import GoogleTagManager from '@libs/GoogleTagManager';
 // eslint-disable-next-line @typescript-eslint/no-deprecated
@@ -1800,6 +1802,103 @@ function deleteWorkspaceAvatar(policyID: string, currentAvatarURL: string, curre
     const params: DeleteWorkspaceAvatarParams = {policyID};
 
     API.write(WRITE_COMMANDS.DELETE_WORKSPACE_AVATAR, params, {optimisticData, finallyData, failureData});
+}
+
+function updatePolicyRulesDocument(policyID: string, file: File, currentDocumentURL: string | undefined) {
+    const isPDF = file.type === 'application/pdf' || splitExtensionFromFileName(file.name ?? '').fileExtension.toLowerCase() === 'pdf';
+    if (!isPDF) {
+        Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+            errorFields: {rulesDocumentURL: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('attachmentPicker.notAllowedExtension')},
+        });
+        return;
+    }
+
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                rulesDocumentURL: file.uri,
+                errorFields: {
+                    rulesDocumentURL: null,
+                },
+                pendingFields: {
+                    rulesDocumentURL: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                },
+            },
+        },
+    ];
+    const finallyData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                pendingFields: {
+                    rulesDocumentURL: null,
+                },
+            },
+        },
+    ];
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                rulesDocumentURL: currentDocumentURL ?? '',
+                errorFields: {rulesDocumentURL: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
+            },
+        },
+    ];
+
+    const params: UpdatePolicyRulesDocumentParams = {
+        policyID,
+        file,
+    };
+
+    API.write(WRITE_COMMANDS.UPDATE_POLICY_RULES_DOCUMENT, params, {optimisticData, finallyData, failureData});
+}
+
+function deletePolicyRulesDocument(policyID: string, currentDocumentURL: string) {
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                rulesDocumentURL: '',
+                errorFields: {
+                    rulesDocumentURL: null,
+                },
+                pendingFields: {
+                    rulesDocumentURL: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                },
+            },
+        },
+    ];
+    const finallyData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                pendingFields: {
+                    rulesDocumentURL: null,
+                },
+            },
+        },
+    ];
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                rulesDocumentURL: currentDocumentURL,
+                errorFields: {rulesDocumentURL: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
+            },
+        },
+    ];
+
+    const params: DeletePolicyRulesDocumentParams = {policyID};
+
+    API.write(WRITE_COMMANDS.DELETE_POLICY_RULES_DOCUMENT, params, {optimisticData, finallyData, failureData});
 }
 
 /**
@@ -7053,6 +7152,8 @@ export {
     updateGeneralSettings,
     deleteWorkspaceAvatar,
     updateWorkspaceAvatar,
+    updatePolicyRulesDocument,
+    deletePolicyRulesDocument,
     clearAvatarErrors,
     generatePolicyID,
     createWorkspace,

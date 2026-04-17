@@ -6811,6 +6811,8 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
             customRules: {
                 title: 'Declaratiebeleid',
                 cardSubtitle: 'Hier staat het declaratiebeleid van je team, zodat iedereen hetzelfde beeld heeft van wat er wordt vergoed.',
+                policyDocument: 'Beleidsdocument',
+                policyText: 'Beleidstekst',
             },
             spendRules: {
                 title: 'Uitgaven',
