@@ -278,26 +278,59 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     const {status, hash} = queryJSON ?? {};
     const isExpenseReportType = queryJSON?.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
 
-    const selectedTransactionReportIDs = [
-        ...new Set(
-            Object.values(selectedTransactions)
-                .map((transaction) => transaction.reportID)
-                .filter((reportID) => reportID !== undefined),
-        ),
-    ];
+    // Single pass over selectedTransactions yielding every render-time aggregate
+    // the hook needs. Event-handler-local derivations (handleApproveWithDEWCheck,
+    // onBulkPaySelected, edit-multiple onSelected) still traverse on click.
+    const selectedTransactionsKeys: string[] = [];
+    const selectedTransactionReportIDsSet = new Set<string>();
+    const selectedPolicyIDsSet = new Set<string>();
+    const selectedTransactionsList: Transaction[] = [];
+    const expenseReportIDs = new Set<string>();
+    let selectedTransactionsCurrencyFallback: string | undefined;
+    let expenseCount = 0;
+    let isAnyTransactionOnHold = false;
+    let isAllOneTransactionReport = true;
+
+    for (const [key, meta] of Object.entries(selectedTransactions ?? {})) {
+        if (!meta) {
+            continue;
+        }
+        selectedTransactionsKeys.push(key);
+        if (meta.reportID) {
+            selectedTransactionReportIDsSet.add(meta.reportID);
+            if (meta.action === CONST.SEARCH.ACTION_TYPES.VIEW && key === meta.reportID) {
+                expenseReportIDs.add(meta.reportID);
+            } else {
+                expenseCount += 1;
+                expenseReportIDs.add(meta.reportID);
+            }
+        }
+        if (meta.policyID) {
+            selectedPolicyIDsSet.add(meta.policyID);
+        }
+        if (selectedTransactionsCurrencyFallback === undefined) {
+            selectedTransactionsCurrencyFallback = meta.currency;
+        }
+        if (meta.transaction) {
+            selectedTransactionsList.push(meta.transaction);
+        }
+        if (meta.isHeld) {
+            isAnyTransactionOnHold = true;
+        }
+        if (!meta.isFromOneTransactionReport) {
+            isAllOneTransactionReport = false;
+        }
+    }
+
+    const selectedTransactionReportIDs = [...selectedTransactionReportIDsSet];
+    const selectedPolicyIDs = [...selectedPolicyIDsSet];
+    const uniqueReportCount = expenseReportIDs.size;
+
     const selectedReportIDs = Object.values(selectedReports)
         .map((report) => report.reportID)
         .filter((reportID) => reportID !== undefined);
     const isCurrencySupportedBulkWallet = isCurrencySupportWalletBulkPay(selectedReports, selectedTransactions);
-
-    const selectedPolicyIDs = [
-        ...new Set(
-            Object.values(selectedTransactions)
-                .map((transaction) => transaction.policyID)
-                .filter(Boolean),
-        ),
-    ];
-    const selectedBulkCurrency = selectedReports.at(0)?.currency ?? Object.values(selectedTransactions).at(0)?.currency;
+    const selectedBulkCurrency = selectedReports.at(0)?.currency ?? selectedTransactionsCurrencyFallback;
     const totalFormattedAmount = getTotalFormattedAmount(selectedReports, selectedTransactions, selectedBulkCurrency);
 
     const firstSelectedPolicyID = selectedPolicyIDs.at(0);
@@ -315,7 +348,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         );
     });
 
-    const selectedTransactionsKeys = Object.keys(selectedTransactions ?? {});
     const firstTransaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${selectedTransactionsKeys.at(0)}`];
 
     const {bulkPayButtonOptions, businessBankAccountOptions, shouldShowBusinessBankAccountOptions} = useBulkPayOptions({
@@ -472,22 +504,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             clearSelectedTransactions();
         });
     };
-
-    let expenseCount = 0;
-    const expenseReportIDs = new Set<string>();
-    for (const key of Object.keys(selectedTransactions)) {
-        const selectedItem = selectedTransactions[key];
-        if (!selectedItem?.reportID) {
-            continue;
-        }
-        if (selectedItem.action === CONST.SEARCH.ACTION_TYPES.VIEW && key === selectedItem.reportID) {
-            expenseReportIDs.add(selectedItem.reportID);
-        } else {
-            expenseCount += 1;
-            expenseReportIDs.add(selectedItem.reportID);
-        }
-    }
-    const uniqueReportCount = expenseReportIDs.size;
 
     const isDeletingOnlyExpenses = queryJSON?.type === CONST.SEARCH.DATA_TYPES.EXPENSE && expenseCount > 0;
     const deleteCount = isDeletingOnlyExpenses ? expenseCount : uniqueReportCount;
@@ -728,13 +744,11 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         ];
     } else {
         const options: Array<DropdownOption<SearchHeaderOptionValue>> = [];
-        const isAnyTransactionOnHold = Object.values(selectedTransactions).some((transaction) => transaction.isHeld);
 
         const getExportOptions = () => {
             const areFullReportsSelected = selectedTransactionReportIDs.length === selectedReportIDs.length && selectedTransactionReportIDs.every((id) => selectedReportIDs.includes(id));
             const typeInvoice = queryJSON?.type === CONST.REPORT.TYPE.INVOICE;
             const typeExpense = queryJSON?.type === CONST.REPORT.TYPE.EXPENSE;
-            const isAllOneTransactionReport = Object.values(selectedTransactions).every((transaction) => transaction.isFromOneTransactionReport);
 
             const includeReportLevelExport = ((isExpenseReportType || typeInvoice) && areFullReportsSelected) || (typeExpense && !isExpenseReportType && isAllOneTransactionReport);
 
@@ -892,9 +906,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             headerButtonsOptions = [exportButtonOption];
         } else {
             const isExpenseReportSearch = isExpenseReportType || searchResults?.search.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
-            const selectedTransactionsList = Object.values(selectedTransactions)
-                .map((transaction) => transaction.transaction)
-                .filter((transaction): transaction is Transaction => !!transaction);
             const canEditMultiple =
                 canEditMultipleTransactions(selectedTransactionsList, allReportActions, allReports, policies, isExpenseReportSearch, searchResults?.data) &&
                 isBetaEnabled(CONST.BETAS.BULK_EDIT);
