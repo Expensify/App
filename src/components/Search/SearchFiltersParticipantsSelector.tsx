@@ -125,20 +125,32 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate, 
         }
 
         // If the current user is not selected, add them to the top of the list
-        if (!selectedCurrentUser && chatOptions.currentUserOption) {
-            const formattedName = getDisplayNameForParticipant({
-                accountID: chatOptions.currentUserOption.accountID,
-                shouldAddCurrentUserPostfix: true,
-                personalDetailsData: personalDetails,
-                formatPhoneNumber,
-            });
-            chatOptions.currentUserOption.text = formattedName;
+        // Falls back to creating from personal details to handle pagination edge cases
+        if (!selectedCurrentUser) {
+            let currentUserOptionToShow = chatOptions.currentUserOption;
 
-            newSections.push({
-                title: '',
-                data: [chatOptions.currentUserOption],
-                sectionIndex: 0,
-            });
+            // Fallback: create current user option from personalDetails if not in paginated results
+            if (!currentUserOptionToShow && currentUserAccountID && personalDetails?.[currentUserAccountID]) {
+                currentUserOptionToShow = {
+                    ...getParticipantsOption(personalDetails[currentUserAccountID], personalDetails),
+                } as OptionData;
+            }
+
+            if (currentUserOptionToShow) {
+                const formattedName = getDisplayNameForParticipant({
+                    accountID: currentUserOptionToShow.accountID,
+                    shouldAddCurrentUserPostfix: true,
+                    personalDetailsData: personalDetails,
+                    formatPhoneNumber,
+                });
+                currentUserOptionToShow.text = formattedName;
+
+                newSections.push({
+                    title: '',
+                    data: [currentUserOptionToShow],
+                    sectionIndex: 0,
+                });
+            }
         }
 
         newSections.push({
