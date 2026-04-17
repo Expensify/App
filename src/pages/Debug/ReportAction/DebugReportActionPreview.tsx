@@ -33,7 +33,6 @@ function DebugReportActionPreview({reportAction, reportID}: DebugReportActionPre
                 report={report ?? ({} as Report)}
                 parentReportAction={undefined}
                 displayAsGroup={false}
-                isMostRecentIOUReportAction={false}
                 shouldDisplayNewMarker={false}
                 index={0}
                 isFirstVisibleReportAction={false}

@@ -59,8 +59,7 @@ import {
     updateReportPreview,
 } from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
-import {getSpan} from '@libs/telemetry/activeSpans';
-import {setPendingSubmitFollowUpAction} from '@libs/telemetry/submitFollowUpAction';
+import {isTracking, setPendingSubmitFollowUpAction} from '@libs/telemetry/submitFollowUpAction';
 import {
     buildOptimisticTransaction,
     getAmount,
@@ -89,6 +88,7 @@ import type RecentlyUsedTags from '@src/types/onyx/RecentlyUsedTags';
 import type {OnyxData} from '@src/types/onyx/Request';
 import type {SplitShares, TransactionChanges, TransactionCustomUnit} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import {getCleanUpTransactionThreadReportOnyxData} from './DeleteMoneyRequest';
 import {
     buildMinimalTransactionForFormula,
     buildOnyxDataForMoneyRequest,
@@ -97,19 +97,19 @@ import {
     getAllPersonalDetails,
     getAllReports,
     getAllTransactions,
-    getCleanUpTransactionThreadReportOnyxData,
-    getDeleteTrackExpenseInformation,
     getMoneyRequestInformation,
     getMoneyRequestParticipantsFromReport,
     getOrCreateOptimisticSplitChatReport,
     getReceiptError,
     getReportPreviewAction,
-    getUpdateMoneyRequestParams,
     getUserAccountID,
     mergePolicyRecentlyUsedCategories,
     mergePolicyRecentlyUsedCurrencies,
 } from './index';
-import type {BuildOnyxDataForMoneyRequestKeys, MoneyRequestInformationParams, OneOnOneIOUReport, StartSplitBilActionParams, UpdateMoneyRequestDataKeys} from './index';
+import type {BuildOnyxDataForMoneyRequestKeys, MoneyRequestInformationParams, OneOnOneIOUReport, StartSplitBilActionParams} from './index';
+import {getDeleteTrackExpenseInformation} from './TrackExpense';
+import {getUpdateMoneyRequestParams} from './UpdateMoneyRequest';
+import type {UpdateMoneyRequestDataKeys} from './UpdateMoneyRequest';
 
 type IOURequestType = ValueOf<typeof CONST.IOU.REQUEST_TYPE>;
 
@@ -878,6 +878,7 @@ function completeSplitBill(
                 existingChatReport ??
                 buildOptimisticChatReport({
                     participantList: participant.accountID ? [participant.accountID, sessionAccountID] : [],
+                    currentUserAccountID: sessionAccountID,
                 });
         }
 
@@ -1082,10 +1083,36 @@ function updateSplitTransactions({
     expenseReport,
 }: UpdateSplitTransactionsParams) {
     const chatReport = allReportsList?.[`${ONYXKEYS.COLLECTION.REPORT}${expenseReport?.chatReportID}`];
+    const expenseReportParentChat = getReportOrDraftReport(chatReport?.parentReportID);
     const originalTransactionID = transactionData?.originalTransactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID;
     const originalTransaction = allTransactionsList?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`];
     const originalTransactionDetails = getTransactionDetails(originalTransaction);
-    const participants = getMoneyRequestParticipantsFromReport(expenseReport, currentUserPersonalDetails.accountID);
+    const autoParticipants = getMoneyRequestParticipantsFromReport(expenseReport, currentUserPersonalDetails.accountID);
+    // Delegate split edit can reach this flow without the workspace expense chat in Onyx.
+    const fallbackPolicyParticipant =
+        autoParticipants.length === 0 && !chatReport && expenseReport?.chatReportID && expenseReport?.policyID
+            ? {
+                  accountID: 0,
+                  reportID: expenseReport.chatReportID,
+                  isPolicyExpenseChat: true,
+                  selected: true,
+                  policyID: expenseReport.policyID,
+              }
+            : undefined;
+    const participants = fallbackPolicyParticipant ? [fallbackPolicyParticipant] : autoParticipants;
+    let fallbackPolicyParentChatReport = expenseReportParentChat;
+    if (!fallbackPolicyParentChatReport && chatReport && isPolicyExpenseChatReportUtil(chatReport)) {
+        fallbackPolicyParentChatReport = chatReport;
+    }
+    if (!fallbackPolicyParentChatReport && fallbackPolicyParticipant) {
+        fallbackPolicyParentChatReport = {
+            reportID: fallbackPolicyParticipant.reportID,
+            type: CONST.REPORT.TYPE.CHAT,
+            chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+            policyID: fallbackPolicyParticipant.policyID,
+            ownerAccountID: expenseReport?.ownerAccountID,
+        } as OnyxTypes.Report;
+    }
     const splitExpenses = transactionData?.splitExpenses ?? [];
 
     // Get all children once (including orphaned), then filter for non-orphaned
@@ -1191,13 +1218,39 @@ function updateSplitTransactions({
     let updatedReportPreviewAction: Partial<OnyxTypes.ReportAction> | undefined;
     const originalReportPreviewAction = getReportPreviewAction(expenseReport?.chatReportID, expenseReport?.reportID);
     const transactionReportActions = getAllReportActions(firstIOU?.childReportID);
-    const allCommentActionsFromOriginalTransactionThread = Object.values(transactionReportActions ?? {})
-        .filter((action) => isAddCommentAction(action) && !isDeletedAction(action) && action?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
-        .sort((a, b) => (a.created > b.created ? 1 : -1));
     const expenseReportNameValuePairs = allReportNameValuePairsList?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${expenseReport?.reportID}`];
     const isArchivedExpenseReport = isArchivedReport(expenseReportNameValuePairs);
     const canUserPerformWriteAction = chatReport ? !!canUserPerformWriteActionReportUtils(chatReport, isArchivedExpenseReport) : true;
     const lastVisibleAction = getLastVisibleAction(expenseReport?.reportID, canUserPerformWriteAction);
+    const isTransactionOnHold = isOnHold(originalTransaction);
+    const holdReportAction = getReportAction(firstIOU?.childReportID, `${originalTransaction?.comment?.hold ?? ''}`);
+
+    let holdCommentReportAction: OnyxTypes.ReportAction<'ADDCOMMENT'> | undefined;
+    const allCommentActionsFromOriginalTransactionThread: Array<OnyxTypes.ReportAction<'ADDCOMMENT'>> = [];
+    for (const action of Object.values(transactionReportActions ?? {})) {
+        if (!isAddCommentAction(action)) {
+            continue;
+        }
+
+        if (holdReportAction && !(holdCommentReportAction?.timestamp && holdReportAction?.timestamp === holdCommentReportAction.timestamp)) {
+            // The HOLD report action and its corresponding comment share the same `timestamp` value.
+            if (holdReportAction.timestamp !== undefined && holdReportAction.timestamp === action.timestamp) {
+                holdCommentReportAction = action;
+            } else if (action.created >= holdReportAction.created && (!holdCommentReportAction || holdCommentReportAction.created >= action.created)) {
+                // If `timestamp` is unavailable, fall back to finding the comment whose `created` value
+                // is greater than and closest to that of the holdReportAction.
+                holdCommentReportAction = action;
+            }
+        }
+
+        if (isDeletedAction(action) || action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+            continue;
+        }
+        allCommentActionsFromOriginalTransactionThread.push(action);
+    }
+    // We will pre-sort to ensure that comments are inserted in the correct order.
+    allCommentActionsFromOriginalTransactionThread.sort((a, b) => (a.created > b.created ? 1 : -1));
+
     const updateParentActions = (iouAction: OnyxTypes.ReportAction, childVisibleActionCountToAdd: number) => {
         if (childVisibleActionCountToAdd <= 0) {
             return undefined;
@@ -1298,7 +1351,7 @@ function updateSplitTransactions({
                 odometerStart: splitExpense.odometerStart,
                 odometerEnd: splitExpense.odometerEnd,
             },
-            parentChatReport: getReportOrDraftReport(getReportOrDraftReport(expenseReport?.chatReportID)?.parentReportID),
+            parentChatReport: fallbackPolicyParentChatReport,
             existingTransaction: originalTransaction,
             isASAPSubmitBetaEnabled,
             currentUserAccountIDParam: currentUserPersonalDetails?.accountID,
@@ -1517,7 +1570,10 @@ function updateSplitTransactions({
                 value: fallbackViolations,
             });
         };
-        const addHoldToTransactionThread = (holdReportAction: OnyxTypes.ReportAction, commentAction: OnyxTypes.ReportAction | undefined) => {
+        const addHoldToTransactionThread = (commentAction?: OnyxTypes.ReportAction) => {
+            if (!holdReportAction) {
+                return;
+            }
             // Generate new IDs and timestamps for each split
             const newHoldReportActionID = NumberUtils.rand64();
             const timestamp = DateUtils.getDBTime();
@@ -1606,36 +1662,13 @@ function updateSplitTransactions({
         };
 
         let updatedIOUAction: Partial<OnyxTypes.ReportAction> | undefined;
-        const copyCommentsAndHoldState = ({
-            commentActions,
-            isSourceTransactionOnHold,
-            holdReportAction,
-        }: {
-            commentActions: OnyxTypes.ReportAction[];
-            isSourceTransactionOnHold: boolean;
-            holdReportAction: OnyxTypes.ReportAction | undefined;
-        }) => {
+        const copyCommentsAndHoldState = ({commentActions, isSourceTransactionOnHold}: {commentActions: OnyxTypes.ReportAction[]; isSourceTransactionOnHold: boolean}) => {
             let hasInsertedHoldState = !isSourceTransactionOnHold || !holdReportAction;
 
-            const insertHoldState = (holdCommentAction?: OnyxTypes.ReportAction) => {
-                if (!holdReportAction || hasInsertedHoldState) {
-                    return;
-                }
-
-                addHoldToTransactionThread(holdReportAction, holdCommentAction);
-                hasInsertedHoldState = true;
-            };
-            // Since timestamp is only returned from the backend, we will fallback to comparing the created field of both actions if it doesn't exist
-            const isHoldComment = (holdCommentAction: OnyxTypes.ReportAction, commentAction: OnyxTypes.ReportAction) => {
-                if (holdCommentAction.timestamp !== undefined) {
-                    return holdCommentAction.timestamp === commentAction.timestamp;
-                }
-                return DateUtils.subtractMillisecondsFromDateTime(commentAction.created, 1) === holdCommentAction.created;
-            };
-
             for (const commentAction of commentActions) {
-                if (!hasInsertedHoldState && holdReportAction && isHoldComment(holdReportAction, commentAction)) {
-                    insertHoldState(commentAction);
+                if (!hasInsertedHoldState && holdReportAction && commentAction.reportActionID === holdCommentReportAction?.reportActionID) {
+                    addHoldToTransactionThread(commentAction);
+                    hasInsertedHoldState = true;
                     continue;
                 }
 
@@ -1645,17 +1678,14 @@ function updateSplitTransactions({
             // If the commentAction is not found, it means the action has been deleted.
             // We call insertHoldState here to ensure the hold state is always added.
             if (!hasInsertedHoldState) {
-                insertHoldState();
+                addHoldToTransactionThread();
             }
         };
 
         if (isCreationOfSplits && transactionThreadReportID && firstIOU?.childReportID) {
-            const isTransactionOnHold = isOnHold(originalTransaction);
-            const holdReportAction = getReportAction(firstIOU.childReportID, `${originalTransaction?.comment?.hold ?? ''}`);
             copyCommentsAndHoldState({
                 commentActions: allCommentActionsFromOriginalTransactionThread,
                 isSourceTransactionOnHold: isTransactionOnHold,
-                holdReportAction,
             });
             updatedIOUAction = updateParentActions(iouAction, firstIOU.childVisibleActionCount ?? 0);
         }
@@ -2260,7 +2290,7 @@ function updateSplitTransactionsFromSplitExpensesFlow(params: UpdateSplitTransac
 
     const targetReportID = params.expenseReport?.reportID ?? String(CONST.DEFAULT_NUMBER_ID);
 
-    if (getSpan(CONST.TELEMETRY.SPAN_SUBMIT_TO_DESTINATION_VISIBLE)) {
+    if (isTracking()) {
         setPendingSubmitFollowUpAction(CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_AND_OPEN_REPORT, targetReportID);
     }
     Navigation.dismissModalWithReport({reportID: targetReportID});
@@ -2632,10 +2662,16 @@ function addSplitExpenseField(
     const currency = getCurrency(draftTransaction);
     const originalTransactionID = draftTransaction.comment?.originalTransactionID ?? transaction.transactionID;
 
+    // Check if existing splits already sum to the total
+    const existingSum = existingSplits.reduce((sum, split) => sum + split.amount, 0);
+    const hasManuallyEditedSplits = existingSplits.some((split) => split.isManuallyEdited);
+    const splitsAlreadyMatchTotal = Math.abs(existingSum) === Math.abs(total);
+
     let redistributedSplitExpenses = updatedSplitExpenses;
 
-    // Auto-redistribute amounts for all splits if this is not a distance request
-    if (!isDistanceRequest) {
+    // Skip redistribution only when manual edits exist AND splits sum to total
+    const shouldRedistribute = !splitsAlreadyMatchTotal || !hasManuallyEditedSplits;
+    if (!isDistanceRequest && shouldRedistribute) {
         redistributedSplitExpenses = redistributeSplitExpenseAmounts(updatedSplitExpenses, total, currency);
     }
 

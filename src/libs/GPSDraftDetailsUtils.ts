@@ -139,4 +139,8 @@ async function stopGpsTrip(isOffline: boolean, skipLastPointAddressFetching = fa
     setEndAddress({value: formattedCoordinates, type: 'coordinates'});
 }
 
-export {getGPSRoutes, getGPSWaypoints, stopGpsTrip, getGPSConvertedDistance, getGPSCoordinates, addressFromGpsPoint, coordinatesToString, calculateGPSDistance};
+function isTripCaptured(gpsDraftDetails: GpsDraftDetails | undefined): boolean {
+    return !gpsDraftDetails?.isTracking && (gpsDraftDetails?.gpsPoints?.length ?? 0) > 0;
+}
+
+export {getGPSRoutes, getGPSWaypoints, stopGpsTrip, getGPSConvertedDistance, getGPSCoordinates, addressFromGpsPoint, coordinatesToString, calculateGPSDistance, isTripCaptured};

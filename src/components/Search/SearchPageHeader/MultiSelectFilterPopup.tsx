@@ -1,16 +1,16 @@
 import React from 'react';
-import type {PopoverComponentProps} from '@components/Search/FilterDropdowns/DropdownButton';
 import type {MultiSelectItem} from '@components/Search/FilterDropdowns/MultiSelectPopup';
 import MultiSelectPopup from '@components/Search/FilterDropdowns/MultiSelectPopup';
 import useLocalize from '@hooks/useLocalize';
 import type {TranslationPaths} from '@src/languages/types';
 
-type MultiSelectFilterPopupProps<T extends string> = PopoverComponentProps & {
+type MultiSelectFilterPopupProps<T extends string> = {
     loading?: boolean;
     translationKey: TranslationPaths;
     items: Array<MultiSelectItem<T>>;
     value: Array<MultiSelectItem<T>>;
     onChangeCallback: (selectedItems: Array<MultiSelectItem<T>>) => void;
+    closeOverlay: () => void;
     isSearchable?: boolean;
 };
 

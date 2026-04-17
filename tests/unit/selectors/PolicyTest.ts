@@ -1,4 +1,11 @@
-import {activeAdminPoliciesSelector, hasMultipleOutputCurrenciesSelector} from '@selectors/Policy';
+import {
+    activeAdminPoliciesSelector,
+    adminPoliciesConnectedToQBDSelector,
+    hasMultipleOutputCurrenciesSelector,
+    hasPoliciesConnectedToQBDSelector,
+    hasReusablePoliciesConnectedToQBDSelector,
+    reusablePoliciesConnectedToQBDSelector,
+} from '@selectors/Policy';
 import type {OnyxCollection} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import type {Policy} from '@src/types/onyx';
@@ -102,5 +109,197 @@ describe('activeAdminPoliciesSelector', () => {
 
         const result = activeAdminPoliciesSelector(policies, TEST_LOGIN);
         expect(result).toHaveLength(0);
+    });
+});
+
+describe('adminPoliciesConnectedToQBDSelector', () => {
+    it('returns admin policies with QBD connections', () => {
+        const policies: OnyxCollection<Policy> = {
+            policy1: buildSelectorPolicy(1, {name: 'QBD Policy', role: CONST.POLICY.ROLE.ADMIN, connections: {quickbooksDesktop: {}} as Policy['connections']}),
+            policy2: buildSelectorPolicy(2, {name: 'No Connection', role: CONST.POLICY.ROLE.ADMIN}),
+        };
+
+        const result = adminPoliciesConnectedToQBDSelector(policies);
+        expect(result).toHaveLength(1);
+        expect(result.at(0)?.name).toBe('QBD Policy');
+    });
+
+    it('excludes non-admin policies with QBD connections', () => {
+        const policies: OnyxCollection<Policy> = {
+            policy1: buildSelectorPolicy(1, {name: 'User QBD', role: CONST.POLICY.ROLE.USER, connections: {quickbooksDesktop: {}} as Policy['connections']}),
+        };
+
+        expect(adminPoliciesConnectedToQBDSelector(policies)).toHaveLength(0);
+    });
+
+    it('returns empty array for empty collection', () => {
+        expect(adminPoliciesConnectedToQBDSelector({})).toEqual([]);
+    });
+
+    it('returns empty array for undefined collection', () => {
+        expect(adminPoliciesConnectedToQBDSelector(undefined)).toEqual([]);
+    });
+});
+
+describe('hasPoliciesConnectedToQBDSelector', () => {
+    it('returns true when admin policies with QBD connections exist', () => {
+        const policies: OnyxCollection<Policy> = {
+            policy1: buildSelectorPolicy(1, {role: CONST.POLICY.ROLE.ADMIN, connections: {quickbooksDesktop: {}} as Policy['connections']}),
+        };
+
+        expect(hasPoliciesConnectedToQBDSelector(policies)).toBe(true);
+    });
+
+    it('returns false when no QBD connections exist', () => {
+        const policies: OnyxCollection<Policy> = {
+            policy1: buildSelectorPolicy(1, {role: CONST.POLICY.ROLE.ADMIN}),
+        };
+
+        expect(hasPoliciesConnectedToQBDSelector(policies)).toBe(false);
+    });
+
+    it('returns false for empty collection', () => {
+        expect(hasPoliciesConnectedToQBDSelector({})).toBe(false);
+    });
+});
+
+describe('reusablePoliciesConnectedToQBDSelector', () => {
+    it('includes healthy QBD admin workspaces from other policies', () => {
+        const currentPolicyID = '1';
+        const policies: OnyxCollection<Policy> = {
+            policy1: buildSelectorPolicy(1, {
+                name: 'Current Workspace',
+                role: CONST.POLICY.ROLE.ADMIN,
+                connections: {
+                    quickbooksDesktop: {
+                        lastSync: {
+                            isConnected: true,
+                            isSuccessful: true,
+                        },
+                    },
+                } as Policy['connections'],
+            }),
+            policy2: buildSelectorPolicy(2, {
+                name: 'Healthy Workspace',
+                role: CONST.POLICY.ROLE.ADMIN,
+                connections: {
+                    quickbooksDesktop: {
+                        lastSync: {
+                            isConnected: true,
+                            isSuccessful: true,
+                        },
+                    },
+                } as Policy['connections'],
+            }),
+        };
+
+        const result = reusablePoliciesConnectedToQBDSelector(policies, currentPolicyID);
+
+        expect(result).toHaveLength(1);
+        expect(result.at(0)?.name).toBe('Healthy Workspace');
+    });
+
+    it('excludes the current workspace from reusable QBD connections', () => {
+        const currentPolicyID = '1';
+        const policies: OnyxCollection<Policy> = {
+            policy1: buildSelectorPolicy(1, {
+                name: 'Current Workspace',
+                role: CONST.POLICY.ROLE.ADMIN,
+                connections: {
+                    quickbooksDesktop: {
+                        lastSync: {
+                            isConnected: true,
+                            isSuccessful: true,
+                        },
+                    },
+                } as Policy['connections'],
+            }),
+        };
+
+        expect(reusablePoliciesConnectedToQBDSelector(policies, currentPolicyID)).toEqual([]);
+    });
+
+    it('excludes workspaces that have not completed a successful QBD sync yet', () => {
+        const currentPolicyID = '1';
+        const policies: OnyxCollection<Policy> = {
+            policy1: buildSelectorPolicy(1, {
+                name: 'Current Workspace',
+                role: CONST.POLICY.ROLE.ADMIN,
+            }),
+            policy2: buildSelectorPolicy(2, {
+                name: 'Unsynced Workspace',
+                role: CONST.POLICY.ROLE.ADMIN,
+                connections: {quickbooksDesktop: {}} as Policy['connections'],
+            }),
+        };
+
+        expect(reusablePoliciesConnectedToQBDSelector(policies, currentPolicyID)).toEqual([]);
+    });
+
+    it('excludes workspaces with a QBD sync error', () => {
+        const currentPolicyID = '1';
+        const policies: OnyxCollection<Policy> = {
+            policy1: buildSelectorPolicy(1, {name: 'Current Workspace', role: CONST.POLICY.ROLE.ADMIN}),
+            policy2: buildSelectorPolicy(2, {
+                name: 'Errored Workspace',
+                role: CONST.POLICY.ROLE.ADMIN,
+                connections: {
+                    quickbooksDesktop: {
+                        lastSync: {
+                            errorDate: new Date().toISOString(),
+                            errorMessage: 'Data sync did not complete',
+                            isSuccessful: false,
+                        },
+                    },
+                } as Policy['connections'],
+            }),
+        };
+
+        const result = reusablePoliciesConnectedToQBDSelector(policies, currentPolicyID);
+
+        expect(result).toEqual([]);
+    });
+
+    it('excludes workspaces with a QBD sync error even while a retry is in progress', () => {
+        const currentPolicyID = '1';
+        const policies: OnyxCollection<Policy> = {
+            policy1: buildSelectorPolicy(1, {name: 'Current Workspace', role: CONST.POLICY.ROLE.ADMIN}),
+            policy2: buildSelectorPolicy(2, {
+                name: 'Retrying Workspace',
+                role: CONST.POLICY.ROLE.ADMIN,
+                connections: {
+                    quickbooksDesktop: {
+                        lastSync: {
+                            errorDate: new Date().toISOString(),
+                            errorMessage: 'Data sync did not complete',
+                            isSuccessful: false,
+                        },
+                    },
+                } as Policy['connections'],
+            }),
+        };
+
+        expect(reusablePoliciesConnectedToQBDSelector(policies, currentPolicyID)).toEqual([]);
+    });
+});
+
+describe('hasReusablePoliciesConnectedToQBDSelector', () => {
+    it('returns false when no other eligible reusable QBD workspaces exist', () => {
+        const currentPolicyID = '1';
+        const policies: OnyxCollection<Policy> = {
+            policy1: buildSelectorPolicy(1, {
+                role: CONST.POLICY.ROLE.ADMIN,
+                connections: {
+                    quickbooksDesktop: {
+                        lastSync: {
+                            isConnected: true,
+                            isSuccessful: true,
+                        },
+                    },
+                } as Policy['connections'],
+            }),
+        };
+
+        expect(hasReusablePoliciesConnectedToQBDSelector(policies, currentPolicyID)).toBe(false);
     });
 });

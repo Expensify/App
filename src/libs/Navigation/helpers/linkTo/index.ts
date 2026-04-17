@@ -94,6 +94,12 @@ function shouldChangeToMatchingFullScreen(
     lastFullScreenRoute: NavigationPartialRoute,
 ) {
     if (matchingFullScreenRoute.name !== lastFullScreenRoute.name) {
+        // HOME has no RHP children (HOME_TO_RHP maps to []).
+        // Pushing another fullscreen under HOME causes Android to trim HOME
+        // from the render tree, reversing the back animation direction.
+        if (lastFullScreenRoute.name === SCREENS.HOME) {
+            return false;
+        }
         return true;
     }
 

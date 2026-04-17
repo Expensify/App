@@ -241,7 +241,7 @@ describe('actions/PolicyMember', () => {
             mockFetch?.pause?.();
             Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
             Onyx.merge(ONYXKEYS.SESSION, {email: fakeEmail, accountID: fakeAccountID});
-            Policy.addBillingCardAndRequestPolicyOwnerChange(fakePolicy.id, fakeCard);
+            Policy.addBillingCardAndRequestPolicyOwnerChange(fakePolicy.id, fakeAccountID, fakeEmail, fakeCard);
             await waitForBatchedUpdates();
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
@@ -268,6 +268,92 @@ describe('actions/PolicyMember', () => {
                         expect(policy?.isLoading).toBeFalsy();
                         expect(policy?.isChangeOwnerSuccessful).toBeTruthy();
                         expect(policy?.isChangeOwnerFailed)?.toBeFalsy();
+                        resolve();
+                    },
+                });
+            });
+        });
+
+        it('should set owner and ownerAccountID from explicit parameters on success', async () => {
+            const fakePolicy: PolicyType = createRandomPolicy(0);
+            const fakeEmail = 'newowner@gmail.com';
+            const fakeAccountID = 42;
+            const fakeCard = {
+                cardNumber: '1234567890123456',
+                cardYear: '2023',
+                cardMonth: '05',
+                cardCVV: '123',
+                addressName: 'John Doe',
+                addressZip: '12345',
+                currency: 'USD',
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+            Policy.addBillingCardAndRequestPolicyOwnerChange(fakePolicy.id, fakeAccountID, fakeEmail, fakeCard);
+            await waitForBatchedUpdates();
+            await new Promise<void>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
+                    waitForCollectionCallback: false,
+                    callback: (policy) => {
+                        Onyx.disconnect(connection);
+                        expect(policy?.isLoading).toBeFalsy();
+                        expect(policy?.isChangeOwnerSuccessful).toBeTruthy();
+                        expect(policy?.owner).toBe(fakeEmail);
+                        expect(policy?.ownerAccountID).toBe(fakeAccountID);
+                        resolve();
+                    },
+                });
+            });
+        });
+    });
+
+    describe('verifySetupIntentAndRequestPolicyOwnerChange', () => {
+        it('should set optimistic loading state', async () => {
+            const fakePolicy: PolicyType = createRandomPolicy(0);
+            const fakeEmail = 'newowner@gmail.com';
+            const fakeAccountID = 42;
+
+            mockFetch?.pause?.();
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+            Policy.verifySetupIntentAndRequestPolicyOwnerChange(fakePolicy.id, fakeAccountID, fakeEmail);
+            await waitForBatchedUpdates();
+            await new Promise<void>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
+                    waitForCollectionCallback: false,
+                    callback: (policy) => {
+                        Onyx.disconnect(connection);
+                        expect(policy?.errorFields).toBeFalsy();
+                        expect(policy?.isLoading).toBeTruthy();
+                        expect(policy?.isChangeOwnerSuccessful).toBeFalsy();
+                        expect(policy?.isChangeOwnerFailed).toBeFalsy();
+                        resolve();
+                    },
+                });
+            });
+            await mockFetch?.resume?.();
+        });
+
+        it('should set owner and ownerAccountID from explicit parameters on success', async () => {
+            const fakePolicy: PolicyType = createRandomPolicy(0);
+            const fakeEmail = 'newowner@gmail.com';
+            const fakeAccountID = 42;
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+            Policy.verifySetupIntentAndRequestPolicyOwnerChange(fakePolicy.id, fakeAccountID, fakeEmail);
+            await waitForBatchedUpdates();
+            await new Promise<void>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
+                    waitForCollectionCallback: false,
+                    callback: (policy) => {
+                        Onyx.disconnect(connection);
+                        expect(policy?.isLoading).toBeFalsy();
+                        expect(policy?.isChangeOwnerSuccessful).toBeTruthy();
+                        expect(policy?.isChangeOwnerFailed).toBeFalsy();
+                        expect(policy?.owner).toBe(fakeEmail);
+                        expect(policy?.ownerAccountID).toBe(fakeAccountID);
                         resolve();
                     },
                 });

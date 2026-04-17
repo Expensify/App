@@ -34,7 +34,7 @@ function BigNumberPad({numberPressed, longPressHandlerStateChanged = () => {}, i
 
     const styles = useThemeStyles();
     const [timer, setTimer] = useState<NodeJS.Timeout | null>(null);
-    const {isExtraSmallScreenHeight} = useResponsiveLayout();
+    const {isExtraSmallScreenHeight, isInLandscapeMode} = useResponsiveLayout();
     const numberPressedRef = useRef(numberPressed);
 
     useEffect(() => {
@@ -64,10 +64,10 @@ function BigNumberPad({numberPressed, longPressHandlerStateChanged = () => {}, i
             style={[styles.flexColumn, styles.w100]}
             id={id}
         >
-            {padNumbers.map((row) => (
+            {padNumbers.map((row, index) => (
                 <View
                     key={`NumberPadRow-${row[0]}`}
-                    style={[styles.flexRow, styles.mt3]}
+                    style={[styles.flexRow, index === 0 && isInLandscapeMode ? undefined : styles.mt3]}
                 >
                     {row.map((column, columnIndex) => {
                         // Adding margin between buttons except first column to
@@ -77,8 +77,9 @@ function BigNumberPad({numberPressed, longPressHandlerStateChanged = () => {}, i
                         return (
                             <Button
                                 key={column}
-                                medium={isExtraSmallScreenHeight}
-                                large={!isExtraSmallScreenHeight}
+                                small={isInLandscapeMode}
+                                medium={isExtraSmallScreenHeight && !isInLandscapeMode}
+                                large={!isExtraSmallScreenHeight && !isInLandscapeMode}
                                 shouldEnableHapticFeedback
                                 style={[styles.flex1, marginLeft]}
                                 text={column === '<' ? undefined : toLocaleDigit(column)}

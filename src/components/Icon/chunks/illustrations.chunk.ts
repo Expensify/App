@@ -135,6 +135,7 @@ import Filters from '@assets/images/simple-illustrations/simple-illustration__fi
 import FishbowlBlue from '@assets/images/simple-illustrations/simple-illustration__fishbowl--blue.svg';
 import Flash from '@assets/images/simple-illustrations/simple-illustration__flash.svg';
 import FolderOpen from '@assets/images/simple-illustrations/simple-illustration__folder-open.svg';
+import FoodTruck from '@assets/images/simple-illustrations/simple-illustration__foodtruck-tacos.svg';
 import Gears from '@assets/images/simple-illustrations/simple-illustration__gears.svg';
 import HandCard from '@assets/images/simple-illustrations/simple-illustration__handcard.svg';
 import HeadSet from '@assets/images/simple-illustrations/simple-illustration__headset.svg';
@@ -396,6 +397,7 @@ const Illustrations = {
     Target,
     Trophy,
     Trophy1,
+    FoodTruck,
 
     // Multifactor Authentication Illustrations
     MagnifyingGlassSpyMouthClosed,

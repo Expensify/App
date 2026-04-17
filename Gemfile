@@ -4,7 +4,7 @@ source "https://rubygems.org"
 ruby ">= 3.3.4"
 
 gem "cocoapods", "= 1.16.2"
-gem 'activesupport', '>= 6.1.7.5', '!= 7.1.0'
+gem 'activesupport', '>= 7.2.3.1'
 gem 'xcodeproj', '~> 1.27'
 gem "fastlane", "~> 2", ">= 2.229.0"
 gem "xcpretty", "~> 0"

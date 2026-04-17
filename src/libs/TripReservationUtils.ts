@@ -153,7 +153,8 @@ function getAirReservations(pnr: Pnr, travelers: PnrTraveler[]): ReservationItem
     const airports = pnr.data.additionalMetadata?.airportInfo ?? [];
 
     for (const travelerInfo of pnrData.travelerInfos) {
-        for (const ticket of travelerInfo.tickets) {
+        const ticketSource = travelerInfo.tickets.some((t) => t.flightCoupons.length > 0) ? travelerInfo.tickets : (travelerInfo.lastConfirmedTickets ?? travelerInfo.tickets);
+        for (const ticket of ticketSource) {
             const flightCoupons = ticket.flightCoupons;
             for (const [index, flightDetails] of flightCoupons.sort((a, b) => a.legIdx - b.legIdx).entries()) {
                 const legIdx = flightDetails.legIdx;
@@ -399,7 +400,7 @@ function getRailReservations(pnr: Pnr, travelers: PnrTraveler[]): ReservationIte
 }
 
 function isCancelledPnrStatus(status: string): boolean {
-    return status === CONST.PNR_STATUS.CANCELLED || status === CONST.PNR_STATUS.VOIDED;
+    return status === CONST.PNR_STATUS.CANCELLED || status === CONST.PNR_STATUS.CANCELLED_STATUS || status === CONST.PNR_STATUS.VOIDED;
 }
 
 function isPnrCancelled(pnr: Pnr): boolean {
@@ -541,6 +542,7 @@ function getReservationDetailsFromSequence(icons: TripReservationIcons, tripRese
         prevReservation,
         reservationType,
         reservationIcon,
+        isCancelled: reservationData?.isCancelled,
     };
 }
 

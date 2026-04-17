@@ -234,6 +234,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
 
         if (hasApprovers) {
             const ownerEmail = ownerDetails.login;
+            let currentWorkflows = approvalWorkflows;
             for (const login of selectedEmployees) {
                 if (!isPolicyApprover(policy, login)) {
                     continue;
@@ -245,10 +246,11 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                     continue;
                 }
                 const updatedWorkflows = updateWorkflowDataOnApproverRemoval({
-                    approvalWorkflows,
+                    approvalWorkflows: currentWorkflows,
                     removedApprover,
                     ownerDetails,
                 });
+                currentWorkflows = updatedWorkflows.filter((workflow) => !workflow.removeApprovalWorkflow);
                 for (const workflow of updatedWorkflows) {
                     if (workflow?.removeApprovalWorkflow) {
                         const {removeApprovalWorkflow, ...updatedWorkflow} = workflow;

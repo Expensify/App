@@ -4,7 +4,7 @@ import type {OnyxCollection} from 'react-native-onyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {canApproveIOU, canSubmitReport} from '@userActions/IOU';
+import {canApproveIOU, canSubmitReport} from '@userActions/IOU/ReportWorkflow';
 import CONST from '@src/CONST';
 import * as IOUUtils from '@src/libs/IOUUtils';
 import * as ReportUtils from '@src/libs/ReportUtils';
@@ -13,7 +13,6 @@ import {hasAnyTransactionWithoutRTERViolation} from '@src/libs/TransactionUtils'
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Policy, Report, ReportMetadata, Transaction, TransactionViolations} from '@src/types/onyx';
-import type {TransactionCollectionDataSet} from '@src/types/onyx/Transaction';
 import createRandomPolicy from '../utils/collections/policies';
 import {createRandomReport} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
@@ -39,75 +38,6 @@ jest.mock('@src/libs/Navigation/Navigation', () => ({
 }));
 
 describe('IOUUtils', () => {
-    describe('isIOUReportPendingCurrencyConversion', () => {
-        beforeAll(() => {
-            Onyx.init({
-                keys: ONYXKEYS,
-            });
-        });
-
-        test('Submitting an expense offline in a different currency will show the pending conversion message', () => {
-            const iouReport = ReportUtils.buildOptimisticIOUReport(1, 2, 100, '1', 'USD');
-            const usdPendingTransaction = TransactionUtils.buildOptimisticTransaction({
-                transactionParams: {
-                    amount: 100,
-                    currency: 'USD',
-                    reportID: iouReport.reportID,
-                },
-            });
-            const aedPendingTransaction = TransactionUtils.buildOptimisticTransaction({
-                transactionParams: {
-                    amount: 100,
-                    currency: 'AED',
-                    reportID: iouReport.reportID,
-                },
-            });
-            const MergeQueries: TransactionCollectionDataSet = {};
-            MergeQueries[`${ONYXKEYS.COLLECTION.TRANSACTION}${usdPendingTransaction.transactionID}`] = usdPendingTransaction;
-            MergeQueries[`${ONYXKEYS.COLLECTION.TRANSACTION}${aedPendingTransaction.transactionID}`] = aedPendingTransaction;
-
-            // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
-            return Onyx.mergeCollection(ONYXKEYS.COLLECTION.TRANSACTION, MergeQueries).then(() => {
-                // We submitted an expense offline in a different currency, we don't know the total of the iouReport until we're back online
-                expect(IOUUtils.isIOUReportPendingCurrencyConversion(iouReport)).toBe(true);
-            });
-        });
-
-        test('Submitting an expense online in a different currency will not show the pending conversion message', () => {
-            const iouReport = ReportUtils.buildOptimisticIOUReport(2, 3, 100, '1', 'USD');
-            const usdPendingTransaction = TransactionUtils.buildOptimisticTransaction({
-                transactionParams: {
-                    amount: 100,
-                    currency: 'USD',
-                    reportID: iouReport.reportID,
-                },
-            });
-            const aedPendingTransaction = TransactionUtils.buildOptimisticTransaction({
-                transactionParams: {
-                    amount: 100,
-                    currency: 'AED',
-                    reportID: iouReport.reportID,
-                },
-            });
-
-            const MergeQueries: TransactionCollectionDataSet = {};
-            MergeQueries[`${ONYXKEYS.COLLECTION.TRANSACTION}${usdPendingTransaction.transactionID}`] = {
-                ...usdPendingTransaction,
-                pendingAction: null,
-            };
-            MergeQueries[`${ONYXKEYS.COLLECTION.TRANSACTION}${aedPendingTransaction.transactionID}`] = {
-                ...aedPendingTransaction,
-                pendingAction: null,
-            };
-
-            // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
-            return Onyx.mergeCollection(ONYXKEYS.COLLECTION.TRANSACTION, MergeQueries).then(() => {
-                // We submitted an expense online in a different currency, we know the iouReport total and there's no need to show the pending conversion message
-                expect(IOUUtils.isIOUReportPendingCurrencyConversion(iouReport)).toBe(false);
-            });
-        });
-    });
-
     describe('calculateAmount', () => {
         beforeAll(() => initCurrencyList());
 
@@ -375,6 +305,18 @@ describe('IOUUtils', () => {
 
         test('Return multiple tags when hasMultipleTagLists is true', () => {
             expect(IOUUtils.insertTagIntoTransactionTagsString('East:NY:California', 'NewTag', 1, true)).toBe('East:NewTag:California');
+        });
+
+        test('Should not produce a leading colon when transactionTags is empty and tagIndex > 0', () => {
+            expect(IOUUtils.insertTagIntoTransactionTagsString('', 'Alpha', 1, true)).toBe(':Alpha');
+        });
+
+        test('Should produce correct result when transactionTags is empty and tagIndex is 0', () => {
+            expect(IOUUtils.insertTagIntoTransactionTagsString('', 'Alpha', 0, true)).toBe('Alpha');
+        });
+
+        test('Should fill sparse slots when tagIndex exceeds current array length', () => {
+            expect(IOUUtils.insertTagIntoTransactionTagsString('First', 'Third', 2, true)).toBe('First::Third');
         });
     });
 });
@@ -893,5 +835,38 @@ describe('getExistingTransactionID', () => {
         } as unknown as Parameters<typeof IOUUtils.getExistingTransactionID>[0];
 
         expect(IOUUtils.getExistingTransactionID(moneyRequestAction)).toBe('txn123');
+    });
+
+    describe('resolveOptimisticChatReportID', () => {
+        it('should return existing report ID when report has a reportID', () => {
+            const existingReport = {reportID: 'existing-123'} as Report;
+            const result = IOUUtils.resolveOptimisticChatReportID([1, 2], existingReport);
+
+            expect(result.chatReportID).toBe('existing-123');
+            expect(result.optimisticChatReportID).toBeUndefined();
+        });
+
+        it('should generate optimistic ID when no existing report is provided', () => {
+            const result = IOUUtils.resolveOptimisticChatReportID([1, 2]);
+
+            expect(result.optimisticChatReportID).toBeDefined();
+            expect(result.chatReportID).toBe(result.optimisticChatReportID);
+        });
+
+        it('should generate optimistic ID when existing report has no reportID', () => {
+            const emptyReport = {} as Report;
+            const result = IOUUtils.resolveOptimisticChatReportID([1, 2], emptyReport);
+
+            expect(result.optimisticChatReportID).toBeDefined();
+            expect(result.chatReportID).toBe(result.optimisticChatReportID);
+        });
+
+        it('should return consistent chatReportID that is always defined', () => {
+            const result1 = IOUUtils.resolveOptimisticChatReportID([1, 2], {reportID: 'report-1'} as Report);
+            const result2 = IOUUtils.resolveOptimisticChatReportID([1, 2]);
+
+            expect(result1.chatReportID).toBeDefined();
+            expect(result2.chatReportID).toBeDefined();
+        });
     });
 });

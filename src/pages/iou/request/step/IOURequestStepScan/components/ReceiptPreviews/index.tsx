@@ -14,6 +14,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionDraftReceipts from '@hooks/useTransactionDraftReceipts';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import Navigation from '@libs/Navigation/Navigation';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {Receipt} from '@src/types/onyx/Transaction';
@@ -30,18 +31,48 @@ type ReceiptPreviewsProps = {
 
     /** If a photo is currently being captured */
     isCapturingPhoto?: boolean;
+
+    /** Whether the component is rendered in landscape orientation */
+    isInLandscapeMode?: boolean;
 };
 
-function ReceiptPreviews({submit, isMultiScanEnabled, isCapturingPhoto = false}: ReceiptPreviewsProps) {
+function useReceiptPreviewsSizes(isInLandscapeMode: boolean) {
+    const styles = useThemeStyles();
+    const {windowWidth, windowHeight} = useWindowDimensions();
+
+    if (isInLandscapeMode) {
+        const previewItemSize = styles.receiptPlaceholderLandscape.height + styles.receiptPlaceholderLandscape.marginBottom;
+
+        const submitButtonHeight = styles.singleAvatarMedium.height;
+        const tabSelectorButtonHeight = variables.tabSelectorButtonHeight + styles.pb4.paddingBottom;
+        const contentHeaderHeight = variables.contentHeaderHeight;
+        const initialReceiptsAmount = (windowHeight - submitButtonHeight - tabSelectorButtonHeight - contentHeaderHeight) / previewItemSize;
+
+        return {
+            previewsSize: styles.receiptPlaceholderLandscape.width + styles.ph6.paddingHorizontal * 2,
+            previewItemSize,
+            initialReceiptsAmount,
+        };
+    }
+
+    const previewItemSize = styles.receiptPlaceholder.width + styles.receiptPlaceholder.marginRight;
+    const initialReceiptsAmount = (windowWidth - styles.ph4.paddingHorizontal * 2 - styles.singleAvatarMedium.width) / previewItemSize;
+
+    return {
+        previewsSize: styles.receiptPlaceholder.height + styles.pv2.paddingVertical * 2,
+        previewItemSize,
+        initialReceiptsAmount,
+    };
+}
+
+function ReceiptPreviews({submit, isMultiScanEnabled, isCapturingPhoto = false, isInLandscapeMode = false}: ReceiptPreviewsProps) {
     const icons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
-    const {windowWidth} = useWindowDimensions();
     const isPreviewsVisible = useSharedValue(false);
-    const previewsHeight = styles.receiptPlaceholder.height + styles.pv2.paddingVertical * 2;
-    const previewItemWidth = styles.receiptPlaceholder.width + styles.receiptPlaceholder.marginRight;
-    const initialReceiptsAmount = (windowWidth - styles.ph4.paddingHorizontal * 2 - styles.singleAvatarMedium.width) / previewItemWidth;
+    const {previewsSize, previewItemSize, initialReceiptsAmount} = useReceiptPreviewsSizes(isInLandscapeMode);
+
     const optimisticTransactionsReceipts = useTransactionDraftReceipts();
     const receipts = (() => {
         if (optimisticTransactionsReceipts.length >= initialReceiptsAmount) {
@@ -83,8 +114,9 @@ function ReceiptPreviews({submit, isMultiScanEnabled, isCapturingPhoto = false}:
     }, [receiptsPhotosLength, previousReceiptsPhotosLength, initialReceiptsAmount]);
 
     const renderItem = ({item}: {item: ReceiptWithTransactionID | undefined}) => {
+        const placeholderStyle = isInLandscapeMode ? styles.receiptPlaceholderLandscape : styles.receiptPlaceholder;
         if (!item) {
-            return <View style={styles.receiptPlaceholder} />;
+            return <View style={placeholderStyle} />;
         }
 
         return (
@@ -97,7 +129,7 @@ function ReceiptPreviews({submit, isMultiScanEnabled, isCapturingPhoto = false}:
             >
                 <Image
                     source={typeof item.source === 'string' ? {uri: item.source} : item.source}
-                    style={[styles.receiptPlaceholder, styles.overflowHidden]}
+                    style={[placeholderStyle, styles.overflowHidden]}
                     loadingIconSize="small"
                     loadingIndicatorStyles={styles.bgTransparent}
                 />
@@ -106,29 +138,34 @@ function ReceiptPreviews({submit, isMultiScanEnabled, isCapturingPhoto = false}:
     };
 
     const slideInStyle = useAnimatedStyle(() => {
-        return {
-            height: withTiming(isPreviewsVisible.get() ? previewsHeight : 0, {
-                duration: 300,
-            }),
-        };
+        const sizeValue = withTiming(isPreviewsVisible.get() ? previewsSize : 0, {duration: 300});
+
+        if (isInLandscapeMode) {
+            return {width: sizeValue};
+        }
+
+        return {height: sizeValue};
     });
 
     return (
         <Animated.View style={slideInStyle}>
-            <View style={styles.pr4}>
+            <View style={isInLandscapeMode ? styles.pb4 : styles.pr4}>
                 <FlatList
                     ref={flatListRef}
                     data={receipts}
-                    horizontal
+                    horizontal={!isInLandscapeMode}
                     keyExtractor={(_, index) => index.toString()}
                     renderItem={renderItem}
-                    getItemLayout={(data, index) => ({length: previewItemWidth, offset: previewItemWidth * index, index})}
-                    style={styles.pv2}
+                    getItemLayout={(data, index) => ({length: previewItemSize, offset: previewItemSize * index, index})}
+                    style={isInLandscapeMode ? styles.ph2 : styles.pv2}
                     scrollEnabled={isScrollEnabled}
                     showsHorizontalScrollIndicator={false}
-                    contentContainerStyle={[{paddingRight: styles.singleAvatarMedium.width}, styles.pl4]}
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={
+                        isInLandscapeMode ? [{paddingBottom: styles.singleAvatarMedium.height}, styles.ph4] : [{paddingRight: styles.singleAvatarMedium.width}, styles.pl4]
+                    }
                 />
-                <SubmitButtonShadow>
+                <SubmitButtonShadow isInLandscapeMode={isInLandscapeMode}>
                     <Button
                         large
                         isDisabled={!optimisticTransactionsReceipts.length || isCapturingPhoto}

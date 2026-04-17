@@ -1,5 +1,6 @@
 import Onyx from 'react-native-onyx';
 import type {OnyxKey} from 'react-native-onyx';
+import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
 import * as PersistedRequests from '../../src/libs/actions/PersistedRequests';
 import ONYXKEYS from '../../src/ONYXKEYS';
 import type Request from '../../src/types/onyx/Request';
@@ -113,9 +114,6 @@ describe('PersistedRequests persistence guarantees', () => {
             expect(request.persistWhenOngoing).toBeUndefined();
             expect(PersistedRequests.getAll()).toHaveLength(1);
 
-            // Spy on Onyx.set AFTER beforeEach has settled to avoid capturing setup calls
-            const setMock = jest.spyOn(Onyx, 'set');
-
             // Move the request from queue to ongoingRequest
             PersistedRequests.processNextRequest();
 
@@ -123,22 +121,12 @@ describe('PersistedRequests persistence guarantees', () => {
             expect(PersistedRequests.getOngoingRequest()).toEqual(request);
             expect(PersistedRequests.getAll()).toHaveLength(0);
 
-            return waitForBatchedUpdates()
-                .then(() => {
-                    // BUG: Onyx.set was never called for PERSISTED_ONGOING_REQUESTS
-                    // because persistWhenOngoing is undefined (PersistedRequests.ts:273).
-                    // The ongoing request exists only in memory — no disk backup.
-                    // When fixed, this should persist ALL ongoing requests regardless
-                    // of the persistWhenOngoing flag. Change to:
-                    //   expect(setMock).toHaveBeenCalledWith(
-                    //     ONYXKEYS.PERSISTED_ONGOING_REQUESTS,
-                    //     expect.objectContaining({command: 'OpenReport'}),
-                    //   );
-                    expect(setMock).not.toHaveBeenCalledWith(ONYXKEYS.PERSISTED_ONGOING_REQUESTS, expect.objectContaining({command: 'OpenReport'}));
-                })
-                .finally(() => {
-                    setMock.mockRestore();
-                });
+            return waitForBatchedUpdates().then(async () => {
+                // FIX: processNextRequest() now always persists ongoingRequest to disk
+                // via Onyx.multiSet, regardless of the persistWhenOngoing flag.
+                const diskOngoing = await OnyxUtils.get(ONYXKEYS.PERSISTED_ONGOING_REQUESTS);
+                expect(diskOngoing).toEqual(expect.objectContaining({command: 'OpenReport'}));
+            });
         }));
 
     // BUG: processNextRequest() at PersistedRequests.ts:264-266 does
@@ -168,25 +156,14 @@ describe('PersistedRequests persistence guarantees', () => {
             // In-memory: only requestB remains
             expect(PersistedRequests.getAll()).toHaveLength(1);
 
-            // Read disk state via a fresh Onyx connection to see what's actually persisted
-            return new Promise<void>((resolve) => {
-                const connection = Onyx.connectWithoutView({
-                    key: ONYXKEYS.PERSISTED_REQUESTS,
-                    reuseConnection: false,
-                    callback: (diskRequests) => {
-                        Onyx.disconnect(connection);
-                        const diskArray = diskRequests ?? [];
+            // Read disk state directly to see what's actually persisted
+            return waitForBatchedUpdates().then(async () => {
+                const diskRequests = await OnyxUtils.get(ONYXKEYS.PERSISTED_REQUESTS);
+                const diskArray = diskRequests ?? [];
 
-                        // BUG: processNextRequest() updates in-memory immediately but does NOT
-                        // write the updated queue back to ONYXKEYS.PERSISTED_REQUESTS.
-                        // In-memory has [requestB] but disk still has [request, requestB].
-                        // When fixed, disk should match in-memory.
-                        // Change to: expect(diskArray).toHaveLength(1);
-                        expect(diskArray).toHaveLength(2);
-
-                        resolve();
-                    },
-                });
+                // FIX: processNextRequest() now persists the updated queue to disk
+                // via Onyx.multiSet. Disk matches in-memory — only requestB remains.
+                expect(diskArray).toHaveLength(1);
             });
         });
     });
@@ -257,15 +234,64 @@ describe('PersistedRequests persistence guarantees', () => {
             await capturedSets.at(0)?.triggerRealSet();
             await waitForBatchedUpdates();
 
-            // BUG: The connect callback at PersistedRequests.ts:32 blindly overwrites
-            // in-memory state with whatever disk returns. The stale Onyx.set([A])
-            // resolved last, so the callback received [A] and overwrote [A, B].
-            // requestB is permanently lost.
-            // When fixed, both requests should survive regardless of resolution order.
-            // Change to: expect(PersistedRequests.getAll()).toHaveLength(2);
-            expect(PersistedRequests.getAll()).toHaveLength(1);
+            // FIX: After initialization, the connect callback is a no-op.
+            // In-memory state is authoritative and not overwritten by stale disk callbacks.
+            // Both requests survive regardless of Onyx.set() resolution order.
+            expect(PersistedRequests.getAll()).toHaveLength(2);
         } finally {
             setMock.mockRestore();
         }
+    });
+
+    it('Follower tab should reconcile processed requests from leader via cross-tab callback', async () => {
+        PersistedRequests.clear();
+        await waitForBatchedUpdates();
+        expect(PersistedRequests.getAll()).toHaveLength(0);
+
+        const requestA: Request<'reportMetadata_1' | 'reportMetadata_2'> = {
+            command: 'CommandA',
+            successData: [{key: 'reportMetadata_1', onyxMethod: 'merge', value: {}}],
+            failureData: [{key: 'reportMetadata_2', onyxMethod: 'merge', value: {}}],
+            requestID: 20,
+        };
+        const requestB: Request<'reportMetadata_3' | 'reportMetadata_4'> = {
+            command: 'CommandB',
+            successData: [{key: 'reportMetadata_3', onyxMethod: 'merge', value: {}}],
+            failureData: [{key: 'reportMetadata_4', onyxMethod: 'merge', value: {}}],
+            requestID: 21,
+        };
+
+        PersistedRequests.save(requestA);
+        PersistedRequests.save(requestB);
+        await waitForBatchedUpdates();
+        expect(PersistedRequests.getAll()).toHaveLength(2);
+
+        // Reset the pending write counter before simulating a cross-tab event.
+        // In production, cross-tab updates arrive via storage events which are
+        // independent of Onyx.set promise timing, so the counter is always 0.
+        // In tests, promise resolution timing is unpredictable relative to
+        // Onyx callbacks, so we reset explicitly.
+        PersistedRequests.resetPendingWritesForTest();
+
+        // Simulate a cross-tab callback: leader processed requestA and removed it.
+        await Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, [requestB]);
+        await waitForBatchedUpdates();
+
+        // The follower should have reconciled: requestA removed from memory
+        expect(PersistedRequests.getAll()).toHaveLength(1);
+        expect(PersistedRequests.getAll().at(0)).toEqual(requestB);
+
+        // Save a new request — it should NOT re-add requestA to disk
+        const requestC: Request<'reportMetadata_5' | 'reportMetadata_6'> = {
+            command: 'CommandC',
+            successData: [{key: 'reportMetadata_5', onyxMethod: 'merge', value: {}}],
+            failureData: [{key: 'reportMetadata_6', onyxMethod: 'merge', value: {}}],
+            requestID: 22,
+        };
+        PersistedRequests.save(requestC);
+        await waitForBatchedUpdates();
+
+        expect(PersistedRequests.getAll()).toHaveLength(2);
+        expect(PersistedRequests.getAll().map((r) => r.command)).toEqual(['CommandB', 'CommandC']);
     });
 });
