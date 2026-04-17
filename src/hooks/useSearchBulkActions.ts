@@ -382,15 +382,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         clearSelectedTransactions(undefined, true);
     };
 
-    const policyIDsWithVBBA: string[] = [];
-    for (const policy of Object.values(policies ?? {})) {
-        if (!policy || !policy.achAccount?.bankAccountID) {
-            continue;
-        }
-
-        policyIDsWithVBBA.push(policy.id);
-    }
-
     const handleBasicExport = async () => {
         if (isOffline) {
             setIsOfflineModalVisible(true);
@@ -610,7 +601,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 (transaction): transaction is NonNullable<typeof transaction> => !!transaction && transaction.reportID === itemReportID,
             );
 
-            const hasPolicyVBBA = itemPolicyID ? policyIDsWithVBBA.includes(itemPolicyID) : false;
+            const hasPolicyVBBA = !!(itemPolicyID && policies?.[`${ONYXKEYS.COLLECTION.POLICY}${itemPolicyID}`]?.achAccount?.bankAccountID);
             // Allow bulk pay when user selected a business bank account, even if that account is not linked to the report's policy
             const hasSelectedBusinessBankAccount = expenseReportBankAccountID != null;
 
