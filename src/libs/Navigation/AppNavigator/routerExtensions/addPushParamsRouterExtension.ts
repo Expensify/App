@@ -217,8 +217,25 @@ function addPushParamsRouterExtension<RouterOptions extends PlatformStackRouterO
                         cancelPendingFocusRestore();
                         pushParamsHistoryPosition += 1;
                     } else {
-                        // Non-adjacent same-key jump: handleStateChange classifies as noop and won't cancel, so drop any stale pending restore here.
-                        cancelPendingFocusRestore();
+                        // Non-adjacent same-key jump (history.go(-n), deep link): scan the whole history and move the cursor to the match, or subsequent GO_BACK reverts from the stale index.
+                        let foundIdx = -1;
+                        for (let i = 0; i < history.length; i += 1) {
+                            if (matchAt(i)) {
+                                foundIdx = i;
+                                break;
+                            }
+                        }
+                        if (foundIdx >= 0) {
+                            if (foundIdx < pushParamsHistoryPosition) {
+                                notifyPushParamsBackward(newFocused.key, newFocused.params);
+                            } else {
+                                cancelPendingFocusRestore();
+                            }
+                            pushParamsHistoryPosition = foundIdx;
+                        } else {
+                            // New params not in history at all — drop any stale pending restore.
+                            cancelPendingFocusRestore();
+                        }
                     }
                 }
 

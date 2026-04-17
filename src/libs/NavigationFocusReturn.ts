@@ -405,6 +405,8 @@ function handleStateChange(newState: NavigationState | undefined): void {
     if (!newState) {
         return;
     }
+    // Cancel any pending return-hold release: a new navigation starts a fresh cycle, and a stale timer firing later would reset the new cycle's priority.
+    cancelReturnHoldRelease();
     resetCycle();
     const {action, removedKeys} = diffNavigationState(prevState, newState);
 
@@ -450,8 +452,9 @@ function setupNavigationFocusReturn(): void {
         };
         document.addEventListener('focusin', focusinHandler, true);
     }
-    // Module-load call runs pre-mount (getRootState undefined); the seed must retry on NavigationRoot.onReady re-invocation, independently of stateUnsubscribe.
-    if (!prevState && typeof navigationRef?.getRootState === 'function') {
+    // Gate the seed behind isReady() — calling getRootState() pre-mount triggers React Navigation's "not initialized" console.error.
+    // Retries on every setup() call so NavigationRoot.onReady re-invocation picks up the live state, independently of stateUnsubscribe.
+    if (!prevState && typeof navigationRef?.isReady === 'function' && navigationRef.isReady() && typeof navigationRef.getRootState === 'function') {
         prevState = navigationRef.getRootState() ?? prevState;
     }
     // addListener is absent pre-mount and in test mocks; NavigationRoot.onReady re-invokes once the container is live.
