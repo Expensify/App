@@ -43,12 +43,7 @@ function useBulkDuplicateReportAction({selectedReports, allReports}: UseBulkDupl
     const handleDuplicateReports = () => {
         const activePolicyExpenseChat = getPolicyExpenseChat(currentUserPersonalDetails.accountID, defaultExpensePolicy?.id);
 
-        const reportsMap = allReports ?? {};
-        const reportIDs = selectedReports.map((r) => r.reportID).filter((id): id is string => !!id && !!reportsMap[`${ONYXKEYS.COLLECTION.REPORT}${id}`]);
-
-        if (reportIDs.length === 0) {
-            return;
-        }
+        const reportIDs = selectedReports.map((r) => r.reportID).filter((id): id is string => !!id);
 
         bulkDuplicateReports({
             reportIDs,
