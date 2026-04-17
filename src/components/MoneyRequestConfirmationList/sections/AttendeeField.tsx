@@ -1,6 +1,7 @@
 import React from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import UserPills from '@components/UserPills';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
@@ -29,6 +30,7 @@ function AttendeeField({formattedAmountPerAttendee, isReadOnly, transactionID, a
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const personalDetailsList = usePersonalDetails();
     const shouldDisplayAttendeesError = formError === 'violations.missingAttendees';
 
     const iouAttendees = getAttendees(transaction, currentUserPersonalDetails);
@@ -44,7 +46,18 @@ function AttendeeField({formattedAmountPerAttendee, isReadOnly, transactionID, a
             titleComponent={
                 Array.isArray(iouAttendees) ? (
                     <UserPills
-                        users={sortAlphabetically(iouAttendees, 'displayName', localeCompare).map((a) => ({
+                        users={sortAlphabetically(
+                            iouAttendees.map((a) => {
+                                const pd = a?.accountID ? personalDetailsList?.[a.accountID] : undefined;
+                                return {
+                                    ...a,
+                                    displayName: pd?.displayName ?? a?.displayName,
+                                    avatarUrl: (typeof pd?.avatar === 'string' ? pd.avatar : undefined) ?? a?.avatarUrl,
+                                };
+                            }),
+                            'displayName',
+                            localeCompare,
+                        ).map((a) => ({
                             avatar: a?.avatarUrl,
                             displayName: a?.displayName ?? a?.login ?? a?.email ?? '',
                             accountID: a?.accountID,

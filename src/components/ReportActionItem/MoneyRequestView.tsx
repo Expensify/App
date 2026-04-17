@@ -9,7 +9,7 @@ import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
-import {usePolicyCategories, usePolicyTags} from '@components/OnyxListItemProvider';
+import {usePersonalDetails, usePolicyCategories, usePolicyTags} from '@components/OnyxListItemProvider';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
 import {useSearchStateContext} from '@components/Search/SearchContext';
 import Switch from '@components/Switch';
@@ -240,6 +240,7 @@ function MoneyRequestView({
     const transactionViolations = useTransactionViolations(transaction?.transactionID);
     const [outstandingReportsByPolicyID] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const personalDetailsList = usePersonalDetails();
     const currentUserAccountIDParam = currentUserPersonalDetails.accountID;
     const currentUserEmailParam = currentUserPersonalDetails.login ?? '';
     const {isBetaEnabled} = usePermissions();
@@ -1179,7 +1180,18 @@ function MoneyRequestView({
                             titleComponent={
                                 Array.isArray(actualAttendees) ? (
                                     <UserPills
-                                        users={sortAlphabetically(actualAttendees, 'displayName', localeCompare).map((a) => ({
+                                        users={sortAlphabetically(
+                                            actualAttendees.map((a) => {
+                                                const pd = a?.accountID ? personalDetailsList?.[a.accountID] : undefined;
+                                                return {
+                                                    ...a,
+                                                    displayName: pd?.displayName ?? a?.displayName,
+                                                    avatarUrl: (typeof pd?.avatar === 'string' ? pd.avatar : undefined) ?? a?.avatarUrl,
+                                                };
+                                            }),
+                                            'displayName',
+                                            localeCompare,
+                                        ).map((a) => ({
                                             avatar: a?.avatarUrl,
                                             displayName: a?.displayName ?? a?.login ?? a?.email ?? '',
                                             accountID: a?.accountID,
