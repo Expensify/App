@@ -1,4 +1,4 @@
-import React, {useCallback, useMemo, useRef} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 import {View} from 'react-native';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -116,7 +116,7 @@ function USDVerifiedBankAccountFlowPage({route}: USDVerifiedBankAccountFlowPageP
     }, [backTo, currentPageIndex, policyID, shouldSkipVerifyIdentity]);
 
     return (
-        <View style={styles.flex1}>
+        <View style={[styles.flex1, styles.appBG]}>
             <CurrentPage
                 onSubmit={onSubmit}
                 onBackButtonPress={onBackButtonPress}
