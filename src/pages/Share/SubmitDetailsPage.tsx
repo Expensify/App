@@ -298,6 +298,7 @@ function SubmitDetailsPage({
             transactionID: transaction.transactionID,
             isFromGlobalCreate: transaction.isFromFloatingActionButton ?? transaction.isFromGlobalCreate,
             hasMultipleTransactions: reportTransactions.length > 0,
+            optimisticChatReportID: reportOrAccountID,
         });
     };
 

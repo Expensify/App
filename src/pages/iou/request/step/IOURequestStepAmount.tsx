@@ -248,11 +248,8 @@ function IOURequestStepAmount({
                     participant,
                     transactionReportID: report?.reportID,
                 });
+                const {optimisticChatReportID, chatReportID} = resolveOptimisticChatReportID([participants.at(0)?.accountID ?? CONST.DEFAULT_NUMBER_ID, currentUserAccountIDParam], report);
                 if (iouType === CONST.IOU.TYPE.PAY || iouType === CONST.IOU.TYPE.SEND) {
-                    const {optimisticChatReportID, chatReportID} = resolveOptimisticChatReportID(
-                        [participants.at(0)?.accountID ?? CONST.DEFAULT_NUMBER_ID, currentUserAccountIDParam],
-                        report,
-                    );
                     const sendMoneyParams = {
                         report,
                         quickAction,
@@ -301,6 +298,7 @@ function IOURequestStepAmount({
                         existingTransactionDraft,
                         isSelfTourViewed,
                         personalDetails,
+                        optimisticChatReportID,
                     });
                 } else if (iouType === CONST.IOU.TYPE.TRACK) {
                     trackExpense({
@@ -338,6 +336,7 @@ function IOURequestStepAmount({
                     isFromGlobalCreate: transaction?.isFromFloatingActionButton ?? transaction?.isFromGlobalCreate,
                     hasMultipleTransactions: reportTransactions.length > 0,
                     backToReport,
+                    optimisticChatReportID,
                 });
                 return;
             }

@@ -249,10 +249,8 @@ describe('MoneyRequest', () => {
             });
 
             expect(TrackExpense.trackExpense).toHaveBeenCalledTimes(files.length);
-            // Callback must fire once per batch (not per file) and only after all action calls — UI relies on this for cleanup + navigation timing
             expect(onTransactionsCreated).toHaveBeenCalledTimes(1);
             expect(callOrder).toEqual(['trackExpense', 'trackExpense', 'trackExpense', 'onTransactionsCreated']);
-            // Must be the LAST file's ID so multi-receipt scans highlight the right expense
             expect(onTransactionsCreated).toHaveBeenCalledWith('333');
         });
 
@@ -876,7 +874,6 @@ describe('MoneyRequest', () => {
                     transactionParams: expect.objectContaining({gpsPoint: undefined}),
                 }),
             );
-            // Callback must still fire when GPS fails — UI cleanup and navigation are not gated on geolocation success
             expect(onTransactionsCreated).toHaveBeenCalledTimes(1);
             expect(callOrder).toEqual(['trackExpense', 'onTransactionsCreated']);
         });
@@ -908,7 +905,6 @@ describe('MoneyRequest', () => {
         it('should NOT call onTransactionsCreated when no createTransaction path is taken (early-return paths)', async () => {
             const onTransactionsCreated = jest.fn();
 
-            // backTo triggers Navigation.goBack and skips the create flow entirely
             handleMoneyRequestStepScanParticipants({
                 ...baseParams,
                 backTo,
@@ -919,7 +915,6 @@ describe('MoneyRequest', () => {
             await waitForBatchedUpdates();
             expect(TrackExpense.trackExpense).not.toHaveBeenCalled();
             expect(TrackExpense.requestMoney).not.toHaveBeenCalled();
-            // Firing the callback here would trigger UI cleanup and navigation despite no expense being created
             expect(onTransactionsCreated).not.toHaveBeenCalled();
         });
 
@@ -1326,7 +1321,6 @@ describe('MoneyRequest', () => {
                 onTransactionsCreated,
             });
 
-            // Callback must fire exactly once, AFTER trackExpense — UI relies on this ordering for cleanup + navigation
             expect(TrackExpense.trackExpense).toHaveBeenCalledTimes(1);
             expect(onTransactionsCreated).toHaveBeenCalledTimes(1);
             expect(onTransactionsCreated).toHaveBeenCalledWith(fakeTransaction.transactionID);
@@ -1336,7 +1330,6 @@ describe('MoneyRequest', () => {
         it('should NOT fire onTransactionsCreated on early-return paths (backTo) or non-TRACK paths (createDistanceRequest)', () => {
             const onTransactionsCreated = jest.fn();
 
-            // backTo short-circuits the function before any expense is created
             handleMoneyRequestStepDistanceNavigation({
                 ...baseParams,
                 backTo,
@@ -1344,7 +1337,6 @@ describe('MoneyRequest', () => {
             });
             expect(onTransactionsCreated).not.toHaveBeenCalled();
 
-            // Non-TRACK skip-confirm path delegates to createDistanceRequest, which owns its own post-create flow
             handleMoneyRequestStepDistanceNavigation({
                 ...baseParams,
                 shouldSkipConfirmation: true,
