@@ -35,12 +35,8 @@ type UseReportActionsScrollParams = {
     unreadMarkerReportActionIndex: number;
     loadOlderChats: (force?: boolean) => void;
     loadNewerChats: (force?: boolean) => void;
-    shouldAddCreatedAction: boolean;
     linkedReportActionID: string | undefined;
-    shouldScrollToEndAfterLayout: boolean;
-    setShouldScrollToEndAfterLayout: (v: boolean) => void;
     shouldFocusToTopOnMount: boolean;
-    isOffline: boolean;
     hasOnceLoadedReportActions: boolean;
     onLayout?: (event: LayoutChangeEvent) => void;
 };
@@ -66,12 +62,8 @@ function useReportActionsScroll({
     unreadMarkerReportActionIndex,
     loadOlderChats,
     loadNewerChats,
-    shouldAddCreatedAction,
     linkedReportActionID,
-    shouldScrollToEndAfterLayout,
-    setShouldScrollToEndAfterLayout,
     shouldFocusToTopOnMount,
-    isOffline,
     hasOnceLoadedReportActions,
     onLayout,
 }: UseReportActionsScrollParams): UseReportActionsScrollResult {
@@ -87,7 +79,6 @@ function useReportActionsScroll({
     const [isScrollToBottomEnabled, setIsScrollToBottomEnabled] = useState(false);
     const [actionIdToHighlight, setActionIdToHighlight] = useState('');
 
-    const prevShouldAddCreatedAction = useRef(shouldAddCreatedAction);
     const hasNewestReportActionRef = useRef(false);
     const sortedVisibleReportActionsRef = useRef(sortedVisibleReportActions);
 
@@ -105,9 +96,6 @@ function useReportActionsScroll({
         isInverted: true,
         onTrackScrolling: (event: NativeSyntheticEvent<NativeScrollEvent>) => {
             scrollOffsetRef.current = event.nativeEvent.contentOffset.y;
-            if (shouldScrollToEndAfterLayout && (!shouldAddCreatedAction || isOffline)) {
-                setShouldScrollToEndAfterLayout(false);
-            }
         },
         hasOnceLoadedReportActions,
     });
@@ -122,20 +110,6 @@ function useReportActionsScroll({
         scrollToEnd: reportScrollManager.scrollToBottom,
         resetKey: linkedReportActionID,
     });
-
-    // Scroll to end when shouldAddCreatedAction flips off (IOU/transaction thread top focus)
-    useEffect(() => {
-        const shouldTriggerScroll = shouldFocusToTopOnMount && prevShouldAddCreatedAction.current && !shouldAddCreatedAction;
-        if (!shouldTriggerScroll) {
-            return;
-        }
-        requestAnimationFrame(() => reportScrollManager.scrollToEnd());
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [shouldAddCreatedAction]);
-
-    useEffect(() => {
-        prevShouldAddCreatedAction.current = shouldAddCreatedAction;
-    }, [shouldAddCreatedAction]);
 
     // scrollToBottomForCurrentUserAction — called from Pusher new action subscription
     const scrollToBottomForCurrentUserAction = (isFromCurrentUser: boolean, action?: OnyxTypes.ReportAction) => {
@@ -245,7 +219,7 @@ function useReportActionsScroll({
 
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
-            if (shouldScrollToEndAfterLayout) {
+            if (shouldFocusToTopOnMount) {
                 return;
             }
             setIsFloatingMessageCounterVisible(false);
@@ -315,11 +289,6 @@ function useReportActionsScroll({
         if (isScrollToBottomEnabled) {
             reportScrollManager.scrollToBottom();
             setIsScrollToBottomEnabled(false);
-        }
-        if (shouldScrollToEndAfterLayout && (!shouldAddCreatedAction || isOffline)) {
-            requestAnimationFrame(() => {
-                reportScrollManager.scrollToEnd();
-            });
         }
     };
 

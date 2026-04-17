@@ -1,12 +1,11 @@
 import {isUserValidatedSelector} from '@selectors/Account';
 import {tierNameSelector} from '@selectors/UserWallet';
 import type {ListRenderItemInfo} from '@shopify/flash-list';
-import React, {useContext, useEffect, useState} from 'react';
+import React, {useContext, useEffect} from 'react';
 import type {LayoutChangeEvent} from 'react-native';
 import {View} from 'react-native';
 import {renderScrollComponent as renderActionSheetAwareScrollView} from '@components/ActionSheetAwareScrollView';
 import InvertedFlashList from '@components/FlashList/InvertedFlashList';
-import getShowScrollIndicator from '@components/FlashList/InvertedFlashList/getShowScrollIndicator';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
 import useCopySelectionHelper from '@hooks/useCopySelectionHelper';
@@ -23,7 +22,6 @@ import useReportActionsScroll from '@hooks/useReportActionsScroll';
 import useReportActionsVisibility from '@hooks/useReportActionsVisibility';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useUnreadMarker from '@hooks/useUnreadMarker';
 import {updateLoadingInitialReportAction} from '@libs/actions/Report';
@@ -58,7 +56,6 @@ import FloatingMessageCounter from './FloatingMessageCounter';
 import ReportActionsListHeader from './ReportActionsListHeader';
 import ReportActionsListItemRenderer from './ReportActionsListItemRenderer';
 import ShowPreviousMessagesButton from './ShowPreviousMessagesButton';
-import StaticReportActionsPreview from './StaticReportActionsPreview';
 
 type ReportActionsListProps = {
     /** The ID of the report to display actions for */
@@ -136,15 +133,6 @@ function ReportActionsList({reportID, onLayout}: ReportActionsListProps) {
 
     const linkedReportActionID = pagination.reportActionID;
 
-    // "Mount scrolled to end" workaround for transaction threads and money request reports.
-    // InvertedFlashList's `initialScrollKey` anchors items in the middle of the data via slicing + MVCP,
-    // but degenerates at the list's extreme: pinning the oldest item at the visual bottom conflicts with the
-    // inverted layout placing it at the visual top, so MVCP has no "above" content to balance against.
-    // Until a native solution is validated (e.g. `initialScrollIndex` on FlashList), we keep the hidden-render
-    // workaround: render items hidden via `getHiddenChatContentStyle`, call scrollToEnd after layout, then
-    // reveal. `StaticReportActionsPreview` displays a placeholder during this process.
-    const [shouldScrollToEndAfterLayout, setShouldScrollToEndAfterLayout] = useState(shouldFocusToTopOnMount && !linkedReportActionID);
-
     const scroll = useReportActionsScroll({
         reportID,
         report,
@@ -153,12 +141,8 @@ function ReportActionsList({reportID, onLayout}: ReportActionsListProps) {
         unreadMarkerReportActionIndex,
         loadOlderChats,
         loadNewerChats,
-        shouldAddCreatedAction: pagination.shouldAddCreatedAction,
         linkedReportActionID,
-        shouldScrollToEndAfterLayout,
-        setShouldScrollToEndAfterLayout,
         shouldFocusToTopOnMount,
-        isOffline,
         hasOnceLoadedReportActions: !!reportMetadata?.hasOnceLoadedReportActions,
         onLayout,
     });
@@ -174,7 +158,6 @@ function ReportActionsList({reportID, onLayout}: ReportActionsListProps) {
     // ─── START renderItem deps (can't be inside renderItem yet before list-item-level useOnyx is allowed — hooks must be at top level) ───
     const personalDetailsList = usePersonalDetails();
     const styles = useThemeStyles();
-    const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [userWalletTierName] = useOnyx(ONYXKEYS.USER_WALLET, {selector: tierNameSelector});
@@ -222,7 +205,6 @@ function ReportActionsList({reportID, onLayout}: ReportActionsListProps) {
     }
 
     const reportActionsListFSClass = FS.getChatFSClass(report);
-    const topReportAction = sortedVisibleReportActions.at(-1);
 
     const shouldShowOfflineSkeleton = isOffline && !sortedVisibleReportActions.some((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED);
 
@@ -271,8 +253,6 @@ function ReportActionsList({reportID, onLayout}: ReportActionsListProps) {
         );
     };
 
-    const previewItems = [...sortedVisibleReportActions].reverse();
-
     return (
         <>
             <FloatingMessageCounter
@@ -284,24 +264,6 @@ function ReportActionsList({reportID, onLayout}: ReportActionsListProps) {
                 style={[styles.flex1, !shouldShowReportRecipientLocalTime && !isWriteActionDisabled ? styles.pb4 : {}]}
                 fsClass={reportActionsListFSClass}
             >
-                {shouldScrollToEndAfterLayout && !!topReportAction && (
-                    <>
-                        {!shouldShowReportRecipientLocalTime && !isWriteActionDisabled && <View style={[styles.stickToBottom, styles.appBG, styles.zIndex10, styles.height4]} />}
-                        <StaticReportActionsPreview>
-                            {previewItems.map((action) => {
-                                const actionIndex = sortedVisibleReportActions.indexOf(action);
-                                return (
-                                    <View key={action.reportActionID}>
-                                        {renderItem({
-                                            item: action,
-                                            index: actionIndex,
-                                        } as ListRenderItemInfo<OnyxTypes.ReportAction>)}
-                                    </View>
-                                );
-                            })}
-                        </StaticReportActionsPreview>
-                    </>
-                )}
                 <InvertedFlashList
                     accessibilityLabel={translate('sidebarScreen.listOfChatMessages')}
                     ref={scroll.reportScrollManager.ref}
@@ -312,12 +274,7 @@ function ReportActionsList({reportID, onLayout}: ReportActionsListProps) {
                     keyExtractor={keyExtractor}
                     drawDistance={1500}
                     renderScrollComponent={renderActionSheetAwareScrollView}
-                    contentContainerStyle={[
-                        styles.chatContentScrollView,
-                        shouldFocusToTopOnMount && styles.justifyContentEnd,
-                        shouldScrollToEndAfterLayout && StyleUtils.getHiddenChatContentStyle(),
-                    ]}
-                    showsVerticalScrollIndicator={getShowScrollIndicator(shouldScrollToEndAfterLayout)}
+                    contentContainerStyle={[styles.chatContentScrollView, shouldFocusToTopOnMount && styles.justifyContentEnd]}
                     onEndReached={scroll.onEndReached}
                     onEndReachedThreshold={0.75}
                     onStartReached={scroll.onStartReached}
@@ -337,6 +294,7 @@ function ReportActionsList({reportID, onLayout}: ReportActionsListProps) {
                     key={reportID}
                     getItemType={(item) => item.actionName}
                     initialScrollKey={linkedReportActionID}
+                    maintainVisibleContentPosition={shouldFocusToTopOnMount && !linkedReportActionID ? {startRenderingFromBottom: true} : undefined}
                     onContentSizeChange={() => {
                         scroll.trackVerticalScrolling(undefined);
                     }}
