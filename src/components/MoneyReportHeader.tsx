@@ -110,7 +110,7 @@ import {
 import {startMoneyRequest} from '@userActions/IOU';
 import {getNavigationUrlOnMoneyRequestDelete} from '@userActions/IOU/DeleteMoneyRequest';
 import {cancelPayment, payInvoice, payMoneyRequest} from '@userActions/IOU/PayMoneyRequest';
-import {approveMoneyRequest, canApproveIOU, canIOUBePaid as canIOUBePaidAction, reopenReport, retractReport, submitReport, unapproveExpenseReport} from '@userActions/IOU/ReportWorkflow';
+import {approveMoneyRequest, canApproveIOU, canIOUBePaid as canIOUBePaidAction, reopenReport, retractReport, unapproveExpenseReport} from '@userActions/IOU/ReportWorkflow';
 import {setDeleteTransactionNavigateBackUrl} from '@userActions/Report';
 import {markPendingRTERTransactionsAsCash} from '@userActions/Transaction';
 import CONST from '@src/CONST';
@@ -752,63 +752,14 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
             }
 
             const doSubmit = () => {
-                submitReport({
-                    expenseReport: moneyRequestReport,
-                    policy,
-                    currentUserAccountIDParam: accountID,
-                    currentUserEmailParam: email ?? '',
-                    hasViolations,
-                    isASAPSubmitBetaEnabled,
-                    expenseReportCurrentNextStepDeprecated: nextStep,
-                    userBillingGracePeriodEnds,
-                    amountOwed,
-                    onSubmitted: () => {
-                        if (skipAnimation) {
-                            return;
-                        }
-                        startSubmittingAnimation();
-                    },
-                    ownerBillingGracePeriodEnd,
-                    delegateEmail,
-                });
-                if (currentSearchQueryJSON && !isOffline) {
-                    search({
-                        searchKey: currentSearchKey,
-                        shouldCalculateTotals,
-                        offset: 0,
-                        queryJSON: currentSearchQueryJSON,
-                        isOffline,
-                        isLoading: !!currentSearchResults?.search?.isLoading,
-                    });
-                }
+                Navigation.navigate(ROUTES.REPORT_SUBMIT_TO.getRoute(moneyRequestReport.reportID, Navigation.getActiveRoute()));
                 if (skipAnimation) {
                     clearSelectedTransactions(true);
                 }
             };
             confirmPendingRTERAndProceed(doSubmit);
         },
-        [
-            moneyRequestReport,
-            shouldBlockSubmit,
-            policy,
-            startSubmittingAnimation,
-            accountID,
-            email,
-            hasViolations,
-            isASAPSubmitBetaEnabled,
-            nextStep,
-            userBillingGracePeriodEnds,
-            amountOwed,
-            currentSearchQueryJSON,
-            isOffline,
-            currentSearchKey,
-            shouldCalculateTotals,
-            currentSearchResults?.search?.isLoading,
-            clearSelectedTransactions,
-            confirmPendingRTERAndProceed,
-            ownerBillingGracePeriodEnd,
-            delegateEmail,
-        ],
+        [moneyRequestReport, shouldBlockSubmit, clearSelectedTransactions, confirmPendingRTERAndProceed],
     );
 
     const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {selector: passthroughPolicyTagListSelector});
@@ -1326,19 +1277,7 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
                 }
 
                 confirmPendingRTERAndProceed(() => {
-                    submitReport({
-                        expenseReport: moneyRequestReport,
-                        policy,
-                        currentUserAccountIDParam: accountID,
-                        currentUserEmailParam: email ?? '',
-                        hasViolations,
-                        isASAPSubmitBetaEnabled,
-                        expenseReportCurrentNextStepDeprecated: nextStep,
-                        userBillingGracePeriodEnds,
-                        amountOwed,
-                        ownerBillingGracePeriodEnd,
-                        delegateEmail,
-                    });
+                    Navigation.navigate(ROUTES.REPORT_SUBMIT_TO.getRoute(moneyRequestReport.reportID, Navigation.getActiveRoute()));
                 });
             },
         },

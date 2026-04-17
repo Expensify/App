@@ -1047,6 +1047,12 @@ const ROUTES = {
         route: 'r/:reportID/change-approver/add',
         getRoute: (reportID: string) => `r/${reportID}/change-approver/add` as const,
     },
+    REPORT_SUBMIT_TO: {
+        route: 'r/:reportID/submit-to',
+
+        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
+        getRoute: (reportID: string, backTo?: string) => getUrlWithBackToParam(`r/${reportID}/submit-to` as const, backTo),
+    },
     REPORT_SETTINGS_REPORT_LAYOUT: {
         route: 'r/:reportID/settings/report-layout',
         getRoute: (reportID: string) => `r/${reportID}/settings/report-layout` as const,

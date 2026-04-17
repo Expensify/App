@@ -1438,6 +1438,11 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.REPORT_CHANGE_WORKSPACE.ROOT]: ROUTES.REPORT_WITH_ID_CHANGE_WORKSPACE.route,
                     },
                 },
+                [SCREENS.RIGHT_MODAL.REPORT_SUBMIT_TO]: {
+                    screens: {
+                        [SCREENS.REPORT_SUBMIT_TO.ROOT]: ROUTES.REPORT_SUBMIT_TO.route,
+                    },
+                },
                 [SCREENS.RIGHT_MODAL.REPORT_SETTINGS]: {
                     screens: {
                         [SCREENS.REPORT_SETTINGS.ROOT]: {

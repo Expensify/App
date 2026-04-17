@@ -329,6 +329,7 @@ const SCREENS = {
         ADD_UNREPORTED_EXPENSE: 'AddUnreportedExpense',
         SCHEDULE_CALL: 'ScheduleCall',
         REPORT_CHANGE_APPROVER: 'Report_Change_Approver',
+        REPORT_SUBMIT_TO: 'Report_Submit_To',
         REPORT_VERIFY_ACCOUNT: 'Report_Verify_Account',
         MERGE_TRANSACTION: 'MergeTransaction',
         REPORT_CARD_ACTIVATE: 'Report_Card_Activate',
@@ -972,6 +973,9 @@ const SCREENS = {
     REPORT_CHANGE_APPROVER: {
         ROOT: 'Report_Change_Approver_Root',
         ADD_APPROVER: 'Report_Change_Approver_Add_Approver',
+    },
+    REPORT_SUBMIT_TO: {
+        ROOT: 'Report_Submit_To_Root',
     },
     TEST_TOOLS_MODAL: {
         ROOT: 'TestToolsModal_Root',
