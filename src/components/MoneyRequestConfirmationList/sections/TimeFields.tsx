@@ -1,9 +1,9 @@
 import React from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {convertToDisplayString} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getCurrency} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
@@ -25,6 +25,7 @@ type TimeFieldsProps = {
 function TimeFields({transaction, isReadOnly, didConfirm, transactionID, action, iouType, reportID, reportActionID}: TimeFieldsProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {convertToDisplayString} = useCurrencyListActions();
 
     const iouTimeCount = transaction?.comment?.units?.count;
     const iouTimeRate = transaction?.comment?.units?.rate;
