@@ -92,7 +92,7 @@ function ActionCell({
             style={[styles.w100, shouldDisablePointerEvents && styles.pointerEventsNone]}
             isLoading={isLoading}
             success={action !== CONST.SEARCH.ACTION_TYPES.UNDELETE}
-            isDisabled={shouldBeDisabledInOffline || shouldDisablePointerEvents}
+            isDisabled={shouldBeDisabledOffline || shouldDisablePointerEvents}
             shouldStayNormalOnDisable={shouldDisablePointerEvents}
             innerStyles={buttonInnerStyles}
             isNested
