@@ -89,8 +89,6 @@ function useUnreadMarker({reportID, sortedVisibleReportActions, sortedReportActi
 
     const lastAction = sortedVisibleReportActions.at(0);
 
-    const prevUnreadMarkerReportActionID = useRef<string | null>(null);
-
     /**
      * The index of the earliest message that was received while offline.
      * Reverse for-loop using .at() to find the last qualifying index.
@@ -104,6 +102,11 @@ function useUnreadMarker({reportID, sortedVisibleReportActions, sortedReportActi
         }
     }
 
+    // Tracks the previous render's computed marker ID. The value is written in a post-commit
+    // effect (below) so render stays side-effect free. getUnreadMarkerReportAction only null-checks
+    // this value, so staleness by one render is harmless.
+    const prevUnreadMarkerReportActionIDRef = useRef<string | null>(null);
+
     const [unreadMarkerReportActionID, unreadMarkerReportActionIndex] = getUnreadMarkerReportAction({
         visibleReportActions: sortedVisibleReportActions,
         earliestReceivedOfflineMessageIndex,
@@ -111,12 +114,15 @@ function useUnreadMarker({reportID, sortedVisibleReportActions, sortedReportActi
         prevSortedVisibleReportActionsObjects,
         unreadMarkerTime,
         scrollingVerticalOffset: scrollingVerticalOffset.current ?? 0,
-        prevUnreadMarkerReportActionID: prevUnreadMarkerReportActionID.current,
+        prevUnreadMarkerReportActionID: prevUnreadMarkerReportActionIDRef.current,
         isOffline,
         isReversed: false,
         isAnonymousUser,
     });
-    prevUnreadMarkerReportActionID.current = unreadMarkerReportActionID;
+
+    useEffect(() => {
+        prevUnreadMarkerReportActionIDRef.current = unreadMarkerReportActionID;
+    }, [unreadMarkerReportActionID]);
 
     /**
      * When the user reads a new message as it is received, push unreadMarkerTime down to the

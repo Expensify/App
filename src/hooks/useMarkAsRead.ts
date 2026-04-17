@@ -122,22 +122,12 @@ function useMarkAsRead({reportID, sortedVisibleReportActions, transactionThreadR
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }
 
-    const prevHandleReportChangeMarkAsRead = useRef<(() => boolean | undefined) | null>(null);
-    const prevHandleAppVisibilityMarkAsRead = useRef<(() => boolean | undefined) | null>(null);
-
     useEffect(() => {
-        let isMarkedAsRead = false;
-        if (handleReportChangeMarkAsRead !== prevHandleReportChangeMarkAsRead.current) {
-            isMarkedAsRead = !!handleReportChangeMarkAsRead();
-        }
-
-        if (!isMarkedAsRead && handleAppVisibilityMarkAsRead !== prevHandleAppVisibilityMarkAsRead.current) {
+        // handleReportChangeMarkAsRead short-circuits via isMarkedAsRead to prevent duplicate readNewestAction calls.
+        const isMarkedAsRead = !!handleReportChangeMarkAsRead();
+        if (!isMarkedAsRead) {
             handleAppVisibilityMarkAsRead();
         }
-
-        prevHandleReportChangeMarkAsRead.current = handleReportChangeMarkAsRead;
-        prevHandleAppVisibilityMarkAsRead.current = handleAppVisibilityMarkAsRead;
-
         prevReportID = reportID;
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [report?.lastVisibleActionCreated, transactionThreadReport?.lastVisibleActionCreated, reportID, isVisible, isFocused, reportMetadata?.hasOnceLoadedReportActions]);

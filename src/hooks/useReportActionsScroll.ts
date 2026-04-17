@@ -1,5 +1,5 @@
 import {useRoute} from '@react-navigation/native';
-import {useContext, useEffect, useLayoutEffect, useRef, useState} from 'react';
+import {useContext, useEffect, useEffectEvent, useLayoutEffect, useRef, useState} from 'react';
 import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent, ViewToken} from 'react-native';
 import {InteractionManager} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -77,14 +77,9 @@ function useReportActionsScroll({
     const [isScrollToBottomEnabled, setIsScrollToBottomEnabled] = useState(false);
     const [actionIdToHighlight, setActionIdToHighlight] = useState('');
 
-    const hasNewestReportActionRef = useRef(false);
-    const sortedVisibleReportActionsRef = useRef(sortedVisibleReportActions);
-
     const lastAction = sortedVisibleReportActions.at(0);
     const lastVisibleActionCreated = getReportLastVisibleActionCreated(report, undefined);
     const hasNewestReportAction = lastAction?.created === lastVisibleActionCreated || isReportPreviewAction(lastAction);
-    hasNewestReportActionRef.current = hasNewestReportAction;
-    sortedVisibleReportActionsRef.current = sortedVisibleReportActions;
 
     const {isFloatingMessageCounterVisible, setIsFloatingMessageCounterVisible, trackVerticalScrolling, onViewableItemsChanged} = useReportUnreadMessageScrollTracking({
         reportID,
@@ -109,8 +104,10 @@ function useReportActionsScroll({
         resetKey: linkedReportActionID,
     });
 
-    // scrollToBottomForCurrentUserAction — called from Pusher new action subscription
-    const scrollToBottomForCurrentUserAction = (isFromCurrentUser: boolean, action?: OnyxTypes.ReportAction) => {
+    // scrollToBottomForCurrentUserAction — called from Pusher new action subscription.
+    // useEffectEvent keeps the callback identity stable so the subscription isn't re-registered per render,
+    // while still reading the latest `hasNewestReportAction` / `sortedVisibleReportActions` on invocation.
+    const scrollToBottomForCurrentUserAction = useEffectEvent((isFromCurrentUser: boolean, action?: OnyxTypes.ReportAction) => {
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             // If a new comment is added and it's from the current user scroll to the bottom otherwise leave the user positioned where
@@ -118,7 +115,7 @@ function useReportActionsScroll({
             if (!isFromCurrentUser || (!isReportTopmostSplitNavigator() && !Navigation.getReportRHPActiveRoute())) {
                 return;
             }
-            if (!hasNewestReportActionRef.current && !isFromCurrentUser) {
+            if (!hasNewestReportAction && !isFromCurrentUser) {
                 if (Navigation.getReportRHPActiveRoute()) {
                     return;
                 }
@@ -127,7 +124,7 @@ function useReportActionsScroll({
                 });
                 return;
             }
-            const index = sortedVisibleReportActionsRef.current.findIndex((item) => item.reportActionID === action?.reportActionID);
+            const index = sortedVisibleReportActions.findIndex((item) => item.reportActionID === action?.reportActionID);
             if (action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) {
                 if (index > 0) {
                     setTimeout(() => {
@@ -147,7 +144,7 @@ function useReportActionsScroll({
 
             setIsScrollToBottomEnabled(true);
         });
-    };
+    });
 
     // Pusher new action subscription — one per reportID
     useEffect(() => {
