@@ -58,6 +58,7 @@ function TransactionListItem<TItem extends ListItem>({
     isLastItem,
     userBillingGracePeriodEnds,
     ownerBillingGracePeriodEnd,
+    policyForMovingExpenses,
     onUndelete,
 }: TransactionListItemProps<TItem>) {
     const transactionItem = item as unknown as TransactionListItemType;
@@ -260,6 +261,7 @@ function TransactionListItem<TItem extends ListItem>({
                             isHover={hovered}
                             nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}
                             reportActions={exportedReportActions}
+                            policyForMovingExpenses={policyForMovingExpenses}
                         />
                     </>
                 )}

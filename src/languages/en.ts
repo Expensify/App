@@ -106,6 +106,7 @@ const translations = {
         newFeature: 'New feature',
         search: 'Search',
         reports: 'Reports',
+        spend: 'Spend',
         find: 'Find',
         searchWithThreeDots: 'Search...',
         next: 'Next',
@@ -1083,6 +1084,7 @@ const translations = {
             title: 'Getting started',
             createWorkspace: 'Create a workspace',
             connectAccounting: ({integrationName}: {integrationName: string}) => `Connect to ${integrationName}`,
+            connectAccountingDefault: 'Connect to accounting',
             customizeCategories: 'Customize accounting categories',
             linkCompanyCards: 'Link company cards',
             setupRules: 'Set up spend rules',
@@ -5526,6 +5528,8 @@ const translations = {
                             monthlySpendLimitDescription: 'The maximum amount each member can spend on travel per month.',
                             reduceLimitTitle: 'Reduce travel spend limit?',
                             reduceLimitWarning: 'If you reduce the limit, members who have already spent more than this amount will be unable to make new travel bookings until next month.',
+                            provisioningError:
+                                "We weren't able to provision some of the members of your workspace for central invoicing. Please try again later or reach out to Concierge for assistance.",
                         },
                     },
                     disableModal: {
@@ -9040,9 +9044,12 @@ const translations = {
                 one: 'Close account',
                 other: 'Close accounts',
             }),
+            moveToGroup: 'Move to group',
+            chooseWhereToMove: ({count}: {count: number}) => `Choose where to move ${count} ${count === 1 ? 'member' : 'members'}.`,
             error: {
                 addMember: 'Unable to add this member. Please try again.',
                 removeMember: 'Unable to remove this user. Please try again.',
+                moveMember: 'Unable to move this member. Please try again.',
                 vacationDelegate: 'Unable to set this user as a vacation delegate. Please try again.',
             },
             cannotSetVacationDelegateForMember: (email: string) => `You can't set a vacation delegate for ${email} because they're currently the delegate for the following members:`,

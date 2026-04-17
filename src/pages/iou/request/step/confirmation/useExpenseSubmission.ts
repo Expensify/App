@@ -153,7 +153,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
     // Permissions
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
-    const shouldGenerateTransactionThreadReport = !isBetaEnabled(CONST.BETAS.NO_OPTIMISTIC_TRANSACTION_THREADS);
+    const shouldGenerateTransactionThreadReport = false;
 
     // UI state
     const [isConfirmed, setIsConfirmed] = useState(false);
