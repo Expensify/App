@@ -40,11 +40,10 @@ import Log from '@libs/Log';
 import navigateAfterInteraction from '@libs/Navigation/navigateAfterInteraction';
 import Navigation from '@libs/Navigation/Navigation';
 import type {ShareNavigatorParamList} from '@libs/Navigation/types';
-import {rand64} from '@libs/NumberUtils';
 import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
 import {hasOnlyPersonalPolicies as hasOnlyPersonalPoliciesUtil, isPaidGroupPolicy} from '@libs/PolicyUtils';
 import {shouldValidateFile} from '@libs/ReceiptUtils';
-import {generateReportID, getReportOrDraftReport, isSelfDM} from '@libs/ReportUtils';
+import {getReportOrDraftReport, isSelfDM} from '@libs/ReportUtils';
 import {getDefaultTaxCode, getTaxValue} from '@libs/TransactionUtils';
 import DraftWorkspaceOpener from '@pages/iou/request/step/confirmation/DraftWorkspaceOpener';
 import CONST from '@src/CONST';
@@ -243,8 +242,6 @@ function SubmitDetailsPage({
                     gpsPoint,
                     isFromGlobalCreate: transaction.isFromFloatingActionButton ?? transaction.isFromGlobalCreate,
                 },
-                accountantParams: {accountant: transaction.accountant},
-                shouldHandleNavigation: true,
                 isASAPSubmitBetaEnabled,
                 currentUserAccountIDParam: currentUserPersonalDetails.accountID,
                 currentUserEmailParam: currentUserPersonalDetails.login ?? '',
@@ -262,9 +259,6 @@ function SubmitDetailsPage({
 
             requestMoney({
                 report,
-                optimisticChatReportID: generateReportID(),
-                optimisticCreatedReportActionID: rand64(),
-                optimisticReportPreviewActionID: rand64(),
                 participantParams: {payeeEmail: currentUserPersonalDetails.login, payeeAccountID: currentUserPersonalDetails.accountID, participant},
                 policyParams: {policy, policyTagList: policyTags, policyCategories, policyRecentlyUsedCategories, policyRecentlyUsedTags},
                 gpsPoint,
@@ -293,7 +287,6 @@ function SubmitDetailsPage({
                     originalTransactionID: transaction.comment?.originalTransactionID,
                     source: transaction.comment?.source,
                 },
-                shouldHandleNavigation: true,
                 shouldGenerateTransactionThreadReport: false,
                 isASAPSubmitBetaEnabled,
                 currentUserAccountIDParam: currentUserPersonalDetails.accountID,
