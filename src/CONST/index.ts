@@ -3257,6 +3257,9 @@ const CONST = {
             isLoading: false,
             errors: {},
         },
+        // Redirect URI used by the native Plaid SDK on iOS. It is not a registered app route —
+        // the SDK handles the OAuth callback itself, so deep-link handlers must ignore this path.
+        OAUTH_REDIRECT_PATH_IOS: 'partners/plaid/oauth_ios',
     },
 
     ONFIDO: {
