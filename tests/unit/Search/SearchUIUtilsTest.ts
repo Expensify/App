@@ -6304,11 +6304,10 @@ describe('SearchUIUtils', () => {
                 isTrackIntentUser: false,
             });
 
-            const todoSection = sections.find((section) => section.translationPath === 'common.todo');
-            expect(todoSection).toBeDefined();
-            expect(todoSection?.menuItems.length).toBeGreaterThan(0);
+            const todoSectionMenuItems = sections.flatMap((section) => section.menuItems.filter((item) => SearchUIUtils.TODO_SEARCH_KEYS.has(item.key)));
+            expect(todoSectionMenuItems.length).toBeGreaterThan(0);
 
-            const menuItemKeys = todoSection?.menuItems.map((item) => item.key) ?? [];
+            const menuItemKeys = todoSectionMenuItems.map((item) => item.key);
             expect(menuItemKeys).toContain(CONST.SEARCH.SEARCH_KEYS.SUBMIT);
             expect(menuItemKeys).toContain(CONST.SEARCH.SEARCH_KEYS.APPROVE);
             expect(menuItemKeys).toContain(CONST.SEARCH.SEARCH_KEYS.EXPORT);
@@ -6366,19 +6365,17 @@ describe('SearchUIUtils', () => {
                 isTrackIntentUser: false,
             });
 
-            const monthlyAccrualSection = sections.find((section) => section.translationPath === 'search.monthlyAccrual');
-            expect(monthlyAccrualSection).toBeDefined();
-            expect(monthlyAccrualSection?.menuItems.length).toBeGreaterThan(0);
+            const monthlyAccrualSectionMenuItems = sections.flatMap((section) => section.menuItems.filter((item) => SearchUIUtils.MONTHLY_ACCRUAL_SEARCH_KEYS.has(item.key)));
+            expect(monthlyAccrualSectionMenuItems.length).toBeGreaterThan(0);
 
-            const monthlyAccrualKeys = monthlyAccrualSection?.menuItems.map((item) => item.key) ?? [];
+            const monthlyAccrualKeys = monthlyAccrualSectionMenuItems.map((item) => item.key);
             expect(monthlyAccrualKeys).toContain(CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CASH);
             expect(monthlyAccrualKeys).toContain(CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CARD);
 
-            const reconciliationSection = sections.find((section) => section.translationPath === 'search.reconciliation');
-            expect(reconciliationSection).toBeDefined();
-            expect(reconciliationSection?.menuItems.length).toBeGreaterThan(0);
+            const reconciliationSectionMenuItems = sections.flatMap((section) => section.menuItems.filter((item) => SearchUIUtils.RECONCILIATION_SEARCH_KEYS.has(item.key)));
+            expect(reconciliationSectionMenuItems).toBeGreaterThan(0);
 
-            const reconciliationKeys = reconciliationSection?.menuItems.map((item) => item.key) ?? [];
+            const reconciliationKeys = reconciliationSectionMenuItems.map((item) => item.key);
             expect(reconciliationKeys).toContain(CONST.SEARCH.SEARCH_KEYS.STATEMENTS);
             expect(reconciliationKeys).toContain(CONST.SEARCH.SEARCH_KEYS.EXPENSIFY_CARD);
             expect(reconciliationKeys).toContain(CONST.SEARCH.SEARCH_KEYS.RECONCILIATION);
@@ -6523,8 +6520,8 @@ describe('SearchUIUtils', () => {
                 isTrackIntentUser: false,
             });
 
-            const todoSection = sections.find((section) => section.translationPath === 'common.todo');
-            expect(todoSection).toBeUndefined();
+            const todoSectionMenuItems = sections.flatMap((section) => section.menuItems.filter((item) => SearchUIUtils.TODO_SEARCH_KEYS.has(item.key)));
+            expect(todoSectionMenuItems.length).toBe(0);
         });
 
         it('should not show monthly accrual or reconciliation sections when user has no admin permissions or card feeds', () => {
@@ -6555,10 +6552,10 @@ describe('SearchUIUtils', () => {
                 isTrackIntentUser: false,
             });
 
-            const monthlyAccrualSection = sections.find((section) => section.translationPath === 'search.monthlyAccrual');
-            const reconciliationSection = sections.find((section) => section.translationPath === 'search.reconciliation');
-            expect(monthlyAccrualSection).toBeUndefined();
-            expect(reconciliationSection).toBeUndefined();
+            const monthlyAccrualSectionMenuItems = sections.flatMap((section) => section.menuItems.filter((item) => SearchUIUtils.MONTHLY_ACCRUAL_SEARCH_KEYS.has(item.key)));
+            const reconciliationSectionMenuItems = sections.flatMap((section) => section.menuItems.filter((item) => SearchUIUtils.RECONCILIATION_SEARCH_KEYS.has(item.key)));
+            expect(monthlyAccrualSectionMenuItems.length).toBe(0);
+            expect(reconciliationSectionMenuItems.length).toBe(0);
         });
 
         it('should show reconciliation for ACH-only scenario (payments enabled, active VBBA, reimburser set, areExpensifyCardsEnabled = false)', () => {
@@ -6599,10 +6596,10 @@ describe('SearchUIUtils', () => {
                 isTrackIntentUser: false,
             });
 
-            const reconciliationSection = sections.find((section) => section.translationPath === 'search.reconciliation');
-            expect(reconciliationSection).toBeDefined();
+            const reconciliationSectionMenuItems = sections.flatMap((section) => section.menuItems.filter((item) => SearchUIUtils.RECONCILIATION_SEARCH_KEYS.has(item.key)));
+            expect(reconciliationSectionMenuItems.length).toBeGreaterThan(0);
 
-            const menuItemKeys = reconciliationSection?.menuItems.map((item) => item.key) ?? [];
+            const menuItemKeys = reconciliationSectionMenuItems.map((item) => item.key);
             expect(menuItemKeys).not.toContain(CONST.SEARCH.SEARCH_KEYS.EXPENSIFY_CARD);
             expect(menuItemKeys).toContain(CONST.SEARCH.SEARCH_KEYS.RECONCILIATION);
         });
@@ -6636,10 +6633,10 @@ describe('SearchUIUtils', () => {
                 draftTransactionIDs: [],
                 isTrackIntentUser: false,
             });
-            const reconciliationSection = sections.find((section) => section.translationPath === 'search.reconciliation');
-            expect(reconciliationSection).toBeDefined();
+            const reconciliationSectionMenuItems = sections.flatMap((section) => section.menuItems.filter((item) => SearchUIUtils.RECONCILIATION_SEARCH_KEYS.has(item.key)));
+            expect(reconciliationSectionMenuItems).toBeGreaterThan(0);
 
-            const menuItemKeys = reconciliationSection?.menuItems.map((item) => item.key) ?? [];
+            const menuItemKeys = reconciliationSectionMenuItems.map((item) => item.key);
             expect(menuItemKeys).toContain(CONST.SEARCH.SEARCH_KEYS.EXPENSIFY_CARD);
             expect(menuItemKeys).not.toContain(CONST.SEARCH.SEARCH_KEYS.RECONCILIATION);
             expect(menuItemKeys).not.toContain(CONST.SEARCH.SEARCH_KEYS.STATEMENTS);
@@ -6733,13 +6730,12 @@ describe('SearchUIUtils', () => {
                 draftTransactionIDs: [],
                 isTrackIntentUser: false,
             });
-            const todoSection = sections.find((section) => section.translationPath === 'common.todo');
-            expect(todoSection).toBeDefined();
+            const todoSectionMenuItems = sections.flatMap((section) => section.menuItems.filter((item) => SearchUIUtils.TODO_SEARCH_KEYS.has(item.key)));
 
-            const submitItem = todoSection?.menuItems.find((item) => item.key === CONST.SEARCH.SEARCH_KEYS.SUBMIT);
-            const approveItem = todoSection?.menuItems.find((item) => item.key === CONST.SEARCH.SEARCH_KEYS.APPROVE);
-            const payItem = todoSection?.menuItems.find((item) => item.key === CONST.SEARCH.SEARCH_KEYS.PAY);
-            const exportItem = todoSection?.menuItems.find((item) => item.key === CONST.SEARCH.SEARCH_KEYS.EXPORT);
+            const submitItem = todoSectionMenuItems.find((item) => item.key === CONST.SEARCH.SEARCH_KEYS.SUBMIT);
+            const approveItem = todoSectionMenuItems.find((item) => item.key === CONST.SEARCH.SEARCH_KEYS.APPROVE);
+            const payItem = todoSectionMenuItems.find((item) => item.key === CONST.SEARCH.SEARCH_KEYS.PAY);
+            const exportItem = todoSectionMenuItems.find((item) => item.key === CONST.SEARCH.SEARCH_KEYS.EXPORT);
 
             expect(submitItem).toBeDefined();
             expect(approveItem).toBeDefined();

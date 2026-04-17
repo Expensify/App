@@ -36,6 +36,7 @@ import {areAllGroupPoliciesExpenseChatDisabled, getDefaultChatEnabledPolicy, get
 import {generateReportID, hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
 import {isDefaultExpenseReportsQuery, isDefaultExpensesQuery} from '@libs/SearchQueryUtils';
 import type {SearchTypeMenuSection} from '@libs/SearchUIUtils';
+import {TODO_SEARCH_KEYS} from '@libs/SearchUIUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -234,7 +235,6 @@ function EmptySearchViewContent({
     };
 
     const typeMenuItems = typeMenuSections.map((section) => section.menuItems).flat();
-    const todoMenuItems = new Set(typeMenuSections.filter((section) => section.translationPath === 'common.todo').flatMap((section) => section.menuItems));
 
     // Default 'Folder' illustration styles
     const defaultViewItemHeader = useSearchEmptyStateIllustration();
@@ -249,7 +249,7 @@ function EmptySearchViewContent({
     // if it exists. Use fireworks for celebratory items (To-do, Unapproved Cash), folder for everything else.
     for (const menuItem of typeMenuItems) {
         if (menuItem.similarSearchHash === similarSearchHash && menuItem.emptyState) {
-            const useFireworks = todoMenuItems.has(menuItem) || menuItem.key === CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CASH;
+            const useFireworks = TODO_SEARCH_KEYS.has(menuItem.key) || menuItem.key === CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CASH;
             content = {
                 ...(useFireworks ? defaultViewItemHeader.fireworks : defaultViewItemHeader.folder),
                 title: translate(menuItem.emptyState.title),
