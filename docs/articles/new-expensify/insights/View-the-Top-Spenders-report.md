@@ -30,10 +30,10 @@ The Top Spenders report is available to Workspace Admins, Approvers, and Auditor
 ## Where to find the Top Spenders report
 
 **Web:**  
-Use the navigation tabs on the left and select **Reports**, then click **Top spenders** under the **Insights** section.
+Use the navigation tabs on the left and select **Spend**, then click **Top spenders** under the **Insights** section.
 
 **Mobile:**  
-Tap **Reports** from the navigation tabs on the bottom, then tap the hamburger menu in the top-right corner. Under **Insights**, tap **Top spenders**.
+Tap **Spend** from the navigation tabs on the bottom, then tap the hamburger menu in the top-right corner. Under **Insights**, tap **Top spenders**.
 
 ---
 
@@ -63,11 +63,11 @@ Yes - you can adjust filters like date range, workspace, or employee to explore 
 
 To create and save a custom report: 
 
-1. Go to the **Reports** or **Expenses** tab.
+1. Go to the **Spend** or **Expenses** tab.
 2. Use filters to adjust grouping and timeframes.
 3. Apply filters and save your custom search.
 
-[Learn how to create custom reports](https://help.expensify.com/articles/new-expensify/reports-and-expenses/Using-Reports-in-New-Expensify#How-to-use-Reports-search-query-commands).
+[Learn how to create custom reports](https://help.expensify.com/articles/new-expensify/reports-and-expenses/Using-Reports-in-New-Expensify#how-to-use-spend-search-query-commands).
 
 ---
 
@@ -105,7 +105,7 @@ The report will update instantly to reflect your selected view.
 
 Not directly — the Top Spenders report can’t be exported with its grouped totals or summary data. However, if you expand each group to reveal the individual expenses, you can then select those expenses and use Export to CSV to download the raw data.
 
-1. Go to the **Reports** tab.
+1. Go to the **Spend** tab.
 2. Apply filters to create your own view.
 3. Click **Export to CSV**.
 

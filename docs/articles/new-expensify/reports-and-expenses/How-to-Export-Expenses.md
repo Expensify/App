@@ -16,7 +16,7 @@ If you’re trying to export a specific type of data, use the guides below:
 
 ## How to export a single expense
 
-1. In the navigation tabs (on the left on web, on the bottom on mobile), go to **Reports** > **Expenses**.
+1. In the navigation tabs (on the left on web, on the bottom on mobile), go to **Spend** > **Expenses**.
 2. Open the expense you want to export.
 3. Select **More**.
 4. Select **Export**.
@@ -26,7 +26,7 @@ You'll receive the exported CSV file in a message from Concierge.
 
 ## How to export multiple expenses
 
-1. In the navigation tabs (on the left on web, on the bottom on mobile), go to **Reports** > **Expenses**.
+1. In the navigation tabs (on the left on web, on the bottom on mobile), go to **Spend** > **Expenses**.
 2. Select the checkbox next to each expense you want to export, or use the top checkbox to select all.
 3. Select **Selected** at the top.
 4. Select **Export**.
@@ -58,7 +58,7 @@ If your Workspace Admin has created custom export templates, you can select one 
 
 ## Why don't I see certain export templates?
 
-Report-level templates (such as All Data - Report Level Export) only appear when exporting from the Reports page with full reports selected. When exporting individual expenses from the Expenses page, only expense-level templates are available.
+Report-level templates (such as All Data - Report Level Export) only appear when exporting from **Spend > Reports** page with full reports selected. When exporting individual expenses from the Expenses page, only expense-level templates are available.
 
 ## The data looks wrong in Excel. How can I fix it?
 

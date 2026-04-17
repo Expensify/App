@@ -11,7 +11,7 @@ The search operator framework lets you quickly filter, sort, and group items lik
 
 # Who can use search operators in Expensify
 
-Anyone can use search operators when filtering data in features like Expenses, Reports, Chats, and Tasks. This is especially helpful for Workspace Admins, accountants, and finance teams looking to analyze or export targeted data.
+Anyone can use search operators when filtering data in features like expenses, reports, chats, and tasks. This is especially helpful for Workspace Admins, accountants, and finance teams looking to analyze or export targeted data.
 
 ---
 

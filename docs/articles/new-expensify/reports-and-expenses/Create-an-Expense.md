@@ -114,7 +114,7 @@ The total amount will be calculated automatically using the hourly rate set for 
 
 ## How to bulk upload multiple receipts (web only)
 
-1. On the web, go to the **Reports** page or the **Home** page. 
+1. On the web, go to the **Spend** page or the **Home** page. 
 2. Drag up to 30 PDF or image files (under 10MB each) into Expensify.
 3. Follow the prompts to assign workspaces, recipients, and coding.
 4. Once the expenses are ready, click **Create expenses**. 

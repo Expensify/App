@@ -1,10 +1,10 @@
 ---
-title: Getting Started with the Reports Page
-description: Learn how to use the Reports page in New Expensify to view, filter, and manage your expense data using report previews, tables, filters, and smart suggestions.
-keywords: [New Expensify, reports page, report preview, report table, filters, smart suggestions, expense management, add expenses, bulk actions, date range, search, expenses missing, reports navigation]
+title: Getting Started with the Spend Page
+description: Learn how to use the Spend page in New Expensify to view, filter, and manage your expense data using report previews, tables, filters, and smart suggestions.
+keywords: [New Expensify, Spend page, report preview, report table, filters, smart suggestions, expense management, add expenses, bulk actions, date range, search, expenses missing, Spend navigation]
 ---
 
-The Reports page in New Expensify gives you a complete view of your submitted, approved, and reimbursed expenses—all in one place. This guide shows you how to use report previews, tables, filters, and smart suggestions to track, manage, and take action on your expenses more efficiently.
+The Spend page in New Expensify gives you a complete view of your submitted, approved, and reimbursed expenses—all in one place. This guide shows you how to use report previews, tables, filters, and smart suggestions to track, manage, and take action on your expenses more efficiently.
 
 ---
 
@@ -78,7 +78,7 @@ Filters help you narrow down expenses or reports so you can find exactly what yo
 
 - **Add unreported expenses to a report**: Use filters to find unreported expenses, and then add them to a report with just a few clicks.
 - **Quickly search and locate specific reports using filters**  
-  On the **Reports** page, filter by:
+  On the **Spend** page, filter by:
   - **Workspace**
   - **Submitter**
   - **Report status** (e.g., Open, Approved, Reimbursed)
@@ -89,9 +89,9 @@ You can filter your **expenses** and **reports** using dropdowns, search bars, a
 
 - **Expenses:** can be filtered by `Date`, `Merchant`, `Category`, `Tag`, `Amount`, `Reimbursable`, `Billable`, `Status` (e.g. Unreported)
 
-- **Reports:** can be filtered by `Submitter`, `Workspace`, `Report Status` (e.g. Draft, Outstanding, Approved, Paid), `Date`
+- **Reports**: can be filtered by `Submitter`, `Workspace`, `Report Status` (e.g. Draft, Outstanding, Approved, Paid), `Date`
 
-To view other available filters, click into the **search box** on the Reports or Expenses page.
+To view other available filters, click into the **search box** on the **Spend** page while viewing **Reports** or **Expenses** under **Explore**.
 
 ## How Filtering Works
 
@@ -127,8 +127,8 @@ Smart suggestions recommend the next best action—like submitting a report or a
 
 # FAQ
 
-## Can I export reports from the Reports page?
-Yes! You can [export filtered reports to CSV](https://help.expensify.com/articles/new-expensify/reports-and-expenses/Search-and-Download-Expenses) using the export option at the top of the Reports page.
+## Can I export reports from the Spend page?
+Yes! You can [export filtered reports to CSV](https://help.expensify.com/articles/new-expensify/reports-and-expenses/Search-and-Download-Expenses) using the export option at the top of the Spend page.
 
 ## Do smart suggestions work on mobile?
 Yes, smart suggestions also appear in the mobile Inbox and draft reports.

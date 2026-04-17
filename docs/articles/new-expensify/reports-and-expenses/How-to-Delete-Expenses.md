@@ -23,7 +23,7 @@ Most expenses can be deleted directly. If an expense is on a submitted report or
 
 ## How to delete multiple expenses
 
-1. In the navigation tabs (on the left on web, on the bottom on mobile) select **Reports** > **Expenses**.
+1. In the navigation tabs (on the left on web, on the bottom on mobile) select **Spend** > **Expenses**.
 2. Select the expenses you want to delete.
 3. Choose **Selected**, then **Delete**.
 
@@ -33,7 +33,7 @@ Most expenses can be deleted directly. If an expense is on a submitted report or
 
 ## How to delete an expense from a report 
 
-1. In the navigation tabs (on the left on web, on the bottom on mobile) select **Reports** > **Expenses**.
+1. In the navigation tabs (on the left on web, on the bottom on mobile) select **Spend** > **Expenses**.
 2. Open the report that contains the expense.
 3. Select the expense you want to delete.
 4. Choose **Selected**, then **Delete**.

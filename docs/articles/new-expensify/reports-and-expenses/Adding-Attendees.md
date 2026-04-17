@@ -19,7 +19,7 @@ All members can add attendees to their own expenses.
 
 ## How to add attendees to an expense 
 
-1. From the navigation tabs (on the left on web, and at the bottom on mobile), go to **Reports > Expenses**.
+1. From the navigation tabs (on the left on web, and at the bottom on mobile), go to **Spend > Expenses**.
 2. Open the expense and click **Attendees**. 
 3. Select attendees from **Recents**, **Contacts**, or enter a name, email, or phone number.
 4. Select each attendee to add a checkmark next to their name. 

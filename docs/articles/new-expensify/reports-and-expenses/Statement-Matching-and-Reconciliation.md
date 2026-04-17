@@ -19,7 +19,7 @@ Workspace Admins whose workspace has at least one company card feed connected ca
 
 ## How to Reconcile Company Card Transactions Against a Statement
 
-1. Click the navigation tabs (on the left on web, on the bottom on mobile) and go to **Reports**.
+1. Click the navigation tabs (on the left on web, on the bottom on mobile) and go to **Spend**.
 2. In the **Reconciliation** section, select **Card statements**.
 3. Choose the **Feed** filter to select the card feed or account you want to reconcile.
 4. Choose the **Posted** filter to select the date range that matches your statement period. 
