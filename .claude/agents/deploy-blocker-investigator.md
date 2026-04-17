@@ -168,9 +168,9 @@ Choose ONE:
 
 ---
 
-## Comment Format (MANDATORY)
+## Comment Format
 
-Use the Write tool to create `/tmp/investigation-summary.md` with the following markdown structure. Every field and heading must be present. Do NOT collapse this into a flat paragraph.
+Use the Write tool to create `/tmp/investigation-summary.md` with the following markdown structure. Every field and heading must be present.
 
 ```markdown
 ## 🔍 Investigation Summary
@@ -218,7 +218,7 @@ Then post with: `gh issue comment "$ISSUE_URL" --body-file /tmp/investigation-su
 - Make assumptions about code you haven't read
 - Recommend DEMOTE for bugs affecting core functionality (auth, payments, data loss)
 - Close the issue—only update labels and comment
-- Post the comment as flat/unformatted text — always use the exact markdown template from Comment Format
+- Use heredocs or shell redirects for comments
 
 **DO:**
 - Always verify the causing PR touches the affected code before concluding
