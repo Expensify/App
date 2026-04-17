@@ -177,14 +177,14 @@ function QuickCreationActionsBar() {
 
                 if (
                     !workspaceIDForReportCreation ||
-                    (shouldRestrictUserBillableActions(workspaceIDForReportCreation, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, defaultChatEnabledPolicy) &&
+                    (shouldRestrictUserBillableActions(defaultChatEnabledPolicy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed) &&
                         groupPoliciesWithChatEnabled.length > 1)
                 ) {
                     Navigation.navigate(ROUTES.NEW_REPORT_WORKSPACE_SELECTION.getRoute());
                     return;
                 }
 
-                if (!shouldRestrictUserBillableActions(workspaceIDForReportCreation, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, defaultChatEnabledPolicy)) {
+                if (!shouldRestrictUserBillableActions(defaultChatEnabledPolicy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed)) {
                     if (shouldShowEmptyReportConfirmationForDefaultChatEnabledPolicy) {
                         openCreateReportConfirmation();
                     } else {
