@@ -20,7 +20,7 @@ import useReportAttributes from '@hooks/useReportAttributes';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import {setMoneyRequestAmount, setMoneyRequestDescription, setMoneyRequestMerchant} from '@libs/actions/IOU';
+import {clearMoneyRequestAmount, setMoneyRequestAmount, setMoneyRequestDescription, setMoneyRequestMerchant} from '@libs/actions/IOU';
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
 import {convertToBackendAmount, convertToDisplayString, convertToFrontendAmountAsString, getLocalizedCurrencySymbol} from '@libs/CurrencyUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
@@ -105,6 +105,9 @@ type MoneyRequestConfirmationListFooterProps = {
 
     /** The error message for the form */
     formError: string;
+
+    /** Clears specific form errors by key */
+    clearFormErrors: (errors: string[]) => void;
 
     /** Flag indicating if there is a route */
     hasRoute: boolean;
@@ -330,6 +333,7 @@ function MoneyRequestConfirmationListFooter({
     transaction,
     transactionID,
     unit,
+    clearFormErrors,
     onPDFLoadError,
     onPDFPassword,
     iouIsReimbursable,
@@ -352,7 +356,10 @@ function MoneyRequestConfirmationListFooter({
 
     const currency = isDistanceRequest ? distanceRateCurrency : (iouCurrencyCode ?? CONST.CURRENCY.USD); // TO DO: Unify currency source once we remove the old flow
     const decimals = getCurrencyDecimals(currency);
-    const transactionAmount = convertToFrontendAmountAsString(amount, decimals);
+    // In the new manual expense flow the amount field starts empty (transaction.amount defaults to 0 before the user
+    // touches it). Once the user explicitly sets an amount – including 0 – isAmountSet becomes true and we show the
+    // real value. This avoids showing "$0.00" as a pre-filled default.
+    const transactionAmount = isNewManualExpenseFlowEnabled && !transaction?.isAmountSet ? '' : convertToFrontendAmountAsString(amount, decimals);
     const [isCurrencyPickerVisible, setIsCurrencyPickerVisible] = useState(false);
 
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
@@ -708,8 +715,14 @@ function MoneyRequestConfirmationListFooter({
 
             const parsedAmount = getBackendAmountFromInput(newAmount);
             if (parsedAmount === null) {
+                // User cleared the field — mark amount as unset so the field stays empty
+                // and submission is blocked until a value is re-entered.
+                clearMoneyRequestAmount(transactionID);
                 return;
             }
+
+            // Dismiss the "field required" error as soon as the user enters a valid amount.
+            clearFormErrors(['common.error.invalidAmount']);
             // Edits to the amount from the splits page should reset the split shares.
             if (transaction?.splitShares) {
                 resetSplitShares(transaction, parsedAmount);
@@ -722,7 +735,7 @@ function MoneyRequestConfirmationListFooter({
 
             setMoneyRequestAmount(transactionID, parsedAmount, currency);
         },
-        [transactionID, getBackendAmountFromInput, isEditingSplitBill, transaction, buildAndSaveSplitShares, currency],
+        [transactionID, getBackendAmountFromInput, isEditingSplitBill, transaction, buildAndSaveSplitShares, currency, clearFormErrors],
     );
 
     const shouldShowAmountRequiredError = useMemo(() => {

@@ -1051,8 +1051,19 @@ function setMoneyRequestReceiptState(transactionID: string, isDraft: boolean, sh
 }
 
 function setMoneyRequestAmount(transactionID: string, amount: number, currency: string, shouldShowOriginalAmount = false, shouldStopSmartscan = false) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {amount, currency, shouldShowOriginalAmount});
+    // Mark that the user has explicitly set the amount. This is used by the new manual expense flow to distinguish
+    // a default amount of 0 (field empty) from a user-entered 0 (valid $0 expense).
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {amount, currency, shouldShowOriginalAmount, isAmountSet: true});
     setMoneyRequestReceiptState(transactionID, true, shouldStopSmartscan);
+}
+
+/**
+ * Clears the amount field back to an empty/unset state in the new manual expense flow.
+ * Called when the user deletes all characters from the amount input so that the field
+ * shows as empty and submission is blocked until a value is entered again.
+ */
+function clearMoneyRequestAmount(transactionID: string) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {isAmountSet: false});
 }
 
 function setMoneyRequestCreated(transactionID: string, created: string, isDraft: boolean, shouldStopSmartscan = false) {

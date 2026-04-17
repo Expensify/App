@@ -511,6 +511,14 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Used during the creation flow before the transaction is saved to the server */
         iouRequestType?: IOURequestType;
 
+        /**
+         * Tracks whether the user has explicitly set an amount in the new manual expense flow.
+         * A fresh draft transaction starts at amount=0 which is indistinguishable from an intentional $0 entry,
+         * so this flag is set to `true` the first time setMoneyRequestAmount is called, allowing the UI
+         * to show an empty field initially and the confirmation step to block submission until the field is empty.
+         */
+        isAmountSet?: boolean;
+
         /** The original merchant name */
         merchant: string;
 
