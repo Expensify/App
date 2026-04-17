@@ -2,7 +2,8 @@ import type {LinkingOptions} from '@react-navigation/native';
 import {findFocusedRoute} from '@react-navigation/native';
 import {Linking} from 'react-native';
 import navigationRef from '@libs/Navigation/navigationRef';
-import type {RootNavigatorParamList} from '@libs/Navigation/types';import CONST from '@src/CONST';
+import type {RootNavigatorParamList} from '@libs/Navigation/types';
+import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
 const subscribe: LinkingOptions<RootNavigatorParamList>['subscribe'] = (listener) => {
