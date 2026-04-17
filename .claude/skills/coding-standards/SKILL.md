@@ -15,6 +15,7 @@ Coding standards for the Expensify App. Each standard is a standalone file in `r
 | Performance | `PERF-*` | Render optimization, memo patterns, useEffect hygiene, data selection |
 | Consistency | `CONSISTENCY-*` | Platform checks, magic values, unused props, ESLint discipline |
 | Clean React Patterns | `CLEAN-REACT-PATTERNS-*` | Composition, component ownership, state structure |
+| Accessibility | `A11Y-*` | WCAG 2.2 AA compliance, screen reader support, inclusive interaction patterns |
 
 ## Quick Reference
 
@@ -50,6 +51,23 @@ Coding standards for the Expensify App. Each standard is a standalone file in `r
 - [CLEAN-REACT-PATTERNS-3](rules/clean-react-3-context-free-contracts.md) — Context-free component contracts
 - [CLEAN-REACT-PATTERNS-4](rules/clean-react-4-no-side-effect-spaghetti.md) — No side-effect spaghetti
 - [CLEAN-REACT-PATTERNS-5](rules/clean-react-5-narrow-state.md) — Keep state narrow
+
+### Accessibility (WCAG 2.2 AA)
+
+**Use React Native accessibility props.** React Native Web translates them to ARIA attributes automatically. Only use `aria-*` when a React Native equivalent isn't available. Reference: [React Native Accessibility](https://reactnative.dev/docs/accessibility)
+
+- [A11Y-1](rules/a11y-1-label-interactive-elements.md) — Label interactive elements
+- [A11Y-2](rules/a11y-2-semantic-roles.md) — Semantic accessibilityRole
+- [A11Y-3](rules/a11y-3-communicate-state.md) — Communicate component state
+- [A11Y-4](rules/a11y-4-touch-target-size.md) — Minimum 44x44 touch targets
+- [A11Y-5](rules/a11y-5-announce-dynamic-content.md) — Announce dynamic content
+- [A11Y-6](rules/a11y-6-accessible-images.md) — Accessible images
+- [A11Y-7](rules/a11y-7-no-color-only-info.md) — No color-only information
+- [A11Y-8](rules/a11y-8-modal-focus-management.md) — Modal focus management
+- [A11Y-9](rules/a11y-9-drag-alternatives.md) — Drag interaction alternatives
+- [A11Y-10](rules/a11y-10-respect-text-scaling.md) — Respect text scaling
+- [A11Y-11](rules/a11y-11-form-accessibility.md) — Form accessibility
+- [A11Y-12](rules/a11y-12-logical-focus-order.md) — Logical focus order
 
 ## Usage
 
