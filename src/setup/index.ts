@@ -47,7 +47,6 @@ export default function () {
             // Clear any loading and error messages so they do not appear on app startup
             [ONYXKEYS.SESSION]: {loading: false},
             [ONYXKEYS.ACCOUNT]: CONST.DEFAULT_ACCOUNT_DATA,
-            [ONYXKEYS.NETWORK]: CONST.DEFAULT_NETWORK_DATA,
             [ONYXKEYS.RAM_ONLY_IS_SIDEBAR_LOADED]: false,
             [ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT]: true,
             [ONYXKEYS.MODAL]: {
@@ -64,7 +63,6 @@ export default function () {
             ONYXKEYS.RAM_ONLY_ARE_TRANSLATIONS_LOADING,
             ONYXKEYS.RAM_ONLY_MOBILE_SELECTION_MODE,
             ONYXKEYS.RAM_ONLY_IS_SIDEBAR_LOADED,
-            ONYXKEYS.COLLECTION.RAM_ONLY_ISSUE_NEW_EXPENSIFY_CARD,
             ONYXKEYS.DERIVED.RAM_ONLY_SORTED_REPORT_ACTIONS,
             ONYXKEYS.RAM_ONLY_UPDATE_AVAILABLE,
             ONYXKEYS.RAM_ONLY_UPDATE_REQUIRED,

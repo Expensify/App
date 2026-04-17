@@ -110,6 +110,7 @@ const translations: TranslationDeepObject<typeof en> = {
         newFeature: 'Neue Funktion',
         search: 'Suche',
         reports: 'Berichte',
+        spend: 'Ausgaben',
         find: 'Finden',
         searchWithThreeDots: 'Suchen...',
         next: 'Weiter',
@@ -1033,6 +1034,7 @@ const translations: TranslationDeepObject<typeof en> = {
             title: 'Erste Schritte',
             createWorkspace: 'Workspace erstellen',
             connectAccounting: ({integrationName}: {integrationName: string}) => `Mit ${integrationName} verbinden`,
+            connectAccountingDefault: 'Mit Buchhaltung verbinden',
             customizeCategories: 'Buchhaltungskategorien anpassen',
             linkCompanyCards: 'Firmenkarten verknüpfen',
             setupRules: 'Ausgabelimits einrichten',
@@ -1623,7 +1625,7 @@ const translations: TranslationDeepObject<typeof en> = {
             header: (workflowSettingLink: string) =>
                 `Wähle eine Option, um die approvierende Person für diesen Bericht zu ändern. (Aktualisiere deine <a href="${workflowSettingLink}">Workspace-Einstellungen</a>, um dies dauerhaft für alle Berichte zu ändern.)`,
             changedApproverMessage: (managerID: number) => `Genehmigenden in <mention-user accountID="${managerID}"/> geändert`,
-            reassignedApproverMessage: (managerID: number) => `automatically reassigned the approver to <mention-user accountID="${managerID}"/> due to a workflow update`,
+            reassignedApproverMessage: (managerID: number) => `reassigned the approver to <mention-user accountID="${managerID}"/> via a workflow update`,
             actions: {
                 addApprover: 'Genehmiger hinzufügen',
                 addApproverSubtitle: 'Füge dem bestehenden Workflow eine weitere genehmigende Person hinzu.',
@@ -5520,6 +5522,8 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                             reduceLimitTitle: 'Reise-Ausgabelimit reduzieren?',
                             reduceLimitWarning:
                                 'Wenn Sie das Limit reduzieren, können Mitglieder, die diesen Betrag bereits überschritten haben, bis zum nächsten Monat keine neuen Reisebuchungen vornehmen.',
+                            provisioningError:
+                                'Wir konnten einige Mitglieder Ihres Arbeitsbereichs nicht für die zentrale Rechnungsstellung einrichten. Bitte versuchen Sie es später erneut oder wenden Sie sich für Unterstützung an Concierge.',
                         },
                     },
                     disableModal: {
@@ -9060,12 +9064,15 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
                 removeMember: 'Dieser Benutzer kann nicht entfernt werden. Bitte versuche es erneut.',
                 addMember: 'Dieses Mitglied kann nicht hinzugefügt werden. Bitte versuche es erneut.',
                 vacationDelegate: 'Dieser Benutzer kann nicht als Urlaubsvertretung festgelegt werden. Bitte versuche es erneut.',
+                moveMember: 'Dieses Mitglied kann nicht verschoben werden. Bitte versuchen Sie es erneut.',
             },
             reportSuspiciousActivityPrompt: (email: string) =>
                 `Bist du sicher? Dadurch wird das Konto von <strong>${email}</strong> gesperrt. <br /><br /> Unser Team wird das Konto anschließend überprüfen und unbefugten Zugriff entfernen. Um den Zugriff wiederherzustellen, muss die Person mit Concierge zusammenarbeiten.`,
             reportSuspiciousActivityConfirmationPrompt: 'Wir überprüfen das Konto, um sicherzustellen, dass es sicher entsperrt werden kann, und melden uns bei Fragen über Concierge.',
             cannotSetVacationDelegateForMember: (email: string) => `Du kannst keine Urlaubsvertretung für ${email} festlegen, weil sie derzeit die Vertretung für folgende Mitglieder sind:`,
             emptyMembers: {title: 'Keine Mitglieder in dieser Gruppe', subtitle: 'Fügen Sie ein Mitglied hinzu oder versuchen Sie, den Filter oben zu ändern.'},
+            moveToGroup: 'In Gruppe verschieben',
+            chooseWhereToMove: ({count}: {count: number}) => `Wählen Sie aus, wohin Sie ${count} ${count === 1 ? 'Mitglied' : 'Mitglieder'} verschieben möchten.`,
         },
         common: {
             settings: 'Einstellungen',

@@ -11,7 +11,7 @@ function WorkspaceInvoicesVerifyAccountPage({route}: WorkspaceInvoicesVerifyAcco
     return (
         <VerifyAccountPageBase
             navigateBackTo={workspaceInvoicePath}
-            navigateForwardTo={ROUTES.SETTINGS_ADD_BANK_ACCOUNT.getRoute(workspaceInvoicePath)}
+            navigateForwardTo={ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute({policyID: route.params.policyID, backTo: workspaceInvoicePath})}
         />
     );
 }

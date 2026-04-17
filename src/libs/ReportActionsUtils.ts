@@ -55,6 +55,7 @@ import {formatMessageElementList} from './Localize';
 import Log from './Log';
 import type {MessageElementBase, MessageTextElement} from './MessageElement';
 import getReportURLForCurrentContext from './Navigation/helpers/getReportURLForCurrentContext';
+import {getIsOffline, subscribe as subscribeNetworkState} from './NetworkState';
 import Parser from './Parser';
 import {arePersonalDetailsMissing, createPersonalDetailsLookupByAccountID, getEffectiveDisplayName, getPersonalDetailByEmail, getPersonalDetailsByIDs} from './PersonalDetailsUtils';
 import stripFollowupListFromHtml from './ReportActionFollowupUtils/stripFollowupListFromHtml';
@@ -110,10 +111,9 @@ Onyx.connect({
     },
 });
 
-let deprecatedIsNetworkOffline = false;
-Onyx.connect({
-    key: ONYXKEYS.NETWORK,
-    callback: (val) => (deprecatedIsNetworkOffline = val?.isOffline ?? false),
+let deprecatedIsNetworkOffline = getIsOffline();
+subscribeNetworkState(() => {
+    deprecatedIsNetworkOffline = getIsOffline();
 });
 
 let deprecatedCurrentUserAccountID: number | undefined;
@@ -4275,7 +4275,6 @@ function getUpdatedOwnershipMessage(translate: LocalizedTranslate, reportAction:
 }
 
 function getChangedApproverActionMessage(translate: LocalizedTranslate, reportAction: OnyxEntry<ReportAction>) {
-    // For REASSIGN_APPROVER, use the newApproverID from the original message
     if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.REASSIGN_APPROVER)) {
         const originalMessage = getOriginalMessage(reportAction);
         const newApproverID = originalMessage?.newApproverID;
@@ -4286,8 +4285,7 @@ function getChangedApproverActionMessage(translate: LocalizedTranslate, reportAc
         return '';
     }
 
-    const originalMessage = getOriginalMessage(reportAction as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL | typeof CONST.REPORT.ACTIONS.TYPE.REROUTE>);
-    const {mentionedAccountIDs} = originalMessage ?? {};
+    const {mentionedAccountIDs} = getOriginalMessage(reportAction as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL | typeof CONST.REPORT.ACTIONS.TYPE.REROUTE>) ?? {};
 
     // If mentionedAccountIDs exists and has values, use the first one
     if (mentionedAccountIDs?.length) {
