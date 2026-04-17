@@ -116,6 +116,7 @@ function getTagViolationsForSingleLevelTags(
  */
 function getTagViolationsForDependentTags(policyTagList: PolicyTagLists, transactionViolations: TransactionViolation[], tagName: string) {
     const tagViolations = [...transactionViolations];
+    const policyTagKeys = getSortedTagKeys(policyTagList);
 
     if (!tagName) {
         for (const tagList of Object.values(policyTagList)) {
@@ -127,7 +128,15 @@ function getTagViolationsForDependentTags(policyTagList: PolicyTagLists, transac
         }
     } else {
         const tags = TransactionUtils.getTagArrayFromName(tagName);
-        if (Object.keys(policyTagList).length !== tags.length || tags.includes('')) {
+        // Only flag ALL_TAG_LEVELS_REQUIRED if a required tag level is empty or missing.
+        // Previously this used `tags.includes('')` and a length check which flagged any
+        // empty/missing level regardless of whether it was required, causing false violations
+        // when only some levels were filled (e.g. "Engineering" with non-required second level).
+        const hasEmptyRequiredLevel = policyTagKeys.some((key, index) => {
+            const tagValue = tags.at(index) ?? '';
+            return tagValue === '' && (policyTagList[key]?.required ?? true);
+        });
+        if (hasEmptyRequiredLevel) {
             tagViolations.push({
                 name: CONST.VIOLATIONS.ALL_TAG_LEVELS_REQUIRED,
                 type: CONST.VIOLATION_TYPES.VIOLATION,
@@ -662,11 +671,14 @@ const ViolationsUtils = {
             newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.MISSING_ATTENDEES});
         }
 
-        if (isPolicyTrackTaxEnabled && !hasTaxOutOfPolicyViolation && !isTaxInPolicy) {
+        const hasTransactionTaxData = !!updatedTransaction.taxCode || !!updatedTransaction.taxValue || !!updatedTransaction.taxAmount;
+        const shouldAddTaxOutOfPolicy = !isTimeRequest && !isPerDiemRequest && (isPolicyTrackTaxEnabled ? !isTaxInPolicy : hasTransactionTaxData);
+
+        if (!hasTaxOutOfPolicyViolation && shouldAddTaxOutOfPolicy) {
             newTransactionViolations.push({name: CONST.VIOLATIONS.TAX_OUT_OF_POLICY, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true});
         }
 
-        if (isPolicyTrackTaxEnabled && hasTaxOutOfPolicyViolation && isTaxInPolicy) {
+        if (hasTaxOutOfPolicyViolation && !shouldAddTaxOutOfPolicy) {
             newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.TAX_OUT_OF_POLICY});
         }
         return {
