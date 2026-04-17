@@ -385,14 +385,8 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     const invitedPrimaryToSecondaryLogins = useMemo(() => invertObject(policy?.primaryLoginsInvited ?? {}), [policy?.primaryLoginsInvited]);
     const isControlPolicyWithWideLayout = !shouldUseNarrowLayout && isControlPolicy(policy);
 
-    const hasAnyCustomField1 = useMemo(() => Object.values(policy?.employeeList ?? {}).some((employee) => !!employee?.employeeUserID), [policy?.employeeList]);
-    const hasAnyCustomField2 = useMemo(() => Object.values(policy?.employeeList ?? {}).some((employee) => !!employee?.employeePayrollID), [policy?.employeeList]);
-    const shouldShowCustomField1Column = isControlPolicyWithWideLayout && hasAnyCustomField1;
-    const shouldShowCustomField2Column = isControlPolicyWithWideLayout && hasAnyCustomField2;
-    const shouldShowAnyCustomFieldColumn = shouldShowCustomField1Column || shouldShowCustomField2Column;
-
-    const data: MemberOption[] = useMemo(() => {
-        const result: MemberOption[] = [];
+    const filteredMembers = useMemo(() => {
+        const result: Array<{email: string; policyEmployee: PolicyEmployee; accountID: number; details: PersonalDetails}> = [];
 
         for (const [email, policyEmployee] of Object.entries(policy?.employeeList ?? {})) {
             const accountID = Number(policyMemberEmailsToAccountIDs[email] ?? '');
@@ -416,6 +410,19 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                 }
             }
 
+            result.push({email, policyEmployee, accountID, details});
+        }
+        return result;
+    }, [policy?.employeeList, policyMemberEmailsToAccountIDs, isOffline, personalDetails, policyOwner, currentUserLogin]);
+
+    const hasAnyCustomField1 = useMemo(() => filteredMembers.some(({policyEmployee}) => !!policyEmployee.employeeUserID), [filteredMembers]);
+    const hasAnyCustomField2 = useMemo(() => filteredMembers.some(({policyEmployee}) => !!policyEmployee.employeePayrollID), [filteredMembers]);
+    const shouldShowCustomField1Column = isControlPolicyWithWideLayout && hasAnyCustomField1;
+    const shouldShowCustomField2Column = isControlPolicyWithWideLayout && hasAnyCustomField2;
+    const shouldShowAnyCustomFieldColumn = shouldShowCustomField1Column || shouldShowCustomField2Column;
+
+    const data: MemberOption[] = useMemo(() => {
+        return filteredMembers.map(({policyEmployee, accountID, details}) => {
             const isPendingDeleteOrError = isPolicyAdmin && (policyEmployee.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || !isEmptyObject(policyEmployee.errors));
 
             let roleBadgeText = '';
@@ -430,7 +437,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
             const memberEmail = formatPhoneNumber(details?.login ?? '');
             const accessibilityLabel = [memberName, memberEmail, roleBadgeText].filter(Boolean).join(', ');
 
-            result.push({
+            return {
                 keyForList: details.login ?? '',
                 accountID,
                 login: details.login ?? '',
@@ -493,16 +500,12 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                 pendingAction: policyEmployee.pendingAction,
                 // Note which secondary login was used to invite this primary login
                 invitedSecondaryLogin: details?.login ? (invitedPrimaryToSecondaryLogins[details.login] ?? '') : '',
-            });
-        }
-        return result;
+            };
+        });
     }, [
-        policy?.employeeList,
+        filteredMembers,
         policy?.ownerAccountID,
         policy?.owner,
-        policyMemberEmailsToAccountIDs,
-        isOffline,
-        personalDetails,
         isPolicyAdmin,
         session?.accountID,
         styles.cursorDefault,
@@ -517,8 +520,6 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         StyleUtils,
         formatPhoneNumber,
         invitedPrimaryToSecondaryLogins,
-        policyOwner,
-        currentUserLogin,
         icons.FallbackAvatar,
     ]);
 
