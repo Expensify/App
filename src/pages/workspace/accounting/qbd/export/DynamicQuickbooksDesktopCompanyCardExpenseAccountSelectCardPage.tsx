@@ -1,23 +1,20 @@
-import {useRoute} from '@react-navigation/native';
 import React, {useCallback, useMemo} from 'react';
 import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import SelectionScreen from '@components/SelectionScreen';
 import type {SelectorType} from '@components/SelectionScreen';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updateQuickbooksCompanyCardExpenseAccount} from '@libs/actions/connections/QuickbooksDesktop';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import {settingsPendingAction} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
-import type {PlatformStackRouteProp} from '@navigation/PlatformStackNavigation/types';
-import type {SettingsNavigatorParamList} from '@navigation/types';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import {clearQBDErrorField} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
-import type SCREENS from '@src/SCREENS';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {Account, QBDNonReimbursableExportAccountType} from '@src/types/onyx/Policy';
 
 type MenuItem = ListItem & {
@@ -26,7 +23,7 @@ type MenuItem = ListItem & {
     defaultVendor: string;
 };
 
-function QuickbooksDesktopCompanyCardExpenseAccountSelectCardPage({policy}: WithPolicyConnectionsProps) {
+function DynamicQuickbooksDesktopCompanyCardExpenseAccountSelectCardPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policyID = policy?.id;
@@ -35,8 +32,7 @@ function QuickbooksDesktopCompanyCardExpenseAccountSelectCardPage({policy}: With
     const nonReimbursable = qbdConfig?.export?.nonReimbursable;
     const nonReimbursableAccount = qbdConfig?.export?.nonReimbursableAccount;
     const nonReimbursableBillDefaultVendor = qbdConfig?.export?.nonReimbursableBillDefaultVendor;
-    const route = useRoute<PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_DESKTOP_COMPANY_CARD_EXPENSE_ACCOUNT_COMPANY_CARD_SELECT>>();
-    const backTo = route.params?.backTo;
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_COMPANY_CARD_EXPENSE_SELECT.path);
 
     const data: MenuItem[] = useMemo(
         () => [
@@ -69,8 +65,8 @@ function QuickbooksDesktopCompanyCardExpenseAccountSelectCardPage({policy}: With
     );
 
     const goBack = useCallback(() => {
-        Navigation.goBack(backTo ?? (policyID && ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_COMPANY_CARD_EXPENSE_ACCOUNT.getRoute(policyID)));
-    }, [backTo, policyID]);
+        Navigation.goBack(backPath);
+    }, [backPath]);
 
     const selectExportCompanyCard = useCallback(
         (row: MenuItem) => {
@@ -116,4 +112,4 @@ function QuickbooksDesktopCompanyCardExpenseAccountSelectCardPage({policy}: With
     );
 }
 
-export default withPolicyConnections(QuickbooksDesktopCompanyCardExpenseAccountSelectCardPage);
+export default withPolicyConnections(DynamicQuickbooksDesktopCompanyCardExpenseAccountSelectCardPage);

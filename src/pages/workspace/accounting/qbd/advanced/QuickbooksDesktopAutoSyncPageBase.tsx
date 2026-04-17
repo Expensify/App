@@ -34,7 +34,7 @@ function QuickbooksDesktopAutoSyncPageBase({policy, navigateBackTo}: QuickbooksD
         settingsPendingAction([CONST.QUICKBOOKS_DESKTOP_CONFIG.AUTO_SYNC], pendingFields) ?? settingsPendingAction([CONST.QUICKBOOKS_DESKTOP_CONFIG.ACCOUNTING_METHOD], pendingFields);
 
     const goBack = useCallback(() => {
-        Navigation.goBack(navigateBackTo ?? ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_DESKTOP_ADVANCED.getRoute(policyID));
+        Navigation.goBack(navigateBackTo ?? ROUTES.POLICY_ACCOUNTING.getRoute(policyID));
     }, [policyID, navigateBackTo]);
 
     return (
