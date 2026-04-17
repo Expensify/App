@@ -13,9 +13,9 @@ function InboxTabSelector() {
 
     const tabs: TabSelectorBaseItem[] = [
         {key: CONST.INBOX_TAB.ALL, title: translate('inboxTabs.all')},
-        {key: CONST.INBOX_TAB.UNREADS, title: translate('inboxTabs.unreads')},
+        {key: CONST.INBOX_TAB.TODO, title: translate('inboxTabs.todo')},
         {key: CONST.INBOX_TAB.EXPENSES, title: translate('inboxTabs.expenses')},
-        {key: CONST.INBOX_TAB.DIRECT_MESSAGES, title: translate('inboxTabs.directMessages')},
+        {key: CONST.INBOX_TAB.DMS, title: translate('inboxTabs.dms')},
     ];
 
     return (

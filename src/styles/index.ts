@@ -3039,6 +3039,13 @@ const staticStyles = (theme: ThemeColors) =>
             padding: 15,
         },
 
+        switchTrackSmall: {
+            width: 36,
+            height: 20,
+            borderRadius: 10,
+            padding: 10,
+        },
+
         switchThumb: {
             width: 22,
             height: 22,
@@ -3048,6 +3055,13 @@ const staticStyles = (theme: ThemeColors) =>
             justifyContent: 'center',
             alignItems: 'center',
             backgroundColor: theme.appBG,
+        },
+
+        switchThumbSmall: {
+            width: 14,
+            height: 14,
+            borderRadius: 7,
+            left: 3,
         },
 
         radioButtonContainer: {

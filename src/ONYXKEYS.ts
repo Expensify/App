@@ -162,6 +162,9 @@ const ONYXKEYS = {
     /** Contains the user preference for the active inbox tab filter */
     NVP_INBOX_TAB: 'nvp_inboxTab',
 
+    /** Whether to show only unread chats in the inbox */
+    NVP_INBOX_UNREAD_FILTER: 'nvp_inboxUnreadFilter',
+
     /** Contains the users's block expiration (if they have one) */
     NVP_BLOCKED_FROM_CONCIERGE: 'nvp_private_blockedFromConcierge',
 
@@ -1354,6 +1357,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.BETA_CONFIGURATION]: OnyxTypes.BetaConfiguration;
     [ONYXKEYS.NVP_MUTED_PLATFORMS]: Partial<Record<Platform, true>>;
     [ONYXKEYS.NVP_INBOX_TAB]: ValueOf<typeof CONST.INBOX_TAB>;
+    [ONYXKEYS.NVP_INBOX_UNREAD_FILTER]: boolean;
     [ONYXKEYS.NVP_BLOCKED_FROM_CONCIERGE]: OnyxTypes.BlockedFromConcierge;
     [ONYXKEYS.QUEUE_FLUSHED_DATA]: AnyOnyxUpdate[];
     [ONYXKEYS.TRANSACTIONS_PENDING_3DS_REVIEW]: OnyxTypes.TransactionsPending3DSReview;

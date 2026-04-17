@@ -15,6 +15,7 @@ import {isMobile} from '@libs/Browser';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import ONYXKEYS from '@src/ONYXKEYS';
 import InboxTabSelector from './InboxTabSelector';
+import InboxUnreadToggle from './InboxUnreadToggle';
 import SidebarLinksData from './SidebarLinksData';
 
 // Once the app finishes loading for the first time, we never show the skeleton again
@@ -59,7 +60,9 @@ function BaseSidebarScreen() {
                         breadcrumbLabel={translate('common.inbox')}
                         shouldDisplaySearch={shouldUseNarrowLayout}
                         shouldDisplayHelpButton={shouldUseNarrowLayout}
-                    />
+                    >
+                        {!shouldShowSkeleton && <InboxUnreadToggle />}
+                    </TopBarWithLoadingBar>
                     {!shouldShowSkeleton && <InboxTabSelector />}
                     <View style={[styles.flex1]}>
                         {shouldShowSkeleton ? (

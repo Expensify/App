@@ -2085,9 +2085,9 @@ const CONST = {
     },
     INBOX_TAB: {
         ALL: 'all',
-        UNREADS: 'unreads',
+        TODO: 'todo',
         EXPENSES: 'expenses',
-        DIRECT_MESSAGES: 'directMessages',
+        DMS: 'dms',
     },
     THEME: {
         DEFAULT: 'system',

@@ -2783,9 +2783,10 @@ ${amount} per ${merchant} - ${date}`,
     },
     inboxTabs: {
         all: 'All',
-        unreads: 'Unread',
+        todo: 'To do',
         expenses: 'Expenses',
-        directMessages: 'Direct messages',
+        dms: 'DMs',
+        unreadToggle: 'Unreads',
     },
     reportDetailsPage: {
         inWorkspace: (policyName: string) => `in ${policyName}`,

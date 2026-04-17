@@ -1412,29 +1412,34 @@ function filterReportsForInboxTab(
     reportIDs: string[],
     reportsToDisplay: ReportsToDisplayInLHN,
     activeTab: ValueOf<typeof CONST.INBOX_TAB>,
-    reportsDrafts?: Record<string, boolean>,
+    showUnreadOnly: boolean,
     reportNameValuePairs?: OnyxCollection<ReportNameValuePairs>,
 ): string[] {
-    if (activeTab === CONST.INBOX_TAB.ALL) {
-        return reportIDs;
-    }
-
     return reportIDs.filter((reportID) => {
         const report = reportsToDisplay[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
         if (!report) {
             return false;
         }
 
-        switch (activeTab) {
-            case CONST.INBOX_TAB.UNREADS: {
-                const isReportArchived = isArchivedReport(reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`]);
-                const isReportUnread = isUnread(report, undefined, isReportArchived) && getReportNotificationPreference(report) !== CONST.REPORT.NOTIFICATION_PREFERENCE.MUTE;
-                const hasDraft = !!reportsDrafts?.[reportID];
-                return isReportUnread || !!report.isPinned || !!report.requiresAttention || !!report.hasErrorsOtherThanFailedReceipt || hasDraft;
+        // Apply unread filter when the toggle is active
+        if (showUnreadOnly) {
+            const isReportArchived = isArchivedReport(reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`]);
+            const isReportUnread = isUnread(report, undefined, isReportArchived) && getReportNotificationPreference(report) !== CONST.REPORT.NOTIFICATION_PREFERENCE.MUTE;
+            if (!isReportUnread && !report.isPinned && !report.requiresAttention && !report.hasErrorsOtherThanFailedReceipt) {
+                return false;
             }
+        }
+
+        if (activeTab === CONST.INBOX_TAB.ALL) {
+            return true;
+        }
+
+        switch (activeTab) {
+            case CONST.INBOX_TAB.TODO:
+                return !!report.requiresAttention || !!report.hasErrorsOtherThanFailedReceipt;
             case CONST.INBOX_TAB.EXPENSES:
                 return isExpenseReport(report) || isIOUReport(report) || isInvoiceReport(report) || isPolicyExpenseChat(report);
-            case CONST.INBOX_TAB.DIRECT_MESSAGES:
+            case CONST.INBOX_TAB.DMS:
                 return isDM(report) || isSelfDM(report) || isGroupChatUtil(report);
             default:
                 return true;
