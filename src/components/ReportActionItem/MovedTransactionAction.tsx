@@ -34,6 +34,8 @@ function MovedTransactionAction({action, emptyHTML, childReport, originalReport}
 
     const [toReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${toReportID}`);
     const [fromReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${fromReportID}`);
+    const [fromReportPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${fromReport?.policyID}`);
+    const [toReportPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${toReport?.policyID}`);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
 
     const isPendingDelete = fromReport?.pendingFields?.preview === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
@@ -47,7 +49,7 @@ function MovedTransactionAction({action, emptyHTML, childReport, originalReport}
         return emptyHTML;
     }
 
-    const message = getMovedTransactionMessage(translate, action, conciergeReportID);
+    const message = getMovedTransactionMessage(translate, action, fromReportPolicy, toReportPolicy, conciergeReportID);
 
     if (hasReasoning(action)) {
         return (

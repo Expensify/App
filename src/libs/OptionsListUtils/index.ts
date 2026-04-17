@@ -611,6 +611,8 @@ function getLastMessageTextForReport({
     lastActorDetails,
     movedFromReport,
     movedToReport,
+    movedFromReportPolicy,
+    movedToReportPolicy,
     policy,
     isReportArchived = false,
     reportMetadata,
@@ -626,6 +628,8 @@ function getLastMessageTextForReport({
     lastActorDetails: Partial<PersonalDetails> | null;
     movedFromReport?: OnyxEntry<Report>;
     movedToReport?: OnyxEntry<Report>;
+    movedFromReportPolicy?: OnyxEntry<Policy>;
+    movedToReportPolicy?: OnyxEntry<Policy>;
     policy?: OnyxEntry<Policy>;
     isReportArchived?: boolean;
     policyForMovingExpensesID?: string;
@@ -765,7 +769,7 @@ function getLastMessageTextForReport({
         const properSchemaForModifiedExpenseMessage = Parser.htmlToText(properSchemaForModifiedExpenseMessageWithHTML);
         lastMessageTextFromReport = formatReportLastMessageText(properSchemaForModifiedExpenseMessage, true);
     } else if (isMovedTransactionAction(lastReportAction)) {
-        lastMessageTextFromReport = Parser.htmlToText(getMovedTransactionMessage(translate, lastReportAction, conciergeReportID));
+        lastMessageTextFromReport = Parser.htmlToText(getMovedTransactionMessage(translate, lastReportAction, movedFromReportPolicy, movedToReportPolicy, conciergeReportID));
     } else if (isTaskAction(lastReportAction)) {
         lastMessageTextFromReport = formatReportLastMessageText(getTaskReportActionMessage(translate, lastReportAction).text);
     } else if (isCreatedTaskReportAction(lastReportAction)) {

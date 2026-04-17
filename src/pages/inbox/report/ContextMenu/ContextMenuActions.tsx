@@ -295,6 +295,8 @@ type ContextMenuActionPayload = {
     childReport?: OnyxEntry<ReportType>;
     movedFromReport?: OnyxEntry<ReportType>;
     movedToReport?: OnyxEntry<ReportType>;
+    movedFromReportPolicy?: OnyxEntry<Policy>;
+    movedToReportPolicy?: OnyxEntry<Policy>;
     getLocalDateFromDatetime: LocaleContextProps['getLocalDateFromDatetime'];
     policyTags: OnyxEntry<PolicyTagLists>;
     translate: LocalizedTranslate;
@@ -802,6 +804,8 @@ const ContextMenuActions: ContextMenuAction[] = [
                 isTryNewDotNVPDismissed,
                 movedFromReport,
                 movedToReport,
+                movedFromReportPolicy,
+                movedToReportPolicy,
                 childReport,
                 policy,
                 getLocalDateFromDatetime,
@@ -1117,7 +1121,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL) || isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.REROUTE)) {
                     setClipboardMessage(getChangedApproverActionMessage(translate, reportAction));
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION)) {
-                    setClipboardMessage(getMovedTransactionMessage(translate, reportAction, conciergeReportID));
+                    setClipboardMessage(getMovedTransactionMessage(translate, reportAction, movedFromReportPolicy, movedToReportPolicy, conciergeReportID));
                 } else if (isMovedAction(reportAction)) {
                     setClipboardMessage(getMovedActionMessage(translate, reportAction, originalReport));
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_CARD_FRAUD_ALERT)) {

@@ -900,6 +900,7 @@ describe('ReportNameUtils', () => {
     describe('Invoice naming helpers', () => {
         test('Invoice room uses policy name when current user is receiver', () => {
             const receiverPolicy = {name: 'Personal Workspace'} as unknown as Policy;
+            const reportPolicy = {name: 'Personal Workspace'} as unknown as Policy;
             const report: Report = {
                 reportID: 'invoice-chat-1',
                 invoiceReceiver: {type: CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL, accountID: currentUserAccountID},
@@ -908,6 +909,7 @@ describe('ReportNameUtils', () => {
 
             const name = getInvoicesChatName({
                 report,
+                policy: reportPolicy,
                 receiverPolicy,
                 personalDetails: participantsPersonalDetails,
                 currentUserAccountID,
@@ -923,9 +925,11 @@ describe('ReportNameUtils', () => {
                 invoiceReceiver: {type: CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL, accountID: 1},
                 policyName: 'Vendor Workspace',
             };
+            const reportPolicy = {name: 'Vendor Workspace'} as unknown as Policy;
 
             const name = getInvoicesChatName({
                 report,
+                policy: reportPolicy,
                 receiverPolicy,
                 personalDetails: participantsPersonalDetails,
                 currentUserAccountID,

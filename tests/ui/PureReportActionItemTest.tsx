@@ -885,6 +885,69 @@ describe('PureReportActionItem', () => {
             // The "Explain" link should be present
             expect(screen.getByText('Explain')).toBeOnTheScreen();
         });
+
+        it('renders message with workspace name when policy is provided', async () => {
+            const POLICY_ID = 'policy_test_999';
+            const EXPENSE_REPORT_ID = '300';
+            const policy: Policy = {
+                id: POLICY_ID,
+                name: 'My Policy Workspace',
+                type: CONST.POLICY.TYPE.TEAM,
+                role: CONST.POLICY.ROLE.USER,
+                isPolicyExpenseChatEnabled: false,
+                owner: actorEmail,
+                outputCurrency: CONST.CURRENCY.USD,
+            } as Policy;
+
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, policy);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${EXPENSE_REPORT_ID}`, {
+                    reportID: EXPENSE_REPORT_ID,
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                    policyID: POLICY_ID,
+                });
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION, {
+                fromReportID: EXPENSE_REPORT_ID,
+                toReportID: TO_REPORT_ID,
+            });
+
+            render(
+                <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, HTMLEngineProvider]}>
+                    <OptionsListContextProvider>
+                        <ScreenWrapper testID="test">
+                            <PortalProvider>
+                                <PureReportActionItem
+                                    personalPolicyID={undefined}
+                                    report={undefined}
+                                    parentReportAction={undefined}
+                                    action={action}
+                                    displayAsGroup={false}
+                                    shouldDisplayNewMarker={false}
+                                    index={0}
+                                    isFirstVisibleReportAction={false}
+                                    taskReport={undefined}
+                                    linkedReport={undefined}
+                                    iouReportOfLinkedReport={undefined}
+                                    currentUserAccountID={ACTOR_ACCOUNT_ID}
+                                    betas={undefined}
+                                    draftTransactionIDs={[]}
+                                    userBillingGracePeriodEnds={undefined}
+                                    policy={policy}
+                                    currentUserEmail={undefined}
+                                />
+                            </PortalProvider>
+                        </ScreenWrapper>
+                    </OptionsListContextProvider>
+                </ComposeProviders>,
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            // The moved transaction message should contain the workspace name
+            expect(screen.getByText(/My Policy Workspace/)).toBeOnTheScreen();
+        });
     });
 
     describe('Single translated message actions', () => {

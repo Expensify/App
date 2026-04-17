@@ -734,6 +734,8 @@ function getOptionData({
     lastActionReport,
     movedFromReport,
     movedToReport,
+    movedFromReportPolicy,
+    movedToReportPolicy,
     currentUserAccountID,
     visibleReportActionsData,
     reportAttributesDerived,
@@ -758,6 +760,8 @@ function getOptionData({
     lastActionReport: OnyxEntry<Report>;
     movedFromReport?: OnyxEntry<Report>;
     movedToReport?: OnyxEntry<Report>;
+    movedFromReportPolicy?: OnyxEntry<Policy>;
+    movedToReportPolicy?: OnyxEntry<Policy>;
     currentUserAccountID: number;
     visibleReportActionsData?: VisibleReportActionsDerivedValue;
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'];
@@ -909,6 +913,8 @@ function getOptionData({
             lastActorDetails,
             movedFromReport,
             movedToReport,
+            movedFromReportPolicy,
+            movedToReportPolicy,
             policy,
             isReportArchived,
             reportMetadata,
@@ -1171,7 +1177,7 @@ function getOptionData({
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_OWNERSHIP) {
             result.alternateText = Parser.htmlToText(getUpdatedOwnershipMessage(translate, lastAction, policy));
         } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION)) {
-            result.alternateText = Parser.htmlToText(getMovedTransactionMessage(translate, lastAction, conciergeReportID));
+            result.alternateText = Parser.htmlToText(getMovedTransactionMessage(translate, lastAction, movedFromReportPolicy, movedToReportPolicy, conciergeReportID));
         } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.SETTLEMENT_ACCOUNT_LOCKED)) {
             result.alternateText = Parser.htmlToText(getSettlementAccountLockedMessage(translate, lastAction));
         } else if (lastAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && lastActorDisplayName && lastMessageTextFromReport) {

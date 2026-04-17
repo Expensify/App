@@ -195,6 +195,8 @@ function BaseReportActionContextMenu({
 
     const [movedFromReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(reportAction, CONST.REPORT.MOVE_TYPE.FROM)}`);
     const [movedToReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(reportAction, CONST.REPORT.MOVE_TYPE.TO)}`);
+    const [movedFromReportPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${movedFromReport?.policyID}`);
+    const [movedToReportPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${movedToReport?.policyID}`);
 
     const sourceID = getSourceIDFromReportAction(reportAction);
 
@@ -400,6 +402,8 @@ function BaseReportActionContextMenu({
                             childReport,
                             movedFromReport,
                             movedToReport,
+                            movedFromReportPolicy,
+                            movedToReportPolicy,
                             getLocalDateFromDatetime,
                             policy,
                             policyTags,

@@ -16248,7 +16248,7 @@ describe('ReportUtils', () => {
                 },
             } as unknown as ReportAction;
 
-            const result = getMovedTransactionMessage(translateLocal, action, undefined);
+            const result = getMovedTransactionMessage(translateLocal, action, undefined, undefined);
             expect(typeof result).toBe('string');
             expect(result.length).toBeGreaterThan(0);
         });
@@ -16266,7 +16266,7 @@ describe('ReportUtils', () => {
                 },
             } as unknown as ReportAction;
 
-            const result = getMovedTransactionMessage(translateLocal, action, undefined);
+            const result = getMovedTransactionMessage(translateLocal, action, undefined, undefined);
             expect(typeof result).toBe('string');
             expect(result.length).toBeGreaterThan(0);
         });
@@ -16283,7 +16283,7 @@ describe('ReportUtils', () => {
                 },
             } as unknown as ReportAction;
 
-            const result = getMovedTransactionMessage(translateLocal, action, '12345');
+            const result = getMovedTransactionMessage(translateLocal, action, undefined, undefined, '12345');
             expect(typeof result).toBe('string');
         });
     });
