@@ -71,12 +71,17 @@ function MiniReportActionContextMenu() {
     const overflowIcons = useMemoizedLazyExpensifyIcons(['ThreeDots'] as const);
     const threeDotRef = useRef<View>(null);
     const overlayRef = useRef<View>(null);
-    const localMenuContainerRef = useRef<View>(null);
+    const localMenuContainerRef = useRef<HTMLElement | null>(null);
+    // Tracked as state (not only a ref) because the Portal attaches this View asynchronously;
+    // state causes the dependent effect to re-run once React commits the Portal content.
+    const [menuContainerEl, setMenuContainerEl] = useState<HTMLElement | null>(null);
     const menuContainerCallbackRef = useCallback(
         (node: View | null) => {
-            localMenuContainerRef.current = node;
+            const el = node as unknown as HTMLElement | null;
+            localMenuContainerRef.current = el;
+            setMenuContainerEl(el);
             // eslint-disable-next-line no-param-reassign
-            menuContainerRef.current = node as unknown as HTMLElement | null;
+            menuContainerRef.current = el;
         },
         [menuContainerRef],
     );
@@ -107,13 +112,12 @@ function MiniReportActionContextMenu() {
             : null;
 
     useEffect(() => {
-        const el = localMenuContainerRef.current as unknown as HTMLElement | null;
-        if (!el) {
+        if (!menuContainerEl) {
             return;
         }
 
         const onBlurCapture = (e: FocusEvent) => {
-            if (e.relatedTarget && el.contains(e.relatedTarget as Node)) {
+            if (e.relatedTarget && menuContainerEl.contains(e.relatedTarget as Node)) {
                 return;
             }
             hideMiniContextMenu();
@@ -131,16 +135,16 @@ function MiniReportActionContextMenu() {
             anchorEl.focus();
         };
 
-        el.addEventListener('blur', onBlurCapture, true);
-        el.addEventListener('keydown', onKeyDown);
+        menuContainerEl.addEventListener('blur', onBlurCapture, true);
+        menuContainerEl.addEventListener('keydown', onKeyDown);
         return () => {
-            el.removeEventListener('blur', onBlurCapture, true);
-            el.removeEventListener('keydown', onKeyDown);
+            menuContainerEl.removeEventListener('blur', onBlurCapture, true);
+            menuContainerEl.removeEventListener('keydown', onKeyDown);
         };
         // Depending on the ref object rather than anchor?.current avoids accessing
         // refs during render (required for React Compiler compliance); the ref identity is stable.
         // eslint-disable-next-line rulesdir/prefer-narrow-hook-dependencies
-    }, [hideMiniContextMenu, anchor]);
+    }, [menuContainerEl, hideMiniContextMenu, anchor]);
 
     useEffect(() => {
         if (!isVisible) {
@@ -168,12 +172,12 @@ function MiniReportActionContextMenu() {
     }, [isVisible, release, hideMiniContextMenu, anchor]);
 
     useEffect(() => {
-        const el = localMenuContainerRef.current as unknown as HTMLElement | null;
+        const el = localMenuContainerRef.current;
         if (!el) {
             return;
         }
         el.dataset.selectionScraperHiddenElement = String(isVisible);
-    }, [isVisible]);
+    }, [menuContainerEl, isVisible]);
 
     const {
         report,
