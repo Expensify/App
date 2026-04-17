@@ -665,6 +665,26 @@ describe('mergeTransactionRequest', () => {
             parentReportID: sourceExpenseReport.reportID,
             parentReportActionID: sourceIOUActionID,
         };
+        const targetIOUActionID = 'target-iou-action-456';
+        const targetTransactionThreadID = 'target-transaction-thread-456';
+        const targetIOUAction: ReportAction = {
+            reportActionID: targetIOUActionID,
+            actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+            created: '2024-01-01 12:00:00',
+            originalMessage: {
+                IOUTransactionID: targetTransaction.transactionID,
+                type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                IOUReportID: targetReport.reportID,
+            } as OriginalMessageIOU,
+            childReportID: targetTransactionThreadID,
+            message: [{type: 'TEXT', text: 'Target IOU action'}],
+        };
+        const targetTransactionThread = {
+            ...createRandomReport(4, CONST.REPORT.CHAT_TYPE.INVOICE),
+            reportID: targetTransactionThreadID,
+            parentReportID: targetReport.reportID,
+            parentReportActionID: targetIOUActionID,
+        };
 
         // Set up initial state in Onyx
         await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${targetTransaction.transactionID}`, targetTransaction);
@@ -674,6 +694,8 @@ describe('mergeTransactionRequest', () => {
         await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${sourceTransactionThread.reportID}`, sourceTransactionThread);
         await Onyx.set(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${mergeTransactionID}`, mergeTransaction);
         await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${targetReport.reportID}`, targetReport);
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetReport.reportID}`, {[targetIOUAction.reportActionID]: targetIOUAction});
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${targetTransactionThread.reportID}`, targetTransactionThread);
 
         mockFetch?.pause?.();
         const mockViolations = createMockViolations();
@@ -724,8 +746,8 @@ describe('mergeTransactionRequest', () => {
             });
         });
 
-        // Verify the source transaction's IOU action is removed from report actions
-        expect(sourceReportActions?.[sourceIOUActionID]).toBeUndefined();
+        // The source IOU action is no longer removed — only the target report's IOU action is handled in the cross-report branch
+        expect(sourceReportActions?.[sourceIOUActionID]).toBeDefined();
 
         const newIOUAction = Object.values(sourceReportActions ?? {}).find((action) => {
             const reportAction = action as OnyxEntry<ReportAction>;
@@ -741,9 +763,9 @@ describe('mergeTransactionRequest', () => {
         expect(newIOUAction).toBeTruthy();
         expect((getOriginalMessage(newIOUAction) as OriginalMessageIOU | undefined)?.IOUTransactionID).toBe(targetTransaction.transactionID);
 
-        const updatedSourceTransactionThread = await new Promise<Report | null>((resolve) => {
+        const updatedTargetTransactionThread = await new Promise<Report | null>((resolve) => {
             const connection = Onyx.connect({
-                key: `${ONYXKEYS.COLLECTION.REPORT}${sourceTransactionThreadID}`,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${targetTransactionThreadID}`,
                 callback: (report) => {
                     Onyx.disconnect(connection);
                     resolve(report ?? null);
@@ -751,9 +773,9 @@ describe('mergeTransactionRequest', () => {
             });
         });
 
-        // Verify transaction thread parent references are rewired to the new IOU action
-        expect(updatedSourceTransactionThread?.parentReportID).toBe(sourceExpenseReport.reportID);
-        expect(updatedSourceTransactionThread?.parentReportActionID).toBe(newIOUAction?.reportActionID);
+        // Verify target transaction thread parent references are rewired to the new IOU action in the source report
+        expect(updatedTargetTransactionThread?.parentReportID).toBe(sourceExpenseReport.reportID);
+        expect(updatedTargetTransactionThread?.parentReportActionID).toBe(newIOUAction?.reportActionID);
     });
 
     describe('Report deletion logic', () => {

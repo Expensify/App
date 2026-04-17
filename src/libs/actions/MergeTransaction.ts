@@ -614,7 +614,7 @@ function mergeTransactionRequest({
             iouReportID: mergeTransaction.reportID,
         });
 
-        const oldIOUAction = getIOUActionForReportID(mergeTransaction.reportID, mergeTransaction.sourceTransactionID);
+        const oldIOUAction = getIOUActionForReportID(targetTransaction.reportID, targetTransaction.transactionID);
         const oldTransactionThreadID = oldIOUAction?.childReportID;
 
         if (oldTransactionThreadID) {
