@@ -188,7 +188,7 @@ function WithdrawalIDListItemHeader<TItem extends ListItem>({
                                 height={iconSize}
                                 additionalStyles={iconStyles}
                             />
-                            <View style={[styles.gapHalf, styles.flexShrink1]}>
+                            <View style={[styles.gap1, styles.flexShrink1]}>
                                 <TextWithTooltip
                                     text={`${formattedBankName} xx${withdrawalIDItem.accountNumber.slice(-4)}`}
                                     style={[styles.optionDisplayName, styles.sidebarLinkTextBold, styles.pre, styles.fontWeightNormal]}

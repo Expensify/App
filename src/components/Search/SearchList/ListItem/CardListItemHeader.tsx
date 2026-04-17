@@ -78,7 +78,7 @@ function CardListItemHeader<TItem extends ListItem>({
                 key={CONST.SEARCH.TABLE_COLUMNS.GROUP_CARD}
                 style={StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.CARD)}
             >
-                <View style={[styles.gapHalf, styles.flexShrink1]}>
+                <View style={[styles.gap1, styles.flexShrink1]}>
                     <TextWithTooltip
                         text={cardItem.formattedCardName ?? ''}
                         numberOfLines={2}

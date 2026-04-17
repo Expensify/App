@@ -182,9 +182,7 @@ function AnimatedCollapsible({
                             }
                         }}
                     >
-                        <View style={[styles.pv1Half, styles.ph3]}>
-                            <View style={[styles.borderBottom, borderBottomStyle]} />
-                        </View>
+                        <View style={[styles.borderBottom, borderBottomStyle]} />
                         {children}
                     </Animated.View>
                 ) : null}
