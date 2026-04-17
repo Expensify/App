@@ -9,7 +9,7 @@ import getBackgroundColor from './getBackground';
 import getOpacity from './getOpacity';
 import {useTabSelectorActions, useTabSelectorState} from './TabSelectorContext';
 import TabSelectorItem from './TabSelectorItem';
-import type {TabSelectorBaseProps} from './types';
+import type {TabSelectorBaseProps, TabSelectorItemProps} from './types';
 
 /**
  * Navigation-agnostic tab selector UI that renders a row of TabSelectorItem components.
@@ -29,6 +29,7 @@ function TabSelectorBase({
     equalWidth = false,
     shouldShowProductTrainingTooltip = false,
     renderProductTrainingTooltip,
+    renderItem,
 }: TabSelectorBaseProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -105,27 +106,50 @@ function TabSelectorBase({
                     onTabPress(tab.key);
                 };
 
-                return (
+                const itemProps: TabSelectorItemProps = {
+                    tabKey: tab.key,
+                    icon: tab.icon,
+                    title: tab.title,
+                    onPress: handlePress,
+                    onLongPress: onLongTabPress ? () => onLongTabPress(tab.key) : undefined,
+                    activeOpacity,
+                    inactiveOpacity,
+                    backgroundColor,
+                    isActive,
+                    testID: tab.testID,
+                    sentryLabel: tab.sentryLabel,
+                    shouldShowLabelWhenInactive,
+                    shouldShowProductTrainingTooltip,
+                    renderProductTrainingTooltip,
+                    equalWidth,
+                    badgeText: tab.badgeText,
+                    pendingAction: tab.pendingAction,
+                    isDisabled: tab.isDisabled,
+                };
+
+                return renderItem ? (
+                    <React.Fragment key={tab.key}>{renderItem(tab, itemProps)}</React.Fragment>
+                ) : (
                     <TabSelectorItem
-                        tabKey={tab.key}
                         key={tab.key}
-                        icon={tab.icon}
-                        title={tab.title}
-                        onPress={handlePress}
-                        onLongPress={onLongTabPress ? () => onLongTabPress(tab.key) : undefined}
-                        activeOpacity={activeOpacity}
-                        inactiveOpacity={inactiveOpacity}
-                        backgroundColor={backgroundColor}
-                        isActive={isActive}
-                        testID={tab.testID}
-                        sentryLabel={tab.sentryLabel}
-                        shouldShowLabelWhenInactive={shouldShowLabelWhenInactive}
-                        shouldShowProductTrainingTooltip={shouldShowProductTrainingTooltip}
-                        renderProductTrainingTooltip={renderProductTrainingTooltip}
-                        equalWidth={equalWidth}
-                        badgeText={tab.badgeText}
-                        pendingAction={tab.pendingAction}
-                        isDisabled={tab.isDisabled}
+                        tabKey={itemProps.tabKey}
+                        icon={itemProps.icon}
+                        title={itemProps.title}
+                        onPress={itemProps.onPress}
+                        onLongPress={itemProps.onLongPress}
+                        activeOpacity={itemProps.activeOpacity}
+                        inactiveOpacity={itemProps.inactiveOpacity}
+                        backgroundColor={itemProps.backgroundColor}
+                        isActive={itemProps.isActive}
+                        testID={itemProps.testID}
+                        sentryLabel={itemProps.sentryLabel}
+                        shouldShowLabelWhenInactive={itemProps.shouldShowLabelWhenInactive}
+                        shouldShowProductTrainingTooltip={itemProps.shouldShowProductTrainingTooltip}
+                        renderProductTrainingTooltip={itemProps.renderProductTrainingTooltip}
+                        equalWidth={itemProps.equalWidth}
+                        badgeText={itemProps.badgeText}
+                        pendingAction={itemProps.pendingAction}
+                        isDisabled={itemProps.isDisabled}
                     />
                 );
             })}
