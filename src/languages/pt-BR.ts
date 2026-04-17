@@ -5944,7 +5944,7 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
             error: {
                 genericAdd: 'Ocorreu um problema ao adicionar este membro do workspace',
                 cannotRemove: 'Você não pode remover a si mesmo nem o proprietário do workspace',
-                genericRemove: 'Houve um problema ao remover esse membro do workspace',
+                genericRemove: 'Não foi possível remover este membro. Isso pode ser causado por um problema com outro membro. Resolva os erros e tente novamente.',
             },
             addedWithPrimary: 'Alguns membros foram adicionados com seus logins principais.',
             invitedBySecondaryLogin: (secondaryLogin: string) => `Adicionado pelo login secundário ${secondaryLogin}.`,

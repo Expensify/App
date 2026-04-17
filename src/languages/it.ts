@@ -5964,7 +5964,7 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
             error: {
                 genericAdd: "Si è verificato un problema nell'aggiungere questo membro dello spazio di lavoro",
                 cannotRemove: 'Non puoi rimuovere te stessə o il proprietario dello spazio di lavoro',
-                genericRemove: 'Si è verificato un problema durante la rimozione di quel membro dello spazio di lavoro',
+                genericRemove: 'Impossibile rimuovere questo membro. Potrebbe essere causato da un problema con un altro membro. Risolvi eventuali errori e riprova.',
             },
             addedWithPrimary: 'Alcuni membri sono stati aggiunti con i loro accessi principali.',
             invitedBySecondaryLogin: (secondaryLogin: string) => `Aggiunto dall’accesso secondario ${secondaryLogin}.`,

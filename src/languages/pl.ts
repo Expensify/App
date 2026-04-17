@@ -5938,7 +5938,7 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
             error: {
                 genericAdd: 'Wystąpił problem z dodaniem tego członka przestrzeni roboczej',
                 cannotRemove: 'Nie możesz usunąć siebie ani właściciela przestrzeni roboczej',
-                genericRemove: 'Wystąpił problem z usunięciem tego członka przestrzeni roboczej',
+                genericRemove: 'Nie udało się usunąć tego członka. Może to być spowodowane problemem z innym członkiem. Rozwiąż wszelkie błędy i spróbuj ponownie.',
             },
             addedWithPrimary: 'Niektóre osoby zostały dodane za pomocą swoich głównych loginów.',
             invitedBySecondaryLogin: (secondaryLogin: string) => `Dodane przez dodatkowy login ${secondaryLogin}.`,

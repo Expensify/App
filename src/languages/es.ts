@@ -5829,7 +5829,7 @@ ${amount} para ${merchant} - ${date}`,
             error: {
                 genericAdd: 'Ha ocurrido un problema al añadir el miembro al espacio de trabajo',
                 cannotRemove: 'No puedes eliminarte ni a ti mismo ni al dueño del espacio de trabajo',
-                genericRemove: 'Ha ocurrido un problema al eliminar al miembro del espacio de trabajo',
+                genericRemove: 'No se pudo eliminar a este miembro. Esto puede deberse a un problema con otro miembro. Por favor, resuelve los errores e inténtalo de nuevo.',
             },
             addedWithPrimary: 'Se agregaron algunos miembros con sus nombres de usuario principales.',
             invitedBySecondaryLogin: (secondaryLogin) => `Agregado por nombre de usuario secundario ${secondaryLogin}.`,
