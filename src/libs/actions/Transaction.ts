@@ -1051,7 +1051,7 @@ function changeTransactionsReport({
             }),
         };
 
-        const {comment} = isUnreported ? recalculateUnreportedTransactionDetails() : {};
+        const {comment} = isUnreported ? recalculateUnreportedTransactionDetails() : transaction;
 
         // 1. Optimistically update the transaction with full data and changed fields.
         // Spreading the full transaction ensures the TRANSACTION collection has complete data
