@@ -3,6 +3,7 @@ import React from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import useThemeStyles from '@hooks/useThemeStyles';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import CollapsibleHeaderOnKeyboard from './CollapsibleHeaderOnKeyboard';
 import HeaderWithBackButton from './HeaderWithBackButton';
@@ -68,7 +69,7 @@ type InteractiveStepWrapperProps = {
     ref?: ForwardedRef<View>;
 };
 
-const INPUT_HEADER_HEIGHT = 27;
+const INPUT_HEADER_HEIGHT = variables.lineHeightXXLarge;
 
 function InteractiveStepWrapper({
     children,
