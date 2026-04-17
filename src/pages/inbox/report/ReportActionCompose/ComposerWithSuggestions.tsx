@@ -177,6 +177,10 @@ type SwitchToCurrentReportProps = {
 };
 const {RNTextInputReset} = NativeModules;
 
+function getIsCommentEmpty(comment: string) {
+    return !!comment.match(/^(\s)*$/);
+}
+
 const isIOSNative = getPlatform() === CONST.PLATFORM.IOS;
 
 /**
@@ -361,6 +365,7 @@ function ComposerWithSuggestions({
             if (wasEditing.current && wasEditingInComposerRef.current) {
                 // Editing just ended in the composer – restore the draft comment and its previous selection.
                 applyComposerValue(draftComment ?? '', {selection: previousDraftSelectionRef.current, shouldForceNativeValueUpdate: true});
+                setIsCommentEmpty(getIsCommentEmpty(draftComment ?? ''));
                 if (!wasComposerFocusedBeforeEditingRef.current) {
                     composerRef.current?.blur();
                 }
@@ -412,7 +417,7 @@ function ComposerWithSuggestions({
         }
 
         previousEditingReportActionIDRef.current = editingReportActionID;
-    }, [applyComposerValue, draftComment, editingMessage, editingReportActionID, editingState, selection, shouldUseNarrowLayout, updateNativeSelectionValue]);
+    }, [applyComposerValue, draftComment, editingMessage, editingReportActionID, editingState, selection, setIsCommentEmpty, shouldUseNarrowLayout, updateNativeSelectionValue]);
 
     const {superWideRHPRouteKeys} = useWideRHPState();
     // When SearchReport is stacked above another RHP, delay autofocus until after the transition completes to avoid animation jank
@@ -597,9 +602,6 @@ function ComposerWithSuggestions({
             const commentWithSpaceInserted = isEmojiInserted ? insertWhiteSpaceAtIndex(effectiveCommentValue, endIndex) : effectiveCommentValue;
             const {text: emojiConvertedText, emojis, cursorPosition} = replaceAndExtractEmojis(commentWithSpaceInserted, preferredSkinTone, preferredLocale);
 
-            const newComment = insertTextVSBetweenDigitAndEmoji(emojiConvertedText);
-            const textVSOffset = getTextVSCursorOffset(emojiConvertedText, cursorPosition);
-
             if (emojis.length) {
                 const newEmojis = getAddedEmojis(emojis, emojisPresentBefore.current);
                 if (newEmojis.length) {
@@ -609,9 +611,13 @@ function ComposerWithSuggestions({
                     }
                 }
             }
+
+            const newComment = insertTextVSBetweenDigitAndEmoji(emojiConvertedText);
             const newCommentConverted = convertToLTRForComposer(newComment);
-            const isNewCommentEmpty = !!newCommentConverted.match(/^(\s)*$/);
-            const isPrevCommentEmpty = !!commentRef.current.match(/^(\s)*$/);
+
+            const textVSOffset = getTextVSCursorOffset(emojiConvertedText, cursorPosition);
+            const isNewCommentEmpty = getIsCommentEmpty(newCommentConverted);
+            const isPrevCommentEmpty = getIsCommentEmpty(commentRef.current);
 
             /** Only update isCommentEmpty state if it's different from previous one */
             if (!isEditingInComposer && isNewCommentEmpty !== isPrevCommentEmpty) {
