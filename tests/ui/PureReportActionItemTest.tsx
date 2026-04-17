@@ -10,6 +10,7 @@ import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import OptionsListContextProvider from '@components/OptionListContextProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import {openLink} from '@libs/actions/Link';
+import {setHasRadio} from '@libs/NetworkState';
 import Parser from '@libs/Parser';
 import {getIOUActionForReportID} from '@libs/ReportActionsUtils';
 import PureReportActionItem from '@pages/inbox/report/PureReportActionItem';
@@ -71,8 +72,8 @@ describe('PureReportActionItem', () => {
 
     beforeEach(async () => {
         wrapOnyxWithWaitForBatchedUpdates(Onyx);
+        setHasRadio(true);
         await act(async () => {
-            await Onyx.merge(ONYXKEYS.NETWORK, {isOffline: false});
             await Onyx.merge(`${ONYXKEYS.PERSONAL_DETAILS_LIST}`, {
                 [ACTOR_ACCOUNT_ID]: {
                     accountID: ACTOR_ACCOUNT_ID,
