@@ -4086,8 +4086,10 @@ function shouldShowReportActionNotification(reportID: string, currentUserAccount
     }
 
     // We don't want to send a local notification if the user preference is daily, mute or hidden.
-    const notificationPreference = getReportNotificationPreference(allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]);
-    if (notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS) {
+    const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+    const notificationPreference = getReportNotificationPreference(report);
+
+    if (notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS && !ReportActionsUtils.isActionableNotificationForAccountID(action, currentUserAccountID)) {
         Log.info(`${tag} No notification because user preference is to be notified: ${notificationPreference}`);
         return false;
     }
@@ -4113,7 +4115,6 @@ function shouldShowReportActionNotification(reportID: string, currentUserAccount
         return false;
     }
 
-    const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
     if (!report || (report && report.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)) {
         Log.info(`${tag} No notification because the report does not exist or is pending deleted`, false);
         return false;

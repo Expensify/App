@@ -379,6 +379,15 @@ function isModifiedExpenseAction(reportAction: OnyxInputOrEntry<ReportAction>): 
     return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE);
 }
 
+function isActionableNotificationForAccountID(reportAction: OnyxInputOrEntry<ReportAction>, accountID: number): boolean {
+    if (!isModifiedExpenseAction(reportAction)) {
+        return false;
+    }
+    const originalMessage = getOriginalMessage(reportAction);
+    const actionableForAccountIDs = originalMessage?.actionableForAccountIDs;
+    return actionableForAccountIDs?.includes(accountID) ?? false;
+}
+
 function isMovedTransactionAction(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION> {
     return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION);
 }
@@ -4690,6 +4699,7 @@ export {
     getMostRecentActiveDEWApproveFailedAction,
     hasPendingDEWApprove,
     isWhisperActionTargetedToOthers,
+    isActionableNotificationForAccountID,
     isTagModificationAction,
     isIOUActionMatchingTransactionList,
     isResolvedActionableWhisper,

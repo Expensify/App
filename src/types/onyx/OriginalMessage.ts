@@ -872,6 +872,9 @@ type OriginalMessageModifiedExpense = {
 
     /** The Concierge reasoning for the action */
     reasoning?: string;
+
+    /** Account IDs that should receive notifications for this action regardless of report notification preference */
+    actionableForAccountIDs?: number[];
 };
 
 /** Policy rules modified fields */
