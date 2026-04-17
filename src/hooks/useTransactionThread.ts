@@ -53,7 +53,7 @@ function useTransactionThread({reportID, report, allReportActions, isOffline}: U
     const canPerformWriteAction = canUserPerformWriteAction(report, isReportArchived);
 
     const getTransactionThreadReportActions = useCallback(
-        (reportActions: OnyxEntry<ReportActions>): ReportAction[] => selectTransactionThreadReportActions(canPerformWriteAction, transactionThreadReportID, reportActions),
+        (reportActions: OnyxEntry<ReportActions>): ReportAction[] => selectTransactionThreadReportActions(!!canPerformWriteAction, transactionThreadReportID, reportActions),
         [canPerformWriteAction, transactionThreadReportID],
     );
 
