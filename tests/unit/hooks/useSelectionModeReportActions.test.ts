@@ -55,7 +55,7 @@ jest.mock('@hooks/useEnvironment', () => ({
 jest.mock('@hooks/usePermissions', () => ({
     __esModule: true,
     default: jest.fn(() => ({
-        isBetaEnabled: (beta: string) => beta === 'selectionModeReportActions',
+        isBetaEnabled: (beta: string) => beta === 'bulkSubmitApprovePay',
     })),
 }));
 
@@ -102,15 +102,6 @@ jest.mock('@hooks/usePolicy', () => ({
 jest.mock('@hooks/usePaymentOptions', () => ({
     __esModule: true,
     default: jest.fn(() => []),
-}));
-
-jest.mock('@hooks/useNonReimbursablePaymentModal', () => ({
-    __esModule: true,
-    default: jest.fn(() => ({
-        showNonReimbursablePaymentErrorModal: jest.fn(),
-        shouldBlockDirectPayment: jest.fn(() => false),
-        nonReimbursablePaymentErrorDecisionModal: null,
-    })),
 }));
 
 jest.mock('@hooks/useLazyAsset', () => ({
@@ -190,14 +181,20 @@ jest.mock('@libs/ReportUtils', () => {
     };
 });
 
-jest.mock('@libs/actions/IOU', () => ({
+jest.mock('@libs/actions/IOU/ReportWorkflow', () => ({
     __esModule: true,
     submitReport: jest.fn(),
     approveMoneyRequest: jest.fn(),
-    payMoneyRequest: jest.fn(),
-    payInvoice: jest.fn(),
     canApproveIOU: jest.fn(() => false),
     canIOUBePaid: jest.fn(() => false),
+}));
+
+jest.mock('@libs/actions/IOU/PayMoneyRequest', () => ({
+    __esModule: true,
+    payMoneyRequest: jest.fn(),
+    payInvoice: jest.fn(),
+    completePaymentOnboarding: jest.fn(),
+    savePreferredPaymentMethod: jest.fn(),
 }));
 
 jest.mock('@libs/actions/Link', () => ({
@@ -252,7 +249,8 @@ const DelegateProvider = require('@components/DelegateNoAccessModalProvider') as
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const LockedProvider = require('@components/LockedAccountModalProvider') as Record<string, jest.Mock>;
 // eslint-disable-next-line @typescript-eslint/no-require-imports
-const IOUActions = require('@libs/actions/IOU') as Record<string, jest.Mock>;
+const IOUActions = require('@libs/actions/IOU/ReportWorkflow') as Record<string, jest.Mock>;
+const PayMoneyRequestActions = require('@libs/actions/IOU/PayMoneyRequest') as Record<string, jest.Mock>;
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const usePaymentOptionsMock = require('@hooks/usePaymentOptions') as {default: jest.Mock};
 
@@ -641,7 +639,7 @@ describe('useSelectionModeReportActions', () => {
                 result.current.confirmPayment({paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE});
             });
 
-            expect(IOUActions.payMoneyRequest).not.toHaveBeenCalled();
+            expect(PayMoneyRequestActions.payMoneyRequest).not.toHaveBeenCalled();
         });
 
         it('shows delegate modal when delegate restricted during payment', () => {
@@ -676,7 +674,7 @@ describe('useSelectionModeReportActions', () => {
                 result.current.confirmPayment({paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE});
             });
 
-            expect(IOUActions.payMoneyRequest).toHaveBeenCalled();
+            expect(PayMoneyRequestActions.payMoneyRequest).toHaveBeenCalled();
             expect(mockClearSelectedTransactions).toHaveBeenCalledWith(true);
         });
 
@@ -690,7 +688,7 @@ describe('useSelectionModeReportActions', () => {
                 result.current.confirmPayment({paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE});
             });
 
-            expect(IOUActions.payInvoice).toHaveBeenCalled();
+            expect(PayMoneyRequestActions.payInvoice).toHaveBeenCalled();
             expect(mockClearSelectedTransactions).toHaveBeenCalledWith(true);
         });
     });
@@ -754,7 +752,7 @@ describe('useSelectionModeReportActions', () => {
                 result.current.selectionModeKYCSuccess(CONST.IOU.PAYMENT_TYPE.ELSEWHERE);
             });
 
-            expect(IOUActions.payMoneyRequest).toHaveBeenCalled();
+            expect(PayMoneyRequestActions.payMoneyRequest).toHaveBeenCalled();
         });
     });
 

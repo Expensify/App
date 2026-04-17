@@ -109,6 +109,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
         policy,
         personalDetails: personalDetails ?? {},
         localeCompare,
+        currentUserLogin: currentUserPersonalDetails?.login,
     });
 
     useEffect(() => {
