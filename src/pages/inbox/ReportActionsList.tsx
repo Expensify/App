@@ -45,8 +45,9 @@ function ReportActionsList() {
     const shouldWaitForTransactions = shouldWaitForTransactionsUtil(report, reportTransactions, reportMetadata, isOffline);
     const shouldDisplayMoneyRequestActionsList = isMoneyRequestOrInvoiceReport && shouldDisplayReportTableView(report, reportTransactions);
 
-    // Show skeleton for one frame before starting the content render. This ensures
-    // the skeleton is committed to the screen before any heavy reconciliation begins.
+    // Commit the skeleton for one frame before starting the content render. React holds the
+    // prior committed tree while reconciling the new one, so the skeleton (even though blank
+    // for its first 300ms) stays on screen throughout any slow render that follows.
     const [isDeferred, setIsDeferred] = useState(true);
     useEffect(() => {
         const requestedFrame = requestAnimationFrame(() => setIsDeferred(false));
@@ -54,7 +55,7 @@ function ReportActionsList() {
     }, []);
 
     if (isDeferred || !report || shouldWaitForTransactions) {
-        return <ReportActionsSkeletonView />;
+        return <ReportActionsSkeletonView shouldDelay />;
     }
 
     if (shouldDisplayMoneyRequestActionsList) {

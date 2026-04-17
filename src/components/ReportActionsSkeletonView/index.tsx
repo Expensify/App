@@ -15,13 +15,20 @@ type ReportActionsSkeletonViewProps = {
 
     /** Callback executed on layout */
     onLayout?: (event: LayoutChangeEvent) => void;
+
+    /** When true, the skeleton stays hidden for SKELETON_VISIBLE_DELAY_MS before appearing */
+    shouldDelay?: boolean;
 };
 
-function ReportActionsSkeletonView({shouldAnimate = true, possibleVisibleContentItems = 0, onLayout}: ReportActionsSkeletonViewProps) {
-    const [isVisible, setIsVisible] = useState(false);
+function ReportActionsSkeletonView({shouldAnimate = true, possibleVisibleContentItems = 0, onLayout, shouldDelay = false}: ReportActionsSkeletonViewProps) {
+    const [isVisible, setIsVisible] = useState(!shouldDelay);
     useEffect(() => {
+        if (isVisible) {
+            return;
+        }
         const timer = setTimeout(() => setIsVisible(true), SKELETON_VISIBLE_DELAY_MS);
         return () => clearTimeout(timer);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     if (!isVisible) {

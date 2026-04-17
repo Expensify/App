@@ -100,7 +100,8 @@ async function navigateToSidebarOption(reportID: string): Promise<void> {
         (NativeNavigation as NativeNavigationMock).triggerTransitionEnd();
     });
     // ReportScreen relies on the onLayout event to receive updates from onyx.
-    triggerListLayout(reportID);
+    // report-actions-list is rendered after a RAF deferral, so we retry until it appears.
+    await waitFor(() => triggerListLayout(reportID));
     await waitForBatchedUpdatesWithAct();
 }
 
@@ -369,9 +370,9 @@ describe('Pagination', () => {
         });
         // Due to https://github.com/facebook/react-native/commit/3485e9ed871886b3e7408f90d623da5c018da493
         // we need to scroll too to trigger `onStartReached` which triggers other updates
-        scrollToOffset(0);
+        await waitFor(() => scrollToOffset(0));
         // ReportScreen relies on the onLayout event to receive updates from onyx.
-        triggerListLayout();
+        await waitFor(() => triggerListLayout());
         await waitForNetworkPromises();
         await waitForBatchedUpdatesWithAct();
 
