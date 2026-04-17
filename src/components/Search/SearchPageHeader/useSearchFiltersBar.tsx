@@ -52,7 +52,7 @@ type UseSearchFiltersBarResult = {
     translate: ReturnType<typeof useLocalize>['translate'];
 };
 
-const SKIPPED_FILTERS = new Set<SearchAdvancedFiltersKey>([FILTER_KEYS.GROUP_BY, FILTER_KEYS.GROUP_CURRENCY, FILTER_KEYS.LIMIT, FILTER_KEYS.TYPE, FILTER_KEYS.VIEW]);
+const SKIPPED_FILTERS = new Set<SearchAdvancedFiltersKey>([FILTER_KEYS.GROUP_BY, FILTER_KEYS.GROUP_CURRENCY, FILTER_KEYS.LIMIT, FILTER_KEYS.TYPE, FILTER_KEYS.VIEW, FILTER_KEYS.CARD_ID]);
 
 function getFilterSentryLabel(filterKey: SearchAdvancedFiltersKey | SearchFilterKey | ReportFieldKey) {
     return `Search-Filter-${filterKey}`;
