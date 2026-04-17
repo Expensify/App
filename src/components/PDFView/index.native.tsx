@@ -5,6 +5,7 @@ import PDF from 'react-native-pdf';
 import KeyboardAvoidingView from '@components/KeyboardAvoidingView';
 import LoadingIndicator from '@components/LoadingIndicator';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
+import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import useKeyboardState from '@hooks/useKeyboardState';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -52,6 +53,7 @@ function PDFView({onToggleKeyboard, onLoadComplete, fileName, onPress, isFocused
     const themeStyles = useThemeStyles();
     const {isKeyboardShown} = useKeyboardState();
     const StyleUtils = useStyleUtils();
+    const isInLandscapeMode = useIsInLandscapeMode();
 
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
 
@@ -174,6 +176,7 @@ function PDFView({onToggleKeyboard, onLoadComplete, fileName, onPress, isFocused
             <View style={containerStyles}>
                 {shouldAttemptPDFLoad && (
                     <PDF
+                        key={isInLandscapeMode ? 'landscape' : 'portrait'}
                         fitPolicy={0}
                         trustAllCerts={false}
                         renderActivityIndicator={() => (
