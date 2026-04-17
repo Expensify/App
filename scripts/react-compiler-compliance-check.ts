@@ -120,7 +120,7 @@ function checkReactCompilerCompliance(source: string, filename: string): Compila
 function formatErrorLocation(filename: string, error: CompilerError): string {
     const loc = error.loc ?? error.fnLoc;
     if (loc) {
-        return `${filename}:${loc.start.line}:${loc.start.column}`;
+        return `${loc.start.line}:${loc.start.column}`;
     }
     return filename;
 }
