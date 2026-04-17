@@ -45,6 +45,7 @@ import {
     enableCompanyCards,
     enableExpensifyCard,
     enablePolicyConnections,
+    enablePolicyHR,
     enablePolicyInvoicing,
     enablePolicyReceiptPartners,
     enablePolicyRules,
@@ -152,6 +153,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
         'Gears',
         'ReceiptPartners',
         'Clock',
+        'Members',
     ]);
 
     const onDisabledOrganizeSwitchPress = useCallback(() => {
@@ -505,6 +507,29 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                     return;
                 }
                 Navigation.navigate(ROUTES.WORKSPACE_RECEIPT_PARTNERS.getRoute(policyID));
+            },
+        });
+    }
+
+    if (isBetaEnabled(CONST.BETAS.GUSTO)) {
+        integrateItems.push({
+            icon: illustrations.Members,
+            titleTranslationKey: 'workspace.hr.title',
+            subtitleTranslationKey: 'workspace.hr.subtitle',
+            isActive: policy?.isHREnabled === true || !!policy?.connections?.gusto,
+            pendingAction: policy?.pendingFields?.isHREnabled,
+            disabled: !!policy?.connections?.gusto,
+            action: (isEnabled: boolean) => {
+                if (!policyID) {
+                    return;
+                }
+                enablePolicyHR(policyID, isEnabled);
+            },
+            onPress: () => {
+                if (!policyID) {
+                    return;
+                }
+                Navigation.navigate(ROUTES.WORKSPACE_HR.getRoute(policyID));
             },
         });
     }
