@@ -4478,7 +4478,6 @@ function enablePolicyReceiptPartners(policyID: string, enabled: boolean) {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
-                    // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
                     receiptPartners: {enabled},
                     pendingFields: {
                         receiptPartners: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
@@ -4502,7 +4501,6 @@ function enablePolicyReceiptPartners(policyID: string, enabled: boolean) {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
-                    // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
                     receiptPartners: {enabled: !enabled},
                     pendingFields: {
                         receiptPartners: null,

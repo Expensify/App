@@ -86,6 +86,7 @@ import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 import type {Unit} from '@src/types/onyx/Policy';
 import type RecentlyUsedTags from '@src/types/onyx/RecentlyUsedTags';
 import type {OnyxData} from '@src/types/onyx/Request';
+import type {SearchResultDataType} from '@src/types/onyx/SearchResults';
 import type {SplitShares, TransactionChanges, TransactionCustomUnit} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {getCleanUpTransactionThreadReportOnyxData} from './DeleteMoneyRequest';
@@ -2019,16 +2020,18 @@ function updateSplitTransactions({
             },
         });
 
-        // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
-        onyxData.failureData?.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${searchContext?.currentSearchHash}`,
-            value: {
-                data: {
-                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`]: originalTransaction,
+        if (originalTransaction) {
+            // Initializing as an empty typed object to allow dynamic key assignment resolves TypeScript type inference issue
+            const failureSnapshotData: SearchResultDataType = {};
+            failureSnapshotData[`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`] = originalTransaction;
+            onyxData.failureData?.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${searchContext?.currentSearchHash}`,
+                value: {
+                    data: failureSnapshotData,
                 },
-            },
-        });
+            });
+        }
     } else {
         onyxData.optimisticData?.push({
             onyxMethod: Onyx.METHOD.MERGE,

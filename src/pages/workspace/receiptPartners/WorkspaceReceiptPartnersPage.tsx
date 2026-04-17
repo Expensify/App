@@ -50,7 +50,7 @@ function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps
     const policy = usePolicy(policyID);
     useWorkspaceDocumentTitle(policy?.name, 'workspace.common.receiptPartners');
     const {getReceiptPartnersIntegrationData, shouldShowEnterCredentialsError, isUberConnected} = useGetReceiptPartnersIntegrationData(policyID);
-    const [selectedPartner, setSelectedPartner] = useState<string | null>(null);
+    const [selectedPartner, setSelectedPartner] = useState<(typeof receiptPartnerNames)[keyof typeof receiptPartnerNames] | null>(null);
     const isLoading = policy?.isLoading;
     const [isDisconnectModalOpen, setIsDisconnectModalOpen] = useState(false);
     const integrations = policy?.receiptPartners;

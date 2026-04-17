@@ -85,11 +85,10 @@ function updateNetSuiteOnyxData<TSettingName extends keyof Connections['netsuite
     settingValue: Partial<Connections['netsuite']['options']['config'][TSettingName]>,
     oldSettingValue: Partial<Connections['netsuite']['options']['config'][TSettingName]>,
 ) {
-    const exporterOptimisticData = settingName === CONST.NETSUITE_CONFIG.EXPORTER ? {exporter: settingValue} : {};
-    const exporterErrorData = settingName === CONST.NETSUITE_CONFIG.EXPORTER ? {exporter: oldSettingValue} : {};
+    const exporterOptimisticData = settingName === CONST.NETSUITE_CONFIG.EXPORTER && typeof settingValue === 'string' ? {exporter: settingValue} : {};
+    const exporterErrorData = settingName === CONST.NETSUITE_CONFIG.EXPORTER && typeof oldSettingValue === 'string' ? {exporter: oldSettingValue} : {};
 
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
-        // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
@@ -111,7 +110,6 @@ function updateNetSuiteOnyxData<TSettingName extends keyof Connections['netsuite
     ];
 
     const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
-        // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,

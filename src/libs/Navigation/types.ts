@@ -2654,7 +2654,7 @@ type WorkspaceSplitNavigatorParamList = {
     };
     [SCREENS.WORKSPACE.RECEIPT_PARTNERS_CHANGE_BILLING_ACCOUNT]: {
         policyID: string;
-        integration: string;
+        integration: typeof CONST.POLICY.RECEIPT_PARTNERS.NAME.UBER;
     };
 
     [SCREENS.WORKSPACE.RECEIPT_PARTNERS_INVITE_EDIT]: {

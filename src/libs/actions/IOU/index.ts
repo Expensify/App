@@ -111,7 +111,7 @@ import type RecentlyUsedTags from '@src/types/onyx/RecentlyUsedTags';
 import type {ReportNextStep} from '@src/types/onyx/Report';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import type {OnyxData} from '@src/types/onyx/Request';
-import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
+import type {SearchDataTypes, SearchResultDataType} from '@src/types/onyx/SearchResults';
 import type {Comment, Receipt, ReceiptSource, SplitShares, TransactionChanges, TransactionCustomUnit, WaypointCollection} from '@src/types/onyx/Transaction';
 import type {FileObject} from '@src/types/utils/Attachment';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -3758,39 +3758,47 @@ function getSearchOnyxUpdate({
                     },
                 });
             }
-            const snapshotData = {
-                [ONYXKEYS.PERSONAL_DETAILS_LIST]: {
-                    [toAccountID]: {
-                        accountID: toAccountID,
-                        displayName: participant?.displayName,
-                        login: participant?.login,
-                    },
-                    [fromAccountID]: {
-                        accountID: fromAccountID,
-                        avatar: deprecatedCurrentUserPersonalDetails?.avatar,
-                        displayName: deprecatedCurrentUserPersonalDetails?.displayName,
-                        login: deprecatedCurrentUserPersonalDetails?.login,
-                    },
+            // Building this object sequentially resolves TypeScript type inference issues
+            const optimisticSnapshotData: SearchResultDataType = {};
+
+            optimisticSnapshotData[ONYXKEYS.PERSONAL_DETAILS_LIST] = {
+                [toAccountID]: {
+                    accountID: toAccountID,
+                    displayName: participant?.displayName,
+                    login: participant?.login,
                 },
-                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: {
+                [fromAccountID]: {
                     accountID: fromAccountID,
-                    managerID: toAccountID,
-                    ...(transactionThreadReportID && {transactionThreadReportID}),
-                    ...(isFromOneTransactionReport && {isFromOneTransactionReport}),
-                    ...transaction,
+                    avatar: deprecatedCurrentUserPersonalDetails?.avatar,
+                    displayName: deprecatedCurrentUserPersonalDetails?.displayName,
+                    login: deprecatedCurrentUserPersonalDetails?.login,
                 },
-                ...(policy && {[`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`]: policy}),
-                ...(iouReport && {[`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`]: iouReport}),
-                ...(iouReport && iouAction && {[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`]: {[iouAction.reportActionID]: iouAction}}),
             };
+
+            optimisticSnapshotData[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`] = {
+                ...(transactionThreadReportID && {transactionThreadReportID}),
+                ...(isFromOneTransactionReport && {isFromOneTransactionReport}),
+                ...transaction,
+            };
+
+            if (policy) {
+                optimisticSnapshotData[`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`] = policy;
+            }
+
+            if (iouReport) {
+                optimisticSnapshotData[`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`] = iouReport;
+            }
+
+            if (iouReport && iouAction) {
+                optimisticSnapshotData[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`] = {[iouAction.reportActionID]: iouAction};
+            }
 
             const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT>> = [
                 {
                     onyxMethod: Onyx.METHOD.MERGE,
                     key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${currentSearchQueryJSON.hash}` as const,
                     value: {
-                        // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
-                        data: snapshotData,
+                        data: optimisticSnapshotData,
                     },
                 },
             ];
@@ -3823,8 +3831,7 @@ function getSearchOnyxUpdate({
                                 hasResults: true,
                                 isLoading: false,
                             },
-                            // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
-                            data: snapshotData,
+                            data: optimisticSnapshotData,
                         },
                     });
                 }
