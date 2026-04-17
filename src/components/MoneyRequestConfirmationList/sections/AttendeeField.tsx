@@ -6,6 +6,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
+import {sortAlphabetically} from '@libs/OptionsListUtils';
 import {getAttendees} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import type {IOUAction, IOUType} from '@src/CONST';
@@ -26,7 +27,7 @@ type AttendeeFieldProps = {
 
 function AttendeeField({formattedAmountPerAttendee, isReadOnly, transactionID, action, iouType, reportID, formError, transaction}: AttendeeFieldProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, localeCompare} = useLocalize();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const shouldDisplayAttendeesError = formError === 'violations.missingAttendees';
 
@@ -43,7 +44,7 @@ function AttendeeField({formattedAmountPerAttendee, isReadOnly, transactionID, a
             titleComponent={
                 Array.isArray(iouAttendees) ? (
                     <UserPills
-                        users={iouAttendees.map((a) => ({
+                        users={sortAlphabetically(iouAttendees, 'displayName', localeCompare).map((a) => ({
                             avatar: a?.avatarUrl,
                             displayName: a?.displayName ?? a?.login ?? a?.email ?? '',
                             accountID: a?.accountID,

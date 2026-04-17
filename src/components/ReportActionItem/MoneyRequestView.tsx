@@ -47,7 +47,7 @@ import {convertToDisplayString} from '@libs/CurrencyUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getRateFromMerchant} from '@libs/MergeTransactionUtils';
-import {hasEnabledOptions} from '@libs/OptionsListUtils';
+import {hasEnabledOptions, sortAlphabetically} from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
 import {
     canSubmitPerDiemExpenseFromWorkspace,
@@ -178,7 +178,7 @@ function MoneyRequestView({
     const StyleUtils = useStyleUtils();
     const {isOffline} = useNetwork();
     const {environmentURL} = useEnvironment();
-    const {translate, toLocaleDigit} = useLocalize();
+    const {translate, toLocaleDigit, localeCompare} = useLocalize();
     const {getCurrencySymbol} = useCurrencyListActions();
     const {getReportRHPActiveRoute} = useActiveRoute();
     const {showConfirmModal} = useConfirmModal();
@@ -1179,7 +1179,7 @@ function MoneyRequestView({
                             titleComponent={
                                 Array.isArray(actualAttendees) ? (
                                     <UserPills
-                                        users={actualAttendees.map((a) => ({
+                                        users={sortAlphabetically(actualAttendees, 'displayName', localeCompare).map((a) => ({
                                             avatar: a?.avatarUrl,
                                             displayName: a?.displayName ?? a?.login ?? a?.email ?? '',
                                             accountID: a?.accountID,
