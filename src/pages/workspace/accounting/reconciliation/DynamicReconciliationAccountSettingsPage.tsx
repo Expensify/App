@@ -15,6 +15,7 @@ import {getConnectionNameFromRouteParam} from '@libs/AccountingUtils';
 import {getLastFourDigits} from '@libs/BankAccountUtils';
 import {getCardProgramKey, getCardSettings, getEligibleBankAccountsForCard} from '@libs/CardUtils';
 import Log from '@libs/Log';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getDomainNameForPolicy} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
@@ -22,7 +23,7 @@ import type {SettingsNavigatorParamList} from '@navigation/types';
 import {updateSettlementAccount} from '@userActions/Card';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
@@ -97,7 +98,7 @@ function DynamicReconciliationAccountSettingsPage({route}: DynamicReconciliation
                 <RenderHTML
                     html={translate(
                         'workspace.accounting.chooseReconciliationAccount.settlementAccountReconciliation',
-                        `${environmentURL}/${ROUTES.WORKSPACE_EXPENSIFY_CARD_SETTINGS_ACCOUNT.getRoute(policyID, Navigation.getActiveRoute())}`,
+                        `${environmentURL}${createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_EXPENSIFY_CARD_SETTINGS_ACCOUNT.path)}`,
                         settlementAccountEnding,
                     )}
                 />

@@ -27,6 +27,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getAllCardsForWorkspace, getCardHintText, getTranslationKeyForLimitType, isCardFrozen, maskCard} from '@libs/CardUtils';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
@@ -39,7 +40,7 @@ import variables from '@styles/variables';
 import {deactivateCard as deactivateCardAction, freezeCard as freezeCardAction, openCardDetailsPage, unfreezeCard as unfreezeCardAction} from '@userActions/Card';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
@@ -260,7 +261,7 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
                             onPress={() =>
                                 Navigation.navigate(
                                     isWorkspaceCardRhp
-                                        ? ROUTES.WORKSPACE_EXPENSIFY_CARD_LIMIT_TYPE.getRoute(policyID, cardID, Navigation.getActiveRoute())
+                                        ? createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_EXPENSIFY_CARD_LIMIT_TYPE.path)
                                         : ROUTES.EXPENSIFY_CARD_LIMIT_TYPE.getRoute(policyID, cardID, Navigation.getActiveRoute()),
                                 )
                             }

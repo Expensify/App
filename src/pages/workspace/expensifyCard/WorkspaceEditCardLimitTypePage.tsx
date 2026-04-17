@@ -15,6 +15,7 @@ import Text from '@components/Text';
 import ValuePicker from '@components/ValuePicker';
 import useCurrencyForExpensifyCard from '@hooks/useCurrencyForExpensifyCard';
 import useDefaultFundID from '@hooks/useDefaultFundID';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
@@ -33,14 +34,14 @@ import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/EditExpensifyCardLimitTypeForm';
 import type {CardLimitType} from '@src/types/onyx/Card';
 
 type WorkspaceEditCardLimitTypePageProps = PlatformStackScreenProps<
     SettingsNavigatorParamList,
-    typeof SCREENS.WORKSPACE.EXPENSIFY_CARD_LIMIT_TYPE | typeof SCREENS.EXPENSIFY_CARD.EXPENSIFY_CARD_LIMIT_TYPE
+    typeof SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_EXPENSIFY_CARD_LIMIT_TYPE | typeof SCREENS.EXPENSIFY_CARD.EXPENSIFY_CARD_LIMIT_TYPE
 >;
 
 function WorkspaceEditCardLimitTypePage({route}: WorkspaceEditCardLimitTypePageProps) {
@@ -69,7 +70,8 @@ function WorkspaceEditCardLimitTypePage({route}: WorkspaceEditCardLimitTypePageP
     const [expirationToggle, setExpirationToggle] = useState(!!card?.nameValuePairs?.validFrom);
 
     const currency = useCurrencyForExpensifyCard({policyID});
-    const isWorkspaceRhp = route.name === SCREENS.WORKSPACE.EXPENSIFY_CARD_LIMIT_TYPE;
+    const isWorkspaceRhp = route.name === SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_EXPENSIFY_CARD_LIMIT_TYPE;
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.WORKSPACE_EXPENSIFY_CARD_LIMIT_TYPE.path);
 
     const personalDetails = usePersonalDetails();
 
@@ -100,11 +102,17 @@ function WorkspaceEditCardLimitTypePage({route}: WorkspaceEditCardLimitTypePageP
     }, [card?.nameValuePairs?.validThru, assigneeTimeZone]);
 
     const goBack = () => {
+        if (isWorkspaceRhp) {
+            Navigation.goBack(backPath);
+            return;
+        }
+
         if (backTo) {
             Navigation.goBack(backTo);
             return;
         }
-        Navigation.goBack(isWorkspaceRhp ? ROUTES.WORKSPACE_EXPENSIFY_CARD_DETAILS.getRoute(policyID, cardID) : ROUTES.EXPENSIFY_CARD_DETAILS.getRoute(policyID, cardID));
+
+        Navigation.goBack(ROUTES.EXPENSIFY_CARD_DETAILS.getRoute(policyID, cardID));
     };
 
     const fetchCardLimitTypeData = () => {

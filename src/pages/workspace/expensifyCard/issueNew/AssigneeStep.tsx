@@ -38,7 +38,7 @@ type AssigneeStepProps = {
     startStepIndex: number;
 
     /** Route params */
-    route: PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.EXPENSIFY_CARD_ISSUE_NEW>;
+    route: PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW>;
 };
 
 function AssigneeStep({policy, stepNames, startStepIndex, route}: AssigneeStepProps) {
