@@ -4,7 +4,7 @@ import {isUserValidatedSelector} from '@selectors/Account';
 import {tierNameSelector} from '@selectors/UserWallet';
 import isEmpty from 'lodash/isEmpty';
 import React, {useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
-import type {LayoutChangeEvent, ListRenderItemInfo, NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
+import type {FlatList, LayoutChangeEvent, ListRenderItemInfo, NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
 import {DeviceEventEmitter, InteractionManager, View} from 'react-native';
 import FlatListWithScrollKey from '@components/FlatList/FlatListWithScrollKey';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
@@ -205,11 +205,16 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
 
     const lastAction = visibleReportActions.at(-1);
 
-    const {scrollOffsetRef} = useContext(ActionListContext);
+    const {scrollOffsetRef, registerListRef} = useContext(ActionListContext);
     const scrollingVerticalBottomOffset = useRef(0);
     const scrollingVerticalTopOffset = useRef(0);
     const wrapperViewRef = useRef<View>(null);
     const readActionSkipped = useRef(false);
+    const listRef = useRef<FlatList<OnyxTypes.ReportAction> | null>(null);
+    useEffect(() => {
+        registerListRef(listRef);
+        return () => registerListRef(null);
+    }, [registerListRef]);
     const lastVisibleActionCreated = getReportLastVisibleActionCreated(report, transactionThreadReport);
     const hasNewestReportAction = lastAction?.created === lastVisibleActionCreated;
     const userActiveSince = useRef<string>(DateUtils.getDBTime());
@@ -726,7 +731,7 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
                         keyboardShouldPersistTaps="handled"
                         onScroll={trackVerticalScrolling}
                         contentContainerStyle={[shouldUseNarrowLayout ? styles.pt4 : styles.pt3]}
-                        ref={reportScrollManager.ref}
+                        ref={listRef}
                         ListEmptyComponent={!isOffline && showReportActionsLoadingState ? <ReportActionsListLoadingSkeleton reasonAttributes={skeletonReasonAttributes} /> : undefined} // This skeleton component is only used for loading state, the empty state is handled by SearchMoneyRequestReportEmptyState
                         removeClippedSubviews={false}
                         initialScrollKey={linkedReportActionID}

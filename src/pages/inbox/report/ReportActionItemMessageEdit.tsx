@@ -551,8 +551,8 @@ function ReportActionItemMessageEdit({
                                         endScrollBlock();
                                     });
                                 });
-                                if (isMobileChrome() && reportScrollManager.ref?.current) {
-                                    reportScrollManager.ref.current.scrollToIndex({index, animated: false});
+                                if (isMobileChrome()) {
+                                    reportScrollManager.scrollToIndexInstance({index, animated: false});
                                 }
                                 setShouldShowComposeInputKeyboardAware(false);
                                 // The last composer that had focus should re-gain focus

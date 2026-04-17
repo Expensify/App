@@ -1,7 +1,7 @@
 import {isUserValidatedSelector} from '@selectors/Account';
 import {tierNameSelector} from '@selectors/UserWallet';
-import type {ListRenderItemInfo} from '@shopify/flash-list';
-import React, {useContext, useEffect} from 'react';
+import type {FlashListRef, ListRenderItemInfo} from '@shopify/flash-list';
+import React, {useContext, useEffect, useRef} from 'react';
 import type {LayoutChangeEvent} from 'react-native';
 import {View} from 'react-native';
 import {renderScrollComponent as renderActionSheetAwareScrollView} from '@components/ActionSheetAwareScrollView';
@@ -110,7 +110,17 @@ function ReportActionsList({reportID, onLayout}: ReportActionsListProps) {
     });
 
     // ─── Unread marker + mark-as-read ───
-    const {scrollOffsetRef} = useContext(ActionListContext);
+    const {scrollOffsetRef, registerListRef} = useContext(ActionListContext);
+
+    // Own the list ref locally; publish to context so scroll handlers (useReportScrollManager)
+    // and ReportActionItemMessageEdit's Safari hack can reach the instance via `getListRef()`.
+    // Keeping the ref local lets React Compiler compile this component — a ref in context would
+    // trigger `react-hooks/refs` when passed to JSX `ref={}`.
+    const listRef = useRef<FlashListRef<OnyxTypes.ReportAction> | null>(null);
+    useEffect(() => {
+        registerListRef(listRef);
+        return () => registerListRef(null);
+    }, [registerListRef]);
 
     const {unreadMarkerReportActionID, unreadMarkerReportActionIndex} = useUnreadMarker({
         reportID,
@@ -134,7 +144,6 @@ function ReportActionsList({reportID, onLayout}: ReportActionsListProps) {
     const linkedReportActionID = pagination.reportActionID;
 
     const {
-        reportScrollManager,
         trackVerticalScrolling,
         onViewableItemsChanged,
         isFloatingMessageCounterVisible,
@@ -218,7 +227,7 @@ function ReportActionsList({reportID, onLayout}: ReportActionsListProps) {
 
     const shouldShowOfflineSkeleton = isOffline && !sortedVisibleReportActions.some((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED);
 
-    const extraData = [shouldUseNarrowLayout ? unreadMarkerReportActionID : undefined];
+    const extraData = shouldUseNarrowLayout ? unreadMarkerReportActionID : undefined;
 
     const renderItem = ({item: reportAction, index}: ListRenderItemInfo<OnyxTypes.ReportAction>) => {
         const originalReportID = getOriginalReportID(reportID, reportAction, reportActionsFromOnyx);
@@ -276,7 +285,7 @@ function ReportActionsList({reportID, onLayout}: ReportActionsListProps) {
             >
                 <InvertedFlashList
                     accessibilityLabel={translate('sidebarScreen.listOfChatMessages')}
-                    ref={reportScrollManager.ref}
+                    ref={listRef}
                     testID="report-actions-list"
                     style={styles.overscrollBehaviorContain}
                     data={sortedVisibleReportActions}

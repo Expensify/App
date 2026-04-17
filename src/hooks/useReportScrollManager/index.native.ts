@@ -5,16 +5,17 @@ import {ActionListContext} from '@pages/inbox/ReportScreenContext';
 import type ReportScrollManagerData from './types';
 
 function useReportScrollManager(): ReportScrollManagerData {
-    const {flatListRef, scrollPositionRef} = useContext(ActionListContext);
+    const {getListRef, scrollPositionRef} = useContext(ActionListContext);
 
     /**
      * Scroll to the provided index.
      */
     const scrollToIndex = (index: number) => {
-        if (!flatListRef?.current) {
+        const listRef = getListRef();
+        if (!listRef?.current) {
             return;
         }
-        flatListRef.current.scrollToIndex({index});
+        listRef.current.scrollToIndex({index});
     };
 
     /**
@@ -22,40 +23,51 @@ function useReportScrollManager(): ReportScrollManagerData {
      * When FlatList is inverted it's "bottom" is really it's top
      */
     const scrollToBottom = () => {
-        if (!flatListRef?.current) {
+        const listRef = getListRef();
+        if (!listRef?.current) {
             return;
         }
 
         scrollPositionRef.current = {offset: 0};
-        flatListRef.current?.scrollToOffset({animated: false, offset: 0});
+        listRef.current?.scrollToOffset({animated: false, offset: 0});
     };
 
     /**
      * Scroll to the end of the FlatList.
      */
     const scrollToEnd = () => {
-        if (!flatListRef?.current) {
+        const listRef = getListRef();
+        if (!listRef?.current) {
             return;
         }
 
-        const scrollViewRef = flatListRef.current.getNativeScrollRef();
+        const scrollViewRef = listRef.current.getNativeScrollRef?.() as ScrollView | undefined;
         // Try to scroll on underlying scrollView if available, fallback to usual listRef
-        if (scrollViewRef && 'scrollToEnd' in scrollViewRef) {
-            (scrollViewRef as ScrollView).scrollToEnd({animated: false});
+        if (scrollViewRef && typeof scrollViewRef.scrollToEnd === 'function') {
+            scrollViewRef.scrollToEnd({animated: false});
             return;
         }
 
-        flatListRef.current.scrollToEnd({animated: false});
+        listRef.current.scrollToEnd({animated: false});
     };
 
     const scrollToOffset = (offset: number) => {
-        if (!flatListRef?.current) {
+        const listRef = getListRef();
+        if (!listRef?.current) {
             return;
         }
-        flatListRef.current.scrollToOffset({offset, animated: false});
+        listRef.current.scrollToOffset({offset, animated: false});
     };
 
-    return {ref: flatListRef, scrollToIndex, scrollToBottom, scrollToEnd, scrollToOffset};
+    const scrollToIndexInstance = ({index, animated}: {index: number; animated: boolean}) => {
+        const listRef = getListRef();
+        if (!listRef?.current) {
+            return;
+        }
+        listRef.current.scrollToIndex({index, animated});
+    };
+
+    return {scrollToIndex, scrollToBottom, scrollToEnd, scrollToOffset, scrollToIndexInstance};
 }
 
 export default useReportScrollManager;
