@@ -268,4 +268,28 @@ describe('useTimeSensitiveCards', () => {
         expect(result.current.cardsNeedingActivation).toHaveLength(1);
         expect(result.current.shouldShowActivateCard).toBe(true);
     });
+
+    it('should still show fraud alerts for cards with custom $0 limit', async () => {
+        const zeroLimitFraudCard: Card = {
+            ...createRandomExpensifyCard(1, {
+                state: CONST.EXPENSIFY_CARD.STATE.OPEN,
+                fraud: CONST.EXPENSIFY_CARD.FRAUD_TYPES.DOMAIN,
+                possibleFraud: {triggerAmount: 1000, triggerMerchant: 'SUSPICIOUS MERCHANT', currency: 'USD', fraudAlertReportID: 123456},
+            }),
+            nameValuePairs: {
+                hasCustomUnapprovedExpenseLimit: true,
+                unapprovedExpenseLimit: 0,
+                possibleFraud: {triggerAmount: 1000, triggerMerchant: 'SUSPICIOUS MERCHANT', currency: 'USD', fraudAlertReportID: 123456},
+            } as Card['nameValuePairs'],
+        };
+        const cardList: CardList = {'1': zeroLimitFraudCard};
+
+        await Onyx.merge(ONYXKEYS.CARD_LIST, cardList);
+        await waitForBatchedUpdates();
+
+        const {result} = renderHook(() => useTimeSensitiveCards());
+
+        expect(result.current.cardsWithFraud).toHaveLength(1);
+        expect(result.current.shouldShowReviewCardFraud).toBe(true);
+    });
 });
