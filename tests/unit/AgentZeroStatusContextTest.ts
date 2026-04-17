@@ -753,14 +753,14 @@ describe('AgentZeroStatusContext', () => {
             expect(result.current.isProcessing).toBe(true);
 
             // When the network goes offline
-            await Onyx.set(ONYXKEYS.NETWORK, {isOffline: true, networkStatus: 'offline'});
+            await Onyx.merge(ONYXKEYS.NETWORK, {isOffline: true});
             await waitForBatchedUpdates();
 
             // The indicator is hidden while offline (original design: !isOffline in isProcessing)
             expect(result.current.isProcessing).toBe(false);
 
             // When the network reconnects
-            await Onyx.set(ONYXKEYS.NETWORK, {isOffline: false, networkStatus: 'online'});
+            await Onyx.merge(ONYXKEYS.NETWORK, {isOffline: false});
             await waitForBatchedUpdates();
 
             // The indicator reappears (server NVP still has processing state)
@@ -789,9 +789,9 @@ describe('AgentZeroStatusContext', () => {
             expect(result.current.isProcessing).toBe(true);
 
             // Go offline, then reconnect
-            await Onyx.set(ONYXKEYS.NETWORK, {isOffline: true, networkStatus: 'offline'});
+            await Onyx.merge(ONYXKEYS.NETWORK, {isOffline: true});
             await waitForBatchedUpdates();
-            await Onyx.set(ONYXKEYS.NETWORK, {isOffline: false, networkStatus: 'online'});
+            await Onyx.merge(ONYXKEYS.NETWORK, {isOffline: false});
             await waitForBatchedUpdates();
 
             // onReconnect proactively clears the NVP locally because optimistic state was active.
@@ -815,7 +815,7 @@ describe('AgentZeroStatusContext', () => {
         });
 
         it('should not clear indicator immediately when the newest action is a pre-existing Concierge reply', async () => {
-            // Regression test for situchan's report: in a Concierge DM, the newest action
+            // Regression test for the reporter's report: in a Concierge DM, the newest action
             // when the user sends a new message is typically Concierge's previous reply.
             // The Concierge-reply detection effect must not treat that pre-existing action
             // as a "new reply" — otherwise the indicator clears before it can show.

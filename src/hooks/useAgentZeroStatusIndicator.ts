@@ -110,7 +110,7 @@ function useAgentZeroStatusIndicator(reportID: string, isAgentZeroChat: boolean)
      * Clear the polling interval and safety timer. Called when the indicator clears normally,
      * when a new processing cycle starts, or when the component unmounts.
      */
-    const clearPolling = () => {
+    const clearPolling = useCallback(() => {
         if (pollIntervalRef.current) {
             clearInterval(pollIntervalRef.current);
             pollIntervalRef.current = null;
@@ -119,13 +119,13 @@ function useAgentZeroStatusIndicator(reportID: string, isAgentZeroChat: boolean)
             clearTimeout(pollSafetyTimerRef.current);
             pollSafetyTimerRef.current = null;
         }
-    };
+    }, []);
 
     /**
      * Hard-clear the indicator by resetting local state and clearing the Onyx NVP.
      * Called as a safety net after MAX_POLL_DURATION_MS if no response has arrived.
      */
-    const hardClearIndicator = () => {
+    const hardClearIndicator = useCallback(() => {
         // If offline, don't clear — the response may arrive when reconnected
         if (isOfflineRef.current) {
             return;
@@ -136,7 +136,7 @@ function useAgentZeroStatusIndicator(reportID: string, isAgentZeroChat: boolean)
         setDisplayedLabel('');
         clearAgentZeroProcessingIndicator(reportID);
         getNewerActions(reportID, newestReportActionRef.current?.reportActionID);
-    };
+    }, [clearPolling, reportID]);
 
     /**
      * Start polling for missed actions every POLL_INTERVAL_MS. Every time processing
@@ -148,7 +148,7 @@ function useAgentZeroStatusIndicator(reportID: string, isAgentZeroChat: boolean)
      *
      * Polling stops when: indicator clears, component unmounts, or user goes offline.
      */
-    const startPolling = () => {
+    const startPolling = useCallback(() => {
         clearPolling();
 
         // Poll every 30s for missed actions. Track the newest action ID before polling
@@ -177,7 +177,7 @@ function useAgentZeroStatusIndicator(reportID: string, isAgentZeroChat: boolean)
         pollSafetyTimerRef.current = setTimeout(() => {
             hardClearIndicator();
         }, MAX_POLL_DURATION_MS);
-    };
+    }, [clearPolling, hardClearIndicator, reportID]);
 
     // On reconnect, proactively clear stale optimistic state + NVP and refetch missed actions.
     //
@@ -256,6 +256,7 @@ function useAgentZeroStatusIndicator(reportID: string, isAgentZeroChat: boolean)
         if (hasServerLabel) {
             startPolling();
             if (pendingOptimisticRequests > 0) {
+                // eslint-disable-next-line react-hooks/set-state-in-effect -- server label takeover; fires once per optimistic→server transition
                 setPendingOptimisticRequests(0);
             }
         }
@@ -307,26 +308,24 @@ function useAgentZeroStatusIndicator(reportID: string, isAgentZeroChat: boolean)
             }
             clearTimeout(updateTimerRef.current);
         };
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- displayedLabelRef avoids depending on displayedLabel; startPolling/clearPolling use refs
-    }, [serverLabel, reasoningHistory.length, reportID, pendingOptimisticRequests, translate]);
+    }, [serverLabel, reasoningHistory.length, reportID, pendingOptimisticRequests, translate, startPolling, clearPolling]);
 
     useEffect(() => {
         isOfflineRef.current = isOffline;
     }, [isOffline]);
 
-    // Clean up polling on unmount
+    // Clean up polling on unmount (and if clearPolling identity changes — no-op when no timers)
     useEffect(
         () => () => {
             clearPolling();
         },
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-        [],
+        [clearPolling],
     );
 
-    const kickoffWaitingIndicator = () => {
+    const kickoffWaitingIndicator = useCallback(() => {
         setPendingOptimisticRequests((prev) => prev + 1);
         startPolling();
-    };
+    }, [startPolling]);
 
     // Capture the newest reportActionID as a baseline whenever the indicator transitions
     // from inactive to active (serverLabel or optimistic). The baseline survives offline
@@ -360,8 +359,9 @@ function useAgentZeroStatusIndicator(reportID: string, isAgentZeroChat: boolean)
         }
         clearAgentZeroProcessingIndicator(reportID);
         clearPolling();
+        // eslint-disable-next-line react-hooks/set-state-in-effect -- reply-detection transition; guarded by the early returns above, fires once per Concierge reply
         setPendingOptimisticRequests(0);
-    }, [newestActorAccountID, newestActionID, serverLabel, pendingOptimisticRequests, reportID]);
+    }, [newestActorAccountID, newestActionID, serverLabel, pendingOptimisticRequests, reportID, clearPolling]);
 
     const isProcessing = !isOffline && isIndicatorActive;
 
