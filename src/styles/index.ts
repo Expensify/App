@@ -3724,6 +3724,21 @@ const staticStyles = (theme: ThemeColors) =>
             backgroundColor: theme.hoverComponentBG,
         },
 
+        receiptsSubmitButtonLandscape: {
+            position: 'absolute',
+            left: 20,
+            bottom: 8,
+            backgroundColor: theme.appBG,
+        },
+
+        receiptPlaceholderLandscape: {
+            height: 52,
+            marginBottom: 8,
+            width: variables.w44,
+            borderRadius: variables.componentBorderRadiusSmall,
+            backgroundColor: theme.hoverComponentBG,
+        },
+
         isDraggingOver: {
             backgroundColor: theme.fileDropUIBG,
         },

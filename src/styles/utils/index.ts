@@ -489,7 +489,10 @@ function getBackgroundColorStyle(backgroundColor: ColorValue): ViewStyle {
     };
 }
 
-function getCameraViewfinderStyle(aspectRatio: number | undefined): ViewStyle {
+function getCameraViewfinderStyle(aspectRatio: number | undefined, isInLandscapeMode: boolean): ViewStyle {
+    if (isInLandscapeMode && aspectRatio) {
+        return {aspectRatio, height: '100%', maxWidth: '100%'};
+    }
     if (aspectRatio) {
         return {aspectRatio, minWidth: '100%', minHeight: '100%'};
     }
