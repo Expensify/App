@@ -1,3 +1,4 @@
+import {NavigationContainer} from '@react-navigation/native';
 import {screen} from '@testing-library/react-native';
 import type {ComponentType} from 'react';
 import Onyx from 'react-native-onyx';
@@ -5,6 +6,8 @@ import {measureRenders} from 'reassure';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import type Navigation from '@libs/Navigation/Navigation';
+import navigationRef from '@libs/Navigation/navigationRef';
+import {setHasRadio} from '@libs/NetworkState';
 import ReportActionsList from '@pages/inbox/report/ReportActionsList';
 import {ActionListContext, ReactionListContext} from '@pages/inbox/ReportScreenContext';
 import {AttachmentModalContextProvider} from '@pages/media/AttachmentModalScreen/AttachmentModalContext';
@@ -84,7 +87,7 @@ const parentReportAction = createRandomReportAction(1);
 
 beforeEach(() => {
     // Initialize the network key for OfflineWithFeedback
-    Onyx.merge(ONYXKEYS.NETWORK, {isOffline: false});
+    setHasRadio(true);
     wrapOnyxWithWaitForBatchedUpdates(Onyx);
     signUpWithTestUser();
 });
@@ -96,25 +99,27 @@ afterEach(() => {
 function ReportActionsListWrapper() {
     const reportActions = ReportTestUtils.getMockedSortedReportActions(500);
     return (
-        <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, AttachmentModalContextProvider]}>
-            <ReactionListContext.Provider value={mockRef}>
-                <ActionListContext.Provider value={mockRef}>
-                    <ReportActionsList
-                        parentReportAction={parentReportAction}
-                        parentReportActionForTransactionThread={undefined}
-                        sortedReportActions={reportActions}
-                        sortedVisibleReportActions={reportActions}
-                        report={report}
-                        onLayout={mockOnLayout}
-                        onScroll={mockOnScroll}
-                        listID={1}
-                        loadOlderChats={mockLoadChats}
-                        loadNewerChats={mockLoadChats}
-                        transactionThreadReport={report}
-                    />
-                </ActionListContext.Provider>
-            </ReactionListContext.Provider>
-        </ComposeProviders>
+        <NavigationContainer ref={navigationRef}>
+            <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, AttachmentModalContextProvider]}>
+                <ReactionListContext.Provider value={mockRef}>
+                    <ActionListContext.Provider value={mockRef}>
+                        <ReportActionsList
+                            parentReportAction={parentReportAction}
+                            parentReportActionForTransactionThread={undefined}
+                            sortedReportActions={reportActions}
+                            sortedVisibleReportActions={reportActions}
+                            report={report}
+                            onLayout={mockOnLayout}
+                            onScroll={mockOnScroll}
+                            listID={1}
+                            loadOlderChats={mockLoadChats}
+                            loadNewerChats={mockLoadChats}
+                            transactionThreadReport={report}
+                        />
+                    </ActionListContext.Provider>
+                </ReactionListContext.Provider>
+            </ComposeProviders>
+        </NavigationContainer>
     );
 }
 

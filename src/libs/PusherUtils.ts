@@ -2,8 +2,8 @@ import type {OnyxKey} from 'react-native-onyx';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import type {AnyOnyxUpdatesFromServer, OnyxServerUpdate} from '@src/types/onyx/OnyxUpdatesFromServer';
+import {reconnect} from './actions/Reconnect';
 import Log from './Log';
-import NetworkConnection from './NetworkConnection';
 import Pusher from './Pusher';
 import type {PingPongEvent} from './Pusher/types';
 
@@ -42,7 +42,8 @@ function subscribeToPrivateUserChannelEvent(eventName: string, accountID: string
     }
 
     function onPusherResubscribeToPrivateUserChannel() {
-        NetworkConnection.triggerReconnectionCallbacks('Pusher re-subscribed to private user channel');
+        Log.info('[PusherUtils] Pusher re-subscribed to private user channel, triggering reconnect');
+        reconnect();
     }
 
     function onEventPush(pushJSON: AnyOnyxUpdatesFromServer | PingPongEvent) {

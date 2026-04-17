@@ -21,8 +21,10 @@ import type {SearchAdvancedFiltersForm} from '@src/types/form';
 import type {SearchResults} from '@src/types/onyx';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
 import GroupByPopup from './GroupByPopup';
+import GroupCurrencyPopup from './GroupCurrencyPopup';
 import SingleSelectPopup from './SingleSelectPopup';
 import SortByPopup from './SortByPopup';
+import SortOrderPopup from './SortOrderPopup';
 import TextInputPopup from './TextInputPopup';
 
 type DisplayPopupProps = {
@@ -41,8 +43,10 @@ function DisplayPopup({queryJSON, searchResults, closeOverlay, onSort}: DisplayP
     const [selectedDisplayFilter, setSelectedDisplayFilter] = useState<
         | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.LIMIT
         | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY
+        | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.GROUP_CURRENCY
         | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.VIEW
         | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_BY
+        | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_ORDER
         | null
     >(null);
 
@@ -52,9 +56,6 @@ function DisplayPopup({queryJSON, searchResults, closeOverlay, onSort}: DisplayP
     const view = viewOptions.find((option) => option.value === queryJSON.view) ?? viewOptions.at(0) ?? null;
     const shouldShowColumnsButton = isLargeScreenWidth && (queryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE || queryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT);
 
-    const sortByValue = queryJSON.sortBy;
-    const groupByValue = searchAdvancedFilters[CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY];
-    const viewValue = searchAdvancedFilters[CONST.SEARCH.SYNTAX_ROOT_KEYS.VIEW];
     const limitValue = searchAdvancedFilters[CONST.SEARCH.SYNTAX_ROOT_KEYS.LIMIT];
 
     if (!selectedDisplayFilter) {
@@ -64,13 +65,20 @@ function DisplayPopup({queryJSON, searchResults, closeOverlay, onSort}: DisplayP
 
         const isExpenseType = queryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE;
         const isTripType = queryJSON.type === CONST.SEARCH.DATA_TYPES.TRIP;
+        const sortByValue = queryJSON.sortBy;
+        const sortOrderValue = queryJSON.sortOrder;
+        const groupByValue = searchAdvancedFilters[CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY];
+        const groupCurrencyValue = searchAdvancedFilters[CONST.SEARCH.SYNTAX_FILTER_KEYS.GROUP_CURRENCY];
+        const viewValue = searchAdvancedFilters[CONST.SEARCH.SYNTAX_ROOT_KEYS.VIEW];
+
         return (
             <View style={[!shouldUseNarrowLayout && styles.pv4]}>
                 <MenuItemWithTopDescription
                     shouldShowRightIcon
                     description={translate('search.display.sortBy')}
-                    title={translate(getSearchColumnTranslationKey(sortByValue))}
+                    title={`${translate(getSearchColumnTranslationKey(sortByValue))} ${CONST.DOT_SEPARATOR} ${translate(`search.filters.sortOrder.${sortOrderValue}`)}`}
                     onPress={() => setSelectedDisplayFilter(CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_BY)}
+                    sentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_SORT_BY}
                 />
                 {(isExpenseType || isTripType) && (
                     <MenuItemWithTopDescription
@@ -78,6 +86,16 @@ function DisplayPopup({queryJSON, searchResults, closeOverlay, onSort}: DisplayP
                         description={translate('search.display.groupBy')}
                         title={groupByValue ? translate(`search.filters.groupBy.${groupByValue}`) : undefined}
                         onPress={() => setSelectedDisplayFilter(CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY)}
+                        sentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_GROUP_BY}
+                    />
+                )}
+                {!!groupBy && (
+                    <MenuItemWithTopDescription
+                        shouldShowRightIcon
+                        description={translate('common.groupCurrency')}
+                        title={groupCurrencyValue}
+                        onPress={() => setSelectedDisplayFilter(CONST.SEARCH.SYNTAX_FILTER_KEYS.GROUP_CURRENCY)}
+                        sentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_GROUP_CURRENCY}
                     />
                 )}
                 {isExpenseType && !!groupByValue && (
@@ -86,6 +104,7 @@ function DisplayPopup({queryJSON, searchResults, closeOverlay, onSort}: DisplayP
                         description={translate('search.view.label')}
                         title={viewValue ? translate(`search.view.${viewValue}`) : undefined}
                         onPress={() => setSelectedDisplayFilter(CONST.SEARCH.SYNTAX_ROOT_KEYS.VIEW)}
+                        sentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_VIEW}
                     />
                 )}
                 {isExpenseType && (
@@ -94,6 +113,7 @@ function DisplayPopup({queryJSON, searchResults, closeOverlay, onSort}: DisplayP
                         description={translate('search.display.limitResults')}
                         title={limitValue}
                         onPress={() => setSelectedDisplayFilter(CONST.SEARCH.SYNTAX_ROOT_KEYS.LIMIT)}
+                        sentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_LIMIT}
                     />
                 )}
                 {shouldShowColumnsButton && (
@@ -134,70 +154,108 @@ function DisplayPopup({queryJSON, searchResults, closeOverlay, onSort}: DisplayP
         close(() => Navigation.setParams({q: queryString, rawQuery: undefined}));
     };
 
+    const goBack = () => {
+        if (selectedDisplayFilter === CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_ORDER) {
+            setSelectedDisplayFilter(CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_BY);
+            return;
+        }
+        setSelectedDisplayFilter(null);
+    };
+
     const subtitle = {
         [CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_BY]: translate('search.display.sortBy'),
+        [CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_ORDER]: translate('search.display.sortOrder'),
         [CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY]: translate('search.display.groupBy'),
+        [CONST.SEARCH.SYNTAX_FILTER_KEYS.GROUP_CURRENCY]: translate('common.groupCurrency'),
         [CONST.SEARCH.SYNTAX_ROOT_KEYS.VIEW]: translate('search.view.label'),
         [CONST.SEARCH.SYNTAX_ROOT_KEYS.LIMIT]: translate('search.display.limitResults'),
     };
 
-    const subPopup = {
-        [CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_BY]: (
-            <SortByPopup
-                searchResults={searchResults}
-                queryJSON={queryJSON}
-                groupBy={groupBy}
-                onSort={onSort}
-                closeOverlay={() => setSelectedDisplayFilter(null)}
-            />
-        ),
-        [CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY]: (
-            <GroupByPopup
-                style={styles.p0}
-                label={shouldUseNarrowLayout ? undefined : translate('search.display.groupBy')}
-                sections={groupBySections}
-                value={groupBy}
-                closeOverlay={() => setSelectedDisplayFilter(null)}
-                onChange={(item) => {
-                    const newValue = item?.value;
-                    if (!newValue) {
-                        updateFilterForm({groupBy: undefined, groupCurrency: undefined});
-                    } else {
-                        updateFilterForm({groupBy: newValue});
-                    }
-                }}
-            />
-        ),
-        [CONST.SEARCH.SYNTAX_ROOT_KEYS.VIEW]: (
-            <SingleSelectPopup
-                style={styles.p0}
-                label={shouldUseNarrowLayout ? undefined : translate('search.view.label')}
-                items={viewOptions}
-                value={view}
-                closeOverlay={() => setSelectedDisplayFilter(null)}
-                onChange={(item) => updateFilterForm({view: item?.value ?? CONST.SEARCH.VIEW.TABLE})}
-            />
-        ),
-        [CONST.SEARCH.SYNTAX_ROOT_KEYS.LIMIT]: (
-            <TextInputPopup
-                style={styles.pv0}
-                placeholder={translate('search.filters.limit')}
-                defaultValue={limitValue}
-                closeOverlay={() => setSelectedDisplayFilter(null)}
-                onChange={(value) => updateFilterForm({limit: value})}
-            />
-        ),
-    };
+    let subPopup: React.JSX.Element | null = null;
+
+    switch (selectedDisplayFilter) {
+        case CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_BY:
+            subPopup = (
+                <SortByPopup
+                    searchResults={searchResults}
+                    queryJSON={queryJSON}
+                    groupBy={groupBy}
+                    onSort={onSort}
+                    onSortOrderPress={() => setSelectedDisplayFilter(CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_ORDER)}
+                    closeOverlay={closeOverlay}
+                />
+            );
+            break;
+        case CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_ORDER:
+            subPopup = (
+                <SortOrderPopup
+                    queryJSON={queryJSON}
+                    onSort={onSort}
+                    closeOverlay={closeOverlay}
+                />
+            );
+            break;
+        case CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY:
+            subPopup = (
+                <GroupByPopup
+                    style={styles.p0}
+                    sections={groupBySections}
+                    value={groupBy}
+                    closeOverlay={closeOverlay}
+                    onChange={(item) => {
+                        const newValue = item?.value;
+                        if (!newValue) {
+                            updateFilterForm({groupBy: undefined, groupCurrency: undefined});
+                        } else {
+                            updateFilterForm({groupBy: newValue});
+                        }
+                    }}
+                />
+            );
+            break;
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.GROUP_CURRENCY:
+            subPopup = (
+                <GroupCurrencyPopup
+                    onChange={(item) => updateFilterForm({groupCurrency: item?.value})}
+                    closeOverlay={closeOverlay}
+                />
+            );
+            break;
+        case CONST.SEARCH.SYNTAX_ROOT_KEYS.VIEW:
+            subPopup = (
+                <SingleSelectPopup
+                    style={styles.p0}
+                    items={viewOptions}
+                    value={view}
+                    closeOverlay={closeOverlay}
+                    onChange={(item) => updateFilterForm({view: item?.value ?? CONST.SEARCH.VIEW.TABLE})}
+                />
+            );
+            break;
+        case CONST.SEARCH.SYNTAX_ROOT_KEYS.LIMIT:
+            subPopup = (
+                <TextInputPopup
+                    style={styles.pv0}
+                    placeholder={translate('search.filters.limit')}
+                    defaultValue={limitValue}
+                    closeOverlay={closeOverlay}
+                    onChange={(value) => updateFilterForm({limit: value})}
+                />
+            );
+            break;
+        default:
+            break;
+    }
 
     return (
         <View style={[!shouldUseNarrowLayout && styles.pv4]}>
             <HeaderWithBackButton
                 shouldDisplayHelpButton={false}
-                style={[styles.h10]}
+                style={[styles.h10, styles.pv1, styles.mb2]}
                 subtitle={subtitle[selectedDisplayFilter]}
-                onBackButtonPress={() => setSelectedDisplayFilter(null)}
+                onBackButtonPress={goBack}
             />
-            {subPopup[selectedDisplayFilter]}
+            {subPopup}
         </View>
     );
 }

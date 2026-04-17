@@ -5,6 +5,7 @@ import * as API from '@libs/API';
 import type {
     AddAdminToDomainParams,
     AddMemberToDomainParams,
+    ChangeDomainSecurityGroupParams,
     DeleteDomainMemberParams,
     DeleteDomainParams,
     RemoveDomainAdminParams,
@@ -25,6 +26,7 @@ import {generateAccountID} from '@libs/UserUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Domain, DomainSecurityGroup, UserSecurityGroupData} from '@src/types/onyx';
+import type {SecurityGroupKey} from '@src/types/onyx/Domain';
 import type {DomainSecurityGroupErrors} from '@src/types/onyx/DomainErrors';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {BaseVacationDelegate} from '@src/types/onyx/VacationDelegate';
@@ -1694,6 +1696,132 @@ function exportMembersToCSV(domainAccountID: number, onDownloadFailed: () => voi
 }
 
 /**
+ * Moves a domain member from one security group to another with optimistic updates.
+ * @param domainAccountID - The account ID of the domain
+ * @param domainName - The name of the domain
+ * @param employeeEmail - The email of the member being moved
+ * @param accountID - The account ID of the member being moved
+ * @param currentSecurityGroupKey - The Onyx key of the member's current security group
+ * @param currentSecurityGroup - The current security group data
+ * @param targetSecurityGroupKey - The Onyx key of the target security group
+ */
+function changeDomainSecurityGroup(
+    domainAccountID: number,
+    domainName: string,
+    employeeEmail: string,
+    accountID: number,
+    currentSecurityGroupKey: SecurityGroupKey,
+    currentSecurityGroup: Partial<DomainSecurityGroup>,
+    targetSecurityGroupKey: SecurityGroupKey,
+) {
+    const accountIDStr = String(accountID);
+
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS | typeof ONYXKEYS.COLLECTION.DOMAIN | typeof ONYXKEYS.COLLECTION.DOMAIN_ERRORS>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`,
+            value: {
+                [currentSecurityGroupKey]: {
+                    shared: {
+                        [accountIDStr]: null,
+                    },
+                },
+                [targetSecurityGroupKey]: {
+                    shared: {
+                        [accountIDStr]: 'read',
+                    },
+                },
+            } as PrefixedRecord<typeof CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX, Partial<DomainSecurityGroup>>,
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
+            value: {
+                member: {[employeeEmail]: {changeDomainSecurityGroup: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE as PendingAction}},
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
+            value: {
+                memberErrors: {[employeeEmail]: null},
+            },
+        },
+    ];
+
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS | typeof ONYXKEYS.COLLECTION.DOMAIN_ERRORS>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
+            value: {
+                member: {[employeeEmail]: null},
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
+            value: {
+                memberErrors: {[employeeEmail]: null},
+            },
+        },
+    ];
+
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS | typeof ONYXKEYS.COLLECTION.DOMAIN | typeof ONYXKEYS.COLLECTION.DOMAIN_ERRORS>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`,
+            value: {
+                [currentSecurityGroupKey]: {
+                    shared: {
+                        [accountIDStr]: currentSecurityGroup.shared?.[accountIDStr],
+                    },
+                },
+                [targetSecurityGroupKey]: {
+                    shared: {
+                        [accountIDStr]: null,
+                    },
+                },
+            } as PrefixedRecord<typeof CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX, Partial<DomainSecurityGroup>>,
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
+            value: {
+                member: {[employeeEmail]: null},
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
+            value: {
+                memberErrors: {
+                    [employeeEmail]: {changeDomainSecurityGroupErrors: getMicroSecondOnyxErrorWithTranslationKey('domain.members.error.moveMember')},
+                },
+            },
+        },
+    ];
+
+    const newID = targetSecurityGroupKey.replace(CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX, '');
+
+    const parameters: ChangeDomainSecurityGroupParams = {
+        domainName,
+        newID,
+        employeeEmail,
+        domainAccountID,
+    };
+
+    API.write(WRITE_COMMANDS.CHANGE_DOMAIN_SECURITY_GROUP, parameters, {optimisticData, successData, failureData});
+}
+
+function setDomainMembersSelectedForMove(memberAccountIDs: string[]) {
+    Onyx.set(ONYXKEYS.DOMAIN_MEMBERS_SELECTED_FOR_MOVE, memberAccountIDs);
+}
+
+function clearDomainMembersSelectedForMove() {
+    Onyx.set(ONYXKEYS.DOMAIN_MEMBERS_SELECTED_FOR_MOVE, []);
+}
+
+/**
  * Updates a setting of a domain security group
  *
  * @param domainAccountID - The account ID of the domain
@@ -1851,6 +1979,9 @@ export {
     clearTwoFactorAuthExemptEmailsErrors,
     resetDomainMemberTwoFactorAuth,
     exportMembersToCSV,
+    changeDomainSecurityGroup,
+    setDomainMembersSelectedForMove,
+    clearDomainMembersSelectedForMove,
     updateDomainSecurityGroup,
     clearDomainSecurityGroupSettingError,
 };

@@ -132,6 +132,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         policy,
         personalDetails: personalDetails ?? {},
         localeCompare,
+        currentUserLogin: currentUserEmail,
     });
 
     const hasValidExistingAccounts = getEligibleExistingBusinessBankAccounts(bankAccountList, policy?.outputCurrency, true).length > 0;
@@ -244,7 +245,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
     const [workflowSearchInput, setWorkflowSearchInput, searchFilteredWorkflows] = useSearchResults(filteredApprovalWorkflows, filterWorkflow);
 
     useEffect(() => {
-        if (filteredApprovalWorkflows.length > CONST.APPROVAL_WORKFLOW_SEARCH_LIMIT) {
+        if (filteredApprovalWorkflows.length > CONST.SEARCH_BAR_THRESHOLD) {
             return;
         }
         setWorkflowSearchInput('');
@@ -360,7 +361,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                                 </View>
                             </View>
                         )}
-                        {filteredApprovalWorkflows.length > CONST.APPROVAL_WORKFLOW_SEARCH_LIMIT && (
+                        {filteredApprovalWorkflows.length > CONST.SEARCH_BAR_THRESHOLD && (
                             <SearchBar
                                 label={translate('workflowsPage.findWorkflow')}
                                 inputValue={workflowSearchInput}
