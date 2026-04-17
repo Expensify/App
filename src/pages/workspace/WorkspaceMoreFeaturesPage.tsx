@@ -98,7 +98,6 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {translate} = useLocalize();
     const {isBetaEnabled} = usePermissions();
-    const isGustoBetaEnabled = isBetaEnabled(CONST.BETAS.GUSTO) || isBetaEnabled(CONST.BETAS.ALL);
     const hasAccountingConnection = hasAccountingConnections(policy);
     const isAccountingEnabled = !!policy?.areConnectionsEnabled || hasAccountingFeatureConnection(policy);
     const isSyncTaxEnabled =
@@ -512,7 +511,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
         });
     }
 
-    if (isGustoBetaEnabled) {
+    if (isBetaEnabled(CONST.BETAS.GUSTO)) {
         integrateItems.push({
             icon: illustrations.Members,
             titleTranslationKey: 'workspace.hr.title',
