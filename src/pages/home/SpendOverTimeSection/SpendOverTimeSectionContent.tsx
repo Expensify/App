@@ -14,7 +14,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import useSpendOverTimeData from './useSpendOverTimeData';
+import useSpendOverTimeData, {SPEND_OVER_TIME_STATE} from './useSpendOverTimeData';
 
 function SpendOverTimeSectionContent() {
     const styles = useThemeStyles();
@@ -24,13 +24,9 @@ function SpendOverTimeSectionContent() {
     const illustrations = useMemoizedLazyIllustrations(['BrokenMagnifyingGlass']);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
-    const {query, queryJSON, groupBy, view, sortedData, shouldShowOfflineIndicator, shouldShowErrorIndicator, shouldShowLoadingIndicator} = useSpendOverTimeData();
+    const {query, queryJSON, groupBy, view, sortedData, state} = useSpendOverTimeData();
 
-    if (!queryJSON || !view || !groupBy || view === CONST.SEARCH.VIEW.TABLE) {
-        return null;
-    }
-
-    if (!shouldShowErrorIndicator && sortedData?.length === 0) {
+    if (!queryJSON || !view || !groupBy || view === CONST.SEARCH.VIEW.TABLE || state === SPEND_OVER_TIME_STATE.HIDDEN) {
         return null;
     }
 
@@ -38,7 +34,7 @@ function SpendOverTimeSectionContent() {
         <WidgetContainer
             title={translate('search.spendOverTime')}
             titleRightContent={
-                shouldShowOfflineIndicator || shouldShowLoadingIndicator || shouldShowErrorIndicator ? null : (
+                state === SPEND_OVER_TIME_STATE.READY ? (
                     <Button
                         small
                         text={translate('common.view')}
@@ -49,10 +45,10 @@ function SpendOverTimeSectionContent() {
                         style={styles.widgetItemButton}
                         isContentCentered
                     />
-                )
+                ) : null
             }
         >
-            {shouldShowOfflineIndicator && (
+            {state === SPEND_OVER_TIME_STATE.OFFLINE && (
                 <BlockingView
                     icon={icons.OfflineCloud}
                     iconColor={theme.offline}
@@ -64,7 +60,7 @@ function SpendOverTimeSectionContent() {
                     containerStyle={[{minHeight: CHART_CONTENT_MIN_HEIGHT}, styles.gap5]}
                 />
             )}
-            {shouldShowErrorIndicator && (
+            {state === SPEND_OVER_TIME_STATE.ERROR && (
                 <BlockingView
                     icon={illustrations.BrokenMagnifyingGlass}
                     iconHeight={variables.iconSizeMegaLarge}
@@ -78,14 +74,14 @@ function SpendOverTimeSectionContent() {
                     contentFitImage="contain"
                 />
             )}
-            {!shouldShowOfflineIndicator && !shouldShowErrorIndicator && (
+            {(state === SPEND_OVER_TIME_STATE.LOADING || state === SPEND_OVER_TIME_STATE.READY) && (
                 <View style={[shouldUseNarrowLayout ? styles.ph5 : [styles.ph8, styles.pt3]]}>
                     <SearchChartView
                         queryJSON={queryJSON}
                         view={view}
                         groupBy={groupBy}
                         data={sortedData ?? []}
-                        isLoading={shouldShowLoadingIndicator}
+                        isLoading={state === SPEND_OVER_TIME_STATE.LOADING}
                     />
                 </View>
             )}
