@@ -9,6 +9,7 @@ import {OptionsListActionsContext, OptionsListStateContext} from '@components/Op
 import SearchAutocompleteInput from '@components/Search/SearchAutocompleteInput';
 import SearchRouter from '@components/Search/SearchRouter/SearchRouter';
 import type {PrivateIsArchivedMap} from '@hooks/usePrivateIsArchivedMap';
+import {setHasRadio} from '@libs/NetworkState';
 import {createOptionList} from '@libs/OptionsListUtils';
 import ComposeProviders from '@src/components/ComposeProviders';
 import CONST from '@src/CONST';
@@ -101,13 +102,11 @@ const getMockedPersonalDetails = (length = 100) =>
         length,
     );
 
-const MOCK_CURRENT_USER_ACCOUNT_ID = 1;
-
 const mockedReports = getMockedReports(600);
 const mockedBetas = Object.values(CONST.BETAS);
 const mockedPersonalDetails = getMockedPersonalDetails(100);
 const EMPTY_PRIVATE_IS_ARCHIVED_MAP: PrivateIsArchivedMap = {};
-const mockedOptions = createOptionList(mockedPersonalDetails, MOCK_CURRENT_USER_ACCOUNT_ID, EMPTY_PRIVATE_IS_ARCHIVED_MAP, mockedReports, undefined);
+const mockedOptions = createOptionList(mockedPersonalDetails, EMPTY_PRIVATE_IS_ARCHIVED_MAP, mockedReports, undefined);
 
 beforeAll(() =>
     Onyx.init({
@@ -120,7 +119,7 @@ beforeAll(() =>
 beforeEach(() => {
     global.fetch = TestHelper.getGlobalFetchMock();
     wrapOnyxWithWaitForBatchedUpdates(Onyx);
-    Onyx.merge(ONYXKEYS.NETWORK, {isOffline: false});
+    setHasRadio(true);
 });
 
 // Clear out Onyx after each test so that each test starts with a clean state
@@ -167,7 +166,7 @@ test('[SearchRouter] should render list with cached options', async () => {
                 ...mockedReports,
                 [ONYXKEYS.PERSONAL_DETAILS_LIST]: mockedPersonalDetails,
                 [ONYXKEYS.BETAS]: mockedBetas,
-                [ONYXKEYS.IS_SEARCHING_FOR_REPORTS]: true,
+                [ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS]: true,
             }),
         )
         .then(() => measureRenders(<SearchRouterWrapperWithCachedOptions />, {scenario}));
@@ -187,7 +186,7 @@ test('[SearchRouter] should react to text input changes', async () => {
                 ...mockedReports,
                 [ONYXKEYS.PERSONAL_DETAILS_LIST]: mockedPersonalDetails,
                 [ONYXKEYS.BETAS]: mockedBetas,
-                [ONYXKEYS.IS_SEARCHING_FOR_REPORTS]: true,
+                [ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS]: true,
             }),
         )
         .then(() => measureRenders(<SearchAutocompleteInputWrapper />, {scenario}));

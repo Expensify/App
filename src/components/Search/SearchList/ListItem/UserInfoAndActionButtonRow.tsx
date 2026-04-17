@@ -1,3 +1,7 @@
+// NOTE: This component has a static twin in SearchStaticList
+// (src/components/Search/SearchStaticList.tsx) used for fast perceived
+// performance. If you change the UI here, verify the static version still
+// looks visually identical.
 import React from 'react';
 import {View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
@@ -64,10 +68,10 @@ function UserInfoAndActionButtonRow({
                     shouldUseArrowIcon={false}
                 />
             )}
-            <View style={[{width: isLargeScreenWidth ? variables.w80 : variables.w72}, styles.alignItemsEnd]}>
+            <View style={[{width: isLargeScreenWidth ? variables.w68 : variables.w72}, styles.alignItemsEnd]}>
                 <ActionCell
                     action={item.action}
-                    goToItem={handleActionButtonPress}
+                    onButtonPress={handleActionButtonPress}
                     isSelected={item.isSelected}
                     isLoading={isActionLoading}
                     policyID={item.policyID}

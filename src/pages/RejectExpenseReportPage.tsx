@@ -24,7 +24,7 @@ import type {MoneyRequestNavigatorParamList} from '@libs/Navigation/types';
 import {getDisplayNameOrDefault, getLoginByAccountID, getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import {getSortedReportActions} from '@libs/ReportActionsUtils';
 import variables from '@styles/variables';
-import {rejectExpenseReport} from '@userActions/IOU';
+import {rejectExpenseReport} from '@userActions/IOU/RejectMoneyRequest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -82,7 +82,7 @@ function RejectExpenseReportPage({route}: RejectExpenseReportPageProps) {
     }, [reportActions]);
 
     const submitterAccountID = report?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID;
-    const hasPreviousApprover = previousApprover !== null;
+    const hasPreviousApprover = previousApprover !== null && previousApprover.accountID !== currentUserPersonalDetails?.accountID && previousApprover.accountID !== submitterAccountID;
 
     const options = [];
 

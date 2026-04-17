@@ -10,7 +10,7 @@ import {getLastActorDisplayName} from '@libs/OptionsListUtils';
 import type * as PolicyUtils from '@libs/PolicyUtils';
 import {getOriginalMessage, getReportActionMessageText} from '@libs/ReportActionsUtils';
 import {formatReportLastMessageText, generateReportID, getAllReportErrors, getReasonAndReportActionThatRequiresAttention, getReportPreviewMessage} from '@libs/ReportUtils';
-import SidebarUtils, {_categorizeReportsForLHN, _combineReportCategories, _sortCategorizedReports} from '@libs/SidebarUtils';
+import SidebarUtils, {_buildSortKey, _categorizeReportsForLHN, _combineReportCategories, _sortCategorizedReports} from '@libs/SidebarUtils';
 import initOnyxDerivedValues from '@userActions/OnyxDerived';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
@@ -148,7 +148,7 @@ describe('SidebarUtils', () => {
             const MOCK_TRANSACTION_VIOLATIONS: OnyxCollection<TransactionViolation[]> = {};
 
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(MOCK_REPORT?.reportID));
-            const reportErrors = getAllReportErrors(MOCK_REPORT, MOCK_REPORT_ACTIONS);
+            const reportErrors = getAllReportErrors(MOCK_REPORT, MOCK_REPORT_ACTIONS, MOCK_TRANSACTIONS);
             const {reason} =
                 SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad(
                     MOCK_REPORT,
@@ -216,7 +216,7 @@ describe('SidebarUtils', () => {
 
             // Simulate how components determined if a report is archived by using this hook
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(MOCK_REPORT?.reportID));
-            const reportErrors = getAllReportErrors(MOCK_REPORT, MOCK_REPORT_ACTIONS);
+            const reportErrors = getAllReportErrors(MOCK_REPORT, MOCK_REPORT_ACTIONS, MOCK_TRANSACTIONS);
             const {reason} =
                 SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad(
                     MOCK_REPORT,
@@ -244,7 +244,7 @@ describe('SidebarUtils', () => {
             const MOCK_REPORT_ACTIONS: OnyxEntry<ReportActions> = {};
             const MOCK_TRANSACTIONS = {};
             const MOCK_TRANSACTION_VIOLATIONS: OnyxCollection<TransactionViolation[]> = {};
-            const reportErrors = getAllReportErrors(MOCK_REPORT, MOCK_REPORT_ACTIONS);
+            const reportErrors = getAllReportErrors(MOCK_REPORT, MOCK_REPORT_ACTIONS, MOCK_TRANSACTIONS);
             // Simulate how components determined if a report is archived by using this hook
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(MOCK_REPORT?.reportID));
             const {reason} =
@@ -287,7 +287,7 @@ describe('SidebarUtils', () => {
             };
             const MOCK_TRANSACTIONS = {};
             const MOCK_TRANSACTION_VIOLATIONS: OnyxCollection<TransactionViolation[]> = {};
-            const reportErrors = getAllReportErrors(MOCK_REPORT, MOCK_REPORT_ACTIONS);
+            const reportErrors = getAllReportErrors(MOCK_REPORT, MOCK_REPORT_ACTIONS, MOCK_TRANSACTIONS);
             // Simulate how components determined if a report is archived by using this hook
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(MOCK_REPORT?.reportID));
             const {reportAction} =
@@ -512,7 +512,7 @@ describe('SidebarUtils', () => {
 
             // When: Checking for RBR on the chat report
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(chatReport?.reportID));
-            const reportErrors = getAllReportErrors(chatReport, MOCK_REPORT_ACTIONS);
+            const reportErrors = getAllReportErrors(chatReport, MOCK_REPORT_ACTIONS, MOCK_TRANSACTIONS);
 
             const result = SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad(
                 chatReport,
@@ -1652,6 +1652,286 @@ describe('SidebarUtils', () => {
             expect(result?.alternateText).toBe('changed the foreign currency default tax rate to "Foreign Tax (10%)" (previously "Foreign Tax (15%)")');
         });
 
+        it('returns the correct alternate text for ADD_CARD_FEED action', async () => {
+            const report: Report = {
+                ...createRandomReport(4, 'policyAdmins'),
+                participants: {'18921695': {notificationPreference: 'always'}},
+            };
+            const lastAction: ReportAction = {
+                ...createRandomReportAction(2),
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_CARD_FEED,
+                originalMessage: {feedName: 'Visa Commercial'},
+            };
+            const reportActions: ReportActions = {[lastAction.reportActionID]: lastAction};
+            await act(async () => {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, reportActions);
+            });
+
+            const result = SidebarUtils.getOptionData({
+                report,
+                reportAttributes: undefined,
+                reportNameValuePairs: {},
+                personalDetails: {},
+                policy: undefined,
+                invoiceReceiverPolicy: undefined,
+                parentReportAction: undefined,
+                conciergeReportID: '',
+                oneTransactionThreadReport: undefined,
+                card: undefined,
+                translate: translateLocal,
+                localeCompare,
+                lastAction,
+                lastActionReport: undefined,
+                isReportArchived: undefined,
+                currentUserAccountID: 0,
+                currentUserLogin: CURRENT_USER_LOGIN,
+                reportAttributesDerived: undefined,
+            });
+
+            expect(result?.alternateText).toBe('added card feed "Visa Commercial"');
+        });
+
+        it('returns the correct alternate text for DELETE_CARD_FEED action', async () => {
+            const report: Report = {
+                ...createRandomReport(4, 'policyAdmins'),
+                participants: {'18921695': {notificationPreference: 'always'}},
+            };
+            const lastAction: ReportAction = {
+                ...createRandomReportAction(2),
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_CARD_FEED,
+                originalMessage: {feedName: 'Amex Corporate'},
+            };
+            const reportActions: ReportActions = {[lastAction.reportActionID]: lastAction};
+            await act(async () => {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, reportActions);
+            });
+
+            const result = SidebarUtils.getOptionData({
+                report,
+                reportAttributes: undefined,
+                reportNameValuePairs: {},
+                personalDetails: {},
+                policy: undefined,
+                invoiceReceiverPolicy: undefined,
+                parentReportAction: undefined,
+                conciergeReportID: '',
+                oneTransactionThreadReport: undefined,
+                card: undefined,
+                translate: translateLocal,
+                localeCompare,
+                lastAction,
+                lastActionReport: undefined,
+                isReportArchived: undefined,
+                currentUserAccountID: 0,
+                currentUserLogin: CURRENT_USER_LOGIN,
+                reportAttributesDerived: undefined,
+            });
+
+            expect(result?.alternateText).toBe('removed card feed "Amex Corporate"');
+        });
+
+        it('returns the correct alternate text for RENAME_CARD_FEED action', async () => {
+            const report: Report = {
+                ...createRandomReport(4, 'policyAdmins'),
+                participants: {'18921695': {notificationPreference: 'always'}},
+            };
+            const lastAction: ReportAction = {
+                ...createRandomReportAction(2),
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.RENAME_CARD_FEED,
+                originalMessage: {oldName: 'Old Feed', newName: 'New Feed'},
+            };
+            const reportActions: ReportActions = {[lastAction.reportActionID]: lastAction};
+            await act(async () => {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, reportActions);
+            });
+
+            const result = SidebarUtils.getOptionData({
+                report,
+                reportAttributes: undefined,
+                reportNameValuePairs: {},
+                personalDetails: {},
+                policy: undefined,
+                invoiceReceiverPolicy: undefined,
+                parentReportAction: undefined,
+                conciergeReportID: '',
+                oneTransactionThreadReport: undefined,
+                card: undefined,
+                translate: translateLocal,
+                localeCompare,
+                lastAction,
+                lastActionReport: undefined,
+                isReportArchived: undefined,
+                currentUserAccountID: 0,
+                currentUserLogin: CURRENT_USER_LOGIN,
+                reportAttributesDerived: undefined,
+            });
+
+            expect(result?.alternateText).toBe('renamed card feed to "New Feed" (previously "Old Feed")');
+        });
+
+        it('returns the correct alternate text for ASSIGN_COMPANY_CARD action', async () => {
+            const report: Report = {
+                ...createRandomReport(4, 'policyAdmins'),
+                participants: {'18921695': {notificationPreference: 'always'}},
+            };
+            const lastAction: ReportAction = {
+                ...createRandomReportAction(2),
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ASSIGN_COMPANY_CARD,
+                originalMessage: {email: 'user@example.com', feedName: 'US Bank', cardLastFour: '1234'},
+            };
+            const reportActions: ReportActions = {[lastAction.reportActionID]: lastAction};
+            await act(async () => {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, reportActions);
+            });
+
+            const result = SidebarUtils.getOptionData({
+                report,
+                reportAttributes: undefined,
+                reportNameValuePairs: {},
+                personalDetails: {},
+                policy: undefined,
+                invoiceReceiverPolicy: undefined,
+                parentReportAction: undefined,
+                conciergeReportID: '',
+                oneTransactionThreadReport: undefined,
+                card: undefined,
+                translate: translateLocal,
+                localeCompare,
+                lastAction,
+                lastActionReport: undefined,
+                isReportArchived: undefined,
+                currentUserAccountID: 0,
+                currentUserLogin: CURRENT_USER_LOGIN,
+                reportAttributesDerived: undefined,
+            });
+
+            expect(result?.alternateText).toBe('assigned user@example.com "US Bank" company card ending in 1234');
+        });
+
+        it('returns the correct alternate text for UNASSIGN_COMPANY_CARD action', async () => {
+            const report: Report = {
+                ...createRandomReport(4, 'policyAdmins'),
+                participants: {'18921695': {notificationPreference: 'always'}},
+            };
+            const lastAction: ReportAction = {
+                ...createRandomReportAction(2),
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UNASSIGN_COMPANY_CARD,
+                originalMessage: {email: 'user@example.com', feedName: 'US Bank', cardLastFour: '5678'},
+            };
+            const reportActions: ReportActions = {[lastAction.reportActionID]: lastAction};
+            await act(async () => {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, reportActions);
+            });
+
+            const result = SidebarUtils.getOptionData({
+                report,
+                reportAttributes: undefined,
+                reportNameValuePairs: {},
+                personalDetails: {},
+                policy: undefined,
+                invoiceReceiverPolicy: undefined,
+                parentReportAction: undefined,
+                conciergeReportID: '',
+                oneTransactionThreadReport: undefined,
+                card: undefined,
+                translate: translateLocal,
+                localeCompare,
+                lastAction,
+                lastActionReport: undefined,
+                isReportArchived: undefined,
+                currentUserAccountID: 0,
+                currentUserLogin: CURRENT_USER_LOGIN,
+                reportAttributesDerived: undefined,
+            });
+
+            expect(result?.alternateText).toBe('unassigned user@example.com "US Bank" company card ending in 5678');
+        });
+
+        it('returns the correct alternate text for UPDATE_CARD_FEED_LIABILITY action', async () => {
+            const report: Report = {
+                ...createRandomReport(4, 'policyAdmins'),
+                participants: {'18921695': {notificationPreference: 'always'}},
+            };
+            const lastAction: ReportAction = {
+                ...createRandomReportAction(2),
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CARD_FEED_LIABILITY,
+                originalMessage: {feedName: 'Visa Commercial', liabilityType: CONST.TRANSACTION.LIABILITY_TYPE.ALLOW},
+            };
+            const reportActions: ReportActions = {[lastAction.reportActionID]: lastAction};
+            await act(async () => {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, reportActions);
+            });
+
+            const result = SidebarUtils.getOptionData({
+                report,
+                reportAttributes: undefined,
+                reportNameValuePairs: {},
+                personalDetails: {},
+                policy: undefined,
+                invoiceReceiverPolicy: undefined,
+                parentReportAction: undefined,
+                conciergeReportID: '',
+                oneTransactionThreadReport: undefined,
+                card: undefined,
+                translate: translateLocal,
+                localeCompare,
+                lastAction,
+                lastActionReport: undefined,
+                isReportArchived: undefined,
+                currentUserAccountID: 0,
+                currentUserLogin: CURRENT_USER_LOGIN,
+                reportAttributesDerived: undefined,
+            });
+
+            expect(result?.alternateText).toBe('enabled cardholders to delete card transactions for card feed "Visa Commercial"');
+        });
+
+        it('returns the correct alternate text for UPDATE_CARD_FEED_STATEMENT_PERIOD action', async () => {
+            const report: Report = {
+                ...createRandomReport(4, 'policyAdmins'),
+                participants: {'18921695': {notificationPreference: 'always'}},
+            };
+            const lastAction: ReportAction = {
+                ...createRandomReportAction(2),
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CARD_FEED_STATEMENT_PERIOD,
+                originalMessage: {feedName: 'Visa Commercial', statementPeriodEndDay: '15', previousStatementPeriodEndDay: '20'},
+            };
+            const reportActions: ReportActions = {[lastAction.reportActionID]: lastAction};
+            await act(async () => {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, reportActions);
+            });
+
+            const result = SidebarUtils.getOptionData({
+                report,
+                reportAttributes: undefined,
+                reportNameValuePairs: {},
+                personalDetails: {},
+                policy: undefined,
+                invoiceReceiverPolicy: undefined,
+                parentReportAction: undefined,
+                conciergeReportID: '',
+                oneTransactionThreadReport: undefined,
+                card: undefined,
+                translate: translateLocal,
+                localeCompare,
+                lastAction,
+                lastActionReport: undefined,
+                isReportArchived: undefined,
+                currentUserAccountID: 0,
+                currentUserLogin: CURRENT_USER_LOGIN,
+                reportAttributesDerived: undefined,
+            });
+
+            expect(result?.alternateText).toBe('changed card feed "Visa Commercial" statement period end day to "15" (previously "20")');
+        });
+
         it('returns @Hidden as an alternate text if the last action mentioned account has no name', async () => {
             // When a report has last action with mention of an account that has no name
             const report: Report = {
@@ -2650,7 +2930,7 @@ describe('SidebarUtils', () => {
                     currentUserLogin: CURRENT_USER_LOGIN,
                 });
 
-                const reportPreviewMessage = getReportPreviewMessage(iouReport, iouAction, true, true, null, true, lastReportPreviewAction);
+                const reportPreviewMessage = getReportPreviewMessage(iouReport, undefined, iouAction, true, true, null, true, lastReportPreviewAction);
                 expect(result?.alternateText).toBe(`${getLastActorDisplayName({accountID: managerID}, managerID)}: ${reportPreviewMessage}`);
             });
 
@@ -2752,7 +3032,7 @@ describe('SidebarUtils', () => {
                     currentUserLogin: CURRENT_USER_LOGIN,
                 });
 
-                const reportPreviewMessage = getReportPreviewMessage(iouReport, iouAction, true, true, null, true, lastReportPreviewAction);
+                const reportPreviewMessage = getReportPreviewMessage(iouReport, undefined, iouAction, true, true, null, true, lastReportPreviewAction);
                 expect(result?.alternateText).toBe(reportPreviewMessage);
             });
         });
@@ -2951,24 +3231,24 @@ describe('SidebarUtils', () => {
                 // Given the reports are created
                 const categories = {
                     pinnedAndGBRReports: [
-                        {reportID: '1', displayName: 'Zebra', lastVisibleActionCreated: '2024-01-01 10:00:00'},
-                        {reportID: '2', displayName: 'Alpha', lastVisibleActionCreated: '2024-01-02 10:00:00'},
+                        {reportID: '1', displayName: 'Zebra', sortKey: 'zebra', lastVisibleActionCreated: '2024-01-01 10:00:00'},
+                        {reportID: '2', displayName: 'Alpha', sortKey: 'alpha', lastVisibleActionCreated: '2024-01-02 10:00:00'},
                     ],
                     errorReports: [
-                        {reportID: '3', displayName: 'Charlie', lastVisibleActionCreated: '2024-01-03 10:00:00'},
-                        {reportID: '4', displayName: 'Beta', lastVisibleActionCreated: '2024-01-04 10:00:00'},
+                        {reportID: '3', displayName: 'Charlie', sortKey: 'charlie', lastVisibleActionCreated: '2024-01-03 10:00:00'},
+                        {reportID: '4', displayName: 'Beta', sortKey: 'beta', lastVisibleActionCreated: '2024-01-04 10:00:00'},
                     ],
                     draftReports: [
-                        {reportID: '5', displayName: 'Echo', lastVisibleActionCreated: '2024-01-05 10:00:00'},
-                        {reportID: '6', displayName: 'Delta', lastVisibleActionCreated: '2024-01-06 10:00:00'},
+                        {reportID: '5', displayName: 'Echo', sortKey: 'echo', lastVisibleActionCreated: '2024-01-05 10:00:00'},
+                        {reportID: '6', displayName: 'Delta', sortKey: 'delta', lastVisibleActionCreated: '2024-01-06 10:00:00'},
                     ],
                     nonArchivedReports: [
-                        {reportID: '7', displayName: 'Hotel', lastVisibleActionCreated: '2024-01-07 10:00:00'},
-                        {reportID: '8', displayName: 'Golf', lastVisibleActionCreated: '2024-01-08 10:00:00'},
+                        {reportID: '7', displayName: 'Hotel', sortKey: 'hotel', lastVisibleActionCreated: '2024-01-07 10:00:00'},
+                        {reportID: '8', displayName: 'Golf', sortKey: 'golf', lastVisibleActionCreated: '2024-01-08 10:00:00'},
                     ],
                     archivedReports: [
-                        {reportID: '9', displayName: 'India', lastVisibleActionCreated: '2024-01-09 10:00:00'},
-                        {reportID: '10', displayName: 'Juliet', lastVisibleActionCreated: '2024-01-10 10:00:00'},
+                        {reportID: '9', displayName: 'India', sortKey: 'india', lastVisibleActionCreated: '2024-01-09 10:00:00'},
+                        {reportID: '10', displayName: 'Juliet', sortKey: 'juliet', lastVisibleActionCreated: '2024-01-10 10:00:00'},
                     ],
                 };
 
@@ -3000,24 +3280,24 @@ describe('SidebarUtils', () => {
                 // Given the reports are created
                 const categories = {
                     pinnedAndGBRReports: [
-                        {reportID: '1', displayName: 'Zebra', lastVisibleActionCreated: '2024-01-01 10:00:00'},
-                        {reportID: '2', displayName: 'Alpha', lastVisibleActionCreated: '2024-01-02 10:00:00'},
+                        {reportID: '1', displayName: 'Zebra', sortKey: 'zebra', lastVisibleActionCreated: '2024-01-01 10:00:00'},
+                        {reportID: '2', displayName: 'Alpha', sortKey: 'alpha', lastVisibleActionCreated: '2024-01-02 10:00:00'},
                     ],
                     errorReports: [
-                        {reportID: '3', displayName: 'Charlie', lastVisibleActionCreated: '2024-01-03 10:00:00'},
-                        {reportID: '4', displayName: 'Beta', lastVisibleActionCreated: '2024-01-04 10:00:00'},
+                        {reportID: '3', displayName: 'Charlie', sortKey: 'charlie', lastVisibleActionCreated: '2024-01-03 10:00:00'},
+                        {reportID: '4', displayName: 'Beta', sortKey: 'beta', lastVisibleActionCreated: '2024-01-04 10:00:00'},
                     ],
                     draftReports: [
-                        {reportID: '5', displayName: 'Echo', lastVisibleActionCreated: '2024-01-05 10:00:00'},
-                        {reportID: '6', displayName: 'Delta', lastVisibleActionCreated: '2024-01-06 10:00:00'},
+                        {reportID: '5', displayName: 'Echo', sortKey: 'echo', lastVisibleActionCreated: '2024-01-05 10:00:00'},
+                        {reportID: '6', displayName: 'Delta', sortKey: 'delta', lastVisibleActionCreated: '2024-01-06 10:00:00'},
                     ],
                     nonArchivedReports: [
-                        {reportID: '7', displayName: 'Hotel', lastVisibleActionCreated: '2024-01-07 10:00:00'},
-                        {reportID: '8', displayName: 'Golf', lastVisibleActionCreated: '2024-01-08 10:00:00'},
+                        {reportID: '7', displayName: 'Hotel', sortKey: 'hotel', lastVisibleActionCreated: '2024-01-07 10:00:00'},
+                        {reportID: '8', displayName: 'Golf', sortKey: 'golf', lastVisibleActionCreated: '2024-01-08 10:00:00'},
                     ],
                     archivedReports: [
-                        {reportID: '9', displayName: 'India', lastVisibleActionCreated: '2024-01-09 10:00:00'},
-                        {reportID: '10', displayName: 'Juliet', lastVisibleActionCreated: '2024-01-10 10:00:00'},
+                        {reportID: '9', displayName: 'India', sortKey: 'india', lastVisibleActionCreated: '2024-01-09 10:00:00'},
+                        {reportID: '10', displayName: 'Juliet', sortKey: 'juliet', lastVisibleActionCreated: '2024-01-10 10:00:00'},
                     ],
                 };
 
@@ -3049,8 +3329,8 @@ describe('SidebarUtils', () => {
                 // Given the reports are created
                 const categories = {
                     pinnedAndGBRReports: [
-                        {reportID: '1', displayName: '', lastVisibleActionCreated: '2024-01-01 10:00:00'},
-                        {reportID: '2', displayName: 'Alpha', lastVisibleActionCreated: '2024-01-02 10:00:00'},
+                        {reportID: '1', displayName: '', sortKey: '', lastVisibleActionCreated: '2024-01-01 10:00:00'},
+                        {reportID: '2', displayName: 'Alpha', sortKey: 'alpha', lastVisibleActionCreated: '2024-01-02 10:00:00'},
                     ],
                     errorReports: [],
                     draftReports: [],
@@ -3072,8 +3352,8 @@ describe('SidebarUtils', () => {
                     errorReports: [],
                     draftReports: [],
                     nonArchivedReports: [
-                        {reportID: '1', displayName: 'Alpha', lastVisibleActionCreated: undefined},
-                        {reportID: '2', displayName: 'Beta', lastVisibleActionCreated: '2024-01-02 10:00:00'},
+                        {reportID: '1', displayName: 'Alpha', sortKey: 'alpha', lastVisibleActionCreated: undefined},
+                        {reportID: '2', displayName: 'Beta', sortKey: 'beta', lastVisibleActionCreated: '2024-01-02 10:00:00'},
                     ],
                     archivedReports: [],
                 };
@@ -3087,28 +3367,52 @@ describe('SidebarUtils', () => {
             });
         });
 
+        describe('buildSortKey', () => {
+            it('should sort accented characters by Unicode code point, not locale-aware order', () => {
+                // Given names with accented characters
+                const cafeAccented = _buildSortKey('Café');
+                const cafePlain = _buildSortKey('Cafe');
+
+                // Then accented "é" sorts after plain "e" by code point
+                expect(cafeAccented > cafePlain).toBe(true);
+            });
+
+            it('should be case-insensitive', () => {
+                expect(_buildSortKey('Alpha')).toBe(_buildSortKey('alpha'));
+                expect(_buildSortKey('ZEBRA')).toBe(_buildSortKey('zebra'));
+            });
+
+            it('should zero-pad numeric segments for natural sort order', () => {
+                const report2 = _buildSortKey('Report 2');
+                const report10 = _buildSortKey('Report 10');
+
+                // Then "Report 2" sorts before "Report 10"
+                expect(report2 < report10).toBe(true);
+            });
+        });
+
         describe('combineReportCategories', () => {
             it('should combine categories in correct order', () => {
                 // Given the reports are created
                 const pinnedAndGBRReports = [
-                    {reportID: '1', displayName: 'Pinned 1'},
-                    {reportID: '2', displayName: 'Pinned 2'},
+                    {reportID: '1', displayName: 'Pinned 1', sortKey: 'pinned 000000000000001'},
+                    {reportID: '2', displayName: 'Pinned 2', sortKey: 'pinned 000000000000002'},
                 ];
                 const errorReports = [
-                    {reportID: '3', displayName: 'Error 1'},
-                    {reportID: '4', displayName: 'Error 2'},
+                    {reportID: '3', displayName: 'Error 1', sortKey: 'error 000000000000001'},
+                    {reportID: '4', displayName: 'Error 2', sortKey: 'error 000000000000002'},
                 ];
                 const draftReports = [
-                    {reportID: '5', displayName: 'Draft 1'},
-                    {reportID: '6', displayName: 'Draft 2'},
+                    {reportID: '5', displayName: 'Draft 1', sortKey: 'draft 000000000000001'},
+                    {reportID: '6', displayName: 'Draft 2', sortKey: 'draft 000000000000002'},
                 ];
                 const nonArchivedReports = [
-                    {reportID: '7', displayName: 'Normal 1'},
-                    {reportID: '8', displayName: 'Normal 2'},
+                    {reportID: '7', displayName: 'Normal 1', sortKey: 'normal 000000000000001'},
+                    {reportID: '8', displayName: 'Normal 2', sortKey: 'normal 000000000000002'},
                 ];
                 const archivedReports = [
-                    {reportID: '9', displayName: 'Archived 1'},
-                    {reportID: '10', displayName: 'Archived 2'},
+                    {reportID: '9', displayName: 'Archived 1', sortKey: 'archived 000000000000001'},
+                    {reportID: '10', displayName: 'Archived 2', sortKey: 'archived 000000000000002'},
                 ];
 
                 // When the reports are combined
@@ -3121,13 +3425,13 @@ describe('SidebarUtils', () => {
             it('should filter out reports with undefined reportID', () => {
                 // Given the reports are created
                 const pinnedAndGBRReports = [
-                    {reportID: '1', displayName: 'Pinned 1'},
-                    {reportID: undefined, displayName: 'Invalid'},
+                    {reportID: '1', displayName: 'Pinned 1', sortKey: 'pinned 000000000000001'},
+                    {reportID: undefined, displayName: 'Invalid', sortKey: 'invalid'},
                 ];
-                const errorReports = [{reportID: '2', displayName: 'Error 1'}];
-                const draftReports: Array<{reportID?: string; displayName: string; lastVisibleActionCreated?: string}> = [];
-                const nonArchivedReports: Array<{reportID?: string; displayName: string; lastVisibleActionCreated?: string}> = [];
-                const archivedReports: Array<{reportID?: string; displayName: string; lastVisibleActionCreated?: string}> = [];
+                const errorReports = [{reportID: '2', displayName: 'Error 1', sortKey: 'error 000000000000001'}];
+                const draftReports: Array<{reportID?: string; displayName: string; sortKey: string; lastVisibleActionCreated?: string}> = [];
+                const nonArchivedReports: Array<{reportID?: string; displayName: string; sortKey: string; lastVisibleActionCreated?: string}> = [];
+                const archivedReports: Array<{reportID?: string; displayName: string; sortKey: string; lastVisibleActionCreated?: string}> = [];
 
                 // When the reports are combined
                 const result = _combineReportCategories(pinnedAndGBRReports, errorReports, draftReports, nonArchivedReports, archivedReports);

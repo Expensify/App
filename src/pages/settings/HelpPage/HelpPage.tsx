@@ -1,27 +1,107 @@
-import React from 'react';
+import React, {useEffect} from 'react';
 import {View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemList from '@components/MenuItemList';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useIsPaidPolicyAdmin from '@hooks/useIsPaidPolicyAdmin';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSidePanelActions from '@hooks/useSidePanelActions';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {openHelpPage} from '@libs/actions/Help';
 import {openExternalLink} from '@libs/actions/Link';
+import {navigateToAndOpenReportWithAccountIDs, navigateToConciergeChat} from '@libs/actions/Report';
+import getPlatform from '@libs/getPlatform';
 import Navigation from '@libs/Navigation/Navigation';
+import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import colors from '@styles/theme/colors';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import {hasSeenTourSelector} from '@src/selectors/Onboarding';
+
+const isWeb = getPlatform() === CONST.PLATFORM.WEB;
 
 function HelpPage() {
-    const icons = useMemoizedLazyExpensifyIcons(['NewWindow', 'Monitor']);
+    const icons = useMemoizedLazyExpensifyIcons(['ConciergeAvatar', 'NewWindow', 'Monitor']);
     const illustrations = useMemoizedLazyIllustrations(['LifeRing', 'TopiaryDollarSign']);
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const isPaidPolicyAdmin = useIsPaidPolicyAdmin();
+    const accountManagerDetails = account?.accountManagerAccountID ? personalDetails?.[account.accountManagerAccountID] : null;
+    const partnerManagerDetails = account?.partnerManagerAccountID ? personalDetails?.[account.partnerManagerAccountID] : null;
+    const guideDetails = account?.guideDetails?.email ? getPersonalDetailByEmail(account.guideDetails.email) : null;
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
+    const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
+    const {openSidePanel} = useSidePanelActions();
 
     const menuItems = [
+        {
+            key: 'initialSettingsPage.helpPage.conciergeChat',
+            title: translate('initialSettingsPage.helpPage.conciergeChat'),
+            description: translate('initialSettingsPage.helpPage.conciergeChatDescription'),
+            icon: icons.ConciergeAvatar,
+            iconType: CONST.ICON_TYPE_AVATAR,
+            onPress: () => (isWeb ? openSidePanel() : navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas)),
+            shouldShowRightIcon: true,
+            wrapperStyle: [styles.sectionMenuItemTopDescription],
+            sentryLabel: CONST.SENTRY_LABEL.SETTINGS_HELP.CONCIERGE_CHAT,
+        },
+        ...(accountManagerDetails && isPaidPolicyAdmin
+            ? [
+                  {
+                      key: accountManagerDetails.login,
+                      title: accountManagerDetails.displayName,
+                      description: translate('initialSettingsPage.helpPage.accountManagerDescription'),
+                      icon: accountManagerDetails.avatar,
+                      iconType: CONST.ICON_TYPE_AVATAR,
+                      onPress: () => navigateToAndOpenReportWithAccountIDs([accountManagerDetails.accountID], currentUserAccountID, introSelected, isSelfTourViewed, betas),
+                      shouldShowRightIcon: true,
+                      wrapperStyle: [styles.sectionMenuItemTopDescription],
+                      sentryLabel: CONST.SENTRY_LABEL.SETTINGS_HELP.ACCOUNT_MANAGER,
+                  },
+              ]
+            : []),
+        ...(partnerManagerDetails && isPaidPolicyAdmin
+            ? [
+                  {
+                      key: partnerManagerDetails.login,
+                      title: partnerManagerDetails.displayName,
+                      description: translate('initialSettingsPage.helpPage.partnerManagerDescription'),
+                      icon: partnerManagerDetails.avatar,
+                      iconType: CONST.ICON_TYPE_AVATAR,
+                      onPress: () => navigateToAndOpenReportWithAccountIDs([partnerManagerDetails.accountID], currentUserAccountID, introSelected, isSelfTourViewed, betas),
+                      shouldShowRightIcon: true,
+                      wrapperStyle: [styles.sectionMenuItemTopDescription],
+                      sentryLabel: CONST.SENTRY_LABEL.SETTINGS_HELP.PARTNER_MANAGER,
+                  },
+              ]
+            : []),
+        ...(guideDetails && isPaidPolicyAdmin
+            ? [
+                  {
+                      key: guideDetails.login,
+                      title: guideDetails.displayName,
+                      description: translate('initialSettingsPage.helpPage.guideDescription'),
+                      icon: guideDetails.avatar,
+                      iconType: CONST.ICON_TYPE_AVATAR,
+                      onPress: () => navigateToAndOpenReportWithAccountIDs([guideDetails.accountID], currentUserAccountID, introSelected, isSelfTourViewed, betas),
+                      shouldShowRightIcon: true,
+                      wrapperStyle: [styles.sectionMenuItemTopDescription],
+                      sentryLabel: CONST.SENTRY_LABEL.SETTINGS_HELP.GUIDE,
+                  },
+              ]
+            : []),
         {
             key: 'initialSettingsPage.helpPage.helpSite',
             title: translate('initialSettingsPage.helpPage.helpSite'),
@@ -30,9 +110,14 @@ function HelpPage() {
             onPress: () => openExternalLink(CONST.NEWHELP_URL),
             shouldShowRightIcon: true,
             wrapperStyle: [styles.sectionMenuItemTopDescription],
+            link: CONST.NEWHELP_URL,
             sentryLabel: CONST.SENTRY_LABEL.SETTINGS_HELP.HELP_DOCS,
         },
     ];
+
+    useEffect(() => {
+        openHelpPage();
+    }, []);
 
     return (
         <ScreenWrapper
