@@ -1032,10 +1032,10 @@ describe('actions/Domain', () => {
             const SECURITY_GROUP_KEY = `${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}${groupID}`;
             const timestamp = 789;
 
-            await Onyx.merge(
-                `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`,
-                {[SECURITY_GROUP_KEY]: {name: 'Test Group', shared: {}}} as PrefixedRecord<typeof CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX, DomainSecurityGroup>,
-            );
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {[SECURITY_GROUP_KEY]: {name: 'Test Group', shared: {}}} as PrefixedRecord<
+                typeof CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX,
+                DomainSecurityGroup
+            >);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`, {
                 [SECURITY_GROUP_KEY]: {errors: {[timestamp]: 'error'}},
             });

@@ -1,7 +1,8 @@
 import {defaultSecurityGroupIDSelector, domainNameSelector} from '@selectors/Domain';
-import {policyNameSelector} from '@selectors/Policy';
+import {createAdminPoliciesSelector, policyNameSelector} from '@selectors/Policy';
 import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
+import ConfirmModal from '@components/ConfirmModal';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
@@ -20,7 +21,7 @@ import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import DomainNotFoundPageWrapper from '@pages/domain/DomainNotFoundPageWrapper';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
-import {clearDomainGroupCreatePreferredPolicyID, createDomainSecurityGroup, setDefaultSecurityGroup} from '@userActions/Domain';
+import {clearDomainGroupCreatePreferredPolicyID, createDomainSecurityGroup, setDefaultSecurityGroup, setDomainGroupCreatePreferredPolicyID} from '@userActions/Domain';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -32,7 +33,7 @@ type DomainGroupCreatePageProps = PlatformStackScreenProps<SettingsNavigatorPara
 function DomainGroupCreatePage({route}: DomainGroupCreatePageProps) {
     const styles = useThemeStyles();
     const {domainAccountID} = route.params;
-    const {translate} = useLocalize();
+    const {translate, localeCompare} = useLocalize();
 
     const inputRef = useRef<AnimatedTextInputRef>(null);
 
@@ -42,6 +43,7 @@ function DomainGroupCreatePage({route}: DomainGroupCreatePageProps) {
     const [restrictExpenseWorkspaceCreation, setRestrictExpenseWorkspaceCreation] = useState(false);
     const [expensifyCardPreferredWorkspace, setExpensifyCardPreferredWorkspace] = useState(false);
     const [preferredWorkspace, setPreferredWorkspace] = useState(false);
+    const [isNoWorkspacesModalVisible, setIsNoWorkspacesModalVisible] = useState(false);
 
     const [preferredPolicyID] = useOnyx(ONYXKEYS.DOMAIN_GROUP_CREATE_PREFERRED_POLICY_ID);
     const [preferredPolicyName] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${preferredPolicyID}`, {
@@ -53,6 +55,12 @@ function DomainGroupCreatePage({route}: DomainGroupCreatePageProps) {
     const [defaultSecurityGroupID] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {
         selector: defaultSecurityGroupIDSelector,
     });
+    const [adminPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: createAdminPoliciesSelector()});
+
+    const firstAdminPolicy = Object.values(adminPolicies ?? {})
+        .sort((a, b) => localeCompare(a?.created ?? '', b?.created ?? ''))
+        .at(0);
+    const hasAdminPolicies = !!firstAdminPolicy;
 
     useEffect(() => {
         return () => {
@@ -161,21 +169,37 @@ function DomainGroupCreatePage({route}: DomainGroupCreatePageProps) {
                         subtitle={translate('domain.groups.preferredWorkspaceDescription', preferredWorkspace)}
                         switchAccessibilityLabel={translate('domain.groups.preferredWorkspace')}
                         isActive={preferredWorkspace}
+                        disabled={!hasAdminPolicies}
+                        disabledAction={() => setIsNoWorkspacesModalVisible(true)}
                         onToggle={(value) => {
                             setPreferredWorkspace(value);
-                            if (!value) {
+                            if (value) {
+                                if (!preferredPolicyID && firstAdminPolicy?.id) {
+                                    setDomainGroupCreatePreferredPolicyID(firstAdminPolicy.id);
+                                }
+                            } else {
                                 clearDomainGroupCreatePreferredPolicyID();
                             }
                         }}
                         wrapperStyle={[styles.ph5, styles.mv3]}
                         shouldPlaceSubtitleBelowSwitch
                     />
-                    {preferredWorkspace && (
+                    <ConfirmModal
+                        onConfirm={() => setIsNoWorkspacesModalVisible(false)}
+                        onCancel={() => setIsNoWorkspacesModalVisible(false)}
+                        isVisible={isNoWorkspacesModalVisible}
+                        title={translate('workspace.distanceRates.oopsNotSoFast')}
+                        prompt={translate('domain.groups.noWorkspacesMessage')}
+                        confirmText={translate('common.buttonConfirm')}
+                        shouldShowCancelButton={false}
+                    />
+                    {hasAdminPolicies && (
                         <MenuItemWithTopDescription
                             description={translate('domain.groups.preferredWorkspace')}
-                            title={preferredPolicyName ?? ''}
+                            title={preferredPolicyName ?? firstAdminPolicy?.name}
                             shouldShowRightIcon
                             onPress={() => Navigation.navigate(ROUTES.DOMAIN_GROUP_CREATE_PREFERRED_WORKSPACE.getRoute(domainAccountID))}
+                            disabled={!preferredWorkspace}
                         />
                     )}
                     <ToggleSettingOptionRow

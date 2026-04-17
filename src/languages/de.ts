@@ -8882,6 +8882,7 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
         groups: {
             title: 'Gruppen',
             memberCount: () => ({one: '1 Mitglied', other: (count: number) => `${count} Mitglieder`}),
+            createGroupError: 'Diese Gruppe konnte nicht erstellt werden. Bitte versuche es erneut.',
             error: {
                 settings:
                     '<rbr>Diese Änderung konnte nicht gespeichert werden. Bitte versuche es erneut oder <concierge-link>kontaktiere Concierge</concierge-link> für weitere Unterstützung.</rbr>',
@@ -8902,7 +8903,8 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
             preferredWorkspace: 'Bevorzugter Arbeitsbereich',
             preferredWorkspaceDescription: (enabled: boolean) => `Alle neuen Berichte und Ausgaben werden im ${enabled ? 'ausgewählten bevorzugten' : 'diesem'} Arbeitsbereich erstellt.`,
             preferredWorkspaceSelectDescription: 'Alle neuen Ausgaben und Berichte werden in diesem Arbeitsbereich erstellt.',
-            defaultGroup: 'Standardgruppe',
+            noWorkspacesMessage: 'Es gibt keine Arbeitsbereiche in dieser Domain. Ein Arbeitsbereich ist erforderlich, um diese Einschränkung zu aktivieren.',
+            defaultGroup: 'Standardgruppe für neue Mitglieder',
         },
     },
     proactiveAppReview: {

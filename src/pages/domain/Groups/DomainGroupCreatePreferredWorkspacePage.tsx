@@ -1,5 +1,5 @@
+import {createAdminPoliciesSelector} from '@selectors/Policy';
 import React, {useState} from 'react';
-import type {OnyxCollection} from 'react-native-onyx';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -21,25 +21,11 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {Policy} from '@src/types/onyx';
 
 type WorkspaceListItem = {
     policyID: string;
+    created?: string;
 } & ListItem;
-
-const createAdminPolicySelector = (currentPolicyID: string | undefined) => (policies: OnyxCollection<Policy>) => {
-    return Object.entries(policies ?? {}).reduce<Record<string, Pick<Policy, 'name' | 'id' | 'avatarURL'>>>((acc, [key, policy]) => {
-        if (!policy?.id || !policy?.name) {
-            return acc;
-        }
-        const isCurrentPolicy = policy.id === currentPolicyID;
-        if (!isCurrentPolicy && (policy.type === CONST.POLICY.TYPE.PERSONAL || policy.role !== CONST.POLICY.ROLE.ADMIN)) {
-            return acc;
-        }
-        acc[key] = {id: policy.id, name: policy.name, avatarURL: policy.avatarURL};
-        return acc;
-    }, {});
-};
 
 type DomainGroupCreatePreferredWorkspacePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.DOMAIN.GROUP_CREATE_PREFERRED_WORKSPACE>;
 
@@ -51,7 +37,7 @@ function DomainGroupCreatePreferredWorkspacePage({route}: DomainGroupCreatePrefe
     const icons = useMemoizedLazyExpensifyIcons(['FallbackWorkspaceAvatar']);
 
     const [currentPolicyID] = useOnyx(ONYXKEYS.DOMAIN_GROUP_CREATE_PREFERRED_POLICY_ID);
-    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: createAdminPolicySelector(currentPolicyID)});
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: createAdminPoliciesSelector(currentPolicyID)});
     const [selectedPolicyID, setSelectedPolicyID] = useState<string | undefined>(currentPolicyID);
     const [shouldShowError, setShouldShowError] = useState(false);
 
@@ -64,6 +50,7 @@ function DomainGroupCreatePreferredWorkspacePage({route}: DomainGroupCreatePrefe
         workspaceOptions.push({
             text: policy.name,
             policyID: policy.id,
+            created: policy.created,
             keyForList: policy.id,
             isSelected: selectedPolicyID === policy.id,
             icons: [
@@ -100,7 +87,7 @@ function DomainGroupCreatePreferredWorkspacePage({route}: DomainGroupCreatePrefe
                 />
                 <Text style={[styles.ph5, styles.mb3]}>{translate('domain.groups.preferredWorkspaceSelectDescription')}</Text>
                 <SelectionList<WorkspaceListItem>
-                    data={workspaceOptions.sort((a, b) => localeCompare(a.text ?? '', b.text ?? ''))}
+                    data={workspaceOptions.sort((a, b) => localeCompare(a.created ?? '', b.created ?? ''))}
                     ListItem={UserListItem}
                     onSelectRow={(item: WorkspaceListItem) => {
                         setSelectedPolicyID(item.policyID);

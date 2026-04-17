@@ -8761,6 +8761,7 @@ ${reportName}
         groups: {
             title: 'グループ',
             memberCount: () => ({one: 'メンバー 1 人', other: (count: number) => `${count}名のメンバー`}),
+            createGroupError: 'このグループを作成できませんでした。もう一度お試しください。',
             error: {settings: '<rbr>この変更を保存できませんでした。もう一度お試しいただくか、<concierge-link>Conciergeにお問い合わせ</concierge-link>ください。</rbr>'},
             permissions: 'グループの権限',
             createNewGroupButton: '新しいグループ',
@@ -8776,7 +8777,8 @@ ${reportName}
             preferredWorkspace: '優先ワークスペース',
             preferredWorkspaceDescription: (enabled: boolean) => `すべての新しいレポートと経費は${enabled ? '選択された優先' : 'この'}ワークスペースで作成されます。`,
             preferredWorkspaceSelectDescription: 'すべての新しい経費とレポートはこのワークスペースで作成されます。',
-            defaultGroup: 'デフォルトグループ',
+            noWorkspacesMessage: 'このドメインにワークスペースがありません。この制限を有効にするにはワークスペースが必要です。',
+            defaultGroup: '新しいメンバーのデフォルトグループ',
         },
     },
     proactiveAppReview: {

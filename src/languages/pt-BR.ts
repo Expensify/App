@@ -8837,6 +8837,7 @@ Aqui está um *comprovante de teste* para mostrar como funciona:`,
         groups: {
             title: 'Grupos',
             memberCount: () => ({one: '1 membro', other: (count: number) => `${count} membros`}),
+            createGroupError: 'Não foi possível criar este grupo. Tente novamente.',
             error: {settings: '<rbr>Não foi possível salvar esta alteração. Tente novamente ou <concierge-link>entre em contato com o Concierge</concierge-link> para mais suporte.</rbr>'},
             permissions: 'Permissões do grupo',
             createNewGroupButton: 'Novo grupo',
@@ -8854,7 +8855,8 @@ Aqui está um *comprovante de teste* para mostrar como funciona:`,
             preferredWorkspaceDescription: (enabled: boolean) =>
                 `Todos os novos relatórios e despesas serão criados no ${enabled ? 'espaço de trabalho preferido selecionado' : 'este espaço de trabalho'}.`,
             preferredWorkspaceSelectDescription: 'Todas as novas despesas e relatórios serão criados neste espaço de trabalho.',
-            defaultGroup: 'Grupo padrão',
+            noWorkspacesMessage: 'Não há espaços de trabalho neste domínio. Um espaço de trabalho é necessário para ativar esta restrição.',
+            defaultGroup: 'Grupo padrão para novos membros',
         },
     },
     proactiveAppReview: {

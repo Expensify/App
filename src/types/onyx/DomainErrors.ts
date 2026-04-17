@@ -44,7 +44,7 @@ type DomainSecurityGroupErrors = {
     /**
      * Base errors related to the security group
      */
-    errors?: OnyxCommon.Errors; 
+    errors?: OnyxCommon.Errors;
 };
 
 /**

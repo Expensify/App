@@ -8594,6 +8594,7 @@ ${reportName}
         groups: {
             title: '群组',
             memberCount: () => ({one: '1 名成员', other: (count: number) => `${count} 名成员`}),
+            createGroupError: '无法创建此群组。请重试。',
             error: {settings: '<rbr>无法保存此更改。请重试或<concierge-link>联系Concierge</concierge-link>获取更多支持。</rbr>'},
             permissions: '群组权限',
             createNewGroupButton: '新建群组',
@@ -8609,7 +8610,8 @@ ${reportName}
             preferredWorkspace: '首选工作区',
             preferredWorkspaceDescription: (enabled: boolean) => `所有新报告和费用将在${enabled ? '选定的首选' : '此'}工作区中创建。`,
             preferredWorkspaceSelectDescription: '所有新费用和报告将在此工作区中创建。',
-            defaultGroup: '默认群组',
+            noWorkspacesMessage: '此域上没有工作区。启用此限制需要一个工作区。',
+            defaultGroup: '新成员的默认群组',
         },
     },
     proactiveAppReview: {title: '喜欢全新的 Expensify 吗？', description: '请告诉我们，这样我们就能帮助您让报销体验变得更好。', positiveButton: '太棒了！', negativeButton: '不太是'},
