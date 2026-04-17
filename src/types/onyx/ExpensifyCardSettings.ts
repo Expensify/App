@@ -75,6 +75,9 @@ type ExpensifyCardSettingsBase = {
 
     /** Owner email for the card program */
     ownerEmail?: string;
+
+    /** Amount (in cents) of in-flight settlement that has been billed but not yet settled at the bank */
+    pendingSettlementAmount?: number;
 };
 
 /** Spend rule filter condition */

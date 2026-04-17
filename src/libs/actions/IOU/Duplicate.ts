@@ -75,7 +75,7 @@ function getIOUActionForTransactions(transactionIDList: Array<string | undefined
 }
 
 /** Merge several transactions into one by updating the fields of the one we want to keep and deleting the rest */
-function mergeDuplicates({transactionThreadReportID: optimisticTransactionThreadReportID, taxAmount, taxValue, ...params}: MergeDuplicatesParams & {taxAmount: number; taxValue: string}) {
+function mergeDuplicates({transactionThreadReportID: optimisticTransactionThreadReportID, ...params}: MergeDuplicatesParams) {
     const allParams: MergeDuplicatesParams = {...params};
     const allTransactions = getAllTransactions();
     const allTransactionViolations = getAllTransactionViolations();
@@ -100,9 +100,6 @@ function mergeDuplicates({transactionThreadReportID: optimisticTransactionThread
             modifiedMerchant: params.merchant,
             reimbursable: params.reimbursable,
             tag: params.tag,
-            taxCode: params.taxCode,
-            taxAmount,
-            taxValue,
         },
     };
 
@@ -351,7 +348,7 @@ function mergeDuplicates({transactionThreadReportID: optimisticTransactionThread
 }
 
 /** Instead of merging the duplicates, it updates the transaction we want to keep and puts the others on hold without deleting them */
-function resolveDuplicates({taxAmount, taxValue, ...params}: MergeDuplicatesParams & {taxAmount: number; taxValue: string}) {
+function resolveDuplicates(params: MergeDuplicatesParams) {
     if (!params.transactionID) {
         return;
     }
@@ -376,9 +373,6 @@ function resolveDuplicates({taxAmount, taxValue, ...params}: MergeDuplicatesPara
             modifiedMerchant: params.merchant,
             reimbursable: params.reimbursable,
             tag: params.tag,
-            taxCode: params.taxCode,
-            taxAmount,
-            taxValue,
         },
     };
 
@@ -666,6 +660,8 @@ type DuplicateExpenseTransactionParams = {
     targetPolicyTags: OnyxEntry<OnyxTypes.PolicyTagLists>;
     shouldPlaySound?: boolean;
     shouldDeferAutoSubmit?: boolean;
+    existingIOUReport?: OnyxEntry<OnyxTypes.Report>;
+    optimisticReportPreviewActionID?: string;
 };
 
 function duplicateExpenseTransaction({
@@ -690,6 +686,8 @@ function duplicateExpenseTransaction({
     targetPolicyTags,
     shouldPlaySound = true,
     shouldDeferAutoSubmit = false,
+    existingIOUReport,
+    optimisticReportPreviewActionID: externalReportPreviewActionID,
 }: DuplicateExpenseTransactionParams) {
     if (!transaction) {
         return;
@@ -704,10 +702,11 @@ function duplicateExpenseTransaction({
 
     const params: RequestMoneyInformation = {
         report: targetReport,
+        existingIOUReport,
         optimisticChatReportID,
         optimisticCreatedReportActionID: NumberUtils.rand64(),
         optimisticIOUReportID,
-        optimisticReportPreviewActionID: NumberUtils.rand64(),
+        optimisticReportPreviewActionID: externalReportPreviewActionID ?? NumberUtils.rand64(),
         participantParams: {
             payeeAccountID: userAccountID,
             payeeEmail: currentUserEmail,
@@ -991,12 +990,17 @@ function bulkDuplicateExpenses({
 
     const optimisticChatReportID = generateReportID();
     const optimisticIOUReportID = generateReportID();
+    const sharedReportPreviewActionID = NumberUtils.rand64();
 
     // After the first iteration creates a new optimistic IOU report, subsequent
     // iterations must know its ID so getMoneyRequestInformation can find and
     // MERGE into it instead of SET-overwriting it.  We carry a local copy of
     // targetReport whose iouReportID is patched after the first pass.
+    // We also pass the optimistic IOU report object directly via existingIOUReport
+    // to avoid a stale-state race: Onyx subscriber callbacks are deferred, so the
+    // module-level allReports in IOU/index.ts is not yet updated when iteration 2 runs.
     let currentTargetReport = targetReport;
+    let optimisticIOUReport: OnyxEntry<OnyxTypes.Report>;
 
     for (let i = 0; i < transactionsToDuplicate.length; i++) {
         const item = transactionsToDuplicate.at(i);
@@ -1007,7 +1011,7 @@ function bulkDuplicateExpenses({
         const existingTransactionID = getExistingTransactionID(item.linkedTrackedExpenseReportAction);
         const existingTransactionDraft = existingTransactionID ? transactionDrafts?.[existingTransactionID] : undefined;
 
-        duplicateExpenseTransaction({
+        const result = duplicateExpenseTransaction({
             transaction: item,
             optimisticChatReportID,
             optimisticIOUReportID,
@@ -1029,7 +1033,13 @@ function bulkDuplicateExpenses({
             targetPolicyTags,
             shouldPlaySound: false,
             shouldDeferAutoSubmit: !isLastExpense,
+            existingIOUReport: optimisticIOUReport,
+            optimisticReportPreviewActionID: sharedReportPreviewActionID,
         });
+
+        if (result?.iouReport) {
+            optimisticIOUReport = result.iouReport;
+        }
 
         if (currentTargetReport && !currentTargetReport.iouReportID) {
             currentTargetReport = {...currentTargetReport, iouReportID: optimisticIOUReportID};

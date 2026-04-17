@@ -748,7 +748,7 @@ function getCardDefaultName(userName?: string) {
 }
 
 function setIssueNewCardStepAndData({data, isEditing, step, policyID, isChangeAssigneeDisabled}: IssueNewCardFlowData) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.RAM_ONLY_ISSUE_NEW_EXPENSIFY_CARD}${policyID}`, {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD}${policyID}`, {
         data,
         isEditing,
         currentStep: step,
@@ -764,7 +764,7 @@ function setDraftInviteAccountID(assigneeEmail: string | undefined, assigneeAcco
 }
 
 function clearIssueNewCardFlow(policyID: string | undefined) {
-    Onyx.set(`${ONYXKEYS.COLLECTION.RAM_ONLY_ISSUE_NEW_EXPENSIFY_CARD}${policyID}`, {
+    Onyx.set(`${ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD}${policyID}`, {
         currentStep: null,
         data: {},
         isSuccessful: false,
@@ -777,7 +777,7 @@ function clearIssueNewCardFormData() {
 }
 
 function clearIssueNewCardError(policyID: string | undefined) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.RAM_ONLY_ISSUE_NEW_EXPENSIFY_CARD}${policyID}`, {errors: null});
+    Onyx.merge(`${ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD}${policyID}`, {errors: null});
 }
 
 function buildCardListUpdates(workspaceAccountID: number, cardID: number, cardUpdateData: CardListUpdateData, shouldUpdateCardList: boolean): CardOnyxUpdate[] {
@@ -1367,10 +1367,10 @@ function issueExpensifyCard(
 
     const {assigneeEmail, limit, limitType, cardTitle, cardType, validFrom, validThru} = data;
 
-    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.RAM_ONLY_ISSUE_NEW_EXPENSIFY_CARD>> = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.RAM_ONLY_ISSUE_NEW_EXPENSIFY_CARD}${policyID}`,
+            key: `${ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD}${policyID}`,
             value: {
                 isLoading: true,
                 errors: null,
@@ -1379,10 +1379,10 @@ function issueExpensifyCard(
         },
     ];
 
-    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.RAM_ONLY_ISSUE_NEW_EXPENSIFY_CARD>> = [
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.RAM_ONLY_ISSUE_NEW_EXPENSIFY_CARD}${policyID}`,
+            key: `${ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD}${policyID}`,
             value: {
                 isLoading: false,
                 isSuccessful: true,
@@ -1390,10 +1390,10 @@ function issueExpensifyCard(
         },
     ];
 
-    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.RAM_ONLY_ISSUE_NEW_EXPENSIFY_CARD>> = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.RAM_ONLY_ISSUE_NEW_EXPENSIFY_CARD}${policyID}`,
+            key: `${ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD}${policyID}`,
             value: {
                 isLoading: false,
                 errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),

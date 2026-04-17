@@ -110,6 +110,7 @@ const translations: TranslationDeepObject<typeof en> = {
         newFeature: 'Nuova funzionalità',
         search: 'Cerca',
         reports: 'Report',
+        spend: 'Spese',
         find: 'Trova',
         searchWithThreeDots: 'Cerca...',
         next: 'Avanti',
@@ -1046,6 +1047,7 @@ const translations: TranslationDeepObject<typeof en> = {
             title: 'Per iniziare',
             createWorkspace: 'Crea uno spazio di lavoro',
             connectAccounting: ({integrationName}: {integrationName: string}) => `Connetti a ${integrationName}`,
+            connectAccountingDefault: 'Connetti alla contabilità',
             customizeCategories: 'Personalizza le categorie contabili',
             linkCompanyCards: 'Collega carte aziendali',
             setupRules: 'Configura le regole di spesa',
@@ -1668,6 +1670,7 @@ const translations: TranslationDeepObject<typeof en> = {
             prompt: 'Abilita il monitoraggio delle imposte nello spazio di lavoro per modificare i dettagli della spesa o eliminare l’imposta da questa spesa.',
             confirmText: 'Elimina imposta',
         },
+        bulkDuplicateLimit: `Puoi duplicare fino a ${CONST.SEARCH.BULK_DUPLICATE_LIMIT} spese alla volta. Seleziona meno spese e riprova.`,
         deleted: 'Eliminato',
     },
     transactionMerge: {
@@ -2607,6 +2610,9 @@ ${amount} per ${merchant} - ${date}`,
     workflowsExpensesFromPage: {
         title: 'Spese dal',
         header: 'Quando i seguenti membri inviano note spese:',
+        memberAlreadyInWorkflowTitle: 'Membro già in un flusso di lavoro',
+        memberAlreadyInWorkflowPrompt: ({memberName, approverName}: {memberName: string; approverName: string}) =>
+            `${memberName} è già in un flusso di approvazione che invia a ${approverName}. Aggiungendolo qui lo sposterà in questo flusso di lavoro.`,
     },
     workflowsApproverPage: {
         genericErrorMessage: "Non è stato possibile modificare l'approvatore. Riprova o contatta l'assistenza.",
@@ -2909,10 +2915,12 @@ ${amount} per ${merchant} - ${date}`,
         },
         employees: {
             title: 'Quanti dipendenti hai?',
+            [CONST.ONBOARDING_COMPANY_SIZE.MICRO_SMALL]: '1-4 dipendenti',
+            [CONST.ONBOARDING_COMPANY_SIZE.MICRO_MEDIUM]: '5-10 dipendenti',
             [CONST.ONBOARDING_COMPANY_SIZE.MICRO]: '1-10 dipendenti',
             [CONST.ONBOARDING_COMPANY_SIZE.SMALL]: '11-50 dipendenti',
             [CONST.ONBOARDING_COMPANY_SIZE.MEDIUM_SMALL]: '51-100 dipendenti',
-            [CONST.ONBOARDING_COMPANY_SIZE.MEDIUM]: '101-1.000 dipendenti',
+            [CONST.ONBOARDING_COMPANY_SIZE.MEDIUM]: 'Da 101 a 1.000 dipendenti',
             [CONST.ONBOARDING_COMPANY_SIZE.LARGE]: 'Più di 1.000 dipendenti',
         },
         accounting: {
@@ -5508,6 +5516,8 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                             reduceLimitTitle: 'Ridurre il limite di spesa per i viaggi?',
                             reduceLimitWarning:
                                 'Se riduci il limite, i membri che hanno già speso più di questo importo non potranno effettuare nuove prenotazioni di viaggio fino al mese prossimo.',
+                            provisioningError:
+                                'Non siamo riusciti a configurare alcuni membri del tuo spazio di lavoro per la fatturazione centralizzata. Riprova più tardi o contatta Concierge per assistenza.',
                         },
                     },
                     disableModal: {
@@ -9048,12 +9058,15 @@ Ecco una *ricevuta di prova* per mostrarti come funziona:`,
                 removeMember: 'Impossibile rimuovere questo utente. Riprova.',
                 addMember: 'Impossibile aggiungere questo membro. Riprova.',
                 vacationDelegate: 'Impossibile impostare questo utente come delegato per le ferie. Riprova.',
+                moveMember: 'Impossibile spostare questo membro. Riprova.',
             },
             cannotSetVacationDelegateForMember: (email: string) => `Non puoi impostare un delegato per le vacanze per ${email} perché al momento è il delegato per i seguenti membri:`,
             reportSuspiciousActivityPrompt: (email: string) =>
                 `Sei sicuro? Questo bloccherà l’account di <strong>${email}</strong>. <br /><br /> Il nostro team esaminerà quindi l’account e rimuoverà qualsiasi accesso non autorizzato. Per riottenere l’accesso, dovranno collaborare con Concierge.`,
             reportSuspiciousActivityConfirmationPrompt: 'Esamineremo l’account per verificare che sia sicuro sbloccarlo e ti contatteremo tramite Concierge per qualsiasi domanda.',
             emptyMembers: {title: 'Nessun membro in questo gruppo', subtitle: 'Aggiungi un membro o prova a cambiare il filtro qui sopra.'},
+            moveToGroup: 'Sposta nel gruppo',
+            chooseWhereToMove: ({count}: {count: number}) => `Scegli dove spostare ${count} ${count === 1 ? 'membro' : 'membri'}.`,
         },
         common: {
             settings: 'Impostazioni',

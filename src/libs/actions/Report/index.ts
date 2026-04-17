@@ -80,8 +80,7 @@ import {getMovedReportID} from '@libs/ModifiedExpenseMessage';
 import type {LinkToOptions} from '@libs/Navigation/helpers/linkTo/types';
 import Navigation from '@libs/Navigation/Navigation';
 import enhanceParameters from '@libs/Network/enhanceParameters';
-import * as NetworkStore from '@libs/Network/NetworkStore';
-import NetworkConnection from '@libs/NetworkConnection';
+import {getDBTimeWithSkew, getIsOffline as isOfflineNetwork} from '@libs/NetworkState';
 import {buildNextStepNew, buildOptimisticNextStep} from '@libs/NextStepUtils';
 import LocalNotification from '@libs/Notification/LocalNotification';
 import {rand64} from '@libs/NumberUtils';
@@ -737,7 +736,7 @@ function addActions({
 
     // Always prefer the file as the last action over text
     const lastAction = attachmentAction ?? reportCommentAction;
-    const currentTime = NetworkConnection.getDBTimeWithSkew();
+    const currentTime = getDBTimeWithSkew();
     const lastComment = ReportActionsUtils.getReportActionMessage(lastAction);
     const lastCommentText = formatReportLastMessageText(lastComment?.text ?? '');
 
@@ -2334,7 +2333,7 @@ function readNewestAction(reportID: string | undefined, hasOnceLoadedReportActio
         }
     }
 
-    const lastReadTime = NetworkConnection.getDBTimeWithSkew();
+    const lastReadTime = getDBTimeWithSkew();
 
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT>> = [
         {
@@ -5205,7 +5204,7 @@ function searchForReports(isOffline: boolean, searchInput: string, policyID?: st
 
 function performServerSearch(searchInput: string, policyID?: string, isUserSearch = false) {
     // We are not getting isOffline from components as useEffect change will re-trigger the search on network change
-    const isOffline = NetworkStore.isOffline();
+    const isOffline = isOfflineNetwork();
     if (isOffline || !searchInput.trim().length) {
         Onyx.set(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS, false);
         return;
