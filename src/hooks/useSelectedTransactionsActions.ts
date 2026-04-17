@@ -431,7 +431,7 @@ function useSelectedTransactionsActions({
             });
         }
 
-        if (isDuplicateOptionVisible && duplicateHandler) {
+        if (isDuplicateOptionVisible) {
             const exceedsBulkDuplicateLimit = selectedTransactionIDs.length > CONST.SEARCH.BULK_DUPLICATE_LIMIT;
             options.push({
                 text: translate('search.bulkActions.duplicateExpense', {count: selectedTransactionIDs.length}),
@@ -448,7 +448,7 @@ function useSelectedTransactionsActions({
                         });
                         return;
                     }
-                    duplicateHandler();
+                    duplicateHandler?.();
                 },
             });
         }

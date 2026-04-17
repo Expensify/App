@@ -1205,7 +1205,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 });
             }
 
-            if (isDuplicateOptionVisible && duplicateHandler) {
+            if (isDuplicateOptionVisible) {
                 const exceedsBulkDuplicateLimit = selectedTransactionsKeys.length > CONST.SEARCH.BULK_DUPLICATE_LIMIT;
                 options.push({
                     text: translate('search.bulkActions.duplicateExpense', {count: selectedTransactionsKeys.length}),
@@ -1222,7 +1222,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                             });
                             return;
                         }
-                        duplicateHandler();
+                        duplicateHandler?.();
                     },
                 });
             }
