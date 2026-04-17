@@ -85,7 +85,7 @@ import GoogleTagManager from '@libs/GoogleTagManager';
 // eslint-disable-next-line @typescript-eslint/no-deprecated
 import {translate, translateLocal} from '@libs/Localize';
 import Log from '@libs/Log';
-import {buildNextStepNew} from '@libs/NextStepUtils';
+import {buildNextStepNew, buildOptimisticNextStep} from '@libs/NextStepUtils';
 import * as NumberUtils from '@libs/NumberUtils';
 import Permissions from '@libs/Permissions';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
@@ -6345,12 +6345,19 @@ function setPolicyPreventMemberCreatedTitle(policyID: string, enforced: boolean,
  * @param preventSelfApproval - flag whether to prevent workspace members from approving their own expense reports
  * @param currentPreventSelfApproval - current value of preventSelfApproval
  */
-function setPolicyPreventSelfApproval(policyID: string, preventSelfApproval: boolean, currentPreventSelfApproval: boolean | undefined) {
-    if (preventSelfApproval === currentPreventSelfApproval) {
+function setPolicyPreventSelfApproval(
+    policy: OnyxEntry<Policy>,
+    preventSelfApproval: boolean,
+    currentPreventSelfApproval: boolean | undefined,
+    reports?: Array<OnyxEntry<Report>>,
+    reportNextSteps?: OnyxCollection<ReportNextStepDeprecated>,
+) {
+    if (preventSelfApproval === currentPreventSelfApproval || !policy?.id) {
         return;
     }
 
-    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
+    const policyID = policy?.id;
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.COLLECTION.NEXT_STEP | typeof ONYXKEYS.COLLECTION.REPORT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
@@ -6376,7 +6383,7 @@ function setPolicyPreventSelfApproval(policyID: string, preventSelfApproval: boo
         },
     ];
 
-    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.COLLECTION.NEXT_STEP | typeof ONYXKEYS.COLLECTION.REPORT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
@@ -6391,6 +6398,57 @@ function setPolicyPreventSelfApproval(policyID: string, preventSelfApproval: boo
             },
         },
     ];
+
+    if (reports && reports.length > 0 && preventSelfApproval === false) {
+        for (const report of reports) {
+            if (report?.statusNum === undefined) {
+                continue;
+            }
+
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
+            const nextStepDeprecated = buildNextStepNew({
+                report,
+                policy,
+                predictedNextStatus: report?.statusNum,
+                bypassNextApproverID: report?.managerID,
+            });
+
+            const nextStep = buildOptimisticNextStep({
+                report,
+                policy,
+                predictedNextStatus: report?.statusNum,
+                bypassNextApproverID: report?.managerID,
+            });
+
+            optimisticData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${report?.reportID}`,
+                value: nextStepDeprecated,
+            });
+
+            optimisticData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${report?.reportID}`,
+                value: {
+                    nextStep,
+                },
+            });
+
+            failureData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${report?.reportID}`,
+                value: reportNextSteps?.[report.reportID] ?? null,
+            });
+
+            failureData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${report?.reportID}`,
+                value: {
+                    nextStep: report.nextStep ?? null,
+                },
+            });
+        }
+    }
 
     const parameters: SetPolicyPreventSelfApprovalParams = {
         preventSelfApproval,

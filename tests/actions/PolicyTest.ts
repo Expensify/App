@@ -4515,7 +4515,7 @@ describe('actions/Policy', () => {
             mockFetch.pause();
 
             // When enabling prevent self approval
-            Policy.setPolicyPreventSelfApproval(policy.id, true, policy.preventSelfApproval);
+            Policy.setPolicyPreventSelfApproval(policy, true, policy.preventSelfApproval);
 
             // Then optimistic data should be set in Onyx
             await waitForBatchedUpdates();
@@ -4541,7 +4541,7 @@ describe('actions/Policy', () => {
 
             // When enabling prevent self approval but fail
             mockFetch.fail();
-            Policy.setPolicyPreventSelfApproval(policy.id, true, policy.preventSelfApproval);
+            Policy.setPolicyPreventSelfApproval(policy, true, policy.preventSelfApproval);
             await waitForBatchedUpdates();
 
             // Then it should be reverted
