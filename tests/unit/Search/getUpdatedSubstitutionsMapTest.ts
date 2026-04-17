@@ -69,5 +69,4 @@ describe('getUpdatedSubstitutionsMap should return updated and cleaned substitut
             'policyID:Test Workspace:1': 'policyB',
         });
     });
-
 });

@@ -102,5 +102,4 @@ describe('getQueryWithSubstitutions should compute and return correct new query'
 
         expect(result).toBe('workspace:policyA,policyB,policyC');
     });
-
 });
