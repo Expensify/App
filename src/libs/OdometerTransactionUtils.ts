@@ -3,7 +3,7 @@ import CONST from '@src/CONST';
 import type {Transaction} from '@src/types/onyx';
 import {removeMoneyRequestOdometerImage, setMoneyRequestOdometerReading} from './actions/IOU';
 import {setMoneyRequestReceipt} from './actions/IOU/Receipt';
-import {removeDraftTransactionsByIDs, removeBackupTransaction} from './actions/TransactionEdit';
+import {removeBackupTransaction, removeDraftTransactionsByIDs} from './actions/TransactionEdit';
 
 function clearOdometerTransactionState(transaction: OnyxEntry<Transaction>, isDraft: boolean): void {
     if (!transaction) {
