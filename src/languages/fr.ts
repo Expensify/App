@@ -2622,7 +2622,7 @@ ${amount} pour ${merchant} - ${date}`,
         title: 'Dépenses de',
         memberAlreadyInWorkflowTitle: 'Membre déjà dans un workflow',
         memberAlreadyInWorkflowPrompt: ({memberName, approverName}: {memberName: string; approverName: string}) =>
-            `${memberName} fait déjà partie d’un workflow d’approbation qui soumet à ${approverName}. L’ajouter ici le déplacera vers ce workflow.`,
+            `${memberName} fait déjà partie d\u2019un workflow d\u2019approbation qui soumet à ${approverName}. L\u2019ajouter ici le déplacera vers ce workflow.`,
         header: 'Quand les membres suivants soumettent des dépenses :',
     },
     workflowsApproverPage: {
