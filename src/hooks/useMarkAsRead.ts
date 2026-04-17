@@ -1,5 +1,5 @@
 import {useIsFocused, useRoute} from '@react-navigation/native';
-import {useEffect, useRef, useSyncExternalStore} from 'react';
+import {useEffect, useEffectEvent, useRef, useSyncExternalStore} from 'react';
 import type {RefObject} from 'react';
 import {DeviceEventEmitter} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -58,9 +58,9 @@ function useMarkAsRead({reportID, sortedVisibleReportActions, transactionThreadR
         return () => subscription.remove();
     }, [reportID]);
 
-    function handleReportChangeMarkAsRead() {
+    const handleReportChangeMarkAsRead = useEffectEvent(() => {
         if (reportID !== prevReportID) {
-            return;
+            return false;
         }
 
         if (isUnread(report, transactionThreadReport, isReportArchived) || (lastAction && isCurrentActionUnread(report, lastAction, sortedVisibleReportActions))) {
@@ -78,10 +78,14 @@ function useMarkAsRead({reportID, sortedVisibleReportActions, transactionThreadR
 
             readActionSkippedRef.current = true;
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }
+        return false;
+    });
 
-    function handleAppVisibilityMarkAsRead() {
+    // This effect logic to `mark as read` will only run when the report focused has new messages and the App visibility
+    // is changed to visible (meaning user switched to app/web, while user was previously using different tab or application).
+    // We will mark the report as read in the above case which marks the LHN report item as read while showing the new message
+    // marker for the chat messages received while the user wasn't focused on the report or on another browser tab for web.
+    const handleAppVisibilityMarkAsRead = useEffectEvent(() => {
         if (reportID !== prevReportID) {
             return;
         }
@@ -113,23 +117,15 @@ function useMarkAsRead({reportID, sortedVisibleReportActions, transactionThreadR
 
         readNewestAction(reportID, !!reportMetadata?.hasOnceLoadedReportActions);
         userActiveSince.current = DateUtils.getDBTime();
-        return true;
-
-        // This effect logic to `mark as read` will only run when the report focused has new messages and the App visibility
-        //  is changed to visible(meaning user switched to app/web, while user was previously using different tab or application).
-        // We will mark the report as read in the above case which marks the LHN report item as read while showing the new message
-        // marker for the chat messages received while the user wasn't focused on the report or on another browser tab for web.
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }
+    });
 
     useEffect(() => {
         // handleReportChangeMarkAsRead short-circuits via isMarkedAsRead to prevent duplicate readNewestAction calls.
-        const isMarkedAsRead = !!handleReportChangeMarkAsRead();
+        const isMarkedAsRead = handleReportChangeMarkAsRead();
         if (!isMarkedAsRead) {
             handleAppVisibilityMarkAsRead();
         }
         prevReportID = reportID;
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [report?.lastVisibleActionCreated, transactionThreadReport?.lastVisibleActionCreated, reportID, isVisible, isFocused, reportMetadata?.hasOnceLoadedReportActions]);
 
     return {readActionSkippedRef};

@@ -41,7 +41,6 @@ type UseReportActionsScrollParams = {
 };
 
 type UseReportActionsScrollResult = {
-    reportScrollManager: ReturnType<typeof useReportScrollManager>;
     trackVerticalScrolling: (event: NativeSyntheticEvent<NativeScrollEvent> | undefined) => void;
     onViewableItemsChanged: (info: {viewableItems: ViewToken[]; changed: ViewToken[]}) => void;
     isFloatingMessageCounterVisible: boolean;
@@ -174,8 +173,6 @@ function useReportActionsScroll({
         newActionUnsubscribeMap[reportID] = cleanup;
 
         return cleanup;
-
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [reportID]);
 
     // Clear highlight timer after scrolling and highlighting
@@ -203,8 +200,7 @@ function useReportActionsScroll({
         InteractionManager.runAfterInteractions(() => {
             reportScrollManager.scrollToBottom();
         });
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [lastAction]);
+    }, [lastIOUActionWithError?.reportActionID, reportScrollManager]);
 
     // Safari whisper scroll fix
     // https://github.com/Expensify/App/issues/54520
@@ -275,7 +271,6 @@ function useReportActionsScroll({
     };
 
     return {
-        reportScrollManager,
         trackVerticalScrolling,
         onViewableItemsChanged,
         isFloatingMessageCounterVisible,

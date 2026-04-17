@@ -1,5 +1,5 @@
 import type {RefObject} from 'react';
-import {useEffect, useLayoutEffect, useState} from 'react';
+import {useEffect, useState} from 'react';
 import {DeviceEventEmitter} from 'react-native';
 import {wasMessageReceivedWhileOffline} from '@libs/ReportActionsUtils';
 import {getUnreadMarkerReportAction} from '@pages/inbox/report/shouldDisplayNewMarkerOnReportAction';
@@ -48,15 +48,9 @@ function useUnreadMarker({reportID, sortedVisibleReportActions, sortedReportActi
 
     const lastReadTime = reportLastReadTime ?? '';
 
+    // `key={reportID}` at the list level remounts this hook on report change,
+    // so the initializer is always the fresh `lastReadTime` for the active report.
     const [unreadMarkerTime, setUnreadMarkerTime] = useState(lastReadTime);
-
-    // When reportID changes (handled by key={reportID} at the list level), reset unreadMarkerTime
-    // to the current lastReadTime for the new report.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    useEffect(() => {
-        setUnreadMarkerTime(lastReadTime);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [reportID]);
 
     /**
      * Subscribe to read/unread events and update unreadMarkerTime.
@@ -114,26 +108,15 @@ function useUnreadMarker({reportID, sortedVisibleReportActions, sortedReportActi
         isAnonymousUser,
     });
 
-    /**
-     * When the user reads a new message as it is received, push unreadMarkerTime down to the
-     * latest action's timestamp. When new actions arrive while the user is scrolled away
-     * (above MSG_VISIBLE_THRESHOLD), the marker displays over those new messages instead of
-     * sticking to the initial lastReadTime.
-     */
-    useLayoutEffect(() => {
-        if (isAnonymousUser || unreadMarkerReportActionID) {
-            return;
-        }
-
-        const mostRecentReportActionCreated = lastAction?.created ?? '';
-        if (mostRecentReportActionCreated <= unreadMarkerTime) {
-            return;
-        }
-
+    // When the user reads a new message as it is received, push unreadMarkerTime down to the
+    // latest action's timestamp so new incoming actions display over those new messages instead of
+    // sticking to the initial lastReadTime. Adjusting state during render (vs. in an effect) is the
+    // React-recommended pattern for this — avoids cascading commits.
+    // https://react.dev/reference/react/useState#storing-information-from-previous-renders
+    const mostRecentReportActionCreated = lastAction?.created ?? '';
+    if (!isAnonymousUser && !unreadMarkerReportActionID && mostRecentReportActionCreated > unreadMarkerTime) {
         setUnreadMarkerTime(mostRecentReportActionCreated);
-
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [lastAction?.created]);
+    }
 
     return {
         unreadMarkerReportActionID,
