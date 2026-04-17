@@ -6,7 +6,6 @@ import {scheduleOnUI} from 'react-native-worklets';
 import DragAndDropConsumer from '@components/DragAndDrop/Consumer';
 import DropZoneUI from '@components/DropZone/DropZoneUI';
 import DualDropZone from '@components/DropZone/DualDropZone';
-import ImportedStateIndicator from '@components/ImportedStateIndicator';
 import OfflineIndicator from '@components/OfflineIndicator';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import useAncestors from '@hooks/useAncestors';
@@ -70,6 +69,7 @@ import {useComposerMeta, useComposerSendState} from './ComposerContext';
 import ComposerEmojiPicker from './ComposerEmojiPicker';
 import ComposerExceededLength from './ComposerExceededLength';
 import ComposerFooter from './ComposerFooter';
+import ComposerImportedState from './ComposerImportedState';
 import ComposerInput from './ComposerInput';
 import ComposerLocalTime from './ComposerLocalTime';
 import ComposerProvider from './ComposerProvider';
@@ -85,8 +85,7 @@ function ReportActionComposeInner({reportID}: ReportActionComposeProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
-    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
-    const {isSmallScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {isOffline} = useNetwork();
     const isInSidePanel = useIsInSidePanel();
     const {kickoffWaitingIndicator} = useAgentZeroStatusActions();
@@ -333,11 +332,7 @@ function ReportActionComposeInner({reportID}: ReportActionComposeProps) {
                     <AgentZeroAwareTypingIndicator reportID={reportID} />
                     <ComposerExceededLength />
                 </ComposerFooter>
-                {!isSmallScreenWidth && (
-                    <View style={[styles.mln5, styles.mrn5]}>
-                        <ImportedStateIndicator />
-                    </View>
-                )}
+                <ComposerImportedState />
             </View>
         </View>
     );
