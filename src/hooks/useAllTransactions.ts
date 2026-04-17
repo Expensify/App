@@ -32,7 +32,7 @@ function useAllTransactions() {
         }
         allTransactions[key] = value;
     }
-    return allTransactions ?? allTransactionsCollection;
+    return allTransactions ?? allTransactionsCollection ?? {};
 }
 
 export default useAllTransactions;
