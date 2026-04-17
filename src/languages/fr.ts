@@ -6768,6 +6768,7 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
                 gambling: 'Jeux d’argent',
                 tobacco: 'Tabac',
                 adultEntertainment: 'Divertissement pour adultes',
+                giftCard: 'Achats de cartes-cadeaux',
                 requireCompanyCard: "Exiger l'utilisation de cartes d'entreprise pour tous les achats",
                 requireCompanyCardDescription: 'Signaler toutes les dépenses en espèces, y compris le kilométrage et les indemnités journalières.',
                 requireCompanyCardDisabledTooltip: 'Activez les cartes d’entreprise (dans Plus de fonctionnalités) pour déverrouiller.',
@@ -8338,6 +8339,8 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                         return `divertissement pour adultes`;
                     case 'hotelIncidentals':
                         return `Frais annexes d'hôtel`;
+                    case 'giftCard':
+                        return `achats de cartes-cadeaux`;
                     default:
                         return `${prohibitedExpenseType}`;
                 }

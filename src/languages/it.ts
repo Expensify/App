@@ -6731,6 +6731,7 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
                 gambling: 'Gioco d’azzardo',
                 tobacco: 'Tabacco',
                 adultEntertainment: 'Intrattenimento per adulti',
+                giftCard: 'Acquisto di carte regalo',
                 requireCompanyCard: 'Richiedi le carte aziendali per tutti gli acquisti',
                 requireCompanyCardDescription: 'Contrassegna tutte le spese in contanti, inclusi chilometraggio e indennità giornaliere.',
                 requireCompanyCardDisabledTooltip: 'Abilita Carte aziendali (in Altre funzionalità) per sbloccare.',
@@ -8304,6 +8305,8 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                         return `intrattenimento per adulti`;
                     case 'hotelIncidentals':
                         return `spese accessorie dell’hotel`;
+                    case 'giftCard':
+                        return `acquisto di carte regalo`;
                     default:
                         return `${prohibitedExpenseType}`;
                 }

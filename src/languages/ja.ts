@@ -6658,6 +6658,7 @@ ${reportName}
                 gambling: 'ギャンブル',
                 tobacco: 'たばこ',
                 adultEntertainment: 'アダルトエンターテインメント',
+                giftCard: 'ギフトカード購入',
                 requireCompanyCard: 'すべての購入に会社カードを必須にする',
                 requireCompanyCardDescription: 'マイレージや日当経費を含む、すべての現金支出にフラグを付ける。',
                 requireCompanyCardDisabledTooltip: 'ロック解除するには、「その他の機能」内の「会社カード」を有効にしてください。',
@@ -8200,6 +8201,8 @@ ${reportName}
                         return `アダルトエンターテインメント`;
                     case 'hotelIncidentals':
                         return `ホテル諸雑費`;
+                    case 'giftCard':
+                        return `ギフトカード購入`;
                     default:
                         return `${prohibitedExpenseType}`;
                 }
