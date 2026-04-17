@@ -364,7 +364,6 @@ function IOURequestStepConfirmation({
     );
     const participantsPolicyTags = useParticipantsPolicyTags(participants ?? []);
     const isPolicyExpenseChat = useMemo(() => participants?.some((participant) => participant.isPolicyExpenseChat), [participants]);
-    const shouldGenerateTransactionThreadReport = !isBetaEnabled(CONST.BETAS.NO_OPTIMISTIC_TRANSACTION_THREADS);
     const formHasBeenSubmitted = useRef(false);
     const isFromGlobalCreate = !!(transaction?.isFromGlobalCreate ?? transaction?.isFromFloatingActionButton);
 
@@ -604,7 +603,7 @@ function IOURequestStepConfirmation({
                             : {}),
                     },
                     shouldHandleNavigation: shouldHandleNav && index === transactions.length - 1,
-                    shouldGenerateTransactionThreadReport,
+                    shouldGenerateTransactionThreadReport: false,
                     backToReport,
                     isASAPSubmitBetaEnabled,
                     currentUserAccountIDParam: currentUserPersonalDetails.accountID,
@@ -641,7 +640,6 @@ function IOURequestStepConfirmation({
             transactionTaxValue,
             customUnitRateID,
             isTimeRequest,
-            shouldGenerateTransactionThreadReport,
             backToReport,
             isASAPSubmitBetaEnabled,
             policyRecentlyUsedCurrencies,
