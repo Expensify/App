@@ -22,7 +22,7 @@ import Parser from '@libs/Parser';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import * as PhoneNumber from '@libs/PhoneNumber';
-import {getDefaultApprover, isPolicyAdmin} from '@libs/PolicyUtils';
+import {getDefaultApprover, isControlPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as FormActions from '@userActions/FormActions';
@@ -143,8 +143,8 @@ function buildRoomMembersOnyxData(
 /**
  * Updates the import spreadsheet data according to the result of the import
  */
-function updateImportSpreadsheetData(addedMembersLength: number, updatedMembersLength: number): OnyxData<typeof ONYXKEYS.IMPORTED_SPREADSHEET> {
-    const onyxData: OnyxData<typeof ONYXKEYS.IMPORTED_SPREADSHEET> = {
+function updateImportSpreadsheetData(addedMembersLength: number, updatedMembersLength: number): OnyxData<typeof ONYXKEYS.IMPORTED_SPREADSHEET | typeof ONYXKEYS.COLLECTION.POLICY> {
+    const onyxData: OnyxData<typeof ONYXKEYS.IMPORTED_SPREADSHEET | typeof ONYXKEYS.COLLECTION.POLICY> = {
         successData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -1015,6 +1015,17 @@ function importPolicyMembers(policy: OnyxEntry<Policy>, members: PolicyMember[])
         {added: 0, updated: 0},
     );
     const onyxData = updateImportSpreadsheetData(added, updated);
+
+    const shouldUpdateApprovalMode = members.some((member) => !!member.submitsTo || !!member.forwardsTo) && isControlPolicy(policy);
+    if (shouldUpdateApprovalMode) {
+        onyxData.successData?.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policy.id}`,
+            value: {
+                approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+            },
+        });
+    }
 
     const parameters = {
         policyID: policy.id,
