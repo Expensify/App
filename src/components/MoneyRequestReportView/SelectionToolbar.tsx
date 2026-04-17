@@ -66,8 +66,6 @@ function SelectionToolbar({reportID, transactions, reportActions}: SelectionTool
     const [dismissedRejectUseExplanation] = useOnyx(ONYXKEYS.NVP_DISMISSED_REJECT_USE_EXPLANATION);
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${getNonEmptyStringOnyxID(reportID)}`);
     const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${getNonEmptyStringOnyxID(reportID)}`);
-    const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
-    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
 
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
@@ -156,6 +154,8 @@ function SelectionToolbar({reportID, transactions, reportActions}: SelectionTool
         options: originalSelectedTransactionsOptions,
         isDuplicateOptionVisible,
         setDuplicateHandler,
+        allTransactions: allTransactionsForDuplicate,
+        allReports: allReportsForDuplicate,
     } = useSelectedTransactionsActions({
         report,
         reportActions,
@@ -249,8 +249,8 @@ function SelectionToolbar({reportID, transactions, reportActions}: SelectionTool
             {isDuplicateOptionVisible && (
                 <BulkDuplicateHandler
                     selectedTransactionsKeys={selectedTransactionIDs}
-                    allTransactions={allTransactions}
-                    allReports={allReports}
+                    allTransactions={allTransactionsForDuplicate}
+                    allReports={allReportsForDuplicate}
                     searchData={undefined}
                     onHandlerReady={setDuplicateHandler}
                     onAfterDuplicate={() => clearSelectedTransactions(true)}

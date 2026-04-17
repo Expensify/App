@@ -4,7 +4,6 @@ import {useEffect} from 'react';
 import Onyx from 'react-native-onyx';
 import type {SearchQueryJSON, SelectedTransactions} from '@components/Search/types';
 import useBulkDuplicateAction from '@hooks/useBulkDuplicateAction';
-import useOnyx from '@hooks/useOnyx';
 import useSearchBulkActions from '@hooks/useSearchBulkActions';
 import {bulkDuplicateExpenses} from '@libs/actions/IOU/Duplicate';
 import CONST from '@src/CONST';
@@ -193,14 +192,12 @@ function makeSelectedTransaction(overrides: Partial<SelectedTransactions[string]
  */
 function useSearchBulkActionsWithDuplicate({queryJSON}: {queryJSON: SearchQueryJSON}) {
     const actions = useSearchBulkActions({queryJSON});
-    const {setDuplicateHandler} = actions;
-    const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
-    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+    const {setDuplicateHandler, allTransactions, allReports, searchData} = actions;
     const handleDuplicate = useBulkDuplicateAction({
         selectedTransactionsKeys: Object.keys(mockSelectedTransactions),
         allTransactions,
         allReports,
-        searchData: undefined,
+        searchData,
     });
     useEffect(() => {
         setDuplicateHandler(handleDuplicate);

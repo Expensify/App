@@ -1287,6 +1287,9 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         dismissRejectModalBasedOnAction,
         isDuplicateOptionVisible,
         setDuplicateHandler,
+        allTransactions,
+        allReports,
+        searchData: currentSearchResults?.data,
     };
 }
 
