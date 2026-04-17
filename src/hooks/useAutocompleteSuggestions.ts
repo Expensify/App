@@ -432,7 +432,7 @@ function useAutocompleteSuggestions({
                             const index = keyValueCount.get(baseKey) ?? 0;
                             keyValueCount.set(baseKey, index + 1);
                             const fullKey = getSubstitutionMapKeyWithIndex(range.key, range.value, index);
-                            return autocompleteSubstitutions[fullKey] ?? autocompleteSubstitutions[baseKey];
+                            return autocompleteSubstitutions[fullKey] ?? (index === 0 ? autocompleteSubstitutions[baseKey] : undefined);
                         })
                         .filter(Boolean),
                 );

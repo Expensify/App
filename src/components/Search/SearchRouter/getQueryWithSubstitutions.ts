@@ -14,16 +14,6 @@ const getSubstitutionMapKeyWithIndex = (filterKey: SearchFilterKey, value: strin
     index === 0 ? getSubstitutionMapKey(filterKey, value) : `${getSubstitutionMapKey(filterKey, value)}:${index}`;
 
 /**
- * Resolve substitution for a (key, value, occurrenceIndex) triple.
- * Falls back to base key when indexed keys are unavailable (e.g. rebuilt maps that only have base keys).
- */
-const getSubstitutionForOccurrence = (substitutions: SubstitutionMap, filterKey: SearchFilterKey, value: string, index: number) => {
-    const baseKey = getSubstitutionMapKey(filterKey, value);
-    const indexedKey = getSubstitutionMapKeyWithIndex(filterKey, value, index);
-    return substitutions[indexedKey] ?? substitutions[baseKey];
-};
-
-/**
  * Given a plaintext query and a SubstitutionMap object, this function will return a transformed query where:
  * - any autocomplete mention in the original query will be substituted with an id taken from `substitutions` object
  * - anything that does not match will stay as is
@@ -64,7 +54,8 @@ function getQueryWithSubstitutions(changedQuery: string, substitutions: Substitu
         if (range === undefined || index === undefined) {
             continue;
         }
-        let substitutionEntry = getSubstitutionForOccurrence(substitutions, range.key, range.value, index);
+        const itemKey = getSubstitutionMapKeyWithIndex(range.key, range.value, index);
+        let substitutionEntry = substitutions[itemKey] ?? (index === 0 ? substitutions[getSubstitutionMapKey(range.key, range.value)] : undefined);
 
         if (substitutionEntry) {
             const substitutionStart = range.start + lengthDiff;

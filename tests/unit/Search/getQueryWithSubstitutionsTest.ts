@@ -103,14 +103,4 @@ describe('getQueryWithSubstitutions should compute and return correct new query'
         expect(result).toBe('workspace:policyA,policyB,policyC');
     });
 
-    test('when duplicate values have only base substitution key, all duplicates still substitute', () => {
-        const userTypedQuery = 'workspace:"Test Workspace","Test Workspace"';
-        const substitutionsMock = {
-            'policyID:Test Workspace': 'policyA',
-        };
-
-        const result = getQueryWithSubstitutions(userTypedQuery, substitutionsMock);
-
-        expect(result).toBe('workspace:policyA,policyA');
-    });
 });

@@ -35,7 +35,7 @@ function getUpdatedSubstitutionsMap(query: string, substitutions: SubstitutionMa
         keyValueCount.set(baseKey, index + 1);
 
         const fullKey = getSubstitutionMapKeyWithIndex(range.key, range.value, index);
-        const value = substitutions[fullKey] ?? substitutions[baseKey];
+        const value = substitutions[fullKey] ?? (index === 0 ? substitutions[baseKey] : undefined);
         if (value) {
             updatedSubstitutionMap[fullKey] = value;
         }
