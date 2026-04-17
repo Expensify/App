@@ -131,7 +131,12 @@ Call scripts by name only (e.g., `removeDeployBlockerLabel.sh`), not with full p
 
 ### Step 8: Assign contributors
 
-When a causing PR is identified with medium or high confidence, assign the PR author and all approving reviewers to the deploy blocker issue using `gh issue edit "$ISSUE_URL" --add-assignee`. Extract approving reviewers from `gh pr view <PR_NUMBER> --json reviews`.
+If the primary causing PR has at least medium confidence, assign its author and approving reviewers to the deploy blocker issue. Only assign contributors from this single PR.
+
+```bash
+gh pr view <PR_NUMBER> --json reviews
+gh issue edit "$ISSUE_URL" --add-assignee <logins>
+```
 
 ---
 
@@ -186,7 +191,7 @@ Post ONE comment using this exact format:
 Brief explanation of why this recommendation (1-2 sentences).
 
 
-**Assigned**: @author (PR author), @reviewer (approving reviewer) — or omit if no causing PR identified
+**Assigned**: @author (PR author), @reviewer (approving reviewer) from highest-confidence causing PR only — omit if no causing PR identified
 **Labels**: [Describe any label changes made]
 
 <details>
