@@ -6,10 +6,11 @@ import {getIOURequestPolicyID} from '@libs/actions/IOU';
 import {deleteMoneyRequest} from '@libs/actions/IOU/DeleteMoneyRequest';
 import {getIOUActionForTransactions} from '@libs/actions/IOU/Duplicate';
 import {initSplitExpenseItemData, updateSplitTransactions} from '@libs/actions/IOU/Split';
+import initSplitExpense from '@libs/actions/SplitExpenses';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {getActiveGroupSearchHashes} from '@libs/SearchUIUtils';
-import {getChildTransactions, getOriginalTransactionWithSplitInfo} from '@libs/TransactionUtils';
+import {getChildTransactions, getOriginalTransactionWithSplitInfo, isExpenseUnreported, isPerDiemRequest} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report, ReportAction, Transaction, TransactionViolations} from '@src/types/onyx';
@@ -26,6 +27,15 @@ type UseDeleteTransactionsParams = {
     /** Policy object (optional) */
     policy?: Policy;
 };
+
+type DeleteTransactionsResult =
+    | {
+          action: 'redirected';
+      }
+    | {
+          action: 'deleted';
+          deletedTransactionThreadReportIDs: string[];
+      };
 
 /**
  * Pure hook for deleting transactions
@@ -50,15 +60,43 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
     const archivedReportsIdSet = useArchivedReportsIdSet();
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
 
+    const getSplitExpenseEditTransactionOnDelete = useCallback(
+        (transactionIDs: string[]): Transaction | undefined => {
+            if (transactionIDs.length !== 1) {
+                return undefined;
+            }
+
+            const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionIDs.at(0)}`];
+
+            if (!transaction) {
+                return undefined;
+            }
+
+            const originalTransaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.comment?.originalTransactionID}`];
+            const {isExpenseSplit} = getOriginalTransactionWithSplitInfo(transaction, originalTransaction);
+
+            if (!isExpenseSplit || isExpenseUnreported(transaction) || isExpenseUnreported(originalTransaction) || !isPerDiemRequest(originalTransaction ?? transaction)) {
+                return undefined;
+            }
+
+            return transaction;
+        },
+        [allTransactions],
+    );
+
+    const shouldOpenSplitExpenseEditFlowOnDelete = useCallback(
+        (transactionIDs: string[]): boolean => !!getSplitExpenseEditTransactionOnDelete(transactionIDs),
+        [getSplitExpenseEditTransactionOnDelete],
+    );
+
     /**
      * Delete transactions by IDs
      * @param transactionIDs - Array of transaction IDs to delete
      * @param duplicateTransactions - Collection of duplicate transactions
      * @param duplicateTransactionViolations - Collection of duplicate transaction violations
      * @param currentSearchHash - Current search hash for updating split transactions
-     * @param onClearSelection - Optional callback to clear selection after deletion
      * @param isSingleTransactionView - Optional flag indicating if the deletion is from a single transaction view
-     * @returns Array of deleted transaction thread report IDs for navigation handling
+     * @returns Result describing whether the delete redirected or deleted transaction threads
      */
     const deleteTransactions = useCallback(
         (
@@ -67,9 +105,21 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
             duplicateTransactionViolations: OnyxCollection<TransactionViolations>,
             currentSearchHash?: number,
             isSingleTransactionView?: boolean,
-        ): string[] => {
+        ): DeleteTransactionsResult => {
             if (!transactionIDs.length) {
-                return [];
+                return {
+                    action: 'deleted',
+                    deletedTransactionThreadReportIDs: [],
+                };
+            }
+
+            const splitExpenseEditTransaction = getSplitExpenseEditTransactionOnDelete(transactionIDs);
+
+            if (splitExpenseEditTransaction) {
+                initSplitExpense(splitExpenseEditTransaction, policy, {navigateToEditSplitExpense: true});
+                return {
+                    action: 'redirected',
+                };
             }
 
             const iouActions = reportActions.filter((action) => isMoneyRequestAction(action));
@@ -209,7 +259,10 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
                 }
             }
 
-            return Array.from(deletedTransactionThreadReportIDs);
+            return {
+                action: 'deleted',
+                deletedTransactionThreadReportIDs: Array.from(deletedTransactionThreadReportIDs),
+            };
         },
         [
             allPolicyRecentlyUsedCategories,
@@ -233,11 +286,13 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
             betas,
             allPolicyTags,
             personalDetails,
+            getSplitExpenseEditTransactionOnDelete,
         ],
     );
 
     return {
         deleteTransactions,
+        shouldOpenSplitExpenseEditFlowOnDelete,
     };
 }
 

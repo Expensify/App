@@ -38,6 +38,8 @@ const PERSONAL_DETAILS = {
 const REPORT_ID = 1;
 const POLICY_ID = 'POLICY_ID';
 const OLD_POLICY_ID = 'OLD_POLICY_ID';
+const ORIGINAL_TRANSACTION_ID = 'ORIGINAL_TRANSACTION_ID';
+const SPLIT_TRANSACTION_ID = 'SPLIT_TRANSACTION_ID';
 
 jest.mock('@libs/PolicyUtils', () => ({
     ...jest.requireActual<typeof PolicyUtils>('@libs/PolicyUtils'),
@@ -1715,6 +1717,68 @@ describe('getSecondaryAction', () => {
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DELETE)).toBe(true);
     });
 
+    it('replaces SPLIT with DELETE for per diem split expenses in the more menu', async () => {
+        const report = {
+            reportID: REPORT_ID,
+            policyID: POLICY_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: EMPLOYEE_ACCOUNT_ID,
+            managerID: EMPLOYEE_ACCOUNT_ID,
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            stateNum: CONST.REPORT.STATE_NUM.OPEN,
+        } as unknown as Report;
+        const transaction = {
+            transactionID: SPLIT_TRANSACTION_ID,
+            reportID: REPORT_ID,
+            status: CONST.TRANSACTION.STATUS.POSTED,
+            amount: 10,
+            merchant: 'Merchant',
+            date: '2025-01-01',
+            comment: {
+                originalTransactionID: ORIGINAL_TRANSACTION_ID,
+                source: CONST.IOU.TYPE.SPLIT,
+            },
+        } as unknown as Transaction;
+        const originalTransaction = {
+            transactionID: ORIGINAL_TRANSACTION_ID,
+            amount: 20,
+            merchant: 'Merchant',
+            date: '2025-01-01',
+            comment: {
+                type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+                customUnit: {
+                    name: CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL,
+                },
+            },
+        } as unknown as Transaction;
+        const policy = {
+            id: POLICY_ID,
+            type: CONST.POLICY.TYPE.TEAM,
+            isPolicyExpenseChatEnabled: true,
+            employeeList: {
+                [EMPLOYEE_EMAIL]: {email: EMPLOYEE_EMAIL, role: CONST.POLICY.ROLE.USER},
+            },
+        } as unknown as Policy;
+
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, policy);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+
+        const result = getSecondaryReportActions({
+            currentUserLogin: EMPLOYEE_EMAIL,
+            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            report,
+            chatReport,
+            reportTransactions: [transaction],
+            originalTransaction,
+            violations: {},
+            bankAccountList: {},
+            policy,
+        });
+
+        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SPLIT)).toBe(false);
+        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DELETE)).toBe(true);
+    });
+
     it('includes DELETE option for invoice report submitter when total is zero', async () => {
         const report = {
             reportID: REPORT_ID,
@@ -2845,6 +2909,58 @@ describe('getSecondaryTransactionThreadActions', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
 
         const result = getSecondaryTransactionThreadActions(EMPLOYEE_EMAIL, EMPLOYEE_ACCOUNT_ID, report, {} as Transaction, undefined, {} as Transaction, policy);
+        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DELETE)).toBe(true);
+    });
+
+    it('replaces SPLIT with DELETE for per diem split expenses in transaction threads', async () => {
+        const report = {
+            reportID: REPORT_ID,
+            policyID: POLICY_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: EMPLOYEE_ACCOUNT_ID,
+            managerID: EMPLOYEE_ACCOUNT_ID,
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            stateNum: CONST.REPORT.STATE_NUM.OPEN,
+        } as unknown as Report;
+        const transaction = {
+            transactionID: SPLIT_TRANSACTION_ID,
+            reportID: REPORT_ID,
+            status: CONST.TRANSACTION.STATUS.POSTED,
+            amount: 10,
+            merchant: 'Merchant',
+            date: '2025-01-01',
+            comment: {
+                originalTransactionID: ORIGINAL_TRANSACTION_ID,
+                source: CONST.IOU.TYPE.SPLIT,
+            },
+        } as unknown as Transaction;
+        const originalTransaction = {
+            transactionID: ORIGINAL_TRANSACTION_ID,
+            amount: 20,
+            merchant: 'Merchant',
+            date: '2025-01-01',
+            comment: {
+                type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+                customUnit: {
+                    name: CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL,
+                },
+            },
+        } as unknown as Transaction;
+        const policy = {
+            id: POLICY_ID,
+            type: CONST.POLICY.TYPE.TEAM,
+            isPolicyExpenseChatEnabled: true,
+            employeeList: {
+                [EMPLOYEE_EMAIL]: {email: EMPLOYEE_EMAIL, role: CONST.POLICY.ROLE.USER},
+            },
+        } as unknown as Policy;
+
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, policy);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+
+        const result = getSecondaryTransactionThreadActions(EMPLOYEE_EMAIL, EMPLOYEE_ACCOUNT_ID, report, transaction, undefined, originalTransaction, policy);
+
+        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SPLIT)).toBe(false);
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DELETE)).toBe(true);
     });
 
