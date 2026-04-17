@@ -1,6 +1,6 @@
 import React from 'react';
 import Icon from '@components/Icon';
-import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
+import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
 import type {ListItem} from '@components/SelectionList/types';
 import useDebouncedState from '@hooks/useDebouncedState';
@@ -76,7 +76,7 @@ function EditReportFieldDropdown({onSubmit, fieldKey, fieldValue, fieldOptions}:
     return (
         <SelectionListWithSections
             sections={sections ?? []}
-            ListItem={RadioListItem}
+            ListItem={SingleSelectListItem}
             shouldShowTextInput
             textInputOptions={textInputOptions}
             onSelectRow={(option) => onSubmit({[fieldKey]: !option?.text || fieldValue === option.text ? '' : option.text})}

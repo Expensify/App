@@ -1,5 +1,5 @@
 import React, {useEffect, useState} from 'react';
-import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
+import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
@@ -122,7 +122,7 @@ function SearchSingleSelectionPicker({
         <SelectionListWithSections
             sections={sections}
             onSelectRow={onSelectItem}
-            ListItem={RadioListItem}
+            ListItem={SingleSelectListItem}
             initiallyFocusedItemKey={initiallySelectedItem?.value}
             shouldShowTextInput={shouldShowTextInput}
             textInputOptions={textInputOptions}

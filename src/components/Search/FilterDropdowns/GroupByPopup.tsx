@@ -2,7 +2,7 @@ import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
 import type {SearchGroupBy} from '@components/Search/types';
-import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
+import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
 import type {ListItem} from '@components/SelectionList/types';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -97,7 +97,7 @@ function GroupByPopup({label, value, sections, style, closeOverlay, onChange}: G
                 <SelectionListWithSections
                     sections={listSections}
                     shouldSingleExecuteRowSelect
-                    ListItem={RadioListItem}
+                    ListItem={SingleSelectListItem}
                     onSelectRow={updateSelectedItem}
                 />
             </View>

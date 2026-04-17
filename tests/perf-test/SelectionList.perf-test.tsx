@@ -6,7 +6,7 @@ import type ReactNative from 'react-native';
 import {measureRenders} from 'reassure';
 import SelectionList from '@components/SelectionList';
 import MultiSelectListItem from '@components/SelectionList/ListItem/MultiSelectListItem';
-import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
+import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import type {ListItem} from '@components/SelectionList/ListItem/types';
 import type {KeyboardStateContextValue} from '@components/withKeyboardState';
 import variables from '@styles/variables';
@@ -118,7 +118,7 @@ function SelectionListWrapper({canSelectMultiple}: SelectionListWrapperProps) {
             data={data}
             onSelectRow={onSelectRow}
             initiallyFocusedItemKey="item-0"
-            ListItem={canSelectMultiple ? MultiSelectListItem : RadioListItem}
+            ListItem={canSelectMultiple ? MultiSelectListItem : SingleSelectListItem}
             canSelectMultiple={canSelectMultiple}
         />
     );

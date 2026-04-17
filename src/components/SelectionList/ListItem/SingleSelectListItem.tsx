@@ -1,13 +1,13 @@
 import React from 'react';
 import useThemeStyles from '@hooks/useThemeStyles';
 import BaseSelectListItem from './BaseSelectListItem';
-import type {ListItem, RadioListItemProps} from './types';
+import type {ListItem, SingleSelectListItemProps} from './types';
 
 /**
  * A standard row with an optional (but default) radio button, used in single-choice picker lists
  * (e.g. language, theme, timezone).
  */
-function RadioListItem<TItem extends ListItem>({
+function SingleSelectListItem<TItem extends ListItem>({
     item,
     isFocused,
     showTooltip,
@@ -26,7 +26,7 @@ function RadioListItem<TItem extends ListItem>({
     rightHandSideComponent = undefined,
     shouldShowSelectionButton = true,
     selectionButtonPosition,
-}: RadioListItemProps<TItem>) {
+}: SingleSelectListItemProps<TItem>) {
     const styles = useThemeStyles();
 
     return (
@@ -54,4 +54,4 @@ function RadioListItem<TItem extends ListItem>({
     );
 }
 
-export default RadioListItem;
+export default SingleSelectListItem;

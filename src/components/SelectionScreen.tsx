@@ -16,7 +16,7 @@ import HeaderWithBackButton from './HeaderWithBackButton';
 import OfflineWithFeedback from './OfflineWithFeedback';
 import ScreenWrapper from './ScreenWrapper';
 import SelectionList from './SelectionList';
-import RadioListItem from './SelectionList/ListItem/RadioListItem';
+import SingleSelectListItem from './SelectionList/ListItem/SingleSelectListItem';
 import type {ListItem} from './SelectionList/types';
 
 type SelectorType<T = string> = ListItem & {
@@ -163,7 +163,7 @@ function SelectionScreen<T = string>({
                 >
                     <SelectionList
                         data={data}
-                        ListItem={RadioListItem}
+                        ListItem={SingleSelectListItem}
                         onSelectRow={onSelectRow}
                         showScrollIndicator
                         shouldShowTooltips={false}

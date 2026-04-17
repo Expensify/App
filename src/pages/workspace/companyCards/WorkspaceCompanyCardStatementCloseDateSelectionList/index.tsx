@@ -9,7 +9,7 @@ import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
-import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
+import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
@@ -137,7 +137,7 @@ function WorkspaceCompanyCardStatementCloseDateSelectionList({
                         >
                             <View>
                                 {Object.values(CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE)?.map((option) => (
-                                    <RadioListItem
+                                    <SingleSelectListItem
                                         wrapperStyle={[styles.flexReset]}
                                         key={option}
                                         showTooltip
