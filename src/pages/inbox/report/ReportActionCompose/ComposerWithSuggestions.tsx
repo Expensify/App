@@ -38,6 +38,7 @@ import {canSkipTriggerHotkeys, findCommonSuffixLength, insertText, insertWhiteSp
 import convertToLTRForComposer from '@libs/convertToLTRForComposer';
 import {containsOnlyEmojis, extractEmojis, getAddedEmojis, getTextVSCursorOffset, insertTextVSBetweenDigitAndEmoji, replaceAndExtractEmojis} from '@libs/EmojiUtils';
 import focusComposerWithDelay from '@libs/focusComposerWithDelay';
+import type {Selection} from '@libs/focusComposerWithDelay/types';
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 import getPlatform from '@libs/getPlatform';
 import {addKeyDownPressListener, removeKeyDownPressListener} from '@libs/KeyboardShortcut/KeyDownPressListener';
@@ -77,7 +78,7 @@ type NewlyAddedChars = {startIndex: number; endIndex: number; diff: string};
 
 type ComposerWithSuggestionsRef = ComposerRef & {
     /** Focus the composer */
-    focus: (shouldDelay?: boolean) => void;
+    focus: (shouldDelay?: boolean, forcedSelectionRange?: Selection, forceKeyboardIfAlreadyFocused?: boolean) => void;
 
     /** Replace the selection with text */
     replaceSelectionWithText: OnEmojiSelected;
@@ -298,6 +299,24 @@ function ComposerWithSuggestions({
 
     const commentRef = useRef(value);
 
+    const {superWideRHPRouteKeys} = useWideRHPState();
+    // When SearchReport is stacked above another RHP, delay autofocus until after the transition completes to avoid animation jank
+    const shouldDelayAutoFocus = superWideRHPRouteKeys.length > 0 && route.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT;
+    const shouldDelayAutoFocusRef = useRef(shouldDelayAutoFocus);
+    shouldDelayAutoFocusRef.current = shouldDelayAutoFocus;
+
+    /**
+     * Focus the composer text input
+     * @param [shouldDelay=false] Impose delay before focusing the composer
+     * @param [forcedSelectionRange] Optional selection to apply after focus
+     * @param [forceKeyboardIfAlreadyFocused] When already focused, use KeyboardController so the keyboard can show (e.g. edit-in-composer)
+     */
+    const focus = useCallback((shouldDelay = false, forcedSelectionRange?: Selection, forceKeyboardIfAlreadyFocused = false) => {
+        // If we're stacked above another RHP, wait for the transition to complete before focusing.
+        const delay = shouldDelayAutoFocusRef.current ? CONST.ANIMATED_TRANSITION : CONST.COMPOSER_FOCUS_DELAY;
+        focusComposerWithDelay(composerRef.current, delay)(shouldDelay, forcedSelectionRange, forceKeyboardIfAlreadyFocused).catch(() => {});
+    }, []);
+
     const updateNativeSelectionValue = useCallback((start: number, end: number) => {
         if (!isIOSNative) {
             return;
@@ -343,10 +362,10 @@ function ComposerWithSuggestions({
             updateNativeSelectionValue(selectionToApply.start, selectionToApply.end ?? selectionToApply.start);
 
             if (options?.isEditingInComposer) {
-                composerRef.current?.focus();
+                focus(true, undefined, true);
             }
         },
-        [currentEditMessageSelection, updateNativeSelectionValue],
+        [currentEditMessageSelection, focus, updateNativeSelectionValue],
     );
 
     const wasEditing = useRef(isEditing);
@@ -418,12 +437,6 @@ function ComposerWithSuggestions({
 
         previousEditingReportActionIDRef.current = editingReportActionID;
     }, [applyComposerValue, draftComment, editingMessage, editingReportActionID, editingState, selection, setIsCommentEmpty, shouldUseNarrowLayout, updateNativeSelectionValue]);
-
-    const {superWideRHPRouteKeys} = useWideRHPState();
-    // When SearchReport is stacked above another RHP, delay autofocus until after the transition completes to avoid animation jank
-    const shouldDelayAutoFocus = superWideRHPRouteKeys.length > 0 && route.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT;
-    const shouldDelayAutoFocusRef = useRef(shouldDelayAutoFocus);
-    shouldDelayAutoFocusRef.current = shouldDelayAutoFocus;
 
     const [modal] = useOnyx(ONYXKEYS.MODAL);
     const [preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE] = useOnyx(ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE);
@@ -844,16 +857,6 @@ function ComposerWithSuggestions({
         inputFocusChange(false);
         return suggestionsRef.current.setShouldBlockSuggestionCalc(false);
     }, [suggestionsRef]);
-
-    /**
-     * Focus the composer text input
-     * @param [shouldDelay=false] Impose delay before focusing the composer
-     */
-    const focus = useCallback((shouldDelay = false) => {
-        // If we're stacked above another RHP, wait for the transition to complete before focusing.
-        const delay = shouldDelayAutoFocusRef.current ? CONST.ANIMATED_TRANSITION : CONST.COMPOSER_FOCUS_DELAY;
-        focusComposerWithDelay(composerRef.current, delay)(shouldDelay);
-    }, []);
 
     /**
      * In the stacked-RHP SearchReport case we disable the TextInput's immediate `autoFocus` to avoid jank.
