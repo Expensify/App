@@ -3804,6 +3804,15 @@ const CONST = {
         DEFAULT_MAX_EXPENSE_AMOUNT: 200000,
         DEFAULT_MAX_AMOUNT_NO_RECEIPT: 2500,
         DEFAULT_MAX_AMOUNT_NO_ITEMIZED_RECEIPT: 7500,
+        DEFAULT_PROHIBITED_EXPENSES: {
+            alcohol: false,
+            hotelIncidentals: false,
+            gambling: true,
+            tobacco: false,
+            adultEntertainment: true,
+        },
+        DEFAULT_BILLABLE: false,
+        DEFAULT_REIMBURSABLE: true,
         DEFAULT_TAG_LIST: {
             Tag: {
                 name: 'Tag',
@@ -9562,6 +9571,7 @@ const CONST = {
             },
             BULK_ACTION_TYPES: {
                 CLOSE_ACCOUNT: 'closeAccount',
+                MOVE_TO_GROUP: 'moveToGroup',
             },
         },
     },
@@ -9575,12 +9585,6 @@ const CONST = {
     HOME: {
         ANNOUNCEMENTS: [
             {
-                title: 'Smarter spend controls & Concierge anywhere',
-                subtitle: 'Product update',
-                url: 'https://use.expensify.com/blog/expensify-february-2026-product-update',
-                publishedDate: '2026-02-19',
-            },
-            {
                 title: 'More power, right where you need it',
                 subtitle: 'Product update',
                 url: 'https://use.expensify.com/blog/expensify-march-2026-product-update',
@@ -9591,6 +9595,12 @@ const CONST = {
                 subtitle: 'Newsletter',
                 url: 'https://use.expensify.com/blog/expensify-new-integrations-march-2026',
                 publishedDate: '2026-03-25',
+            },
+            {
+                title: 'Smarter cards, mileage, and approvals',
+                subtitle: 'Product update',
+                url: 'https://use.expensify.com/blog/expensify-april-2026-product-update',
+                publishedDate: '2026-04-15',
             },
         ],
     },

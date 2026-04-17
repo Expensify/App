@@ -75,7 +75,7 @@ function getIOUActionForTransactions(transactionIDList: Array<string | undefined
 }
 
 /** Merge several transactions into one by updating the fields of the one we want to keep and deleting the rest */
-function mergeDuplicates({transactionThreadReportID: optimisticTransactionThreadReportID, taxAmount, taxValue, ...params}: MergeDuplicatesParams & {taxAmount: number; taxValue: string}) {
+function mergeDuplicates({transactionThreadReportID: optimisticTransactionThreadReportID, ...params}: MergeDuplicatesParams) {
     const allParams: MergeDuplicatesParams = {...params};
     const allTransactions = getAllTransactions();
     const allTransactionViolations = getAllTransactionViolations();
@@ -100,9 +100,6 @@ function mergeDuplicates({transactionThreadReportID: optimisticTransactionThread
             modifiedMerchant: params.merchant,
             reimbursable: params.reimbursable,
             tag: params.tag,
-            taxCode: params.taxCode,
-            taxAmount,
-            taxValue,
         },
     };
 
@@ -351,7 +348,7 @@ function mergeDuplicates({transactionThreadReportID: optimisticTransactionThread
 }
 
 /** Instead of merging the duplicates, it updates the transaction we want to keep and puts the others on hold without deleting them */
-function resolveDuplicates({taxAmount, taxValue, ...params}: MergeDuplicatesParams & {taxAmount: number; taxValue: string}) {
+function resolveDuplicates(params: MergeDuplicatesParams) {
     if (!params.transactionID) {
         return;
     }
@@ -376,9 +373,6 @@ function resolveDuplicates({taxAmount, taxValue, ...params}: MergeDuplicatesPara
             modifiedMerchant: params.merchant,
             reimbursable: params.reimbursable,
             tag: params.tag,
-            taxCode: params.taxCode,
-            taxAmount,
-            taxValue,
         },
     };
 

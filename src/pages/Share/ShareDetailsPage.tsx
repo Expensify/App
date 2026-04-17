@@ -37,9 +37,9 @@ import type SCREENS from '@src/SCREENS';
 import type {Report as ReportType} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import KeyboardUtils from '@src/utils/keyboard';
-import getFileSize from './getFileSize';
 import ShareButton from './ShareButton';
 import {showErrorAlert} from './ShareRootPage';
+import useShareFileSizeValidation from './useShareFileSizeValidation';
 
 type ShareDetailsPageProps = StackScreenProps<ShareNavigatorParamList, typeof SCREENS.SHARE.SHARE_DETAILS>;
 
@@ -97,22 +97,7 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
         Navigation.navigate(ROUTES.SHARE_DETAILS_ATTACHMENT);
     }, [reportAttachmentsContext, fileSource, validateFileName, icons.FallbackAvatar]);
 
-    useEffect(() => {
-        if (!currentAttachment?.content || errorTitle || !shouldShowAttachment) {
-            return;
-        }
-        getFileSize(currentAttachment?.content).then((size) => {
-            if (size > CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE) {
-                setErrorTitle(translate('attachmentPicker.attachmentTooLarge'));
-                setErrorMessage(translate('attachmentPicker.sizeExceeded'));
-            }
-
-            if (size < CONST.API_ATTACHMENT_VALIDATIONS.MIN_SIZE) {
-                setErrorTitle(translate('attachmentPicker.attachmentTooSmall'));
-                setErrorMessage(translate('attachmentPicker.sizeNotMet'));
-            }
-        });
-    }, [currentAttachment?.content, errorTitle, translate, shouldShowAttachment]);
+    useShareFileSizeValidation(currentAttachment?.content, setErrorTitle, setErrorMessage, !errorTitle && shouldShowAttachment);
 
     useEffect(() => {
         if (!errorTitle || !errorMessage) {
