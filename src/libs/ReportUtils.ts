@@ -11609,13 +11609,7 @@ function isReportOutstanding(
     return iouReport.stateNum < CONST.REPORT.STATE_NUM.SUBMITTED && iouReport.statusNum < CONST.REPORT.STATE_NUM.SUBMITTED;
 }
 
-/**
- * Resolves which Report should receive a money-request submission.
- *
- * Use the user-picked report from the transaction draft when it is outstanding/usable; force a new optimistic
- * IOU (return undefined) when the picked report is unreported or non-outstanding; otherwise fall back to the
- * route-resolved report.
- */
+/** Resolves which Report should receive a money-request: the picked transaction report when usable, undefined to force a new optimistic IOU, otherwise the route report. */
 function resolveReportForMoneyRequest({
     transaction,
     transactionReport,

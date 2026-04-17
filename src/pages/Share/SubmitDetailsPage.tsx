@@ -70,7 +70,7 @@ function SubmitDetailsPage({
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`);
     const transactionReport = getReportOrDraftReport(transaction?.reportID);
     const iouType = isSelfDM(report) ? CONST.IOU.TYPE.TRACK : CONST.IOU.TYPE.SUBMIT;
-    // Self-DM has a FAKE report policyID — usePolicyForTransaction (same hook MoneyRequestConfirmationList uses) returns the active workspace for self-DM track expense, covering the upgrade-from-free flow.
+    // Self-DM's FAKE policyID can't load real policy data — usePolicyForTransaction resolves the active workspace instead.
     const {policy} = usePolicyForTransaction({
         transaction,
         reportPolicyID: getIOURequestPolicyID(transaction, report),
@@ -145,7 +145,6 @@ function SubmitDetailsPage({
         });
         // Populate transaction.participants so IOURequestStepReport can highlight the destination (mirrors other expense flows).
         setMoneyRequestParticipantsFromReport(CONST.IOU.OPTIMISTIC_TRANSACTION_ID, report, currentUserPersonalDetails.accountID);
-        // initMoneyRequest is an imported action, intentionally excluded to avoid re-initializing on every render
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [reportOrAccountID, policy, personalPolicy, report, parentReport, currentDate, currentUserPersonalDetails, hasOnlyPersonalPolicies]);
 
@@ -153,7 +152,7 @@ function SubmitDetailsPage({
     const sharedFileName = getFileName(currentAttachment?.content ?? '') || fileName;
     const sharedFileType = currentAttachment?.mimeType ?? fileType;
 
-    // Seed the transaction draft so isScanRequest() returns true and compact mode / "Automatic" labels / receipt rendering work.
+    // Seed the draft so isScanRequest() returns true (enables compact mode + receipt rendering).
     useEffect(() => {
         if (!sharedFileSource) {
             return;
@@ -161,9 +160,9 @@ function SubmitDetailsPage({
         setMoneyRequestReceipt(CONST.IOU.OPTIMISTIC_TRANSACTION_ID, sharedFileSource, sharedFileName, true, sharedFileType);
     }, [sharedFileSource, sharedFileName, sharedFileType]);
 
-    // The current receipt — prefers the transaction draft (reflects Replace/Crop), falls back to the shared file; used for both display and upload so they stay in sync.
+    // Prefer the draft receipt (reflects Replace/Crop) for both display and upload — keeps them in sync.
     const currentReceiptSource = typeof transaction?.receipt?.source === 'string' ? transaction.receipt.source : sharedFileSource;
-    // Strip filesystem path segments without URL-decoding — getFileName() decodes via decodeURIComponent and would throw on raw filenames containing a literal '%' (e.g., "Receipt 100%.jpg").
+    // Avoid getFileName(): its decodeURIComponent throws on raw '%' in filenames (e.g., "Receipt 100%.jpg").
     const currentReceiptName = (transaction?.receipt?.filename?.split('/').pop() ?? '') || sharedFileName;
     const currentReceiptType = transaction?.receipt?.type ?? sharedFileType;
 
@@ -330,7 +329,7 @@ function SubmitDetailsPage({
         );
     };
 
-    // Extracted from onConfirm — re-entering onConfirm from the permission modal deadlocked when OS permission was pre-granted.
+    // Separate helper so the permission-modal callbacks don't re-enter onConfirm (deadlocked when OS permission was pre-granted).
     const performUpload = (participant: Participant, locationPermissionGranted: boolean) => {
         if (formHasBeenSubmitted.current || !currentAttachment) {
             setIsConfirming(false);
