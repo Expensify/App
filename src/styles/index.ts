@@ -19,7 +19,6 @@ import {getBrowser, isMobile, isMobileSafari, isSafari} from '@libs/Browser';
 import getPlatform from '@libs/getPlatform';
 import CONST from '@src/CONST';
 import type {Dimensions} from '@src/types/utils/Layout';
-import {defaultTheme} from './theme';
 import colors from './theme/colors';
 import type {ThemeColors} from './theme/types';
 import addOutlineWidth from './utils/addOutlineWidth';
@@ -2802,6 +2801,10 @@ const staticStyles = (theme: ThemeColors) =>
             paddingHorizontal: 20,
         },
 
+        numberWithSymbolFormInputContainerLandscape: {
+            width: 400,
+        },
+
         avatarSectionWrapper: {
             width: '100%',
             alignItems: 'center',
@@ -3716,6 +3719,21 @@ const staticStyles = (theme: ThemeColors) =>
         receiptPlaceholder: {
             height: 52,
             marginRight: 8,
+            width: variables.w44,
+            borderRadius: variables.componentBorderRadiusSmall,
+            backgroundColor: theme.hoverComponentBG,
+        },
+
+        receiptsSubmitButtonLandscape: {
+            position: 'absolute',
+            left: 20,
+            bottom: 8,
+            backgroundColor: theme.appBG,
+        },
+
+        receiptPlaceholderLandscape: {
+            height: 52,
+            marginBottom: 8,
             width: variables.w44,
             borderRadius: variables.componentBorderRadiusSmall,
             backgroundColor: theme.hoverComponentBG,
@@ -6315,6 +6333,31 @@ const dynamicStyles = (theme: ThemeColors) =>
             return {height, ...width};
         },
 
+        getCardSelectionListPopoverHeight: (
+            itemCount: number,
+            sectionHeaderCount: number,
+            windowHeight: number,
+            shouldUseNarrowLayout: boolean,
+            isInLandscapeMode: boolean,
+            isSearchable = true,
+        ) => {
+            const MODAL_PADDING = 32;
+            const BUTTON_HEIGHT = 48;
+            const SEARCHBAR_HEIGHT = isSearchable ? 64 : 0;
+            const TITLE_HEIGHT = shouldUseNarrowLayout ? 34 : 0;
+            const PADDING = shouldUseNarrowLayout ? 0 : MODAL_PADDING;
+            const ESTIMATED_LIST_HEIGHT = itemCount * variables.optionRowHeight + sectionHeaderCount * 28 + SEARCHBAR_HEIGHT + BUTTON_HEIGHT + TITLE_HEIGHT + PADDING;
+
+            const popoverHeight = isInLandscapeMode ? CONST.MODAL_MAX_HEIGHT_TO_WINDOW_HEIGHT_RATIO_LANDSCAPE_MODE * windowHeight - MODAL_PADDING : CONST.POPOVER_DROPDOWN_MAX_HEIGHT;
+
+            // Native platforms don't support maxHeight in the way thats expected, so lets manually set the height to either
+            // the listHeight, the max height of the popover, or 90% of the window height, such that we never overflow the screen
+            // and never expand over the max height
+            const height = Math.min(ESTIMATED_LIST_HEIGHT, popoverHeight, windowHeight * 0.9);
+
+            return {height};
+        },
+
         testDriveModalContainer: (shouldUseNarrowLayout: boolean) => ({
             // On small/medium screens, we need to remove the top padding
             paddingTop: 0,
@@ -6559,8 +6602,5 @@ const styles = (theme: ThemeColors) =>
 
 type ThemeStyles = ReturnType<typeof styles>;
 
-const defaultStyles = styles(defaultTheme);
-
 export default styles;
-export {defaultStyles};
 export type {ThemeStyles, StatusBarStyle, ColorScheme, AnchorPosition, AnchorDimensions, OverlayStylesParams};

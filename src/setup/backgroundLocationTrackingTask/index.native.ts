@@ -1,3 +1,4 @@
+import NetInfo from '@react-native-community/netinfo';
 import type {LocationObject} from 'expo-location';
 import {defineTask} from 'expo-task-manager';
 import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
@@ -15,11 +16,12 @@ defineTask<BackgroundLocationTrackingTaskData>(BACKGROUND_LOCATION_TRACKING_TASK
         return;
     }
 
-    const [gpsDraftDetailsPromiseResult, networkPromiseResult] = await Promise.allSettled([OnyxUtils.get(ONYXKEYS.GPS_DRAFT_DETAILS), OnyxUtils.get(ONYXKEYS.NETWORK)]);
-
-    const gpsDraftDetails = gpsDraftDetailsPromiseResult.status === 'fulfilled' ? gpsDraftDetailsPromiseResult.value : undefined;
-    const network = networkPromiseResult.status === 'fulfilled' ? networkPromiseResult.value : undefined;
-    const isOffline = network?.isOffline ?? false;
+    // Use NetInfo.fetch() instead of the in-memory NetworkState.isOffline() because this
+    // background task may run in a headless JS context (Android) where module-level state
+    // in NetworkState.ts hasn't been populated via Onyx/NetInfo subscribers.
+    const [gpsDraftDetailsPromiseResult, netInfoState] = await Promise.all([OnyxUtils.get(ONYXKEYS.GPS_DRAFT_DETAILS).catch(() => undefined), NetInfo.fetch()]);
+    const gpsDraftDetails = gpsDraftDetailsPromiseResult ?? undefined;
+    const isOffline = netInfoState.isConnected === false;
 
     updateStartAddress(gpsDraftDetails?.gpsPoints ?? [], data.locations.at(0), isOffline);
 
