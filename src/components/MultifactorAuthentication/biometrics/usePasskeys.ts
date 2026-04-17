@@ -35,8 +35,9 @@ function usePasskeys(): UseBiometricsReturn {
     const hasLocalCredentials = async () => (localPasskeyCredentials?.length ?? 0) > 0;
 
     const areLocalCredentialsKnownToServer = async () => {
-        const serverSet = new Set(serverKnownCredentialIDs);
-        return (localPasskeyCredentials ?? []).some((c) => serverSet.has(c.id));
+        // const serverSet = new Set(serverKnownCredentialIDs);
+        // return (localPasskeyCredentials ?? []).some((c) => serverSet.has(c.id));
+        return serverKnownCredentialIDs.length > 0;
     };
 
     const deleteLocalKeysForAccount = async () => {
@@ -113,14 +114,14 @@ function usePasskeys(): UseBiometricsReturn {
     const authorize = async (params: AuthorizeParams, onResult: (result: AuthorizeResult) => Promise<void> | void) => {
         const {challenge} = params;
 
-        const backendCredentials = challenge.allowCredentials?.map((c) => ({id: c.id, type: CONST.PASSKEY_CREDENTIAL_TYPE})) ?? [];
-        const reconciled = reconcileLocalPasskeysWithBackend({
-            userId,
-            backendCredentials,
-            localCredentials: localPasskeyCredentials ?? null,
-        });
+        const serverCredentials = challenge.allowCredentials?.map((c) => ({id: c.id, type: CONST.PASSKEY_CREDENTIAL_TYPE, transports: c.transports?.filter(isSupportedTransport)})) ?? [];
+        // const reconciled = reconcileLocalPasskeysWithBackend({
+        //     userId,
+        //     backendCredentials,
+        //     localCredentials: localPasskeyCredentials ?? null,
+        // });
 
-        if (reconciled.length === 0) {
+        if (serverCredentials.length === 0) {
             await onResult({
                 success: false,
                 reason: VALUES.REASON.WEBAUTHN.REGISTRATION_REQUIRED,
@@ -128,7 +129,7 @@ function usePasskeys(): UseBiometricsReturn {
             return;
         }
 
-        const allowCredentials = buildAllowedCredentialDescriptors(reconciled);
+        const allowCredentials = buildAllowedCredentialDescriptors(serverCredentials);
         const publicKeyOptions = buildPublicKeyCredentialRequestOptions(challenge, allowCredentials);
 
         let assertion: PublicKeyCredential;
