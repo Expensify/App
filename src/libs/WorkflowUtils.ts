@@ -672,6 +672,23 @@ function getOpenConnectedToPolicyBusinessBankAccounts(bankAccountList: BankAccou
 }
 
 /**
+ * Filter out members who are already assigned to a non-default approval workflow.
+ * This prevents them from appearing in the "Expenses from" picker when creating a new workflow.
+ */
+function filterAvailableMembersForNewWorkflow(approvalWorkflows: ApprovalWorkflow[], availableMembers: Member[]): Member[] {
+    const membersInExistingWorkflows = new Set<string>();
+    for (const workflow of approvalWorkflows) {
+        if (workflow.isDefault) {
+            continue;
+        }
+        for (const member of workflow.members) {
+            membersInExistingWorkflows.add(member.email);
+        }
+    }
+    return availableMembers.filter((member) => !membersInExistingWorkflows.has(member.email));
+}
+
+/**
  * Combine workflow members with available members, deduplicating by email.
  */
 function mergeWorkflowMembersWithAvailableMembers(workflowMembers: Member[], allAvailableMembers: Member[]): Member[] {
@@ -684,6 +701,7 @@ export {
     calculateApprovers,
     convertPolicyEmployeesToApprovalWorkflows,
     convertApprovalWorkflowToPolicyEmployees,
+    filterAvailableMembersForNewWorkflow,
     getApprovalLimitDescription,
     getEligibleExistingBusinessBankAccounts,
     getOpenConnectedToPolicyBusinessBankAccounts,

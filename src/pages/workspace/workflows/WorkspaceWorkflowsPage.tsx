@@ -55,7 +55,7 @@ import {
 } from '@libs/PolicyUtils';
 import {hasInProgressVBBA} from '@libs/ReimbursementAccountUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
-import {convertPolicyEmployeesToApprovalWorkflows, getEligibleExistingBusinessBankAccounts, INITIAL_APPROVAL_WORKFLOW} from '@libs/WorkflowUtils';
+import {convertPolicyEmployeesToApprovalWorkflows, filterAvailableMembersForNewWorkflow, getEligibleExistingBusinessBankAccounts, INITIAL_APPROVAL_WORKFLOW} from '@libs/WorkflowUtils';
 import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import ExpenseReportRulesSection from '@pages/workspace/rules/ExpenseReportRulesSection';
@@ -135,6 +135,8 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         currentUserLogin: currentUserEmail,
     });
 
+    const availableMembersForNewWorkflow = useMemo(() => filterAvailableMembersForNewWorkflow(approvalWorkflows, availableMembers), [approvalWorkflows, availableMembers]);
+
     const hasValidExistingAccounts = getEligibleExistingBusinessBankAccounts(bankAccountList, policy?.outputCurrency, true).length > 0;
 
     const isAdvanceApproval = (approvalWorkflows.length > 1 || (approvalWorkflows?.at(0)?.approvers ?? []).length > 1) && isControlPolicy(policy);
@@ -193,7 +195,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
     const addApprovalAction = useCallback(() => {
         setApprovalWorkflow({
             ...INITIAL_APPROVAL_WORKFLOW,
-            availableMembers,
+            availableMembers: availableMembersForNewWorkflow,
             usedApproverEmails,
         });
 
@@ -209,7 +211,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         }
 
         Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EXPENSES_FROM.getRoute(route.params.policyID));
-    }, [policy, route.params.policyID, availableMembers, usedApproverEmails]);
+    }, [policy, route.params.policyID, availableMembersForNewWorkflow, usedApproverEmails]);
 
     const filteredApprovalWorkflows =
         policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.ADVANCED || policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL
