@@ -469,7 +469,7 @@ function MoneyRequestConfirmationList({
         // Reset the form error whenever the screen gains or loses focus
         // but preserve violation-related errors since those represent real validation issues
         // that can only be resolved by fixing the underlying issue
-        if (!formError.startsWith(CONST.VIOLATIONS_PREFIX)) {
+        if (formError && !formError.startsWith(CONST.VIOLATIONS_PREFIX)) {
             setFormError('');
             return;
         }
