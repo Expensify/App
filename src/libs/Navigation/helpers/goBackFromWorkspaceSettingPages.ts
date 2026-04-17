@@ -2,6 +2,7 @@ import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import type {RootNavigatorParamList, State} from '@libs/Navigation/types';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ROUTES from '@src/ROUTES';
+import getActiveTabName from './getActiveTabName';
 
 /**
  * If the previous page is REPORTS_SPLIT_NAVIGATOR we navigate back to it
@@ -11,7 +12,9 @@ function goBackFromWorkspaceSettingPages() {
     const rootState = navigationRef.getRootState() as State<RootNavigatorParamList>;
     const secondToLastRoute = rootState.routes.at(-2);
 
-    if (secondToLastRoute?.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR) {
+    const isPreviousInbox = getActiveTabName(secondToLastRoute) === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR;
+
+    if (isPreviousInbox) {
         Navigation.dismissModal();
     } else {
         Navigation.goBack(ROUTES.WORKSPACES_LIST.route);

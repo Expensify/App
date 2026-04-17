@@ -22,7 +22,7 @@ function dismissModalAndOpenReportInInboxTab(reportID: string | undefined, isInv
         if (rhpKey) {
             const isSuperWideRHP = isReportOpenInSuperWideRHP(rootState);
 
-            // submit_follow_up_action: only set when tracking is active.
+            // submit_follow_up_action: only set when the span was started.
             if (hasActiveTracking) {
                 if (isSuperWideRHP) {
                     setPendingSubmitFollowUpAction(CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_ONLY, reportID);
@@ -70,14 +70,17 @@ function dismissModalAndOpenReportInInboxTab(reportID: string | undefined, isInv
         return;
     }
     if (hasActiveTracking) {
-        Navigation.dismissModalWithReport({reportID}, undefined, {
-            onBeforeNavigate: (willOpenReport) => {
-                setPendingSubmitFollowUpAction(
-                    willOpenReport ? CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_AND_OPEN_REPORT : CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_ONLY,
-                    reportID,
-                );
+        Navigation.dismissModalWithReport(
+            {reportID},
+            {
+                onBeforeNavigate: (willOpenReport: boolean) => {
+                    setPendingSubmitFollowUpAction(
+                        willOpenReport ? CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_AND_OPEN_REPORT : CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_ONLY,
+                        reportID,
+                    );
+                },
             },
-        });
+        );
     } else {
         Navigation.dismissModalWithReport({reportID});
     }

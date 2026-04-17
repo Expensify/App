@@ -14,7 +14,6 @@ jest.mock('@hooks/useResponsiveLayout', () => jest.fn());
 jest.mock('@libs/getIsNarrowLayout', () => jest.fn());
 
 jest.mock('@pages/inbox/sidebar/NavigationTabBarAvatar');
-jest.mock('@src/components/Navigation/TopLevelNavigationTabBar');
 
 const mockedGetIsNarrowLayout = getIsNarrowLayout as jest.MockedFunction<typeof getIsNarrowLayout>;
 const mockedUseResponsiveLayout = useResponsiveLayout as jest.MockedFunction<typeof useResponsiveLayout>;
@@ -26,20 +25,32 @@ describe('Push fullscreen from RHP', () => {
     });
 
     it('strips the RHP when navigating to a fullscreen screen', () => {
-        // Given the initialized navigation with a ReportsSplitNavigator and RightModalNavigator on top
+        // Given the initialized navigation with a ReportsSplitNavigator (inside TAB_NAVIGATOR) and RightModalNavigator on top
         render(
             <TestNavigationContainer
                 initialState={{
                     index: 1,
                     routes: [
                         {
-                            name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR,
+                            name: NAVIGATORS.TAB_NAVIGATOR,
                             state: {
-                                index: 0,
+                                index: 1,
                                 routes: [
+                                    {name: SCREENS.HOME},
                                     {
-                                        name: SCREENS.INBOX,
+                                        name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR,
+                                        state: {
+                                            index: 0,
+                                            routes: [
+                                                {
+                                                    name: SCREENS.INBOX,
+                                                },
+                                            ],
+                                        },
                                     },
+                                    {name: NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR},
+                                    {name: NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR},
+                                    {name: NAVIGATORS.WORKSPACE_NAVIGATOR},
                                 ],
                             },
                         },
@@ -68,35 +79,52 @@ describe('Push fullscreen from RHP', () => {
             Navigation.navigate(ROUTES.WORKSPACES_LIST.getRoute());
         });
 
-        // Then the RHP should be stripped and WorkspaceNavigator (containing Workspaces_List) should be pushed
+        // Then the RHP should be stripped and a new TabNavigator should be pushed
+        // with WorkspaceNavigator active, containing Workspaces_List
         const rootStateAfter = navigationRef.current?.getRootState();
-        const lastRoute = rootStateAfter?.routes.at(-1);
 
-        // WorkspaceNavigator (with Workspaces_List as its initial screen) should be on top
-        expect(lastRoute?.name).toBe(NAVIGATORS.WORKSPACE_NAVIGATOR);
-        const nestedWorkspacesListRoute = lastRoute?.state?.routes?.at(-1);
+        // The new TabNavigator is pushed at the end of the root stack
+        const lastRootRoute = rootStateAfter?.routes.at(-1);
+        expect(lastRootRoute?.name).toBe(NAVIGATORS.TAB_NAVIGATOR);
+
+        const newTabState = lastRootRoute?.state;
+        const workspaceNav = newTabState?.routes.at(4);
+        expect(workspaceNav?.name).toBe(NAVIGATORS.WORKSPACE_NAVIGATOR);
+        const nestedWorkspacesListRoute = workspaceNav?.state?.routes?.at(-1);
         expect(nestedWorkspacesListRoute?.name).toBe(SCREENS.WORKSPACES_LIST);
 
-        // RHP should NOT be in the stack
-        const hasRHP = rootStateAfter?.routes.some((route) => route.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR);
-        expect(hasRHP).toBe(false);
+        // RHP should NOT be the topmost route — the new TabNavigator is on top
+        const topRoute = rootStateAfter?.routes.at(-1);
+        expect(topRoute?.name).not.toBe(NAVIGATORS.RIGHT_MODAL_NAVIGATOR);
     });
 
     it('preserves the backTo param when navigating from RHP to fullscreen', () => {
-        // Given the initialized navigation with a ReportsSplitNavigator and RightModalNavigator on top
+        // Given the initialized navigation with a ReportsSplitNavigator (inside TAB_NAVIGATOR) and RightModalNavigator on top
         render(
             <TestNavigationContainer
                 initialState={{
                     index: 1,
                     routes: [
                         {
-                            name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR,
+                            name: NAVIGATORS.TAB_NAVIGATOR,
                             state: {
-                                index: 0,
+                                index: 1,
                                 routes: [
+                                    {name: SCREENS.HOME},
                                     {
-                                        name: SCREENS.INBOX,
+                                        name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR,
+                                        state: {
+                                            index: 0,
+                                            routes: [
+                                                {
+                                                    name: SCREENS.INBOX,
+                                                },
+                                            ],
+                                        },
                                     },
+                                    {name: NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR},
+                                    {name: NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR},
+                                    {name: NAVIGATORS.WORKSPACE_NAVIGATOR},
                                 ],
                             },
                         },
@@ -121,30 +149,46 @@ describe('Push fullscreen from RHP', () => {
             Navigation.navigate(ROUTES.WORKSPACES_LIST.getRoute(ROUTES.NEW_ROOM));
         });
 
-        // Then WorkspaceNavigator should be on top and Workspaces_List should have the backTo param
+        // Then a new TabNavigator should be pushed with WorkspaceNavigator active
         const rootStateAfter = navigationRef.current?.getRootState();
-        const lastRoute = rootStateAfter?.routes.at(-1);
-        expect(lastRoute?.name).toBe(NAVIGATORS.WORKSPACE_NAVIGATOR);
-        const nestedWorkspacesListRoute = lastRoute?.state?.routes?.at(-1);
+        const lastRootRoute = rootStateAfter?.routes.at(-1);
+        expect(lastRootRoute?.name).toBe(NAVIGATORS.TAB_NAVIGATOR);
+
+        const newTabState = lastRootRoute?.state;
+        const workspaceNav = newTabState?.routes.at(4);
+        expect(workspaceNav?.name).toBe(NAVIGATORS.WORKSPACE_NAVIGATOR);
+        const nestedWorkspacesListRoute = workspaceNav?.state?.routes?.at(-1);
         expect(nestedWorkspacesListRoute?.name).toBe(SCREENS.WORKSPACES_LIST);
         expect(nestedWorkspacesListRoute?.params).toMatchObject({backTo: ROUTES.NEW_ROOM});
     });
 
     it('does not strip non-RHP routes when navigating to a fullscreen screen', () => {
-        // Given the initialized navigation with a ReportsSplitNavigator (no RHP)
+        // Given the initialized navigation with a ReportsSplitNavigator (inside TAB_NAVIGATOR, no RHP)
         render(
             <TestNavigationContainer
                 initialState={{
                     index: 0,
                     routes: [
                         {
-                            name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR,
+                            name: NAVIGATORS.TAB_NAVIGATOR,
                             state: {
-                                index: 0,
+                                index: 1,
                                 routes: [
+                                    {name: SCREENS.HOME},
                                     {
-                                        name: SCREENS.INBOX,
+                                        name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR,
+                                        state: {
+                                            index: 0,
+                                            routes: [
+                                                {
+                                                    name: SCREENS.INBOX,
+                                                },
+                                            ],
+                                        },
                                     },
+                                    {name: NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR},
+                                    {name: NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR},
+                                    {name: NAVIGATORS.WORKSPACE_NAVIGATOR},
                                 ],
                             },
                         },
@@ -155,19 +199,31 @@ describe('Push fullscreen from RHP', () => {
 
         const rootStateBefore = navigationRef.current?.getRootState();
         expect(rootStateBefore?.index).toBe(0);
-        expect(rootStateBefore?.routes.at(-1)?.name).toBe(NAVIGATORS.REPORTS_SPLIT_NAVIGATOR);
+        const tabStateBefore = rootStateBefore?.routes.at(0)?.state;
+        const activeTabBefore = tabStateBefore?.routes.at(tabStateBefore?.index ?? 0);
+        expect(activeTabBefore?.name).toBe(NAVIGATORS.REPORTS_SPLIT_NAVIGATOR);
 
         // When navigating to Workspaces_List without RHP on top
         act(() => {
             Navigation.navigate(ROUTES.WORKSPACES_LIST.getRoute());
         });
 
-        // Then WorkspaceNavigator (containing Workspaces_List) should be pushed on top without removing the ReportsSplitNavigator
+        // Then a new TabNavigator should be pushed with WorkspaceNavigator active
         const rootStateAfter = navigationRef.current?.getRootState();
-        expect(rootStateAfter?.routes.at(-1)?.name).toBe(NAVIGATORS.WORKSPACE_NAVIGATOR);
-        const nestedWorkspacesListRoute = rootStateAfter?.routes.at(-1)?.state?.routes?.at(-1);
+        const lastRootRoute = rootStateAfter?.routes.at(-1);
+        expect(lastRootRoute?.name).toBe(NAVIGATORS.TAB_NAVIGATOR);
+
+        const newTabState = lastRootRoute?.state;
+        const workspaceNav = newTabState?.routes.at(4);
+        expect(workspaceNav?.name).toBe(NAVIGATORS.WORKSPACE_NAVIGATOR);
+        const nestedWorkspacesListRoute = workspaceNav?.state?.routes?.at(-1);
         expect(nestedWorkspacesListRoute?.name).toBe(SCREENS.WORKSPACES_LIST);
-        expect(rootStateAfter?.routes.at(0)?.name).toBe(NAVIGATORS.REPORTS_SPLIT_NAVIGATOR);
-        expect(rootStateAfter?.routes).toHaveLength(2);
+
+        // The original TabNavigator should still be in the root stack
+        const firstRootRoute = rootStateAfter?.routes.at(0);
+        expect(firstRootRoute?.name).toBe(NAVIGATORS.TAB_NAVIGATOR);
+        const originalTabState = firstRootRoute?.state;
+        const reportsSplit = originalTabState?.routes.at(1);
+        expect(reportsSplit?.name).toBe(NAVIGATORS.REPORTS_SPLIT_NAVIGATOR);
     });
 });

@@ -60,6 +60,7 @@ import ExplanationModalNavigator from './Navigators/ExplanationModalNavigator';
 import FeatureTrainingModalNavigator from './Navigators/FeatureTrainingModalNavigator';
 import MigratedUserWelcomeModalNavigator from './Navigators/MigratedUserWelcomeModalNavigator';
 import OnboardingModalNavigator from './Navigators/OnboardingModalNavigator';
+import TabNavigator from './Navigators/TabNavigator';
 import TestDriveModalNavigator from './Navigators/TestDriveModalNavigator';
 import TestToolsModalNavigator from './Navigators/TestToolsModalNavigator';
 import TestDriveDemoNavigator from './TestDriveDemoNavigator';
@@ -74,14 +75,9 @@ const loadLogOutPreviousUserPage = () => require<ReactComponentModule>('../../..
 const loadConciergePage = () => require<ReactComponentModule>('../../../pages/ConciergePage').default;
 const loadTrackExpensePage = () => require<ReactComponentModule>('../../../pages/TrackExpensePage').default;
 const loadSubmitExpensePage = () => require<ReactComponentModule>('../../../pages/SubmitExpensePage').default;
-const loadHomePage = () => require<ReactComponentModule>('../../../pages/home/HomePage').default;
 const loadWorkspaceJoinUser = () => require<ReactComponentModule>('@pages/workspace/WorkspaceJoinUserPage').default;
 
 const loadSearchRouterPage = () => require<ReactComponentModule>('../../../components/Search/SearchRouter/SearchRouterPage').default;
-const loadReportSplitNavigator = () => require<ReactComponentModule>('./Navigators/ReportsSplitNavigator').default;
-const loadSettingsSplitNavigator = () => require<ReactComponentModule>('./Navigators/SettingsSplitNavigator').default;
-const loadWorkspaceNavigator = () => require<ReactComponentModule>('./Navigators/WorkspaceNavigator').default;
-const loadSearchNavigator = () => require<ReactComponentModule>('./Navigators/SearchFullscreenNavigator').default;
 const loadRightModalNavigator = () => require<ReactComponentModule>('./Navigators/RightModalNavigator').default;
 
 const RootStack = createRootStackNavigator<AuthScreensParamList>();
@@ -137,20 +133,19 @@ function AuthScreens() {
         };
     }, [theme]);
 
-    // Animation is enabled when navigating to any screen different than split sidebar screen
-    const getFullscreenNavigatorOptions = ({route}: {route: RouteProp<AuthScreensParamList>}) => {
-        // We don't need to do anything special for the wide screen.
+    // Dynamic options for TAB_NAVIGATOR: supports entering animation for pushed instances
+    const getTabNavigatorOptions = ({route}: {route: RouteProp<AuthScreensParamList>}) => {
         if (!shouldUseNarrowLayout) {
-            return rootNavigatorScreenOptions.splitNavigator;
+            return rootNavigatorScreenOptions.fullScreenTabPage;
         }
 
-        // On the narrow screen, we want to animate this navigator if pushed SplitNavigator includes desired screen
         const animationEnabled = screensWithEnteringAnimation.has(route.key);
         return {
-            ...rootNavigatorScreenOptions.splitNavigator,
+            ...rootNavigatorScreenOptions.fullScreenTabPage,
             animation: animationEnabled ? Animations.SLIDE_FROM_RIGHT : Animations.NONE,
+            gestureEnabled: animationEnabled,
             web: {
-                ...rootNavigatorScreenOptions.splitNavigator.web,
+                ...rootNavigatorScreenOptions.fullScreenTabPage.web,
                 cardStyleInterpolator: (props: StackCardInterpolationProps) => modalCardStyleInterpolator({props, isFullScreenModal: true, animationEnabled}),
             },
         };
@@ -186,42 +181,12 @@ function AuthScreens() {
                     ]}
                 >
                     <KeyboardShortcutsHandler />
-                    <RootStack.Navigator
-                        persistentScreens={[
-                            NAVIGATORS.REPORTS_SPLIT_NAVIGATOR,
-                            NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR,
-                            NAVIGATORS.WORKSPACE_NAVIGATOR,
-                            NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR,
-                            NAVIGATORS.RIGHT_MODAL_NAVIGATOR,
-                            SCREENS.HOME,
-                            SCREENS.SEARCH.ROOT,
-                        ]}
-                    >
-                        {/* SCREENS.HOME has to be the first navigator in auth screens. */}
+                    <RootStack.Navigator persistentScreens={[NAVIGATORS.TAB_NAVIGATOR, NAVIGATORS.RIGHT_MODAL_NAVIGATOR]}>
+                        {/* TAB_NAVIGATOR (containing Home and Workspaces) has to be the first navigator in auth screens. */}
                         <RootStack.Screen
-                            name={SCREENS.HOME}
-                            options={rootNavigatorScreenOptions.fullScreenTabPage}
-                            getComponent={loadHomePage}
-                        />
-                        <RootStack.Screen
-                            name={NAVIGATORS.REPORTS_SPLIT_NAVIGATOR}
-                            options={getFullscreenNavigatorOptions}
-                            getComponent={loadReportSplitNavigator}
-                        />
-                        <RootStack.Screen
-                            name={NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR}
-                            options={getFullscreenNavigatorOptions}
-                            getComponent={loadSettingsSplitNavigator}
-                        />
-                        <RootStack.Screen
-                            name={NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR}
-                            options={getFullscreenNavigatorOptions}
-                            getComponent={loadSearchNavigator}
-                        />
-                        <RootStack.Screen
-                            name={NAVIGATORS.WORKSPACE_NAVIGATOR}
-                            options={getFullscreenNavigatorOptions}
-                            getComponent={loadWorkspaceNavigator}
+                            name={NAVIGATORS.TAB_NAVIGATOR}
+                            options={getTabNavigatorOptions}
+                            component={TabNavigator}
                         />
                         <RootStack.Screen
                             name={SCREENS.VALIDATE_LOGIN}

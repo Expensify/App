@@ -102,6 +102,7 @@
     "@react-native-firebase/app": "^22.2.1",
     "@react-native-google-signin/google-signin": "^10.0.1",
     "@react-native-picker/picker": "2.11.3",
+    "@react-navigation/bottom-tabs": "7.15.5",
     "@react-navigation/core": "7.16.1",
     "@react-navigation/material-top-tabs": "7.4.19",
     "@react-navigation/native": "7.1.33",

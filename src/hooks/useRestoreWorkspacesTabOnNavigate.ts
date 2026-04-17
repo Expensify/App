@@ -4,6 +4,7 @@ import {getPreservedNavigatorState} from '@libs/Navigation/AppNavigator/createSp
 import {isFullScreenName, isWorkspaceNavigatorRouteName} from '@libs/Navigation/helpers/isNavigatorName';
 import {getWorkspacesTabStateFromSessionStorage} from '@libs/Navigation/helpers/lastVisitedTabPathUtils';
 import navigateToWorkspacesPage from '@libs/Navigation/helpers/navigateToWorkspacesPage';
+import {getTabState} from '@libs/Navigation/helpers/tabNavigatorUtils';
 import type {DomainSplitNavigatorParamList, WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -27,38 +28,37 @@ function useRestoreWorkspacesTabOnNavigate() {
     const {login: currentUserLogin} = useCurrentUserPersonalDetails();
 
     // Find the last route the user had open in the Workspaces tab (workspace, domain, or list).
-    // Priority: live nav state -> preserved state (unmounted navigators) -> session storage.
+    // Priority: live nav state (root level) -> inside TabNavigator -> preserved state -> session storage.
     const routeState = useRootNavigationState((rootState) => {
         const topmostFullScreenRoute = rootState?.routes?.findLast((route) => isFullScreenName(route.name));
         if (!topmostFullScreenRoute) {
             return {};
         }
 
-        if (topmostFullScreenRoute.name === NAVIGATORS.WORKSPACE_NAVIGATOR) {
-            return {topmostFullScreenRoute, lastWorkspacesTabNavigatorRoute: topmostFullScreenRoute.state?.routes?.at(-1)};
-        }
+        // Look inside TabNavigator for WORKSPACE_NAVIGATOR
+        const rootTabRoute = rootState?.routes.findLast((route) => route.name === NAVIGATORS.TAB_NAVIGATOR);
+        const rootTabState = getTabState(rootTabRoute);
+        const workspaceNavigatorRoute = rootTabState?.routes?.find((route) => route.name === NAVIGATORS.WORKSPACE_NAVIGATOR);
 
-        const topmostWorkspaceNavigatorRoute = rootState?.routes?.findLast((route) => route.name === NAVIGATORS.WORKSPACE_NAVIGATOR);
-        if (!topmostWorkspaceNavigatorRoute) {
-            const sessionRoute = getWorkspacesTabStateFromSessionStorage()
-                ?.routes?.findLast((route) => route.name === NAVIGATORS.WORKSPACE_NAVIGATOR)
-                ?.state?.routes?.findLast((route) => isWorkspaceNavigatorRouteName(route.name));
-            if (sessionRoute) {
-                return {lastWorkspacesTabNavigatorRoute: sessionRoute, workspacesTabState: sessionRoute.state};
+        if (workspaceNavigatorRoute) {
+            const workspaceNavigatorState = workspaceNavigatorRoute.state ?? (workspaceNavigatorRoute.key ? getPreservedNavigatorState(workspaceNavigatorRoute.key) : undefined);
+            const lastWorkspaceRoute = workspaceNavigatorState?.routes?.findLast((route) => isWorkspaceNavigatorRouteName(route.name));
+            if (lastWorkspaceRoute) {
+                const tabState = lastWorkspaceRoute.state ?? (lastWorkspaceRoute.key ? getPreservedNavigatorState(lastWorkspaceRoute.key) : undefined);
+                return {lastWorkspacesTabNavigatorRoute: lastWorkspaceRoute, workspacesTabState: tabState, topmostFullScreenRoute};
             }
-            return {};
-        }
-        const workspaceNavigatorState =
-            topmostWorkspaceNavigatorRoute.state ?? (topmostWorkspaceNavigatorRoute.key ? getPreservedNavigatorState(topmostWorkspaceNavigatorRoute.key) : undefined);
-        const lastWorkspacesTabNavigatorRoute = workspaceNavigatorState?.routes.findLast((route) => isWorkspaceNavigatorRouteName(route.name));
-        if (lastWorkspacesTabNavigatorRoute) {
-            // Use route's own state, or fall back to preserved state for unmounted navigators
-            const tabState = lastWorkspacesTabNavigatorRoute.state ?? (lastWorkspacesTabNavigatorRoute.key ? getPreservedNavigatorState(lastWorkspacesTabNavigatorRoute.key) : undefined);
-
-            return {lastWorkspacesTabNavigatorRoute, workspacesTabState: tabState, topmostWorkspaceNavigatorRoute};
+            return {topmostFullScreenRoute};
         }
 
-        return {topmostWorkspaceNavigatorRoute};
+        // Fall back to session storage when no route exists in the navigation tree
+        const sessionRoute = getWorkspacesTabStateFromSessionStorage()
+            ?.routes?.findLast((route) => route.name === NAVIGATORS.WORKSPACE_NAVIGATOR)
+            ?.state?.routes?.findLast((route) => isWorkspaceNavigatorRouteName(route.name));
+        if (sessionRoute) {
+            return {lastWorkspacesTabNavigatorRoute: sessionRoute, workspacesTabState: sessionRoute.state};
+        }
+
+        return {topmostFullScreenRoute};
     });
 
     const {lastWorkspacesTabNavigatorRoute, workspacesTabState, topmostFullScreenRoute} = routeState;
