@@ -17,8 +17,8 @@ Anyone with an Expensify account can contact Concierge for help—whether you're
 
 You can ask Concierge for help from anywhere in Expensify:
 
-- **Settings:** Go to **Settings** > **Help and support** and select **Concierge**.  
-- **Web:** Click the chat icon in the lower-right corner  
+- **Settings:** Go to **Settings** > **Help** and select **Concierge**.  
+- **Web:** Click the chat icon in the top-right corner  
 - **Mobile:** Tap the hamburger menu in the top-left corner, then tap **Concierge**  
 - **Workspace chat:** Mention Concierge in a chat room (e.g., `#admins`)  
 - **Report or expense threads:** Ask a question in the thread  
