@@ -6822,7 +6822,8 @@ function buildOptimisticChangePolicyData(
     // 3. Optimistically create a new REPORT_PREVIEW reportAction with the newReportPreviewActionID
     // and set it as a parent of the moved report
     const policyExpenseChat = optimisticPolicyExpenseChatReport ?? getPolicyExpenseChat(report.ownerAccountID, policy.id);
-    const optimisticReportPreviewAction = buildOptimisticReportPreview(policyExpenseChat, report);
+    // TODO: Pass personalDetailsList in PR 30; isTestTransactionReport falls back to module-level Onyx value (https://github.com/Expensify/App/issues/66413)
+    const optimisticReportPreviewAction = buildOptimisticReportPreview(policyExpenseChat, report, undefined);
 
     const newPolicyExpenseChatReportID = policyExpenseChat?.reportID;
 

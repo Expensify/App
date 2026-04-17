@@ -463,7 +463,8 @@ function prepareRejectMoneyRequestData(
                 shouldGenerateTransactionThreadReport: false,
             });
 
-            reportPreviewAction = buildOptimisticReportPreview(policyExpenseChat, newExpenseReport, undefined, transaction, undefined);
+            // TODO: Pass personalDetailsList in PR 28; isTestTransactionReport falls back to module-level Onyx value (https://github.com/Expensify/App/issues/66413)
+            reportPreviewAction = buildOptimisticReportPreview(policyExpenseChat, newExpenseReport, undefined, undefined, transaction);
             movedTransactionAction = buildOptimisticMovedTransactionAction(childReportID, newExpenseReport.reportID);
             createdIOUReportActionID = iouAction.reportActionID;
             expenseMovedReportActionID = movedTransactionAction.reportActionID;

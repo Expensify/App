@@ -1106,7 +1106,8 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
         if (reportPreviewAction) {
             reportPreviewAction = updateReportPreview(iouReport, reportPreviewAction, false, comment, optimisticTransaction);
         } else {
-            reportPreviewAction = buildOptimisticReportPreview(chatReport, iouReport, comment, optimisticTransaction);
+            // TODO: Pass personalDetailsList in PR 29; isTestTransactionReport falls back to module-level Onyx value (https://github.com/Expensify/App/issues/66413)
+            reportPreviewAction = buildOptimisticReportPreview(chatReport, iouReport, undefined, comment, optimisticTransaction);
             // Generated ReportPreview action is a parent report action of the iou report.
             // We are setting the iou report's parentReportActionID to display subtitle correctly in IOU page when offline.
             iouReport.parentReportActionID = reportPreviewAction.reportActionID;

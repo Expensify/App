@@ -721,9 +721,11 @@ function getReportFromHoldRequestsOnyxData({
               createdTimestamp,
           );
 
+    // TODO: Pass personalDetailsList in PR 28; isTestTransactionReport falls back to module-level Onyx value (https://github.com/Expensify/App/issues/66413)
     const optimisticExpenseReportPreview = buildOptimisticReportPreview(
         chatReport,
         optimisticExpenseReport,
+        undefined,
         '',
         firstHoldTransaction,
         optimisticExpenseReport.reportID,

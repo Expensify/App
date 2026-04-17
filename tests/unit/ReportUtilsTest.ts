@@ -129,6 +129,7 @@ import {
     isDeprecatedGroupDM,
     isHarvestCreatedExpenseReport,
     isMoneyRequestReportEligibleForMerge,
+    isOptimisticPersonalDetail,
     isPayer,
     isReportIneligibleForMoveExpenses,
     isReportOutstanding,
@@ -136,6 +137,7 @@ import {
     isRootGroupChat,
     isSelfDMOrSelfDMThread,
     isSortableColumnName,
+    isTestTransactionReport,
     isWorkspaceMemberLeavingWorkspaceRoom,
     parseReportActionHtmlToText,
     parseReportRouteParams,
@@ -4835,7 +4837,7 @@ describe('ReportUtils', () => {
                     reportID: expenseReport.reportID,
                 },
             });
-            const reportPreview = buildOptimisticReportPreview(chatReport, expenseReport, '', expenseTransaction, expenseReport.reportID, reportPreviewReportActionID);
+            const reportPreview = buildOptimisticReportPreview(chatReport, expenseReport, undefined, '', expenseTransaction, expenseReport.reportID, reportPreviewReportActionID);
             const expenseCreatedAction = buildOptimisticIOUReportAction({
                 type: 'create',
                 amount: 100,
@@ -10282,7 +10284,7 @@ describe('ReportUtils', () => {
                 managerID: 2,
             };
 
-            const reportPreviewAction = buildOptimisticReportPreview(chatReport, iouReport);
+            const reportPreviewAction = buildOptimisticReportPreview(chatReport, iouReport, undefined);
 
             expect(reportPreviewAction.childOwnerAccountID).toBe(iouReport.ownerAccountID);
             expect(reportPreviewAction.childManagerAccountID).toBe(iouReport.managerID);
@@ -16482,7 +16484,7 @@ describe('ReportUtils', () => {
         };
 
         // REPORT_PREVIEW action that sits in the chat report and links to the expense report
-        const reportPreviewAction = buildOptimisticReportPreview(chatReport, expenseReport, '', transaction);
+        const reportPreviewAction = buildOptimisticReportPreview(chatReport, expenseReport, undefined, '', transaction);
 
         beforeAll(async () => {
             await Onyx.set(ONYXKEYS.SESSION, {email: currentUserEmail, accountID: currentUserAccountID});
@@ -16625,6 +16627,64 @@ describe('ReportUtils', () => {
 
             expect(hasSmartscanError([splitAction], chatReport, allTransactions)).toBe(false);
             expect(getReportActionWithSmartscanError([splitAction], chatReport, allTransactions)).toBeUndefined();
+        });
+    });
+
+    describe('isOptimisticPersonalDetail uses explicit personalDetailsList', () => {
+        it('should use the passed personalDetailsList instead of the module-level variable', () => {
+            const testAccountID = 99999;
+            const personalDetailsList: PersonalDetailsList = {
+                [testAccountID]: {
+                    accountID: testAccountID,
+                    login: 'test@example.com',
+                    displayName: 'Test User',
+                    isOptimisticPersonalDetail: false,
+                },
+            };
+
+            expect(isOptimisticPersonalDetail(testAccountID, personalDetailsList)).toBe(false);
+            expect(isOptimisticPersonalDetail(testAccountID, {})).toBe(true);
+        });
+
+        it('should return true when the account has isOptimisticPersonalDetail flag', () => {
+            const testAccountID = 88888;
+            const personalDetailsList: PersonalDetailsList = {
+                [testAccountID]: {
+                    accountID: testAccountID,
+                    login: 'optimistic@example.com',
+                    isOptimisticPersonalDetail: true,
+                },
+            };
+
+            expect(isOptimisticPersonalDetail(testAccountID, personalDetailsList)).toBe(true);
+        });
+    });
+
+    describe('isTestTransactionReport uses explicit personalDetailsList', () => {
+        it('should use the passed personalDetailsList to determine if the manager is mctest', () => {
+            const managerAccountID = 77777;
+            const report: Report = {
+                reportID: '500',
+                managerID: managerAccountID,
+            };
+
+            const personalDetailsWithMcTest: PersonalDetailsList = {
+                [managerAccountID]: {
+                    accountID: managerAccountID,
+                    login: CONST.EMAIL.MANAGER_MCTEST,
+                    displayName: 'McTest User',
+                },
+            };
+            const personalDetailsWithoutMcTest: PersonalDetailsList = {
+                [managerAccountID]: {
+                    accountID: managerAccountID,
+                    login: 'owner@expensify.com',
+                    displayName: 'Real User',
+                },
+            };
+
+            expect(isTestTransactionReport(report, personalDetailsWithMcTest)).toBe(true);
+            expect(isTestTransactionReport(report, personalDetailsWithoutMcTest)).toBe(false);
         });
     });
 });
