@@ -636,7 +636,10 @@ function getMergeFieldUpdatedValues<K extends MergeFieldKey>({
         updatedValues.taxCode = transaction?.taxCode;
         updatedValues.taxName = getTaxName(policy, transaction) ?? transaction?.taxValue;
         updatedValues.taxAmount = transaction?.taxAmount;
-        updatedValues.taxPolicyID = transaction?.taxValue ? policy?.id : null;
+        // Don't erase this prop
+        // The selected rate might not have tax tracking
+        // The backend needs it to remove tax from the transaction
+        updatedValues.taxPolicyID = policy?.id;
 
         // Copy odometer readings from the selected transaction for odometer distance requests
         if (isOdometerDistanceRequest(transaction)) {
