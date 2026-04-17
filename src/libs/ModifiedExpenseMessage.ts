@@ -452,8 +452,8 @@ function getForReportAction({
 
     const hasModifiedAttendees = isReportActionOriginalMessageAnObject && 'oldAttendees' in reportActionOriginalMessage && 'newAttendees' in reportActionOriginalMessage;
     if (hasModifiedAttendees) {
-        const [oldAttendees, attendees] = getFormattedAttendees(reportActionOriginalMessage.newAttendees, reportActionOriginalMessage.oldAttendees);
-        buildMessageFragmentForValue(translate, oldAttendees, attendees, translate('iou.attendees'), false, setFragments, removalFragments, changeFragments);
+        const [oldAttendees, newAttendees] = getFormattedAttendees(reportActionOriginalMessage.oldAttendees, reportActionOriginalMessage.newAttendees);
+        buildMessageFragmentForValue(translate, newAttendees, oldAttendees, translate('iou.attendees'), false, setFragments, removalFragments, changeFragments);
     }
 
     const hasPersonalRulesModifiedFields = isReportActionOriginalMessageAnObject && 'personalRulesModifiedFields' in reportActionOriginalMessage;
