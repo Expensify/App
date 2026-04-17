@@ -32,12 +32,12 @@ import {
 } from '@libs/actions/IOU';
 import {setMoneyRequestReceipt} from '@libs/actions/IOU/Receipt';
 import {requestMoney, trackExpense} from '@libs/actions/IOU/TrackExpense';
-import cleanupAndNavigateAfterExpenseCreate from '@libs/Navigation/helpers/cleanupAndNavigateAfterExpenseCreate';
 import DateUtils from '@libs/DateUtils';
 import {getFileName, readFileAsync} from '@libs/fileDownload/FileUtils';
 import getCurrentPosition from '@libs/getCurrentPosition';
 import {getExistingTransactionID} from '@libs/IOUUtils';
 import Log from '@libs/Log';
+import cleanupAndNavigateAfterExpenseCreate from '@libs/Navigation/helpers/cleanupAndNavigateAfterExpenseCreate';
 import navigateAfterInteraction from '@libs/Navigation/navigateAfterInteraction';
 import Navigation from '@libs/Navigation/Navigation';
 import type {ShareNavigatorParamList} from '@libs/Navigation/types';
