@@ -15,10 +15,12 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
+import usePolicyForTransaction from '@hooks/usePolicyForTransaction';
 import usePrevious from '@hooks/usePrevious';
 import useReportAttributes from '@hooks/useReportAttributes';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {ViolationField} from '@hooks/useViolations';
+import {getIOURequestPolicyID} from '@libs/actions/IOU';
 import {initDraftSplitExpenseDataForEdit, removeSplitExpenseField, updateSplitExpenseField} from '@libs/actions/IOU/Split';
 import {openPolicyCategoriesPage} from '@libs/actions/Policy/Category';
 import {openPolicyTagsPage} from '@libs/actions/Policy/Tag';
@@ -66,6 +68,7 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
 
     const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`];
     const originalTransaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transaction?.comment?.originalTransactionID)}`];
+    const splitTransaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(splitExpenseTransactionID)}`];
 
     const report = getReportOrDraftReport(reportID);
     const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`];
@@ -94,19 +97,28 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
             : undefined;
     const effectivePolicy = currentPolicy ?? policyByCustomUnitID ?? policyByCustomUnitRateID;
 
-    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${currentReport?.policyID}`);
+    const reportPolicyID = getIOURequestPolicyID(splitTransaction, currentReport);
+    const {policy: categoryPolicy} = usePolicyForTransaction({
+        transaction: splitTransaction,
+        reportPolicyID,
+        action: CONST.IOU.ACTION.EDIT,
+        iouType: CONST.IOU.TYPE.SPLIT_EXPENSE,
+    });
+    const categoryPolicyID = categoryPolicy?.id;
 
-    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${currentReport?.policyID}`);
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${categoryPolicyID}`);
+
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${categoryPolicyID}`);
     const {login, accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
     const fetchData = useCallback(() => {
         if (!policyCategories) {
-            openPolicyCategoriesPage(currentReport?.policyID ?? String(CONST.DEFAULT_NUMBER_ID));
+            openPolicyCategoriesPage(categoryPolicyID ?? String(CONST.DEFAULT_NUMBER_ID));
         }
         if (!policyTags) {
-            openPolicyTagsPage(currentReport?.policyID ?? String(CONST.DEFAULT_NUMBER_ID));
+            openPolicyTagsPage(categoryPolicyID ?? String(CONST.DEFAULT_NUMBER_ID));
         }
-    }, [currentReport?.policyID, policyCategories, policyTags]);
+    }, [categoryPolicyID, policyCategories, policyTags]);
 
     // Fetch categories and tags on mount to ensure the screen has the latest data,
     // especially when the edit-split flow is opened from the search screen where these
@@ -123,28 +135,32 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
     const originalSign = (splitExpenseItem?.amount ?? 0) < 0 ? -1 : 1;
     const currentDescription = getParsedComment(Parser.htmlToMarkdown(splitExpenseDraftTransactionDetails?.comment ?? ''));
 
-    const shouldShowCategory = !!currentPolicy?.areCategoriesEnabled && !!policyCategories;
+    const shouldShowCategory = !!categoryPolicy?.areCategoriesEnabled && !!policyCategories;
 
     const transactionTag = getTag(splitExpenseDraftTransaction);
     const policyTagLists = useMemo(() => getTagLists(policyTags), [policyTags]);
 
     const isSplitAvailable = report && transaction && isSplitAction(currentReport, [transaction], originalTransaction, login ?? '', currentUserAccountID, currentPolicy, parentReport);
 
-    const isCategoryRequired = !!currentPolicy?.requiresCategory;
+    // For selfDM splits (no workspace policy), don't mark the rate as out-of-policy.
+    // getRate already resolves the P2P rate via defaultP2PRate for selfDM transactions.
+    const isSelfDMSplit = !effectivePolicy;
+
+    const isCategoryRequired = !!categoryPolicy?.requiresCategory && !isSelfDMSplit;
     const reportAttributes = useReportAttributes();
     const reportName = getReportName(currentReport, reportAttributes) || parentReport?.reportName;
-    const isDescriptionRequired = isCategoryDescriptionRequired(policyCategories, splitExpenseDraftTransactionDetails?.category, currentPolicy?.areRulesEnabled);
+    const isDescriptionRequired = isCategoryDescriptionRequired(policyCategories, splitExpenseDraftTransactionDetails?.category, categoryPolicy?.areRulesEnabled);
 
-    const shouldShowTags = !!currentPolicy?.areTagsEnabled && !!(transactionTag || hasEnabledTags(policyTagLists));
+    const shouldShowTags = !!categoryPolicy?.areTagsEnabled && !!(transactionTag || hasEnabledTags(policyTagLists));
     const tagVisibility = useMemo(
         () =>
             getTagVisibility({
                 shouldShowTags,
-                policy: currentPolicy,
+                policy: categoryPolicy,
                 policyTags,
                 transaction: splitExpenseDraftTransaction,
             }),
-        [shouldShowTags, currentPolicy, policyTags, splitExpenseDraftTransaction],
+        [shouldShowTags, categoryPolicy, policyTags, splitExpenseDraftTransaction],
     );
 
     const previousTagsVisibility = usePrevious(tagVisibility.map((v) => v.shouldShow)) ?? [];
@@ -176,9 +192,6 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
         return splitExpenseDraftTransactionDetails?.merchant ?? '';
     }, [isDistance, distance, rate, unit, currency, translate, toLocaleDigit, getCurrencySymbol, splitExpenseDraftTransactionDetails?.merchant]);
 
-    // For selfDM splits (no workspace policy), don't mark the rate as out-of-policy.
-    // getRate already resolves the P2P rate via defaultP2PRate for selfDM transactions.
-    const isSelfDMSplit = !effectivePolicy;
     const isCustomUnitOutOfPolicy = !isSelfDMSplit && (!rates[currentRateID] || (isDistance && !rate));
     const rateToDisplay = DistanceRequestUtils.getRateForExpenseDisplay(rateName, isCustomUnitOutOfPolicy, unit, rate, currency, translate, toLocaleDigit, getCurrencySymbol, isOffline);
 
