@@ -238,12 +238,14 @@ function DateFilterBase({
             )}
             {shouldShowActionButtons && (
                 <>
-                    <Button
-                        text={translate('common.reset')}
-                        onPress={reset}
-                        style={[styles.mh4, styles.mt4]}
-                        large
-                    />
+                    {!selectedDateModifier && (
+                        <Button
+                            text={translate('common.reset')}
+                            onPress={reset}
+                            style={[styles.mh4, styles.mt4]}
+                            large
+                        />
+                    )}
                     <FormAlertWithSubmitButton
                         buttonText={translate('common.save')}
                         containerStyles={[styles.m4, styles.mt3, styles.mb5]}
