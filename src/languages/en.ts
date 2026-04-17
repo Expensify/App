@@ -3461,6 +3461,7 @@ const translations = {
         whenClearStatus: 'When should we clear your status?',
         setVacationDelegate: `Set a vacation delegate to approve reports on your behalf while you're out of office.`,
         cannotSetVacationDelegate: `You can't set a vacation delegate because you're currently the delegate for the following members:`,
+        addVacationDelegate: 'Add vacation delegate',
         vacationDelegateError: 'There was an error updating your vacation delegate.',
         asVacationDelegate: (nameOrEmail: string) => `as ${nameOrEmail}'s vacation delegate`,
         toAsVacationDelegate: (submittedToName: string, vacationDelegateName: string) => `to ${submittedToName} as vacation delegate for ${vacationDelegateName}`,
