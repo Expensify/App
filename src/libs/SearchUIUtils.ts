@@ -4437,7 +4437,8 @@ function isSearchDataLoaded(searchResults: SearchResults | undefined, queryJSON:
         ? searchResults?.search?.status?.split(',').sort().join(',')
         : searchResults?.search?.status?.sort().join(',');
     const sortedQueryJSONStatus = Array.isArray(status) ? status.sort().join(',') : status;
-    const isDataLoaded = searchResults?.data !== undefined && searchResults?.search?.type === queryJSON?.type && sortedSearchResultStatus === sortedQueryJSONStatus;
+    const isDataLoaded =
+        (searchResults?.data != null || searchResults?.errors != null) && searchResults?.search?.type === queryJSON?.type && sortedSearchResultStatus === sortedQueryJSONStatus;
 
     return isDataLoaded;
 }
