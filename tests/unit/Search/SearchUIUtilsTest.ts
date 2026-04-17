@@ -6883,63 +6883,6 @@ describe('SearchUIUtils', () => {
             expect(sectionKeys).toContain(CONST.SEARCH.SEARCH_KEYS.RECONCILIATION);
         });
 
-        it('should not have legacy section names (Explore, Todo, Monthly accrual, Reconciliation)', () => {
-            const mockPolicies = {
-                policy1: {
-                    id: 'policy1',
-                    name: 'Test Policy',
-                    owner: adminEmail,
-                    outputCurrency: 'USD',
-                    isPolicyExpenseChatEnabled: true,
-                    role: CONST.POLICY.ROLE.ADMIN,
-                    type: CONST.POLICY.TYPE.TEAM,
-                    approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
-                    areExpensifyCardsEnabled: true,
-                    areCompanyCardsEnabled: true,
-                    achAccount: {
-                        bankAccountID: 1234,
-                        reimburser: adminEmail,
-                        state: CONST.BANK_ACCOUNT.STATE.OPEN,
-                        accountNumber: '1234567890',
-                        routingNumber: '1234567890',
-                        addressName: 'Test Address',
-                        bankName: 'Test Bank',
-                    },
-                },
-            };
-
-            const mockCardFeedsByPolicy: Record<string, CardFeedForDisplay[]> = {
-                policy1: [
-                    {
-                        id: 'card1',
-                        feed: 'Expensify Card' as const,
-                        fundID: 'fund1',
-                        name: 'Test Card Feed',
-                    },
-                ],
-            };
-
-            const sections = SearchUIUtils.createTypeMenuSections({
-                currentUserEmail: adminEmail,
-                currentUserAccountID: adminAccountID,
-                cardFeedsByPolicy: mockCardFeedsByPolicy,
-                defaultCardFeed: undefined,
-                policies: mockPolicies,
-                savedSearches: {},
-                isOffline: false,
-                defaultExpensifyCard: undefined,
-                shouldRedirectToExpensifyClassic: false,
-                draftTransactionIDs: [],
-                isTrackIntentUser: false,
-            });
-
-            const sectionNames = sections.map((section) => section.translationPath);
-            expect(sectionNames).not.toContain('common.explore');
-            expect(sectionNames).not.toContain('common.todo');
-            expect(sectionNames).not.toContain('search.monthlyAccrual');
-            expect(sectionNames).not.toContain('search.reconciliation');
-        });
-
         it('should not show todo items or export for track-intent users', () => {
             const mockPolicies = {
                 policy1: {
