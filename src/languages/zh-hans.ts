@@ -4187,6 +4187,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             budgetTypeForNotificationMessage: {tag: '标签', category: '类别'},
             policyExpenseChatName: (displayName: string) => `${displayName} 的报销费用`,
             deepDiveExpensifyCard: `<muted-text-label>Expensify 卡交易将自动导出到使用<a href="${CONST.DEEP_DIVE_EXPENSIFY_CARD}">我们的集成</a>创建的“Expensify 卡负债账户”。</muted-text-label>`,
+            hr: '人力资源',
         },
         receiptPartners: {
             uber: {
@@ -6736,6 +6737,31 @@ ${reportName}
                 other: `在年费订阅于${annualSubscriptionEndDate}结束之前，你已承诺在 Control 方案中保留 ${count} 名活跃成员。你可以在${annualSubscriptionEndDate}起，通过关闭自动续订，改为按使用量付费订阅并降级到 Collect 方案，操作入口在`,
             }),
             subscriptions: '订阅',
+        },
+        hr: {
+            title: '人力资源',
+            subtitle: '连接人力资源工具，保持员工审批同步。',
+            settingsTitle: 'Gusto 设置',
+            syncStageName: ({stage}: SyncStageNameConnectionsParams) => {
+                switch (stage) {
+                    case 'startingImportGusto':
+                        return '正在导入 Gusto 数据';
+                    case 'gustoSyncLoadCompany':
+                        return '正在加载 Gusto 公司数据';
+                    case 'gustoSyncImportEmployees':
+                        return '正在导入员工';
+                    case 'gustoSyncBuildApprovalChains':
+                        return '构建审批链';
+                    case 'gustoSyncFinalize':
+                        return '正在完成同步';
+                    case 'jobDone':
+                        return '正在加载导入的数据';
+                    default: {
+                        return `阶段缺少翻译：${stage}`;
+                    }
+                }
+            },
+            gusto: {title: 'Gusto', approvalMode: '审批模式', finalApprover: '最终审批人'},
         },
     },
     getAssistancePage: {

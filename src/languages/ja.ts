@@ -4256,6 +4256,7 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             budgetFrequency: {monthly: '毎月', yearly: '年次'},
             budgetFrequencyUnit: {monthly: '月', yearly: '年'},
             budgetTypeForNotificationMessage: {tag: 'タグ', category: 'カテゴリ'},
+            hr: '人事',
         },
         receiptPartners: {
             uber: {
@@ -6854,6 +6855,31 @@ ${reportName}
                 other: `あなたは、年間サブスクリプションが${annualSubscriptionEndDate}に終了するまで、Controlプランでアクティブメンバー${count}名を契約しています。${annualSubscriptionEndDate}以降は、自動更新を無効にすることで、従量課金制サブスクリプションに切り替え、Collectプランへダウングレードできます。その操作は、`,
             }),
             subscriptions: 'サブスクリプション',
+        },
+        hr: {
+            title: '人事',
+            subtitle: '人事ツールを連携して、従業員の承認を常に同期させます。',
+            settingsTitle: 'Gusto 設定',
+            syncStageName: ({stage}: SyncStageNameConnectionsParams) => {
+                switch (stage) {
+                    case 'startingImportGusto':
+                        return 'Gusto データのインポート';
+                    case 'gustoSyncLoadCompany':
+                        return 'Gusto 会社データを読み込み中';
+                    case 'gustoSyncImportEmployees':
+                        return '従業員のインポート';
+                    case 'gustoSyncBuildApprovalChains':
+                        return '承認フローの構築';
+                    case 'gustoSyncFinalize':
+                        return '同期を完了しています';
+                    case 'jobDone':
+                        return 'インポートしたデータの読み込みを待機しています';
+                    default: {
+                        return `ステージの翻訳が見つかりません: ${stage}`;
+                    }
+                }
+            },
+            gusto: {title: 'Gusto', approvalMode: '承認モード', finalApprover: '最終承認者'},
         },
     },
     getAssistancePage: {

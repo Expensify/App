@@ -4276,6 +4276,7 @@ ${amount} dla ${merchant} - ${date}`,
             budgetTypeForNotificationMessage: {tag: 'znacznik', category: 'kategoria'},
             policyExpenseChatName: (displayName: string) => `Wydatki ${displayName}`,
             deepDiveExpensifyCard: `<muted-text-label>Transakcje z Karty Expensify będą automatycznie eksportowane do „Konta zobowiązań Karty Expensify” utworzonego dzięki <a href="${CONST.DEEP_DIVE_EXPENSIFY_CARD}">naszej integracji</a>.</muted-text-label>`,
+            hr: 'HR',
         },
         receiptPartners: {
             uber: {
@@ -6902,6 +6903,31 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
                 other: `Zobowiązałeś(-aś) się do ${count} aktywnych członków w planie Control do końca rocznej subskrypcji ${annualSubscriptionEndDate}. Możesz przejść na subskrypcję płatną za użycie i zmienić plan na Collect od ${annualSubscriptionEndDate}, wyłączając automatyczne odnawianie w`,
             }),
             subscriptions: 'Subskrypcje',
+        },
+        hr: {
+            title: 'HR',
+            subtitle: 'Połącz narzędzia HR i utrzymuj zgody pracowników w synchronizacji.',
+            settingsTitle: 'Ustawienia Gusto',
+            syncStageName: ({stage}: SyncStageNameConnectionsParams) => {
+                switch (stage) {
+                    case 'startingImportGusto':
+                        return 'Importowanie danych Gusto';
+                    case 'gustoSyncLoadCompany':
+                        return 'Wczytywanie danych firmy Gusto';
+                    case 'gustoSyncImportEmployees':
+                        return 'Importowanie pracowników';
+                    case 'gustoSyncBuildApprovalChains':
+                        return 'Tworzenie łańcuchów zatwierdzania';
+                    case 'gustoSyncFinalize':
+                        return 'Finalizowanie synchronizacji';
+                    case 'jobDone':
+                        return 'Oczekiwanie na załadowanie zaimportowanych danych';
+                    default: {
+                        return `Brak tłumaczenia dla etapu: ${stage}`;
+                    }
+                }
+            },
+            gusto: {title: 'Gusto', approvalMode: 'Tryb zatwierdzania', finalApprover: 'Ostateczny zatwierdzający'},
         },
     },
     getAssistancePage: {

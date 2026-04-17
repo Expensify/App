@@ -4278,6 +4278,7 @@ ${amount} para ${merchant} - ${date}`,
             budgetFrequencyUnit: {monthly: 'mês', yearly: 'ano'},
             budgetTypeForNotificationMessage: {tag: 'etiqueta', category: 'categoria'},
             deepDiveExpensifyCard: `<muted-text-label>As transações do Cartão Expensify serão exportadas automaticamente para uma “Conta de Responsabilidade do Cartão Expensify” criada com <a href="${CONST.DEEP_DIVE_EXPENSIFY_CARD}">nossa integração</a>.</muted-text-label>`,
+            hr: 'RH',
         },
         receiptPartners: {
             uber: {
@@ -6908,6 +6909,31 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                 other: `Você se comprometeu com ${count} membros ativos no plano Control até o fim da sua assinatura anual em ${annualSubscriptionEndDate}. Você pode mudar para a assinatura pós-paga e fazer downgrade para o plano Collect a partir de ${annualSubscriptionEndDate} desativando a renovação automática em`,
             }),
             subscriptions: 'Assinaturas',
+        },
+        hr: {
+            title: 'RH',
+            subtitle: 'Conecte ferramentas de RH e mantenha as aprovações de funcionários em sincronia.',
+            settingsTitle: 'Configurações do Gusto',
+            syncStageName: ({stage}: SyncStageNameConnectionsParams) => {
+                switch (stage) {
+                    case 'startingImportGusto':
+                        return 'Importando dados do Gusto';
+                    case 'gustoSyncLoadCompany':
+                        return 'Carregando dados da empresa Gusto';
+                    case 'gustoSyncImportEmployees':
+                        return 'Importando funcionários';
+                    case 'gustoSyncBuildApprovalChains':
+                        return 'Criando cadeias de aprovação';
+                    case 'gustoSyncFinalize':
+                        return 'Finalizando a sincronização';
+                    case 'jobDone':
+                        return 'Aguardando o carregamento dos dados importados';
+                    default: {
+                        return `Tradução ausente para o estágio: ${stage}`;
+                    }
+                }
+            },
+            gusto: {title: 'Gusto', approvalMode: 'Modo de aprovação', finalApprover: 'Aprovador final'},
         },
     },
     getAssistancePage: {

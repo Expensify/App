@@ -4287,6 +4287,7 @@ ${amount} per ${merchant} - ${date}`,
             budgetFrequencyUnit: {monthly: 'mese', yearly: 'anno'},
             budgetTypeForNotificationMessage: {tag: 'etichetta', category: 'categoria'},
             deepDiveExpensifyCard: `<muted-text-label>Le transazioni della Carta Expensify verranno esportate automaticamente in un "Conto Passivo Carta Expensify" creato con <a href="${CONST.DEEP_DIVE_EXPENSIFY_CARD}">la nostra integrazione</a>.</muted-text-label>`,
+            hr: 'Risorse umane',
         },
         receiptPartners: {
             uber: {
@@ -6930,6 +6931,31 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                 other: `Ti sei impegnato per ${count} membri attivi nel piano Control fino alla fine dell’abbonamento annuale, il ${annualSubscriptionEndDate}. Puoi passare all’abbonamento a consumo e effettuare il downgrade al piano Collect a partire dal ${annualSubscriptionEndDate} disattivando il rinnovo automatico in`,
             }),
             subscriptions: 'Abbonamenti',
+        },
+        hr: {
+            title: 'Risorse umane',
+            subtitle: 'Collega gli strumenti HR e mantieni sincronizzate le approvazioni dei dipendenti.',
+            settingsTitle: 'Impostazioni Gusto',
+            syncStageName: ({stage}: SyncStageNameConnectionsParams) => {
+                switch (stage) {
+                    case 'startingImportGusto':
+                        return 'Importazione dati Gusto';
+                    case 'gustoSyncLoadCompany':
+                        return 'Caricamento dei dati aziendali Gusto';
+                    case 'gustoSyncImportEmployees':
+                        return 'Importazione dipendenti';
+                    case 'gustoSyncBuildApprovalChains':
+                        return 'Creazione di catene di approvazione';
+                    case 'gustoSyncFinalize':
+                        return 'Finalizzazione sincronizzazione';
+                    case 'jobDone':
+                        return 'In attesa del caricamento dei dati importati';
+                    default: {
+                        return `Traduzione mancante per la fase: ${stage}`;
+                    }
+                }
+            },
+            gusto: {title: 'Gusto', approvalMode: 'Modalità approvazione', finalApprover: 'Approvazione finale'},
         },
     },
     getAssistancePage: {

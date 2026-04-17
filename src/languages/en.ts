@@ -4259,6 +4259,7 @@ const translations = {
             travel: 'Travel',
             members: 'Members',
             accounting: 'Accounting',
+            hr: 'HR',
             receiptPartners: 'Receipt partners',
             rules: 'Rules',
             displayedAs: 'Displayed as',
@@ -6323,6 +6324,36 @@ const translations = {
                 chooseBankAccount: 'Choose the bank account that your Expensify Card payments will be reconciled against.',
                 settlementAccountReconciliation: (settlementAccountUrl: string, lastFourPAN: string) =>
                     `Make sure this account matches your <a href="${settlementAccountUrl}">Expensify Card settlement account</a> (ending in ${lastFourPAN}) so Continuous Reconciliation works properly.`,
+            },
+        },
+        hr: {
+            title: 'HR',
+            subtitle: 'Connect HR tools and keep employee approvals in sync.',
+            settingsTitle: 'Gusto settings',
+            syncStageName: ({stage}: SyncStageNameConnectionsParams) => {
+                switch (stage) {
+                    case 'startingImportGusto':
+                        return 'Importing Gusto data';
+                    case 'gustoSyncLoadCompany':
+                        return 'Loading Gusto company data';
+                    case 'gustoSyncImportEmployees':
+                        return 'Importing employees';
+                    case 'gustoSyncBuildApprovalChains':
+                        return 'Building approval chains';
+                    case 'gustoSyncFinalize':
+                        return 'Finalizing sync';
+                    case 'jobDone':
+                        return 'Waiting for imported data to load';
+                    default: {
+                        // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+                        return `Translation missing for stage: ${stage}`;
+                    }
+                }
+            },
+            gusto: {
+                title: 'Gusto',
+                approvalMode: 'Approval mode',
+                finalApprover: 'Final approver',
             },
         },
         export: {
