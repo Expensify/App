@@ -9,6 +9,7 @@ import useFilterWorkspaceValue from '@components/Search/hooks/useFilterWorkspace
 import type {SearchFilter} from '@libs/SearchUIUtils';
 import FILTER_KEYS from '@src/types/form/SearchAdvancedFiltersForm';
 import type {SearchAdvancedFiltersKey} from '@src/types/form/SearchAdvancedFiltersForm';
+import useFilterFeedValue from '../hooks/useFilterFeedValue';
 import type {FilterItem} from './useSearchFiltersBar';
 
 type SearchDropdownProps = Omit<DropdownButtonProps, 'viewportOffsetTop'>;
@@ -31,6 +32,18 @@ function WorkspaceDropdown({label, value, PopoverComponent, sentryLabel}: Search
         <DropdownButton
             label={label}
             value={workspaceValue ?? []}
+            PopoverComponent={PopoverComponent}
+            sentryLabel={sentryLabel}
+        />
+    );
+}
+
+function FeedDropdown({label, PopoverComponent, sentryLabel}: SearchDropdownProps) {
+    const feedValue = useFilterFeedValue();
+    return (
+        <DropdownButton
+            label={label}
+            value={feedValue}
             PopoverComponent={PopoverComponent}
             sentryLabel={sentryLabel}
         />
@@ -81,7 +94,7 @@ const FILTER_COMPONENT_MAP: Partial<Record<SearchAdvancedFiltersKey, React.Compo
 
     [FILTER_KEYS.POLICY_ID]: WorkspaceDropdown,
 
-    [FILTER_KEYS.FEED]: CardDropdown,
+    [FILTER_KEYS.FEED]: FeedDropdown,
     [FILTER_KEYS.CARD_ID]: CardDropdown,
 
     [FILTER_KEYS.TAX_RATE]: TaxRateDropdown,

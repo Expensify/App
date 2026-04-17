@@ -35,6 +35,7 @@ import type {ExpenseTypeValues, HasFilterValues, IsFilterValues, SearchAdvancedF
 import type {Policy} from '@src/types/onyx';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
 import type WithSentryLabel from '@src/types/utils/SentryLabel';
+import FeedFilterPopup from '../FilterDropdowns/FeedSelectPopup';
 import DatePickerFilterPopup from './DatePickerFilterPopup';
 import MultiSelectFilterPopup from './MultiSelectFilterPopup';
 
@@ -230,11 +231,10 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON): UseSearchFiltersBarRes
                     sentryLabel: getFilterSentryLabel(filterKey),
                 };
             }
-            case FILTER_KEYS.FEED:
-            case FILTER_KEYS.CARD_ID: {
+            case FILTER_KEYS.FEED: {
                 return {
                     PopoverComponent: ({closeOverlay, isExpanded}) => (
-                        <CardSelectPopup
+                        <FeedFilterPopup
                             isExpanded={isExpanded}
                             updateFilterForm={updateFilterForm}
                             closeOverlay={closeOverlay}
