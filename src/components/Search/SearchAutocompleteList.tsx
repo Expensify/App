@@ -226,6 +226,7 @@ function SearchAutocompleteList({
         currentUserEmail,
         policies,
         personalDetails,
+        sortedActions,
         conciergeReportID,
     ]);
 
