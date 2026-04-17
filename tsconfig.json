@@ -3,12 +3,10 @@
     "extends": "expo/tsconfig.base",
     "compilerOptions": {
         "types": ["react-native", "react-native-web", "jest", "node"],
-        "lib": ["DOM", "DOM.Iterable", "ESNext"],
+        "lib": ["DOM", "ESNext"],
         "isolatedModules": true,
         "strict": true,
-        "allowSyntheticDefaultImports": true,
         "incremental": true,
-        "baseUrl": ".",
         "paths": {
             "@assets/*": ["./assets/*"],
             "@components/*": ["./src/components/*"],
@@ -22,13 +20,15 @@
             "@styles/*": ["./src/styles/*"],
             "@src/*": ["./src/*"],
             "@userActions/*": ["./src/libs/actions/*"],
-            "@selectors/*": ["./src/selectors/*"]
+            "@selectors/*": ["./src/selectors/*"],
+            "tests/*": ["./tests/*"]
         }
     },
     "ts-node": {
         "compilerOptions": {
-            "module": "commonjs",
-            "moduleResolution": "node"
+            "module": "node16",
+            "moduleResolution": "node16",
+            "rootDir": "."
         }
     },
     "include": [

@@ -389,7 +389,7 @@ function createOptionList(
     const allPersonalDetailsOptions = [] as OptionData[];
 
     for (const personalDetail of Object.values(personalDetails)) {
-        if (!personalDetail || !personalDetail.accountID) {
+        if (!personalDetail?.accountID) {
             continue;
         }
         const reportID = accountIDToReportIDMap[personalDetail.accountID];

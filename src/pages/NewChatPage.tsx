@@ -419,7 +419,7 @@ function NewChatPage({ref}: NewChatPageProps) {
     };
 
     const createGroup = () => {
-        if (!personalData || !personalData.login || !personalData.accountID) {
+        if (!personalData?.login || !personalData.accountID) {
             return;
         }
         const selectedParticipants: SelectedParticipant[] = selectedOptions.map((option) => ({

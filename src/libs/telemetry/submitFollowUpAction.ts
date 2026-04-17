@@ -154,7 +154,7 @@ function endSubmitFollowUpActionSpan(followUpAction: SubmitFollowUpAction, repor
         return;
     }
     const pending = pendingSubmitFollowUpAction;
-    if (!pending || pending.followUpAction !== followUpAction) {
+    if (pending?.followUpAction !== followUpAction) {
         return;
     }
     if (pending.reportID !== undefined && pending.reportID !== reportID) {

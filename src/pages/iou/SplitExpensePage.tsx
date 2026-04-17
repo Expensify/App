@@ -334,7 +334,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         const currentItemReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${currentTransaction?.reportID}`];
         const isApproved = isReportApproved({report: currentItemReport});
         const isSettled = isSettledReportUtils(currentItemReport?.reportID);
-        const isCancelled = currentItemReport && currentItemReport?.isCancelledIOU;
+        const isCancelled = currentItemReport?.isCancelledIOU;
         const percentage = adjustedPercentages.at(index) ?? 0;
 
         const date = DateUtils.formatWithUTCTimeZone(

@@ -232,7 +232,7 @@ function getActiveRoute(): string {
         return '';
     }
 
-    const currentRoute = navigationRef.current && navigationRef.current.getCurrentRoute();
+    const currentRoute = navigationRef.current?.getCurrentRoute();
     if (!currentRoute?.name) {
         return '';
     }
@@ -733,7 +733,7 @@ function getTopmostSuperWideRHPReportParams(
     }
     const topmostRightModalNavigator = state.routes?.at(-1);
 
-    if (!topmostRightModalNavigator || topmostRightModalNavigator.name !== NAVIGATORS.RIGHT_MODAL_NAVIGATOR) {
+    if (topmostRightModalNavigator?.name !== NAVIGATORS.RIGHT_MODAL_NAVIGATOR) {
         return;
     }
 

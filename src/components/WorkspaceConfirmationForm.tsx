@@ -126,7 +126,7 @@ function WorkspaceConfirmationForm({onSubmit, policyOwnerEmail = '', onBackButto
         if (!policies) {
             return false;
         }
-        return Object.values(policies).some((policy) => policy && policy.type === CONST.POLICY.TYPE.CORPORATE);
+        return Object.values(policies).some((policy) => policy?.type === CONST.POLICY.TYPE.CORPORATE);
     }, [policies]);
 
     const defaultPlanType = isMemberOfControlWorkspace ? CONST.POLICY.TYPE.CORPORATE : CONST.POLICY.TYPE.TEAM;

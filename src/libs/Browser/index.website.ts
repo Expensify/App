@@ -16,7 +16,7 @@ const getBrowser: GetBrowser = () => {
         return 'IE';
     }
 
-    if (match[1] && match[1].toLowerCase() === 'chrome') {
+    if (match[1]?.toLowerCase() === 'chrome') {
         temp = userAgent.match(/\b(OPR)/);
         if (temp !== null) {
             return 'Opera';

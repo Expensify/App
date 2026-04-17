@@ -2183,7 +2183,7 @@ function getDisplayNameForWorkspace(email: string, displayNameOverride?: string)
  */
 function newGenerateDefaultWorkspaceName(email: string, lastWorkspaceNumber: number | undefined, localeTranslate: LocalizedTranslate, displayNameOverride?: string): string {
     const emailParts = email.split('@');
-    if (!emailParts || emailParts.length !== 2) {
+    if (emailParts?.length !== 2) {
         return '';
     }
     const domain = emailParts.at(1) ?? '';
@@ -2204,7 +2204,7 @@ function newGenerateDefaultWorkspaceName(email: string, lastWorkspaceNumber: num
  */
 function generateDefaultWorkspaceName(email = '', displayNameOverride?: string): string {
     const emailParts = email ? email.split('@') : deprecatedSessionEmail.split('@');
-    if (!emailParts || emailParts.length !== 2) {
+    if (emailParts?.length !== 2) {
         return '';
     }
     const username = emailParts.at(0) ?? '';

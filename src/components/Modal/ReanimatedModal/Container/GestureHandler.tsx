@@ -16,7 +16,6 @@ function hasSwipeEnded(
 ) {
     'worklet';
 
-    // eslint-disable-next-line @typescript-eslint/prefer-optional-chain
     if (!swipeDirection || !swipeDirection?.length || !onSwipeComplete) {
         return;
     }
@@ -66,7 +65,6 @@ function GestureHandler({swipeDirection, onSwipeComplete, swipeThreshold = 100, 
         [initialTranslationX, initialTranslationY, onSwipeComplete, swipeDirection, swipeThreshold],
     );
 
-    // eslint-disable-next-line @typescript-eslint/prefer-optional-chain
     if (!swipeDirection || !swipeDirection?.length || !onSwipeComplete) {
         return children;
     }
