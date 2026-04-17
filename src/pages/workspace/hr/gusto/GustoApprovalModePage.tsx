@@ -16,6 +16,7 @@ type GustoApprovalModePageProps = PlatformStackScreenProps<WorkspaceSplitNavigat
 function GustoApprovalModePage({route}: GustoApprovalModePageProps) {
     const {translate} = useLocalize();
     const {isBetaEnabled} = usePermissions();
+    const isGustoBetaEnabled = isBetaEnabled(CONST.BETAS.GUSTO) || isBetaEnabled(CONST.BETAS.ALL);
     const {policyID} = route.params;
 
     return (
@@ -23,7 +24,7 @@ function GustoApprovalModePage({route}: GustoApprovalModePageProps) {
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED}
-            shouldBeBlocked={!isBetaEnabled(CONST.BETAS.GUSTO)}
+            shouldBeBlocked={!isGustoBetaEnabled}
         >
             <ScreenWrapper testID="GustoApprovalModePage">
                 <HeaderWithBackButton

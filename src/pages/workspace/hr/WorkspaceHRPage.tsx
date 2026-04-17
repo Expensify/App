@@ -15,6 +15,7 @@ type WorkspaceHRPageProps = PlatformStackScreenProps<WorkspaceSplitNavigatorPara
 function WorkspaceHRPage({route}: WorkspaceHRPageProps) {
     const {translate} = useLocalize();
     const {isBetaEnabled} = usePermissions();
+    const isGustoBetaEnabled = isBetaEnabled(CONST.BETAS.GUSTO) || isBetaEnabled(CONST.BETAS.ALL);
     const {policyID} = route.params;
 
     return (
@@ -22,7 +23,7 @@ function WorkspaceHRPage({route}: WorkspaceHRPageProps) {
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED}
-            shouldBeBlocked={!isBetaEnabled(CONST.BETAS.GUSTO)}
+            shouldBeBlocked={!isGustoBetaEnabled}
         >
             <ScreenWrapper testID="WorkspaceHRPage">
                 <HeaderWithBackButton
