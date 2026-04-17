@@ -119,6 +119,10 @@ const getExpenseHeaders = (groupBy?: SearchGroupBy): SearchColumnConfig[] => [
         translationKey: 'common.originalAmount',
     },
     {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.TOTAL,
+        translationKey: 'common.total',
+    },
+    {
         columnName: CONST.SEARCH.TABLE_COLUMNS.WITHDRAWAL_ID,
         translationKey: 'common.withdrawalID',
     },

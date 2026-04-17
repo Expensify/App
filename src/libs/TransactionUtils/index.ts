@@ -1294,15 +1294,35 @@ function getExchangeRate(transaction: TransactionWithOptionalSearchFields, repor
     const fromCurrency = getCurrency(transaction);
     const toCurrency = transaction.groupCurrency ?? reportCurrency ?? fromCurrency;
 
-    if (transaction.groupExchangeRate && Number(transaction.groupExchangeRate) !== 1) {
-        return `${transaction.groupExchangeRate} ${fromCurrency}/${toCurrency}`;
+    // convertedAmount is only present on report layout data (from Onyx), not in search API results.
+    // When present, use it to check if a conversion actually happened (amount !== convertedAmount).
+    // When absent (search page), trust the groupExchangeRate with the currency check.
+    const hasConvertedAmountData = transaction.convertedAmount != null;
+    const wasActuallyConverted = hasConvertedAmountData && transaction.convertedAmount !== transaction.amount;
+
+    // groupExchangeRate: search page rate (from→groupCurrency).
+    // On the search page (no convertedAmount), trust the currency check alone.
+    // On the report layout (has convertedAmount from Onyx merge), also require wasActuallyConverted.
+    if (transaction.groupExchangeRate != null && transaction.groupCurrency && fromCurrency !== transaction.groupCurrency) {
+        if (!hasConvertedAmountData || wasActuallyConverted) {
+            const groupRate = Number(transaction.groupExchangeRate);
+            if (groupRate !== 1) {
+                return `${transaction.groupExchangeRate} ${fromCurrency}/${toCurrency}`;
+            }
+        }
     }
 
-    if (!transaction.currencyConversionRate || Number(transaction.currencyConversionRate) === 1) {
-        return '';
+    // currencyConversionRate: report layout rate (from→report currency).
+    // Always requires wasActuallyConverted since the backend sets rates for same-currency expenses.
+    const conversionToCurrency = reportCurrency ?? (transaction.currency !== fromCurrency ? transaction.currency : toCurrency);
+    if (wasActuallyConverted && transaction.currencyConversionRate != null && fromCurrency !== conversionToCurrency) {
+        const conversionRate = Number(transaction.currencyConversionRate);
+        if (conversionRate !== 1) {
+            return `${transaction.currencyConversionRate} ${fromCurrency}/${conversionToCurrency}`;
+        }
     }
 
-    return `${transaction.currencyConversionRate} ${fromCurrency}/${toCurrency}`;
+    return '';
 }
 
 /**

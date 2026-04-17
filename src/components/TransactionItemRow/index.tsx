@@ -257,7 +257,7 @@ function TransactionItemRow({
         }
     }, [transactionItem, translate, report]);
 
-    const exchangeRateMessage = getExchangeRate(transactionItem, report?.currency);
+    const exchangeRateMessage = getExchangeRate(transactionItem, report?.currency ?? policy?.outputCurrency);
     const cardName = getCompanyCardDescription(translate, transactionItem?.cardName, transactionItem?.cardID, nonPersonalAndWorkspaceCards);
     const transactionAttendees = useMemo(() => getAttendees(transactionItem, currentUserPersonalDetails), [transactionItem, currentUserPersonalDetails]);
 
@@ -582,6 +582,21 @@ function TransactionItemRow({
                         />
                     </View>
                 );
+            case CONST.SEARCH.TABLE_COLUMNS.TOTAL: {
+                const convertedAmount = transactionItem.convertedAmount ?? 0;
+                const convertedCurrency = report?.currency ?? policy?.outputCurrency ?? getCurrency(transactionItem);
+                return (
+                    <View
+                        key={column}
+                        style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT, {isAmountColumnWide})]}
+                    >
+                        <AmountCell
+                            total={Math.abs(convertedAmount)}
+                            currency={convertedCurrency}
+                        />
+                    </View>
+                );
+            }
             case CONST.SEARCH.TABLE_COLUMNS.REPORT_ID:
                 return (
                     <View

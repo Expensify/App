@@ -6,6 +6,7 @@ import {View} from 'react-native';
 // ScrollView type is needed for the horizontal scroll ref; the project ScrollView component is used for rendering.
 // eslint-disable-next-line no-restricted-imports
 import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent, ScrollView as RNScrollView} from 'react-native';
+import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import Checkbox from '@components/Checkbox';
 import MenuItem from '@components/MenuItem';
@@ -30,6 +31,7 @@ import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useResponsiveLayoutOnWideRHP from '@hooks/useResponsiveLayoutOnWideRHP';
 import useStyleUtils from '@hooks/useStyleUtils';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
@@ -135,6 +137,7 @@ function MoneyRequestReportTransactionList({
 }: MoneyRequestReportTransactionListProps) {
     useCopySelectionHelper();
     const styles = useThemeStyles();
+    const theme = useTheme();
     const StyleUtils = useStyleUtils();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Location', 'CheckSquare', 'ReceiptPlus', 'Columns', 'Plus']);
     const {translate, localeCompare} = useLocalize();
@@ -252,6 +255,7 @@ function MoneyRequestReportTransactionList({
     // Always use default columns for money request report view (don't use user-customized search columns)
     const isExpenseReportViewFromIOUReport = isIOUReport(report);
     const shouldShowBillableColumn = isBillableEnabledOnPolicy(policy);
+    const shouldShowCommentsColumn = useMemo(() => Object.values(reportActions ?? {}).some((action) => (action?.childVisibleActionCount ?? 0) > 0), [reportActions]);
     const columnsToShow = useMemo(() => {
         return getColumnsToShow({
             currentAccountID: currentUserDetails?.accountID,
@@ -260,10 +264,11 @@ function MoneyRequestReportTransactionList({
             isExpenseReportView: true,
             isExpenseReportViewFromIOUReport,
             shouldShowBillableColumn,
+            shouldShowCommentsColumn,
             shouldShowReimbursableColumn: hasNonReimbursableTransactions(transactions),
             reportCurrency: report?.currency,
         });
-    }, [currentUserDetails?.accountID, transactions, isExpenseReportViewFromIOUReport, reportDetailsColumns, shouldShowBillableColumn, report?.currency]);
+    }, [transactions, currentUserDetails?.accountID, isExpenseReportViewFromIOUReport, shouldShowBillableColumn, shouldShowCommentsColumn, reportDetailsColumns, report?.currency]);
 
     const {windowWidth, windowHeight} = useWindowDimensions();
     const minTableWidth = getTableMinWidth(columnsToShow);
@@ -476,6 +481,10 @@ function MoneyRequestReportTransactionList({
         [translate],
     );
 
+    const openColumnsPage = useCallback(() => {
+        Navigation.navigate(ROUTES.REPORT_SETTINGS_COLUMNS.getRoute(report.reportID));
+    }, [report.reportID]);
+
     const selectedGroupByItem = useMemo(() => groupByItems.find((item) => item.value === currentGroupBy) ?? groupByItems.at(0), [groupByItems, currentGroupBy]);
 
     const groupByOptions = useMemo(
@@ -659,6 +668,19 @@ function MoneyRequestReportTransactionList({
                         label={translate('search.display.groupBy')}
                         value={selectedGroupByItem?.text ?? ''}
                         PopoverComponent={groupByPopoverComponent}
+                    />
+                )}
+                {!shouldUseNarrowLayout && !isExpenseReportViewFromIOUReport && (
+                    <Button
+                        link
+                        small
+                        shouldUseDefaultHover={false}
+                        text={translate('search.columns')}
+                        iconFill={theme.link}
+                        iconHoverFill={theme.linkHover}
+                        icon={expensifyIcons.Columns}
+                        textStyles={[styles.textMicroBold]}
+                        onPress={openColumnsPage}
                     />
                 )}
             </View>

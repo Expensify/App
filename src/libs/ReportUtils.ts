@@ -13399,6 +13399,7 @@ const sortableColumnNames = [
     CONST.SEARCH.TABLE_COLUMNS.CATEGORY,
     CONST.SEARCH.TABLE_COLUMNS.TAG,
     CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT,
+    CONST.SEARCH.TABLE_COLUMNS.TOTAL,
     CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE,
     CONST.SEARCH.TABLE_COLUMNS.BILLABLE,
     CONST.SEARCH.TABLE_COLUMNS.EXCHANGE_RATE,
@@ -13433,6 +13434,8 @@ function getTransactionSortValue(transaction: Transaction, key: SortableColumnNa
             return getTag(transaction);
         case CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT:
             return getTransactionAmount(transaction, isExpenseReport(report), transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID);
+        case CONST.SEARCH.TABLE_COLUMNS.TOTAL:
+            return Math.abs(transaction.convertedAmount ?? 0);
         case CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION:
             return Parser.htmlToText(transaction.comment?.comment ?? '');
         case CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE:
