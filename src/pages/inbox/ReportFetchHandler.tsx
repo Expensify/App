@@ -4,6 +4,7 @@ import {InteractionManager} from 'react-native';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useIsAnonymousUser from '@hooks/useIsAnonymousUser';
 import useIsInSidePanel from '@hooks/useIsInSidePanel';
+import useIsOwnWorkspaceChatRef from '@hooks/useIsOwnWorkspaceChatRef';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
@@ -91,6 +92,9 @@ function ReportFetchHandler() {
 
     const isTransactionThreadView = isReportTransactionThread(report);
 
+    // Track whether the current route is an own workspace chat. See issue #84248.
+    const isCurrentRouteOwnWorkspaceChatRef = useIsOwnWorkspaceChatRef(report, reportIDFromRoute);
+
     const indexOfLinkedMessage = reportActionIDFromRoute ? reportActions.findIndex((obj) => String(obj.reportActionID) === String(reportActionIDFromRoute)) : -1;
     const doesCreatedActionExists = !!reportActions?.findLast((action) => isCreatedAction(action));
     const isLinkedMessageAvailable = indexOfLinkedMessage > -1;
@@ -150,6 +154,21 @@ function ReportFetchHandler() {
     });
 
     // Effect order below matches the original declaration order in ReportScreen.tsx.
+
+    // When a delegate splits an expense the server sends a temporary Onyx SET that wipes the
+    // workspace chat. The navigation guards in ReportScreen block any redirect, but the report
+    // stays blank until something re-fetches it. This effect detects the wipe and re-fetches.
+    // See issue #84248.
+    const prevReportID = usePrevious(report?.reportID);
+    useEffect(() => {
+        const wasJustWiped = !!prevReportID && prevReportID === reportIDFromRoute && !report?.reportID;
+        if (!wasJustWiped || !isCurrentRouteOwnWorkspaceChatRef.current) {
+            return;
+        }
+        fetchReport();
+        // fetchReport is a stable useEffectEvent callback and does not need to be listed as a dependency.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [report?.reportID, prevReportID, reportIDFromRoute]);
 
     useEffect(() => {
         if (!transactionThreadReportID || !route?.params?.reportActionID || !isOneTransactionThread(childReport, report, linkedAction)) {
