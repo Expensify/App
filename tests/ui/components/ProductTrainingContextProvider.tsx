@@ -6,6 +6,7 @@ import {ProductTrainingContextProvider, useProductTrainingContext} from '@compon
 import type {ProductTrainingTooltipName} from '@components/ProductTrainingContext/TOOLTIPS';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import DateUtils from '@libs/DateUtils';
+import {setHasRadio} from '@libs/NetworkState';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import * as TestHelper from '../../utils/TestHelper';
@@ -29,6 +30,7 @@ const DEFAULT_USE_RESPONSIVE_LAYOUT_VALUE = {
     isSmallScreen: false,
     onboardingIsMediumOrLargerScreenWidth: false,
     isExtraLargeScreenWidth: false,
+    isInLandscapeMode: false,
 };
 
 const TEST_USER_ACCOUNT_ID = 1;
@@ -64,7 +66,7 @@ describe('ProductTrainingContextProvider', () => {
     beforeEach(() => {
         // Set up test environment before each test
         wrapOnyxWithWaitForBatchedUpdates(Onyx);
-        Onyx.merge(ONYXKEYS.NETWORK, {isOffline: false});
+        setHasRadio(true);
         Onyx.merge(ONYXKEYS.IS_LOADING_APP, false);
         signUpWithTestUser();
     });

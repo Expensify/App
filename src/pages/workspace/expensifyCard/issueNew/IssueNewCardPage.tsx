@@ -4,7 +4,6 @@ import {useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvide
 import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 import {startIssueNewCardFlow} from '@libs/actions/Card';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -26,7 +25,7 @@ import SetExpiryOptionsStep from './SetExpiryOptionsStep';
 
 type IssueNewCardPageProps = WithPolicyAndFullscreenLoadingProps & PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.EXPENSIFY_CARD_ISSUE_NEW>;
 
-function getStartStepIndex(issueNewCard: OnyxEntry<IssueNewCard>, isSingleUseEnabled: boolean): number {
+function getStartStepIndex(issueNewCard: OnyxEntry<IssueNewCard>): number {
     if (!issueNewCard) {
         return 0;
     }
@@ -37,8 +36,8 @@ function getStartStepIndex(issueNewCard: OnyxEntry<IssueNewCard>, isSingleUseEna
         [CONST.EXPENSIFY_CARD.STEP.CARD_TYPE]: 1,
         [CONST.EXPENSIFY_CARD.STEP.LIMIT_TYPE]: 2,
         [CONST.EXPENSIFY_CARD.STEP.EXPIRY_OPTIONS]: 3,
-        [CONST.EXPENSIFY_CARD.STEP.CARD_NAME]: isSingleUseEnabled ? 4 : 3,
-        [CONST.EXPENSIFY_CARD.STEP.CONFIRMATION]: isSingleUseEnabled ? 5 : 4,
+        [CONST.EXPENSIFY_CARD.STEP.CARD_NAME]: 4,
+        [CONST.EXPENSIFY_CARD.STEP.CONFIRMATION]: 5,
     };
 
     const stepIndex = STEP_INDEXES[issueNewCard.currentStep];
@@ -51,16 +50,14 @@ function IssueNewCardPage({policy, route}: IssueNewCardPageProps) {
     const {currentStep} = issueNewCard ?? {};
     const backTo = route?.params?.backTo;
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
-    const {isBetaEnabled} = usePermissions();
-    const isSingleUseEnabled = isBetaEnabled(CONST.BETAS.SINGLE_USE_AND_EXPIRE_BY_CARDS);
 
     const stepNames = useMemo(() => {
         if (issueNewCard?.isChangeAssigneeDisabled) {
-            return isSingleUseEnabled ? CONST.EXPENSIFY_CARD.ASSIGNEE_EXCLUDED_STEP_NAMES : CONST.EXPENSIFY_CARD.SINGLE_USE_AND_ASSIGNEE_EXCLUDED_STEP_NAMES;
+            return CONST.EXPENSIFY_CARD.ASSIGNEE_EXCLUDED_STEP_NAMES;
         }
-        return isSingleUseEnabled ? CONST.EXPENSIFY_CARD.STEP_NAMES : CONST.EXPENSIFY_CARD.SINGLE_USE_DISABLED_STEP_NAMES;
-    }, [issueNewCard?.isChangeAssigneeDisabled, isSingleUseEnabled]);
-    const startStepIndex = useMemo(() => getStartStepIndex(issueNewCard, isSingleUseEnabled), [issueNewCard, isSingleUseEnabled]);
+        return CONST.EXPENSIFY_CARD.STEP_NAMES;
+    }, [issueNewCard?.isChangeAssigneeDisabled]);
+    const startStepIndex = useMemo(() => getStartStepIndex(issueNewCard), [issueNewCard]);
 
     useEffect(() => {
         startIssueNewCardFlow(policyID);

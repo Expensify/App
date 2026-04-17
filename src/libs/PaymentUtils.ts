@@ -19,7 +19,7 @@ import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type PaymentMethod from '@src/types/onyx/PaymentMethod';
 import type {ACHAccount} from '@src/types/onyx/Policy';
 import {setPersonalBankAccountContinueKYCOnSuccess} from './actions/BankAccounts';
-import {approveMoneyRequest} from './actions/IOU';
+import {approveMoneyRequest} from './actions/IOU/ReportWorkflow';
 import {isBankAccountPartiallySetup} from './BankAccountUtils';
 import BankAccountModel from './models/BankAccount';
 import Navigation from './Navigation/Navigation';
@@ -33,6 +33,8 @@ type SelectPaymentTypeParams = {
     event: KYCFlowEvent;
     iouPaymentType: PaymentMethodType;
     triggerKYCFlow: TriggerKYCFlow;
+    /** The policy corresponding to iouReport.policyID. Used for billing restriction checks. */
+    expenseReportPolicy: OnyxEntry<Policy>;
     policy: OnyxEntry<Policy>;
     onPress: (params: PaymentActionParams) => void;
     currentAccountID: number;
@@ -44,8 +46,10 @@ type SelectPaymentTypeParams = {
     iouReport?: OnyxEntry<Report>;
     iouReportNextStep: OnyxEntry<ReportNextStepDeprecated>;
     betas: OnyxEntry<Beta[]>;
-    userBillingGraceEndPeriods: OnyxCollection<BillingGraceEndPeriod>;
+    userBillingGracePeriodEnds: OnyxCollection<BillingGraceEndPeriod>;
     amountOwed: OnyxEntry<number>;
+    ownerBillingGracePeriodEnd: OnyxEntry<number>;
+    delegateEmail: string | undefined;
 };
 
 type BusinessBankAccountOption = {
@@ -161,7 +165,12 @@ function getBusinessBankAccountOptions(formattedPaymentMethods: PaymentMethod[])
             }
             const accountData = method.accountData;
             const isPartiallySetup = isBankAccountPartiallySetup(accountData.state);
-            return accountData.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS && accountData.state === CONST.BANK_ACCOUNT.STATE.OPEN && method?.methodID != null && !isPartiallySetup;
+            return (
+                accountData.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS &&
+                (accountData.state === CONST.BANK_ACCOUNT.STATE.OPEN || accountData.state === CONST.BANK_ACCOUNT.STATE.LOCKED) &&
+                method?.methodID != null &&
+                !isPartiallySetup
+            );
         })
         .map((formattedPaymentMethod) => ({
             text: formattedPaymentMethod?.title ?? '',
@@ -213,6 +222,7 @@ const selectPaymentType = (params: SelectPaymentTypeParams) => {
         event,
         iouPaymentType,
         triggerKYCFlow,
+        expenseReportPolicy,
         policy,
         onPress,
         currentAccountID,
@@ -224,10 +234,12 @@ const selectPaymentType = (params: SelectPaymentTypeParams) => {
         iouReport,
         iouReportNextStep,
         betas,
-        userBillingGraceEndPeriods,
+        userBillingGracePeriodEnds,
         amountOwed,
+        ownerBillingGracePeriodEnd,
+        delegateEmail,
     } = params;
-    if (policy && shouldRestrictUserBillableActions(policy.id, userBillingGraceEndPeriods, amountOwed)) {
+    if (policy && shouldRestrictUserBillableActions(policy.id, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, policy)) {
         Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
         return;
     }
@@ -247,6 +259,7 @@ const selectPaymentType = (params: SelectPaymentTypeParams) => {
         } else {
             approveMoneyRequest({
                 expenseReport: iouReport,
+                expenseReportPolicy,
                 policy,
                 currentUserAccountIDParam: currentAccountID,
                 currentUserEmailParam: currentEmail,
@@ -254,9 +267,11 @@ const selectPaymentType = (params: SelectPaymentTypeParams) => {
                 isASAPSubmitBetaEnabled,
                 expenseReportCurrentNextStepDeprecated: iouReportNextStep,
                 betas,
-                userBillingGraceEndPeriods,
+                userBillingGracePeriodEnds,
                 amountOwed,
+                ownerBillingGracePeriodEnd,
                 full: true,
+                delegateEmail,
             });
         }
         return;

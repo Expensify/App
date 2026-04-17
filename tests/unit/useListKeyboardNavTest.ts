@@ -88,6 +88,52 @@ describe('useListKeyboardNav', () => {
         cleanup();
     });
 
+    it('should wrap from last item to first on ArrowDown', () => {
+        const {ref, cleanup} = createContainerRef();
+        const {result} = renderHook(() =>
+            useListKeyboardNav({
+                isActive: true,
+                itemKeys: ['a', 'b', 'c'],
+                disabledIndexes: [],
+                containerRef: ref,
+            }),
+        );
+
+        // Navigate to last item
+        pressArrowDown();
+        pressArrowDown();
+        pressArrowDown();
+        expect(result.current.focusedIndex).toBe(2);
+
+        // ArrowDown at last item should wrap to first
+        pressArrowDown();
+        expect(result.current.focusedIndex).toBe(0);
+
+        cleanup();
+    });
+
+    it('should wrap from first item to last on ArrowUp', () => {
+        const {ref, cleanup} = createContainerRef();
+        const {result} = renderHook(() =>
+            useListKeyboardNav({
+                isActive: true,
+                itemKeys: ['a', 'b', 'c'],
+                disabledIndexes: [],
+                containerRef: ref,
+            }),
+        );
+
+        // Navigate to first item
+        pressArrowDown();
+        expect(result.current.focusedIndex).toBe(0);
+
+        // ArrowUp at first item should wrap to last
+        pressArrowUp();
+        expect(result.current.focusedIndex).toBe(2);
+
+        cleanup();
+    });
+
     it('should disable arrow keys when isActive is false', () => {
         const {ref, cleanup} = createContainerRef();
         const {result} = renderHook(() =>

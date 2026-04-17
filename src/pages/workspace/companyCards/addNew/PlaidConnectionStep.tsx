@@ -13,6 +13,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setAddNewCompanyCardStepAndData, setAssignCardStepAndData} from '@libs/actions/CompanyCards';
+import getPlaidOAuthReceivedRedirectURI from '@libs/getPlaidOAuthReceivedRedirectURI';
 import KeyboardShortcut from '@libs/KeyboardShortcut';
 import Log from '@libs/Log';
 import {getDomainNameForPolicy} from '@libs/PolicyUtils';
@@ -27,17 +28,14 @@ import type {CompanyCardFeedWithDomainID} from '@src/types/onyx';
 import type {CardFeedWithNumber} from '@src/types/onyx/CardFeeds';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-function PlaidConnectionStep({
-    feed,
-    policyID,
-    onExit,
-    isRefreshConnectionFlow,
-}: {
+type PlaidConnectionStepProps = {
     feed?: CompanyCardFeedWithDomainID;
     policyID?: string;
     onExit?: () => void;
-    isRefreshConnectionFlow?: boolean;
-}) {
+    title?: string;
+};
+
+function PlaidConnectionStep({feed, policyID, onExit, title}: PlaidConnectionStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD);
@@ -124,6 +122,7 @@ function PlaidConnectionStep({
             return (
                 <PlaidLink
                     token={plaidLinkToken}
+                    receivedRedirectURI={getPlaidOAuthReceivedRedirectURI()}
                     onSuccess={({publicToken, metadata}) => {
                         // on success we need to move to bank connection screen with token, bank name = plaid
                         Log.info('[PlaidLink] Success!');
@@ -228,7 +227,7 @@ function PlaidConnectionStep({
             shouldEnableMaxHeight
         >
             <HeaderWithBackButton
-                title={translate(isRefreshConnectionFlow ? 'workspace.moreFeatures.companyCards.assignNewCards' : 'workspace.companyCards.addCards')}
+                title={title ?? translate('workspace.companyCards.addCards')}
                 onBackButtonPress={handleBackButtonPress}
             />
             {isPlaidDisabled ? (

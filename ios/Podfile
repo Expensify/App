@@ -89,6 +89,8 @@ target 'NewExpensify' do
 
   # ENV Variable enables/disables TurboModules
   ENV['RCT_NEW_ARCH_ENABLED'] = '1';
+  # ENV Variable enables/disables Hermes V1
+  ENV['RCT_HERMES_V1_ENABLED'] = '1';
 
 
   use_react_native!(
@@ -131,4 +133,4 @@ target 'NotificationServiceExtension' do
   pod 'AppLogs', :path => '../node_modules/react-native-app-logs/AppLogsPod'
 end
 
-pod 'FullStory', :http => 'https://ios-releases.fullstory.com/fullstory-1.64.2-xcframework.tar.gz'
+pod 'FullStory', :http => 'https://ios-releases.fullstory.com/fullstory-1.68.3-xcframework.tar.gz'

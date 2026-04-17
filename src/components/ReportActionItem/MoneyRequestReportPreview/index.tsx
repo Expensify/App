@@ -1,3 +1,4 @@
+import {useIsFocused} from '@react-navigation/native';
 import type {ListRenderItem} from '@shopify/flash-list';
 import React, {useCallback, useMemo, useRef, useState} from 'react';
 import type {LayoutChangeEvent} from 'react-native';
@@ -38,6 +39,7 @@ function MoneyRequestReportPreview({
     onPaymentOptionsHide,
     shouldDisplayContextMenu = true,
     shouldShowBorder,
+    originalReportID,
 }: MoneyRequestReportPreviewProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -121,8 +123,9 @@ function MoneyRequestReportPreview({
         selector: hasOnceLoadedReportActionsSelector,
     });
     const newTransactions = useNewTransactions(hasOnceLoadedReportActions, transactions);
+    const isFocused = useIsFocused();
     // We only want to highlight the new expenses if the screen is focused.
-    const newTransactionIDs = new Set(newTransactions.map((transaction) => transaction.transactionID));
+    const newTransactionIDs = isFocused ? new Set(newTransactions.map((transaction) => transaction.transactionID)) : undefined;
 
     const transactionPreviewContainerStyles = [styles.h100, reportPreviewStyles.transactionPreviewCarouselStyle];
 
@@ -146,6 +149,7 @@ function MoneyRequestReportPreview({
             onPreviewPressed={openReportFromPreview}
             shouldShowPayerAndReceiver={shouldShowPayerAndReceiver}
             shouldHighlight={!!newTransactionIDs?.has(item.transactionID)}
+            originalReportID={originalReportID}
         />
     );
 
@@ -178,6 +182,7 @@ function MoneyRequestReportPreview({
             onPress={openReportFromPreview}
             shouldShowBorder={shouldShowBorder}
             forwardedFSClass={CONST.FULLSTORY.CLASS.UNMASK}
+            originalReportID={originalReportID}
         />
     );
 }

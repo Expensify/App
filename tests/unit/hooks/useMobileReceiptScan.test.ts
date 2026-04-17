@@ -18,7 +18,7 @@ jest.mock('@libs/actions/Welcome', () => ({
 
 jest.mock('@userActions/TransactionEdit', () => ({
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-    removeDraftTransactions: (...args: unknown[]) => mockRemoveDraftTransactions(...args),
+    removeDraftTransactionsByIDs: (...args: unknown[]) => mockRemoveDraftTransactions(...args),
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     removeTransactionReceipt: (...args: unknown[]) => mockRemoveTransactionReceipt(...args),
 }));
@@ -37,6 +37,7 @@ function createDefaultParams(): UseMobileReceiptScanParams {
         shouldSkipConfirmation: false,
         setStartLocationPermissionFlow: jest.fn(),
         setIsMultiScanEnabled: jest.fn(),
+        setReceiptFiles: jest.fn(),
     };
 }
 
@@ -103,7 +104,7 @@ describe('useMobileReceiptScan', () => {
             expect(result.current.shouldShowMultiScanEducationalPopup).toBe(true);
             expect(setIsMultiScanEnabled).toHaveBeenCalledWith(true);
             expect(mockRemoveTransactionReceipt).toHaveBeenCalledWith(CONST.IOU.OPTIMISTIC_TRANSACTION_ID);
-            expect(mockRemoveDraftTransactions).toHaveBeenCalledWith(true);
+            expect(mockRemoveDraftTransactions).toHaveBeenCalledWith(expect.anything(), true);
         });
 
         it('should not set shouldShowMultiScanEducationalPopup to true after the modal is dismissed', async () => {
@@ -127,7 +128,37 @@ describe('useMobileReceiptScan', () => {
             expect(result.current.shouldShowMultiScanEducationalPopup).toBe(false);
             expect(setIsMultiScanEnabled).toHaveBeenCalledWith(true);
             expect(mockRemoveTransactionReceipt).toHaveBeenCalledWith(CONST.IOU.OPTIMISTIC_TRANSACTION_ID);
-            expect(mockRemoveDraftTransactions).toHaveBeenCalledWith(true);
+            expect(mockRemoveDraftTransactions).toHaveBeenCalledWith(expect.anything(), true);
+        });
+
+        it('should clear receiptFiles when disabling multi-scan', async () => {
+            const setReceiptFiles = jest.fn();
+            const setIsMultiScanEnabled = jest.fn();
+            const toggleParams = {...params, setIsMultiScanEnabled, setReceiptFiles, isMultiScanEnabled: true};
+            const {result} = renderHook(() => useMobileReceiptScan(toggleParams));
+            await waitForBatchedUpdatesWithAct();
+
+            await act(async () => {
+                result.current.toggleMultiScan();
+            });
+
+            expect(setReceiptFiles).toHaveBeenCalledWith([]);
+            expect(setIsMultiScanEnabled).toHaveBeenCalledWith(false);
+        });
+
+        it('should not clear receiptFiles when enabling multi-scan', async () => {
+            const setReceiptFiles = jest.fn();
+            const setIsMultiScanEnabled = jest.fn();
+            const toggleParams = {...params, setIsMultiScanEnabled, setReceiptFiles, isMultiScanEnabled: false};
+            const {result} = renderHook(() => useMobileReceiptScan(toggleParams));
+            await waitForBatchedUpdatesWithAct();
+
+            await act(async () => {
+                result.current.toggleMultiScan();
+            });
+
+            expect(setReceiptFiles).not.toHaveBeenCalled();
+            expect(setIsMultiScanEnabled).toHaveBeenCalledWith(true);
         });
     });
 

@@ -1,5 +1,5 @@
-import React, {useState} from 'react';
-import type {RefObject} from 'react';
+import React, {Activity, useState} from 'react';
+import type {ActivityProps, RefObject} from 'react';
 import {View} from 'react-native';
 import FocusTrapForModal from '@components/FocusTrap/FocusTrapForModal';
 import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
@@ -40,6 +40,7 @@ function FABPopoverMenu({isVisible, onClose, onItemSelected, anchorRef, animatio
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {windowHeight} = useWindowDimensions();
     const anchorPosition = styles.createMenuPositionSidebar(windowHeight);
+    const [contentActivityMode, setContentActivityMode] = useState<ActivityProps['mode']>(isVisible ? 'visible' : 'hidden');
 
     const [registeredSet, setRegisteredSet] = useState<ReadonlySet<string>>(new Set());
 
@@ -74,6 +75,11 @@ function FABPopoverMenu({isVisible, onClose, onItemSelected, anchorRef, animatio
         isActive: isVisible,
     });
 
+    const handleClose = () => {
+        setFocusedIndex(-1);
+        onClose();
+    };
+
     const onItemPress = (onSelected: () => void, options?: {shouldCallAfterModalHide?: boolean}) => {
         onItemSelected();
         if (options?.shouldCallAfterModalHide && !isSafari()) {
@@ -105,8 +111,10 @@ function FABPopoverMenu({isVisible, onClose, onItemSelected, anchorRef, animatio
                     horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
                     vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
                 }}
-                onClose={onClose}
+                onClose={handleClose}
                 isVisible={isVisible}
+                onModalWillShow={() => setContentActivityMode('visible')}
+                onModalHide={() => setContentActivityMode('hidden')}
                 fromSidebarMediumScreen={!shouldUseNarrowLayout}
                 animationIn="fadeIn"
                 animationOut="fadeOut"
@@ -120,9 +128,11 @@ function FABPopoverMenu({isVisible, onClose, onItemSelected, anchorRef, animatio
                     active={isVisible}
                     shouldReturnFocus
                 >
-                    <View style={shouldUseNarrowLayout ? styles.flexGrow1 : [styles.createMenuContainer, styles.pv0, styles.flex1]}>
-                        <View style={styles.pv4}>{children}</View>
-                    </View>
+                    <Activity mode={contentActivityMode}>
+                        <View style={shouldUseNarrowLayout ? styles.flexGrow1 : [styles.createMenuContainer, styles.pv0, styles.flex1]}>
+                            <View style={styles.pv4}>{children}</View>
+                        </View>
+                    </Activity>
                 </FocusTrapForModal>
             </PopoverWithMeasuredContent>
         </FABMenuContext.Provider>

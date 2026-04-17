@@ -2,18 +2,21 @@ import {render} from '@testing-library/react-native';
 import React from 'react';
 import {View} from 'react-native';
 import Onyx from 'react-native-onyx';
+import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import {init as activeClientManagerInit, isClientTheLeader, isReady} from '@libs/ActiveClientManager';
 import AuthScreensInitHandler from '@libs/Navigation/AppNavigator/AuthScreensInitHandler';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
 import Navigation from '@libs/Navigation/Navigation';
-import NetworkConnection from '@libs/NetworkConnection';
 import Pusher from '@libs/Pusher';
 import {didUserLogInDuringSession, isLoggingInAsNewUser} from '@libs/SessionUtils';
-import {openApp, reconnectApp} from '@userActions/App';
+import {openApp} from '@userActions/App';
 import {signOutAndRedirectToSignIn} from '@userActions/Session';
 import {subscribeToUserEvents} from '@userActions/User';
+import CONST from '@src/CONST';
+import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {ReportAttributesDerivedValue} from '@src/types/onyx';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
@@ -58,15 +61,6 @@ jest.mock('@libs/SessionUtils', () => ({
     didUserLogInDuringSession: jest.fn(() => false),
 }));
 
-jest.mock('@libs/NetworkConnection', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
-    __esModule: true,
-    default: {
-        listenForReconnect: jest.fn(),
-        onReconnect: jest.fn(),
-    },
-}));
-
 jest.mock('@libs/ActiveClientManager', () => ({
     isClientTheLeader: jest.fn(() => true),
     init: jest.fn(),
@@ -78,6 +72,7 @@ jest.mock('@userActions/App', () => ({
     reconnectApp: jest.fn(),
     setUpPoliciesAndNavigate: jest.fn(),
     confirmReadyToOpenApp: jest.fn(),
+    setLocale: jest.fn(),
 }));
 
 jest.mock('@userActions/Download', () => ({
@@ -121,19 +116,20 @@ const mockedIsLoggingInAsNewUser = jest.mocked(isLoggingInAsNewUser);
 const mockedDidUserLogInDuringSession = jest.mocked(didUserLogInDuringSession);
 const mockedIsClientTheLeader = jest.mocked(isClientTheLeader);
 const mockedIsReady = jest.mocked(isReady);
-const mockedOnReconnect = jest.mocked(NetworkConnection.onReconnect);
-
 function renderAuthScreensInitHandler() {
     return render(
-        <View>
-            <AuthScreensInitHandler />
-        </View>,
+        <LocaleContextProvider>
+            <View>
+                <AuthScreensInitHandler />
+            </View>
+        </LocaleContextProvider>,
     );
 }
 
 describe('AuthScreensInitHandler', () => {
     beforeAll(() => {
         Onyx.init({keys: ONYXKEYS});
+        return IntlStore.load(CONST.LOCALES.EN);
     });
 
     beforeEach(async () => {
@@ -150,37 +146,18 @@ describe('AuthScreensInitHandler', () => {
         await waitForBatchedUpdates();
     });
 
-    it('passes conciergeReportID to subscribeToUserEvents on mount', async () => {
-        const conciergeReportID = '12345';
-
+    it('calls subscribeToUserEvents with a getter function on mount', async () => {
         await Onyx.merge(ONYXKEYS.SESSION, {accountID: TEST_ACCOUNT_ID, email: 'test@test.com'});
-        await Onyx.merge(ONYXKEYS.CONCIERGE_REPORT_ID, conciergeReportID);
         await waitForBatchedUpdates();
 
         renderAuthScreensInitHandler();
         await waitForBatchedUpdatesWithAct();
 
         expect(mockedPusherInit).toHaveBeenCalled();
-        expect(subscribeToUserEvents).toHaveBeenCalledWith(TEST_ACCOUNT_ID, conciergeReportID);
+        expect(subscribeToUserEvents).toHaveBeenCalledWith(TEST_ACCOUNT_ID, expect.any(Function));
     });
 
-    it('calls initializePusher when SIGN_IN_MODAL is active and conciergeReportID is loaded', async () => {
-        mockedIsActiveRoute.mockReturnValue(true);
-
-        const conciergeReportID = '67890';
-
-        await Onyx.merge(ONYXKEYS.SESSION, {accountID: TEST_ACCOUNT_ID, email: 'test@test.com'});
-        await Onyx.merge(ONYXKEYS.CONCIERGE_REPORT_ID, conciergeReportID);
-        await waitForBatchedUpdates();
-
-        renderAuthScreensInitHandler();
-        await waitForBatchedUpdatesWithAct();
-
-        // subscribeToUserEvents should be called with conciergeReportID from both mount and sign-in modal effects
-        expect(subscribeToUserEvents).toHaveBeenCalledWith(TEST_ACCOUNT_ID, conciergeReportID);
-    });
-
-    it('does not call initializePusher from sign-in modal effect when conciergeReportID is still loading', async () => {
+    it('calls subscribeToUserEvents from sign-in modal effect when SIGN_IN_MODAL is active', async () => {
         mockedIsActiveRoute.mockReturnValue(true);
 
         await Onyx.merge(ONYXKEYS.SESSION, {accountID: TEST_ACCOUNT_ID, email: 'test@test.com'});
@@ -189,18 +166,39 @@ describe('AuthScreensInitHandler', () => {
         renderAuthScreensInitHandler();
         await waitForBatchedUpdatesWithAct();
 
-        // The mount effect calls subscribeToUserEvents with undefined conciergeReportID
-        expect(subscribeToUserEvents).toHaveBeenCalledWith(TEST_ACCOUNT_ID, undefined);
+        // Both mount effect AND sign-in modal effect fire → 2 calls
+        expect(subscribeToUserEvents).toHaveBeenCalledTimes(2);
+        expect(subscribeToUserEvents).toHaveBeenCalledWith(TEST_ACCOUNT_ID, expect.any(Function));
     });
 
-    it('passes undefined conciergeReportID when not set', async () => {
+    it('getter passed to subscribeToUserEvents returns report attributes when available', async () => {
+        const mockReports = {testReport: {reportName: 'Test Report'}} as unknown as ReportAttributesDerivedValue['reports'];
+
         await Onyx.merge(ONYXKEYS.SESSION, {accountID: TEST_ACCOUNT_ID, email: 'test@test.com'});
+        await Onyx.merge(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {reports: mockReports});
         await waitForBatchedUpdates();
 
         renderAuthScreensInitHandler();
         await waitForBatchedUpdatesWithAct();
 
-        expect(subscribeToUserEvents).toHaveBeenCalledWith(TEST_ACCOUNT_ID, undefined);
+        const mockCalls = (subscribeToUserEvents as jest.Mock).mock.calls;
+        const firstCallArgs = mockCalls.at(0) as unknown[];
+        const getter = firstCallArgs.at(1) as () => unknown;
+        expect(getter()).toEqual(mockReports);
+    });
+
+    it('getter passed to subscribeToUserEvents returns undefined when report attributes not yet loaded', async () => {
+        await Onyx.merge(ONYXKEYS.SESSION, {accountID: TEST_ACCOUNT_ID, email: 'test@test.com'});
+        // Intentionally do not set ONYXKEYS.DERIVED.REPORT_ATTRIBUTES
+        await waitForBatchedUpdates();
+
+        renderAuthScreensInitHandler();
+        await waitForBatchedUpdatesWithAct();
+
+        const mockCalls = (subscribeToUserEvents as jest.Mock).mock.calls;
+        const firstCallArgs = mockCalls.at(0) as unknown[];
+        const getter = firstCallArgs.at(1) as () => unknown;
+        expect(getter()).toBeUndefined();
     });
 
     it('signs out when logging in as new user during transition', async () => {
@@ -214,39 +212,6 @@ describe('AuthScreensInitHandler', () => {
         await waitForBatchedUpdatesWithAct();
 
         expect(signOutAndRedirectToSignIn).toHaveBeenCalledWith(false, false);
-    });
-
-    it('calls handleNetworkReconnect with openApp when isLoadingApp is true', async () => {
-        await Onyx.merge(ONYXKEYS.SESSION, {accountID: TEST_ACCOUNT_ID, email: 'test@test.com'});
-        await Onyx.merge(ONYXKEYS.IS_LOADING_APP, true);
-        await waitForBatchedUpdates();
-
-        renderAuthScreensInitHandler();
-        await waitForBatchedUpdatesWithAct();
-
-        // Get the reconnect handler that was registered
-        expect(mockedOnReconnect).toHaveBeenCalled();
-
-        const reconnectHandler = mockedOnReconnect.mock.calls.at(0)?.[0] as () => void;
-        reconnectHandler();
-
-        expect(openApp).toHaveBeenCalled();
-    });
-
-    it('calls handleNetworkReconnect with reconnectApp when isLoadingApp is false', async () => {
-        await Onyx.merge(ONYXKEYS.SESSION, {accountID: TEST_ACCOUNT_ID, email: 'test@test.com'});
-        await Onyx.merge(ONYXKEYS.IS_LOADING_APP, false);
-        await waitForBatchedUpdates();
-
-        renderAuthScreensInitHandler();
-        await waitForBatchedUpdatesWithAct();
-
-        expect(mockedOnReconnect).toHaveBeenCalled();
-
-        const reconnectHandler = mockedOnReconnect.mock.calls.at(0)?.[0] as () => void;
-        reconnectHandler();
-
-        expect(reconnectApp).toHaveBeenCalled();
     });
 
     it('calls openApp when didUserLogInDuringSession returns true', async () => {

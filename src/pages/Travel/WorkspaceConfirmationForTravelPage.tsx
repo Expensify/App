@@ -5,6 +5,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import WorkspaceConfirmationForm from '@components/WorkspaceConfirmationForm';
 import type {WorkspaceConfirmationSubmitFunctionParams} from '@components/WorkspaceConfirmationForm';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useHasActiveAdminPolicies from '@hooks/useHasActiveAdminPolicies';
 import useOnyx from '@hooks/useOnyx';
 import {createDraftWorkspace, createWorkspace} from '@libs/actions/Policy/Policy';
 import Navigation from '@libs/Navigation/Navigation';
@@ -22,13 +23,24 @@ function WorkspaceConfirmationForTravelPage({route}: WorkspaceConfirmationForTra
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
 
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const hasActiveAdminPolicies = useHasActiveAdminPolicies();
 
     const goBack = () => {
         Navigation.goBack(route.params?.backTo ?? ROUTES.TRAVEL_UPGRADE.route);
     };
 
     const onSubmit = (params: WorkspaceConfirmationSubmitFunctionParams) => {
-        createDraftWorkspace(introSelected, '', false, params.name, params.policyID, params.currency, params.avatarFile as File);
+        createDraftWorkspace(
+            introSelected,
+            params.name,
+            currentUserPersonalDetails.accountID,
+            currentUserPersonalDetails.email ?? '',
+            '',
+            false,
+            params.policyID,
+            params.currency,
+            params.avatarFile as File,
+        );
         createWorkspace({
             policyName: params.name,
             policyID: params.policyID,
@@ -41,6 +53,7 @@ function WorkspaceConfirmationForTravelPage({route}: WorkspaceConfirmationForTra
             currentUserEmailParam: currentUserPersonalDetails.email ?? '',
             betas,
             isSelfTourViewed,
+            hasActiveAdminPolicies,
         });
         goBack();
     };
