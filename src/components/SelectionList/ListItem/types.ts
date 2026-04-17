@@ -17,7 +17,7 @@ import type WithSentryLabel from '@src/types/utils/SentryLabel';
 import type BaseListItem from './BaseListItem';
 import type InviteMemberListItem from './InviteMemberListItem';
 import type MultiSelectListItem from './MultiSelectListItem';
-import type SingleSelectListItem from './SingleSelectListItem';
+import type RadioListItem from './RadioListItem';
 import type SpendCategorySelectorListItem from './SpendCategorySelectorListItem';
 import type SplitListItem from './SplitListItem';
 import type TableListItem from './TableListItem';
@@ -300,7 +300,7 @@ type ValidListItem =
     | typeof InviteMemberListItem
     | typeof MultiSelectListItem
     | typeof SearchRouterItem
-    | typeof SingleSelectListItem
+    | typeof RadioListItem
     | typeof SpendCategorySelectorListItem
     | typeof SplitListItem
     | typeof TableListItem
@@ -388,7 +388,7 @@ type SplitListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
 
 type BaseSelectListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
 
-type SingleSelectListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
+type RadioListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
 
 type MultiSelectListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
 
@@ -432,7 +432,7 @@ export type {
     ListItemFocusEventHandler,
     BaseSelectListItemProps,
     ValidListItem,
-    SingleSelectListItemProps,
+    RadioListItemProps,
     MultiSelectListItemProps,
     TravelDomainListItemProps,
     SpendCategorySelectorListItemProps,

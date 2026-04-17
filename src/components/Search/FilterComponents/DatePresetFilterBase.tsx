@@ -3,7 +3,7 @@ import type {Ref} from 'react';
 import CalendarPicker from '@components/DatePicker/CalendarPicker';
 import MenuItem from '@components/MenuItem';
 import type {SearchDatePreset} from '@components/Search/types';
-import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
+import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import SpacerView from '@components/SpacerView';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -397,7 +397,7 @@ function DatePresetFilterBase({
         return (
             <>
                 {presets?.map((preset) => (
-                    <SingleSelectListItem
+                    <RadioListItem
                         key={preset}
                         keyForList={preset}
                         showTooltip
@@ -465,7 +465,7 @@ function DatePresetFilterBase({
                 style={[StyleUtils.getBorderColorStyle(theme.border), styles.mh3]}
             />
             {CONST.SEARCH.CUSTOM_DATE_MODIFIERS.map((dateModifier) => (
-                <SingleSelectListItem
+                <RadioListItem
                     key={dateModifier}
                     keyForList={dateModifier}
                     showTooltip

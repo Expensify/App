@@ -2,11 +2,13 @@
 
 ## Table of Contents
 
-- [Introduction](#introduction)
-- [TypeScript guidelines](#typescript-guidelines)
+- [Coding Standards](#coding-standards)
+  - [Table of Contents](#table-of-contents)
+  - [Introduction](#introduction)
+  - [TypeScript guidelines](#typescript-guidelines)
     - [General rules](#general-rules)
-    - [`d.ts` extension](#dts-extension)
-    - [Type Alias vs Interface](#type-alias-vs-interface)
+    - [`d.ts` Extension](#dts-extension)
+    - [Type Alias vs. Interface](#type-alias-vs-interface)
     - [Enum vs. Union Type](#enum-vs-union-type)
     - [`unknown` vs. `any`](#unknown-vs-any)
     - [`T[]` vs. `Array<T>`](#t-vs-arrayt)
@@ -23,42 +25,62 @@
     - [Type imports/exports](#type-importsexports)
     - [Refs](#refs)
     - [Other Expensify Resources on TypeScript](#other-expensify-resources-on-typescript)
-    - [Default value for inexistent IDs](#default-value-for-inexistent-IDs)
+    - [Default value for inexistent IDs](#default-value-for-inexistent-ids)
+      - [**Case 1**: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.](#case-1-argument-of-type-string--undefined-is-not-assignable-to-parameter-of-type-string)
+        - [1. Utility function](#1-utility-function)
+        - [2. `ROUTES.ts`'s `getRoute()` function](#2-routestss-getroute-function)
+        - [Important Note:](#important-note)
+      - [**Case 2**: Type 'undefined' cannot be used as an index type.](#case-2-type-undefined-cannot-be-used-as-an-index-type)
     - [Extract complex types](#extract-complex-types)
-- [Naming Conventions](#naming-conventions)
+  - [Naming Conventions](#naming-conventions)
     - [Type names](#type-names)
     - [Prop callbacks](#prop-callbacks)
     - [Event Handlers](#event-handlers)
     - [Boolean variables and props](#boolean-variables-and-props)
     - [Functions](#functions)
-    - [`var`, `const` and `let`](#var-const-and-let)
-- [Object / Array Methods](#object--array-methods)
-- [Asynchronous code](#asynchronous-code)
-- [Accessing Object Properties and Default Values](#accessing-object-properties-and-default-values)
-- [JSDocs](#jsdocs)
-- [Component props](#component-props)
-- [Destructuring](#destructuring)
-- [Named vs Default Exports in ES6 - When to use what?](#named-vs-default-exports-in-es6---when-to-use-what)
-- [Classes and constructors](#classes-and-constructors)
+  - [`var`, `const` and `let`](#var-const-and-let)
+  - [Function Parameters](#function-parameters)
+    - [When using a parameter object keep the following points in mind:](#when-using-a-parameter-object-keep-the-following-points-in-mind)
+      - [Example](#example)
+  - [Object / Array Methods](#object--array-methods)
+  - [Asynchronous code](#asynchronous-code)
+  - [Accessing Object Properties and Default Values](#accessing-object-properties-and-default-values)
+  - [JSDocs](#jsdocs)
+  - [Component props](#component-props)
+  - [Destructuring](#destructuring)
+  - [Named vs Default Exports in ES6 - When to use what?](#named-vs-default-exports-in-es6---when-to-use-what)
+  - [Classes and constructors](#classes-and-constructors)
     - [Class syntax](#class-syntax)
     - [Constructor](#constructor)
-- [ESNext: Are we allowed to use [insert new language feature]? Why or why not?](#esnext-are-we-allowed-to-use-insert-new-language-feature-why-or-why-not)
-- [React Coding Standards](#react-coding-standards)
+  - [ESNext: Are we allowed to use \[insert new language feature\]? Why or why not?](#esnext-are-we-allowed-to-use-insert-new-language-feature-why-or-why-not)
+  - [React Coding Standards](#react-coding-standards)
     - [Code Documentation](#code-documentation)
     - [Inline Ternaries](#inline-ternaries)
+      - [Important Note:](#important-note-1)
     - [Function component style](#function-component-style)
     - [Forwarding refs](#forwarding-refs)
     - [Hooks and HOCs](#hooks-and-hocs)
-    - [Stateless components vs Pure Components vs Class based components vs Render Props](#stateless-components-vs-pure-components-vs-class-based-components-vs-render-props---when-to-use-what)
+    - [Stateless components vs Pure Components vs Class based components vs Render Props - When to use what?](#stateless-components-vs-pure-components-vs-class-based-components-vs-render-props---when-to-use-what)
     - [Use Refs Appropriately](#use-refs-appropriately)
-    - [Are we allowed to use [insert brand new React feature]?](#are-we-allowed-to-use-insert-brand-new-react-feature-why-or-why-not)
-- [Handling Scroll Issues with Nested Lists in React Native](#handling-scroll-issues-with-nested-lists-in-react-native)
-    - [Wrong Approach (Using SelectionList)](#wrong-approach-using-selectionlist)
-    - [Correct Approach (Using SelectionList)](#correct-approach-using-selectionlist)
-- [React Hooks: Frequently Asked Questions](#react-hooks-frequently-asked-questions)
-- [Onyx Best Practices](#onyx-best-practices)
+    - [Are we allowed to use \[insert brand new React feature\]? Why or why not?](#are-we-allowed-to-use-insert-brand-new-react-feature-why-or-why-not)
+  - [Handling Scroll Issues with Nested Lists in React Native](#handling-scroll-issues-with-nested-lists-in-react-native)
+    - [Problem](#problem)
+    - [Solution](#solution)
+    - [Wrong Approach (Using `SelectionList`)](#wrong-approach-using-selectionlist)
+    - [Correct Approach](#correct-approach)
+  - [React Hooks: Frequently Asked Questions](#react-hooks-frequently-asked-questions)
+    - [Are Hooks a Replacement for HOCs or Render Props?](#are-hooks-a-replacement-for-hocs-or-render-props)
+    - [Should I wrap all my inline functions with `useCallback()` or move them out of the component if they have no dependencies?](#should-i-wrap-all-my-inline-functions-with-usecallback-or-move-them-out-of-the-component-if-they-have-no-dependencies)
+    - [Why does `useState()` sometimes get initialized with a function?](#why-does-usestate-sometimes-get-initialized-with-a-function)
+    - [Is there an equivalent to `componentDidUpdate()` when using hooks?](#is-there-an-equivalent-to-componentdidupdate-when-using-hooks)
+    - [Are `useCallback()` and `useMemo()` basically the same thing?](#are-usecallback-and-usememo-basically-the-same-thing)
+    - [What is the `exhaustive-deps` lint rule? Can I ignore it?](#what-is-the-exhaustive-deps-lint-rule-can-i-ignore-it)
+    - [Should I declare my components with arrow functions (`const`) or the `function` keyword?](#should-i-declare-my-components-with-arrow-functions-const-or-the-function-keyword)
+    - [How do I auto-focus a TextInput using `useFocusEffect()`?](#how-do-i-auto-focus-a-textinput-using-usefocuseffect)
+  - [Onyx Best Practices](#onyx-best-practices)
     - [Collection Keys](#collection-keys)
-- [Learning Resources](#learning-resources)
+  - [Learning Resources](#learning-resources)
+    - [Quickest way to learn TypeScript](#quickest-way-to-learn-typescript)
 
 ## Introduction
 
@@ -1236,7 +1258,7 @@ The correct approach is avoid using `ScrollView`. You can add props like `listHe
     <Text>Header Content</Text>
     <SelectionList
         sections={[{data}]}
-        ListItem={SingleSelectListItem}
+        ListItem={RadioListItem}
         onSelectRow={handleSelect}
     />
     <Button title="Submit" onPress={handleSubmit} />
@@ -1250,7 +1272,7 @@ The correct approach is to use the list component's built-in header and footer p
 ```jsx
 <SelectionList
     sections={[{item}]}
-    ListItem={SingleSelectListItem}
+    ListItem={RadioListItem}
     onSelectRow={handleSelect}
     listHeaderComponent={<Text>Header Content</Text>}
     listFooterComponent={<Button title="Submit" onPress={handleSubmit} />}
@@ -1263,7 +1285,7 @@ The correct approach is to use the list component's built-in header and footer p
     <Text>Header Content</Text>
     <FlashList
         data={data}
-        renderItem={SingleSelectListItem}
+        renderItem={RadioListItem}
         estimatedItemSize={variables.optionRowHeight}
         keyExtractor={keyExtractor}
     />

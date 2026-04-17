@@ -4,7 +4,7 @@ import React, {useState} from 'react';
 import type ReactNative from 'react-native';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import MultiSelectListItem from '@components/SelectionList/ListItem/MultiSelectListItem';
-import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
+import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import BaseSelectionListWithSections from '@components/SelectionList/SelectionListWithSections/BaseSelectionListWithSections';
 import type {ListItem, SelectionListWithSectionsProps} from '@components/SelectionList/SelectionListWithSections/types';
 import type Navigation from '@libs/Navigation/Navigation';
@@ -134,7 +134,7 @@ describe('BaseSelectionList', () => {
                         onChangeText: setSearchText,
                         value: searchText,
                     }}
-                    ListItem={canSelectMultiple ? MultiSelectListItem : SingleSelectListItem}
+                    ListItem={canSelectMultiple ? MultiSelectListItem : RadioListItem}
                     onSelectRow={onSelectRowMock}
                     shouldSingleExecuteRowSelect
                     shouldShowTextInput={!!setSearchText}

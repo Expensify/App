@@ -3,7 +3,7 @@ import React, {useMemo, useState} from 'react';
 import Badge from '@components/Badge';
 import Button from '@components/Button';
 import MultiSelectListItem from '@components/SelectionList/ListItem/MultiSelectListItem';
-import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
+import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import SelectionList from '@components/SelectionList/SelectionListWithSections';
 import type {ListItem, SelectionListWithSectionsProps} from '@components/SelectionList/SelectionListWithSections/types';
 import withNavigationFallback from '@components/withNavigationFallback';
@@ -93,7 +93,7 @@ function Default(props: SelectionListWithSectionsProps<ListItem>) {
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             sections={sections}
-            ListItem={SingleSelectListItem}
+            ListItem={RadioListItem}
             onSelectRow={onSelectRow}
         />
     );
@@ -133,7 +133,7 @@ function WithTextInput(props: SelectionListWithSectionsProps<ListItem>) {
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             sections={sections}
-            ListItem={SingleSelectListItem}
+            ListItem={RadioListItem}
             onSelectRow={onSelectRow}
             shouldShowTextInput
             textInputOptions={{
@@ -178,7 +178,7 @@ function WithAlternateText(props: SelectionListWithSectionsProps<ListItem>) {
             {...props}
             sections={sections}
             onSelectRow={onSelectRow}
-            ListItem={SingleSelectListItem}
+            ListItem={RadioListItem}
         />
     );
 }

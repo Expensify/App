@@ -2,7 +2,7 @@ import React, {Activity, useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
 import SelectionList from '@components/SelectionList';
-import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
+import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import type {ListItem, SelectionListStyle} from '@components/SelectionList/types';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
@@ -147,7 +147,7 @@ function SingleSelectPopup<T extends string>({
                     <SelectionList
                         data={options}
                         shouldSingleExecuteRowSelect
-                        ListItem={SingleSelectListItem}
+                        ListItem={RadioListItem}
                         onSelectRow={updateSelectedItem}
                         textInputOptions={textInputOptions}
                         style={{contentContainerStyle: [styles.pb0], ...selectionListStyle}}

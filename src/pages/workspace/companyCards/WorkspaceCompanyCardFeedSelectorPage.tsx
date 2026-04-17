@@ -9,7 +9,7 @@ import PlaidCardFeedIcon from '@components/PlaidCardFeedIcon';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import SelectionList from '@components/SelectionList';
-import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
+import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import Text from '@components/Text';
 import useCardFeedErrors from '@hooks/useCardFeedErrors';
 import type {CombinedCardFeed, CompanyCardFeedWithDomainID} from '@hooks/useCardFeeds';
@@ -176,7 +176,7 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
                         const isFeedWithError = feedWithError?.feed === feed.value;
                         const itemWithError = isFeedWithError && feedWithError?.error ? {...feed, errors: feedWithError.error} : feed;
                         return (
-                            <SingleSelectListItem
+                            <RadioListItem
                                 isDisabled={isOffline}
                                 onDismissError={onDismissError}
                                 key={feed.keyForList}
@@ -215,7 +215,7 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
                 />
                 {feeds.length ? (
                     <SelectionList
-                        ListItem={SingleSelectListItem}
+                        ListItem={RadioListItem}
                         onSelectRow={selectFeed}
                         data={feeds}
                         alternateNumberOfSupportedLines={2}

@@ -4,20 +4,20 @@ import Avatar from '@components/Avatar';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
-import SingleSelectListItem from './SingleSelectListItem';
-import type {ListItem, SingleSelectListItemProps} from './types';
+import RadioListItem from './RadioListItem';
+import type {ListItem, RadioListItemProps} from './types';
 
 /**
- * A SingleSelectListItem that prepends an avatar when icons are provided. Used in pickers
+ * A RadioListItem that prepends an avatar when icons are provided. Used in pickers
  * where options have a visual identity (e.g. domain admin selection).
  */
-function SingleSelectWithAvatarListItem<TItem extends ListItem>({item, wrapperStyle, ...props}: SingleSelectListItemProps<TItem>) {
+function SingleSelectWithAvatarListItem<TItem extends ListItem>({item, wrapperStyle, ...props}: RadioListItemProps<TItem>) {
     const styles = useThemeStyles();
     const icon = item.icons?.at(0);
 
     if (!icon) {
         return (
-            <SingleSelectListItem
+            <RadioListItem
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...props}
                 item={item}
@@ -41,7 +41,7 @@ function SingleSelectWithAvatarListItem<TItem extends ListItem>({item, wrapperSt
     );
 
     return (
-        <SingleSelectListItem
+        <RadioListItem
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             item={{...item, leftElement: avatarElement}}

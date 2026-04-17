@@ -1,7 +1,7 @@
 import React, {useCallback, useMemo, useState} from 'react';
 import FormHelpMessage from '@components/FormHelpMessage';
 import SelectionList from '@components/SelectionList';
-import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
+import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
@@ -83,7 +83,7 @@ function CustomCloseDateSelectionList({initiallySelectedDay, onConfirmSelectedDa
     return (
         <SelectionList
             data={data}
-            ListItem={SingleSelectListItem}
+            ListItem={RadioListItem}
             onSelectRow={selectDayAndClearError}
             initiallyFocusedItemKey={initiallySelectedDay?.toString()}
             confirmButtonOptions={confirmButtonOptions}

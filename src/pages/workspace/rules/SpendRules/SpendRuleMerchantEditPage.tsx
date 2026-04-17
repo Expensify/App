@@ -6,7 +6,7 @@ import InputWrapper from '@components/Form/InputWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
-import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
+import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import type {ListItem} from '@components/SelectionList/ListItem/types';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
@@ -137,7 +137,7 @@ function SpendRuleMerchantEditPage({route}: SpendRuleMerchantEditPageProps) {
                     <SelectionList
                         shouldSingleExecuteRowSelect
                         data={matchTypeItems}
-                        ListItem={SingleSelectListItem}
+                        ListItem={RadioListItem}
                         onSelectRow={onSelectMatchType}
                     />
                 </FormProvider>

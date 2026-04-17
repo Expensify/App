@@ -7,7 +7,7 @@ import DatePicker from '@components/DatePicker';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
-import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
+import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import Text from '@components/Text';
 import useCardFeeds from '@hooks/useCardFeeds';
 import useCardsList from '@hooks/useCardsList';
@@ -114,7 +114,7 @@ function WorkspaceCompanyCardEditTransactionStartDatePage({route}: WorkspaceComp
                 <Text style={[styles.textSupporting, styles.ph5, styles.mv3]}>{translate('workspace.companyCards.editStartDateDescription')}</Text>
                 <View style={styles.flex1}>
                     <SelectionList
-                        ListItem={SingleSelectListItem}
+                        ListItem={RadioListItem}
                         onSelectRow={({value}) => handleSelectDateOption(value)}
                         data={dateOptions}
                         shouldSingleExecuteRowSelect

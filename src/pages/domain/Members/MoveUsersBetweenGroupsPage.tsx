@@ -5,7 +5,7 @@ import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
-import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
+import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import type {ListItem} from '@components/SelectionList/ListItem/types';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
@@ -91,7 +91,7 @@ function MoveUsersBetweenGroupsPage({route}: MoveUsersBetweenGroupsPageProps) {
                 <SelectionList<SecurityGroupItem>
                     data={data}
                     onSelectRow={handleSelectRow}
-                    ListItem={SingleSelectListItem}
+                    ListItem={RadioListItem}
                     initiallyFocusedItemKey={selectedGroupId}
                 />
                 <FixedFooter>

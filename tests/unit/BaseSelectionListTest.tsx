@@ -4,7 +4,7 @@ import React, {useState} from 'react';
 import type ReactNative from 'react-native';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import BaseSelectionList from '@components/SelectionList/BaseSelectionList';
-import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
+import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import type Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
@@ -132,7 +132,7 @@ describe('BaseSelectionList', () => {
                         onChangeText: setSearchText,
                         value: searchText,
                     }}
-                    ListItem={SingleSelectListItem}
+                    ListItem={RadioListItem}
                     onSelectRow={onSelectRowMock}
                     shouldSingleExecuteRowSelect
                     shouldShowTextInput={!!setSearchText}

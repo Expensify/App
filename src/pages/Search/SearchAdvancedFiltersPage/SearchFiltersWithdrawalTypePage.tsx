@@ -6,7 +6,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import type {SearchWithdrawalType} from '@components/Search/types';
 import SelectionList from '@components/SelectionList';
-import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
+import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -60,7 +60,7 @@ function SearchFiltersWithdrawalTypePage() {
             <View style={[styles.flex1]}>
                 <SelectionList
                     data={listData}
-                    ListItem={SingleSelectListItem}
+                    ListItem={RadioListItem}
                     onSelectRow={updateSelectedItem}
                     shouldSingleExecuteRowSelect
                     style={{listItemWrapperStyle: styles.optionRowCompact}}
