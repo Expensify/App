@@ -21,6 +21,7 @@ import type {
     OnyxInputOrEntry,
     OriginalMessageIOU,
     PersonalDetails,
+    PersonalDetailsList,
     Policy,
     PrivatePersonalDetails,
     ReportMetadata,
@@ -531,6 +532,28 @@ function getDelegateAccountIDFromReportAction(reportAction: OnyxInputOrEntry<Rep
     return undefined;
 }
 
+function getHumanAgentAccountIDFromReportAction(reportAction: OnyxInputOrEntry<ReportAction>): number | undefined {
+    if (!reportAction || reportAction?.actorAccountID !== CONST.ACCOUNT_ID.CONCIERGE) {
+        return undefined;
+    }
+
+    const originalMessage = getOriginalMessage(reportAction);
+    if (!originalMessage) {
+        return undefined;
+    }
+
+    if ('humanAgentAccountID' in originalMessage && typeof originalMessage.humanAgentAccountID === 'number') {
+        return originalMessage.humanAgentAccountID;
+    }
+
+    return undefined;
+}
+
+function getHumanAgentDisplayName(reportAction: OnyxInputOrEntry<ReportAction>, personalDetails: OnyxEntry<PersonalDetailsList>): string | undefined {
+    const humanAgentAccountID = getHumanAgentAccountIDFromReportAction(reportAction);
+    return humanAgentAccountID ? personalDetails?.[humanAgentAccountID]?.displayName : undefined;
+}
+
 function isExportIntegrationAction(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION> {
     return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION;
 }
@@ -1027,6 +1050,10 @@ function canActionsBeGrouped(currentAction?: ReportAction, adjacentAction?: Repo
 
     // Do not group if the delegate account ID is different
     if (adjacentAction.delegateAccountID !== currentAction.delegateAccountID) {
+        return false;
+    }
+
+    if (getHumanAgentAccountIDFromReportAction(currentAction) !== getHumanAgentAccountIDFromReportAction(adjacentAction)) {
         return false;
     }
 
@@ -4806,6 +4833,8 @@ export {
     getUpdatedIndividualBudgetNotificationMessage,
     getUpdatedSharedBudgetNotificationMessage,
     getDelegateAccountIDFromReportAction,
+    getHumanAgentAccountIDFromReportAction,
+    getHumanAgentDisplayName,
     isPendingHide,
     filterOutDeprecatedReportActions,
     getActionableCardFraudAlertMessage,

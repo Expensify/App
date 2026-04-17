@@ -912,6 +912,8 @@ const translations = {
     adminOnlyCanPost: 'Only admins can send messages in this room.',
     reportAction: {
         asCopilot: 'as copilot for',
+        assistedBy: (agentName: string) => `assisted by ${agentName}`,
+        humanSupportAgent: 'a human support agent',
         harvestCreatedExpenseReport: (reportUrl: string, reportName: string) =>
             `created this report to hold all expenses from <a href="${reportUrl}">${reportName}</a> that couldn't be submitted on your chosen frequency`,
         createdReportForUnapprovedTransactions: ({reportUrl, reportName, reportID, isReportDeleted}: CreatedReportForUnapprovedTransactionsParams) =>
