@@ -1,4 +1,3 @@
-import {useMemo} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useSearchStateContext} from '@components/Search/SearchContext';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -12,31 +11,21 @@ function useAllTransactions() {
     const {currentSearchResults} = useSearchStateContext();
     const [allTransactionsCollection] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
 
-    const allTransactions = useMemo(() => {
-        const data = currentSearchResults?.data;
-        if (!data) {
-            return allTransactionsCollection;
+    const data = currentSearchResults?.data;
+    if (!data) {
+        return allTransactionsCollection;
+    }
+
+    const allTransactions: Record<string, OnyxEntry<Transaction>> = {...allTransactionsCollection};
+    for (const key in data) {
+        if (!key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION) || allTransactions[key]) {
+            continue;
         }
-
-        const filteredSearchTransactions = Object.keys(data)
-            .filter((key): key is `${typeof ONYXKEYS.COLLECTION.TRANSACTION}${string}` => key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION))
-            .reduce(
-                (acc, key) => {
-                    const value = data?.[key] as OnyxEntry<Transaction> | undefined;
-                    if (value) {
-                        acc[key] = value;
-                    }
-                    return acc;
-                },
-                {} as Record<string, OnyxEntry<Transaction>>,
-            );
-
-        return {
-            ...filteredSearchTransactions,
-            ...allTransactionsCollection,
-        };
-    }, [currentSearchResults?.data, allTransactionsCollection]);
-
+        const value = data[key as keyof typeof data] as OnyxEntry<Transaction> | undefined;
+        if (value) {
+            allTransactions[key] = value;
+        }
+    }
     return allTransactions;
 }
 
