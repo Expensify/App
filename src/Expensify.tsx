@@ -60,7 +60,6 @@ function Expensify() {
     const [isCheckingPublicRoom = true] = useOnyx(ONYXKEYS.IS_CHECKING_PUBLIC_ROOM, {initWithStoredValues: false});
     const [updateRequired] = useOnyx(ONYXKEYS.RAM_ONLY_UPDATE_REQUIRED);
     const [lastVisitedPath] = useOnyx(ONYXKEYS.LAST_VISITED_PATH);
-
     useDebugShortcut();
 
     useEffect(() => {

@@ -2096,6 +2096,7 @@ const translations: TranslationDeepObject<typeof en> = {
             sentryDebugDescription: 'Registra le richieste Sentry nella console',
             sentryHighlightedSpanOps: 'Nomi degli intervalli evidenziati',
             sentryHighlightedSpanOpsPlaceholder: 'ui.interaction.click, navigazione, ui.load',
+            showBranchNameInTitle: 'Mostra nome del ramo nel titolo del browser',
         },
         security: 'Sicurezza',
         signOut: 'Esci',

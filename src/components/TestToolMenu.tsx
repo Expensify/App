@@ -1,5 +1,5 @@
 import React, {useState} from 'react';
-import {View} from 'react-native';
+import {Platform, View} from 'react-native';
 import useBiometricRegistrationStatus, {REGISTRATION_STATUS} from '@hooks/useBiometricRegistrationStatus';
 import useIsAuthenticated from '@hooks/useIsAuthenticated';
 import useLocalize from '@hooks/useLocalize';
@@ -13,7 +13,7 @@ import {isUsingStagingApi} from '@libs/ApiUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {setShouldFailAllRequests, setShouldForceOffline, setShouldSimulatePoorConnection} from '@userActions/Network';
 import {expireSessionWithDelay, invalidateAuthToken, invalidateCredentials} from '@userActions/Session';
-import {setIsDebugModeEnabled, setShouldUseStagingServer} from '@userActions/User';
+import {setIsDebugModeEnabled, setShouldShowBranchNameInTitle, setShouldUseStagingServer} from '@userActions/User';
 import CONFIG from '@src/CONFIG';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -29,6 +29,7 @@ function TestToolMenu() {
     const [isUsingImportedState] = useOnyx(ONYXKEYS.IS_USING_IMPORTED_STATE);
     const [shouldUseStagingServer = isUsingStagingApi()] = useOnyx(ONYXKEYS.SHOULD_USE_STAGING_SERVER);
     const [isDebugModeEnabled = false] = useOnyx(ONYXKEYS.IS_DEBUG_MODE_ENABLED);
+    const [shouldShowBranchNameInTitle = false] = useOnyx(ONYXKEYS.SHOULD_SHOW_BRANCH_NAME_IN_TITLE);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {clearLHNCache} = useSidebarOrderedReportsActions();
@@ -80,6 +81,17 @@ function TestToolMenu() {
                             onToggle={() => setIsDebugModeEnabled(!isDebugModeEnabled)}
                         />
                     </TestToolRow>
+
+                    {/* When toggled on web, the current git branch name is prepended to the browser tab title. */}
+                    {Platform.OS === 'web' && !!__GIT_BRANCH__ && (
+                        <TestToolRow title={translate('initialSettingsPage.troubleshoot.showBranchNameInTitle')}>
+                            <Switch
+                                accessibilityLabel={translate('initialSettingsPage.troubleshoot.showBranchNameInTitle')}
+                                isOn={shouldShowBranchNameInTitle}
+                                onToggle={() => setShouldShowBranchNameInTitle(!shouldShowBranchNameInTitle)}
+                            />
+                        </TestToolRow>
+                    )}
 
                     {/* Instantly invalidates a user's local authToken. Useful for testing flows related to reauthentication. */}
                     <TestToolRow title={translate('initialSettingsPage.troubleshoot.authenticationStatus')}>

@@ -2103,6 +2103,7 @@ const translations: TranslationDeepObject<typeof en> = {
             sentryDebugDescription: 'Journaliser les requêtes Sentry dans la console',
             sentryHighlightedSpanOps: 'Noms de segments surlignés',
             sentryHighlightedSpanOpsPlaceholder: 'ui.interaction.clic, navigation, ui.chargement',
+            showBranchNameInTitle: 'Afficher le nom de la branche dans le titre du navigateur',
         },
         security: 'Sécurité',
         signOut: 'Se déconnecter',

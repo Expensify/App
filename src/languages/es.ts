@@ -1986,6 +1986,7 @@ const translations: TranslationDeepObject<typeof en> = {
             sentryDebugDescription: 'Registrar las solicitudes de Sentry en la consola',
             sentryHighlightedSpanOps: 'Nombres de spans resaltados',
             sentryHighlightedSpanOpsPlaceholder: 'ui.interaction.click, navigation, ui.load',
+            showBranchNameInTitle: 'Mostrar nombre de rama en el título del navegador',
         },
         security: 'Seguridad',
         restoreStashed: 'Restablecer login guardado',

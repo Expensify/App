@@ -2092,6 +2092,7 @@ const translations: TranslationDeepObject<typeof en> = {
             sentryDebugDescription: 'Sentry-aanvragen naar console loggen',
             sentryHighlightedSpanOps: 'Gemarkeerde span-namen',
             sentryHighlightedSpanOpsPlaceholder: 'ui.interactie.klik, navigatie, ui.laden',
+            showBranchNameInTitle: 'Toon branchnaam in titel van browser',
         },
         security: 'Beveiliging',
         signOut: 'Afmelden',
