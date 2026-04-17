@@ -1,5 +1,5 @@
 import {useRoute} from '@react-navigation/native';
-import React, {useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import ConnectionLayout from '@components/ConnectionLayout';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -9,6 +9,7 @@ import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updateNetSuiteAllowForeignCurrency, updateNetSuiteExportToNextOpenPeriod} from '@libs/actions/connections/NetSuiteCommands';
 import {getLatestErrorField} from '@libs/ErrorUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {
     areSettingsInErrorFields,
@@ -36,7 +37,7 @@ import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 import {clearNetSuiteErrorField} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
 type MenuItemWithSubscribedSettings = Pick<MenuItem, 'type' | 'description' | 'title' | 'onPress' | 'shouldHide'> & {subscribedSettings?: string[]};
@@ -62,9 +63,7 @@ function NetSuiteExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
 
     const {subsidiaryList, receivableList, taxAccountsList, items} = policy?.connections?.netsuite?.options?.data ?? {};
     const selectedSubsidiary = (subsidiaryList ?? []).find((subsidiary) => subsidiary.internalID === config?.subsidiaryID);
-
     const selectedReceivable = findSelectedBankAccountWithDefaultSelect(receivableList, config?.receivableAccount);
-
     const selectedItem = findSelectedInvoiceItemWithDefaultSelect(items, config?.invoiceItem);
 
     let invoiceItemValue = translate('workspace.netsuite.invoiceItem.values.create.label');
@@ -76,17 +75,9 @@ function NetSuiteExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
         invoiceItemValue = translate('workspace.netsuite.invoiceItem.values.select.label');
     }
 
-    const filteredTaxAccountsList = useMemo(() => (taxAccountsList ?? []).filter(({country}) => country === selectedSubsidiary?.country), [taxAccountsList, selectedSubsidiary?.country]);
-
-    const selectedTaxPostingAccount = useMemo(
-        () => findSelectedTaxAccountWithDefaultSelect(filteredTaxAccountsList, config?.taxPostingAccount),
-        [filteredTaxAccountsList, config?.taxPostingAccount],
-    );
-
-    const selectedProvTaxPostingAccount = useMemo(
-        () => findSelectedTaxAccountWithDefaultSelect(filteredTaxAccountsList, config?.provincialTaxPostingAccount),
-        [filteredTaxAccountsList, config?.provincialTaxPostingAccount],
-    );
+    const filteredTaxAccountsList = (taxAccountsList ?? []).filter(({country}) => country === selectedSubsidiary?.country);
+    const selectedTaxPostingAccount = findSelectedTaxAccountWithDefaultSelect(filteredTaxAccountsList, config?.taxPostingAccount);
+    const selectedProvTaxPostingAccount = findSelectedTaxAccountWithDefaultSelect(filteredTaxAccountsList, config?.provincialTaxPostingAccount);
 
     const menuItems: Array<MenuItemWithSubscribedSettings | ToggleItem | DividerLineItem> = [
         {
@@ -153,7 +144,7 @@ function NetSuiteExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
             type: 'menuitem',
             title: selectedReceivable ? selectedReceivable.name : undefined,
             description: translate('workspace.netsuite.exportInvoices'),
-            onPress: !policyID ? undefined : () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_RECEIVABLE_ACCOUNT_SELECT.getRoute(policyID, Navigation.getActiveRoute())),
+            onPress: !policyID ? undefined : () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_NETSUITE_RECEIVABLE_ACCOUNT_SELECT.path)),
             subscribedSettings: [CONST.NETSUITE_CONFIG.RECEIVABLE_ACCOUNT],
         },
         {

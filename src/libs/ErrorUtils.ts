@@ -1,5 +1,5 @@
 import mapValues from 'lodash/mapValues';
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxEntry, OnyxKey} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import type {TranslationPaths} from '@src/languages/types';
@@ -11,7 +11,7 @@ import DateUtils from './DateUtils';
 // eslint-disable-next-line @typescript-eslint/no-deprecated
 import {translate, translateLocal} from './Localize';
 
-function getAuthenticateErrorMessage(response: Response): TranslationPaths {
+function getAuthenticateErrorMessage<TKey extends OnyxKey>(response: Response<TKey>): TranslationPaths {
     switch (response.jsonCode) {
         case CONST.JSON_CODE.UNABLE_TO_RETRY:
             return 'session.offlineMessageRetry';
@@ -71,6 +71,14 @@ function getMicroSecondOnyxErrorWithMessage(error: string, errorKey?: number): E
  */
 function getMicroSecondOnyxErrorObject(error: Errors, errorKey?: number): ErrorFields {
     return {[errorKey ?? DateUtils.getMicroseconds()]: error};
+}
+
+/**
+ * Extracts a string message from an unknown error value.
+ * Use this in catch blocks where the caught value has type `unknown`.
+ */
+function getErrorMessage(error: unknown): string {
+    return error instanceof Error ? error.message : String(error);
 }
 
 // We can assume that if error is a string, it has already been translated because it is server error
@@ -231,6 +239,7 @@ export {
     addErrorMessage,
     getAuthenticateErrorMessage,
     getEarliestErrorField,
+    getErrorMessage,
     getErrorMessageWithTranslationData,
     getErrorsWithTranslationData,
     getLatestErrorField,

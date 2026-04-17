@@ -13,9 +13,11 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setAddNewCompanyCardStepAndData, setAssignCardStepAndData} from '@libs/actions/CompanyCards';
+import getPlaidOAuthReceivedRedirectURI from '@libs/getPlaidOAuthReceivedRedirectURI';
 import KeyboardShortcut from '@libs/KeyboardShortcut';
 import Log from '@libs/Log';
 import {getDomainNameForPolicy} from '@libs/PolicyUtils';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import Navigation from '@navigation/Navigation';
 import {handleRestrictedEvent} from '@userActions/App';
 import {setPlaidEvent} from '@userActions/BankAccounts';
@@ -23,16 +25,24 @@ import {importPlaidAccounts, openPlaidCompanyCardLogin} from '@userActions/Plaid
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {CompanyCardFeedWithDomainID} from '@src/types/onyx';
+import type {CardFeedWithNumber} from '@src/types/onyx/CardFeeds';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-function PlaidConnectionStep({feed, policyID, onExit}: {feed?: CompanyCardFeedWithDomainID; policyID?: string; onExit?: () => void}) {
+type PlaidConnectionStepProps = {
+    feed?: CompanyCardFeedWithDomainID;
+    policyID?: string;
+    onExit?: () => void;
+    title?: string;
+};
+
+function PlaidConnectionStep({feed, policyID, onExit, title}: PlaidConnectionStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD, {canBeMissing: true});
+    const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD);
     const isUSCountry = addNewCard?.data?.selectedCountry === CONST.COUNTRY.US;
-    const [isPlaidDisabled] = useOnyx(ONYXKEYS.IS_PLAID_DISABLED, {canBeMissing: true});
-    const [plaidLinkToken] = useOnyx(ONYXKEYS.PLAID_LINK_TOKEN, {canBeMissing: true});
-    const [plaidData] = useOnyx(ONYXKEYS.PLAID_DATA, {canBeMissing: true});
+    const [isPlaidDisabled] = useOnyx(ONYXKEYS.IS_PLAID_DISABLED);
+    const [plaidLinkToken] = useOnyx(ONYXKEYS.PLAID_LINK_TOKEN);
+    const [plaidData] = useOnyx(ONYXKEYS.PLAID_DATA);
     const plaidErrors = plaidData?.errors;
     const subscribedKeyboardShortcuts = useRef<Array<() => void>>([]);
     const previousNetworkState = useRef<boolean | undefined>(undefined);
@@ -112,12 +122,13 @@ function PlaidConnectionStep({feed, policyID, onExit}: {feed?: CompanyCardFeedWi
             return (
                 <PlaidLink
                     token={plaidLinkToken}
+                    receivedRedirectURI={getPlaidOAuthReceivedRedirectURI()}
                     onSuccess={({publicToken, metadata}) => {
                         // on success we need to move to bank connection screen with token, bank name = plaid
                         Log.info('[PlaidLink] Success!');
 
-                        const plaidConnectedFeed =
-                            (metadata?.institution as PlaidLinkOnSuccessMetadata['institution'])?.institution_id ?? (metadata?.institution as LinkSuccessMetadata['institution'])?.id;
+                        const plaidConnectedFeed = ((metadata?.institution as PlaidLinkOnSuccessMetadata['institution'])?.institution_id ??
+                            (metadata?.institution as LinkSuccessMetadata['institution'])?.id) as CardFeedWithNumber;
                         const plaidConnectedFeedName =
                             (metadata?.institution as PlaidLinkOnSuccessMetadata['institution'])?.name ?? (metadata?.institution as LinkSuccessMetadata['institution'])?.name;
 
@@ -193,9 +204,16 @@ function PlaidConnectionStep({feed, policyID, onExit}: {feed?: CompanyCardFeedWi
         }
 
         if (plaidData?.isLoading) {
+            const reasonAttributes: SkeletonSpanReasonAttributes = {
+                context: 'PlaidConnectionStep.renderPlaidLink',
+                isPlaidDataLoading: plaidData?.isLoading,
+            };
             return (
                 <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter]}>
-                    <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
+                    <ActivityIndicator
+                        size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                        reasonAttributes={reasonAttributes}
+                    />
                 </View>
             );
         }
@@ -209,7 +227,7 @@ function PlaidConnectionStep({feed, policyID, onExit}: {feed?: CompanyCardFeedWi
             shouldEnableMaxHeight
         >
             <HeaderWithBackButton
-                title={translate('workspace.companyCards.addCards')}
+                title={title ?? translate('workspace.companyCards.addCards')}
                 onBackButtonPress={handleBackButtonPress}
             />
             {isPlaidDisabled ? (

@@ -44,9 +44,9 @@ function ConfirmationStep({policyID, stepNames, startStepIndex, backTo}: Confirm
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
-    const [issueNewCard] = useOnyx(`${ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD}${policyID}`, {canBeMissing: true});
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: true});
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const [issueNewCard] = useOnyx(`${ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD}${policyID}`);
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const defaultFundID = useDefaultFundID(policyID);
     const {isBetaEnabled} = usePermissions();
     const data = issueNewCard?.data;
@@ -92,7 +92,7 @@ function ConfirmationStep({policyID, stepNames, startStepIndex, backTo}: Confirm
     }, [issueNewCard, isSuccessful, policyID]);
 
     const handleIssueCard = useCallback(() => {
-        if (!policyID || !assigneeTimeZone) {
+        if (!policyID) {
             return;
         }
 
@@ -121,11 +121,10 @@ function ConfirmationStep({policyID, stepNames, startStepIndex, backTo}: Confirm
     const isPhysicalCard = data?.cardType === CONST.EXPENSIFY_CARD.CARD_TYPE.PHYSICAL;
     const cardReadyTranslationKey = isPhysicalCard ? 'workspace.card.issueNewCard.willBeReadyToShip' : 'workspace.card.issueNewCard.willBeReadyToUse';
 
-    const isSingleUseEnabled = isBetaEnabled(CONST.BETAS.SINGLE_USE_AND_EXPIRE_BY_CARDS);
     const expirationDateTitle =
         data?.validFrom && data?.validThru ? translate('workspace.card.issueNewCard.validFromToWithoutText', {startDate: data?.validFrom, endDate: data?.validThru}) : '';
 
-    const shouldShowExpirationDate = isSingleUseEnabled && !isPhysicalCard;
+    const shouldShowExpirationDate = !isPhysicalCard;
 
     return (
         <InteractiveStepWrapper

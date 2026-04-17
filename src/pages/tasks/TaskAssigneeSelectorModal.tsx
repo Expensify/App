@@ -1,5 +1,6 @@
 /* eslint-disable es/no-optional-chaining */
 import {useRoute} from '@react-navigation/native';
+import {delegateEmailSelector} from '@selectors/Account';
 import React, {useEffect} from 'react';
 import {InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -8,7 +9,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import UserListItem from '@components/SelectionList/ListItem/UserListItem';
-import SelectionList from '@components/SelectionList/SelectionListWithSections';
+import SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
 import type {ListItem} from '@components/SelectionList/types';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import withNavigationTransitionEnd from '@components/withNavigationTransitionEnd';
@@ -19,7 +20,7 @@ import useOnyx from '@hooks/useOnyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useSearchSelector from '@hooks/useSearchSelector';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {searchInServer} from '@libs/actions/Report';
+import {searchUserInServer} from '@libs/actions/Report';
 import {canModifyTask, editTaskAssignee, setAssigneeValue} from '@libs/actions/Task';
 import {READ_COMMANDS} from '@libs/API/types';
 import HttpUtils from '@libs/HttpUtils';
@@ -39,13 +40,14 @@ function TaskAssigneeSelectorModal() {
     const route = useRoute<PlatformStackRouteProp<TaskDetailsNavigatorParamList, typeof SCREENS.TASK.ASSIGNEE>>();
     const {translate} = useLocalize();
     const backTo = route.params?.backTo;
-    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
-    const [task] = useOnyx(ONYXKEYS.TASK, {canBeMissing: false});
-    const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: true});
-    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
+    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+    const [task] = useOnyx(ONYXKEYS.TASK);
+    const [isSearchingForReports] = useOnyx(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS);
+    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserEmail = currentUserPersonalDetails.email ?? '';
-    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: true});
+    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
+    const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
 
     const {searchTerm, debouncedSearchTerm, setSearchTerm, availableOptions, areOptionsInitialized} = useSearchSelector({
         selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_SINGLE,
@@ -143,7 +145,7 @@ function TaskAssigneeSelectorModal() {
     const initiallyFocusedOptionKey = sections.flatMap((section) => section.data).find((mode) => mode.isSelected === true)?.keyForList;
 
     const selectReport = (option: ListItem) => {
-        HttpUtils.cancelPendingRequests(READ_COMMANDS.SEARCH_FOR_REPORTS);
+        HttpUtils.cancelPendingRequests(READ_COMMANDS.SEARCH_FOR_USERS);
         if (!option) {
             return;
         }
@@ -152,6 +154,7 @@ function TaskAssigneeSelectorModal() {
             ...allPersonalDetails?.[option?.accountID ?? CONST.DEFAULT_NUMBER_ID],
             accountID: option.accountID ?? CONST.DEFAULT_NUMBER_ID,
             login: option.login ?? '',
+            isOptimisticPersonalDetail: !allPersonalDetails?.[option?.accountID ?? CONST.DEFAULT_NUMBER_ID],
         };
 
         // Check to see if we're editing a task and if so, update the assignee
@@ -165,17 +168,19 @@ function TaskAssigneeSelectorModal() {
                     isCurrentUser({...option, accountID: option?.accountID ?? CONST.DEFAULT_NUMBER_ID, login: option?.login ?? ''}, loginList, currentUserEmail),
                 );
                 // Pass through the selected assignee
-                editTaskAssignee(
+                editTaskAssignee({
                     report,
                     parentReport,
-                    currentUserPersonalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID,
-                    option?.login ?? '',
-                    currentUserPersonalDetails.accountID,
+                    sessionAccountID: currentUserPersonalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+                    assigneeEmail: option?.login ?? '',
+                    currentUserEmail,
+                    currentUserAccountID: currentUserPersonalDetails.accountID,
                     hasOutstandingChildTask,
-                    option?.accountID,
+                    delegateEmail,
+                    assigneeAccountID: option?.accountID,
                     assigneeChatReport,
                     isOptimisticReport,
-                );
+                });
             }
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             InteractionManager.runAfterInteractions(() => {
@@ -205,7 +210,7 @@ function TaskAssigneeSelectorModal() {
     const isTaskNonEditable = isTaskReport(report) && (!isTaskModifiable || !isOpen);
 
     useEffect(() => {
-        searchInServer(debouncedSearchTerm);
+        searchUserInServer(debouncedSearchTerm);
     }, [debouncedSearchTerm]);
 
     const textInputOptions = {
@@ -226,7 +231,7 @@ function TaskAssigneeSelectorModal() {
                     onBackButtonPress={handleBackButtonPress}
                 />
                 <View style={[styles.flex1, styles.w100, styles.pRelative]}>
-                    <SelectionList
+                    <SelectionListWithSections
                         sections={areOptionsInitialized ? sections : []}
                         ListItem={UserListItem}
                         onSelectRow={selectReport}
@@ -234,9 +239,8 @@ function TaskAssigneeSelectorModal() {
                         textInputOptions={textInputOptions}
                         initialScrollIndex={0}
                         initiallyFocusedItemKey={initiallyFocusedOptionKey}
-                        showLoadingPlaceholder={!areOptionsInitialized}
+                        shouldShowLoadingPlaceholder={!areOptionsInitialized}
                         isLoadingNewOptions={!!isSearchingForReports}
-                        disableMaintainingScrollPosition
                         shouldUpdateFocusedIndex
                         shouldShowTextInput
                     />

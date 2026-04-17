@@ -1,29 +1,54 @@
-import {useFont} from '@shopify/react-native-skia';
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useState} from 'react';
 import type {LayoutChangeEvent} from 'react-native';
 import {View} from 'react-native';
-import Animated, {useSharedValue} from 'react-native-reanimated';
-import type {ChartBounds, PointsArray, Scale} from 'victory-native';
+import {GestureDetector} from 'react-native-gesture-handler';
+import {useSharedValue} from 'react-native-reanimated';
+import type {CartesianChartRenderArg, ChartBounds, PointsArray, Scale} from 'victory-native';
 import {Bar, CartesianChart} from 'victory-native';
 import ActivityIndicator from '@components/ActivityIndicator';
-import ChartHeader from '@components/Charts/components/ChartHeader';
 import ChartTooltip from '@components/Charts/components/ChartTooltip';
-import {CHART_CONTENT_MIN_HEIGHT, CHART_PADDING, X_AXIS_LINE_WIDTH, Y_AXIS_LABEL_OFFSET, Y_AXIS_LINE_WIDTH, Y_AXIS_TICK_COUNT} from '@components/Charts/constants';
-import fontSource from '@components/Charts/font';
-import type {HitTestArgs} from '@components/Charts/hooks';
-import {useChartInteractions, useChartLabelFormats, useChartLabelLayout, useDynamicYDomain, useTooltipData} from '@components/Charts/hooks';
+import ChartXAxisLabels from '@components/Charts/components/ChartXAxisLabels';
+import ChartYAxisLabels from '@components/Charts/components/ChartYAxisLabels';
+import {AXIS_LABEL_GAP, CHART_CONTENT_MIN_HEIGHT, CHART_PADDING, GLYPH_PADDING, X_AXIS_LINE_WIDTH, Y_AXIS_LINE_WIDTH, Y_AXIS_TICK_COUNT} from '@components/Charts/constants';
+import type {ComputeGeometryFn, HitTestArgs} from '@components/Charts/hooks';
+import {useChartFontManager, useChartInteractions, useChartLabelFormats, useChartLabelLayout, useDynamicYDomain, useLabelHitTesting, useTooltipData} from '@components/Charts/hooks';
 import type {CartesianChartProps, ChartDataPoint} from '@components/Charts/types';
-import {calculateMinDomainPadding, DEFAULT_CHART_COLOR, getChartColor} from '@components/Charts/utils';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import {calculateMinDomainPadding, DEFAULT_CHART_COLOR, getAdditionalOffset, getChartColor, getNiceUpperBound, measureTextWidth, rotatedLabelYOffset} from '@components/Charts/utils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import variables from '@styles/variables';
 
 /** Inner padding between bars (0.3 = 30% of bar width) */
 const BAR_INNER_PADDING = 0.3;
 
-/** Extra pixel spacing between the chart boundary and the data range, applied per side (Victory's `domainPadding` prop) */
-const BASE_DOMAIN_PADDING = {top: 32, bottom: 0, left: 0, right: 0};
+/** Extra pixel spacing between the chart boundary and the data range, applied per side (Victory's `domainPadding` prop)
+ * We need bottom: 1 for proper display of the bottom label
+ */
+const BASE_DOMAIN_PADDING = {top: 32, bottom: 1, left: 0, right: 0};
+
+/**
+ * Bar chart geometry for label hit-testing.
+ * Labels are center-anchored: the 45° parallelogram's upper-right corner is offset
+ * by (halfLabelWidth * sinA) right and up, so the box straddles the tick symmetrically.
+ */
+const computeBarLabelGeometry: ComputeGeometryFn = ({ascent, descent, sinA, angleRad, labelWidths, padding}) => {
+    const maxLabelWidth = labelWidths.length > 0 ? Math.max(...labelWidths) : 0;
+    const centeredUpwardOffset = angleRad > 0 ? (maxLabelWidth / 2) * sinA : 0;
+    const halfLabelSins = labelWidths.map((w) => (w / 2) * sinA - variables.iconSizeExtraSmall / 3);
+    const halfWidths = labelWidths.map((w) => w / 2);
+    const additionalOffset = getAdditionalOffset(angleRad);
+    return {
+        labelYOffset: AXIS_LABEL_GAP + rotatedLabelYOffset(ascent, descent, angleRad) + centeredUpwardOffset - additionalOffset,
+        iconSin: variables.iconSizeExtraSmall * sinA,
+        labelSins: labelWidths.map((w) => w * sinA),
+        halfWidths,
+        cornerAnchorDX: halfLabelSins,
+        cornerAnchorDY: halfLabelSins.map((v) => -v),
+        yMin90Offsets: halfWidths.map((hw) => -hw + padding),
+        yMax90Offsets: halfWidths.map((hw) => hw + padding),
+    };
+};
 
 type BarChartProps = CartesianChartProps & {
     /** Callback when a bar is pressed */
@@ -33,156 +58,189 @@ type BarChartProps = CartesianChartProps & {
     useSingleColor?: boolean;
 };
 
-function BarChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUnitPosition = 'left', useSingleColor = false, onBarPress}: BarChartProps) {
+function BarChartContent({data, isLoading, yAxisUnit, yAxisUnitPosition = 'left', useSingleColor = false, onBarPress}: BarChartProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const font = useFont(fontSource, variables.iconSizeExtraSmall);
+    const fontMgr = useChartFontManager();
     const [chartWidth, setChartWidth] = useState(0);
     const [barAreaWidth, setBarAreaWidth] = useState(0);
+    const [boundsLeft, setBoundsLeft] = useState(0);
+    const [boundsRight, setBoundsRight] = useState(0);
     const defaultBarColor = DEFAULT_CHART_COLOR;
 
-    // prepare data for display
-    const chartData = useMemo(() => {
-        return data.map((point, index) => ({
-            x: index,
-            y: point.total,
-        }));
-    }, [data]);
+    const chartData = data.map((point, index) => ({
+        x: index,
+        y: point.total,
+    }));
 
     const yAxisDomain = useDynamicYDomain(data);
 
-    // Handle bar press callback
-    const handleBarPress = useCallback(
-        (index: number) => {
-            if (index < 0 || index >= data.length) {
-                return;
-            }
-            const dataPoint = data.at(index);
-            if (dataPoint && onBarPress) {
-                onBarPress(dataPoint, index);
-            }
-        },
-        [data, onBarPress],
-    );
+    const handleBarPress = (index: number) => {
+        if (index < 0 || index >= data.length) {
+            return;
+        }
+        const dataPoint = data.at(index);
+        if (dataPoint && onBarPress) {
+            onBarPress(dataPoint, index);
+        }
+    };
 
-    const handleLayout = useCallback((event: LayoutChangeEvent) => {
+    const handleLayout = (event: LayoutChangeEvent) => {
         setChartWidth(event.nativeEvent.layout.width);
-    }, []);
+    };
 
-    const {labelRotation, labelSkipInterval, truncatedLabels, xAxisLabelHeight} = useChartLabelLayout({
-        data,
-        font,
-        tickSpacing: barAreaWidth > 0 ? barAreaWidth / data.length : 0,
-        labelAreaWidth: barAreaWidth,
-    });
-
-    const domainPadding = useMemo(() => {
+    const domainPadding = (() => {
         if (chartWidth === 0) {
             return BASE_DOMAIN_PADDING;
         }
         const horizontalPadding = calculateMinDomainPadding(chartWidth, data.length, BAR_INNER_PADDING);
         return {...BASE_DOMAIN_PADDING, left: horizontalPadding, right: horizontalPadding};
-    }, [chartWidth, data.length]);
+    })();
 
-    const {formatXAxisLabel, formatYAxisLabel} = useChartLabelFormats({
+    const totalDomainPadding = domainPadding.left + domainPadding.right;
+    const paddingScale = barAreaWidth > 0 ? barAreaWidth / (barAreaWidth + totalDomainPadding) : 0;
+
+    const {labelRotation, labelSkipInterval, truncatedLabels, xAxisLabelHeight} = useChartLabelLayout({
         data,
-        yAxisUnit,
-        yAxisUnitPosition,
-        labelSkipInterval,
-        labelRotation,
-        truncatedLabels,
+        fontMgr,
+        fontSize: variables.iconSizeExtraSmall,
+        tickSpacing: barAreaWidth > 0 ? barAreaWidth / data.length : 0,
+        labelAreaWidth: barAreaWidth,
+        firstTickLeftSpace: boundsLeft + domainPadding.left * paddingScale,
+        lastTickRightSpace: chartWidth > 0 ? chartWidth - boundsRight + domainPadding.right * paddingScale : 0,
     });
 
-    // Store bar geometry for hit-testing (only constants, no arrays)
-    const barGeometry = useSharedValue({barWidth: 0, chartBottom: 0, yZero: 0});
+    const {formatValue} = useChartLabelFormats({
+        data,
+        unit: yAxisUnit,
+        unitPosition: yAxisUnitPosition,
+    });
 
-    const handleChartBoundsChange = useCallback(
-        (bounds: ChartBounds) => {
-            const domainWidth = bounds.right - bounds.left;
-            const calculatedBarWidth = ((1 - BAR_INNER_PADDING) * domainWidth) / data.length;
-            barGeometry.set({
-                ...barGeometry.get(),
-                barWidth: calculatedBarWidth,
-                chartBottom: bounds.bottom,
-            });
-            setBarAreaWidth(domainWidth);
-        },
-        [data.length, barGeometry],
-    );
+    const barWidth = useSharedValue(0);
+    const chartBottom = useSharedValue(0);
+    const yZero = useSharedValue(0);
 
-    const handleScaleChange = useCallback(
-        (_xScale: Scale, yScale: Scale) => {
-            barGeometry.set({
-                ...barGeometry.get(),
-                yZero: yScale(0),
-            });
-        },
-        [barGeometry],
-    );
+    const {isCursorOverLabel, findLabelCursorX, updateTickPositions} = useLabelHitTesting({
+        fontMgr,
+        fontSize: variables.iconSizeExtraSmall,
+        truncatedLabels,
+        labelRotation,
+        labelSkipInterval,
+        chartBottom,
+        computeGeometry: computeBarLabelGeometry,
+    });
 
-    const checkIsOverBar = useCallback(
-        (args: HitTestArgs) => {
-            'worklet';
+    const handleChartBoundsChange = (bounds: ChartBounds) => {
+        const domainWidth = bounds.right - bounds.left;
+        const calculatedBarWidth = ((1 - BAR_INNER_PADDING) * domainWidth) / data.length;
+        barWidth.set(calculatedBarWidth);
+        chartBottom.set(bounds.bottom);
+        yZero.set(0);
+        setBarAreaWidth(domainWidth);
+        setBoundsLeft(bounds.left);
+        setBoundsRight(bounds.right);
+    };
 
-            const {barWidth, yZero} = barGeometry.get();
-            if (barWidth === 0) {
-                return false;
-            }
-            const barLeft = args.targetX - barWidth / 2;
-            const barRight = args.targetX + barWidth / 2;
-            // For positive bars: targetY < yZero, bar goes from targetY (top) to yZero (bottom)
-            // For negative bars: targetY > yZero, bar goes from yZero (top) to targetY (bottom)
-            const barTop = Math.min(args.targetY, yZero);
-            const barBottom = Math.max(args.targetY, yZero);
+    const checkIsOverBar = (args: HitTestArgs) => {
+        'worklet';
 
-            return args.cursorX >= barLeft && args.cursorX <= barRight && args.cursorY >= barTop && args.cursorY <= barBottom;
-        },
-        [barGeometry],
-    );
+        const currentBarWidth = barWidth.get();
+        const currentYZero = yZero.get();
+        if (currentBarWidth === 0) {
+            return false;
+        }
+        const barLeft = args.targetX - currentBarWidth / 2;
+        const barRight = args.targetX + currentBarWidth / 2;
 
-    const {actionsRef, customGestures, activeDataIndex, isTooltipActive, tooltipStyle} = useChartInteractions({
+        const barTop = Math.min(args.targetY, currentYZero);
+        const barBottom = Math.max(args.targetY, currentYZero);
+
+        return args.cursorX >= barLeft && args.cursorX <= barRight && args.cursorY >= barTop && args.cursorY <= barBottom;
+    };
+
+    const {customGestures, setPointPositions, activeDataIndex, isTooltipActive, isOverClickableTarget, initialTooltipPosition} = useChartInteractions({
         handlePress: handleBarPress,
         checkIsOver: checkIsOverBar,
-        barGeometry,
+        isCursorOverLabel,
+        resolveLabelTouchX: findLabelCursorX,
+        chartBottom,
+        yZero,
     });
 
-    const tooltipData = useTooltipData(activeDataIndex, data, yAxisUnit, yAxisUnitPosition);
+    const handleScaleChange = (xScale: Scale, yScale: Scale) => {
+        yZero.set(yScale(0));
+        updateTickPositions(xScale, data.length);
+        setPointPositions(
+            chartData.map((point) => xScale(point.x)),
+            chartData.map((point) => yScale(point.y)),
+        );
+    };
 
-    const renderBar = useCallback(
-        (point: PointsArray[number], chartBounds: ChartBounds, barCount: number) => {
-            const dataIndex = point.xValue as number;
-            const dataPoint = data.at(dataIndex);
-            const barColor = useSingleColor ? defaultBarColor : getChartColor(dataIndex);
+    const tooltipData = useTooltipData(activeDataIndex, data, formatValue);
 
-            return (
-                <Bar
-                    key={`bar-${dataPoint?.label}`}
-                    points={[point]}
-                    chartBounds={chartBounds}
-                    color={barColor}
-                    barCount={barCount}
-                    innerPadding={BAR_INNER_PADDING}
-                    roundedCorners={{topLeft: 8, topRight: 8, bottomLeft: 8, bottomRight: 8}}
-                />
-            );
-        },
-        [data, useSingleColor, defaultBarColor],
-    );
+    const renderBar = (point: PointsArray[number], chartBounds: ChartBounds, barCount: number) => {
+        const dataIndex = point.xValue as number;
+        const dataPoint = data.at(dataIndex);
+        const barColor = useSingleColor ? defaultBarColor : getChartColor(dataIndex);
 
-    // When labels are rotated 90°, add measured label height to container
-    // This keeps bar area at ~250px while giving labels their needed vertical space
-    const dynamicChartStyle = useMemo(
-        () => ({
-            height: CHART_CONTENT_MIN_HEIGHT + (xAxisLabelHeight ?? 0),
-        }),
-        [xAxisLabelHeight],
-    );
-
-    if (isLoading || !font) {
         return (
-            <View style={[styles.barChartContainer, styles.highlightBG, shouldUseNarrowLayout ? styles.p5 : styles.p8, styles.justifyContentCenter, styles.alignItemsCenter]}>
-                <ActivityIndicator size="large" />
+            <Bar
+                key={`bar-${dataPoint?.label}`}
+                points={[point]}
+                chartBounds={chartBounds}
+                color={barColor}
+                barCount={barCount}
+                innerPadding={BAR_INNER_PADDING}
+                roundedCorners={{topLeft: 8, topRight: 8, bottomLeft: 8, bottomRight: 8}}
+            />
+        );
+    };
+
+    const renderOutside = (args: CartesianChartRenderArg<{x: number; y: number}, 'y'>) => {
+        if (!fontMgr || xAxisLabelHeight === undefined) {
+            return null;
+        }
+        return (
+            <>
+                <ChartXAxisLabels
+                    labels={truncatedLabels}
+                    labelRotation={labelRotation}
+                    labelSkipInterval={labelSkipInterval}
+                    fontSize={variables.iconSizeExtraSmall}
+                    fontMgr={fontMgr}
+                    labelColor={theme.textSupporting}
+                    xScale={args.xScale}
+                    chartBoundsBottom={args.chartBounds.bottom}
+                    centerRotatedLabels
+                />
+                <ChartYAxisLabels
+                    yTicks={args.yTicks}
+                    yScale={args.yScale}
+                    chartBounds={args.chartBounds}
+                    fontSize={variables.iconSizeExtraSmall}
+                    fontMgr={fontMgr}
+                    labelColor={theme.textSupporting}
+                    formatValue={formatValue}
+                    leftAlign
+                />
+            </>
+        );
+    };
+
+    const labelSpace = AXIS_LABEL_GAP + (xAxisLabelHeight ?? 0);
+    const dynamicChartStyle = {height: CHART_CONTENT_MIN_HEIGHT + labelSpace};
+    const maxYAxisTickValue = getNiceUpperBound(Math.max(...data.map((p) => Math.abs(p.total)), 0), Y_AXIS_TICK_COUNT);
+    const yAxisLabelWidth = fontMgr ? measureTextWidth(formatValue(maxYAxisTickValue), fontMgr, variables.iconSizeExtraSmall) : 0;
+    const chartPadding = {...CHART_PADDING, bottom: labelSpace + CHART_PADDING.bottom + variables.iconSizeExtraSmall, left: yAxisLabelWidth + GLYPH_PADDING / 2};
+
+    if (isLoading || !fontMgr) {
+        const reasonAttributes: SkeletonSpanReasonAttributes = {context: 'BarChartContent', isLoading, isFontLoading: !fontMgr};
+        return (
+            <View style={styles.chartActivityIndicator}>
+                <ActivityIndicator
+                    size="large"
+                    reasonAttributes={reasonAttributes}
+                />
             </View>
         );
     }
@@ -192,63 +250,50 @@ function BarChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUni
     }
 
     return (
-        <View style={[styles.barChartContainer, styles.highlightBG, shouldUseNarrowLayout ? styles.p5 : styles.p8]}>
-            <ChartHeader
-                title={title}
-                titleIcon={titleIcon}
-            />
+        <GestureDetector gesture={customGestures}>
             <View
-                style={[styles.barChartChartContainer, dynamicChartStyle]}
+                style={[styles.chartContent, dynamicChartStyle, isOverClickableTarget && styles.cursorPointer]}
                 onLayout={handleLayout}
             >
                 {chartWidth > 0 && (
                     <CartesianChart
                         xKey="x"
-                        padding={CHART_PADDING}
+                        padding={chartPadding}
                         yKeys={['y']}
                         domainPadding={domainPadding}
-                        actionsRef={actionsRef}
-                        customGestures={customGestures}
                         onChartBoundsChange={handleChartBoundsChange}
                         onScaleChange={handleScaleChange}
+                        renderOutside={renderOutside}
                         xAxis={{
-                            font,
                             tickCount: data.length,
-                            labelColor: theme.textSupporting,
                             lineWidth: X_AXIS_LINE_WIDTH,
-                            formatXLabel: formatXAxisLabel,
-                            labelRotate: labelRotation,
-                            labelOverflow: 'visible',
                         }}
                         yAxis={[
                             {
-                                font,
-                                labelColor: theme.textSupporting,
-                                formatYLabel: formatYAxisLabel,
                                 tickCount: Y_AXIS_TICK_COUNT,
                                 lineWidth: Y_AXIS_LINE_WIDTH,
                                 lineColor: theme.border,
-                                labelOffset: Y_AXIS_LABEL_OFFSET,
+                                labelOffset: AXIS_LABEL_GAP,
                                 domain: yAxisDomain,
                             },
                         ]}
                         frame={{lineWidth: 0}}
                         data={chartData}
                     >
-                        {({points, chartBounds}) => <>{points.y.map((point) => renderBar(point, chartBounds, points.y.length))}</>}
+                        {({points, chartBounds}) => points.y.map((point) => renderBar(point, chartBounds, points.y.length))}
                     </CartesianChart>
                 )}
                 {isTooltipActive && !!tooltipData && (
-                    <Animated.View style={tooltipStyle}>
-                        <ChartTooltip
-                            label={tooltipData.label}
-                            amount={tooltipData.amount}
-                            percentage={tooltipData.percentage}
-                        />
-                    </Animated.View>
+                    <ChartTooltip
+                        label={tooltipData.label}
+                        amount={tooltipData.amount}
+                        percentage={tooltipData.percentage}
+                        chartWidth={chartWidth}
+                        initialTooltipPosition={initialTooltipPosition}
+                    />
                 )}
             </View>
-        </View>
+        </GestureDetector>
     );
 }
 

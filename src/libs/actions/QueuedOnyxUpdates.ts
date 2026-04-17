@@ -32,18 +32,18 @@ function flushQueue(): Promise<void> {
     // Clear queue immediately to prevent race conditions with new updates during Onyx processing
     queuedOnyxUpdates = [];
 
-    if (!currentAccountID && !CONFIG.IS_TEST_ENV && !CONFIG.E2E_TESTING) {
+    if (!currentAccountID && !CONFIG.IS_TEST_ENV) {
         const preservedKeys = new Set<OnyxKey>([
             ONYXKEYS.NVP_TRY_NEW_DOT,
             ONYXKEYS.NVP_TRY_FOCUS_MODE,
             ONYXKEYS.PREFERRED_THEME,
             ONYXKEYS.NVP_PREFERRED_LOCALE,
-            ONYXKEYS.ARE_TRANSLATIONS_LOADING,
+            ONYXKEYS.RAM_ONLY_ARE_TRANSLATIONS_LOADING,
             ONYXKEYS.SESSION,
             ONYXKEYS.IS_LOADING_APP,
             ONYXKEYS.HAS_LOADED_APP,
             ONYXKEYS.CREDENTIALS,
-            ONYXKEYS.IS_SIDEBAR_LOADED,
+            ONYXKEYS.RAM_ONLY_IS_SIDEBAR_LOADED,
             ONYXKEYS.ACCOUNT,
             ONYXKEYS.IS_CHECKING_PUBLIC_ROOM,
             ONYXKEYS.MODAL,

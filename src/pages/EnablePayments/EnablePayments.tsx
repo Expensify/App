@@ -9,6 +9,7 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import {hasExpensifyPaymentMethod} from '@libs/PaymentUtils';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {openEnablePaymentsPage} from '@userActions/Wallet';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -24,9 +25,9 @@ function EnablePaymentsPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
-    const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET, {canBeMissing: true});
-    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
-    const [fundList] = useOnyx(ONYXKEYS.FUND_LIST, {canBeMissing: true});
+    const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET);
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
+    const [fundList] = useOnyx(ONYXKEYS.FUND_LIST);
     const paymentCardList = fundList ?? {};
 
     useEffect(() => {
@@ -34,13 +35,16 @@ function EnablePaymentsPage() {
             return;
         }
 
-        if (isEmptyObject(userWallet)) {
-            openEnablePaymentsPage();
-        }
-    }, [isOffline, userWallet]);
+        openEnablePaymentsPage();
+    }, [isOffline]);
 
-    if (isEmptyObject(userWallet)) {
-        return <FullScreenLoadingIndicator />;
+    const isUserWalletEmpty = isEmptyObject(userWallet);
+    if (isUserWalletEmpty || userWallet?.isLoading) {
+        const reasonAttributes: SkeletonSpanReasonAttributes = {
+            context: 'EnablePaymentsPage',
+            isUserWalletEmpty,
+        };
+        return <FullScreenLoadingIndicator reasonAttributes={reasonAttributes} />;
     }
 
     if (userWallet?.errorCode === CONST.WALLET.ERROR.KYC) {

@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import DecisionModal from '@components/DecisionModal';
 import useAssignCard from '@hooks/useAssignCard';
 import useCompanyCards from '@hooks/useCompanyCards';
@@ -7,7 +7,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import {openWorkspaceMembersPage} from '@libs/actions/Policy/Member';
+import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
 import {getDomainOrWorkspaceAccountID} from '@libs/CardUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
@@ -29,6 +29,7 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const policy = usePolicy(policyID);
+    useWorkspaceDocumentTitle(policy?.name, 'workspace.common.companyCards');
     const workspaceAccountID = policy?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;
 
     const companyCards = useCompanyCards({policyID});
@@ -44,8 +45,16 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
 
     const domainOrWorkspaceAccountID = getDomainOrWorkspaceAccountID(workspaceAccountID, selectedFeed);
 
+    // Use a ref so that changes to the employee list (e.g. after inviting a member) don't
+    // recreate the callback and trigger an unnecessary re-fetch that flashes a skeleton loader.
+    const employeeListRef = useRef(policy?.employeeList);
+    useEffect(() => {
+        employeeListRef.current = policy?.employeeList;
+    }, [policy?.employeeList]);
+
     const loadPolicyCompanyCardsPage = useCallback(() => {
-        openPolicyCompanyCardsPage(policyID, domainOrWorkspaceAccountID, translate);
+        const emailList = Object.keys(getMemberAccountIDsForWorkspace(employeeListRef.current));
+        openPolicyCompanyCardsPage(policyID, domainOrWorkspaceAccountID, emailList, translate);
     }, [domainOrWorkspaceAccountID, policyID, translate]);
 
     const {isOffline} = useNetwork({
@@ -54,23 +63,23 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
 
     const isLoading = !isOffline && (!allCardFeeds || (isFeedAdded && isLoadingOnyxValue(cardListMetadata)));
 
+    const hasFeedsLoaded = !!allCardFeeds && Object.keys(allCardFeeds).length > 0;
+
     useEffect(() => {
-        if (isOffline) {
+        if (isOffline || hasFeedsLoaded) {
             return;
         }
 
         loadPolicyCompanyCardsPage();
-    }, [policyID, domainOrWorkspaceAccountID, loadPolicyCompanyCardsPage, isOffline]);
+    }, [loadPolicyCompanyCardsPage, isOffline, hasFeedsLoaded]);
 
     const loadPolicyCompanyCardsFeed = useCallback(() => {
-        if (isLoading || !bankName || isFeedPending) {
+        if (isLoading || !bankName || isFeedPending || isOffline) {
             return;
         }
 
-        const clientMemberEmails = Object.keys(getMemberAccountIDsForWorkspace(policy?.employeeList));
-        openWorkspaceMembersPage(policyID, clientMemberEmails);
         openPolicyCompanyCardsFeed(domainOrWorkspaceAccountID, policyID, bankName, translate);
-    }, [bankName, domainOrWorkspaceAccountID, isFeedPending, isLoading, policy?.employeeList, policyID, translate]);
+    }, [bankName, domainOrWorkspaceAccountID, isFeedPending, isLoading, policyID, translate, isOffline]);
 
     useEffect(() => {
         loadPolicyCompanyCardsFeed();

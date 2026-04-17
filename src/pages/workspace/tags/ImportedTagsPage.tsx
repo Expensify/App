@@ -28,13 +28,13 @@ type ImportedTagsPageProps =
 
 function ImportedTagsPage({route}: ImportedTagsPageProps) {
     const {translate} = useLocalize();
-    const [spreadsheet, spreadsheetMetadata] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET, {canBeMissing: true});
+    const [spreadsheet, spreadsheetMetadata] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET);
     const [isImportingTags, setIsImportingTags] = useState(false);
     const {containsHeader = true} = spreadsheet ?? {};
     const [isValidationEnabled, setIsValidationEnabled] = useState(false);
     const policyID = route.params.policyID;
     const backTo = route.params.backTo;
-    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {canBeMissing: true});
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
     const policyTagLists = useMemo(() => getTagLists(policyTags), [policyTags]);
     const policy = usePolicy(policyID);
     const columnNames = generateColumnNames(spreadsheet?.data?.length ?? 0);
@@ -105,7 +105,7 @@ function ImportedTagsPage({route}: ImportedTagsPageProps) {
             const existingGLCodeOrDefault = tagAlreadyExists?.['GL Code'] ?? '';
             return {
                 name,
-                enabled: tagsEnabledColumn !== -1 ? tagsEnabled?.[containsHeader ? index + 1 : index] === 'true' : true,
+                enabled: tagsEnabledColumn !== -1 ? ['true', 'yes'].includes(tagsEnabled?.[containsHeader ? index + 1 : index]?.toString().toLowerCase() ?? '') : true,
                 // eslint-disable-next-line @typescript-eslint/naming-convention
                 'GL Code': tagsGLCodeColumn !== -1 ? (tagsGLCode?.[containsHeader ? index + 1 : index] ?? '') : existingGLCodeOrDefault,
             };

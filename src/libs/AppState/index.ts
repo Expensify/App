@@ -1,12 +1,10 @@
-import {getPathFromState} from '@react-navigation/native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import Log from '@libs/Log';
-import {linkingConfig} from '@libs/Navigation/linkingConfig';
+import getPathFromState from '@libs/Navigation/helpers/getPathFromState';
 import {navigationRef} from '@libs/Navigation/Navigation';
 import {isAuthenticating as isAuthenticatingNetworkStore} from '@libs/Network/NetworkStore';
-import CONST from '@src/CONST';
+import {getIsOffline} from '@libs/NetworkState';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Network, Session} from '@src/types/onyx';
 import captureRequestsQueueState from './RequestsQueuesState';
@@ -41,7 +39,7 @@ function captureNavigationState(): NavigationStateInfo {
             return {currentPath: undefined};
         }
 
-        const routeFromState = getPathFromState(navigationRef.getRootState(), linkingConfig.config);
+        const routeFromState = getPathFromState(navigationRef.getRootState());
         return {
             currentPath: routeFromState || undefined,
         };
@@ -71,7 +69,7 @@ function captureSessionState(): SessionStateInfo {
  */
 function captureNetworkState(): NetworkStateInfo {
     return {
-        networkStatus: (currentNetwork?.networkStatus ?? CONST.NETWORK.NETWORK_STATUS.UNKNOWN) as ValueOf<typeof CONST.NETWORK.NETWORK_STATUS>,
+        isOffline: getIsOffline(),
         timeSkew: currentNetwork?.timeSkew,
         shouldForceOffline: currentNetwork?.shouldForceOffline,
         shouldSimulatePoorConnection: currentNetwork?.shouldSimulatePoorConnection,

@@ -1,5 +1,6 @@
 import type {CONST as COMMON_CONST} from 'expensify-common';
 import type {ValueOf} from 'type-fest';
+import type {GustoSyncResult} from '@libs/API/GustoSyncResult';
 import type CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import type * as OnyxTypes from '.';
@@ -109,6 +110,9 @@ type CustomUnit = OnyxCommon.OnyxValueWithOfflineFeedback<
 type CompanyAddress = {
     /** Street address */
     addressStreet: string;
+
+    /** Street address line 2 */
+    addressStreet2?: string;
 
     /** City */
     city: string;
@@ -509,6 +513,12 @@ type QBOConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
      * transactions upon import
      */
     autoCreateVendor: boolean;
+
+    /** Default vendor ID for travel expenses */
+    travelInvoicingVendorID?: string;
+
+    /** Account ID that receives the exported travel payable */
+    travelInvoicingPayableAccountID?: string;
 
     /** TODO: Will be handled in another issue */
     hasChosenAutoSyncOption: boolean;
@@ -1336,6 +1346,24 @@ type SageIntacctConnectionsConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
     SageIntacctOfflineStateKeys | keyof SageIntacctSyncConfig | keyof SageIntacctAutoSyncConfig | keyof SageIntacctExportConfig
 >;
 
+/** Gusto connection data */
+type GustoConnectionData = Record<string, never>;
+
+/** Gusto connection config */
+type GustoConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
+    {
+        /** Gusto approval mode */
+        approvalMode: ValueOf<typeof CONST.GUSTO.APPROVAL_MODE> | null;
+
+        /** Workspace member who acts as the final approver */
+        finalApprover: string | null;
+
+        /** Collections of form field errors */
+        errorFields?: OnyxCommon.ErrorFields;
+    },
+    'approvalMode' | 'finalApprover'
+>;
+
 /**
  * Data imported from QuickBooks Desktop.
  */
@@ -1463,6 +1491,12 @@ type Connections = {
 
     /** QuickBooks Desktop integration connection */
     [CONST.POLICY.CONNECTIONS.NAME.QBD]: Connection<QBDConnectionData, QBDConnectionConfig>;
+
+    /** Certinia integration connection */
+    [CONST.POLICY.CONNECTIONS.NAME.CERTINIA]: Connection<Record<string, never>, Record<string, never>>;
+
+    /** Gusto integration connection */
+    [CONST.POLICY.CONNECTIONS.NAME.GUSTO]: Connection<GustoConnectionData, GustoConnectionConfig>;
 };
 
 /** All integration connections, including unsupported ones */
@@ -1512,6 +1546,9 @@ type ACHAccount = {
 
     /** Bank account state */
     state?: string;
+
+    /** Emails of users who have had the bank account shared with them */
+    sharees?: string[];
 };
 
 /** Prohibited expense types */
@@ -1782,6 +1819,9 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** The URL for the policy avatar */
         avatarURL?: string;
 
+        /** The client ID set by an Approved! Accountant for tracking purposes */
+        clientID?: string;
+
         /** Error objects keyed by field name containing errors keyed by microtime */
         errorFields?: OnyxCommon.ErrorFields;
 
@@ -1863,7 +1903,7 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         autoApproval?: OnyxCommon.OnyxValueWithOfflineFeedback<
             {
                 /**
-                 * The maximum report total allowed to trigger auto approval.
+                 * The maximum per-expense amount allowed to trigger auto approval.
                  */
                 limit?: number;
                 /**
@@ -1879,9 +1919,6 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** Original file name which is used for the policy avatar */
         originalFileName?: string;
-
-        /** Alert message for the policy */
-        alertMessage?: string;
 
         /** Informative messages about which policy members were added with primary logins when invited with their secondary login */
         primaryLoginsInvited?: Record<string, string>;
@@ -2115,11 +2152,15 @@ type PolicyConnectionSyncProgress = {
 
     /** Timestamp of the connection */
     timestamp: string;
+
+    /** Optional result payload shown after a completed sync */
+    result?: GustoSyncResult;
 };
 
 export default Policy;
 
 export type {
+    AutoReportingOffset,
     PolicyReportField,
     PolicyReportFieldType,
     Unit,

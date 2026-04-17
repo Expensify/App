@@ -1,14 +1,15 @@
 import type * as NativeNavigation from '@react-navigation/native';
-import type {PrivateIsArchivedMap} from '@selectors/ReportNameValuePairs';
 import {fireEvent, screen} from '@testing-library/react-native';
 import React, {useMemo} from 'react';
 import Onyx from 'react-native-onyx';
 import {measureRenders} from 'reassure';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
-import {OptionsListContext} from '@components/OptionListContextProvider';
+import {OptionsListActionsContext, OptionsListStateContext} from '@components/OptionListContextProvider';
 import SearchAutocompleteInput from '@components/Search/SearchAutocompleteInput';
 import SearchRouter from '@components/Search/SearchRouter/SearchRouter';
+import type {PrivateIsArchivedMap} from '@hooks/usePrivateIsArchivedMap';
+import {setHasRadio} from '@libs/NetworkState';
 import {createOptionList} from '@libs/OptionsListUtils';
 import ComposeProviders from '@src/components/ComposeProviders';
 import CONST from '@src/CONST';
@@ -48,6 +49,16 @@ jest.mock('@src/hooks/useRootNavigationState', () => ({
     // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: () => ({contextualReportID: undefined, isSearchRouterScreen: false}),
+}));
+
+jest.mock('@hooks/useExportedToFilterOptions', () => ({
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+    __esModule: true,
+    default: () => ({
+        exportedToFilterOptions: [],
+        combinedUniqueExportTemplates: [],
+        connectedIntegrationNames: new Set<string>(),
+    }),
 }));
 
 jest.mock('@react-navigation/native', () => {
@@ -91,13 +102,11 @@ const getMockedPersonalDetails = (length = 100) =>
         length,
     );
 
-const MOCK_CURRENT_USER_ACCOUNT_ID = 1;
-
 const mockedReports = getMockedReports(600);
 const mockedBetas = Object.values(CONST.BETAS);
 const mockedPersonalDetails = getMockedPersonalDetails(100);
 const EMPTY_PRIVATE_IS_ARCHIVED_MAP: PrivateIsArchivedMap = {};
-const mockedOptions = createOptionList(mockedPersonalDetails, MOCK_CURRENT_USER_ACCOUNT_ID, EMPTY_PRIVATE_IS_ARCHIVED_MAP, mockedReports);
+const mockedOptions = createOptionList(mockedPersonalDetails, EMPTY_PRIVATE_IS_ARCHIVED_MAP, mockedReports, undefined);
 
 beforeAll(() =>
     Onyx.init({
@@ -110,7 +119,7 @@ beforeAll(() =>
 beforeEach(() => {
     global.fetch = TestHelper.getGlobalFetchMock();
     wrapOnyxWithWaitForBatchedUpdates(Onyx);
-    Onyx.merge(ONYXKEYS.NETWORK, {isOffline: false});
+    setHasRadio(true);
 });
 
 // Clear out Onyx after each test so that each test starts with a clean state
@@ -137,9 +146,11 @@ function SearchAutocompleteInputWrapper() {
 function SearchRouterWrapperWithCachedOptions() {
     return (
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
-            <OptionsListContext.Provider value={useMemo(() => ({options: mockedOptions, initializeOptions: () => {}, resetOptions: () => {}, areOptionsInitialized: true}), [])}>
-                <SearchRouter onRouterClose={mockOnClose} />
-            </OptionsListContext.Provider>
+            <OptionsListStateContext.Provider value={useMemo(() => ({options: mockedOptions, areOptionsInitialized: true}), [])}>
+                <OptionsListActionsContext.Provider value={useMemo(() => ({initializeOptions: () => {}, resetOptions: () => {}}), [])}>
+                    <SearchRouter onRouterClose={mockOnClose} />
+                </OptionsListActionsContext.Provider>
+            </OptionsListStateContext.Provider>
         </ComposeProviders>
     );
 }
@@ -155,7 +166,7 @@ test('[SearchRouter] should render list with cached options', async () => {
                 ...mockedReports,
                 [ONYXKEYS.PERSONAL_DETAILS_LIST]: mockedPersonalDetails,
                 [ONYXKEYS.BETAS]: mockedBetas,
-                [ONYXKEYS.IS_SEARCHING_FOR_REPORTS]: true,
+                [ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS]: true,
             }),
         )
         .then(() => measureRenders(<SearchRouterWrapperWithCachedOptions />, {scenario}));
@@ -175,7 +186,7 @@ test('[SearchRouter] should react to text input changes', async () => {
                 ...mockedReports,
                 [ONYXKEYS.PERSONAL_DETAILS_LIST]: mockedPersonalDetails,
                 [ONYXKEYS.BETAS]: mockedBetas,
-                [ONYXKEYS.IS_SEARCHING_FOR_REPORTS]: true,
+                [ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS]: true,
             }),
         )
         .then(() => measureRenders(<SearchAutocompleteInputWrapper />, {scenario}));

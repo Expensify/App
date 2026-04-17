@@ -1,4 +1,3 @@
-import 'core-js/features/array/at';
 // eslint-disable-next-line no-restricted-imports
 import type {CSSProperties} from 'react';
 import React, {memo, useCallback, useEffect, useState} from 'react';
@@ -23,7 +22,7 @@ import type {PDFViewProps} from './types';
 const LOADING_THUMBNAIL_HEIGHT = 250;
 const LOADING_THUMBNAIL_WIDTH = 250;
 
-function PDFView({onToggleKeyboard, fileName, onPress, isFocused, sourceURL, style, isUsedAsChatAttachment, onLoadError}: PDFViewProps) {
+function PDFView({onToggleKeyboard, fileName, onPress, isFocused, sourceURL, style, isUsedAsChatAttachment, onLoadError, rotation}: PDFViewProps) {
     const [isKeyboardOpen, setIsKeyboardOpen] = useState(false);
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -32,9 +31,9 @@ function PDFView({onToggleKeyboard, fileName, onPress, isFocused, sourceURL, sty
     const prevWindowHeight = usePrevious(windowHeight);
     const {translate} = useLocalize();
 
-    const [maxCanvasArea] = useOnyx(ONYXKEYS.MAX_CANVAS_AREA, {canBeMissing: true});
-    const [maxCanvasHeight] = useOnyx(ONYXKEYS.MAX_CANVAS_HEIGHT, {canBeMissing: true});
-    const [maxCanvasWidth] = useOnyx(ONYXKEYS.MAX_CANVAS_WIDTH, {canBeMissing: true});
+    const [maxCanvasArea] = useOnyx(ONYXKEYS.MAX_CANVAS_AREA);
+    const [maxCanvasHeight] = useOnyx(ONYXKEYS.MAX_CANVAS_HEIGHT);
+    const [maxCanvasWidth] = useOnyx(ONYXKEYS.MAX_CANVAS_WIDTH);
 
     /**
      * On small screens notify parent that the keyboard has opened or closed.
@@ -118,6 +117,7 @@ function PDFView({onToggleKeyboard, fileName, onPress, isFocused, sourceURL, sty
                     }
                     shouldShowErrorComponent={false}
                     onLoadError={onLoadError}
+                    rotation={rotation}
                     renderPasswordForm={({isPasswordInvalid, onSubmit, onPasswordChange}) => (
                         <PDFPasswordForm
                             isFocused={!!isFocused}
@@ -138,6 +138,7 @@ function PDFView({onToggleKeyboard, fileName, onPress, isFocused, sourceURL, sty
             accessibilityRole={CONST.ROLE.BUTTON}
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             accessibilityLabel={fileName || translate('attachmentView.unknownFilename')}
+            sentryLabel={CONST.SENTRY_LABEL.PDF_VIEW.DOCUMENT}
         >
             {renderPDFView()}
         </PressableWithoutFeedback>

@@ -1,16 +1,13 @@
 import {useIsFocused} from '@react-navigation/native';
-import reportsSelector from '@selectors/Attributes';
 import React, {useEffect, useRef, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
-import type {ValueOf} from 'type-fest';
+import type {TupleToUnion, ValueOf} from 'type-fest';
 import Badge from '@components/Badge';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption, WorkspaceMemberBulkActionType} from '@components/ButtonWithDropdownMenu/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-// eslint-disable-next-line no-restricted-imports
-import {Plus} from '@components/Icon/Expensicons';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TableListItem from '@components/SelectionList/ListItem/TableListItem';
@@ -25,13 +22,14 @@ import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import useReportAttributes from '@hooks/useReportAttributes';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchBackPress from '@hooks/useSearchBackPress';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
-import {removeFromGroupChat, updateGroupChatMemberRoles} from '@libs/actions/Report';
+import {openRoomMembersPage, removeFromGroupChat, updateGroupChatMemberRoles} from '@libs/actions/Report';
 import {clearUserSearchPhrase} from '@libs/actions/RoomMembersUserSearchPhrase';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -41,6 +39,7 @@ import {getDisplayNameOrDefault, getPersonalDetailsByIDs} from '@libs/PersonalDe
 import {getReportName} from '@libs/ReportNameUtils';
 import {
     getReportPersonalDetailsParticipants,
+    isAnnounceRoom,
     isArchivedNonExpenseReport,
     isChatRoom,
     isChatThread,
@@ -65,7 +64,7 @@ type MemberOption = Omit<ListItem, 'accountID'> & {accountID: number};
 type ReportParticipantsPageProps = WithReportOrNotFoundProps & PlatformStackScreenProps<ParticipantsNavigatorParamList, typeof SCREENS.REPORT_PARTICIPANTS.ROOT>;
 function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
     const backTo = route.params.backTo;
-    const icons = useMemoizedLazyExpensifyIcons(['User', 'MakeAdmin', 'RemoveMembers', 'FallbackAvatar']);
+    const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar', 'MakeAdmin', 'Plus', 'RemoveMembers', 'User']);
     const {translate, formatPhoneNumber, localeCompare} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
     const styles = useThemeStyles();
@@ -76,13 +75,13 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
     const selectionListRef = useRef<SelectionListHandle<MemberOption>>(null);
     const textInputRef = useRef<BaseTextInputRef>(null);
-    const [userSearchPhrase] = useOnyx(ONYXKEYS.ROOM_MEMBERS_USER_SEARCH_PHRASE, {canBeMissing: true});
+    const [userSearchPhrase] = useOnyx(ONYXKEYS.ROOM_MEMBERS_USER_SEARCH_PHRASE);
     const isReportArchived = useReportIsArchived(report?.reportID);
-    const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report?.reportID}`, {canBeMissing: false});
-    const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {selector: reportsSelector, canBeMissing: true});
+    const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report?.reportID}`);
+    const reportAttributes = useReportAttributes();
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
-    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
+    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const currentUserAccountID = Number(session?.accountID);
     const isCurrentUserAdmin = isGroupChatAdmin(report, currentUserAccountID);
     const isGroupChat = isGroupChatUtils(report);
@@ -92,33 +91,23 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
     const canSelectMultiple = isGroupChat && isCurrentUserAdmin && (isSmallScreenWidth ? isMobileSelectionModeEnabled : true);
     const [searchValue, setSearchValue] = useState('');
 
-    const {chatParticipants, personalDetailsParticipants} = getReportPersonalDetailsParticipants(report, personalDetails, reportMetadata);
+    const {personalDetailsParticipants, participantsForDisplay} = getReportPersonalDetailsParticipants(report, personalDetails, reportMetadata);
+    const participantsForDisplayMap = participantsForDisplay.reduce<Record<number, TupleToUnion<typeof participantsForDisplay>>>((acc, participant) => {
+        acc[participant.accountID] = participant;
+        return acc;
+    }, {});
 
     const filterParticipants = (participant?: PersonalDetails) => {
         if (!participant) {
             return false;
         }
-        const isInParticipants = chatParticipants.includes(participant.accountID);
-        const pendingChatMember = reportMetadata?.pendingChatMembers?.find((member) => member.accountID === participant.accountID.toString());
-        const isPendingDelete = pendingChatMember?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
-        return isInParticipants && !isPendingDelete;
+        return !!participantsForDisplayMap[participant.accountID] && !participantsForDisplayMap[participant.accountID].isPendingDelete;
     };
 
     const [selectedMembers, setSelectedMembers] = useFilteredSelection(personalDetailsParticipants, filterParticipants);
 
-    const pendingChatMembers = reportMetadata?.pendingChatMembers;
-    const reportParticipants = report?.participants;
-
     // Get the active chat members by filtering out the pending members with delete action
-    const activeParticipants = chatParticipants.filter((accountID) => {
-        const pendingMember = pendingChatMembers?.findLast((member) => member.accountID === accountID.toString());
-        if (!personalDetails?.[accountID]) {
-            return false;
-        }
-
-        // When offline, we want to include the pending members with delete action as they are displayed in the list as well
-        return !pendingMember || isOffline || pendingMember.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
-    });
+    const activeParticipants = participantsForDisplay.filter((participant) => isOffline || !participant.isPendingDelete);
 
     // Include the search bar when there are STANDARD_LIST_ITEM_LIMIT or more active members in the selection list
     const shouldShowTextInput = activeParticipants.length >= CONST.STANDARD_LIST_ITEM_LIMIT;
@@ -134,6 +123,15 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
             setSearchValue('');
         }
     }, [isFocused, setSearchValue, shouldShowTextInput, userSearchPhrase]);
+
+    useEffect(() => {
+        if (!isAnnounceRoom(report)) {
+            return;
+        }
+        openRoomMembersPage(report.reportID);
+        // We only want to fetch room members once on mount, not when report changes
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     useSearchBackPress({
         onClearSelection: () => setSelectedMembers([]),
@@ -217,19 +215,17 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
 
     // Build participants list
     let participants: MemberOption[] = [];
-    for (const accountID of chatParticipants) {
-        const role = reportParticipants?.[accountID].role;
-        const details = personalDetails?.[accountID];
+    for (const participantForDisplay of participantsForDisplay) {
+        const {accountID, details, isDisabled, isPendingDelete, pendingAction, role} = participantForDisplay;
 
-        if (!details || (searchValue.trim() && !isSearchStringMatchUserDetails(details, searchValue))) {
+        if (searchValue.trim() && !isSearchStringMatchUserDetails(details, searchValue)) {
             continue;
         }
 
-        const pendingChatMember = pendingChatMembers?.findLast((member) => member.accountID === accountID.toString());
-        const pendingAction = pendingChatMember?.pendingAction ?? reportParticipants?.[accountID]?.pendingAction;
-        if (!isOffline && pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+        if (!isOffline && isPendingDelete) {
             continue;
         }
+
         const isAdmin = role === CONST.REPORT.ROLE.ADMIN;
 
         participants.push({
@@ -237,7 +233,7 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
             accountID,
             isSelected: selectedMembers.includes(accountID) && canSelectMultiple,
             isDisabledCheckbox: accountID === currentUserAccountID,
-            isDisabled: pendingChatMember?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || details?.isOptimisticPersonalDetail,
+            isDisabled,
             text: formatPhoneNumber(getDisplayNameOrDefault(details)),
             alternateText: formatPhoneNumber(details?.login ?? ''),
             rightElement: isAdmin ? <Badge text={translate('common.admin')} /> : null,
@@ -254,8 +250,8 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
     }
     participants = participants.sort((a, b) => localeCompare((a.text ?? '').toLowerCase(), (b.text ?? '').toLowerCase()));
 
-    const isAtLeastOneAdminSelected = selectedMembers.some((accountId) => report.participants?.[accountId]?.role === CONST.REPORT.ROLE.ADMIN);
-    const isAtLeastOneMemberSelected = selectedMembers.some((accountId) => report.participants?.[accountId]?.role === CONST.REPORT.ROLE.MEMBER);
+    const isAtLeastOneAdminSelected = selectedMembers.some((accountId) => participantsForDisplayMap[accountId]?.role === CONST.REPORT.ROLE.ADMIN);
+    const isAtLeastOneMemberSelected = selectedMembers.some((accountId) => participantsForDisplayMap[accountId]?.role === CONST.REPORT.ROLE.MEMBER);
 
     // We use spread to define this array in one statement because showRemoveMembersModal accesses textInputRef.current.
     // React Compiler can't tell that onSelected is a callback (not invoked during render), so modifying this array
@@ -364,7 +360,7 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
                                     success
                                     onPress={() => Navigation.navigate(ROUTES.REPORT_PARTICIPANTS_INVITE.getRoute(report.reportID, backTo))}
                                     text={translate('workspace.invite.member')}
-                                    icon={Plus}
+                                    icon={icons.Plus}
                                     innerStyles={[shouldUseNarrowLayout && styles.alignItemsCenter]}
                                     style={[shouldUseNarrowLayout && styles.flexGrow1]}
                                 />
@@ -389,7 +385,6 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
                         turnOnSelectionModeOnLongPress={isCurrentUserGroupChatAdmin}
                         shouldSingleExecuteRowSelect={!isCurrentUserGroupChatAdmin}
                         onTurnOnSelectionMode={(item) => item && toggleUser(item)}
-                        style={{listHeaderWrapperStyle: [styles.ph9, styles.mt3]}}
                         onSelectAll={() => toggleAllUsers(participants)}
                         onCheckboxPress={toggleUser}
                         shouldShowTextInput={shouldShowTextInput}

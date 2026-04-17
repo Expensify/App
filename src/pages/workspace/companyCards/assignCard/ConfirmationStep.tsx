@@ -9,7 +9,8 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import useCardFeeds from '@hooks/useCardFeeds';
-import useCurrencyList from '@hooks/useCurrencyList';
+import {useCurrencyListState} from '@hooks/useCurrencyList';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -47,12 +48,12 @@ function ConfirmationStep({route}: ConfirmationStepProps) {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
 
-    const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD, {canBeMissing: false});
-    const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, {canBeMissing: true});
+    const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD);
+    const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST);
     const [cardError, setCardError] = useState<Errors>();
     const policy = usePolicy(policyID);
-    const {currencyList} = useCurrencyList();
-    const [countryByIp] = useOnyx(ONYXKEYS.COUNTRY, {canBeMissing: false});
+    const {currencyList} = useCurrencyListState();
+    const [countryByIp] = useOnyx(ONYXKEYS.COUNTRY);
     const bankName = assignCard?.cardToAssign?.bankName ?? getCompanyCardFeed(feed);
     const [cardFeeds] = useCardFeeds(policyID);
 
@@ -68,6 +69,9 @@ function ConfirmationStep({route}: ConfirmationStepProps) {
 
     const cardholderEmail = Str.removeSMSDomain(cardToAssign?.email ?? '');
     const cardholderAccountID = cardholder?.accountID;
+
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const currentUserAccountID = currentUserPersonalDetails.accountID;
 
     useEffect(() => {
         if (!assignCard?.isAssignmentFinished) {
@@ -107,12 +111,12 @@ function ConfirmationStep({route}: ConfirmationStepProps) {
         // Check both encryptedCardNumber and cardName since isCardAlreadyAssigned matches on either
         // This handles cases where workspace card entries only have cardName (masked display name) stored
         const cardIdentifier = cardToAssign?.encryptedCardNumber ?? cardToAssign?.cardName;
-        if (cardIdentifier && isCardAlreadyAssigned(cardIdentifier, workspaceCardFeeds)) {
+        if (cardIdentifier && isCardAlreadyAssigned(cardIdentifier, workspaceCardFeeds, domainOrWorkspaceAccountID, bankName)) {
             setCardError(getMicroSecondOnyxErrorWithTranslationKey('workspace.companyCards.cardAlreadyAssignedError'));
             return;
         }
 
-        assignWorkspaceCompanyCard(policy, domainOrWorkspaceAccountID, translate, feed, {...cardToAssign, cardholder, bankName});
+        assignWorkspaceCompanyCard(policy, domainOrWorkspaceAccountID, translate, {...cardToAssign, cardholder, bankName}, currentUserAccountID);
     };
 
     const editStep = (step: string) => {

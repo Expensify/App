@@ -1,4 +1,4 @@
-import {toZonedTime} from 'date-fns-tz';
+import {format, toZonedTime} from 'date-fns-tz';
 import React, {useMemo, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import DatePicker from '@components/DatePicker';
@@ -33,7 +33,7 @@ function SetExpiryOptionsStep({policy, stepNames, startStepIndex}: SetExpiryOpti
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policyID = policy?.id;
-    const [issueNewCard] = useOnyx(`${ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD}${policyID}`, {canBeMissing: true});
+    const [issueNewCard] = useOnyx(`${ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD}${policyID}`);
     const personalDetails = usePersonalDetails();
 
     const assigneePersonalDetails = Object.values(personalDetails ?? {}).find((detail) => detail?.login === issueNewCard?.data?.assigneeEmail);
@@ -61,7 +61,7 @@ function SetExpiryOptionsStep({policy, stepNames, startStepIndex}: SetExpiryOpti
     const submit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ISSUE_NEW_EXPENSIFY_CARD_FORM>) => {
         setIssueNewCardStepAndData({
             step: isEditing ? CONST.EXPENSIFY_CARD.STEP.CONFIRMATION : CONST.EXPENSIFY_CARD.STEP.CARD_NAME,
-            data: expirationToggle ? {validFrom: values.validFrom, validThru: values.validThru} : {validFrom: undefined, validThru: undefined},
+            data: expirationToggle ? {validFrom: values.validFrom, validThru: values.validThru} : {validFrom: '', validThru: ''},
             isEditing: false,
             policyID,
         });
@@ -129,7 +129,7 @@ function SetExpiryOptionsStep({policy, stepNames, startStepIndex}: SetExpiryOpti
                             label={translate('workspace.card.issueNewCard.startDate')}
                             maxDate={CONST.CALENDAR_PICKER.MAX_DATE}
                             minDate={minDate}
-                            defaultValue={issueNewCard?.data?.validFrom}
+                            defaultValue={issueNewCard?.data?.validFrom ?? format(minDate, CONST.DATE.FNS_FORMAT_STRING)}
                         />
                         <InputWrapper
                             InputComponent={DatePicker}

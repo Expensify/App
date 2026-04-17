@@ -57,7 +57,7 @@ describe('DateUtils', () => {
 
     it('getZoneAbbreviation should show zone abbreviation from the datetime', () => {
         const zoneAbbreviation = DateUtils.getZoneAbbreviation(datetime, timezone);
-        expect(zoneAbbreviation).toBe('GMT');
+        expect(zoneAbbreviation).toBe('GMT+0');
     });
 
     it('formatToLongDateWithWeekday should return a long date with a weekday', () => {
@@ -449,32 +449,86 @@ describe('DateUtils', () => {
 
         it('should format hours, minutes, and seconds correctly', () => {
             const result = DateUtils.formatCountdownTimer(mockTranslate, 5, 30, 45);
-            expect(result).toBe('5h 30m 45s');
+            expect(result).toBe('5h : 30m : 45s');
         });
 
         it('should pad single digit minutes with leading zero', () => {
             const result = DateUtils.formatCountdownTimer(mockTranslate, 2, 5, 30);
-            expect(result).toBe('2h 05m 30s');
+            expect(result).toBe('2h : 05m : 30s');
         });
 
         it('should pad single digit seconds with leading zero', () => {
             const result = DateUtils.formatCountdownTimer(mockTranslate, 1, 15, 8);
-            expect(result).toBe('1h 15m 08s');
+            expect(result).toBe('1h : 15m : 08s');
         });
 
         it('should pad both minutes and seconds with leading zeros', () => {
             const result = DateUtils.formatCountdownTimer(mockTranslate, 0, 3, 7);
-            expect(result).toBe('0h 03m 07s');
+            expect(result).toBe('0h : 03m : 07s');
         });
 
         it('should handle zero values for all parameters', () => {
             const result = DateUtils.formatCountdownTimer(mockTranslate, 0, 0, 0);
-            expect(result).toBe('0h 00m 00s');
+            expect(result).toBe('0h : 00m : 00s');
         });
 
         it('should handle large hour values', () => {
             const result = DateUtils.formatCountdownTimer(mockTranslate, 23, 59, 59);
-            expect(result).toBe('23h 59m 59s');
+            expect(result).toBe('23h : 59m : 59s');
+        });
+    });
+
+    describe('formatUTCDateTimeToDateInTimezone', () => {
+        const originalTZ = process.env.TZ;
+
+        beforeEach(() => {
+            process.env.TZ = 'UTC';
+        });
+
+        afterEach(() => {
+            process.env.TZ = originalTZ;
+        });
+
+        it('should return empty string when utcDateTime is empty', () => {
+            expect(DateUtils.formatUTCDateTimeToDateInTimezone('', UTC as SelectedTimezone)).toBe('');
+        });
+
+        it('should return empty string when timeZone is empty', () => {
+            expect(DateUtils.formatUTCDateTimeToDateInTimezone('2024-01-15 08:00:00', '' as SelectedTimezone)).toBe('');
+        });
+
+        it('should return date in yyyy-MM-dd format when timeZone is UTC', () => {
+            const result = DateUtils.formatUTCDateTimeToDateInTimezone('2024-01-15 08:00:00', UTC as SelectedTimezone);
+            expect(result).toBe('2024-01-15');
+        });
+
+        it('should convert UTC datetime to target timezone date', () => {
+            // America/New_York is UTC-5 in January (EST), so 2024-01-15 08:00:00 UTC = 2024-01-15 03:00:00 EST
+            const americaNewYork = 'America/New_York' as SelectedTimezone;
+            const result = DateUtils.formatUTCDateTimeToDateInTimezone('2024-01-15 08:00:00', americaNewYork);
+            expect(result).toBe('2024-01-15');
+        });
+
+        it('should handle UTC datetime that falls on previous day in target timezone', () => {
+            // America/New_York is UTC-5, so 2024-01-15 02:00:00 UTC = 2024-01-14 21:00:00 EST
+            const americaNewYork = 'America/New_York' as SelectedTimezone;
+            const result = DateUtils.formatUTCDateTimeToDateInTimezone('2024-01-15 02:00:00', americaNewYork);
+            expect(result).toBe('2024-01-14');
+        });
+
+        it('should handle UTC datetime with milliseconds', () => {
+            const result = DateUtils.formatUTCDateTimeToDateInTimezone('2024-01-15 08:00:00.000', UTC as SelectedTimezone);
+            expect(result).toBe('2024-01-15');
+        });
+
+        it('should handle date-only format (parses as midnight UTC)', () => {
+            const result = DateUtils.formatUTCDateTimeToDateInTimezone('2024-01-15', UTC as SelectedTimezone);
+            expect(result).toBe('2024-01-15');
+        });
+
+        it('should return empty string for invalid date', () => {
+            const result = DateUtils.formatUTCDateTimeToDateInTimezone('invalid-date', UTC as SelectedTimezone);
+            expect(result).toBe('');
         });
     });
 
@@ -491,21 +545,21 @@ describe('DateUtils', () => {
 
         it('should return midnight local time as UTC in DB format when timeZone is UTC', () => {
             const result = DateUtils.normalizeDateToStartOfDay('2024-01-15', UTC as SelectedTimezone);
-            expect(result).toBe('2024-01-15 00:00:00.000');
+            expect(result).toBe('2024-01-15 00:00:00');
         });
 
-        it('should match getDBTime of startOfDay for the parsed date', () => {
+        it('should match getDBTime of startOfDay for the parsed date (without milliseconds)', () => {
             const dateStr = '2022-11-07';
             const result = DateUtils.normalizeDateToStartOfDay(dateStr, UTC as SelectedTimezone);
-            const expected = DateUtils.getDBTime(fromZonedTime(startOfDay(new Date(`${dateStr}T00:00:00.000Z`)), UTC).valueOf());
+            const expected = DateUtils.getDBTime(fromZonedTime(startOfDay(new Date(`${dateStr}T00:00:00.000Z`)), UTC).valueOf()).replace(/\.\d{3}$/, '');
             expect(result).toBe(expected);
         });
 
         it('should return midnight in target timezone as UTC in DB format when timeZone is not UTC', () => {
-            // America/New_York is UTC-5 in January (EST), so 2024-01-15 00:00:00 EST = 2024-01-15 05:00:00.000 UTC
+            // America/New_York is UTC-5 in January (EST), so 2024-01-15 00:00:00 EST = 2024-01-15 05:00:00 UTC
             const americaNewYork = 'America/New_York' as SelectedTimezone;
             const result = DateUtils.normalizeDateToStartOfDay('2024-01-15', americaNewYork);
-            expect(result).toBe('2024-01-15 05:00:00.000');
+            expect(result).toBe('2024-01-15 05:00:00');
         });
     });
 
@@ -522,21 +576,21 @@ describe('DateUtils', () => {
 
         it('should return end of day local time as UTC in DB format when timeZone is UTC', () => {
             const result = DateUtils.normalizeDateToEndOfDay('2024-01-15', UTC as SelectedTimezone);
-            expect(result).toBe('2024-01-15 23:59:59.999');
+            expect(result).toBe('2024-01-15 23:59:59');
         });
 
-        it('should match getDBTime of endOfDay for the parsed date', () => {
+        it('should match getDBTime of endOfDay for the parsed date (without milliseconds)', () => {
             const dateStr = '2022-11-07';
             const result = DateUtils.normalizeDateToEndOfDay(dateStr, UTC as SelectedTimezone);
-            const expected = DateUtils.getDBTime(fromZonedTime(endOfDay(new Date(`${dateStr}T00:00:00.000Z`)), UTC).valueOf());
+            const expected = DateUtils.getDBTime(fromZonedTime(endOfDay(new Date(`${dateStr}T00:00:00.000Z`)), UTC).valueOf()).replace(/\.\d{3}$/, '');
             expect(result).toBe(expected);
         });
 
         it('should return end of day in target timezone as UTC in DB format when timeZone is not UTC', () => {
-            // America/New_York is UTC-5 in January (EST), so 2024-01-15 23:59:59.999 EST = 2024-01-16 04:59:59.999 UTC
+            // America/New_York is UTC-5 in January (EST), so 2024-01-15 23:59:59 EST = 2024-01-16 04:59:59 UTC
             const americaNewYork = 'America/New_York' as SelectedTimezone;
             const result = DateUtils.normalizeDateToEndOfDay('2024-01-15', americaNewYork);
-            expect(result).toBe('2024-01-16 04:59:59.999');
+            expect(result).toBe('2024-01-16 04:59:59');
         });
     });
 });

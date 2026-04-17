@@ -15,7 +15,7 @@ function ConnectToXeroFlow({policyID}: ConnectToXeroFlowProps) {
     const {translate} = useLocalize();
     const {environmentURL} = useEnvironment();
 
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: false});
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const is2FAEnabled = account?.requiresTwoFactorAuth;
     const isUserValidated = account?.validated;
 

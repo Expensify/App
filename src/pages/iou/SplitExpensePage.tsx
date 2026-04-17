@@ -1,5 +1,5 @@
 import {deepEqual} from 'fast-equals';
-import React, {useEffect} from 'react';
+import React, {useEffect, useMemo} from 'react';
 import {InteractionManager, Keyboard, View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
@@ -10,12 +10,12 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ScreenWrapper from '@components/ScreenWrapper';
-import {useSearchContext} from '@components/Search/SearchContext';
+import {useSearchActionsContext, useSearchStateContext} from '@components/Search/SearchContext';
 import type {SplitListItemType} from '@components/SelectionList/ListItem/types';
 import TabSelector from '@components/TabSelector/TabSelector';
 import useAllTransactions from '@hooks/useAllTransactions';
 import useConfirmModal from '@hooks/useConfirmModal';
-import useCurrencyList from '@hooks/useCurrencyList';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useGetIOUReportFromReportAction from '@hooks/useGetIOUReportFromReportAction';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -25,20 +25,21 @@ import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {getIOURequestPolicyID} from '@libs/actions/IOU';
+import {getIOUActionForTransactions} from '@libs/actions/IOU/Duplicate';
 import {
     addSplitExpenseField,
     clearSplitTransactionDraftErrors,
     evenlyDistributeSplitExpenseAmounts,
-    getIOURequestPolicyID,
     initDraftSplitExpenseDataForEdit,
     initSplitExpenseItemData,
     updateSplitExpenseAmountField,
-} from '@libs/actions/IOU';
-import {getIOUActionForTransactions} from '@libs/actions/IOU/Duplicate';
-import {updateSplitTransactionsFromSplitExpensesFlow} from '@libs/actions/IOU/Split';
+    updateSplitTransactionsFromSplitExpensesFlow,
+} from '@libs/actions/IOU/Split';
 import {convertToBackendAmount, convertToDisplayString} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
+import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {calculateSplitAmountFromPercentage, calculateSplitPercentagesFromAmounts} from '@libs/IOUUtils';
@@ -49,12 +50,16 @@ import type {SplitExpenseParamList} from '@libs/Navigation/types';
 import {isSplitAction} from '@libs/ReportSecondaryActionUtils';
 import {getReportOrDraftReport, getTransactionDetails, isReportApproved, isSettled as isSettledReportUtils} from '@libs/ReportUtils';
 import type {TransactionDetails} from '@libs/ReportUtils';
+import {getActiveGroupSearchHashes} from '@libs/SearchUIUtils';
+import {computeSplitSaveErrorMessage, computeSplitWarningMessage} from '@libs/SplitExpenseUtils';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import type {TranslationPathOrText} from '@libs/TransactionPreviewUtils';
-import {getChildTransactions, getExpenseTypeTranslationKey, getTransactionType, isManagedCardTransaction, isPerDiemRequest} from '@libs/TransactionUtils';
+import {getChildTransactions, getExpenseTypeTranslationKey, getTransactionType, isDistanceRequest, isManagedCardTransaction, isPerDiemRequest} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import type {SplitExpense} from '@src/types/onyx/IOU';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import SplitList from './SplitList';
@@ -71,35 +76,51 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     const {showConfirmModal} = useConfirmModal();
 
     const [errorMessage, setErrorMessage] = React.useState<string>('');
-    const searchContext = useSearchContext();
+    const {currentSearchResults, currentSearchHash, currentSearchQueryJSON} = useSearchStateContext();
+    const {clearSelectedTransactions} = useSearchActionsContext();
 
-    const {getCurrencySymbol} = useCurrencyList();
+    const {getCurrencySymbol} = useCurrencyListActions();
 
-    const [selectedTab] = useOnyx(`${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.SPLIT_EXPENSE_TAB_TYPE}`, {canBeMissing: true});
-    const [draftTransaction, draftTransactionMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`, {canBeMissing: false});
+    const [selectedTab] = useOnyx(`${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.SPLIT_EXPENSE_TAB_TYPE}`);
+    const [draftTransaction, draftTransactionMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
     const isLoadingDraftTransaction = isLoadingOnyxValue(draftTransactionMetadata);
     const draftTransactionReport = getReportOrDraftReport(draftTransaction?.reportID);
     const parentTransactionReport = getReportOrDraftReport(draftTransactionReport?.parentReportID);
     const expenseReport = draftTransactionReport?.type === CONST.REPORT.TYPE.EXPENSE ? draftTransactionReport : parentTransactionReport;
-    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getNonEmptyStringOnyxID(expenseReport?.policyID)}`, {canBeMissing: true});
-    const [expenseReportPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(expenseReport?.policyID)}`, {canBeMissing: true});
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getNonEmptyStringOnyxID(expenseReport?.policyID)}`);
+    const [expenseReportPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(expenseReport?.policyID)}`);
     const allTransactions = useAllTransactions();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
     const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`];
     const originalTransaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transaction?.comment?.originalTransactionID)}`];
-    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
-    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
-    const [allReportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {canBeMissing: true});
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportID)}`, {canBeMissing: true});
-    const currentReport = report ?? searchContext?.currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportID)}`];
-    const [policyRecentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES, {canBeMissing: true});
-    const [policyRecentlyUsedCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${getIOURequestPolicyID(transaction, currentReport)}`, {canBeMissing: true});
-    const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
+    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [allReportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
+    const [allSnapshots] = useOnyx(ONYXKEYS.COLLECTION.SNAPSHOT);
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportID)}`);
+    const currentReport = report ?? currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportID)}`];
+    const [policyRecentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES);
+    const [policyRecentlyUsedCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${getIOURequestPolicyID(transaction, currentReport)}`);
+    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const policy = usePolicy(currentReport?.policyID);
     const currentPolicy = Object.keys(policy?.employeeList ?? {}).length
         ? policy
-        : searchContext?.currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(currentReport?.policyID)}`];
+        : currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(currentReport?.policyID)}`];
+    const normalizedBackTo = backTo?.replace(/^\//, '');
+    const isSearchBackToRoute = normalizedBackTo?.startsWith(ROUTES.SEARCH_ROOT.route) ?? false;
+    const activeGroupSearchHashes = isSearchBackToRoute ? getActiveGroupSearchHashes(currentSearchResults?.data, currentSearchQueryJSON) : [];
+
+    const isSplitExpenseEditable = (splitExpense: SplitExpense) => {
+        const currentTransaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${splitExpense?.transactionID}`];
+        const currentItemReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${currentTransaction?.reportID}`];
+        const currentItemPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${currentItemReport?.policyID}`];
+
+        return (
+            !currentTransaction ||
+            isSplitAction(currentItemReport, [currentTransaction], originalTransaction, currentUserPersonalDetails.login ?? '', currentUserPersonalDetails.accountID, currentItemPolicy)
+        );
+    };
 
     const isSplitAvailable =
         report &&
@@ -107,37 +128,66 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         isSplitAction(currentReport, [transaction], originalTransaction, currentUserPersonalDetails.login ?? '', currentUserPersonalDetails.accountID, currentPolicy);
 
     const transactionDetails: Partial<TransactionDetails> = getTransactionDetails(transaction, undefined, currentPolicy) ?? {};
-    const transactionDetailsAmount = transactionDetails?.amount ?? 0;
-    const sumOfSplitExpenses = (draftTransaction?.comment?.splitExpenses ?? []).reduce((acc, item) => acc + (item.amount ?? 0), 0);
+    const transactionDetailsAmount = useMemo(() => {
+        if (typeof transactionDetails?.amount !== 'number') {
+            return 0;
+        }
+        return transactionDetails.amount;
+    }, [transactionDetails.amount]);
     const splitExpenses = draftTransaction?.comment?.splitExpenses ?? [];
-
+    const sumOfSplitExpenses = splitExpenses.reduce((acc, item) => acc + (item.amount ?? 0), 0);
     const currencySymbol = getCurrencySymbol(transactionDetails.currency ?? '') ?? transactionDetails.currency ?? CONST.CURRENCY.USD;
 
+    useEffect(() => {
+        setErrorMessage('');
+    }, [splitExpenses.length]);
+
     const isPerDiem = isPerDiemRequest(transaction);
+    const isDistance = isDistanceRequest(transaction);
     const isCard = isManagedCardTransaction(transaction);
     const originalTransactionID = draftTransaction?.comment?.originalTransactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID;
     const iouActions = getIOUActionForTransactions([originalTransactionID], expenseReport?.reportID);
     const {iouReport} = useGetIOUReportFromReportAction(iouActions.at(0));
-    const [iouReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${getNonEmptyStringOnyxID(iouReport?.reportID)}`, {canBeMissing: true});
+    const [iouReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${getNonEmptyStringOnyxID(iouReport?.reportID)}`);
 
     const isPercentageMode = (selectedTab as string) === CONST.TAB.SPLIT.PERCENTAGE;
     const isDateMode = (selectedTab as string) === CONST.TAB.SPLIT.DATE;
     const childTransactions = getChildTransactions(allTransactions, allReports, transactionID);
     const splitFieldDataFromChildTransactions = childTransactions.map((childTransaction) => {
         const childTransactionReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${childTransaction?.reportID}`];
-        return initSplitExpenseItemData(childTransaction, childTransactionReport);
+        return initSplitExpenseItemData(childTransaction, childTransactionReport, {isManuallyEdited: true});
     });
     const transactionReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`];
-    const splitFieldDataFromOriginalTransaction = initSplitExpenseItemData(transaction, transactionReport);
-    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
-    const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE, {canBeMissing: true});
-    const icons = useMemoizedLazyExpensifyIcons(['ArrowsLeftRight', 'Plus'] as const);
+    const splitFieldDataFromOriginalTransaction = initSplitExpenseItemData(transaction, transactionReport, {isManuallyEdited: true});
+    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
+    const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const icons = useMemoizedLazyExpensifyIcons(['ArrowsLeftRight', 'Plus']);
 
     const {isBetaEnabled} = usePermissions();
 
+    const isInitialSplit = childTransactions.length === 0;
+
     // Check if the transaction has customUnitOutOfPolicy violation (distance rate error)
     const currentTransactionViolations = transactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`] ?? [];
-    const hasDistanceRateError = currentTransactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY);
+    const hasCustomUnitOutOfPolicyViolation = currentTransactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY);
+
+    let isUnitRateIDOutOfPolicy = false;
+    for (const splitExpense of splitExpenses) {
+        const splitTransaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(splitExpense.transactionID)}`] ?? transaction;
+        const isEditable = isSplitExpenseEditable(splitExpense);
+        if (splitTransaction && currentPolicy && isEditable) {
+            const isSplitDistance = isDistanceRequest(splitTransaction);
+            if (isSplitDistance) {
+                const currentRateID = splitExpense?.customUnit?.customUnitRateID ?? String(CONST.DEFAULT_NUMBER_ID);
+                const rates = DistanceRequestUtils.getMileageRates(currentPolicy, false, currentRateID);
+                const {rate} = DistanceRequestUtils.getRate({transaction: splitTransaction, policy: currentPolicy});
+                if (!rates[currentRateID] || !rate) {
+                    isUnitRateIDOutOfPolicy = true;
+                }
+            }
+        }
+    }
 
     useEffect(() => {
         const errorString = getLatestErrorMessage(draftTransaction ?? {});
@@ -155,18 +205,29 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         if (draftTransaction?.errors) {
             clearSplitTransactionDraftErrors(transactionID);
         }
-        addSplitExpenseField(transaction, draftTransaction, transactionReport);
+        addSplitExpenseField(transaction, draftTransaction, transactionReport, currentPolicy);
     };
 
     const onMakeSplitsEven = () => {
         if (!draftTransaction) {
             return;
         }
-        evenlyDistributeSplitExpenseAmounts(draftTransaction);
+        evenlyDistributeSplitExpenseAmounts(draftTransaction, transaction, currentPolicy);
     };
 
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(expenseReport?.policyID)}`);
+
     const onSaveSplitExpense = () => {
-        if (hasDistanceRateError) {
+        if (isPerDiemRequest(transaction) && hasCustomUnitOutOfPolicyViolation) {
+            showConfirmModal({
+                title: translate('iou.splitExpense'),
+                prompt: translate('iou.splitExpensePerDiemRateErrorModalDescription'),
+                confirmText: translate('common.buttonConfirm'),
+                shouldShowCancelButton: false,
+            });
+            return;
+        }
+        if (isUnitRateIDOutOfPolicy) {
             showConfirmModal({
                 title: translate('iou.splitExpense'),
                 prompt: translate('iou.splitExpenseDistanceErrorModalDescription'),
@@ -176,10 +237,6 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
             return;
         }
 
-        if (splitExpenses.length > CONST.IOU.SPLITS_LIMIT) {
-            setErrorMessage(translate('iou.error.manySplitsProvided'));
-            return;
-        }
         if (splitExpenses.length <= 1 && !childTransactions.length) {
             const splitFieldDataFromOriginalTransactionWithoutID = {...splitFieldDataFromOriginalTransaction, transactionID: ''};
             const splitExpenseWithoutID = {...splitExpenses.at(0), transactionID: ''};
@@ -200,19 +257,18 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         if (draftTransaction?.errors) {
             clearSplitTransactionDraftErrors(transactionID);
         }
-        if (sumOfSplitExpenses > transactionDetailsAmount) {
-            const difference = sumOfSplitExpenses - transactionDetailsAmount;
-            setErrorMessage(translate('iou.totalAmountGreaterThanOriginal', {amount: convertToDisplayString(difference, transactionDetails?.currency)}));
-            return;
-        }
-        if (sumOfSplitExpenses < transactionDetailsAmount && (isPerDiem || isCard)) {
-            const difference = transactionDetailsAmount - sumOfSplitExpenses;
-            setErrorMessage(translate('iou.totalAmountLessThanOriginal', {amount: convertToDisplayString(difference, transactionDetails?.currency)}));
-            return;
-        }
 
-        if (splitExpenses.find((item) => item.amount === 0)) {
-            setErrorMessage(translate('iou.splitExpenseZeroAmount'));
+        const saveError = computeSplitSaveErrorMessage({
+            splitExpenses,
+            transactionDetailsAmount,
+            currency: transactionDetails?.currency ?? CONST.CURRENCY.USD,
+            isDistance,
+            isPerDiem,
+            isCard,
+            translate,
+        });
+        if (saveError) {
+            setErrorMessage(saveError);
             return;
         }
 
@@ -226,13 +282,14 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
             allTransactionsList: allTransactions,
             allReportsList: allReports,
             allReportNameValuePairsList: allReportNameValuePairs,
+            allSnapshots,
             transactionData: {
                 reportID: draftTransaction?.reportID ?? String(CONST.DEFAULT_NUMBER_ID),
                 originalTransactionID: draftTransaction?.comment?.originalTransactionID ?? String(CONST.DEFAULT_NUMBER_ID),
                 splitExpenses,
                 splitExpensesTotal: draftTransaction?.comment?.splitExpensesTotal ?? 0,
             },
-            searchContext,
+            searchContext: {currentSearchHash: isSearchBackToRoute ? currentSearchHash : undefined, activeGroupSearchHashes, clearSelectedTransactions},
             policyCategories,
             policy: expenseReportPolicy,
             policyRecentlyUsedCategories,
@@ -245,16 +302,20 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
             quickAction,
             iouReportNextStep,
             betas,
+            policyTags: policyTags ?? {},
+            personalDetails,
+            transactionReport: draftTransactionReport,
+            expenseReport,
         });
     };
 
     const onSplitExpenseValueChange = (id: string, value: number, mode: ValueOf<typeof CONST.TAB.SPLIT>) => {
         if (mode === CONST.TAB.SPLIT.AMOUNT || mode === CONST.TAB.SPLIT.DATE) {
             const amountInCents = convertToBackendAmount(value);
-            updateSplitExpenseAmountField(draftTransaction, id, amountInCents);
+            updateSplitExpenseAmountField(draftTransaction, id, amountInCents, currentPolicy);
         } else {
             const amountInCents = calculateSplitAmountFromPercentage(transactionDetailsAmount, value);
-            updateSplitExpenseAmountField(draftTransaction, id, amountInCents);
+            updateSplitExpenseAmountField(draftTransaction, id, amountInCents, currentPolicy);
         }
     };
 
@@ -271,7 +332,6 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         const previewHeaderText: TranslationPathOrText[] = [transactionTypeTranslationPath];
         const currentTransaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${item?.transactionID}`];
         const currentItemReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${currentTransaction?.reportID}`];
-        const currentItemPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${currentItemReport?.policyID}`];
         const isApproved = isReportApproved({report: currentItemReport});
         const isSettled = isSettledReportUtils(currentItemReport?.reportID);
         const isCancelled = currentItemReport && currentItemReport?.isCancelledIOU;
@@ -309,13 +369,9 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
             onSplitExpenseValueChange,
             isSelected: splitExpenseTransactionID === item.transactionID,
             keyForList: item?.transactionID,
-            isEditable:
-                !currentTransaction ||
-                isSplitAction(currentItemReport, [currentTransaction], originalTransaction, currentUserPersonalDetails.login ?? '', currentUserPersonalDetails.accountID, currentItemPolicy),
+            isEditable: isSplitExpenseEditable(item),
         };
     });
-
-    const isInitialSplit = childTransactions.length === 0;
 
     const listFooterContent = (
         <View style={[styles.w100, styles.flexColumn, styles.mt1, shouldUseNarrowLayout && styles.mb3]}>
@@ -324,6 +380,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
                 title={translate('iou.addSplit')}
                 icon={icons.Plus}
                 style={[styles.ph4]}
+                sentryLabel={CONST.SENTRY_LABEL.SPLIT_EXPENSE.ADD_SPLIT_BUTTON}
             />
             {isInitialSplit && (
                 <MenuItem
@@ -331,18 +388,18 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
                     title={translate('iou.makeSplitsEven')}
                     icon={icons.ArrowsLeftRight}
                     style={[styles.ph4]}
+                    sentryLabel={CONST.SENTRY_LABEL.SPLIT_EXPENSE.MAKE_SPLITS_EVEN_BUTTON}
                 />
             )}
         </View>
     );
 
-    const difference = sumOfSplitExpenses - transactionDetailsAmount;
-    let warningMessage = '';
-    if (difference < 0) {
-        warningMessage = translate('iou.totalAmountLessThanOriginal', {amount: convertToDisplayString(-difference, transactionDetails.currency)});
-    } else if (difference > 0) {
-        warningMessage = translate('iou.totalAmountGreaterThanOriginal', {amount: convertToDisplayString(difference, transactionDetails?.currency)});
-    }
+    const warningMessage = computeSplitWarningMessage({
+        splitExpenses,
+        transactionDetailsAmount,
+        currency: transactionDetails?.currency ?? CONST.CURRENCY.USD,
+        translate,
+    });
 
     const footerContent = (
         <View style={[styles.ph5, styles.pb5]}>
@@ -362,6 +419,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
                 onPress={onSaveSplitExpense}
                 pressOnEnter
                 enterKeyEventListenerPriority={1}
+                sentryLabel={CONST.SENTRY_LABEL.SPLIT_EXPENSE.SAVE_BUTTON}
             />
         </View>
     );
@@ -415,11 +473,21 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             initDraftSplitExpenseDataForEdit(draftTransaction, item.transactionID, item.reportID ?? reportID);
+            Navigation.navigate(ROUTES.SPLIT_EXPENSE_EDIT.getRoute(item.reportID ?? reportID, originalTransactionID, item.transactionID, Navigation.getActiveRoute()));
         });
     };
 
     if (isLoadingDraftTransaction) {
-        return <FullScreenLoadingIndicator style={[styles.opacity1]} />;
+        const reasonAttributes: SkeletonSpanReasonAttributes = {
+            context: 'SplitExpensePage',
+            isLoadingDraftTransaction,
+        };
+        return (
+            <FullScreenLoadingIndicator
+                style={[styles.opacity1]}
+                reasonAttributes={reasonAttributes}
+            />
+        );
     }
 
     return (
@@ -432,10 +500,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
                 <View style={styles.flex1}>
                     <HeaderWithBackButton
                         title={headerTitle}
-                        subtitle={translate('iou.splitExpenseSubtitle', {
-                            amount: convertToDisplayString(transactionDetailsAmount, transactionDetails?.currency),
-                            merchant: draftTransaction?.merchant ?? '',
-                        })}
+                        subtitle={translate('iou.splitExpenseSubtitle', convertToDisplayString(transactionDetailsAmount, transactionDetails?.currency), draftTransaction?.merchant ?? '')}
                         onBackButtonPress={() => Navigation.goBack(backTo)}
                     />
 

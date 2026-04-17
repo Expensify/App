@@ -154,7 +154,6 @@ Key GitHub Actions workflows:
 - `test.yml`: Unit tests
 - `typecheck.yml`: TypeScript validation
 - `lint.yml`: Code quality checks
-- `e2ePerformanceTests.yml`: Performance testing
 
 ## Related Repositories
 
@@ -190,9 +189,15 @@ The skill provides guidance on:
 - **Prettier**: Code formatting - run `npm run prettier` after making changes
 - **Patch Management**: patch-package for dependency fixes
 
+### Post-Edit Checklist (IMPORTANT)
+**ALWAYS run these steps after making code changes, before committing:**
+1. **Prettier**: Run `npx prettier --write <changed files>` on every file you modified. This is mandatory - CI will reject unformatted code.
+2. **ESLint**: Run `npx eslint <changed files> --max-warnings=0` to catch lint errors early.
+3. **TypeScript**: Run `npm run typecheck-tsgo` after changes that may affect typing (types, interfaces, or function signatures). It is ~10x faster and usually stricter than tsc. CI validates with `npm run typecheck` (tsc), which remains the required merge gate.
+4. **React Compiler**: If you added new React components/hooks or modified existing ones, run `npm run react-compiler-compliance-check check-changed` to verify they compile with React Compiler. This applies the same rules as CI: new components/hooks must compile, and existing compiled files must not regress. See `contributingGuides/REACT_COMPILER.md` for details and common fixes.
+
 ### Testing
 - **Unit Tests**: Jest with React Native Testing Library
-- **E2E Tests**: Custom test runner
 - **Performance Tests**: Reassure framework
 
 ## Special Considerations
@@ -220,6 +225,10 @@ The skill provides guidance on:
 
 ## Development Setup Requirements
 
+### Sentry analysis
+
+Use Sentry skill whenever user wants to analyze any data from Sentry. It may be: spans, metrics, crashes, crash free rate etc.
+
 ## Command Reference
 
 ### Common Tasks
@@ -230,7 +239,10 @@ npm install
 # Clean build artifacts
 npm run clean
 
-# Type checking
+# Type checking (tsgo, fast, for development only)
+npm run typecheck-tsgo
+
+# Type checking (tsc, CI production gate)
 npm run typecheck
 
 # Linting

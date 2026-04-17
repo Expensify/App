@@ -13,6 +13,7 @@ import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getDefaultCompanyWebsite} from '@libs/BankAccountUtils';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
+import {startTracking} from '@libs/telemetry/submitFollowUpAction';
 import {extractUrlDomain} from '@libs/Url';
 import {getFieldRequiredErrors, isPublicDomain, isValidWebsite} from '@libs/ValidationUtils';
 import Navigation from '@navigation/Navigation';
@@ -38,17 +39,17 @@ function IOURequestStepCompanyInfo({route, report, transaction}: IOURequestStepC
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
+    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const defaultWebsiteExample = useMemo(() => getDefaultCompanyWebsite(session, account), [session, account]);
 
     const policyID = getIOURequestPolicyID(transaction, report);
     const policy = usePolicy(policyID);
-    const [policyRecentlyUsedCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${policyID}`, {canBeMissing: true});
-    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, {canBeMissing: true});
-    const [policyRecentlyUsedTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${policyID}`, {canBeMissing: true});
-    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {canBeMissing: true});
-    const [policyRecentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES, {canBeMissing: true});
+    const [policyRecentlyUsedCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${policyID}`);
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
+    const [policyRecentlyUsedTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${policyID}`);
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
+    const [policyRecentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES);
 
     const formattedAmount = convertToDisplayString(Math.abs(transaction?.amount ?? 0), transaction?.currency);
 
@@ -77,6 +78,17 @@ function IOURequestStepCompanyInfo({route, report, transaction}: IOURequestStepC
 
     const submit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_COMPANY_INFO_FORM>) => {
         const companyWebsite = Str.sanitizeURL(values.companyWebsite, CONST.COMPANY_WEBSITE_DEFAULT_SCHEME);
+        const isFromGlobalCreate = transaction?.isFromFloatingActionButton ?? transaction?.isFromGlobalCreate;
+        startTracking(
+            {
+                scenario: CONST.TELEMETRY.SUBMIT_EXPENSE_SCENARIO.INVOICE,
+                iouType: CONST.IOU.TYPE.INVOICE,
+                requestType: 'invoice',
+                isFromGlobalCreate: !!isFromGlobalCreate,
+                hasReceipt: false,
+            },
+            {skipSubmitExpenseSpan: true},
+        );
         sendInvoice({
             currentUserAccountID: currentUserPersonalDetails.accountID,
             transaction,
@@ -89,6 +101,8 @@ function IOURequestStepCompanyInfo({route, report, transaction}: IOURequestStepC
             companyWebsite,
             policyRecentlyUsedCategories,
             policyRecentlyUsedTags,
+            isFromGlobalCreate: transaction?.isFromFloatingActionButton ?? transaction?.isFromGlobalCreate,
+            senderPolicyTags: policyTags ?? {},
         });
     };
 
@@ -105,7 +119,7 @@ function IOURequestStepCompanyInfo({route, report, transaction}: IOURequestStepC
                 formID={ONYXKEYS.FORMS.MONEY_REQUEST_COMPANY_INFO_FORM}
                 onSubmit={submit}
                 validate={validate}
-                submitButtonText={translate('iou.sendInvoice', {amount: formattedAmount})}
+                submitButtonText={translate('iou.sendInvoice', formattedAmount)}
                 enabledWhenOffline
             >
                 <InputWrapper

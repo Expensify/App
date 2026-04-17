@@ -1,9 +1,23 @@
+import Onyx from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import {handleRHPVariantNavigation, shouldOpenRHPVariant} from '@components/SidePanel/RHPVariantTest';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {OnboardingRHPVariant} from '@src/types/onyx';
 import {setDisableDismissOnEscape} from './actions/Modal';
 import shouldOpenOnAdminRoom from './Navigation/helpers/shouldOpenOnAdminRoom';
 import Navigation from './Navigation/Navigation';
 import {findLastAccessedReport, isConciergeChatReport, isSelfDM} from './ReportUtils';
+import type {ArchivedReportsIDSet} from './SearchUIUtils';
+
+let onboardingRHPVariant: OnyxEntry<OnboardingRHPVariant>;
+Onyx.connectWithoutView({
+    key: ONYXKEYS.NVP_ONBOARDING_RHP_VARIANT,
+    callback: (value) => {
+        onboardingRHPVariant = value;
+    },
+});
 
 /**
  * Determines the report ID to navigate to after onboarding for control variant or ineligible users.
@@ -13,6 +27,8 @@ import {findLastAccessedReport, isConciergeChatReport, isSelfDM} from './ReportU
 function getReportIDAfterOnboarding(
     isSmallScreenWidth: boolean,
     canUseDefaultRooms: boolean | undefined,
+    conciergeReportID: string,
+    archivedReportsIdSet: ArchivedReportsIDSet,
     onboardingPolicyID?: string,
     onboardingAdminsChatReportID?: string,
     shouldPreventOpenAdminRoom = false,
@@ -27,12 +43,12 @@ function getReportIDAfterOnboarding(
         return undefined;
     }
 
-    const lastAccessedReport = findLastAccessedReport(!canUseDefaultRooms, shouldOpenOnAdminRoom() && !shouldPreventOpenAdminRoom);
+    const lastAccessedReport = findLastAccessedReport(!canUseDefaultRooms, shouldOpenOnAdminRoom() && !shouldPreventOpenAdminRoom, undefined, archivedReportsIdSet);
     const lastAccessedReportID = lastAccessedReport?.reportID;
 
     // When the user goes through the onboarding flow, a workspace can be created if the user selects specific options. The user should be taken to the #admins room for that workspace because it is the most natural place for them to start their experience in the app.
     // The user should never go to the self DM or the Concierge chat if a workspace was created during the onboarding flow.
-    if (lastAccessedReportID && lastAccessedReport.policyID !== onboardingPolicyID && !isConciergeChatReport(lastAccessedReport) && !isSelfDM(lastAccessedReport)) {
+    if (lastAccessedReportID && lastAccessedReport.policyID !== onboardingPolicyID && !isConciergeChatReport(lastAccessedReport, conciergeReportID) && !isSelfDM(lastAccessedReport)) {
         return lastAccessedReportID;
     }
 
@@ -42,46 +58,69 @@ function getReportIDAfterOnboarding(
 function navigateAfterOnboarding(
     isSmallScreenWidth: boolean,
     canUseDefaultRooms: boolean | undefined,
+    conciergeReportID: string,
+    archivedReportsIdSet: ArchivedReportsIDSet,
     onboardingPolicyID?: string,
     onboardingAdminsChatReportID?: string,
     shouldPreventOpenAdminRoom = false,
+    variantOverride?: OnboardingRHPVariant | null,
 ) {
     setDisableDismissOnEscape(false);
 
-    if (shouldOpenRHPVariant()) {
-        handleRHPVariantNavigation(onboardingPolicyID);
+    // On mobile (small screen), Track workspace admins with the trackExpensesWithConcierge variant
+    // should navigate directly to the Concierge DM (which contains onboarding tasks).
+    // This check is outside shouldOpenRHPVariant because that function returns false on native
+    // (Side Panel doesn't exist on native), but we still need to navigate to Concierge on mobile.
+    const variant = variantOverride ?? onboardingRHPVariant;
+    if (isSmallScreenWidth && variant === CONST.ONBOARDING_RHP_VARIANT.TRACK_EXPENSES_WITH_CONCIERGE) {
+        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(conciergeReportID));
         return;
     }
 
-    const reportID = getReportIDAfterOnboarding(isSmallScreenWidth, canUseDefaultRooms, onboardingPolicyID, onboardingAdminsChatReportID, shouldPreventOpenAdminRoom);
+    if (shouldOpenRHPVariant(variantOverride)) {
+        handleRHPVariantNavigation(onboardingPolicyID, variantOverride);
+        return;
+    }
+
+    const reportID = getReportIDAfterOnboarding(
+        isSmallScreenWidth,
+        canUseDefaultRooms,
+        conciergeReportID,
+        archivedReportsIdSet,
+        onboardingPolicyID,
+        onboardingAdminsChatReportID,
+        shouldPreventOpenAdminRoom,
+    );
     if (reportID) {
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID));
+    } else {
+        // Navigate to home to trigger guard evaluation
+        Navigation.navigate(ROUTES.HOME);
     }
-
-    // In this case, we have joined an accessible policy. We would have an onboarding policy, but not an admins chat report.
-    // We should skip the Test Drive modal in this case since we already have a policy to join.
-    if (onboardingPolicyID && !onboardingAdminsChatReportID) {
-        return;
-    }
-
-    // We're using Navigation.isNavigationReady here because without it, on iOS,
-    // Navigation.dismissModal runs after Navigation.navigate(ROUTES.TEST_DRIVE_MODAL_ROOT.route)
-    // And dismisses the modal before it even shows
-    Navigation.isNavigationReady().then(() => {
-        Navigation.navigate(ROUTES.TEST_DRIVE_MODAL_ROOT.route);
-    });
 }
 
 function navigateAfterOnboardingWithMicrotaskQueue(
     isSmallScreenWidth: boolean,
     canUseDefaultRooms: boolean | undefined,
+    conciergeReportID: string,
+    archivedReportsIdSet: ArchivedReportsIDSet,
     onboardingPolicyID?: string,
     onboardingAdminsChatReportID?: string,
     shouldPreventOpenAdminRoom = false,
+    variantOverride?: OnboardingRHPVariant | null,
 ) {
     Navigation.dismissModal();
     Navigation.setNavigationActionToMicrotaskQueue(() => {
-        navigateAfterOnboarding(isSmallScreenWidth, canUseDefaultRooms, onboardingPolicyID, onboardingAdminsChatReportID, shouldPreventOpenAdminRoom);
+        navigateAfterOnboarding(
+            isSmallScreenWidth,
+            canUseDefaultRooms,
+            conciergeReportID,
+            archivedReportsIdSet,
+            onboardingPolicyID,
+            onboardingAdminsChatReportID,
+            shouldPreventOpenAdminRoom,
+            variantOverride,
+        );
     });
 }
 

@@ -9,16 +9,15 @@ import {setReviewDuplicatesKey} from './actions/Transaction';
 import {isCategoryMissing} from './CategoryUtils';
 import {convertToDisplayString} from './CurrencyUtils';
 import DateUtils from './DateUtils';
-import {getPolicy, hasDynamicExternalWorkflow} from './PolicyUtils';
+import {hasDynamicExternalWorkflow} from './PolicyUtils';
 import {getMostRecentActiveDEWSubmitFailedAction, getOriginalMessage, isDynamicExternalWorkflowSubmitFailedAction, isMessageDeleted, isMoneyRequestAction} from './ReportActionsUtils';
 import {
     hasActionWithErrorsForTransaction,
     hasReceiptError,
-    hasReportViolations,
+    isExpenseReport,
     isPaidGroupPolicyExpenseReport,
     isPaidGroupPolicy as isPaidGroupPolicyUtil,
     isReportApproved,
-    isReportOwner,
     isSettled,
 } from './ReportUtils';
 import type {TransactionDetails} from './ReportUtils';
@@ -43,7 +42,6 @@ import {
     isOnHold,
     isPending,
     isScanning,
-    isUnreportedAndHasInvalidDistanceRateTransaction,
 } from './TransactionUtils';
 import {isInvalidMerchantValue} from './ValidationUtils';
 import {filterReceiptViolations} from './Violations/ViolationsUtils';
@@ -79,12 +77,14 @@ const getReviewNavigationRoute = (
     threadReportID: string,
     transaction: OnyxEntry<OnyxTypes.Transaction>,
     duplicates: Array<OnyxEntry<OnyxTypes.Transaction>>,
+    policy: OnyxEntry<OnyxTypes.Policy>,
     policyCategories: OnyxTypes.PolicyCategories | undefined,
+    policyTags: OnyxTypes.PolicyTagLists,
     transactionReport: OnyxEntry<OnyxTypes.Report>,
 ) => {
     // Use set method to prevent merging fields from the previous expense
     // (e.g., category, tag, tax) that may be not enabled/available in the new expense's policy.
-    const comparisonResult = compareDuplicateTransactionFields(transaction, duplicates, transactionReport, transaction?.transactionID, policyCategories);
+    const comparisonResult = compareDuplicateTransactionFields(policyTags, transaction, duplicates, transactionReport, transaction?.transactionID, policy, policyCategories);
     setReviewDuplicatesKey(
         {
             ...comparisonResult.keep,
@@ -127,6 +127,18 @@ type TranslationPathOrText = {
 
 const dotSeparator: TranslationPathOrText = {text: ` ${CONST.DOT_SEPARATOR} `};
 
+/**
+ * Normalize the last four digits to always return 4 characters.
+ * If the number is shorter than 4 digits, it will be padded with X's.
+ */
+function formatLastFourPAN(lastFourPAN?: string): string {
+    if (lastFourPAN === undefined || lastFourPAN.length === 0) {
+        return '';
+    }
+    const digitsOnly = lastFourPAN.replaceAll(/\D/g, '');
+    return digitsOnly ? digitsOnly.slice(-4).padStart(4, 'X') : '';
+}
+
 function getMultiLevelTagViolationsCount(violations: OnyxTypes.TransactionViolations): number {
     return violations?.reduce((acc, violation) => {
         if (violation.type === CONST.VIOLATION_TYPES.VIOLATION && violation.name === CONST.VIOLATIONS.SOME_TAG_LEVELS_REQUIRED) {
@@ -160,7 +172,7 @@ function getViolationTranslatePath(
     const isTooLong = violationsCount > 1 || tagViolationsCount > 1 || violationMessage.length > CONST.REPORT_VIOLATIONS.RBR_MESSAGE_MAX_CHARACTERS_FOR_PREVIEW;
     const hasViolationsAndFieldErrors = violationsCount > 0 && hasFieldErrors;
 
-    return isTooLong || hasViolationsAndHold || hasViolationsAndFieldErrors ? {translationPath: 'violations.reviewRequired'} : {text: violationMessage};
+    return isTooLong || hasViolationsAndHold || hasViolationsAndFieldErrors || isTransactionOnHold ? {translationPath: 'violations.reviewRequired'} : {text: violationMessage};
 }
 
 /**
@@ -187,6 +199,7 @@ function getUniqueActionErrorsForTransaction(reportActions: OnyxTypes.ReportActi
 
 function getTransactionPreviewTextAndTranslationPaths({
     iouReport,
+    policy,
     transaction,
     action,
     violations,
@@ -200,6 +213,7 @@ function getTransactionPreviewTextAndTranslationPaths({
     originalTransaction,
 }: {
     iouReport: OnyxEntry<OnyxTypes.Report>;
+    policy: OnyxEntry<OnyxTypes.Policy>;
     transaction: OnyxEntry<OnyxTypes.Transaction>;
     action: OnyxEntry<OnyxTypes.ReportAction>;
     violations: OnyxTypes.TransactionViolations;
@@ -225,9 +239,6 @@ function getTransactionPreviewTextAndTranslationPaths({
     const hasFieldErrors = hasMissingSmartscanFields(transaction, iouReport);
     const isPaidGroupPolicy = isPaidGroupPolicyUtil(iouReport);
 
-    // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const policy = getPolicy(iouReport?.policyID);
     const hasViolationsOfTypeNotice = hasNoticeTypeViolation(transaction, violations, currentUserEmail ?? '', currentUserAccountID, iouReport, policy, true) && isPaidGroupPolicy;
     const hasActionWithErrors = hasActionWithErrorsForTransaction(iouReport?.reportID, transaction, reportActions);
 
@@ -263,12 +274,15 @@ function getTransactionPreviewTextAndTranslationPaths({
     }
 
     if (hasFieldErrors && RBRMessage === undefined) {
-        const amountMissing = isAmountMissing(transaction);
-        const merchantMissing = isMerchantMissing(transaction);
+        const isFromExpenseReport = isExpenseReport(iouReport);
+        const amountMissing = isAmountMissing(transaction, isFromExpenseReport);
+        const merchantMissing = isFromExpenseReport && isMerchantMissing(transaction);
         if (amountMissing && merchantMissing) {
             RBRMessage = {translationPath: 'violations.reviewRequired'};
         } else if (merchantMissing) {
             RBRMessage = {translationPath: 'iou.missingMerchant'};
+        } else if (amountMissing) {
+            RBRMessage = {translationPath: 'iou.missingAmount'};
         }
     }
 
@@ -288,11 +302,7 @@ function getTransactionPreviewTextAndTranslationPaths({
 
     let previewHeaderText: TranslationPathOrText[] = [{translationPath: getExpenseTypeTranslationKey(getTransactionType(transaction))}];
 
-    if (isDistanceRequest(transaction)) {
-        if (RBRMessage === undefined && isUnreportedAndHasInvalidDistanceRateTransaction(transaction)) {
-            RBRMessage = {translationPath: 'violations.customUnitOutOfPolicy'};
-        }
-    } else if (isTransactionScanning) {
+    if (isTransactionScanning) {
         previewHeaderText = [{translationPath: 'common.receipt'}];
     } else if (isBillSplit) {
         previewHeaderText = [{translationPath: 'iou.split'}];
@@ -356,6 +366,7 @@ function getTransactionPreviewTextAndTranslationPaths({
 
 function createTransactionPreviewConditionals({
     iouReport,
+    policy,
     transaction,
     action,
     violations,
@@ -368,6 +379,7 @@ function createTransactionPreviewConditionals({
     reportActions,
 }: {
     iouReport: OnyxEntry<OnyxTypes.Report>;
+    policy: OnyxEntry<OnyxTypes.Policy>;
     transaction: OnyxEntry<OnyxTypes.Transaction> | undefined;
     action: OnyxEntry<OnyxTypes.ReportAction>;
     violations: OnyxTypes.TransactionViolations;
@@ -388,9 +400,6 @@ function createTransactionPreviewConditionals({
     const isApproved = isReportApproved({report: iouReport});
     const isSettlementOrApprovalPartial = !!iouReport?.pendingFields?.partial;
 
-    // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const policy = getPolicy(iouReport?.policyID);
     const hasViolationsOfTypeNotice =
         hasNoticeTypeViolation(transaction, violations, currentUserEmail ?? '', currentUserAccountID, iouReport ?? undefined, policy, true) && iouReport && isPaidGroupPolicyUtil(iouReport);
     const hasFieldErrors = hasMissingSmartscanFields(transaction, iouReport);
@@ -409,9 +418,7 @@ function createTransactionPreviewConditionals({
     const shouldShowCategory = !!categoryForDisplay && isReportAPolicyExpenseChat;
 
     const hasAnyViolations =
-        isUnreportedAndHasInvalidDistanceRateTransaction(transaction) ||
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        hasViolationsOfTypeNotice ||
+        !!hasViolationsOfTypeNotice ||
         hasWarningTypeViolation(transaction, violations, currentUserEmail ?? '', currentUserAccountID, iouReport ?? undefined, policy) ||
         hasViolation(transaction, violations, currentUserEmail ?? '', currentUserAccountID, iouReport ?? undefined, policy, true) ||
         (isDistanceRequest(transaction) &&
@@ -419,8 +426,7 @@ function createTransactionPreviewConditionals({
                 (violation) => violation.name === CONST.VIOLATIONS.MODIFIED_AMOUNT && (violation.type === CONST.VIOLATION_TYPES.VIOLATION || violation.type === CONST.VIOLATION_TYPES.NOTICE),
             ));
     const hasErrorOrOnHold = hasFieldErrors || (!isFullySettled && !isFullyApproved && isTransactionOnHold);
-    const hasReportViolationsOrActionErrors =
-        (isReportOwner(iouReport) && hasReportViolations(iouReport?.reportID)) || hasActionWithErrorsForTransaction(iouReport?.reportID, transaction, reportActions);
+    const hasReportViolationsOrActionErrors = hasActionWithErrorsForTransaction(iouReport?.reportID, transaction, reportActions);
     const isDEWSubmitFailed = hasDynamicExternalWorkflow(policy) && !!getMostRecentActiveDEWSubmitFailedAction(reportActions);
     const shouldShowRBR = hasAnyViolations || hasErrorOrOnHold || hasReportViolationsOrActionErrors || hasReceiptError(transaction) || isDEWSubmitFailed;
 
@@ -456,5 +462,6 @@ export {
     createTransactionPreviewConditionals,
     getViolationTranslatePath,
     getUniqueActionErrorsForTransaction,
+    formatLastFourPAN,
 };
 export type {TranslationPathOrText};

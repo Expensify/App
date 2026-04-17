@@ -8,7 +8,7 @@ import type {ValueOf} from 'type-fest';
 import Text from '@components/Text';
 import IconButton from '@components/VideoPlayer/IconButton';
 import {convertSecondsToTime} from '@components/VideoPlayer/utils';
-import {usePlaybackContext} from '@components/VideoPlayerContexts/PlaybackContext';
+import {usePlaybackActionsContext} from '@components/VideoPlayerContexts/PlaybackContext';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -50,6 +50,12 @@ type VideoPlayerControlsProps = {
     controlsStatus: ValueOf<typeof CONST.VIDEO_PLAYER.CONTROLS_STATUS>;
 
     reportID: string | undefined;
+
+    /** Callback when user starts dragging the progress bar. */
+    onSeekStart?: () => void;
+
+    /** Callback when user finishes dragging the progress bar. */
+    onSeekEnd?: (shouldResumeAfterSeek: boolean) => void;
 };
 
 function VideoPlayerControls({
@@ -65,11 +71,13 @@ function VideoPlayerControls({
     togglePlayCurrentVideo,
     controlsStatus = CONST.VIDEO_PLAYER.CONTROLS_STATUS.SHOW,
     reportID,
+    onSeekStart,
+    onSeekEnd,
 }: VideoPlayerControlsProps) {
     const icons = useMemoizedLazyExpensifyIcons(['ThreeDots', 'Pause', 'Play', 'Fullscreen']);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {updateCurrentURLAndReportID} = usePlaybackContext();
+    const {updateCurrentURLAndReportID} = usePlaybackActionsContext();
     const [shouldShowTime, setShouldShowTime] = useState(false);
     const iconSpacing = small ? styles.mr3 : styles.mr4;
 
@@ -150,6 +158,8 @@ function VideoPlayerControls({
                         duration={duration}
                         position={position}
                         seekPosition={seekPosition}
+                        onSeekStart={onSeekStart}
+                        onSeekEnd={onSeekEnd}
                     />
                 </View>
                 {controlsStatus === CONST.VIDEO_PLAYER.CONTROLS_STATUS.VOLUME_ONLY && <VolumeButton style={styles.ml3} />}

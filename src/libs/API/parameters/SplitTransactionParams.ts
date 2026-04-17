@@ -1,7 +1,8 @@
-import type {Comment} from '@src/types/onyx/Transaction';
+import type {Comment, WaypointCollection} from '@src/types/onyx/Transaction';
 
 type SplitTransactionSplitParam = {
     transactionID: string;
+    amount: number;
     category?: string;
     tag?: string;
     created: string;
@@ -14,15 +15,27 @@ type SplitTransactionSplitParam = {
     reimbursable?: boolean;
     billable?: boolean;
     reportID?: string;
+    quantity?: number;
+    customUnitRateID?: string;
+    odometerStart?: number;
+    odometerEnd?: number;
+    waypoints?: WaypointCollection;
+    holdReportActionID?: string;
+    holdReportActionCommentID?: string;
+    /**
+     * Maps the original comment reportActionID to the optimistic copied comment reportActionID.
+     * Shape: {[originalReportActionID]: optimisticReportActionID}
+     */
+    copiedComments?: Record<string, string>;
 };
 
 type SplitTransactionSplitsParam = SplitTransactionSplitParam[];
 
 type SplitTransactionParams = {
     transactionID: string;
-    [key: string]: string | boolean;
+    [key: string]: string | number | boolean;
 };
 
-type RevertSplitTransactionParams = Omit<SplitTransactionSplitParam, 'comment'> & {comment?: string};
+type RevertSplitTransactionParams = Omit<SplitTransactionSplitParam, 'comment' | 'holdReportActionID' | 'holdReportActionCommentID' | 'copiedComments'> & {comment?: string};
 
 export type {SplitTransactionParams, SplitTransactionSplitsParam, RevertSplitTransactionParams};

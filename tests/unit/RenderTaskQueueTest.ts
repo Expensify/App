@@ -1,6 +1,6 @@
-import RenderTaskQueue from '../../src/components/InvertedFlatList/RenderTaskQueue';
+import RenderTaskQueue from '@components/FlatList/RenderTaskQueue';
 
-jest.unmock('../../src/components/InvertedFlatList/RenderTaskQueue');
+jest.unmock('@components/FlatList/RenderTaskQueue');
 
 describe('RenderTaskQueue', () => {
     beforeEach(() => {

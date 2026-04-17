@@ -9,14 +9,13 @@ import asyncOpenURL from '@libs/asyncOpenURL';
 import * as Environment from '@libs/Environment/Environment';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import isPublicScreenRoute from '@libs/isPublicScreenRoute';
-import Log from '@libs/Log';
 import {isOnboardingFlowName} from '@libs/Navigation/helpers/isNavigatorName';
 import normalizePath from '@libs/Navigation/helpers/normalizePath';
 import shouldOpenOnAdminRoom from '@libs/Navigation/helpers/shouldOpenOnAdminRoom';
 import willRouteNavigateToRHP from '@libs/Navigation/helpers/willRouteNavigateToRHP';
 import Navigation from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
-import type {NetworkStatus} from '@libs/NetworkConnection';
+import {getIsOffline} from '@libs/NetworkState';
 import {findLastAccessedReport, getReportIDFromLink, getRouteFromLink} from '@libs/ReportUtils';
 import shouldSkipDeepLinkNavigation from '@libs/shouldSkipDeepLinkNavigation';
 import {endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
@@ -29,39 +28,19 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import type {Account, Report} from '@src/types/onyx';
+import type {Beta, IntroSelected, Report} from '@src/types/onyx';
 import {doneCheckingPublicRoom, navigateToConciergeChat, openReport} from './Report';
 import {canAnonymousUserAccessRoute, isAnonymousUser, signOutAndRedirectToSignIn, waitForUserSignIn} from './Session';
-import {isOnboardingFlowCompleted, setOnboardingErrorMessage} from './Welcome';
-import {startOnboardingFlow} from './Welcome/OnboardingFlow';
-import type {OnboardingCompanySize, OnboardingPurpose} from './Welcome/OnboardingFlow';
-
-let isNetworkOffline = false;
-let networkStatus: NetworkStatus;
-// Use connectWithoutView since this is to open an external link and doesn't affect any UI
-Onyx.connectWithoutView({
-    key: ONYXKEYS.NETWORK,
-    callback: (value) => {
-        isNetworkOffline = value?.isOffline ?? false;
-        networkStatus = value?.networkStatus ?? CONST.NETWORK.NETWORK_STATUS.UNKNOWN;
-    },
-});
+import {setOnboardingErrorMessage} from './Welcome';
 
 let currentUserEmail = '';
+let currentUserAccountID = -1;
 // Use connectWithoutView since this is to open an external link and doesn't affect any UI
 Onyx.connectWithoutView({
     key: ONYXKEYS.SESSION,
     callback: (value) => {
         currentUserEmail = value?.email ?? '';
-    },
-});
-
-let account: OnyxEntry<Account>;
-// Use connectWithoutView to subscribe to account data without affecting UI
-Onyx.connectWithoutView({
-    key: ONYXKEYS.ACCOUNT,
-    callback: (value) => {
-        account = value;
+        currentUserAccountID = value?.accountID ?? CONST.DEFAULT_NUMBER_ID;
     },
 });
 
@@ -97,7 +76,7 @@ function openExternalLink(url: string, shouldSkipCustomSafariLogic = false, shou
 }
 
 function openOldDotLink(url: string, shouldOpenInSameTab = false) {
-    if (isNetworkOffline) {
+    if (getIsOffline()) {
         buildOldDotURL(url).then((oldDotURL) => openExternalLink(oldDotURL, undefined, shouldOpenInSameTab));
         return;
     }
@@ -244,12 +223,12 @@ function openLink(href: string, environmentURL: string, isAttachment = false) {
 
 function openReportFromDeepLink(
     url: string,
-    currentOnboardingPurposeSelected: OnyxEntry<OnboardingPurpose>,
-    currentOnboardingCompanySize: OnyxEntry<OnboardingCompanySize>,
-    onboardingInitialPath: OnyxEntry<string>,
     reports: OnyxCollection<Report>,
     isAuthenticated: boolean,
     conciergeReportID: string | undefined,
+    introSelected: OnyxEntry<IntroSelected>,
+    isSelfTourViewed: boolean | undefined,
+    betas: OnyxEntry<Beta[]>,
 ) {
     const reportID = getReportIDFromLink(url);
 
@@ -262,10 +241,10 @@ function openReportFromDeepLink(
         });
 
         // Call the OpenReport command to check in the server if it's a public room. If so, we'll open it as an anonymous user
-        openReport(reportID, '', [], undefined, '0', true);
+        openReport({reportID, introSelected, parentReportActionID: '0', isFromDeepLink: true, betas});
 
         // Show the sign-in page if the app is offline
-        if (networkStatus === CONST.NETWORK.NETWORK_STATUS.OFFLINE) {
+        if (getIsOffline()) {
             endSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.PUBLIC_ROOM_API);
             doneCheckingPublicRoom();
         }
@@ -288,6 +267,11 @@ function openReportFromDeepLink(
 
     // If the route is the transition route, we don't want to navigate and start the onboarding flow
     if (route?.includes(ROUTES.TRANSITION_BETWEEN_APPS)) {
+        return;
+    }
+
+    // The Plaid OAuth redirect URI is handled by the native Plaid SDK on iOS — skip navigation to avoid showing NotFound
+    if (route?.includes('partners/plaid/oauth_ios')) {
         return;
     }
 
@@ -347,13 +331,13 @@ function openReportFromDeepLink(
                                 const report = reportParam ?? reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
                                 // If the report does not exist, navigate to the last accessed report or Concierge chat
                                 if (reportID && (!report?.reportID || report.errorFields?.notFound)) {
-                                    const lastAccessedReportID = findLastAccessedReport(false, shouldOpenOnAdminRoom(), undefined, reportID)?.reportID;
+                                    const lastAccessedReportID = findLastAccessedReport(false, shouldOpenOnAdminRoom(), reportID)?.reportID;
                                     if (lastAccessedReportID) {
                                         const lastAccessedReportRoute = ROUTES.REPORT_WITH_ID.getRoute(lastAccessedReportID);
                                         Navigation.navigate(lastAccessedReportRoute, {forceReplace: Navigation.getTopmostReportId() === reportID});
                                         return;
                                     }
-                                    navigateToConciergeChat(conciergeReportID, false, () => true);
+                                    navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas, false, () => true);
                                     return;
                                 }
 
@@ -386,25 +370,7 @@ function openReportFromDeepLink(
 
                         if (isAnonymousUser()) {
                             handleDeeplinkNavigation();
-                            return;
                         }
-                        // We need skip deeplinking if the user hasn't completed the guided setup flow.
-                        isOnboardingFlowCompleted({
-                            onNotCompleted: () => {
-                                Log.info('[Onboarding] User has not completed the guided setup flow, starting onboarding flow from deep link');
-                                startOnboardingFlow({
-                                    onboardingValuesParam: val,
-                                    hasAccessiblePolicies: !!account?.hasAccessibleDomainPolicies,
-                                    isUserFromPublicDomain: !!account?.isFromPublicDomain,
-                                    currentOnboardingPurposeSelected,
-                                    currentOnboardingCompanySize,
-                                    onboardingInitialPath,
-                                    onboardingValues: val,
-                                });
-                            },
-                            onCompleted: handleDeeplinkNavigation,
-                            onCanceled: handleDeeplinkNavigation,
-                        });
                     });
                 },
             });

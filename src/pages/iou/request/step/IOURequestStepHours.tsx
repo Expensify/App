@@ -12,10 +12,11 @@ import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setTransactionReport} from '@libs/actions/Transaction';
 import {canUseTouchScreen as canUseTouchScreenUtil} from '@libs/DeviceCapabilities';
-import {shouldUseTransactionDraft} from '@libs/IOUUtils';
+import {navigateToConfirmationPage, shouldUseTransactionDraft} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getDefaultTimeTrackingRate} from '@libs/PolicyUtils';
 import {getPolicyExpenseChat} from '@libs/ReportUtils';
+import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {computeTimeAmount, formatTimeMerchant} from '@libs/TimeTrackingUtils';
 import variables from '@styles/variables';
 import {setMoneyRequestAmount, setMoneyRequestMerchant, setMoneyRequestParticipantsFromReport, setMoneyRequestTimeCount, setMoneyRequestTimeRate} from '@userActions/IOU';
@@ -39,7 +40,7 @@ type IOURequestStepHoursProps = WithWritableReportOrNotFoundProps<
 function IOURequestStepHours({
     report,
     route: {
-        params: {iouType, reportID, transactionID = '-1', action, reportActionID},
+        params: {iouType, reportID, transactionID = '-1', action, reportActionID, backToReport},
         name: routeName,
     },
     transaction,
@@ -49,9 +50,12 @@ function IOURequestStepHours({
     const isEmbeddedInStartPage = routeName === SCREENS.MONEY_REQUEST.CREATE;
     const policyID = explicitPolicyID ?? report?.policyID;
     const isTransactionDraft = shouldUseTransactionDraft(action);
-    const [selectedTab] = useOnyx(`${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.IOU_REQUEST_TYPE}`, {canBeMissing: true});
+    const [selectedTab] = useOnyx(`${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.IOU_REQUEST_TYPE}`);
+    const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
+    const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
+    const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const {accountID} = useCurrentUserPersonalDetails();
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: true});
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const currency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
     const defaultPolicyRate = getDefaultTimeTrackingRate(policy);
     const rate = transaction?.comment?.units?.rate ?? defaultPolicyRate;
@@ -118,14 +122,12 @@ function IOURequestStepHours({
                 setTransactionReport(transactionID, {reportID: policyExpenseChat.reportID}, isTransactionDraft);
                 setMoneyRequestParticipantsFromReport(transactionID, policyExpenseChat, accountID);
 
-                return Navigation.setNavigationActionToMicrotaskQueue(() =>
-                    Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, policyExpenseChat.reportID)),
-                );
+                return Navigation.setNavigationActionToMicrotaskQueue(() => navigateToConfirmationPage(iouType, transactionID, policyExpenseChat.reportID, backToReport));
             }
             setMoneyRequestParticipantsFromReport(transactionID, report, accountID);
         }
 
-        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID));
+        navigateToConfirmationPage(iouType, transactionID, reportID, backToReport);
     };
 
     return (
@@ -139,6 +141,7 @@ function IOURequestStepHours({
         >
             <NumberWithSymbolForm
                 symbol={translate('iou.timeTracking.hrs')}
+                shouldUseDynamicFontSize
                 symbolPosition={CONST.TEXT_INPUT_SYMBOL_POSITION.SUFFIX}
                 isSymbolPressable={false}
                 decimals={CONST.HOURS_DECIMAL_PLACES}
@@ -163,8 +166,15 @@ function IOURequestStepHours({
                         medium={isExtraSmallScreenHeight}
                         large={!isExtraSmallScreenHeight}
                         style={[styles.w100, canUseTouchScreen ? styles.mt5 : styles.mt0]}
-                        onPress={saveTime}
+                        onPress={() => {
+                            if (policyID && shouldRestrictUserBillableActions(policyID, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed)) {
+                                Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policyID));
+                                return;
+                            }
+                            saveTime();
+                        }}
                         text={translate(isEditingConfirmation ? 'common.save' : 'common.next')}
+                        sentryLabel={CONST.SENTRY_LABEL.IOU_REQUEST_STEP.HOURS_NEXT_BUTTON}
                     />
                 }
             />

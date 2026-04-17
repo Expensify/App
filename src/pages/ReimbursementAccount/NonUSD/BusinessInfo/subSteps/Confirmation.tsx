@@ -3,7 +3,7 @@ import React, {useMemo} from 'react';
 import ConfirmationStep from '@components/SubStepForms/ConfirmationStep';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import type {SubStepProps} from '@hooks/useSubStep/types';
+import type {SubPageProps} from '@hooks/useSubPage/types';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import getSubStepValues from '@pages/ReimbursementAccount/utils/getSubStepValues';
 import CONST from '@src/CONST';
@@ -47,12 +47,12 @@ const displayIncorporationLocation = (country: string, state: string) => {
     return country === CONST.COUNTRY.US || country === CONST.COUNTRY.CA ? `${stateFullName}, ${countryFullName}` : `${countryFullName}`;
 };
 
-function Confirmation({onNext, onMove, isEditing}: SubStepProps) {
+function Confirmation({onNext, onMove, isEditing}: SubPageProps) {
     const {translate} = useLocalize();
 
-    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: false});
-    const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, {canBeMissing: false});
-    const [corpayOnboardingFields] = useOnyx(ONYXKEYS.CORPAY_ONBOARDING_FIELDS, {canBeMissing: false});
+    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
+    const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
+    const [corpayOnboardingFields] = useOnyx(ONYXKEYS.CORPAY_ONBOARDING_FIELDS);
     const error = getLatestErrorMessage(reimbursementAccount);
 
     const values = useMemo(() => getSubStepValues(BUSINESS_INFO_STEP_KEYS, reimbursementAccountDraft, reimbursementAccount), [reimbursementAccount, reimbursementAccountDraft]);

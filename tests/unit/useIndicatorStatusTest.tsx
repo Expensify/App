@@ -112,6 +112,12 @@ const TEST_CASES = {
         policyIDWithErrors: undefined,
     },
     hasPolicyAdminCardFeedErrors: cardFeedErrorTestCases.admin,
+    hasLockedBankAccount: {
+        name: 'has locked bank account',
+        indicatorColor: defaultTheme.danger,
+        status: CONST.INDICATOR_STATUS.HAS_LOCKED_BANK_ACCOUNT,
+        policyIDWithErrors: undefined,
+    },
 } as const satisfies Record<string, IndicatorTestCase>;
 
 const TEST_CASES_NON_ADMIN = {
@@ -212,6 +218,12 @@ const getMockForTestCase = ({name, status}: IndicatorTestCase, isAdmin: boolean)
                               error: 'Something went wrong',
                           }
                         : undefined,
+                accountData:
+                    status === CONST.INDICATOR_STATUS.HAS_LOCKED_BANK_ACCOUNT
+                        ? {
+                              state: CONST.BANK_ACCOUNT.STATE.LOCKED,
+                          }
+                        : undefined,
             },
         },
         [ONYXKEYS.USER_WALLET]: {
@@ -261,18 +273,17 @@ const getMockForTestCase = ({name, status}: IndicatorTestCase, isAdmin: boolean)
         [ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_SUCCESSFUL]: status === CONST.INDICATOR_STATUS.HAS_SUBSCRIPTION_INFO,
         [ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_FAILED]: status === CONST.INDICATOR_STATUS.HAS_SUBSCRIPTION_ERRORS,
         [ONYXKEYS.CARD_LIST]: {
-            // eslint-disable-next-line @typescript-eslint/naming-convention
-            '123456': {
+            card1: {
+                bank: CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE,
+                lastScrapeResult: name === cardFeedErrorTestCases.admin.name || name === cardFeedErrorTestCases.employee.name ? 403 : 200,
+                fundID: String(brokenCardFeed.workspaceAccountID),
+            },
+            card2: {
                 cardID: 123456,
                 bank: CONST.EXPENSIFY_CARD.BANK,
                 accountID: 123,
                 fundID: String(brokenCardFeed.workspaceAccountID),
                 state: status === CONST.INDICATOR_STATUS.HAS_PENDING_CARD_INFO ? CONST.EXPENSIFY_CARD.STATE.STATE_NOT_ISSUED : CONST.EXPENSIFY_CARD.STATE.OPEN,
-            },
-            card1: {
-                bank: 'OTHER_BANK',
-                lastScrapeResult: name === cardFeedErrorTestCases.admin.name || name === cardFeedErrorTestCases.employee.name ? 403 : 200,
-                fundID: String(brokenCardFeed.workspaceAccountID),
             },
         },
         [ONYXKEYS.PRIVATE_PERSONAL_DETAILS]: {

@@ -4,10 +4,12 @@ import {convertAmountToDisplayString} from '@libs/CurrencyUtils';
 import {getTransactionViolations, hasWarningTypeViolation, isViolationDismissed} from '@libs/TransactionUtils';
 import ViolationsUtils, {filterReceiptViolations, getIsViolationFixed} from '@libs/Violations/ViolationsUtils';
 import CONST from '@src/CONST';
+import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, PolicyCategories, PolicyTagLists, Report, Transaction, TransactionViolation} from '@src/types/onyx';
 import type {TransactionCollectionDataSet} from '@src/types/onyx/Transaction';
 import {translateLocal} from '../utils/TestHelper';
+import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 // Mock getCurrentUserEmail from Report actions
 const MOCK_CURRENT_USER_EMAIL = 'test@expensify.com';
@@ -64,6 +66,15 @@ const categoryOverLimitViolation = {
     showInReview: true,
     data: {
         formattedLimit: convertAmountToDisplayString(CONST.POLICY.DEFAULT_MAX_EXPENSE_AMOUNT),
+    },
+};
+
+const overTripLimitViolation = {
+    name: CONST.VIOLATIONS.OVER_TRIP_LIMIT,
+    type: CONST.VIOLATION_TYPES.VIOLATION,
+    showInReview: true,
+    data: {
+        formattedLimit: convertAmountToDisplayString(400),
     },
 };
 
@@ -639,12 +650,44 @@ describe('getViolationsOnyxData', () => {
             expect(result.value).toEqual(expect.arrayContaining([{...missingTagViolation, showInReview: true, data: {tagName: 'Meals'}}]));
         });
 
-        it('should add a tagOutOfPolicy violation when policy requires tags and tag is not in the policy', () => {
+        it('should not add missingTag or tagOutOfPolicy violations when policy requires tags but no tags are enabled', () => {
             policyTags = {};
+            transaction.tag = undefined;
 
             const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
 
             expect(result.value).toEqual([]);
+        });
+
+        it('should remove an existing missingTag violation when policy requires tags but no tags are enabled', () => {
+            policyTags = {};
+            transaction.tag = undefined;
+            transactionViolations = [missingTagViolation, {name: 'duplicatedTransaction', type: CONST.VIOLATION_TYPES.VIOLATION}];
+
+            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
+
+            expect(result.value).toEqual([{name: 'duplicatedTransaction', type: CONST.VIOLATION_TYPES.VIOLATION}]);
+        });
+
+        it('should remove existing tagOutOfPolicy when tag is cleared to empty string', () => {
+            transaction.tag = '';
+            transactionViolations = [tagOutOfPolicyViolation, duplicatedTransactionViolation];
+
+            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
+
+            expect(result.value).not.toContainEqual(tagOutOfPolicyViolation);
+            expect(result.value).toContainEqual(duplicatedTransactionViolation);
+            expect(result.value).toContainEqual({...missingTagViolation, showInReview: true, data: {tagName: 'Meals'}});
+        });
+
+        it('should remove existing tagOutOfPolicy when policy requires tags, no tags are enabled, and tag is empty string', () => {
+            policyTags = {};
+            transaction.tag = '';
+            transactionViolations = [tagOutOfPolicyViolation, duplicatedTransactionViolation];
+
+            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
+
+            expect(result.value).toEqual([duplicatedTransactionViolation]);
         });
 
         it('should not add a tag violation when the transaction is scanning', () => {
@@ -688,6 +731,46 @@ describe('getViolationsOnyxData', () => {
 
             expect(result.value).not.toContainEqual(tagOutOfPolicyViolation);
             expect(result.value).not.toContainEqual(missingTagViolation);
+        });
+
+        it('should not add tagOutOfPolicy when transaction has a stale tag and no tags are enabled', () => {
+            policyTags = {
+                Meals: {
+                    name: 'Meals',
+                    required: false,
+                    tags: {
+                        Lunch: {name: 'Lunch', enabled: false},
+                        Dinner: {name: 'Dinner', enabled: false},
+                    },
+                    orderWeight: 1,
+                },
+            };
+            transaction.tag = 'Lunch';
+
+            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
+
+            expect(result.value).not.toContainEqual(tagOutOfPolicyViolation);
+        });
+
+        it('should remove existing tagOutOfPolicy when transaction has a stale tag and no tags are enabled', () => {
+            policyTags = {
+                Meals: {
+                    name: 'Meals',
+                    required: false,
+                    tags: {
+                        Lunch: {name: 'Lunch', enabled: false},
+                        Dinner: {name: 'Dinner', enabled: false},
+                    },
+                    orderWeight: 1,
+                },
+            };
+            transaction.tag = 'Lunch';
+            transactionViolations = [tagOutOfPolicyViolation, duplicatedTransactionViolation];
+
+            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
+
+            expect(result.value).not.toContainEqual(tagOutOfPolicyViolation);
+            expect(result.value).toContainEqual(duplicatedTransactionViolation);
         });
     });
 
@@ -761,13 +844,62 @@ describe('getViolationsOnyxData', () => {
             result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
             expect(result.value).toEqual([]);
         });
-        it('should return tagOutOfPolicy when a tag is not enabled in the policy but is set in the transaction', () => {
+        it('should not return tagOutOfPolicy when the selected tag level has no enabled tags', () => {
             policyTags.Department.tags.Accounting.enabled = false;
             transaction.tag = 'Africa:Accounting:Project1';
+
+            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
+
+            expect(result.value).toEqual([]);
+        });
+
+        it('should return tagOutOfPolicy when selected tag is disabled and another tag in that level is enabled', () => {
+            policyTags.Department.tags.Engineering = {
+                name: 'Engineering',
+                enabled: true,
+            };
+            policyTags.Department.tags.Accounting.enabled = false;
+            transaction.tag = 'Africa:Accounting:Project1';
+
             const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
             const violation = {...tagOutOfPolicyViolation, data: {tagName: 'Department'}};
+
             expect(result.value).toEqual([violation]);
         });
+        it('should not return tagOutOfPolicy when no tags are enabled in the policy', () => {
+            policyTags.Department.tags.Accounting.enabled = false;
+            policyTags.Region.tags.Africa.enabled = false;
+            policyTags.Project.tags.Project1.enabled = false;
+            transaction.tag = 'Africa:Accounting:Project1';
+
+            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
+
+            expect(result.value).toEqual([]);
+        });
+        it('should not return allTagLevelsRequired when only non-required dependent tag levels are empty', () => {
+            // Make Department non-required
+            policyTags.Department.required = false;
+            // Transaction has only Region and Project filled, Department (non-required) is empty
+            transaction.tag = 'Africa::Project1';
+
+            // hasDependentTags = true to exercise getTagViolationsForDependentTags
+            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, true, false);
+
+            expect(result.value).not.toContainEqual(expect.objectContaining({name: CONST.VIOLATIONS.ALL_TAG_LEVELS_REQUIRED}));
+        });
+
+        it('should return allTagLevelsRequired when a required dependent tag level is empty', () => {
+            // Make Project non-required, keep Region and Department required
+            policyTags.Project.required = false;
+            // Transaction has only Region filled, Department (required) is empty
+            transaction.tag = 'Africa';
+
+            // hasDependentTags = true to exercise getTagViolationsForDependentTags
+            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, true, false);
+
+            expect(result.value).toContainEqual(expect.objectContaining({name: CONST.VIOLATIONS.ALL_TAG_LEVELS_REQUIRED}));
+        });
+
         it('should return missingTag when all dependent tags are enabled in the policy but are not set in the transaction', () => {
             const missingDepartmentTag = {...missingTagViolation, data: {tagName: 'Department'}};
             const missingRegionTag = {...missingTagViolation, data: {tagName: 'Region'}};
@@ -972,6 +1104,174 @@ describe('getViolationsOnyxData', () => {
                 // Violation should be removed since we now have 2 attendees
                 expect(result.value).not.toEqual(expect.arrayContaining([missingAttendeesViolation]));
             });
+        });
+    });
+
+    describe('taxOutOfPolicy violation', () => {
+        const taxOutOfPolicyViolation = {
+            name: CONST.VIOLATIONS.TAX_OUT_OF_POLICY,
+            type: CONST.VIOLATION_TYPES.VIOLATION,
+            showInReview: true,
+        };
+
+        describe('when tax tracking is enabled', () => {
+            beforeEach(() => {
+                policy.tax = {trackingEnabled: true};
+            });
+
+            it('should add taxOutOfPolicy violation when taxCode is not in policy tax rates', () => {
+                transaction.taxCode = 'UNKNOWN_TAX';
+                policy.taxRates = {name: 'Taxes', defaultExternalID: 'TAX_10', defaultValue: '10%', foreignTaxDefault: 'TAX_10', taxes: {TAX_10: {name: '10%', value: '10%'}}};
+                const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
+                expect(result.value).toContainEqual(taxOutOfPolicyViolation);
+            });
+
+            it('should not add taxOutOfPolicy violation when taxCode is in policy tax rates', () => {
+                transaction.taxCode = 'TAX_10';
+                policy.taxRates = {name: 'Taxes', defaultExternalID: 'TAX_10', defaultValue: '10%', foreignTaxDefault: 'TAX_10', taxes: {TAX_10: {name: '10%', value: '10%'}}};
+                const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
+                expect(result.value).not.toContainEqual(taxOutOfPolicyViolation);
+            });
+
+            it('should remove taxOutOfPolicy violation when taxCode becomes valid', () => {
+                transaction.taxCode = 'TAX_10';
+                policy.taxRates = {name: 'Taxes', defaultExternalID: 'TAX_10', defaultValue: '10%', foreignTaxDefault: 'TAX_10', taxes: {TAX_10: {name: '10%', value: '10%'}}};
+                transactionViolations = [taxOutOfPolicyViolation];
+                const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
+                expect(result.value).not.toContainEqual(taxOutOfPolicyViolation);
+            });
+        });
+
+        describe('when tax tracking is disabled', () => {
+            beforeEach(() => {
+                policy.tax = {trackingEnabled: false};
+            });
+
+            it('should add taxOutOfPolicy violation when transaction has taxCode', () => {
+                transaction.taxCode = 'SOME_TAX';
+                const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
+                expect(result.value).toContainEqual(taxOutOfPolicyViolation);
+            });
+
+            it('should add taxOutOfPolicy violation when transaction has taxAmount', () => {
+                transaction.taxAmount = 500;
+                const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
+                expect(result.value).toContainEqual(taxOutOfPolicyViolation);
+            });
+
+            it('should add taxOutOfPolicy violation when transaction has taxValue', () => {
+                transaction.taxValue = '10%';
+                const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
+                expect(result.value).toContainEqual(taxOutOfPolicyViolation);
+            });
+
+            it('should not add taxOutOfPolicy violation when transaction has no tax data', () => {
+                transaction.taxCode = undefined;
+                transaction.taxAmount = undefined;
+                transaction.taxValue = undefined;
+                const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
+                expect(result.value).not.toContainEqual(taxOutOfPolicyViolation);
+            });
+
+            it('should not add taxOutOfPolicy violation when tax fields are falsy (empty string, 0)', () => {
+                transaction.taxCode = '';
+                transaction.taxAmount = 0;
+                transaction.taxValue = '';
+                const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
+                expect(result.value).not.toContainEqual(taxOutOfPolicyViolation);
+            });
+
+            it('should remove taxOutOfPolicy violation when tax data is cleared', () => {
+                transaction.taxCode = undefined;
+                transaction.taxAmount = undefined;
+                transaction.taxValue = undefined;
+                transactionViolations = [taxOutOfPolicyViolation];
+                const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
+                expect(result.value).not.toContainEqual(taxOutOfPolicyViolation);
+            });
+        });
+
+        describe('time and per diem requests', () => {
+            it('should not add taxOutOfPolicy violation for time requests even with tax data and tax tracking disabled', () => {
+                policy.tax = {trackingEnabled: false};
+                transaction.taxCode = 'SOME_TAX';
+                transaction.comment = {...transaction.comment, type: CONST.TRANSACTION.TYPE.TIME};
+                const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
+                expect(result.value).not.toContainEqual(taxOutOfPolicyViolation);
+            });
+
+            it('should not add taxOutOfPolicy violation for per diem requests even with tax data and tax tracking disabled', () => {
+                policy.tax = {trackingEnabled: false};
+                transaction.taxCode = 'SOME_TAX';
+                transaction.comment = {...transaction.comment, type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT, customUnit: {name: CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL}};
+                const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
+                expect(result.value).not.toContainEqual(taxOutOfPolicyViolation);
+            });
+
+            it('should not add taxOutOfPolicy violation for time requests even with invalid taxCode and tax tracking enabled', () => {
+                policy.tax = {trackingEnabled: true};
+                transaction.taxCode = 'UNKNOWN_TAX';
+                transaction.comment = {...transaction.comment, type: CONST.TRANSACTION.TYPE.TIME};
+                policy.taxRates = {name: 'Taxes', defaultExternalID: 'TAX_10', defaultValue: '10%', foreignTaxDefault: 'TAX_10', taxes: {TAX_10: {name: '10%', value: '10%'}}};
+                const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
+                expect(result.value).not.toContainEqual(taxOutOfPolicyViolation);
+            });
+        });
+    });
+
+    describe('overTripLimit violation', () => {
+        it('should add overTripLimit violation if the modified transaction amount is over the original transaction amount', () => {
+            policy.outputCurrency = CONST.CURRENCY.USD;
+            transaction.amount = -400;
+            transaction.modifiedAmount = -600;
+            transaction.receipt = {
+                reservationList: [
+                    {
+                        start: {date: '2023-07-24'},
+                        end: {date: '2023-07-25'},
+                        type: 'train',
+                    },
+                ],
+            };
+            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
+            expect(result.value).toEqual(expect.arrayContaining([overTripLimitViolation, ...transactionViolations]));
+        });
+
+        it('should not add overTripLimit violation if the modified transaction currency is different from the original transaction currency', () => {
+            policy.outputCurrency = CONST.CURRENCY.USD;
+            transaction.amount = -400;
+            transaction.modifiedAmount = -600;
+            transaction.currency = CONST.CURRENCY.USD;
+            transaction.modifiedCurrency = CONST.CURRENCY.GBP;
+            transaction.receipt = {
+                reservationList: [
+                    {
+                        start: {date: '2023-07-24'},
+                        end: {date: '2023-07-25'},
+                        type: 'train',
+                    },
+                ],
+            };
+            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
+            expect(result.value).toEqual([]);
+        });
+
+        it('should remove overTripLimit violation if the modified transaction amount is not over the original transaction amount', () => {
+            policy.outputCurrency = CONST.CURRENCY.USD;
+            transaction.amount = -400;
+            transaction.modifiedAmount = -300;
+            transaction.receipt = {
+                reservationList: [
+                    {
+                        start: {date: '2023-07-24'},
+                        end: {date: '2023-07-25'},
+                        type: 'train',
+                    },
+                ],
+            };
+            const modifiedTransactionViolations = [overTripLimitViolation, ...transactionViolations];
+            const result = ViolationsUtils.getViolationsOnyxData(transaction, modifiedTransactionViolations, policy, policyTags, policyCategories, false, false);
+            expect(result.value).toEqual([]);
         });
     });
 });
@@ -1206,22 +1506,89 @@ describe('getViolationTranslation', () => {
     it('should return the correct message for broken card connection violation', () => {
         const testPolicyID = 'test-policy-123';
         const companyCardPageURL = `workspaces/${testPolicyID}/company-cards`;
-        const brokenCardConnectionViolationExpected = translateLocal('violations.rter', {
-            brokenBankConnection: true,
-            isAdmin: true,
-            rterType: CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION,
-            isTransactionOlderThan7Days: false,
+        const brokenCardConnectionViolationExpected = translateLocal('violations.rter', true, true, false, undefined, CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION, companyCardPageURL);
+        expect(ViolationsUtils.getViolationTranslation({violation: brokenCardConnectionViolation, translate: translateLocal})).toBe(brokenCardConnectionViolationExpected);
+        const brokenCardConnection530ViolationExpected = translateLocal(
+            'violations.rter',
+            true,
+            false,
+            false,
+            undefined,
+            CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_530,
             companyCardPageURL,
+        );
+        expect(ViolationsUtils.getViolationTranslation({violation: brokenCardConnection530Violation, translate: translateLocal})).toBe(brokenCardConnection530ViolationExpected);
+    });
+
+    describe('increasedDistance violation', () => {
+        const increasedDistanceViolation: TransactionViolation = {
+            name: CONST.VIOLATIONS.INCREASED_DISTANCE,
+            type: CONST.VIOLATION_TYPES.VIOLATION,
+        };
+
+        const metersToKm = 0.001;
+        const metersToMiles = 0.000621371;
+        const routeDistanceMeters = 16840;
+        const routeDistanceKm = `${(routeDistanceMeters * metersToKm).toFixed(2)} km`;
+        const routeDistanceMi = `${(routeDistanceMeters * metersToMiles).toFixed(2)} mi`;
+
+        beforeEach(() => {
+            IntlStore.load(CONST.LOCALES.EN);
+            return waitForBatchedUpdates();
         });
-        expect(ViolationsUtils.getViolationTranslation(brokenCardConnectionViolation, translateLocal)).toBe(brokenCardConnectionViolationExpected);
-        const brokenCardConnection530ViolationExpected = translateLocal('violations.rter', {
-            brokenBankConnection: true,
-            isAdmin: false,
-            rterType: CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_530,
-            isTransactionOlderThan7Days: false,
-            companyCardPageURL,
+
+        it('should return formatted message with route distance in km', () => {
+            const result = ViolationsUtils.getViolationTranslation({
+                violation: increasedDistanceViolation,
+                translate: translateLocal,
+                canEdit: true,
+                routeDistanceMeters,
+                distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS,
+            });
+            expect(result).toBe(`Distance exceeds the calculated route of ${routeDistanceKm}`);
         });
-        expect(ViolationsUtils.getViolationTranslation(brokenCardConnection530Violation, translateLocal)).toBe(brokenCardConnection530ViolationExpected);
+
+        it('should return formatted message with route distance in miles', () => {
+            const result = ViolationsUtils.getViolationTranslation({
+                violation: increasedDistanceViolation,
+                translate: translateLocal,
+                canEdit: true,
+                routeDistanceMeters,
+                distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+            });
+            expect(result).toBe(`Distance exceeds the calculated route of ${routeDistanceMi}`);
+        });
+
+        it('should return fallback message when routeDistanceMeters is zero', () => {
+            const result = ViolationsUtils.getViolationTranslation({
+                violation: increasedDistanceViolation,
+                translate: translateLocal,
+                canEdit: true,
+                routeDistanceMeters: 0,
+                distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS,
+            });
+            expect(result).toBe('Distance exceeds the calculated route');
+        });
+
+        it('should return fallback message when routeDistanceMeters is undefined', () => {
+            const result = ViolationsUtils.getViolationTranslation({
+                violation: increasedDistanceViolation,
+                translate: translateLocal,
+                canEdit: true,
+                distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS,
+            });
+            expect(result).toBe('Distance exceeds the calculated route');
+        });
+
+        it('should return fallback message when distanceUnit is undefined', () => {
+            const result = ViolationsUtils.getViolationTranslation({
+                violation: increasedDistanceViolation,
+                translate: translateLocal,
+                canEdit: true,
+                routeDistanceMeters,
+            });
+            expect(result).toBe('Distance exceeds the calculated route');
+        });
     });
 });
 
@@ -1521,11 +1888,30 @@ describe('getIsViolationFixed', () => {
             expect(result).toBe(false);
         });
 
-        it('should return false when tag exists but is disabled', () => {
+        it('should return true when tag exists but no tags are enabled', () => {
             const result = getIsViolationFixed('violations.tagOutOfPolicy', {
                 ...defaultParams,
                 tag: 'Lunch',
                 policyTagLists: createPolicyTagList('Lunch', false),
+            });
+            expect(result).toBe(true);
+        });
+
+        it('should return false when tag exists but is disabled while other tags are enabled', () => {
+            const result = getIsViolationFixed('violations.tagOutOfPolicy', {
+                ...defaultParams,
+                tag: 'Lunch',
+                policyTagLists: {
+                    Meals: {
+                        name: 'Meals',
+                        required: true,
+                        orderWeight: 1,
+                        tags: {
+                            Lunch: {name: 'Lunch', enabled: false},
+                            Dinner: {name: 'Dinner', enabled: true},
+                        },
+                    },
+                },
             });
             expect(result).toBe(false);
         });
@@ -1565,6 +1951,16 @@ describe('getIsViolationFixed', () => {
                 policyTaxRates: {TAX_10: {name: '10%', value: '10'}},
             });
             expect(result).toBe(true);
+        });
+
+        it("should return false when taxCodes match but the taxValues doesn't", () => {
+            const result = getIsViolationFixed('violations.taxOutOfPolicy', {
+                ...defaultParams,
+                taxCode: 'CUSTOM_TAX',
+                taxValue: '15',
+                policyTaxRates: {CUSTOM_TAX: {name: '10%', value: '10'}},
+            });
+            expect(result).toBe(false);
         });
     });
 

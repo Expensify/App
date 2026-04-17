@@ -1,3 +1,4 @@
+import {hasSeenTourSelector} from '@selectors/Onboarding';
 import React, {useCallback, useMemo, useRef} from 'react';
 import {View} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
@@ -10,6 +11,8 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import Text from '@components/Text';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDocumentTitle from '@hooks/useDocumentTitle';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -17,6 +20,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import {isInternalTestBuild} from '@libs/Environment/Environment';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {showContextMenu} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
 import colors from '@styles/theme/colors';
@@ -25,8 +29,9 @@ import {navigateToConciergeChat} from '@userActions/Report';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type IconAsset from '@src/types/utils/IconAsset';
+import type WithSentryLabel from '@src/types/utils/SentryLabel';
 import pkg from '../../../../package.json';
 import useAboutSectionIllustration from './useAboutSectionIllustration';
 
@@ -41,7 +46,7 @@ function getFlavor(): string {
     return '';
 }
 
-type MenuItem = {
+type MenuItem = WithSentryLabel & {
     translationKey: TranslationPaths;
     icon: IconAsset;
     iconRight?: IconAsset;
@@ -58,25 +63,33 @@ function AboutPage() {
     const popoverAnchor = useRef<View>(null);
     const waitForNavigate = useWaitForNavigation();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    useDocumentTitle(translate('initialSettingsPage.about'));
     const aboutIllustration = useAboutSectionIllustration();
-    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID, {canBeMissing: true});
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
+    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
     const menuItems = useMemo(() => {
         const baseMenuItems: MenuItem[] = [
             {
                 translationKey: 'initialSettingsPage.aboutPage.appDownloadLinks',
                 icon: icons.Link,
+                sentryLabel: CONST.SENTRY_LABEL.SETTINGS_ABOUT.APP_DOWNLOAD_LINKS,
                 action: waitForNavigate(() => Navigation.navigate(ROUTES.SETTINGS_APP_DOWNLOAD_LINKS)),
             },
             {
                 translationKey: 'initialSettingsPage.aboutPage.viewKeyboardShortcuts',
                 icon: icons.Keyboard,
-                action: waitForNavigate(() => Navigation.navigate(ROUTES.KEYBOARD_SHORTCUTS.getRoute(Navigation.getActiveRoute()))),
+                sentryLabel: CONST.SENTRY_LABEL.SETTINGS_ABOUT.VIEW_KEYBOARD_SHORTCUTS,
+                action: waitForNavigate(() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.KEYBOARD_SHORTCUTS.path))),
             },
             {
                 translationKey: 'initialSettingsPage.aboutPage.viewTheCode',
                 icon: icons.Eye,
                 iconRight: icons.NewWindow,
+                sentryLabel: CONST.SENTRY_LABEL.SETTINGS_ABOUT.VIEW_THE_CODE,
                 action: () => {
                     openExternalLink(CONST.GITHUB_URL);
                     return Promise.resolve();
@@ -87,6 +100,7 @@ function AboutPage() {
                 translationKey: 'initialSettingsPage.aboutPage.viewOpenJobs',
                 icon: icons.MoneyBag,
                 iconRight: icons.NewWindow,
+                sentryLabel: CONST.SENTRY_LABEL.SETTINGS_ABOUT.VIEW_OPEN_JOBS,
                 action: () => {
                     openExternalLink(CONST.UPWORK_URL);
                     return Promise.resolve();
@@ -96,17 +110,19 @@ function AboutPage() {
             {
                 translationKey: 'initialSettingsPage.aboutPage.reportABug',
                 icon: icons.Bug,
-                action: waitForNavigate(() => navigateToConciergeChat(conciergeReportID, false)),
+                sentryLabel: CONST.SENTRY_LABEL.SETTINGS_ABOUT.REPORT_A_BUG,
+                action: waitForNavigate(() => navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas, false)),
             },
         ];
 
-        return baseMenuItems.map(({translationKey, icon, iconRight, action, link}: MenuItem) => ({
+        return baseMenuItems.map(({translationKey, icon, iconRight, action, link, sentryLabel}: MenuItem) => ({
             key: translationKey,
             title: translate(translationKey),
             icon,
             iconRight,
             onPress: action,
             shouldShowRightIcon: true,
+            shouldShowContextMenuHint: !!link,
             onSecondaryInteraction: link
                 ? (event: GestureResponderEvent | MouseEvent) =>
                       showContextMenu({
@@ -119,8 +135,9 @@ function AboutPage() {
             ref: popoverAnchor,
             shouldBlockSelection: !!link,
             wrapperStyle: [styles.sectionMenuItemTopDescription],
+            sentryLabel,
         }));
-    }, [icons, styles, translate, waitForNavigate, conciergeReportID]);
+    }, [icons, styles, translate, waitForNavigate, conciergeReportID, introSelected, isSelfTourViewed, currentUserAccountID, betas]);
 
     const overlayContent = useCallback(
         () => (
@@ -148,7 +165,8 @@ function AboutPage() {
                 title={translate('initialSettingsPage.about')}
                 shouldShowBackButton={shouldUseNarrowLayout}
                 shouldDisplaySearchRouter
-                onBackButtonPress={Navigation.popToSidebar}
+                shouldDisplayHelpButton
+                onBackButtonPress={Navigation.goBack}
                 icon={illustrations.PalmTree}
                 shouldUseHeadlineHeader
             />
@@ -174,8 +192,8 @@ function AboutPage() {
                         </View>
                     </Section>
                 </View>
-                <View style={[styles.renderHTML, styles.pl5, styles.mb5]}>
-                    <RenderHTML html={translate('initialSettingsPage.readTheTermsAndPrivacy')} />
+                <View style={[styles.renderHTML, styles.ph5, styles.mb5]}>
+                    <RenderHTML html={`<muted-text-micro>${translate('initialSettingsPage.readTheTermsAndPrivacy')} ${translate('termsOfUse.license')}</muted-text-micro>`} />
                 </View>
             </ScrollView>
         </ScreenWrapper>

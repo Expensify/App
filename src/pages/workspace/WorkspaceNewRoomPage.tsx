@@ -61,6 +61,7 @@ function EmptyWorkspaceView() {
 
 type WorkspaceNewRoomPageRef = {
     focus?: () => void;
+    isValidInput?: () => boolean;
 };
 
 type WorkspaceNewRoomPageProps = {
@@ -73,10 +74,10 @@ function WorkspaceNewRoomPage({ref}: WorkspaceNewRoomPageProps) {
     const isFocused = useIsFocused();
     const {translate, localeCompare} = useLocalize();
     const [shouldEnableValidation, setShouldEnableValidation] = useState(false);
-    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
-    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
-    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
-    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: false});
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to show offline indicator on small screen only
     const {top} = useSafeAreaInsets();
     const [visibility, setVisibility] = useState<ValueOf<typeof CONST.REPORT.VISIBILITY>>(CONST.REPORT.VISIBILITY.RESTRICTED);
@@ -86,6 +87,7 @@ function WorkspaceNewRoomPage({ref}: WorkspaceNewRoomPageProps) {
 
     useImperativeHandle(ref, () => ({
         focus: () => roomPageInputRef.current?.focus(),
+        isValidInput: () => !!roomPageInputRef.current,
     }));
 
     const workspaceOptions = useMemo(
@@ -118,7 +120,8 @@ function WorkspaceNewRoomPage({ref}: WorkspaceNewRoomPageProps) {
      */
     const submit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NEW_ROOM_FORM>) => {
         setNewRoomFormLoading();
-        const participants = [session?.accountID ?? CONST.DEFAULT_NUMBER_ID];
+        const currentUserAccountID = session?.accountID ?? CONST.DEFAULT_NUMBER_ID;
+        const participants = [currentUserAccountID];
         const parsedDescription = getParsedComment(values.reportDescription ?? '', {policyID});
         const policyReport = buildOptimisticChatReport({
             participantList: participants,
@@ -130,6 +133,7 @@ function WorkspaceNewRoomPage({ref}: WorkspaceNewRoomPageProps) {
             writeCapability: writeCapability || CONST.REPORT.WRITE_CAPABILITIES.ALL,
             notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.DAILY,
             description: parsedDescription,
+            currentUserAccountID,
         });
 
         // eslint-disable-next-line @typescript-eslint/no-deprecated
@@ -191,7 +195,7 @@ function WorkspaceNewRoomPage({ref}: WorkspaceNewRoomPageProps) {
                 addErrorMessage(errors, 'roomName', translate('newRoomPage.roomNameInvalidError'));
             } else if (isReservedRoomName(values.roomName)) {
                 // Certain names are reserved for default rooms and should not be used for policy rooms.
-                addErrorMessage(errors, 'roomName', translate('newRoomPage.roomNameReservedError', {reservedName: values.roomName}));
+                addErrorMessage(errors, 'roomName', translate('newRoomPage.roomNameReservedError', values.roomName));
             } else if (isExistingRoomName(values.roomName, reports, values.policyID)) {
                 // Certain names are reserved for default rooms and should not be used for policy rooms.
                 addErrorMessage(errors, 'roomName', translate('newRoomPage.roomAlreadyExistsError'));
@@ -321,3 +325,4 @@ function WorkspaceNewRoomPage({ref}: WorkspaceNewRoomPageProps) {
 }
 
 export default WorkspaceNewRoomPage;
+export type {WorkspaceNewRoomPageRef};

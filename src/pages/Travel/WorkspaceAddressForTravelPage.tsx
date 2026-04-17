@@ -22,7 +22,7 @@ function WorkspaceAddressForTravelPage({route}: WorkspaceAddressForTravelPagePro
     const {translate} = useLocalize();
     const {policyID} = route.params;
     const policy = usePolicy(policyID);
-    const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isUserValidatedSelector, canBeMissing: true});
+    const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isUserValidatedSelector});
 
     const updatePolicyAddress = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.HOME_ADDRESS_FORM>) => {
         if (!policy) {
@@ -39,7 +39,8 @@ function WorkspaceAddressForTravelPage({route}: WorkspaceAddressForTravelPagePro
         }
 
         updateAddress(policy?.id, {
-            addressStreet: `${values.addressLine1?.trim() ?? ''}\n${values.addressLine2?.trim() ?? ''}`,
+            addressStreet: values.addressLine1?.trim() ?? '',
+            addressStreet2: values.addressLine2?.trim() ?? '',
             city: values.city.trim(),
             state: values.state.trim(),
             zipCode: values?.zipPostCode?.trim().toUpperCase() ?? '',

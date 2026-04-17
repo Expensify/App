@@ -25,8 +25,8 @@ jobs:
     name: test (job ${{ fromJSON(matrix.chunk) }})
     steps:
       - name: Checkout
-        # v4
-        uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608
+        # v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
 
       - name: Setup Node
         uses: ./.github/actions/composite/setupNode
@@ -55,7 +55,8 @@ jobs:
           flags: unit
           name: jest-${{ matrix.chunk }}
           disable_search: true
-          fail_ci_if_error: true
+          # TODO: Re-enable (https://github.com/Expensify/App/issues/82201)
+          fail_ci_if_error: false
 
       - name: Load Codecov token from 1Password
         id: load-codecov-token
@@ -79,14 +80,15 @@ jobs:
           flags: unit
           name: jest-${{ matrix.chunk }}
           disable_search: true
-          fail_ci_if_error: true
+          # TODO: Re-enable (https://github.com/Expensify/App/issues/82201)
+          fail_ci_if_error: false
 
   storybookTests:
     if: ${{ github.event.head_commit.author.name != 'OSBotify' && github.event.head_commit.author.name != 'imgbot[bot]' || github.event_name == 'workflow_call' }}
     runs-on: blacksmith-4vcpu-ubuntu-2404
     name: Storybook tests
     steps:
-      - uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608 # v4
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
 
       - uses: ./.github/actions/composite/setupNode
 

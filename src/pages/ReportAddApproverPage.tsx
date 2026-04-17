@@ -10,7 +10,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {addReportApprover} from '@libs/actions/IOU';
+import {addReportApprover} from '@libs/actions/IOU/ReportWorkflow';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportChangeApproverParamList} from '@libs/Navigation/types';
@@ -35,15 +35,15 @@ function ReportAddApproverPage({report, isLoadingReportData, policy}: ReportAddA
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
     const [selectedApproverEmail, setSelectedApproverEmail] = useState<string | undefined>(undefined);
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const {isBetaEnabled} = usePermissions();
-    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
+    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar']);
 
     const currentUserDetails = useCurrentUserPersonalDetails();
     const hasViolations = hasViolationsReportUtils(report?.reportID, transactionViolations, currentUserDetails.accountID, currentUserDetails.login ?? '');
-    const [reportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${report?.reportID}`, {canBeMissing: true});
+    const [reportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${report?.reportID}`);
 
     const employeeList = policy?.employeeList;
     const allApprovers = useMemo(() => {

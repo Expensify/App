@@ -5,6 +5,7 @@ import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {areSettingsInErrorFields, getCurrentXeroOrganizationName, settingsPendingAction} from '@libs/PolicyUtils';
 import goBackFromExportConnection from '@navigation/helpers/goBackFromExportConnection';
@@ -13,7 +14,7 @@ import type {SettingsNavigatorParamList} from '@navigation/types';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
 function XeroExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
@@ -65,7 +66,7 @@ function XeroExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
         },
         {
             description: translate('workspace.xero.advancedConfig.purchaseBillStatusTitle'),
-            onPress: !policyID ? undefined : () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_BILL_STATUS_SELECTOR.getRoute(policyID, Navigation.getActiveRoute())),
+            onPress: !policyID ? undefined : () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_XERO_BILL_STATUS_SELECTOR.path)),
             title: exportConfiguration?.billStatus?.purchase ? translate(`workspace.xero.invoiceStatus.values.${exportConfiguration.billStatus.purchase}`) : undefined,
             subscribedSettings: [CONST.XERO_CONFIG.BILL_STATUS],
         },
@@ -85,7 +86,7 @@ function XeroExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
         },
         {
             description: translate('workspace.xero.xeroBankAccount'),
-            onPress: () => (!policyID ? undefined : Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_EXPORT_BANK_ACCOUNT_SELECT.getRoute(policyID, Navigation.getActiveRoute()))),
+            onPress: () => (!policyID ? undefined : Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_XERO_EXPORT_BANK_ACCOUNT_SELECT.path))),
             title: selectedBankAccountName,
             subscribedSettings: [CONST.XERO_CONFIG.NON_REIMBURSABLE_ACCOUNT],
         },

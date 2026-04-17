@@ -1,8 +1,9 @@
 import type {ForwardedRef} from 'react';
 import React from 'react';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getCurrencyDecimals, getLocalizedCurrencySymbol} from '@libs/CurrencyUtils';
+import {getLocalizedCurrencySymbol} from '@libs/CurrencyUtils';
 import CONST from '@src/CONST';
 import NumberWithSymbolForm from './NumberWithSymbolForm';
 import type {NumberWithSymbolFormRef} from './NumberWithSymbolForm';
@@ -45,6 +46,15 @@ type AmountFormProps = {
     /** Whether to hide the currency symbol */
     hideCurrencySymbol?: boolean;
 
+    /** When true, shows the trailing dropdown (same as currency picker in IOU amount flows) */
+    shouldShowCurrencyButton?: boolean;
+
+    /** Text on the trailing dropdown button. Use with `shouldShowCurrencyButton` when the suffix is not a currency code (e.g. duration unit). */
+    currencyButtonLabel?: string;
+
+    /** Accessibility label for the trailing dropdown */
+    currencyButtonAccessibilityLabel?: string;
+
     /** Whether the input should be disabled */
     disabled?: boolean;
 
@@ -56,6 +66,9 @@ type AmountFormProps = {
 
     /** Callback when the user presses the submit key (Enter) */
     onSubmitEditing?: () => void;
+
+    /** Callback when the input is focused */
+    onFocus?: () => void;
 } & Pick<BaseTextInputProps, 'autoFocus' | 'autoGrowExtraSpace' | 'autoGrowMarginSide'>;
 
 /**
@@ -73,22 +86,27 @@ function AmountForm({
     label,
     decimals: decimalsProp,
     hideCurrencySymbol = false,
+    shouldShowCurrencyButton = false,
+    currencyButtonLabel,
+    currencyButtonAccessibilityLabel,
     disabled = false,
     autoFocus,
     autoGrowExtraSpace,
     autoGrowMarginSide,
     onSubmitEditing,
+    onFocus,
     ref,
     numberFormRef,
 }: AmountFormProps) {
     const {preferredLocale} = useLocalize();
     const styles = useThemeStyles();
+    const {getCurrencyDecimals} = useCurrencyListActions();
     const decimals = decimalsProp ?? getCurrencyDecimals(currency);
 
     return (
         <NumberWithSymbolForm
             label={label}
-            value={value}
+            value={value ?? ''}
             decimals={decimals}
             currency={currency}
             displayAsTextInput={displayAsTextInput}
@@ -107,6 +125,9 @@ function AmountForm({
             symbolPosition={CONST.TEXT_INPUT_SYMBOL_POSITION.PREFIX}
             isSymbolPressable={isCurrencyPressable}
             hideSymbol={hideCurrencySymbol}
+            shouldShowCurrencyButton={shouldShowCurrencyButton}
+            currencyButtonLabel={currencyButtonLabel}
+            currencyButtonAccessibilityLabel={currencyButtonAccessibilityLabel}
             maxLength={amountMaxLength}
             errorText={errorText}
             style={displayAsTextInput ? undefined : styles.iouAmountTextInput}
@@ -117,6 +138,7 @@ function AmountForm({
             autoGrowMarginSide={autoGrowMarginSide}
             onSubmitEditing={onSubmitEditing}
             disabled={disabled}
+            onFocus={onFocus}
         />
     );
 }

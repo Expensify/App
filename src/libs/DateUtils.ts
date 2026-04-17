@@ -25,6 +25,7 @@ import {
     parse,
     set,
     startOfDay,
+    startOfMonth,
     startOfWeek,
     subDays,
     subMilliseconds,
@@ -229,7 +230,11 @@ function datetimeToRelative(locale: Locale | undefined, datetime: string, curren
  * @returns
  */
 function getZoneAbbreviation(datetime: string | Date, selectedTimezone: SelectedTimezone): string {
-    return formatInTimeZone(datetime, selectedTimezone, 'zzz');
+    const abbreviation = formatInTimeZone(datetime, selectedTimezone, 'zzz');
+    if (abbreviation === 'GMT') {
+        return formatInTimeZone(datetime, selectedTimezone, 'O');
+    }
+    return abbreviation;
 }
 
 /**
@@ -298,6 +303,32 @@ function getMonthNames(): string[] {
     });
 
     return monthsArray.map((monthDate) => format(monthDate, CONST.DATE.MONTH_FORMAT));
+}
+
+/**
+ * Filters month names by min/max date boundaries and returns list items for SelectionList.
+ */
+function getFilteredMonthItems(monthNames: string[], currentYear: number, currentMonth: number, minDate?: Date, maxDate?: Date) {
+    const minMonthStart = minDate ? startOfMonth(new Date(minDate)) : undefined;
+    const maxMonthEnd = maxDate ? endOfMonth(new Date(maxDate)) : undefined;
+
+    return monthNames
+        .map((month, index) => {
+            const monthStart = startOfMonth(new Date(currentYear, index));
+            const monthEnd = endOfMonth(new Date(currentYear, index));
+            const isBeforeMin = minMonthStart ? monthEnd < minMonthStart : false;
+            const isAfterMax = maxMonthEnd ? monthStart > maxMonthEnd : false;
+            if (isBeforeMin || isAfterMax) {
+                return null;
+            }
+            return {
+                text: month.charAt(0).toUpperCase() + month.slice(1),
+                value: index,
+                keyForList: index.toString(),
+                isSelected: index === currentMonth,
+            };
+        })
+        .filter((item): item is NonNullable<typeof item> => item !== null);
 }
 
 /**
@@ -501,16 +532,16 @@ function getStatusUntilDate(translate: LocalizedTranslate, inputDate: string, in
 
     // If it's a time on the same date
     if (isSameDay(input, now)) {
-        return translate('statusPage.untilTime', {time: format(input, CONST.DATE.LOCAL_TIME_FORMAT)});
+        return translate('statusPage.untilTime', format(input, CONST.DATE.LOCAL_TIME_FORMAT));
     }
 
     // If it's further in the future than tomorrow but within the same year
     if (isAfter(input, now) && isSameYear(input, now)) {
-        return translate('statusPage.untilTime', {time: format(input, `${CONST.DATE.SHORT_DATE_FORMAT} ${CONST.DATE.LOCAL_TIME_FORMAT}`)});
+        return translate('statusPage.untilTime', format(input, `${CONST.DATE.SHORT_DATE_FORMAT} ${CONST.DATE.LOCAL_TIME_FORMAT}`));
     }
 
     // If it's in another year
-    return translate('statusPage.untilTime', {time: format(input, `${CONST.DATE.FNS_FORMAT_STRING} ${CONST.DATE.LOCAL_TIME_FORMAT}`)});
+    return translate('statusPage.untilTime', format(input, `${CONST.DATE.FNS_FORMAT_STRING} ${CONST.DATE.LOCAL_TIME_FORMAT}`));
 }
 
 /**
@@ -836,13 +867,13 @@ function getFormattedDuration(translateParam: LocaleContextProps['translate'], d
 const TIME_UNIT_PADDING = 2; // Pad time units to 2 digits (e.g., "09" instead of "9")
 
 /**
- * Formats a countdown timer with hours, minutes, and seconds (e.g., "23h 59m 59s").
+ * Formats a countdown timer with hours, minutes, and seconds (e.g., "23h : 59m : 59s").
  */
 function formatCountdownTimer(translateParam: LocaleContextProps['translate'], hours: number, minutes: number, seconds: number): string {
     const paddedMinutes = minutes.toString().padStart(TIME_UNIT_PADDING, '0');
     const paddedSeconds = seconds.toString().padStart(TIME_UNIT_PADDING, '0');
 
-    return `${hours}${translateParam('common.hourAbbreviation')} ${paddedMinutes}${translateParam('common.minuteAbbreviation')} ${paddedSeconds}${translateParam('common.secondAbbreviation')}`;
+    return `${hours}${translateParam('common.hourAbbreviation')} : ${paddedMinutes}${translateParam('common.minuteAbbreviation')} : ${paddedSeconds}${translateParam('common.secondAbbreviation')}`;
 }
 
 function doesDateBelongToAPastYear(date: string): boolean {
@@ -899,7 +930,7 @@ function getFormattedSplitDateRange(translateParam: LocaleContextProps['translat
     const end = new Date(endDate);
     const daysCount = differenceInDays(end, start) + 1;
 
-    return translateParam('iou.splitDateRange', {startDate, endDate, count: daysCount});
+    return translateParam('iou.splitDateRange', startDate, endDate, daysCount);
 }
 
 /**
@@ -921,22 +952,48 @@ const formatInTimeZoneWithFallback: typeof formatInTimeZone = (date, timeZone, f
 };
 
 /**
+ * Converts a UTC datetime string to a date string (yyyy-MM-dd) in the target timezone.
+ * @param utcDateTime - Datetime string in UTC format (yyyy-MM-dd HH:mm:ss or yyyy-MM-dd HH:mm:ss.SSS)
+ * @param timeZone - Target timezone to display the date in
+ * @returns Date string in yyyy-MM-dd format, or empty string if invalid
+ */
+function formatUTCDateTimeToDateInTimezone(utcDateTime: string, timeZone: SelectedTimezone | undefined, formatStr = CONST.DATE.FNS_FORMAT_STRING): string {
+    if (!utcDateTime || !timeZone) {
+        return '';
+    }
+    try {
+        const date = toDate(utcDateTime, {timeZone: 'UTC'});
+        return formatInTimeZoneWithFallback(date, timeZone, formatStr);
+    } catch (error) {
+        Log.warn('[DateUtils] Failed to format UTC datetime to timezone', {utcDateTime, timeZone, error});
+        return '';
+    }
+}
+
+/**
+ * Backend expects datetime format without milliseconds in some cases (yyyy-MM-dd HH:mm:ss)
+ */
+function formatDBTimeWithoutMilliseconds(timestamp: number): string {
+    return getDBTime(timestamp).replace(/\.\d{3}$/, '');
+}
+
+/**
  * Convert a date to UTC by taking midnight (00:00:00) in the user's local timezone and expressing it as a UTC timestamp
  */
 
-const normalizeDateToStartOfDay = (fromDate: string, timeZone: SelectedTimezone): string => {
+const normalizeDateToStartOfDay = (fromDate: string, timeZone: SelectedTimezone | undefined): string => {
     const localDate = parse(fromDate, CONST.DATE.FNS_FORMAT_STRING, new Date());
     const midnightLocal = startOfDay(localDate);
-    return getDBTime(fromZonedTime(midnightLocal, timeZone).valueOf());
+    return formatDBTimeWithoutMilliseconds(fromZonedTime(midnightLocal, timeZone ?? 'UTC').valueOf());
 };
 
 /**
  * Convert a date to UTC by taking end of day (23:59:59) in the user's local timezone and expressing it as a UTC timestamp
  */
-const normalizeDateToEndOfDay = (thruDate: string, timeZone: SelectedTimezone): string => {
+const normalizeDateToEndOfDay = (thruDate: string, timeZone: SelectedTimezone | undefined): string => {
     const localDate = parse(thruDate, CONST.DATE.FNS_FORMAT_STRING, new Date());
     const endOfDayLocal = endOfDay(localDate);
-    return getDBTime(fromZonedTime(endOfDayLocal, timeZone).valueOf());
+    return formatDBTimeWithoutMilliseconds(fromZonedTime(endOfDayLocal, timeZone ?? 'UTC').valueOf());
 };
 
 /**
@@ -987,13 +1044,16 @@ function isDateStringInMonth(dateString: string, year: number, month: number): b
 /**
  * Returns a formatted date range.
  */
-function getFormattedDateRangeForSearch(startDate: string, endDate: string): string {
+function getFormattedDateRangeForSearch(startDate: string, endDate: string, shouldShowFullYear = false, shouldOmitCurrentYear = false): string {
     const start = parse(startDate, 'yyyy-MM-dd', new Date());
     const end = parse(endDate, 'yyyy-MM-dd', new Date());
-    if (isSameYear(new Date(start), new Date(end))) {
-        return `${format(start, 'MMM d')} - ${format(end, 'MMM d, yyyy')}`;
+    if (shouldShowFullYear || !isSameYear(new Date(start), new Date(end))) {
+        return `${format(start, 'MMM d, yyyy')} - ${format(end, 'MMM d, yyyy')}`;
     }
-    return `${format(start, 'MMM d, yyyy')} - ${format(end, 'MMM d, yyyy')}`;
+    if (shouldOmitCurrentYear && isThisYear(start) && isThisYear(end)) {
+        return `${format(start, 'MMM d')} - ${format(end, 'MMM d')}`;
+    }
+    return `${format(start, 'MMM d')} - ${format(end, 'MMM d, yyyy')}`;
 }
 
 function getYearDateRange(year: number): {start: string; end: string} {
@@ -1060,6 +1120,7 @@ const DateUtils = {
     isTomorrow,
     isYesterday,
     getMonthNames,
+    getFilteredMonthItems,
     getDaysOfWeek,
     formatWithUTCTimeZone,
     getWeekEndsOn,
@@ -1083,6 +1144,7 @@ const DateUtils = {
     getFormattedDateRangeForPerDiem,
     getFormattedSplitDateRange,
     formatInTimeZoneWithFallback,
+    formatUTCDateTimeToDateInTimezone,
     normalizeDateToStartOfDay,
     normalizeDateToEndOfDay,
     getMonthDateRange,

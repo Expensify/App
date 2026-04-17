@@ -6,8 +6,11 @@
  * The primary purpose is to optimize performance by reducing redundant computations. More info can be found in the README.
  */
 import Onyx from 'react-native-onyx';
+import OnyxKeys from 'react-native-onyx/dist/OnyxKeys';
 import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
 import Log from '@libs/Log';
+import {endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
+import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ObjectUtils from '@src/types/utils/ObjectUtils';
@@ -28,24 +31,12 @@ function init() {
 
         // Create an array to hold the current values for each dependency.
         // We cast its type to match the tuple expected by config.compute.
-        let dependencyValues = new Array(totalConnections) as Parameters<typeof compute>[0];
+        const dependencyValues = new Array(totalConnections) as Parameters<typeof compute>[0];
 
         OnyxUtils.get(key).then((storedDerivedValue) => {
             let derivedValue = storedDerivedValue;
             if (derivedValue) {
                 Log.info(`Derived value for ${key} restored from disk`);
-            } else {
-                OnyxUtils.tupleGet(dependencies).then((values) => {
-                    const initialContext: DerivedValueContext<typeof key, typeof dependencies> = {
-                        currentValue: derivedValue,
-                        sourceValues: undefined,
-                        areAllConnectionsSet: false,
-                    };
-                    // @ts-expect-error TypeScript can't confirm the shape of dependencyValues matches the compute function's parameters
-                    derivedValue = compute(dependencyValues, initialContext);
-                    dependencyValues = values;
-                    setDerivedValue(key, derivedValue ?? null);
-                });
             }
 
             const setDependencyValue = <Index extends number>(i: Index, value: Parameters<typeof compute>[0][Index]) => {
@@ -68,31 +59,50 @@ function init() {
             const context: DerivedValueContext<typeof key, typeof dependencies> = {
                 currentValue: undefined,
                 sourceValues: undefined,
-                areAllConnectionsSet: false,
             };
 
             const recomputeDerivedValue = (sourceKey?: string, sourceValue?: unknown, triggeredByIndex?: number) => {
                 // If this recompute was triggered by a connection callback, check if it initializes the connection
-                if (triggeredByIndex !== undefined) {
+                if (!areAllConnectionsSet && triggeredByIndex !== undefined) {
                     checkAndMarkConnectionInitialized(triggeredByIndex);
                 }
 
+                // Before all connections are established, don't write to Onyx.
+                // This prevents overwriting a valid disk-cached value with empty defaults,
+                // and avoids N-1 unnecessary Onyx writes during initialization.
+                // We still update dependencyValues via setDependencyValue so data accumulates correctly.
+                if (!areAllConnectionsSet) {
+                    Log.info(`[OnyxDerived] not all connections set for ${key}, deferring Onyx write`);
+                    return;
+                }
+
                 context.currentValue = derivedValue;
-                context.areAllConnectionsSet = areAllConnectionsSet;
                 context.sourceValues = sourceKey && sourceValue !== undefined ? {[sourceKey]: sourceValue} : undefined;
 
-                // @ts-expect-error TypeScript can't confirm the shape of dependencyValues matches the compute function's parameters
-                const newDerivedValue = compute(dependencyValues, context);
-                Log.info(`[OnyxDerived] updating value for ${key} in Onyx`);
-                derivedValue = newDerivedValue;
-                setDerivedValue(key, derivedValue);
+                const spanId = `${CONST.TELEMETRY.SPAN_ONYX_DERIVED_COMPUTE}_${key}`;
+                startSpan(spanId, {
+                    name: CONST.TELEMETRY.SPAN_ONYX_DERIVED_COMPUTE,
+                    op: CONST.TELEMETRY.SPAN_ONYX_DERIVED_COMPUTE,
+                    parentSpan: getSpan(CONST.TELEMETRY.SPAN_APP_STARTUP),
+                    attributes: {derivedKey: key},
+                });
+
+                try {
+                    // @ts-expect-error TypeScript can't confirm the shape of dependencyValues matches the compute function's parameters
+                    const newDerivedValue = compute(dependencyValues, context);
+                    Log.info(`[OnyxDerived] updating value for ${key} in Onyx`);
+                    derivedValue = newDerivedValue;
+                    setDerivedValue(key, derivedValue);
+                } finally {
+                    endSpan(spanId);
+                }
             };
 
             for (let i = 0; i < dependencies.length; i++) {
                 const dependencyIndex = i;
                 const dependencyOnyxKey = dependencies[dependencyIndex];
 
-                if (OnyxUtils.isCollectionKey(dependencyOnyxKey)) {
+                if (OnyxKeys.isCollectionKey(dependencyOnyxKey)) {
                     Onyx.connectWithoutView({
                         key: dependencyOnyxKey,
                         waitForCollectionCallback: true,
@@ -105,8 +115,7 @@ function init() {
                 } else if (dependencyOnyxKey === ONYXKEYS.NVP_PREFERRED_LOCALE) {
                     // Special case for locale, we want to recompute derived values when the locale change actually loads.
                     Onyx.connectWithoutView({
-                        key: ONYXKEYS.ARE_TRANSLATIONS_LOADING,
-                        initWithStoredValues: false,
+                        key: ONYXKEYS.RAM_ONLY_ARE_TRANSLATIONS_LOADING,
                         callback: (value) => {
                             if (value ?? true) {
                                 Log.info(`[OnyxDerived] translations are still loading, not recomputing derived value for ${key}`);

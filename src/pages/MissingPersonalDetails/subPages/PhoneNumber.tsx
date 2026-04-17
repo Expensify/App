@@ -15,7 +15,7 @@ const STEP_FIELDS = [INPUT_IDS.PHONE_NUMBER];
 
 function PhoneNumberStep({isEditing, onNext, onMove, personalDetailsValues}: CustomSubPageProps) {
     const {translate} = useLocalize();
-    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
+    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM> => {

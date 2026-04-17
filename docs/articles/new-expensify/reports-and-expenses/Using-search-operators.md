@@ -1,10 +1,9 @@
 ---
-title: "How to use search operators in Expensify"
-description: "Learn how to use advanced search filters, comparisons, and groupings to find exactly what you need across expenses, chats, reports, and more."
-keywords: "search operators, filters, search rules, expense search, report search, chat filters, advanced search, group-by, search syntax"
+title: How to use search operators in Expensify
+description: Learn how to use advanced search filters, comparisons, and groupings to find exactly what you need across expenses, chats, reports, and more.
+keywords: [New Expensify, search operators, filters, search rules, expense search, report search, chat filters, advanced search, group-by, view, chart, search syntax]
+internalScope: Audience is all Expensify users. Covers search operator syntax for filtering, grouping, and chart views. Does not cover saved search management or Search page UI navigation.
 ---
-
-<div id="new-expensify" markdown="1">
 
 The search operator framework lets you quickly filter, sort, and group items like expenses, chats, reports, and tasks using powerful text-based rules. This guide walks you through the supported syntax, available filters, and usage tips.
 
@@ -58,6 +57,7 @@ type:expense merchant:Starbucks category:Meals amount>20 has:receipt
 - `tag:` – tag or multiple tags
 - `amount:` / `purchase-amount:` – supports `=`, `>`, `<`, `>=`, `<=`
 - `status:` – unreported, draft, outstanding, approved, paid, done
+- `date:` – expense date, supports relative dates like `date:this-month`, `date:last-month`, `date:year-to-date`, `date:this-week`. Also supports comparisons (`date>=2024-01-01 date<=2024-01-31`) for date ranges
 - `has:` – attachment, receipt, category, tag
 - `expense-type:` – cash, card, distance, per-diem
 - `reimbursable:` and `billable:` – yes or no
@@ -66,13 +66,9 @@ type:expense merchant:Starbucks category:Meals amount>20 has:receipt
 
 ## Available filters for Reports
 
-```
-type:expense-report status:paid exported:never
-```
-
 - `report-id:` – unique report reference
 - `status:` – draft, outstanding, approved, paid, done
-- `submitted:` / `approved:` / `paid:` / `exported:` – supports absolute or relative dates
+- `submitted:` / `approved:` / `paid:` / `exported:` – supports absolute or relative dates, and comparisons for date ranges (e.g., `submitted>=2024-01-01 submitted<=2024-01-31`)
 - `title:` – report title
 - `total:` – total amount with relative comparisons
 - `withdrawn:` – ACH withdrawal date
@@ -104,20 +100,40 @@ type:task assignee:"Charlie Brown" status:outstanding
 
 ---
 
-# Available filters for grouping and currency conversion
+## How to use grouping, chart views, and currency conversion filters
 
-Use `group-by:` to analyze data by dimension, and `group-currency:` to normalize totals.
+Use `group-by:` to analyze data by dimension, `view:` to choose how grouped results are displayed, and `group-currency:` to normalize totals.
 
 ```
-group-by:merchant group-currency:USD
+group-by:category view:bar group-currency:USD
 ```
 
 Supported groupings include:
 
-- `group-by:report`
-- `group-by:from`
-- `group-by:card`
-- `group-by:withdrawal-id`
+- `group-by:report` - Group by expense report
+- `group-by:from` - Group by expense submitter (employee)
+- `group-by:card` - Group by payment card
+- `group-by:withdrawal-id` - Group by withdrawal ID
+- `group-by:merchant` - Group by merchant or vendor
+- `group-by:category` - Group by expense category
+- `group-by:tag` - Group by expense tag
+- `group-by:month` - Group by calendar month
+- `group-by:week` - Group by calendar week
+- `group-by:quarter` - Group by fiscal quarter
+- `group-by:year` - Group by calendar year
+
+## How to choose a chart view for grouped results
+
+When using `group-by:`, you can add `view:` to control the visualization type. If you save a grouped search with a specific `view:`, that choice is preserved in the saved search label.
+
+Supported views:
+
+- `view:table` - Display grouped results as a table (default)
+- `view:bar` - Display grouped results as a bar chart
+- `view:pie` - Display grouped results as a pie chart
+- `view:line` - Display grouped results as a line chart
+
+> **Note:** The `view:` operator only applies when `group-by:` is also used. Without `group-by:`, the `view:` value is ignored.
 
 ---
 
@@ -135,4 +151,3 @@ If the search operator isn’t recognized, the system will ignore it and return 
 
 Only use quotes for values that include spaces or exact phrases, like `description:"client lunch"` or `in:"#general"`.
 
-</div>

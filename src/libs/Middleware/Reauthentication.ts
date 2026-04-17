@@ -1,10 +1,11 @@
+import {reconnect} from '@libs/actions/Reconnect';
 import redirectToSignIn from '@libs/actions/SignInRedirect';
 import {reauthenticate as reauthenticateLibs} from '@libs/Authentication';
 import Log from '@libs/Log';
 import {replay as replayMainQueue} from '@libs/Network/MainQueue';
-import {isAuthenticating as isAuthenticatingNetworkStore, isOffline, setIsAuthenticating} from '@libs/Network/NetworkStore';
+import {isAuthenticating as isAuthenticatingNetworkStore, setIsAuthenticating} from '@libs/Network/NetworkStore';
 import type {RequestError} from '@libs/Network/SequentialQueue';
-import NetworkConnection from '@libs/NetworkConnection';
+import {getIsOffline} from '@libs/NetworkState';
 import {processWithMiddleware} from '@libs/Request';
 import RequestThrottle from '@libs/RequestThrottle';
 import CONST from '@src/CONST';
@@ -35,7 +36,7 @@ function retryReauthenticate(commandName?: string): Promise<boolean> {
             .then(() => retryReauthenticate(commandName))
             .catch(() => {
                 setIsAuthenticating(false);
-                Log.hmmm('Redirecting to Sign In because we failed to reauthenticate after multiple attempts', {error});
+                Log.hmmm('[Reauthenticate] Redirecting to Sign In because we failed to reauthenticate after multiple attempts', {error});
                 redirectToSignIn('passwordForm.error.fallback');
                 return false;
             });
@@ -56,12 +57,12 @@ const Reauthentication: Middleware = (response, request, isFromSequentialQueue) 
         .then((data) => {
             // If there is no data for some reason then we cannot reauthenticate
             if (!data) {
-                Log.hmmm('Undefined data in Reauthentication');
+                Log.hmmm('[Reauthenticate] Undefined data in Reauthentication');
                 return;
             }
 
             if (data.jsonCode === CONST.JSON_CODE.NOT_AUTHENTICATED) {
-                if (isOffline()) {
+                if (getIsOffline()) {
                     // If we are offline and somehow handling this response we do not want to reauthenticate
                     throw new Error('Unable to reauthenticate because we are offline');
                 }
@@ -104,7 +105,8 @@ const Reauthentication: Middleware = (response, request, isFromSequentialQueue) 
                         }
 
                         if (apiRequestType === CONST.API_REQUEST_TYPE.READ) {
-                            NetworkConnection.triggerReconnectionCallbacks('read request made with expired authToken');
+                            // Re-sync app data after successful re-authentication
+                            reconnect();
                             return Promise.resolve();
                         }
 

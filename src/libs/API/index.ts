@@ -4,10 +4,11 @@ import type {SetRequired} from 'type-fest';
 import {resolveDuplicationConflictAction, resolveEnableFeatureConflicts} from '@libs/actions/RequestConflictUtils';
 import type {AnyRequestMatcher, EnablePolicyFeatureCommand} from '@libs/actions/RequestConflictUtils';
 import Log from '@libs/Log';
-import {handleDeletedAccount, HandleUnusedOptimisticID, Logging, Pagination, Reauthentication, RecheckConnection, SaveResponseInOnyx, SupportalPermission} from '@libs/Middleware';
+import {FailureTracking, handleDeletedAccount, HandleUnusedOptimisticID, Logging, Pagination, Reauthentication, SaveResponseInOnyx, SupportalPermission} from '@libs/Middleware';
 import FraudMonitoring from '@libs/Middleware/FraudMonitoring';
-import {isOffline} from '@libs/Network/NetworkStore';
+import SentryServerTiming from '@libs/Middleware/SentryServerTiming';
 import {push as pushToSequentialQueue, waitForIdle as waitForSequentialQueueIdle} from '@libs/Network/SequentialQueue';
+import {getIsOffline} from '@libs/NetworkState';
 import Pusher from '@libs/Pusher';
 import {addMiddleware, processWithMiddleware} from '@libs/Request';
 import {getAll, getLength as getPersistedRequestsLength} from '@userActions/PersistedRequests';
@@ -25,8 +26,8 @@ import {READ_COMMANDS} from './types';
 // Logging - Logs request details and errors.
 addMiddleware(Logging);
 
-// RecheckConnection - Sets a timer for a request that will "recheck" if we are connected to the internet if time runs out. Also triggers the connection recheck when we encounter any error.
-addMiddleware(RecheckConnection);
+// FailureTracking - Observes request outcomes and feeds them to FailureTracker for sustained failure detection.
+addMiddleware(FailureTracking);
 
 // Reauthentication - Handles jsonCode 407 which indicates an expired authToken. We need to reauthenticate and get a new authToken with our stored credentials.
 addMiddleware(Reauthentication);
@@ -42,6 +43,9 @@ addMiddleware(HandleUnusedOptimisticID);
 
 addMiddleware(Pagination);
 
+// SentryServerTiming - Tracks server round-trip time for configured command groups via Sentry spans.
+addMiddleware(SentryServerTiming);
+
 // SaveResponseInOnyx - Merges either the successData or failureData (or finallyData, if included in place of the former two values) into Onyx depending on if the call was successful or not. This needs to be the LAST middleware we use, don't add any
 // middlewares after this, because the SequentialQueue depends on the result of this middleware to pause the queue (if needed) to bring the app to an up-to-date state.
 addMiddleware(SaveResponseInOnyx);
@@ -49,7 +53,10 @@ addMiddleware(SaveResponseInOnyx);
 // FraudMonitoring - Tags the request with the appropriate Fraud Protection event.
 addMiddleware(FraudMonitoring);
 
-let requestIndex = 0;
+// Use timestamp-based IDs to avoid collisions between browser tabs.
+// Each tab has its own JS context with its own counter, so a simple
+// incrementing number would collide across tabs.
+let requestIndex = Date.now();
 
 /**
  * Prepare the request to be sent. Bind data together with request metadata and apply optimistic Onyx data.
@@ -98,7 +105,7 @@ function prepareRequest<TCommand extends ApiCommand, TKey extends OnyxKey>(
     const request: SetRequired<OnyxRequest<TKey>, 'data'> = {
         command,
         data,
-        initiatedOffline: isOffline(),
+        initiatedOffline: getIsOffline(),
         requestID: requestIndex++,
         ...onyxDataWithoutOptimisticData,
         successData,
@@ -118,13 +125,13 @@ function prepareRequest<TCommand extends ApiCommand, TKey extends OnyxKey>(
 /**
  * Process a prepared request according to its type.
  */
-function processRequest<TKey extends OnyxKey>(request: OnyxRequest<TKey>, type: ApiRequestType): Promise<void | Response<TKey>> {
+async function processRequest<TKey extends OnyxKey>(request: OnyxRequest<TKey>, type: ApiRequestType): Promise<void | Response<TKey>> {
     Log.info('[API] Processing request', false, {command: request.command, type});
     // Write commands can be saved and retried, so push it to the SequentialQueue
     if (type === CONST.API_REQUEST_TYPE.WRITE) {
         Log.info('[API] Write command. Pushing to SequentialQueue', false, {command: request.command});
-        pushToSequentialQueue(request);
-        return Promise.resolve();
+        await pushToSequentialQueue(request);
+        return;
     }
 
     // Read requests are processed right away, but don't return the response to the caller
@@ -143,12 +150,12 @@ function processRequest<TKey extends OnyxKey>(request: OnyxRequest<TKey>, type: 
  * All calls to API.write() will be persisted to disk as JSON with the params, successData, and failureData (or finallyData, if included in place of the former two values).
  * This is so that if the network is unavailable or the app is closed, we can send the WRITE request later.
  */
-function write<TCommand extends WriteCommand>(command: TCommand, apiCommandParameters: ApiRequestCommandParameters[TCommand]): Promise<void | Response>;
+function write<TCommand extends WriteCommand>(command: TCommand, apiCommandParameters: ApiRequestCommandParameters[TCommand]): Promise<void | Response<never>>;
 
 function write<TCommand extends WriteCommand, TKey extends OnyxKey>(
     command: TCommand,
     apiCommandParameters: ApiRequestCommandParameters[TCommand],
-    onyxData: OnyxData<TKey>,
+    onyxData?: OnyxData<TKey>,
     conflictResolver?: RequestConflictResolver<TKey>,
 ): Promise<void | Response<TKey>>;
 
@@ -160,6 +167,7 @@ function write<TCommand extends WriteCommand, TKey extends OnyxKey>(
 ): Promise<void | Response<TKey>> {
     Log.info('[API] Called API write', false, {command, ...apiCommandParameters});
     const request = prepareRequest(command, CONST.API_REQUEST_TYPE.WRITE, apiCommandParameters, onyxData, conflictResolver);
+
     return processRequest(request, CONST.API_REQUEST_TYPE.WRITE);
 }
 
@@ -255,7 +263,7 @@ function paginate<TRequestType extends typeof CONST.API_REQUEST_TYPE.MAKE_REQUES
     apiCommandParameters: ApiRequestCommandParameters[TCommand],
     onyxData: OnyxData<TKey>,
     config: PaginationConfig,
-): Promise<Response | void>;
+): Promise<Response<TKey> | void>;
 function paginate<TRequestType extends typeof CONST.API_REQUEST_TYPE.READ, TCommand extends CommandOfType<TRequestType>, TKey extends OnyxKey>(
     type: TRequestType,
     command: TCommand,
