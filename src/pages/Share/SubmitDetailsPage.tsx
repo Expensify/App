@@ -43,7 +43,7 @@ import type {ShareNavigatorParamList} from '@libs/Navigation/types';
 import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
 import {hasOnlyPersonalPolicies as hasOnlyPersonalPoliciesUtil, isPaidGroupPolicy} from '@libs/PolicyUtils';
 import {shouldValidateFile} from '@libs/ReceiptUtils';
-import {getReportOrDraftReport, isProcessingReport, isReportOutstanding, isSelfDM} from '@libs/ReportUtils';
+import {getReportOrDraftReport, isSelfDM, resolveReportForMoneyRequest} from '@libs/ReportUtils';
 import {getDefaultTaxCode, getTaxValue} from '@libs/TransactionUtils';
 import DraftWorkspaceOpener from '@pages/iou/request/step/confirmation/DraftWorkspaceOpener';
 import CONST from '@src/CONST';
@@ -90,18 +90,7 @@ function SubmitDetailsPage({
     const [policyRecentlyUsedCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${policy?.id}`);
     const [policyRecentlyUsedTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${policy?.id}`);
 
-    const isUnreported = transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
-    const canUseTransactionReport = !(isProcessingReport(transactionReport) && !policy?.harvesting?.enabled) && isReportOutstanding(transactionReport, policy?.id, undefined, false);
-    const shouldUseTransactionReport = !!transactionReport && (canUseTransactionReport || !report);
-    const isTransactionReportDifferentFromRoute = !!transaction?.reportID && !!report?.reportID && transaction.reportID !== report.reportID;
-    let reportToSubmit: OnyxEntry<ReportType> = report;
-    if (isUnreported) {
-        reportToSubmit = undefined;
-    } else if (shouldUseTransactionReport) {
-        reportToSubmit = transactionReport;
-    } else if (isTransactionReportDifferentFromRoute) {
-        reportToSubmit = undefined;
-    }
+    const reportToSubmit = resolveReportForMoneyRequest({transaction, transactionReport, routeReport: report, policy});
 
     const [currentAttachment] = useOnyx(ONYXKEYS.SHARE_TEMP_FILE);
     const shouldUsePreValidatedFile = shouldValidateFile(currentAttachment);
