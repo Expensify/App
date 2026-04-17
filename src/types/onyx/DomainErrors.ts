@@ -45,6 +45,11 @@ type DomainSecurityGroupErrors = {
      * Base errors related to the security group
      */
     errors?: OnyxCommon.Errors;
+
+    /**
+     * Errors related to the default security group ID setting
+     */
+    defaultSecurityGroupIDErrors?: OnyxCommon.Errors;
 };
 
 /**

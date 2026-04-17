@@ -8892,6 +8892,10 @@ Ecco una *ricevuta di prova* per mostrarti come funziona:`,
             preferredWorkspaceSelectDescription: 'Tutte le nuove spese e i nuovi report verranno creati in questa area di lavoro.',
             noWorkspacesMessage: 'Non ci sono spazi di lavoro su questo dominio. È necessario uno spazio di lavoro per abilitare questa restrizione.',
             defaultGroup: 'Gruppo predefinito per nuovi membri',
+            defaultGroupPrompt: (currentName: string, newName: string) =>
+                `Sei sicuro di voler impostare ${newName} come gruppo predefinito? I nuovi membri saranno invitati a questo gruppo invece del precedente gruppo predefinito (${currentName}). `,
+            makeDefault: 'Imposta come predefinito',
+            nevermind: 'Non importa',
         },
     },
     proactiveAppReview: {

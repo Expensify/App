@@ -8857,6 +8857,10 @@ Aqui está um *comprovante de teste* para mostrar como funciona:`,
             preferredWorkspaceSelectDescription: 'Todas as novas despesas e relatórios serão criados neste espaço de trabalho.',
             noWorkspacesMessage: 'Não há espaços de trabalho neste domínio. Um espaço de trabalho é necessário para ativar esta restrição.',
             defaultGroup: 'Grupo padrão para novos membros',
+            defaultGroupPrompt: (currentName: string, newName: string) =>
+                `Tem certeza de que deseja tornar ${newName} o grupo padrão? Novos membros serão convidados para este grupo em vez do grupo padrão anterior (${currentName}). `,
+            makeDefault: 'Definir como padrão',
+            nevermind: 'Deixa pra lá',
         },
     },
     proactiveAppReview: {

@@ -44,6 +44,11 @@ type DomainSecurityGroupPendingActions = {
      * Pending action for the security group name
      */
     name?: OnyxCommon.PendingAction;
+
+    /**
+     * Pending action for the default security group ID
+     */
+    defaultSecurityGroupID?: OnyxCommon.PendingAction;
 };
 
 /**

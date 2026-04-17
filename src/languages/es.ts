@@ -9172,6 +9172,10 @@ ${amount} para ${merchant} - ${date}`,
             preferredWorkspaceSelectDescription: 'Todos los gastos e informes nuevos se crearán en este espacio de trabajo.',
             noWorkspacesMessage: 'No hay espacios de trabajo en este dominio. Se requiere un espacio de trabajo para habilitar esta restricción.',
             defaultGroup: 'Grupo predeterminado para nuevos miembros',
+            defaultGroupPrompt: (currentName: string, newName: string) =>
+                `¿Estás seguro de que quieres establecer ${newName} como el grupo predeterminado? Los nuevos miembros serán invitados a este grupo en lugar del grupo predeterminado anterior (${currentName}). `,
+            makeDefault: 'Establecer como predeterminado',
+            nevermind: 'No importa',
         },
     },
     gps: {

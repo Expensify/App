@@ -8868,6 +8868,10 @@ Hier is een *proefbon* om je te laten zien hoe het werkt:`,
             preferredWorkspaceSelectDescription: 'Alle nieuwe onkosten en rapporten worden in deze werkruimte aangemaakt.',
             noWorkspacesMessage: 'Er zijn geen werkruimtes op dit domein. Een werkruimte is vereist om deze beperking in te schakelen.',
             defaultGroup: 'Standaardgroep voor nieuwe leden',
+            defaultGroupPrompt: (currentName: string, newName: string) =>
+                `Weet je zeker dat je ${newName} de standaardgroep wilt maken? Nieuwe leden worden uitgenodigd voor deze groep in plaats van de vorige standaardgroep (${currentName}). `,
+            makeDefault: 'Standaard instellen',
+            nevermind: 'Laat maar',
         },
     },
     proactiveAppReview: {

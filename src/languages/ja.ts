@@ -8779,6 +8779,10 @@ ${reportName}
             preferredWorkspaceSelectDescription: 'すべての新しい経費とレポートはこのワークスペースで作成されます。',
             noWorkspacesMessage: 'このドメインにワークスペースがありません。この制限を有効にするにはワークスペースが必要です。',
             defaultGroup: '新しいメンバーのデフォルトグループ',
+            defaultGroupPrompt: (currentName: string, newName: string) =>
+                `${newName}をデフォルトグループに設定してもよろしいですか？新しいメンバーは以前のデフォルトグループ（${currentName}）の代わりにこのグループに招待されます。 `,
+            makeDefault: 'デフォルトに設定',
+            nevermind: 'キャンセル',
         },
     },
     proactiveAppReview: {

@@ -507,3 +507,4 @@ export type {default as ChangeCardPINParams} from './ChangeCardPINParams';
 export type {default as ExportDomainMembersCSVParams} from './ExportDomainMembersCSVParams';
 export type {default as InitiateBankAccountUnlockParams} from './InitiateBankAccountUnlockParams';
 export type {default as UpdateDomainSecurityGroupParams} from './UpdateDomainSecurityGroupParams';
+export type {default as SetDefaultDomainSecurityGroupParams} from './SetDefaultDomainSecurityGroupParams';
