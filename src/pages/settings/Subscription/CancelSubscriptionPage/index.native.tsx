@@ -2,10 +2,10 @@ import React from 'react';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import ScreenWrapper from '@components/ScreenWrapper';
 
-function RequestEarlyCancellationPage() {
+function CancelSubscriptionPage() {
     return (
         <ScreenWrapper
-            testID="RequestEarlyCancellationPage"
+            testID="CancelSubscriptionPage"
             includeSafeAreaPaddingBottom
             shouldEnableMaxHeight
         >
@@ -14,4 +14,4 @@ function RequestEarlyCancellationPage() {
     );
 }
 
-export default RequestEarlyCancellationPage;
+export default CancelSubscriptionPage;

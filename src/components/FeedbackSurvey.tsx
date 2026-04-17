@@ -21,7 +21,7 @@ import TextInput from './TextInput';
 
 type FeedbackSurveyProps = {
     /** A unique Onyx key identifying the form */
-    formID: typeof ONYXKEYS.FORMS.DISABLE_AUTO_RENEW_SURVEY_FORM | typeof ONYXKEYS.FORMS.REQUEST_EARLY_CANCELLATION_FORM;
+    formID: typeof ONYXKEYS.FORMS.DISABLE_AUTO_RENEW_SURVEY_FORM | typeof ONYXKEYS.FORMS.CANCEL_SUBSCRIPTION_FORM;
 
     /** Title of the survey */
     title: string;
