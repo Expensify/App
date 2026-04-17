@@ -52,6 +52,7 @@ import {
     isControlPolicy,
     isPaidGroupPolicy as isPaidGroupPolicyUtil,
     isPolicyAdmin as isPolicyAdminUtil,
+    isSubmitPolicy,
 } from '@libs/PolicyUtils';
 import {hasInProgressVBBA} from '@libs/ReimbursementAccountUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
@@ -335,6 +336,16 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                         });
                         return;
                     }
+                    if (isSubmitPolicy(policy)) {
+                        Navigation.navigate(
+                            ROUTES.WORKSPACE_UPGRADE.getRoute(
+                                route.params.policyID,
+                                CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvalSubmit.alias,
+                                ROUTES.WORKSPACE_WORKFLOWS.getRoute(route.params.policyID),
+                            ),
+                        );
+                        return;
+                    }
                     setWorkspaceApprovalMode(policy, policy?.owner ?? '', isEnabled ? updateApprovalMode : CONST.POLICY.APPROVAL_MODE.OPTIONAL, currentUserAccountID, currentUserEmail, {
                         reportNextSteps: allReportNextSteps,
                         transactionViolations,
@@ -411,6 +422,16 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                 subtitle: translate('workflowsPage.makeOrTrackPaymentsDescription'),
                 switchAccessibilityLabel: translate('workflowsPage.makeOrTrackPaymentsDescription'),
                 onToggle: (isEnabled: boolean) => {
+                    if (isEnabled && isSubmitPolicy(policy)) {
+                        Navigation.navigate(
+                            ROUTES.WORKSPACE_UPGRADE.getRoute(
+                                route.params.policyID,
+                                CONST.UPGRADE_FEATURE_INTRO_MAPPING.payments.alias,
+                                ROUTES.WORKSPACE_WORKFLOWS.getRoute(route.params.policyID),
+                            ),
+                        );
+                        return;
+                    }
                     let newReimbursementChoice;
                     if (!isEnabled) {
                         newReimbursementChoice = CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO;

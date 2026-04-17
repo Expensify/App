@@ -15,13 +15,14 @@ import {updateXeroMappings} from '@libs/actions/connections/Xero';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import {canModifyPlan, getDefaultApprover, getPerDiemCustomUnit, isControlPolicy} from '@libs/PolicyUtils';
+import {canModifyPlan, getDefaultApprover, getPerDiemCustomUnit, isControlPolicy, isSubmitPolicy as isSubmitPolicyUtils} from '@libs/PolicyUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import {enablePerDiem} from '@userActions/Policy/PerDiem';
 import CONST from '@src/CONST';
 import {
     enableAutoApprovalOptions,
     enableCompanyCards,
+    enableExpensifyCard,
     enablePolicyAutoReimbursementLimit,
     enablePolicyReportFields,
     enablePolicyRules,
@@ -69,6 +70,7 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
     const {translate} = useLocalize();
     const {accountID, email = ''} = useCurrentUserPersonalDetails();
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+    const isSubmitPolicy = isSubmitPolicyUtils(policy);
     const ownerPoliciesSelectorWithAccountID = useCallback((policies: OnyxCollection<Policy>) => ownerPoliciesSelector(policies, accountID), [accountID]);
     const [ownerPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: ownerPoliciesSelectorWithAccountID});
     const qboConfig = policy?.connections?.quickbooksOnline?.config;
@@ -197,6 +199,9 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.id:
                 setWorkspaceApprovalMode(policy, defaultApprover, CONST.POLICY.APPROVAL_MODE.ADVANCED, accountID, email);
                 break;
+            case CONST.UPGRADE_FEATURE_INTRO_MAPPING.expensifyCard.id:
+                enableExpensifyCard(policyID, true);
+                break;
             default:
         }
     }, [
@@ -262,6 +267,7 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
                         buttonDisabled={isOffline}
                         loading={policy?.isPendingUpgrade}
                         backTo={route.params.backTo}
+                        isSubmitPolicy={isSubmitPolicy}
                     />
                 )}
             </ScrollView>

@@ -34,9 +34,10 @@ type Props = {
     isDistanceRateUpgrade?: boolean;
     policyID?: string;
     backTo?: Route;
+    isSubmitPolicy?: boolean;
 };
 
-function UpgradeIntro({feature, onUpgrade, buttonDisabled, loading, isCategorizing, isDistanceRateUpgrade, isReporting, policyID, backTo}: Props) {
+function UpgradeIntro({feature, onUpgrade, buttonDisabled, loading, isCategorizing, isDistanceRateUpgrade, isReporting, policyID, backTo, isSubmitPolicy}: Props) {
     const styles = useThemeStyles();
     const {isExtraSmallScreenWidth} = useResponsiveLayout();
     const {translate} = useLocalize();
@@ -45,21 +46,42 @@ function UpgradeIntro({feature, onUpgrade, buttonDisabled, loading, isCategorizi
     const preferredCurrency = usePreferredCurrency();
     const hasTeam2025Pricing = useHasTeam2025Pricing();
 
+    const isSubmitFeature =
+        isSubmitPolicy &&
+        feature?.id &&
+        ['companyCardSubmit', 'travelSubmit', 'approvalSubmit', 'roles', 'payments', 'accounting', 'expensifyCard', 'invoicing'].includes(feature.id as string);
+
     const formattedPrice = useMemo(() => {
         const upgradeCurrency = Object.hasOwn(CONST.SUBSCRIPTION_PRICES, preferredCurrency) ? preferredCurrency : CONST.PAYMENT_CARD_CURRENCY.USD;
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        const shouldUseTeamPricing = isCategorizing || isDistanceRateUpgrade || isReporting;
+        const shouldUseTeamPricing = isCategorizing || isDistanceRateUpgrade || isReporting || isSubmitFeature;
         return `${convertToShortDisplayString(
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             CONST.SUBSCRIPTION_PRICES[upgradeCurrency][shouldUseTeamPricing ? CONST.POLICY.TYPE.TEAM : CONST.POLICY.TYPE.CORPORATE][CONST.SUBSCRIPTION.TYPE.ANNUAL],
             upgradeCurrency,
         )} `;
-    }, [preferredCurrency, isCategorizing, isDistanceRateUpgrade, isReporting]);
+    }, [preferredCurrency, isCategorizing, isDistanceRateUpgrade, isReporting, isSubmitFeature]);
 
     const allIconNames = Object.values(CONST.UPGRADE_FEATURE_INTRO_MAPPING)
         .map((feat) => feat?.icon)
         .filter((icon) => icon !== undefined);
-    const illustrations = useMemoizedLazyIllustrations(['FolderOpen', 'Tag', 'Coins', 'Rules', 'CompanyCard', 'PerDiem', 'ReportReceipt', 'CarIce', 'BlueShield', 'Pencil', 'Luggage']);
+    const illustrations = useMemoizedLazyIllustrations([
+        'FolderOpen',
+        'Tag',
+        'Coins',
+        'Rules',
+        'CompanyCard',
+        'PerDiem',
+        'ReportReceipt',
+        'CarIce',
+        'BlueShield',
+        'Pencil',
+        'Luggage',
+        'Workflows',
+        'Accounting',
+        'HandCard',
+        'InvoiceBlue',
+    ]);
     const illustrationIcons = useMemoizedLazyExpensifyIcons(['IntacctSquare', 'NetSuiteSquare', 'QBDSquare', 'AdvancedApprovalsSquare', 'Unlock']);
     const imported = new Set([...Object.keys(illustrations), ...Object.keys(illustrationIcons)]);
     const missing = allIconNames.filter((n): n is string => !!n && !imported.has(n));
@@ -145,7 +167,7 @@ function UpgradeIntro({feature, onUpgrade, buttonDisabled, loading, isCategorizi
                 </View>
                 <Button
                     isLoading={loading}
-                    text={translate('common.upgrade')}
+                    text={feature.id === CONST.UPGRADE_FEATURE_INTRO_MAPPING.expensifyCard.id ? translate('workspace.upgrade.expensifyCard.upgradeButton') : translate('common.upgrade')}
                     testID="upgrade-button"
                     success
                     onPress={onUpgrade}

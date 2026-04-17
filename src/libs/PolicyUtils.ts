@@ -889,6 +889,10 @@ function isControlPolicy(policy: OnyxEntry<Policy>): boolean {
     return policy?.type === CONST.POLICY.TYPE.CORPORATE;
 }
 
+function isSubmitPolicy(policy: OnyxEntry<Policy>): boolean {
+    return policy?.type === CONST.POLICY.TYPE.SUBMIT;
+}
+
 /**
  * For backwards compatibility with Expensify Classic, attendee tracking defaults to enabled
  * on Control policies when the property is undefined.
@@ -2334,6 +2338,7 @@ export {
     isPolicyTaxEnabled,
     sortPoliciesByName,
     isPolicyApprover,
+    isSubmitPolicy,
 };
 
 export type {MemberEmailsToAccountIDs};
