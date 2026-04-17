@@ -833,6 +833,7 @@ const transactionsListItems = [
         policy,
         reportAction: reportAction1,
         holdReportAction: undefined,
+        isActionColumnWide: false,
         cardID: undefined,
         cardName: undefined,
         category: '',
@@ -892,6 +893,7 @@ const transactionsListItems = [
         policy,
         reportAction: reportAction2,
         holdReportAction: undefined,
+        isActionColumnWide: false,
         cardID: undefined,
         cardName: undefined,
         category: '',
@@ -961,6 +963,7 @@ const transactionsListItems = [
         policy,
         reportAction: reportAction3,
         holdReportAction: undefined,
+        isActionColumnWide: false,
         cardID: undefined,
         cardName: undefined,
         category: '',
@@ -1025,6 +1028,7 @@ const transactionsListItems = [
         policy,
         reportAction: reportAction4,
         holdReportAction: undefined,
+        isActionColumnWide: false,
         cardID: undefined,
         cardName: undefined,
         category: '',
@@ -2549,7 +2553,7 @@ describe('SearchUIUtils', () => {
             expect(distanceTransaction).toBeDefined();
             expect(distanceTransaction?.iouRequestType).toBe(CONST.IOU.REQUEST_TYPE.DISTANCE);
 
-            const expectedPropertyCount = 53;
+            const expectedPropertyCount = 54;
             expect(Object.keys(distanceTransaction ?? {}).length).toBe(expectedPropertyCount);
         });
 
@@ -2586,7 +2590,7 @@ describe('SearchUIUtils', () => {
             expect(distanceTransaction).toBeDefined();
             expect(distanceTransaction?.iouRequestType).toBe(CONST.IOU.REQUEST_TYPE.DISTANCE);
 
-            const expectedPropertyCount = 50;
+            const expectedPropertyCount = 51;
             expect(Object.keys(distanceTransaction ?? {}).length).toBe(expectedPropertyCount);
         });
 
