@@ -2528,6 +2528,8 @@ ${amount} voor ${merchant} - ${date}`,
         frozenByAdminNeedsUnfreezePrefix: 'Deze kaart is bevroren door ',
         frozenByAdminNeedsUnfreezeSuffix: '. Neem contact op met een beheerder om deze te deblokkeren.',
         frozenByAdminNeedsUnfreeze: ({person}: {person: string}) => `Deze kaart is bevroren door ${person}. Neem contact op met een beheerder om deze te deblokkeren.`,
+        spendRules: 'Bestedingsregels',
+        editSpendRules: 'Uitgavenregels bewerken',
     },
     workflowsPage: {
         workflowTitle: 'Uitgaven',
@@ -6856,7 +6858,7 @@ Voeg meer bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 currencyMismatchTitle: 'Valutamismatch',
                 currencyMismatchPrompt: 'Om een maximumbedrag in te stellen, selecteer je kaarten die in dezelfde valuta worden vereffend.',
                 reviewSelectedCards: 'Geselecteerde kaarten bekijken',
-                summaryMoreCount: ({summary, count}: {summary: string; count: number}) => `${summary}, +${count} meer`,
+                summaryMoreCount: ({summary, count}: {summary: string; count: number}) => (count > 0 ? `${summary}, +${count} meer` : summary),
                 confirmErrorApplyAtLeastOneSpendRuleToOneCard: 'Pas minstens één bestedingsregel toe op één kaart',
                 confirmErrorCardRequired: 'Kaart is een verplicht veld',
                 confirmErrorApplyAtLeastOneSpendRule: 'Pas minstens één bestedingsregel toe',
@@ -6891,6 +6893,30 @@ Voeg meer bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 editRuleTitle: 'Regel bewerken',
                 deleteRule: 'Regel verwijderen',
                 deleteRuleConfirmation: 'Weet je zeker dat je deze regel wilt verwijderen?',
+                summaryMerchants: ({
+                    merchants,
+                    hiddenCount,
+                    shownCount,
+                    action,
+                }: {
+                    merchants: string;
+                    hiddenCount: number;
+                    shownCount: number;
+                    action: ValueOf<typeof CONST.SPEND_RULES.ACTION>;
+                }) =>
+                    `${action === CONST.SPEND_RULES.ACTION.BLOCK ? 'Geblokkeerd' : 'Toegestaan'} ${shownCount > 1 ? 'handelaars' : 'handelaar'}: ${merchants}${hiddenCount > 0 ? `, +${hiddenCount} meer` : ''}`,
+                summaryCategories: ({
+                    categories,
+                    hiddenCount,
+                    shownCount,
+                    action,
+                }: {
+                    categories: string;
+                    hiddenCount: number;
+                    shownCount: number;
+                    action: ValueOf<typeof CONST.SPEND_RULES.ACTION>;
+                }) =>
+                    `${action === CONST.SPEND_RULES.ACTION.BLOCK ? 'Geblokkeerd' : 'Toegestaan'} ${shownCount > 1 ? 'categorieën' : 'categorie'}: ${categories}${hiddenCount > 0 ? `, +${hiddenCount} meer` : ''}`,
             },
         },
         planTypePage: {

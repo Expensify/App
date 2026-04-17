@@ -13,7 +13,7 @@ import useDefaultFundID from '@hooks/useDefaultFundID';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {deleteExpensifyCardRule, getSpendRuleFormValuesFromCardRule, setExpensifyCardRule} from '@libs/actions/Card';
+import {deleteExpensifyCardRule, setExpensifyCardRule} from '@libs/actions/Card';
 import {clearDraftSpendRule, setDraftSpendRule, updateDraftSpendRule} from '@libs/actions/User';
 import {filterInactiveCards, getCardDescriptionForSearchTable, getSelectedCardsSharedCurrency} from '@libs/CardUtils';
 import {convertToBackendAmount, convertToDisplayString} from '@libs/CurrencyUtils';
@@ -28,7 +28,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {SpendRuleCategory} from '@src/types/form/SpendRuleForm';
 import SpendRuleRestrictionTypeToggle from './SpendRuleRestrictionTypeToggle';
-import {getTruncatedSpendRuleSummary} from './SpendRulesUtils';
+import {getSpendRuleFormValuesFromCardRule, getTruncatedSpendRuleSummary} from './SpendRulesUtils';
 
 type SpendRulePageBaseProps = {
     policyID: string;

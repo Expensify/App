@@ -2460,6 +2460,8 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         frozenByAdminNeedsUnfreezePrefix: '此卡已被',
         frozenByAdminNeedsUnfreezeSuffix: '冻结。请联系管理员解冻。',
         frozenByAdminNeedsUnfreeze: ({person}: {person: string}) => `此卡已被${person}冻结。请联系管理员解冻。`,
+        spendRules: '支出规则',
+        editSpendRules: '编辑支出规则',
     },
     workflowsPage: {
         workflowTitle: '支出',
@@ -6682,7 +6684,7 @@ ${reportName}
                 currencyMismatchTitle: '货币不匹配',
                 currencyMismatchPrompt: '若要设置最高金额，请选择以相同货币结算的卡片。',
                 reviewSelectedCards: '检查所选卡片',
-                summaryMoreCount: ({summary, count}: {summary: string; count: number}) => `${summary}，还有 +${count} 个`,
+                summaryMoreCount: ({summary, count}: {summary: string; count: number}) => (count > 0 ? `${summary}，还有 +${count} 项` : summary),
                 confirmErrorApplyAtLeastOneSpendRuleToOneCard: '至少将一条支出规则应用到一张卡上',
                 confirmErrorCardRequired: '“卡”是必填字段',
                 confirmErrorApplyAtLeastOneSpendRule: '至少应用一条支出规则',
@@ -6717,6 +6719,30 @@ ${reportName}
                 editRuleTitle: '编辑规则',
                 deleteRule: '删除规则',
                 deleteRuleConfirmation: '确定要删除此规则吗？',
+                summaryMerchants: ({
+                    merchants,
+                    hiddenCount,
+                    shownCount,
+                    action,
+                }: {
+                    merchants: string;
+                    hiddenCount: number;
+                    shownCount: number;
+                    action: ValueOf<typeof CONST.SPEND_RULES.ACTION>;
+                }) =>
+                    `${action === CONST.SPEND_RULES.ACTION.BLOCK ? '已屏蔽' : '已允许'} ${shownCount > 1 ? '商户' : '商家'}: ${merchants}${hiddenCount > 0 ? `，还有 +${hiddenCount} 个` : ''}`,
+                summaryCategories: ({
+                    categories,
+                    hiddenCount,
+                    shownCount,
+                    action,
+                }: {
+                    categories: string;
+                    hiddenCount: number;
+                    shownCount: number;
+                    action: ValueOf<typeof CONST.SPEND_RULES.ACTION>;
+                }) =>
+                    `${action === CONST.SPEND_RULES.ACTION.BLOCK ? '已屏蔽' : '已允许'} ${shownCount > 1 ? '类别' : '类别'}: ${categories}${hiddenCount > 0 ? `，还有 +${hiddenCount} 个` : ''}`,
             },
         },
         planTypePage: {

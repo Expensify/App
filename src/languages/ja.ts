@@ -2505,6 +2505,8 @@ ${date} の ${merchant} への ${amount}`,
         frozenByAdminNeedsUnfreezePrefix: 'このカードは',
         frozenByAdminNeedsUnfreezeSuffix: 'によって一時停止されました。解除するには管理者に連絡してください。',
         frozenByAdminNeedsUnfreeze: ({person}: {person: string}) => `このカードは${person}によって一時停止されました。解除するには管理者に連絡してください。`,
+        spendRules: '支出ルール',
+        editSpendRules: '支出ルールを編集',
     },
     workflowsPage: {
         workflowTitle: '支出',
@@ -6800,7 +6802,7 @@ ${reportName}
                 currencyMismatchTitle: '通貨の不一致',
                 currencyMismatchPrompt: '上限金額を設定するには、同じ通貨で清算されるカードを選択してください。',
                 reviewSelectedCards: '選択したカードを確認',
-                summaryMoreCount: ({summary, count}: {summary: string; count: number}) => `${summary}、ほか +${count} 件`,
+                summaryMoreCount: ({summary, count}: {summary: string; count: number}) => (count > 0 ? `${summary}、ほか+${count}件` : summary),
                 confirmErrorApplyAtLeastOneSpendRuleToOneCard: '少なくとも1つの支出ルールを1枚のカードに適用してください',
                 confirmErrorCardRequired: 'カードは必須項目です',
                 confirmErrorApplyAtLeastOneSpendRule: '少なくとも 1 つの支出ルールを適用してください',
@@ -6835,6 +6837,30 @@ ${reportName}
                 editRuleTitle: 'ルールを編集',
                 deleteRule: 'ルールを削除',
                 deleteRuleConfirmation: 'このルールを削除してもよろしいですか？',
+                summaryMerchants: ({
+                    merchants,
+                    hiddenCount,
+                    shownCount,
+                    action,
+                }: {
+                    merchants: string;
+                    hiddenCount: number;
+                    shownCount: number;
+                    action: ValueOf<typeof CONST.SPEND_RULES.ACTION>;
+                }) =>
+                    `${action === CONST.SPEND_RULES.ACTION.BLOCK ? 'ブロック済み' : '許可されています'} ${shownCount > 1 ? '加盟店' : '加盟店'}: ${merchants}${hiddenCount > 0 ? `、ほか +${hiddenCount} 件` : ''}`,
+                summaryCategories: ({
+                    categories,
+                    hiddenCount,
+                    shownCount,
+                    action,
+                }: {
+                    categories: string;
+                    hiddenCount: number;
+                    shownCount: number;
+                    action: ValueOf<typeof CONST.SPEND_RULES.ACTION>;
+                }) =>
+                    `${action === CONST.SPEND_RULES.ACTION.BLOCK ? 'ブロック済み' : '許可されています'} ${shownCount > 1 ? 'カテゴリ' : 'カテゴリ'}: ${categories}${hiddenCount > 0 ? `、ほか +${hiddenCount} 件` : ''}`,
             },
         },
         planTypePage: {

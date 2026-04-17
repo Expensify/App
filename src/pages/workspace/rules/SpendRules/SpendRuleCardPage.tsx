@@ -20,7 +20,6 @@ import useOnyx from '@hooks/useOnyx';
 import useSearchResults from '@hooks/useSearchResults';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getSpendRuleFormValuesFromCardRule} from '@libs/actions/Card';
 import {updateDraftSpendRule} from '@libs/actions/User';
 import {filterCardsByPersonalDetails, filterInactiveCards, getCardFeedIcon, sortCardsByCardholderName} from '@libs/CardUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
@@ -38,7 +37,7 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Card, ExpensifyCardSettings, WorkspaceCardsList} from '@src/types/onyx';
 import type {ExpensifyCardRule} from '@src/types/onyx/ExpensifyCardSettings';
-import {getParentRoute} from './SpendRulesUtils';
+import {getParentRoute, getSpendRuleFormValuesFromCardRule} from './SpendRulesUtils';
 
 type ExpensifyCardListItem = ListItem &
     AdditionalCardProps & {

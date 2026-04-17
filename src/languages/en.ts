@@ -2530,6 +2530,8 @@ const translations = {
         getPhysicalCard: 'Get physical card',
         reportFraud: 'Report virtual card fraud',
         reportTravelFraud: 'Report travel card fraud',
+        spendRules: 'Spend rules',
+        editSpendRules: 'Edit spend rules',
         reviewTransaction: 'Review transaction',
         suspiciousBannerTitle: 'Suspicious transaction',
         suspiciousBannerDescription: 'We noticed suspicious transactions on your card. Tap below to review.',
@@ -6901,7 +6903,31 @@ const translations = {
                 currencyMismatchTitle: 'Currency mismatch',
                 currencyMismatchPrompt: 'To set a max amount, select cards that settle in the same currency.',
                 reviewSelectedCards: 'Review selected cards',
-                summaryMoreCount: ({summary, count}: {summary: string; count: number}) => `${summary}, +${count} more`,
+                summaryMoreCount: ({summary, count}: {summary: string; count: number}) => (count > 0 ? `${summary}, +${count} more` : summary),
+                summaryMerchants: ({
+                    merchants,
+                    hiddenCount,
+                    shownCount,
+                    action,
+                }: {
+                    merchants: string;
+                    hiddenCount: number;
+                    shownCount: number;
+                    action: ValueOf<typeof CONST.SPEND_RULES.ACTION>;
+                }) =>
+                    `${action === CONST.SPEND_RULES.ACTION.BLOCK ? 'Blocked' : 'Allowed'} ${shownCount > 1 ? 'merchants' : 'merchant'}: ${merchants}${hiddenCount > 0 ? `, +${hiddenCount} more` : ''}`,
+                summaryCategories: ({
+                    categories,
+                    hiddenCount,
+                    shownCount,
+                    action,
+                }: {
+                    categories: string;
+                    hiddenCount: number;
+                    shownCount: number;
+                    action: ValueOf<typeof CONST.SPEND_RULES.ACTION>;
+                }) =>
+                    `${action === CONST.SPEND_RULES.ACTION.BLOCK ? 'Blocked' : 'Allowed'} ${shownCount > 1 ? 'categories' : 'category'}: ${categories}${hiddenCount > 0 ? `, +${hiddenCount} more` : ''}`,
                 confirmErrorApplyAtLeastOneSpendRuleToOneCard: 'Apply at least one spend rule to one card',
                 confirmErrorCardRequired: 'Card is a required field',
                 confirmErrorApplyAtLeastOneSpendRule: 'Apply at least one spend rule',
