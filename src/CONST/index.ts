@@ -6356,6 +6356,10 @@ const CONST = {
         SCROLLING: 'scrolling',
         TRANSITION_END_SCREEN_WRAPPER: 'transitionEndScreenWrapper',
     },
+    SELECTION_BUTTON_POSITION: {
+        LEFT: 'left',
+        RIGHT: 'right',
+    },
     SELECTION_LIST_WITH_MODAL_TEST_ID: 'selectionListWithModalMenuItem',
 
     ICON_TEST_ID: 'Icon',
@@ -9160,6 +9164,8 @@ const CONST = {
         },
         MERGE_EXPENSE: {
             MERGE_TRANSACTION_ITEM: 'MergeExpense-MergeTransactionItem',
+            RECEIPT_ITEM: 'MergeExpense-ReceiptItem',
+            FIELD_VALUE_OPTION: 'MergeExpense-FieldValueOption',
         },
         IOU_REQUEST_STEP: {
             DISTANCE_NEXT_BUTTON: 'IOURequestStep-DistanceNextButton',
@@ -9216,9 +9222,6 @@ const CONST = {
                 CHOOSE_FILE: 'OdometerImage-ChooseFile',
                 CONTINUE_BUTTON: 'OdometerImage-ContinueButton',
             },
-        },
-        NEW_CHAT: {
-            SELECT_PARTICIPANT: 'NewChat-SelectParticipant',
         },
         WORKSPACE_EXPENSIFY_CARD: {
             CARD_LIST_ROW: 'WorkspaceExpensifyCard-CardListRow',

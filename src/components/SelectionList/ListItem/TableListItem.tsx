@@ -1,15 +1,19 @@
 import React from 'react';
 import {View} from 'react-native';
-import Checkbox from '@components/Checkbox';
 import ReportActionAvatars from '@components/ReportActionAvatars';
 import TextWithTooltip from '@components/TextWithTooltip';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import CONST from '@src/CONST';
 import BaseListItem from './BaseListItem';
 import type {ListItem, TableListItemProps} from './types';
 
+/**
+ * A pressable row styled as a table entry with animated highlight, optional avatar, and
+ * right caret. Used in workspace management lists (e.g. members, categories, tags, taxes).
+ */
 function TableListItem<TItem extends ListItem>({
     item,
     isFocused,
@@ -24,7 +28,8 @@ function TableListItem<TItem extends ListItem>({
     onLongPressRow,
     shouldSyncFocus,
     titleContainerStyles,
-    shouldUseDefaultRightHandSideCheckmark,
+    shouldShowSelectionButton = canSelectMultiple,
+    selectionButtonPosition = CONST.SELECTION_BUTTON_POSITION.LEFT,
     shouldShowRightCaret,
     errorRowStyles,
 }: TableListItemProps<TItem>) {
@@ -41,14 +46,6 @@ function TableListItem<TItem extends ListItem>({
 
     const focusedBackgroundColor = styles.sidebarLinkActive.backgroundColor;
     const hoveredBackgroundColor = styles.sidebarLinkHover?.backgroundColor ? styles.sidebarLinkHover.backgroundColor : theme.sidebar;
-
-    const handleCheckboxPress = () => {
-        if (onCheckboxPress) {
-            onCheckboxPress(item);
-        } else {
-            onSelectRow(item);
-        }
-    };
 
     return (
         <BaseListItem
@@ -70,6 +67,7 @@ function TableListItem<TItem extends ListItem>({
             canSelectMultiple={canSelectMultiple}
             onLongPressRow={onLongPressRow}
             onSelectRow={onSelectRow}
+            onCheckboxPress={onCheckboxPress}
             onDismissError={onDismissError}
             rightHandSideComponent={rightHandSideComponent}
             errors={item.errors}
@@ -79,24 +77,12 @@ function TableListItem<TItem extends ListItem>({
             onFocus={onFocus}
             shouldSyncFocus={shouldSyncFocus}
             hoverStyle={item.isSelected && styles.activeComponentBG}
-            shouldUseDefaultRightHandSideCheckmark={shouldUseDefaultRightHandSideCheckmark}
             shouldShowRightCaret={shouldShowRightCaret}
+            shouldShowSelectionButton={shouldShowSelectionButton}
+            selectionButtonPosition={selectionButtonPosition}
         >
             {(hovered) => (
                 <>
-                    {!!canSelectMultiple && (
-                        <Checkbox
-                            accessibilityLabel={item.text ?? ''}
-                            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                            disabled={isDisabled || item.isDisabledCheckbox}
-                            isChecked={!!item.isSelected}
-                            onPress={handleCheckboxPress}
-                            shouldStopMouseDownPropagation
-                            style={[item.cursorStyle, styles.p5, styles.mln5, styles.mhv5, styles.mrn2]}
-                            containerStyle={[StyleUtils.getMultiselectListStyles(!!item.isSelected, !!item.isDisabled), item.cursorStyle]}
-                            testID={`TableListItemCheckbox-${item.text}`}
-                        />
-                    )}
                     {!!item.accountID && (
                         <ReportActionAvatars
                             accountIDs={[item.accountID]}
@@ -136,7 +122,5 @@ function TableListItem<TItem extends ListItem>({
         </BaseListItem>
     );
 }
-
-TableListItem.displayName = 'TableListItem';
 
 export default TableListItem;

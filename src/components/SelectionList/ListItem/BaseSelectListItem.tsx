@@ -1,14 +1,17 @@
-import React, {useCallback, useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
-import Checkbox from '@components/Checkbox';
 import TextWithTooltip from '@components/TextWithTooltip';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import BaseListItem from './BaseListItem';
-import type {ListItem, RadioListItemProps} from './types';
+import type {BaseSelectListItemProps, ListItem} from './types';
 
-function RadioListItem<TItem extends ListItem>({
+/**
+ * A text-only row with a title and optional subtitle, built on BaseListItem. Serves as the
+ * base for SingleSelectListItem and MultiSelectListItem.
+ */
+function BaseSelectListItem<TItem extends ListItem>({
     item,
     isFocused,
     showTooltip,
@@ -21,40 +24,21 @@ function RadioListItem<TItem extends ListItem>({
     isAlternateTextMultilineSupported = false,
     alternateTextNumberOfLines = 2,
     titleNumberOfLines = 2,
+    canSelectMultiple,
     onFocus,
     shouldSyncFocus,
     wrapperStyle,
     titleStyles,
-    shouldHighlightSelectedItem = true,
-    shouldDisableHoverStyle,
+    shouldHighlightSelectedItem,
     accessibilityRole,
-    shouldUseDefaultRightHandSideComponent,
-}: RadioListItemProps<TItem>) {
+    shouldShowSelectionButton,
+    selectionButtonPosition,
+}: BaseSelectListItemProps<TItem>) {
     const styles = useThemeStyles();
     const fullTitle = isMultilineSupported ? item.text?.trimStart() : item.text;
     const indentsLength = (item.text?.length ?? 0) - (fullTitle?.length ?? 0);
     const paddingLeft = Math.floor(indentsLength / CONST.INDENTS.length) * styles.ml3.marginLeft;
     const alternateTextMaxWidth = variables.sideBarWidth - styles.ph5.paddingHorizontal * 2 - styles.ml3.marginLeft - variables.iconSizeNormal;
-    const CIRCULAR_BORDER_RADIUS = 999;
-
-    const handleCheckboxPress = useCallback(() => {
-        onSelectRow(item);
-    }, [item, onSelectRow]);
-
-    const defaultRightHandSideComponent = useMemo(
-        () => (
-            <Checkbox
-                shouldSelectOnPressEnter
-                containerBorderRadius={CIRCULAR_BORDER_RADIUS}
-                accessibilityLabel={item.text ?? ''}
-                isChecked={!!item.isSelected}
-                disabled={!!isDisabled && !item.isSelected}
-                onPress={handleCheckboxPress}
-            />
-        ),
-        [item.text, item.isSelected, isDisabled, handleCheckboxPress],
-    );
-
     return (
         <BaseListItem
             item={item}
@@ -65,15 +49,17 @@ function RadioListItem<TItem extends ListItem>({
             onSelectRow={onSelectRow}
             onDismissError={onDismissError}
             shouldPreventEnterKeySubmit={shouldPreventEnterKeySubmit}
-            rightHandSideComponent={shouldUseDefaultRightHandSideComponent ? defaultRightHandSideComponent : rightHandSideComponent}
+            rightHandSideComponent={rightHandSideComponent}
+            canSelectMultiple={canSelectMultiple}
             keyForList={item.keyForList}
             onFocus={onFocus}
             shouldSyncFocus={shouldSyncFocus}
             pendingAction={item.pendingAction}
             errors={item.errors}
             shouldHighlightSelectedItem={shouldHighlightSelectedItem}
-            shouldDisableHoverStyle={shouldDisableHoverStyle}
             accessibilityRole={accessibilityRole}
+            shouldShowSelectionButton={shouldShowSelectionButton}
+            selectionButtonPosition={selectionButtonPosition}
         >
             <>
                 {!!item.leftElement && item.leftElement}
@@ -114,4 +100,4 @@ function RadioListItem<TItem extends ListItem>({
     );
 }
 
-export default RadioListItem;
+export default BaseSelectListItem;

@@ -292,11 +292,11 @@ function ExpenseReportListItemRow({
                                     onPress={onCheckboxPress}
                                     isChecked={isSelectAllChecked}
                                     isIndeterminate={isIndeterminate}
-                                    containerStyle={[StyleUtils.getCheckboxContainerStyle(20), StyleUtils.getMultiselectListStyles(!!item.isSelected, !!item.isDisabled), styles.m0]}
+                                    containerStyle={styles.m0}
                                     disabled={isDisabledCheckbox}
                                     accessibilityLabel={item.text ?? ''}
                                     shouldStopMouseDownPropagation
-                                    style={[styles.cursorUnset, StyleUtils.getCheckboxPressableStyle(), isDisabledCheckbox && styles.cursorDisabled]}
+                                    style={[styles.cursorUnset, isDisabledCheckbox && styles.cursorDisabled]}
                                     sentryLabel={CONST.SENTRY_LABEL.SEARCH.EXPENSE_REPORT_CHECKBOX}
                                 />
                             )}
@@ -344,11 +344,11 @@ function ExpenseReportListItemRow({
                         onPress={onCheckboxPress}
                         isChecked={isSelectAllChecked}
                         isIndeterminate={isIndeterminate}
-                        containerStyle={[StyleUtils.getCheckboxContainerStyle(20), StyleUtils.getMultiselectListStyles(!!item.isSelected, !!item.isDisabled), styles.m0]}
+                        containerStyle={styles.m0}
                         disabled={isDisabledCheckbox}
                         accessibilityLabel={item.text ?? ''}
                         shouldStopMouseDownPropagation
-                        style={[styles.cursorUnset, StyleUtils.getCheckboxPressableStyle(), isDisabledCheckbox && styles.cursorDisabled]}
+                        style={[styles.cursorUnset, isDisabledCheckbox && styles.cursorDisabled]}
                         sentryLabel={CONST.SENTRY_LABEL.SEARCH.EXPENSE_REPORT_CHECKBOX}
                     />
                 )}

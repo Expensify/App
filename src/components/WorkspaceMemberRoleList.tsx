@@ -11,7 +11,7 @@ import type {Route} from '@src/ROUTES';
 import type {Policy} from '@src/types/onyx';
 import HeaderWithBackButton from './HeaderWithBackButton';
 import SelectionList from './SelectionList';
-import RadioListItem from './SelectionList/ListItem/RadioListItem';
+import SingleSelectListItem from './SelectionList/ListItem/SingleSelectListItem';
 import type {ListItem} from './SelectionList/types';
 
 type ListItemType = ListItem<ValueOf<typeof CONST.POLICY.ROLE>> & {
@@ -70,7 +70,7 @@ function WorkspaceMemberRoleList({role, policy, navigateBackTo = undefined, isLo
                 <View style={[styles.containerWithSpaceBetween, styles.pointerEventsBoxNone]}>
                     <SelectionList
                         data={availableRoleItems}
-                        ListItem={RadioListItem}
+                        ListItem={SingleSelectListItem}
                         onSelectRow={onSelectRole}
                         shouldSingleExecuteRowSelect
                         initiallyFocusedItemKey={availableRoleItems.find((item) => item.isSelected)?.keyForList}

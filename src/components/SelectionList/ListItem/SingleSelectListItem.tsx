@@ -1,12 +1,11 @@
-import React, {useCallback} from 'react';
-import Checkbox from '@components/Checkbox';
+import React from 'react';
 import useThemeStyles from '@hooks/useThemeStyles';
-import RadioListItem from './RadioListItem';
+import BaseSelectListItem from './BaseSelectListItem';
 import type {ListItem, SingleSelectListItemProps} from './types';
 
 /**
- * SingleSelectListItem mirrors the behavior of a default RadioListItem, but adds support
- * for the new style of single selection lists.
+ * A standard row with an optional (but default) radio button, used in single-choice picker lists
+ * (e.g. language, theme, timezone).
  */
 function SingleSelectListItem<TItem extends ListItem>({
     item,
@@ -23,30 +22,21 @@ function SingleSelectListItem<TItem extends ListItem>({
     shouldSyncFocus,
     wrapperStyle,
     titleStyles,
-    shouldHighlightSelectedItem = true,
+    shouldHighlightSelectedItem,
+    rightHandSideComponent = undefined,
+    shouldShowSelectionButton = true,
+    selectionButtonPosition,
 }: SingleSelectListItemProps<TItem>) {
     const styles = useThemeStyles();
 
-    const radioCheckboxComponent = useCallback(() => {
-        return (
-            <Checkbox
-                shouldSelectOnPressEnter
-                containerBorderRadius={999}
-                accessibilityLabel="SingleSelectListItem"
-                isChecked={item.isSelected}
-                onPress={() => onSelectRow(item)}
-            />
-        );
-    }, [item, onSelectRow]);
-
     return (
-        <RadioListItem
+        <BaseSelectListItem
             item={item}
             keyForList={item.keyForList}
             isFocused={isFocused}
             showTooltip={showTooltip}
             isDisabled={isDisabled}
-            rightHandSideComponent={radioCheckboxComponent}
+            rightHandSideComponent={rightHandSideComponent}
             onSelectRow={onSelectRow}
             onDismissError={onDismissError}
             shouldPreventEnterKeySubmit={shouldPreventEnterKeySubmit}
@@ -55,9 +45,11 @@ function SingleSelectListItem<TItem extends ListItem>({
             alternateTextNumberOfLines={alternateTextNumberOfLines}
             onFocus={onFocus}
             shouldSyncFocus={shouldSyncFocus}
-            wrapperStyle={[styles.optionRowCompact, wrapperStyle]}
+            wrapperStyle={[styles.optionRow, wrapperStyle]}
             titleStyles={titleStyles}
             shouldHighlightSelectedItem={shouldHighlightSelectedItem}
+            shouldShowSelectionButton={shouldShowSelectionButton}
+            selectionButtonPosition={selectionButtonPosition}
         />
     );
 }

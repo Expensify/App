@@ -7,7 +7,6 @@ import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
-import SelectCircle from '@components/SelectCircle';
 import SelectionList from '@components/SelectionList';
 import UserListItem from '@components/SelectionList/ListItem/UserListItem';
 import Text from '@components/Text';
@@ -87,27 +86,23 @@ function RejectExpenseReportPage({route}: RejectExpenseReportPageProps) {
     const options = [];
 
     if (hasPreviousApprover) {
-        const isPreviousApproverSelected = selectedTargetAccountID === String(previousApprover.accountID);
         options.push({
             text: `${previousApprover.displayName} (${translate('iou.rejectReport.lastApprover')})`,
             alternateText: previousApprover.email,
             keyForList: String(previousApprover.accountID),
             accountID: previousApprover.accountID,
-            isSelected: false,
-            rightElement: <SelectCircle isChecked={isPreviousApproverSelected} />,
+            isSelected: selectedTargetAccountID === String(previousApprover.accountID),
         });
     }
 
     const submitterEmail = getLoginByAccountID(submitterAccountID) ?? '';
     const submitterName = getDisplayNameOrDefault(getPersonalDetailByEmail(submitterEmail));
-    const isSubmitterSelected = selectedTargetAccountID === String(submitterAccountID);
     options.push({
         text: `${submitterName} (${translate('iou.rejectReport.submitter')})`,
         alternateText: submitterEmail,
         keyForList: String(submitterAccountID),
         accountID: submitterAccountID,
-        isSelected: false,
-        rightElement: <SelectCircle isChecked={isSubmitterSelected} />,
+        isSelected: selectedTargetAccountID === String(submitterAccountID),
     });
 
     const validate = useCallback(

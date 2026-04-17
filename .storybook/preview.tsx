@@ -1,5 +1,7 @@
 import {PortalProvider} from '@gorhom/portal';
-import React from 'react';
+import {NavigationContext} from '@react-navigation/core';
+import type {NavigationProp, ParamListBase} from '@react-navigation/native';
+import React, {useMemo} from 'react';
 import Onyx from 'react-native-onyx';
 import {SafeAreaProvider} from 'react-native-safe-area-context';
 import type {Parameters} from 'storybook/internal/types';
@@ -21,6 +23,29 @@ Onyx.init({
 
 IntlStore.load(CONST.LOCALES.EN);
 
+function NavigationContextProvider({children}: {children: React.ReactNode}) {
+    const value = useMemo(
+        () =>
+            ({
+                isFocused: () => true,
+                addListener: () => () => {},
+                removeListener: () => {},
+                navigate: () => {},
+                getState: () => ({routes: []}),
+                dispatch: () => {},
+                setParams: () => {},
+                goBack: () => {},
+                reset: () => {},
+                canGoBack: () => false,
+                getParent: () => undefined,
+                getId: () => undefined,
+            }) as unknown as NavigationProp<ParamListBase>,
+        [],
+    );
+
+    return <NavigationContext.Provider value={value}>{children}</NavigationContext.Provider>;
+}
+
 const decorators = [
     (Story: React.ElementType) => (
         <ComposeProviders
@@ -32,6 +57,7 @@ const decorators = [
                 PortalProvider,
                 EnvironmentProvider,
                 KeyboardStateProvider,
+                NavigationContextProvider,
                 SearchContextProvider,
             ]}
         >

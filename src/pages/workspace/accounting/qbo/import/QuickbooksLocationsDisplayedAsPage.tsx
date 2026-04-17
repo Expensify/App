@@ -1,5 +1,4 @@
 import React, {useCallback, useMemo} from 'react';
-import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import SelectionScreen from '@components/SelectionScreen';
 import useLocalize from '@hooks/useLocalize';
@@ -71,7 +70,6 @@ function QuickbooksLocationsDisplayedAsPage({policy}: WithPolicyProps) {
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             displayName="QuickbooksLocationsDisplayedAsPage"
             data={data}
-            listItem={RadioListItem}
             onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_LOCATIONS.getRoute(policyID))}
             onSelectRow={(selection) => selectDisplayedAs(selection as CardListItem)}
             shouldSingleExecuteRowSelect

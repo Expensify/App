@@ -24,14 +24,14 @@ function SingleChoiceQuestion({prompt, errorText, possibleAnswers, currentQuesti
         <>
             <Text
                 ref={ref}
-                style={[styles.mt3]}
+                style={[styles.mt3, styles.ph5]}
             >
                 {prompt}
             </Text>
             <RadioButtons
                 items={possibleAnswers}
                 key={currentQuestionIndex}
-                onPress={onInputChange}
+                onSelect={onInputChange}
                 errorText={errorText}
                 forwardedFSClass={forwardedFSClass}
             />

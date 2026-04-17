@@ -1,15 +1,10 @@
 import {Str} from 'expensify-common';
-import React, {useCallback, useMemo} from 'react';
+import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import Avatar from '@components/Avatar';
-import Icon from '@components/Icon';
-import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import TextWithTooltip from '@components/TextWithTooltip';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import useStyleUtils from '@hooks/useStyleUtils';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {areEmailsFromSamePrivateDomain} from '@libs/LoginUtils';
 import {getDisplayNameForParticipant} from '@libs/ReportUtils';
@@ -17,6 +12,10 @@ import CONST from '@src/CONST';
 import BaseListItem from './BaseListItem';
 import type {ListItem, UserSelectionListItemProps} from './types';
 
+/**
+ * A compact single-line row with avatar, display name, and handle side by side. Used for
+ * user selection in search participant filters.
+ */
 function UserSelectionListItem<TItem extends ListItem>({
     item,
     isFocused,
@@ -27,26 +26,15 @@ function UserSelectionListItem<TItem extends ListItem>({
     onCheckboxPress,
     onDismissError,
     shouldPreventEnterKeySubmit,
-    rightHandSideComponent,
     onFocus,
     shouldSyncFocus,
     wrapperStyle,
     pressableStyle,
+    shouldShowSelectionButton = true,
 }: UserSelectionListItemProps<TItem>) {
     const styles = useThemeStyles();
-    const theme = useTheme();
-    const StyleUtils = useStyleUtils();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const icons = useMemoizedLazyExpensifyIcons(['Checkmark']);
     const {formatPhoneNumber} = useLocalize();
-
-    const handleCheckboxPress = useCallback(() => {
-        if (onCheckboxPress) {
-            onCheckboxPress(item);
-        } else {
-            onSelectRow(item);
-        }
-    }, [item, onCheckboxPress, onSelectRow]);
 
     const userHandle = useMemo(() => {
         const login = item.login ?? '';
@@ -76,17 +64,20 @@ function UserSelectionListItem<TItem extends ListItem>({
             showTooltip={showTooltip}
             canSelectMultiple={canSelectMultiple}
             onSelectRow={onSelectRow}
+            onCheckboxPress={onCheckboxPress}
             onDismissError={onDismissError}
             shouldPreventEnterKeySubmit={shouldPreventEnterKeySubmit}
-            rightHandSideComponent={rightHandSideComponent}
+            // eslint-disable-next-line react/jsx-no-useless-fragment
+            rightHandSideComponent={item.rightElement ? <>{item.rightElement}</> : null}
             errors={item.errors}
             pendingAction={item.pendingAction}
             pressableStyle={pressableStyle}
             keyForList={item.keyForList}
             onFocus={onFocus}
             shouldSyncFocus={shouldSyncFocus}
+            shouldShowSelectionButton={shouldShowSelectionButton}
         >
-            <View style={[styles.flexRow, styles.alignItemsCenter, styles.h13, styles.gap3, styles.w100]}>
+            <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.h13, styles.gap3]}>
                 {!!item.icons?.length && (
                     <View style={styles.mentionSuggestionsAvatarContainer}>
                         <Avatar
@@ -114,28 +105,6 @@ function UserSelectionListItem<TItem extends ListItem>({
                         />
                     )}
                 </View>
-
-                <PressableWithFeedback
-                    accessibilityLabel={item.text ?? ''}
-                    role={CONST.ROLE.BUTTON}
-                    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                    disabled={isDisabled || item.isDisabledCheckbox}
-                    onPress={handleCheckboxPress}
-                    style={[styles.cursorUnset, StyleUtils.getCheckboxPressableStyle(), item.isDisabledCheckbox && styles.cursorDisabled, !!item.rightElement && styles.mr3]}
-                >
-                    <View style={[StyleUtils.getCheckboxContainerStyle(20), StyleUtils.getMultiselectListStyles(!!item.isSelected, !!item.isDisabled)]}>
-                        {!!item.isSelected && (
-                            <Icon
-                                src={icons.Checkmark}
-                                fill={theme.textLight}
-                                height={14}
-                                width={14}
-                            />
-                        )}
-                    </View>
-                </PressableWithFeedback>
-
-                {!!item.rightElement && item.rightElement}
             </View>
         </BaseListItem>
     );

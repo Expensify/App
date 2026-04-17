@@ -1,9 +1,8 @@
 import {Str} from 'expensify-common';
-import React, {useCallback} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Icon from '@components/Icon';
-import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import ReportActionAvatars from '@components/ReportActionAvatars';
 import {ListItemFocusContext} from '@components/SelectionList/ListItemFocusContext';
 import getAccessibilityLabel from '@components/SelectionList/utils/getAccessibilityLabel';
@@ -24,6 +23,10 @@ import type {ListItem, UserListItemProps} from './types';
 
 const reportExistsSelector = (report: OnyxEntry<Report>) => !!report;
 
+/**
+ * A row with user/workspace avatar(s), display name, and optional subtitle. Used broadly for
+ * user and workspace selection (e.g. task assignee, workspace picker, card assignee, delegates).
+ */
 function UserListItem<TItem extends ListItem>({
     item,
     isFocused,
@@ -39,9 +42,11 @@ function UserListItem<TItem extends ListItem>({
     shouldSyncFocus,
     wrapperStyle,
     pressableStyle,
-    shouldUseDefaultRightHandSideCheckmark,
     forwardedFSClass,
     shouldDisableHoverStyle,
+    shouldHighlightSelectedItem,
+    shouldShowSelectionButton = true,
+    selectionButtonPosition,
 }: UserListItemProps<TItem>) {
     const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'Checkmark']);
     const styles = useThemeStyles();
@@ -52,14 +57,6 @@ function UserListItem<TItem extends ListItem>({
     const focusedBackgroundColor = styles.sidebarLinkActive.backgroundColor;
     const subscriptAvatarBorderColor = isFocused ? focusedBackgroundColor : theme.sidebar;
     const hoveredBackgroundColor = !!styles.sidebarLinkHover && 'backgroundColor' in styles.sidebarLinkHover ? styles.sidebarLinkHover.backgroundColor : theme.sidebar;
-
-    const handleCheckboxPress = useCallback(() => {
-        if (onCheckboxPress) {
-            onCheckboxPress(item);
-        } else {
-            onSelectRow(item);
-        }
-    }, [item, onCheckboxPress, onSelectRow]);
 
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- some utils that are used to get reportID return empty string "", which would make subscription to the whole collection with nullish coalescing operator, example of this could be found in NewChatPage.tsx where some hooks return reportID as empty strings
     const [isReportInOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${item.reportID || undefined}`, {
@@ -104,6 +101,10 @@ function UserListItem<TItem extends ListItem>({
             shouldSyncFocus={shouldSyncFocus}
             accessible={shouldDisableAccessibleGrouping ? false : undefined}
             shouldDisableHoverStyle={shouldDisableHoverStyle}
+            shouldHighlightSelectedItem={shouldHighlightSelectedItem}
+            shouldShowSelectionButton={shouldShowSelectionButton}
+            selectionButtonPosition={selectionButtonPosition}
+            onCheckboxPress={onCheckboxPress}
         >
             {(hovered?: boolean) => {
                 const isHovered = !!hovered && !shouldDisableHoverStyle;
@@ -115,28 +116,6 @@ function UserListItem<TItem extends ListItem>({
                         role={shouldDisableAccessibleGrouping ? CONST.ROLE.BUTTON : undefined}
                         style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}
                     >
-                        {!shouldUseDefaultRightHandSideCheckmark && !!canSelectMultiple && (
-                            <PressableWithFeedback
-                                accessibilityLabel={item.text ?? ''}
-                                role={CONST.ROLE.BUTTON}
-                                sentryLabel={CONST.SENTRY_LABEL.USER_LIST_ITEM.CHECKBOX}
-                                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                                disabled={isDisabled || item.isDisabledCheckbox}
-                                onPress={handleCheckboxPress}
-                                style={[styles.cursorUnset, StyleUtils.getCheckboxPressableStyle(), item.isDisabledCheckbox && styles.cursorDisabled, styles.mr3]}
-                            >
-                                <View style={[StyleUtils.getCheckboxContainerStyle(20), StyleUtils.getMultiselectListStyles(!!item.isSelected, !!item.isDisabled)]}>
-                                    {!!item.isSelected && (
-                                        <Icon
-                                            src={icons.Checkmark}
-                                            fill={theme.textLight}
-                                            height={14}
-                                            width={14}
-                                        />
-                                    )}
-                                </View>
-                            </PressableWithFeedback>
-                        )}
                         {(!!reportExists || !!itemAccountID || !!policyID) && (
                             <ReportActionAvatars
                                 subscriptAvatarBorderColor={isHovered && !isFocused ? hoveredBackgroundColor : subscriptAvatarBorderColor}
@@ -183,28 +162,6 @@ function UserListItem<TItem extends ListItem>({
                                     fill={StyleUtils.getIconFillColor(getButtonState(isHovered, false, false, !!isDisabled, item.isInteractive !== false))}
                                 />
                             </View>
-                        )}
-                        {!!shouldUseDefaultRightHandSideCheckmark && !!canSelectMultiple && (
-                            <PressableWithFeedback
-                                accessibilityLabel={item.text ?? ''}
-                                role={CONST.ROLE.BUTTON}
-                                sentryLabel={CONST.SENTRY_LABEL.USER_LIST_ITEM.CHECKBOX_RIGHT}
-                                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                                disabled={isDisabled || item.isDisabledCheckbox}
-                                onPress={handleCheckboxPress}
-                                style={[styles.cursorUnset, StyleUtils.getCheckboxPressableStyle(), item.isDisabledCheckbox && styles.cursorDisabled, styles.ml3]}
-                            >
-                                <View style={[StyleUtils.getCheckboxContainerStyle(20), StyleUtils.getMultiselectListStyles(!!item.isSelected, !!item.isDisabled)]}>
-                                    {!!item.isSelected && (
-                                        <Icon
-                                            src={icons.Checkmark}
-                                            fill={theme.textLight}
-                                            height={14}
-                                            width={14}
-                                        />
-                                    )}
-                                </View>
-                            </PressableWithFeedback>
                         )}
                     </View>
                 );

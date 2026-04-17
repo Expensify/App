@@ -12,6 +12,10 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import TaskListItemRow from './TaskListItemRow';
 import type {TaskListItemProps, TaskListItemType} from './types';
 
+/**
+ * A task row in search results showing date, title, description, creator, assignee,
+ * and a complete/completed badge action.
+ */
 function TaskListItem<TItem extends ListItem>({
     item,
     isFocused,
@@ -79,6 +83,7 @@ function TaskListItem<TItem extends ListItem>({
             hoverStyle={item.isSelected && styles.activeComponentBG}
             pressableWrapperStyle={[styles.mh5, animatedHighlightStyle, isLargeScreenWidth && isLastItem && [styles.searchTableBottomRadius, styles.overflowHidden]]}
             forwardedFSClass={fsClass}
+            shouldShowSelectionButton={false}
         >
             <TaskListItemRow
                 item={taskItem}

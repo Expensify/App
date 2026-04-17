@@ -1188,6 +1188,7 @@ function MoneyRequestConfirmationList({
                     ListItem={UserListItem}
                     onSelectRow={navigateToParticipantPage}
                     shouldSingleExecuteRowSelect
+                    shouldShowSelectionButton={false}
                     shouldPreventDefaultFocusOnSelectRow
                     shouldShowListEmptyContent={false}
                     footerContent={footerContent}

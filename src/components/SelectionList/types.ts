@@ -1,7 +1,9 @@
 import type {ReactElement, Ref} from 'react';
 import type {GestureResponderEvent, InputModeOptions, StyleProp, TextStyle, ViewStyle} from 'react-native';
+import type {ValueOf} from 'type-fest';
 import type {TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
+import type CONST from '@src/CONST';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import type {ListItem, ValidListItem} from './ListItem/types';
 import type {SelectionListWithSectionsHandle, SelectionListWithSectionsProps} from './SelectionListWithSections/types';
@@ -83,6 +85,9 @@ type BaseSelectionListProps<TItem extends ListItem> = {
     /** Whether to scroll to the focused item on mount. When false, the list stays at the top to keep header content visible */
     shouldScrollToFocusedIndexOnMount?: boolean;
 
+    /** Whether to visually highlight the initially focused item before any keyboard interaction */
+    shouldHighlightInitiallyFocusedItem?: boolean;
+
     /** Whether keyboard shortcuts should be disabled */
     disableKeyboardShortcuts?: boolean;
 
@@ -115,6 +120,15 @@ type BaseSelectionListProps<TItem extends ListItem> = {
 
     /** Whether to set the hover style */
     setShouldDisableHoverStyle?: React.Dispatch<React.SetStateAction<boolean>>;
+
+    /** Whether to show the selection button (checkbox or radio) */
+    shouldShowSelectionButton?: boolean;
+
+    /** Which side of the row to render the selection button on */
+    selectionButtonPosition?: ValueOf<typeof CONST.SELECTION_BUTTON_POSITION>;
+
+    /** Whether to highlight the selected item */
+    shouldHighlightSelectedItem?: boolean;
 };
 
 /**
@@ -174,12 +188,6 @@ type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> &
 
         /** Whether to clear the text input when a row is selected */
         shouldClearInputOnSelect?: boolean;
-
-        /** Whether to highlight the selected item */
-        shouldHighlightSelectedItem?: boolean;
-
-        /** Whether to show the default right hand side checkmark */
-        shouldUseDefaultRightHandSideCheckmark?: boolean;
     };
 
 type SelectionListStyle = {

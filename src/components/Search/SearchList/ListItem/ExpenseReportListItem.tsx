@@ -34,6 +34,9 @@ import type {Policy, Report} from '@src/types/onyx';
 import ExpenseReportListItemRow from './ExpenseReportListItemRow';
 import type {ExpenseReportListItemProps, ExpenseReportListItemType} from './types';
 
+/**
+ * An expense report row in search results, showing status badge, total, and participants.
+ */
 function ExpenseReportListItem<TItem extends ListItem>({
     item,
     isLoading,
@@ -277,9 +280,9 @@ function ExpenseReportListItem<TItem extends ListItem>({
             ]}
             accessible={false}
             shouldShowRightCaret={false}
-            shouldUseDefaultRightHandSideCheckmark={false}
             isDisabled={isPendingDelete}
             shouldDisableHoverStyle={isPendingDelete}
+            shouldShowSelectionButton={false}
         >
             {(hovered) => (
                 <View style={[styles.flex1]}>

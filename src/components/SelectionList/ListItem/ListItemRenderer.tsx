@@ -17,7 +17,7 @@ type ListItemRendererProps<TItem extends ListItem> = Omit<BaseListItemProps<TIte
         titleStyles?: StyleProp<TextStyle>;
         titleContainerStyles?: StyleProp<ViewStyle>;
         isLastItem?: boolean;
-        shouldHighlightSelectedItem: boolean;
+        shouldHighlightSelectedItem?: boolean;
         shouldPreventEnterKeySubmit?: boolean;
     };
 
@@ -36,11 +36,9 @@ function ListItemRenderer<TItem extends ListItem>({
     selectRow,
     onCheckboxPress,
     onDismissError,
-    shouldPreventDefaultFocusOnSelectRow,
     rightHandSideComponent,
     isMultilineSupported,
     isAlternateTextMultilineSupported,
-    shouldUseDefaultRightHandSideComponent,
     alternateTextNumberOfLines,
     shouldIgnoreFocus,
     setFocusedIndex,
@@ -50,10 +48,11 @@ function ListItemRenderer<TItem extends ListItem>({
     titleStyles,
     singleExecution,
     titleContainerStyles,
-    shouldUseDefaultRightHandSideCheckmark,
     shouldHighlightSelectedItem,
     shouldDisableHoverStyle,
     shouldShowRightCaret,
+    shouldShowSelectionButton,
+    selectionButtonPosition,
     errorRowStyles,
     isLastItem,
     shouldPreventEnterKeySubmit = true,
@@ -84,11 +83,9 @@ function ListItemRenderer<TItem extends ListItem>({
                 }}
                 onCheckboxPress={handleOnCheckboxPress()}
                 onDismissError={() => onDismissError?.(item)}
-                shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
                 shouldPreventEnterKeySubmit={shouldPreventEnterKeySubmit}
                 rightHandSideComponent={rightHandSideComponent}
                 keyForList={item.keyForList}
-                shouldUseDefaultRightHandSideComponent={shouldUseDefaultRightHandSideComponent}
                 isMultilineSupported={isMultilineSupported}
                 isAlternateTextMultilineSupported={isAlternateTextMultilineSupported}
                 alternateTextNumberOfLines={alternateTextNumberOfLines}
@@ -110,10 +107,11 @@ function ListItemRenderer<TItem extends ListItem>({
                 canShowProductTrainingTooltip={canShowProductTrainingTooltip}
                 titleContainerStyles={titleContainerStyles}
                 errorRowStyles={errorRowStyles}
-                shouldUseDefaultRightHandSideCheckmark={shouldUseDefaultRightHandSideCheckmark}
                 shouldHighlightSelectedItem={shouldHighlightSelectedItem}
                 shouldDisableHoverStyle={shouldDisableHoverStyle}
                 shouldShowRightCaret={shouldShowRightCaret}
+                shouldShowSelectionButton={shouldShowSelectionButton}
+                selectionButtonPosition={selectionButtonPosition}
                 isLastItem={isLastItem}
             />
             {item.footerContent && item.footerContent}

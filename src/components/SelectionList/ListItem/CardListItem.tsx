@@ -2,7 +2,6 @@ import {Str} from 'expensify-common';
 import React from 'react';
 import {View} from 'react-native';
 import Avatar from '@components/Avatar';
-import Checkbox from '@components/Checkbox';
 import Icon from '@components/Icon';
 import PlaidCardFeedIcon from '@components/PlaidCardFeedIcon';
 import TextWithTooltip from '@components/TextWithTooltip';
@@ -30,6 +29,10 @@ type AdditionalCardProps = {
 };
 type CardListItemProps<TItem extends ListItem> = BaseListItemProps<TItem & AdditionalCardProps>;
 
+/**
+ * A row with a bank/card icon (or owner avatar with card miniature), card name, and last-four
+ * subtitle. Used in card selection and filtering (e.g. search filters, spend rules).
+ */
 function CardListItem<TItem extends ListItem>({
     item,
     isFocused,
@@ -42,20 +45,13 @@ function CardListItem<TItem extends ListItem>({
     rightHandSideComponent,
     onFocus,
     shouldSyncFocus,
+    shouldShowSelectionButton = true,
 }: CardListItemProps<TItem>) {
     const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar']);
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const theme = useTheme();
-
-    const handleCheckboxPress = () => {
-        if (onCheckboxPress) {
-            onCheckboxPress(item);
-        } else {
-            onSelectRow(item);
-        }
-    };
 
     const ownersAvatar = {
         source: item.cardOwnerPersonalDetails?.avatar ?? icons.FallbackAvatar,
@@ -79,6 +75,7 @@ function CardListItem<TItem extends ListItem>({
             showTooltip={showTooltip}
             canSelectMultiple={canSelectMultiple}
             onSelectRow={onSelectRow}
+            onCheckboxPress={onCheckboxPress}
             onDismissError={onDismissError}
             rightHandSideComponent={rightHandSideComponent}
             errors={item.errors}
@@ -86,6 +83,7 @@ function CardListItem<TItem extends ListItem>({
             keyForList={item.keyForList}
             onFocus={onFocus}
             shouldSyncFocus={shouldSyncFocus}
+            shouldShowSelectionButton={shouldShowSelectionButton}
         >
             <>
                 {!!item.bankIcon && (
@@ -165,16 +163,6 @@ function CardListItem<TItem extends ListItem>({
                         )}
                     </View>
                 </View>
-                {!!canSelectMultiple && !item.isDisabled && (
-                    <Checkbox
-                        shouldSelectOnPressEnter
-                        isChecked={item.isSelected ?? false}
-                        accessibilityLabel={item.text ?? ''}
-                        onPress={handleCheckboxPress}
-                        disabled={!!isDisabled}
-                        style={styles.ml3}
-                    />
-                )}
             </>
         </BaseListItem>
     );

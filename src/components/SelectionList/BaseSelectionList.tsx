@@ -17,6 +17,7 @@ import useScrollEnabled from '@hooks/useScrollEnabled';
 import useSingleExecution from '@hooks/useSingleExecution';
 import {focusedItemRef} from '@hooks/useSyncFocus/useSyncFocusImplementation';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {addKeyDownPressListener, removeKeyDownPressListener} from '@libs/KeyboardShortcut/KeyDownPressListener';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import CONST from '@src/CONST';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
@@ -83,15 +84,17 @@ function BaseSelectionList<TItem extends ListItem>({
     shouldHeaderBeInsideList = false,
     shouldScrollToFocusedIndex = true,
     shouldScrollToFocusedIndexOnMount = true,
+    shouldHighlightInitiallyFocusedItem = false,
     shouldDebounceScrolling = false,
     shouldUpdateFocusedIndex = false,
     shouldSingleExecuteRowSelect = false,
     shouldPreventDefaultFocusOnSelectRow = false,
     shouldShowTextInput = !!textInputOptions?.label,
     shouldClearInputOnSelect = false,
-    shouldHighlightSelectedItem = true,
-    shouldUseDefaultRightHandSideCheckmark,
+    shouldHighlightSelectedItem,
     shouldDisableHoverStyle = false,
+    shouldShowSelectionButton,
+    selectionButtonPosition,
     setShouldDisableHoverStyle = () => {},
 }: SelectionListProps<TItem>) {
     const styles = useThemeStyles();
@@ -156,6 +159,12 @@ function BaseSelectionList<TItem extends ListItem>({
         }
         hasKeyBeenPressed.current = true;
     }, []);
+
+    useEffect(() => {
+        addKeyDownPressListener(setHasKeyBeenPressed);
+
+        return () => removeKeyDownPressListener(setHasKeyBeenPressed);
+    }, [setHasKeyBeenPressed]);
 
     const scrollToIndex = useCallback(
         (index: number) => {
@@ -340,15 +349,13 @@ function BaseSelectionList<TItem extends ListItem>({
                 }}
                 setFocusedIndex={setFocusedIndex}
                 index={index}
-                isFocused={isItemFocused}
+                isFocused={isItemFocused && (shouldHighlightInitiallyFocusedItem || hasKeyBeenPressed.current)}
                 isDisabled={isItemDisabled}
                 canSelectMultiple={canSelectMultiple}
                 onDismissError={onDismissError}
                 onLongPressRow={onLongPressRow}
                 onCheckboxPress={onCheckboxPress}
                 shouldSingleExecuteRowSelect={shouldSingleExecuteRowSelect}
-                shouldUseDefaultRightHandSideCheckmark={shouldUseDefaultRightHandSideCheckmark}
-                shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
                 rightHandSideComponent={rightHandSideComponent}
                 isMultilineSupported={isRowMultilineSupported}
                 isAlternateTextMultilineSupported={(alternateNumberOfSupportedLines ?? 0) > 1}
@@ -365,6 +372,8 @@ function BaseSelectionList<TItem extends ListItem>({
                 shouldShowRightCaret={shouldShowRightCaret}
                 isLastItem={index === data.length - 1}
                 shouldPreventEnterKeySubmit={!disableKeyboardShortcuts}
+                shouldShowSelectionButton={shouldShowSelectionButton}
+                selectionButtonPosition={selectionButtonPosition}
             />
         );
     };

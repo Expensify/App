@@ -1,5 +1,5 @@
 import type {ReactElement, ReactNode} from 'react';
-import type {AccessibilityState, BlurEvent, NativeSyntheticEvent, Role, StyleProp, TargetedEvent, TextStyle, ViewStyle} from 'react-native';
+import type {BlurEvent, NativeSyntheticEvent, Role, StyleProp, TargetedEvent, TextStyle, ViewStyle} from 'react-native';
 import type {AnimatedStyle} from 'react-native-reanimated';
 import type {ValueOf} from 'type-fest';
 import type {SearchRouterItem} from '@components/Search/SearchAutocompleteList';
@@ -17,7 +17,6 @@ import type WithSentryLabel from '@src/types/utils/SentryLabel';
 import type BaseListItem from './BaseListItem';
 import type InviteMemberListItem from './InviteMemberListItem';
 import type MultiSelectListItem from './MultiSelectListItem';
-import type RadioListItem from './RadioListItem';
 import type SingleSelectListItem from './SingleSelectListItem';
 import type SpendCategorySelectorListItem from './SpendCategorySelectorListItem';
 import type SplitListItem from './SplitListItem';
@@ -199,17 +198,11 @@ type CommonListItemProps<TItem extends ListItem> = {
     /** Number of lines to show for title text when multiline is supported */
     titleNumberOfLines?: number;
 
-    /** Whether to show the default right hand side component */
-    shouldUseDefaultRightHandSideComponent?: boolean;
-
     /** Handles what to do when the item is focused */
     onFocus?: ListItemFocusEventHandler;
 
     /** Callback to fire when the item is long pressed */
     onLongPressRow?: (item: TItem, itemTransactions?: TransactionListItemType[]) => void;
-
-    /** Accessibility State tells a person using either VoiceOver on iOS or TalkBack on Android the state of the element currently focused on */
-    accessibilityState?: AccessibilityState;
 
     /** Accessibility role for the list item (e.g. 'checkbox' for multi-select options so screen readers announce checked state) */
     accessibilityRole?: Role;
@@ -241,14 +234,17 @@ type ListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
     /** The section list item */
     item: TItem;
 
+    /** Whether to show the selection button (checkbox or radio) */
+    shouldShowSelectionButton?: boolean;
+
+    /** Which side of the row to render the selection button on */
+    selectionButtonPosition?: ValueOf<typeof CONST.SELECTION_BUTTON_POSITION>;
+
     /** Additional styles to apply to text */
     style?: StyleProp<TextStyle>;
 
     /** Is item hovered */
     isHovered?: boolean;
-
-    /** Whether the default focus should be prevented on row selection */
-    shouldPreventDefaultFocusOnSelectRow?: boolean;
 
     /** Prevent the submission of the list item when enter key is pressed */
     shouldPreventEnterKeySubmit?: boolean;
@@ -273,9 +269,6 @@ type ListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
 
     /** Styles applied for the title container of the list item */
     titleContainerStyles?: StyleProp<ViewStyle>;
-
-    /** Whether to show the default right hand side checkmark */
-    shouldUseDefaultRightHandSideCheckmark?: boolean;
 
     /** Whether to highlight the selected item */
     shouldHighlightSelectedItem?: boolean;
@@ -306,7 +299,6 @@ type ValidListItem =
     | typeof BaseListItem
     | typeof InviteMemberListItem
     | typeof MultiSelectListItem
-    | typeof RadioListItem
     | typeof SearchRouterItem
     | typeof SingleSelectListItem
     | typeof SpendCategorySelectorListItem
@@ -319,7 +311,6 @@ type ValidListItem =
 type BaseListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> &
     ForwardedFSClassProps & {
         item: TItem;
-        shouldPreventDefaultFocusOnSelectRow?: boolean;
         shouldPreventEnterKeySubmit?: boolean;
         shouldShowBlueBorderOnFocus?: boolean;
         keyForList: string;
@@ -335,8 +326,6 @@ type BaseListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> &
         shouldDisplayRBR?: boolean;
         /** Test ID of the component. Used to locate this view in end-to-end tests. */
         testID?: string;
-        /** Whether to show the default right hand side checkmark */
-        shouldUseDefaultRightHandSideCheckmark?: boolean;
         /** Whether to show the right caret icon */
         shouldShowRightCaret?: boolean;
         /** Whether to highlight the selected item */
@@ -350,6 +339,12 @@ type BaseListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> &
          * When false, allows child elements (like TextInput) to be independently focusable by screen readers.
          */
         accessible?: boolean;
+
+        /** Whether to show the selection button (checkbox or radio) */
+        shouldShowSelectionButton?: boolean;
+
+        /** Which side of the row to render the selection button on */
+        selectionButtonPosition?: ValueOf<typeof CONST.SELECTION_BUTTON_POSITION>;
     };
 
 type SplitListItemType = ListItem &
@@ -391,7 +386,7 @@ type SplitListItemType = ListItem &
 
 type SplitListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
 
-type RadioListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
+type BaseSelectListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
 
 type SingleSelectListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
 
@@ -435,7 +430,7 @@ export type {
     ListItem,
     ListItemProps,
     ListItemFocusEventHandler,
-    RadioListItemProps,
+    BaseSelectListItemProps,
     ValidListItem,
     SingleSelectListItemProps,
     MultiSelectListItemProps,

@@ -169,6 +169,7 @@ function UnshareBankAccount({route}: ShareBankAccountProps) {
                     }
                     onSelectRow={() => {}}
                     ListItem={UserListItem}
+                    shouldShowSelectionButton={false}
                 />
             </>
             <ConfirmModal

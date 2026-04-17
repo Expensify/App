@@ -5,6 +5,7 @@ import Icon from '@components/Icon';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import type {PressableWithFeedbackProps} from '@components/Pressable/PressableWithFeedback';
+import ListSelectionButton from '@components/SelectionList/components/ListSelectionButton';
 import getAccessibilityLabel from '@components/SelectionList/utils/getAccessibilityLabel';
 import {getItemRole} from '@components/SelectionList/utils/getItemRole';
 import {getSelectableState} from '@components/SelectionList/utils/getSelectableState';
@@ -65,6 +66,10 @@ function getAccessibilityProps<TItem extends ListItem>({
     } satisfies CalculatedAccessibilityProps;
 }
 
+/**
+ * The foundational pressable row that all list items build on. Handles press/hover/focus states,
+ * selection buttons (radio or checkbox), error indicators, and accessibility roles.
+ */
 function BaseListItem<TItem extends ListItem>({
     item,
     pressableStyle,
@@ -75,6 +80,7 @@ function BaseListItem<TItem extends ListItem>({
     shouldPreventEnterKeySubmit = false,
     canSelectMultiple = false,
     onSelectRow,
+    onCheckboxPress,
     onDismissError = () => {},
     rightHandSideComponent,
     keyForList,
@@ -90,14 +96,14 @@ function BaseListItem<TItem extends ListItem>({
     onFocus = () => {},
     hoverStyle,
     onLongPressRow,
-    testID,
-    shouldUseDefaultRightHandSideCheckmark = true,
-    shouldHighlightSelectedItem = true,
+    shouldHighlightSelectedItem = false,
     shouldDisableHoverStyle,
     shouldShowRightCaret = false,
     accessible,
     accessibilityRole = getButtonRole(true),
     forwardedFSClass,
+    shouldShowSelectionButton = true,
+    selectionButtonPosition = CONST.SELECTION_BUTTON_POSITION.RIGHT,
 }: BaseListItemProps<TItem>) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -139,7 +145,7 @@ function BaseListItem<TItem extends ListItem>({
     };
 
     const rightHandSideComponentRender = () => {
-        if (canSelectMultiple || !rightHandSideComponent) {
+        if (!rightHandSideComponent) {
             return null;
         }
 
@@ -150,11 +156,7 @@ function BaseListItem<TItem extends ListItem>({
         return rightHandSideComponent;
     };
 
-    const shouldShowCheckmark = !canSelectMultiple && !!item.isSelected && !rightHandSideComponent && shouldUseDefaultRightHandSideCheckmark;
-
     const shouldShowRBRIndicator = (!item.isSelected || !!item.canShowSeveralIndicators) && !!item.brickRoadIndicator && shouldDisplayRBR;
-
-    const shouldShowHiddenCheckmark = shouldShowRBRIndicator && !shouldShowCheckmark && !!item.canShowSeveralIndicators;
 
     const {role, tabIndex, accessibilityState, accessibleAndAccessibilityLabel, ariaCurrent} = getAccessibilityProps({
         role: accessibilityRole,
@@ -207,6 +209,7 @@ function BaseListItem<TItem extends ListItem>({
                     e.preventDefault();
                 }}
                 id={keyForList ?? ''}
+                testID={`${CONST.BASE_LIST_ITEM_TEST_ID}${item.keyForList}`}
                 style={[
                     pressableStyle,
                     isFocused &&
@@ -225,18 +228,32 @@ function BaseListItem<TItem extends ListItem>({
                 // won't natively fire click on Enter, so we handle it manually via onKeyDown.
                 onKeyDown={!shouldPreventEnterKeySubmit ? handleKeyDown : undefined}
                 wrapperStyle={pressableWrapperStyle}
-                testID={`${CONST.BASE_LIST_ITEM_TEST_ID}${item.keyForList}`}
             >
                 <View
-                    testID={testID}
                     style={[
-                        wrapperStyle,
                         isFocused &&
-                            shouldHighlightSelectedItem &&
-                            StyleUtils.getItemBackgroundColorStyle(!!item.isSelected, !!isFocused, !!item.isDisabled, theme.activeComponentBG, theme.hoverComponentBG),
+                            StyleUtils.getItemBackgroundColorStyle(
+                                shouldHighlightSelectedItem && !!item.isSelected,
+                                !!isFocused,
+                                !!item.isDisabled,
+                                theme.activeComponentBG,
+                                theme.hoverComponentBG,
+                            ),
+                        wrapperStyle,
                     ]}
                     fsClass={forwardedFSClass}
                 >
+                    {shouldShowSelectionButton && selectionButtonPosition === CONST.SELECTION_BUTTON_POSITION.LEFT && (
+                        <ListSelectionButton
+                            role={canSelectMultiple ? CONST.ROLE.CHECKBOX : CONST.ROLE.RADIO}
+                            item={item}
+                            onSelectRow={onCheckboxPress ?? onSelectRow}
+                            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                            disabled={isDisabled || item.isDisabledCheckbox}
+                            style={styles.mr3}
+                        />
+                    )}
+
                     {typeof children === 'function' ? children(hovered) : children}
 
                     {shouldShowRBRIndicator && (
@@ -249,18 +266,15 @@ function BaseListItem<TItem extends ListItem>({
                         </View>
                     )}
 
-                    {(shouldShowCheckmark || shouldShowHiddenCheckmark) && (
-                        <View
-                            style={[styles.flexRow, styles.alignItemsCenter, styles.ml3, shouldShowHiddenCheckmark ? styles.opacity0 : undefined]}
-                            accessible={false}
-                        >
-                            <View>
-                                <Icon
-                                    src={icons.Checkmark}
-                                    fill={theme.success}
-                                />
-                            </View>
-                        </View>
+                    {shouldShowSelectionButton && selectionButtonPosition === CONST.SELECTION_BUTTON_POSITION.RIGHT && (
+                        <ListSelectionButton
+                            role={canSelectMultiple ? CONST.ROLE.CHECKBOX : CONST.ROLE.RADIO}
+                            item={item}
+                            onSelectRow={onCheckboxPress ?? onSelectRow}
+                            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                            disabled={isDisabled || item.isDisabledCheckbox}
+                            style={styles.ml3}
+                        />
                     )}
 
                     {rightHandSideComponentRender()}

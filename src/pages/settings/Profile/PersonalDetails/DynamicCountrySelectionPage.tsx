@@ -2,7 +2,7 @@ import React, {useCallback, useMemo, useState} from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
-import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
+import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import Navigation from '@libs/Navigation/Navigation';
@@ -74,7 +74,7 @@ function DynamicCountrySelectionPage({route}: DynamicCountrySelectionPageProps) 
 
             <SelectionList
                 data={searchResults}
-                ListItem={RadioListItem}
+                ListItem={SingleSelectListItem}
                 onSelectRow={selectCountry}
                 textInputOptions={textInputOptions}
                 initiallyFocusedItemKey={currentCountry}

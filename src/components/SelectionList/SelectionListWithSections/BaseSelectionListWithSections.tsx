@@ -71,12 +71,15 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
     shouldDebounceScrolling = false,
     shouldUpdateFocusedIndex = false,
     shouldScrollToFocusedIndex = true,
+    shouldHighlightInitiallyFocusedItem = false,
     shouldSingleExecuteRowSelect = false,
     shouldPreventDefaultFocusOnSelectRow = false,
     isRowMultilineSupported = false,
     titleNumberOfLines,
-    shouldUseDefaultRightHandSideComponent,
-    shouldDisableHoverStyle = false,
+    shouldHighlightSelectedItem,
+    shouldDisableHoverStyle,
+    shouldShowSelectionButton,
+    selectionButtonPosition,
     setShouldDisableHoverStyle = () => {},
     canShowProductTrainingTooltip,
 }: SelectionListWithSectionsProps<TItem>) {
@@ -344,25 +347,25 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
                         item={item}
                         index={index}
                         normalizedIndex={index}
-                        isFocused={isItemFocused}
+                        isFocused={isItemFocused && (shouldHighlightInitiallyFocusedItem || hasKeyBeenPressed.current)}
                         isDisabled={isDisabled}
                         canSelectMultiple={canSelectMultiple}
                         shouldSingleExecuteRowSelect={shouldSingleExecuteRowSelect}
                         onDismissError={onDismissError}
-                        shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
                         rightHandSideComponent={rightHandSideComponent}
                         setFocusedIndex={setFocusedIndex}
                         singleExecution={singleExecution}
                         canShowProductTrainingTooltip={canShowProductTrainingTooltip}
                         shouldSyncFocus={!isTextInputFocusedRef.current && hasKeyBeenPressed.current}
-                        shouldHighlightSelectedItem
                         shouldIgnoreFocus={shouldIgnoreFocus}
                         wrapperStyle={style?.listItemWrapperStyle}
                         titleStyles={style?.listItemTitleStyles}
                         isMultilineSupported={isRowMultilineSupported}
                         titleNumberOfLines={titleNumberOfLines}
-                        shouldUseDefaultRightHandSideComponent={shouldUseDefaultRightHandSideComponent}
+                        shouldHighlightSelectedItem={shouldHighlightSelectedItem}
                         shouldDisableHoverStyle={shouldDisableHoverStyle}
+                        shouldShowSelectionButton={shouldShowSelectionButton}
+                        selectionButtonPosition={selectionButtonPosition}
                         shouldPreventEnterKeySubmit={!disableKeyboardShortcuts}
                     />
                 );

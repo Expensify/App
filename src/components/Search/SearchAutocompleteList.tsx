@@ -112,14 +112,41 @@ function SearchRouterItem(props: UserListItemProps<AutocompleteListItem> | Searc
         );
     }
 
-    const fsClass = FS.getChatFSClass((props.item as SearchOption<Report> | undefined)?.item);
+    const {
+        item,
+        isFocused,
+        showTooltip,
+        isDisabled,
+        canSelectMultiple,
+        onSelectRow,
+        onDismissError,
+        shouldPreventEnterKeySubmit,
+        rightHandSideComponent,
+        onFocus,
+        shouldSyncFocus,
+        wrapperStyle,
+    } = props;
+    const fsClass = FS.getChatFSClass((item as SearchOption<Report> | undefined)?.item);
 
     return (
         <UserListItem
+            item={item}
+            keyForList={item.keyForList}
+            isFocused={isFocused}
+            showTooltip={showTooltip}
+            isDisabled={isDisabled}
+            canSelectMultiple={canSelectMultiple}
+            onSelectRow={onSelectRow}
+            onDismissError={onDismissError}
+            shouldPreventEnterKeySubmit={shouldPreventEnterKeySubmit}
+            rightHandSideComponent={rightHandSideComponent}
+            onFocus={onFocus}
+            shouldSyncFocus={shouldSyncFocus}
+            wrapperStyle={wrapperStyle}
             pressableStyle={[styles.br2, styles.ph3]}
             forwardedFSClass={fsClass}
-            // eslint-disable-next-line react/jsx-props-no-spreading
-            {...props}
+            shouldShowSelectionButton={false}
+            shouldHighlightSelectedItem
         />
     );
 }
@@ -577,6 +604,7 @@ function SearchAutocompleteList({
             ref={setListRef}
             initialScrollIndex={0}
             initiallyFocusedItemKey={!shouldUseNarrowLayout ? firstRecentReportKey : undefined}
+            shouldHighlightInitiallyFocusedItem={!shouldUseNarrowLayout}
             shouldScrollToFocusedIndex={!isInitialRender}
             disableKeyboardShortcuts={!shouldSubscribeToArrowKeyEvents}
             addBottomSafeAreaPadding

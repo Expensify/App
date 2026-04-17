@@ -535,7 +535,6 @@ function PolicyDistanceRatesPage({
                         onCheckboxPress={toggleRate}
                         selectedItems={selectedDistanceRates}
                         customListHeader={getCustomListHeader()}
-                        shouldUseDefaultRightHandSideCheckmark={false}
                         onTurnOnSelectionMode={(item) => item && toggleRate(item)}
                         onSelectAll={filteredDistanceRatesList.length > 0 ? toggleAllRates : undefined}
                         shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}

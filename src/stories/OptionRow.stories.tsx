@@ -23,7 +23,6 @@ export default {
     args: {
         mode: 'default',
         optionIsFocused: false,
-        showSelectedState: false,
         isSelected: false,
         boldStyle: false,
         showTitleTooltip: false,

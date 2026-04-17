@@ -7,10 +7,9 @@ import React, {useEffect, useImperativeHandle, useRef, useState} from 'react';
 import {Keyboard} from 'react-native';
 import Button from '@components/Button';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
-import {PressableWithFeedback} from '@components/Pressable';
 import ReferralProgramCTA from '@components/ReferralProgramCTA';
 import ScreenWrapper from '@components/ScreenWrapper';
-import SelectCircle from '@components/SelectCircle';
+import ListSelectionButton from '@components/SelectionList/components/ListSelectionButton';
 import UserListItem from '@components/SelectionList/ListItem/UserListItem';
 import SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
 import type {Section} from '@components/SelectionList/SelectionListWithSections/types';
@@ -390,19 +389,14 @@ function NewChatPage({ref}: NewChatPageProps) {
 
         if (item.isSelected) {
             return (
-                <PressableWithFeedback
-                    sentryLabel={CONST.SENTRY_LABEL.NEW_CHAT.SELECT_PARTICIPANT}
-                    onPress={() => toggleOption(item)}
-                    disabled={item.isDisabled}
+                <ListSelectionButton
                     role={CONST.ROLE.CHECKBOX}
+                    item={item}
+                    onSelectRow={toggleOption}
+                    disabled={!!item.isDisabled}
                     accessibilityLabel={item.text ? translate('selectionList.userSelected', item.text) : ''}
-                    style={[styles.flexRow, styles.alignItemsCenter, styles.ml5, styles.optionSelectCircle]}
-                >
-                    <SelectCircle
-                        isChecked={item.isSelected}
-                        selectCircleStyles={styles.ml0}
-                    />
-                </PressableWithFeedback>
+                    containerStyle={styles.ml5}
+                />
             );
         }
         const buttonInnerStyles = isFocused ? styles.buttonDefaultHovered : {};
@@ -482,6 +476,7 @@ function NewChatPage({ref}: NewChatPageProps) {
                 shouldShowTextInput
                 textInputOptions={textInputOptions}
                 shouldSingleExecuteRowSelect
+                shouldShowSelectionButton={false}
                 confirmButtonOptions={{
                     onConfirm: (e, option) => (selectedOptions.length > 0 ? createGroup() : selectOption(option)),
                 }}

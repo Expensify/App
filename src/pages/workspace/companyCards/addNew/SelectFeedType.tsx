@@ -6,7 +6,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
-import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
+import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -107,7 +107,7 @@ function SelectFeedType() {
 
             <SelectionList
                 key={typeSelected ? 'feed-type-loaded' : 'feed-type-loading'}
-                ListItem={RadioListItem}
+                ListItem={SingleSelectListItem}
                 data={finalData}
                 onSelectRow={({value}) => {
                     setLocalTypeSelected(value);

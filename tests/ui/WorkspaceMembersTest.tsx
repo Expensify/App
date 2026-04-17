@@ -117,7 +117,7 @@ describe('WorkspaceMembers', () => {
             });
 
             // Select admin option by clicking their checkboxes
-            fireEvent.press(screen.getByTestId(`TableListItemCheckbox-${ADMIN_OPTION}`));
+            fireEvent.press(screen.getByRole('checkbox', {name: ADMIN_OPTION}));
             const dropdownMenuButtonTestID = 'WorkspaceMembersPage-header-dropdown-menu-button';
 
             // Wait for selection mode to be active and click the dropdown menu button
@@ -166,7 +166,7 @@ describe('WorkspaceMembers', () => {
             });
 
             // Select member option by clicking their checkboxes
-            fireEvent.press(screen.getByTestId(`TableListItemCheckbox-${USER_OPTION}`));
+            fireEvent.press(screen.getByRole('checkbox', {name: USER_OPTION}));
             const dropdownMenuButtonTestID = 'WorkspaceMembersPage-header-dropdown-menu-button';
 
             // Wait for selection mode to be active and click the dropdown menu button
@@ -215,7 +215,7 @@ describe('WorkspaceMembers', () => {
             });
 
             // Select auditor option by clicking their checkboxes
-            fireEvent.press(screen.getByTestId(`TableListItemCheckbox-${AUDITOR_OPTION}`));
+            fireEvent.press(screen.getByRole('checkbox', {name: AUDITOR_OPTION}));
             const dropdownMenuButtonTestID = 'WorkspaceMembersPage-header-dropdown-menu-button';
 
             // Wait for selection mode to be active and click the dropdown menu button
@@ -267,8 +267,8 @@ describe('WorkspaceMembers', () => {
             });
 
             // Select options by clicking their checkboxes
-            fireEvent.press(screen.getByTestId(`TableListItemCheckbox-${AUDITOR_OPTION}`));
-            fireEvent.press(screen.getByTestId(`TableListItemCheckbox-${ADMIN_OPTION}`));
+            fireEvent.press(screen.getByRole('checkbox', {name: AUDITOR_OPTION}));
+            fireEvent.press(screen.getByRole('checkbox', {name: ADMIN_OPTION}));
             const dropdownMenuButtonTestID = 'WorkspaceMembersPage-header-dropdown-menu-button';
 
             // Wait for selection mode to be active and click the dropdown menu button

@@ -6,6 +6,7 @@ import RadioButton from '@components/RadioButton';
 import Text from '@components/Text';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {MergeFieldData, MergeFieldKey} from '@libs/MergeTransactionUtils';
+import CONST from '@src/CONST';
 import type {Transaction} from '@src/types/onyx';
 
 type MergeFieldReviewProps = {
@@ -32,13 +33,13 @@ function MergeFieldReview({mergeField, onValueSelected, errorText}: MergeFieldRe
                         accessible={false}
                         hoverStyle={styles.hoveredComponentBG}
                         style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.pv5, styles.ph5]}
+                        sentryLabel={CONST.SENTRY_LABEL.MERGE_EXPENSE.FIELD_VALUE_OPTION}
                     >
                         <Text style={[styles.flex1, styles.mr1, styles.textBold, styles.breakWord]}>{displayValue}</Text>
                         <RadioButton
                             isChecked={isSelected}
                             onPress={() => onValueSelected(transaction, field)}
                             accessibilityLabel={displayValue}
-                            shouldUseNewStyle
                         />
                     </PressableWithoutFeedback>
                 );

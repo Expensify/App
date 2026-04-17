@@ -308,6 +308,7 @@ function EditInviteReceiptPartnerPolicyPage({route}: EditInviteReceiptPartnerPol
                                         <SelectionList
                                             data={filteredMembers}
                                             ListItem={UserListItem}
+                                            shouldShowSelectionButton={false}
                                             onSelectRow={() => {}}
                                             onDismissError={dismissError}
                                             style={{listItemWrapperStyle: styles.cursorDefault, listStyle: styles.mt3}}

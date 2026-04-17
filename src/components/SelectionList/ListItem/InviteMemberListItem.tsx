@@ -1,10 +1,8 @@
 import {Str} from 'expensify-common';
-import React, {useCallback} from 'react';
+import React from 'react';
 import {View} from 'react-native';
-import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import {useProductTrainingContext} from '@components/ProductTrainingContext';
 import ReportActionAvatars from '@components/ReportActionAvatars';
-import SelectCircle from '@components/SelectCircle';
 import {ListItemFocusContext} from '@components/SelectionList/ListItemFocusContext';
 import Text from '@components/Text';
 import TextWithTooltip from '@components/TextWithTooltip';
@@ -23,6 +21,10 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import BaseListItem from './BaseListItem';
 import type {InviteMemberListItemProps, ListItem} from './types';
 
+/**
+ * A user row with avatar, name, and subtitle used for person selection and invitation. Adds
+ * secondary-login footers and product training tooltips on top of the standard user row layout.
+ */
 function InviteMemberListItem<TItem extends ListItem>({
     item,
     isFocused,
@@ -40,6 +42,7 @@ function InviteMemberListItem<TItem extends ListItem>({
     canShowProductTrainingTooltip = true,
     index = 0,
     sectionIndex = 0,
+    shouldShowSelectionButton = true,
 }: InviteMemberListItemProps<TItem>) {
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -60,16 +63,6 @@ function InviteMemberListItem<TItem extends ListItem>({
     const focusedBackgroundColor = styles.sidebarLinkActive.backgroundColor;
     const subscriptAvatarBorderColor = isFocused ? focusedBackgroundColor : theme.sidebar;
     const hoveredBackgroundColor = !!styles.sidebarLinkHover && 'backgroundColor' in styles.sidebarLinkHover ? styles.sidebarLinkHover.backgroundColor : theme.sidebar;
-
-    const shouldShowCheckBox = canSelectMultiple && !item.isDisabled;
-
-    const handleCheckboxPress = useCallback(() => {
-        if (onCheckboxPress) {
-            onCheckboxPress(item);
-        } else {
-            onSelectRow(item);
-        }
-    }, [item, onCheckboxPress, onSelectRow]);
 
     const firstItemIconID = Number(item?.icons?.at(0)?.id);
 
@@ -97,7 +90,9 @@ function InviteMemberListItem<TItem extends ListItem>({
             keyForList={item.keyForList}
             onFocus={onFocus}
             shouldSyncFocus={shouldSyncFocus}
-            shouldDisplayRBR={!shouldShowCheckBox}
+            shouldDisplayRBR={!(canSelectMultiple && !item.isDisabled)}
+            shouldShowSelectionButton={shouldShowSelectionButton}
+            onCheckboxPress={onCheckboxPress}
             testID={item.text}
         >
             {(hovered?: boolean) => (
@@ -155,21 +150,6 @@ function InviteMemberListItem<TItem extends ListItem>({
                             )}
                         </View>
                         {!!item.rightElement && <ListItemFocusContext.Provider value={{isFocused}}>{item.rightElement}</ListItemFocusContext.Provider>}
-                        {!!shouldShowCheckBox && (
-                            <PressableWithFeedback
-                                onPress={handleCheckboxPress}
-                                disabled={isDisabled}
-                                role={CONST.ROLE.BUTTON}
-                                accessibilityLabel={item.text ?? ''}
-                                style={[styles.ml2, styles.optionSelectCircle]}
-                                sentryLabel={CONST.SENTRY_LABEL.LIST_ITEM.INVITE_MEMBER_CHECKBOX}
-                            >
-                                <SelectCircle
-                                    isChecked={item.isSelected ?? false}
-                                    selectCircleStyles={styles.ml0}
-                                />
-                            </PressableWithFeedback>
-                        )}
                     </View>
                 </EducationalTooltip>
             )}

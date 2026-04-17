@@ -11,6 +11,9 @@ import variables from '@styles/variables';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ChatListItemProps, ReportActionListItemType} from './types';
 
+/**
+ * A chat message (report action) row in search results.
+ */
 function ChatListItem<TItem extends ListItem>({
     item,
     isFocused,
@@ -71,6 +74,7 @@ function ChatListItem<TItem extends ListItem>({
             pressableWrapperStyle={[styles.mh5, animatedHighlightStyle]}
             hoverStyle={item.isSelected && styles.activeComponentBG}
             forwardedFSClass={fsClass}
+            shouldShowSelectionButton={false}
         >
             <ReportActionItem
                 action={reportActionItem}

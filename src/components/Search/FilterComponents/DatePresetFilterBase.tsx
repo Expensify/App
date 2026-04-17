@@ -407,7 +407,7 @@ function DatePresetFilterBase({
                             isSelected: dateValues[CONST.SEARCH.DATE_MODIFIERS.ON] === preset,
                         }}
                         onSelectRow={() => setExclusiveDateValue(CONST.SEARCH.DATE_MODIFIERS.ON, preset)}
-                        wrapperStyle={styles.flexReset}
+                        wrapperStyle={[styles.flexReset, styles.optionRowCompact]}
                     />
                 ))}
                 {shouldShowHorizontalRule && (
