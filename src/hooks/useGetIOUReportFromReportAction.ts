@@ -9,7 +9,7 @@ function useGetIOUReportFromReportAction(reportAction: OnyxTypes.ReportAction | 
     chatReport: OnyxTypes.Report | undefined;
     isChatIOUReportArchived: boolean;
 } {
-    const iouReportID = isMoneyRequestAction(reportAction) ? getOriginalMessage(reportAction)?.IOUReportID : undefined;
+    const iouReportID = isMoneyRequestAction(reportAction) ? reportAction?.reportID : undefined;
     const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`) ?? null;
     const isChatIOUReportArchived = useReportIsArchived(iouReportID);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${iouReport?.chatReportID}`);
