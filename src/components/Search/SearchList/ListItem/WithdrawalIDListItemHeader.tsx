@@ -168,7 +168,7 @@ function WithdrawalIDListItemHeader<TItem extends ListItem>({
 
     return (
         <View>
-            <View style={[styles.pl3, styles.flexRow, styles.alignItemsCenter, isLargeScreenWidth ? [styles.pv1, styles.gap3] : [styles.pv1Half, styles.justifyContentStart]]}>
+            <View style={[styles.flexRow, styles.alignItemsCenter, isLargeScreenWidth ? [styles.pl3, styles.pv1, styles.gap3] : [styles.p4, styles.gap3]]}>
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.mnh40, styles.flex1, styles.gap3]}>
                     {!!canSelectMultiple && (
                         <Checkbox
@@ -219,7 +219,7 @@ function WithdrawalIDListItemHeader<TItem extends ListItem>({
                     )}
                 </View>
                 {!isLargeScreenWidth && (
-                    <View style={[[styles.flexShrink0, styles.mr3, styles.gap1]]}>
+                    <View style={[styles.flexShrink0, styles.flexRow, styles.alignItemsCenter]}>
                         <TotalCell
                             total={withdrawalIDItem.total}
                             currency={withdrawalIDItem.currency}
