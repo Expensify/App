@@ -3,4 +3,4 @@ import type {SortedReportActionsDerivedValue} from '@src/types/onyx/DerivedValue
 
 const lastActionsSelector = (value: OnyxEntry<SortedReportActionsDerivedValue>) => value?.lastActions;
 
-export {lastActionsSelector};
+export default {lastActionsSelector};
