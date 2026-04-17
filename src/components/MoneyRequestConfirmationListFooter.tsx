@@ -804,6 +804,22 @@ function MoneyRequestConfirmationListFooter({
             shouldShowAboveShowMore: false,
         },
         {
+            item:(
+                    <View style={[styles.mh4, styles.mv2]}>
+                        <TextInput
+                            value={isMerchantEmpty ? '' : (iouMerchant ?? '')}
+                            readOnly={didConfirm}
+                            onChangeText={handleMerchantInputChange}
+                            label={translate('common.merchant')}
+                            accessibilityLabel={translate('common.merchant')}
+                            errorText={merchantErrorText}
+                        />
+                    </View>
+                ),
+            shouldShow: shouldShowMerchant && isNewManualExpenseFlowEnabled && !isReadOnly,
+            shouldShowAboveShowMore: false,
+        },
+        {
             item: (
                 <View key={translate('common.description')}>
                     <ShowContextMenuStateContext.Provider value={contextMenuStateValue}>
@@ -939,18 +955,6 @@ function MoneyRequestConfirmationListFooter({
         },
         {
             item:
-                isNewManualExpenseFlowEnabled && !isReadOnly ? (
-                    <View style={[styles.mh4, styles.mv2]}>
-                        <TextInput
-                            value={isMerchantEmpty ? '' : (iouMerchant ?? '')}
-                            readOnly={didConfirm}
-                            onChangeText={handleMerchantInputChange}
-                            label={translate('common.merchant')}
-                            accessibilityLabel={translate('common.merchant')}
-                            errorText={merchantErrorText}
-                        />
-                    </View>
-                ) : (
                     <MenuItemWithTopDescription
                         key={translate('common.merchant')}
                         shouldShowRightIcon={!isReadOnly}
@@ -972,9 +976,8 @@ function MoneyRequestConfirmationListFooter({
                         rightLabel={isMerchantRequired && !shouldDisplayMerchantError ? translate('common.required') : ''}
                         numberOfLinesTitle={2}
                         sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.MERCHANT_FIELD}
-                    />
-                ),
-            shouldShow: shouldShowMerchant,
+                    />,
+            shouldShow: shouldShowMerchant && (!isNewManualExpenseFlowEnabled||isReadOnly),
             shouldShowAboveShowMore: false,
         },
         {
