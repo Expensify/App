@@ -6634,6 +6634,385 @@ describe('SearchUIUtils', () => {
             expect(menuItemKeys).not.toContain(CONST.SEARCH.SEARCH_KEYS.STATEMENTS);
         });
 
+        it('should default reconciliation withdrawal type to Expensify Card when both card and reimbursement are available', () => {
+            const mockPolicies = {
+                policy1: {
+                    id: 'policy1',
+                    name: 'Full Policy',
+                    owner: adminEmail,
+                    outputCurrency: 'USD',
+                    isPolicyExpenseChatEnabled: true,
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    type: CONST.POLICY.TYPE.TEAM,
+                    approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+                    areExpensifyCardsEnabled: true,
+                    reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
+                    achAccount: {
+                        bankAccountID: 1234,
+                        reimburser: adminEmail,
+                        state: CONST.BANK_ACCOUNT.STATE.OPEN,
+                        accountNumber: '1234567890',
+                        routingNumber: '1234567890',
+                        addressName: 'Test Address',
+                        bankName: 'Test Bank',
+                    },
+                },
+            };
+
+            const mockCardFeedsByPolicy: Record<string, CardFeedForDisplay[]> = {
+                policy1: [
+                    {
+                        id: 'card1',
+                        feed: 'Expensify Card' as const,
+                        fundID: 'fund1',
+                        name: 'Test Card Feed',
+                    },
+                ],
+            };
+
+            const sections = SearchUIUtils.createTypeMenuSections({
+                currentUserEmail: adminEmail,
+                currentUserAccountID: adminAccountID,
+                cardFeedsByPolicy: mockCardFeedsByPolicy,
+                defaultCardFeed: undefined,
+                policies: mockPolicies,
+                savedSearches: {},
+                isOffline: false,
+                defaultExpensifyCard: undefined,
+                shouldRedirectToExpensifyClassic: false,
+                draftTransactionIDs: [],
+                isTrackIntentUser: false,
+            });
+
+            const reconciliationItem = sections.flatMap((section) => section.menuItems).find((item) => item.key === CONST.SEARCH.SEARCH_KEYS.RECONCILIATION);
+
+            expect(reconciliationItem).toBeDefined();
+            expect(reconciliationItem?.searchQuery).toContain('withdrawalType:expensify-card');
+        });
+
+        it('should default reconciliation withdrawal type to Reimbursement when only ACH is available (no Expensify Card)', () => {
+            const mockPolicies = {
+                policy1: {
+                    id: 'policy1',
+                    name: 'ACH Only Policy',
+                    owner: adminEmail,
+                    outputCurrency: 'USD',
+                    isPolicyExpenseChatEnabled: true,
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    type: CONST.POLICY.TYPE.TEAM,
+                    approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+                    areExpensifyCardsEnabled: false,
+                    achAccount: {
+                        bankAccountID: 1234,
+                        reimburser: adminEmail,
+                        state: CONST.BANK_ACCOUNT.STATE.OPEN,
+                        accountNumber: '1234567890',
+                        routingNumber: '1234567890',
+                        addressName: 'Test Address',
+                        bankName: 'Test Bank',
+                    },
+                },
+            };
+
+            const sections = SearchUIUtils.createTypeMenuSections({
+                currentUserEmail: adminEmail,
+                currentUserAccountID: adminAccountID,
+                cardFeedsByPolicy: {},
+                defaultCardFeed: undefined,
+                policies: mockPolicies,
+                savedSearches: {},
+                isOffline: false,
+                defaultExpensifyCard: undefined,
+                shouldRedirectToExpensifyClassic: false,
+                draftTransactionIDs: [],
+                isTrackIntentUser: false,
+            });
+
+            const reconciliationItem = sections.flatMap((section) => section.menuItems).find((item) => item.key === CONST.SEARCH.SEARCH_KEYS.RECONCILIATION);
+
+            expect(reconciliationItem).toBeDefined();
+            expect(reconciliationItem?.searchQuery).toContain('withdrawalType:reimbursement');
+        });
+
+        it('should place todo items (submit, approve, pay) inside the Expense reports section', () => {
+            const mockPolicies = {
+                policy1: {
+                    id: 'policy1',
+                    name: 'Test Policy',
+                    owner: adminEmail,
+                    outputCurrency: 'USD',
+                    isPolicyExpenseChatEnabled: true,
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    type: CONST.POLICY.TYPE.TEAM,
+                    approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+                    approver: adminEmail,
+                    exporter: adminEmail,
+                    achAccount: {
+                        bankAccountID: 1,
+                        reimburser: adminEmail,
+                        state: CONST.BANK_ACCOUNT.STATE.OPEN,
+                        accountNumber: '1234567890',
+                        routingNumber: '1234567890',
+                        addressName: 'Test Address',
+                        bankName: 'Test Bank',
+                    },
+                    areExpensifyCardsEnabled: true,
+                    areCompanyCardsEnabled: true,
+                    employeeList: {
+                        [adminEmail]: {
+                            email: adminEmail,
+                            role: CONST.POLICY.ROLE.ADMIN,
+                            submitsTo: approverEmail,
+                        },
+                        [approverEmail]: {
+                            email: approverEmail,
+                            role: CONST.POLICY.ROLE.USER,
+                            submitsTo: adminEmail,
+                        },
+                    },
+                },
+            };
+
+            const mockCardFeedsByPolicy: Record<string, CardFeedForDisplay[]> = {
+                policy1: [
+                    {
+                        id: 'card1',
+                        feed: 'Expensify Card' as const,
+                        fundID: 'fund1',
+                        name: 'Test Card Feed',
+                    },
+                ],
+            };
+
+            const sections = SearchUIUtils.createTypeMenuSections({
+                currentUserEmail: adminEmail,
+                currentUserAccountID: adminAccountID,
+                cardFeedsByPolicy: mockCardFeedsByPolicy,
+                defaultCardFeed: undefined,
+                policies: mockPolicies,
+                savedSearches: {},
+                isOffline: false,
+                defaultExpensifyCard: undefined,
+                shouldRedirectToExpensifyClassic: false,
+                draftTransactionIDs: [],
+                isTrackIntentUser: false,
+            });
+
+            const expenseReportsSection = sections.find((section) => section.translationPath === 'search.tabs.expenseReports');
+            expect(expenseReportsSection).toBeDefined();
+
+            const sectionKeys = expenseReportsSection?.menuItems.map((item) => item.key) ?? [];
+            expect(sectionKeys).toContain(CONST.SEARCH.SEARCH_KEYS.REPORTS);
+            expect(sectionKeys).toContain(CONST.SEARCH.SEARCH_KEYS.EXPENSES);
+            expect(sectionKeys).toContain(CONST.SEARCH.SEARCH_KEYS.SUBMIT);
+            expect(sectionKeys).toContain(CONST.SEARCH.SEARCH_KEYS.APPROVE);
+        });
+
+        it('should group export, accruals, statements, and reconciliation under Accounting section', () => {
+            const mockPolicies = {
+                policy1: {
+                    id: 'policy1',
+                    name: 'Test Policy',
+                    owner: adminEmail,
+                    outputCurrency: 'USD',
+                    isPolicyExpenseChatEnabled: true,
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    type: CONST.POLICY.TYPE.TEAM,
+                    approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+                    approver: adminEmail,
+                    exporter: adminEmail,
+                    areExpensifyCardsEnabled: true,
+                    areCompanyCardsEnabled: true,
+                    achAccount: {
+                        bankAccountID: 1234,
+                        reimburser: adminEmail,
+                        state: CONST.BANK_ACCOUNT.STATE.OPEN,
+                        accountNumber: '1234567890',
+                        routingNumber: '1234567890',
+                        addressName: 'Test Address',
+                        bankName: 'Test Bank',
+                    },
+                    employeeList: {
+                        [adminEmail]: {
+                            email: adminEmail,
+                            role: CONST.POLICY.ROLE.ADMIN,
+                            submitsTo: approverEmail,
+                        },
+                        [approverEmail]: {
+                            email: approverEmail,
+                            role: CONST.POLICY.ROLE.USER,
+                            submitsTo: adminEmail,
+                        },
+                    },
+                },
+            };
+
+            const mockCardFeedsByPolicy: Record<string, CardFeedForDisplay[]> = {
+                policy1: [
+                    {
+                        id: 'card1',
+                        feed: 'Expensify Card' as const,
+                        fundID: 'fund1',
+                        name: 'Test Card Feed',
+                    },
+                ],
+            };
+
+            const sections = SearchUIUtils.createTypeMenuSections({
+                currentUserEmail: adminEmail,
+                currentUserAccountID: adminAccountID,
+                cardFeedsByPolicy: mockCardFeedsByPolicy,
+                defaultCardFeed: undefined,
+                policies: mockPolicies,
+                savedSearches: {},
+                isOffline: false,
+                defaultExpensifyCard: undefined,
+                shouldRedirectToExpensifyClassic: false,
+                draftTransactionIDs: [],
+                isTrackIntentUser: false,
+            });
+
+            const accountingSection = sections.find((section) => section.translationPath === 'search.tabs.accounting');
+            expect(accountingSection).toBeDefined();
+
+            const sectionKeys = accountingSection?.menuItems.map((item) => item.key) ?? [];
+            expect(sectionKeys).toContain(CONST.SEARCH.SEARCH_KEYS.EXPORT);
+            expect(sectionKeys).toContain(CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CASH);
+            expect(sectionKeys).toContain(CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CARD);
+            expect(sectionKeys).toContain(CONST.SEARCH.SEARCH_KEYS.STATEMENTS);
+            expect(sectionKeys).toContain(CONST.SEARCH.SEARCH_KEYS.RECONCILIATION);
+        });
+
+        it('should not have legacy section names (Explore, Todo, Monthly accrual, Reconciliation)', () => {
+            const mockPolicies = {
+                policy1: {
+                    id: 'policy1',
+                    name: 'Test Policy',
+                    owner: adminEmail,
+                    outputCurrency: 'USD',
+                    isPolicyExpenseChatEnabled: true,
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    type: CONST.POLICY.TYPE.TEAM,
+                    approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+                    areExpensifyCardsEnabled: true,
+                    areCompanyCardsEnabled: true,
+                    achAccount: {
+                        bankAccountID: 1234,
+                        reimburser: adminEmail,
+                        state: CONST.BANK_ACCOUNT.STATE.OPEN,
+                        accountNumber: '1234567890',
+                        routingNumber: '1234567890',
+                        addressName: 'Test Address',
+                        bankName: 'Test Bank',
+                    },
+                },
+            };
+
+            const mockCardFeedsByPolicy: Record<string, CardFeedForDisplay[]> = {
+                policy1: [
+                    {
+                        id: 'card1',
+                        feed: 'Expensify Card' as const,
+                        fundID: 'fund1',
+                        name: 'Test Card Feed',
+                    },
+                ],
+            };
+
+            const sections = SearchUIUtils.createTypeMenuSections({
+                currentUserEmail: adminEmail,
+                currentUserAccountID: adminAccountID,
+                cardFeedsByPolicy: mockCardFeedsByPolicy,
+                defaultCardFeed: undefined,
+                policies: mockPolicies,
+                savedSearches: {},
+                isOffline: false,
+                defaultExpensifyCard: undefined,
+                shouldRedirectToExpensifyClassic: false,
+                draftTransactionIDs: [],
+                isTrackIntentUser: false,
+            });
+
+            const sectionNames = sections.map((section) => section.translationPath);
+            expect(sectionNames).not.toContain('common.explore');
+            expect(sectionNames).not.toContain('common.todo');
+            expect(sectionNames).not.toContain('search.monthlyAccrual');
+            expect(sectionNames).not.toContain('search.reconciliation');
+        });
+
+        it('should not show todo items or export for track-intent users', () => {
+            const mockPolicies = {
+                policy1: {
+                    id: 'policy1',
+                    name: 'Test Policy',
+                    owner: adminEmail,
+                    outputCurrency: 'USD',
+                    isPolicyExpenseChatEnabled: true,
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    type: CONST.POLICY.TYPE.TEAM,
+                    approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+                    approver: adminEmail,
+                    exporter: adminEmail,
+                    achAccount: {
+                        bankAccountID: 1,
+                        reimburser: adminEmail,
+                        state: CONST.BANK_ACCOUNT.STATE.OPEN,
+                        accountNumber: '1234567890',
+                        routingNumber: '1234567890',
+                        addressName: 'Test Address',
+                        bankName: 'Test Bank',
+                    },
+                    areExpensifyCardsEnabled: true,
+                    areCompanyCardsEnabled: true,
+                    employeeList: {
+                        [adminEmail]: {
+                            email: adminEmail,
+                            role: CONST.POLICY.ROLE.ADMIN,
+                            submitsTo: approverEmail,
+                        },
+                        [approverEmail]: {
+                            email: approverEmail,
+                            role: CONST.POLICY.ROLE.USER,
+                            submitsTo: adminEmail,
+                        },
+                    },
+                },
+            };
+
+            const mockCardFeedsByPolicy: Record<string, CardFeedForDisplay[]> = {
+                policy1: [
+                    {
+                        id: 'card1',
+                        feed: 'Expensify Card' as const,
+                        fundID: 'fund1',
+                        name: 'Test Card Feed',
+                    },
+                ],
+            };
+
+            const sections = SearchUIUtils.createTypeMenuSections({
+                currentUserEmail: adminEmail,
+                currentUserAccountID: adminAccountID,
+                cardFeedsByPolicy: mockCardFeedsByPolicy,
+                defaultCardFeed: undefined,
+                policies: mockPolicies,
+                savedSearches: {},
+                isOffline: false,
+                defaultExpensifyCard: undefined,
+                shouldRedirectToExpensifyClassic: false,
+                draftTransactionIDs: [],
+                isTrackIntentUser: true,
+            });
+
+            const allMenuItems = sections.flatMap((section) => section.menuItems);
+            const allKeys = allMenuItems.map((item) => item.key);
+
+            expect(allKeys).not.toContain(CONST.SEARCH.SEARCH_KEYS.SUBMIT);
+            expect(allKeys).not.toContain(CONST.SEARCH.SEARCH_KEYS.APPROVE);
+            expect(allKeys).not.toContain(CONST.SEARCH.SEARCH_KEYS.PAY);
+            expect(allKeys).not.toContain(CONST.SEARCH.SEARCH_KEYS.EXPORT);
+        });
+
         it('should generate correct routes', () => {
             const menuItems = SearchUIUtils.createTypeMenuSections({
                 currentUserEmail: undefined,
@@ -6651,7 +7030,7 @@ describe('SearchUIUtils', () => {
                 .map((section) => section.menuItems)
                 .flat();
 
-            const expectedQueries = ['type:expense-report sortBy:date sortOrder:desc', 'type:expense sortBy:date sortOrder:desc', 'type:chat sortBy:date sortOrder:desc'];
+            const expectedQueries = ['type:expense-report sortBy:date sortOrder:desc', 'type:expense sortBy:date sortOrder:desc'];
 
             for (const [index, item] of menuItems.entries()) {
                 expect(item.searchQuery).toStrictEqual(expectedQueries.at(index));
