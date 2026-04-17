@@ -420,8 +420,11 @@ function MoneyRequestView({
     // transactionTag can be an empty string
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const shouldShowTag = (isPolicyExpenseChat || isExpenseUnreported) && (transactionTag || (canEdit && hasEnabledTags(policyTagLists)));
+    const isCurrentTransactionBillableDifferentFromPolicyDefault =
+        policy?.defaultBillable !== undefined && !!(updatedTransaction?.billable ?? transactionBillable) !== policy.defaultBillable;
     const shouldShowBillable =
-        (isPolicyExpenseChat || isExpenseUnreported) && (!!transactionBillable || !(policy?.disabledFields?.defaultBillable ?? true) || !!updatedTransaction?.billable);
+        (isPolicyExpenseChat || isExpenseUnreported) &&
+        (policy?.disabledFields?.defaultBillable !== true || isCurrentTransactionBillableDifferentFromPolicyDefault);
     const isCurrentTransactionReimbursableDifferentFromPolicyDefault =
         policy?.defaultReimbursable !== undefined && !!(updatedTransaction?.reimbursable ?? transactionReimbursable) !== policy.defaultReimbursable;
     const shouldShowReimbursable =
