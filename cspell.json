@@ -218,6 +218,7 @@
         "endcapture",
         "enddate",
         "endfor",
+        "endgroup",
         "enroute",
         "entityid",
         "Entra",
@@ -909,7 +910,8 @@
         "Wintrust",
         "Zürcher",
         "CARDFROZEN",
-        "CARDUNFROZEN"
+        "CARDUNFROZEN",
+        "Kolkata"
     ],
     "ignorePaths": [
         "src/languages/de.ts",
