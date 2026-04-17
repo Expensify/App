@@ -22,10 +22,10 @@ type UseEditComposerToggleProps = {
 /**
  * useEditComposerToggle is a hook that manages the editing state of the composer.
  * It is used to toggle the editing state of the composer and to apply the changes to the composer.
- * It is also used to restore the draft comment and the selection when the editing state is toggled off.
- * It is also used to focus the composer when the editing state is toggled on.
- * It is also used to update the value of the composer when the editing state is toggled on.
- * It is also used to update the selection of the composer when the editing state is toggled on.
+ * Additionally, it is used to restore the draft comment and the selection when the editing state is toggled off,
+ * to focus the composer when the editing state is toggled on,
+ * to update the value of the composer when the editing state is toggled on,
+ * and to update the selection of the composer when the editing state is toggled on.
  */
 function useEditComposerToggle({selection, draftComment, composerRef, onEditEnd, onFocus, onValueChange, onSelectionChange}: UseEditComposerToggleProps) {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
