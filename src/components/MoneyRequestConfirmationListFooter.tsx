@@ -804,18 +804,18 @@ function MoneyRequestConfirmationListFooter({
             shouldShowAboveShowMore: false,
         },
         {
-            item:(
-                    <View style={[styles.mh4, styles.mv2]}>
-                        <TextInput
-                            value={isMerchantEmpty ? '' : (iouMerchant ?? '')}
-                            readOnly={didConfirm}
-                            onChangeText={handleMerchantInputChange}
-                            label={translate('common.merchant')}
-                            accessibilityLabel={translate('common.merchant')}
-                            errorText={merchantErrorText}
-                        />
-                    </View>
-                ),
+            item: (
+                <View style={[styles.mh4, styles.mv2]}>
+                    <TextInput
+                        value={isMerchantEmpty ? '' : (iouMerchant ?? '')}
+                        readOnly={didConfirm}
+                        onChangeText={handleMerchantInputChange}
+                        label={translate('common.merchant')}
+                        accessibilityLabel={translate('common.merchant')}
+                        errorText={merchantErrorText}
+                    />
+                </View>
+            ),
             shouldShow: shouldShowMerchant && isNewManualExpenseFlowEnabled && !isReadOnly,
             shouldShowAboveShowMore: false,
         },
@@ -954,30 +954,31 @@ function MoneyRequestConfirmationListFooter({
             shouldShowAboveShowMore: false,
         },
         {
-            item:
-                    <MenuItemWithTopDescription
-                        key={translate('common.merchant')}
-                        shouldShowRightIcon={!isReadOnly}
-                        title={isMerchantEmpty ? '' : iouMerchant}
-                        description={translate('common.merchant')}
-                        style={[styles.moneyRequestMenuItem]}
-                        titleStyle={styles.flex1}
-                        onPress={() => {
-                            if (!transactionID) {
-                                return;
-                            }
+            item: (
+                <MenuItemWithTopDescription
+                    key={translate('common.merchant')}
+                    shouldShowRightIcon={!isReadOnly}
+                    title={isMerchantEmpty ? '' : iouMerchant}
+                    description={translate('common.merchant')}
+                    style={[styles.moneyRequestMenuItem]}
+                    titleStyle={styles.flex1}
+                    onPress={() => {
+                        if (!transactionID) {
+                            return;
+                        }
 
-                            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_MERCHANT.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRoute(), reportActionID));
-                        }}
-                        disabled={didConfirm}
-                        interactive={!isReadOnly}
-                        brickRoadIndicator={shouldDisplayMerchantError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                        errorText={shouldDisplayMerchantError ? translate('common.error.fieldRequired') : ''}
-                        rightLabel={isMerchantRequired && !shouldDisplayMerchantError ? translate('common.required') : ''}
-                        numberOfLinesTitle={2}
-                        sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.MERCHANT_FIELD}
-                    />,
-            shouldShow: shouldShowMerchant && (!isNewManualExpenseFlowEnabled||isReadOnly),
+                        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_MERCHANT.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRoute(), reportActionID));
+                    }}
+                    disabled={didConfirm}
+                    interactive={!isReadOnly}
+                    brickRoadIndicator={shouldDisplayMerchantError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                    errorText={shouldDisplayMerchantError ? translate('common.error.fieldRequired') : ''}
+                    rightLabel={isMerchantRequired && !shouldDisplayMerchantError ? translate('common.required') : ''}
+                    numberOfLinesTitle={2}
+                    sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.MERCHANT_FIELD}
+                />
+            ),
+            shouldShow: shouldShowMerchant && (!isNewManualExpenseFlowEnabled || isReadOnly),
             shouldShowAboveShowMore: false,
         },
         {

@@ -9,8 +9,8 @@ import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
 import useLocalize from '@hooks/useLocalize';
 import {MouseProvider} from '@hooks/useMouseContext';
 import useOnyx from '@hooks/useOnyx';
-import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import usePermissions from '@hooks/usePermissions';
+import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import usePolicyForTransaction from '@hooks/usePolicyForTransaction';
 import usePreferredPolicy from '@hooks/usePreferredPolicy';
@@ -66,8 +66,8 @@ import {
 } from '@libs/TransactionUtils';
 import {isInvalidMerchantValue, isValidInputLength} from '@libs/ValidationUtils';
 import {getIsViolationFixed} from '@libs/Violations/ViolationsUtils';
-import {hasInvoicingDetails} from '@userActions/Policy/Policy';
 import {getMoneyRequestParticipantsFromReport} from '@userActions/IOU';
+import {hasInvoicingDetails} from '@userActions/Policy/Policy';
 import type {IOUAction, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -93,7 +93,7 @@ import {PressableWithFeedback} from './Pressable';
 import {useProductTrainingContext} from './ProductTrainingContext';
 import UserListItem from './SelectionList/ListItem/UserListItem';
 import SelectionListWithSections from './SelectionList/SelectionListWithSections';
-import type {Section} from './SelectionList/SelectionListWithSections/types';
+import type {Section, SelectionListWithSectionsHandle} from './SelectionList/SelectionListWithSections/types';
 import SettlementButton from './SettlementButton';
 import type {PaymentActionParams} from './SettlementButton/types';
 import Text from './Text';
@@ -603,13 +603,7 @@ function MoneyRequestConfirmationList({
         const isGlobalCreateFlow = transaction?.isFromGlobalCreate ?? transaction?.isFromFloatingActionButton ?? iouType === CONST.IOU.TYPE.CREATE;
 
         if (!defaultParticipants.length && isGlobalCreateFlow) {
-            const canUseDefaultExpensePolicy = shouldUseDefaultExpensePolicy(
-                iouType,
-                defaultExpensePolicy,
-                amountOwed,
-                userBillingGracePeriodEnds,
-                ownerBillingGracePeriodEnd,
-            );
+            const canUseDefaultExpensePolicy = shouldUseDefaultExpensePolicy(iouType, defaultExpensePolicy, amountOwed, userBillingGracePeriodEnds, ownerBillingGracePeriodEnd);
 
             if (canUseDefaultExpensePolicy) {
                 const shouldAutoReport = !!defaultExpensePolicy?.autoReporting || !!personalPolicy?.autoReporting;
