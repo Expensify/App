@@ -11,6 +11,10 @@
 * [UX Pattern Flowchart](#ux-pattern-flow-chart)
     - [Answering Questions on the Flow Chart](#answering-questions-on-the-flow-chart)
 
+## How Offline State Is Detected
+
+This document covers UX patterns for handling offline state. For the underlying architecture of how the app detects connectivity changes (hard stop model, failure tracking, recovery probes), see [Network State Detection](../NETWORK_STATE_DETECTION.md).
+
 ## Motivation & Philosophy
 
 Understanding the offline behavior of our app is vital to becoming a productive contributor to the Expensify codebase. Our mission is to support our users in every possible environment, and often our app is used in places where a stable internet connection is not guaranteed.

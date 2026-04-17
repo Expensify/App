@@ -37,7 +37,7 @@ import variables from '@styles/variables';
 import type {TransactionPreviewData} from '@userActions/Search';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {CardList, Transaction, TransactionViolations} from '@src/types/onyx';
+import type {CardList, Policy, Transaction, TransactionViolations} from '@src/types/onyx';
 import BaseSearchList from './BaseSearchList';
 import type ChatListItem from './ListItem/ChatListItem';
 import type ExpenseReportListItem from './ListItem/ExpenseReportListItem';
@@ -134,6 +134,8 @@ type SearchListProps = Pick<FlashListProps<SearchListItem>, 'onScroll' | 'conten
     /** Whether all transactions have been loaded from snapshots in group-by views */
     hasLoadedAllTransactions?: boolean;
 
+    policyForMovingExpenses?: Policy;
+
     /** Reference to the outer element */
     ref?: ForwardedRef<SearchListHandle>;
 };
@@ -218,6 +220,7 @@ function SearchList({
     nonPersonalAndWorkspaceCards,
     selectedTransactions,
     hasLoadedAllTransactions,
+    policyForMovingExpenses,
     ref,
 }: SearchListProps) {
     const styles = useThemeStyles();
@@ -443,6 +446,7 @@ function SearchList({
                         queryJSONHash={hash}
                         columns={columns}
                         policies={policies}
+                        policyForMovingExpenses={policyForMovingExpenses}
                         isDisabled={isDisabled}
                         groupBy={groupBy}
                         searchType={type}
@@ -497,6 +501,7 @@ function SearchList({
             nonPersonalAndWorkspaceCards,
             selectedTransactions,
             ListFooterComponent,
+            policyForMovingExpenses,
             handleUndelete,
         ],
     );
@@ -564,6 +569,7 @@ function SearchList({
                 contentContainerStyle={contentContainerStyle}
                 newTransactions={newTransactions}
                 selectedTransactions={selectedTransactions}
+                policyForMovingExpenses={policyForMovingExpenses}
                 nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}
             />
             <Modal

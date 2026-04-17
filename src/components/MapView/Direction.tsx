@@ -5,7 +5,7 @@ import type {DirectionProps} from './MapViewTypes';
 
 function Direction({coordinates, belowLayerID}: DirectionProps) {
     const styles = useThemeStyles();
-    if (coordinates.length < 1) {
+    if (coordinates.length < 2) {
         return null;
     }
 
