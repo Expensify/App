@@ -20,6 +20,7 @@ jest.mock('@src/ROUTES', () => ({
         ADDRESS_COUNTRY: {path: 'country', getRoute: (country: string) => `country?country=${country}`},
         FLAG_COMMENT: {path: 'flag/:reportID/:reportActionID'},
         MEMBER_DETAILS: {path: 'member-details/:accountID'},
+        NETSUITE_EXPORT_EXPENSES_TEST: {path: 'expenses/:expenseType'},
     },
 }));
 
@@ -174,5 +175,13 @@ describe('createDynamicRoute', () => {
 
     it('should throw for suffix that does not match any parametric pattern', () => {
         expect(() => createDynamicRoute('unknown/456/abc')).toThrow();
+    });
+
+    it('should append path parametric expenses suffix', () => {
+        mockGetActiveRoute.mockReturnValue('workspaces/p/connections/netsuite/export');
+
+        const result = createDynamicRoute('expenses/reimbursable');
+
+        expect(result).toBe('workspaces/p/connections/netsuite/export/expenses/reimbursable');
     });
 });

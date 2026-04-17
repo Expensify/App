@@ -26,12 +26,8 @@ function SearchPageInputWide({queryJSON, handleSearch}: SearchPageInputWideProps
     const listRef = useRef<SelectionListWithSectionsHandle>(null);
 
     const {
-        allFeeds,
         autocompleteSubstitutions,
         autocompleteQueryValue,
-        personalAndWorkspaceCards,
-        personalDetails,
-        reports,
         searchQueryItem,
         selection,
         textInputRef,
@@ -105,10 +101,6 @@ function SearchPageInputWide({queryJSON, handleSearch}: SearchPageInputWideProps
                             onListItemPress={onListItemPress}
                             ref={listRef}
                             shouldSubscribeToArrowKeyEvents={isAutocompleteListVisible}
-                            personalDetails={personalDetails}
-                            reports={reports}
-                            allCards={personalAndWorkspaceCards}
-                            allFeeds={allFeeds}
                             textInputRef={textInputRef}
                         />
                     </View>
