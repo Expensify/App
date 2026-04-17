@@ -49,12 +49,11 @@ function SearchTypeMenuWide({queryJSON}: SearchTypeMenuProps) {
         'CreditCard',
         'MoneyHourglass',
         'CreditCardHourglass',
-        'ExpensifyCard',
         'Bank',
         'User',
         'Folder',
         'Document',
-        'Send',
+        'Pencil',
         'ThumbsUp',
         'CheckCircle',
     ]);
@@ -89,8 +88,8 @@ function SearchTypeMenuWide({queryJSON}: SearchTypeMenuProps) {
     for (const section of typeMenuSections) {
         sectionStartIndices.push((sectionStartIndices.at(-1) ?? 0) + section.menuItems.length);
     }
-    const exploreSection = typeMenuSections.find((section) => section.translationPath === 'common.explore');
-    const nonExploreSections = typeMenuSections.filter((section) => section.translationPath !== 'common.explore');
+    const exploreSection = typeMenuSections.find((section) => section.translationPath === 'search.tabs.expenseReports');
+    const nonExploreSections = typeMenuSections.filter((section) => section.translationPath !== 'search.tabs.expenseReports');
 
     const handleTypeMenuItemPress = singleExecution((searchQuery: string) => {
         clearSelectedTransactions();

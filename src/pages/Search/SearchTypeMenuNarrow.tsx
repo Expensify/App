@@ -109,11 +109,10 @@ function SearchTypeMenuNarrow({queryJSON, onTabPress}: SearchTypeMenuNarrowProps
         'Basket',
         'CalendarSolid',
         'Bookmark',
-        'ExpensifyCard',
         'Pencil',
         'Trashcan',
         'Document',
-        'Send',
+        'Pencil',
         'ThumbsUp',
         'CheckCircle',
     ] as const);
