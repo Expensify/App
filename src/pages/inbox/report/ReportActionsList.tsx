@@ -260,6 +260,17 @@ function ReportActionsList({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [report.reportID]);
 
+    // When lastReadTime transitions from empty to a real value (e.g., data hasn't
+    // loaded yet after sign-in), update the marker so it uses the fresh value
+    // instead of the empty string from initial mount.
+    useEffect(() => {
+        if (reportLastReadTime === '' || unreadMarkerTime !== '') {
+            return;
+        }
+        setUnreadMarkerTime(reportLastReadTime);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [reportLastReadTime]);
+
     const prevUnreadMarkerReportActionID = useRef<string | null>(null);
 
     /**
