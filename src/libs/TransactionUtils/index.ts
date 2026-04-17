@@ -1925,19 +1925,25 @@ function isViolationDismissed(
         return dismissedByEmails.length > 0;
     }
 
-    // If the admin is looking at an open report, we check for both, submitter and admin.
+    // If someone is looking at an open report, we check for cross-role dismissals.
     if (!iouReport) {
         return false;
     }
 
     const isSubmitter = iouReport.ownerAccountID === currentUserAccountID;
-    const shouldViewAsSubmitter = !isSubmitter && isOpenExpenseReport(iouReport);
 
+    // If the admin is looking at an open report, check if the submitter dismissed it.
+    const shouldViewAsSubmitter = !isSubmitter && isOpenExpenseReport(iouReport);
     if (shouldViewAsSubmitter && iouReport.ownerAccountID) {
         const reportOwnerEmail = getLoginsByAccountIDs([iouReport.ownerAccountID]).at(0);
         if (reportOwnerEmail && dismissedByEmails.includes(reportOwnerEmail)) {
             return true;
         }
+    }
+
+    // If the submitter is looking at an open report, check if an admin/approver dismissed it.
+    if (isSubmitter && isOpenExpenseReport(iouReport) && dismissedByEmails.length > 0) {
+        return true;
     }
 
     return false;
