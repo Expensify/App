@@ -340,7 +340,10 @@ function IOURequestStartPage({
                                     {() => (
                                         <TabScreenWithFocusTrapWrapper>
                                             {isNewManualExpenseFlowEnabled ? (
-                                                <IOURequestStepConfirmation {...confirmationScreenProps} />
+                                                <IOURequestStepConfirmation
+                                                    {...confirmationScreenProps}
+                                                    shouldHideHeader
+                                                />
                                             ) : (
                                                 <IOURequestStepAmountWithTransactionOnly
                                                     shouldKeepUserInput

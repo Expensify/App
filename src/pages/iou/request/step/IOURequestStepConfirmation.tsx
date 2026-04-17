@@ -132,7 +132,9 @@ import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotF
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 
 type IOURequestStepConfirmationProps = WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_CONFIRMATION> &
-    WithFullTransactionOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_CONFIRMATION>;
+    WithFullTransactionOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_CONFIRMATION> & {
+        shouldHideHeader?: boolean;
+    };
 
 // Ends the submit expense span, starts a geolocation child span, then calls getCurrentPosition.
 // The expense callback receives GPS coordinates on success or undefined on error.
@@ -168,6 +170,7 @@ function IOURequestStepConfirmation({
     },
     transaction: initialTransaction,
     isLoadingTransaction,
+    shouldHideHeader = false,
 }: IOURequestStepConfirmationProps) {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const personalDetails = usePersonalDetails();
@@ -1537,7 +1540,7 @@ function IOURequestStepConfirmation({
                      * Keep a single header in embedded mode: IOURequestStartPage renders the parent header,
                      * so this inner header must be hidden to prevent duplicate back buttons and title layout issues.
                      */}
-                    {!isNewManualExpenseFlowEnabled && (
+                    {!shouldHideHeader && (
                         <HeaderWithBackButton
                             title={headerTitle}
                             subtitle={hasMultipleTransactions ? `${currentTransactionIndex + 1} ${translate('common.of')} ${transactions.length}` : undefined}
