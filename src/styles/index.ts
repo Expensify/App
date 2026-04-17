@@ -6292,7 +6292,7 @@ const dynamicStyles = (theme: ThemeColors) =>
             isInLandscapeMode,
             hasTitle,
             hasHeader,
-            hasButton,
+            hasButton = true,
             isSearchable,
             extraHeight = 0,
         }: SelectionListPopover) => {
