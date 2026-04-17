@@ -14,6 +14,7 @@ import type {ListItem} from '@components/SelectionList/types';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import withNavigationTransitionEnd from '@components/withNavigationTransitionEnd';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useHasOutstandingChildTask from '@hooks/useHasOutstandingChildTask';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -28,18 +29,25 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getHeaderMessage, isCurrentUser} from '@libs/OptionsListUtils';
 import {isOpenTaskReport, isTaskReport} from '@libs/ReportUtils';
-import type {TaskDetailsNavigatorParamList} from '@navigation/types';
+import type {NewTaskNavigatorParamList, TaskDetailsNavigatorParamList} from '@navigation/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Report} from '@src/types/onyx';
 
+type TaskAssigneeRouteProp =
+    | PlatformStackRouteProp<TaskDetailsNavigatorParamList, typeof SCREENS.TASK.DYNAMIC_TASK_ASSIGNEE>
+    | PlatformStackRouteProp<NewTaskNavigatorParamList, typeof SCREENS.NEW_TASK.TASK_ASSIGNEE_SELECTOR>;
+
 function TaskAssigneeSelectorModal() {
     const styles = useThemeStyles();
-    const route = useRoute<PlatformStackRouteProp<TaskDetailsNavigatorParamList, typeof SCREENS.TASK.ASSIGNEE>>();
+    const route = useRoute<TaskAssigneeRouteProp>();
     const {translate} = useLocalize();
-    const backTo = route.params?.backTo;
+    const isTaskDetailsFlow = !!route.params && 'reportID' in route.params;
+    const reportID = isTaskDetailsFlow ? route.params.reportID : undefined;
+    const backTo = !isTaskDetailsFlow && route.params && 'backTo' in route.params ? route.params.backTo : undefined;
+    const dynamicBackPath = useDynamicBackPath(DYNAMIC_ROUTES.TASK_ASSIGNEE.path);
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [task] = useOnyx(ONYXKEYS.TASK);
     const [isSearchingForReports] = useOnyx(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS);
@@ -82,16 +90,16 @@ function TaskAssigneeSelectorModal() {
     const allPersonalDetails = usePersonalDetails();
 
     const report: OnyxEntry<Report> = (() => {
-        if (!route.params?.reportID) {
+        if (!reportID) {
             return;
         }
-        const reportOnyx = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${route.params?.reportID}`];
+        const reportOnyx = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
         if (reportOnyx && !isTaskReport(reportOnyx)) {
             Navigation.isNavigationReady().then(() => {
                 Navigation.dismissModalWithReport({reportID: reportOnyx.reportID});
             });
         }
-        return reports?.[`${ONYXKEYS.COLLECTION.REPORT}${route.params?.reportID}`];
+        return reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
     })();
 
     const parentReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`];
@@ -202,7 +210,7 @@ function TaskAssigneeSelectorModal() {
         }
     };
 
-    const handleBackButtonPress = () => Navigation.goBack(!route.params?.reportID ? ROUTES.NEW_TASK.getRoute(backTo) : backTo);
+    const handleBackButtonPress = () => Navigation.goBack(!reportID ? ROUTES.NEW_TASK.getRoute(backTo) : dynamicBackPath);
 
     const isOpen = isOpenTaskReport(report);
     const isParentReportArchived = useReportIsArchived(report?.parentReportID);

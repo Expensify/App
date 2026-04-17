@@ -483,13 +483,13 @@ const SCREENS = {
     },
 
     TASK: {
-        TITLE: 'Task_Title',
-        ASSIGNEE: 'Task_Assignee',
+        DYNAMIC_TASK_TITLE: 'Dynamic_Task_Title',
+        DYNAMIC_TASK_ASSIGNEE: 'Dynamic_Task_Assignee',
     },
 
     PRIVATE_NOTES: {
-        LIST: 'PrivateNotes_List',
-        EDIT: 'PrivateNotes_Edit',
+        DYNAMIC_LIST: 'Dynamic_Private_Notes_List',
+        DYNAMIC_EDIT: 'Dynamic_Private_Notes_Edit',
     },
 
     NEW_REPORT_WORKSPACE_SELECTION: {
@@ -923,7 +923,7 @@ const SCREENS = {
     PROFILE_ROOT: 'Profile_Root',
     AUTO_SUBMIT_ROOT: 'AutoSubmit_Modal_Root',
     CHANGE_POLICY_EDUCATIONAL_ROOT: 'ChangePolicyEducational_Root',
-    REPORT_DESCRIPTION_ROOT: 'Report_Description_Root',
+    DYNAMIC_REPORT_DESCRIPTION: 'Dynamic_Report_Description',
     CHRONOS_SCHEDULE_OOO_ROOT: 'Chronos_Schedule_OOO_Root',
     REPORT_PARTICIPANTS: {
         ROOT: 'ReportParticipants_Root',

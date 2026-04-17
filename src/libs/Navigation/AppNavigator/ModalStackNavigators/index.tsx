@@ -293,8 +293,8 @@ const WorkspaceDuplicateModalStackNavigator = createModalStackNavigator<Workspac
 });
 
 const TaskModalStackNavigator = createModalStackNavigator<TaskDetailsNavigatorParamList>({
-    [SCREENS.TASK.TITLE]: () => require<ReactComponentModule>('../../../../pages/tasks/TaskTitlePage').default,
-    [SCREENS.TASK.ASSIGNEE]: () => require<ReactComponentModule>('../../../../pages/tasks/TaskAssigneeSelectorModal').default,
+    [SCREENS.TASK.DYNAMIC_TASK_TITLE]: () => require<ReactComponentModule>('../../../../pages/tasks/DynamicTaskTitlePage').default,
+    [SCREENS.TASK.DYNAMIC_TASK_ASSIGNEE]: () => require<ReactComponentModule>('../../../../pages/tasks/TaskAssigneeSelectorModal').default,
 });
 
 const ReportVerifyAccountModalStackNavigator = createModalStackNavigator<ReportVerifyAccountNavigatorParamList>({
@@ -304,7 +304,7 @@ const ReportVerifyAccountModalStackNavigator = createModalStackNavigator<ReportV
 });
 
 const ReportDescriptionModalStackNavigator = createModalStackNavigator<ReportDescriptionNavigatorParamList>({
-    [SCREENS.REPORT_DESCRIPTION_ROOT]: () => require<ReactComponentModule>('../../../../pages/ReportDescriptionPage').default,
+    [SCREENS.DYNAMIC_REPORT_DESCRIPTION]: () => require<ReactComponentModule>('../../../../pages/DynamicReportDescriptionPage').default,
 });
 
 const ChronosScheduleOOOModalStackNavigator = createModalStackNavigator<ChronosScheduleOOONavigatorParamList>({
@@ -991,8 +991,8 @@ const EditRequestStackNavigator = createModalStackNavigator<EditRequestNavigator
 });
 
 const PrivateNotesModalStackNavigator = createModalStackNavigator<PrivateNotesNavigatorParamList>({
-    [SCREENS.PRIVATE_NOTES.LIST]: () => require<ReactComponentModule>('../../../../pages/PrivateNotes/PrivateNotesListPage').default,
-    [SCREENS.PRIVATE_NOTES.EDIT]: () => require<ReactComponentModule>('../../../../pages/PrivateNotes/PrivateNotesEditPage').default,
+    [SCREENS.PRIVATE_NOTES.DYNAMIC_LIST]: () => require<ReactComponentModule>('../../../../pages/PrivateNotes/DynamicPrivateNotesListPage').default,
+    [SCREENS.PRIVATE_NOTES.DYNAMIC_EDIT]: () => require<ReactComponentModule>('../../../../pages/PrivateNotes/DynamicPrivateNotesEditPage').default,
 });
 
 const SignInModalStackNavigator = createModalStackNavigator<SignInNavigatorParamList>({

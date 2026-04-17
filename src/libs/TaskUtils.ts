@@ -1,7 +1,7 @@
 import type {OnyxEntry} from 'react-native-onyx';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {Report} from '@src/types/onyx';
 import type {Message} from '@src/types/onyx/ReportAction';
 import type ReportAction from '@src/types/onyx/ReportAction';
@@ -9,15 +9,25 @@ import Navigation from './Navigation/Navigation';
 import Parser from './Parser';
 import {getReportActionHtml, getReportActionText} from './ReportActionsUtils';
 
+/** Last URL segment for task edit screens (see DYNAMIC_ROUTES.TASK_TITLE, DYNAMIC_ROUTES.REPORT_DESCRIPTION, DYNAMIC_ROUTES.TASK_ASSIGNEE). */
+const TASK_EDIT_URL_SUFFIXES = [DYNAMIC_ROUTES.TASK_TITLE.path, DYNAMIC_ROUTES.REPORT_DESCRIPTION.path, DYNAMIC_ROUTES.TASK_ASSIGNEE.path] as const;
+
 /**
  * Check if the active route belongs to task edit flow.
+ * Matches canonical paths (r/:reportID/title) and dynamic suffix paths (e.g. search/view/:reportID/title, r/:reportID/description).
  */
 function isActiveTaskEditRoute(reportID: string | undefined): boolean {
     if (!reportID) {
         return false;
     }
 
-    return [ROUTES.TASK_TITLE, ROUTES.TASK_ASSIGNEE, ROUTES.REPORT_DESCRIPTION].map((route) => route.getRoute(reportID)).some(Navigation.isActiveRoute);
+    const activeRoute = Navigation.getActiveRoute();
+    if (!activeRoute) {
+        return false;
+    }
+
+    const path = (activeRoute.split('?').at(0) ?? '').replace(/^\//, '').replace(/\/$/, '');
+    return TASK_EDIT_URL_SUFFIXES.some((suffix) => path.endsWith(`/${reportID}/${suffix}`));
 }
 
 /**
