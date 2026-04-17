@@ -5,7 +5,7 @@ import {checkIfLocalFileIsAccessible} from '@libs/actions/IOU/Receipt';
 import {navigateToStartMoneyRequestStep} from '@libs/IOUUtils';
 import {getOdometerImageUri} from '@libs/OdometerImageUtils';
 import clearOdometerTransactionState from '@libs/OdometerTransactionUtils';
-import type {IOUAction, IOUType} from '@src/CONST';
+import type {IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {validTransactionDraftIDsSelector} from '@src/selectors/TransactionDraft';
@@ -17,12 +17,12 @@ import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 // This is because until the request is saved, the image files are only stored in the browser's memory as blob:// URLs
 // and if the browser is refreshed, then the images cease to exist.
 // The best way for the user to recover from this is to start over from the start of the request process.
-const useRestartOnOdometerImagesFailure = (transaction: OnyxEntry<Transaction>, reportID: string, iouType: IOUType, action: IOUAction) => {
+const useRestartOnOdometerImagesFailure = (transaction: OnyxEntry<Transaction>, reportID: string, iouType: IOUType, backToReport: string | undefined) => {
     const [, draftTransactionsMetadata] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
     const hasCheckedRef = useRef(false);
 
     useEffect(() => {
-        if (!transaction || action !== CONST.IOU.ACTION.CREATE || isLoadingOnyxValue(draftTransactionsMetadata)) {
+        if (!transaction || isLoadingOnyxValue(draftTransactionsMetadata)) {
             return;
         }
 
@@ -80,9 +80,9 @@ const useRestartOnOdometerImagesFailure = (transaction: OnyxEntry<Transaction>, 
             }
 
             clearOdometerTransactionState(transaction, true);
-            navigateToStartMoneyRequestStep(CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER, iouType, transaction.transactionID, reportID);
+            navigateToStartMoneyRequestStep(CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER, iouType, transaction.transactionID, reportID, CONST.IOU.ACTION.CREATE, backToReport);
         });
-    }, [draftTransactionsMetadata, transaction, action, iouType, reportID]);
+    }, [draftTransactionsMetadata, transaction, iouType, reportID, backToReport]);
 };
 
 export default useRestartOnOdometerImagesFailure;

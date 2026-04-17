@@ -252,7 +252,7 @@ function IOURequestStepConfirmation({
 
     const odometerStartImage = transaction?.comment?.odometerStartImage;
     const odometerEndImage = transaction?.comment?.odometerEndImage;
-    useRestartOnOdometerImagesFailure(isOdometerDistanceRequest ? transaction : undefined, reportID, iouType, action);
+    useRestartOnOdometerImagesFailure(isOdometerDistanceRequest ? transaction : undefined, reportID, iouType, backToReport);
 
     // Pre-insert Search is only useful for flows whose submit ends in handleNavigateAfterExpenseCreate
     // (which navigates to Search). Flows that use dismissModalAndOpenReportInInboxTab (PAY,
@@ -529,14 +529,11 @@ function IOURequestStepConfirmation({
             />
             <OdometerReceiptStitcher
                 isOdometerDistanceRequest={isOdometerDistanceRequest}
-                currentTransactionID={currentTransactionID}
                 odometerStartImage={odometerStartImage}
                 odometerEndImage={odometerEndImage}
                 transaction={transaction}
-                requestType={requestType}
                 reportID={reportID}
                 backToReport={backToReport}
-                action={action}
                 iouType={iouType}
                 onStitchingChange={setIsStitchingReceipt}
                 onStitchError={setStitchError}
