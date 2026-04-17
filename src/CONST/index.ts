@@ -887,6 +887,7 @@ const CONST = {
         BULK_EDIT: 'bulkEdit',
         NEW_MANUAL_EXPENSE_FLOW: 'newManualExpenseFlow',
         BULK_SUBMIT_APPROVE_PAY: 'bulkSubmitApprovePay',
+        PRIVATE_NOTES: 'privateNotes',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
