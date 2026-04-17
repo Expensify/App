@@ -1044,11 +1044,15 @@ function changeTransactionsReport({
             actionName: oldIOUAction?.actionName ?? CONST.REPORT.ACTIONS.TYPE.IOU,
             created: oldIOUAction?.created ?? DateUtils.getDBTime(),
             ...(!oldIOUAction && {
+                actorAccountID: accountID,
                 message: getIOUReportActionMessage(reportID, actionType, Math.abs(transaction.amount), transaction.comment?.comment ?? '', transaction.currency),
             }),
         };
 
         const {comment} = isUnreported ? recalculateUnreportedTransactionDetails() : {};
+
+        const shouldCopyOriginalAmount = transaction.originalAmount !== undefined && transaction.originalAmount !== transaction.amount;
+        const shouldCopyOriginalCurrency = transaction.originalCurrency !== undefined && transaction.originalCurrency !== transaction.currency;
 
         // 1. Optimistically update the transaction with full data and changed fields.
         // Spreading the full transaction ensures the TRANSACTION collection has complete data
@@ -1060,6 +1064,8 @@ function changeTransactionsReport({
                 ...transaction,
                 reportID,
                 comment,
+                originalAmount: shouldCopyOriginalAmount ? transaction.originalAmount : null,
+                originalCurrency: shouldCopyOriginalCurrency ? transaction.originalCurrency : null,
                 ...(shouldClearAmount && {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
                 ...(shouldClearAmount && {convertedAmount: null}),
                 ...(oldIOUAction ? {linkedTrackedExpenseReportAction: newIOUAction} : {}),
@@ -1081,6 +1087,8 @@ function changeTransactionsReport({
             value: {
                 reportID: transaction.reportID,
                 comment: transaction.comment,
+                originalAmount: transaction.originalAmount,
+                originalCurrency: transaction.originalCurrency,
                 ...(shouldClearAmount && {pendingAction: transaction.pendingAction ?? null}),
                 ...(shouldClearAmount && {convertedAmount: transaction.convertedAmount}),
             },
