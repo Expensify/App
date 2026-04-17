@@ -194,12 +194,7 @@ function makeSelectedTransaction(overrides: Partial<SelectedTransactions[string]
 function useSearchBulkActionsWithDuplicate({queryJSON}: {queryJSON: SearchQueryJSON}) {
     const actions = useSearchBulkActions({queryJSON});
     const {setDuplicateHandler, allTransactions, allReports, searchData} = actions;
-    // Keep this array stable across renders. React Compiler can't prove the module-level
-    // `let mockSelectedTransactions` won't change between renders, so it doesn't memoize
-    // Object.keys(...) on its own. A new array each render would invalidate React Compiler's
-    // memoization of handleDuplicate downstream, retriggering the useEffect below and
-    // looping indefinitely through setDuplicateHandler's state setter.
-    const selectedTransactionsKeys = useMemo(() => Object.keys(mockSelectedTransactions), [mockSelectedTransactions]);
+    const selectedTransactionsKeys = useMemo(() => Object.keys(mockSelectedTransactions), []);
     const handleDuplicate = useBulkDuplicateAction({
         selectedTransactionsKeys,
         allTransactions,
