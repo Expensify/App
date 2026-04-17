@@ -573,6 +573,7 @@ const WRITE_COMMANDS = {
     EXPORT_DOMAIN_MEMBERS_CSV: 'ExportDomainMembersCSV',
     INITIATE_BANK_ACCOUNT_UNLOCK: 'InitiateBankAccountUnlock',
     UPDATE_DOMAIN_SECURITY_GROUP: 'UpdateDomainSecurityGroupForNewDot',
+    CREATE_DOMAIN_SECURITY_GROUP: 'CreateDomainSecurityGroup',
     SET_DEFAULT_DOMAIN_SECURITY_GROUP: 'SetDefaultDomainSecurityGroup',
 } as const;
 
@@ -1164,6 +1165,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.RESET_DOMAIN_MEMBER_TWO_FACTOR_AUTH]: Parameters.ResetDomainMemberTwoFactorAuthParams;
     [WRITE_COMMANDS.EXPORT_DOMAIN_MEMBERS_CSV]: Parameters.ExportDomainMembersCSVParams;
     [WRITE_COMMANDS.UPDATE_DOMAIN_SECURITY_GROUP]: Parameters.UpdateDomainSecurityGroupParams;
+    [WRITE_COMMANDS.CREATE_DOMAIN_SECURITY_GROUP]: Parameters.CreateDomainSecurityGroupParams;
     [WRITE_COMMANDS.SET_DEFAULT_DOMAIN_SECURITY_GROUP]: Parameters.SetDefaultDomainSecurityGroupParams;
 };
 

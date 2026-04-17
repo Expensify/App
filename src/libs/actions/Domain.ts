@@ -1915,11 +1915,12 @@ function createDomainSecurityGroup(domainAccountID: number, newSecurityGroup: Do
         },
     ];
 
+    // using the same interface as UpdateDomainSecurityGroup to correctly handle errors
     const params: UpdateDomainSecurityGroupParams = {
         domainAccountID,
         name: SECURITY_GROUP_KEY,
         value: JSON.stringify(newSecurityGroup),
-        settingsName: 'createGroup', // placeholder, waiting for BE
+        settingsName: 'createGroup',
     };
 
     API.write(WRITE_COMMANDS.UPDATE_DOMAIN_SECURITY_GROUP, params, {optimisticData, failureData, successData});

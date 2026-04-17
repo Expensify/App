@@ -111,6 +111,7 @@ function DomainGroupCreatePage({route}: DomainGroupCreatePageProps) {
                         clearDomainGroupCreatePreferredPolicyID();
                         Navigation.goBack(ROUTES.DOMAIN_GROUPS.getRoute(domainAccountID));
                     }}
+                    enabledWhenOffline
                     submitButtonText={translate('domain.groups.createGroupSubmitButton')}
                     style={[styles.flex1]}
                     submitButtonStyles={[styles.ph5, styles.pb3]}
