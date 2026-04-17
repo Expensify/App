@@ -110,6 +110,7 @@ const translations: TranslationDeepObject<typeof en> = {
         newFeature: 'Nieuwe functie',
         search: 'Zoeken',
         reports: 'Rapporten',
+        spend: 'Uitgaven',
         find: 'Zoeken',
         searchWithThreeDots: 'Zoeken...',
         next: 'Volgende',
@@ -1045,6 +1046,7 @@ const translations: TranslationDeepObject<typeof en> = {
             title: 'Aan de slag',
             createWorkspace: 'Maak een werkruimte',
             connectAccounting: ({integrationName}: {integrationName: string}) => `Verbind met ${integrationName}`,
+            connectAccountingDefault: 'Verbind met boekhouding',
             customizeCategories: 'Boekhoudcategorieën aanpassen',
             linkCompanyCards: 'Bedrijfspassen koppelen',
             setupRules: 'Uitgavenregels instellen',
@@ -1664,6 +1666,8 @@ const translations: TranslationDeepObject<typeof en> = {
             prompt: 'Schakel belastingregistratie in voor de workspace om de onkostendetails te bewerken of de belasting uit deze onkostendeclaratie te verwijderen.',
             confirmText: 'Belasting verwijderen',
         },
+        bulkDuplicateLimit: `Je kunt maximaal ${CONST.SEARCH.BULK_DUPLICATE_LIMIT} uitgaven tegelijk dupliceren. Selecteer minder uitgaven en probeer het opnieuw.`,
+        deleted: 'Verwijderd',
     },
     transactionMerge: {
         listPage: {
@@ -2107,6 +2111,9 @@ const translations: TranslationDeepObject<typeof en> = {
             helpSite: 'Helppagina',
             conciergeChat: 'Concierge',
             conciergeChatDescription: 'Je persoonlijke AI-agent',
+            accountManagerDescription: 'Je accountmanager',
+            partnerManagerDescription: 'Je partnerbeheerder',
+            guideDescription: 'Je instelspecialist',
         },
     },
     closeAccountPage: {
@@ -2601,6 +2608,9 @@ ${amount} voor ${merchant} - ${date}`,
     workflowsExpensesFromPage: {
         title: 'Uitgaven vanaf',
         header: 'Wanneer de volgende leden onkosten indienen:',
+        memberAlreadyInWorkflowTitle: 'Lid bevindt zich al in een workflow',
+        memberAlreadyInWorkflowPrompt: ({memberName, approverName}: {memberName: string; approverName: string}) =>
+            `${memberName} bevindt zich al in een goedkeuringsworkflow die indient bij ${approverName}. Door het lid hier toe te voegen, wordt het naar deze workflow verplaatst.`,
     },
     workflowsApproverPage: {
         genericErrorMessage: 'De fiatteur kon niet worden gewijzigd. Probeer het opnieuw of neem contact op met support.',
@@ -2903,11 +2913,13 @@ ${amount} voor ${merchant} - ${date}`,
             [CONST.ONBOARDING_CHOICES.LOOKING_AROUND]: 'Iets anders',
         },
         employees: {
-            title: 'Hoeveel werknemers heb je?',
-            [CONST.ONBOARDING_COMPANY_SIZE.MICRO]: '1-10 werknemers',
+            title: 'Hoeveel medewerkers heb je?',
+            [CONST.ONBOARDING_COMPANY_SIZE.MICRO_SMALL]: '1-4 medewerkers',
+            [CONST.ONBOARDING_COMPANY_SIZE.MICRO_MEDIUM]: '5-10 medewerkers',
+            [CONST.ONBOARDING_COMPANY_SIZE.MICRO]: '1-10 medewerkers',
             [CONST.ONBOARDING_COMPANY_SIZE.SMALL]: '11-50 medewerkers',
-            [CONST.ONBOARDING_COMPANY_SIZE.MEDIUM_SMALL]: '51-100 werknemers',
-            [CONST.ONBOARDING_COMPANY_SIZE.MEDIUM]: '101–1.000 werknemers',
+            [CONST.ONBOARDING_COMPANY_SIZE.MEDIUM_SMALL]: '51-100 medewerkers',
+            [CONST.ONBOARDING_COMPANY_SIZE.MEDIUM]: '101-1.000 werknemers',
             [CONST.ONBOARDING_COMPANY_SIZE.LARGE]: 'Meer dan 1.000 medewerkers',
         },
         accounting: {
@@ -4273,6 +4285,7 @@ ${amount} voor ${merchant} - ${date}`,
             budgetFrequencyUnit: {monthly: 'maand', yearly: 'jaar'},
             budgetTypeForNotificationMessage: {tag: 'tag', category: 'categorie'},
             deepDiveExpensifyCard: `<muted-text-label>Transacties met de Expensify Kaart worden automatisch geëxporteerd naar een "Expensify Kaart Passivarekening" dat wordt aangemaakt via <a href="${CONST.DEEP_DIVE_EXPENSIFY_CARD}">onze integratie</a>.</muted-text-label>`,
+            hr: 'HR',
         },
         receiptPartners: {
             uber: {
@@ -5486,6 +5499,12 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                             settlementAccountLabel: 'Verrekeningsrekening',
                             settlementFrequencyLabel: 'Uitbetalingsfrequentie',
                             settlementFrequencyDescription: 'Hoe vaak Expensify geld van uw zakelijke bankrekening zal incasseren om recente Expensify Travel-transacties te vereffenen.',
+                            monthlySpendLimitLabel: 'Maandelijks bestedingslimiet per lid',
+                            monthlySpendLimitDescription: 'Het maximale bedrag dat elk lid per maand aan reizen kan besteden.',
+                            reduceLimitTitle: 'Reisbestedingslimiet verlagen?',
+                            reduceLimitWarning: 'Als u het limiet verlaagt, kunnen leden die dit bedrag al hebben overschreden geen nieuwe reisboekingen maken tot volgende maand.',
+                            provisioningError:
+                                'We konden sommige leden van je workspace niet instellen voor centrale facturatie. Probeer het later opnieuw of neem contact op met Concierge voor hulp.',
                         },
                     },
                     disableModal: {
@@ -6893,6 +6912,31 @@ Voeg meer bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             }),
             subscriptions: 'Abonnementen',
         },
+        hr: {
+            title: 'HR',
+            subtitle: 'Koppel HR-tools en houd goedkeuringen van medewerkers gesynchroniseerd.',
+            settingsTitle: 'Gusto-instellingen',
+            syncStageName: ({stage}: SyncStageNameConnectionsParams) => {
+                switch (stage) {
+                    case 'startingImportGusto':
+                        return 'Gusto-gegevens importeren';
+                    case 'gustoSyncLoadCompany':
+                        return 'Gusto-bedrijfsgegevens laden';
+                    case 'gustoSyncImportEmployees':
+                        return 'Werknemers importeren';
+                    case 'gustoSyncBuildApprovalChains':
+                        return 'Goedkeuringstrajecten opbouwen';
+                    case 'gustoSyncFinalize':
+                        return 'Synchronisatie voltooien';
+                    case 'jobDone':
+                        return 'Wachten tot geïmporteerde gegevens zijn geladen';
+                    default: {
+                        return `Vertaling ontbreekt voor fase: ${stage}`;
+                    }
+                }
+            },
+            gusto: {title: 'Gusto', approvalMode: 'Goedkeuringsmodus', finalApprover: 'Laatste fiatteur'},
+        },
     },
     getAssistancePage: {
         title: 'Hulp krijgen',
@@ -7565,6 +7609,7 @@ Voeg meer bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             reject: 'Afwijzen',
             duplicateExpense: ({count}: {count: number}) => `${count === 1 ? 'Declaratie' : 'Declaraties'} dupliceren`,
             noOptionsAvailable: 'Geen opties beschikbaar voor de geselecteerde groep onkosten.',
+            undelete: 'Terugzetten',
         },
         filtersHeader: 'Filters',
         filters: {
@@ -7617,6 +7662,10 @@ Voeg meer bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             billable: 'Factureerbaar',
             reimbursable: 'Vergoedbaar',
             purchaseCurrency: 'Aankoopvaluta',
+            sortOrder: {
+                [CONST.SEARCH.SORT_ORDER.ASC]: 'Oplopend',
+                [CONST.SEARCH.SORT_ORDER.DESC]: 'Aflopend',
+            },
             groupBy: {
                 [CONST.SEARCH.GROUP_BY.FROM]: 'Van',
                 [CONST.SEARCH.GROUP_BY.CARD]: 'Kaart',
@@ -7645,6 +7694,7 @@ Voeg meer bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         display: {
             label: 'Weergave',
             sortBy: 'Sorteren op',
+            sortOrder: 'Sorteervolgorde',
             groupBy: 'Groeperen op',
             limitResults: 'Resultaten beperken',
         },
@@ -7668,7 +7718,7 @@ Voeg meer bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         recentSearches: 'Recente zoekopdrachten',
         recentChats: 'Recente chats',
         searchIn: 'Zoeken in',
-        searchPlaceholder: 'Zoek iets',
+        searchPlaceholder: 'Zoek iets...',
         suggestions: 'Suggesties',
         suggestionsAvailable: (
             {
@@ -9006,6 +9056,7 @@ Hier is een *proefbon* om je te laten zien hoe het werkt:`,
                 removeMember: 'Kan deze gebruiker niet verwijderen. Probeer het opnieuw.',
                 addMember: 'Kan dit lid niet toevoegen. Probeer het opnieuw.',
                 vacationDelegate: 'Kan deze gebruiker niet als vakantiemandataris instellen. Probeer het opnieuw.',
+                moveMember: 'Kan dit lid niet verplaatsen. Probeer het opnieuw.',
             },
             cannotSetVacationDelegateForMember: (email: string) =>
                 `Je kunt geen vakantiemandataris instellen voor ${email} omdat die persoon momenteel gedelegeerde is voor de volgende leden:`,
@@ -9014,6 +9065,8 @@ Hier is een *proefbon* om je te laten zien hoe het werkt:`,
             reportSuspiciousActivityConfirmationPrompt:
                 'We beoordelen de account om te verifiëren dat het veilig is om deze te ontgrendelen en nemen via Concierge contact op als we vragen hebben.',
             emptyMembers: {title: 'Geen leden in deze groep', subtitle: 'Voeg een lid toe of probeer het filter hierboven te wijzigen.'},
+            moveToGroup: 'Verplaatsen naar groep',
+            chooseWhereToMove: ({count}: {count: number}) => `Kies waar je ${count} ${count === 1 ? 'lid' : 'leden'} naartoe wilt verplaatsen.`,
         },
         common: {
             settings: 'Instellingen',

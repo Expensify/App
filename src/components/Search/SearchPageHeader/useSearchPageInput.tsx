@@ -15,6 +15,7 @@ import useFeedKeysWithAssignedCards from '@hooks/useFeedKeysWithAssignedCards';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useReportAttributes from '@hooks/useReportAttributes';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {navigateToAndOpenReport} from '@libs/actions/Report';
 import {setSearchContext} from '@libs/actions/Search';
@@ -42,6 +43,7 @@ function useSearchPageInput({queryJSON, onSearch, onSubmit}: UseSearchPageInputP
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['MagnifyingGlass']);
     const feedKeysWithCards = useFeedKeysWithAssignedCards();
     const personalDetails = usePersonalDetails();
+    const reportAttributes = useReportAttributes();
 
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [searchContext] = useOnyx(ONYXKEYS.SEARCH_CONTEXT);
@@ -77,6 +79,7 @@ function useSearchPageInput({queryJSON, onSearch, onSubmit}: UseSearchPageInputP
         autoCompleteWithSpace: true,
         translate,
         feedKeysWithCards,
+        reportAttributes,
     });
 
     useEffect(() => {
@@ -94,9 +97,10 @@ function useSearchPageInput({queryJSON, onSearch, onSubmit}: UseSearchPageInputP
             policies,
             currentUserAccountID,
             translate,
+            reportAttributes,
         );
         setAutocompleteSubstitutions(substitutionsMap);
-    }, [allFeeds, personalAndWorkspaceCards, originalInputQuery, personalDetails, reports, taxRates, policies, currentUserAccountID, translate]);
+    }, [allFeeds, personalAndWorkspaceCards, originalInputQuery, personalDetails, reports, taxRates, policies, currentUserAccountID, translate, reportAttributes]);
 
     useEffect(() => {
         const newValue = shouldShowQuery ? queryText : '';

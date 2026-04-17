@@ -80,8 +80,7 @@ import {getMovedReportID} from '@libs/ModifiedExpenseMessage';
 import type {LinkToOptions} from '@libs/Navigation/helpers/linkTo/types';
 import Navigation from '@libs/Navigation/Navigation';
 import enhanceParameters from '@libs/Network/enhanceParameters';
-import * as NetworkStore from '@libs/Network/NetworkStore';
-import NetworkConnection from '@libs/NetworkConnection';
+import {getDBTimeWithSkew, getIsOffline as isOfflineNetwork} from '@libs/NetworkState';
 import {buildNextStepNew, buildOptimisticNextStep} from '@libs/NextStepUtils';
 import LocalNotification from '@libs/Notification/LocalNotification';
 import {rand64} from '@libs/NumberUtils';
@@ -736,7 +735,7 @@ function addActions({
 
     // Always prefer the file as the last action over text
     const lastAction = attachmentAction ?? reportCommentAction;
-    const currentTime = NetworkConnection.getDBTimeWithSkew();
+    const currentTime = getDBTimeWithSkew();
     const lastComment = ReportActionsUtils.getReportActionMessage(lastAction);
     const lastCommentText = formatReportLastMessageText(lastComment?.text ?? '');
 
@@ -1956,7 +1955,7 @@ function createTransactionThreadReport(
 function navigateToReport(reportID: string | undefined, shouldDismissModal = true) {
     if (shouldDismissModal) {
         Navigation.dismissModal({
-            callback: () => {
+            afterTransition: () => {
                 if (!reportID) {
                     return;
                 }
@@ -2333,7 +2332,7 @@ function readNewestAction(reportID: string | undefined, hasOnceLoadedReportActio
         }
     }
 
-    const lastReadTime = NetworkConnection.getDBTimeWithSkew();
+    const lastReadTime = getDBTimeWithSkew();
 
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT>> = [
         {
@@ -2564,6 +2563,22 @@ function deleteReportComment(
         const originalMessage = ReportActionsUtils.getOriginalMessage(reportMentionWhisperAction);
         if (!originalMessage?.resolution && !originalMessage?.deleted) {
             unresolvedMentionWhisperIDs.push(reportMentionWhisperID);
+        }
+    }
+
+    // Whispers created during a message edit receive a random ID (not parentID+1/+2), but the
+    // backend stores the parent's reportActionID in originalMessage.parentReportActionID. Scan
+    // all actions to catch any such whispers that the offset lookup above would miss.
+    for (const [actionID, action] of Object.entries(reportActionsForReport)) {
+        if (unresolvedMentionWhisperIDs.includes(actionID)) {
+            continue;
+        }
+        if (!ReportActionsUtils.isActionableMentionWhisper(action) && !ReportActionsUtils.isActionableReportMentionWhisper(action)) {
+            continue;
+        }
+        const originalMessage = ReportActionsUtils.getOriginalMessage(action);
+        if (originalMessage?.parentReportActionID === reportActionID && !originalMessage?.resolution && !originalMessage?.deleted) {
+            unresolvedMentionWhisperIDs.push(actionID);
         }
     }
 
@@ -3644,8 +3659,7 @@ function buildNewReportOptimisticData(
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
-            // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
-            value: {[reportActionID]: {errorFields: {createReport: getMicroSecondOnyxErrorWithTranslationKey('report.genericCreateReportFailureMessage')}}},
+            value: {[reportActionID]: {errors: {createReport: getMicroSecondOnyxErrorWithTranslationKey('report.genericCreateReportFailureMessage')}}},
         },
 
         {
@@ -3674,8 +3688,7 @@ function buildNewReportOptimisticData(
             value: {
                 [reportActionID]: {
                     pendingAction: null,
-                    // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
-                    errorFields: null,
+                    errors: null,
                 },
             },
         },
@@ -3685,8 +3698,7 @@ function buildNewReportOptimisticData(
             value: {
                 [reportPreviewReportActionID]: {
                     pendingAction: null,
-                    // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
-                    errorFields: null,
+                    errors: null,
                 },
             },
         },
@@ -4116,11 +4128,6 @@ function shouldShowReportActionNotification(reportID: string, currentUserAccount
     // If this is a whisper targeted to someone else, don't show it
     if (action && ReportActionsUtils.isWhisperActionTargetedToOthers(action)) {
         Log.info(`${tag} No notification because the action is whispered to someone else`, false);
-        return false;
-    }
-
-    if (action && !ReportActionsUtils.isActionable(action, currentUserAccountID)) {
-        Log.info(`${tag} No notification because report action is not actionable`);
         return false;
     }
 
@@ -5189,7 +5196,7 @@ function searchForReports(isOffline: boolean, searchInput: string, policyID?: st
 
 function performServerSearch(searchInput: string, policyID?: string, isUserSearch = false) {
     // We are not getting isOffline from components as useEffect change will re-trigger the search on network change
-    const isOffline = NetworkStore.isOffline();
+    const isOffline = isOfflineNetwork();
     if (isOffline || !searchInput.trim().length) {
         Onyx.set(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS, false);
         return;
@@ -5962,11 +5969,10 @@ function deleteAppReport({
         value: null,
     });
 
-    // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
     failureData.push({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
-        value: reportActionsForReport,
+        value: reportActionsForReport ?? null,
     });
 
     // 7. Mark the iouReport as being deleted and then delete it
@@ -6460,12 +6466,11 @@ function dismissChangePolicyModal() {
             value: {
                 [CONST.CHANGE_POLICY_TRAINING_MODAL]: {
                     timestamp: DateUtils.getDBTime(date.valueOf()),
-                    dismissedMethod: 'click',
+                    dismissedMethod: 'click' as const,
                 },
             },
         },
     ];
-    // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
     API.write(WRITE_COMMANDS.DISMISS_PRODUCT_TRAINING, {name: CONST.CHANGE_POLICY_TRAINING_MODAL, dismissedMethod: 'click'}, {optimisticData});
 }
 
@@ -6711,11 +6716,10 @@ function buildOptimisticChangePolicyData(
             },
         });
 
-        // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${reportID}`,
-            value: reportNextStep,
+            value: reportNextStep ?? null,
         });
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
@@ -7089,6 +7093,7 @@ function changeReportPolicyAndInviteSubmitter({
     employeeList,
     formatPhoneNumber,
     isReportLastVisibleArchived,
+    reportNextStep,
 }: {
     report: Report;
     parentReport: OnyxEntry<Report>;
@@ -7101,6 +7106,7 @@ function changeReportPolicyAndInviteSubmitter({
     employeeList: PolicyEmployeeList | undefined;
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     isReportLastVisibleArchived: boolean | undefined;
+    reportNextStep: OnyxEntry<ReportNextStepDeprecated>;
 }) {
     if (!report.reportID || !policy?.id || report.policyID === policy.id || !isExpenseReport(report) || !report.ownerAccountID) {
         return;
@@ -7148,7 +7154,7 @@ function changeReportPolicyAndInviteSubmitter({
         hasViolationsParam,
         isASAPSubmitBetaEnabled,
         isReportLastVisibleArchived,
-        undefined,
+        reportNextStep,
         membersChats.reportCreationData[submitterEmail],
     );
 

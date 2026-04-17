@@ -1403,8 +1403,8 @@ describe('getSecondaryAction', () => {
         } as unknown as Transaction;
         const policy = {} as unknown as Policy;
 
-        jest.spyOn(ReportUtils, 'canHoldUnholdReportAction').mockReturnValueOnce({canHoldRequest: true, canUnholdRequest: true});
         jest.spyOn(ReportUtils, 'isAwaitingFirstLevelApproval').mockReturnValueOnce(false);
+        jest.spyOn(ReportUtils, 'isActionCreator').mockReturnValueOnce(true);
         jest.spyOn(ReportActionsUtils, 'getOneTransactionThreadReportID').mockReturnValueOnce(originalMessageR14932.IOUTransactionID);
         const result = getSecondaryReportActions({
             currentUserLogin: EMPLOYEE_EMAIL,

@@ -15,7 +15,7 @@ import shouldOpenOnAdminRoom from '@libs/Navigation/helpers/shouldOpenOnAdminRoo
 import willRouteNavigateToRHP from '@libs/Navigation/helpers/willRouteNavigateToRHP';
 import Navigation from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
-import type {NetworkStatus} from '@libs/NetworkConnection';
+import {getIsOffline} from '@libs/NetworkState';
 import {findLastAccessedReport, getReportIDFromLink, getRouteFromLink} from '@libs/ReportUtils';
 import shouldSkipDeepLinkNavigation from '@libs/shouldSkipDeepLinkNavigation';
 import {endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
@@ -32,17 +32,6 @@ import type {Beta, IntroSelected, Report} from '@src/types/onyx';
 import {doneCheckingPublicRoom, navigateToConciergeChat, openReport} from './Report';
 import {canAnonymousUserAccessRoute, isAnonymousUser, signOutAndRedirectToSignIn, waitForUserSignIn} from './Session';
 import {setOnboardingErrorMessage} from './Welcome';
-
-let isNetworkOffline = false;
-let networkStatus: NetworkStatus;
-// Use connectWithoutView since this is to open an external link and doesn't affect any UI
-Onyx.connectWithoutView({
-    key: ONYXKEYS.NETWORK,
-    callback: (value) => {
-        isNetworkOffline = value?.isOffline ?? false;
-        networkStatus = value?.networkStatus ?? CONST.NETWORK.NETWORK_STATUS.UNKNOWN;
-    },
-});
 
 let currentUserEmail = '';
 let currentUserAccountID = -1;
@@ -87,7 +76,7 @@ function openExternalLink(url: string, shouldSkipCustomSafariLogic = false, shou
 }
 
 function openOldDotLink(url: string, shouldOpenInSameTab = false) {
-    if (isNetworkOffline) {
+    if (getIsOffline()) {
         buildOldDotURL(url).then((oldDotURL) => openExternalLink(oldDotURL, undefined, shouldOpenInSameTab));
         return;
     }
@@ -255,7 +244,7 @@ function openReportFromDeepLink(
         openReport({reportID, introSelected, parentReportActionID: '0', isFromDeepLink: true, betas});
 
         // Show the sign-in page if the app is offline
-        if (networkStatus === CONST.NETWORK.NETWORK_STATUS.OFFLINE) {
+        if (getIsOffline()) {
             endSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.PUBLIC_ROOM_API);
             doneCheckingPublicRoom();
         }
@@ -278,6 +267,11 @@ function openReportFromDeepLink(
 
     // If the route is the transition route, we don't want to navigate and start the onboarding flow
     if (route?.includes(ROUTES.TRANSITION_BETWEEN_APPS)) {
+        return;
+    }
+
+    // The Plaid OAuth redirect URI is handled by the native Plaid SDK on iOS — skip navigation to avoid showing NotFound
+    if (route?.includes(CONST.PLAID.OAUTH_REDIRECT_PATH_IOS)) {
         return;
     }
 
