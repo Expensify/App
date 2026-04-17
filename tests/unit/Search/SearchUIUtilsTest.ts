@@ -6377,7 +6377,6 @@ describe('SearchUIUtils', () => {
 
             const reconciliationKeys = reconciliationSectionMenuItems.map((item) => item.key);
             expect(reconciliationKeys).toContain(CONST.SEARCH.SEARCH_KEYS.STATEMENTS);
-            expect(reconciliationKeys).toContain(CONST.SEARCH.SEARCH_KEYS.EXPENSIFY_CARD);
             expect(reconciliationKeys).toContain(CONST.SEARCH.SEARCH_KEYS.RECONCILIATION);
         });
 
@@ -6600,7 +6599,6 @@ describe('SearchUIUtils', () => {
             expect(reconciliationSectionMenuItems.length).toBeGreaterThan(0);
 
             const menuItemKeys = reconciliationSectionMenuItems.map((item) => item.key);
-            expect(menuItemKeys).not.toContain(CONST.SEARCH.SEARCH_KEYS.EXPENSIFY_CARD);
             expect(menuItemKeys).toContain(CONST.SEARCH.SEARCH_KEYS.RECONCILIATION);
         });
 
@@ -6634,11 +6632,10 @@ describe('SearchUIUtils', () => {
                 isTrackIntentUser: false,
             });
             const reconciliationSectionMenuItems = sections.flatMap((section) => section.menuItems.filter((item) => SearchUIUtils.RECONCILIATION_SEARCH_KEYS.has(item.key)));
-            expect(reconciliationSectionMenuItems).toBeGreaterThan(0);
+            expect(reconciliationSectionMenuItems.length).toBeGreaterThan(0);
 
             const menuItemKeys = reconciliationSectionMenuItems.map((item) => item.key);
-            expect(menuItemKeys).toContain(CONST.SEARCH.SEARCH_KEYS.EXPENSIFY_CARD);
-            expect(menuItemKeys).not.toContain(CONST.SEARCH.SEARCH_KEYS.RECONCILIATION);
+            expect(menuItemKeys).toContain(CONST.SEARCH.SEARCH_KEYS.RECONCILIATION);
             expect(menuItemKeys).not.toContain(CONST.SEARCH.SEARCH_KEYS.STATEMENTS);
         });
 

@@ -569,7 +569,7 @@ function doesSearchItemMatchSort(key: SearchKey, itemSortBy: string | undefined,
 
 const TODO_SEARCH_KEYS: ReadonlySet<SearchKey> = new Set([CONST.SEARCH.SEARCH_KEYS.SUBMIT, CONST.SEARCH.SEARCH_KEYS.APPROVE, CONST.SEARCH.SEARCH_KEYS.PAY, CONST.SEARCH.SEARCH_KEYS.EXPORT]);
 const MONTHLY_ACCRUAL_SEARCH_KEYS: ReadonlySet<SearchKey> = new Set([CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CASH, CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CARD]);
-const RECONCILIATION_SEARCH_KEYS: ReadonlySet<SearchKey> = new Set([CONST.SEARCH.SEARCH_KEYS.STATEMENTS, CONST.SEARCH.SEARCH_KEYS.EXPENSIFY_CARD, CONST.SEARCH.SEARCH_KEYS.RECONCILIATION]);
+const RECONCILIATION_SEARCH_KEYS: ReadonlySet<SearchKey> = new Set([CONST.SEARCH.SEARCH_KEYS.STATEMENTS, CONST.SEARCH.SEARCH_KEYS.RECONCILIATION]);
 
 /**
  * Creates a top search menu item with common structure for TOP_SPENDERS, TOP_CATEGORIES, and TOP_MERCHANTS
@@ -638,7 +638,7 @@ function getSuggestedSearches(
     accountID: number = CONST.DEFAULT_NUMBER_ID,
     defaultFeedID?: string,
     shouldShowExpensifyCard?: boolean,
-): Record<Exclude<ValueOf<typeof CONST.SEARCH.SEARCH_KEYS>, typeof CONST.SEARCH.SEARCH_KEYS.EXPENSIFY_CARD>, SearchTypeMenuItem> {
+): Record<ValueOf<typeof CONST.SEARCH.SEARCH_KEYS>, SearchTypeMenuItem> {
     return {
         [CONST.SEARCH.SEARCH_KEYS.EXPENSES]: {
             key: CONST.SEARCH.SEARCH_KEYS.EXPENSES,
@@ -999,7 +999,7 @@ function getSuggestedSearchesVisibility(
     cardFeedsByPolicy: Record<string, CardFeedForDisplay[]>,
     policies: OnyxCollection<OnyxTypes.Policy>,
     defaultExpensifyCard: CardFeedForDisplay | undefined,
-): {visibility: Record<ValueOf<typeof CONST.SEARCH.SEARCH_KEYS>, boolean>; hasGroupPoliciesWithExpenseChat: boolean} {
+): {visibility: Record<ValueOf<typeof CONST.SEARCH.SEARCH_KEYS>, boolean>; hasGroupPoliciesWithExpenseChat: boolean; shouldShowExpensifyCard: boolean} {
     let shouldShowSubmitSuggestion = false;
     let shouldShowPaySuggestion = false;
     let shouldShowApproveSuggestion = false;
@@ -1105,14 +1105,14 @@ function getSuggestedSearchesVisibility(
             [CONST.SEARCH.SEARCH_KEYS.STATEMENTS]: shouldShowStatementsSuggestion,
             [CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CASH]: shouldShowUnapprovedCashSuggestion,
             [CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CARD]: shouldShowUnapprovedCardSuggestion,
-            [CONST.SEARCH.SEARCH_KEYS.EXPENSIFY_CARD]: shouldShowExpensifyCardSuggestion,
-            [CONST.SEARCH.SEARCH_KEYS.RECONCILIATION]: shouldShowReimbursementsSuggestion,
+            [CONST.SEARCH.SEARCH_KEYS.RECONCILIATION]: shouldShowExpensifyCardSuggestion || shouldShowReimbursementsSuggestion,
             [CONST.SEARCH.SEARCH_KEYS.TOP_SPENDERS]: shouldShowTopSpendersSuggestion,
             [CONST.SEARCH.SEARCH_KEYS.TOP_CATEGORIES]: shouldShowTopCategoriesSuggestion,
             [CONST.SEARCH.SEARCH_KEYS.TOP_MERCHANTS]: shouldShowTopMerchantsSuggestion,
             [CONST.SEARCH.SEARCH_KEYS.SPEND_OVER_TIME]: shouldShowSpendOverTimeSuggestion,
         },
         hasGroupPoliciesWithExpenseChat,
+        shouldShowExpensifyCard: shouldShowExpensifyCardSuggestion,
     };
 }
 
@@ -4169,8 +4169,12 @@ function createTypeMenuSections(params: TypeMenuSectionsParams): SearchTypeMenuS
     } = params;
     const typeMenuSections: SearchTypeMenuSection[] = [];
 
-    const {visibility: suggestedSearchesVisibility, hasGroupPoliciesWithExpenseChat} = getSuggestedSearchesVisibility(currentUserEmail, cardFeedsByPolicy, policies, defaultExpensifyCard);
-    const suggestedSearches = getSuggestedSearches(currentUserAccountID, defaultCardFeed?.id, suggestedSearchesVisibility[CONST.SEARCH.SEARCH_KEYS.EXPENSIFY_CARD]);
+    const {
+        visibility: suggestedSearchesVisibility,
+        hasGroupPoliciesWithExpenseChat,
+        shouldShowExpensifyCard,
+    } = getSuggestedSearchesVisibility(currentUserEmail, cardFeedsByPolicy, policies, defaultExpensifyCard);
+    const suggestedSearches = getSuggestedSearches(currentUserAccountID, defaultCardFeed?.id, shouldShowExpensifyCard);
 
     // Expense reports section
     {
@@ -4286,7 +4290,7 @@ function createTypeMenuSections(params: TypeMenuSectionsParams): SearchTypeMenuS
                 },
             });
         }
-        if (suggestedSearchesVisibility[CONST.SEARCH.SEARCH_KEYS.EXPENSIFY_CARD] || suggestedSearchesVisibility[CONST.SEARCH.SEARCH_KEYS.RECONCILIATION]) {
+        if (suggestedSearchesVisibility[CONST.SEARCH.SEARCH_KEYS.RECONCILIATION]) {
             accountingSection.menuItems.push({
                 ...suggestedSearches[CONST.SEARCH.SEARCH_KEYS.RECONCILIATION],
                 emptyState: {

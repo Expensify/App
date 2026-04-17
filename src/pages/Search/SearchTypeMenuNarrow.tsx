@@ -112,7 +112,6 @@ function SearchTypeMenuNarrow({queryJSON, onTabPress}: SearchTypeMenuNarrowProps
         'Pencil',
         'Trashcan',
         'Document',
-        'Pencil',
         'ThumbsUp',
         'CheckCircle',
     ] as const);

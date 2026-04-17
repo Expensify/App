@@ -88,8 +88,8 @@ function SearchTypeMenuWide({queryJSON}: SearchTypeMenuProps) {
     for (const section of typeMenuSections) {
         sectionStartIndices.push((sectionStartIndices.at(-1) ?? 0) + section.menuItems.length);
     }
-    const exploreSection = typeMenuSections.find((section) => section.translationPath === 'search.tabs.expenseReports');
-    const nonExploreSections = typeMenuSections.filter((section) => section.translationPath !== 'search.tabs.expenseReports');
+    const expenseReportsSection = typeMenuSections.find((section) => section.translationPath === 'search.tabs.expenseReports');
+    const nonExpenseReportsSections = typeMenuSections.filter((section) => section.translationPath !== 'search.tabs.expenseReports');
 
     const handleTypeMenuItemPress = singleExecution((searchQuery: string) => {
         clearSelectedTransactions();
@@ -140,12 +140,12 @@ function SearchTypeMenuWide({queryJSON}: SearchTypeMenuProps) {
             showsVerticalScrollIndicator={false}
         >
             <View style={[styles.pb4, styles.mh3, styles.gap4]}>
-                {!!exploreSection && renderSection(exploreSection, 0)}
+                {!!expenseReportsSection && renderSection(expenseReportsSection, 0)}
 
                 {areSuggestedSearchesLoading ? (
-                    <SuggestedSearchSkeleton sectionCount={nonExploreSections.length || 2} />
+                    <SuggestedSearchSkeleton sectionCount={nonExpenseReportsSections.length || 2} />
                 ) : (
-                    nonExploreSections.map((section, index) => renderSection(section, index + (exploreSection ? 1 : 0)))
+                    nonExpenseReportsSections.map((section, index) => renderSection(section, index + (expenseReportsSection ? 1 : 0)))
                 )}
             </View>
         </ScrollView>
