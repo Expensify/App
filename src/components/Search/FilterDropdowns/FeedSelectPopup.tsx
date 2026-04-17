@@ -1,11 +1,11 @@
 import React, {useEffect} from 'react';
+import useFilterFeedData from '@components/Search/hooks/useFilterFeedData';
 import MultiSelectFilterPopup from '@components/Search/SearchPageHeader/MultiSelectFilterPopup';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import {openSearchCardFiltersPage} from '@libs/actions/Search';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
-import useFilterFeedData from '../hooks/useFilterFeedData';
 
 type FeedSelectPopupProps = {
     isExpanded: boolean;
