@@ -1,5 +1,5 @@
 import lodashIsEmpty from 'lodash/isEmpty';
-import React, {useMemo, useState} from 'react';
+import React, {useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import FormHelpMessage from '@components/FormHelpMessage';
 import SelectionList from '@components/SelectionList';
@@ -111,7 +111,7 @@ function IOURequestStepDistanceRate({
     const rates = DistanceRequestUtils.getMileageRates(policy, false, currentRateID);
     const isMovingTransactionFromTrackExpense = isMovingTransactionFromTrackExpenseUtil(action);
     const transactionUnit = transaction?.comment?.customUnit?.distanceUnit;
-    const sortedRates = useMemo(() => Object.values(rates).sort((a, b) => localeCompare(a.name ?? '', b.name ?? '')), [rates, localeCompare]);
+    const sortedRates = [...Object.values(rates)].sort((a, b) => localeCompare(a.name ?? '', b.name ?? ''));
 
     const navigateBack = () => {
         Navigation.goBack(backTo);
