@@ -593,6 +593,8 @@ describe('actions/IOU/ReportWorkflow', () => {
                                 policyName: policy.name,
                                 lastAccessedWorkspacePolicyID: undefined,
                                 policyCardFeeds: undefined,
+                                policyExpensifyCardSettings: undefined,
+                                policyExpensifyCardsList: undefined,
                                 reportsToArchive: reportToArchive,
                                 transactionViolations: undefined,
                                 reimbursementAccountError: undefined,
