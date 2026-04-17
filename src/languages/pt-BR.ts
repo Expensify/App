@@ -110,6 +110,7 @@ const translations: TranslationDeepObject<typeof en> = {
         newFeature: 'Novo recurso',
         search: 'Buscar',
         reports: 'Relatórios',
+        spend: 'Gastos',
         find: 'Localizar',
         searchWithThreeDots: 'Buscar...',
         next: 'Próximo',
@@ -1044,6 +1045,7 @@ const translations: TranslationDeepObject<typeof en> = {
             title: 'Introdução',
             createWorkspace: 'Criar um workspace',
             connectAccounting: ({integrationName}: {integrationName: string}) => `Conectar ao ${integrationName}`,
+            connectAccountingDefault: 'Conectar à contabilidade',
             customizeCategories: 'Personalizar categorias contábeis',
             linkCompanyCards: 'Vincular cartões corporativos',
             setupRules: 'Configurar regras de gasto',
@@ -1661,6 +1663,7 @@ const translations: TranslationDeepObject<typeof en> = {
             prompt: 'Ative o acompanhamento de impostos no espaço de trabalho para editar os detalhes da despesa ou excluir o imposto desta despesa.',
             confirmText: 'Excluir imposto',
         },
+        deleted: 'Excluído',
     },
     transactionMerge: {
         listPage: {
@@ -2103,6 +2106,9 @@ const translations: TranslationDeepObject<typeof en> = {
             helpSite: 'Site de ajuda',
             conciergeChat: 'Concierge',
             conciergeChatDescription: 'Seu agente de IA pessoal',
+            accountManagerDescription: 'Seu gerente de conta',
+            partnerManagerDescription: 'Seu gerente de parcerias',
+            guideDescription: 'Seu especialista de configuração',
         },
     },
     closeAccountPage: {
@@ -5481,6 +5487,12 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                             settlementFrequencyLabel: 'Frequência de liquidação',
                             settlementFrequencyDescription:
                                 'Com que frequência o Expensify vai debitar da sua conta bancária empresarial para liquidar as transações recentes do Expensify Travel.',
+                            monthlySpendLimitLabel: 'Limite de gastos mensal por membro',
+                            monthlySpendLimitDescription: 'O valor máximo que cada membro pode gastar em viagens por mês.',
+                            reduceLimitTitle: 'Reduzir o limite de gastos com viagens?',
+                            reduceLimitWarning: 'Se você reduzir o limite, os membros que já gastaram mais do que esse valor não poderão fazer novas reservas de viagem até o próximo mês.',
+                            provisioningError:
+                                'Não conseguimos provisionar alguns membros do seu workspace para faturamento centralizado. Tente novamente mais tarde ou entre em contato com o Concierge para obter ajuda.',
                         },
                     },
                     disableModal: {
@@ -7558,6 +7570,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             reject: 'Rejeitar',
             duplicateExpense: ({count}: {count: number}) => `Duplicar ${count === 1 ? 'despesa' : 'despesas'}`,
             noOptionsAvailable: 'Nenhuma opção disponível para o grupo de despesas selecionado.',
+            undelete: 'Restaurar',
         },
         filtersHeader: 'Filtros',
         filters: {
@@ -7610,6 +7623,10 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             billable: 'Faturável',
             reimbursable: 'Reembolsável',
             purchaseCurrency: 'Moeda de compra',
+            sortOrder: {
+                [CONST.SEARCH.SORT_ORDER.ASC]: 'Ascendente',
+                [CONST.SEARCH.SORT_ORDER.DESC]: 'Descendo',
+            },
             groupBy: {
                 [CONST.SEARCH.GROUP_BY.FROM]: 'De',
                 [CONST.SEARCH.GROUP_BY.CARD]: 'Cartão',
@@ -7638,6 +7655,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
         display: {
             label: 'Exibir',
             sortBy: 'Ordenar por',
+            sortOrder: 'Ordem de classificação',
             groupBy: 'Agrupar por',
             limitResults: 'Limitar resultados',
         },
@@ -7657,7 +7675,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
         recentSearches: 'Pesquisas recentes',
         recentChats: 'Chats recentes',
         searchIn: 'Pesquisar em',
-        searchPlaceholder: 'Pesquisar algo',
+        searchPlaceholder: 'Pesquisar algo...',
         suggestions: 'Sugestões',
         suggestionsAvailable: (
             {
@@ -8998,12 +9016,15 @@ Aqui está um *comprovante de teste* para mostrar como funciona:`,
                 removeMember: 'Não foi possível remover este usuário. Tente novamente.',
                 addMember: 'Não foi possível adicionar este membro. Tente novamente.',
                 vacationDelegate: 'Não foi possível definir este usuário como delegado de férias. Tente novamente.',
+                moveMember: 'Não foi possível mover este membro. Tente novamente.',
             },
             cannotSetVacationDelegateForMember: (email: string) => `Você não pode definir um procurador de férias para ${email} porque esta pessoa já é procuradora dos seguintes membros:`,
             reportSuspiciousActivityPrompt: (email: string) =>
                 `Tem certeza? Isso irá bloquear a conta de <strong>${email}</strong>. <br /><br /> Nossa equipe irá então analisar a conta e remover qualquer acesso não autorizado. Para recuperar o acesso, será necessário que trabalhem com a Concierge.`,
             reportSuspiciousActivityConfirmationPrompt: 'Vamos revisar a conta para verificar se é seguro desbloqueá-la e entraremos em contato via Concierge caso haja dúvidas.',
             emptyMembers: {title: 'Nenhum membro neste grupo', subtitle: 'Adicione um membro ou tente mudar o filtro acima.'},
+            moveToGroup: 'Mover para grupo',
+            chooseWhereToMove: ({count}: {count: number}) => `Escolha para onde mover ${count} ${count === 1 ? 'membro' : 'membros'}.`,
         },
         common: {
             settings: 'Configurações',
