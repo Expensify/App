@@ -1600,6 +1600,7 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         duplicateNonDefaultWorkspacePerDiemError: 'No puedes duplicar gastos de viáticos entre espacios de trabajo porque las tarifas pueden variar entre ellos.',
         cannotDuplicateDistanceExpense: 'No puedes duplicar gastos de distancia entre espacios de trabajo porque las tasas pueden diferir entre espacios de trabajo.',
+        bulkDuplicateLimit: `Solo puedes duplicar hasta ${CONST.SEARCH.BULK_DUPLICATE_LIMIT} gastos a la vez. Por favor, selecciona menos gastos e inténtalo de nuevo.`,
         taxDisabledAlert: {
             title: 'Impuesto deshabilitado',
             prompt: 'Habilita el seguimiento de impuestos en el espacio de trabajo para editar los detalles del gasto o eliminar el impuesto de este gasto.',

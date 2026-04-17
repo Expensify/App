@@ -7540,6 +7540,7 @@ const CONST = {
             DUPLICATE: 'duplicate',
             UNDELETE: 'undelete',
         },
+        BULK_DUPLICATE_LIMIT: 50,
         TRANSACTION_TYPE: {
             CASH: 'cash',
             CARD: 'card',

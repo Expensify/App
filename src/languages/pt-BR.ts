@@ -1663,6 +1663,7 @@ const translations: TranslationDeepObject<typeof en> = {
             prompt: 'Ative o acompanhamento de impostos no espaço de trabalho para editar os detalhes da despesa ou excluir o imposto desta despesa.',
             confirmText: 'Excluir imposto',
         },
+        bulkDuplicateLimit: `Você pode duplicar até ${CONST.SEARCH.BULK_DUPLICATE_LIMIT} despesas por vez. Selecione menos despesas e tente novamente.`,
         deleted: 'Excluído',
     },
     transactionMerge: {

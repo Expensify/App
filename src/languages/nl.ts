@@ -1666,6 +1666,7 @@ const translations: TranslationDeepObject<typeof en> = {
             prompt: 'Schakel belastingregistratie in voor de workspace om de onkostendetails te bewerken of de belasting uit deze onkostendeclaratie te verwijderen.',
             confirmText: 'Belasting verwijderen',
         },
+        bulkDuplicateLimit: `Je kunt maximaal ${CONST.SEARCH.BULK_DUPLICATE_LIMIT} uitgaven tegelijk dupliceren. Selecteer minder uitgaven en probeer het opnieuw.`,
         deleted: 'Verwijderd',
     },
     transactionMerge: {
