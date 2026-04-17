@@ -6484,34 +6484,36 @@ ${amount} para ${merchant} - ${date}`,
             },
             roles: {
                 title: 'Roles',
-                description: 'Gestiona los roles de los miembros como Administrador y Auditor para controlar el acceso y los permisos dentro de tu espacio de trabajo.',
+                description: 'Asigna diferentes roles a diferentes miembros para aumentar o disminuir la visibilidad y el control según corresponda.',
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}) =>
-                    `<muted-text>Los roles solo están disponibles en los planes de pago, a partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `por miembro al mes.` : `por miembro activo al mes.`}</muted-text>`,
+                    `<muted-text>Los roles están disponibles en los planes Recopilar y Controlar, a partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `por miembro al mes.` : `por miembro activo al mes.`}</muted-text>`,
             },
             payments: {
                 title: 'Pagos',
-                description: 'Configura pagos para reembolsar a los empleados directamente a través de Expensify con transferencias bancarias u otros métodos de pago.',
+                description: 'Reembolsa a los empleados directamente desde la cuenta bancaria de tu empresa.',
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}) =>
-                    `<muted-text>Los pagos solo están disponibles en los planes de pago, a partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `por miembro al mes.` : `por miembro activo al mes.`}</muted-text>`,
+                    `<muted-text>Los pagos están disponibles en los planes Recopilar y Controlar, a partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `por miembro al mes.` : `por miembro activo al mes.`}</muted-text>`,
             },
             accounting: {
                 title: 'Contabilidad',
-                description: 'Conecta tu software de contabilidad para sincronizar automáticamente los datos de gastos y optimizar tus flujos de trabajo financieros.',
+                description:
+                    'Sincroniza categorías, etiquetas, tasas de impuestos y más desde tu sistema contable a Expensify, además de exportar informes de gastos y transacciones de tarjetas, ¡sin necesidad de escribir (ni errores tipográficos)!',
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}) =>
-                    `<muted-text>Las integraciones de contabilidad solo están disponibles en los planes de pago, a partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `por miembro al mes.` : `por miembro activo al mes.`}</muted-text>`,
+                    `<muted-text>La contabilidad está disponible en los planes Recopilar y Controlar, a partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `por miembro al mes.` : `por miembro activo al mes.`}</muted-text>`,
             },
             expensifyCard: {
                 title: 'Tarjeta Expensify',
-                description: 'Emite tarjetas Expensify a tu equipo para el seguimiento de gastos en tiempo real, límites inteligentes y reembolso en cada compra.',
+                description:
+                    'Emite tarjetas de empresa (incluidas tarjetas virtuales) directamente desde tu propia cuenta bancaria para obtener control de gastos en tiempo real con una conexión irrompible, ¡y hasta un 2% de reembolso!',
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}) =>
-                    `<muted-text>La Tarjeta Expensify solo está disponible en los planes de pago, a partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `por miembro al mes.` : `por miembro activo al mes.`}</muted-text>`,
+                    `<muted-text>La Tarjeta Expensify está disponible en los planes Recopilar y Controlar, a partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `por miembro al mes.` : `por miembro activo al mes.`}</muted-text>`,
                 upgradeButton: 'Actualizar y activar',
             },
             invoicing: {
                 title: 'Facturación',
-                description: 'Envía facturas directamente desde tu espacio de trabajo y rastrea los pagos en un solo lugar.',
+                description: 'Crea, envía y rastrea facturas profesionales, todo dentro de Expensify. Recibe pagos más rápido con pagos integrados y visibilidad en tiempo real.',
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}) =>
-                    `<muted-text>La facturación solo está disponible en los planes de pago, a partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `por miembro al mes.` : `por miembro activo al mes.`}</muted-text>`,
+                    `<muted-text>La facturación está disponible en los planes Recopilar y Controlar, a partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `por miembro al mes.` : `por miembro activo al mes.`}</muted-text>`,
             },
             note: (subscriptionLink) => `<muted-text>Mejore para acceder a esta función, o <a href="${subscriptionLink}">más información</a> sobre nuestros planes y precios.</muted-text>`,
             pricing: {
