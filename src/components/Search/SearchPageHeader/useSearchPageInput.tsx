@@ -105,7 +105,6 @@ function useSearchPageInput({queryJSON, onSearch, onSubmit}: UseSearchPageInputP
     useEffect(() => {
         const newValue = shouldShowQuery ? queryText : '';
 
-        console.log('query', newValue);
         setTextInputValue(newValue);
         setAutocompleteQueryValue(newValue);
     }, [queryText, shouldShowQuery]);
