@@ -230,6 +230,8 @@ function DisplayPopup({queryJSON, searchResults, closeOverlay, onSort}: DisplayP
                     onChange={(value) => updateFilterForm({limit: value})}
                 />
             );
+        default:
+            return null;
     }
 }
 

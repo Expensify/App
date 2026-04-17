@@ -508,7 +508,7 @@ function MoneyRequestReportTransactionList({
                 </View>
             </View>
         ),
-        [groupByOptions, reportLayoutGroupBy, styles, windowHeight, isSmallScreenWidth, isInLandscapeMode],
+        [groupByOptions, reportLayoutGroupBy, styles, windowHeight, isInLandscapeMode],
     );
 
     const transactionListContent = (
