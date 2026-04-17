@@ -1106,10 +1106,11 @@ function bulkDuplicateReports({
 
         const reportPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
         const isSourcePolicyValid = !!reportPolicy && isPolicyAccessible(reportPolicy, currentUserLogin);
-        const targetPolicy = isSourcePolicyValid ? reportPolicy : defaultExpensePolicy;
         const chatReportID = report.chatReportID ?? report.parentReportID;
         const chatReport = chatReportID ? allReports[`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`] : undefined;
-        const parentChatReport = isSourcePolicyValid && chatReport ? chatReport : activePolicyExpenseChat;
+        const useSourcePolicy = isSourcePolicyValid && !!chatReport;
+        const targetPolicy = useSourcePolicy ? reportPolicy : defaultExpensePolicy;
+        const parentChatReport = useSourcePolicy ? chatReport : activePolicyExpenseChat;
         const targetPolicyCategories = allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${targetPolicy?.id}`] ?? {};
         const targetPolicyTags = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${targetPolicy?.id}`] ?? {};
 
