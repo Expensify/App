@@ -2842,7 +2842,7 @@ const translations = {
     },
     inboxTabs: {
         all: 'All',
-        todo: 'To do',
+        todo: 'To-do',
         expenses: 'Expenses',
         dms: 'DMs',
         unreadToggle: 'Unreads',
