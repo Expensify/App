@@ -191,7 +191,8 @@ This helps future investigators understand the history and current status of err
 16. Please pay attention to the pull request template, especially to how we link PRs with issues they fix. Make sure you don't use GitHub keywords such as `fixes` in your PR description, as this can break our current automated steps for issue management. Follow the PR template format carefully.
 17. Upon submission of a PR, please include a numbered list of explicit testing steps for each platform (Web, iOS, Android, and Mobile Web) to confirm the fix works as expected and there are no regressions.
 18. Please add a screenshot of the app running on each platform (Web, iOS, Android, Mobile Web).
-19. Please review the [PR Authoring & Reviewing Best Practices](./PR_AUTHOR_REVIEWER_BEST_PRACTICES.md) for standards on PR titles, testing responsibilities, and the review workflow.
+19. If help site updates are needed, a comment will be added to your PR and a draft help site PR will be created and assigned to you. Review the draft, confirm it accurately reflects the product change, and mark it Ready for review once complete.
+20. Please review the [PR Authoring & Reviewing Best Practices](./PR_AUTHOR_REVIEWER_BEST_PRACTICES.md) for standards on PR titles, testing responsibilities, and the review workflow.
 
 ### Completing the final checklist
 20. Once your PR has been deployed to production, a checklist will automatically be commented in the GH issue. You're required to complete the steps that have your name mentioned before payment will be issued.
