@@ -531,26 +531,6 @@ type SearchDateModifierLower = Lowercase<SearchDateModifier>;
 
 type ArchivedReportsIDSet = ReadonlySet<string>;
 
-/** Row array returned by `getSections`, plus total count and whether any transaction is in the trash (wide action column). */
-type GetSectionsReturnTuple = readonly [
-    | ReportActionListItemType[]
-    | TaskListItemType[]
-    | TransactionListItemType[]
-    | TransactionGroupListItemType[]
-    | TransactionMemberGroupListItemType[]
-    | TransactionCardGroupListItemType[]
-    | TransactionWithdrawalIDGroupListItemType[]
-    | TransactionCategoryGroupListItemType[]
-    | TransactionMerchantGroupListItemType[]
-    | TransactionTagGroupListItemType[]
-    | TransactionMonthGroupListItemType[]
-    | TransactionWeekGroupListItemType[]
-    | TransactionYearGroupListItemType[]
-    | TransactionQuarterGroupListItemType[],
-    number,
-    boolean,
-];
-
 type GetSectionsParams = {
     type: SearchDataTypes;
     data: OnyxTypes.SearchResults['data'];
@@ -3433,7 +3413,7 @@ function getSections({
     conciergeReportID,
     onyxPersonalDetailsList,
     policyForMovingExpenses,
-}: GetSectionsParams): GetSectionsReturnTuple {
+}: GetSectionsParams) {
     if (type === CONST.SEARCH.DATA_TYPES.CHAT) {
         return [...getReportActionsSections(data, visibleReportActionsData), false];
     }
