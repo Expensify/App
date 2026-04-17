@@ -13,10 +13,11 @@ const ROTATION_REFOCUS_DELAY_MS = 100;
 const useLandscapeOnBlurProxy: UseLandscapeOnBlurProxy = (inputRef, onBlur) => {
     const isInLandscapeMode = useIsInLandscapeMode();
     const prevIsInLandscapeMode = usePrevious(isInLandscapeMode);
-    const {isKeyboardAnimatingRef} = useKeyboardState();
+    const {isKeyboardAnimatingRef, isKeyboardActive} = useKeyboardState();
 
     return (e) => {
-        if ((prevIsInLandscapeMode !== isInLandscapeMode || isKeyboardAnimatingRef.current) && isInLandscapeMode) {
+        const isKeyboardOpening = isKeyboardAnimatingRef.current && isKeyboardActive;
+        if ((prevIsInLandscapeMode !== isInLandscapeMode || isKeyboardOpening) && isInLandscapeMode) {
             setTimeout(() => inputRef.current?.focus?.(), ROTATION_REFOCUS_DELAY_MS);
         }
         onBlur?.(e);

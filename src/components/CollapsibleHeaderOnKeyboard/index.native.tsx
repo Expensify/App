@@ -113,7 +113,7 @@ function CollapsibleHeaderOnKeyboard({children, collapsibleHeaderOffset = 0}: Co
     const outerStyle = useAnimatedStyle(() => {
         // When fully open, leave height undefined so the view sizes itself naturally.
         // This avoids fighting the layout engine during orientation changes.
-        if (animatedHeight.get() > naturalHeight.get()) {
+        if (animatedHeight.get() >= naturalHeight.get()) {
             return {overflow: 'hidden'};
         }
         return {height: animatedHeight.get(), overflow: 'hidden'};
@@ -123,7 +123,7 @@ function CollapsibleHeaderOnKeyboard({children, collapsibleHeaderOffset = 0}: Co
     // so it goes from 0 (fully open) to -naturalHeight (fully collapsed), making the header
     // appear to exit through the top while the outer clip hides it progressively.
     const innerStyle = useAnimatedStyle(() => {
-        if (animatedHeight.get() > naturalHeight.get()) {
+        if (animatedHeight.get() >= naturalHeight.get()) {
             return {};
         }
         return {transform: [{translateY: animatedHeight.get() - naturalHeight.get()}]};
