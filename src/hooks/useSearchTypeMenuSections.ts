@@ -156,7 +156,6 @@ const useSearchTypeMenuSections = (queryParams?: UseSearchTypeMenuSectionsParams
         const typeToGenericKey: Record<string, string> = {
             [CONST.SEARCH.DATA_TYPES.EXPENSE]: CONST.SEARCH.SEARCH_KEYS.EXPENSES,
             [CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT]: CONST.SEARCH.SEARCH_KEYS.REPORTS,
-            [CONST.SEARCH.DATA_TYPES.CHAT]: CONST.SEARCH.SEARCH_KEYS.CHATS,
         };
         const fallbackKey = type ? typeToGenericKey[type] : undefined;
         if (fallbackKey) {

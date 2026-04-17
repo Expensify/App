@@ -16,17 +16,16 @@ import staticPolicyInfoSelector from './staticPolicyInfoSelector';
 const suggestedSearches = getSuggestedSearches();
 const reportsSearch = suggestedSearches[CONST.SEARCH.SEARCH_KEYS.REPORTS];
 const expensesSearch = suggestedSearches[CONST.SEARCH.SEARCH_KEYS.EXPENSES];
-const chatsSearch = suggestedSearches[CONST.SEARCH.SEARCH_KEYS.CHATS];
 const submitSearch = suggestedSearches[CONST.SEARCH.SEARCH_KEYS.SUBMIT];
 
 function getActiveKey(similarSearchHash: number, hasPaidGroupPolicy: boolean): string {
-    const candidates = [reportsSearch, expensesSearch, chatsSearch, ...(hasPaidGroupPolicy ? [submitSearch] : [])];
+    const candidates = [reportsSearch, expensesSearch, ...(hasPaidGroupPolicy ? [submitSearch] : [])];
     return candidates.find((entry) => similarSearchHash === entry.similarSearchHash)?.key ?? reportsSearch.key;
 }
 
 function StaticSearchTypeMenu({queryJSON}: {queryJSON: SearchQueryJSON}) {
     const {translate} = useLocalize();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Receipt', 'Document', 'ChatBubbles', 'Send'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Receipt', 'Document', 'Pencil']);
     const [policyInfo] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: staticPolicyInfoSelector});
     const hasPaidGroupPolicy = policyInfo?.hasPaidGroupPolicy ?? false;
 
@@ -34,11 +33,10 @@ function StaticSearchTypeMenu({queryJSON}: {queryJSON: SearchQueryJSON}) {
         const result: TabSelectorBaseItem[] = [
             {key: reportsSearch.key, icon: expensifyIcons.Document, title: translate(reportsSearch.translationPath)},
             {key: expensesSearch.key, icon: expensifyIcons.Receipt, title: translate(expensesSearch.translationPath)},
-            {key: chatsSearch.key, icon: expensifyIcons.ChatBubbles, title: translate(chatsSearch.translationPath)},
         ];
 
         if (hasPaidGroupPolicy) {
-            result.push({key: submitSearch.key, icon: expensifyIcons.Send, title: translate(submitSearch.translationPath)});
+            result.push({key: submitSearch.key, icon: expensifyIcons.Pencil, title: translate(submitSearch.translationPath)});
         }
 
         return result;
