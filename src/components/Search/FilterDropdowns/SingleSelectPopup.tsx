@@ -1,4 +1,4 @@
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {Activity, useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
 import SelectionList from '@components/SelectionList';
@@ -6,6 +6,7 @@ import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelec
 import type {ListItem, SelectionListStyle} from '@components/SelectionList/types';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import CONST from '@src/CONST';
@@ -45,6 +46,9 @@ type SingleSelectPopupProps<T> = {
 
     /** Custom styles for the SelectionList */
     selectionListStyle?: SelectionListStyle;
+
+    /** Whether SelectionList of popup should stay mounted when popup is not visible. */
+    shouldShowList?: boolean;
 };
 
 function SingleSelectPopup<T extends string>({
@@ -58,9 +62,12 @@ function SingleSelectPopup<T extends string>({
     defaultValue,
     style,
     selectionListStyle,
+    shouldShowList = true,
 }: SingleSelectPopupProps<T>) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
+    const {isSmallScreenWidth, isInLandscapeMode} = useResponsiveLayout();
     const {windowHeight} = useWindowDimensions();
     const [selectedItem, setSelectedItem] = useState(value);
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
@@ -124,6 +131,8 @@ function SingleSelectPopup<T extends string>({
         [searchTerm, isSearchable, searchPlaceholder, translate, setSearchTerm, noResultsFound],
     );
 
+    const shouldShowLabel = isSmallScreenWidth && !!label;
+
     return (
         <BasePopup
             label={label}
@@ -133,18 +142,20 @@ function SingleSelectPopup<T extends string>({
             applySentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY_SINGLE_SELECT}
             style={style}
         >
-            <View style={[styles.getSelectionListPopoverHeight(options.length || 1, windowHeight, isSearchable ?? false)]}>
-                <SelectionList
-                    data={options}
-                    shouldSingleExecuteRowSelect
-                    ListItem={SingleSelectListItem}
-                    onSelectRow={updateSelectedItem}
-                    textInputOptions={textInputOptions}
-                    style={selectionListStyle}
-                    shouldUpdateFocusedIndex={isSearchable}
-                    initiallyFocusedItemKey={isSearchable ? value?.value : undefined}
-                    shouldShowLoadingPlaceholder={!noResultsFound}
-                />
+            <View style={[styles.getSelectionListPopoverHeight(options.length || 1, windowHeight, isSearchable ?? false, isInLandscapeMode, shouldShowLabel)]}>
+                <Activity mode={shouldShowList ? 'visible' : 'hidden'}>
+                    <SelectionList
+                        data={options}
+                        shouldSingleExecuteRowSelect
+                        ListItem={SingleSelectListItem}
+                        onSelectRow={updateSelectedItem}
+                        textInputOptions={textInputOptions}
+                        style={{contentContainerStyle: [styles.pb0], ...selectionListStyle}}
+                        shouldUpdateFocusedIndex={isSearchable}
+                        initiallyFocusedItemKey={isSearchable ? value?.value : undefined}
+                        shouldShowLoadingPlaceholder={!noResultsFound}
+                    />
+                </Activity>
             </View>
         </BasePopup>
     );

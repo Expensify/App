@@ -63,6 +63,9 @@ type UserWallet = {
 
     /** The type of setup for adding the bank account */
     setupType?: SetupType;
+
+    /** Whether the wallet data is currently being loaded from the server */
+    isLoading?: boolean;
 };
 
 export default UserWallet;
