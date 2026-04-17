@@ -3155,7 +3155,11 @@ function getCategorySections(data: OnyxTypes.SearchResults['data'], queryJSON: S
  *
  * Do not use directly, use only via `getSections()` facade.
  */
-function getMerchantSections(data: OnyxTypes.SearchResults['data'], queryJSON: SearchQueryJSON | undefined, translate: LocalizedTranslate): [TransactionMerchantGroupListItemType[], number, boolean] {
+function getMerchantSections(
+    data: OnyxTypes.SearchResults['data'],
+    queryJSON: SearchQueryJSON | undefined,
+    translate: LocalizedTranslate,
+): [TransactionMerchantGroupListItemType[], number, boolean] {
     const merchantSections: Record<string, TransactionMerchantGroupListItemType> = {};
 
     for (const key in data) {
