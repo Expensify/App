@@ -33,6 +33,7 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {
     isMovingTransactionFromTrackExpense as isMovingTransactionFromTrackExpenseIOUUtils,
     navigateToStartMoneyRequestStep,
+    resolveReportForMoneyRequest,
     shouldShowReceiptEmptyState,
     shouldUseTransactionDraft,
 } from '@libs/IOUUtils';
@@ -40,7 +41,7 @@ import isReportTopmostSplitNavigator from '@libs/Navigation/helpers/isReportTopm
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
-import {getReportOrDraftReport, isMoneyRequestReport, isSelectedManagerMcTest, resolveReportForMoneyRequest} from '@libs/ReportUtils';
+import {getReportOrDraftReport, isMoneyRequestReport, isSelectedManagerMcTest} from '@libs/ReportUtils';
 import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {

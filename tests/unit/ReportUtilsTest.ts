@@ -144,7 +144,6 @@ import {
     reasonForReportToBeInOptionList,
     requiresAttentionFromCurrentUser,
     requiresManualSubmission,
-    resolveReportForMoneyRequest,
     shouldBlockSubmitDueToStrictPolicyRules,
     shouldDisableRename,
     shouldDisableThread,
@@ -8320,79 +8319,6 @@ describe('ReportUtils', () => {
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`, {private_isArchived: DateUtils.getDBTime()});
             expect(isReportOutstanding(report, policy.id)).toBe(false);
-        });
-    });
-
-    describe('resolveReportForMoneyRequest', () => {
-        const makeOutstandingReport = (reportID: string): Report => ({
-            ...createRandomReport(Number(reportID), undefined),
-            reportID,
-            policyID: policy.id,
-            type: CONST.REPORT.TYPE.EXPENSE,
-            stateNum: CONST.REPORT.STATE_NUM.OPEN,
-            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
-        });
-
-        const makeRouteReport = (reportID: string): Report => ({
-            ...createRandomReport(Number(reportID), undefined),
-            reportID,
-            policyID: policy.id,
-            type: CONST.REPORT.TYPE.CHAT,
-        });
-
-        const makeTransaction = (reportID: string): Transaction =>
-            ({
-                ...buildOptimisticTransaction({transactionParams: {amount: 0, currency: CONST.CURRENCY.USD, reportID}}),
-                reportID,
-            }) as Transaction;
-
-        it('returns undefined when the transaction is unreported', () => {
-            const transaction = makeTransaction(CONST.REPORT.UNREPORTED_REPORT_ID);
-            const transactionReport = makeOutstandingReport('500');
-            const routeReport = makeRouteReport('100');
-            expect(resolveReportForMoneyRequest({transaction, transactionReport, routeReport, policy})).toBeUndefined();
-        });
-
-        it('returns the picked report when it is outstanding (user-selected report wins)', () => {
-            const transaction = makeTransaction('500');
-            const transactionReport = makeOutstandingReport('500');
-            const routeReport = makeRouteReport('100');
-            expect(resolveReportForMoneyRequest({transaction, transactionReport, routeReport, policy})?.reportID).toBe('500');
-        });
-
-        it('returns undefined when the picked report is non-outstanding and differs from the route (forces a new optimistic IOU)', () => {
-            const transaction = makeTransaction('500');
-            const nonOutstandingPick: Report = {
-                ...makeOutstandingReport('500'),
-                policyID: 'someOtherPolicy',
-            };
-            const routeReport = makeRouteReport('100');
-            expect(resolveReportForMoneyRequest({transaction, transactionReport: nonOutstandingPick, routeReport, policy})).toBeUndefined();
-        });
-
-        it('returns the route report when no different transaction report has been picked', () => {
-            const transaction = makeTransaction('100');
-            const transactionReport = makeRouteReport('100');
-            const routeReport = makeRouteReport('100');
-            expect(resolveReportForMoneyRequest({transaction, transactionReport, routeReport, policy})?.reportID).toBe('100');
-        });
-
-        it('falls back to the transaction report when no route report exists (the !routeReport branch)', () => {
-            const transaction = makeTransaction('500');
-            const transactionReport = makeOutstandingReport('500');
-            expect(resolveReportForMoneyRequest({transaction, transactionReport, routeReport: undefined, policy})?.reportID).toBe('500');
-        });
-
-        it('returns undefined when the picked report is processing and policy harvesting is disabled', () => {
-            const transaction = makeTransaction('500');
-            const processingPick: Report = {
-                ...makeOutstandingReport('500'),
-                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
-                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
-            };
-            const routeReport = makeRouteReport('100');
-            const harvestingDisabledPolicy: Policy = {...policy, harvesting: {enabled: false}};
-            expect(resolveReportForMoneyRequest({transaction, transactionReport: processingPick, routeReport, policy: harvestingDisabledPolicy})).toBeUndefined();
         });
     });
 

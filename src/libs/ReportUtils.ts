@@ -11609,33 +11609,6 @@ function isReportOutstanding(
     return iouReport.stateNum < CONST.REPORT.STATE_NUM.SUBMITTED && iouReport.statusNum < CONST.REPORT.STATE_NUM.SUBMITTED;
 }
 
-/** Resolves which Report should receive a money-request: the picked transaction report when usable, undefined to force a new optimistic IOU, otherwise the route report. */
-function resolveReportForMoneyRequest({
-    transaction,
-    transactionReport,
-    routeReport,
-    policy,
-}: {
-    transaction: OnyxEntry<Transaction>;
-    transactionReport: OnyxEntry<Report>;
-    routeReport: OnyxEntry<Report>;
-    policy: OnyxEntry<Policy>;
-}): OnyxEntry<Report> {
-    if (transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
-        return undefined;
-    }
-    const canUseTransactionReport = !(isProcessingReport(transactionReport) && !policy?.harvesting?.enabled) && isReportOutstanding(transactionReport, policy?.id, undefined, false);
-    const shouldUseTransactionReport = !!transactionReport && (canUseTransactionReport || !routeReport);
-    if (shouldUseTransactionReport) {
-        return transactionReport;
-    }
-    const isTransactionReportDifferentFromRoute = !!transaction?.reportID && !!routeReport?.reportID && transaction.reportID !== routeReport.reportID;
-    if (isTransactionReportDifferentFromRoute) {
-        return undefined;
-    }
-    return routeReport;
-}
-
 /**
  * Get outstanding expense reports for a given policy ID
  * @param policyID - The policy ID to filter reports by
@@ -13864,7 +13837,6 @@ export {
     populateOptimisticReportFormula,
     getOutstandingReportsForUser,
     isReportOutstanding,
-    resolveReportForMoneyRequest,
     generateReportAttributes,
     getHumanReadableStatus,
     getReportPersonalDetailsParticipants,
