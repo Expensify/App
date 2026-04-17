@@ -2479,7 +2479,7 @@ describe('SearchUIUtils', () => {
 
     describe('Test getSections', () => {
         it('should return getReportActionsSections result when type is CHAT', () => {
-            const [filteredReportActions, allReportActionsLength, _hasDeletedTransactionFlag] = SearchUIUtils.getSections({
+            const [filteredReportActions, allReportActionsLength] = SearchUIUtils.getSections({
                 type: CONST.SEARCH.DATA_TYPES.CHAT,
                 data: searchResults.data,
                 currentAccountID: 2074551,
