@@ -1102,6 +1102,7 @@ const transactionReportGroupListItems = [
             login: 'admin@policy.com',
         },
         hasVisibleViolations: false,
+        isActionColumnWide: false,
         isOneTransactionReport: true,
         isRejectedReport: false,
         shouldShowStatusAsPending: false,
@@ -1139,6 +1140,7 @@ const transactionReportGroupListItems = [
                 policy,
                 reportAction: reportAction1,
                 holdReportAction: undefined,
+                isActionColumnWide: false,
                 amount: -5000,
                 cardID: undefined,
                 cardName: undefined,
@@ -1213,6 +1215,7 @@ const transactionReportGroupListItems = [
             login: adminEmail,
         },
         hasVisibleViolations: true,
+        isActionColumnWide: false,
         isOneTransactionReport: true,
         isRejectedReport: false,
         shouldShowStatusAsPending: false,
@@ -1254,6 +1257,7 @@ const transactionReportGroupListItems = [
                 policy,
                 reportAction: reportAction2,
                 holdReportAction: undefined,
+                isActionColumnWide: false,
                 amount: -5000,
                 cardID: undefined,
                 cardName: undefined,
@@ -1331,6 +1335,7 @@ const transactionReportGroupListItems = [
         formattedStatus: 'Outstanding',
         formattedTo: 'Approver',
         hasVisibleViolations: false,
+        isActionColumnWide: false,
         isOneTransactionReport: false,
         isRejectedReport: false,
         shouldShowStatusAsPending: false,
@@ -1386,6 +1391,7 @@ const transactionReportGroupListItems = [
                 policy,
                 reportAction: reportAction3,
                 holdReportAction: undefined,
+                isActionColumnWide: false,
                 cardID: undefined,
                 cardName: undefined,
                 category: '',
@@ -1447,6 +1453,7 @@ const transactionReportGroupListItems = [
                 policy,
                 reportAction: reportAction4,
                 holdReportAction: undefined,
+                isActionColumnWide: false,
                 cardID: undefined,
                 cardName: undefined,
                 category: '',
@@ -1521,6 +1528,7 @@ const transactionReportGroupListItems = [
             login: 'admin@policy.com',
         },
         hasVisibleViolations: false,
+        isActionColumnWide: false,
         isOneTransactionReport: true,
         isRejectedReport: false,
         shouldShowStatusAsPending: false,
@@ -2582,7 +2590,11 @@ describe('SearchUIUtils', () => {
             expect(Object.keys(distanceTransaction ?? {}).length).toBe(expectedPropertyCount);
         });
 
-        it('should return getReportSections result when type is EXPENSE REPORT', () => {
+        it('should return getReportSections result when type is EXPENSE REPORT', async () => {
+            // canApproveIOU reads the Onyx session accountID, not getSections' currentAccountID; merge admin so
+            // this test matches the fixture when run in isolation (without earlier getAction tests that set session).
+            await Onyx.merge(ONYXKEYS.SESSION, {accountID: adminAccountID});
+            await waitForBatchedUpdates();
             expect(
                 SearchUIUtils.getSections({
                     type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
