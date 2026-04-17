@@ -287,9 +287,9 @@ function useParticipantSubmission({
         }
 
         const newReportID = selectedReportID.current;
-        const selfDMReportID = dataRef.current.selfDMReportID;
+        const currentSelfDMReportID = dataRef.current.selfDMReportID;
         const shouldUpdateTransactionReportID = currentParticipants?.at(0)?.reportID !== newReportID;
-        const transactionReportID = newReportID === selfDMReportID ? CONST.REPORT.UNREPORTED_REPORT_ID : newReportID;
+        const transactionReportID = newReportID === currentSelfDMReportID ? CONST.REPORT.UNREPORTED_REPORT_ID : newReportID;
         // TODO: probably should also change participants here for selectedParticipants.current, but out of scope of this PR
         for (const transaction of drafts) {
             const tag = isMovingTransactionFromTrackExpense && transaction?.tag ? transaction?.tag : '';
