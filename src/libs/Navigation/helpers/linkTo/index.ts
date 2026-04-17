@@ -168,15 +168,20 @@ export default function linkTo(navigation: NavigationContainerRef<RootNavigatorP
 
             const lastFullScreenRoute = currentState.routes.findLast((route) => isFullScreenName(route.name));
             if (matchingFullScreenRoute && lastFullScreenRoute && shouldChangeToMatchingFullScreen(newFocusedRoute, matchingFullScreenRoute, lastFullScreenRoute as NavigationPartialRoute)) {
+                // When navigating from HOME to an RHP that maps to a different fullscreen (e.g. Settings),
+                // replace HOME instead of pushing on top. Pushing creates [HOME, SETTINGS, RHP] which causes
+                // Android's useCustomRootStackNavigatorState to trim HOME from the render tree, producing
+                // a wrong back animation. Replacing matches the reload state shape: [SETTINGS, RHP].
+                const shouldReplace = lastFullScreenRoute.name === SCREENS.HOME;
                 if (isRoutePreloaded(currentState, matchingFullScreenRoute)) {
-                    navigation.dispatch(StackActions.push(matchingFullScreenRoute.name));
+                    navigation.dispatch(shouldReplace ? StackActions.replace(matchingFullScreenRoute.name) : StackActions.push(matchingFullScreenRoute.name));
                 } else {
                     const lastRouteInMatchingFullScreen = matchingFullScreenRoute.state?.routes?.at(-1);
-                    const additionalAction = StackActions.push(matchingFullScreenRoute.name, {
+                    const routeParams = {
                         screen: lastRouteInMatchingFullScreen?.name,
                         params: lastRouteInMatchingFullScreen?.params,
-                    });
-                    navigation.dispatch(additionalAction);
+                    };
+                    navigation.dispatch(shouldReplace ? StackActions.replace(matchingFullScreenRoute.name, routeParams) : StackActions.push(matchingFullScreenRoute.name, routeParams));
                 }
             }
         }

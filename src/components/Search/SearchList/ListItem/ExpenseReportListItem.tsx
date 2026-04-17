@@ -17,11 +17,13 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {handleActionButtonPress} from '@libs/actions/Search';
 import {syncMissingAttendeesViolation} from '@libs/AttendeeUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import {isAttendeeTrackingEnabled} from '@libs/PolicyUtils';
 import {isInvoiceReport, isOpenExpenseReport, isProcessingReport, isReportPendingDelete} from '@libs/ReportUtils';
 import {isViolationDismissed, shouldShowViolation} from '@libs/TransactionUtils';
 import variables from '@styles/variables';
@@ -46,14 +48,17 @@ function ExpenseReportListItem<TItem extends ListItem>({
     onCheckboxPress,
     lastPaymentMethod,
     personalPolicyID,
+    isLastItem,
+    userBillingGracePeriodEnds,
+    ownerBillingGracePeriodEnd,
 }: ExpenseReportListItemProps<TItem>) {
     const reportItem = item as unknown as ExpenseReportListItemType;
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const theme = useTheme();
     const {translate} = useLocalize();
     const {isLargeScreenWidth} = useResponsiveLayout();
     const {currentSearchHash, currentSearchKey, currentSearchResults} = useSearchStateContext();
-    const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [isActionLoading] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportItem.reportID}`, {selector: isActionLoadingSelector});
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['DotIndicator']);
     const currentUserDetails = useCurrentUserPersonalDetails();
@@ -96,7 +101,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
     // Sync missingAttendees violation at render time for each transaction in the report
     // This ensures violations show immediately when category settings change, without needing to click the row
     const hasSyncedMissingAttendeesViolation = useMemo(() => {
-        if (!policyForViolations?.isAttendeeTrackingEnabled || policyForViolations?.type !== CONST.POLICY.TYPE.CORPORATE) {
+        if (!isAttendeeTrackingEnabled(policyForViolations)) {
             return false;
         }
 
@@ -114,7 +119,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
                 transaction.category ?? '',
                 transaction.attendees,
                 currentUserDetails,
-                policyForViolations.isAttendeeTrackingEnabled ?? false,
+                isAttendeeTrackingEnabled(policyForViolations),
                 policyForViolations.type === CONST.POLICY.TYPE.CORPORATE,
                 isInvoice,
             );
@@ -124,7 +129,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
 
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
-    const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
+    const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
 
     const handleOnButtonPress = useCallback(() => {
         handleActionButtonPress({
@@ -140,6 +145,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
             onDelegateAccessRestricted: showDelegateNoAccessModal,
             personalPolicyID,
             ownerBillingGracePeriodEnd,
+            amountOwed,
         });
     }, [
         currentSearchHash,
@@ -154,6 +160,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
         isDelegateAccessRestricted,
         showDelegateNoAccessModal,
         ownerBillingGracePeriodEnd,
+        amountOwed,
     ]);
 
     const handleCheckboxPress = useCallback(() => {
@@ -170,8 +177,9 @@ function ExpenseReportListItem<TItem extends ListItem>({
             item.isSelected && styles.activeComponentBG,
             styles.mh0,
             isPendingDelete && styles.cursorDisabled,
+            isLargeScreenWidth && StyleUtils.getSearchTableRowPressableStyle(!!isLastItem, item.isSelected, {vertical: variables.tableRowPaddingVertical}),
         ],
-        [styles, item.isSelected, isPendingDelete],
+        [styles, item.isSelected, isLargeScreenWidth, isLastItem, isPendingDelete, StyleUtils],
     );
 
     const listItemWrapperStyle = useMemo(
@@ -184,10 +192,11 @@ function ExpenseReportListItem<TItem extends ListItem>({
     );
 
     const animatedHighlightStyle = useAnimatedHighlightStyle({
-        borderRadius: variables.componentBorderRadius,
+        borderRadius: StyleUtils.getSearchTableHighlightBorderRadius(isLargeScreenWidth),
         shouldHighlight: item?.shouldAnimateInHighlight ?? false,
         highlightColor: theme.messageHighlightBG,
         backgroundColor: theme.highlightBG,
+        shouldApplyOtherStyles: !isLargeScreenWidth,
     });
 
     const shouldShowViolationDescription = isOpenExpenseReport(reportItem) || isProcessingReport(reportItem);
@@ -249,7 +258,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
             item={item}
             pressableStyle={listItemPressableStyle}
             wrapperStyle={listItemWrapperStyle}
-            containerStyle={[styles.mb2]}
+            containerStyle={!isLargeScreenWidth && [styles.mb2]}
             isFocused={isFocused}
             showTooltip={showTooltip}
             canSelectMultiple={canSelectMultiple}
@@ -260,7 +269,12 @@ function ExpenseReportListItem<TItem extends ListItem>({
             onLongPressRow={onLongPressRow}
             shouldSyncFocus={shouldSyncFocus}
             hoverStyle={item.isSelected && styles.activeComponentBG}
-            pressableWrapperStyle={[styles.mh5, animatedHighlightStyle, isPendingDelete && styles.cursorDisabled]}
+            pressableWrapperStyle={[
+                styles.mh5,
+                animatedHighlightStyle,
+                isPendingDelete && styles.cursorDisabled,
+                isLargeScreenWidth && isLastItem && [styles.searchTableBottomRadius, styles.overflowHidden],
+            ]}
             accessible={false}
             shouldShowRightCaret={false}
             shouldUseDefaultRightHandSideCheckmark={false}
@@ -284,6 +298,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
                         isHovered={hovered}
                         isFocused={isFocused}
                         isPendingDelete={isPendingDelete}
+                        isLargeScreenWidth={isLargeScreenWidth}
                     />
                     {getDescription}
                 </View>

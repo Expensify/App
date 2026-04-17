@@ -833,6 +833,7 @@ const transactionsListItems = [
         policy,
         reportAction: reportAction1,
         holdReportAction: undefined,
+        isActionColumnWide: false,
         cardID: undefined,
         cardName: undefined,
         category: '',
@@ -892,6 +893,7 @@ const transactionsListItems = [
         policy,
         reportAction: reportAction2,
         holdReportAction: undefined,
+        isActionColumnWide: false,
         cardID: undefined,
         cardName: undefined,
         category: '',
@@ -961,6 +963,7 @@ const transactionsListItems = [
         policy,
         reportAction: reportAction3,
         holdReportAction: undefined,
+        isActionColumnWide: false,
         cardID: undefined,
         cardName: undefined,
         category: '',
@@ -1025,6 +1028,7 @@ const transactionsListItems = [
         policy,
         reportAction: reportAction4,
         holdReportAction: undefined,
+        isActionColumnWide: false,
         cardID: undefined,
         cardName: undefined,
         category: '',
@@ -1102,6 +1106,7 @@ const transactionReportGroupListItems = [
             login: 'admin@policy.com',
         },
         hasVisibleViolations: false,
+        isActionColumnWide: false,
         isOneTransactionReport: true,
         isRejectedReport: false,
         shouldShowStatusAsPending: false,
@@ -1126,6 +1131,7 @@ const transactionReportGroupListItems = [
         nonReimbursableSpend: -0,
         reimbursableSpend: 5000,
         isAllScanning: false,
+        isAmountColumnWide: false,
         primaryAvatar: adminAvatarIcon,
         secondaryAvatar: policyWorkspaceIcon,
         avatarType: CONST.REPORT_ACTION_AVATARS.TYPE.SUBSCRIPT,
@@ -1138,6 +1144,7 @@ const transactionReportGroupListItems = [
                 policy,
                 reportAction: reportAction1,
                 holdReportAction: undefined,
+                isActionColumnWide: false,
                 amount: -5000,
                 cardID: undefined,
                 cardName: undefined,
@@ -1212,6 +1219,7 @@ const transactionReportGroupListItems = [
             login: adminEmail,
         },
         hasVisibleViolations: true,
+        isActionColumnWide: false,
         isOneTransactionReport: true,
         isRejectedReport: false,
         shouldShowStatusAsPending: false,
@@ -1240,6 +1248,7 @@ const transactionReportGroupListItems = [
         nonReimbursableSpend: -0,
         reimbursableSpend: 5000,
         isAllScanning: false,
+        isAmountColumnWide: false,
         primaryAvatar: adminAvatarIcon,
         secondaryAvatar: policyWorkspaceIcon,
         avatarType: CONST.REPORT_ACTION_AVATARS.TYPE.SUBSCRIPT,
@@ -1252,6 +1261,7 @@ const transactionReportGroupListItems = [
                 policy,
                 reportAction: reportAction2,
                 holdReportAction: undefined,
+                isActionColumnWide: false,
                 amount: -5000,
                 cardID: undefined,
                 cardName: undefined,
@@ -1329,6 +1339,7 @@ const transactionReportGroupListItems = [
         formattedStatus: 'Outstanding',
         formattedTo: 'Approver',
         hasVisibleViolations: false,
+        isActionColumnWide: false,
         isOneTransactionReport: false,
         isRejectedReport: false,
         shouldShowStatusAsPending: false,
@@ -1353,6 +1364,7 @@ const transactionReportGroupListItems = [
         nonReimbursableSpend: 0,
         reimbursableSpend: 4400,
         isAllScanning: false,
+        isAmountColumnWide: false,
         primaryAvatar: approverAvatarIcon,
         secondaryAvatar: adminAvatarIcon,
         avatarType: CONST.REPORT_ACTION_AVATARS.TYPE.SUBSCRIPT,
@@ -1383,6 +1395,7 @@ const transactionReportGroupListItems = [
                 policy,
                 reportAction: reportAction3,
                 holdReportAction: undefined,
+                isActionColumnWide: false,
                 cardID: undefined,
                 cardName: undefined,
                 category: '',
@@ -1444,6 +1457,7 @@ const transactionReportGroupListItems = [
                 policy,
                 reportAction: reportAction4,
                 holdReportAction: undefined,
+                isActionColumnWide: false,
                 cardID: undefined,
                 cardName: undefined,
                 category: '',
@@ -1518,6 +1532,7 @@ const transactionReportGroupListItems = [
             login: 'admin@policy.com',
         },
         hasVisibleViolations: false,
+        isActionColumnWide: false,
         isOneTransactionReport: true,
         isRejectedReport: false,
         shouldShowStatusAsPending: false,
@@ -1541,6 +1556,7 @@ const transactionReportGroupListItems = [
         nonReimbursableSpend: 0,
         reimbursableSpend: 0,
         isAllScanning: false,
+        isAmountColumnWide: false,
         primaryAvatar: adminAvatarIcon,
         secondaryAvatar: policyWorkspaceIcon,
         avatarType: CONST.REPORT_ACTION_AVATARS.TYPE.SUBSCRIPT,
@@ -1710,6 +1726,7 @@ const transactionWithdrawalIDGroupListItems: TransactionWithdrawalIDGroupListIte
         transactions: [],
         transactionsQueryJSON: undefined,
         keyForList: 'group_5',
+        shouldShowYearWithdrawn: true,
     },
     {
         bankName: CONST.BANK_NAMES.CITIBANK,
@@ -1725,6 +1742,7 @@ const transactionWithdrawalIDGroupListItems: TransactionWithdrawalIDGroupListIte
         transactions: [],
         transactionsQueryJSON: undefined,
         keyForList: 'group_30303030',
+        shouldShowYearWithdrawn: true,
     },
 ];
 
@@ -1743,6 +1761,7 @@ const transactionWithdrawalIDGroupListItemsSorted: TransactionWithdrawalIDGroupL
         transactions: [],
         transactionsQueryJSON: undefined,
         keyForList: 'group_5',
+        shouldShowYearWithdrawn: true,
     },
     {
         bankName: CONST.BANK_NAMES.CITIBANK,
@@ -1758,6 +1777,7 @@ const transactionWithdrawalIDGroupListItemsSorted: TransactionWithdrawalIDGroupL
         transactions: [],
         transactionsQueryJSON: undefined,
         keyForList: 'group_30303030',
+        shouldShowYearWithdrawn: true,
     },
 ];
 
@@ -2570,11 +2590,15 @@ describe('SearchUIUtils', () => {
             expect(distanceTransaction).toBeDefined();
             expect(distanceTransaction?.iouRequestType).toBe(CONST.IOU.REQUEST_TYPE.DISTANCE);
 
-            const expectedPropertyCount = 50;
+            const expectedPropertyCount = 51;
             expect(Object.keys(distanceTransaction ?? {}).length).toBe(expectedPropertyCount);
         });
 
-        it('should return getReportSections result when type is EXPENSE REPORT', () => {
+        it('should return getReportSections result when type is EXPENSE REPORT', async () => {
+            // canApproveIOU reads the Onyx session accountID, not getSections' currentAccountID; merge admin so
+            // this test matches the fixture when run in isolation (without earlier getAction tests that set session).
+            await Onyx.merge(ONYXKEYS.SESSION, {accountID: adminAccountID});
+            await waitForBatchedUpdates();
             expect(
                 SearchUIUtils.getSections({
                     type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
@@ -2622,7 +2646,7 @@ describe('SearchUIUtils', () => {
                 bankAccountList: {},
                 allReportMetadata: {},
                 conciergeReportID: undefined,
-            }) as [TransactionReportGroupListItemType[], number];
+            }) as [TransactionReportGroupListItemType[], number, boolean];
 
             expect(resultWithoutOnyx.at(0)?.primaryAvatar?.source).not.toBe(customAvatarUrl);
 
@@ -2638,7 +2662,7 @@ describe('SearchUIUtils', () => {
                 allReportMetadata: {},
                 conciergeReportID: undefined,
                 onyxPersonalDetailsList,
-            }) as [TransactionReportGroupListItemType[], number];
+            }) as [TransactionReportGroupListItemType[], number, boolean];
 
             expect(resultWithOnyx.at(0)?.primaryAvatar?.source).toBe(customAvatarUrl);
         });
@@ -2678,7 +2702,7 @@ describe('SearchUIUtils', () => {
                 allReportMetadata: {},
                 conciergeReportID: undefined,
                 onyxPersonalDetailsList,
-            }) as [TransactionReportGroupListItemType[], number];
+            }) as [TransactionReportGroupListItemType[], number, boolean];
 
             expect(result?.at(0)?.primaryAvatar?.source).toBe(apiAvatarUrl);
         });
@@ -2720,7 +2744,7 @@ describe('SearchUIUtils', () => {
                 bankAccountList: {},
                 allReportMetadata: {},
                 conciergeReportID: undefined,
-            }) as [TransactionReportGroupListItemType[], number];
+            }) as [TransactionReportGroupListItemType[], number, boolean];
 
             const reportWithoutOnyx = resultWithoutOnyx.find((item) => item.reportID === reportID2);
             expect(reportWithoutOnyx?.to?.displayName).not.toBe(managerDisplayName);
@@ -2736,7 +2760,7 @@ describe('SearchUIUtils', () => {
                 allReportMetadata: {},
                 conciergeReportID: undefined,
                 onyxPersonalDetailsList,
-            }) as [TransactionReportGroupListItemType[], number];
+            }) as [TransactionReportGroupListItemType[], number, boolean];
 
             const reportWithOnyx = resultWithOnyx.find((item) => item.reportID === reportID2);
             expect(reportWithOnyx?.to?.displayName).toBe(managerDisplayName);
@@ -2769,7 +2793,7 @@ describe('SearchUIUtils', () => {
                 bankAccountList: {},
                 allReportMetadata: {},
                 conciergeReportID: undefined,
-            }) as [TransactionReportGroupListItemType[], number];
+            }) as [TransactionReportGroupListItemType[], number, boolean];
 
             const reportGroupWithoutOnyx = resultWithoutOnyx.find((item) => item.reportID === reportID);
             const txWithoutOnyx = reportGroupWithoutOnyx?.transactions?.find((t) => t.transactionID === transactionID);
@@ -2786,7 +2810,7 @@ describe('SearchUIUtils', () => {
                 allReportMetadata: {},
                 conciergeReportID: undefined,
                 onyxPersonalDetailsList,
-            }) as [TransactionReportGroupListItemType[], number];
+            }) as [TransactionReportGroupListItemType[], number, boolean];
 
             const reportGroupWithOnyx = resultWithOnyx.find((item) => item.reportID === reportID);
             const txWithOnyx = reportGroupWithOnyx?.transactions?.find((t) => t.transactionID === transactionID);
@@ -2827,7 +2851,7 @@ describe('SearchUIUtils', () => {
                 conciergeReportID: undefined,
                 allReportMetadata: {},
                 onyxPersonalDetailsList,
-            }) as [TransactionReportGroupListItemType[], number];
+            }) as [TransactionReportGroupListItemType[], number, boolean];
 
             const reportGroup = result.find((item) => item.reportID === reportID);
             const tx = reportGroup?.transactions?.find((t) => t.transactionID === transactionID);
@@ -2980,7 +3004,7 @@ describe('SearchUIUtils', () => {
                 groupBy: CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID,
                 allReportMetadata: {},
                 conciergeReportID: undefined,
-            }) as [TransactionWithdrawalIDGroupListItemType[], number];
+            }) as [TransactionWithdrawalIDGroupListItemType[], number, boolean];
 
             expect(result).toHaveLength(0);
         });
@@ -3030,7 +3054,7 @@ describe('SearchUIUtils', () => {
                 groupBy: CONST.SEARCH.GROUP_BY.CATEGORY,
                 allReportMetadata: {},
                 conciergeReportID: undefined,
-            }) as [TransactionCategoryGroupListItemType[], number];
+            }) as [TransactionCategoryGroupListItemType[], number, boolean];
 
             expect(result).toHaveLength(2);
             expect(result.some((item) => item.category === '')).toBe(true);
@@ -3129,7 +3153,7 @@ describe('SearchUIUtils', () => {
                 groupBy: CONST.SEARCH.GROUP_BY.MONTH,
                 allReportMetadata: {},
                 conciergeReportID: undefined,
-            }) as [TransactionMonthGroupListItemType[], number];
+            }) as [TransactionMonthGroupListItemType[], number, boolean];
 
             expect(result).toHaveLength(2);
             expect(result.some((item) => item.formattedMonth === 'January 2026')).toBe(true);
@@ -3148,7 +3172,7 @@ describe('SearchUIUtils', () => {
                 groupBy: CONST.SEARCH.GROUP_BY.MONTH,
                 allReportMetadata: {},
                 conciergeReportID: undefined,
-            }) as [TransactionMonthGroupListItemType[], number];
+            }) as [TransactionMonthGroupListItemType[], number, boolean];
 
             expect(result).toHaveLength(2);
             expect(result.some((item) => item.sortKey === 202601)).toBe(true);
@@ -3261,7 +3285,7 @@ describe('SearchUIUtils', () => {
                 groupBy: CONST.SEARCH.GROUP_BY.YEAR,
                 allReportMetadata: {},
                 conciergeReportID: undefined,
-            }) as [TransactionYearGroupListItemType[], number];
+            }) as [TransactionYearGroupListItemType[], number, boolean];
 
             expect(result).toHaveLength(2);
             expect(result.some((item) => item.formattedYear === '2026')).toBe(true);
@@ -3280,7 +3304,7 @@ describe('SearchUIUtils', () => {
                 groupBy: CONST.SEARCH.GROUP_BY.YEAR,
                 allReportMetadata: {},
                 conciergeReportID: undefined,
-            }) as [TransactionYearGroupListItemType[], number];
+            }) as [TransactionYearGroupListItemType[], number, boolean];
 
             expect(result).toHaveLength(2);
             expect(result.some((item) => item.sortKey === 2026)).toBe(true);
@@ -3695,7 +3719,7 @@ describe('SearchUIUtils', () => {
                 groupBy: CONST.SEARCH.GROUP_BY.QUARTER,
                 allReportMetadata: {},
                 conciergeReportID: undefined,
-            }) as [TransactionQuarterGroupListItemType[], number];
+            }) as [TransactionQuarterGroupListItemType[], number, boolean];
 
             expect(result).toHaveLength(2);
             expect(result.some((item) => item.formattedQuarter === 'Q1 2026 (Jan 1 - Mar 31)')).toBe(true);
@@ -3714,7 +3738,7 @@ describe('SearchUIUtils', () => {
                 groupBy: CONST.SEARCH.GROUP_BY.QUARTER,
                 allReportMetadata: {},
                 conciergeReportID: undefined,
-            }) as [TransactionQuarterGroupListItemType[], number];
+            }) as [TransactionQuarterGroupListItemType[], number, boolean];
 
             expect(result).toHaveLength(2);
             expect(result.some((item) => item.sortKey === 20261)).toBe(true);
@@ -3808,7 +3832,7 @@ describe('SearchUIUtils', () => {
                 groupBy: CONST.SEARCH.GROUP_BY.WEEK,
                 allReportMetadata: {},
                 conciergeReportID: undefined,
-            }) as [TransactionWeekGroupListItemType[], number];
+            }) as [TransactionWeekGroupListItemType[], number, boolean];
 
             expect(result).toHaveLength(2);
             // Check that formatted week contains the start date
@@ -3864,7 +3888,7 @@ describe('SearchUIUtils', () => {
                     },
                 },
                 conciergeReportID: undefined,
-            }) as [TransactionCategoryGroupListItemType[], number];
+            }) as [TransactionCategoryGroupListItemType[], number, boolean];
 
             // Each category section should have a transactionsQueryJSON with a hash
             for (const item of result) {
@@ -3908,7 +3932,7 @@ describe('SearchUIUtils', () => {
                 groupBy: CONST.SEARCH.GROUP_BY.CATEGORY,
                 allReportMetadata: {},
                 conciergeReportID: undefined,
-            }) as [TransactionCategoryGroupListItemType[], number];
+            }) as [TransactionCategoryGroupListItemType[], number, boolean];
 
             expect(result).toHaveLength(3);
             expect(result.some((item) => item.category === '日本旅行')).toBe(true);
@@ -3950,7 +3974,7 @@ describe('SearchUIUtils', () => {
                 groupBy: CONST.SEARCH.GROUP_BY.CATEGORY,
                 allReportMetadata: {},
                 conciergeReportID: undefined,
-            }) as [TransactionCategoryGroupListItemType[], number];
+            }) as [TransactionCategoryGroupListItemType[], number, boolean];
 
             expect(result).toHaveLength(3);
             expect(result.some((item) => item.category === 'R&D/Training')).toBe(true);
@@ -3981,7 +4005,7 @@ describe('SearchUIUtils', () => {
                 groupBy: CONST.SEARCH.GROUP_BY.CATEGORY,
                 allReportMetadata: {},
                 conciergeReportID: undefined,
-            }) as [TransactionCategoryGroupListItemType[], number];
+            }) as [TransactionCategoryGroupListItemType[], number, boolean];
 
             expect(result).toHaveLength(1);
             expect(result.at(0)?.category).toBe(longCategoryName);
@@ -4017,7 +4041,7 @@ describe('SearchUIUtils', () => {
                 groupBy: CONST.SEARCH.GROUP_BY.CATEGORY,
                 allReportMetadata: {},
                 conciergeReportID: undefined,
-            }) as [TransactionCategoryGroupListItemType[], number];
+            }) as [TransactionCategoryGroupListItemType[], number, boolean];
 
             expect(result).toHaveLength(2);
             // formattedCategory should have decoded HTML entities
@@ -4075,7 +4099,7 @@ describe('SearchUIUtils', () => {
                 groupBy: CONST.SEARCH.GROUP_BY.MERCHANT,
                 allReportMetadata: {},
                 conciergeReportID: undefined,
-            }) as [TransactionMerchantGroupListItemType[], number];
+            }) as [TransactionMerchantGroupListItemType[], number, boolean];
 
             expect(result).toHaveLength(2);
             expect(result.some((item) => item.merchant === '')).toBe(true);
@@ -4122,7 +4146,7 @@ describe('SearchUIUtils', () => {
                     },
                 },
                 conciergeReportID: undefined,
-            }) as [TransactionMerchantGroupListItemType[], number];
+            }) as [TransactionMerchantGroupListItemType[], number, boolean];
 
             expect(result).toHaveLength(1);
             const emptyMerchantItem = result.find((item) => item.merchant === '');
@@ -4171,7 +4195,7 @@ describe('SearchUIUtils', () => {
                     },
                 },
                 conciergeReportID: undefined,
-            }) as [TransactionMerchantGroupListItemType[], number];
+            }) as [TransactionMerchantGroupListItemType[], number, boolean];
 
             expect(result).toHaveLength(1);
             // The merchant field keeps the original value for query purposes
@@ -4220,7 +4244,7 @@ describe('SearchUIUtils', () => {
                     },
                 },
                 conciergeReportID: undefined,
-            }) as [TransactionMerchantGroupListItemType[], number];
+            }) as [TransactionMerchantGroupListItemType[], number, boolean];
 
             expect(result).toHaveLength(1);
             // The merchant field keeps the original value for query purposes
@@ -4269,7 +4293,7 @@ describe('SearchUIUtils', () => {
                     },
                 },
                 conciergeReportID: undefined,
-            }) as [TransactionMerchantGroupListItemType[], number];
+            }) as [TransactionMerchantGroupListItemType[], number, boolean];
 
             expect(result).toHaveLength(1);
             // The merchant field keeps the original value for query purposes
@@ -4339,7 +4363,7 @@ describe('SearchUIUtils', () => {
                     },
                 },
                 conciergeReportID: undefined,
-            }) as [TransactionMerchantGroupListItemType[], number];
+            }) as [TransactionMerchantGroupListItemType[], number, boolean];
 
             // Each merchant section should have a transactionsQueryJSON with a hash
             for (const item of result) {
@@ -4384,7 +4408,7 @@ describe('SearchUIUtils', () => {
                 groupBy: CONST.SEARCH.GROUP_BY.MERCHANT,
                 allReportMetadata: {},
                 conciergeReportID: undefined,
-            }) as [TransactionMerchantGroupListItemType[], number];
+            }) as [TransactionMerchantGroupListItemType[], number, boolean];
 
             expect(result).toHaveLength(3);
             expect(result.some((item) => item.merchant === 'カフェ東京')).toBe(true);
@@ -4427,7 +4451,7 @@ describe('SearchUIUtils', () => {
                 groupBy: CONST.SEARCH.GROUP_BY.MERCHANT,
                 allReportMetadata: {},
                 conciergeReportID: undefined,
-            }) as [TransactionMerchantGroupListItemType[], number];
+            }) as [TransactionMerchantGroupListItemType[], number, boolean];
 
             expect(result).toHaveLength(3);
             expect(result.some((item) => item.merchant === "McDonald's & Co.")).toBe(true);
@@ -4477,7 +4501,7 @@ describe('SearchUIUtils', () => {
                 groupBy: CONST.SEARCH.GROUP_BY.TAG,
                 allReportMetadata: {},
                 conciergeReportID: undefined,
-            }) as [TransactionTagGroupListItemType[], number];
+            }) as [TransactionTagGroupListItemType[], number, boolean];
 
             // formattedTag should have unescaped colons for display
             expect(result.at(0)?.formattedTag).toBe('Parent: Child');
@@ -4513,7 +4537,7 @@ describe('SearchUIUtils', () => {
                 groupBy: CONST.SEARCH.GROUP_BY.TAG,
                 allReportMetadata: {},
                 conciergeReportID: undefined,
-            }) as [TransactionTagGroupListItemType[], number];
+            }) as [TransactionTagGroupListItemType[], number, boolean];
 
             expect(result).toHaveLength(2);
             expect(result.some((item) => item.tag === '')).toBe(true);
@@ -4542,7 +4566,7 @@ describe('SearchUIUtils', () => {
                 groupBy: CONST.SEARCH.GROUP_BY.TAG,
                 allReportMetadata: {},
                 conciergeReportID: undefined,
-            }) as [TransactionTagGroupListItemType[], number];
+            }) as [TransactionTagGroupListItemType[], number, boolean];
 
             expect(result).toHaveLength(1);
             expect(result.at(0)?.tag).toBe('(untagged)');
@@ -4609,7 +4633,7 @@ describe('SearchUIUtils', () => {
                     },
                 },
                 conciergeReportID: undefined,
-            }) as [TransactionTagGroupListItemType[], number];
+            }) as [TransactionTagGroupListItemType[], number, boolean];
 
             // Each tag section should have a transactionsQueryJSON with a hash
             for (const item of result) {
@@ -4666,7 +4690,7 @@ describe('SearchUIUtils', () => {
                 bankAccountList: {},
                 allReportMetadata: {},
                 conciergeReportID: '999',
-            }) as [TaskListItemType[], number];
+            }) as [TaskListItemType[], number, boolean];
 
             expect(result).toHaveLength(1);
             expect(count).toBe(1);
@@ -4692,7 +4716,7 @@ describe('SearchUIUtils', () => {
                 bankAccountList: {},
                 allReportMetadata: {},
                 conciergeReportID: '999',
-            }) as [TaskListItemType[], number];
+            }) as [TaskListItemType[], number, boolean];
 
             expect(result).toHaveLength(0);
             expect(count).toBe(0);
@@ -4759,7 +4783,7 @@ describe('SearchUIUtils', () => {
                 bankAccountList: {},
                 allReportMetadata: {},
                 conciergeReportID: '999',
-            }) as [TaskListItemType[], number];
+            }) as [TaskListItemType[], number, boolean];
 
             expect(result).toHaveLength(2);
             expect(count).toBe(2);
@@ -4813,7 +4837,7 @@ describe('SearchUIUtils', () => {
                 bankAccountList: {},
                 allReportMetadata: {},
                 conciergeReportID: '999',
-            }) as [TaskListItemType[], number];
+            }) as [TaskListItemType[], number, boolean];
 
             expect(result).toHaveLength(1);
             // HTML should be stripped from reportName and description
@@ -4866,7 +4890,7 @@ describe('SearchUIUtils', () => {
                 bankAccountList: {},
                 allReportMetadata: {},
                 conciergeReportID: '999',
-            }) as [TaskListItemType[], number];
+            }) as [TaskListItemType[], number, boolean];
 
             // Only the task report should be included
             expect(result).toHaveLength(1);
@@ -4921,7 +4945,7 @@ describe('SearchUIUtils', () => {
                 bankAccountList: {},
                 allReportMetadata: {},
                 conciergeReportID: undefined,
-            }) as [TaskListItemType[], number];
+            }) as [TaskListItemType[], number, boolean];
 
             expect(result).toHaveLength(1);
             expect(count).toBe(1);
@@ -5149,6 +5173,539 @@ describe('SearchUIUtils', () => {
                 expect(fields1.primaryAvatar?.id).toBe(fields2.primaryAvatar?.id);
                 expect(fields1.secondaryAvatar?.id).toBe(fields2.secondaryAvatar?.id);
                 expect(fields1.avatarType).toBe(fields2.avatarType);
+            });
+        });
+
+        const TEST_QUERY_HASH = 99999;
+        const expenseType: typeof CONST.SEARCH.DATA_TYPES.EXPENSE = CONST.SEARCH.DATA_TYPES.EXPENSE;
+
+        function makeExpenseQueryJSON(status: string | string[]) {
+            return {
+                type: expenseType,
+                status,
+                sortBy: CONST.SEARCH.TABLE_COLUMNS.DATE,
+                sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
+                view: CONST.SEARCH.VIEW.TABLE,
+                hash: TEST_QUERY_HASH,
+                flatFilters: [],
+                inputQuery: 'type:expense' as const,
+                recentSearchHash: TEST_QUERY_HASH,
+                similarSearchHash: TEST_QUERY_HASH,
+                filters: {
+                    operator: CONST.SEARCH.SYNTAX_OPERATORS.AND,
+                    left: CONST.SEARCH.SYNTAX_FILTER_KEYS.TYPE,
+                    right: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                },
+            };
+        }
+
+        describe('getTransactionsSections filtering and edge cases', () => {
+            const filterTestReportID = 'filter-report-1';
+            const filterTestTxID = 'filter-tx-1';
+
+            function makeFilterTestData(reportOverrides: Record<string, unknown> = {}, txOverrides: Record<string, unknown> = {}, extraData: Record<string, unknown> = {}) {
+                return {
+                    ...searchResults.data,
+                    [`${ONYXKEYS.COLLECTION.REPORT}${filterTestReportID}`]: {
+                        ...report1,
+                        reportID: filterTestReportID,
+                        ...reportOverrides,
+                    },
+                    [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${filterTestReportID}`]: {},
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${filterTestTxID}`]: {
+                        ...searchResults.data[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`],
+                        transactionID: filterTestTxID,
+                        reportID: filterTestReportID,
+                        ...txOverrides,
+                    },
+                    ...extraData,
+                };
+            }
+
+            function callGetTransactionsSections(data: typeof searchResults.data, options: Record<string, unknown> = {}) {
+                return SearchUIUtils.getSections({
+                    type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                    data,
+                    currentAccountID: adminAccountID,
+                    currentUserEmail: adminEmail,
+                    translate: translateLocal,
+                    formatPhoneNumber,
+                    bankAccountList: {},
+                    allReportMetadata: {},
+                    conciergeReportID: undefined,
+                    ...options,
+                }) as [TransactionListItemType[], number, boolean];
+            }
+
+            it('should include transactions when queryJSON status matches report state (DRAFTS)', () => {
+                const data = makeFilterTestData({stateNum: CONST.REPORT.STATE_NUM.OPEN, statusNum: CONST.REPORT.STATUS_NUM.OPEN});
+                const [sections] = callGetTransactionsSections(data, {queryJSON: makeExpenseQueryJSON(CONST.SEARCH.STATUS.EXPENSE.DRAFTS)});
+                expect(sections.some((s) => s.transactionID === filterTestTxID)).toBe(true);
+            });
+
+            it('should exclude transactions when queryJSON status does not match report state', () => {
+                const data = makeFilterTestData({stateNum: CONST.REPORT.STATE_NUM.OPEN, statusNum: CONST.REPORT.STATUS_NUM.OPEN});
+                const [sections] = callGetTransactionsSections(data, {queryJSON: makeExpenseQueryJSON(CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING)});
+                expect(sections.some((s) => s.transactionID === filterTestTxID)).toBe(false);
+            });
+
+            it('should include transactions when queryJSON status is an array and at least one matches', () => {
+                const data = makeFilterTestData({stateNum: CONST.REPORT.STATE_NUM.OPEN, statusNum: CONST.REPORT.STATUS_NUM.OPEN});
+                const [sections] = callGetTransactionsSections(data, {
+                    queryJSON: makeExpenseQueryJSON([CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING, CONST.SEARCH.STATUS.EXPENSE.DRAFTS]),
+                });
+                expect(sections.some((s) => s.transactionID === filterTestTxID)).toBe(true);
+            });
+
+            it('should exclude transactions when queryJSON status is an array and none match', () => {
+                const data = makeFilterTestData({stateNum: CONST.REPORT.STATE_NUM.OPEN, statusNum: CONST.REPORT.STATUS_NUM.OPEN});
+                const [sections] = callGetTransactionsSections(data, {
+                    queryJSON: makeExpenseQueryJSON([CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING, CONST.SEARCH.STATUS.EXPENSE.APPROVED]),
+                });
+                expect(sections.some((s) => s.transactionID === filterTestTxID)).toBe(false);
+            });
+
+            it('should exclude transactions when queryJSON status is an invalid string', () => {
+                const data = makeFilterTestData({stateNum: CONST.REPORT.STATE_NUM.OPEN, statusNum: CONST.REPORT.STATUS_NUM.OPEN});
+                const [sections] = callGetTransactionsSections(data, {queryJSON: makeExpenseQueryJSON('not_a_valid_status')});
+                expect(sections.some((s) => s.transactionID === filterTestTxID)).toBe(false);
+            });
+
+            it('should exclude transactions when queryJSON status array contains only invalid strings', () => {
+                const data = makeFilterTestData({stateNum: CONST.REPORT.STATE_NUM.OPEN, statusNum: CONST.REPORT.STATUS_NUM.OPEN});
+                const [sections] = callGetTransactionsSections(data, {queryJSON: makeExpenseQueryJSON(['invalid1', 'invalid2'])});
+                expect(sections.some((s) => s.transactionID === filterTestTxID)).toBe(false);
+            });
+
+            it('should include transactions when queryJSON status is ALL', () => {
+                const data = makeFilterTestData({stateNum: CONST.REPORT.STATE_NUM.SUBMITTED, statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED});
+                const [sections] = callGetTransactionsSections(data, {queryJSON: makeExpenseQueryJSON(CONST.SEARCH.STATUS.EXPENSE.ALL)});
+                expect(sections.some((s) => s.transactionID === filterTestTxID)).toBe(true);
+            });
+
+            it('should include UNREPORTED transactions when there is no associated report', () => {
+                const unreportedTxID = 'unreported-tx-1';
+                const data = {
+                    ...searchResults.data,
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${unreportedTxID}`]: {
+                        ...searchResults.data[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`],
+                        transactionID: unreportedTxID,
+                        reportID: 'nonexistent-report',
+                    },
+                };
+                const [sections] = callGetTransactionsSections(data, {queryJSON: makeExpenseQueryJSON(CONST.SEARCH.STATUS.EXPENSE.UNREPORTED)});
+                expect(sections.some((s) => s.transactionID === unreportedTxID)).toBe(true);
+            });
+
+            it('should include transactions matching each valid expense status (OUTSTANDING, APPROVED, PAID, DONE)', () => {
+                const statusToReportState: Array<{status: string; stateNum: number; statusNum: number}> = [
+                    {status: CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING, stateNum: CONST.REPORT.STATE_NUM.SUBMITTED, statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED},
+                    {status: CONST.SEARCH.STATUS.EXPENSE.APPROVED, stateNum: CONST.REPORT.STATE_NUM.APPROVED, statusNum: CONST.REPORT.STATUS_NUM.APPROVED},
+                    {status: CONST.SEARCH.STATUS.EXPENSE.PAID, stateNum: CONST.REPORT.STATE_NUM.APPROVED, statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED},
+                    {status: CONST.SEARCH.STATUS.EXPENSE.DONE, stateNum: CONST.REPORT.STATE_NUM.APPROVED, statusNum: CONST.REPORT.STATUS_NUM.CLOSED},
+                ];
+
+                for (const {status, stateNum, statusNum} of statusToReportState) {
+                    const data = makeFilterTestData({stateNum, statusNum});
+                    const [sections] = callGetTransactionsSections(data, {queryJSON: makeExpenseQueryJSON(status)});
+                    expect(sections.some((s) => s.transactionID === filterTestTxID)).toBe(true);
+                }
+            });
+
+            it('should bypass status filter when isActionLoadingSet contains the report metadata key', () => {
+                const data = makeFilterTestData({stateNum: CONST.REPORT.STATE_NUM.OPEN, statusNum: CONST.REPORT.STATUS_NUM.OPEN});
+                const loadingSet = new Set([`${ONYXKEYS.COLLECTION.REPORT_METADATA}${filterTestReportID}`]);
+                const [sections] = callGetTransactionsSections(data, {
+                    queryJSON: makeExpenseQueryJSON(CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING),
+                    isActionLoadingSet: loadingSet,
+                });
+                expect(sections.some((s) => s.transactionID === filterTestTxID)).toBe(true);
+            });
+
+            it('should exclude transactions with missing transactionID', () => {
+                const data = makeFilterTestData({}, {transactionID: ''});
+                const [sections] = callGetTransactionsSections(data);
+                expect(sections.some((s) => s.transactionID === '')).toBe(false);
+            });
+
+            it('should return empty sections when data has no transaction keys', () => {
+                const data = Object.fromEntries(Object.entries(searchResults.data).filter(([key]) => !key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION))) as typeof searchResults.data;
+                const [sections, count] = callGetTransactionsSections(data);
+                expect(sections).toEqual([]);
+                expect(count).toBe(0);
+            });
+
+            it('should set formattedTo to empty string when report is missing', () => {
+                const orphanTxID = 'orphan-tx-1';
+                const data = {
+                    ...searchResults.data,
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${orphanTxID}`]: {
+                        ...searchResults.data[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`],
+                        transactionID: orphanTxID,
+                        reportID: 'no-such-report',
+                    },
+                };
+                const [sections] = callGetTransactionsSections(data);
+                const item = sections.find((s) => s.transactionID === orphanTxID);
+                expect(item).toBeDefined();
+                expect(item?.formattedTo).toBe('');
+            });
+
+            it('should set formattedTo to empty string for open expense reports', () => {
+                const data = makeFilterTestData({stateNum: CONST.REPORT.STATE_NUM.OPEN, statusNum: CONST.REPORT.STATUS_NUM.OPEN, type: CONST.REPORT.TYPE.EXPENSE});
+                const [sections] = callGetTransactionsSections(data);
+                const item = sections.find((s) => s.transactionID === filterTestTxID);
+                expect(item).toBeDefined();
+                expect(item?.formattedTo).toBe('');
+            });
+
+            it('should resolve from using reportAction actorAccountID when available', () => {
+                const actorAccountID = approverAccountID;
+                const data = makeFilterTestData(
+                    {stateNum: CONST.REPORT.STATE_NUM.SUBMITTED, statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED, managerID: adminAccountID},
+                    {},
+                    {
+                        [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${filterTestReportID}`]: {
+                            ra1: {
+                                ...reportAction1,
+                                actorAccountID,
+                                reportActionID: 'ra1',
+                                reportID: filterTestReportID,
+                                originalMessage: {
+                                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                                    IOUTransactionID: filterTestTxID,
+                                    IOUReportID: filterTestReportID,
+                                },
+                            },
+                        },
+                        personalDetailsList: {
+                            [adminAccountID]: {
+                                accountID: adminAccountID,
+                                avatar: 'https://example.com/avatar.png',
+                                displayName: 'Admin',
+                                login: adminEmail,
+                            },
+                            [actorAccountID]: {
+                                accountID: actorAccountID,
+                                avatar: 'https://example.com/approver.png',
+                                displayName: 'Approver',
+                                login: approverEmail,
+                            },
+                        },
+                    },
+                );
+                const [sections] = callGetTransactionsSections(data);
+                const item = sections.find((s) => s.transactionID === filterTestTxID);
+                expect(item?.from?.accountID).toBe(actorAccountID);
+            });
+
+            it('should fall back to report ownerAccountID for from when no reportAction actorAccountID', () => {
+                const data = makeFilterTestData(
+                    {stateNum: CONST.REPORT.STATE_NUM.SUBMITTED, statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED, ownerAccountID: adminAccountID, managerID: adminAccountID},
+                    {},
+                    {[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${filterTestReportID}`]: {}},
+                );
+                const [sections] = callGetTransactionsSections(data);
+                const item = sections.find((s) => s.transactionID === filterTestTxID);
+                expect(item?.from?.accountID).toBe(adminAccountID);
+            });
+
+            it('should set exported to empty string when transaction has no reportID', () => {
+                const noReportTxID = 'no-report-tx';
+                const data = {
+                    ...searchResults.data,
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${noReportTxID}`]: {
+                        ...searchResults.data[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`],
+                        transactionID: noReportTxID,
+                        reportID: '',
+                    },
+                };
+                const [sections] = callGetTransactionsSections(data);
+                const item = sections.find((s) => s.transactionID === noReportTxID);
+                expect(item).toBeDefined();
+                expect(item?.exported).toBe('');
+            });
+
+            it('should set category to empty string for IOU reports', () => {
+                const iouTxID = 'iou-cat-tx';
+                const iouReportID = 'iou-cat-report';
+                const data = {
+                    ...searchResults.data,
+                    [`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`]: {
+                        ...report3,
+                        reportID: iouReportID,
+                        type: CONST.REPORT.TYPE.IOU,
+                    },
+                    [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`]: {},
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${iouTxID}`]: {
+                        ...searchResults.data[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`],
+                        transactionID: iouTxID,
+                        reportID: iouReportID,
+                        category: 'Food',
+                    },
+                };
+                const [sections] = callGetTransactionsSections(data);
+                const item = sections.find((s) => s.transactionID === iouTxID);
+                expect(item?.category).toBe('');
+            });
+
+            it('should preserve category for non-IOU reports', () => {
+                const data = makeFilterTestData({type: CONST.REPORT.TYPE.EXPENSE}, {category: 'Travel'});
+                const [sections] = callGetTransactionsSections(data);
+                const item = sections.find((s) => s.transactionID === filterTestTxID);
+                expect(item?.category).toBe('Travel');
+            });
+        });
+
+        describe('getReportSections filtering and edge cases', () => {
+            const rptFilterReportID = 'rpt-filter-report-1';
+            const rptFilterTxID = 'rpt-filter-tx-1';
+
+            function makeReportFilterTestData(reportOverrides: Record<string, unknown> = {}, txOverrides: Record<string, unknown> = {}, extraData: Record<string, unknown> = {}) {
+                return {
+                    ...searchResults.data,
+                    [`${ONYXKEYS.COLLECTION.REPORT}${rptFilterReportID}`]: {
+                        ...report1,
+                        reportID: rptFilterReportID,
+                        ...reportOverrides,
+                    },
+                    [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${rptFilterReportID}`]: {},
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${rptFilterTxID}`]: {
+                        ...searchResults.data[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`],
+                        transactionID: rptFilterTxID,
+                        reportID: rptFilterReportID,
+                        ...txOverrides,
+                    },
+                    ...extraData,
+                };
+            }
+
+            function callGetReportSections(data: typeof searchResults.data, options: Record<string, unknown> = {}) {
+                return SearchUIUtils.getSections({
+                    type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
+                    data,
+                    currentAccountID: adminAccountID,
+                    currentUserEmail: adminEmail,
+                    translate: translateLocal,
+                    formatPhoneNumber,
+                    bankAccountList: {},
+                    allReportMetadata: {},
+                    conciergeReportID: undefined,
+                    ...options,
+                }) as [TransactionReportGroupListItemType[], number, boolean];
+            }
+
+            it('should include report when queryJSON status matches report state (DRAFTS)', () => {
+                const data = makeReportFilterTestData({stateNum: CONST.REPORT.STATE_NUM.OPEN, statusNum: CONST.REPORT.STATUS_NUM.OPEN, type: CONST.REPORT.TYPE.EXPENSE});
+                const [sections] = callGetReportSections(data, {queryJSON: makeExpenseQueryJSON(CONST.SEARCH.STATUS.EXPENSE.DRAFTS)});
+                expect(sections.some((s) => s.keyForList === rptFilterReportID)).toBe(true);
+            });
+
+            it('should exclude report when queryJSON status does not match', () => {
+                const data = makeReportFilterTestData({stateNum: CONST.REPORT.STATE_NUM.OPEN, statusNum: CONST.REPORT.STATUS_NUM.OPEN, type: CONST.REPORT.TYPE.EXPENSE});
+                const [sections] = callGetReportSections(data, {queryJSON: makeExpenseQueryJSON(CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING)});
+                expect(sections.some((s) => s.keyForList === rptFilterReportID)).toBe(false);
+            });
+
+            it('should include report when queryJSON status is an array with at least one match', () => {
+                const data = makeReportFilterTestData({stateNum: CONST.REPORT.STATE_NUM.OPEN, statusNum: CONST.REPORT.STATUS_NUM.OPEN, type: CONST.REPORT.TYPE.EXPENSE});
+                const [sections] = callGetReportSections(data, {
+                    queryJSON: makeExpenseQueryJSON([CONST.SEARCH.STATUS.EXPENSE.APPROVED, CONST.SEARCH.STATUS.EXPENSE.DRAFTS]),
+                });
+                expect(sections.some((s) => s.keyForList === rptFilterReportID)).toBe(true);
+            });
+
+            it('should exclude report when queryJSON status array has no matching entries', () => {
+                const data = makeReportFilterTestData({stateNum: CONST.REPORT.STATE_NUM.OPEN, statusNum: CONST.REPORT.STATUS_NUM.OPEN, type: CONST.REPORT.TYPE.EXPENSE});
+                const [sections] = callGetReportSections(data, {
+                    queryJSON: makeExpenseQueryJSON([CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING, CONST.SEARCH.STATUS.EXPENSE.PAID]),
+                });
+                expect(sections.some((s) => s.keyForList === rptFilterReportID)).toBe(false);
+            });
+
+            it('should bypass status filter when isActionLoadingSet contains the report metadata key', () => {
+                const data = makeReportFilterTestData({stateNum: CONST.REPORT.STATE_NUM.OPEN, statusNum: CONST.REPORT.STATUS_NUM.OPEN, type: CONST.REPORT.TYPE.EXPENSE});
+                const loadingSet = new Set([`${ONYXKEYS.COLLECTION.REPORT_METADATA}${rptFilterReportID}`]);
+                const [sections] = callGetReportSections(data, {
+                    queryJSON: makeExpenseQueryJSON(CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING),
+                    isActionLoadingSet: loadingSet,
+                });
+                expect(sections.some((s) => s.keyForList === rptFilterReportID)).toBe(true);
+            });
+
+            it('should drop transactions when their parent report is filtered out', () => {
+                const data = makeReportFilterTestData({stateNum: CONST.REPORT.STATE_NUM.OPEN, statusNum: CONST.REPORT.STATUS_NUM.OPEN, type: CONST.REPORT.TYPE.EXPENSE});
+                const [sections] = callGetReportSections(data, {queryJSON: makeExpenseQueryJSON(CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING)});
+                expect(sections.some((s) => s.keyForList === rptFilterReportID)).toBe(false);
+                const allTxIDs = sections.flatMap((s) => s.transactions?.map((t) => t.transactionID) ?? []);
+                expect(allTxIDs).not.toContain(rptFilterTxID);
+            });
+
+            it('should skip report entries with non-IOU/EXPENSE/INVOICE types', () => {
+                const chatReportID = 'chat-type-report';
+                const chatTxID = 'chat-type-tx';
+                const data = {
+                    ...searchResults.data,
+                    [`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`]: {
+                        ...report4,
+                        reportID: chatReportID,
+                        type: CONST.REPORT.TYPE.CHAT,
+                    },
+                    [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`]: {},
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${chatTxID}`]: {
+                        ...searchResults.data[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`],
+                        transactionID: chatTxID,
+                        reportID: chatReportID,
+                    },
+                };
+                const [sections] = callGetReportSections(data);
+                expect(sections.some((s) => s.keyForList === chatReportID)).toBe(false);
+            });
+
+            it('should include INVOICE type reports', () => {
+                const invoiceReportID = 'invoice-report-1';
+                const invoiceTxID = 'invoice-tx-1';
+                const data = {
+                    ...searchResults.data,
+                    [`${ONYXKEYS.COLLECTION.REPORT}${invoiceReportID}`]: {
+                        ...report1,
+                        reportID: invoiceReportID,
+                        type: CONST.REPORT.TYPE.INVOICE,
+                    },
+                    [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${invoiceReportID}`]: {},
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${invoiceTxID}`]: {
+                        ...searchResults.data[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`],
+                        transactionID: invoiceTxID,
+                        reportID: invoiceReportID,
+                    },
+                };
+                const [sections] = callGetReportSections(data);
+                expect(sections.some((s) => s.keyForList === invoiceReportID)).toBe(true);
+            });
+
+            it('should set shouldShowStatusAsPending when isOffline and pendingFields.nextStep is UPDATE', () => {
+                const data = makeReportFilterTestData({
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                    pendingFields: {nextStep: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                });
+                const [sections] = callGetReportSections(data, {isOffline: true});
+                const item = sections.find((s) => s.keyForList === rptFilterReportID);
+                expect(item?.shouldShowStatusAsPending).toBe(true);
+            });
+
+            it('should not set shouldShowStatusAsPending when not offline', () => {
+                const data = makeReportFilterTestData({
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                    pendingFields: {nextStep: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                });
+                const [sections] = callGetReportSections(data, {isOffline: false});
+                const item = sections.find((s) => s.keyForList === rptFilterReportID);
+                expect(item?.shouldShowStatusAsPending).toBe(false);
+            });
+
+            it('should set shouldShowYear when report created date belongs to a past year', () => {
+                const data = makeReportFilterTestData({type: CONST.REPORT.TYPE.EXPENSE, created: '2020-01-15 10:00:00'});
+                const [sections] = callGetReportSections(data);
+                const item = sections.find((s) => s.keyForList === rptFilterReportID);
+                expect(item?.shouldShowYear).toBe(true);
+            });
+
+            it('should not set shouldShowYear when all report created dates are in the current year', () => {
+                const currentYearDate = `${new Date().getFullYear()}-06-15 10:00:00`;
+                const data = {
+                    ...makeReportFilterTestData({type: CONST.REPORT.TYPE.EXPENSE, created: currentYearDate}),
+                    [`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]: {...report1, created: currentYearDate},
+                    [`${ONYXKEYS.COLLECTION.REPORT}${reportID2}`]: {...report2, created: currentYearDate},
+                    [`${ONYXKEYS.COLLECTION.REPORT}${reportID3}`]: {...report3, created: currentYearDate},
+                    [`${ONYXKEYS.COLLECTION.REPORT}${reportID4}`]: {...report4, created: currentYearDate},
+                    [`${ONYXKEYS.COLLECTION.REPORT}${reportID5}`]: {...report5, created: currentYearDate},
+                };
+                const [sections] = callGetReportSections(data);
+                const item = sections.find((s) => s.keyForList === rptFilterReportID);
+                expect(item?.shouldShowYear).toBe(false);
+            });
+
+            it('should set shouldShowYearSubmitted when report submitted date belongs to a past year', () => {
+                const data = makeReportFilterTestData({type: CONST.REPORT.TYPE.EXPENSE, submitted: '2019-05-20'});
+                const [sections] = callGetReportSections(data);
+                const item = sections.find((s) => s.keyForList === rptFilterReportID);
+                expect(item?.shouldShowYearSubmitted).toBe(true);
+            });
+
+            it('should set hasVisibleViolations on report section when transaction has visible violations', () => {
+                const violationTxID = 'violation-tx-1';
+                const violationReportID = 'violation-report-1';
+                const violationKey = `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${violationTxID}`;
+                const data = {
+                    ...searchResults.data,
+                    [`${ONYXKEYS.COLLECTION.REPORT}${violationReportID}`]: {
+                        ...report2,
+                        reportID: violationReportID,
+                        type: CONST.REPORT.TYPE.EXPENSE,
+                        ownerAccountID: adminAccountID,
+                        managerID: adminAccountID,
+                        stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                        statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                    },
+                    [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${violationReportID}`]: {},
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${violationTxID}`]: {
+                        ...searchResults.data[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`],
+                        transactionID: violationTxID,
+                        reportID: violationReportID,
+                    },
+                    [violationKey]: [
+                        {
+                            name: CONST.VIOLATIONS.MISSING_CATEGORY,
+                            type: CONST.VIOLATION_TYPES.VIOLATION,
+                        },
+                    ],
+                };
+
+                const [sections] = callGetReportSections(data, {
+                    allTransactionViolations: {
+                        [violationKey]: [
+                            {
+                                name: CONST.VIOLATIONS.MISSING_CATEGORY,
+                                type: CONST.VIOLATION_TYPES.VIOLATION,
+                            },
+                        ],
+                    },
+                });
+                const item = sections.find((s) => s.keyForList === violationReportID);
+                expect(item).toBeDefined();
+                expect(item?.hasVisibleViolations).toBeDefined();
+            });
+
+            it('should use pendingAction from report when available', () => {
+                const data = makeReportFilterTestData({
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                });
+                const [sections] = callGetReportSections(data);
+                const item = sections.find((s) => s.keyForList === rptFilterReportID);
+                expect(item?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
+            });
+
+            it('should fall back to pendingFields.preview when pendingAction is not set', () => {
+                const data = makeReportFilterTestData({
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                    pendingAction: undefined,
+                    pendingFields: {preview: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                });
+                const [sections] = callGetReportSections(data);
+                const item = sections.find((s) => s.keyForList === rptFilterReportID);
+                expect(item?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+            });
+
+            it('should not set pendingAction when neither pendingAction nor pendingFields.preview exists', () => {
+                const data = makeReportFilterTestData({
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                    pendingAction: undefined,
+                    pendingFields: undefined,
+                });
+                const [sections] = callGetReportSections(data);
+                const item = sections.find((s) => s.keyForList === rptFilterReportID);
+                expect(item?.pendingAction).toBeUndefined();
             });
         });
     });
@@ -5595,7 +6152,7 @@ describe('SearchUIUtils', () => {
                 groupBy: CONST.SEARCH.GROUP_BY.TAG,
                 allReportMetadata: {},
                 conciergeReportID: undefined,
-            }) as [TransactionTagGroupListItemType[], number];
+            }) as [TransactionTagGroupListItemType[], number, boolean];
 
             // Then sort the sections
             const result = SearchUIUtils.getSortedSections(
@@ -7525,6 +8082,7 @@ describe('SearchUIUtils', () => {
         });
 
         test('Should fallback to childReportID from IOU action when transaction thread report is not in Onyx', async () => {
+            (createTransactionThreadReport as jest.Mock).mockReset();
             const childReportID = 'child-thread-456';
             // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
             const multiTransactionItem = transactionsListItems.at(2) as TransactionListItemType;
@@ -8707,10 +9265,6 @@ describe('getCardDescriptionForSearchTable', () => {
         state: 3,
     };
 
-    it('returns an empty string when card is undefined', () => {
-        expect(getCardDescriptionForSearchTable(undefined)).toBe('');
-    });
-
     it('returns CSV/upload card title from nameValuePairs for UPLOAD bank', () => {
         const card: OnyxTypes.Card = {
             ...baseCompanyCard,
@@ -8719,7 +9273,7 @@ describe('getCardDescriptionForSearchTable', () => {
                 cardTitle: 'Uploaded spend card',
             } as OnyxTypes.Card['nameValuePairs'],
         };
-        expect(getCardDescriptionForSearchTable(card)).toBe('Uploaded spend card');
+        expect(getCardDescriptionForSearchTable(card, translateLocal)).toBe('Uploaded spend card');
     });
 
     it('returns CSV card title when bank is CSV feed', () => {
@@ -8731,7 +9285,7 @@ describe('getCardDescriptionForSearchTable', () => {
                 cardTitle: 'Marketing Team Card',
             } as OnyxTypes.Card['nameValuePairs'],
         };
-        expect(getCardDescriptionForSearchTable(card)).toBe('Marketing Team Card');
+        expect(getCardDescriptionForSearchTable(card, translateLocal)).toBe('Marketing Team Card');
     });
 
     it('falls back to cardName for CSV/upload when cardTitle is missing', () => {
@@ -8740,11 +9294,11 @@ describe('getCardDescriptionForSearchTable', () => {
             bank: CONST.COMPANY_CARD.FEED_BANK_NAME.CSV,
             cardName: 'Fallback CSV label',
         };
-        expect(getCardDescriptionForSearchTable(card)).toBe('Fallback CSV label');
+        expect(getCardDescriptionForSearchTable(card, translateLocal)).toBe('Fallback CSV label');
     });
 
     it('returns default cardholder label and last four for non-CSV cards when displayName is provided', () => {
-        expect(getCardDescriptionForSearchTable(baseCompanyCard, 'Jane')).toBe(`Jane's card ${CONST.DOT_SEPARATOR} 2554`);
+        expect(getCardDescriptionForSearchTable(baseCompanyCard, translateLocal, 'Jane')).toBe(`Jane's card ${CONST.DOT_SEPARATOR} 2554`);
     });
 
     it('omits the dot separator when lastFourPAN is empty', () => {
@@ -8752,10 +9306,10 @@ describe('getCardDescriptionForSearchTable', () => {
             ...baseCompanyCard,
             lastFourPAN: '',
         };
-        expect(getCardDescriptionForSearchTable(card, 'Jane')).toBe(`Jane's card`);
+        expect(getCardDescriptionForSearchTable(card, translateLocal, 'Jane')).toBe(`Jane's card`);
     });
 
     it('uses only last four with leading separator when displayName is missing (search table card group shape)', () => {
-        expect(getCardDescriptionForSearchTable(baseCompanyCard)).toBe(` ${CONST.DOT_SEPARATOR} 2554`);
+        expect(getCardDescriptionForSearchTable(baseCompanyCard, translateLocal)).toBe(` ${CONST.DOT_SEPARATOR} 2554`);
     });
 });

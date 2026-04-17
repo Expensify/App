@@ -1,3 +1,4 @@
+import {useIsFocused} from '@react-navigation/native';
 import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -77,6 +78,12 @@ function TransactionGroupListItem<TItem extends ListItem>({
     newTransactionID,
     lastPaymentMethod,
     personalPolicyID,
+    nonPersonalAndWorkspaceCards,
+    isFirstItem,
+    isLastItem,
+    userBillingGracePeriodEnds,
+    ownerBillingGracePeriodEnd,
+    onUndelete,
 }: TransactionGroupListItemProps<TItem>) {
     const groupItem = item as unknown as TransactionGroupListItemType;
 
@@ -86,6 +93,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
     const {selectedTransactions} = useSearchStateContext();
     const {isLargeScreenWidth} = useResponsiveLayout();
     const currentUserDetails = useCurrentUserPersonalDetails();
+    const isScreenFocused = useIsFocused();
 
     const oneTransactionItem = groupItem.isOneTransactionReport ? groupItem.transactions.at(0) : undefined;
     const [parentReport] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(oneTransactionItem?.reportID)}`);
@@ -133,7 +141,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
             allReportMetadata,
             cardFeeds,
             conciergeReportID,
-        }) as [TransactionListItemType[], number];
+        }) as [TransactionListItemType[], number, boolean];
         transactions = sectionData.map((transactionItem) => ({
             ...transactionItem,
             isSelected: selectedTransactionIDsSet.has(transactionItem.transactionID),
@@ -155,8 +163,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
     const shouldDisplayEmptyView = isEmpty && isExpenseReportType;
     const isDisabledOrEmpty = isEmpty || isDisabled;
 
-    // Search transactions - handles both refresh (offset 0) and pagination (current offset + pageSize)
-    const searchTransactions = (pageSize = 0, isRefresh = false) => {
+    const refreshTransactions = () => {
         if (!groupItem.transactionsQueryJSON) {
             return;
         }
@@ -164,40 +171,101 @@ function TransactionGroupListItem<TItem extends ListItem>({
         search({
             queryJSON: groupItem.transactionsQueryJSON,
             searchKey: undefined,
-            offset: isRefresh ? 0 : (transactionsSnapshot?.search?.offset ?? 0) + pageSize,
+            offset: 0,
             shouldCalculateTotals: false,
             isLoading: !!transactionsSnapshot?.search?.isLoading,
             isOffline,
         });
     };
 
+    // Search transactions for pagination (current offset + pageSize)
+    const searchTransactions = (pageSize = 0) => {
+        if (!groupItem.transactionsQueryJSON) {
+            return;
+        }
+
+        search({
+            queryJSON: groupItem.transactionsQueryJSON,
+            searchKey: undefined,
+            offset: (transactionsSnapshot?.search?.offset ?? 0) + pageSize,
+            shouldCalculateTotals: false,
+            isLoading: !!transactionsSnapshot?.search?.isLoading,
+            isOffline,
+        });
+    };
+
+    const StyleUtils = useStyleUtils();
+
     const animatedHighlightStyle = useAnimatedHighlightStyle({
-        borderRadius: variables.componentBorderRadius,
+        borderRadius: StyleUtils.getSearchTableHighlightBorderRadius(isLargeScreenWidth),
         shouldHighlight: item?.shouldAnimateInHighlight ?? false,
         highlightColor: theme.messageHighlightBG,
         backgroundColor: theme.highlightBG,
+        shouldApplyOtherStyles: !isLargeScreenWidth,
     });
 
     const isItemSelected = isSelectAllChecked || item?.isSelected;
 
-    const pressableStyle = [styles.transactionGroupListItemStyle, isItemSelected && styles.activeComponentBG];
-
-    const StyleUtils = useStyleUtils();
+    const pressableStyle = [
+        styles.transactionGroupListItemStyle,
+        isLargeScreenWidth && {
+            ...styles.searchTableRowHeight,
+            borderRadius: 0,
+            paddingVertical: variables.tableGroupRowPaddingVertical,
+            ...(isLastItem ? styles.searchTableBottomRadius : {}),
+        },
+        isItemSelected && styles.activeComponentBG,
+    ];
     const pressableRef = useRef<View>(null);
 
     useEffect(() => {
         if (!newTransactionID || !isExpanded) {
             return;
         }
-        searchTransactions(0, true);
-    }, [newTransactionID, isExpanded, searchTransactions]);
+        if (!groupItem.transactionsQueryJSON) {
+            return;
+        }
+
+        search({
+            queryJSON: groupItem.transactionsQueryJSON,
+            searchKey: undefined,
+            offset: 0,
+            shouldCalculateTotals: false,
+            isLoading: !!transactionsSnapshot?.search?.isLoading,
+            isOffline,
+        });
+    }, [newTransactionID, isExpanded, groupItem.transactionsQueryJSON, isOffline, transactionsSnapshot?.search?.isLoading]);
+
+    const wasScreenFocusedRef = useRef(isScreenFocused);
+    useEffect(() => {
+        const didReturnToScreen = wasScreenFocusedRef.current === false && isScreenFocused === true;
+        wasScreenFocusedRef.current = isScreenFocused;
+
+        if (!didReturnToScreen || !isExpanded || isExpenseReportType) {
+            return;
+        }
+
+        // Keep expanded group rows in sync with updated grouped totals after returning from RHP flows.
+        if (!groupItem.transactionsQueryJSON) {
+            return;
+        }
+
+        search({
+            queryJSON: groupItem.transactionsQueryJSON,
+            searchKey: undefined,
+            offset: 0,
+            shouldCalculateTotals: false,
+            isLoading: !!transactionsSnapshot?.search?.isLoading,
+            isOffline,
+        });
+    }, [isScreenFocused, isExpanded, isExpenseReportType, groupItem.transactionsQueryJSON, isOffline, transactionsSnapshot?.search?.isLoading]);
 
     const handleToggle = () => {
         setIsExpanded((prev) => {
             const newExpandedState = !prev;
 
             if (newExpandedState) {
-                searchTransactions(0, true);
+                refreshTransactions();
             } else {
                 setTransactionsVisibleLimit(CONST.TRANSACTION.RESULTS_PAGE_SIZE);
             }
@@ -249,6 +317,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
                     isIndeterminate={isIndeterminate}
                     onDownArrowClick={onExpandIconPress}
                     isExpanded={isExpanded}
+                    isLargeScreenWidth={isLargeScreenWidth}
                 />
             ),
             [CONST.SEARCH.GROUP_BY.CARD]: (
@@ -387,6 +456,8 @@ function TransactionGroupListItem<TItem extends ListItem>({
                     personalPolicyID={personalPolicyID}
                     onDownArrowClick={onExpandIconPress}
                     isExpanded={isExpanded}
+                    userBillingGracePeriodEnds={userBillingGracePeriodEnds}
+                    ownerBillingGracePeriodEnd={ownerBillingGracePeriodEnd}
                 />
             );
         }
@@ -464,7 +535,14 @@ function TransactionGroupListItem<TItem extends ListItem>({
                     isFocused && StyleUtils.getItemBackgroundColorStyle(!!isItemSelected, !!isFocused, !!item.isDisabled, theme.activeComponentBG, theme.hoverComponentBG),
                 ]}
                 onFocus={onFocus}
-                wrapperStyle={[styles.mb2, styles.mh5, animatedHighlightStyle, styles.userSelectNone]}
+                wrapperStyle={[
+                    !isLargeScreenWidth && styles.mb2,
+                    styles.mh5,
+                    animatedHighlightStyle,
+                    styles.userSelectNone,
+                    isLargeScreenWidth && StyleUtils.getSearchTableGroupRowBorderStyle(isFirstItem, isLastItem, isItemSelected),
+                    isLargeScreenWidth && isLastItem && styles.overflowHidden,
+                ]}
             >
                 {({hovered}) => (
                     <View style={styles.flex1}>
@@ -472,8 +550,9 @@ function TransactionGroupListItem<TItem extends ListItem>({
                             isExpanded={isExpanded}
                             header={getHeader(hovered)}
                             onPress={onExpandIconPress}
-                            expandButtonStyle={styles.pv4Half}
+                            expandButtonStyle={isLargeScreenWidth ? styles.pv2 : styles.pv4Half}
                             shouldShowToggleButton={isLargeScreenWidth}
+                            borderBottomStyle={isLargeScreenWidth && styles.borderNone}
                             sentryLabel={CONST.SENTRY_LABEL.SEARCH.GROUP_EXPAND_TOGGLE}
                         >
                             <TransactionGroupListExpandedItem
@@ -497,6 +576,8 @@ function TransactionGroupListItem<TItem extends ListItem>({
                                 searchTransactions={searchTransactions}
                                 isInSingleTransactionReport={groupItem.transactions.length === 1}
                                 onLongPress={onExpandedRowLongPress}
+                                nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}
+                                onUndelete={onUndelete}
                             />
                         </AnimatedCollapsible>
                     </View>

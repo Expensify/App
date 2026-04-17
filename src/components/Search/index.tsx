@@ -17,6 +17,7 @@ import useLocalize from '@hooks/useLocalize';
 import useMultipleSnapshots from '@hooks/useMultipleSnapshots';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchHighlightAndScroll from '@hooks/useSearchHighlightAndScroll';
@@ -55,7 +56,7 @@ import {
     shouldShowYear as shouldShowYearUtil,
 } from '@libs/SearchUIUtils';
 import {cancelSpan, endSpanWithAttributes, getSpan, startSpan} from '@libs/telemetry/activeSpans';
-import {cancelSubmitFollowUpActionSpan, endSubmitFollowUpActionSpan, getPendingSubmitFollowUpAction} from '@libs/telemetry/submitFollowUpAction';
+import {cancelSubmitFollowUpActionSpan, getPendingSubmitFollowUpAction} from '@libs/telemetry/submitFollowUpAction';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {getOriginalTransactionWithSplitInfo, hasValidModifiedAmount, isOnHold, isTransactionPendingDelete} from '@libs/TransactionUtils';
 import Navigation, {navigationRef} from '@navigation/Navigation';
@@ -82,6 +83,7 @@ import type {SearchColumnType, SearchParams, SearchQueryJSON, SelectedTransactio
 
 type SearchProps = {
     queryJSON: SearchQueryJSON;
+    hasFilterBars?: boolean;
     onSearchListScroll?: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
     contentContainerStyle?: StyleProp<ViewStyle>;
     searchResults?: SearchResults;
@@ -91,8 +93,9 @@ type SearchProps = {
     searchRequestResponseStatusCode?: number | null;
     onContentReady?: () => void;
 
-    /** Pre-rendered content shown on the first frame while hooks initialize and heavy work is deferred. */
-    initialContent?: React.ReactNode;
+    /** Callback from the parent (SearchPageNarrow) to end submit-expense navigation spans.
+     *  Consolidates span-ending logic in one place. Accepts `wasListEmpty` for telemetry attributes. */
+    onDestinationVisible?: (wasListEmpty: boolean, source: 'focus' | 'layout') => void;
 };
 
 // Max time (ms) to keep the optimistic item cache/skeleton alive before
@@ -116,7 +119,7 @@ function mapTransactionItemToSelectedEntry(
     outstandingReportsByPolicyID?: OutstandingReportsByPolicyIDDerivedValue,
     allowNegativeAmount = true,
 ): [string, SelectedTransactionInfo] {
-    const {canHoldRequest, canUnholdRequest} = canHoldUnholdReportAction(item.report, item.reportAction, item.holdReportAction, item, item.policy);
+    const {canHoldRequest, canUnholdRequest} = canHoldUnholdReportAction(item.report, item.reportAction, item.holdReportAction, item, item.policy, currentUserAccountID);
     const canRejectRequest = item.report ? canRejectReportAction(currentUserLogin, item.report) : false;
     const amount = hasValidModifiedAmount(item) ? Number(item.modifiedAmount) : item.amount;
 
@@ -211,6 +214,7 @@ function prepareTransactionsList(
 
 function Search({
     queryJSON,
+    hasFilterBars,
     searchResults,
     onSearchListScroll,
     contentContainerStyle,
@@ -219,7 +223,7 @@ function Search({
     onSortPressedCallback,
     searchRequestResponseStatusCode,
     onContentReady,
-    initialContent,
+    onDestinationVisible,
 }: SearchProps) {
     const {type, status, sortBy, sortOrder, hash, similarSearchHash, groupBy, view} = queryJSON;
     // Deferred write: API.write() is postponed so the skeleton renders instantly.
@@ -231,7 +235,7 @@ function Search({
     const skipDeferralOnFocusRef = useRef(isSearchDataLoaded(searchResults, queryJSON) && !hasPendingWriteOnMountRef.current);
 
     const [shouldDeferHeavySearchWork, setShouldDeferHeavySearchWork] = useState(() => !isSearchDataLoaded(searchResults, queryJSON) || hasPendingWriteOnMountRef.current);
-    const [showPendingExpensePlaceholder, setShowPendingExpensePlaceholder] = useState(() => hasPendingWriteOnMountRef.current && optimisticWatchKeyRef.current != null);
+    const [showPendingExpensePlaceholder, setShowPendingExpensePlaceholder] = useState(() => hasPendingWriteOnMountRef.current);
     // Caches the optimistic list item once it first appears in sortedData.
     // Used by stableSortedData to re-inject the row if a stale snapshot temporarily removes it.
     // Cleared once the server-confirmed (non-optimistic) version arrives.
@@ -259,7 +263,7 @@ function Search({
     // stays visible at its sorted position until server-confirmed data arrives;
     // clearOptimisticTracking handles that cleanup when pendingAction !== ADD.
     useEffect(() => {
-        if (!hasPendingWriteOnMountRef.current || !optimisticWatchKeyRef.current) {
+        if (!hasPendingWriteOnMountRef.current) {
             return;
         }
         const id = setTimeout(() => setShowPendingExpensePlaceholder(false), OPTIMISTIC_TRACKING_TIMEOUT_MS);
@@ -281,14 +285,12 @@ function Search({
 
     const {isOffline} = useNetwork();
     const prevIsOffline = usePrevious(isOffline);
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const styles = useThemeStyles();
-    // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout for enabling the selection mode on small screens only
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
-    const {isSmallScreenWidth, isLargeScreenWidth} = useResponsiveLayout();
+    const {shouldUseNarrowLayout, isSmallScreenWidth, isLargeScreenWidth, isInLandscapeMode} = useResponsiveLayout();
+    const styles = useThemeStyles();
     const navigation = useNavigation<PlatformStackNavigationProp<SearchFullscreenNavigatorParamList>>();
     const isFocused = useIsFocused();
-    const {markReportIDAsExpense} = useWideRHPActions();
+    const {markReportIDAsExpense, markReportIDAsMultiTransactionExpense, unmarkReportIDAsMultiTransactionExpense} = useWideRHPActions();
     const {
         currentSearchHash,
         currentSearchKey,
@@ -301,7 +303,7 @@ function Search({
         suggestedSearches,
     } = useSearchStateContext();
 
-    const {setSelectedTransactions, clearSelectedTransactions, setShouldShowActionsBarLoading, setShouldShowSelectAllMatchingItems, selectAllMatchingItems, setShouldResetSearchQuery} =
+    const {setSelectedTransactions, clearSelectedTransactions, setShouldShowFiltersBarLoading, setShouldShowSelectAllMatchingItems, selectAllMatchingItems, setShouldResetSearchQuery} =
         useSearchActionsContext();
     const [offset, setOffset] = useState(0);
 
@@ -318,10 +320,10 @@ function Search({
     const [allReportMetadata] = useOnyx(ONYXKEYS.COLLECTION.REPORT_METADATA);
     const [visibleColumns] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {selector: columnsSelector});
     const [customCardNames] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES);
+    const [nonPersonalAndWorkspaceCards] = useOnyx(ONYXKEYS.DERIVED.NON_PERSONAL_AND_WORKSPACE_CARD_LIST);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
 
     const isExpenseReportType = type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
-    const {markReportIDAsMultiTransactionExpense, unmarkReportIDAsMultiTransactionExpense} = useWideRHPActions();
 
     const archivedReportsIdSet = useArchivedReportsIdSet();
 
@@ -329,6 +331,8 @@ function Search({
         canEvict: false,
         selector: selectFilteredReportActions,
     });
+
+    const {policyForMovingExpenses} = usePolicyForMovingExpenses();
 
     const [cardFeeds, cardFeedsResult] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER);
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
@@ -465,8 +469,6 @@ function Search({
                 return;
             }
 
-            // Re-applying the defer only on the submit-return path keeps the optimization scoped to
-            // the transition we care about instead of slowing every search refocus.
             return deferHeavySearchWork(true);
         }, [deferHeavySearchWork]),
     );
@@ -498,19 +500,19 @@ function Search({
 
     const prevIsSearchResultEmpty = usePrevious(isSearchResultsEmpty);
 
-    const [baseFilteredData, filteredDataLength, allDataLength] = useMemo(() => {
-        if (shouldDeferHeavySearchWork || searchResults === undefined || !isDataLoaded) {
-            return [[], 0, 0];
+    const {baseFilteredData, filteredDataLength, allDataLength, hasDeletedTransaction} = useMemo(() => {
+        if (shouldDeferHeavySearchWork || searchResults === undefined || !isDataLoaded || !searchResults.data) {
+            return {baseFilteredData: [], filteredDataLength: 0, allDataLength: 0, hasDeletedTransaction: false};
         }
 
         // Group-by option cannot be used for chats or tasks
         const isChat = type === CONST.SEARCH.DATA_TYPES.CHAT;
         const isTask = type === CONST.SEARCH.DATA_TYPES.TASK;
         if (validGroupBy && (isChat || isTask)) {
-            return [[], 0, 0];
+            return {baseFilteredData: [], filteredDataLength: 0, allDataLength: 0, hasDeletedTransaction: false};
         }
 
-        const [filteredData1, allLength] = getSections({
+        const [filteredData1, allLength, hasDeletedTransactionFromSections] = getSections({
             type,
             data: searchResults.data,
             policies,
@@ -532,8 +534,14 @@ function Search({
             allReportMetadata,
             conciergeReportID,
             onyxPersonalDetailsList,
+            policyForMovingExpenses,
         });
-        return [filteredData1, filteredData1.length, allLength];
+        return {
+            baseFilteredData: filteredData1,
+            filteredDataLength: filteredData1.length,
+            allDataLength: allLength,
+            hasDeletedTransaction: hasDeletedTransactionFromSections,
+        };
     }, [
         currentSearchKey,
         isOffline,
@@ -558,6 +566,7 @@ function Search({
         allReportMetadata,
         conciergeReportID,
         onyxPersonalDetailsList,
+        policyForMovingExpenses,
     ]);
 
     // For group-by views, each grouped item has a transactionsQueryJSON with a hash pointing to a separate snapshot
@@ -642,8 +651,8 @@ function Search({
 
     useEffect(() => {
         /** We only want to display the skeleton for the status filters the first time we load them for a specific data type */
-        setShouldShowActionsBarLoading(shouldShowLoadingState && lastSearchType !== type);
-    }, [lastSearchType, setShouldShowActionsBarLoading, shouldShowLoadingState, type]);
+        setShouldShowFiltersBarLoading(shouldShowLoadingState && lastSearchType !== type);
+    }, [lastSearchType, setShouldShowFiltersBarLoading, shouldShowLoadingState, type]);
 
     const shouldRetrySearchWithTotalsOrGroupedRef = useRef(false);
 
@@ -653,6 +662,15 @@ function Search({
 
         const comingBackOnlineWithNoResults = prevIsOffline && !isOffline && isEmptyObject(searchResults?.data);
         if (!comingBackOnlineWithNoResults && ((!isFocused && !isMigratedModalDisplayed) || isOffline)) {
+            return;
+        }
+
+        // When mounting after the pre-insert fast path, the deferred write hasn't
+        // been flushed yet. Triggering a search now would race with the CREATE
+        // API call and return stale results that overwrite the optimistic row.
+        // Skip this call; the optimistic data from flushDeferredWrite will populate
+        // the list, and the next user-driven search will refresh from the server.
+        if (hasPendingWriteOnMountRef.current && hasDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH)) {
             return;
         }
 
@@ -755,6 +773,7 @@ function Search({
                         transactionItem.holdReportAction,
                         transactionItem,
                         transactionItem.policy,
+                        accountID,
                     );
                     const canRejectRequest = email && transactionItem.report ? canRejectReportAction(email, transactionItem.report) : false;
 
@@ -813,6 +832,7 @@ function Search({
                     transactionItem.holdReportAction,
                     transactionItem,
                     transactionItem.policy,
+                    accountID,
                 );
                 const canRejectRequest = email && transactionItem.report ? canRejectReportAction(email, transactionItem.report) : false;
 
@@ -1069,7 +1089,7 @@ function Search({
             if (isTransactionGroupListItemType(item) && !isTransactionReportGroupListItemType(item) && item.transactionsQueryJSON) {
                 handleSearch({
                     queryJSON: item.transactionsQueryJSON,
-                    searchKey: currentSearchKey,
+                    searchKey: undefined,
                     offset: 0,
                     shouldCalculateTotals: false,
                     isLoading: false,
@@ -1242,9 +1262,26 @@ function Search({
     // Server confirmed (pendingAction !== ADD) -> clear all tracking.
     // Disappeared after caching (rollback) -> schedule cleanup after grace period.
     useEffect(() => {
-        if (!optimisticWatchKeyRef.current) {
+        if (!hasPendingWriteOnMountRef.current || optimisticTrackingCleanedUpRef.current) {
             return;
         }
+
+        // The watch key may not be available at mount when the deferred write channel
+        // was only reserved (fast path: rAF hasn't fired yet). Try to resolve it lazily
+        // on each sortedData change. If data arrives before we ever get a key (e.g. the
+        // channel was flushed between renders), clear tracking since the list is populated.
+        if (!optimisticWatchKeyRef.current) {
+            const latestKey = getOptimisticWatchKey(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
+            if (latestKey) {
+                optimisticWatchKeyRef.current = latestKey;
+            } else if (sortedData.length > 0) {
+                clearOptimisticTracking();
+                return;
+            } else {
+                return;
+            }
+        }
+
         const optimisticItem = sortedData.find(
             (item): item is TransactionListItemType => 'transactionID' in item && `${ONYXKEYS.COLLECTION.TRANSACTION}${item.transactionID}` === optimisticWatchKeyRef.current,
         );
@@ -1375,18 +1412,12 @@ function Search({
 
     const onLayout = useCallback(() => {
         hasHadFirstLayout.current = true;
+        onDestinationVisible?.(isSearchResultsEmptyRef.current, 'layout');
         endSpanWithAttributes(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS, {[CONST.TELEMETRY.ATTRIBUTE_IS_WARM]: true});
-        const pending = getPendingSubmitFollowUpAction();
-        if (pending && pending.followUpAction !== CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_AND_OPEN_REPORT) {
-            endSubmitFollowUpActionSpan(pending.followUpAction, undefined, {
-                [CONST.TELEMETRY.ATTRIBUTE_IS_WARM]: true,
-                [CONST.TELEMETRY.ATTRIBUTE_WAS_LIST_EMPTY]: isSearchResultsEmptyRef.current,
-            });
-        }
         handleSelectionListScroll(stableSortedData, searchListRef.current);
         flushDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
         onContentReady?.();
-    }, [handleSelectionListScroll, stableSortedData, onContentReady]);
+    }, [handleSelectionListScroll, stableSortedData, onContentReady, onDestinationVisible]);
 
     // Must be a ref, not state: cancelNavigationSpans is called during render
     // (inside conditional returns), so using setState would trigger infinite re-renders.
@@ -1398,7 +1429,8 @@ function Search({
             cancelSubmitFollowUpActionSpan();
         }
         didBailToFallbackState.current = true;
-    }, []);
+        onContentReady?.();
+    }, [onContentReady]);
 
     // When the render bails to an error/empty state, the SelectionList never mounts
     // so its onLayout callback (the primary flush site) never fires. This effect
@@ -1425,19 +1457,13 @@ function Search({
             if (!hasHadFirstLayout.current) {
                 return;
             }
-            const pending = getPendingSubmitFollowUpAction();
-            if (pending && pending.followUpAction !== CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_AND_OPEN_REPORT) {
-                endSubmitFollowUpActionSpan(pending.followUpAction, undefined, {
-                    [CONST.TELEMETRY.ATTRIBUTE_IS_WARM]: !shouldShowLoadingState,
-                    [CONST.TELEMETRY.ATTRIBUTE_WAS_LIST_EMPTY]: isSearchResultsEmptyRef.current,
-                });
-            }
+            onDestinationVisible?.(isSearchResultsEmptyRef.current, 'focus');
             endSpanWithAttributes(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS, {
                 [CONST.TELEMETRY.ATTRIBUTE_IS_WARM]: !shouldShowLoadingState,
             });
             // On re-focus (e.g. DISMISS_MODAL_ONLY) onLayout won't re-fire — flush here.
             flushDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
-        }, [shouldShowLoadingState]),
+        }, [shouldShowLoadingState, onDestinationVisible]),
     );
 
     // Reset before conditional returns. Only cancelNavigationSpans (error/empty paths)
@@ -1445,28 +1471,56 @@ function Search({
     // dep-free useEffect above — see comment on didBailToFallbackState.
     didBailToFallbackState.current = false;
 
+    const isAnyVisibleActionLoading = useMemo(
+        () => filteredData.some((item) => 'reportID' in item && item.reportID && isActionLoadingSet.has(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${item.reportID}`)),
+        [filteredData, isActionLoadingSet],
+    );
+
+    const visibleDataLength = useMemo(() => filteredData.filter((item) => item.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isOffline).length, [filteredData, isOffline]);
+
+    const yearIndicators = useMemo(
+        () =>
+            searchResults?.data
+                ? shouldShowYearUtil(searchResults.data, isExpenseReportType ?? false, undefined, type === CONST.SEARCH.DATA_TYPES.EXPENSE)
+                : {
+                      shouldShowYearCreated: false,
+                      shouldShowYearSubmitted: false,
+                      shouldShowYearApproved: false,
+                      shouldShowYearPosted: false,
+                      shouldShowYearExported: false,
+                      shouldShowYearWithdrawn: false,
+                  },
+        [searchResults?.data, isExpenseReportType, type],
+    );
+
+    const amountIndicators = useMemo(
+        () => (searchResults?.data ? getWideAmountIndicators(searchResults.data) : {shouldShowAmountInWideColumn: false, shouldShowTaxAmountInWideColumn: false}),
+        [searchResults?.data],
+    );
+
+    const onSortPress = useCallback(
+        (column: SearchColumnType, order: SortOrder) => {
+            clearSelectedTransactions();
+            const newQuery = buildSearchQueryString({
+                ...queryJSON,
+                sortBy: column,
+                sortOrder: order,
+            });
+            onSortPressedCallback?.();
+            navigation.setParams({q: newQuery, rawQuery: undefined});
+        },
+        [clearSelectedTransactions, queryJSON, onSortPressedCallback, navigation],
+    );
+
     // This is a performance optimization for the submit-expense->search path only.
     // The SearchPage skeleton (useSearchLoadingState) doesn't cover this case because
     // Search must mount for its onLayout to flush the deferred CreateMoneyRequest API write, which would block the JS thread causing a slowdown on post expense creation navigation
     if (shouldShowRowSkeleton) {
-        // When initialContent is provided (submit-expense flow), render it instead of the skeleton.
-        // This avoids a jarring "data, skeleton, data" flash. The user sees the same
-        // static list continuously until the FlashList is ready to take over.
-        if (initialContent) {
-            return (
-                <View
-                    style={styles.flex1}
-                    onLayout={onSkeletonLayout}
-                >
-                    {initialContent}
-                </View>
-            );
-        }
         return (
             <SearchRowSkeleton
                 shouldAnimate
                 onLayout={onSkeletonLayout}
-                containerStyle={shouldUseNarrowLayout ? styles.searchListContentContainerStyles : styles.mt3}
+                containerStyle={shouldUseNarrowLayout ? styles.searchListContentContainerStyles(!!hasFilterBars) : styles.mt3}
                 reasonAttributes={deferredWorkReasonAttributes}
             />
         );
@@ -1482,7 +1536,7 @@ function Search({
         const isInvalidQuery = searchRequestResponseStatusCode === CONST.JSON_CODE.INVALID_SEARCH_QUERY;
         cancelNavigationSpans();
         return (
-            <View style={[shouldUseNarrowLayout ? styles.searchListContentContainerStyles : styles.mt3, styles.flex1]}>
+            <View style={[shouldUseNarrowLayout ? styles.searchListContentContainerStyles(!!hasFilterBars) : styles.mt3, styles.flex1]}>
                 <FullPageErrorView
                     shouldShow
                     containerStyle={styles.searchBlockingErrorViewContainer}
@@ -1495,8 +1549,6 @@ function Search({
             </View>
         );
     }
-    const isAnyVisibleActionLoading = filteredData.some((item) => 'reportID' in item && item.reportID && isActionLoadingSet.has(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${item.reportID}`));
-    const visibleDataLength = filteredData.filter((item) => item.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isOffline).length;
     // Guard: don't render the empty view while the data is transiently empty.
     // - shouldDeferHeavySearchWork: skeleton is still showing, data hasn't been computed yet.
     // - showPendingExpensePlaceholder: deferred write hasn't produced the optimistic item yet.
@@ -1511,34 +1563,21 @@ function Search({
     ) {
         cancelNavigationSpans();
         return (
-            <View style={[shouldUseNarrowLayout ? styles.searchListContentContainerStyles : styles.mt3, styles.flex1]}>
+            <View style={[styles.flex1, isInLandscapeMode ? undefined : [shouldUseNarrowLayout ? styles.searchListContentContainerStyles(!!hasFilterBars) : styles.mt3]]}>
                 <EmptySearchView
                     similarSearchHash={similarSearchHash}
                     type={type}
                     hasResults={searchResults?.search?.hasResults}
                     queryJSON={queryJSON}
+                    onScroll={onSearchListScroll}
+                    contentContainerStyle={isInLandscapeMode ? styles.searchListContentContainerStyles(!!hasFilterBars) : undefined}
                 />
             </View>
         );
     }
 
-    const onSortPress = (column: SearchColumnType, order: SortOrder) => {
-        clearSelectedTransactions();
-        const newQuery = buildSearchQueryString({
-            ...queryJSON,
-            sortBy: column,
-            sortOrder: order,
-        });
-        onSortPressedCallback?.();
-        // We want to explicitly clear stale rawQuery since it's only used for manually typed-in queries.
-        navigation.setParams({q: newQuery, rawQuery: undefined});
-    };
-
-    const {shouldShowYearCreated, shouldShowYearSubmitted, shouldShowYearApproved, shouldShowYearPosted, shouldShowYearExported} = shouldShowYearUtil(
-        searchResults?.data,
-        isExpenseReportType ?? false,
-    );
-    const {shouldShowAmountInWideColumn, shouldShowTaxAmountInWideColumn} = getWideAmountIndicators(searchResults?.data);
+    const {shouldShowYearCreated, shouldShowYearSubmitted, shouldShowYearApproved, shouldShowYearPosted, shouldShowYearExported, shouldShowYearWithdrawn} = yearIndicators;
+    const {shouldShowAmountInWideColumn, shouldShowTaxAmountInWideColumn} = amountIndicators;
     const shouldShowTableHeader = isLargeScreenWidth && !isChat;
     const tableHeaderVisible = canSelectMultiple || shouldShowTableHeader;
 
@@ -1570,7 +1609,7 @@ function Search({
                     onLayout={onLayoutChart}
                     scrollEventThrottle={CONST.TIMING.MIN_SMOOTH_SCROLL_EVENT_THROTTLE}
                 >
-                    <View style={[shouldUseNarrowLayout ? styles.searchListContentContainerStyles : styles.mt3, styles.mh4, styles.mb4, styles.flex1]}>
+                    <View style={[shouldUseNarrowLayout ? styles.searchListContentContainerStyles(!!hasFilterBars) : styles.mt3, styles.mh4, styles.mb4, styles.flex1]}>
                         <SearchChartWrapper
                             title={chartTitle}
                             groupBy={validGroupBy}
@@ -1604,7 +1643,7 @@ function Search({
                     shouldPreventLongPressRow={isChat || isTask}
                     SearchTableHeader={
                         !shouldShowTableHeader ? undefined : (
-                            <View style={[!isTask && styles.pr8, styles.flex1]}>
+                            <View style={[!isTask && styles.pr9, styles.flex1]}>
                                 <SearchTableHeader
                                     canSelectMultiple={canSelectMultiple}
                                     columns={columnsToShow}
@@ -1617,16 +1656,19 @@ function Search({
                                     shouldShowYearApproved={shouldShowYearApproved}
                                     shouldShowYearPosted={shouldShowYearPosted}
                                     shouldShowYearExported={shouldShowYearExported}
+                                    shouldShowYearWithdrawn={shouldShowYearWithdrawn}
                                     isAmountColumnWide={shouldShowAmountInWideColumn}
                                     isTaxAmountColumnWide={shouldShowTaxAmountInWideColumn}
                                     shouldShowSorting
                                     groupBy={validGroupBy}
+                                    isExpenseReportView={isExpenseReportType}
+                                    isActionColumnWide={isTask || hasDeletedTransaction}
                                 />
                             </View>
                         )
                     }
                     contentContainerStyle={[styles.pb3, contentContainerStyle]}
-                    containerStyle={[styles.pv0, !tableHeaderVisible && !isSmallScreenWidth && styles.pt3]}
+                    containerStyle={[styles.pv0, !tableHeaderVisible && !isSmallScreenWidth && styles.pt1]}
                     shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
                     onScroll={onSearchListScroll}
                     onEndReachedThreshold={0.75}
@@ -1639,6 +1681,7 @@ function Search({
                                 shouldAnimate
                                 fixedNumItems={shouldShowLoadingMoreItems ? 5 : 1}
                                 reasonAttributes={showPendingExpensePlaceholder ? pendingExpenseReasonAttributes : loadMoreSkeletonReasonAttributes}
+                                isLoadMore
                             />
                         ) : undefined
                     }
@@ -1650,7 +1693,9 @@ function Search({
                     shouldAnimate={type === CONST.SEARCH.DATA_TYPES.EXPENSE}
                     newTransactions={newTransactions}
                     hasLoadedAllTransactions={hasLoadedAllTransactions}
-                    customCardNames={customCardNames}
+                    policyForMovingExpenses={policyForMovingExpenses}
+                    nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}
+                    isActionColumnWide={isTask || hasDeletedTransaction}
                 />
             </Animated.View>
         </SearchScopeProvider>

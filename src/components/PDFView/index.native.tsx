@@ -1,6 +1,6 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
-import {Linking, View} from 'react-native';
+import {Keyboard, Linking, View} from 'react-native';
 import PDF from 'react-native-pdf';
 import KeyboardAvoidingView from '@components/KeyboardAvoidingView';
 import LoadingIndicator from '@components/LoadingIndicator';
@@ -129,6 +129,7 @@ function PDFView({onToggleKeyboard, onLoadComplete, fileName, onPress, isFocused
      * @param path - Path to cache location
      */
     const finishPDFLoad = (numberOfPages: number, path: string) => {
+        Keyboard.dismiss();
         setShouldRequestPassword(false);
         setShouldShowLoadingIndicator(false);
         setSuccessToLoadPDF(true);

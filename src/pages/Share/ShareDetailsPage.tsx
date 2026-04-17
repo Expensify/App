@@ -3,8 +3,6 @@ import React, {useCallback, useContext, useEffect, useMemo, useState} from 'reac
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import AttachmentPreview from '@components/AttachmentPreview';
-import Button from '@components/Button';
-import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import {PressableWithoutFeedback} from '@components/Pressable';
@@ -39,8 +37,9 @@ import type SCREENS from '@src/SCREENS';
 import type {Report as ReportType} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import KeyboardUtils from '@src/utils/keyboard';
-import getFileSize from './getFileSize';
+import ShareButton from './ShareButton';
 import {showErrorAlert} from './ShareRootPage';
+import useShareFileSizeValidation from './useShareFileSizeValidation';
 
 type ShareDetailsPageProps = StackScreenProps<ShareNavigatorParamList, typeof SCREENS.SHARE.SHARE_DETAILS>;
 
@@ -98,22 +97,7 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
         Navigation.navigate(ROUTES.SHARE_DETAILS_ATTACHMENT);
     }, [reportAttachmentsContext, fileSource, validateFileName, icons.FallbackAvatar]);
 
-    useEffect(() => {
-        if (!currentAttachment?.content || errorTitle || !shouldShowAttachment) {
-            return;
-        }
-        getFileSize(currentAttachment?.content).then((size) => {
-            if (size > CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE) {
-                setErrorTitle(translate('attachmentPicker.attachmentTooLarge'));
-                setErrorMessage(translate('attachmentPicker.sizeExceeded'));
-            }
-
-            if (size < CONST.API_ATTACHMENT_VALIDATIONS.MIN_SIZE) {
-                setErrorTitle(translate('attachmentPicker.attachmentTooSmall'));
-                setErrorMessage(translate('attachmentPicker.sizeNotMet'));
-            }
-        });
-    }, [currentAttachment?.content, errorTitle, translate, shouldShowAttachment]);
+    useShareFileSizeValidation(currentAttachment?.content, setErrorTitle, setErrorMessage, !errorTitle && shouldShowAttachment);
 
     useEffect(() => {
         if (!errorTitle || !errorMessage) {
@@ -188,7 +172,24 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
             shouldEnableMinHeight={canUseTouchScreen()}
             testID="ShareDetailsPage"
         >
-            <View style={[styles.flex1, styles.flexColumn, styles.h100, styles.appBG]}>
+            <PressableWithoutFeedback
+                onPress={() => {
+                    KeyboardUtils.dismiss();
+                }}
+                accessible={false}
+                sentryLabel={CONST.SENTRY_LABEL.SHARE_DETAIL.DISMISS_KEYBOARD_BUTTON}
+            >
+                <HeaderWithBackButton
+                    title={translate('share.shareToExpensify')}
+                    shouldShowBackButton
+                />
+            </PressableWithoutFeedback>
+
+            <ScrollView
+                style={[styles.flex1, styles.appBG]}
+                contentContainerStyle={styles.flexGrow1}
+                keyboardShouldPersistTaps="handled"
+            >
                 <PressableWithoutFeedback
                     onPress={() => {
                         KeyboardUtils.dismiss();
@@ -196,11 +197,6 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
                     accessible={false}
                     sentryLabel={CONST.SENTRY_LABEL.SHARE_DETAIL.DISMISS_KEYBOARD_BUTTON}
                 >
-                    <HeaderWithBackButton
-                        title={translate('share.shareToExpensify')}
-                        shouldShowBackButton
-                    />
-
                     {!!report && (
                         <View>
                             <View style={[styles.optionsListSectionHeader, styles.justifyContentCenter]}>
@@ -260,16 +256,8 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
                         )}
                     </PressableWithoutFeedback>
                 </View>
-                <FixedFooter style={[styles.pt4]}>
-                    <Button
-                        success
-                        large
-                        text={translate('common.share')}
-                        style={styles.w100}
-                        onPress={handleShare}
-                    />
-                </FixedFooter>
-            </View>
+            </ScrollView>
+            <ShareButton onPress={handleShare} />
         </ScreenWrapper>
     );
 }

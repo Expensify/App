@@ -6,10 +6,11 @@ import type {FeatureListItem} from '@components/FeatureList';
 import FeatureList from '@components/FeatureList';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
+import SectionSubtitleHTML from '@components/SectionSubtitleHTML';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDomainDocumentTitle from '@hooks/useDomainDocumentTitle';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -24,7 +25,7 @@ import colors from '@styles/theme/colors';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import {domainMemberSettingsSelector} from '@src/selectors/Domain';
+import {domainMemberSettingsSelector, isAdminSelector} from '@src/selectors/Domain';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import SamlConfigurationDetailsSectionContent from './Saml/SamlConfigurationDetailsSectionContent';
 import SamlLoginSectionContent from './Saml/SamlLoginSectionContent';
@@ -37,9 +38,10 @@ function DomainSamlPage({route}: DomainSamlPageProps) {
     const {translate} = useLocalize();
     const illustrations = useMemoizedLazyIllustrations(['LaptopOnDeskWithCoffeeAndKey', 'LockClosed', 'OpenSafe', 'ShieldYellow']);
 
+    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const domainAccountID = route.params?.domainAccountID;
     const [domain, domainResults] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`);
-    const [isAdmin, isAdminResults] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_ADMIN_ACCESS}${domainAccountID}`);
+    const isAdmin = isAdminSelector(currentUserAccountID)(domain);
     const [domainSettings, domainSettingsResults] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${domainAccountID}`, {
         selector: domainMemberSettingsSelector,
     });
@@ -68,11 +70,10 @@ function DomainSamlPage({route}: DomainSamlPageProps) {
         [illustrations.OpenSafe, illustrations.ShieldYellow, illustrations.LockClosed],
     );
 
-    if (isLoadingOnyxValue(domainResults, isAdminResults, domainSettingsResults)) {
+    if (isLoadingOnyxValue(domainResults, domainSettingsResults)) {
         const reasonAttributes: SkeletonSpanReasonAttributes = {
             context: 'DomainSamlPage',
             isLoadingDomain: isLoadingOnyxValue(domainResults),
-            isLoadingAdmin: isLoadingOnyxValue(isAdminResults),
             isLoadingDomainSettings: isLoadingOnyxValue(domainSettingsResults),
         };
         return <FullScreenLoadingIndicator reasonAttributes={reasonAttributes} />;
@@ -108,7 +109,7 @@ function DomainSamlPage({route}: DomainSamlPageProps) {
                             <>
                                 <Section
                                     title={translate('domain.samlLogin.title')}
-                                    renderSubtitle={() => <RenderHTML html={translate('domain.samlLogin.subtitle')} />}
+                                    renderSubtitle={() => <SectionSubtitleHTML html={translate('domain.samlLogin.subtitle')} />}
                                     isCentralPane
                                     titleStyles={styles.accountSettingsSectionTitle}
                                     childrenStyles={[styles.gap6, styles.pt6]}
@@ -144,9 +145,10 @@ function DomainSamlPage({route}: DomainSamlPageProps) {
                                 menuItems={samlFeatures}
                                 title={translate('domain.samlFeatureList.title')}
                                 renderSubtitle={() => (
-                                    <View style={styles.pt3}>
-                                        <RenderHTML html={translate('domain.samlFeatureList.subtitle', {domainName: `@${domainName ?? ''}`})} />
-                                    </View>
+                                    <SectionSubtitleHTML
+                                        html={translate('domain.samlFeatureList.subtitle', {domainName: `@${domainName ?? ''}`})}
+                                        wrapperStyle={styles.pt3}
+                                    />
                                 )}
                                 ctaText={translate('domain.verifyDomain.title')}
                                 ctaAccessibilityLabel={translate('domain.verifyDomain.title')}

@@ -70,8 +70,7 @@ function reportVirtualExpensifyCardFraud(card: Card, validateCode: string) {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.FORMS.REPORT_VIRTUAL_CARD_FRAUD,
             value: {
-                // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
-                cardID,
+                cardID: cardID.toString(),
                 isLoading: true,
                 errors: null,
             },
@@ -1572,7 +1571,7 @@ function combineSpendRuleASTNodes(nodes: ExpensifyCardRuleFilter[], operator: Va
     return remainingNodes.reduce<ExpensifyCardRuleFilter>((accumulator, node) => ({left: accumulator, operator, right: node}), firstNode);
 }
 
-function buildSpendRuleAST(spendRuleValues: SpendRuleForm): ExpensifyCardRule | undefined {
+function buildSpendRuleAST(spendRuleValues: SpendRuleForm, existingCreated?: string): ExpensifyCardRule | undefined {
     const cardIDs = spendRuleValues.cardIDs ?? [];
     if (cardIDs.length === 0) {
         return undefined;
@@ -1643,7 +1642,7 @@ function buildSpendRuleAST(spendRuleValues: SpendRuleForm): ExpensifyCardRule | 
     }
 
     return {
-        created: DateUtils.getDBTime(),
+        created: existingCreated ?? DateUtils.getDBTime(),
         action: spendRuleValues.restrictionAction ?? CONST.SPEND_RULES.ACTION.ALLOW,
         filters,
     };
@@ -1709,9 +1708,9 @@ function getSpendRuleFormValuesFromCardRule(cardRule: ExpensifyCardRule): SpendR
     return formValues;
 }
 
-function setExpensifyCardRule(domainAccountID: number, cardRuleID: string, spendRuleValues: SpendRuleForm) {
+function setExpensifyCardRule(domainAccountID: number, cardRuleID: string, spendRuleValues: SpendRuleForm, existingRule?: ExpensifyCardRule) {
     const ruleID = cardRuleID;
-    const ruleAST = buildSpendRuleAST(spendRuleValues);
+    const ruleAST = buildSpendRuleAST(spendRuleValues, existingRule?.created);
     if (!ruleAST) {
         return;
     }
@@ -1722,7 +1721,24 @@ function setExpensifyCardRule(domainAccountID: number, cardRuleID: string, spend
             key: `${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${domainAccountID}`,
             value: {
                 cardRules: {
-                    [ruleID]: ruleAST,
+                    [ruleID]: {
+                        ...ruleAST,
+                        pendingAction: existingRule ? CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE : CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                    },
+                },
+            },
+        },
+    ];
+
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${domainAccountID}`,
+            value: {
+                cardRules: {
+                    [ruleID]: {
+                        pendingAction: null,
+                    },
                 },
             },
         },
@@ -1733,8 +1749,9 @@ function setExpensifyCardRule(domainAccountID: number, cardRuleID: string, spend
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${domainAccountID}`,
             value: {
+                hasOnceLoaded: true,
                 cardRules: {
-                    [ruleID]: null,
+                    [ruleID]: existingRule ?? null,
                 },
             },
         },
@@ -1746,7 +1763,56 @@ function setExpensifyCardRule(domainAccountID: number, cardRuleID: string, spend
         cardRuleValue: JSON.stringify(ruleAST),
     };
 
-    API.write(WRITE_COMMANDS.SET_EXPENSIFY_CARD_RULE, parameters, {optimisticData, failureData});
+    API.write(WRITE_COMMANDS.SET_EXPENSIFY_CARD_RULE, parameters, {optimisticData, successData, failureData});
+}
+
+function deleteExpensifyCardRule(domainAccountID: number, cardRuleID: string, existingRule: ExpensifyCardRule) {
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${domainAccountID}`,
+            value: {
+                hasOnceLoaded: true,
+                cardRules: {
+                    [cardRuleID]: {
+                        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                    },
+                },
+            },
+        },
+    ];
+
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${domainAccountID}`,
+            value: {
+                cardRules: {
+                    [cardRuleID]: null,
+                },
+            },
+        },
+    ];
+
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${domainAccountID}`,
+            value: {
+                cardRules: {
+                    [cardRuleID]: existingRule,
+                },
+            },
+        },
+    ];
+
+    const parameters: SetExpensifyCardRuleParams = {
+        domainAccountID,
+        cardRuleID,
+        cardRuleValue: '',
+    };
+
+    API.write(WRITE_COMMANDS.SET_EXPENSIFY_CARD_RULE, parameters, {optimisticData, successData, failureData});
 }
 
 /**
@@ -1850,6 +1916,7 @@ export {
     clearIssueNewCardFormData,
     setDraftInviteAccountID,
     resolveFraudAlert,
+    deleteExpensifyCardRule,
     setExpensifyCardRule,
     getSpendRuleFormValuesFromCardRule,
 };

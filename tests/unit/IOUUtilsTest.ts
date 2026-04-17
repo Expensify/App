@@ -4,7 +4,7 @@ import type {OnyxCollection} from 'react-native-onyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {canApproveIOU, canSubmitReport} from '@userActions/IOU';
+import {canApproveIOU, canSubmitReport} from '@userActions/IOU/ReportWorkflow';
 import CONST from '@src/CONST';
 import * as IOUUtils from '@src/libs/IOUUtils';
 import * as ReportUtils from '@src/libs/ReportUtils';
@@ -305,6 +305,18 @@ describe('IOUUtils', () => {
 
         test('Return multiple tags when hasMultipleTagLists is true', () => {
             expect(IOUUtils.insertTagIntoTransactionTagsString('East:NY:California', 'NewTag', 1, true)).toBe('East:NewTag:California');
+        });
+
+        test('Should not produce a leading colon when transactionTags is empty and tagIndex > 0', () => {
+            expect(IOUUtils.insertTagIntoTransactionTagsString('', 'Alpha', 1, true)).toBe(':Alpha');
+        });
+
+        test('Should produce correct result when transactionTags is empty and tagIndex is 0', () => {
+            expect(IOUUtils.insertTagIntoTransactionTagsString('', 'Alpha', 0, true)).toBe('Alpha');
+        });
+
+        test('Should fill sparse slots when tagIndex exceeds current array length', () => {
+            expect(IOUUtils.insertTagIntoTransactionTagsString('First', 'Third', 2, true)).toBe('First::Third');
         });
     });
 });
@@ -823,5 +835,38 @@ describe('getExistingTransactionID', () => {
         } as unknown as Parameters<typeof IOUUtils.getExistingTransactionID>[0];
 
         expect(IOUUtils.getExistingTransactionID(moneyRequestAction)).toBe('txn123');
+    });
+
+    describe('resolveOptimisticChatReportID', () => {
+        it('should return existing report ID when report has a reportID', () => {
+            const existingReport = {reportID: 'existing-123'} as Report;
+            const result = IOUUtils.resolveOptimisticChatReportID([1, 2], existingReport);
+
+            expect(result.chatReportID).toBe('existing-123');
+            expect(result.optimisticChatReportID).toBeUndefined();
+        });
+
+        it('should generate optimistic ID when no existing report is provided', () => {
+            const result = IOUUtils.resolveOptimisticChatReportID([1, 2]);
+
+            expect(result.optimisticChatReportID).toBeDefined();
+            expect(result.chatReportID).toBe(result.optimisticChatReportID);
+        });
+
+        it('should generate optimistic ID when existing report has no reportID', () => {
+            const emptyReport = {} as Report;
+            const result = IOUUtils.resolveOptimisticChatReportID([1, 2], emptyReport);
+
+            expect(result.optimisticChatReportID).toBeDefined();
+            expect(result.chatReportID).toBe(result.optimisticChatReportID);
+        });
+
+        it('should return consistent chatReportID that is always defined', () => {
+            const result1 = IOUUtils.resolveOptimisticChatReportID([1, 2], {reportID: 'report-1'} as Report);
+            const result2 = IOUUtils.resolveOptimisticChatReportID([1, 2]);
+
+            expect(result1.chatReportID).toBeDefined();
+            expect(result2.chatReportID).toBeDefined();
+        });
     });
 });
