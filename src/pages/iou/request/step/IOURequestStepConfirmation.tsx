@@ -33,6 +33,7 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {
     isMovingTransactionFromTrackExpense as isMovingTransactionFromTrackExpenseIOUUtils,
     navigateToStartMoneyRequestStep,
+    resolveReportForMoneyRequest,
     shouldShowReceiptEmptyState,
     shouldUseTransactionDraft,
 } from '@libs/IOUUtils';
@@ -40,7 +41,7 @@ import isReportTopmostSplitNavigator from '@libs/Navigation/helpers/isReportTopm
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
-import {getReportOrDraftReport, isMoneyRequestReport, isProcessingReport, isReportOutstanding, isSelectedManagerMcTest} from '@libs/ReportUtils';
+import {getReportOrDraftReport, isMoneyRequestReport, isSelectedManagerMcTest} from '@libs/ReportUtils';
 import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {
@@ -129,26 +130,11 @@ function IOURequestStepConfirmation({
      */
     const transactionReport = getReportOrDraftReport(transaction?.reportID);
     const reportWithDraftFallback = useMemo(() => reportReal ?? reportDraft, [reportDraft, reportReal]);
-    const canUseReport = !(isProcessingReport(transactionReport) && !policyReal?.harvesting?.enabled) && isReportOutstanding(transactionReport, policyReal?.id, undefined, false);
-
-    const shouldUseTransactionReport = !!transactionReport && (canUseReport || !reportWithDraftFallback);
     const shouldHideToSection = useMemo(() => isMoneyRequestReport(reportWithDraftFallback), [reportWithDraftFallback]);
-    const isTransactionReportDifferentFromRoute = useMemo(
-        () => !!transaction?.reportID && !!reportWithDraftFallback?.reportID && transaction.reportID !== reportWithDraftFallback.reportID,
-        [reportWithDraftFallback?.reportID, transaction?.reportID],
+    const report = useMemo(
+        () => resolveReportForMoneyRequest({transaction, transactionReport, routeReport: reportWithDraftFallback, policy: policyReal}),
+        [transaction, transactionReport, reportWithDraftFallback, policyReal],
     );
-    const report = useMemo(() => {
-        if (isUnreported) {
-            return undefined;
-        }
-        if (shouldUseTransactionReport) {
-            return transactionReport;
-        }
-        if (isTransactionReportDifferentFromRoute) {
-            return undefined;
-        }
-        return reportWithDraftFallback;
-    }, [isUnreported, shouldUseTransactionReport, transactionReport, reportWithDraftFallback, isTransactionReportDifferentFromRoute]);
 
     const {policy} = usePolicyForTransaction({
         transaction: initialTransaction,
