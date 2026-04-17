@@ -148,7 +148,12 @@ const onboardingInviteTypes = {
 } as const;
 
 const onboardingCompanySize = {
+    MICRO_SMALL: '1-4',
+    MICRO_MEDIUM: '5-10',
+
+    // This range is deprecated in favor of the smaller ranges above, but the constant is kept to compare against saved data for backwards compatibility.
     MICRO: '1-10',
+
     SMALL: '11-50',
     MEDIUM_SMALL: '51-100',
     MEDIUM: '101-1000',
@@ -3265,6 +3270,9 @@ const CONST = {
             isLoading: false,
             errors: {},
         },
+        // Redirect URI used by the native Plaid SDK on iOS. It is not a registered app route —
+        // the SDK handles the OAuth callback itself, so deep-link handlers must ignore this path.
+        OAUTH_REDIRECT_PATH_IOS: 'partners/plaid/oauth_ios',
     },
 
     ONFIDO: {
@@ -3804,6 +3812,15 @@ const CONST = {
         DEFAULT_MAX_EXPENSE_AMOUNT: 200000,
         DEFAULT_MAX_AMOUNT_NO_RECEIPT: 2500,
         DEFAULT_MAX_AMOUNT_NO_ITEMIZED_RECEIPT: 7500,
+        DEFAULT_PROHIBITED_EXPENSES: {
+            alcohol: false,
+            hotelIncidentals: false,
+            gambling: true,
+            tobacco: false,
+            adultEntertainment: true,
+        },
+        DEFAULT_BILLABLE: false,
+        DEFAULT_REIMBURSABLE: true,
         DEFAULT_TAG_LIST: {
             Tag: {
                 name: 'Tag',
@@ -9562,6 +9579,7 @@ const CONST = {
             },
             BULK_ACTION_TYPES: {
                 CLOSE_ACCOUNT: 'closeAccount',
+                MOVE_TO_GROUP: 'moveToGroup',
             },
         },
     },

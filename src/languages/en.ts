@@ -1084,6 +1084,7 @@ const translations = {
             title: 'Getting started',
             createWorkspace: 'Create a workspace',
             connectAccounting: ({integrationName}: {integrationName: string}) => `Connect to ${integrationName}`,
+            connectAccountingDefault: 'Connect to accounting',
             customizeCategories: 'Customize accounting categories',
             linkCompanyCards: 'Link company cards',
             setupRules: 'Set up spend rules',
@@ -2669,6 +2670,9 @@ const translations = {
     workflowsExpensesFromPage: {
         title: 'Expenses from',
         header: 'When the following members submit expenses:',
+        memberAlreadyInWorkflowTitle: 'Member already in a workflow',
+        memberAlreadyInWorkflowPrompt: ({memberName, approverName}: {memberName: string; approverName: string}) =>
+            `${memberName} is already in an approval workflow that submits to ${approverName}. Adding them here will move them to this workflow.`,
     },
     workflowsApproverPage: {
         genericErrorMessage: "The approver couldn't be changed. Please try again or contact support.",
@@ -2969,6 +2973,8 @@ const translations = {
         },
         employees: {
             title: 'How many employees do you have?',
+            [CONST.ONBOARDING_COMPANY_SIZE.MICRO_SMALL]: '1-4 employees',
+            [CONST.ONBOARDING_COMPANY_SIZE.MICRO_MEDIUM]: '5-10 employees',
             [CONST.ONBOARDING_COMPANY_SIZE.MICRO]: '1-10 employees',
             [CONST.ONBOARDING_COMPANY_SIZE.SMALL]: '11-50 employees',
             [CONST.ONBOARDING_COMPANY_SIZE.MEDIUM_SMALL]: '51-100 employees',
@@ -5527,6 +5533,8 @@ const translations = {
                             monthlySpendLimitDescription: 'The maximum amount each member can spend on travel per month.',
                             reduceLimitTitle: 'Reduce travel spend limit?',
                             reduceLimitWarning: 'If you reduce the limit, members who have already spent more than this amount will be unable to make new travel bookings until next month.',
+                            provisioningError:
+                                "We weren't able to provision some of the members of your workspace for central invoicing. Please try again later or reach out to Concierge for assistance.",
                         },
                     },
                     disableModal: {
@@ -9041,9 +9049,12 @@ const translations = {
                 one: 'Close account',
                 other: 'Close accounts',
             }),
+            moveToGroup: 'Move to group',
+            chooseWhereToMove: ({count}: {count: number}) => `Choose where to move ${count} ${count === 1 ? 'member' : 'members'}.`,
             error: {
                 addMember: 'Unable to add this member. Please try again.',
                 removeMember: 'Unable to remove this user. Please try again.',
+                moveMember: 'Unable to move this member. Please try again.',
                 vacationDelegate: 'Unable to set this user as a vacation delegate. Please try again.',
             },
             cannotSetVacationDelegateForMember: (email: string) => `You can't set a vacation delegate for ${email} because they're currently the delegate for the following members:`,
