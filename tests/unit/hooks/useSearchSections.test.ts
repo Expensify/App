@@ -1,35 +1,20 @@
 import {renderHook} from '@testing-library/react-native';
-import type {OnyxCollection} from 'react-native-onyx';
-import useSearchSections, {selectPendingDeleteReportKeys} from '@hooks/useSearchSections';
+import useSearchSections from '@hooks/useSearchSections';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Report} from '@src/types/onyx';
 
 const onyxData: Record<string, unknown> = {};
 
-const mockUseOnyx = jest.fn(
-    (
-        key: string,
-        options?: {
-            selector?: (value: unknown) => unknown;
-        },
-    ) => {
-        const value = onyxData[key];
-        const selectedValue = options?.selector ? options.selector(value as never) : value;
-        return [selectedValue];
-    },
-);
+const mockUseOnyx = jest.fn((key: string, options?: {selector?: (value: unknown) => unknown}) => {
+    const value = onyxData[key];
+    const selectedValue = options?.selector ? options.selector(value as never) : value;
+    return [selectedValue];
+});
 
 jest.mock('@hooks/useOnyx', () => ({
     // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: (key: string, options?: {selector?: (value: unknown) => unknown}) => mockUseOnyx(key, options),
-}));
-
-jest.mock('@hooks/useCurrentUserPersonalDetails', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
-    __esModule: true,
-    default: () => ({accountID: 1, email: 'test@test.com'}),
 }));
 
 jest.mock('@hooks/useLocalize', () => ({
@@ -40,6 +25,12 @@ jest.mock('@hooks/useLocalize', () => ({
         formatPhoneNumber: (phone: string) => phone,
         translate: (key: string) => key,
     }),
+}));
+
+jest.mock('@hooks/useCurrentUserPersonalDetails', () => ({
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+    __esModule: true,
+    default: () => ({accountID: 1, email: 'test@test.com'}),
 }));
 
 jest.mock('@hooks/useActionLoadingReportIDs', () => ({
@@ -54,12 +45,13 @@ jest.mock('@hooks/useArchivedReportsIdSet', () => ({
     default: () => new Set(),
 }));
 
-// Mock getSections/getSortedSections to return controlled report IDs
 const mockGetSortedSections = jest.fn();
+const mockGetSections = jest.fn();
 jest.mock('@libs/SearchUIUtils', () => ({
-    getSections: () => [[], {}],
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     getSortedSections: (...args: unknown[]) => mockGetSortedSections(...args),
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+    getSections: (...args: unknown[]) => mockGetSections(...args),
 }));
 
 describe('useSearchSections', () => {
@@ -70,119 +62,57 @@ describe('useSearchSections', () => {
         mockUseOnyx.mockClear();
         mockGetSortedSections.mockReset();
         mockGetSortedSections.mockReturnValue([]);
+        mockGetSections.mockReset();
+        mockGetSections.mockReturnValue([[]]);
     });
 
-    describe('selectPendingDeleteReportKeys', () => {
-        it('returns empty array for null/undefined collection', () => {
-            expect(selectPendingDeleteReportKeys(null as unknown as OnyxCollection<Report>)).toEqual([]);
-            expect(selectPendingDeleteReportKeys(undefined as unknown as OnyxCollection<Report>)).toEqual([]);
-        });
-
-        it('returns empty array when no reports are pending delete', () => {
-            const reports: OnyxCollection<Report> = {
-                [`${ONYXKEYS.COLLECTION.REPORT}1`]: {reportID: '1'} as Report,
-                [`${ONYXKEYS.COLLECTION.REPORT}2`]: {reportID: '2'} as Report,
+    describe('report ID computation', () => {
+        it('calls getSortedSections and returns results', () => {
+            mockGetSortedSections.mockReturnValue([{reportID: '1'}, {reportID: '2'}]);
+            mockGetSections.mockReturnValue([[{reportID: '1'}, {reportID: '2'}]]);
+            onyxData[ONYXKEYS.REPORT_NAVIGATION_LAST_SEARCH_QUERY] = {
+                queryJSON: {hash: '123', type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT, status: CONST.SEARCH.STATUS.EXPENSE.ALL},
             };
-            expect(selectPendingDeleteReportKeys(reports)).toEqual([]);
-        });
-
-        it('returns keys of reports with pendingAction DELETE', () => {
-            const reports: OnyxCollection<Report> = {
-                [`${ONYXKEYS.COLLECTION.REPORT}1`]: {reportID: '1', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE} as Report,
-                [`${ONYXKEYS.COLLECTION.REPORT}2`]: {reportID: '2'} as Report,
+            onyxData[`${ONYXKEYS.COLLECTION.SNAPSHOT}123`] = {
+                data: {reports: {}},
+                search: {isLoading: false},
             };
-            expect(selectPendingDeleteReportKeys(reports)).toEqual([`${ONYXKEYS.COLLECTION.REPORT}1`]);
-        });
 
-        it('returns keys of reports with pendingFields.preview DELETE', () => {
-            const reports: OnyxCollection<Report> = {
-                [`${ONYXKEYS.COLLECTION.REPORT}1`]: {reportID: '1'} as Report,
-                [`${ONYXKEYS.COLLECTION.REPORT}2`]: {reportID: '2', pendingFields: {preview: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}} as Report,
-            };
-            expect(selectPendingDeleteReportKeys(reports)).toEqual([`${ONYXKEYS.COLLECTION.REPORT}2`]);
-        });
-
-        it('returns sorted keys when multiple reports are pending delete', () => {
-            const reports: OnyxCollection<Report> = {
-                [`${ONYXKEYS.COLLECTION.REPORT}3`]: {reportID: '3', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE} as Report,
-                [`${ONYXKEYS.COLLECTION.REPORT}1`]: {reportID: '1', pendingFields: {preview: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}} as Report,
-                [`${ONYXKEYS.COLLECTION.REPORT}2`]: {reportID: '2'} as Report,
-            };
-            const result = selectPendingDeleteReportKeys(reports);
-            expect(result).toEqual([`${ONYXKEYS.COLLECTION.REPORT}1`, `${ONYXKEYS.COLLECTION.REPORT}3`]);
-        });
-    });
-
-    describe('pending delete filtering', () => {
-        it('returns empty allReports when no search query exists', () => {
             const {result} = renderHook(() => useSearchSections());
 
-            expect(result.current.allReports).toEqual([]);
+            expect(mockGetSortedSections).toHaveBeenCalled();
+            expect(result.current.allReports).toEqual(['1', '2']);
         });
 
-        it('filters out pending delete reports from allReports', () => {
-            const pendingDeleteKeys = [`${ONYXKEYS.COLLECTION.REPORT}2`];
-            const snapshotHash = 12345;
-
+        it('filters out pending delete reports from results', () => {
             mockGetSortedSections.mockReturnValue([{reportID: '1'}, {reportID: '2'}, {reportID: '3'}]);
-
-            mockUseOnyx.mockImplementation(
-                (
-                    key: string,
-                    options?: {
-                        selector?: (value: unknown) => unknown;
-                    },
-                ) => {
-                    if (key === ONYXKEYS.REPORT_NAVIGATION_LAST_SEARCH_QUERY) {
-                        return [{queryJSON: {type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT, hash: snapshotHash}}];
-                    }
-                    if (key === `${ONYXKEYS.COLLECTION.SNAPSHOT}${snapshotHash}`) {
-                        return [{data: {}, search: {isLoading: false}}];
-                    }
-                    if (key === ONYXKEYS.COLLECTION.REPORT) {
-                        return [pendingDeleteKeys];
-                    }
-                    const value = onyxData[key];
-                    const selectedValue = options?.selector ? options.selector(value as never) : value;
-                    return [selectedValue];
-                },
-            );
+            mockGetSections.mockReturnValue([[{reportID: '1'}, {reportID: '2'}, {reportID: '3'}]]);
+            onyxData[ONYXKEYS.REPORT_NAVIGATION_LAST_SEARCH_QUERY] = {
+                queryJSON: {hash: '123', type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT, status: CONST.SEARCH.STATUS.EXPENSE.ALL},
+            };
+            onyxData[`${ONYXKEYS.COLLECTION.SNAPSHOT}123`] = {
+                data: {reports: {}},
+                search: {isLoading: false},
+            };
+            onyxData[ONYXKEYS.COLLECTION.REPORT] = {
+                [`${ONYXKEYS.COLLECTION.REPORT}2`]: {reportID: '2', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE} as unknown as Report,
+            };
 
             const {result} = renderHook(() => useSearchSections());
 
             expect(result.current.allReports).toEqual(['1', '3']);
         });
 
-        it('returns all reports when none are pending delete', () => {
-            const snapshotHash = 12345;
-
-            mockGetSortedSections.mockReturnValue([{reportID: '1'}, {reportID: '2'}, {reportID: '3'}]);
-
-            mockUseOnyx.mockImplementation(
-                (
-                    key: string,
-                    options?: {
-                        selector?: (value: unknown) => unknown;
-                    },
-                ) => {
-                    if (key === ONYXKEYS.REPORT_NAVIGATION_LAST_SEARCH_QUERY) {
-                        return [{queryJSON: {type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT, hash: snapshotHash}}];
-                    }
-                    if (key === `${ONYXKEYS.COLLECTION.SNAPSHOT}${snapshotHash}`) {
-                        return [{data: {}, search: {isLoading: false}}];
-                    }
-                    if (key === ONYXKEYS.COLLECTION.REPORT) {
-                        return [[]];
-                    }
-                    const value = onyxData[key];
-                    const selectedValue = options?.selector ? options.selector(value as never) : value;
-                    return [selectedValue];
-                },
-            );
+        it('returns empty allReports when search results are not yet loaded', () => {
+            onyxData[ONYXKEYS.REPORT_NAVIGATION_LAST_SEARCH_QUERY] = {
+                queryJSON: {hash: '123', type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT, status: CONST.SEARCH.STATUS.EXPENSE.ALL},
+            };
+            // No snapshot data — simulates deep-link before search has run
 
             const {result} = renderHook(() => useSearchSections());
 
-            expect(result.current.allReports).toEqual(['1', '2', '3']);
+            expect(mockGetSortedSections).not.toHaveBeenCalled();
+            expect(result.current.allReports).toEqual([]);
         });
     });
 });
