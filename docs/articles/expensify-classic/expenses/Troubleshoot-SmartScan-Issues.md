@@ -24,17 +24,16 @@ To retry:
 3. Take a photo or upload a receipt image file from your device.
 
 
-## How troubleshoot stuck or delayed Smartscans
+## How to troubleshoot stuck or delayed scans
 
 SmartScan usually completes within a few seconds, but delays can happen.
 
 - **Wait a few minutes**. Scans may take longer during high-traffic periods.
-- **Check your internet connection**. SartScan requires an active connection to process. If you were offline when you took the photo, the scan will begin once you reconnect.
-- **Check the photo library on your device**. If Smartscan fails to process the images, it will be saved to the photo library on your device. 
-- 
+- **Check your internet connection**. SmartScan requires an active connection to process. If you were offline when you took the photo, the scan will begin once you reconnect.
+- **Check the photo library on your device**. If SmartScan fails to process the images, it will be saved to the photo library on your device.
 If the scan is still stuck after several minutes, you can [Smartscan the receipt](/articles/expensify-classic/expenses/Add-an-expense#add-an-expense-with-smartscan) again. 
 
-## How to fix incorrect Smartscans 
+## How to fix incorrect scans
 
 SmartScan extracts data automatically, but it may misread certain receipts — especially handwritten receipts, faded ink, or unusual formats.
 
