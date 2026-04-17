@@ -114,7 +114,6 @@ function useSelectedTransactionsActions({
         'Pencil',
     ] as const);
 
-    const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
     const [duplicateHandler, setDuplicateHandlerState] = useState<(() => void) | null>(null);
     const setDuplicateHandler = (handler: () => void) => {
         setDuplicateHandlerState(() => handler);
@@ -188,18 +187,9 @@ function useSelectedTransactionsActions({
         iouType = CONST.IOU.TYPE.INVOICE;
     }
 
-    const showDeleteModal = () => {
-        setIsDeleteModalVisible(true);
-    };
-
-    const hideDeleteModal = () => {
-        setIsDeleteModalVisible(false);
-    };
-
     const handleDeleteTransactions = () => {
         const deletedThreadReportIDs = deleteTransactions(selectedTransactionIDs, duplicateTransactions, duplicateTransactionViolations, isOnSearch ? currentSearchHash : undefined, false);
         clearSelectedTransactions(true);
-        setIsDeleteModalVisible(false);
         Navigation.removeReportScreen(new Set(deletedThreadReportIDs));
     };
 
@@ -474,11 +464,7 @@ function useSelectedTransactionsActions({
                 icon: expensifyIcons.Trashcan,
                 value: CONST.REPORT.SECONDARY_ACTIONS.DELETE,
                 onSelected: () => {
-                    if (onDeleteSelected) {
-                        onDeleteSelected(handleDeleteTransactions, handleDeleteTransactionsWithNavigation);
-                    } else {
-                        showDeleteModal();
-                    }
+                    onDeleteSelected?.(handleDeleteTransactions, handleDeleteTransactionsWithNavigation);
                 },
             });
         }
@@ -490,9 +476,6 @@ function useSelectedTransactionsActions({
         options: computedOptions,
         handleDeleteTransactions,
         handleDeleteTransactionsWithNavigation,
-        isDeleteModalVisible,
-        showDeleteModal,
-        hideDeleteModal,
         isDuplicateOptionVisible,
         setDuplicateHandler,
         allTransactions,

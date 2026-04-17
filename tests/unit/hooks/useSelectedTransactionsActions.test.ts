@@ -175,7 +175,6 @@ describe('useSelectedTransactionsActions', () => {
         );
 
         expect(result.current.options).toEqual([]);
-        expect(result.current.isDeleteModalVisible).toBe(false);
     });
 
     it('should return export option when transactions are selected', async () => {
@@ -418,7 +417,6 @@ describe('useSelectedTransactionsActions', () => {
         expect(mockDeleteTransactions).toHaveBeenCalledWith([transactionID], mockDuplicateTransactions, mockDuplicateTransactionViolations, undefined, false);
         expect(mockClearSelectedTransactions).toHaveBeenCalledWith(true);
         expect(Navigation.removeReportScreen).toHaveBeenCalledWith(new Set(['report1', 'report2']));
-        expect(result.current.isDeleteModalVisible).toBe(false);
     });
 
     it('should pass currentSearchHash to delete transactions when on search', async () => {
@@ -450,32 +448,6 @@ describe('useSelectedTransactionsActions', () => {
         expect(mockDeleteTransactions).toHaveBeenCalledWith([transactionID], mockDuplicateTransactions, mockDuplicateTransactionViolations, mockCurrentSearchHash, false);
         expect(mockClearSelectedTransactions).toHaveBeenCalledWith(true);
         expect(Navigation.removeReportScreen).toHaveBeenCalledWith(new Set(['report1']));
-    });
-
-    it('should show and hide delete modal', async () => {
-        const report = createRandomReport(1, undefined);
-        const reportActions: ReportAction[] = [];
-
-        const {result} = renderHook(() =>
-            useSelectedTransactionsActions({
-                report,
-                reportActions,
-                allTransactionsLength: 0,
-                beginExportWithTemplate: mockBeginExportWithTemplate,
-            }),
-        );
-
-        expect(result.current.isDeleteModalVisible).toBe(false);
-
-        result.current.showDeleteModal();
-        await waitFor(() => {
-            expect(result.current.isDeleteModalVisible).toBe(true);
-        });
-
-        result.current.hideDeleteModal();
-        await waitFor(() => {
-            expect(result.current.isDeleteModalVisible).toBe(false);
-        });
     });
 
     it('should show hold option for money request report', async () => {
