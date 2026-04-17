@@ -1138,6 +1138,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                     currencyConversionRate: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     splitsStartDate: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     splitsEndDate: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    isAmountSet: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 },
                 'string',
             );
