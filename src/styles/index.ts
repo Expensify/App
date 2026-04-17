@@ -4645,7 +4645,9 @@ const staticStyles = (theme: ThemeColors) =>
             height: 'auto',
         },
         expenseViewImageSmall: {
+            // aspectRatio is calculated first and then maxWidth/maxHeight clamps the dimensions, thus both have to be specified
             maxWidth: variables.receiptPreviewMaxWidth,
+            maxHeight: (variables.receiptPreviewMaxWidth * 9) / 16,
             aspectRatio: 16 / 9,
             height: 'auto',
         },
