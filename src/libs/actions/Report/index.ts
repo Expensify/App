@@ -3659,8 +3659,7 @@ function buildNewReportOptimisticData(
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
-            // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
-            value: {[reportActionID]: {errorFields: {createReport: getMicroSecondOnyxErrorWithTranslationKey('report.genericCreateReportFailureMessage')}}},
+            value: {[reportActionID]: {errors: {createReport: getMicroSecondOnyxErrorWithTranslationKey('report.genericCreateReportFailureMessage')}}},
         },
 
         {
@@ -3689,8 +3688,7 @@ function buildNewReportOptimisticData(
             value: {
                 [reportActionID]: {
                     pendingAction: null,
-                    // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
-                    errorFields: null,
+                    errors: null,
                 },
             },
         },
@@ -3700,8 +3698,7 @@ function buildNewReportOptimisticData(
             value: {
                 [reportPreviewReportActionID]: {
                     pendingAction: null,
-                    // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
-                    errorFields: null,
+                    errors: null,
                 },
             },
         },
@@ -5972,11 +5969,10 @@ function deleteAppReport({
         value: null,
     });
 
-    // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
     failureData.push({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
-        value: reportActionsForReport,
+        value: reportActionsForReport ?? null,
     });
 
     // 7. Mark the iouReport as being deleted and then delete it
@@ -6470,12 +6466,11 @@ function dismissChangePolicyModal() {
             value: {
                 [CONST.CHANGE_POLICY_TRAINING_MODAL]: {
                     timestamp: DateUtils.getDBTime(date.valueOf()),
-                    dismissedMethod: 'click',
+                    dismissedMethod: 'click' as const,
                 },
             },
         },
     ];
-    // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
     API.write(WRITE_COMMANDS.DISMISS_PRODUCT_TRAINING, {name: CONST.CHANGE_POLICY_TRAINING_MODAL, dismissedMethod: 'click'}, {optimisticData});
 }
 
@@ -6721,11 +6716,10 @@ function buildOptimisticChangePolicyData(
             },
         });
 
-        // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${reportID}`,
-            value: reportNextStep,
+            value: reportNextStep ?? null,
         });
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
@@ -7099,6 +7093,7 @@ function changeReportPolicyAndInviteSubmitter({
     employeeList,
     formatPhoneNumber,
     isReportLastVisibleArchived,
+    reportNextStep,
 }: {
     report: Report;
     parentReport: OnyxEntry<Report>;
@@ -7111,6 +7106,7 @@ function changeReportPolicyAndInviteSubmitter({
     employeeList: PolicyEmployeeList | undefined;
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     isReportLastVisibleArchived: boolean | undefined;
+    reportNextStep: OnyxEntry<ReportNextStepDeprecated>;
 }) {
     if (!report.reportID || !policy?.id || report.policyID === policy.id || !isExpenseReport(report) || !report.ownerAccountID) {
         return;
@@ -7158,7 +7154,7 @@ function changeReportPolicyAndInviteSubmitter({
         hasViolationsParam,
         isASAPSubmitBetaEnabled,
         isReportLastVisibleArchived,
-        undefined,
+        reportNextStep,
         membersChats.reportCreationData[submitterEmail],
     );
 

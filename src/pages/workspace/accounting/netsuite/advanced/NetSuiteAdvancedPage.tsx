@@ -17,6 +17,7 @@ import {
 } from '@libs/actions/connections/NetSuiteCommands';
 import {clearNetSuiteErrorField} from '@libs/actions/Policy/Policy';
 import {getLatestErrorField} from '@libs/ErrorUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {
     areSettingsInErrorFields,
@@ -39,12 +40,12 @@ import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 
 function NetSuiteAdvancedPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const policyID = policy?.id ?? `${CONST.DEFAULT_NUMBER_ID}`;
+    const policyID = policy?.id ?? CONST.DEFAULT_NUMBER_ID.toString();
 
     const config = policy?.connections?.netsuite?.options?.config;
     const autoSyncConfig = policy?.connections?.netsuite?.config;
@@ -95,7 +96,7 @@ function NetSuiteAdvancedPage({policy}: WithPolicyConnectionsProps) {
             type: 'menuitem',
             title: autoSyncConfig?.autoSync?.enabled ? translate('common.enabled') : translate('common.disabled'),
             description: translate('workspace.accounting.autoSync'),
-            onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_AUTO_SYNC.getRoute(policyID)),
+            onPress: () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.NETSUITE_AUTO_SYNC.path)),
             hintText: (() => {
                 if (!autoSyncConfig?.autoSync?.enabled) {
                     return undefined;

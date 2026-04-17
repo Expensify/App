@@ -4437,7 +4437,8 @@ function isSearchDataLoaded(searchResults: SearchResults | undefined, queryJSON:
         ? searchResults?.search?.status?.split(',').sort().join(',')
         : searchResults?.search?.status?.sort().join(',');
     const sortedQueryJSONStatus = Array.isArray(status) ? status.sort().join(',') : status;
-    const isDataLoaded = searchResults?.data !== undefined && searchResults?.search?.type === queryJSON?.type && sortedSearchResultStatus === sortedQueryJSONStatus;
+    const isDataLoaded =
+        (searchResults?.data != null || searchResults?.errors != null) && searchResults?.search?.type === queryJSON?.type && sortedSearchResultStatus === sortedQueryJSONStatus;
 
     return isDataLoaded;
 }
@@ -5001,7 +5002,7 @@ function mapFiltersFormToLabelValueList<T extends Record<string, unknown>>(
     mapper?: (filterKey: SearchAdvancedFiltersKey) => T,
 ): Array<SearchFilter & T> {
     const filters: Array<SearchFilter & T> = [];
-    const addedGroups = new Set<SearchDateFilterKeys | SearchAmountFilterKeys | typeof CONST.SEARCH.REPORT_FIELD.GLOBAL_PREFIX | typeof FILTER_KEYS.FEED | typeof FILTER_KEYS.CARD_ID>();
+    const addedGroups = new Set<SearchDateFilterKeys | SearchAmountFilterKeys | typeof CONST.SEARCH.REPORT_FIELD.GLOBAL_PREFIX>();
     const type = searchAdvancedFiltersForm.type ?? CONST.SEARCH.DATA_TYPES.EXPENSE;
 
     for (const filterKey of Object.keys(searchAdvancedFiltersForm)) {
@@ -5041,23 +5042,6 @@ function mapFiltersFormToLabelValueList<T extends Record<string, unknown>>(
                 addedGroups.add(CONST.SEARCH.REPORT_FIELD.GLOBAL_PREFIX);
                 filters.push({key, label: translate('workspace.common.reportField'), value, ...extra});
             }
-            continue;
-        }
-
-        // Handle card feeds and individual cards - only add once
-        if (key === FILTER_KEYS.FEED || key === FILTER_KEYS.CARD_ID) {
-            if (addedGroups.has(FILTER_KEYS.FEED) || addedGroups.has(FILTER_KEYS.CARD_ID)) {
-                continue;
-            }
-
-            const feedValue = searchAdvancedFiltersForm[FILTER_KEYS.FEED] ?? [];
-            const cardIDvalue = searchAdvancedFiltersForm[FILTER_KEYS.CARD_ID] ?? [];
-
-            if (feedValue.length > 0 || cardIDvalue.length > 0) {
-                addedGroups.add(key);
-                filters.push({key, label: translate('common.card'), value: cardIDvalue.concat(feedValue), ...extra});
-            }
-
             continue;
         }
 

@@ -6,6 +6,7 @@ import {
     domainEmailSelector,
     domainSettingsPrimaryContactSelector,
     groupsSelector,
+    isAdminSelector,
     isSecurityGroupEntry,
     memberAccountIDsSelector,
     selectSecurityGroupForAccount,
@@ -527,6 +528,51 @@ describe('domainSelectors', () => {
 
             const selector = vacationDelegateSelector(userID1);
             expect(selector(domain)).toBeUndefined();
+        });
+    });
+
+    describe('isAdminSelector', () => {
+        it('Should return false if domain is undefined', () => {
+            expect(isAdminSelector(userID1)(undefined)).toBe(false);
+        });
+
+        it('Should return false if accountID is 0', () => {
+            const domain = {
+                [`${CONST.DOMAIN.EXPENSIFY_ADMIN_ACCESS_PREFIX}123456`]: userID1,
+            } as unknown as OnyxEntry<Domain>;
+            expect(isAdminSelector(0)(domain)).toBe(false);
+        });
+
+        it('Should return true if the accountID is found in admin permission entries', () => {
+            const domain = {
+                [`${CONST.DOMAIN.EXPENSIFY_ADMIN_ACCESS_PREFIX}123456`]: userID1,
+                [`${CONST.DOMAIN.EXPENSIFY_ADMIN_ACCESS_PREFIX}789101`]: userID2,
+            } as unknown as OnyxEntry<Domain>;
+
+            expect(isAdminSelector(userID1)(domain)).toBe(true);
+            expect(isAdminSelector(userID2)(domain)).toBe(true);
+        });
+
+        it('Should return false if the accountID is not in any admin permission entries', () => {
+            const domain = {
+                [`${CONST.DOMAIN.EXPENSIFY_ADMIN_ACCESS_PREFIX}123456`]: userID1,
+            } as unknown as OnyxEntry<Domain>;
+
+            expect(isAdminSelector(999)(domain)).toBe(false);
+        });
+
+        it('Should ignore null/undefined admin permission values', () => {
+            const domain = {
+                [`${CONST.DOMAIN.EXPENSIFY_ADMIN_ACCESS_PREFIX}123456`]: null,
+                [`${CONST.DOMAIN.EXPENSIFY_ADMIN_ACCESS_PREFIX}789101`]: undefined,
+            } as unknown as OnyxEntry<Domain>;
+
+            expect(isAdminSelector(userID1)(domain)).toBe(false);
+        });
+
+        it('Should return false for empty domain object', () => {
+            const domain = {} as OnyxEntry<Domain>;
+            expect(isAdminSelector(userID1)(domain)).toBe(false);
         });
     });
 

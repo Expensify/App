@@ -23,8 +23,8 @@ All rolled into one!
 
 You can chat with Concierge from anywhere in the app:
 
-- **On web:** Press the **+** button at the bottom left corner of the screen, select **Start Chat**, and type **Concierge** into the composer box.
-- **On mobile:** Tap **Create** at the bottom of your screen, select **Start Chat**, and type **Concierge **into the composer box.
+- **On web:** Click the **Concierge** icon at the top right corner of the page. 
+- **On mobile:** Tap **Account** > **Help** and tap **Concierge** to navigate to the Concierge chat.
 
 You can also contact Concierge by:
 - Email: **concierge@expensify.com**  
