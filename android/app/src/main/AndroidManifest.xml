@@ -167,6 +167,7 @@
         <activity
                 android:name="com.plaid.internal.link.LinkActivity"
                 android:launchMode="singleTask"
+                android:configChanges="keyboard|keyboardHidden|orientation|screenLayout|screenSize|smallestScreenSize|uiMode"
                 tools:replace="android:launchMode"/>
 
         <meta-data
