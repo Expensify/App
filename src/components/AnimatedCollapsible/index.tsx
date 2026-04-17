@@ -52,6 +52,9 @@ type AnimatedCollapsibleProps = WithSentryLabel & {
 
     /** Style for the border bottom */
     borderBottomStyle?: StyleProp<ViewStyle>;
+
+    /** Style for the divider between header and content */
+    dividerStyle?: StyleProp<ViewStyle>;
 };
 
 function AnimatedCollapsible({
@@ -68,6 +71,7 @@ function AnimatedCollapsible({
     disabled = false,
     shouldShowToggleButton = true,
     borderBottomStyle,
+    dividerStyle,
     sentryLabel,
 }: AnimatedCollapsibleProps) {
     const theme = useTheme();
@@ -182,7 +186,9 @@ function AnimatedCollapsible({
                             }
                         }}
                     >
-                        <View style={[styles.borderBottom, borderBottomStyle]} />
+                        <View style={dividerStyle ?? [styles.pv2, styles.ph3, styles.pb1]}>
+                            <View style={[styles.borderBottom, borderBottomStyle]} />
+                        </View>
                         {children}
                     </Animated.View>
                 ) : null}
