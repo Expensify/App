@@ -16,17 +16,23 @@ function useAllTransactions() {
         return allTransactionsCollection;
     }
 
-    const allTransactions: Record<string, OnyxEntry<Transaction>> = {...allTransactionsCollection};
+    // Only allocate a new merged object if the search actually surfaces a transaction that
+    // isn't already in Onyx; otherwise the Onyx collection reference is already the answer.
+    let allTransactions: Record<string, OnyxEntry<Transaction>> | undefined;
     for (const key in data) {
-        if (!key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION) || allTransactions[key]) {
+        if (!key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION) || allTransactionsCollection?.[key]) {
             continue;
         }
         const value = data[key as keyof typeof data] as OnyxEntry<Transaction> | undefined;
-        if (value) {
-            allTransactions[key] = value;
+        if (!value) {
+            continue;
         }
+        if (!allTransactions) {
+            allTransactions = {...allTransactionsCollection};
+        }
+        allTransactions[key] = value;
     }
-    return allTransactions;
+    return allTransactions ?? allTransactionsCollection;
 }
 
 export default useAllTransactions;
