@@ -1,6 +1,8 @@
-import React from 'react';
+import React, {useEffect, useRef} from 'react';
+import type {View} from 'react-native';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useTheme from '@hooks/useTheme';
+import mergeRefs from '@libs/mergeRefs';
 import MenuItem from './MenuItem';
 import type {MenuItemProps} from './MenuItem';
 
@@ -16,12 +18,24 @@ function MenuItemWithTopDescription({highlighted, outerWrapperStyle, ref, ...pro
         highlightColor: theme.messageHighlightBG,
         itemEnterDelay: 0,
     });
+    const pressableRef = useRef<View>(null);
+    useEffect(() => {
+        const element = pressableRef.current;
+        if (props.interactive || !element || typeof HTMLElement === 'undefined' || !(element instanceof HTMLElement) || typeof element.onclick === 'undefined') {
+            return;
+        }
+        // React Native Web's Pressable always attaches an onClick handler to the DOM element.
+        // TalkBack on Android web uses the presence of a click event listener to determine whether
+        // an element is clickable and announces "double tap to activate" even for non-interactive elements.
+        // Removing the onclick property prevents TalkBack from treating the element as clickable.
+        element.onclick = null;
+    }, [props.interactive]);
 
     return (
         <MenuItem
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
-            ref={ref}
+            ref={mergeRefs(ref, pressableRef)}
             shouldShowBasicTitle
             shouldShowDescriptionOnTop
             outerWrapperStyle={highlighted ? highlightedOuterWrapperStyle : outerWrapperStyle}
