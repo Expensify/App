@@ -494,8 +494,8 @@ function shouldRestrictUserBillableActions(
     return false;
 }
 
-function shouldCalculateBillNewDot(canDowngrade: boolean | undefined, policies: OnyxCollection<Policy>): boolean {
-    return (canDowngrade ?? false) && getOwnedPaidPolicies(policies, deprecatedCurrentUserAccountID).length === 1;
+function shouldCalculateBillNewDot(currentUserAccountID: number | undefined, canDowngrade: boolean | undefined, policies: OnyxCollection<Policy>): boolean {
+    return (canDowngrade ?? false) && getOwnedPaidPolicies(policies, currentUserAccountID).length === 1;
 }
 
 function getSubscriptionPrice(

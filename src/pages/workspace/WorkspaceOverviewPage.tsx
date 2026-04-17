@@ -340,7 +340,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
             return;
         }
 
-        if (shouldCalculateBillNewDot(canDowngrade, policies)) {
+        if (shouldCalculateBillNewDot(currentUserPersonalDetails.accountID, canDowngrade, policies)) {
             setIsDeletingPaidWorkspace(true);
             calculateBillNewDot();
             return;
@@ -460,7 +460,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                 onSelected: onDeleteWorkspace,
                 disabled: isLoadingBill,
                 shouldShowLoadingSpinnerIcon: isLoadingBill,
-                shouldCloseModalOnSelect: !shouldCalculateBillNewDot(account?.canDowngrade, policies) || wouldBlockDeletion,
+                shouldCloseModalOnSelect: !shouldCalculateBillNewDot(currentUserPersonalDetails.accountID, account?.canDowngrade, policies) || wouldBlockDeletion,
             });
         }
         const isCurrentUserAdmin = policy?.employeeList?.[currentUserPersonalDetails?.login ?? '']?.role === CONST.POLICY.ROLE.ADMIN;
