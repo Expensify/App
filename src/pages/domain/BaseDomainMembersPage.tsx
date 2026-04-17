@@ -294,8 +294,8 @@ function BaseDomainMembersPage({
                     showScrollIndicator={false}
                     customListHeader={getFilteredListHeader()}
                     shouldHeaderBeInsideList
-                    customListHeaderContent={listHeaderContent}
                     canSelectMultiple={canSelectMultiple}
+                    customListHeaderContent={listHeaderContent}
                     onSelectAll={toggleAllUsers}
                     onCheckboxPress={toggleUser}
                     selectedItems={selectedMembers}

@@ -98,7 +98,6 @@ function IOURequestStartPage({
     });
 
     const [lastSelectedDistanceRates] = useOnyx(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES);
-    const [isMultiScanEnabled, setIsMultiScanEnabled] = useState(false);
     const [currentDate] = useOnyx(ONYXKEYS.CURRENT_DATE);
     const {isOffline} = useNetwork();
     const [hasUserSubmittedExpenseOrScannedReceipt] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {selector: isTestReceiptTooltipDismissedSelector});
@@ -188,7 +187,6 @@ function IOURequestStartPage({
             if (transaction?.iouRequestType === newIOUType) {
                 return;
             }
-            setIsMultiScanEnabled(false);
             initMoneyRequest({
                 reportID,
                 policy,
@@ -224,8 +222,11 @@ function IOURequestStartPage({
         ],
     );
 
+    const tabSelectedTypeRef = useRef<IOURequestType | null>(null);
+
     const onTabSelected = useCallback(
         (newIouType: IOURequestType) => {
+            tabSelectedTypeRef.current = newIouType;
             resetIOUTypeIfChanged(newIouType);
         },
         [resetIOUTypeIfChanged],
@@ -234,6 +235,12 @@ function IOURequestStartPage({
     // Clear out the temporary expense if the reportID in the URL has changed from the transaction's reportID.
     useFocusEffect(
         useCallback(() => {
+            // Skip until transactionRequestType catches up with the tab onTabSelected already set.
+            if (tabSelectedTypeRef.current && transactionRequestType !== tabSelectedTypeRef.current) {
+                return;
+            }
+            tabSelectedTypeRef.current = null;
+
             // The test transaction can change the reportID of the transaction on the flow so we should prevent the reportID from being reverted again.
             if (
                 transaction?.reportID === reportID ||
@@ -347,14 +354,12 @@ function IOURequestStartPage({
                                     {() => (
                                         <TabScreenWithFocusTrapWrapper>
                                             <IOURequestStepScan
+                                                key={transactionRequestType}
                                                 route={route}
                                                 navigation={navigation}
                                                 onLayout={(setTestReceiptAndNavigate) => {
                                                     setTestReceiptAndNavigateRef.current = setTestReceiptAndNavigate;
                                                 }}
-                                                isMultiScanEnabled={isMultiScanEnabled}
-                                                setIsMultiScanEnabled={setIsMultiScanEnabled}
-                                                isStartingScan
                                             />
                                         </TabScreenWithFocusTrapWrapper>
                                     )}
