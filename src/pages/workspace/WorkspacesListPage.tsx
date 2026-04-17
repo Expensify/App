@@ -138,7 +138,7 @@ function WorkspacesListPage() {
     useDocumentTitle(translate('common.workspaces'));
     const {isOffline} = useNetwork();
     const isFocused = useIsFocused();
-    const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
+    const {shouldUseNarrowLayout, isMediumScreenWidth, isInLandscapeMode} = useResponsiveLayout();
     const privateSubscription = usePrivateSubscription();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [allConnectionSyncProgresses] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS);
@@ -737,6 +737,8 @@ function WorkspacesListPage() {
         }
     };
 
+    const shouldDisplayNarrowHeaderButton = isInLandscapeMode || !shouldUseNarrowLayout;
+
     return (
         <ScreenWrapper
             shouldEnablePickerAvoiding={false}
@@ -758,9 +760,9 @@ function WorkspacesListPage() {
                     breadcrumbLabel={translate('common.workspaces')}
                     shouldDisplayHelpButton
                 >
-                    {!shouldUseNarrowLayout && <View style={styles.pr2}>{headerButton}</View>}
+                    {shouldDisplayNarrowHeaderButton && <View style={styles.pr2}>{headerButton}</View>}
                 </TopBarWithLoadingBar>
-                {shouldUseNarrowLayout && <View style={[styles.ph5, styles.pt2]}>{headerButton}</View>}
+                {!shouldDisplayNarrowHeaderButton && <View style={[styles.ph5, styles.pt2]}>{headerButton}</View>}
                 {shouldShowLoadingIndicator ? (
                     <View style={[styles.flex1, styles.fullScreenLoading]}>
                         <ActivityIndicator

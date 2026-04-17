@@ -52,7 +52,7 @@ function ExpenseRulesPage() {
     const genericIllustration = useGenericEmptyStateIllustration();
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
     const [expenseRules = getEmptyArray<ExpenseRule>(), expenseRulesResult] = useOnyx(ONYXKEYS.NVP_EXPENSE_RULES);
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {shouldUseNarrowLayout, isInLandscapeMode} = useResponsiveLayout();
     useDocumentTitle(translate('expenseRulesPage.title'));
     const [selectedRules, setSelectedRules] = useState<string[]>([]);
     const [deleteConfirmModalVisible, setDeleteConfirmModalVisible] = useState(false);
@@ -178,6 +178,8 @@ function ExpenseRulesPage() {
         });
     }
 
+    const shouldDisplayNarrowHeaderButton = isInLandscapeMode || !shouldUseNarrowLayout;
+
     const headerButton = isInSelectionMode ? (
         <ButtonWithDropdownMenu
             buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
@@ -187,17 +189,17 @@ function ExpenseRulesPage() {
             onPress={() => null}
             options={headerDropdownOptions}
             shouldAlwaysShowDropdownMenu
-            style={[shouldUseNarrowLayout && styles.flexGrow1, shouldUseNarrowLayout && styles.mb3]}
+            style={[!shouldDisplayNarrowHeaderButton && styles.flexGrow1, !shouldDisplayNarrowHeaderButton && styles.mb3]}
             testID="ExpenseRulesPage-header-dropdown-menu-button"
         />
     ) : (
-        <View style={[styles.flexRow, styles.gap2, shouldUseNarrowLayout && styles.mb3]}>
+        <View style={[styles.flexRow, styles.gap2, !shouldDisplayNarrowHeaderButton && styles.mb3]}>
             <Button
                 success
                 onPress={navigateToNewRulePage}
                 icon={icons.Plus}
                 text={translate('expenseRulesPage.newRule')}
-                style={[shouldUseNarrowLayout && styles.flex1]}
+                style={[!shouldDisplayNarrowHeaderButton && styles.flex1]}
                 sentryLabel={CONST.SENTRY_LABEL.SETTINGS_RULES.NEW_RULE}
             />
         </View>
@@ -260,9 +262,9 @@ function ExpenseRulesPage() {
                 shouldDisplayHelpButton
                 title={selectionModeHeader ? translate('common.selectMultiple') : translate('expenseRulesPage.title')}
             >
-                {!shouldUseNarrowLayout && hasRules && headerButton}
+                {shouldDisplayNarrowHeaderButton && hasRules && headerButton}
             </HeaderWithBackButton>
-            {shouldUseNarrowLayout && hasRules && <View style={[styles.pl5, styles.pr5]}>{headerButton}</View>}
+            {!shouldDisplayNarrowHeaderButton && hasRules && <View style={[styles.pl5, styles.pr5]}>{headerButton}</View>}
             {!hasRules && !isLoading && headerContent}
             {!hasRules && !isLoading && (
                 <ScrollView contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}>

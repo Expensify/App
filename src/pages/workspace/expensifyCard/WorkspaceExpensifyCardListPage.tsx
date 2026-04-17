@@ -62,7 +62,7 @@ type WorkspaceExpensifyCardListPageProps = {
 
 function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExpensifyCardListPageProps) {
     const icons = useMemoizedLazyExpensifyIcons(['Gear', 'Plus']);
-    const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
+    const {shouldUseNarrowLayout, isMediumScreenWidth, isInLandscapeMode} = useResponsiveLayout();
     const {translate, localeCompare} = useLocalize();
     const styles = useThemeStyles();
     const illustrations = useMemoizedLazyIllustrations(['HandCard', 'ExpensifyCardImage']);
@@ -89,7 +89,7 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
 
     const isBankAccountVerified = !cardOnWaitlist;
     const {windowHeight} = useWindowDimensions();
-    const headerHeight = useEmptyViewHeaderHeight(shouldUseNarrowLayout, isBankAccountVerified);
+    const headerHeight = useEmptyViewHeaderHeight(shouldUseNarrowLayout && !isInLandscapeMode, isBankAccountVerified);
     const [footerHeight, setFooterHeight] = useState(0);
 
     const cardFeedIcon = (
@@ -139,15 +139,19 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
         [icons.Gear, policyID, translate],
     );
 
+    const shouldDisplayNarrowHeaderButton = isInLandscapeMode || !shouldUseNarrowLayout;
+
     const getHeaderButtons = () => (
-        <View style={[styles.flexRow, styles.gap2, !shouldShowSelector && shouldUseNarrowLayout && styles.mb3, shouldShowSelector && shouldChangeLayout && styles.mt3]}>
+        <View
+            style={[styles.flexRow, styles.gap2, !shouldShowSelector && !shouldDisplayNarrowHeaderButton && styles.mb3, shouldShowSelector && !shouldDisplayNarrowHeaderButton && styles.mt3]}
+        >
             {!isCardListEmpty && (
                 <Button
                     success
                     onPress={handleIssueCardPress}
                     icon={icons.Plus}
                     text={translate('workspace.expensifyCard.issueCard')}
-                    style={shouldChangeLayout && styles.flex1}
+                    style={!shouldDisplayNarrowHeaderButton && styles.flex1}
                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.EXPENSIFY_CARD.ISSUE_CARD_BUTTON}
                 />
             )}
@@ -158,7 +162,7 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
                 options={secondaryActions}
                 isSplitButton={false}
                 shouldUseOptionIcon
-                wrapperStyle={isCardListEmpty ? styles.flexGrow1 : styles.flexGrow0}
+                wrapperStyle={isCardListEmpty && !isInLandscapeMode ? styles.flexGrow1 : styles.flexGrow0}
                 sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.EXPENSIFY_CARD.MORE_DROPDOWN}
             />
         </View>
@@ -254,9 +258,9 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
                 shouldDisplayHelpButton
                 onBackButtonPress={handleBackButtonPress}
             >
-                {!shouldShowSelector && !shouldUseNarrowLayout && isBankAccountVerified && getHeaderButtons()}
+                {!shouldShowSelector && shouldDisplayNarrowHeaderButton && isBankAccountVerified && getHeaderButtons()}
             </HeaderWithBackButton>
-            {!shouldShowSelector && shouldUseNarrowLayout && isBankAccountVerified && <View style={styles.ph5}>{getHeaderButtons()}</View>}
+            {!shouldShowSelector && !shouldDisplayNarrowHeaderButton && isBankAccountVerified && <View style={styles.ph5}>{getHeaderButtons()}</View>}
             {shouldShowSelector && (
                 <View style={[styles.w100, styles.ph5, styles.pb3, !shouldChangeLayout && [styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween]]}>
                     <FeedSelector

@@ -46,7 +46,7 @@ function EarlyDiscountBanner({isSubscriptionPage, onboardingHelpDropdownButton, 
     const initialDiscountInfo = getEarlyDiscountInfo(firstDayFreeTrial);
     const [discountInfo, setDiscountInfo] = useState(initialDiscountInfo);
     const [isDismissed, setIsDismissed] = useState(false);
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {shouldUseNarrowLayout, isInLandscapeMode} = useResponsiveLayout();
     const icons = useMemoizedLazyExpensifyIcons(['Close']);
     useEffect(() => {
         const intervalID = setInterval(() => {
@@ -80,21 +80,22 @@ function EarlyDiscountBanner({isSubscriptionPage, onboardingHelpDropdownButton, 
     );
 
     const rightComponent = useMemo(() => {
-        const smallScreenStyle = shouldUseNarrowLayout ? [styles.flex0, styles.flexBasis100, styles.justifyContentCenter] : [];
+        const smallScreenStyle = shouldUseNarrowLayout && !isInLandscapeMode ? [styles.flex0, styles.flexBasis100, styles.justifyContentCenter] : [];
         return (
             <View style={[styles.flexRow, styles.gap2, smallScreenStyle, styles.alignItemsCenter]}>
                 {onboardingHelpDropdownButton}
                 <Button
                     success={!hasActiveScheduledCall}
-                    style={shouldUseNarrowLayout ? [styles.earlyDiscountButton, styles.flexGrow2] : styles.mr2}
+                    style={shouldUseNarrowLayout && !isInLandscapeMode ? [styles.earlyDiscountButton, styles.flexGrow2] : styles.mr2}
                     text={translate('subscription.billingBanner.earlyDiscount.claimOffer')}
                     onPress={() => Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION.getRoute(Navigation.getActiveRoute()))}
                 />
-                {!shouldUseNarrowLayout && dismissButton}
+                {(!shouldUseNarrowLayout || isInLandscapeMode) && dismissButton}
             </View>
         );
     }, [
         shouldUseNarrowLayout,
+        isInLandscapeMode,
         hasActiveScheduledCall,
         styles.flex0,
         styles.flexBasis100,
@@ -123,7 +124,7 @@ function EarlyDiscountBanner({isSubscriptionPage, onboardingHelpDropdownButton, 
     ) : (
         <View style={[styles.justifyContentBetween, styles.flexRow]}>
             <RenderHTML html={translate('subscription.billingBanner.earlyDiscount.onboardingChatTitle', discountInfo?.discountType)} />
-            {shouldUseNarrowLayout && dismissButton}
+            {shouldUseNarrowLayout && !isInLandscapeMode && dismissButton}
         </View>
     );
 

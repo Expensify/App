@@ -22,7 +22,11 @@ function WorkspacesListPageHeaderButton({shouldShowNewWorkspaceButton, shouldSho
     const icons = useMemoizedLazyExpensifyIcons(['Building', 'Globe', 'Plus']);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {shouldUseNarrowLayout, isInLandscapeMode} = useResponsiveLayout();
+
+    const shouldDisplayNarrowHeaderButton = isInLandscapeMode || !shouldUseNarrowLayout;
+
+    const buttonStyle = !shouldDisplayNarrowHeaderButton && [styles.flexGrow1, styles.mb3];
 
     if (shouldShowNewWorkspaceButton && shouldShowNewDomainButton) {
         return (
@@ -45,8 +49,8 @@ function WorkspacesListPageHeaderButton({shouldShowNewWorkspaceButton, shouldSho
                     },
                 ]}
                 isSplitButton={false}
-                style={shouldUseNarrowLayout && [styles.flexGrow1, styles.mb3]}
-                wrapperStyle={styles.flexGrow1}
+                style={buttonStyle}
+                wrapperStyle={[!isInLandscapeMode && styles.flexGrow1]}
                 testID="dropdown-button-new"
                 sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.LIST.NEW_DROPDOWN}
             />
@@ -61,7 +65,7 @@ function WorkspacesListPageHeaderButton({shouldShowNewWorkspaceButton, shouldSho
                 sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.LIST.NEW_WORKSPACE_BUTTON}
                 onPress={() => interceptAnonymousUser(() => Navigation.navigate(ROUTES.WORKSPACE_CONFIRMATION.getRoute(ROUTES.WORKSPACES_LIST.route)))}
                 icon={icons.Plus}
-                style={shouldUseNarrowLayout && [styles.flexGrow1, styles.mb3]}
+                style={buttonStyle}
             />
         );
     }
@@ -74,7 +78,7 @@ function WorkspacesListPageHeaderButton({shouldShowNewWorkspaceButton, shouldSho
                 sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.LIST.NEW_DOMAIN_BUTTON}
                 onPress={() => interceptAnonymousUser(() => Navigation.navigate(ROUTES.WORKSPACES_ADD_DOMAIN))}
                 icon={icons.Plus}
-                style={shouldUseNarrowLayout && [styles.flexGrow1, styles.mb3]}
+                style={buttonStyle}
             />
         );
     }
