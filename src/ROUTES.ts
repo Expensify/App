@@ -312,6 +312,14 @@ const DYNAMIC_ROUTES = {
             }),
         queryParams: ['fieldName', 'fieldValue', 'policyID'],
     },
+    EXIT_SURVEY_REASON: {
+        path: 'exit-survey/reason',
+        entryScreens: [SCREENS.SETTINGS.TROUBLESHOOT],
+    },
+    EXIT_SURVEY_CONFIRM: {
+        path: 'exit-survey/confirm',
+        entryScreens: [SCREENS.SETTINGS.DYNAMIC_EXIT_SURVEY_REASON, SCREENS.SETTINGS.TROUBLESHOOT],
+    },
     FLAG_COMMENT: {
         path: 'flag/:reportID/:reportActionID',
         entryScreens: [SCREENS.REPORT, SCREENS.RIGHT_MODAL.SEARCH_REPORT, SCREENS.RIGHT_MODAL.EXPENSE_REPORT, SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT],
@@ -869,14 +877,6 @@ const ROUTES = {
     SETTINGS_VACATION_DELEGATE: 'settings/profile/status/vacation-delegate',
     SETTINGS_TROUBLESHOOT: 'settings/troubleshoot',
     SETTINGS_HELP: 'settings/help',
-    SETTINGS_EXIT_SURVEY_REASON: 'settings/exit-survey/reason',
-
-    SETTINGS_EXIT_SURVEY_CONFIRM: {
-        route: 'settings/exit-survey/confirm',
-
-        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-        getRoute: (backTo?: string) => getUrlWithBackToParam('settings/exit-survey/confirm', backTo),
-    },
 
     SETTINGS_SAVE_THE_WORLD: 'settings/teachersunite',
     SETTINGS_SAVE_THE_WORLD_ADD_PAYMENT_CARD: 'settings/teachersunite/add-payment-card',
