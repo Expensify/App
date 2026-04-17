@@ -1,9 +1,10 @@
 import {useIsFocused} from '@react-navigation/native';
 import {FlashList} from '@shopify/flash-list';
 import React, {useCallback, useEffect, useMemo, useRef} from 'react';
-import type {NativeSyntheticEvent} from 'react-native';
+import type {GestureResponderEvent, NativeSyntheticEvent} from 'react-native';
 import Animated from 'react-native-reanimated';
 import type {ExtendedTargetedEvent} from '@components/SelectionList/ListItem/types';
+import {useEditingCellState} from '@components/Table/EditableCell';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import {isMobileChrome} from '@libs/Browser';
@@ -37,6 +38,7 @@ function BaseSearchList({
 }: BaseSearchListProps) {
     const hasKeyBeenPressed = useRef(false);
     const isFocused = useIsFocused();
+    const {focusedCellId, isEditingCell} = useEditingCellState();
 
     const setHasKeyBeenPressed = useCallback(() => {
         if (hasKeyBeenPressed.current) {
@@ -82,22 +84,39 @@ function BaseSearchList({
         [focusedIndex, renderItem, setFocusedIndex],
     );
 
-    const selectFocusedOption = useCallback(() => {
-        const focusedItem = data.at(focusedIndex);
+    const selectFocusedOption = useCallback(
+        (event?: GestureResponderEvent | KeyboardEvent) => {
+            // Allow event propagation during cell editing so Enter can trigger TextInput.onSubmitEditing.
+            // When not editing, stop propagation to prevent unintended button activation and handle row selection.
+            if (isEditingCell) {
+                return;
+            }
 
-        if (!focusedItem) {
-            return;
-        }
+            // If a cell has keyboard focus (via Tab), let the Enter event propagate to trigger the cell's onPress
+            if (focusedCellId) {
+                return;
+            }
 
-        onSelectRow(focusedItem);
-    }, [data, focusedIndex, onSelectRow]);
+            event?.stopPropagation();
+
+            const focusedItem = data.at(focusedIndex);
+
+            if (!focusedItem) {
+                return;
+            }
+
+            onSelectRow(focusedItem);
+        },
+        [data, focusedCellId, focusedIndex, isEditingCell, onSelectRow],
+    );
 
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ENTER, selectFocusedOption, {
         captureOnInputs: true,
         shouldBubble: false,
         shouldPreventDefault: false,
         isActive: isFocused && focusedIndex >= 0,
-        shouldStopPropagation: true,
+        // Propagation is controlled manually in selectFocusedOption based on editing state
+        shouldStopPropagation: false,
     });
 
     useEffect(() => {

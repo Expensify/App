@@ -15,6 +15,7 @@ type SearchColumnConfig = {
     translationKey: TranslationPaths | undefined;
     icon?: IconAsset;
     isColumnSortable?: boolean;
+    canEdit?: boolean;
 };
 
 type SearchHeaderIcons = {
@@ -37,6 +38,7 @@ const getExpenseHeaders = (groupBy?: SearchGroupBy): SearchColumnConfig[] => [
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.DATE,
         translationKey: 'common.date',
+        canEdit: true,
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.POSTED,
@@ -57,10 +59,12 @@ const getExpenseHeaders = (groupBy?: SearchGroupBy): SearchColumnConfig[] => [
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.MERCHANT,
         translationKey: 'common.merchant',
+        canEdit: true,
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION,
         translationKey: 'common.description',
+        canEdit: true,
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.FROM,
@@ -81,6 +85,7 @@ const getExpenseHeaders = (groupBy?: SearchGroupBy): SearchColumnConfig[] => [
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.CATEGORY,
         translationKey: 'common.category',
+        canEdit: true,
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.ATTENDEES,
@@ -93,6 +98,7 @@ const getExpenseHeaders = (groupBy?: SearchGroupBy): SearchColumnConfig[] => [
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.TAG,
         translationKey: 'common.tag',
+        canEdit: true,
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE,
@@ -125,6 +131,7 @@ const getExpenseHeaders = (groupBy?: SearchGroupBy): SearchColumnConfig[] => [
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT,
         translationKey: groupBy ? 'common.total' : 'iou.amount',
+        canEdit: true,
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.BASE_62_REPORT_ID,

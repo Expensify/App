@@ -51,6 +51,7 @@ const defaultSearchContextData: SearchContextData = {
     isOnSearch: false,
     shouldTurnOffSelectionMode: false,
     shouldResetSearchQuery: false,
+    hasSelectedTransactions: false,
     currentSearchHash: -1,
     currentSimilarSearchHash: -1,
     suggestedSearches: {} as Record<SearchKey, SearchTypeMenuItem>,
@@ -335,6 +336,7 @@ function SearchContextProvider({children}: SearchContextProps) {
             shouldShowSelectAllMatchingItems,
             areAllMatchingItemsSelected,
             currentSearchQueryJSON,
+            hasSelectedTransactions: searchContextData.selectedTransactionIDs.length > 0 || Object.values(searchContextData.selectedTransactions).some((t) => t.isSelected),
         }),
         [
             searchContextData,
