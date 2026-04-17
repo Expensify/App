@@ -608,11 +608,17 @@ function goBackToHome() {
 
 /**
  * Update route params for the specified route.
+ *
+ * @param targetKey - Optional navigator key to target the dispatch at. When provided,
+ *   the SET_PARAMS action is delivered directly to that navigator, which is required for
+ *   routes nested inside split navigators (where the default dispatch would fail if a
+ *   modal is focused). Can be obtained via `navigation.getState()?.key` in a component.
  */
-function setParams(params: Record<string, unknown>, routeKey = '') {
+function setParams(params: Record<string, unknown>, routeKey = '', targetKey?: string) {
     navigationRef.current?.dispatch({
         ...CommonActions.setParams(params),
         source: routeKey,
+        ...(targetKey && {target: targetKey}),
     });
 }
 
@@ -898,6 +904,41 @@ function isValidateLoginFlow() {
     return currentFocusedRoute?.name === SCREENS.VALIDATE_LOGIN;
 }
 
+/**
+ * Walk the navigation state tree and strip a stale reportActionID from any
+ * `backTo` param that references the given report + action.
+ *
+ * When a linked report action is removed (e.g. REPORT_PREVIEW nulled after
+ * moving an IOU to a workspace), the current route's reportActionID is cleared
+ * by LinkedActionNotFoundGuard.  However, sibling screens that were navigated
+ * to FROM this report still carry a `backTo` URL encoding the old
+ * reportActionID.  Pressing back on those screens would navigate to the stale
+ * deep-link, causing a "not here" page.  This function patches those params.
+ */
+function cleanStaleBackToParam(reportID: string, reportActionID: string) {
+    const rootState = navigationRef.current?.getRootState();
+    if (!rootState) {
+        return;
+    }
+
+    const staleSegment = `r/${reportID}/${reportActionID}`;
+    const cleanSegment = `r/${reportID}`;
+
+    function walk(routes: NavigationState['routes'], navigatorKey?: string) {
+        for (const route of routes) {
+            const backTo = (route.params as Record<string, unknown> | undefined)?.backTo;
+            if (typeof backTo === 'string' && backTo.includes(staleSegment)) {
+                setParams({backTo: backTo.replace(staleSegment, cleanSegment)}, route.key, navigatorKey);
+            }
+            if (route.state?.routes) {
+                walk(route.state.routes as NavigationState['routes'], (route.state as NavigationState).key);
+            }
+        }
+    }
+
+    walk(rootState.routes, rootState.key);
+}
+
 function clearPreloadedRoutes() {
     const rootStateWithoutPreloadedRoutes = {...navigationRef.getRootState(), preloadedRoutes: []} as NavigationState;
     navigationRef.reset(rootStateWithoutPreloadedRoutes);
@@ -1178,6 +1219,7 @@ export default {
     getTopmostSuperWideRHPReportID,
     getTopmostSearchReportRouteParams,
     navigateBackToLastSuperWideRHPScreen,
+    cleanStaleBackToParam,
 };
 
 export {navigationRef, getDeepestFocusedScreen, isTwoFactorSetupScreen, isMFAFlowScreen, shouldShowRequire2FAPage};
