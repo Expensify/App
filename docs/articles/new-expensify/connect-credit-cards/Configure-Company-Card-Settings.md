@@ -31,6 +31,9 @@ You can manage the following options:
    
   **Note:** This setting only applies to transactions imported after the setting is enabled.
 
+- **Assign new cards** (direct feeds only)  
+  Reconnects to your bank to refresh the card list so newly issued cards appear in the assignment UI.
+
 - **Remove card feed**  
   Remove the card feed from the workspace and unassign all cards. If the feed is not connected to another workspace, it is permanently deleted.
   

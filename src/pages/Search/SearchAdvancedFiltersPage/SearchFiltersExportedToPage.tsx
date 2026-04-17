@@ -42,7 +42,7 @@ function SearchFiltersExportedToPage() {
     const policyIDs = searchAdvancedFiltersForm?.policyID ?? [];
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
 
-    const integrationConnectionNames = Object.values(CONST.POLICY.CONNECTIONS.NAME);
+    const integrationConnectionNames = CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES;
     const selectedExportedToValues = searchAdvancedFiltersForm?.exportedTo ?? [];
     const connectedIntegrationNames = getConnectedIntegrationNamesForPolicies(policies, policyIDs.length > 0 ? policyIDs : undefined);
 
