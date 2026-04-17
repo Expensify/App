@@ -264,3 +264,20 @@
 - Reason: Fixes an Android-specific issue (reproducible on certain Samsung models) where `onPress` events do not trigger for `Pressable` components when used inside a `Tooltip`. The root cause is that in the new architecture, `Pressability.measure()` reads stale layout information from the shadow tree instead of the actual native view hierarchy. This patch introduces a new `measureAsyncOnUI` method that measures the view asynchronously using the native layout hierarchy on the UI thread, bypassing stale shadow tree data.
 - Upstream PR/issue: [facebook/react-native#51835](https://github.com/facebook/react-native/pull/51835)
 - E/App issue: [#59953](https://github.com/Expensify/App/issues/59953)
+
+### [react-native+0.83.1+036+nested-text-border-radius.patch](react-native+0.83.1+036+nested-text-border-radius.patch)
+
+- Reason:
+
+    ```
+    Adds borderRadius support for nested <Text> backgrounds on iOS and Android.
+    On the C++ side, a std::optional<Float> borderRadius field is added to TextAttributes and wired
+    through BaseTextProps and conversions. On Android, a custom DrawCommandSpan with
+    ReactBackgroundDrawSpan draws rounded-rect backgrounds. On iOS, a custom NSLayoutManager subclass
+    (RCTTextLayoutManagerWithBorderRadius) overrides fillBackgroundRectArray to draw rounded rectangles
+    using UIBezierPath, with per-line corner rounding for multiline spans.
+    ```
+
+- Upstream PR/issue: 🛑
+- E/App issue: https://github.com/Expensify/App/issues/78873
+- PR introducing patch: https://github.com/Expensify/App/pull/84556/changes
