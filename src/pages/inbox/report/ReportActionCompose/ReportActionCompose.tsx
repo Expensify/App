@@ -102,6 +102,7 @@ import ComposerWithSuggestions from './ComposerWithSuggestions';
 import type {ComposerRef} from './ComposerWithSuggestions/ComposerWithSuggestions';
 import SendButton from './SendButton';
 import useAttachmentUploadValidation from './useAttachmentUploadValidation';
+import useSidePanelContext from './useSidePanelContext';
 
 type SuggestionsRef = {
     resetSuggestions: () => void;
@@ -399,6 +400,8 @@ function ReportActionCompose({reportID}: ReportActionComposeProps) {
         ComposerFocusManager.setReadyToFocus();
     }, [updateShouldShowSuggestionMenuToFalse]);
 
+    const sidePanelContext = useSidePanelContext(reportID);
+
     /**
      * Add a new comment to this chat
      */
@@ -419,6 +422,7 @@ function ReportActionCompose({reportID}: ReportActionComposeProps) {
                     timezone: currentUserPersonalDetails.timezone,
                     shouldPlaySound: true,
                     isInSidePanel,
+                    sidePanelContext,
                 });
                 attachmentFileRef.current = null;
             } else {
@@ -481,6 +485,7 @@ function ReportActionCompose({reportID}: ReportActionComposeProps) {
                         },
                     });
                 }
+
                 addComment({
                     report: targetReport,
                     notifyReportID: reportID,
@@ -491,6 +496,7 @@ function ReportActionCompose({reportID}: ReportActionComposeProps) {
                     shouldPlaySound: true,
                     isInSidePanel,
                     reportActionID: optimisticReportActionID,
+                    sidePanelContext,
                 });
             }
         },
@@ -509,6 +515,7 @@ function ReportActionCompose({reportID}: ReportActionComposeProps) {
             personalDetails,
             quickAction,
             scrollOffsetRef,
+            sidePanelContext,
         ],
     );
 
