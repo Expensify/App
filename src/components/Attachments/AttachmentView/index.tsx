@@ -1,5 +1,6 @@
 import {Str} from 'expensify-common';
 import React, {memo, useEffect, useState} from 'react';
+import type {RotationDegrees} from 'react-fast-pdf';
 import type {GestureResponderEvent, ImageURISource, StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -13,7 +14,7 @@ import {useSession} from '@components/OnyxListItemProvider';
 import PerDiemEReceipt from '@components/PerDiemEReceipt';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
-import {usePlaybackActionsContext, usePlaybackStateContext} from '@components/VideoPlayerContexts/PlaybackContext';
+import {usePlaybackActionsContext} from '@components/VideoPlayerContexts/PlaybackContext';
 import useFirstRenderRoute from '@hooks/useFirstRenderRoute';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -94,6 +95,9 @@ type AttachmentViewProps = Attachment & {
 
     /** Transaction object. When provided, will be used instead of fetching from Onyx. */
     transaction?: OnyxEntry<OnyxTypes.Transaction>;
+
+    /** Controlled rotation angle for the PDF */
+    rotation?: RotationDegrees;
 };
 
 function checkIsFileImage(source: string | number | ImageURISource | ImageURISource[], fileName: string | undefined) {
@@ -131,6 +135,7 @@ function AttachmentView({
     isUploading = false,
     reportID,
     transaction: transactionProp,
+    rotation,
 }: AttachmentViewProps) {
     const icons = useMemoizedLazyExpensifyIcons(['ArrowCircleClockwise', 'Gallery']);
     const [transactionFromOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`);
@@ -138,8 +143,7 @@ function AttachmentView({
     const session = useSession();
     const encryptedAuthToken = session?.encryptedAuthToken ?? '';
     const {translate} = useLocalize();
-    const {currentlyPlayingURL} = usePlaybackStateContext();
-    const {updateCurrentURLAndReportID, playVideo} = usePlaybackActionsContext();
+    const {updateCurrentURLAndReportID} = usePlaybackActionsContext();
 
     const actions = useAttachmentCarouselPagerActions();
     const {onAttachmentError, onTap} = actions ?? {};
@@ -160,7 +164,8 @@ function AttachmentView({
         }
         const videoSource = isVideo && typeof source === 'string' ? source : undefined;
         updateCurrentURLAndReportID(videoSource, reportID);
-    }, [file, isFocused, isInFocusedModal, isUsedInAttachmentModal, isVideo, reportID, source, updateCurrentURLAndReportID, playVideo, currentlyPlayingURL]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- currentlyPlayingURL and playVideo are intentionally excluded to prevent a feedback loop
+    }, [file, isFocused, isInFocusedModal, isUsedInAttachmentModal, isVideo, reportID, source, updateCurrentURLAndReportID]);
 
     const [imageError, setImageError] = useState(false);
 
@@ -255,6 +260,7 @@ function AttachmentView({
                     style={isUsedInAttachmentModal ? styles.imageModalPDF : styles.flex1}
                     isUsedAsChatAttachment={isUsedAsChatAttachment}
                     onLoadError={onPDFLoadError}
+                    rotation={rotation}
                 />
             </View>
         );

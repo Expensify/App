@@ -1,3 +1,4 @@
+import {delegateEmailSelector} from '@selectors/Account';
 import React from 'react';
 import {Image, Linking, View} from 'react-native';
 import HomeTestDriveImage from '@assets/images/home-testdrive-image.png';
@@ -17,7 +18,6 @@ import {setSelfTourViewed} from '@libs/actions/Welcome';
 import {getTestDriveURL} from '@libs/TourUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {hasSeenTourSelector} from '@src/selectors/Onboarding';
 
 const MAX_NUMBER_OF_LINES_TITLE = 4;
 
@@ -35,14 +35,15 @@ function DiscoverSection() {
         hasOutstandingChildTask,
     } = useOnboardingTaskInformation(CONST.ONBOARDING_TASK_TYPE.VIEW_TOUR);
     const parentReportAction = useParentReportAction(viewTourTaskReport);
-    const [hasSeenTour = true] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
+    const [onboarding] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
+    const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
+
+    if (onboarding?.selfTourViewed || !onboarding) {
+        return null;
+    }
 
     const handlePress = () => {
         Linking.openURL(getTestDriveURL(shouldUseNarrowLayout, introSelected, isCurrentUserPolicyAdmin));
-
-        if (hasSeenTour) {
-            return;
-        }
 
         if (viewTourTaskReport && viewTourTaskReport.stateNum !== CONST.REPORT.STATE_NUM.APPROVED) {
             completeTestDriveTask(
@@ -52,6 +53,7 @@ function DiscoverSection() {
                 currentUserPersonalDetails.accountID,
                 hasOutstandingChildTask,
                 parentReportAction,
+                delegateEmail,
                 false,
             );
             return;

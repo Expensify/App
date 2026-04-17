@@ -14,7 +14,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {assignReportToMe} from '@libs/actions/IOU';
+import {assignReportToMe} from '@libs/actions/IOU/ReportWorkflow';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportChangeApproverParamList} from '@libs/Navigation/types';
@@ -128,11 +128,7 @@ function ReportChangeApproverPage({report, policy, isLoadingReportData}: ReportC
     const listHeader = useMemo(
         () => (
             <View style={[styles.ph5, styles.mb5, styles.renderHTML, styles.flexRow]}>
-                <RenderHTML
-                    html={translate('iou.changeApprover.header', {
-                        workflowSettingLink: `${environmentURL}/${ROUTES.WORKSPACE_WORKFLOWS.getRoute(policy?.id)}`,
-                    })}
-                />
+                <RenderHTML html={translate('iou.changeApprover.header', `${environmentURL}/${ROUTES.WORKSPACE_WORKFLOWS.getRoute(policy?.id)}`)} />
             </View>
         ),
         [environmentURL, policy?.id, styles.flexRow, styles.mb5, styles.ph5, styles.renderHTML, translate],
@@ -181,3 +177,5 @@ function ReportChangeApproverPage({report, policy, isLoadingReportData}: ReportC
 }
 
 export default withReportOrNotFound()(ReportChangeApproverPage);
+export {APPROVER_TYPE};
+export type {ApproverType};

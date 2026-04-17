@@ -16,12 +16,35 @@ import {PressableWithFeedback} from '@components/Pressable';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
 import ScrollView from '@components/ScrollView';
 import type {SearchColumnType, SearchGroupBy, SearchQueryJSON, SelectedTransactions} from '@components/Search/types';
-import type ChatListItem from '@components/SelectionListWithSections/ChatListItem';
-import type TaskListItem from '@components/SelectionListWithSections/Search/TaskListItem';
-import type TransactionGroupListItem from '@components/SelectionListWithSections/Search/TransactionGroupListItem';
-import type TransactionListItem from '@components/SelectionListWithSections/Search/TransactionListItem';
+import type {ExtendedTargetedEvent} from '@components/SelectionList/ListItem/types';
+import Text from '@components/Text';
+import useKeyboardState from '@hooks/useKeyboardState';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
+import usePrevious from '@hooks/usePrevious';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
+import useThemeStyles from '@hooks/useThemeStyles';
+import useUndeleteTransactions from '@hooks/useUndeleteTransactions';
+import useWindowDimensions from '@hooks/useWindowDimensions';
+import {turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
+import DateUtils from '@libs/DateUtils';
+import navigationRef from '@libs/Navigation/navigationRef';
+import {applySelectionToItem, getTableMinWidth} from '@libs/SearchUIUtils';
+import variables from '@styles/variables';
+import type {TransactionPreviewData} from '@userActions/Search';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import type {CardList, Policy, Transaction, TransactionViolations} from '@src/types/onyx';
+import BaseSearchList from './BaseSearchList';
+import type ChatListItem from './ListItem/ChatListItem';
+import type ExpenseReportListItem from './ListItem/ExpenseReportListItem';
+import type TaskListItem from './ListItem/TaskListItem';
+import type TransactionGroupListItem from './ListItem/TransactionGroupListItem';
+import type TransactionListItem from './ListItem/TransactionListItem';
 import type {
-    ExtendedTargetedEvent,
     ReportActionListItemType,
     TaskListItemType,
     TransactionCardGroupListItemType,
@@ -33,28 +56,7 @@ import type {
     TransactionQuarterGroupListItemType,
     TransactionWeekGroupListItemType,
     TransactionYearGroupListItemType,
-} from '@components/SelectionListWithSections/types';
-import Text from '@components/Text';
-import useKeyboardState from '@hooks/useKeyboardState';
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
-import useLocalize from '@hooks/useLocalize';
-import useNetwork from '@hooks/useNetwork';
-import useOnyx from '@hooks/useOnyx';
-import usePrevious from '@hooks/usePrevious';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
-import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
-import {turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
-import DateUtils from '@libs/DateUtils';
-import navigationRef from '@libs/Navigation/navigationRef';
-import {applySelectionToItem, getTableMinWidth} from '@libs/SearchUIUtils';
-import variables from '@styles/variables';
-import type {TransactionPreviewData} from '@userActions/Search';
-import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
-import type {Transaction, TransactionViolations} from '@src/types/onyx';
-import BaseSearchList from './BaseSearchList';
+} from './ListItem/types';
 
 const easing = Easing.bezier(0.76, 0.0, 0.24, 1.0);
 
@@ -62,7 +64,7 @@ const easing = Easing.bezier(0.76, 0.0, 0.24, 1.0);
 let savedHorizontalScrollOffset = 0;
 
 type SearchListItem = TransactionListItemType | TransactionGroupListItemType | ReportActionListItemType | TaskListItemType;
-type SearchListItemComponentType = typeof TransactionListItem | typeof ChatListItem | typeof TransactionGroupListItem | typeof TaskListItem;
+type SearchListItemComponentType = typeof TransactionListItem | typeof ChatListItem | typeof TransactionGroupListItem | typeof TaskListItem | typeof ExpenseReportListItem;
 
 type SearchListHandle = {
     scrollToIndex: (index: number, animated?: boolean) => void;
@@ -123,20 +125,16 @@ type SearchListProps = Pick<FlashListProps<SearchListItem>, 'onScroll' | 'conten
     /** Violations indexed by transaction ID */
     violations?: Record<string, TransactionViolations | undefined> | undefined;
 
-    /** Custom card names */
-    customCardNames?: Record<number, string>;
-
-    /** Callback to fire when DEW modal should be opened */
-    onDEWModalOpen?: () => void;
-
-    /** Whether the DEW beta flag is enabled */
-    isDEWBetaEnabled?: boolean;
-
     /** Selected transactions for determining isSelected state */
     selectedTransactions: SelectedTransactions;
 
+    /** Non-personal and workspace cards (same drill path as former custom card names for rows) */
+    nonPersonalAndWorkspaceCards?: CardList;
+
     /** Whether all transactions have been loaded from snapshots in group-by views */
     hasLoadedAllTransactions?: boolean;
+
+    policyForMovingExpenses?: Policy;
 
     /** Reference to the outer element */
     ref?: ForwardedRef<SearchListHandle>;
@@ -219,11 +217,10 @@ function SearchList({
     isMobileSelectionModeEnabled,
     newTransactions = [],
     violations,
-    customCardNames,
-    onDEWModalOpen,
-    isDEWBetaEnabled,
+    nonPersonalAndWorkspaceCards,
     selectedTransactions,
     hasLoadedAllTransactions,
+    policyForMovingExpenses,
     ref,
 }: SearchListProps) {
     const styles = useThemeStyles();
@@ -285,8 +282,6 @@ function SearchList({
         return selectableTransactions.length;
     }, [data, type, flattenedItems, emptyReports]);
 
-    const itemsWithSelection = useMemo(() => data.map((item) => applySelectionToItem(item, canSelectMultiple, selectedTransactions)), [data, canSelectMultiple, selectedTransactions]);
-
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const listRef = useRef<FlashListRef<SearchListItem>>(null);
@@ -296,7 +291,7 @@ function SearchList({
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout here because there is a race condition that causes shouldUseNarrowLayout to change indefinitely in this component
     // See https://github.com/Expensify/App/issues/48675 for more details
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
-    const {isSmallScreenWidth} = useResponsiveLayout();
+    const {isSmallScreenWidth, isLargeScreenWidth} = useResponsiveLayout();
 
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [longPressedItem, setLongPressedItem] = useState<SearchListItem>();
@@ -311,14 +306,36 @@ function SearchList({
     const [userBillingFundID] = useOnyx(ONYXKEYS.NVP_BILLING_FUND_ID);
     const [lastPaymentMethod] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD);
     const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
+    const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
+    const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
+    const undeleteTransactions = useUndeleteTransactions();
+
+    const handleUndelete = (transaction: Transaction) => undeleteTransactions([transaction]);
 
     const route = useRoute();
     const {getScrollOffset} = useContext(ScrollOffsetContext);
 
     const [longPressedItemTransactions, setLongPressedItemTransactions] = useState<TransactionListItemType[]>();
 
+    const newTransactionIDByItemKey = useMemo(() => {
+        if (newTransactions.length === 0) {
+            return CONST.EMPTY_MAP;
+        }
+
+        // Precompute the per-row highlight lookup once so renderItem can stay O(1) during list renders.
+        const mappedTransactionIDs = new Map<string, string>();
+        for (const item of data) {
+            const matchedTransactionID = newTransactions.find((transaction) => isTransactionMatchWithGroupItem(transaction, item, groupBy))?.transactionID;
+            if (matchedTransactionID && item.keyForList) {
+                mappedTransactionIDs.set(item.keyForList, matchedTransactionID);
+            }
+        }
+
+        return mappedTransactionIDs;
+    }, [data, groupBy, newTransactions]);
+
     const {windowWidth} = useWindowDimensions();
-    const minTableWidth = getTableMinWidth(columns);
+    const minTableWidth = getTableMinWidth(columns, queryJSON.type);
     const shouldScrollHorizontally = !!SearchTableHeader && minTableWidth > windowWidth;
 
     const horizontalScrollViewRef = useRef<RNScrollView>(null);
@@ -406,10 +423,9 @@ function SearchList({
             const isDisabled = item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
             const shouldApplyAnimation = shouldAnimate && index < data.length - 1;
 
-            const newTransactionID = newTransactions.find((transaction) => isTransactionMatchWithGroupItem(transaction, item, groupBy))?.transactionID;
-
-            const itemData = itemsWithSelection.at(index);
-            const itemWithSelection = itemData?.itemWithSelection ?? item;
+            const newTransactionID = item.keyForList ? newTransactionIDByItemKey.get(item.keyForList) : undefined;
+            // Apply selection lazily per row so we don't rebuild a list-wide wrapper structure on every render.
+            const {itemWithSelection} = applySelectionToItem(item, canSelectMultiple, selectedTransactions);
 
             return (
                 <Animated.View
@@ -430,22 +446,27 @@ function SearchList({
                         queryJSONHash={hash}
                         columns={columns}
                         policies={policies}
+                        policyForMovingExpenses={policyForMovingExpenses}
                         isDisabled={isDisabled}
                         groupBy={groupBy}
                         searchType={type}
-                        onDEWModalOpen={onDEWModalOpen}
-                        isDEWBetaEnabled={isDEWBetaEnabled}
                         lastPaymentMethod={lastPaymentMethod}
                         personalPolicyID={personalPolicyID}
+                        userBillingGracePeriodEnds={userBillingGracePeriodEnds}
+                        ownerBillingGracePeriodEnd={ownerBillingGracePeriodEnd}
                         userWalletTierName={userWalletTierName}
                         isUserValidated={isUserValidated}
                         personalDetails={personalDetails}
                         userBillingFundID={userBillingFundID}
                         isOffline={isOffline}
                         violations={violations}
-                        customCardNames={customCardNames}
+                        nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}
                         onFocus={onFocus}
                         newTransactionID={newTransactionID}
+                        onUndelete={handleUndelete}
+                        keyForList={item.keyForList}
+                        isFirstItem={index === 0}
+                        isLastItem={index === data.length - 1 && !ListFooterComponent}
                     />
                 </Animated.View>
             );
@@ -453,10 +474,9 @@ function SearchList({
         [
             type,
             groupBy,
-            newTransactions,
+            newTransactionIDByItemKey,
             shouldAnimate,
             data.length,
-            itemsWithSelection,
             styles.overflowHidden,
             hasItemsBeingRemoved,
             ListItem,
@@ -474,11 +494,15 @@ function SearchList({
             userBillingFundID,
             isOffline,
             violations,
-            onDEWModalOpen,
-            isDEWBetaEnabled,
             lastPaymentMethod,
             personalPolicyID,
-            customCardNames,
+            userBillingGracePeriodEnds,
+            ownerBillingGracePeriodEnd,
+            nonPersonalAndWorkspaceCards,
+            selectedTransactions,
+            ListFooterComponent,
+            policyForMovingExpenses,
+            handleUndelete,
         ],
     );
 
@@ -489,7 +513,12 @@ function SearchList({
     const content = (
         <View style={[styles.flex1, !isKeyboardShown && safeAreaPaddingBottomStyle, containerStyle]}>
             {tableHeaderVisible && (
-                <View style={[styles.searchListHeaderContainerStyle, styles.listTableHeader]}>
+                <View
+                    style={[
+                        styles.searchListHeaderContainerStyle,
+                        isLargeScreenWidth ? [styles.listTableHeaderCompact, styles.searchListHeaderTableStyle, styles.mh5] : styles.listTableHeader,
+                    ]}
+                >
                     {canSelectMultiple && (
                         <Checkbox
                             accessibilityLabel={translate('accessibilityHints.selectAllItems')}
@@ -499,6 +528,7 @@ function SearchList({
                                 onAllCheckboxPress();
                             }}
                             disabled={totalItems === 0}
+                            containerStyle={styles.m0}
                             sentryLabel={CONST.SENTRY_LABEL.SEARCH.SELECT_ALL_CHECKBOX}
                         />
                     )}
@@ -539,7 +569,8 @@ function SearchList({
                 contentContainerStyle={contentContainerStyle}
                 newTransactions={newTransactions}
                 selectedTransactions={selectedTransactions}
-                customCardNames={customCardNames}
+                policyForMovingExpenses={policyForMovingExpenses}
+                nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}
             />
             <Modal
                 isVisible={isModalVisible}
@@ -567,7 +598,7 @@ function SearchList({
                 contentContainerStyle={{width: minTableWidth}}
                 contentOffset={{x: savedHorizontalScrollOffset, y: 0}}
                 onScroll={handleHorizontalScroll}
-                scrollEventThrottle={16}
+                scrollEventThrottle={CONST.TIMING.MIN_SMOOTH_SCROLL_EVENT_THROTTLE}
             >
                 {content}
             </ScrollView>

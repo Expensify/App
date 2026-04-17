@@ -33,8 +33,10 @@ import {convertToDisplayString} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {
+    canPolicyAccessFeature,
     shouldShowPolicy as checkIfShouldShowPolicy,
     goBackFromInvalidPolicy,
+    hasAccountingFeatureConnection,
     hasPolicyCategoriesError,
     isPaidGroupPolicy,
     isPendingDeletePolicy,
@@ -127,14 +129,15 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
         'Workflows',
         'LuggageWithLines',
         'Clock',
-    ] as const);
+    ]);
 
     const policyName = policy?.name ?? '';
     const hasPolicyCreationError = policy?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD && !isEmptyObject(policy.errors);
     const shouldShowProtectedItems = isPolicyAdmin(policy, login);
     const shouldDisplayLHB = !shouldUseNarrowLayout;
 
-    const hasSyncError = shouldShowSyncError(policy, isConnectionInProgress(connectionSyncProgress, policy));
+    const accountingConnectionNames = CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES;
+    const hasSyncError = shouldShowSyncError(policy, isConnectionInProgress(connectionSyncProgress, policy), accountingConnectionNames);
     const hasMembersError = shouldShowEmployeeListError(policy);
     const hasPolicyCategoryError = hasPolicyCategoriesError(policyCategories);
     const hasGeneralSettingsError =
@@ -160,12 +163,12 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
         [CONST.POLICY.MORE_FEATURES.ARE_TAGS_ENABLED]: policy?.areTagsEnabled,
         [CONST.POLICY.MORE_FEATURES.ARE_TAXES_ENABLED]: policy?.tax?.trackingEnabled,
         [CONST.POLICY.MORE_FEATURES.ARE_COMPANY_CARDS_ENABLED]: policy?.areCompanyCardsEnabled,
-        [CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED]: !!policy?.areConnectionsEnabled || !isEmptyObject(policy?.connections),
+        [CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED]: !!policy?.areConnectionsEnabled || hasAccountingFeatureConnection(policy),
         [CONST.POLICY.MORE_FEATURES.ARE_EXPENSIFY_CARDS_ENABLED]: policy?.areExpensifyCardsEnabled,
         [CONST.POLICY.MORE_FEATURES.ARE_REPORT_FIELDS_ENABLED]: policy?.areReportFieldsEnabled,
         [CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED]: policy?.areRulesEnabled,
         [CONST.POLICY.MORE_FEATURES.ARE_INVOICES_ENABLED]: policy?.areInvoicesEnabled,
-        [CONST.POLICY.MORE_FEATURES.ARE_PER_DIEM_RATES_ENABLED]: policy?.arePerDiemRatesEnabled,
+        [CONST.POLICY.MORE_FEATURES.ARE_PER_DIEM_RATES_ENABLED]: policy?.arePerDiemRatesEnabled && canPolicyAccessFeature(policy, CONST.POLICY.MORE_FEATURES.ARE_PER_DIEM_RATES_ENABLED),
         [CONST.POLICY.MORE_FEATURES.ARE_RECEIPT_PARTNERS_ENABLED]: isBetaEnabled(CONST.BETAS.UBER_FOR_BUSINESS) && (policy?.receiptPartners?.enabled ?? false),
         [CONST.POLICY.MORE_FEATURES.IS_TRAVEL_ENABLED]: policy?.isTravelEnabled,
         [CONST.POLICY.MORE_FEATURES.IS_TIME_TRACKING_ENABLED]: isTimeTrackingEnabled(policy),
@@ -185,7 +188,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
     const shouldShowNavigationTabBar = !shouldShowNotFoundPage;
 
     const fetchPolicyData = () => {
-        if (policyDraft?.id) {
+        if (policyDraft?.id || !isFocused) {
             return;
         }
         openPolicyInitialPage(route.params.policyID);
@@ -474,9 +477,10 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
                                     icon={item.icon}
                                     onPress={item.action}
                                     brickRoadIndicator={item.brickRoadIndicator}
-                                    wrapperStyle={styles.sectionMenuItem}
+                                    wrapperStyle={styles.sectionMenuItem(shouldUseNarrowLayout)}
                                     highlighted={!!item?.highlighted}
                                     focused={!!(item.screenName && activeRoute?.startsWith(item.screenName))}
+                                    role={CONST.ROLE.TAB}
                                     badgeText={item.badgeText}
                                     shouldIconUseAutoWidthStyle
                                     sentryLabel={item.sentryLabel}

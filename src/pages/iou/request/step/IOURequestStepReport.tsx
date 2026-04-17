@@ -3,9 +3,8 @@ import {InteractionManager} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {usePersonalDetails, useSession} from '@components/OnyxListItemProvider';
 import {useSearchActionsContext} from '@components/Search/SearchContext';
-import type {ListItem} from '@components/SelectionListWithSections/types';
+import type {ListItem} from '@components/SelectionList/types';
 import useConditionalCreateEmptyReportConfirmation from '@hooks/useConditionalCreateEmptyReportConfirmation';
-import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useOptimisticDraftTransactions from '@hooks/useOptimisticDraftTransactions';
 import usePermissions from '@hooks/usePermissions';
@@ -21,7 +20,7 @@ import {getPerDiemCustomUnit, getPolicyByCustomUnitID} from '@libs/PolicyUtils';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {getPersonalDetailsForAccountID, getReportOrDraftReport, hasViolations as hasViolationsReportUtils, isPolicyExpenseChat, isReportOutstanding} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
-import {isPerDiemRequest} from '@libs/TransactionUtils';
+import {isPerDiemRequest, isTimeRequest as isTimeRequestUtil} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -46,7 +45,6 @@ const getIOUActionsSelector = (actions: OnyxEntry<ReportActions>): ReportAction[
 
 function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
     const {backTo, action, iouType, transactionID, reportID: reportIDFromRoute, reportActionID} = route.params;
-    const {translate, toLocaleDigit} = useLocalize();
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const isUnreported = transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
     const transactionReport = Object.values(allReports ?? {}).find((report) => report?.reportID === transaction?.reportID);
@@ -58,7 +56,9 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
     const [selectedReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${selectedReportID}`);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [allPolicyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
-    const [ownerBillingGraceEndPeriod] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
+    const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
+    const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
+    const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
     const {removeTransaction, setSelectedTransactions} = useSearchActionsContext();
     const reportOrDraftReport = getReportOrDraftReport(reportIDFromRoute);
@@ -78,7 +78,11 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
     const transactionPolicyID = transaction?.participants?.at(0)?.isPolicyExpenseChat ? transaction?.participants.at(0)?.policyID : undefined;
     // we need to fall back to transactionPolicyID because for a new workspace there is no report created yet
     // and if we choose this workspace as participant we want to create a new report in the chosen workspace
-    const {policyForMovingExpensesID, shouldSelectPolicy} = usePolicyForMovingExpenses(isPerDiemRequest(transaction), selectedReport?.policyID ?? transactionPolicyID);
+    const {policyForMovingExpensesID, shouldSelectPolicy} = usePolicyForMovingExpenses(
+        isPerDiemRequest(transaction),
+        isTimeRequestUtil(transaction),
+        selectedReport?.policyID ?? transactionPolicyID,
+    );
 
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
@@ -136,6 +140,11 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
             setCustomUnitID(transaction.transactionID, newCustomUnitID ?? CONST.CUSTOM_UNITS.FAKE_P2P_ID);
             setCustomUnitRateID(transaction.transactionID, undefined, transaction, newPolicy);
             clearSubrates(transaction.transactionID);
+
+            const newChatReportID = reportOrDraftReportFromValue?.chatReportID ?? reportIDFromRoute;
+            const destinationRoute = ROUTES.MONEY_REQUEST_STEP_DESTINATION.getRoute(action, iouType, transactionID, newChatReportID);
+            Navigation.goBack(destinationRoute, {compareParams: false});
+            return;
         }
 
         const iouConfirmationPageRoute = ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(action, iouType, transactionID, reportOrDraftReportFromValue?.chatReportID);
@@ -175,8 +184,6 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
                         reportNextStep: undefined,
                         policyCategories: allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${item.policyID}`],
                         allTransactions,
-                        translate,
-                        toLocaleDigit,
                     });
                     removeTransaction(transaction.transactionID);
                 }
@@ -221,8 +228,6 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
                 email: session?.email ?? '',
                 policy: allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${personalPolicyID}`],
                 allTransactions,
-                translate,
-                toLocaleDigit,
             });
             removeTransaction(transaction.transactionID);
         });
@@ -238,10 +243,10 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
 
         const policyForNewReport = isPerDiemTransaction && perDiemOriginalPolicy ? perDiemOriginalPolicy : policyForMovingExpenses;
         const optimisticReport = createNewReport(ownerPersonalDetails, hasViolations, isASAPSubmitBetaEnabled, policyForNewReport, betas, false, shouldDismissEmptyReportsConfirmation);
-        handleRegularReportSelection({value: optimisticReport.reportID}, optimisticReport);
+        handleRegularReportSelection({value: optimisticReport.reportID, keyForList: optimisticReport.reportID}, optimisticReport);
     };
 
-    const {handleCreateReport, CreateReportConfirmationModal} = useConditionalCreateEmptyReportConfirmation({
+    const {handleCreateReport} = useConditionalCreateEmptyReportConfirmation({
         policyID: policyForMovingExpensesID,
         policyName: policyForMovingExpenses?.name ?? '',
         onCreateReport: createReportForPolicy,
@@ -249,6 +254,11 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
     });
 
     const createReport = () => {
+        const restrictionPolicyID = isPerDiemTransaction ? perDiemOriginalPolicy?.id : policyForMovingExpensesID;
+        if (restrictionPolicyID && shouldRestrictUserBillableActions(restrictionPolicyID, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed)) {
+            Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(restrictionPolicyID));
+            return;
+        }
         if (isPerDiemTransaction) {
             handleCreateReport();
             return;
@@ -261,39 +271,33 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
             Navigation.navigate(ROUTES.NEW_REPORT_WORKSPACE_SELECTION.getRoute(true, backTo));
             return;
         }
-        if (policyForMovingExpensesID && shouldRestrictUserBillableActions(policyForMovingExpensesID, undefined, undefined, ownerBillingGraceEndPeriod)) {
-            Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policyForMovingExpensesID));
-            return;
-        }
         handleCreateReport();
     };
 
     let selectedPolicyID;
     if (isPerDiemTransaction) {
-        selectedPolicyID = perDiemOriginalPolicy?.id;
+        selectedPolicyID = isFromGlobalCreate ? undefined : perDiemOriginalPolicy?.id;
     } else {
         selectedPolicyID = !isEditing && !isFromGlobalCreate ? reportOrDraftReport?.policyID : undefined;
     }
 
     return (
-        <>
-            {CreateReportConfirmationModal}
-            <IOURequestEditReportCommon
-                backTo={backTo}
-                selectReport={selectReport}
-                transactionIDs={transaction ? [transaction.transactionID] : []}
-                selectedReportID={selectedReportID}
-                selectedPolicyID={selectedPolicyID}
-                transactionPolicyID={transactionPolicyID}
-                removeFromReport={removeFromReport}
-                isEditing={isEditing}
-                isUnreported={isUnreported}
-                shouldShowNotFoundPage={shouldShowNotFoundPage}
-                isPerDiemRequest={transaction ? isPerDiemRequest(transaction) : false}
-                createReport={policyForMovingExpensesID || shouldSelectPolicy || isPerDiemTransaction ? createReport : undefined}
-                targetOwnerAccountID={ownerAccountID}
-            />
-        </>
+        <IOURequestEditReportCommon
+            backTo={backTo}
+            selectReport={selectReport}
+            transactionIDs={transaction ? [transaction.transactionID] : []}
+            selectedReportID={selectedReportID}
+            selectedPolicyID={selectedPolicyID}
+            transactionPolicyID={selectedReport?.policyID ?? transactionPolicyID}
+            removeFromReport={removeFromReport}
+            isEditing={isEditing}
+            isUnreported={isUnreported}
+            shouldShowNotFoundPage={shouldShowNotFoundPage}
+            isPerDiemRequest={transaction ? isPerDiemRequest(transaction) : false}
+            isTimeRequest={transaction ? isTimeRequestUtil(transaction) : false}
+            createReport={policyForMovingExpensesID || shouldSelectPolicy || isPerDiemTransaction ? createReport : undefined}
+            targetOwnerAccountID={ownerAccountID}
+        />
     );
 }
 

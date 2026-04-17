@@ -2,13 +2,13 @@ import type {Ref} from 'react';
 import React, {useEffect, useImperativeHandle, useRef} from 'react';
 import {View} from 'react-native';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
-import {useOptionsList} from '@components/OptionListContextProvider';
 import SelectionList from '@components/SelectionList';
 import InviteMemberListItem from '@components/SelectionList/ListItem/InviteMemberListItem';
 import type {ListItem, SelectionListHandle} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
+import useFilteredOptions from '@hooks/useFilteredOptions';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -54,6 +54,7 @@ function ShareTab({ref}: ShareTabProps) {
     const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT);
     const [nvpDismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING);
     const [visibleReportActionsData] = useOnyx(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS);
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserAccountID = currentUserPersonalDetails.accountID;
     const currentUserEmail = currentUserPersonalDetails.email ?? '';
@@ -62,16 +63,21 @@ function ShareTab({ref}: ShareTabProps) {
         focus: selectionListRef.current?.focusTextInput,
     }));
 
-    const {options, areOptionsInitialized} = useOptionsList();
     const {didScreenTransitionEnd} = useScreenWrapperTransitionStatus();
-    const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false});
+    const {options: listOptions, isLoading} = useFilteredOptions({
+        enabled: didScreenTransitionEnd,
+        betas: betas ?? [],
+        isSearching: !!debouncedTextInputValue.trim(),
+    });
+    const areOptionsInitialized = !isLoading;
+    const [isSearchingForReports] = useOnyx(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS);
 
     const offlineMessage: string = isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : '';
     const shouldShowLoadingPlaceholder = !areOptionsInitialized || !didScreenTransitionEnd;
 
     const searchOptions = areOptionsInitialized
         ? getSearchOptions({
-              options,
+              options: listOptions ?? {reports: [], personalDetails: []},
               draftComments,
               nvpDismissedProductTraining,
               betas: betas ?? [],
@@ -87,6 +93,7 @@ function ShareTab({ref}: ShareTabProps) {
               currentUserEmail,
               policyCollection: allPolicies,
               personalDetails,
+              conciergeReportID,
           })
         : defaultListOptions;
 

@@ -179,6 +179,10 @@ export default {
         marginRight: 40,
     },
 
+    mr13: {
+        marginRight: 52,
+    },
+
     mrn1: {
         marginRight: -4,
     },
@@ -641,6 +645,10 @@ export default {
 
     pr8: {
         paddingRight: 32,
+    },
+
+    pr9: {
+        paddingRight: 36,
     },
 
     pr10: {

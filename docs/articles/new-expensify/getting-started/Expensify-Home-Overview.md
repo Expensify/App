@@ -1,8 +1,8 @@
 ---
 title: Expensify Home Overview
 description: Learn what you’ll see on Home and how it helps you understand what needs attention, get oriented, and stay informed when you sign in. 
-keywords: [New Expensify, Expensify Home, Home, Home tab, For you, Discover, Announcements, time-sensitive, urgent alerts, Expensify Card fraud, broken bank connection, assigned cards. Expensify Card limit, available limit, available balance]
-internalScope: Audience is all Expensify members. Covers what Home is and what appears on it, including the For you, Discover, Announcements, Time-sensitive, and Assigned cards sections. Does not cover how to complete actions like submitting, approving, paying, exporting, or fixing expenses.
+keywords: [New Expensify, Expensify Home, Home, Home tab, For you, Discover, Announcements, time-sensitive, urgent alerts, Expensify Card fraud, broken bank connection, assigned cards, Expensify Card limit, available limit, available balance, Spend over time, spending chart, insights]
+internalScope: Audience is all Expensify members. Covers what Home is and what appears on it, including the For you, Spend over time, Discover, Announcements, Time-sensitive, and Assigned cards sections. Does not cover how to complete actions like submitting, approving, paying, exporting, or fixing expenses.
 
 ---
 
@@ -32,7 +32,8 @@ Home is made up of a small set of sections that summarize what’s happening in 
 Home includes:
 - **Time-sensitive alerts** (when applicable)
 - **For you**
-- **Discover**
+- **Spend over time** (when applicable)
+- **Discover** (when applicable)
 - **Announcements**
 - **Assigned cards** (when applicable)
 
@@ -64,7 +65,17 @@ Each item links you to where you can complete the action, such as a specific rep
 
 If there’s nothing that needs action, the **For you** section may appear empty. This means you’re fully caught up.
 
-![Home > For You on New Expensify]({{site.url}}/assets/images/home-2.png){:width="100%"}
+![]({{site.url}}/assets/images/home2.png){:width="100%"}
+
+---
+
+## How the Spend over time section works on Home
+
+The **Spend over time** section displays a line chart showing your workspace spending trends over time.
+
+This section is available to Workspace Admins, Auditors, and approvers on paid workspaces that have transaction data. Click **View** to open the full **Spend over time** chart on the Search page.
+
+If you don't hold one of these roles or your workspace has no transactions yet, this section won't appear.
 
 ---
 
@@ -73,6 +84,8 @@ If there’s nothing that needs action, the **For you** section may appear empty
 The **Discover** section helps you get familiar with things you can do in Expensify.
 
 This section includes a short demo that introduces key areas of the app and shows how different parts fit together. This can be helpful when you’re getting started or returning after some time away.
+
+Once you’ve watched the demo, the **Discover** section is automatically hidden from Home.
 
 ---
 
@@ -113,6 +126,14 @@ If there are no current financial to-dos, the **For you** section may appear emp
 ## Why don’t I see the Time-sensitive section?
 
 The **Time-sensitive** section only appears when there is an urgent issue or limited-time action that requires attention. If everything is up to date, this section will not be visible.
+
+## Why don’t I see the Spend over time section?
+
+The **Spend over time** section only appears if you are a Workspace Admin, Auditor, or approver on a paid workspace that has existing transactions. If you don't hold one of these roles, or your workspace has no transactions yet, this section won't be visible.
+
+## Why don’t I see the Discover section?
+
+The **Discover** section only appears until you’ve watched the demo. Once you’ve completed it, the section is automatically hidden from Home.
 
 ## Why don’t I see the Assigned cards section?
 

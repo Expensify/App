@@ -1,33 +1,24 @@
 import {useEffect, useRef, useState} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 import type DotLottieAnimation from '@components/LottieAnimations/types';
+import useBiometrics from '@components/MultifactorAuthentication/biometrics/useBiometrics';
 import {MULTIFACTOR_AUTHENTICATION_PROMPT_UI} from '@components/MultifactorAuthentication/config';
 import type {MultifactorAuthenticationPromptType} from '@components/MultifactorAuthentication/config/types';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
+import {getDeviceBiometricsOnyxKey} from '@libs/actions/MultifactorAuthentication';
 import type {TranslationPaths} from '@src/languages/types';
-import ONYXKEYS from '@src/ONYXKEYS';
-import type {Account} from '@src/types/onyx';
+import type IconAsset from '@src/types/utils/IconAsset';
 import {useMultifactorAuthenticationState} from './State';
-import useNativeBiometrics from './useNativeBiometrics';
 
 type PromptContent = {
-    animation: DotLottieAnimation;
+    illustration: DotLottieAnimation | IconAsset;
     title: TranslationPaths;
     subtitle: TranslationPaths | undefined;
     shouldDisplayConfirmButton: boolean;
 };
 
 /**
- * Selector to check if server has any registered credentials for this account.
- * Note: This checks server state only, not device-local credentials.
- */
-function serverHasRegisteredCredentials(data: OnyxEntry<Account>) {
-    const credentialIDs = data?.multifactorAuthenticationPublicKeyIDs;
-    return credentialIDs && credentialIDs.length > 0;
-}
-
-/**
- * Hook to get the prompt content (animation, title, subtitle) for the MFA prompt page.
+ * Hook to get the prompt content (illustration, title, subtitle) for the MFA prompt page.
  * Handles the logic for determining the correct title and subtitle based on:
  * - Whether the user is a returning user (already has biometrics registered)
  * - Whether registration has just been completed
@@ -38,9 +29,10 @@ function serverHasRegisteredCredentials(data: OnyxEntry<Account>) {
  */
 function usePromptContent(promptType: MultifactorAuthenticationPromptType): PromptContent {
     const state = useMultifactorAuthenticationState();
-    const {areLocalCredentialsKnownToServer} = useNativeBiometrics();
+    const {areLocalCredentialsKnownToServer} = useBiometrics();
+    const {accountID} = useCurrentUserPersonalDetails();
     const [serverHasCredentials, setServerHasCredentials] = useState(false);
-    const [deviceBiometricsState] = useOnyx(ONYXKEYS.DEVICE_BIOMETRICS);
+    const [deviceBiometricsState] = useOnyx(getDeviceBiometricsOnyxKey(accountID));
     const hasEverAcceptedSoftPrompt = deviceBiometricsState?.hasAcceptedSoftPrompt ?? false;
 
     // We need to know if server has this device's credentials specifically
@@ -55,7 +47,7 @@ function usePromptContent(promptType: MultifactorAuthenticationPromptType): Prom
         }
         checkCredentials();
         return () => {
-            // Guard against race condition in case where multifactorAuthenticationPublicKeyIDs gets updated in onyx while a KeyStore.get call is in-flight
+            // Guard against race condition in case where multifactorAuthenticationPublicKeyIDs gets updated in onyx while the call to retrieve the key from device is in-flight
             ignore = true;
         };
     }, [areLocalCredentialsKnownToServer]);
@@ -107,7 +99,7 @@ function usePromptContent(promptType: MultifactorAuthenticationPromptType): Prom
         !hasEverAcceptedSoftPrompt || (!state.softPromptApproved && !state.isRegistrationComplete && !serverHasCredentials && !wasPreviouslyRegisteredRef.current);
 
     return {
-        animation: contentData.animation,
+        illustration: contentData.illustration,
         title,
         subtitle,
         shouldDisplayConfirmButton,
@@ -115,4 +107,3 @@ function usePromptContent(promptType: MultifactorAuthenticationPromptType): Prom
 }
 
 export default usePromptContent;
-export {serverHasRegisteredCredentials};

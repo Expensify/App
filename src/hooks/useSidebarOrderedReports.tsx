@@ -3,9 +3,10 @@ import React, {createContext, useCallback, useContext, useEffect, useMemo, useRe
 import type {OnyxEntry} from 'react-native-onyx';
 import Log from '@libs/Log';
 import {getTransactionThreadReportID} from '@libs/MergeTransactionUtils';
-import {getPolicyEmployeeListByIdWithoutCurrentUser} from '@libs/PolicyUtils';
 import {isOneTransactionReport} from '@libs/ReportUtils';
 import SidebarUtils from '@libs/SidebarUtils';
+import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
+import {getChatTabBrickRoad} from '@libs/WorkspacesSettingsUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -31,7 +32,7 @@ type SidebarOrderedReportsStateContextValue = {
     orderedReports: OnyxTypes.Report[];
     orderedReportIDs: string[];
     currentReportID: string | undefined;
-    policyMemberAccountIDs: number[];
+    chatTabBrickRoad: BrickRoad;
 };
 
 type SidebarOrderedReportsActionsContextValue = {
@@ -44,7 +45,7 @@ const SidebarOrderedReportsStateContext = createContext<SidebarOrderedReportsSta
     orderedReports: [],
     orderedReportIDs: [],
     currentReportID: '',
-    policyMemberAccountIDs: [],
+    chatTabBrickRoad: undefined,
 });
 
 const SidebarOrderedReportsActionsContext = createContext<SidebarOrderedReportsActionsContextValue>({
@@ -80,7 +81,6 @@ function SidebarOrderedReportsContextProvider({
     const [reportNameValuePairs, {sourceValue: reportNameValuePairsUpdates}] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
     const [reportsDrafts, {sourceValue: reportsDraftsUpdates}] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
-    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const reportAttributes = useReportAttributes();
     const [currentReportsToDisplay, setCurrentReportsToDisplay] = useState<ReportsToDisplayInLHN>({});
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -93,7 +93,6 @@ function SidebarOrderedReportsContextProvider({
     // I don't like it either, but clearing the cache is only a hack for the debug modal and I will endeavor to make it better as I work to improve the cache correctness of the LHN more broadly
     const [clearCacheDummyCounter, setClearCacheDummyCounter] = useState(0);
 
-    const policyMemberAccountIDs = useMemo(() => getPolicyEmployeeListByIdWithoutCurrentUser(policies, undefined, accountID), [policies, accountID]);
     const prevBetas = usePrevious(betas);
     const prevPriorityMode = usePrevious(priorityMode);
 
@@ -255,10 +254,10 @@ function SidebarOrderedReportsContextProvider({
     }, [reportsToDisplayInLHN]);
 
     const getOrderedReportIDs = useCallback(
-        () => SidebarUtils.sortReportsToDisplayInLHN(reportsToDisplayInLHN, priorityMode, localeCompare, hasDraftByReportID, reportNameValuePairs, conciergeReportID),
+        () => SidebarUtils.sortReportsToDisplayInLHN(reportsToDisplayInLHN, priorityMode, localeCompare, hasDraftByReportID, reportNameValuePairs, reportAttributes),
         // Rule disabled intentionally - reports should be sorted only when the reportsToDisplayInLHN changes
         // eslint-disable-next-line react-hooks/exhaustive-deps
-        [reportsToDisplayInLHN, localeCompare, hasDraftByReportID, conciergeReportID],
+        [reportsToDisplayInLHN, localeCompare, hasDraftByReportID, reportAttributes],
     );
 
     const orderedReportIDs = useMemo(() => getOrderedReportIDs(), [getOrderedReportIDs]);
@@ -305,7 +304,7 @@ function SidebarOrderedReportsContextProvider({
                 orderedReports: updatedReports,
                 orderedReportIDs: updatedReportIDs,
                 currentReportID: derivedCurrentReportID,
-                policyMemberAccountIDs,
+                chatTabBrickRoad: getChatTabBrickRoad(updatedReportIDs, reportAttributes),
             };
         }
 
@@ -313,9 +312,9 @@ function SidebarOrderedReportsContextProvider({
             orderedReports,
             orderedReportIDs,
             currentReportID: derivedCurrentReportID,
-            policyMemberAccountIDs,
+            chatTabBrickRoad: getChatTabBrickRoad(orderedReportIDs, reportAttributes),
         };
-    }, [getOrderedReportIDs, orderedReportIDs, derivedCurrentReportID, policyMemberAccountIDs, shouldUseNarrowLayout, getOrderedReports, orderedReports]);
+    }, [getOrderedReportIDs, orderedReportIDs, derivedCurrentReportID, shouldUseNarrowLayout, getOrderedReports, orderedReports, reportAttributes]);
 
     const actionsValue: SidebarOrderedReportsActionsContextValue = useMemo(() => ({clearLHNCache}), [clearLHNCache]);
 
@@ -334,7 +333,6 @@ function SidebarOrderedReportsContextProvider({
         currentReportIDValue,
         derivedCurrentReportID,
         prevDerivedCurrentReportID,
-        policyMemberAccountIDs,
         prevBetas,
         prevPriorityMode,
         reportsToDisplayInLHN,

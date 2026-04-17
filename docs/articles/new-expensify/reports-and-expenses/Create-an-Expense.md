@@ -23,16 +23,18 @@ If you're submitting expenses for a personal payment, you can send them directly
 
 You can create an expense by scanning a receipt, entering details manually, or tracking distance. The steps below walk you through each method so you can quickly capture and submit expenses for reimbursement or record-keeping.
 
+**Note:** When creating an expense, Workspace Merchant Rules set by your workspace may automatically apply categories, tags, descriptions, reimbursable status, billable status, and other fields based on the merchant name.
+
 ## How to use SmartScan to create an expense
 
 **On mobile:**
-1. Tap the green **camera** icon and snap a photo of a receipt or upload one from your device's gallery.
+1. Tap the **camera** icon and snap a photo of a receipt or upload one from your device's gallery.
 2. Enter the workspace or recipient’s email/phone number.
 3. Add details like description, category, tags, and tax.
 4. Tap **Create expense**.
 
 **On web:**
-1. Click the green **scan** button.
+1. In the navigation tabs on the left, click the green **Scan** icon. 
 2. Drag and drop the receipt file to the page or click **Choose files** to upload.
 3. Enter the workspace or recipient’s email/phone number.
 4. Add details like description, category, tags, and tax.
@@ -112,16 +114,18 @@ The total amount will be calculated automatically using the hourly rate set for 
 
 ## How to bulk upload multiple receipts (web only)
 
-1. On the web, go to the **Reports** page.
+1. On the web, go to the **Reports** page or the **Home** page. 
 2. Drag up to 30 PDF or image files (under 10MB each) into Expensify.
 3. Follow the prompts to assign workspaces, recipients, and coding.
 4. Once the expenses are ready, click **Create expenses**. 
+
 
 ---
 
 ## What happens after submitting an expense to a workspace
 
 - Expenses are automatically added to a report.
+- [Workspace Merchant Rules](https://help.expensify.com/articles/new-expensify/workspaces/Workspace-Merchant-Rules) may automatically apply categories, tags, descriptions, and other coding based on the merchant name.
 - Workspace rules check for violations or missing fields.
 - Approvers are notified to review and approve.
 - Reports can be submitted manually or automatically.

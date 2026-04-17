@@ -179,25 +179,48 @@ const OnboardingGuard: NavigationGuard = {
             return {type: 'REDIRECT', route: ROUTES.HOME};
         }
 
+        const skipOnboardingConfig = CONFIG.SKIP_ONBOARDING;
+        const isLoading = context.isLoading;
+        const isNavigatingWithReplace = isNavigatingToOnboardingFlowWithReplaceAction(action);
+
         const shouldSkipOnboarding =
-            CONFIG.SKIP_ONBOARDING ||
-            context.isLoading ||
+            skipOnboardingConfig ||
+            isLoading ||
             isTransitioning ||
             isOnboardingCompleted ||
             isMigratedUser ||
             isSingleEntry ||
             needsExplanationModal ||
             isInvitedOrGroupMember ||
-            isNavigatingToOnboardingFlowWithReplaceAction(action);
+            isNavigatingWithReplace;
 
         if (shouldSkipOnboarding) {
+            return {type: 'ALLOW'};
+        }
+
+        // If the OnboardingModalNavigator is the currently focused route, the user is already
+        // on the onboarding flow. Redirecting again would produce a redundant state reset that
+        // triggers further actions, creating an infinite navigation loop (APP-7FR).
+        const isOnboardingFocused = state.routes[state.index]?.name === NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR;
+        if (isOnboardingFocused) {
             return {type: 'ALLOW'};
         }
 
         // User needs onboarding - calculate the correct step and redirect
         const onboardingRoute = getOnboardingRoute();
 
-        Log.info('[OnboardingGuard] Redirecting to onboarding route', false, {onboardingRoute});
+        Log.info('[OnboardingGuard] Redirecting to onboarding route', false, {
+            onboardingRoute,
+            skipOnboardingConfig,
+            isLoading,
+            isTransitioning,
+            isOnboardingCompleted,
+            isMigratedUser,
+            isSingleEntry,
+            needsExplanationModal,
+            isInvitedOrGroupMember,
+            isNavigatingWithReplace,
+        });
 
         return {
             type: 'REDIRECT',

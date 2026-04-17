@@ -1,7 +1,7 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import {validTransactionDraftsSelector} from '@selectors/TransactionDraft';
-import React, {useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
@@ -11,6 +11,7 @@ import MoneyRequestConfirmationList from '@components/MoneyRequestConfirmationLi
 import ScreenWrapper from '@components/ScreenWrapper';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
@@ -19,7 +20,16 @@ import useReportAttributes from '@hooks/useReportAttributes';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {GpsPoint} from '@libs/actions/IOU';
-import {getIOURequestPolicyID, getMoneyRequestParticipantsFromReport, initMoneyRequest, requestMoney, trackExpense, updateLastLocationPermissionPrompt} from '@libs/actions/IOU';
+import {
+    getIOURequestPolicyID,
+    getMoneyRequestParticipantsFromReport,
+    initMoneyRequest,
+    setMoneyRequestBillable,
+    setMoneyRequestReimbursable,
+    updateLastLocationPermissionPrompt,
+} from '@libs/actions/IOU';
+import {setMoneyRequestReceipt} from '@libs/actions/IOU/Receipt';
+import {requestMoney, trackExpense} from '@libs/actions/IOU/TrackExpense';
 import DateUtils from '@libs/DateUtils';
 import {getFileName, readFileAsync} from '@libs/fileDownload/FileUtils';
 import getCurrentPosition from '@libs/getCurrentPosition';
@@ -29,10 +39,11 @@ import navigateAfterInteraction from '@libs/Navigation/navigateAfterInteraction'
 import Navigation from '@libs/Navigation/Navigation';
 import type {ShareNavigatorParamList} from '@libs/Navigation/types';
 import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
-import {hasOnlyPersonalPolicies as hasOnlyPersonalPoliciesUtil} from '@libs/PolicyUtils';
+import {hasOnlyPersonalPolicies as hasOnlyPersonalPoliciesUtil, isPaidGroupPolicy} from '@libs/PolicyUtils';
 import {shouldValidateFile} from '@libs/ReceiptUtils';
 import {getReportOrDraftReport, isSelfDM} from '@libs/ReportUtils';
-import {getDefaultTaxCode} from '@libs/TransactionUtils';
+import {getDefaultTaxCode, getTaxValue} from '@libs/TransactionUtils';
+import DraftWorkspaceOpener from '@pages/iou/request/step/confirmation/DraftWorkspaceOpener';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -58,6 +69,7 @@ function SubmitDetailsPage({
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getIOURequestPolicyID(transaction, report)}`);
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getIOURequestPolicyID(transaction, report)}`);
     const [lastLocationPermissionPrompt] = useOnyx(ONYXKEYS.NVP_LAST_LOCATION_PERMISSION_PROMPT);
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
     const reportAttributesDerived = useReportAttributes();
     const privateIsArchivedMap = usePrivateIsArchivedMap();
@@ -91,7 +103,6 @@ function SubmitDetailsPage({
     const fileName = shouldUsePreValidatedFile ? getFileName(validFilesToUpload?.uri ?? CONST.ATTACHMENT_IMAGE_DEFAULT_NAME) : getFileName(currentAttachment?.content ?? '');
     const fileType = shouldUsePreValidatedFile ? (validFilesToUpload?.type ?? CONST.RECEIPT_ALLOWED_FILE_TYPES.JPEG) : (currentAttachment?.mimeType ?? '');
     const [hasOnlyPersonalPolicies = false] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: hasOnlyPersonalPoliciesUtil});
-    const [draftTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT);
 
     useEffect(() => {
         if (!errorTitle || !errorMessage) {
@@ -106,31 +117,72 @@ function SubmitDetailsPage({
             reportID: reportOrAccountID,
             policy,
             personalPolicy,
-            currentIouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
+            currentIouRequestType: transaction?.iouRequestType,
             newIouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
             report,
             parentReport,
             currentDate,
             currentUserPersonalDetails,
             hasOnlyPersonalPolicies,
-            draftTransactions,
+            draftTransactionIDs,
         });
-        // The draftTransactions can be changed if users update the expense, so we don't want to re-init the money request
+        // initMoneyRequest is an imported action, intentionally excluded to avoid re-initializing on every render
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [reportOrAccountID, policy, personalPolicy, report, parentReport, currentDate, currentUserPersonalDetails, hasOnlyPersonalPolicies]);
+
+    // Set receipt on the transaction draft so isScanRequest() returns true and
+    // compact mode, "Automatic" labels, and receipt image rendering all work correctly
+    const receiptSource = currentAttachment?.content ?? fileUri;
+    const receiptFileName = getFileName(currentAttachment?.content ?? '') || fileName;
+    const receiptFileType = currentAttachment?.mimeType ?? fileType;
+
+    useEffect(() => {
+        if (!receiptSource) {
+            return;
+        }
+        setMoneyRequestReceipt(CONST.IOU.OPTIMISTIC_TRANSACTION_ID, receiptSource, receiptFileName, true, receiptFileType);
+    }, [receiptSource, receiptFileName, receiptFileType]);
 
     const selectedParticipants = unknownUserDetails ? [unknownUserDetails] : getMoneyRequestParticipantsFromReport(report, currentUserPersonalDetails.accountID);
     const participants = selectedParticipants.map((participant) => {
         const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${participant.reportID}`];
         return participant?.accountID
             ? getParticipantsOption(participant, personalDetails)
-            : getReportOption(participant, privateIsArchived, policy, currentUserPersonalDetails.accountID, personalDetails, reportAttributesDerived);
+            : getReportOption(participant, privateIsArchived, policy, personalDetails, conciergeReportID, reportAttributesDerived);
     });
+
+    const isPolicyExpenseChat = useMemo(() => participants?.some((participant) => participant.isPolicyExpenseChat), [participants]);
+    const policyExpenseChatPolicyID = participants?.find((participant) => participant.isPolicyExpenseChat)?.policyID;
+    const senderPolicyID = participants?.find((participant) => !!participant && 'isSender' in participant && participant.isSender)?.policyID;
+    const iouType = isSelfDM(report) ? CONST.IOU.TYPE.TRACK : CONST.IOU.TYPE.SUBMIT;
+    const {isOffline} = useNetwork();
+    const isCreatingTrackExpense = iouType === CONST.IOU.TYPE.TRACK;
+
+    // Initialize billable/reimbursable from policy defaults (mirrors IOURequestStepConfirmation)
+    const defaultBillable = !!policy?.defaultBillable;
+    useEffect(() => {
+        setMoneyRequestBillable(CONST.IOU.OPTIMISTIC_TRANSACTION_ID, defaultBillable);
+    }, [defaultBillable]);
+
+    useEffect(() => {
+        const defaultReimbursable = (isPolicyExpenseChat && isPaidGroupPolicy(policy)) || isCreatingTrackExpense ? (policy?.defaultReimbursable ?? true) : true;
+        setMoneyRequestReimbursable(CONST.IOU.OPTIMISTIC_TRANSACTION_ID, defaultReimbursable);
+    }, [policy, isPolicyExpenseChat, isCreatingTrackExpense]);
+
+    const setBillable = useCallback((billable: boolean) => {
+        setMoneyRequestBillable(CONST.IOU.OPTIMISTIC_TRANSACTION_ID, billable);
+    }, []);
+
+    const setReimbursable = useCallback((reimbursable: boolean) => {
+        setMoneyRequestReimbursable(CONST.IOU.OPTIMISTIC_TRANSACTION_ID, reimbursable);
+    }, []);
+
     const trimmedComment = transaction?.comment?.comment?.trim() ?? '';
     const transactionAmount = transaction?.amount ?? 0;
     const transactionTaxAmount = transaction?.taxAmount ?? 0;
     const defaultTaxCode = getDefaultTaxCode(policy, transaction);
     const transactionTaxCode = (transaction?.taxCode ? transaction?.taxCode : defaultTaxCode) ?? '';
+    const transactionTaxValue = transaction?.taxValue ?? getTaxValue(policy, transaction, transactionTaxCode) ?? '';
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const [recentWaypoints] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS);
 
@@ -155,6 +207,7 @@ function SubmitDetailsPage({
                     tag: transaction.tag,
                     taxCode: transactionTaxCode,
                     taxAmount: transactionTaxAmount,
+                    taxValue: transactionTaxValue,
                     billable: transaction.billable,
                     reimbursable: transaction.reimbursable,
                     merchant: transaction.merchant ?? '',
@@ -172,6 +225,8 @@ function SubmitDetailsPage({
                 quickAction,
                 recentWaypoints,
                 betas,
+                draftTransactionIDs,
+                isSelfTourViewed,
             });
         } else {
             const existingTransactionID = getExistingTransactionID(transaction.linkedTrackedExpenseReportAction);
@@ -193,6 +248,7 @@ function SubmitDetailsPage({
                     tag: transaction.tag,
                     taxCode: transactionTaxCode,
                     taxAmount: transactionTaxAmount,
+                    taxValue: transactionTaxValue,
                     billable: transaction.billable,
                     reimbursable: transaction.reimbursable,
                     merchant: transaction.merchant ?? '',
@@ -218,12 +274,7 @@ function SubmitDetailsPage({
         }
     };
 
-    const onSuccess = (file: File, locationPermissionGranted?: boolean) => {
-        const participant = selectedParticipants.at(0);
-        if (!participant) {
-            return;
-        }
-
+    const onSuccess = (participant: Participant, file: File, locationPermissionGranted?: boolean) => {
         const receipt: Receipt = file;
         receipt.state = file && CONST.IOU.RECEIPT_STATE.SCAN_READY;
         if (locationPermissionGranted) {
@@ -244,7 +295,7 @@ function SubmitDetailsPage({
         finishRequestAndNavigate(participant, receipt);
     };
 
-    const onConfirm = (gpsRequired?: boolean) => {
+    const onConfirm = (listOfParticipants?: Participant[], gpsRequired?: boolean) => {
         const shouldStartLocationPermissionFlow =
             gpsRequired &&
             (!lastLocationPermissionPrompt ||
@@ -259,31 +310,44 @@ function SubmitDetailsPage({
             return;
         }
 
+        const participant = listOfParticipants?.at(0) ?? selectedParticipants.at(0);
+        if (!participant) {
+            return;
+        }
+
         readFileAsync(
-            fileUri,
-            fileName,
-            (file) => onSuccess(file, shouldStartLocationPermissionFlow),
+            receiptSource,
+            receiptFileName,
+            (file) => onSuccess(participant, file, shouldStartLocationPermissionFlow),
             () => {},
-            fileType,
+            receiptFileType,
         );
     };
 
     return (
         <ScreenWrapper testID="SubmitDetailsPage">
             <FullPageNotFoundView shouldShow={!reportOrAccountID}>
+                <DraftWorkspaceOpener
+                    isCreatingTrackExpense={isCreatingTrackExpense}
+                    policyID={policy?.id}
+                    policyPendingAction={policy?.pendingAction}
+                    policyExpenseChatPolicyID={policyExpenseChatPolicyID}
+                    senderPolicyID={senderPolicyID}
+                    isOffline={isOffline}
+                />
                 <HeaderWithBackButton
-                    title={translate('common.details')}
+                    title={translate('iou.confirmDetails')}
                     onBackButtonPress={() => Navigation.goBack()}
                 />
                 <LocationPermissionModal
                     startPermissionFlow={startLocationPermissionFlow}
                     resetPermissionFlow={() => setStartLocationPermissionFlow(false)}
-                    onGrant={onConfirm}
+                    onGrant={() => onConfirm(undefined, true)}
                     onDeny={() => {
                         updateLastLocationPermissionPrompt();
                         setStartLocationPermissionFlow(false);
                         navigateAfterInteraction(() => {
-                            onConfirm(false);
+                            onConfirm(undefined, false);
                         });
                     }}
                 />
@@ -291,17 +355,19 @@ function SubmitDetailsPage({
                     <MoneyRequestConfirmationList
                         transaction={transaction}
                         selectedParticipants={participants}
-                        iouAmount={0}
-                        iouComment={trimmedComment}
-                        iouCategory={transaction?.category}
-                        onConfirm={() => onConfirm(true)}
-                        receiptPath={fileUri}
-                        receiptFilename={getFileName(fileName)}
+                        iouType={iouType}
+                        onToggleBillable={setBillable}
+                        onToggleReimbursable={setReimbursable}
+                        isPolicyExpenseChat={isPolicyExpenseChat}
+                        policyID={policy?.id}
+                        onConfirm={(updatedParticipants) => onConfirm(updatedParticipants, true)}
+                        receiptPath={receiptSource}
+                        receiptFilename={receiptFileName}
                         reportID={reportOrAccountID}
                         shouldShowSmartScanFields={false}
-                        isDistanceRequest={false}
-                        isManualDistanceRequest={false}
-                        isGPSDistanceRequest={false}
+                        shouldDisplayReceipt
+                        isReceiptEditable
+                        action={CONST.IOU.ACTION.CREATE}
                         onPDFLoadError={() => {
                             if (errorTitle) {
                                 return;

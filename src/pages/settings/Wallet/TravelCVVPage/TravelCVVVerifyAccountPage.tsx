@@ -2,6 +2,7 @@ import React, {useCallback} from 'react';
 import ValidateCodeActionContent from '@components/ValidateCodeActionModal/ValidateCodeActionContent';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePrimaryContactMethod from '@hooks/usePrimaryContactMethod';
 import {revealVirtualCardDetails} from '@libs/actions/Card';
 import {requestValidateCodeAction, resetValidateActionCodeSent} from '@libs/actions/User';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
@@ -10,7 +11,7 @@ import {getTravelInvoicingCard} from '@libs/TravelInvoicingUtils';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import {useTravelCVV} from './TravelCVVContextProvider';
+import {useTravelCVVActions, useTravelCVVState} from './TravelCVVContextProvider';
 
 /**
  * TravelCVVVerifyAccountPage - Handles magic code verification for Travel CVV reveal.
@@ -18,13 +19,12 @@ import {useTravelCVV} from './TravelCVVContextProvider';
  */
 function TravelCVVVerifyAccountPage() {
     const {translate} = useLocalize();
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
-    const [cardList] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST);
+    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
 
-    // Get state and actions from context
-    const {isLoading, validateError, setCvv, setIsLoading, setValidateError} = useTravelCVV();
+    const {isLoading, validateError} = useTravelCVVState();
+    const {setCvv, setIsLoading, setValidateError} = useTravelCVVActions();
 
-    const primaryLogin = account?.primaryLogin ?? '';
+    const primaryLogin = usePrimaryContactMethod();
     const travelCard = getTravelInvoicingCard(cardList);
 
     const navigateBack = useCallback(() => {
@@ -57,7 +57,7 @@ function TravelCVVVerifyAccountPage() {
     return (
         <ValidateCodeActionContent
             title={translate('cardPage.validateCardTitle')}
-            descriptionPrimary={translate('cardPage.enterMagicCode', primaryLogin)}
+            descriptionPrimary={translate('cardPage.enterMagicCode', primaryLogin ?? '')}
             sendValidateCode={() => requestValidateCodeAction()}
             validateCodeActionErrorField="revealExpensifyCardDetails"
             handleSubmitForm={handleRevealCardDetails}

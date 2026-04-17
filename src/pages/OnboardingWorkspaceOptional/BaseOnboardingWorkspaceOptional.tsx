@@ -6,27 +6,36 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
+import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import useArchivedReportsIdSet from '@hooks/useArchivedReportsIdSet';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useHasActiveAdminPolicies from '@hooks/useHasActiveAdminPolicies';
+import useHasTeam2025Pricing from '@hooks/useHasTeam2025Pricing';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnboardingMessages from '@hooks/useOnboardingMessages';
+import useOnboardingStepCounter from '@hooks/useOnboardingStepCounter';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import usePreferredCurrency from '@hooks/usePreferredCurrency';
 import usePreferredPolicy from '@hooks/usePreferredPolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {convertToShortDisplayString} from '@libs/CurrencyUtils';
 import {navigateAfterOnboardingWithMicrotaskQueue} from '@libs/navigateAfterOnboarding';
 import Navigation from '@libs/Navigation/Navigation';
 import {isPaidGroupPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
-import {createWorkspace, generateDefaultWorkspaceName, generatePolicyID} from '@userActions/Policy/Policy';
+import {getSubscriptionPrice} from '@libs/SubscriptionUtils';
+import {createWorkspace, generatePolicyID, newGenerateDefaultWorkspaceName} from '@userActions/Policy/Policy';
 import {completeOnboarding as completeOnboardingReport} from '@userActions/Report';
 import {setOnboardingAdminsChatReportID, setOnboardingErrorMessage, setOnboardingPolicyID} from '@userActions/Welcome';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
+import {lastWorkspaceNumberSelector} from '@src/selectors/Policy';
 import type {OnboardingPurpose} from '@src/types/onyx';
 import type IconAsset from '@src/types/utils/IconAsset';
 import type {BaseOnboardingWorkspaceOptionalProps} from './types';
@@ -53,6 +62,7 @@ function BaseOnboardingWorkspaceOptional({shouldUseNativeStyles}: BaseOnboarding
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const {isRestrictedPolicyCreation} = usePreferredPolicy();
+    const onboardingStep = useOnboardingStepCounter(SCREENS.ONBOARDING.WORKSPACE_OPTIONAL);
     // When we merge public email with work email, we now want to navigate to the
     // concierge chat report of the new work email and not the last accessed report.
     const mergedAccountConciergeReportID = !onboardingValues?.shouldRedirectToClassicAfterMerge && onboardingValues?.shouldValidate ? conciergeChatReportID : undefined;
@@ -60,11 +70,15 @@ function BaseOnboardingWorkspaceOptional({shouldUseNativeStyles}: BaseOnboarding
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {onboardingIsMediumOrLargerScreenWidth, isSmallScreenWidth} = useResponsiveLayout();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const hasActiveAdminPolicies = useHasActiveAdminPolicies();
     const {isBetaEnabled} = usePermissions();
     const ICON_SIZE = 48;
     const illustrations = useMemoizedLazyIllustrations(['MoneyReceipts', 'Tag', 'ReportReceipt']);
-
-    const processedHelperText = `<comment><muted-text-label>${translate('onboarding.workspace.price')}</muted-text-label></comment>`;
+    const preferredCurrency = usePreferredCurrency();
+    const hasTeam2025Pricing = useHasTeam2025Pricing();
+    const priceValue = getSubscriptionPrice(CONST.POLICY.TYPE.TEAM, preferredCurrency, CONST.SUBSCRIPTION.TYPE.ANNUAL, hasTeam2025Pricing);
+    const price = convertToShortDisplayString(priceValue, preferredCurrency);
+    const processedHelperText = `<comment><muted-text-label>${translate('onboarding.workspace.price', price)}</muted-text-label></comment>`;
 
     useEffect(() => {
         setOnboardingErrorMessage(null);
@@ -102,7 +116,6 @@ function BaseOnboardingWorkspaceOptional({shouldUseNativeStyles}: BaseOnboarding
                 lastName: currentUserPersonalDetails.lastName,
                 adminsChatReportID: resolvedAdminsChatReportID,
                 onboardingPolicyID: resolvedPolicyID,
-                shouldSkipTestDriveModal: (!!resolvedPolicyID && !resolvedAdminsChatReportID) || engagementChoice === CONST.ONBOARDING_CHOICES.PERSONAL_SPEND,
                 introSelected,
                 betas,
                 isSelfTourViewed,
@@ -147,11 +160,13 @@ function BaseOnboardingWorkspaceOptional({shouldUseNativeStyles}: BaseOnboarding
         const paidGroupPolicy = Object.values(allPolicies ?? {}).find((policy) => isPaidGroupPolicy(policy) && isPolicyAdmin(policy, session?.email));
         const shouldCreateWorkspace = !onboardingPolicyID && !paidGroupPolicy;
 
+        const email = session?.email ?? '';
+        const lastWorkspaceNumber = lastWorkspaceNumberSelector(allPolicies, email);
         const {adminsChatReportID, policyID} = shouldCreateWorkspace
             ? createWorkspace({
                   policyOwnerEmail: undefined,
                   makeMeAdmin: true,
-                  policyName: generateDefaultWorkspaceName(session?.email),
+                  policyName: newGenerateDefaultWorkspaceName(email, lastWorkspaceNumber, translate),
                   policyID: generatePolicyID(),
                   engagementChoice: CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE,
                   currency: currentUserPersonalDetails.localCurrencyCode ?? CONST.CURRENCY.USD,
@@ -163,7 +178,9 @@ function BaseOnboardingWorkspaceOptional({shouldUseNativeStyles}: BaseOnboarding
                   currentUserEmailParam: currentUserPersonalDetails.email ?? '',
                   shouldAddGuideWelcomeMessage: false,
                   onboardingPurposeSelected,
+                  betas,
                   isSelfTourViewed,
+                  hasActiveAdminPolicies,
               })
             : {adminsChatReportID: onboardingAdminsChatReportID, policyID: onboardingPolicyID};
 
@@ -183,8 +200,11 @@ function BaseOnboardingWorkspaceOptional({shouldUseNativeStyles}: BaseOnboarding
         currentUserPersonalDetails.email,
         introSelected,
         activePolicyID,
+        betas,
         isSelfTourViewed,
+        hasActiveAdminPolicies,
         completeOnboarding,
+        translate,
     ]);
 
     return (
@@ -194,44 +214,48 @@ function BaseOnboardingWorkspaceOptional({shouldUseNativeStyles}: BaseOnboarding
             style={[styles.defaultModalContainer, shouldUseNativeStyles && styles.pt8]}
         >
             <HeaderWithBackButton
-                progressBarPercentage={100}
+                stepCounter={onboardingStep?.stepCounter}
+                progressBarPercentage={onboardingStep?.progressBarPercentage}
                 shouldDisplayHelpButton={false}
             />
-            <View style={[styles.flexGrow1, onboardingIsMediumOrLargerScreenWidth && styles.mt5, onboardingIsMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5]}>
-                <View style={[onboardingIsMediumOrLargerScreenWidth ? styles.flexRow : styles.flexColumn, styles.mb3]}>
-                    <Text
-                        style={styles.textHeadlineH1}
-                        accessibilityRole={CONST.ROLE.HEADER}
-                    >
-                        {translate('onboarding.workspace.title')}
-                    </Text>
-                </View>
-                <View style={styles.mb2}>
-                    <Text style={[styles.textNormal, styles.colorMuted]}>{translate('onboarding.workspace.subtitle')}</Text>
-                </View>
-                <View>
-                    {section.map((item) => {
-                        return (
-                            <View
-                                key={item.titleTranslationKey}
-                                style={[styles.mt2, styles.mb3, styles.flexRow]}
-                            >
-                                <View style={[styles.flexRow, styles.alignItemsCenter, styles.flex1]}>
-                                    <Icon
-                                        src={item.icon}
-                                        height={ICON_SIZE}
-                                        width={ICON_SIZE}
-                                        additionalStyles={[styles.mr3]}
-                                    />
-                                    <View style={[styles.flexColumn, styles.flex1]}>
-                                        <Text style={[styles.textStrong, styles.lh20]}>{translate(item.titleTranslationKey)}</Text>
+            <ScrollView>
+                <View style={[styles.flexGrow1, onboardingIsMediumOrLargerScreenWidth && styles.mt5, onboardingIsMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5]}>
+                    <View style={[onboardingIsMediumOrLargerScreenWidth ? styles.flexRow : styles.flexColumn, styles.mb3]}>
+                        <Text
+                            style={styles.textHeadlineH1}
+                            accessibilityRole={CONST.ROLE.HEADER}
+                        >
+                            {translate('onboarding.workspace.title')}
+                        </Text>
+                    </View>
+                    <View style={styles.mb2}>
+                        <Text style={[styles.textNormal, styles.colorMuted]}>{translate('onboarding.workspace.subtitle')}</Text>
+                    </View>
+                    <View>
+                        {section.map((item) => {
+                            return (
+                                <View
+                                    key={item.titleTranslationKey}
+                                    style={[styles.mt2, styles.mb3, styles.flexRow]}
+                                >
+                                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.flex1]}>
+                                        <Icon
+                                            src={item.icon}
+                                            height={ICON_SIZE}
+                                            width={ICON_SIZE}
+                                            additionalStyles={[styles.mr3]}
+                                        />
+                                        <View style={[styles.flexColumn, styles.flex1]}>
+                                            <Text style={[styles.textStrong, styles.lh20]}>{translate(item.titleTranslationKey)}</Text>
+                                        </View>
                                     </View>
                                 </View>
-                            </View>
-                        );
-                    })}
+                            );
+                        })}
+                    </View>
                 </View>
-            </View>
+            </ScrollView>
+
             <View style={[onboardingIsMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5, styles.pb5]}>
                 <View style={[styles.flexRow, styles.renderHTML, styles.pb5]}>
                     <RenderHTML html={processedHelperText} />

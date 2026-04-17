@@ -4,11 +4,13 @@ import AddUnreportedExpenseFooter from '@components/AddUnreportedExpenseFooter';
 import EmptyStateComponent from '@components/EmptyStateComponent';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
+import ScrollView from '@components/ScrollView';
 import SelectionList from '@components/SelectionList';
 import type {ListItem, SelectionListHandle} from '@components/SelectionList/types';
 import UnreportedExpensesSkeleton from '@components/Skeletons/UnreportedExpensesSkeleton';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
+import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -33,6 +35,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import {validTransactionDraftIDsSelector} from '@src/selectors/TransactionDraft';
 import type Transaction from '@src/types/onyx/Transaction';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
 import UnreportedExpenseListItem from './UnreportedExpenseListItem';
@@ -41,7 +44,7 @@ type AddUnreportedExpensePageType = PlatformStackScreenProps<AddUnreportedExpens
 
 function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
     const {translate} = useLocalize();
-    const illustrations = useMemoizedLazyIllustrations(['FolderWithPapersAndWatch'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['FolderWithPapersAndWatch']);
     const [errorMessage, setErrorMessage] = useState<string>('');
     const [offset, setOffset] = useState(0);
     const {isOffline} = useNetwork();
@@ -57,9 +60,12 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
     const [isLoadingUnreportedTransactions] = useOnyx(ONYXKEYS.IS_LOADING_UNREPORTED_TRANSACTIONS);
     const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
-    const [ownerBillingGraceEndPeriod] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
+    const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
+    const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
+    const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const shouldShowUnreportedTransactionsSkeletons = isLoadingUnreportedTransactions && hasMoreUnreportedTransactionsResults && !isOffline;
-
+    const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
+    const isInLandscapeMode = useIsInLandscapeMode();
     const initialSkeletonReasonAttributes: SkeletonSpanReasonAttributes = {
         context: 'AddUnreportedExpense.InitialSkeleton',
         isLoadingUnreportedTransactions,
@@ -281,30 +287,37 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
                     title={translate('iou.addUnreportedExpense')}
                     onBackButtonPress={Navigation.goBack}
                 />
-                <EmptyStateComponent
-                    cardStyles={[styles.appBG]}
-                    cardContentStyles={[styles.pb0]}
-                    headerMedia={illustrations.FolderWithPapersAndWatch}
-                    title={translate('iou.emptyStateUnreportedExpenseTitle')}
-                    subtitle={translate('iou.emptyStateUnreportedExpenseSubtitle')}
-                    headerStyles={[styles.emptyStateMoneyRequestReport]}
-                    headerContentStyles={[styles.emptyStateFolderStaticIllustration]}
-                    buttons={[
-                        {
-                            buttonText: translate('iou.createExpense'),
-                            buttonAction: () => {
-                                if (report && report.policyID && shouldRestrictUserBillableActions(report.policyID, undefined, undefined, ownerBillingGraceEndPeriod)) {
-                                    Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(report.policyID));
-                                    return;
-                                }
-                                interceptAnonymousUser(() => {
-                                    startMoneyRequest(CONST.IOU.TYPE.SUBMIT, reportID, undefined, false, backToReport);
-                                });
+                <ScrollView contentContainerStyle={[styles.flexGrow1]}>
+                    <EmptyStateComponent
+                        minModalHeight={isInLandscapeMode ? 0 : undefined}
+                        cardStyles={[styles.appBG]}
+                        cardContentStyles={[styles.pb0]}
+                        headerMedia={illustrations.FolderWithPapersAndWatch}
+                        title={translate('iou.emptyStateUnreportedExpenseTitle')}
+                        subtitle={translate('iou.emptyStateUnreportedExpenseSubtitle')}
+                        headerStyles={[styles.emptyStateMoneyRequestReport]}
+                        headerContentStyles={[styles.emptyStateFolderStaticIllustration]}
+                        buttons={[
+                            {
+                                buttonText: translate('iou.createExpense'),
+                                buttonAction: () => {
+                                    if (
+                                        report &&
+                                        report.policyID &&
+                                        shouldRestrictUserBillableActions(report.policyID, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, policy)
+                                    ) {
+                                        Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(report.policyID));
+                                        return;
+                                    }
+                                    interceptAnonymousUser(() => {
+                                        startMoneyRequest(CONST.IOU.TYPE.SUBMIT, reportID, draftTransactionIDs, undefined, false, backToReport);
+                                    });
+                                },
+                                success: true,
                             },
-                            success: true,
-                        },
-                    ]}
-                />
+                        ]}
+                    />
+                </ScrollView>
             </ScreenWrapper>
         );
     }

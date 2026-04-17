@@ -3,9 +3,11 @@ import {View} from 'react-native';
 import Button from '@components/Button';
 import ConfirmModal from '@components/ConfirmModal';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Section from '@components/Section';
 import Text from '@components/Text';
+import useConfirmModal from '@hooks/useConfirmModal';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -13,6 +15,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
 import {
     clearTravelInvoicingErrors,
+    clearTravelInvoicingMonthlyLimitErrors,
     clearTravelInvoicingSettlementAccountErrors,
     clearTravelInvoicingSettlementFrequencyErrors,
     configureTravelInvoicingForPolicy,
@@ -36,6 +39,7 @@ import {
     hasTravelInvoicingSettlementAccount,
 } from '@libs/TravelInvoicingUtils';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
+import {updateGeneralSettings as updatePolicyGeneralSettings} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -57,10 +61,13 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
     const {translate} = useLocalize();
     const workspaceAccountID = useWorkspaceAccountID(policyID);
 
+    const {showConfirmModal, closeModal} = useConfirmModal();
     const [isDisableConfirmModalVisible, setIsDisableConfirmModalVisible] = useState(false);
     const [isOutstandingBalanceModalVisible, setIsOutstandingBalanceModalVisible] = useState(false);
     const [isPayBalanceModalVisible, setIsPayBalanceModalVisible] = useState(false);
 
+    // Ref to track if the "Update to USD" modal is open
+    const isCurrencyModalOpen = useRef(false);
     // Ref to track if we should auto-resume the toggle flow after returning from TravelLegalNamePage
     const shouldResumeToggleRef = useRef(false);
 
@@ -69,6 +76,7 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
     const [cardSettings] = useOnyx(getTravelInvoicingCardSettingsKey(workspaceAccountID));
     const [cardOnWaitlist] = useOnyx(`${ONYXKEYS.COLLECTION.NVP_EXPENSIFY_ON_CARD_WAITLIST}${policyID}`);
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
@@ -121,6 +129,9 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
     const hasSettlementAccountError = !!settlementAccountErrors;
     const hasSettlementFrequencyError = !!cardSettings?.errorFields?.[CONST.TRAVEL.MONTHLY_SETTLEMENT_DATE];
     const settlementFrequencyErrors = hasSettlementFrequencyError ? cardSettings?.errorFields?.[CONST.TRAVEL.MONTHLY_SETTLEMENT_DATE] : null;
+    const hasMonthlyLimitError = !!cardSettings?.errorFields?.monthlySpendLimitPerUser;
+    const monthlyLimitErrors = hasMonthlyLimitError ? cardSettings?.errorFields?.monthlySpendLimitPerUser : null;
+    const formattedMonthlyLimit = convertToDisplayString(travelSettings?.monthlySpendLimitPerUser ?? 0, CONST.CURRENCY.USD);
 
     // Bank account eligibility for toggle handler
     const isSetupUnfinished = hasInProgressUSDVBBA(reimbursementAccount?.achData);
@@ -147,32 +158,7 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
         payTravelInvoicingSpend(workspaceAccountID);
     };
 
-    /**
-     * Handle toggle change for Central Invoicing.
-     * When turning ON:
-     *   - If has settlement account: call configureTravelInvoicingForPolicy
-     *   - If no settlement account: navigate to selection (enable happens after selection)
-     * When turning OFF: show confirmation modal, then call deactivateTravelInvoicing.
-     */
-    const handleToggle = (isEnabled: boolean) => {
-        // Check if user is on a public domain - Travel Invoicing requires a private domain
-        if (account?.isFromPublicDomain) {
-            Navigation.navigate(ROUTES.TRAVEL_PUBLIC_DOMAIN_ERROR.getRoute(Navigation.getActiveRoute()));
-            return;
-        }
-
-        if (!isEnabled) {
-            // Trying to disable - check for outstanding balance first
-            if (hasOutstandingTravelBalance(travelSettings)) {
-                // Show blocker modal with error message
-                setIsOutstandingBalanceModalVisible(true);
-                return;
-            }
-            // Show confirmation modal before disabling
-            setIsDisableConfirmModalVisible(true);
-            return;
-        }
-
+    const continueToggleFlow = () => {
         if (areTravelPersonalDetailsMissing(privatePersonalDetails)) {
             shouldResumeToggleRef.current = true;
             Navigation.navigate(ROUTES.WORKSPACE_TRAVEL_MISSING_PERSONAL_DETAILS.getRoute(policyID));
@@ -206,10 +192,70 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
         Navigation.navigate(ROUTES.WORKSPACE_TRAVEL_SETTINGS_ACCOUNT.getRoute(policyID));
     };
 
+    const promptCurrencyChangeAndStartFlow = async () => {
+        isCurrencyModalOpen.current = true;
+        const result = await showConfirmModal({
+            title: translate('workspace.moreFeatures.travel.travelInvoicing.centralInvoicingSection.title'),
+            prompt: translate('workspace.bankAccount.updateCurrencyPrompt'),
+            confirmText: translate('workspace.bankAccount.updateToUSD'),
+            cancelText: translate('common.cancel'),
+            danger: true,
+        });
+        isCurrencyModalOpen.current = false;
+        if (result.action !== ModalActions.CONFIRM || !policy) {
+            return;
+        }
+        updatePolicyGeneralSettings(policy, policy.name, CONST.CURRENCY.USD);
+        continueToggleFlow();
+    };
+
+    /**
+     * Handle toggle change for Central Invoicing.
+     * When turning ON:
+     *   - If has settlement account: call configureTravelInvoicingForPolicy
+     *   - If no settlement account: navigate to selection (enable happens after selection)
+     * When turning OFF: show confirmation modal, then call deactivateTravelInvoicing.
+     */
+    const handleToggle = (isEnabled: boolean) => {
+        // Check if user is on a public domain - Travel Invoicing requires a private domain
+        if (account?.isFromPublicDomain) {
+            Navigation.navigate(ROUTES.TRAVEL_PUBLIC_DOMAIN_ERROR.getRoute(policyID, Navigation.getActiveRoute()));
+            return;
+        }
+
+        if (!isEnabled) {
+            // Trying to disable - check for outstanding balance first
+            if (hasOutstandingTravelBalance(travelSettings)) {
+                // Show blocker modal with error message
+                setIsOutstandingBalanceModalVisible(true);
+                return;
+            }
+            // Show confirmation modal before disabling
+            setIsDisableConfirmModalVisible(true);
+            return;
+        }
+
+        if (policy?.outputCurrency !== CONST.CURRENCY.USD) {
+            promptCurrencyChangeAndStartFlow();
+            return;
+        }
+
+        continueToggleFlow();
+    };
+
     const handleConfirmDisable = () => {
         setIsDisableConfirmModalVisible(false);
         deactivateTravelInvoicing(policyID, workspaceAccountID);
     };
+
+    // Dismiss the "Update to USD" modal check if the currency changes to USD externally (e.g. from another device)
+    useEffect(() => {
+        if (policy?.outputCurrency !== CONST.CURRENCY.USD || !isCurrencyModalOpen.current) {
+            return;
+        }
+        closeModal();
+        isCurrencyModalOpen.current = false;
+    }, [policy?.outputCurrency, closeModal]);
 
     // Auto-resume the toggle flow after returning from TravelLegalNamePage
     // When the user saves their legal name and navigates back, privatePersonalDetails updates
@@ -269,7 +315,7 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
             <OfflineWithFeedback
                 errors={settlementAccountErrors}
                 pendingAction={settlementAccountPendingAction}
-                onClose={() => clearTravelInvoicingSettlementAccountErrors(workspaceAccountID, cardSettings?.previousPaymentBankAccountID ?? null)}
+                onClose={() => clearTravelInvoicingSettlementAccountErrors(workspaceAccountID, travelSettings?.previousPaymentBankAccountID ?? null)}
                 errorRowStyles={styles.mh2half}
                 errorRowTextStyles={styles.mr3}
             >
@@ -287,7 +333,7 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
             <OfflineWithFeedback
                 errors={settlementFrequencyErrors}
                 pendingAction={cardSettings?.pendingFields?.monthlySettlementDate}
-                onClose={() => clearTravelInvoicingSettlementFrequencyErrors(workspaceAccountID, cardSettings?.previousMonthlySettlementDate)}
+                onClose={() => clearTravelInvoicingSettlementFrequencyErrors(workspaceAccountID, travelSettings?.previousMonthlySettlementDate)}
                 errorRowStyles={styles.mh2half}
                 errorRowTextStyles={styles.mr3}
             >
@@ -300,6 +346,24 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
                     descriptionTextStyle={styles.textLabelSupportingNormal}
                     shouldShowRightIcon
                     brickRoadIndicator={hasSettlementFrequencyError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                />
+            </OfflineWithFeedback>
+            <OfflineWithFeedback
+                errors={monthlyLimitErrors}
+                pendingAction={cardSettings?.pendingFields?.monthlySpendLimitPerUser}
+                onClose={() => clearTravelInvoicingMonthlyLimitErrors(workspaceAccountID)}
+                errorRowStyles={styles.mh2half}
+                errorRowTextStyles={styles.mr3}
+            >
+                <MenuItemWithTopDescription
+                    description={translate('workspace.moreFeatures.travel.travelInvoicing.centralInvoicingSection.subsections.monthlySpendLimitLabel')}
+                    title={formattedMonthlyLimit}
+                    onPress={() => Navigation.navigate(ROUTES.WORKSPACE_TRAVEL_SETTINGS_MONTHLY_LIMIT.getRoute(policyID))}
+                    wrapperStyle={[styles.sectionMenuItemTopDescription]}
+                    titleStyle={styles.textNormalThemeText}
+                    descriptionTextStyle={styles.textLabelSupportingNormal}
+                    shouldShowRightIcon
+                    brickRoadIndicator={hasMonthlyLimitError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                 />
             </OfflineWithFeedback>
         </>

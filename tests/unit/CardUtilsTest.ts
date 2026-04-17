@@ -1,10 +1,9 @@
-import {buildFeedKeysWithAssignedCards} from '@selectors/Card';
+import {buildFeedKeysWithAssignedCards, isExpensifyCardUkEuSupportedSelector} from '@selectors/Card';
 import lodashSortBy from 'lodash/sortBy';
 import type {OnyxCollection} from 'react-native-onyx';
+import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import type {FeedKeysWithAssignedCards} from '@hooks/useFeedKeysWithAssignedCards';
 import type IllustrationsType from '@styles/theme/illustrations/types';
-// eslint-disable-next-line no-restricted-imports
-import type * as Illustrations from '@src/components/Icon/Illustrations';
 import CONST from '@src/CONST';
 import type {CombinedCardFeeds} from '@src/hooks/useCardFeeds';
 import IntlStore from '@src/languages/IntlStore';
@@ -23,8 +22,10 @@ import {
     getBankName,
     getBrokenConnectionUrlToFixPersonalCard,
     getCardDescription,
+    getCardDescriptionForSearchTable,
     getCardFeedIcon,
     getCardFeedWithDomainID,
+    getCardHintText,
     getCardsByCardholderName,
     getCardSettings,
     getCompanyCardDescription,
@@ -36,6 +37,7 @@ import {
     getDisplayableExpensifyCards,
     getEligibleBankAccountsForCard,
     getEligibleBankAccountsForUkEuCard,
+    getFeedConnectionBrokenCard,
     getFeedNameForDisplay,
     getFeedType,
     getFilteredCardList,
@@ -54,6 +56,7 @@ import {
     isDirectFeed as isDirectFeedCardUtils,
     isExpensifyCard,
     isExpensifyCardFullySetUp,
+    isExpiredCard,
     isMatchingCard,
     isPersonalCard,
     lastFourNumbersFromCardName,
@@ -61,7 +64,10 @@ import {
     sortCardsByCardholderName,
     splitCardFeedWithDomainID,
     splitMaskedCardNumber,
+    supportsPINManagementFeatures,
 } from '@src/libs/CardUtils';
+import type {CardProgramKey} from '@src/libs/CardUtils';
+import DateUtils from '@src/libs/DateUtils';
 import type {
     BankAccountList,
     Card,
@@ -449,6 +455,7 @@ const mockCompanyCardFeedIcons: CompanyCardFeedIconsMock = {
     BrexCompanyCardDetailLarge: mockIcon('BrexCompanyCardDetailLarge'),
     StripeCompanyCardDetailLarge: mockIcon('StripeCompanyCardDetailLarge'),
     PlaidCompanyCardDetailLarge: mockIcon('PlaidCompanyCardDetailLarge'),
+    ExpensifyCardImage: mockIcon('ExpensifyCardImage'),
 };
 const mockCompanyCardBankIcons: CompanyCardBankIconsMock = {
     AmexCardCompanyCardDetail: mockIcon('AmexCardCompanyCardDetail'),
@@ -463,8 +470,6 @@ const mockCompanyCardBankIcons: CompanyCardBankIconsMock = {
     VisaCompanyCardDetail: mockIcon('VisaCompanyCardDetail'),
     PlaidCompanyCardDetail: mockIcon('PlaidCompanyCardDetail'),
 };
-
-jest.mock('@src/components/Icon/Illustrations', () => require('../../__mocks__/Illustrations') as typeof Illustrations);
 
 describe('CardUtils', () => {
     describe('Expiration date formatting', () => {
@@ -1145,6 +1150,20 @@ describe('CardUtils', () => {
             expect(buildFeedKeysWithAssignedCards(allWorkspaceCards as unknown as OnyxCollection<WorkspaceCardsList>)).toStrictEqual({});
         });
 
+        it('Should include CSV feed keys even when entries only have cardList', () => {
+            const csvFeed = `${CONST.COMPANY_CARD.FEED_BANK_NAME.CSV}_123456_`;
+            const allWorkspaceCards = {
+                [`cards_12345_${csvFeed}`]: {
+                    cardList: {
+                        'CREDIT CARD...1234': 'encrypted_value',
+                    },
+                },
+            };
+            expect(buildFeedKeysWithAssignedCards(allWorkspaceCards as unknown as OnyxCollection<WorkspaceCardsList>, [CONST.BETAS.CSV_CARD_IMPORT])).toStrictEqual({
+                [`12345_${csvFeed}`]: true,
+            });
+        });
+
         it('Should extract feed keys that have assigned cards', () => {
             const allWorkspaceCards = {
                 'cards_12345_oauth.chase.com': {
@@ -1403,6 +1422,18 @@ describe('CardUtils', () => {
             const feed = CONST.COMPANY_CARD.FEED_BANK_NAME.VISA;
             const exists = doesCardFeedExist(feed, undefined);
             expect(exists).toBe(false);
+        });
+
+        it('Should return true for Expensify Card feed even though it is excluded from company feeds', () => {
+            const feed = CONST.EXPENSIFY_CARD.BANK as CompanyCardFeed;
+            const exists = doesCardFeedExist(feed, cardFeedsCollection);
+            expect(exists).toBe(true);
+        });
+
+        it('Should return true for Expensify Card feed even with empty cardFeeds', () => {
+            const feed = CONST.EXPENSIFY_CARD.BANK as CompanyCardFeed;
+            const exists = doesCardFeedExist(feed, {});
+            expect(exists).toBe(true);
         });
     });
 
@@ -2242,6 +2273,26 @@ describe('CardUtils', () => {
             expect(description).toBe(CONST.EXPENSIFY_CARD.BANK);
         });
 
+        it('should return Central invoicing for travel invoicing cards', () => {
+            const card: Card = {
+                accountID: 18439984,
+                bank: CONST.EXPENSIFY_CARD.BANK,
+                cardID: 21570657,
+                cardName: 'CREDIT CARD...6909',
+                domainName: 'expensify-policy17f617b9fe23d2f1.exfy',
+                fraud: 'none',
+                lastFourPAN: '6909',
+                lastScrape: '',
+                lastUpdated: '',
+                state: 3,
+                nameValuePairs: {
+                    feedCountry: CONST.TRAVEL.PROGRAM_TRAVEL_US,
+                } as Card['nameValuePairs'],
+            };
+            const description = getCardDescription(card, translateLocal);
+            expect(description).toBe('Central invoicing');
+        });
+
         it('should return the correct card description for personal card', () => {
             const personalCard: Card = {
                 accountID: 1,
@@ -2257,6 +2308,45 @@ describe('CardUtils', () => {
             };
             const description = getCardDescription(personalCard, translateLocal);
             expect(description).toBe('Visa • 1234');
+        });
+    });
+
+    describe('getCardDescriptionForSearchTable', () => {
+        it('should return Central invoicing for travel invoicing cards when translate is provided', () => {
+            const card: Card = {
+                accountID: 18439984,
+                bank: CONST.EXPENSIFY_CARD.BANK,
+                cardID: 21570657,
+                cardName: 'CREDIT CARD...6909',
+                domainName: 'expensify-policy17f617b9fe23d2f1.exfy',
+                fraud: 'none',
+                lastFourPAN: '6909',
+                lastScrape: '',
+                lastUpdated: '',
+                state: 3,
+                nameValuePairs: {
+                    feedCountry: CONST.TRAVEL.PROGRAM_TRAVEL_US,
+                } as Card['nameValuePairs'],
+            };
+            const description = getCardDescriptionForSearchTable(card, translateLocal, 'John Doe');
+            expect(description).toBe('Central invoicing');
+        });
+
+        it('should return normal description for non-travel Expensify cards', () => {
+            const card: Card = {
+                accountID: 18439984,
+                bank: CONST.EXPENSIFY_CARD.BANK,
+                cardID: 21570657,
+                cardName: 'Expensify Card',
+                domainName: 'expensify-policy17f617b9fe23d2f1.exfy',
+                fraud: 'none',
+                lastFourPAN: '5644',
+                lastScrape: '',
+                lastUpdated: '',
+                state: 3,
+            };
+            const description = getCardDescriptionForSearchTable(card, translateLocal, 'John Doe');
+            expect(description).toBe("John Doe's card • 5644");
         });
     });
 
@@ -2449,7 +2539,7 @@ describe('CardUtils', () => {
             expect(result).toHaveLength(2); // Both cards shown (admin-issued virtual is not grouped)
         });
 
-        it('should show travel cards separately', () => {
+        it('should exclude travel cards', () => {
             const cardList = {
                 1: {
                     accountID: 10160771,
@@ -2481,12 +2571,13 @@ describe('CardUtils', () => {
                     state: CONST.EXPENSIFY_CARD.STATE.OPEN,
                     nameValuePairs: {
                         isVirtual: true,
-                        isTravelCard: true,
+                        feedCountry: CONST.TRAVEL.PROGRAM_TRAVEL_US,
                     },
                 },
             } as unknown as CardList;
             const result = getDisplayableExpensifyCards(cardList);
-            expect(result).toHaveLength(2); // Both cards shown (travel card is not grouped)
+            expect(result).toHaveLength(1);
+            expect(result.at(0)?.cardID).toBe(18468850);
         });
 
         it('should show cards from different domains separately', () => {
@@ -2567,6 +2658,47 @@ describe('CardUtils', () => {
             expect(result).toHaveLength(1);
             expect(result.at(0)?.cardID).toBe(18468850); // Physical card comes first even if virtual was added first
         });
+
+        it('should filter out expired Expensify cards based on validThru', () => {
+            jest.spyOn(DateUtils, 'getDBTime').mockReturnValue('2026-02-25 00:00:00');
+
+            const cardList = {
+                1: {
+                    accountID: 1,
+                    bank: CONST.EXPENSIFY_CARD.BANK,
+                    cardID: 1,
+                    cardName: 'Expired Expensify Card',
+                    domainName: 'test.com',
+                    fraud: 'none',
+                    lastFourPAN: '1234',
+                    lastScrape: '',
+                    lastUpdated: '',
+                    state: CONST.EXPENSIFY_CARD.STATE.OPEN,
+                    nameValuePairs: {
+                        validThru: '2026-02-24 23:59:59',
+                    },
+                },
+                2: {
+                    accountID: 1,
+                    bank: CONST.EXPENSIFY_CARD.BANK,
+                    cardID: 2,
+                    cardName: 'Valid Expensify Card',
+                    domainName: 'test.com',
+                    fraud: 'none',
+                    lastFourPAN: '5678',
+                    lastScrape: '',
+                    lastUpdated: '',
+                    state: CONST.EXPENSIFY_CARD.STATE.OPEN,
+                    nameValuePairs: {
+                        validThru: '2026-02-25 00:00:00',
+                    },
+                },
+            } as unknown as CardList;
+
+            const result = getDisplayableExpensifyCards(cardList);
+            expect(result).toHaveLength(1);
+            expect(result.at(0)?.cardID).toBe(2);
+        });
     });
 
     describe('PersonalCard (isPersonalCard)', () => {
@@ -2645,7 +2777,148 @@ describe('CardUtils', () => {
         });
     });
 
+    describe('supportsPINManagementFeatures', () => {
+        it('should return true for UK/EU Expensify Card with feedCountry GB', () => {
+            const card: Card = {
+                accountID: 18439984,
+                bank: CONST.EXPENSIFY_CARD.BANK,
+                cardID: 21570657,
+                cardName: 'CREDIT CARD...5644',
+                domainName: 'expensify-policy17f617b9fe23d2f1.exfy',
+                fraud: 'none',
+                lastFourPAN: '',
+                lastScrape: '',
+                lastUpdated: '',
+                state: 2,
+                nameValuePairs: {
+                    feedCountry: CONST.COUNTRY.GB,
+                } as Card['nameValuePairs'],
+            };
+            expect(supportsPINManagementFeatures(card)).toBe(true);
+        });
+
+        it('should return false for US Expensify Card (no feedCountry)', () => {
+            const card: Card = {
+                accountID: 18439984,
+                bank: CONST.EXPENSIFY_CARD.BANK,
+                cardID: 21570657,
+                cardName: 'CREDIT CARD...5644',
+                domainName: 'expensify-policy17f617b9fe23d2f1.exfy',
+                fraud: 'none',
+                lastFourPAN: '',
+                lastScrape: '',
+                lastUpdated: '',
+                state: 2,
+            };
+            expect(supportsPINManagementFeatures(card)).toBe(false);
+        });
+
+        it('should return false for US Expensify Card (feedCountry US)', () => {
+            const card: Card = {
+                accountID: 18439984,
+                bank: CONST.EXPENSIFY_CARD.BANK,
+                cardID: 21570657,
+                cardName: 'CREDIT CARD...5644',
+                domainName: 'expensify-policy17f617b9fe23d2f1.exfy',
+                fraud: 'none',
+                lastFourPAN: '',
+                lastScrape: '',
+                lastUpdated: '',
+                state: 2,
+                nameValuePairs: {
+                    feedCountry: CONST.COUNTRY.US,
+                } as Card['nameValuePairs'],
+            };
+            expect(supportsPINManagementFeatures(card)).toBe(false);
+        });
+
+        it('should return false for undefined card', () => {
+            expect(supportsPINManagementFeatures(undefined)).toBe(false);
+        });
+
+        it('should return false for non-Expensify Card even with feedCountry GB', () => {
+            const card: Card = {
+                accountID: 18439984,
+                bank: CONST.COMPANY_CARD.FEED_BANK_NAME.VISA,
+                cardID: 21310091,
+                cardName: '480801XXXXXX2554',
+                domainName: 'expensify-policy41314f4dc5ce25af.exfy',
+                fraud: 'none',
+                lastFourPAN: '2554',
+                lastScrape: '2024-11-27 11:00:53',
+                lastUpdated: '',
+                state: 3,
+                nameValuePairs: {
+                    feedCountry: CONST.COUNTRY.GB,
+                } as Card['nameValuePairs'],
+            };
+            expect(supportsPINManagementFeatures(card)).toBe(false);
+        });
+    });
+
+    describe('isExpensifyCardUkEuSupportedSelector', () => {
+        const ukEuCard: Card = {
+            accountID: 18439984,
+            bank: CONST.EXPENSIFY_CARD.BANK,
+            cardID: 21570657,
+            cardName: 'CREDIT CARD...5644',
+            domainName: 'expensify-policy17f617b9fe23d2f1.exfy',
+            fraud: 'none',
+            lastFourPAN: '',
+            lastScrape: '',
+            lastUpdated: '',
+            state: 2,
+            nameValuePairs: {
+                feedCountry: CONST.COUNTRY.GB,
+            } as Card['nameValuePairs'],
+        };
+
+        const usCard: Card = {
+            accountID: 18439984,
+            bank: CONST.EXPENSIFY_CARD.BANK,
+            cardID: 21570658,
+            cardName: 'CREDIT CARD...1234',
+            domainName: 'expensify-policy17f617b9fe23d2f1.exfy',
+            fraud: 'none',
+            lastFourPAN: '',
+            lastScrape: '',
+            lastUpdated: '',
+            state: 2,
+        };
+
+        const cardList: CardList = {
+            '21570657': ukEuCard,
+            '21570658': usCard,
+        };
+
+        it('should return true when cardID matches a UK/EU card', () => {
+            expect(isExpensifyCardUkEuSupportedSelector(cardList, '21570657')).toBe(true);
+        });
+
+        it('should return false when cardID matches a US card', () => {
+            expect(isExpensifyCardUkEuSupportedSelector(cardList, '21570658')).toBe(false);
+        });
+
+        it('should return false when cardID does not exist in card list', () => {
+            expect(isExpensifyCardUkEuSupportedSelector(cardList, '99999999')).toBe(false);
+        });
+
+        it('should return false when card list is empty', () => {
+            expect(isExpensifyCardUkEuSupportedSelector({}, '21570657')).toBe(false);
+        });
+
+        it('should return false when cardID is empty string', () => {
+            expect(isExpensifyCardUkEuSupportedSelector(cardList, '')).toBe(false);
+        });
+    });
+
     describe('getCompanyCardDescription', () => {
+        const mockTranslate = ((key: string) => {
+            if (key === 'cardTransactions.centralInvoicing') {
+                return 'Central invoicing';
+            }
+            return key;
+        }) as LocalizedTranslate;
         const cardList: CardList = {
             '21310091': {
                 accountID: 18439984,
@@ -2674,13 +2947,27 @@ describe('CardUtils', () => {
             },
         };
         it('should return the correct description for a company card', () => {
-            const description = getCompanyCardDescription('Test', 21310091, cardList);
+            const description = getCompanyCardDescription(mockTranslate, 'Test', 21310091, cardList);
             expect(description).toBe('480801XXXXXX2554');
         });
 
         it('should return the correct description for an Expensify card', () => {
-            const description = getCompanyCardDescription('Test', 21570657, cardList);
+            const description = getCompanyCardDescription(mockTranslate, 'Test', 21570657, cardList);
             expect(description).toBe('Test');
+        });
+
+        it('should return "Central invoicing" for a travel card', () => {
+            const travelCardList = {
+                '99999': {
+                    cardID: 99999,
+                    bank: CONST.EXPENSIFY_CARD.BANK,
+                    nameValuePairs: {
+                        feedCountry: CONST.TRAVEL.PROGRAM_TRAVEL_US,
+                    },
+                },
+            } as unknown as CardList;
+            const description = getCompanyCardDescription(mockTranslate, 'Expensify Card - 6909', 99999, travelCardList);
+            expect(description).toBe('Central invoicing');
         });
     });
 
@@ -3432,14 +3719,16 @@ describe('CardUtils', () => {
             expect(getCardSettings(null as unknown as undefined)).toBeUndefined();
         });
 
-        it('should return flat root when feedCountry is not provided and no nested keys exist', () => {
+        it('should fall back to flat root when no nested keys exist and feedCountry is not provided', () => {
             const result = getCardSettings(flatSettings);
-            expect(result).toBe(flatSettings);
+            expect(result?.paymentBankAccountID).toBe(12345);
+            expect(result?.limit).toBe(50000);
         });
 
-        it('should return flat root when feedCountry is undefined and no nested keys exist', () => {
+        it('should fall back to flat root when no nested keys exist and feedCountry is undefined', () => {
             const result = getCardSettings(flatSettings, undefined);
-            expect(result).toBe(flatSettings);
+            expect(result?.paymentBankAccountID).toBe(12345);
+            expect(result?.limit).toBe(50000);
         });
 
         it('should return merged root + nested when feedCountry matches a nested key', () => {
@@ -3450,9 +3739,9 @@ describe('CardUtils', () => {
             expect(result?.domainName).toBe('example.com');
         });
 
-        it('should fall back to root when feedCountry key does not exist', () => {
-            const result = getCardSettings(nestedSettings, 'CA');
-            expect(result).toBe(nestedSettings);
+        it('should return undefined when feedCountry key does not exist', () => {
+            const result = getCardSettings(nestedSettings, 'CA' as unknown as CardProgramKey);
+            expect(result).toBeUndefined();
         });
 
         it('should return merged root + TRAVEL_US when feedCountry is TRAVEL_US', () => {
@@ -3462,9 +3751,9 @@ describe('CardUtils', () => {
             expect(result?.domainName).toBe('example.com');
         });
 
-        it('should not return primitive values as nested settings', () => {
-            const result = getCardSettings(nestedSettings, 'limit');
-            expect(result).toBe(nestedSettings);
+        it('should return undefined for primitive values as feedCountry', () => {
+            const result = getCardSettings(nestedSettings, 'limit' as unknown as CardProgramKey);
+            expect(result).toBeUndefined();
         });
 
         it('should auto-detect US program when no feedCountry is provided', () => {
@@ -3499,6 +3788,135 @@ describe('CardUtils', () => {
             const result = getCardSettings(currentSettings);
             expect(result?.paymentBankAccountID).toBe(55555);
             expect(result?.domainName).toBe('legacy.com');
+        });
+    });
+
+    describe('isExpiredCard', () => {
+        afterEach(() => {
+            jest.restoreAllMocks();
+        });
+
+        it('returns false when validThru is missing', () => {
+            jest.spyOn(DateUtils, 'getDBTime').mockReturnValue('2026-02-25 00:00:00');
+            expect(isExpiredCard({} as Card)).toBe(false);
+            expect(isExpiredCard({nameValuePairs: {}} as Card)).toBe(false);
+        });
+
+        it('returns true when validThru is before current time (UTC)', () => {
+            jest.spyOn(DateUtils, 'getDBTime').mockReturnValue('2026-02-25 00:00:00');
+            expect(isExpiredCard({nameValuePairs: {validThru: '2026-02-24 23:59:59'}} as Card)).toBe(true);
+        });
+
+        it('returns false when validThru equals current time', () => {
+            jest.spyOn(DateUtils, 'getDBTime').mockReturnValue('2026-02-25 00:00:00');
+            expect(isExpiredCard({nameValuePairs: {validThru: '2026-02-25 00:00:00'}} as Card)).toBe(false);
+        });
+
+        it('returns false when validThru is after current time', () => {
+            jest.spyOn(DateUtils, 'getDBTime').mockReturnValue('2026-02-25 00:00:00');
+            expect(isExpiredCard({nameValuePairs: {validThru: '2026-02-25 00:00:01'}} as Card)).toBe(false);
+        });
+    });
+
+    describe('getFeedConnectionBrokenCard', () => {
+        it('Should return undefined when feedCards is undefined', () => {
+            expect(getFeedConnectionBrokenCard(undefined)).toBeUndefined();
+        });
+
+        it('Should return undefined when feedCards is empty', () => {
+            expect(getFeedConnectionBrokenCard({})).toBeUndefined();
+        });
+
+        it('Should return the card with a broken connection status', () => {
+            const feedCards: CardList = {
+                card1: {bank: 'oauth.chase.com', lastScrapeResult: 403, cardID: 1, state: CONST.EXPENSIFY_CARD.STATE.OPEN} as unknown as Card,
+            };
+            const result = getFeedConnectionBrokenCard(feedCards);
+            expect(result).toBeDefined();
+            expect(result?.cardID).toBe(1);
+        });
+
+        it('Should return undefined when all cards have ignored statuses (200, 434, etc.)', () => {
+            const feedCards: CardList = {
+                card1: {bank: 'oauth.chase.com', lastScrapeResult: 200, cardID: 1, state: CONST.EXPENSIFY_CARD.STATE.OPEN} as unknown as Card,
+                card2: {bank: 'oauth.chase.com', lastScrapeResult: 434, cardID: 2, state: CONST.EXPENSIFY_CARD.STATE.OPEN} as unknown as Card,
+            };
+            expect(getFeedConnectionBrokenCard(feedCards)).toBeUndefined();
+        });
+
+        it('Should return undefined when cards have no lastScrapeResult', () => {
+            const feedCards: CardList = {
+                card1: {bank: 'oauth.chase.com', cardID: 1, state: CONST.EXPENSIFY_CARD.STATE.OPEN} as unknown as Card,
+            };
+            expect(getFeedConnectionBrokenCard(feedCards)).toBeUndefined();
+        });
+
+        it('Should exclude cards matching feedToExclude', () => {
+            const feedCards: CardList = {
+                card1: {bank: 'oauth.chase.com', lastScrapeResult: 403, cardID: 1, state: CONST.EXPENSIFY_CARD.STATE.OPEN} as unknown as Card,
+            };
+            expect(getFeedConnectionBrokenCard(feedCards, 'oauth.chase.com')).toBeUndefined();
+        });
+
+        it('Should return a broken card from a different feed when feedToExclude is set', () => {
+            const feedCards: CardList = {
+                card1: {bank: 'oauth.chase.com', lastScrapeResult: 403, cardID: 1, state: CONST.EXPENSIFY_CARD.STATE.OPEN} as unknown as Card,
+                card2: {bank: 'oauth.amex.com', lastScrapeResult: 403, cardID: 2, state: CONST.EXPENSIFY_CARD.STATE.OPEN} as unknown as Card,
+            };
+            const result = getFeedConnectionBrokenCard(feedCards, 'oauth.chase.com');
+            expect(result).toBeDefined();
+            expect(result?.cardID).toBe(2);
+        });
+
+        it('Should skip empty card objects', () => {
+            const feedCards: CardList = {
+                card1: {} as unknown as Card,
+                card2: {bank: 'oauth.chase.com', lastScrapeResult: 403, cardID: 2, state: CONST.EXPENSIFY_CARD.STATE.OPEN} as unknown as Card,
+            };
+            const result = getFeedConnectionBrokenCard(feedCards);
+            expect(result).toBeDefined();
+            expect(result?.cardID).toBe(2);
+        });
+
+        it('Should return undefined when all non-ignored statuses belong to excluded feed', () => {
+            const feedCards: CardList = {
+                card1: {bank: 'oauth.chase.com', lastScrapeResult: 403, cardID: 1, state: CONST.EXPENSIFY_CARD.STATE.OPEN} as unknown as Card,
+                card2: {bank: 'oauth.amex.com', lastScrapeResult: 200, cardID: 2, state: CONST.EXPENSIFY_CARD.STATE.OPEN} as unknown as Card,
+            };
+            expect(getFeedConnectionBrokenCard(feedCards, 'oauth.chase.com')).toBeUndefined();
+        });
+    });
+
+    describe('getCardHintText', () => {
+        afterEach(() => {
+            jest.restoreAllMocks();
+        });
+
+        it('returns undefined when validFrom or validThru is missing', () => {
+            const translate = jest.fn();
+
+            expect(getCardHintText(undefined, '2026-02-25 00:00:00', undefined, translate as never)).toBeUndefined();
+            expect(getCardHintText('2026-02-25 00:00:00', undefined, undefined, translate as never)).toBeUndefined();
+            expect(translate).not.toHaveBeenCalled();
+        });
+
+        it('returns undefined when date formatting fails', () => {
+            const translate = jest.fn();
+            jest.spyOn(DateUtils, 'formatUTCDateTimeToDateInTimezone').mockReturnValue('' as never);
+
+            expect(getCardHintText('2026-02-01 00:00:00', '2026-02-25 00:00:00', {} as never, translate as never)).toBeUndefined();
+            expect(translate).not.toHaveBeenCalled();
+        });
+
+        it('returns translated hint text when both dates are formatted', () => {
+            const translate = jest.fn().mockReturnValue('translated');
+            jest.spyOn(DateUtils, 'formatUTCDateTimeToDateInTimezone').mockReturnValue({} as never);
+            jest.spyOn(DateUtils, 'formatToReadableString').mockReturnValueOnce('Feb 1, 2026').mockReturnValueOnce('Feb 25, 2026');
+
+            const result = getCardHintText('2026-02-01 00:00:00', '2026-02-25 00:00:00', {} as never, translate as never);
+
+            expect(result).toBe('translated');
+            expect(translate).toHaveBeenCalledWith('workspace.card.issueNewCard.validFromTo', {startDate: 'Feb 1, 2026', endDate: 'Feb 25, 2026'});
         });
     });
 });

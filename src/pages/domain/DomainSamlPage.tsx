@@ -6,10 +6,11 @@ import type {FeatureListItem} from '@components/FeatureList';
 import FeatureList from '@components/FeatureList';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
+import SectionSubtitleHTML from '@components/SectionSubtitleHTML';
+import useDomainDocumentTitle from '@hooks/useDomainDocumentTitle';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -18,6 +19,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {DomainSplitNavigatorParamList} from '@libs/Navigation/types';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import colors from '@styles/theme/colors';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -45,6 +47,7 @@ function DomainSamlPage({route}: DomainSamlPageProps) {
     const isSamlEnabled = !!domainSettings?.samlEnabled;
     const isSamlRequired = !!domainSettings?.samlRequired;
     const domainName = domain ? Str.extractEmailDomain(domain.email) : undefined;
+    useDomainDocumentTitle(domainName, 'domain.saml');
     const doesDomainExist = !!domain;
 
     const samlFeatures: FeatureListItem[] = useMemo(
@@ -66,7 +69,13 @@ function DomainSamlPage({route}: DomainSamlPageProps) {
     );
 
     if (isLoadingOnyxValue(domainResults, isAdminResults, domainSettingsResults)) {
-        return <FullScreenLoadingIndicator />;
+        const reasonAttributes: SkeletonSpanReasonAttributes = {
+            context: 'DomainSamlPage',
+            isLoadingDomain: isLoadingOnyxValue(domainResults),
+            isLoadingAdmin: isLoadingOnyxValue(isAdminResults),
+            isLoadingDomainSettings: isLoadingOnyxValue(domainSettingsResults),
+        };
+        return <FullScreenLoadingIndicator reasonAttributes={reasonAttributes} />;
     }
 
     return (
@@ -99,7 +108,7 @@ function DomainSamlPage({route}: DomainSamlPageProps) {
                             <>
                                 <Section
                                     title={translate('domain.samlLogin.title')}
-                                    renderSubtitle={() => <RenderHTML html={translate('domain.samlLogin.subtitle')} />}
+                                    renderSubtitle={() => <SectionSubtitleHTML html={translate('domain.samlLogin.subtitle')} />}
                                     isCentralPane
                                     titleStyles={styles.accountSettingsSectionTitle}
                                     childrenStyles={[styles.gap6, styles.pt6]}
@@ -135,9 +144,10 @@ function DomainSamlPage({route}: DomainSamlPageProps) {
                                 menuItems={samlFeatures}
                                 title={translate('domain.samlFeatureList.title')}
                                 renderSubtitle={() => (
-                                    <View style={styles.pt3}>
-                                        <RenderHTML html={translate('domain.samlFeatureList.subtitle', {domainName: `@${domainName ?? ''}`})} />
-                                    </View>
+                                    <SectionSubtitleHTML
+                                        html={translate('domain.samlFeatureList.subtitle', {domainName: `@${domainName ?? ''}`})}
+                                        wrapperStyle={styles.pt3}
+                                    />
                                 )}
                                 ctaText={translate('domain.verifyDomain.title')}
                                 ctaAccessibilityLabel={translate('domain.verifyDomain.title')}

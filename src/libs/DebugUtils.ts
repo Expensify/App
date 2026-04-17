@@ -623,6 +623,7 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
                 approved: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 isExportedToIntegration: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 hasExportError: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                export: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 iouReportID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 preexistingReportID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 nonReimbursableTotal: CONST.RED_BRICK_ROAD_PENDING_ACTION,
@@ -795,10 +796,12 @@ function validateReportActionDraftProperty(key: keyof ReportAction, value: strin
                 name: 'string',
                 receiptID: 'string',
                 source: 'string',
+                localSource: 'string',
                 filename: 'string',
                 reservationList: 'string',
                 isTestReceipt: 'boolean',
                 isTestDriveReceipt: 'boolean',
+                thumbnail: 'string',
             });
         case 'childRecentReceiptTransactionIDs':
             return validateObject<ObjectElement<ReportAction, 'childRecentReceiptTransactionIDs'>>(value, {}, 'string');
@@ -954,6 +957,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
         case 'category':
         case 'merchant':
         case 'taxCode':
+        case 'taxName':
         case 'modifiedCurrency':
         case 'modifiedMerchant':
         case 'transactionID':
@@ -993,9 +997,12 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
         case 'convertedTaxAmount':
         case 'groupAmount':
         case 'groupExchangeRate':
+        case 'currencyConversionRate':
             return validateNumber(value);
         case 'iouRequestType':
             return validateConstantEnum(value, CONST.IOU.REQUEST_TYPE);
+        case 'selectedTransactionIDs':
+            return validateArray(value, 'string');
         case 'participants':
             return validateArray<ArrayElement<Transaction, 'participants'>>(value, {
                 accountID: 'number',
@@ -1089,7 +1096,9 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                     transactionThreadReportID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     reportName: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     routes: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    routeDistanceMeters: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     transactionID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    selectedTransactionIDs: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     tag: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     transactionType: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     isFromGlobalCreate: CONST.RED_BRICK_ROAD_PENDING_ACTION,
@@ -1121,10 +1130,12 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                     isDemoTransaction: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     splitExpensesTotal: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     taxValue: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    taxName: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     pendingAutoCategorizationTime: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     groupAmount: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     groupCurrency: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     groupExchangeRate: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    currencyConversionRate: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     splitsStartDate: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     splitsEndDate: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 },
@@ -1134,6 +1145,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
             return validateObject<ObjectElement<Transaction, 'receipt'>>(value, {
                 type: 'string',
                 source: 'string',
+                localSource: 'string',
                 name: 'string',
                 filename: 'string',
                 state: CONST.IOU.RECEIPT_STATE,
@@ -1141,6 +1153,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                 reservationList: 'array',
                 isTestReceipt: 'boolean',
                 isTestDriveReceipt: 'boolean',
+                thumbnail: 'string',
             });
         case 'taxRate':
             return validateObject<ObjectElement<Transaction, 'taxRate'>>(value, {

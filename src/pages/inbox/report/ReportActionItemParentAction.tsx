@@ -1,3 +1,4 @@
+import {hasSeenTourSelector} from '@selectors/Onboarding';
 import {getReportActionsForReportIDs} from '@selectors/ReportAction';
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
@@ -68,12 +69,6 @@ type ReportActionItemParentActionProps = {
     /** Personal details list */
     personalDetails: OnyxEntry<PersonalDetailsList>;
 
-    /** All draft messages collection */
-    allDraftMessages?: OnyxCollection<ReportActionsDrafts>;
-
-    /** All emoji reactions collection */
-    allEmojiReactions?: OnyxCollection<ReportActionReactions>;
-
     /** User billing fund ID */
     userBillingFundID: number | undefined;
 
@@ -97,8 +92,6 @@ function ReportActionItemParentAction({
     userWalletTierName,
     isUserValidated,
     personalDetails,
-    allDraftMessages,
-    allEmojiReactions,
     userBillingFundID,
     isTryNewDotNVPDismissed = false,
     isReportArchived = false,
@@ -155,8 +148,49 @@ function ReportActionItemParentAction({
         },
         [ancestors],
     );
+
+    const ancestorDraftSelector = useCallback(
+        (allDrafts: OnyxCollection<ReportActionsDrafts>) => {
+            if (!allDrafts) {
+                return {};
+            }
+            const result: OnyxCollection<ReportActionsDrafts> = {};
+            for (const ancestor of ancestors) {
+                const origID = getOriginalReportID(
+                    ancestor.report.reportID,
+                    ancestor.reportAction,
+                    ancestorsReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${ancestor.report.reportID}`],
+                );
+                const key = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${origID}`;
+                result[key] = allDrafts[key];
+            }
+            return result;
+        },
+        [ancestors, ancestorsReportActions],
+    );
+
+    const [ancestorDraftMessages] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS, {selector: ancestorDraftSelector}, [ancestors, ancestorsReportActions]);
+
+    const ancestorReactionSelector = useCallback(
+        (allReactions: OnyxCollection<ReportActionReactions>) => {
+            if (!allReactions) {
+                return {};
+            }
+            const result: OnyxCollection<ReportActionReactions> = {};
+            for (const ancestor of ancestors) {
+                const key = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${ancestor.reportAction.reportActionID}`;
+                result[key] = allReactions[key];
+            }
+            return result;
+        },
+        [ancestors],
+    );
+
+    const [ancestorReactions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS, {selector: ancestorReactionSelector}, [ancestors]);
+
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
 
     return (
         <View style={[styles.pRelative]}>
@@ -167,7 +201,7 @@ function ReportActionItemParentAction({
                     report?.errorFields?.createChatThread ?? (report?.errorFields?.createChat ? getMicroSecondOnyxErrorWithTranslationKey('report.genericCreateReportFailureMessage') : null)
                 }
                 errorRowStyles={[styles.ml10, styles.mr2]}
-                onClose={() => navigateToConciergeChatAndDeleteReport(report?.reportID, conciergeReportID, currentUserAccountID, introSelected, undefined, true)}
+                onClose={() => navigateToConciergeChatAndDeleteReport(report?.reportID, conciergeReportID, currentUserAccountID, introSelected, isSelfTourViewed, allBetas, undefined, true)}
             >
                 {ancestors.map((ancestor) => {
                     const {report: ancestorReport, reportAction: ancestorReportAction} = ancestor;
@@ -180,10 +214,10 @@ function ReportActionItemParentAction({
                         ancestorReportAction,
                         ancestorsReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${ancestorReport.reportID}`],
                     );
-                    const reportDraftMessages = originalReportID ? allDraftMessages?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${originalReportID}`] : undefined;
+                    const reportDraftMessages = originalReportID ? ancestorDraftMessages?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${originalReportID}`] : undefined;
                     const matchingDraftMessage = reportDraftMessages?.[ancestorReportAction.reportActionID];
                     const matchingDraftMessageString = matchingDraftMessage?.message;
-                    const actionEmojiReactions = allEmojiReactions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${ancestorReportAction.reportActionID}`];
+                    const actionEmojiReactions = ancestorReactions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${ancestorReportAction.reportActionID}`];
 
                     return (
                         <OfflineWithFeedback
@@ -192,7 +226,9 @@ function ReportActionItemParentAction({
                             pendingAction={ancestorReport?.pendingFields?.addWorkspaceRoom ?? ancestorReport?.pendingFields?.createChat}
                             errors={ancestorReport?.errorFields?.addWorkspaceRoom ?? ancestorReport?.errorFields?.createChat}
                             errorRowStyles={[styles.ml10, styles.mr2]}
-                            onClose={() => navigateToConciergeChatAndDeleteReport(ancestorReport.reportID, conciergeReportID, currentUserAccountID, introSelected)}
+                            onClose={() =>
+                                navigateToConciergeChatAndDeleteReport(ancestorReport.reportID, conciergeReportID, currentUserAccountID, introSelected, isSelfTourViewed, allBetas)
+                            }
                         >
                             {shouldDisplayThreadDivider && (
                                 <ThreadDivider
@@ -211,7 +247,6 @@ function ReportActionItemParentAction({
                                 transactionThreadReport={transactionThreadReport}
                                 action={ancestorReportAction}
                                 displayAsGroup={false}
-                                isMostRecentIOUReportAction={false}
                                 shouldDisplayNewMarker={ancestor.shouldDisplayNewMarker}
                                 index={index}
                                 isFirstVisibleReportAction={isFirstVisibleReportAction}

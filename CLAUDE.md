@@ -194,6 +194,7 @@ The skill provides guidance on:
 1. **Prettier**: Run `npx prettier --write <changed files>` on every file you modified. This is mandatory - CI will reject unformatted code.
 2. **ESLint**: Run `npx eslint <changed files> --max-warnings=0` to catch lint errors early.
 3. **TypeScript**: Run `npm run typecheck-tsgo` after changes that may affect typing (types, interfaces, or function signatures). It is ~10x faster and usually stricter than tsc. CI validates with `npm run typecheck` (tsc), which remains the required merge gate.
+4. **React Compiler**: If you added new React components/hooks or modified existing ones, run `npm run react-compiler-compliance-check check-changed` to verify they compile with React Compiler. This applies the same rules as CI: new components/hooks must compile, and existing compiled files must not regress. See `contributingGuides/REACT_COMPILER.md` for details and common fixes.
 
 ### Testing
 - **Unit Tests**: Jest with React Native Testing Library
@@ -223,6 +224,10 @@ The skill provides guidance on:
 - **OldDot/Expensify Classic Help**: https://help.expensify.com/expensify-classic/hubs/
 
 ## Development Setup Requirements
+
+### Sentry analysis
+
+Use Sentry skill whenever user wants to analyze any data from Sentry. It may be: spans, metrics, crashes, crash free rate etc.
 
 ## Command Reference
 

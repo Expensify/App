@@ -1,13 +1,13 @@
 import {format, parseISO} from 'date-fns';
 import {Str} from 'expensify-common';
-import React, {useMemo, useRef, useState} from 'react';
+import React, {useMemo, useRef} from 'react';
 import {View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
-import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ImageSVG from '@components/ImageSVG';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PlaidCardFeedIcon from '@components/PlaidCardFeedIcon';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -15,6 +15,7 @@ import ScrollView from '@components/ScrollView';
 import useCardFeeds from '@hooks/useCardFeeds';
 import useCardsList from '@hooks/useCardsList';
 import {useCompanyCardFeedIcons} from '@hooks/useCompanyCardIcons';
+import useConfirmModal from '@hooks/useConfirmModal';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -23,6 +24,7 @@ import usePolicy from '@hooks/usePolicy';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {isUsingStagingApi} from '@libs/ApiUtils';
 import {getCardFeedIcon, getCompanyCardFeed, getCompanyFeeds, getDefaultCardName, getDomainOrWorkspaceAccountID, getPlaidInstitutionIconUrl, maskCardNumber} from '@libs/CardUtils';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -30,6 +32,7 @@ import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {getConnectedIntegration} from '@libs/PolicyUtils';
 import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import Navigation from '@navigation/Navigation';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -52,21 +55,22 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
     const bank = getCompanyCardFeed(feedName);
     const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policyID}`);
     const [customCardNames] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES);
-    const [shouldUseStagingServer] = useOnyx(ONYXKEYS.SHOULD_USE_STAGING_SERVER);
+    const [shouldUseStagingServer = isUsingStagingApi()] = useOnyx(ONYXKEYS.SHOULD_USE_STAGING_SERVER);
     const policy = usePolicy(policyID);
     const workspaceAccountID = policy?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;
-    const [isUnassignModalVisible, setIsUnassignModalVisible] = useState(false);
     const isUnassigningRef = useRef(false);
     const {translate, getLocalDateFromDatetime} = useLocalize();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const illustrations = useThemeIllustrations();
     const companyCardFeedIcons = useCompanyCardFeedIcons();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['FallbackAvatar', 'Hourglass', 'MoneySearch', 'RemoveMembers', 'Sync', 'Trashcan'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['FallbackAvatar', 'Hourglass', 'MoneySearch', 'RemoveMembers', 'Sync', 'Trashcan']);
 
     const {isOffline} = useNetwork();
-    const accountingIntegrations = Object.values(CONST.POLICY.CONNECTIONS.NAME);
-    const connectedIntegration = getConnectedIntegration(policy, accountingIntegrations) ?? connectionSyncProgress?.connectionName;
+    const accountingIntegrations = CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES;
+    const syncingAccountingIntegration = accountingIntegrations.find((integration) => integration === connectionSyncProgress?.connectionName);
+    const connectedIntegration = getConnectedIntegration(policy, accountingIntegrations) ?? syncingAccountingIntegration;
+    const {showConfirmModal} = useConfirmModal();
 
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [allBankCards, allBankCardsMetadata] = useCardsList(feedName);
@@ -92,12 +96,11 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
     const plaidUrl = getPlaidInstitutionIconUrl(feedName);
 
     const unassignCard = () => {
-        setIsUnassignModalVisible(false);
         if (card) {
             isUnassigningRef.current = true;
             unassignWorkspaceCompanyCard(domainOrWorkspaceAccountID, bank, card);
         }
-        Navigation.goBack();
+        Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.goBack());
     };
 
     const updateCard = () => {
@@ -108,10 +111,10 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
         updateWorkspaceCompanyCard(domainOrWorkspaceAccountID, cardID, bank, card?.lastScrapeResult, true);
     };
 
-    // Show "Break connection" option only for Mock Bank cards when the backend API is non-production
+    // Show "Break connection" only when Mock Bank requests target non-production APIs.
     const isMockBank = bank?.includes(CONST.COMPANY_CARDS.BANK_CONNECTIONS.MOCK_BANK);
-    const isNonProductionBackend = CONFIG.EXPENSIFY.EXPENSIFY_URL.includes('.dev') || CONFIG.EXPENSIFY.EXPENSIFY_URL.includes('staging') || !!shouldUseStagingServer;
-    const shouldShowBreakConnection = isMockBank && isNonProductionBackend;
+    const isUsingNonProductionAPI = shouldUseStagingServer || CONFIG.IS_USING_LOCAL_WEB;
+    const shouldShowBreakConnection = isMockBank && isUsingNonProductionAPI;
 
     const lastScrape = useMemo(() => {
         if (!card?.lastScrape) {
@@ -119,6 +122,11 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
         }
         return format(getLocalDateFromDatetime(card?.lastScrape), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING);
     }, [getLocalDateFromDatetime, card?.lastScrape, translate]);
+
+    const lastUpdatedActivityReasonAttributes: SkeletonSpanReasonAttributes = {
+        context: 'WorkspaceCompanyCardDetailsPage',
+        isLoadingLastUpdated: card?.isLoadingLastUpdated,
+    };
 
     // Don't show NotFoundPage if card is being unassigned or data is still loading
     if ((!card && !isUnassigningRef.current && !isLoadingOnyxValue(allBankCardsMetadata) && !isLoadingOnyxValue(cardListMetadata)) || (isCardBeingUnassigned && !isUnassigningRef.current)) {
@@ -221,7 +229,12 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
                     ) : null}
                     <MenuItemWithTopDescription
                         shouldShowRightComponent={card?.isLoadingLastUpdated}
-                        rightComponent={<ActivityIndicator style={[styles.popoverMenuIcon]} />}
+                        rightComponent={
+                            <ActivityIndicator
+                                style={[styles.popoverMenuIcon]}
+                                reasonAttributes={lastUpdatedActivityReasonAttributes}
+                            />
+                        }
                         description={translate('workspace.moreFeatures.companyCards.lastUpdated')}
                         title={card?.isLoadingLastUpdated ? translate('workspace.moreFeatures.companyCards.updating') : lastScrape}
                         interactive={false}
@@ -281,19 +294,23 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
                         icon={expensifyIcons.RemoveMembers}
                         title={translate('workspace.moreFeatures.companyCards.unassignCard')}
                         style={styles.mb1}
-                        onPress={() => setIsUnassignModalVisible(true)}
+                        onPress={() => {
+                            showConfirmModal({
+                                shouldSetModalVisibility: false,
+                                title: translate('workspace.moreFeatures.companyCards.unassignCard'),
+                                prompt: translate('workspace.moreFeatures.companyCards.unassignCardDescription'),
+                                confirmText: translate('workspace.moreFeatures.companyCards.unassign'),
+                                cancelText: translate('common.cancel'),
+                                danger: true,
+                            }).then((result) => {
+                                if (result.action !== ModalActions.CONFIRM) {
+                                    return;
+                                }
+
+                                unassignCard();
+                            });
+                        }}
                         sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.COMPANY_CARDS.UNASSIGN_CARD}
-                    />
-                    <ConfirmModal
-                        title={translate('workspace.moreFeatures.companyCards.unassignCard')}
-                        isVisible={isUnassignModalVisible}
-                        onConfirm={unassignCard}
-                        onCancel={() => setIsUnassignModalVisible(false)}
-                        shouldSetModalVisibility={false}
-                        prompt={translate('workspace.moreFeatures.companyCards.unassignCardDescription')}
-                        confirmText={translate('workspace.moreFeatures.companyCards.unassign')}
-                        cancelText={translate('common.cancel')}
-                        danger
                     />
                 </ScrollView>
             </ScreenWrapper>

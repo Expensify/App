@@ -1,10 +1,9 @@
 require('dotenv').config();
 
+const BaseReactCompilerConfig = require('./config/babel/reactCompilerConfig');
+
 const ReactCompilerConfig = {
-    target: '19',
-    environment: {
-        enableTreatRefLikeIdentifiersAsRefs: true,
-    },
+    ...BaseReactCompilerConfig,
     sources: (filename) => !filename.includes('tests/') && !filename.includes('node_modules/'),
 };
 
@@ -63,7 +62,7 @@ const webpack = {
 };
 
 const metro = {
-    presets: [[require('@react-native/babel-preset'), {disableImportExportTransform: true}]],
+    presets: [require('@react-native/babel-preset')],
     plugins: [
         ['babel-plugin-react-compiler', ReactCompilerConfig], // must run first!
 
@@ -174,14 +173,5 @@ module.exports = (api) => {
     const runningIn = api.caller((args = {}) => args.name);
     console.debug('  - running in: ', runningIn);
 
-    // Jest runs in Node.js without Metro's experimentalImportSupport transform,
-    // so Babel must handle import/export transforms for tests.
-    if (runningIn === 'babel-jest') {
-        return {
-            ...metro,
-            presets: [[require('@react-native/babel-preset'), {disableImportExportTransform: false}]],
-        };
-    }
-
-    return runningIn === 'metro' ? metro : webpack;
+    return ['metro', 'babel-jest'].includes(runningIn) ? metro : webpack;
 };

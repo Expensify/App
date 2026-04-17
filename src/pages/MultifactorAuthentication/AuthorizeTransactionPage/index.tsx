@@ -1,6 +1,6 @@
 import type {SeverityLevel} from '@sentry/react-native';
 import * as Sentry from '@sentry/react-native';
-import React, {useState} from 'react';
+import React, {useCallback, useRef, useState} from 'react';
 import {View} from 'react-native';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -13,6 +13,7 @@ import {
 } from '@components/MultifactorAuthentication/config/scenarios/AuthorizeTransaction';
 import {useMultifactorAuthentication} from '@components/MultifactorAuthentication/Context';
 import ScreenWrapper from '@components/ScreenWrapper';
+import useBeforeRemove from '@hooks/useBeforeRemove';
 import useLocalize from '@hooks/useLocalize';
 import useNetworkWithOfflineStatus from '@hooks/useNetworkWithOfflineStatus';
 import useOnyx from '@hooks/useOnyx';
@@ -57,24 +58,40 @@ function MultifactorAuthenticationScenarioAuthorizeTransactionPage({route}: Mult
     const {executeScenario} = useMultifactorAuthentication();
 
     const [isConfirmModalVisible, setConfirmModalVisibility] = useState(false);
+    const allowNavigatingAwayRef = useRef(false);
 
-    const showConfirmModal = () => {
+    const showConfirmModal = useCallback(() => {
         // FullPageOfflineBlockingView doesn't wrap HeaderWithBackButton, so we handle navigation manually when offline.
         // Offline mode isn't supported in MFA; navigate users away immediately without showing the confirmation modal.
         if (isOffline) {
             addBreadcrumb('Offline back-navigation (no deny sent)', {transactionID}, 'warning');
+            allowNavigatingAwayRef.current = true;
             Navigation.closeRHPFlow();
             return;
         }
         setConfirmModalVisibility(true);
-    };
+    }, [isOffline, transactionID]);
 
     const hideConfirmModal = () => {
         setConfirmModalVisibility(false);
     };
 
+    const onBeforeRemove: Parameters<typeof useBeforeRemove>[0] = useCallback(
+        (e) => {
+            if (allowNavigatingAwayRef.current) {
+                return;
+            }
+            e.preventDefault();
+            showConfirmModal();
+        },
+        [showConfirmModal],
+    );
+
+    useBeforeRemove(onBeforeRemove, !!transaction && !denyOutcomeScreen);
+
     const onApproveTransaction = () => {
         addBreadcrumb('Approve tapped', {transactionID});
+        allowNavigatingAwayRef.current = true;
         executeScenario(CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.AUTHORIZE_TRANSACTION, {
             transactionID,
         });
@@ -96,6 +113,8 @@ function MultifactorAuthenticationScenarioAuthorizeTransactionPage({route}: Mult
     const onSilentlyDenyTransaction = () => {
         addBreadcrumb('Silent deny (user canceled flow)', {transactionID}, 'warning');
         fireAndForgetDenyTransaction({transactionID});
+        setConfirmModalVisibility(false);
+        allowNavigatingAwayRef.current = true;
         Navigation.closeRHPFlow();
     };
 

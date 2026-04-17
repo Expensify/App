@@ -16,10 +16,11 @@ import type {PopoverMenuItem} from '@components/PopoverMenu';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
+import SectionSubtitleHTML from '@components/SectionSubtitleHTML';
 import Text from '@components/Text';
-import TextLink from '@components/TextLink';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDocumentTitle from '@hooks/useDocumentTitle';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -57,24 +58,14 @@ type BaseMenuItemType = WithSentryLabel & {
 };
 
 function SecuritySettingsPage() {
-    const icons = useMemoizedLazyExpensifyIcons([
-        'ArrowCollapse',
-        'ClosedSign',
-        'FallbackAvatar',
-        'Fingerprint',
-        'Pencil',
-        'Shield',
-        'ThreeDots',
-        'Trashcan',
-        'UserLock',
-        'UserPlus',
-    ] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['ArrowCollapse', 'ClosedSign', 'FallbackAvatar', 'Fingerprint', 'Pencil', 'Shield', 'ThreeDots', 'Trashcan', 'UserLock', 'UserPlus']);
     const illustrations = useMemoizedLazyIllustrations(['LockClosed']);
     const securitySettingsIllustration = useSecuritySettingsSectionIllustration();
     const styles = useThemeStyles();
     const {localeCompare, translate, formatPhoneNumber} = useLocalize();
     const waitForNavigate = useWaitForNavigation();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    useDocumentTitle(translate('initialSettingsPage.security'));
     const {windowWidth} = useWindowDimensions();
     const personalDetails = usePersonalDetails();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
@@ -438,17 +429,10 @@ function SecuritySettingsPage() {
                                 <Section
                                     title={translate('delegate.copilotDelegatedAccess')}
                                     renderSubtitle={() => (
-                                        <Text style={[styles.flexRow, styles.alignItemsCenter, styles.w100, styles.mt2]}>
-                                            <Text style={[styles.textNormal, styles.colorMuted]}>{translate('delegate.copilotDelegatedAccessDescription')} </Text>
-                                            <TextLink
-                                                style={[styles.link]}
-                                                href={CONST.COPILOT_HELP_URL}
-                                                accessibilityLabel={translate('delegate.copilotDelegatedAccess')}
-                                            >
-                                                {translate('common.learnMore')}
-                                            </TextLink>
-                                            .
-                                        </Text>
+                                        <SectionSubtitleHTML
+                                            html={`${translate('delegate.copilotDelegatedAccessDescription')} <a href="${CONST.COPILOT_HELP_URL}" accessibilityLabel="${translate('delegate.learnMoreAboutDelegatedAccess')}">${translate('common.learnMore')}</a>.`}
+                                            subtitleMuted
+                                        />
                                     )}
                                     isCentralPane
                                     subtitleMuted
