@@ -1,9 +1,9 @@
-import type {MarkdownStyle} from '@expensify/react-native-live-markdown';
+import type {MarkdownStyle, MarkdownTextInput} from '@expensify/react-native-live-markdown';
 import mimeDb from 'mime-db';
 import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 import type {NativeSyntheticEvent, TextInputChangeEvent, TextInputPasteEventData} from 'react-native';
 import {StyleSheet} from 'react-native';
-import type {ComposerProps} from '@components/Composer/types';
+import type {ComposerProps, ComposerRef} from '@components/Composer/types';
 import type {AnimatedMarkdownTextInputRef} from '@components/RNMarkdownTextInput';
 import RNMarkdownTextInput from '@components/RNMarkdownTextInput';
 import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
@@ -38,7 +38,7 @@ function Composer({
     ref,
     ...props
 }: ComposerProps) {
-    const textInput = useRef<AnimatedMarkdownTextInputRef | null>(null);
+    const textInputRef = useRef<MarkdownTextInput | null>(null);
     const textContainsOnlyEmojis = useMemo(() => containsOnlyEmojis(Parser.htmlToText(Parser.replace(value ?? ''))), [value]);
     const theme = useTheme();
     const markdownStyle = useMarkdownStyle(textContainsOnlyEmojis, !isGroupPolicyReport ? excludeReportMentionStyle : excludeNoStyles);
@@ -47,7 +47,7 @@ function Composer({
     const isInLandscapeMode = useIsInLandscapeMode();
 
     useEffect(() => {
-        if (!textInput.current || !textInput.current.setSelection || !selection || isComposerFullSize) {
+        if (!textInputRef.current || !textInputRef.current.setSelection || !selection || isComposerFullSize) {
             return;
         }
 
@@ -56,8 +56,8 @@ function Composer({
         // (see https://github.com/Expensify/App/pull/50520#discussion_r1861960311 for more context)
         const timeoutID = setTimeout(() => {
             // We are setting selection twice to trigger a scroll to the cursor on toggling to smaller composer size.
-            textInput.current?.setSelection((selection.start || 1) - 1, selection.start);
-            textInput.current?.setSelection(selection.start, selection.start);
+            textInputRef.current?.setSelection((selection.start || 1) - 1, selection.start);
+            textInputRef.current?.setSelection(selection.start, selection.start);
         }, 0);
 
         return () => clearTimeout(timeoutID);
@@ -71,9 +71,9 @@ function Composer({
      */
     const setTextInputRef = useCallback(
         (el: AnimatedMarkdownTextInputRef | null) => {
-            textInput.current = isInLandscapeMode ? getLandscapeTextInputRefProxy(el) : el;
+            textInputRef.current = isInLandscapeMode ? getLandscapeTextInputRefProxy(el) : el;
 
-            if (typeof ref !== 'function' || textInput.current === null) {
+            if (typeof ref !== 'function' || textInputRef.current === null) {
                 return;
             }
 
@@ -81,7 +81,7 @@ function Composer({
             // get a ref to the inner textInput element e.g. if we do
             // <constructor ref={el => this.textInput = el} /> this will not
             // return a ref to the component, but rather the HTML element by default
-            ref(textInput.current);
+            ref(textInputRef.current as ComposerRef);
         },
         // eslint-disable-next-line react-hooks/exhaustive-deps
         [isInLandscapeMode],

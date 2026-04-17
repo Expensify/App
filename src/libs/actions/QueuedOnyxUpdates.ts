@@ -48,7 +48,6 @@ function flushQueue(): Promise<void> {
             ONYXKEYS.IS_CHECKING_PUBLIC_ROOM,
             ONYXKEYS.MODAL,
             ONYXKEYS.NETWORK,
-            ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT,
             ONYXKEYS.PRESERVED_USER_SESSION,
         ]);
 

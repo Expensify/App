@@ -6,6 +6,7 @@ import {isChatThread} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsList, Report, ReportAction} from '@src/types/onyx';
+import {useReportActionActiveEdit} from './ReportActionEditMessageContext';
 import ReportActionItem from './ReportActionItem';
 import ReportActionItemParentAction from './ReportActionItemParentAction';
 
@@ -52,9 +53,6 @@ type ReportActionsListItemRendererProps = {
     /** Animate highlight action in few seconds */
     shouldHighlight?: boolean;
 
-    /** The original report ID for draft message lookups */
-    originalReportID: string | undefined;
-
     /** User wallet tierName */
     userWalletTierName: string | undefined;
 
@@ -94,7 +92,6 @@ function ReportActionsListItemRenderer({
     shouldUseThreadDividerLine = false,
     shouldHighlight = false,
     parentReportActionForTransactionThread,
-    originalReportID,
     userWalletTierName,
     isUserValidated,
     userBillingFundID,
@@ -104,11 +101,12 @@ function ReportActionsListItemRenderer({
     reportNameValuePairsOrigin,
     reportNameValuePairsOriginalID,
 }: ReportActionsListItemRendererProps) {
+    const {editingReportActionID, editingMessage} = useReportActionActiveEdit();
+    const draftMessage = !!editingReportActionID && editingReportActionID === reportAction.reportActionID ? (editingMessage ?? undefined) : undefined;
+
     const originalMessage = useMemo(() => getOriginalMessage(reportAction), [reportAction]);
 
     const [emojiReactions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${reportAction.reportActionID}`);
-    const [reportDraftMessages] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${originalReportID}`);
-    const draftMessage = reportDraftMessages?.[reportAction.reportActionID]?.message;
 
     /**
      * Create a lightweight ReportAction so as to keep the re-rendering as light as possible by

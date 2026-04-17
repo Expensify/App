@@ -1,5 +1,6 @@
 import {PortalHost} from '@gorhom/portal';
-import React from 'react';
+import {useFocusEffect} from '@react-navigation/native';
+import React, {useCallback} from 'react';
 import type {ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -10,6 +11,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSubmitToDestinationVisible from '@hooks/useSubmitToDestinationVisible';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useViewportOffsetTop from '@hooks/useViewportOffsetTop';
+import {clearReportActionDrafts} from '@libs/actions/Report';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportsSplitNavigatorParamList, RightModalNavigatorParamList} from '@navigation/types';
@@ -20,6 +22,7 @@ import {AgentZeroStatusProvider} from './AgentZeroStatusContext';
 import DeleteTransactionNavigateBackHandler from './DeleteTransactionNavigateBackHandler';
 import LinkedActionNotFoundGuard from './LinkedActionNotFoundGuard';
 import ReactionListWrapper from './ReactionListWrapper';
+import {ReportActionEditMessageContextProvider} from './report/ReportActionEditMessageContext';
 import ReportFooter from './report/ReportFooter';
 import ReportActionsList from './ReportActionsList';
 import ReportDragAndDropProvider from './ReportDragAndDropProvider';
@@ -47,6 +50,19 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     const isTopMostReportId = currentReportIDValue === reportIDFromRoute;
     const screenWrapperStyle: ViewStyle[] = [styles.appContent, styles.flex1, {marginTop: viewportOffsetTop}];
 
+    // When the report screen is navigated away from, clear all report action edit drafts
+    useFocusEffect(
+        useCallback(() => {
+            if (!reportIDFromRoute) {
+                return;
+            }
+
+            return () => {
+                clearReportActionDrafts();
+            };
+        }, [reportIDFromRoute]),
+    );
+
     useSubmitToDestinationVisible(
         [CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_AND_OPEN_REPORT, CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_ONLY],
         reportIDFromRoute,
@@ -57,43 +73,45 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
 
     return (
         <WideRHPOverlayWrapper shouldWrap={route.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT}>
-            <ActionListContext.Provider value={actionListValue}>
-                <ReactionListWrapper>
-                    <ScreenWrapper
-                        navigation={navigation}
-                        style={screenWrapperStyle}
-                        shouldEnableKeyboardAvoidingView={isTopMostReportId || isInNarrowPaneModal}
-                        testID={`report-screen-${reportIDFromRoute}`}
-                    >
-                        <DeleteTransactionNavigateBackHandler />
-                        <ReportRouteParamHandler />
-                        <ReportFetchHandler />
-                        <ReportNavigateAwayHandler />
-                        <ReportNotFoundGuard>
-                            <LinkedActionNotFoundGuard>
-                                <ReportDragAndDropProvider>
-                                    <ReportLifecycleHandler reportID={reportIDFromRoute} />
-                                    <ReportHeader />
-                                    <AccountManagerBanner reportID={reportIDFromRoute} />
-                                    <View style={[styles.flex1, styles.flexRow]}>
-                                        <WideRHPReceiptPanel />
-                                        <AgentZeroStatusProvider reportID={reportIDFromRoute}>
-                                            <View
-                                                style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}
-                                                testID="report-actions-view-wrapper"
-                                            >
-                                                <ReportActionsList />
-                                                <ReportFooter />
-                                            </View>
-                                        </AgentZeroStatusProvider>
-                                    </View>
-                                    <PortalHost name="suggestions" />
-                                </ReportDragAndDropProvider>
-                            </LinkedActionNotFoundGuard>
-                        </ReportNotFoundGuard>
-                    </ScreenWrapper>
-                </ReactionListWrapper>
-            </ActionListContext.Provider>
+            <ReportActionEditMessageContextProvider reportID={reportIDFromRoute}>
+                <ActionListContext.Provider value={actionListValue}>
+                    <ReactionListWrapper>
+                        <ScreenWrapper
+                            navigation={navigation}
+                            style={screenWrapperStyle}
+                            shouldEnableKeyboardAvoidingView={isTopMostReportId || isInNarrowPaneModal}
+                            testID={`report-screen-${reportIDFromRoute}`}
+                        >
+                            <DeleteTransactionNavigateBackHandler />
+                            <ReportRouteParamHandler />
+                            <ReportFetchHandler />
+                            <ReportNavigateAwayHandler />
+                            <ReportNotFoundGuard>
+                                <LinkedActionNotFoundGuard>
+                                    <ReportDragAndDropProvider>
+                                        <ReportLifecycleHandler reportID={reportIDFromRoute} />
+                                        <ReportHeader />
+                                        <AccountManagerBanner reportID={reportIDFromRoute} />
+                                        <View style={[styles.flex1, styles.flexRow]}>
+                                            <WideRHPReceiptPanel />
+                                            <AgentZeroStatusProvider reportID={reportIDFromRoute}>
+                                                <View
+                                                    style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}
+                                                    testID="report-actions-view-wrapper"
+                                                >
+                                                    <ReportActionsList />
+                                                    <ReportFooter />
+                                                </View>
+                                            </AgentZeroStatusProvider>
+                                        </View>
+                                        <PortalHost name="suggestions" />
+                                    </ReportDragAndDropProvider>
+                                </LinkedActionNotFoundGuard>
+                            </ReportNotFoundGuard>
+                        </ScreenWrapper>
+                    </ReactionListWrapper>
+                </ActionListContext.Provider>
+            </ReportActionEditMessageContextProvider>
         </WideRHPOverlayWrapper>
     );
 }

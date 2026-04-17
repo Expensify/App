@@ -11,6 +11,7 @@ import type {Emoji} from '@assets/emojis/types';
 import * as ActionSheetAwareScrollView from '@components/ActionSheetAwareScrollView';
 import {AttachmentContext} from '@components/AttachmentContext';
 import Button from '@components/Button';
+import type {ComposerRef} from '@components/Composer/types';
 import DisplayNames from '@components/DisplayNames';
 import Hoverable from '@components/Hoverable';
 import MentionReportContext from '@components/HTMLEngineProvider/HTMLRenderers/MentionReportRenderer/MentionReportContext';
@@ -148,7 +149,7 @@ import variables from '@styles/variables';
 import {openPersonalBankAccountSetupView} from '@userActions/BankAccounts';
 import type {IgnoreDirection} from '@userActions/ClearReportActionErrors';
 import {hideEmojiPicker, isActive} from '@userActions/EmojiPickerAction';
-import {createTransactionThreadReport, expandURLPreview, resolveConciergeCategoryOptions, resolveConciergeDescriptionOptions} from '@userActions/Report';
+import {clearReportActionDrafts, createTransactionThreadReport, expandURLPreview, resolveConciergeCategoryOptions, resolveConciergeDescriptionOptions} from '@userActions/Report';
 import {isAnonymousUser, signOutAndRedirectToSignIn} from '@userActions/Session';
 import {isBlockedFromConcierge} from '@userActions/User';
 import CONST from '@src/CONST';
@@ -285,9 +286,6 @@ type PureReportActionItemProps = {
 
     /** Original report from which the given reportAction is first created */
     originalReport?: OnyxTypes.Report;
-
-    /** Function to deletes the draft for a comment report action. */
-    deleteReportActionDraft?: (reportID: string | undefined, action: OnyxTypes.ReportAction) => void;
 
     /** Whether the room is archived */
     isArchivedRoom?: boolean;
@@ -436,7 +434,6 @@ function PureReportActionItem({
     blockedFromConcierge,
     originalReportID = '-1',
     originalReport,
-    deleteReportActionDraft = () => {},
     isArchivedRoom,
     isChronosReport,
     toggleEmojiReaction = () => {},
@@ -490,13 +487,14 @@ function PureReportActionItem({
     const reactionListRef = useContext(ReactionListContext);
     const {updateHiddenAttachments} = useContext(AttachmentModalContext);
     const kycWallRef = useContext(KYCWallContext);
-    const composerTextInputRef = useRef<TextInput | HTMLTextAreaElement>(null);
+    const composerRef = useRef<ComposerRef | null>(null);
     const popoverAnchorRef = useRef<Exclude<ContextMenuAnchor, TextInput>>(null);
     const downloadedPreviews = useRef<string[]>([]);
     const prevDraftMessage = usePrevious(draftMessage);
     const isReportActionLinked = linkedReportActionID && action.reportActionID && linkedReportActionID === action.reportActionID;
     const [isReportActionActive, setIsReportActionActive] = useState(!!isReportActionLinked);
     const isReportArchived = useReportIsArchived(reportID);
+    const isEditingInline = !shouldUseNarrowLayout && draftMessage !== undefined;
 
     const isHarvestCreatedExpenseReport = isHarvestCreatedExpenseReportUtils(reportNameValuePairsOrigin, reportNameValuePairsOriginalID);
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Eye']);
@@ -615,7 +613,7 @@ function PureReportActionItem({
             return;
         }
 
-        focusComposerWithDelay(composerTextInputRef.current)(true);
+        focusComposerWithDelay(composerRef.current)(true);
     }, [prevDraftMessage, draftMessage]);
 
     useEffect(() => {
@@ -636,8 +634,8 @@ function PureReportActionItem({
         if (draftMessage === undefined || !isDeletedAction(action)) {
             return;
         }
-        deleteReportActionDraft(reportID, action);
-    }, [draftMessage, action, reportID, deleteReportActionDraft]);
+        clearReportActionDrafts();
+    }, [draftMessage, action, reportID]);
 
     // Hide the message if it is being moderated for a higher offense, or is hidden by a moderator
     // Removed messages should not be shown anyway and should not need this flow
@@ -1362,7 +1360,20 @@ function PureReportActionItem({
                     <ShowContextMenuStateContext.Provider value={contextMenuStateValue}>
                         <ShowContextMenuActionsContext.Provider value={contextMenuActionsValue}>
                             <AttachmentContext.Provider value={attachmentContextValue}>
-                                {draftMessage === undefined ? (
+                                {isEditingInline ? (
+                                    <ReportActionItemMessageEdit
+                                        action={action}
+                                        reportID={reportID}
+                                        originalReportID={originalReportID}
+                                        policyID={report?.policyID}
+                                        index={index}
+                                        ref={composerRef}
+                                        shouldDisableEmojiPicker={
+                                            (chatIncludesConcierge(report) && isBlockedFromConcierge(blockedFromConcierge)) || isArchivedNonExpenseReport(report, isArchivedRoom)
+                                        }
+                                        isGroupPolicyReport={!!report?.policyID && report.policyID !== CONST.POLICY.ID_FAKE}
+                                    />
+                                ) : (
                                     <View style={displayAsGroup && hasBeenFlagged ? styles.blockquote : {}}>
                                         <ReportActionItemMessage
                                             reportID={reportID}
@@ -1398,20 +1409,6 @@ function PureReportActionItem({
                                             />
                                         )}
                                     </View>
-                                ) : (
-                                    <ReportActionItemMessageEdit
-                                        action={action}
-                                        draftMessage={draftMessage}
-                                        reportID={reportID}
-                                        originalReportID={originalReportID}
-                                        policyID={report?.policyID}
-                                        index={index}
-                                        ref={composerTextInputRef}
-                                        shouldDisableEmojiPicker={
-                                            (chatIncludesConcierge(report) && isBlockedFromConcierge(blockedFromConcierge)) || isArchivedNonExpenseReport(report, isArchivedRoom)
-                                        }
-                                        isGroupPolicyReport={!!report?.policyID && report.policyID !== CONST.POLICY.ID_FAKE}
-                                    />
                                 )}
                             </AttachmentContext.Provider>
                         </ShowContextMenuActionsContext.Provider>
@@ -1427,7 +1424,7 @@ function PureReportActionItem({
                 ?.split(',')
                 .map((accountID) => Number(accountID))
                 .filter((accountID): accountID is number => typeof accountID === 'number') ?? [];
-        const draftMessageRightAlign = draftMessage !== undefined ? styles.chatItemReactionsDraftRight : {};
+        const draftMessageRightAlign = isEditingInline ? styles.chatItemReactionsDraftRight : {};
 
         const itemContent = (
             <>
@@ -1496,7 +1493,7 @@ function PureReportActionItem({
             return emptyHTML;
         }
 
-        if (draftMessage !== undefined) {
+        if (!shouldUseNarrowLayout && draftMessage !== undefined) {
             return <ReportActionItemDraft>{content}</ReportActionItemDraft>;
         }
 
@@ -1504,7 +1501,7 @@ function PureReportActionItem({
             return (
                 <ReportActionItemSingle
                     action={action}
-                    showHeader={draftMessage === undefined}
+                    showHeader={draftMessage === undefined || shouldUseNarrowLayout}
                     wrapperStyle={{
                         ...(isOnSearch && styles.p0),
                         ...(isWhisper && styles.pt1),

@@ -8,7 +8,7 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getOriginalMessage, getReportAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
-import {getOriginalReportID} from '@libs/ReportUtils';
+import {useReportActionActiveEdit} from '@pages/inbox/report/ReportActionEditMessageContext';
 import ReportActionItem from '@pages/inbox/report/ReportActionItem';
 import {ReportActionItemActionsContext, ReportActionItemStateContext} from '@pages/inbox/report/ReportActionItemContext';
 import CONST from '@src/CONST';
@@ -41,10 +41,6 @@ function DuplicateTransactionItem({transaction, index, onPreviewPressed}: Duplic
         return IOUTransactionID === transaction?.transactionID;
     });
 
-    const originalReportID = getOriginalReportID(report?.reportID, action, reportActions);
-
-    const [draftMessage] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${originalReportID}`);
-
     const [emojiReactions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${action?.reportActionID}`);
 
     const [linkedTransactionRouteError] = useOnyx(
@@ -57,12 +53,13 @@ function DuplicateTransactionItem({transaction, index, onPreviewPressed}: Duplic
     const stateValue = useMemo(() => ({shouldOpenReportInRHP: true}), []);
     const actionsValue = useMemo(() => ({onPreviewPressed}), [onPreviewPressed]);
 
+    const {editingMessage, editingReportAction} = useReportActionActiveEdit();
+
+    const draftMessage = editingReportAction && action && editingReportAction.reportActionID === action.reportActionID ? (editingMessage ?? undefined) : undefined;
+
     if (!action || !report) {
         return null;
     }
-
-    const reportDraftMessage = draftMessage?.[action.reportActionID];
-    const matchingDraftMessage = reportDraftMessage?.message;
 
     return (
         <View style={styles.pb2}>
@@ -80,7 +77,7 @@ function DuplicateTransactionItem({transaction, index, onPreviewPressed}: Duplic
                         userWalletTierName={userWalletTierName}
                         isUserValidated={isUserValidated}
                         personalDetails={personalDetails}
-                        draftMessage={matchingDraftMessage}
+                        draftMessage={draftMessage}
                         emojiReactions={emojiReactions}
                         linkedTransactionRouteError={linkedTransactionRouteError}
                         userBillingFundID={userBillingFundID}

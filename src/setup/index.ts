@@ -48,7 +48,6 @@ export default function () {
             [ONYXKEYS.SESSION]: {loading: false},
             [ONYXKEYS.ACCOUNT]: CONST.DEFAULT_ACCOUNT_DATA,
             [ONYXKEYS.RAM_ONLY_IS_SIDEBAR_LOADED]: false,
-            [ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT]: true,
             [ONYXKEYS.MODAL]: {
                 isVisible: false,
                 willAlertModalBecomeVisible: false,

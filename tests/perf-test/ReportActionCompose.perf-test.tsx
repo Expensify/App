@@ -3,17 +3,13 @@ import React from 'react';
 import Onyx from 'react-native-onyx';
 import type Animated from 'react-native-reanimated';
 import {measureRenders} from 'reassure';
-import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import type {EmojiPickerRef} from '@libs/actions/EmojiPickerAction';
 import type Navigation from '@libs/Navigation/Navigation';
 import {setHasRadio} from '@libs/NetworkState';
-import ReportActionCompose from '@pages/inbox/report/ReportActionCompose/ReportActionCompose';
-import ComposeProviders from '@src/components/ComposeProviders';
-import {LocaleContextProvider} from '@src/components/LocaleContextProvider';
-import {KeyboardStateProvider} from '@src/components/withKeyboardState';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report} from '@src/types/onyx';
+import {ReportActionComposeWrapper} from '../utils/ReportActionComposeUtils';
 import {translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
@@ -86,13 +82,6 @@ beforeEach(() => {
     } as Report);
 });
 
-function ReportActionComposeWrapper() {
-    return (
-        <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, KeyboardStateProvider]}>
-            <ReportActionCompose reportID="1" />
-        </ComposeProviders>
-    );
-}
 const mockEvent = {preventDefault: jest.fn()};
 
 test('[ReportActionCompose] should render Composer with text input interactions', async () => {

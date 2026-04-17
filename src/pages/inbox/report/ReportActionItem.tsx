@@ -24,13 +24,7 @@ import {
     isCurrentUserTheOnlyParticipant,
 } from '@libs/ReportUtils';
 import {clearAllRelatedReportActionErrors} from '@userActions/ClearReportActionErrors';
-import {
-    deleteReportActionDraft,
-    dismissTrackExpenseActionableWhisper,
-    resolveActionableMentionWhisper,
-    resolveActionableReportMentionWhisper,
-    toggleEmojiReaction,
-} from '@userActions/Report';
+import {dismissTrackExpenseActionableWhisper, resolveActionableMentionWhisper, resolveActionableReportMentionWhisper, toggleEmojiReaction} from '@userActions/Report';
 import {clearError} from '@userActions/Transaction';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -166,7 +160,6 @@ function ReportActionItem({
             blockedFromConcierge={blockedFromConcierge}
             originalReportID={originalReportID}
             originalReport={originalReport}
-            deleteReportActionDraft={deleteReportActionDraft}
             isArchivedRoom={isArchivedNonExpenseReport(originalReport, isOriginalReportArchived)}
             isChronosReport={chatIncludesChronosWithID(originalReportID)}
             toggleEmojiReaction={toggleEmojiReaction}

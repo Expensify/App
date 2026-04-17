@@ -1,37 +1,38 @@
 import React, {memo} from 'react';
 import {View} from 'react-native';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
-import Icon from '@components/Icon';
-import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
-import Tooltip from '@components/Tooltip';
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
+import SendOrSaveButton from './SendOrSaveButton';
 
 type SendButtonProps = {
     /** Whether the button is disabled */
     isDisabled: boolean;
 
+    /** Whether the button is in editing mode */
+    isEditing?: boolean;
+
     /** Handle clicking on send button */
-    handleSendMessage: () => void;
+    onSend: () => void;
 };
 
-function SendButton({isDisabled: isDisabledProp, handleSendMessage}: SendButtonProps) {
-    const theme = useTheme();
+function ReportActionComposeSendButton({isDisabled: isDisabledProp = false, isEditing = false, onSend}: SendButtonProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to manage GestureDetector correctly
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
-    const icons = useMemoizedLazyExpensifyIcons(['Send']);
     const Tap = Gesture.Tap()
+        .enabled(!isDisabledProp)
         .onEnd(() => {
-            handleSendMessage();
+            onSend();
         })
         .runOnJS(true);
+
+    const accessibilityLabel = translate(isEditing ? 'common.saveChanges' : 'common.send');
 
     return (
         <View
@@ -49,34 +50,19 @@ function SendButton({isDisabled: isDisabledProp, handleSendMessage}: SendButtonP
                     // In order to make buttons accessible, we have to wrap children in a View with accessible and accessibilityRole="button" props based on the docs: https://docs.swmansion.com/react-native-gesture-handler/docs/components/buttons/
                     accessible
                     role={CONST.ROLE.BUTTON}
-                    accessibilityLabel={translate('common.send')}
+                    accessibilityLabel={accessibilityLabel}
                     collapsable={false}
                 >
-                    <Tooltip text={translate('common.send')}>
-                        <PressableWithFeedback
-                            style={({pressed, isDisabled}) => [
-                                styles.chatItemSubmitButton,
-                                isDisabledProp || pressed || isDisabled ? undefined : styles.buttonSuccess,
-                                isDisabledProp ? styles.cursorDisabled : undefined,
-                            ]}
-                            // Since the parent View has accessible, we need to set accessible to false here to avoid duplicate accessibility elements.
-                            // On Android when TalkBack is enabled, only the parent element should be accessible, otherwise the button will not work.
-                            accessible={false}
-                            focusable={false}
-                            sentryLabel={CONST.SENTRY_LABEL.REPORT.SEND_BUTTON}
-                        >
-                            {({pressed}) => (
-                                <Icon
-                                    src={icons.Send}
-                                    fill={isDisabledProp || pressed ? theme.icon : theme.textLight}
-                                />
-                            )}
-                        </PressableWithFeedback>
-                    </Tooltip>
+                    <SendOrSaveButton
+                        isDisabled={isDisabledProp}
+                        isEditing={isEditing}
+                        accessible={false}
+                        focusable={false}
+                    />
                 </View>
             </GestureDetector>
         </View>
     );
 }
 
-export default memo(SendButton);
+export default memo(ReportActionComposeSendButton);

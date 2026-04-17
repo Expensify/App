@@ -3,12 +3,12 @@ import type {RefObject} from 'react';
 import type {BlurEvent, View} from 'react-native';
 import willBlurTextInputOnTapOutsideFunc from '@libs/willBlurTextInputOnTapOutside';
 import type {SuggestionsRef} from './ComposerContext';
-import type {ComposerRef} from './ComposerWithSuggestions/ComposerWithSuggestions';
+import type {ComposerWithSuggestionsRef} from './ComposerWithSuggestions';
 
 const willBlurTextInputOnTapOutside = willBlurTextInputOnTapOutsideFunc();
 
 type UseComposerFocusParams = {
-    composerRef: RefObject<ComposerRef | null>;
+    composerRef: RefObject<ComposerWithSuggestionsRef | null>;
     suggestionsRef: RefObject<SuggestionsRef | null>;
     actionButtonRef: RefObject<View | HTMLDivElement | null>;
     initialFocused: boolean;

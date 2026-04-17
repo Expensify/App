@@ -50,6 +50,7 @@ import {validTransactionDraftIDsSelector} from '@src/selectors/TransactionDraft'
 import type {AnchorPosition} from '@src/styles';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {FileObject} from '@src/types/utils/Attachment';
+import ExpandCollapseComposerButton from './ExpandCollapseComposerButton';
 
 type MoneyRequestOptions = Record<
     Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND | typeof CONST.IOU.TYPE.CREATE | typeof CONST.IOU.TYPE.SPLIT_EXPENSE>,
@@ -475,61 +476,15 @@ function AttachmentPickerWithMenuItems({
                                         </PressableWithFeedback>
                                     </Tooltip>
                                 </View>
-                                {(isFullComposerAvailable || isComposerFullSize) && (
-                                    <View style={expandCollapseButtonContainerStyles}>
-                                        {isComposerFullSize ? (
-                                            <Tooltip
-                                                text={translate('reportActionCompose.collapse')}
-                                                key="composer-collapse"
-                                            >
-                                                <PressableWithFeedback
-                                                    onPress={(e) => {
-                                                        e?.preventDefault();
-                                                        raiseIsScrollLikelyLayoutTriggered();
-                                                        setIsComposerFullSize(reportID, false);
-                                                    }}
-                                                    // Keep focus on the composer when Collapse button is clicked.
-                                                    onMouseDown={(e) => e.preventDefault()}
-                                                    style={styles.composerSizeButton}
-                                                    disabled={disabled}
-                                                    role={CONST.ROLE.BUTTON}
-                                                    accessibilityLabel={translate('reportActionCompose.collapse')}
-                                                    sentryLabel={CONST.SENTRY_LABEL.REPORT.ATTACHMENT_PICKER_COLLAPSE_BUTTON}
-                                                >
-                                                    <Icon
-                                                        fill={theme.icon}
-                                                        src={icons.Collapse}
-                                                    />
-                                                </PressableWithFeedback>
-                                            </Tooltip>
-                                        ) : (
-                                            <Tooltip
-                                                text={translate('reportActionCompose.expand')}
-                                                key="composer-expand"
-                                            >
-                                                <PressableWithFeedback
-                                                    onPress={(e) => {
-                                                        e?.preventDefault();
-                                                        raiseIsScrollLikelyLayoutTriggered();
-                                                        setIsComposerFullSize(reportID, true);
-                                                    }}
-                                                    // Keep focus on the composer when Expand button is clicked.
-                                                    onMouseDown={(e) => e.preventDefault()}
-                                                    style={styles.composerSizeButton}
-                                                    disabled={disabled}
-                                                    role={CONST.ROLE.BUTTON}
-                                                    accessibilityLabel={translate('reportActionCompose.expand')}
-                                                    sentryLabel={CONST.SENTRY_LABEL.REPORT.ATTACHMENT_PICKER_EXPAND_BUTTON}
-                                                >
-                                                    <Icon
-                                                        fill={theme.icon}
-                                                        src={icons.Expand}
-                                                    />
-                                                </PressableWithFeedback>
-                                            </Tooltip>
-                                        )}
-                                    </View>
-                                )}
+                                <ExpandCollapseComposerButton
+                                    isFullComposerAvailable={isFullComposerAvailable}
+                                    isComposerFullSize={isComposerFullSize}
+                                    reportID={reportID}
+                                    disabled={disabled}
+                                    raiseIsScrollLikelyLayoutTriggered={raiseIsScrollLikelyLayoutTriggered}
+                                    setIsComposerFullSize={setIsComposerFullSize}
+                                    style={expandCollapseButtonContainerStyles}
+                                />
                             </View>
                         </View>
                         <PopoverMenu

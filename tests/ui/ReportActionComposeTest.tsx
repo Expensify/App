@@ -1,16 +1,12 @@
 import type * as NativeNavigation from '@react-navigation/native';
-import {act, fireEvent, render, screen, waitFor} from '@testing-library/react-native';
-import React from 'react';
+import {act, fireEvent, screen, waitFor} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
-import ComposeProviders from '@components/ComposeProviders';
-import {LocaleContextProvider} from '@components/LocaleContextProvider';
-import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import {forceClearInput} from '@libs/ComponentUtils';
-import type {ReportActionComposeProps} from '@pages/inbox/report/ReportActionCompose/ReportActionCompose';
-import ReportActionCompose, {onSubmitAction} from '@pages/inbox/report/ReportActionCompose/ReportActionCompose';
+import {onSubmitAction} from '@pages/inbox/report/ReportActionCompose/ReportActionCompose';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
+import {renderReportActionCompose, reportActionComposeTestReport} from '../utils/ReportActionComposeUtils';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
@@ -54,24 +50,6 @@ jest.mock('@react-navigation/native', () => ({
 
 TestHelper.setupGlobalFetchMock();
 
-const defaultReport = LHNTestUtils.getFakeReport();
-const defaultProps: ReportActionComposeProps = {
-    reportID: defaultReport.reportID,
-};
-
-const renderReportActionCompose = (props?: Partial<ReportActionComposeProps>) => {
-    return render(
-        <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
-            <ReportActionCompose
-                // eslint-disable-next-line react/jsx-props-no-spreading
-                {...defaultProps}
-                // eslint-disable-next-line react/jsx-props-no-spreading
-                {...props}
-            />
-        </ComposeProviders>,
-    );
-};
-
 // Helper function to simulate text selection
 const simulateSelection = (composer: ReturnType<typeof screen.getByTestId>, start: number, end: number) => {
     fireEvent(composer, 'selectionChange', {
@@ -89,7 +67,7 @@ describe('ReportActionCompose Integration Tests', () => {
 
     beforeEach(async () => {
         await act(async () => {
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${defaultReport.reportID}`, defaultReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportActionComposeTestReport.reportID}`, reportActionComposeTestReport);
         });
     });
 
@@ -415,6 +393,24 @@ describe('ReportActionCompose Integration Tests', () => {
 
             // And the error should be displayed
             expect(screen.getByText('composer.commentExceededMaxLength')).toBeOnTheScreen();
+        });
+
+        it('should not send when task title length exceeds the limit', async () => {
+            renderReportActionCompose();
+            const composer = screen.getByTestId('composer');
+
+            // Given a task title that exceeds the title character limit
+            const taskTitle = 'x'.repeat(CONST.TITLE_CHARACTER_LIMIT + 1);
+            fireEvent.changeText(composer, `[] ${taskTitle}`);
+
+            // When the message is submitted
+            act(onSubmitAction);
+
+            // Then the message should NOT be sent
+            expect(mockForceClearInput).toHaveBeenCalledTimes(0);
+
+            // And the task-title-specific error should be displayed
+            expect(screen.getByText('composer.taskTitleExceededMaxLength')).toBeOnTheScreen();
         });
     });
 });
