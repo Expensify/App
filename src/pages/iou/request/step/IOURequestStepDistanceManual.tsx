@@ -30,6 +30,7 @@ import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {shouldUseTransactionDraft} from '@libs/IOUUtils';
+import cleanupAndNavigateAfterExpenseCreate from '@libs/Navigation/helpers/cleanupAndNavigateAfterExpenseCreate';
 import Navigation from '@libs/Navigation/Navigation';
 import {roundToTwoDecimalPlaces} from '@libs/NumberUtils';
 import {isPolicyExpenseChat as isPolicyExpenseChatUtils} from '@libs/ReportUtils';
@@ -248,12 +249,21 @@ function IOURequestStepDistanceManual({
                 recentWaypoints,
                 unit,
                 personalOutputCurrency: personalPolicy?.outputCurrency,
-                draftTransactionIDs,
                 isSelfTourViewed: !!isSelfTourViewed,
                 amountOwed,
                 userBillingGracePeriodEnds,
                 ownerBillingGracePeriodEnd,
                 conciergeReportID,
+                onTransactionsCreated: (lastTransactionID) => {
+                    cleanupAndNavigateAfterExpenseCreate({
+                        report,
+                        draftTransactionIDs,
+                        transactionID: lastTransactionID,
+                        isFromGlobalCreate: transaction?.isFromFloatingActionButton ?? transaction?.isFromGlobalCreate,
+                        hasMultipleTransactions: false,
+                        backToReport,
+                    });
+                },
             });
         },
         [
@@ -299,6 +309,7 @@ function IOURequestStepDistanceManual({
             draftTransactionIDs,
             isSelfTourViewed,
             amountOwed,
+            userBillingGracePeriodEnds,
             ownerBillingGracePeriodEnd,
             conciergeReportID,
         ],

@@ -27,6 +27,7 @@ import {handleMoneyRequestStepDistanceNavigation} from '@libs/actions/IOU/MoneyR
 import {init as initMapboxToken, stop as stopMapboxToken} from '@libs/actions/MapboxToken';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {getGPSConvertedDistance, getGPSCoordinates, getGPSWaypoints, isTripCaptured as isTripCapturedUtil} from '@libs/GPSDraftDetailsUtils';
+import cleanupAndNavigateAfterExpenseCreate from '@libs/Navigation/helpers/cleanupAndNavigateAfterExpenseCreate';
 import Navigation from '@libs/Navigation/Navigation';
 import {isPolicyExpenseChat as isPolicyExpenseChatUtils} from '@libs/ReportUtils';
 import shouldUseDefaultExpensePolicyUtil from '@libs/shouldUseDefaultExpensePolicy';
@@ -143,12 +144,21 @@ function IOURequestStepDistanceGPS({
             recentWaypoints,
             unit,
             personalOutputCurrency: personalPolicy?.outputCurrency,
-            draftTransactionIDs,
             isSelfTourViewed: !!isSelfTourViewed,
             amountOwed,
             userBillingGracePeriodEnds,
             ownerBillingGracePeriodEnd,
             conciergeReportID,
+            onTransactionsCreated: (lastTransactionID) => {
+                cleanupAndNavigateAfterExpenseCreate({
+                    report,
+                    draftTransactionIDs,
+                    transactionID: lastTransactionID,
+                    isFromGlobalCreate: transaction?.isFromFloatingActionButton ?? transaction?.isFromGlobalCreate,
+                    hasMultipleTransactions: false,
+                    backToReport,
+                });
+            },
         });
     };
 

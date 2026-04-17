@@ -189,7 +189,6 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
     const isReportOpen = isOpenReport(parentReport);
     const shouldShowSplitIndicator = isExpenseSplit && (hasMultipleSplits || isReportOpen);
     const isReportSubmitter = isCurrentUserSubmitter(chatIOUReport);
-    const draftTransactionIDs = Object.keys(transactionDrafts ?? {});
     const targetPolicyTags = defaultPolicyTags ?? {};
 
     // Duplicate action throttle
@@ -229,7 +228,6 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
                 targetPolicyCategories: activePolicyCategoriesMap,
                 targetReport: activePolicyExpenseChat,
                 existingTransactionDraft,
-                draftTransactionIDs,
                 betas,
                 personalDetails,
                 recentWaypoints,

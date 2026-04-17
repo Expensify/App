@@ -13,9 +13,11 @@ import usePolicy from '@hooks/usePolicy';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import useReportAttributes from '@hooks/useReportAttributes';
 import useReportIsArchived from '@hooks/useReportIsArchived';
+import useReportTransactions from '@hooks/useReportTransactions';
 import useSelfDMReport from '@hooks/useSelfDMReport';
 import {getMoneyRequestParticipantOptions, handleMoneyRequestStepScanParticipants} from '@libs/actions/IOU/MoneyRequest';
 import setTestReceipt from '@libs/actions/setTestReceipt';
+import cleanupAndNavigateAfterExpenseCreate from '@libs/Navigation/helpers/cleanupAndNavigateAfterExpenseCreate';
 import {isPolicyExpenseChat} from '@libs/ReportUtils';
 import {getSpan, startSpan} from '@libs/telemetry/activeSpans';
 import {getDefaultTaxCode, getTaxValue, hasReceipt, shouldReuseInitialTransaction} from '@libs/TransactionUtils';
@@ -70,6 +72,7 @@ function useReceiptScan({
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const draftTransactionIDs = Object.keys(allTransactionDrafts ?? {});
+    const reportTransactions = useReportTransactions(report?.reportID);
     const [isMultiScanEnabled, setIsMultiScanEnabled] = useState(false);
     const isStartingScan = routeName === SCREENS.MONEY_REQUEST.CREATE;
 
@@ -151,6 +154,16 @@ function useReceiptScan({
             allTransactionDrafts,
             participants,
             participantsPolicyTags,
+            onTransactionsCreated: (lastTransactionID) => {
+                cleanupAndNavigateAfterExpenseCreate({
+                    report,
+                    draftTransactionIDs,
+                    transactionID: lastTransactionID ?? initialTransactionID,
+                    isFromGlobalCreate: initialTransaction?.isFromGlobalCreate,
+                    hasMultipleTransactions: reportTransactions.length > 0,
+                    backToReport,
+                });
+            },
             amountOwed,
             userBillingGracePeriodEnds,
             ownerBillingGracePeriodEnd,

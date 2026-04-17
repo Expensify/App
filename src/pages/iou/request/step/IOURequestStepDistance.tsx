@@ -43,6 +43,7 @@ import type {MileageRate} from '@libs/DistanceRequestUtils';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {shouldUseTransactionDraft} from '@libs/IOUUtils';
+import cleanupAndNavigateAfterExpenseCreate from '@libs/Navigation/helpers/cleanupAndNavigateAfterExpenseCreate';
 import Navigation from '@libs/Navigation/Navigation';
 import {isPolicyExpenseChat as isPolicyExpenseChatUtil} from '@libs/ReportUtils';
 import {getDistanceInMeters, getRateID, getRequestType, hasRoute, isCustomUnitRateIDForP2P, isWaypointNullIsland} from '@libs/TransactionUtils';
@@ -341,12 +342,21 @@ function IOURequestStepDistance({
             policyForMovingExpenses,
             betas,
             recentWaypoints,
-            draftTransactionIDs,
             isSelfTourViewed: !!isSelfTourViewed,
             amountOwed,
             userBillingGracePeriodEnds,
             ownerBillingGracePeriodEnd,
             conciergeReportID,
+            onTransactionsCreated: (lastTransactionID) => {
+                cleanupAndNavigateAfterExpenseCreate({
+                    report,
+                    draftTransactionIDs,
+                    transactionID: lastTransactionID,
+                    isFromGlobalCreate: transaction?.isFromFloatingActionButton ?? transaction?.isFromGlobalCreate,
+                    hasMultipleTransactions: false,
+                    backToReport,
+                });
+            },
         });
     }, [
         iouType,

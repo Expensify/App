@@ -1,5 +1,4 @@
 import {fastMerge} from 'expensify-common';
-import {InteractionManager} from 'react-native';
 import type {OnyxCollection, OnyxEntry, OnyxInputValue, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import ReceiptGeneric from '@assets/images/receipt-generic.png';
@@ -86,7 +85,6 @@ import type {BuildPolicyDataKeys} from '@userActions/Policy/Policy';
 import type {GuidedSetupData} from '@userActions/Report';
 import {buildInviteToRoomOnyxData, notifyNewAction} from '@userActions/Report';
 import {stringifyWaypointsForAPI} from '@userActions/Transaction';
-import {removeDraftTransactionsByIDs} from '@userActions/TransactionEdit';
 import {getOnboardingMessages} from '@userActions/Welcome/OnboardingFlow';
 import type {IOUAction} from '@src/CONST';
 import CONST from '@src/CONST';
@@ -115,7 +113,6 @@ import {
     getSearchOnyxUpdate,
     getTransactionWithPreservedLocalReceiptSource,
     getUserAccountID,
-    handleNavigateAfterExpenseCreate,
     highlightTransactionOnSearchRouteIfNeeded,
 } from './index';
 import type BasePolicyParams from './types/BasePolicyParams';
@@ -1551,8 +1548,6 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
         transactionParams,
         gpsPoint,
         action,
-        shouldHandleNavigation = true,
-        backToReport,
         shouldPlaySound = true,
         optimisticChatReportID,
         optimisticCreatedReportActionID,
@@ -1566,7 +1561,6 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
         quickAction,
         policyRecentlyUsedCurrencies,
         existingTransactionDraft,
-        draftTransactionIDs = [],
         isSelfTourViewed,
         betas,
         personalDetails,
@@ -1811,20 +1805,10 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
         }
     }
 
-    if (shouldHandleNavigation) {
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        InteractionManager.runAfterInteractions(() => removeDraftTransactionsByIDs(draftTransactionIDs));
-
-        const trackReport = Navigation.getReportRouteByID(linkedTrackedExpenseReportAction?.childReportID);
-        if (trackReport?.key) {
-            Navigation.removeScreenByKey(trackReport.key);
-        }
-    }
-
     // Register the deferred write BEFORE navigation so the Search component's
     // hasDeferredWrite() check on mount always sees the pending channel.
     if (deferredAPIWrite) {
-        if (shouldHandleNavigation && !requestMoneyInformation.isRetry && isFromGlobalCreate && !isReportTopmostSplitNavigator()) {
+        if (!requestMoneyInformation.isRetry && isFromGlobalCreate && !isReportTopmostSplitNavigator()) {
             registerDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH, deferredAPIWrite, {
                 optimisticWatchKey: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
             });
@@ -1835,13 +1819,6 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
 
     if (!requestMoneyInformation.isRetry) {
         highlightTransactionOnSearchRouteIfNeeded(isFromGlobalCreate, transaction.transactionID, CONST.SEARCH.DATA_TYPES.EXPENSE);
-
-        handleNavigateAfterExpenseCreate({
-            activeReportID: backToReport ?? activeReportID,
-            transactionID: transaction.transactionID,
-            isFromGlobalCreate,
-            shouldHandleNavigation,
-        });
     }
 
     if (activeReportID && !isMoneyRequestReport) {
@@ -2234,7 +2211,6 @@ function trackExpense(params: CreateTrackExpenseParams) {
         existingTransaction,
         transactionParams: transactionData,
         accountantParams,
-        shouldHandleNavigation = true,
         shouldPlaySound = true,
         isASAPSubmitBetaEnabled,
         currentUserAccountIDParam,
@@ -2244,7 +2220,6 @@ function trackExpense(params: CreateTrackExpenseParams) {
         quickAction,
         recentWaypoints = [],
         betas,
-        draftTransactionIDs = [],
         isSelfTourViewed,
     } = params;
     const {participant, payeeAccountID, payeeEmail} = participantParams;
@@ -2577,7 +2552,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
                 parameters.actionableWhisperReportActionID = actionableWhisperReportActionIDParam;
             }
 
-            const shouldDeferWrite = shouldHandleNavigation && !params.isRetry && isFromGlobalCreate && !isReportTopmostSplitNavigator();
+            const shouldDeferWrite = !params.isRetry && isFromGlobalCreate && !isReportTopmostSplitNavigator();
             const apiWrite = () => {
                 API.write(WRITE_COMMANDS.TRACK_EXPENSE, parameters, onyxData);
             };
@@ -2592,20 +2567,8 @@ function trackExpense(params: CreateTrackExpenseParams) {
         }
     }
 
-    if (shouldHandleNavigation) {
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        InteractionManager.runAfterInteractions(() => removeDraftTransactionsByIDs(draftTransactionIDs));
-    }
-
     if (!params.isRetry) {
         highlightTransactionOnSearchRouteIfNeeded(isFromGlobalCreate, transaction?.transactionID, CONST.SEARCH.DATA_TYPES.EXPENSE);
-
-        handleNavigateAfterExpenseCreate({
-            activeReportID,
-            transactionID: transaction?.transactionID,
-            isFromGlobalCreate,
-            shouldHandleNavigation,
-        });
     }
 
     notifyNewAction(activeReportID, undefined, payeeAccountID === currentUserAccountIDParam);

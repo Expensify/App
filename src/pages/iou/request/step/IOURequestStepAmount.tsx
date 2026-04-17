@@ -32,6 +32,7 @@ import {
     navigateToParticipantPage,
     resolveOptimisticChatReportID,
 } from '@libs/IOUUtils';
+import cleanupAndNavigateAfterExpenseCreate from '@libs/Navigation/helpers/cleanupAndNavigateAfterExpenseCreate';
 import dismissModalAndOpenReportInInboxTabHelper from '@libs/Navigation/helpers/dismissModalAndOpenReportInInboxTab';
 import Navigation from '@libs/Navigation/Navigation';
 import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
@@ -247,11 +248,8 @@ function IOURequestStepAmount({
                     participant,
                     transactionReportID: report?.reportID,
                 });
+                const {optimisticChatReportID, chatReportID} = resolveOptimisticChatReportID([participants.at(0)?.accountID ?? CONST.DEFAULT_NUMBER_ID, currentUserAccountIDParam], report);
                 if (iouType === CONST.IOU.TYPE.PAY || iouType === CONST.IOU.TYPE.SEND) {
-                    const {optimisticChatReportID, chatReportID} = resolveOptimisticChatReportID(
-                        [participants.at(0)?.accountID ?? CONST.DEFAULT_NUMBER_ID, currentUserAccountIDParam],
-                        report,
-                    );
                     const sendMoneyParams = {
                         report,
                         quickAction,
@@ -290,7 +288,6 @@ function IOURequestStepAmount({
                             attendees: transaction?.comment?.attendees,
                             reimbursable: defaultReimbursable,
                         },
-                        backToReport,
                         shouldGenerateTransactionThreadReport: false,
                         isASAPSubmitBetaEnabled,
                         currentUserAccountIDParam,
@@ -299,13 +296,11 @@ function IOURequestStepAmount({
                         quickAction,
                         policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
                         existingTransactionDraft,
-                        draftTransactionIDs,
                         isSelfTourViewed,
                         personalDetails,
+                        optimisticChatReportID,
                     });
-                    return;
-                }
-                if (iouType === CONST.IOU.TYPE.TRACK) {
+                } else if (iouType === CONST.IOU.TYPE.TRACK) {
                     trackExpense({
                         report,
                         isDraftPolicy: false,
@@ -329,11 +324,21 @@ function IOURequestStepAmount({
                         quickAction,
                         recentWaypoints,
                         betas,
-                        draftTransactionIDs,
                         isSelfTourViewed,
                     });
+                } else {
                     return;
                 }
+                cleanupAndNavigateAfterExpenseCreate({
+                    report,
+                    draftTransactionIDs,
+                    transactionID,
+                    isFromGlobalCreate: transaction?.isFromFloatingActionButton ?? transaction?.isFromGlobalCreate,
+                    hasMultipleTransactions: reportTransactions.length > 0,
+                    backToReport,
+                    optimisticChatReportID,
+                });
+                return;
             }
             if (isSplitBill && !report.isOwnPolicyExpenseChat && report.participants) {
                 const participantAccountIDs = Object.keys(report.participants).map((accountID) => Number(accountID));

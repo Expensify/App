@@ -52,6 +52,7 @@ import {
     shouldUseTransactionDraft,
 } from '@libs/IOUUtils';
 import Log from '@libs/Log';
+import cleanupAndNavigateAfterExpenseCreate from '@libs/Navigation/helpers/cleanupAndNavigateAfterExpenseCreate';
 import dismissModalAndOpenReportInInboxTabHelper from '@libs/Navigation/helpers/dismissModalAndOpenReportInInboxTab';
 import isReportTopmostSplitNavigator from '@libs/Navigation/helpers/isReportTopmostSplitNavigator';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
@@ -504,7 +505,7 @@ function IOURequestStepConfirmation({
             const optimisticReportPreviewActionID = rand64();
             let existingIOUReport: Report | undefined;
 
-            for (const [index, item] of transactions.entries()) {
+            for (const item of transactions) {
                 const receipt = receiptFiles[item.transactionID];
                 const isTestReceipt = receipt?.isTestReceipt ?? false;
                 const isTestDriveReceipt = receipt?.isTestDriveReceipt ?? false;
@@ -600,9 +601,7 @@ function IOURequestStepConfirmation({
                             ? {type: CONST.TRANSACTION.TYPE.TIME, count: item.comment?.units?.count, rate: item.comment?.units?.rate, unit: CONST.TIME_TRACKING.UNIT.HOUR}
                             : {}),
                     },
-                    shouldHandleNavigation: shouldHandleNav && index === transactions.length - 1,
                     shouldGenerateTransactionThreadReport: false,
-                    backToReport,
                     isASAPSubmitBetaEnabled,
                     currentUserAccountIDParam: currentUserPersonalDetails.accountID,
                     currentUserEmailParam: currentUserPersonalDetails.email ?? '',
@@ -610,13 +609,30 @@ function IOURequestStepConfirmation({
                     policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
                     quickAction,
                     existingTransactionDraft,
-                    draftTransactionIDs,
                     isSelfTourViewed,
                     betas,
                     personalDetails,
                 });
                 existingIOUReport = iouReport;
             }
+
+            if (!shouldHandleNav) {
+                return;
+            }
+            const lastTransaction = transactions.at(-1);
+            if (!lastTransaction) {
+                return;
+            }
+            cleanupAndNavigateAfterExpenseCreate({
+                report,
+                draftTransactionIDs,
+                transactionID: lastTransaction.transactionID,
+                isFromGlobalCreate: lastTransaction.isFromFloatingActionButton ?? lastTransaction.isFromGlobalCreate,
+                hasMultipleTransactions: reportTransactions.length > 0,
+                backToReport,
+                optimisticChatReportID,
+                linkedTrackedExpenseReportAction: lastTransaction.linkedTrackedExpenseReportAction,
+            });
         },
         [
             transactions,
@@ -655,6 +671,7 @@ function IOURequestStepConfirmation({
             personalDetails,
             isGPSDistanceRequest,
             draftTransactionIDs,
+            reportTransactions.length,
         ],
     );
 
@@ -784,7 +801,7 @@ function IOURequestStepConfirmation({
             if (!participant) {
                 return;
             }
-            for (const [index, item] of transactions.entries()) {
+            for (const item of transactions) {
                 const isLinkedTrackedExpenseReportArchived =
                     !!item.linkedTrackedExpenseReportID && privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${item.linkedTrackedExpenseReportID}`];
                 const itemDistance = isManualDistanceRequest || isOdometerDistanceRequest || isGPSDistanceRequest ? (item.comment?.customUnit?.quantity ?? undefined) : undefined;
@@ -834,7 +851,6 @@ function IOURequestStepConfirmation({
                     accountantParams: {
                         accountant: item.accountant,
                     },
-                    shouldHandleNavigation: shouldHandleNav && index === transactions.length - 1,
                     isASAPSubmitBetaEnabled,
                     currentUserAccountIDParam: currentUserPersonalDetails.accountID,
                     currentUserEmailParam: currentUserPersonalDetails.login ?? '',
@@ -843,10 +859,24 @@ function IOURequestStepConfirmation({
                     quickAction,
                     recentWaypoints,
                     betas,
-                    draftTransactionIDs,
                     isSelfTourViewed,
                 });
             }
+
+            if (!shouldHandleNav) {
+                return;
+            }
+            const lastTransaction = transactions.at(-1);
+            if (!lastTransaction) {
+                return;
+            }
+            cleanupAndNavigateAfterExpenseCreate({
+                report,
+                draftTransactionIDs,
+                transactionID: lastTransaction.transactionID,
+                isFromGlobalCreate: lastTransaction.isFromFloatingActionButton ?? lastTransaction.isFromGlobalCreate,
+                hasMultipleTransactions: reportTransactions.length > 0,
+            });
         },
         [
             transactions,
@@ -876,6 +906,7 @@ function IOURequestStepConfirmation({
             betas,
             draftTransactionIDs,
             isSelfTourViewed,
+            reportTransactions.length,
         ],
     );
 
