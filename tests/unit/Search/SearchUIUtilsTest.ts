@@ -6216,23 +6216,18 @@ describe('SearchUIUtils', () => {
                 .map((section) => section.menuItems)
                 .flat();
 
-            expect(menuItems).toHaveLength(3);
+            expect(menuItems).toHaveLength(2);
             expect(menuItems).toStrictEqual(
                 expect.arrayContaining([
                     expect.objectContaining({
-                        translationPath: 'common.expenses',
+                        translationPath: 'search.tabs.expenses',
                         type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                         icon: 'Receipt',
                     }),
                     expect.objectContaining({
-                        translationPath: 'common.reports',
+                        translationPath: 'search.tabs.reports',
                         type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
                         icon: 'Document',
-                    }),
-                    expect.objectContaining({
-                        translationPath: 'common.chats',
-                        type: CONST.SEARCH.DATA_TYPES.CHAT,
-                        icon: 'ChatBubbles',
                     }),
                 ]),
             );
@@ -6373,7 +6368,7 @@ describe('SearchUIUtils', () => {
             expect(monthlyAccrualKeys).toContain(CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CARD);
 
             const reconciliationSectionMenuItems = sections.flatMap((section) => section.menuItems.filter((item) => SearchUIUtils.RECONCILIATION_SEARCH_KEYS.has(item.key)));
-            expect(reconciliationSectionMenuItems).toBeGreaterThan(0);
+            expect(reconciliationSectionMenuItems.length).toBeGreaterThan(0);
 
             const reconciliationKeys = reconciliationSectionMenuItems.map((item) => item.key);
             expect(reconciliationKeys).toContain(CONST.SEARCH.SEARCH_KEYS.STATEMENTS);

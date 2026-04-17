@@ -98,7 +98,6 @@ function SearchTypeMenuNarrow({queryJSON, onTabPress}: SearchTypeMenuNarrowProps
 
     const expensifyIcons = useMemoizedLazyExpensifyIcons([
         'Receipt',
-        'ChatBubbles',
         'MoneyBag',
         'CreditCard',
         'MoneyHourglass',

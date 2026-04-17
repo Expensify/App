@@ -490,7 +490,6 @@ type SearchTypeMenuItem = {
     icon: Extract<
         ExpensifyIconName,
         | 'Receipt'
-        | 'ChatBubbles'
         | 'MoneyBag'
         | 'CreditCard'
         | 'MoneyHourglass'
@@ -561,7 +560,7 @@ type GetSectionsParams = {
  * changes the sort order.  Every other search key requires the current
  * sortBy/sortOrder to match the menu item's defaults for it to be active.
  */
-const GENERIC_SEARCH_KEYS: ReadonlySet<SearchKey> = new Set([CONST.SEARCH.SEARCH_KEYS.EXPENSES, CONST.SEARCH.SEARCH_KEYS.REPORTS, CONST.SEARCH.SEARCH_KEYS.CHATS]);
+const GENERIC_SEARCH_KEYS: ReadonlySet<SearchKey> = new Set([CONST.SEARCH.SEARCH_KEYS.EXPENSES, CONST.SEARCH.SEARCH_KEYS.REPORTS]);
 
 function doesSearchItemMatchSort(key: SearchKey, itemSortBy: string | undefined, itemSortOrder: string | undefined, currentSortBy: string | undefined, currentSortOrder: string | undefined) {
     return GENERIC_SEARCH_KEYS.has(key) || (itemSortBy === currentSortBy && itemSortOrder === currentSortOrder);
@@ -577,7 +576,7 @@ const RECONCILIATION_SEARCH_KEYS: ReadonlySet<SearchKey> = new Set([CONST.SEARCH
 function createTopSearchMenuItem(
     key: SearchKey,
     translationPath: TranslationPaths,
-    icon: Extract<ExpensifyIconName, 'Receipt' | 'ChatBubbles' | 'MoneyBag' | 'CreditCard' | 'MoneyHourglass' | 'CreditCardHourglass' | 'Bank' | 'User' | 'Folder' | 'Basket'>,
+    icon: Extract<ExpensifyIconName, 'Receipt' | 'MoneyBag' | 'CreditCard' | 'MoneyHourglass' | 'CreditCardHourglass' | 'Bank' | 'User' | 'Folder' | 'Basket'>,
     groupBy: ValueOf<typeof CONST.SEARCH.GROUP_BY>,
     limit?: number,
     view?: ValueOf<typeof CONST.SEARCH.VIEW>,
@@ -665,25 +664,6 @@ function getSuggestedSearches(
             type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
             icon: 'Document',
             searchQuery: buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT}),
-            get searchQueryJSON() {
-                return buildSearchQueryJSON(this.searchQuery);
-            },
-            get hash() {
-                return this.searchQueryJSON?.hash ?? CONST.DEFAULT_NUMBER_ID;
-            },
-            get similarSearchHash() {
-                return this.searchQueryJSON?.similarSearchHash ?? CONST.DEFAULT_NUMBER_ID;
-            },
-            get recentSearchHash() {
-                return this.searchQueryJSON?.recentSearchHash ?? CONST.DEFAULT_NUMBER_ID;
-            },
-        },
-        [CONST.SEARCH.SEARCH_KEYS.CHATS]: {
-            key: CONST.SEARCH.SEARCH_KEYS.CHATS,
-            translationPath: 'common.chats',
-            type: CONST.SEARCH.DATA_TYPES.CHAT,
-            icon: 'ChatBubbles',
-            searchQuery: buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.CHAT}),
             get searchQueryJSON() {
                 return buildSearchQueryJSON(this.searchQuery);
             },
@@ -1097,7 +1077,6 @@ function getSuggestedSearchesVisibility(
         visibility: {
             [CONST.SEARCH.SEARCH_KEYS.EXPENSES]: true,
             [CONST.SEARCH.SEARCH_KEYS.REPORTS]: true,
-            [CONST.SEARCH.SEARCH_KEYS.CHATS]: true,
             [CONST.SEARCH.SEARCH_KEYS.SUBMIT]: shouldShowSubmitSuggestion,
             [CONST.SEARCH.SEARCH_KEYS.PAY]: shouldShowPaySuggestion,
             [CONST.SEARCH.SEARCH_KEYS.APPROVE]: shouldShowApproveSuggestion,
