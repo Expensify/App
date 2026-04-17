@@ -1617,6 +1617,7 @@ const translations: TranslationDeepObject<typeof en> = {
             header: (workflowSettingLink: string) =>
                 `Escolha uma opção para alterar o aprovador deste relatório. (Atualize as <a href="${workflowSettingLink}">configurações do espaço de trabalho</a> para alterar isso permanentemente para todos os relatórios.)`,
             changedApproverMessage: (managerID: number) => `alterou o aprovador para <mention-user accountID="${managerID}"/>`,
+            reassignedApproverMessage: (managerID: number) => `updated <mention-user accountID="${managerID}"/> as the approver`,
             actions: {
                 addApprover: 'Adicionar aprovador',
                 addApproverSubtitle: 'Adicione um aprovador adicional ao fluxo de aprovação existente.',

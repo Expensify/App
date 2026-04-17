@@ -1336,7 +1336,11 @@ function PureReportActionItem({
             children = <CreateHarvestReportAction reportNameValuePairsOriginalID={reportNameValuePairsOriginalID} />;
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.CREATED_REPORT_FOR_UNAPPROVED_TRANSACTIONS)) {
             children = <CreatedReportForUnapprovedTransactionsAction action={action} />;
-        } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL) || isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.REROUTE)) {
+        } else if (
+            isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL) ||
+            isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.REROUTE) ||
+            isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.REASSIGN_APPROVER)
+        ) {
             children = (
                 <ReportActionItemBasicMessage>
                     <RenderHTML html={`<comment><muted-text>${getChangedApproverActionMessage(translate, action)}</muted-text></comment>`} />

@@ -1620,6 +1620,7 @@ const translations: TranslationDeepObject<typeof en> = {
             header: (workflowSettingLink: string) =>
                 `Kies een optie om de fiatteur voor dit rapport te wijzigen. (Werk je <a href="${workflowSettingLink}">werkruimteninstellingen</a> bij om dit permanent voor alle rapporten te wijzigen.)`,
             changedApproverMessage: (managerID: number) => `heeft de goedkeurder gewijzigd naar <mention-user accountID="${managerID}"/>`,
+            reassignedApproverMessage: (managerID: number) => `updated <mention-user accountID="${managerID}"/> as the approver`,
             actions: {
                 addApprover: 'Goedkeurder toevoegen',
                 addApproverSubtitle: 'Voeg een extra fiatteur toe aan de bestaande workflow.',
