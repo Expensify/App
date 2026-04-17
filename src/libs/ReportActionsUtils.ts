@@ -4282,6 +4282,7 @@ function getChangedApproverActionMessage(translate: LocalizedTranslate, reportAc
         if (newApproverID) {
             return translate('iou.changeApprover.reassignedApproverMessage', newApproverID);
         }
+        Log.warn('REASSIGN_APPROVER action missing newApproverID');
         return '';
     }
 
