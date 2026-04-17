@@ -2,7 +2,7 @@ import HybridAppModule from '@expensify/react-native-hybrid-app';
 import Onyx from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import Navigation from '@libs/Navigation/Navigation';
-import {shouldBlockOldAppExit} from '@libs/TryNewDotUtils';
+import {isLockedToNewApp, shouldBlockOldAppExit} from '@libs/TryNewDotUtils';
 import {setIsGPSInProgressModalOpen} from '@userActions/isGPSInProgressModalOpen';
 import CONFIG from '@src/CONFIG';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -84,12 +84,16 @@ function getHybridAppSettings(): Promise<HybridAppSettings | null> {
 }
 
 function closeReactNativeApp({shouldSetNVP, isTrackingGPS}: {shouldSetNVP: boolean; isTrackingGPS: boolean}) {
-    if (shouldBlockOldAppExit(currentTryNewDot, isLoadingTryNewDot, shouldSetNVP)) {
+    if (isLockedToNewApp(currentTryNewDot)) {
         return;
     }
 
     if (isTrackingGPS) {
         setIsGPSInProgressModalOpen(true);
+        return;
+    }
+
+    if (shouldBlockOldAppExit(currentTryNewDot, isLoadingTryNewDot, shouldSetNVP)) {
         return;
     }
 
