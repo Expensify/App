@@ -119,6 +119,7 @@ export type {ExpenseRuleForm} from './ExpenseRuleForm';
 export type {MerchantRuleForm} from './MerchantRuleForm';
 export type {SpendRuleForm} from './SpendRuleForm';
 export type {AddDomainMemberForm} from './AddDomainMemberForm';
+export type {DomainGroupEditNameForm} from './DomainGroupEditNameForm';
 export type {WorkspaceTimeTrackingDefaultRateForm} from './WorkspaceTimeTrackingDefaultRateForm';
 export type {EditExpensifyCardLimitTypeForm} from './EditExpensifyCardLimitTypeForm';
 export type {AddWorkEmailForm} from './AddWorkEmailForm';
