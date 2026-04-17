@@ -92,25 +92,19 @@ function FilterValue({filterKey, value}: FilterValueWithKeyProps) {
 function SearchSavePage() {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
-    const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES);
     const [searchAdvancedFiltersForm = getEmptyObject<Partial<SearchAdvancedFiltersForm>>()] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
     const [name, setName] = useState('');
 
     const {currentSearchQueryJSON} = useSearchStateContext();
 
     const onSaveSearch = () => {
-        const savedSearchKeys = Object.keys(savedSearches ?? {});
-        if (!currentSearchQueryJSON || (savedSearches && savedSearchKeys.includes(String(currentSearchQueryJSON.hash)))) {
-            // If the search is already saved, we only display the results as we don't need to save it.
+        if (!currentSearchQueryJSON) {
             Navigation.goBack();
             return;
         }
 
-        if (name) {
-            saveSearch({queryJSON: currentSearchQueryJSON, newName: name});
-        } else {
-            saveSearch({queryJSON: currentSearchQueryJSON});
-        }
+        const newName = name.trim() || currentSearchQueryJSON?.inputQuery;
+        saveSearch({queryJSON: currentSearchQueryJSON, newName});
         Navigation.goBack();
     };
 
