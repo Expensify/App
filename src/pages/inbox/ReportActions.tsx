@@ -57,7 +57,7 @@ function ReportActions() {
     }
 
     if (shouldDisplayMoneyRequestActionsList) {
-        return <MoneyRequestReportActionsList reportID={report.reportID} />;
+        return <MoneyRequestReportActionsList />;
     }
 
     return (

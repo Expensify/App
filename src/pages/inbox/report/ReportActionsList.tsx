@@ -1,11 +1,12 @@
-import type {ListRenderItemInfo} from '@react-native/virtualized-lists';
 import {isUserValidatedSelector} from '@selectors/Account';
 import {tierNameSelector} from '@selectors/UserWallet';
+import type {ListRenderItemInfo} from '@shopify/flash-list';
 import React, {useContext, useEffect, useState} from 'react';
 import type {LayoutChangeEvent} from 'react-native';
 import {View} from 'react-native';
 import {renderScrollComponent as renderActionSheetAwareScrollView} from '@components/ActionSheetAwareScrollView';
-import InvertedFlatList from '@components/FlatList/InvertedFlatList';
+import InvertedFlashList from '@components/FlashList/InvertedFlashList';
+import getShowScrollIndicator from '@components/FlashList/InvertedFlashList/getShowScrollIndicator';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
 import useCopySelectionHelper from '@hooks/useCopySelectionHelper';
@@ -22,9 +23,9 @@ import useReportActionsScroll from '@hooks/useReportActionsScroll';
 import useReportActionsVisibility from '@hooks/useReportActionsVisibility';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useUnreadMarker from '@hooks/useUnreadMarker';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import {updateLoadingInitialReportAction} from '@libs/actions/Report';
 import {isConsecutiveChronosAutomaticTimerAction} from '@libs/ChronosUtils';
 import FS from '@libs/Fullstory';
@@ -50,12 +51,10 @@ import {
 } from '@libs/ReportUtils';
 import markOpenReportEnd from '@libs/telemetry/markOpenReportEnd';
 import {ActionListContext} from '@pages/inbox/ReportScreenContext';
-import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import FloatingMessageCounter from './FloatingMessageCounter';
-import getInitialNumToRender from './getInitialNumReportActionsToRender';
 import ReportActionsListHeader from './ReportActionsListHeader';
 import ReportActionsListItemRenderer from './ReportActionsListItemRenderer';
 import ShowPreviousMessagesButton from './ShowPreviousMessagesButton';
@@ -138,17 +137,12 @@ function ReportActionsList({reportID, onLayout}: ReportActionsListProps) {
     const linkedReportActionID = pagination.reportActionID;
 
     // "Mount scrolled to end" workaround for transaction threads and money request reports.
-    // RN's FlatList has no native way to mount an inverted list at the end with variable-height items:
-    //
-    // - initialScrollIndex: broken on inverted lists, open as of RN 0.84
-    //   https://github.com/facebook/react-native/issues/56237
-    //   https://github.com/facebook/react-native/issues/54409
-    //   https://github.com/facebook/react-native/issues/41163
-    // - contentOffset: requires knowing content height before layout
-    // - getItemLayout with approximation: disables native cell measurement permanently, corrupts virtualization
-    //
-    // The workaround: render all items in a hidden list (flex0 + shouldHideContent), call scrollToEnd after
-    // layout, then reveal. StaticReportActionsPreview shows a placeholder during this process.
+    // InvertedFlashList's `initialScrollKey` anchors items in the middle of the data via slicing + MVCP,
+    // but degenerates at the list's extreme: pinning the oldest item at the visual bottom conflicts with the
+    // inverted layout placing it at the visual top, so MVCP has no "above" content to balance against.
+    // Until a native solution is validated (e.g. `initialScrollIndex` on FlashList), we keep the hidden-render
+    // workaround: render items hidden via `getHiddenChatContentStyle`, call scrollToEnd after layout, then
+    // reveal. `StaticReportActionsPreview` displays a placeholder during this process.
     const [shouldScrollToEndAfterLayout, setShouldScrollToEndAfterLayout] = useState(shouldFocusToTopOnMount && !linkedReportActionID);
 
     const scroll = useReportActionsScroll({
@@ -180,8 +174,8 @@ function ReportActionsList({reportID, onLayout}: ReportActionsListProps) {
     // ─── START renderItem deps (can't be inside renderItem yet before list-item-level useOnyx is allowed — hooks must be at top level) ───
     const personalDetailsList = usePersonalDetails();
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
-    const {windowHeight} = useWindowDimensions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [userWalletTierName] = useOnyx(ONYXKEYS.USER_WALLET, {selector: tierNameSelector});
     const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isUserValidatedSelector});
@@ -210,22 +204,6 @@ function ReportActionsList({reportID, onLayout}: ReportActionsListProps) {
     const isWriteActionDisabled = !canUserPerformWriteAction(report, isReportArchived);
     const shouldShowReportRecipientLocalTime = canShowReportRecipientLocalTime(personalDetailsList, report, currentUserAccountID);
     // ─── END renderItem deps ───
-
-    // ─── initialNumToRender ───
-    const minimumReportActionHeight = styles.chatItem.paddingTop + styles.chatItem.paddingBottom + variables.fontSizeNormalHeight;
-    const availableHeight = windowHeight - (CONST.CHAT_FOOTER_MIN_HEIGHT + variables.contentHeaderHeight);
-    const numToRender = Math.ceil(availableHeight / minimumReportActionHeight);
-
-    let initialNumToRender: number | undefined;
-    if (shouldScrollToEndAfterLayout && (!pagination.shouldAddCreatedAction || isOffline)) {
-        // Render ALL items so scrollToEnd() lands at the correct position (see shouldScrollToEndAfterLayout comment above).
-        initialNumToRender = sortedVisibleReportActions.length;
-    } else if (linkedReportActionID) {
-        // Web needs at least 50 to prevent excessive onStartReached triggers (see getInitialNumToRender).
-        initialNumToRender = getInitialNumToRender(numToRender);
-    } else {
-        initialNumToRender = numToRender || undefined;
-    }
 
     const isLoadingInitialReportActions = reportMetadata?.isLoadingInitialReportActions;
     const isMissingReportActions = sortedVisibleReportActions.length === 0;
@@ -293,7 +271,7 @@ function ReportActionsList({reportID, onLayout}: ReportActionsListProps) {
         );
     };
 
-    const previewItems = sortedVisibleReportActions.slice(initialNumToRender ? -initialNumToRender : 0).reverse();
+    const previewItems = [...sortedVisibleReportActions].reverse();
 
     return (
         <>
@@ -324,20 +302,22 @@ function ReportActionsList({reportID, onLayout}: ReportActionsListProps) {
                         </StaticReportActionsPreview>
                     </>
                 )}
-                <InvertedFlatList
+                <InvertedFlashList
                     accessibilityLabel={translate('sidebarScreen.listOfChatMessages')}
                     ref={scroll.reportScrollManager.ref}
                     testID="report-actions-list"
-                    style={[styles.overscrollBehaviorContain, shouldScrollToEndAfterLayout && styles.flex0]}
+                    style={styles.overscrollBehaviorContain}
                     data={sortedVisibleReportActions}
                     renderItem={renderItem}
-                    renderScrollComponent={renderActionSheetAwareScrollView}
-                    contentContainerStyle={[styles.chatContentScrollView, shouldFocusToTopOnMount ? styles.justifyContentEnd : undefined]}
-                    shouldHideContent={shouldScrollToEndAfterLayout}
-                    shouldDisableVisibleContentPosition={shouldScrollToEndAfterLayout}
-                    showsVerticalScrollIndicator={!shouldScrollToEndAfterLayout}
                     keyExtractor={keyExtractor}
-                    initialNumToRender={initialNumToRender}
+                    drawDistance={1500}
+                    renderScrollComponent={renderActionSheetAwareScrollView}
+                    contentContainerStyle={[
+                        styles.chatContentScrollView,
+                        shouldFocusToTopOnMount && styles.justifyContentEnd,
+                        shouldScrollToEndAfterLayout && StyleUtils.getHiddenChatContentStyle(),
+                    ]}
+                    showsVerticalScrollIndicator={getShowScrollIndicator(shouldScrollToEndAfterLayout)}
                     onEndReached={scroll.onEndReached}
                     onEndReachedThreshold={0.75}
                     onStartReached={scroll.onStartReached}
@@ -354,9 +334,8 @@ function ReportActionsList({reportID, onLayout}: ReportActionsListProps) {
                     onScroll={scroll.trackVerticalScrolling}
                     onViewableItemsChanged={scroll.onViewableItemsChanged}
                     extraData={extraData}
-                    // changes only for comment linking
-                    key={linkedReportActionID ? `${reportID}-${linkedReportActionID}` : reportID}
-                    shouldEnableAutoScrollToTopThreshold={!pagination.hasNewerActions}
+                    key={reportID}
+                    getItemType={(item) => item.actionName}
                     initialScrollKey={linkedReportActionID}
                     onContentSizeChange={() => {
                         scroll.trackVerticalScrolling(undefined);
