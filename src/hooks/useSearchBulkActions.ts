@@ -101,13 +101,21 @@ function getRestrictedPolicyID(
     ownerBillingGracePeriodEnd: OnyxEntry<number>,
     amountOwed: OnyxEntry<number>,
     allPolicies: OnyxCollection<Policy>,
+    currentUserAccountID?: number,
 ): string | undefined {
     return items
         .map((item) => item.policyID)
         .find(
             (policyID): policyID is string =>
                 !!policyID &&
-                shouldRestrictUserBillableActions(policyID, ownerBillingGracePeriodEnd, billingGracePeriods, amountOwed, allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]),
+                shouldRestrictUserBillableActions(
+                    policyID,
+                    ownerBillingGracePeriodEnd,
+                    billingGracePeriods,
+                    amountOwed,
+                    allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`],
+                    currentUserAccountID,
+                ),
         );
 }
 
@@ -509,7 +517,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
         const selectedItems = selectedReports.length ? selectedReports : Object.values(selectedTransactions);
 
-        const restrictedPolicyID = getRestrictedPolicyID(selectedItems, userBillingGracePeriodEnds, ownerBillingGracePeriodEnd, amountOwed, policies);
+        const restrictedPolicyID = getRestrictedPolicyID(selectedItems, userBillingGracePeriodEnds, ownerBillingGracePeriodEnd, amountOwed, policies, accountID);
         if (restrictedPolicyID) {
             Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(restrictedPolicyID));
             return;
@@ -538,6 +546,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         ownerBillingGracePeriodEnd,
         amountOwed,
         policies,
+        accountID,
     ]);
 
     const {expenseCount, uniqueReportCount} = useMemo(() => {
@@ -659,7 +668,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             const selectedOptions = selectedReports.length ? selectedReports : Object.values(selectedTransactions);
             const expenseReportBankAccountID = additionalData?.bankAccountID;
 
-            const restrictedPolicyID = getRestrictedPolicyID(selectedOptions, userBillingGracePeriodEnds, ownerBillingGracePeriodEnd, amountOwed, policies);
+            const restrictedPolicyID = getRestrictedPolicyID(selectedOptions, userBillingGracePeriodEnds, ownerBillingGracePeriodEnd, amountOwed, policies, accountID);
             if (restrictedPolicyID) {
                 Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(restrictedPolicyID));
                 return;
@@ -785,6 +794,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             policyExpenseChatReportActions,
             formatPhoneNumber,
             clearSelectedTransactions,
+            accountID,
         ],
     );
 
@@ -1170,7 +1180,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
                     const itemList = !selectedReports.length ? Object.values(selectedTransactions).map((transaction) => transaction) : (selectedReports?.filter((report) => !!report) ?? []);
 
-                    const restrictedPolicyID = getRestrictedPolicyID(itemList, userBillingGracePeriodEnds, ownerBillingGracePeriodEnd, amountOwed, policies);
+                    const restrictedPolicyID = getRestrictedPolicyID(itemList, userBillingGracePeriodEnds, ownerBillingGracePeriodEnd, amountOwed, policies, accountID);
                     if (restrictedPolicyID) {
                         Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(restrictedPolicyID));
                         return;
@@ -1450,6 +1460,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         allTransactions,
         isBetaEnabled,
         shouldShowBusinessBankAccountOptions,
+        accountID,
     ]);
 
     const handleOfflineModalClose = useCallback(() => {

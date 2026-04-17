@@ -137,14 +137,14 @@ function CreateReportMenuItem() {
                     // If we couldn't guess the workspace to create the report, or a guessed workspace is past its grace period and we have other workspaces to choose from
                     if (
                         !workspaceIDForReportCreation ||
-                        (shouldRestrictUserBillableActions(workspaceIDForReportCreation, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed) &&
+                        (shouldRestrictUserBillableActions(workspaceIDForReportCreation, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, undefined, currentUserPersonalDetails.accountID) &&
                             groupPoliciesWithChatEnabled.length > 1)
                     ) {
                         Navigation.navigate(ROUTES.NEW_REPORT_WORKSPACE_SELECTION.getRoute());
                         return;
                     }
 
-                    if (!shouldRestrictUserBillableActions(workspaceIDForReportCreation, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed)) {
+                    if (!shouldRestrictUserBillableActions(workspaceIDForReportCreation, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, undefined, currentUserPersonalDetails.accountID)) {
                         // Check if empty report confirmation should be shown
                         if (shouldShowEmptyReportConfirmation) {
                             openCreateReportConfirmation();

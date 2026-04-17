@@ -334,7 +334,7 @@ function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
         return;
     }
 
-    if (expenseReport.policyID && shouldRestrictUserBillableActions(expenseReport.policyID, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, expenseReportPolicy)) {
+    if (expenseReport.policyID && shouldRestrictUserBillableActions(expenseReport.policyID, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, expenseReportPolicy, currentUserAccountIDParam)) {
         Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(expenseReport.policyID));
         return;
     }
@@ -1229,7 +1229,7 @@ function submitReport({
     if (!expenseReport) {
         return;
     }
-    if (expenseReport.policyID && shouldRestrictUserBillableActions(expenseReport.policyID, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed)) {
+    if (expenseReport.policyID && shouldRestrictUserBillableActions(expenseReport.policyID, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, undefined, currentUserAccountIDParam)) {
         Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(expenseReport.policyID));
         return;
     }
