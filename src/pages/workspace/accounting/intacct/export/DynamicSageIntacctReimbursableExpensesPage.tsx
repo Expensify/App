@@ -1,17 +1,15 @@
-import {useRoute} from '@react-navigation/native';
 import React from 'react';
 import Accordion from '@components/Accordion';
 import ConnectionLayout from '@components/ConnectionLayout';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import useAccordionAnimation from '@hooks/useAccordionAnimation';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
-import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {areSettingsInErrorFields, settingsPendingAction} from '@libs/PolicyUtils';
 import type {ExtendedMenuItemWithSubscribedSettings, MenuItemToRender} from '@pages/workspace/accounting/intacct/types';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
@@ -21,17 +19,15 @@ import {updateSageIntacctDefaultVendor} from '@userActions/connections/SageIntac
 import {clearSageIntacctErrorField} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
-import type SCREENS from '@src/SCREENS';
 import {getDefaultVendorName} from './utils';
 
-function SageIntacctReimbursableExpensesPage({policy}: WithPolicyConnectionsProps) {
+function DynamicSageIntacctReimbursableExpensesPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
     const policyID = policy?.id;
     const styles = useThemeStyles();
     const {data: intacctData, config} = policy?.connections?.intacct ?? {};
     const {reimbursable, reimbursableExpenseReportDefaultVendor} = policy?.connections?.intacct?.config?.export ?? {};
-    const route = useRoute<PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_REIMBURSABLE_EXPENSES>>();
-    const backTo = route.params?.backTo;
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_REIMBURSABLE_EXPENSES.path);
 
     const defaultVendorName = getDefaultVendorName(reimbursableExpenseReportDefaultVendor, intacctData?.vendors);
 
@@ -64,7 +60,7 @@ function SageIntacctReimbursableExpensesPage({policy}: WithPolicyConnectionsProp
                 if (!policyID) {
                     return;
                 }
-                Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_REIMBURSABLE_DESTINATION.getRoute(policyID, Navigation.getActiveRoute()));
+                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_REIMBURSABLE_DESTINATION.path));
             },
             subscribedSettings: [CONST.SAGE_INTACCT_CONFIG.REIMBURSABLE],
         },
@@ -115,10 +111,10 @@ function SageIntacctReimbursableExpensesPage({policy}: WithPolicyConnectionsProp
 
     return (
         <ConnectionLayout
-            displayName="SageIntacctReimbursableExpensesPage"
+            displayName="DynamicSageIntacctReimbursableExpensesPage"
             headerTitle="workspace.accounting.exportOutOfPocket"
             title="workspace.sageIntacct.reimbursableExpenses.description"
-            onBackButtonPress={() => Navigation.goBack(backTo ?? (policyID && ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_EXPORT.getRoute(policyID)))}
+            onBackButtonPress={() => Navigation.goBack(backPath)}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
@@ -158,4 +154,4 @@ function SageIntacctReimbursableExpensesPage({policy}: WithPolicyConnectionsProp
     );
 }
 
-export default withPolicyConnections(SageIntacctReimbursableExpensesPage);
+export default withPolicyConnections(DynamicSageIntacctReimbursableExpensesPage);
