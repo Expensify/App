@@ -63,7 +63,7 @@ function BillingBanner({
 }: BillingBannerProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {shouldUseNarrowLayout, isInLandscapeMode} = useResponsiveLayout();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['DotIndicator']);
 
     const rightIconComponent = useMemo(() => {
@@ -110,7 +110,7 @@ function BillingBanner({
                 {typeof title === 'string' ? <Text style={[styles.textStrong, titleStyle]}>{title}</Text> : title}
                 {!!subtitle && (typeof subtitle === 'string' ? <Text style={subtitleStyle}>{subtitle}</Text> : subtitle)}
             </View>
-            {shouldUseNarrowLayout ? (
+            {shouldUseNarrowLayout && !isInLandscapeMode ? (
                 <>
                     {rightIconComponent}
                     {!!rightComponent && rightComponent}
