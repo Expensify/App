@@ -23,6 +23,7 @@ import {
     isResolvedConciergeCategoryOptions,
     isResolvedConciergeDescriptionOptions,
 } from '@libs/ReportActionsUtils';
+import type {CreateDraftTransactionParams} from '@libs/ReportUtils';
 import {createDraftTransactionAndNavigateToParticipantSelector} from '@libs/ReportUtils';
 import shouldRenderAddPaymentCard from '@libs/shouldRenderAppPaymentCard';
 import {dismissTrackExpenseActionableWhisper, resolveConciergeCategoryOptions, resolveConciergeDescriptionOptions} from '@userActions/Report';
@@ -153,74 +154,39 @@ function ChatActionableButtons({action, report, originalReport, reportID, origin
 
         if (isActionableTrackExpense(action)) {
             const reportActionReportID = originalReportID ?? reportID;
-            const options = [
-                {
-                    text: 'actionableMentionTrackExpense.submit',
-                    key: `${action.reportActionID}-actionableMentionTrackExpense-submit`,
-                    onPress: () => {
-                        createDraftTransactionAndNavigateToParticipantSelector({
-                            reportID: reportActionReportID,
-                            actionName: CONST.IOU.ACTION.SUBMIT,
-                            reportActionID: action.reportActionID,
-                            introSelected,
-                            draftTransactionIDs,
-                            activePolicy,
-                            userBillingGracePeriodEnds,
-                            amountOwed,
-                            ownerBillingGracePeriodEnd,
-                            isRestrictedToPreferredPolicy,
-                            preferredPolicyID,
-                            transaction: trackExpenseTransaction,
-                            currentUserAccountID: personalDetail.accountID,
-                            currentUserEmail: personalDetail.email ?? '',
-                        });
-                    },
+            const baseDraftTransactionParams = {
+                reportID: reportActionReportID,
+                reportActionID: action.reportActionID,
+                introSelected,
+                draftTransactionIDs,
+                activePolicy,
+                userBillingGracePeriodEnds,
+                amountOwed,
+                ownerBillingGracePeriodEnd,
+                transaction: trackExpenseTransaction,
+                currentUserAccountID: personalDetail.accountID,
+                currentUserEmail: personalDetail.email ?? '',
+            };
+            const TRACK_EXPENSE_ACTIONS = {
+                submit: CONST.IOU.ACTION.SUBMIT,
+                categorize: CONST.IOU.ACTION.CATEGORIZE,
+                share: CONST.IOU.ACTION.SHARE,
+            } as const;
+            const prepareTrackExpenseButton = (actionKey: keyof typeof TRACK_EXPENSE_ACTIONS, extraParams?: Partial<CreateDraftTransactionParams>) => ({
+                text: `actionableMentionTrackExpense.${actionKey}`,
+                key: `${action.reportActionID}-actionableMentionTrackExpense-${actionKey}`,
+                onPress: () => {
+                    createDraftTransactionAndNavigateToParticipantSelector({
+                        ...baseDraftTransactionParams,
+                        ...extraParams,
+                        actionName: TRACK_EXPENSE_ACTIONS[actionKey],
+                    });
                 },
-            ];
+            });
+            const options = [prepareTrackExpenseButton('submit', {isRestrictedToPreferredPolicy, preferredPolicyID})];
 
             if (Permissions.canUseTrackFlows()) {
-                options.push(
-                    {
-                        text: 'actionableMentionTrackExpense.categorize',
-                        key: `${action.reportActionID}-actionableMentionTrackExpense-categorize`,
-                        onPress: () => {
-                            createDraftTransactionAndNavigateToParticipantSelector({
-                                reportID: reportActionReportID,
-                                actionName: CONST.IOU.ACTION.CATEGORIZE,
-                                reportActionID: action.reportActionID,
-                                introSelected,
-                                draftTransactionIDs,
-                                activePolicy,
-                                userBillingGracePeriodEnds,
-                                amountOwed,
-                                ownerBillingGracePeriodEnd,
-                                transaction: trackExpenseTransaction,
-                                currentUserAccountID: personalDetail.accountID,
-                                currentUserEmail: personalDetail.email ?? '',
-                            });
-                        },
-                    },
-                    {
-                        text: 'actionableMentionTrackExpense.share',
-                        key: `${action.reportActionID}-actionableMentionTrackExpense-share`,
-                        onPress: () => {
-                            createDraftTransactionAndNavigateToParticipantSelector({
-                                reportID: reportActionReportID,
-                                actionName: CONST.IOU.ACTION.SHARE,
-                                reportActionID: action.reportActionID,
-                                introSelected,
-                                draftTransactionIDs,
-                                activePolicy,
-                                userBillingGracePeriodEnds,
-                                amountOwed,
-                                ownerBillingGracePeriodEnd,
-                                transaction: trackExpenseTransaction,
-                                currentUserAccountID: personalDetail.accountID,
-                                currentUserEmail: personalDetail.email ?? '',
-                            });
-                        },
-                    },
-                );
+                options.push(prepareTrackExpenseButton('categorize'), prepareTrackExpenseButton('share'));
             }
             options.push({
                 text: 'actionableMentionTrackExpense.nothing',
