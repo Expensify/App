@@ -23,6 +23,7 @@ import {
     isThisYear,
     isValid,
     parse,
+    parseISO,
     set,
     startOfDay,
     startOfMonth,
@@ -837,7 +838,8 @@ function getFormattedTransportDateAndHour(date: Date): {date: string; hour: stri
  * 1. When the date refers to the current year: Wednesday, Mar 17 8:00 AM
  * 2. When the date refers not to the current year: Wednesday, Mar 17, 2023 8:00 AM
  */
-function getFormattedCancellationDate(date: Date): string {
+function getFormattedCancellationDate(isoDateString: string): string {
+    const date = parseISO(isoDateString);
     if (isThisYear(date)) {
         return format(date, 'EEEE, MMM d h:mm a');
     }

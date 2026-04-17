@@ -1,3 +1,4 @@
+import {parseISO, subSeconds} from 'date-fns';
 import type {ArrayValues} from 'type-fest';
 import CONST from '@src/CONST';
 import type {Report} from '@src/types/onyx';
@@ -71,15 +72,16 @@ function getTripReservationCode(reservation: Reservation): string {
 }
 
 function parseDurationToSeconds(duration: string): number {
-    const regex = /PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/;
+    const regex = /P(?:(\d+)D)?(?:T(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?)?/;
     const matches = duration.match(regex);
     if (!matches) {
         return 0;
     }
-    const hours = parseInt(matches[1] || '0', 10);
-    const minutes = parseInt(matches[2] || '0', 10);
-    const seconds = parseInt(matches[3] || '0', 10);
-    return hours * 3600 + minutes * 60 + seconds;
+    const days = parseInt(matches[1] || '0', 10);
+    const hours = parseInt(matches[2] || '0', 10);
+    const minutes = parseInt(matches[3] || '0', 10);
+    const seconds = parseInt(matches[4] || '0', 10);
+    return days * 86400 + hours * 3600 + minutes * 60 + seconds;
 }
 
 function getSeatByLegAndFlight(travelerInfo: ArrayValues<AirPnr['travelerInfos']>, legIdx: number, flightIdx: number): string | undefined {
@@ -232,6 +234,16 @@ function getAirReservations(pnr: Pnr, travelers: PnrTraveler[]): ReservationItem
     return reservationList;
 }
 
+function getCancellationDeadline(pnrData: HotelPnr): string | undefined {
+    const duration = pnrData.room.cancellationPolicy?.durationBeforeArrivalDeadline?.iso8601;
+    const checkIn = pnrData.checkInDateTime?.iso8601;
+    if (duration && checkIn) {
+        const durationSeconds = parseDurationToSeconds(duration);
+        return subSeconds(parseISO(checkIn), durationSeconds).toISOString();
+    }
+    return pnrData.room.cancellationPolicy?.deadline?.iso8601;
+}
+
 function getHotelReservations(pnr: Pnr, travelers: PnrTraveler[]): ReservationItem[] {
     const reservationList: ReservationItem[] = [];
 
@@ -273,8 +285,8 @@ function getHotelReservations(pnr: Pnr, travelers: PnrTraveler[]): ReservationIt
             duration: 0,
             numberOfRooms: pnrData.numberOfRooms,
             roomClass: pnrData.room.roomName,
-            cancellationPolicy: pnrData.room.cancellationPolicy?.policy ?? null,
-            cancellationDeadline: pnrData.room.cancellationPolicy?.deadline?.iso8601 ?? null,
+            cancellationPolicy: pnrData.room.cancellationPolicy?.policy,
+            cancellationDeadline: getCancellationDeadline(pnrData),
             confirmations,
             travelerPersonalInfo: {
                 name: getTravelerName(traveler),
@@ -323,8 +335,8 @@ function getCarReservations(pnr: Pnr, travelers: PnrTraveler[]): ReservationItem
             confirmations,
             vendor: pnrData.carInfo.vendor.name,
             carInfo: {name: pnrData.carInfo.carSpec.displayName, engine: pnrData.carInfo.carSpec.engineType},
-            cancellationPolicy: pnrData.cancellationPolicy?.policy ?? null,
-            cancellationDeadline: pnrData.cancellationPolicy?.deadline.iso8601 ?? null,
+            cancellationPolicy: pnrData.cancellationPolicy?.policy,
+            cancellationDeadline: pnrData.cancellationPolicy?.deadline.iso8601,
             duration: 0,
             travelerPersonalInfo: {
                 name: getTravelerName(traveler),

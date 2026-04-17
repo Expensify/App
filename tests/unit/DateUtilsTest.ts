@@ -593,4 +593,43 @@ describe('DateUtils', () => {
             expect(result).toBe('2024-01-16 04:59:59');
         });
     });
+
+    describe('getFormattedCancellationDate', () => {
+        beforeEach(() => {
+            jest.useFakeTimers();
+            jest.setSystemTime(new Date('2026-06-15T12:00:00Z'));
+        });
+
+        afterEach(() => {
+            jest.useRealTimers();
+        });
+
+        it('should parse ISO string with positive timezone offset for current year', () => {
+            // +07:00 offset: 15:00+07:00 = 08:00 UTC
+            const result = DateUtils.getFormattedCancellationDate('2026-04-19T15:00:00+07:00');
+            expect(result).toBe('Sunday, Apr 19 8:00 AM');
+        });
+
+        it('should parse ISO string with negative timezone offset for current year', () => {
+            // -05:00 offset: 08:00-05:00 = 13:00 UTC
+            const result = DateUtils.getFormattedCancellationDate('2026-03-17T08:00:00-05:00');
+            expect(result).toBe('Tuesday, Mar 17 1:00 PM');
+        });
+
+        it('should parse ISO string with Z offset for current year', () => {
+            const result = DateUtils.getFormattedCancellationDate('2026-06-10T14:30:00Z');
+            expect(result).toBe('Wednesday, Jun 10 2:30 PM');
+        });
+
+        it('should include the year for dates not in the current year', () => {
+            // +05:30 offset: 08:00+05:30 = 02:30 UTC
+            const result = DateUtils.getFormattedCancellationDate('2023-03-17T08:00:00+05:30');
+            expect(result).toBe('Friday, Mar 17, 2023 2:30 AM');
+        });
+
+        it('should handle ISO string without timezone offset', () => {
+            const result = DateUtils.getFormattedCancellationDate('2026-12-25T09:00:00');
+            expect(result).toBe('Friday, Dec 25 9:00 AM');
+        });
+    });
 });

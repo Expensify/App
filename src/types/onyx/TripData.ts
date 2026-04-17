@@ -1235,6 +1235,12 @@ type HotelPnr = {
             };
             /** Policy details for the cancellation. */
             policy: string;
+
+            /** Deadline in duration before the check-in date time. */
+            durationBeforeArrivalDeadline?: {
+                /** ISO 8601 format. */
+                iso8601: string;
+            };
         };
         /** Guarantee type for the room. */
         guaranteeType: string;
