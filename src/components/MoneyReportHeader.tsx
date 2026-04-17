@@ -79,6 +79,7 @@ import {
     getNextApproverAccountID,
     getPolicyExpenseChat,
     hasHeldExpenses as hasHeldExpensesReportUtils,
+    hasOnlyHeldExpenses as hasOnlyHeldExpensesReportUtils,
     hasUpdatedTotal,
     hasViolations as hasViolationsReportUtils,
     isAllowedToApproveExpenseReport,
@@ -122,6 +123,7 @@ import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
 import type {ButtonWithDropdownMenuRef, DropdownOption} from './ButtonWithDropdownMenu/types';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from './DelegateNoAccessModalProvider';
+import {getApprovalDropdownOptions} from './ExpenseHeaderApprovalButton';
 import HeaderLoadingBar from './HeaderLoadingBar';
 import HeaderWithBackButton from './HeaderWithBackButton';
 import {KYCWallContext} from './KYCWall/KYCWallContext';
@@ -240,6 +242,7 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
         'Feed',
         'Location',
         'ReceiptPlus',
+        'DocumentCheck',
         'ExpenseCopy',
         'Checkmark',
         'ReportCopy',
@@ -557,7 +560,6 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
                 showDelegateNoAccessModal();
             } else if (isAnyTransactionOnHold) {
                 openHoldMenu({
-                    requestType: CONST.IOU.REPORT_ACTION_TYPE.PAY,
                     paymentType: type,
                     methodID,
                     onConfirm: () => {
@@ -675,18 +677,7 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
         (skipAnimation = false) => {
             if (isDelegateAccessRestricted) {
                 showDelegateNoAccessModal();
-            } else if (isAnyTransactionOnHold) {
-                openHoldMenu({
-                    requestType: CONST.IOU.REPORT_ACTION_TYPE.APPROVE,
-                    onConfirm: () => {
-                        if (skipAnimation) {
-                            clearSelectedTransactions(true);
-                            return;
-                        }
-                        startApprovedAnimation();
-                    },
-                });
-            } else {
+            } else if (!isAnyTransactionOnHold) {
                 if (!skipAnimation) {
                     startApprovedAnimation();
                 }
@@ -718,13 +709,12 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
             }
         },
         [
-            policy,
             isDelegateAccessRestricted,
             showDelegateNoAccessModal,
             isAnyTransactionOnHold,
-            openHoldMenu,
             startApprovedAnimation,
             moneyRequestReport,
+            policy,
             accountID,
             email,
             hasViolations,
@@ -1091,6 +1081,39 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
         showDownloadErrorModal,
     ]);
 
+    const onApprove = (isFullApproval: boolean) => {
+        if (isDelegateAccessRestricted) {
+            showDelegateNoAccessModal();
+            return;
+        }
+        startApprovedAnimation();
+        approveMoneyRequest({
+            expenseReport: moneyRequestReport,
+            policy,
+            currentUserAccountIDParam: accountID,
+            currentUserEmailParam: email ?? '',
+            hasViolations,
+            isASAPSubmitBetaEnabled,
+            expenseReportCurrentNextStepDeprecated: nextStep,
+            betas,
+            userBillingGracePeriodEnds,
+            ownerBillingGracePeriodEnd,
+            amountOwed,
+            full: isFullApproval,
+            delegateEmail,
+            expenseReportPolicy: policy,
+        });
+        if (currentSearchQueryJSON) {
+            search({
+                searchKey: currentSearchKey,
+                shouldCalculateTotals: true,
+                offset: 0,
+                queryJSON: currentSearchQueryJSON,
+                isLoading: !!currentSearchResults?.search?.isLoading,
+            });
+        }
+    };
+
     const primaryActionComponent = (
         <MoneyReportHeaderPrimaryAction
             reportID={reportIDProp}
@@ -1152,6 +1175,20 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
         }
         return getSecondaryExportReportActions(accountID, email ?? '', moneyRequestReport, bankAccountList, policy, exportTemplates);
     }, [moneyRequestReport, accountID, email, policy, exportTemplates, bankAccountList]);
+
+    const shouldShowApprovalSecondaryActions = isAnyTransactionOnHold && !isDelegateAccessRestricted;
+    const hasOnlyHeldExpenses = hasOnlyHeldExpensesReportUtils(moneyRequestReport?.reportID);
+    const secondaryApprovalActions = shouldShowApprovalSecondaryActions
+        ? getApprovalDropdownOptions({
+              moneyRequestReport,
+              shouldShowPayButton,
+              onPartialApprove: () => onApprove(false),
+              onFullApprove: () => onApprove(true),
+              translate,
+              illustrations: expensifyIcons,
+              hasOnlyHeldExpenses,
+          })
+        : undefined;
 
     const hasSubmitAction = primaryAction === CONST.REPORT.PRIMARY_ACTIONS.SUBMIT || secondaryActions.includes(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT);
     const hasApproveAction = primaryAction === CONST.REPORT.PRIMARY_ACTIONS.APPROVE || secondaryActions.includes(CONST.REPORT.SECONDARY_ACTIONS.APPROVE);
@@ -1248,6 +1285,7 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
               connectionName: connectedIntegration,
           })
         : '';
+
     const unapproveWarningText = useMemo(
         () => (
             <Text>
@@ -1268,9 +1306,11 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
         </Text>
     );
 
+    const approvalText = hasOnlyHeldExpenses ? translate('iou.confirmApprovalAllHoldAmount') : translate('iou.confirmApprovalWithHeldAmount');
+
     const secondaryActionsImplementation: Record<
         ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>,
-        DropdownOption<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>> & Pick<PopoverMenuItem, 'backButtonText' | 'rightIcon'>
+        DropdownOption<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>> & Pick<PopoverMenuItem, 'backButtonText' | 'rightIcon' | 'shouldCallOnSelectedForSubMenuItem' | 'subMenuHeaderText'>
     > = {
         [CONST.REPORT.SECONDARY_ACTIONS.VIEW_DETAILS]: {
             value: CONST.REPORT.SECONDARY_ACTIONS.VIEW_DETAILS,
@@ -1345,9 +1385,20 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
         [CONST.REPORT.SECONDARY_ACTIONS.APPROVE]: {
             text: translate('iou.approve'),
             icon: expensifyIcons.ThumbsUp,
+            rightIcon: shouldShowApprovalSecondaryActions ? expensifyIcons.ArrowRight : undefined,
+            backButtonText: shouldShowApprovalSecondaryActions ? translate('iou.approve') : undefined,
             value: CONST.REPORT.SECONDARY_ACTIONS.APPROVE,
             sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.APPROVE,
-            onSelected: confirmApproval,
+            subMenuItems: secondaryApprovalActions,
+            shouldUpdateSelectedIndex: true,
+            subMenuHeaderText: shouldShowApprovalSecondaryActions ? approvalText : undefined,
+            onSelected: () => {
+                if (shouldShowApprovalSecondaryActions) {
+                    return;
+                }
+                confirmApproval();
+            },
+            shouldCallOnSelectedForSubMenuItem: true,
         },
         [CONST.REPORT.SECONDARY_ACTIONS.UNAPPROVE]: {
             text: translate('iou.unapprove'),
@@ -1878,11 +1929,11 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
         return mappedOptions;
     }, [
         originalSelectedTransactionsOptions,
-        showDeleteModal,
-        dismissedRejectUseExplanation,
         allExpensesSelected,
         selectionModeReportLevelActions,
+        showDeleteModal,
         isDelegateAccessRestricted,
+        dismissedRejectUseExplanation,
         showDelegateNoAccessModal,
         openRejectModal,
     ]);
@@ -2054,6 +2105,7 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
                                     dropdownMenuRef={dropdownMenuRef}
                                     onOptionsMenuHide={handleOptionsMenuHide}
                                     ref={kycWallRef}
+                                    shouldPutHeaderTextAfterBackButton
                                 />
                             )}
                             {shouldShowSelectedTransactionsButton && <View>{renderSelectionModeDropdown()}</View>}
@@ -2077,6 +2129,7 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
                                     dropdownMenuRef={dropdownMenuRef}
                                     onOptionsMenuHide={handleOptionsMenuHide}
                                     ref={kycWallRef}
+                                    shouldPutHeaderTextAfterBackButton
                                 />
                             )}
                         </View>

@@ -1,10 +1,8 @@
 import {createContext, useContext} from 'react';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
-import type {ActionHandledType} from './Modal/Global/HoldMenuModalWrapper';
 import type {RejectModalAction} from './MoneyReportHeaderEducationalModals';
 
 type HoldMenuParams = {
-    requestType: ActionHandledType;
     paymentType?: PaymentMethodType;
     methodID?: number;
     onConfirm?: (full: boolean) => void;

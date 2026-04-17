@@ -14,7 +14,6 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {PressableWithFeedback} from '@components/Pressable';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import ProcessMoneyReportHoldMenu from '@components/ProcessMoneyReportHoldMenu';
-import type {ActionHandledType} from '@components/ProcessMoneyReportHoldMenu';
 import {showContextMenuForReport} from '@components/ShowContextMenuContext';
 import StatusBadge from '@components/StatusBadge';
 import Text from '@components/Text';
@@ -155,13 +154,11 @@ function MoneyRequestReportPreviewContent({
         usePaymentAnimations();
 
     const [isHoldMenuVisible, setIsHoldMenuVisible] = useState(false);
-    const [requestType, setRequestType] = useState<ActionHandledType>();
     const [paymentType, setPaymentType] = useState<PaymentMethodType>();
     const [shouldShowPayButton, setShouldShowPayButton] = useState(false);
     const hasOnlyHeldExpenses = hasOnlyHeldExpensesReportUtils(iouReport?.reportID);
 
     const handleHoldMenuOpen = (holdRequestType: string, holdPaymentType?: PaymentMethodType, canPay?: boolean) => {
-        setRequestType(holdRequestType as ActionHandledType);
         setPaymentType(holdPaymentType);
         setShouldShowPayButton(!!canPay);
         setIsHoldMenuVisible(true);
@@ -730,13 +727,11 @@ function MoneyRequestReportPreviewContent({
                 </View>
                 {isHoldMenuVisible &&
                     !!iouReport &&
-                    !!requestType &&
                     (() => {
                         const {nonHeldAmount, fullAmount, hasValidNonHeldAmount} = getNonHeldAndFullAmount(iouReport, shouldShowPayButton);
                         return (
                             <ProcessMoneyReportHoldMenu
                                 nonHeldAmount={!hasOnlyHeldExpenses && hasValidNonHeldAmount ? nonHeldAmount : undefined}
-                                requestType={requestType}
                                 fullAmount={fullAmount}
                                 onClose={() => setIsHoldMenuVisible(false)}
                                 isVisible={isHoldMenuVisible}
@@ -744,14 +739,8 @@ function MoneyRequestReportPreviewContent({
                                 chatReport={chatReport}
                                 moneyRequestReport={iouReport}
                                 transactionCount={numberOfRequests}
+                                onConfirm={startAnimation}
                                 hasNonHeldExpenses={!hasOnlyHeldExpenses}
-                                onConfirm={() => {
-                                    if (requestType === CONST.IOU.REPORT_ACTION_TYPE.APPROVE) {
-                                        startApprovedAnimation();
-                                    } else {
-                                        startAnimation();
-                                    }
-                                }}
                             />
                         );
                     })()}
