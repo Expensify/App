@@ -339,7 +339,12 @@ function IOURequestStepParticipants({
             if ((isCategorizing || isShareAction) && numberOfParticipants.current === 0) {
                 const email = currentUserPersonalDetails.email ?? '';
                 const lastWorkspaceNumber = lastWorkspaceNumberSelector(allPolicies, email);
-                const {expenseChatReportID, policyID, policyName} = createDraftWorkspace(introSelected, newGenerateDefaultWorkspaceName(email, lastWorkspaceNumber, translate));
+                const {expenseChatReportID, policyID, policyName} = createDraftWorkspace(
+                    introSelected,
+                    newGenerateDefaultWorkspaceName(email, lastWorkspaceNumber, translate),
+                    currentUserPersonalDetails.accountID,
+                    email,
+                );
                 for (const transaction of draftTransactions) {
                     setMoneyRequestParticipants(transaction.transactionID, [
                         {
@@ -395,6 +400,7 @@ function IOURequestStepParticipants({
             participants,
             iouType,
             initialTransaction,
+            selfDMReportID,
             initialTransactionID,
             reportID,
             waitForKeyboardDismiss,
@@ -402,10 +408,11 @@ function IOURequestStepParticipants({
             isMovingTransactionFromTrackExpense,
             allPolicies,
             policyForMovingExpenses,
+            currentUserPersonalDetails.email,
+            currentUserPersonalDetails.accountID,
             introSelected,
-            backTo,
-            selfDMReportID,
             translate,
+            backTo,
         ],
     );
 
