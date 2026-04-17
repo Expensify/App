@@ -3,6 +3,7 @@ import {View} from 'react-native';
 import Avatar from '@components/Avatar';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
+import type {Icon} from '@src/types/onyx/OnyxCommon';
 import BaseSelectListItem from './BaseSelectListItem';
 import type {ListItem, MultiSelectListItemProps} from './types';
 
@@ -31,21 +32,11 @@ function MultiSelectListItem<TItem extends ListItem>({
     const styles = useThemeStyles();
     const icon = item.icons?.at(0);
 
-    const avatarElement = icon ? (
-        <View style={[styles.mentionSuggestionsAvatarContainer, styles.mr3]}>
-            <Avatar
-                source={icon.source}
-                size={CONST.AVATAR_SIZE.SMALLER}
-                name={icon.name}
-                avatarID={icon.id}
-                type={icon.type ?? CONST.ICON_TYPE_AVATAR}
-                fallbackIcon={icon.fallbackIcon}
-            />
-        </View>
-    ) : undefined;
-
-    const itemWithAvatar = icon ? {...item, leftElement: avatarElement} : item;
-    const computedWrapperStyle = icon ? [wrapperStyle, styles.pv0, styles.mnh13] : [wrapperStyle, styles.optionRowCompact];
+    const itemWithAvatar = {
+        ...item,
+        leftElement: icon ? <AvatarLeftElement icon={icon} /> : undefined,
+    };
+    const computedWrapperStyle = [wrapperStyle, icon ? [styles.pv0, styles.mnh13] : styles.optionRowCompact];
 
     return (
         <BaseSelectListItem
@@ -69,6 +60,23 @@ function MultiSelectListItem<TItem extends ListItem>({
             shouldHighlightSelectedItem={shouldHighlightSelectedItem}
             shouldShowSelectionButton={shouldShowSelectionButton}
         />
+    );
+}
+
+function AvatarLeftElement({icon}: {icon: Icon}) {
+    const styles = useThemeStyles();
+
+    return (
+        <View style={[styles.mentionSuggestionsAvatarContainer, styles.mr3]}>
+            <Avatar
+                source={icon.source}
+                size={CONST.AVATAR_SIZE.SMALLER}
+                name={icon.name}
+                avatarID={icon.id}
+                type={icon.type ?? CONST.ICON_TYPE_AVATAR}
+                fallbackIcon={icon.fallbackIcon}
+            />
+        </View>
     );
 }
 
