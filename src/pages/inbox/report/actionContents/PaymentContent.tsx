@@ -1,8 +1,8 @@
 import React from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import RenderHTML from '@components/RenderHTML';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
-import {convertToDisplayString} from '@libs/CurrencyUtils';
 import {getBankAccountLastFourDigits} from '@libs/PaymentUtils';
 import {getOriginalMessage} from '@libs/ReportActionsUtils';
 import ReportActionItemBasicMessage from '@pages/inbox/report/ReportActionItemBasicMessage';
@@ -17,6 +17,7 @@ type PaymentContentProps = {
 
 function PaymentContent({action, bankAccountList, policy}: PaymentContentProps) {
     const {translate} = useLocalize();
+    const {convertToDisplayString} = useCurrencyListActions();
     const originalMessage = getOriginalMessage(action);
 
     if (!originalMessage) {
