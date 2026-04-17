@@ -24,7 +24,8 @@ import Log from './libs/Log';
 import migrateOnyx from './libs/migrateOnyx';
 import Navigation from './libs/Navigation/Navigation';
 import NavigationRoot from './libs/Navigation/NavigationRoot';
-import NetworkConnection from './libs/NetworkConnection';
+// This lib needs to be imported for its module-level NetInfo and Onyx subscriptions
+import './libs/NetworkState';
 import PushNotification from './libs/Notification/PushNotification';
 import {endSpan, getSpan, startSpan} from './libs/telemetry/activeSpans';
 import type {BootsplashGateStatus} from './libs/telemetry/bootsplashTelemetry';
@@ -34,7 +35,6 @@ import Visibility from './libs/Visibility';
 import ONYXKEYS from './ONYXKEYS';
 import PriorityModeHandler from './PriorityModeHandler';
 import type {Route} from './ROUTES';
-import {accountIDSelector} from './selectors/Session';
 import {useSplashScreenActions, useSplashScreenState} from './SplashScreenStateContext';
 
 Onyx.registerLogger(({level, message, parameters}) => {
@@ -56,7 +56,6 @@ function Expensify() {
     const {setSplashScreenState} = useSplashScreenActions();
     const [hasAttemptedToOpenPublicRoom, setAttemptedToOpenPublicRoom] = useState(false);
     const {preferredLocale} = useLocalize();
-    const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
     const [lastRoute] = useOnyx(ONYXKEYS.LAST_ROUTE);
     const [isCheckingPublicRoom = true] = useOnyx(ONYXKEYS.IS_CHECKING_PUBLIC_ROOM, {initWithStoredValues: false});
     const [updateRequired] = useOnyx(ONYXKEYS.RAM_ONLY_UPDATE_REQUIRED);
@@ -210,12 +209,7 @@ function Expensify() {
     useLayoutEffect(() => {
         // Initialize this client as being an active client
         ActiveClientManager.init();
-
-        // Used for the offline indicator appearing when someone is offline
-        const unsubscribeNetInfo = NetworkConnection.subscribeToNetInfo(accountID);
-
-        return unsubscribeNetInfo;
-    }, [accountID]);
+    }, []);
 
     // Log the platform and config to debug .env issues
     useEffect(() => {
