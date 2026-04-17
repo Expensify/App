@@ -877,6 +877,9 @@ function ReportActionsList({
                     renderItem={renderItem}
                     keyExtractor={keyExtractor}
                     drawDistance={1500}
+                    maintainVisibleContentPosition={{
+                        autoscrollToTopThreshold: 10,
+                    }}
                     renderScrollComponent={renderActionSheetAwareScrollView}
                     contentContainerStyle={[
                         styles.chatContentScrollView,
