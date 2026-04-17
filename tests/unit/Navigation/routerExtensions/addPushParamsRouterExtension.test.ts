@@ -525,4 +525,51 @@ describe('addPushParamsRouterExtension', () => {
         expect((afterPush.routes.at(0)?.params as {q: string}).q).toBe('D');
         expect(afterPush.history?.length).toBeGreaterThanOrEqual(1);
     });
+
+    it('no-op RESET to the same params at the current cursor does not cancel pending restores', () => {
+        // Simulates useNavigationResetOnLayoutChange — fires navigation.reset(navigation.getState()) on breakpoint changes.
+        const factory = createMockRouterFactory();
+        const enhancedRouter = addPushParamsRouterExtension(factory)({} as PlatformStackRouterOptions);
+        const initial = makeRoute('Search', 'search-1', {q: 'A'});
+        let state: TestState = makeState([initial], {history: [{...initial}] as CustomHistoryEntry[]});
+
+        state = enhancedRouter.getStateForAction(state, {type: CONST.NAVIGATION.ACTION_TYPE.PUSH_PARAMS, payload: {params: {q: 'B'}}}, CONFIG_OPTIONS) as TestState;
+        (cancelPendingFocusRestore as jest.Mock).mockClear();
+
+        // RESET to the same snapshot currently at the cursor.
+        const noopReset: PushParamsRouterAction = {
+            type: CONST.NAVIGATION.ACTION_TYPE.RESET,
+            payload: {routes: [{name: 'Search', key: 'search-1', params: {q: 'B'}}], index: 0},
+        };
+        enhancedRouter.getStateForAction(state, noopReset, CONFIG_OPTIONS);
+
+        expect(cancelPendingFocusRestore).not.toHaveBeenCalled();
+    });
+
+    it('RESET with route removal remaps the cursor to the same logical entry in the preserved history', () => {
+        // Two-route history → RESET keeps only one → preservation filters the other → cursor must remap to the entry's new index.
+        const factory = createMockRouterFactory();
+        const enhancedRouter = addPushParamsRouterExtension(factory)({} as PlatformStackRouterOptions);
+        const routeA = makeRoute('Search', 'search-1', {q: 'v1'});
+        const routeB = makeRoute('Search', 'search-2', {q: 'v2'});
+        let state: TestState = makeState([routeA, routeB], {
+            history: [{...routeA}, {...routeB}] as CustomHistoryEntry[],
+        });
+
+        // RESET keeps only the second route (search-2) — search-1's history entry must be filtered out by preserveHistoryForRoutes.
+        const reset: PushParamsRouterAction = {
+            type: CONST.NAVIGATION.ACTION_TYPE.RESET,
+            payload: {routes: [{name: 'Search', key: 'search-2', params: {q: 'v2'}}], index: 0},
+        };
+        state = enhancedRouter.getStateForAction(state, reset, CONFIG_OPTIONS) as TestState;
+        expect(state.history).toHaveLength(1);
+        expect((asRouteEntry(state.history?.at(0) as CustomHistoryEntry).params as {q: string}).q).toBe('v2');
+
+        // A subsequent PUSH_PARAMS must reference the (remapped) cursor correctly — previously the numeric cursor could point past the end of the filtered history.
+        const afterPush = enhancedRouter.getStateForAction(state, {type: CONST.NAVIGATION.ACTION_TYPE.PUSH_PARAMS, payload: {params: {q: 'v3'}}}, CONFIG_OPTIONS) as TestState;
+        expect((afterPush.routes.at(0)?.params as {q: string}).q).toBe('v3');
+        expect(afterPush.history).toHaveLength(2);
+        expect((asRouteEntry(afterPush.history?.at(0) as CustomHistoryEntry).params as {q: string}).q).toBe('v2');
+        expect((asRouteEntry(afterPush.history?.at(1) as CustomHistoryEntry).params as {q: string}).q).toBe('v3');
+    });
 });

@@ -1,5 +1,5 @@
 import {FocusTrap} from 'focus-trap-react';
-import React from 'react';
+import React, {useRef} from 'react';
 import sharedTrapStack from '@components/FocusTrap/sharedTrapStack';
 import blurActiveElement from '@libs/Accessibility/blurActiveElement';
 import {scheduleClearActivePopoverLauncher, setActivePopoverLauncher} from '@libs/NavigationFocusReturn';
@@ -7,6 +7,8 @@ import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManag
 import type FocusTrapForModalProps from './FocusTrapForModalProps';
 
 function FocusTrapForModal({children, active, initialFocus = false, shouldPreventScroll = false, shouldReturnFocus = true}: FocusTrapForModalProps) {
+    // Track this trap's own launcher so onPostDeactivate targets the right stack entry (nested / sequential traps share the stack).
+    const cachedLauncherRef = useRef<HTMLElement | null>(null);
     return (
         <FocusTrap
             active={active}
@@ -18,15 +20,18 @@ function FocusTrapForModal({children, active, initialFocus = false, shouldPreven
                     blurActiveElement();
                     // Respect shouldReturnFocus={false} (e.g. DatePickerModal) — skip the launcher cache entirely.
                     if (shouldReturnFocus && launcher instanceof HTMLElement && launcher !== document.body) {
+                        cachedLauncherRef.current = launcher;
                         setActivePopoverLauncher(launcher);
                     }
                 },
                 onPostDeactivate: () => {
-                    if (!shouldReturnFocus) {
+                    const launcher = cachedLauncherRef.current;
+                    cachedLauncherRef.current = null;
+                    if (!shouldReturnFocus || !launcher) {
                         return;
                     }
                     // Defer so popover paths that navigate after modal-hide can still consume the launcher.
-                    scheduleClearActivePopoverLauncher();
+                    scheduleClearActivePopoverLauncher(launcher);
                 },
                 preventScroll: shouldPreventScroll,
                 trapStack: sharedTrapStack,

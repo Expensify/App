@@ -15,18 +15,22 @@ type AnyState = NavigationState | PartialState<NavigationState> | undefined;
 
 type DiffAction = {type: 'forward'; captureKey: string} | {type: 'backward'; restoreKey: string} | {type: 'lateral'} | {type: 'noop'};
 
-// Fallback (if set) is the surrounding trap's launcher, used only when primary is gone from the DOM at restore time.
+// Fallback (if set) is the surrounding trap's launcher, used only when primary cannot accept focus at restore time.
 // triggerMap holds at most one entry per currently-mounted route key (Map.set overwrites); `removedKeys` in handleStateChange purges entries as routes leave the tree, bounding memory by the nav tree size.
 type TriggerEntry = {primary: HTMLElement; fallback?: HTMLElement};
+
+// `deactivatedAt` set when the trap closes; entry lives for LAUNCHER_CLEAR_DELAY_MS so a deferred-nav popover can still consume it.
+type LauncherEntry = {element: HTMLElement; deactivatedAt?: number};
 
 const COMPOUND_KEY_DELIMITER = '::';
 // Covers the click → state-listener dispatch → focusin → captureTriggerForRoute chain for deferred-navigation popovers. 1s is conservative for slower devices.
 const LAUNCHER_CLEAR_DELAY_MS = 1000;
+// Guard against pathological trap storms. Typical stack depth is 1–2.
+const LAUNCHER_STACK_MAX = 8;
 
 let lastInteractiveElement: HTMLElement | null = null;
-let activePopoverLauncher: HTMLElement | null = null;
-// `clearLauncherTimerId === undefined` with a non-null launcher ≡ popover active; with a timer set ≡ deactivated but held for deferred-nav consumption.
-let clearLauncherTimerId: ReturnType<typeof setTimeout> | undefined;
+// Stack (not slot) so nested + sequential traps retain correct launcher context.
+const launcherStack: LauncherEntry[] = [];
 const triggerMap = new Map<string, TriggerEntry>();
 let prevState: NavigationState | undefined;
 let pendingRestore: {cancel: () => void} | null = null;
@@ -76,6 +80,52 @@ function diffNavigationState(prev: AnyState, next: NavigationState): {action: Di
     return {action, removedKeys};
 }
 
+// Prefer topmost active, then most recent deactivated-within-window. Two passes so nested traps resolve to the outer (active) launcher, not the just-closed inner.
+function pickLauncher(): HTMLElement | null {
+    if (typeof document === 'undefined') {
+        return null;
+    }
+    const now = Date.now();
+    // Pass 1: topmost active, pruning detached as we go.
+    for (let i = launcherStack.length - 1; i >= 0; i -= 1) {
+        const entry = launcherStack.at(i);
+        if (!entry) {
+            continue;
+        }
+        if (!document.contains(entry.element)) {
+            launcherStack.splice(i, 1);
+            continue;
+        }
+        if (entry.deactivatedAt === undefined) {
+            return entry.element;
+        }
+    }
+    // Pass 2: most recent deactivated within the clear window, pruning stale as we go.
+    for (let i = launcherStack.length - 1; i >= 0; i -= 1) {
+        const entry = launcherStack.at(i);
+        if (entry?.deactivatedAt === undefined) {
+            continue;
+        }
+        if (!document.contains(entry.element)) {
+            launcherStack.splice(i, 1);
+            continue;
+        }
+        if (now - entry.deactivatedAt > LAUNCHER_CLEAR_DELAY_MS) {
+            launcherStack.splice(i, 1);
+            continue;
+        }
+        return entry.element;
+    }
+    return null;
+}
+
+function consumeLauncher(element: HTMLElement): void {
+    const idx = launcherStack.findIndex((e) => e.element === element);
+    if (idx >= 0) {
+        launcherStack.splice(idx, 1);
+    }
+}
+
 function captureTriggerForRoute(routeKey: string): void {
     if (typeof document === 'undefined') {
         return;
@@ -85,7 +135,7 @@ function captureTriggerForRoute(routeKey: string): void {
         return;
     }
 
-    const launcher = activePopoverLauncher && document.contains(activePopoverLauncher) ? activePopoverLauncher : null;
+    const launcher = pickLauncher();
 
     // Reject lastInteractiveElement if focus has since drifted to another non-body element.
     const active = document.activeElement;
@@ -99,7 +149,7 @@ function captureTriggerForRoute(routeKey: string): void {
         } else {
             triggerMap.set(routeKey, {primary: launcher});
         }
-        setActivePopoverLauncher(null);
+        consumeLauncher(launcher);
         return;
     }
 
@@ -109,23 +159,49 @@ function captureTriggerForRoute(routeKey: string): void {
     triggerMap.set(routeKey, {primary: inner});
 }
 
+// Push a launcher onto the stack. Passing null pops the most recent entry (backward-compatible "clear immediately" call).
 function setActivePopoverLauncher(element: HTMLElement | null): void {
-    if (clearLauncherTimerId !== undefined) {
-        clearTimeout(clearLauncherTimerId);
-        clearLauncherTimerId = undefined;
+    if (element === null) {
+        launcherStack.pop();
+        return;
     }
-    activePopoverLauncher = element;
+    // Re-activating an element already on the stack just clears its deactivated state.
+    const existing = launcherStack.find((e) => e.element === element);
+    if (existing) {
+        existing.deactivatedAt = undefined;
+        return;
+    }
+    launcherStack.push({element});
+    while (launcherStack.length > LAUNCHER_STACK_MAX) {
+        launcherStack.shift();
+    }
 }
 
-/** Defer the launcher clear so deferred-navigation popovers can still consume it. A new setActivePopoverLauncher cancels the pending clear. */
-function scheduleClearActivePopoverLauncher(): void {
-    if (clearLauncherTimerId !== undefined) {
-        clearTimeout(clearLauncherTimerId);
+/** Mark the given launcher (or the top of the stack if omitted) as deactivated. Lazy pruning in pickLauncher enforces LAUNCHER_CLEAR_DELAY_MS. */
+function scheduleClearActivePopoverLauncher(element?: HTMLElement): void {
+    const entry = element ? launcherStack.find((e) => e.element === element) : launcherStack.at(-1);
+    if (entry) {
+        entry.deactivatedAt = Date.now();
     }
-    clearLauncherTimerId = setTimeout(() => {
-        activePopoverLauncher = null;
-        clearLauncherTimerId = undefined;
-    }, LAUNCHER_CLEAR_DELAY_MS);
+}
+
+// Normalize primitive values to strings so URL-rehydrated params (always strings) match PUSH_PARAMS dispatches that may use numbers/booleans.
+function normalizeForKey(value: unknown): unknown {
+    if (value == null) {
+        return value;
+    }
+    if (typeof value === 'number' || typeof value === 'boolean') {
+        return String(value);
+    }
+    if (Array.isArray(value)) {
+        // Preserve array shape; explicit `undefined` elements coalesce to `null` via JSON spec (URL-rehydrated arrays never contain undefined, so safe).
+        return value.map(normalizeForKey);
+    }
+    if (typeof value === 'object') {
+        const entries = Object.entries(value as Record<string, unknown>).map(([k, v]) => [k, normalizeForKey(v)]);
+        return Object.fromEntries(entries);
+    }
+    return value;
 }
 
 /** Compound key for PUSH_PARAMS history (same route.key across params snapshots). Sorts top-level keys for insertion-order stability. */
@@ -134,11 +210,12 @@ function compoundParamsKey(routeKey: string, params: unknown): string {
         return `${routeKey}${COMPOUND_KEY_DELIMITER}`;
     }
     if (typeof params !== 'object') {
-        return `${routeKey}${COMPOUND_KEY_DELIMITER}${JSON.stringify(params)}`;
+        return `${routeKey}${COMPOUND_KEY_DELIMITER}${JSON.stringify(normalizeForKey(params))}`;
     }
     // Drop undefined so explicit-undefined fields match path-rehydrated (omitted) params.
     const entries = Object.entries(params as Record<string, unknown>)
         .filter(([, value]) => value !== undefined)
+        .map(([k, v]) => [k, normalizeForKey(v)] as const)
         .sort(([a], [b]) => {
             if (a < b) {
                 return -1;
@@ -170,6 +247,50 @@ function canAcceptFocus(el: HTMLElement): boolean {
     return !el.matches(':disabled') && el.getAttribute('aria-disabled') !== 'true' && !el.closest('[aria-hidden="true"]');
 }
 
+// Resolve the best restore candidate for a TriggerEntry.
+// 'retry' = something is in the DOM but cannot currently accept focus (scheduler will retry).
+// 'gone' = nothing is in the DOM anymore (permanent failure, drop the entry).
+type RestorePick = {target: HTMLElement; source: 'primary' | 'fallback'} | 'retry' | 'gone';
+
+function pickRestoreTarget(entry: TriggerEntry): RestorePick {
+    const {primary, fallback} = entry;
+    const primaryInDom = document.contains(primary);
+    const fallbackInDom = !!fallback && document.contains(fallback);
+
+    if (primaryInDom && canAcceptFocus(primary)) {
+        return {target: primary, source: 'primary'};
+    }
+    if (fallbackInDom && fallback && canAcceptFocus(fallback)) {
+        return {target: fallback, source: 'fallback'};
+    }
+    if (primaryInDom || fallbackInDom) {
+        return 'retry';
+    }
+    return 'gone';
+}
+
+// Grace window after a successful restore: RETURN keeps in-flight AUTO/INITIAL from the destination screen losing, then releases so unrelated later claimers (side-panels, etc.) aren't blocked for CYCLE_TIMEOUT_MS.
+const RETURN_HOLD_MS = 500;
+let returnHoldTimerId: ReturnType<typeof setTimeout> | undefined;
+
+function scheduleReturnHoldRelease(): void {
+    if (returnHoldTimerId !== undefined) {
+        clearTimeout(returnHoldTimerId);
+    }
+    returnHoldTimerId = setTimeout(() => {
+        returnHoldTimerId = undefined;
+        resetCycle();
+    }, RETURN_HOLD_MS);
+}
+
+function cancelReturnHoldRelease(): void {
+    if (returnHoldTimerId === undefined) {
+        return;
+    }
+    clearTimeout(returnHoldTimerId);
+    returnHoldTimerId = undefined;
+}
+
 function restoreTriggerForRoute(routeKey: string): boolean {
     if (typeof document === 'undefined') {
         return false;
@@ -178,25 +299,12 @@ function restoreTriggerForRoute(routeKey: string): boolean {
     if (!entry) {
         return false;
     }
-    const {primary, fallback} = entry;
-    const primaryInDom = document.contains(primary);
 
-    // Primary in DOM but transiently cannot accept focus: keep entry so scheduleRestore can retry.
-    if (primaryInDom && !canAcceptFocus(primary)) {
+    const pick = pickRestoreTarget(entry);
+    if (pick === 'retry') {
         return false;
     }
-
-    let target: HTMLElement | null = null;
-    if (primaryInDom) {
-        target = primary;
-    } else if (fallback && document.contains(fallback)) {
-        if (!canAcceptFocus(fallback)) {
-            return false;
-        }
-        target = fallback;
-    }
-
-    if (!target) {
+    if (pick === 'gone') {
         triggerMap.delete(routeKey);
         return false;
     }
@@ -205,10 +313,33 @@ function restoreTriggerForRoute(routeKey: string): boolean {
     if (!tryClaim(Priorities.RETURN)) {
         return false;
     }
-    // focusVisible reflects current modality so a user who switched to mouse doesn't get a ring.
-    // Cast: focusVisible is a spec'd FocusOptions field (Chromium/Firefox) but lib.dom.d.ts hasn't adopted it yet.
-    target.focus({preventScroll: true, focusVisible: getHadTabNavigation()} as FocusOptions);
-    return true;
+
+    // Preferred pick first, then fallback. Each attempt is verified via document.activeElement so silent-focus failures (display:none / visibility:hidden ancestors) fall through.
+    const candidates: HTMLElement[] = [pick.target];
+    if (pick.source === 'primary' && entry.fallback && document.contains(entry.fallback) && canAcceptFocus(entry.fallback)) {
+        candidates.push(entry.fallback);
+    }
+
+    const focusOptions = {preventScroll: true, focusVisible: getHadTabNavigation()} as FocusOptions;
+    for (const candidate of candidates) {
+        // Cast: focusVisible is a spec'd FocusOptions field (Chromium/Firefox) but lib.dom.d.ts hasn't adopted it yet.
+        candidate.focus(focusOptions);
+        const active = document.activeElement;
+        if (active === candidate) {
+            scheduleReturnHoldRelease();
+            return true;
+        }
+        if (active && active !== document.body) {
+            // onFocus handler redirected (composite-widget pattern) — respect it, don't override with the fallback.
+            scheduleReturnHoldRelease();
+            return true;
+        }
+        // active is body → silent no-op; try next candidate.
+    }
+
+    // All candidates silently no-op'd. Release the claim immediately so AUTO/INITIAL can still try.
+    resetCycle();
+    return false;
 }
 
 function cancelPendingRestore(): void {
@@ -336,6 +467,7 @@ function setupNavigationFocusReturn(): void {
 
 function teardownNavigationFocusReturn(): void {
     cancelPendingRestore();
+    cancelReturnHoldRelease();
     if (focusinHandler && typeof document !== 'undefined') {
         document.removeEventListener('focusin', focusinHandler, true);
     }
@@ -346,14 +478,11 @@ function teardownNavigationFocusReturn(): void {
 
 function resetForTests(): void {
     cancelPendingRestore();
-    if (clearLauncherTimerId !== undefined) {
-        clearTimeout(clearLauncherTimerId);
-        clearLauncherTimerId = undefined;
-    }
+    cancelReturnHoldRelease();
     triggerMap.clear();
+    launcherStack.length = 0;
     prevState = undefined;
     lastInteractiveElement = null;
-    activePopoverLauncher = null;
 }
 
 function setLastInteractiveElementForTests(element: HTMLElement | null): void {

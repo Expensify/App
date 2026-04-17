@@ -507,6 +507,74 @@ describe('captureTriggerForRoute', () => {
             expect(launcherSpy).not.toHaveBeenCalled();
         });
 
+        it('should use the launcher fallback when primary is in DOM but cannot accept focus (aria-hidden)', () => {
+            // Captured a primary (in-trap item) and a fallback (launcher). At restore time, primary is inside aria-hidden container.
+            const launcher = appendButton();
+            const hiddenWrapper = document.createElement('div');
+            hiddenWrapper.setAttribute('aria-hidden', 'true');
+            const primary = document.createElement('button');
+            hiddenWrapper.appendChild(primary);
+            document.body.appendChild(hiddenWrapper);
+            setActivePopoverLauncher(launcher);
+            primary.focus();
+            primary.dispatchEvent(new FocusEvent('focusin', {bubbles: true}));
+
+            captureTriggerForRoute('route-a');
+
+            const launcherSpy = jest.spyOn(launcher, 'focus');
+            const primarySpy = jest.spyOn(primary, 'focus');
+            expect(restoreTriggerForRoute('route-a')).toBe(true);
+            expect(launcherSpy).toHaveBeenCalled();
+            expect(primarySpy).not.toHaveBeenCalled();
+        });
+
+        it('nested traps: inner activation does not evict the outer launcher from the stack', () => {
+            const outerLauncher = appendButton();
+            const innerLauncher = appendButton();
+            setActivePopoverLauncher(outerLauncher);
+            setActivePopoverLauncher(innerLauncher);
+
+            // Inner trap closes first.
+            scheduleClearActivePopoverLauncher(innerLauncher);
+            // Capture fires while outer is still active — must see outer, not the deactivated inner.
+            captureTriggerForRoute('route-a');
+
+            const outerSpy = jest.spyOn(outerLauncher, 'focus');
+            const innerSpy = jest.spyOn(innerLauncher, 'focus');
+            outerLauncher.blur();
+            expect(restoreTriggerForRoute('route-a')).toBe(true);
+            expect(outerSpy).toHaveBeenCalled();
+            expect(innerSpy).not.toHaveBeenCalled();
+        });
+
+        it('sequential traps: opening a new trap within the deferred-clear window does not wipe the earlier launcher', () => {
+            withFakeTimers(() => {
+                const launcherA = appendButton();
+                const launcherB = appendButton();
+
+                // Trap A opens and closes; its 1s clear window starts.
+                setActivePopoverLauncher(launcherA);
+                scheduleClearActivePopoverLauncher(launcherA);
+
+                // Trap B opens within 500ms — A must still be on the stack (deactivated, within window).
+                jest.advanceTimersByTime(500);
+                setActivePopoverLauncher(launcherB);
+
+                // User closes B without navigating; A is still in its deferred window.
+                scheduleClearActivePopoverLauncher(launcherB);
+
+                // A capture now picks B (top of stack, active most recently). This is the expected behavior.
+                captureTriggerForRoute('route-a');
+
+                const spyA = jest.spyOn(launcherA, 'focus');
+                const spyB = jest.spyOn(launcherB, 'focus');
+                launcherB.blur();
+                expect(restoreTriggerForRoute('route-a')).toBe(true);
+                expect(spyB).toHaveBeenCalled();
+                expect(spyA).not.toHaveBeenCalled();
+            });
+        });
+
         it('should cancel a pending deferred clear when a new launcher is set', () => {
             withFakeTimers(() => {
                 const launcherA = appendButton();
@@ -656,6 +724,65 @@ describe('restoreTriggerForRoute', () => {
         const spy = jest.spyOn(trigger, 'focus');
         expect(restoreTriggerForRoute('route-a')).toBe(true);
         expect(spy).toHaveBeenCalled();
+    });
+
+    it('should release the arbiter cycle when all focus candidates silently no-op (neither primary nor fallback actually received focus)', () => {
+        // Mimic display:none-style silent focus failure by stubbing .focus() on both candidates.
+        const launcher = appendButton();
+        const primary = appendButton();
+        setActivePopoverLauncher(launcher);
+        primary.focus();
+        primary.dispatchEvent(new FocusEvent('focusin', {bubbles: true}));
+        captureTriggerForRoute('route-a');
+
+        primary.blur();
+        jest.spyOn(primary, 'focus').mockImplementation(() => {});
+        jest.spyOn(launcher, 'focus').mockImplementation(() => {});
+
+        expect(restoreTriggerForRoute('route-a')).toBe(false);
+        // Cycle was released — a subsequent AUTO claim must succeed.
+        expect(tryClaim(Priorities.AUTO)).toBe(true);
+    });
+
+    it('should release the arbiter cycle after RETURN_HOLD_MS so later unrelated AUTO claims are not blocked for 2 seconds', () => {
+        withFakeTimers(() => {
+            const trigger = appendButton();
+            trigger.focus();
+            setLastInteractiveElementForTests(trigger);
+            captureTriggerForRoute('route-a');
+            trigger.blur();
+
+            expect(restoreTriggerForRoute('route-a')).toBe(true);
+            // Immediately after RETURN lands, AUTO is blocked (destination screen's mount-time useAutoFocusInput loses, correctly).
+            expect(tryClaim(Priorities.AUTO)).toBe(false);
+
+            // After the hold window, the cycle is released so a later unrelated AUTO (e.g. side-panel open) can succeed.
+            jest.advanceTimersByTime(600);
+            expect(tryClaim(Priorities.AUTO)).toBe(true);
+        });
+    });
+
+    it('should respect an onFocus redirect and not override by trying the fallback', () => {
+        // Captured primary has an onFocus handler that redirects focus to a composite-widget's internal element.
+        // Our post-focus check must see "focus moved somewhere non-body" and treat it as success, not try the fallback and override the redirect.
+        const launcher = appendButton();
+        const primary = appendButton();
+        const redirectTarget = appendButton();
+        setActivePopoverLauncher(launcher);
+        primary.focus();
+        primary.dispatchEvent(new FocusEvent('focusin', {bubbles: true}));
+        captureTriggerForRoute('route-a');
+        primary.blur();
+
+        // Primary's .focus() handler redirects focus to redirectTarget (simulating a composite widget).
+        jest.spyOn(primary, 'focus').mockImplementation(() => {
+            redirectTarget.focus();
+        });
+        const launcherSpy = jest.spyOn(launcher, 'focus');
+
+        expect(restoreTriggerForRoute('route-a')).toBe(true);
+        expect(document.activeElement).toBe(redirectTarget);
+        expect(launcherSpy).not.toHaveBeenCalled();
     });
 
     it("Status → Clear after → Esc: restores to 'Clear after' even when Status AUTO-focuses the Message input", () => {
@@ -962,6 +1089,25 @@ describe('compoundParamsKey', () => {
 
     it('should distinguish explicit null from absent (null is a real value)', () => {
         expect(compoundParamsKey('search-x', {q: 'foo', rawQuery: null})).not.toBe(compoundParamsKey('search-x', {q: 'foo'}));
+    });
+
+    it('should treat number and string-of-number as equivalent (URL-rehydrated params are always strings)', () => {
+        expect(compoundParamsKey('search-x', {id: 123})).toBe(compoundParamsKey('search-x', {id: '123'}));
+    });
+
+    it('should treat boolean and string-of-boolean as equivalent', () => {
+        expect(compoundParamsKey('search-x', {active: true})).toBe(compoundParamsKey('search-x', {active: 'true'}));
+    });
+
+    it('should treat arrays of numbers and arrays of string-of-numbers as equivalent', () => {
+        expect(compoundParamsKey('search-x', {ids: [1, 2, 3]})).toBe(compoundParamsKey('search-x', {ids: ['1', '2', '3']}));
+    });
+
+    it('should preserve array structure (not collapse to object keys)', () => {
+        // An object with numeric keys should NOT match the equivalent array — they're different param shapes.
+        // eslint-disable-next-line @typescript-eslint/naming-convention
+        const asObject = {ids: {'0': 'a', '1': 'b'}};
+        expect(compoundParamsKey('search-x', {ids: ['a', 'b']})).not.toBe(compoundParamsKey('search-x', asObject));
     });
 });
 

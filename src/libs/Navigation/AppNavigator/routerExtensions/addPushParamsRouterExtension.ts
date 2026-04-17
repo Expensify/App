@@ -190,8 +190,8 @@ function addPushParamsRouterExtension<RouterOptions extends PlatformStackRouterO
             if (action.type === CONST.NAVIGATION.ACTION_TYPE.RESET && state.history) {
                 // Only position±1 is adjacent browser nav; non-adjacent jumps are forward URL nav (skip).
                 const newFocused = rehydratedState.routes.at(-1);
+                const history = state.history as CustomHistoryEntry[];
                 if (newFocused?.key) {
-                    const history = state.history as CustomHistoryEntry[];
                     // Reinitialize when out of range — module-scoped cursor can survive history-shrinking events.
                     if (pushParamsHistoryPosition < 0 || pushParamsHistoryPosition >= history.length) {
                         pushParamsHistoryPosition = history.length - 1;
@@ -207,7 +207,9 @@ function addPushParamsRouterExtension<RouterOptions extends PlatformStackRouterO
                         }
                         return compoundParamsKey(entry.key, entry.params) === newCompound;
                     };
-                    if (matchAt(pushParamsHistoryPosition - 1)) {
+                    if (matchAt(pushParamsHistoryPosition)) {
+                        // No-op RESET (same compound at cursor): e.g. useNavigationResetOnLayoutChange. Don't cancel, don't adjust.
+                    } else if (matchAt(pushParamsHistoryPosition - 1)) {
                         notifyPushParamsBackward(newFocused.key, newFocused.params);
                         pushParamsHistoryPosition -= 1;
                     } else if (matchAt(pushParamsHistoryPosition + 1)) {
@@ -220,8 +222,16 @@ function addPushParamsRouterExtension<RouterOptions extends PlatformStackRouterO
                     }
                 }
 
-                const preservedHistory = preserveHistoryForRoutes(state.history as CustomHistoryEntry[], rehydratedState.routes);
+                const preservedHistory = preserveHistoryForRoutes(history, rehydratedState.routes);
                 if (preservedHistory.length > 0) {
+                    // Remap cursor when preservation removed entries — the cursor's numeric index would otherwise point at a different logical entry.
+                    if (preservedHistory.length !== history.length) {
+                        const cursorEntry = pushParamsHistoryPosition >= 0 && pushParamsHistoryPosition < history.length ? history.at(pushParamsHistoryPosition) : null;
+                        if (cursorEntry) {
+                            const remapped = preservedHistory.indexOf(cursorEntry);
+                            pushParamsHistoryPosition = remapped >= 0 ? remapped : preservedHistory.length - 1;
+                        }
+                    }
                     return {
                         ...rehydratedState,
                         history: preservedHistory,
