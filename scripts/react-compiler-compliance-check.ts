@@ -15,7 +15,7 @@ import path from 'path';
 import CLI from './utils/CLI';
 import FileUtils from './utils/FileUtils';
 import Git from './utils/Git';
-import {log, error as logError, errorDetail as logErrorDetail, info as logInfo, success as logSuccess, warn as logWarn} from './utils/Logger';
+import {error as logError, errorDetail as logErrorDetail, info as logInfo, success as logSuccess, warn as logWarn} from './utils/Logger';
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-unsafe-assignment
 const ReactCompilerConfig = require('../config/babel/reactCompilerConfig');
@@ -241,10 +241,10 @@ async function checkChangedFiles(remote: string, verbose: boolean): Promise<bool
         }
     }
 
-    log();
+    console.log();
     if (failures.length > 0) {
         logError(`React Compiler compliance check failed with ${failures.length} error(s).`);
-        log();
+        console.log();
         logInfo('See contributingGuides/REACT_COMPILER.md for help fixing these errors.');
         return false;
     }
