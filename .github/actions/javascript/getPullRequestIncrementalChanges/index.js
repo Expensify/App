@@ -12869,7 +12869,7 @@ exports["default"] = Git;
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.bold = exports.formatLink = exports.success = exports.error = exports.note = exports.warn = exports.info = exports.log = void 0;
+exports.bold = exports.formatLink = exports.success = exports.errorDetail = exports.error = exports.note = exports.warn = exports.info = exports.log = void 0;
 const COLOR_DIM = '\x1b[2m';
 const COLOR_RESET = '\x1b[0m';
 const COLOR_YELLOW = '\x1b[33m';
@@ -12918,6 +12918,11 @@ const error = (...args) => {
     log(...lines);
 };
 exports.error = error;
+const errorDetail = (...args) => {
+    const lines = [`   ${COLOR_RED}↳`, ...args, COLOR_RESET];
+    log(...lines);
+};
+exports.errorDetail = errorDetail;
 const formatLink = (name, url) => `\x1b]8;;${url}\x1b\\${name}\x1b]8;;\x1b\\`;
 exports.formatLink = formatLink;
 
