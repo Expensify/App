@@ -10,6 +10,7 @@ import * as ActionSheetAwareScrollView from '@components/ActionSheetAwareScrollV
 import ContextMenuItem from '@components/ContextMenuItem';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import FocusTrapForModal from '@components/FocusTrap/FocusTrapForModal';
+import {CompactMenuContext} from '@components/MenuItem';
 import {useSession} from '@components/OnyxListItemProvider';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -371,93 +372,96 @@ function BaseReportActionContextMenu({
     return (
         (isVisible || shouldKeepOpen || !isMini) && (
             <FocusTrapForModal active={!isMini && !isSmallScreenWidth && (isVisible || shouldKeepOpen)}>
-                <View
-                    ref={contentRef}
-                    style={wrapperStyle}
-                >
-                    {filteredContextMenuActions.map((contextAction, index) => {
-                        const closePopup = !isMini;
-                        const payload: ContextMenuActionPayload = {
-                            reportActions,
-                            // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
-                            reportAction: (reportAction ?? null) as ReportAction,
-                            reportID,
-                            originalReportID,
-                            report,
-                            draftMessage,
-                            selection,
-                            close: () => setShouldKeepOpen(false),
-                            transitionActionSheetState,
-                            openContextMenu: () => setShouldKeepOpen(true),
-                            interceptAnonymousUser,
-                            openOverflowMenu,
-                            setIsEmojiPickerActive,
-                            isHarvestReport,
-                            moneyRequestAction,
-                            card,
-                            originalReport,
-                            isTryNewDotNVPDismissed,
-                            childReport,
-                            movedFromReport,
-                            movedToReport,
-                            getLocalDateFromDatetime,
-                            policy,
-                            policyTags,
-                            translate,
-                            harvestReport,
-                            introSelected,
-                            isSelfTourViewed,
-                            betas,
-                            isDelegateAccessRestricted,
-                            showDelegateNoAccessModal,
-                            currentUserAccountID: currentUserPersonalDetails?.accountID,
-                            currentUserPersonalDetails,
-                            encryptedAuthToken,
-                            iouTransaction,
-                            bankAccountList,
-                            isOffline,
-                            conciergeReportID,
-                        };
+                <CompactMenuContext.Provider value>
+                    <View
+                        ref={contentRef}
+                        style={wrapperStyle}
+                    >
+                        {filteredContextMenuActions.map((contextAction, index) => {
+                            const closePopup = !isMini;
+                            const payload: ContextMenuActionPayload = {
+                                reportActions,
+                                // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
+                                reportAction: (reportAction ?? null) as ReportAction,
+                                reportID,
+                                originalReportID,
+                                report,
+                                draftMessage,
+                                selection,
+                                close: () => setShouldKeepOpen(false),
+                                transitionActionSheetState,
+                                openContextMenu: () => setShouldKeepOpen(true),
+                                interceptAnonymousUser,
+                                openOverflowMenu,
+                                setIsEmojiPickerActive,
+                                isHarvestReport,
+                                moneyRequestAction,
+                                card,
+                                originalReport,
+                                isTryNewDotNVPDismissed,
+                                childReport,
+                                movedFromReport,
+                                movedToReport,
+                                getLocalDateFromDatetime,
+                                policy,
+                                policyTags,
+                                translate,
+                                harvestReport,
+                                introSelected,
+                                isSelfTourViewed,
+                                betas,
+                                isDelegateAccessRestricted,
+                                showDelegateNoAccessModal,
+                                currentUserAccountID: currentUserPersonalDetails?.accountID,
+                                currentUserPersonalDetails,
+                                encryptedAuthToken,
+                                iouTransaction,
+                                bankAccountList,
+                                isOffline,
+                                conciergeReportID,
+                            };
 
-                        if ('renderContent' in contextAction) {
-                            return contextAction.renderContent(closePopup, payload);
-                        }
+                            if ('renderContent' in contextAction) {
+                                return contextAction.renderContent(closePopup, payload);
+                            }
 
-                        const {textTranslateKey} = contextAction;
-                        const isKeyInActionUpdateKeys = textTranslateKey === 'reportActionContextMenu.editAction' || textTranslateKey === 'reportActionContextMenu.deleteConfirmation';
-                        const text = textTranslateKey && (isKeyInActionUpdateKeys ? translate(textTranslateKey, {action: moneyRequestAction ?? reportAction}) : translate(textTranslateKey));
-                        const transactionPayload = textTranslateKey === 'reportActionContextMenu.copyMessage' && transaction && {transaction};
-                        const isMenuAction = textTranslateKey === 'reportActionContextMenu.menu';
-                        const successIcon = contextAction.successIcon ? icons[contextAction.successIcon] : undefined;
+                            const {textTranslateKey} = contextAction;
+                            const isKeyInActionUpdateKeys = textTranslateKey === 'reportActionContextMenu.editAction' || textTranslateKey === 'reportActionContextMenu.deleteConfirmation';
+                            const text =
+                                textTranslateKey && (isKeyInActionUpdateKeys ? translate(textTranslateKey, {action: moneyRequestAction ?? reportAction}) : translate(textTranslateKey));
+                            const transactionPayload = textTranslateKey === 'reportActionContextMenu.copyMessage' && transaction && {transaction};
+                            const isMenuAction = textTranslateKey === 'reportActionContextMenu.menu';
+                            const successIcon = contextAction.successIcon ? icons[contextAction.successIcon] : undefined;
 
-                        return (
-                            <ContextMenuItem
-                                buttonRef={isMenuAction ? threeDotRef : {current: null}}
-                                icon={icons[contextAction.icon]}
-                                text={text ?? ''}
-                                successIcon={successIcon}
-                                successText={contextAction.successTextTranslateKey ? translate(contextAction.successTextTranslateKey) : undefined}
-                                isMini={isMini}
-                                key={contextAction.textTranslateKey}
-                                onPress={(event) =>
-                                    interceptAnonymousUser(
-                                        () => contextAction.onPress?.(closePopup, {...payload, ...transactionPayload, event, ...(isMenuAction ? {anchorRef: threeDotRef} : {})}),
-                                        contextAction.isAnonymousAction,
-                                    )
-                                }
-                                description={contextAction.getDescription?.(selection) ?? ''}
-                                isAnonymousAction={contextAction.isAnonymousAction}
-                                isFocused={focusedIndex === index}
-                                shouldPreventDefaultFocusOnPress={contextAction.shouldPreventDefaultFocusOnPress}
-                                onFocus={() => setFocusedIndex(index)}
-                                onBlur={() => (index === filteredContextMenuActions.length - 1 || index === 1) && setFocusedIndex(-1)}
-                                disabled={contextAction?.shouldDisable ? contextAction?.shouldDisable(download) : false}
-                                shouldShowLoadingSpinnerIcon={contextAction?.shouldDisable ? contextAction?.shouldDisable(download) : false}
-                                sentryLabel={contextAction.sentryLabel}
-                            />
-                        );
-                    })}
-                </View>
+                            return (
+                                <ContextMenuItem
+                                    buttonRef={isMenuAction ? threeDotRef : {current: null}}
+                                    icon={icons[contextAction.icon]}
+                                    text={text ?? ''}
+                                    successIcon={successIcon}
+                                    successText={contextAction.successTextTranslateKey ? translate(contextAction.successTextTranslateKey) : undefined}
+                                    isMini={isMini}
+                                    key={contextAction.textTranslateKey}
+                                    onPress={(event) =>
+                                        interceptAnonymousUser(
+                                            () => contextAction.onPress?.(closePopup, {...payload, ...transactionPayload, event, ...(isMenuAction ? {anchorRef: threeDotRef} : {})}),
+                                            contextAction.isAnonymousAction,
+                                        )
+                                    }
+                                    description={contextAction.getDescription?.(selection) ?? ''}
+                                    isAnonymousAction={contextAction.isAnonymousAction}
+                                    isFocused={focusedIndex === index}
+                                    shouldPreventDefaultFocusOnPress={contextAction.shouldPreventDefaultFocusOnPress}
+                                    onFocus={() => setFocusedIndex(index)}
+                                    onBlur={() => (index === filteredContextMenuActions.length - 1 || index === 1) && setFocusedIndex(-1)}
+                                    disabled={contextAction?.shouldDisable ? contextAction?.shouldDisable(download) : false}
+                                    shouldShowLoadingSpinnerIcon={contextAction?.shouldDisable ? contextAction?.shouldDisable(download) : false}
+                                    sentryLabel={contextAction.sentryLabel}
+                                />
+                            );
+                        })}
+                    </View>
+                </CompactMenuContext.Provider>
             </FocusTrapForModal>
         )
     );
