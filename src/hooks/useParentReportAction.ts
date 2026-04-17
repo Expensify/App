@@ -17,10 +17,6 @@ function useParentReportAction(report: OnyxEntry<Report>) {
     const [parentReportAction] = useOnyx(
         `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`,
         {
-            // Only set canEvict when we have a valid parentReportID — reportActions_<id> is an evictable key,
-            // but reportActions_undefined is not and will throw if canEvict is specified.
-            canEvict: parentReportID ? false : undefined,
-
             selector: getParentReportAction,
         },
         [getParentReportAction],
