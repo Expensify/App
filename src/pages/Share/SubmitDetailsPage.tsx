@@ -43,7 +43,7 @@ import type {ShareNavigatorParamList} from '@libs/Navigation/types';
 import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
 import {hasOnlyPersonalPolicies as hasOnlyPersonalPoliciesUtil, isPaidGroupPolicy} from '@libs/PolicyUtils';
 import {shouldValidateFile} from '@libs/ReceiptUtils';
-import {getReportOrDraftReport, isSelfDM} from '@libs/ReportUtils';
+import {getReportOrDraftReport, isProcessingReport, isReportOutstanding, isSelfDM} from '@libs/ReportUtils';
 import {getDefaultTaxCode, getTaxValue} from '@libs/TransactionUtils';
 import DraftWorkspaceOpener from '@pages/iou/request/step/confirmation/DraftWorkspaceOpener';
 import CONST from '@src/CONST';
@@ -69,7 +69,6 @@ function SubmitDetailsPage({
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`);
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`);
     const transactionReport = getReportOrDraftReport(transaction?.reportID);
-    const existingIOUReport = transaction?.reportID && transaction.reportID !== reportOrAccountID ? transactionReport : undefined;
     const iouType = isSelfDM(report) ? CONST.IOU.TYPE.TRACK : CONST.IOU.TYPE.SUBMIT;
     // Self-DM has a FAKE report policyID — usePolicyForTransaction (same hook MoneyRequestConfirmationList uses) returns the active workspace for self-DM track expense, covering the upgrade-from-free flow.
     const {policy} = usePolicyForTransaction({
@@ -90,6 +89,20 @@ function SubmitDetailsPage({
     const [validFilesToUpload] = useOnyx(ONYXKEYS.VALIDATED_FILE_OBJECT);
     const [policyRecentlyUsedCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${policy?.id}`);
     const [policyRecentlyUsedTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${policy?.id}`);
+
+    const isUnreported = transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
+    const canUseTransactionReport = !(isProcessingReport(transactionReport) && !policy?.harvesting?.enabled) && isReportOutstanding(transactionReport, policy?.id, undefined, false);
+    const shouldUseTransactionReport = !!transactionReport && (canUseTransactionReport || !report);
+    const isTransactionReportDifferentFromRoute = !!transaction?.reportID && !!report?.reportID && transaction.reportID !== report.reportID;
+    let reportToSubmit: OnyxEntry<ReportType> = report;
+    if (isUnreported) {
+        reportToSubmit = undefined;
+    } else if (shouldUseTransactionReport) {
+        reportToSubmit = transactionReport;
+    } else if (isTransactionReportDifferentFromRoute) {
+        reportToSubmit = undefined;
+    }
+
     const [currentAttachment] = useOnyx(ONYXKEYS.SHARE_TEMP_FILE);
     const shouldUsePreValidatedFile = shouldValidateFile(currentAttachment);
     const isLinkedTrackedExpenseReportArchived = useReportIsArchived(transaction?.linkedTrackedExpenseReportID);
@@ -258,8 +271,7 @@ function SubmitDetailsPage({
             const existingTransactionDraft = existingTransactionID ? transactionDrafts?.[existingTransactionID] : undefined;
 
             requestMoney({
-                report,
-                existingIOUReport,
+                report: reportToSubmit,
                 participantParams: {payeeEmail: currentUserPersonalDetails.login, payeeAccountID: currentUserPersonalDetails.accountID, participant},
                 policyParams: {policy, policyTagList: policyTags, policyCategories, policyRecentlyUsedCategories, policyRecentlyUsedTags},
                 gpsPoint,
