@@ -12,6 +12,10 @@ function setup(): void {
     }
 
     const keydownHandler = (e: KeyboardEvent) => {
+        // Autofill/password-manager synthetic events can omit `key` — guard before .length access.
+        if (typeof e.key !== 'string') {
+            return;
+        }
         if (e.key === 'Tab') {
             hadTabNavigation = true;
             return;

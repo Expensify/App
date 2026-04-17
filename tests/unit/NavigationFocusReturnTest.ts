@@ -357,6 +357,13 @@ describe('captureTriggerForRoute', () => {
             trigger.blur();
             expect(restoreTriggerForRoute('route-a')).toBe(true);
         });
+
+        it('should not crash on synthesized keydown with undefined key (browser autofill / password managers)', () => {
+            // Repro: autofill synthesizes a KeyboardEvent with `key: undefined`; without the guard, `e.key.length` throws out of the capture-phase listener.
+            const event = new KeyboardEvent('keydown', {bubbles: true});
+            Object.defineProperty(event, 'key', {value: undefined, configurable: true});
+            expect(() => document.dispatchEvent(event)).not.toThrow();
+        });
     });
 
     describe('when a popover launcher is active', () => {
