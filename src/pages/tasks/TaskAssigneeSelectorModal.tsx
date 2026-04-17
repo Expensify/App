@@ -24,6 +24,7 @@ import {searchUserInServer} from '@libs/actions/Report';
 import {canModifyTask, editTaskAssignee, setAssigneeValue} from '@libs/actions/Task';
 import {READ_COMMANDS} from '@libs/API/types';
 import HttpUtils from '@libs/HttpUtils';
+import dismissModalForCurrentContext from '@libs/Navigation/helpers/dismissModalForCurrentContext';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getHeaderMessage, isCurrentUser} from '@libs/OptionsListUtils';
@@ -88,7 +89,7 @@ function TaskAssigneeSelectorModal() {
         const reportOnyx = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${route.params?.reportID}`];
         if (reportOnyx && !isTaskReport(reportOnyx)) {
             Navigation.isNavigationReady().then(() => {
-                Navigation.dismissModalWithReport({reportID: reportOnyx.reportID});
+                dismissModalForCurrentContext(reportOnyx.reportID);
             });
         }
         return reports?.[`${ONYXKEYS.COLLECTION.REPORT}${route.params?.reportID}`];
@@ -184,7 +185,7 @@ function TaskAssigneeSelectorModal() {
             }
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             InteractionManager.runAfterInteractions(() => {
-                Navigation.dismissModalWithReport({reportID: report?.reportID});
+                dismissModalForCurrentContext(report?.reportID);
             });
             // If there's no report, we're creating a new task
         } else if (option.accountID) {
