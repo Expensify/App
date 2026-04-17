@@ -595,6 +595,8 @@ describe('actions/IOU/ReportWorkflow', () => {
                                 policyCardFeeds: undefined,
                                 policyExpensifyCardSettings: undefined,
                                 policyExpensifyCardsList: undefined,
+                                lastSelectedFeed: undefined,
+                                lastSelectedExpensifyCardFeed: undefined,
                                 reportsToArchive: reportToArchive,
                                 transactionViolations: undefined,
                                 reimbursementAccountError: undefined,
