@@ -1,4 +1,3 @@
-import {useRoute} from '@react-navigation/native';
 import isEmpty from 'lodash/isEmpty';
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
@@ -7,35 +6,32 @@ import type {ListItem} from '@components/SelectionList/types';
 import SelectionScreen from '@components/SelectionScreen';
 import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updateNetSuiteExporter} from '@libs/actions/connections/NetSuiteCommands';
 import {clearNetSuiteErrorField} from '@libs/actions/Policy/Policy';
 import {getLatestErrorField} from '@libs/ErrorUtils';
-import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {getAdminEmployees, isExpensifyTeam, settingsPendingAction} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
-import type SCREENS from '@src/SCREENS';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 
 type CardListItem = ListItem & {
     value: string;
 };
 
-function NetSuitePreferredExporterSelectPage({policy}: WithPolicyConnectionsProps) {
+function DynamicNetSuitePreferredExporterSelectPage({policy}: WithPolicyConnectionsProps) {
     const config = policy?.connections?.netsuite?.options.config;
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policyOwner = policy?.owner ?? '';
     const exporters = getAdminEmployees(policy);
     const {login: currentUserLogin} = useCurrentUserPersonalDetails();
-    const route = useRoute<PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_PREFERRED_EXPORTER_SELECT>>();
-    const backTo = route.params.backTo;
     const policyID = policy?.id;
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.POLICY_ACCOUNTING_NETSUITE_PREFERRED_EXPORTER_SELECT.path);
     const data: CardListItem[] = useMemo(() => {
         if (!isEmpty(policyOwner) && isEmpty(exporters)) {
             return [
@@ -69,8 +65,8 @@ function NetSuitePreferredExporterSelectPage({policy}: WithPolicyConnectionsProp
     }, [config?.exporter, exporters, policyOwner, currentUserLogin]);
 
     const goBack = useCallback(() => {
-        Navigation.goBack(backTo ?? (policyID && ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT.getRoute(policyID)));
-    }, [policyID, backTo]);
+        Navigation.goBack(backPath);
+    }, [backPath]);
 
     const selectExporter = useCallback(
         (row: CardListItem) => {
@@ -97,7 +93,7 @@ function NetSuitePreferredExporterSelectPage({policy}: WithPolicyConnectionsProp
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
-            displayName="NetSuitePreferredExporterSelectPage"
+            displayName="DynamicNetSuitePreferredExporterSelectPage"
             data={data}
             listItem={RadioListItem}
             headerContent={headerContent}
@@ -114,4 +110,4 @@ function NetSuitePreferredExporterSelectPage({policy}: WithPolicyConnectionsProp
     );
 }
 
-export default withPolicyConnections(NetSuitePreferredExporterSelectPage);
+export default withPolicyConnections(DynamicNetSuitePreferredExporterSelectPage);
