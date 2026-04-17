@@ -1,7 +1,7 @@
 import type {NavigationAction, NavigationState} from '@react-navigation/native';
 import {findFocusedRoute} from '@react-navigation/native';
 import {isSingleNewDotEntrySelector} from '@selectors/HybridApp';
-import {hasCompletedGuidedSetupFlowSelector, tryNewDotOnyxSelector, wasInvitedToNewDotSelector} from '@selectors/Onboarding';
+import {hasCompletedGuidedSetupFlowSelector, tryNewDotOnyxSelector} from '@selectors/Onboarding';
 import Onyx from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -32,8 +32,6 @@ let hybridApp: {isSingleNewDotEntry?: boolean} | undefined;
 let onboardingPurposeSelected: OnyxEntry<OnboardingPurpose>;
 let onboardingCompanySize: OnyxEntry<OnboardingCompanySize>;
 let onboardingInitialPath: OnyxEntry<string>;
-let hasNonPersonalPolicy: OnyxEntry<boolean>;
-let wasInvitedToNewDot: boolean | undefined;
 
 Onyx.connectWithoutView({
     key: ONYXKEYS.NVP_ONBOARDING,
@@ -81,20 +79,6 @@ Onyx.connectWithoutView({
     key: ONYXKEYS.ONBOARDING_LAST_VISITED_PATH,
     callback: (value) => {
         onboardingInitialPath = value;
-    },
-});
-
-Onyx.connectWithoutView({
-    key: ONYXKEYS.HAS_NON_PERSONAL_POLICY,
-    callback: (value) => {
-        hasNonPersonalPolicy = value;
-    },
-});
-
-Onyx.connectWithoutView({
-    key: ONYXKEYS.NVP_INTRO_SELECTED,
-    callback: (value) => {
-        wasInvitedToNewDot = value ? wasInvitedToNewDotSelector(value) : undefined;
     },
 });
 
@@ -169,8 +153,6 @@ const OnboardingGuard: NavigationGuard = {
         const isMigratedUser = tryNewDot?.hasBeenAddedToNudgeMigration ?? false;
         const isSingleEntry = hybridApp?.isSingleNewDotEntry ?? false;
         const needsExplanationModal = (CONFIG.IS_HYBRID_APP && tryNewDot?.isHybridAppOnboardingCompleted !== true) ?? false;
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        const isInvitedOrGroupMember = (!CONFIG.IS_HYBRID_APP && (hasNonPersonalPolicy || wasInvitedToNewDot)) ?? false;
 
         // Redirect completed users who try to navigate to onboarding routes (e.g. via deep link)
         // The OnboardingModalNavigator is not mounted when onboarding is complete, so the route would silently fail
@@ -184,15 +166,7 @@ const OnboardingGuard: NavigationGuard = {
         const isNavigatingWithReplace = isNavigatingToOnboardingFlowWithReplaceAction(action);
 
         const shouldSkipOnboarding =
-            skipOnboardingConfig ||
-            isLoading ||
-            isTransitioning ||
-            isOnboardingCompleted ||
-            isMigratedUser ||
-            isSingleEntry ||
-            needsExplanationModal ||
-            isInvitedOrGroupMember ||
-            isNavigatingWithReplace;
+            skipOnboardingConfig || isLoading || isTransitioning || isOnboardingCompleted || isMigratedUser || isSingleEntry || needsExplanationModal || isNavigatingWithReplace;
 
         if (shouldSkipOnboarding) {
             return {type: 'ALLOW'};
@@ -218,7 +192,6 @@ const OnboardingGuard: NavigationGuard = {
             isMigratedUser,
             isSingleEntry,
             needsExplanationModal,
-            isInvitedOrGroupMember,
             isNavigatingWithReplace,
         });
 
