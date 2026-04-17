@@ -103,7 +103,7 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
         }
 
         openPolicyExpensifyCardsPage(policyID, defaultFundID);
-    }, [defaultFundID, isAdmin, policyID]);
+    }, [defaultFundID, expensifyCardSettings, isAdmin, policyID]);
 
     const deactivateCard = () => {
         setIsDeactivateModalVisible(false);
