@@ -1,6 +1,6 @@
 import {PortalHost} from '@gorhom/portal';
 import {useIsFocused} from '@react-navigation/native';
-import React, {useCallback, useEffect, useMemo, useRef} from 'react';
+import React, {useCallback, useEffect, useLayoutEffect, useMemo, useRef} from 'react';
 import {InteractionManager} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
@@ -158,7 +158,9 @@ function SearchMoneyRequestReportPageContent({route, reportIDFromRoute}: SearchM
     // so the transient undefined during Onyx hydration won't trigger dismissal.
     // Once the report loads, the ref becomes true. If the report is then deleted
     // (becomes undefined), we dismiss.
-    useEffect(() => {
+    // useLayoutEffect ensures dismissal fires before the browser paints, preventing
+    // a brief flash of the "not found" page when a report is deleted from another device.
+    useLayoutEffect(() => {
         if (report) {
             hasEverHadReportRef.current = true;
             return;
