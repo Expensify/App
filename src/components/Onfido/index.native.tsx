@@ -1,6 +1,6 @@
 import {OnfidoCaptureType, OnfidoCountryCode, OnfidoDocumentType, OnfidoNFCOptions, Onfido as OnfidoSDK, OnfidoTheme} from '@onfido/react-native-sdk';
-import React, {useEffect} from 'react';
-import {Alert, NativeModules} from 'react-native';
+import React, {useEffect, useRef} from 'react';
+import {Alert, InteractionManager, NativeModules} from 'react-native';
 import {checkMultiple, PERMISSIONS, RESULTS} from 'react-native-permissions';
 import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import useLocalize from '@hooks/useLocalize';
@@ -15,6 +15,71 @@ const {AppStateTracker} = NativeModules;
 
 function Onfido({sdkToken, onUserExit, onSuccess, onError}: OnfidoProps) {
     const {translate} = useLocalize();
+    const isExitInProgress = useRef(false);
+    const isMounted = useRef(true);
+    const exitInteractionTask = useRef<ReturnType<typeof InteractionManager.runAfterInteractions> | null>(null);
+    const exitAnimationFrame = useRef<number | null>(null);
+    const resetExitGuardFrame = useRef<number | null>(null);
+
+    const clearScheduledUserExit = () => {
+        exitInteractionTask.current?.cancel();
+        exitInteractionTask.current = null;
+
+        if (exitAnimationFrame.current !== null) {
+            cancelAnimationFrame(exitAnimationFrame.current);
+            exitAnimationFrame.current = null;
+        }
+
+        if (resetExitGuardFrame.current !== null) {
+            cancelAnimationFrame(resetExitGuardFrame.current);
+            resetExitGuardFrame.current = null;
+        }
+    };
+
+    const scheduleUserExit = (isUserInitiated?: boolean) => {
+        if (getPlatform() !== CONST.PLATFORM.IOS) {
+            onUserExit(isUserInitiated);
+            return;
+        }
+
+        if (isExitInProgress.current) {
+            return;
+        }
+
+        isExitInProgress.current = true;
+
+        exitInteractionTask.current = InteractionManager.runAfterInteractions(() => {
+            exitInteractionTask.current = null;
+            exitAnimationFrame.current = requestAnimationFrame(() => {
+                exitAnimationFrame.current = null;
+
+                if (!isMounted.current) {
+                    return;
+                }
+
+                onUserExit(isUserInitiated);
+
+                // Reset the guard only if the component is still mounted on the next frame.
+                // This preserves deduplication during teardown but avoids trapping the instance
+                // if navigation is ignored or the screen remains mounted unexpectedly.
+                resetExitGuardFrame.current = requestAnimationFrame(() => {
+                    resetExitGuardFrame.current = null;
+                    if (!isMounted.current) {
+                        return;
+                    }
+
+                    isExitInProgress.current = false;
+                });
+            });
+        });
+    };
+
+    useEffect(() => {
+        return () => {
+            isMounted.current = false;
+            clearScheduledUserExit();
+        };
+    }, []);
 
     useEffect(() => {
         OnfidoSDK.start({
@@ -50,7 +115,7 @@ function Onfido({sdkToken, onUserExit, onSuccess, onError}: OnfidoProps) {
                         return;
                     }
 
-                    onUserExit(true);
+                    scheduleUserExit(true);
                     return;
                 }
 
@@ -76,12 +141,12 @@ function Onfido({sdkToken, onUserExit, onSuccess, onError}: OnfidoProps) {
                                     [
                                         {
                                             text: translate('common.cancel'),
-                                            onPress: () => onUserExit(true),
+                                            onPress: () => scheduleUserExit(true),
                                         },
                                         {
                                             text: translate('common.settings'),
                                             onPress: () => {
-                                                onUserExit();
+                                                scheduleUserExit();
                                                 goToSettings();
                                             },
                                         },
