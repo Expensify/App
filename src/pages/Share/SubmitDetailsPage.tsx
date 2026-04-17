@@ -68,6 +68,8 @@ function SubmitDetailsPage({
     const report: OnyxEntry<ReportType> = getReportOrDraftReport(reportOrAccountID);
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`);
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`);
+    const transactionReport = getReportOrDraftReport(transaction?.reportID);
+    const existingIOUReport = transaction?.reportID && transaction.reportID !== reportOrAccountID ? transactionReport : undefined;
     const iouType = isSelfDM(report) ? CONST.IOU.TYPE.TRACK : CONST.IOU.TYPE.SUBMIT;
     // Self-DM has a FAKE report policyID — usePolicyForTransaction (same hook MoneyRequestConfirmationList uses) returns the active workspace for self-DM track expense, covering the upgrade-from-free flow.
     const {policy} = usePolicyForTransaction({
@@ -257,6 +259,7 @@ function SubmitDetailsPage({
 
             requestMoney({
                 report,
+                existingIOUReport,
                 participantParams: {payeeEmail: currentUserPersonalDetails.login, payeeAccountID: currentUserPersonalDetails.accountID, participant},
                 policyParams: {policy, policyTagList: policyTags, policyCategories, policyRecentlyUsedCategories, policyRecentlyUsedTags},
                 gpsPoint,
