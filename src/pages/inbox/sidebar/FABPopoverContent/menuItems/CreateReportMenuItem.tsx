@@ -10,6 +10,8 @@ import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import {createNewReport} from '@libs/actions/Report';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
+import getCreateReportRoute, {getDefaultReportsPageRoute} from '@libs/Navigation/helpers/getCreateReportRoute';
+import isHomeTopmostFullScreenRoute from '@libs/Navigation/helpers/isHomeTopmostFullScreenRoute';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {getDefaultChatEnabledPolicy, isPaidGroupPolicy, shouldShowPolicy} from '@libs/PolicyUtils';
@@ -100,10 +102,15 @@ function CreateReportMenuItem() {
             shouldDismissEmptyReportsConfirmation,
         );
         Navigation.setNavigationActionToMicrotaskQueue(() => {
+            const activeRoute = Navigation.getActiveRoute();
             Navigation.navigate(
-                isSearchTopmostFullScreenRoute()
-                    ? ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: createdReportID, backTo: Navigation.getActiveRoute()})
-                    : ROUTES.REPORT_WITH_ID.getRoute(createdReportID, undefined, undefined, Navigation.getActiveRoute()),
+                getCreateReportRoute({
+                    reportID: createdReportID,
+                    searchBackTo: activeRoute,
+                    fallbackBackTo: activeRoute,
+                    shouldOpenInReports: isHomeTopmostFullScreenRoute(),
+                    shouldOpenInSearch: isSearchTopmostFullScreenRoute(),
+                }),
                 {forceReplace: isReportInSearch},
             );
         });
@@ -140,7 +147,7 @@ function CreateReportMenuItem() {
                         (shouldRestrictUserBillableActions(workspaceIDForReportCreation, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed) &&
                             groupPoliciesWithChatEnabled.length > 1)
                     ) {
-                        Navigation.navigate(ROUTES.NEW_REPORT_WORKSPACE_SELECTION.getRoute());
+                        Navigation.navigate(ROUTES.NEW_REPORT_WORKSPACE_SELECTION.getRoute(undefined, isHomeTopmostFullScreenRoute() ? getDefaultReportsPageRoute() : undefined));
                         return;
                     }
 
