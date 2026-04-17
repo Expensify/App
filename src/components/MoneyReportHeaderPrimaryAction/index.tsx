@@ -10,17 +10,41 @@ import ReviewDuplicatesPrimaryAction from './ReviewDuplicatesPrimaryAction';
 import SubmitPrimaryAction from './SubmitPrimaryAction';
 import type {MoneyReportHeaderPrimaryActionProps} from './types';
 
-function MoneyReportHeaderPrimaryAction({reportID, chatReportID, primaryAction, onExportModalOpen}: MoneyReportHeaderPrimaryActionProps) {
+function MoneyReportHeaderPrimaryAction({
+    reportID,
+    chatReportID,
+    primaryAction,
+    isPaidAnimationRunning,
+    isApprovedAnimationRunning,
+    isSubmittingAnimationRunning,
+    stopAnimation,
+    startAnimation,
+    startApprovedAnimation,
+    startSubmittingAnimation,
+    onExportModalOpen,
+}: MoneyReportHeaderPrimaryActionProps) {
     if (!primaryAction) {
         return null;
     }
 
     if (primaryAction === CONST.REPORT.PRIMARY_ACTIONS.SUBMIT) {
-        return <SubmitPrimaryAction reportID={reportID} />;
+        return (
+            <SubmitPrimaryAction
+                reportID={reportID}
+                isSubmittingAnimationRunning={isSubmittingAnimationRunning}
+                stopAnimation={stopAnimation}
+                startSubmittingAnimation={startSubmittingAnimation}
+            />
+        );
     }
 
     if (primaryAction === CONST.REPORT.PRIMARY_ACTIONS.APPROVE) {
-        return <ApprovePrimaryAction reportID={reportID} />;
+        return (
+            <ApprovePrimaryAction
+                reportID={reportID}
+                startApprovedAnimation={startApprovedAnimation}
+            />
+        );
     }
 
     if (primaryAction === CONST.REPORT.PRIMARY_ACTIONS.PAY) {
@@ -28,6 +52,11 @@ function MoneyReportHeaderPrimaryAction({reportID, chatReportID, primaryAction, 
             <PayPrimaryAction
                 reportID={reportID}
                 chatReportID={chatReportID}
+                isPaidAnimationRunning={isPaidAnimationRunning}
+                isApprovedAnimationRunning={isApprovedAnimationRunning}
+                stopAnimation={stopAnimation}
+                startAnimation={startAnimation}
+                startApprovedAnimation={startApprovedAnimation}
             />
         );
     }

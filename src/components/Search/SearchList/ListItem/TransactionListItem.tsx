@@ -52,12 +52,13 @@ function TransactionListItem<TItem extends ListItem>({
     columns,
     isLoading,
     violations,
-    customCardNames,
+    nonPersonalAndWorkspaceCards,
     lastPaymentMethod,
     personalPolicyID,
     isLastItem,
     userBillingGracePeriodEnds,
     ownerBillingGracePeriodEnd,
+    policyForMovingExpenses,
     onUndelete,
 }: TransactionListItemProps<TItem>) {
     const transactionItem = item as unknown as TransactionListItemType;
@@ -75,6 +76,7 @@ function TransactionListItem<TItem extends ListItem>({
     // Use active policy (user's current workspace) as fallback for self DM tracking expenses
     // This matches MoneyRequestView's approach via usePolicyForMovingExpenses()
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
+    const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
 
     // Use report's policyID as fallback when transaction doesn't have policyID directly
     // Use active policy as final fallback for SelfDM (tracking expenses)
@@ -181,6 +183,7 @@ function TransactionListItem<TItem extends ListItem>({
             onDelegateAccessRestricted: showDelegateNoAccessModal,
             personalPolicyID,
             ownerBillingGracePeriodEnd,
+            amountOwed,
             onUndelete: () => onUndelete?.(transactionItem),
         });
     };
@@ -256,8 +259,9 @@ function TransactionListItem<TItem extends ListItem>({
                             violations={transactionViolations}
                             onArrowRightPress={isDeletedTransaction ? undefined : () => onSelectRow(item, transactionPreviewData)}
                             isHover={hovered}
-                            customCardNames={customCardNames}
+                            nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}
                             reportActions={exportedReportActions}
+                            policyForMovingExpenses={policyForMovingExpenses}
                         />
                     </>
                 )}

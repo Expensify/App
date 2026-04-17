@@ -110,6 +110,7 @@ const translations: TranslationDeepObject<typeof en> = {
         newFeature: 'Nouvelle fonctionnalité',
         search: 'Rechercher',
         reports: 'Notes de frais',
+        spend: 'Dépenses',
         find: 'Rechercher',
         searchWithThreeDots: 'Rechercher...',
         next: 'Suivant',
@@ -1049,6 +1050,7 @@ const translations: TranslationDeepObject<typeof en> = {
             title: 'Premiers pas',
             createWorkspace: 'Créer un espace de travail',
             connectAccounting: ({integrationName}: {integrationName: string}) => `Se connecter à ${integrationName}`,
+            connectAccountingDefault: 'Connecter à la comptabilité',
             customizeCategories: 'Personnaliser les catégories comptables',
             linkCompanyCards: 'Lier des cartes d’entreprise',
             setupRules: 'Configurer les règles de dépense',
@@ -2922,6 +2924,8 @@ ${amount} pour ${merchant} - ${date}`,
         },
         employees: {
             title: 'Combien d’employés avez-vous ?',
+            [CONST.ONBOARDING_COMPANY_SIZE.MICRO_SMALL]: '1 à 4 employés',
+            [CONST.ONBOARDING_COMPANY_SIZE.MICRO_MEDIUM]: '5 à 10 employés',
             [CONST.ONBOARDING_COMPANY_SIZE.MICRO]: '1 à 10 employés',
             [CONST.ONBOARDING_COMPANY_SIZE.SMALL]: '11 à 50 employés',
             [CONST.ONBOARDING_COMPANY_SIZE.MEDIUM_SMALL]: '51 à 100 employés',
@@ -5532,6 +5536,13 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                             settlementFrequencyLabel: 'Fréquence de règlement',
                             settlementFrequencyDescription:
                                 'Fréquence à laquelle Expensify prélèvera sur votre compte bancaire professionnel pour régler les transactions récentes d’Expensify Travel.',
+                            monthlySpendLimitLabel: 'Limite de dépenses mensuelle par membre',
+                            monthlySpendLimitDescription: 'Le montant maximum que chaque membre peut dépenser en déplacements par mois.',
+                            reduceLimitTitle: 'Réduire la limite de dépenses de voyage ?',
+                            reduceLimitWarning:
+                                'Si vous réduisez la limite, les membres ayant déjà dépensé plus que ce montant ne pourront pas effectuer de nouvelles réservations de voyage avant le mois prochain.',
+                            provisioningError:
+                                'Nous n’avons pas pu configurer certains membres de votre espace de travail pour la facturation centralisée. Veuillez réessayer plus tard ou contacter Concierge pour obtenir de l’aide.',
                         },
                     },
                     disableModal: {
@@ -9075,6 +9086,7 @@ Voici un *reçu test* pour vous montrer comment ça fonctionne :`,
                 removeMember: 'Impossible de supprimer cet utilisateur. Veuillez réessayer.',
                 addMember: 'Impossible d’ajouter ce membre. Veuillez réessayer.',
                 vacationDelegate: 'Impossible de définir cet utilisateur comme délégué de vacances. Veuillez réessayer.',
+                moveMember: 'Impossible de déplacer ce membre. Veuillez réessayer.',
             },
             cannotSetVacationDelegateForMember: (email: string) =>
                 `Vous ne pouvez pas définir un délégué de vacances pour ${email}, car cette personne est actuellement le délégué des membres suivants :`,
@@ -9083,6 +9095,8 @@ Voici un *reçu test* pour vous montrer comment ça fonctionne :`,
             reportSuspiciousActivityConfirmationPrompt:
                 'Nous examinerons le compte pour vérifier qu’il est sûr de le déverrouiller et nous vous contacterons via Concierge si nous avons des questions.',
             emptyMembers: {title: 'Aucun membre dans ce groupe', subtitle: 'Ajoutez un membre ou essayez de modifier le filtre ci-dessus.'},
+            moveToGroup: 'Déplacer vers le groupe',
+            chooseWhereToMove: ({count}: {count: number}) => `Choisissez où déplacer ${count} ${count === 1 ? 'membre' : 'membres'}.`,
         },
         common: {
             settings: 'Paramètres',

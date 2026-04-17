@@ -196,24 +196,27 @@ function getCardDescriptionForSearchTable(card: Card, translate: LocalizedTransl
 }
 
 /**
- * @param translate
- * @param transactionCardName
- * @param cardID
- * @param cards
- * @returns company card name
+ * Returns the formatted card name for a company card. Returns an empty string
+ * if the card is not a real card, but a cash expense
  */
 function getCompanyCardDescription(translate: LocalizedTranslate, transactionCardName?: string, cardID?: number, cards?: CardList) {
+    const formattedTransactionCardName = transactionCardName === CONST.EXPENSE.TYPE.CASH_CARD_NAME ? '' : transactionCardName;
+
     if (!cardID || !cards?.[cardID]) {
-        return transactionCardName;
+        return formattedTransactionCardName;
     }
+
     const card = cards[cardID];
+
     if (isTravelCard(card)) {
         return translate('cardTransactions.centralInvoicing');
     }
+
     if (isExpensifyCard(card)) {
-        return transactionCardName;
+        return formattedTransactionCardName;
     }
-    return card.cardName;
+
+    return card.cardName === CONST.EXPENSE.TYPE.CASH_CARD_NAME ? '' : card.cardName;
 }
 
 function isCard(item: Card | Record<string, string>): item is Card {
@@ -1063,6 +1066,43 @@ function isSmartLimitEnabled(cardsList: CardList) {
 
 const CUSTOM_FEEDS = [CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD, CONST.COMPANY_CARD.FEED_BANK_NAME.VISA, CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX, CONST.COMPANY_CARD.FEED_BANK_NAME.CSV];
 
+function collectUsedCSVFeedSlotNumbersFromCompanyCards(companyCards: CompanyFeeds | undefined, csvPrefix: string): number[] {
+    const numbers: number[] = [];
+    for (const key of Object.keys(companyCards ?? {})) {
+        if (!key.startsWith(csvPrefix)) {
+            continue;
+        }
+        const suffix = key.slice(csvPrefix.length);
+        if (!suffix) {
+            continue;
+        }
+        const n = Number.parseInt(suffix, 10);
+        if (!Number.isNaN(n) && n > 0) {
+            numbers.push(n);
+        }
+    }
+    return numbers;
+}
+
+/**
+ * Next available CSV file-import feed (`ccuploadN`) from `settings.companyCards` keys only,
+ * including feeds omitted from {@link getFeedType}'s `CombinedCardFeeds` input.
+ */
+function getCSVFeedType(companyCards: CompanyFeeds | undefined): CompanyCardFeedWithNumber {
+    const csvPrefix = CONST.COMPANY_CARD.FEED_BANK_NAME.CSV;
+    const feedNumbers = [...new Set(collectUsedCSVFeedSlotNumbersFromCompanyCards(companyCards, csvPrefix))].sort((a, b) => a - b);
+
+    let firstAvailableNumber = 1;
+    for (const num of feedNumbers) {
+        if (num && num !== firstAvailableNumber) {
+            return `${csvPrefix}${firstAvailableNumber}`;
+        }
+        firstAvailableNumber++;
+    }
+
+    return `${csvPrefix}${firstAvailableNumber}`;
+}
+
 function getFeedType(feedKey: CompanyCardFeed, cardFeeds: OnyxEntry<CombinedCardFeeds>): CompanyCardFeedWithNumber {
     if (CUSTOM_FEEDS.some((feed) => feed === feedKey)) {
         const filteredFeeds = Object.keys(cardFeeds ?? {})
@@ -1665,13 +1705,12 @@ function getCardHintText(validFrom: string | undefined, validThru: string | unde
 
 /**
  * Resolves card-related fields on transactions for report layout display.
- * The search API pre-resolves cardName and isCardFeedDeleted, but local Onyx transactions have raw values.
+ * The search API pre-resolves cardName, but local Onyx transactions have raw values.
  * This ensures the report layout matches the search page.
  */
 function resolveTransactionCardFields<T extends {cardID?: number; cardName?: string; bank?: string}>(
     transactions: T[],
     cardList: CardList | undefined,
-    cardFeeds: OnyxCollection<CardFeeds> | undefined,
     translate: LocalizedTranslate,
 ): Array<T & {isCardFeedDeleted?: boolean}> {
     return transactions.map((transaction) => {
@@ -1688,14 +1727,10 @@ function resolveTransactionCardFields<T extends {cardID?: number; cardName?: str
             }
         }
 
-        // Resolve isCardFeedDeleted
-        if (cardFeeds !== undefined) {
-            updates = {...updates, isCardFeedDeleted: !!transaction.bank && !doesCardFeedExist(transaction.bank as CompanyCardFeed, cardFeeds)};
-        }
-
         if (Object.keys(updates).length === 0) {
             return transaction;
         }
+
         return {...transaction, ...updates};
     });
 }
@@ -1750,6 +1785,7 @@ export {
     filterCardsByNonExpensify,
     getAllCardsForWorkspace,
     isCardHiddenFromSearch,
+    getCSVFeedType,
     getFeedType,
     flattenWorkspaceCardsList,
     isCardConnectionBroken,

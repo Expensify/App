@@ -9,6 +9,9 @@ function enableCapabilities(fp: FP) {
     fp.enableCapability(Capability.Cellular, (e: string, isRun: boolean) => {
         logCapability('Cellular', e, isRun);
     });
+    fp.enableCapability(Capability.Call, (e: string, isRun: boolean) => {
+        logCapability('Call', e, isRun);
+    });
     fp.enableCapability(Capability.Passcode, (e: string, isRun: boolean) => {
         logCapability('Passcode', e, isRun);
     });

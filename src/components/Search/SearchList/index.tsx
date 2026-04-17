@@ -37,7 +37,7 @@ import variables from '@styles/variables';
 import type {TransactionPreviewData} from '@userActions/Search';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Transaction, TransactionViolations} from '@src/types/onyx';
+import type {CardList, Policy, Transaction, TransactionViolations} from '@src/types/onyx';
 import BaseSearchList from './BaseSearchList';
 import type ChatListItem from './ListItem/ChatListItem';
 import type ExpenseReportListItem from './ListItem/ExpenseReportListItem';
@@ -125,14 +125,16 @@ type SearchListProps = Pick<FlashListProps<SearchListItem>, 'onScroll' | 'conten
     /** Violations indexed by transaction ID */
     violations?: Record<string, TransactionViolations | undefined> | undefined;
 
-    /** Custom card names */
-    customCardNames?: Record<number, string>;
-
     /** Selected transactions for determining isSelected state */
     selectedTransactions: SelectedTransactions;
 
+    /** Non-personal and workspace cards (same drill path as former custom card names for rows) */
+    nonPersonalAndWorkspaceCards?: CardList;
+
     /** Whether all transactions have been loaded from snapshots in group-by views */
     hasLoadedAllTransactions?: boolean;
+
+    policyForMovingExpenses?: Policy;
 
     /** Reference to the outer element */
     ref?: ForwardedRef<SearchListHandle>;
@@ -215,9 +217,10 @@ function SearchList({
     isMobileSelectionModeEnabled,
     newTransactions = [],
     violations,
-    customCardNames,
+    nonPersonalAndWorkspaceCards,
     selectedTransactions,
     hasLoadedAllTransactions,
+    policyForMovingExpenses,
     ref,
 }: SearchListProps) {
     const styles = useThemeStyles();
@@ -443,6 +446,7 @@ function SearchList({
                         queryJSONHash={hash}
                         columns={columns}
                         policies={policies}
+                        policyForMovingExpenses={policyForMovingExpenses}
                         isDisabled={isDisabled}
                         groupBy={groupBy}
                         searchType={type}
@@ -456,7 +460,7 @@ function SearchList({
                         userBillingFundID={userBillingFundID}
                         isOffline={isOffline}
                         violations={violations}
-                        customCardNames={customCardNames}
+                        nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}
                         onFocus={onFocus}
                         newTransactionID={newTransactionID}
                         onUndelete={handleUndelete}
@@ -494,9 +498,10 @@ function SearchList({
             personalPolicyID,
             userBillingGracePeriodEnds,
             ownerBillingGracePeriodEnd,
-            customCardNames,
+            nonPersonalAndWorkspaceCards,
             selectedTransactions,
             ListFooterComponent,
+            policyForMovingExpenses,
             handleUndelete,
         ],
     );
@@ -564,7 +569,8 @@ function SearchList({
                 contentContainerStyle={contentContainerStyle}
                 newTransactions={newTransactions}
                 selectedTransactions={selectedTransactions}
-                customCardNames={customCardNames}
+                policyForMovingExpenses={policyForMovingExpenses}
+                nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}
             />
             <Modal
                 isVisible={isModalVisible}

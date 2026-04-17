@@ -1052,6 +1052,10 @@ function getIsFullscreenPreInsertedUnderRHP() {
     return isFullscreenPreInsertedUnderRHP;
 }
 
+function getPreInsertedFullscreenRouteName() {
+    return preInsertedFullscreenRouteName;
+}
+
 function clearFullscreenPreInsertedFlag() {
     isFullscreenPreInsertedUnderRHP = false;
     preInsertedFullscreenRouteName = undefined;
@@ -1168,6 +1172,7 @@ export default {
     revealRouteBeforeDismissingModal,
     preInsertFullscreenUnderRHP,
     getIsFullscreenPreInsertedUnderRHP,
+    getPreInsertedFullscreenRouteName,
     clearFullscreenPreInsertedFlag,
     removePreInsertedFullscreenIfNeeded,
     getTopmostSearchReportID,
