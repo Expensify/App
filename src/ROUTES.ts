@@ -111,6 +111,18 @@ const DYNAMIC_ROUTES = {
         path: 'visibility',
         entryScreens: [SCREENS.REPORT_SETTINGS.ROOT],
     },
+    NETSUITE_AUTO_SYNC: {
+        path: 'netsuite-autosync',
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_ADVANCED, SCREENS.WORKSPACE.ACCOUNTING.CARD_RECONCILIATION],
+    },
+    NETSUITE_ACCOUNTING_METHOD: {
+        path: 'netsuite-accounting-method',
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_NETSUITE_AUTO_SYNC],
+    },
+    SAGE_INTACCT_PREREQUISITES: {
+        path: 'sage-intacct/prerequisites',
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.ROOT, SCREENS.WORKSPACE.ACCOUNTING.EXISTING_SAGE_INTACCT_CONNECTIONS],
+    },
     POLICY_ACCOUNTING_NETSUITE_EXPORT_EXPENSES_VENDOR_SELECT: {
         path: 'vendor/select',
         entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_EXPORT_EXPENSES],
@@ -1007,12 +1019,6 @@ const ROUTES = {
 
         // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
         getRoute: (reportID: string, backTo?: string) => getUrlWithBackToParam(`r/${reportID}/settings` as const, backTo),
-    },
-    REPORT_SETTINGS_NAME: {
-        route: 'r/:reportID/settings/name',
-
-        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-        getRoute: (reportID: string, backTo?: string) => getUrlWithBackToParam(`r/${reportID}/settings/name` as const, backTo),
     },
     REPORT_CHANGE_APPROVER: {
         route: 'r/:reportID/change-approver',
@@ -3769,34 +3775,6 @@ const ROUTES = {
         route: 'workspaces/:policyID/connections/netsuite/advanced/custom-form-id/:expenseType',
         getRoute: (policyID: string, expenseType: ValueOf<typeof CONST.NETSUITE_EXPENSE_TYPE>) =>
             `workspaces/${policyID}/connections/netsuite/advanced/custom-form-id/${expenseType as string}` as const,
-    },
-    POLICY_ACCOUNTING_NETSUITE_AUTO_SYNC: {
-        route: 'workspaces/:policyID/connections/netsuite/advanced/autosync',
-        getRoute: (policyID: string | undefined, backTo?: string) => {
-            if (!policyID) {
-                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_NETSUITE_AUTO_SYNC route');
-            }
-
-            // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-            return getUrlWithBackToParam(`workspaces/${policyID}/connections/netsuite/advanced/autosync` as const, backTo);
-        },
-    },
-    POLICY_ACCOUNTING_NETSUITE_ACCOUNTING_METHOD: {
-        route: 'workspaces/:policyID/connections/netsuite/advanced/autosync/accounting-method',
-        getRoute: (policyID: string | undefined, backTo?: string) => {
-            if (!policyID) {
-                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_NETSUITE_ACCOUNTING_METHOD route');
-            }
-
-            // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-            return getUrlWithBackToParam(`workspaces/${policyID}/connections/netsuite/advanced/autosync/accounting-method` as const, backTo);
-        },
-    },
-    POLICY_ACCOUNTING_SAGE_INTACCT_PREREQUISITES: {
-        route: 'workspaces/:policyID/accounting/sage-intacct/prerequisites',
-
-        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-        getRoute: (policyID: string, backTo?: string) => getUrlWithBackToParam(`workspaces/${policyID}/accounting/sage-intacct/prerequisites` as const, backTo),
     },
     POLICY_ACCOUNTING_SAGE_INTACCT_ENTER_CREDENTIALS: {
         route: 'workspaces/:policyID/accounting/sage-intacct/enter-credentials',
