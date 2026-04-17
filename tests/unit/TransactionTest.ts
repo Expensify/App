@@ -15,7 +15,7 @@ import type {TransactionViolation} from '@src/types/onyx';
 import type {Attendee} from '@src/types/onyx/IOU';
 import type {ReportCollectionDataSet} from '@src/types/onyx/Report';
 import * as TransactionUtils from '../../src/libs/TransactionUtils';
-import type {PersonalDetails, RecentWaypoint, Report, ReportAction, ReportActions, Transaction} from '../../src/types/onyx';
+import type {PersonalDetails, Policy, RecentWaypoint, Report, ReportAction, ReportActions, Transaction} from '../../src/types/onyx';
 import createRandomPolicy from '../utils/collections/policies';
 import createRandomPolicyCategories from '../utils/collections/policyCategory';
 import {createExpenseReport, createRandomReport} from '../utils/collections/reports';
@@ -1009,6 +1009,177 @@ describe('Transaction', () => {
 
             expect(updatedSourceReport?.transactionCount).toBe(0);
             expect(updatedDestinationReport?.transactionCount).toBe(1);
+        });
+
+        it('updates destination report status to SUBMITTED when instant submit is enabled', async () => {
+            const destinationReportID = rand64();
+            const destinationReport: OnyxEntry<Report> = {
+                reportID: destinationReportID,
+                ownerAccountID: CURRENT_USER_ID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            };
+            const transaction = generateTransaction({reportID: CONST.REPORT.UNREPORTED_REPORT_ID});
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${destinationReportID}`, destinationReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
+
+            const report = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${destinationReportID}`);
+            const allTransactions = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: transaction,
+            };
+
+            const policy: Policy = {
+                ...createRandomPolicy(100),
+                autoReporting: true,
+                autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
+                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
+            };
+
+            changeTransactionsReport({
+                transactionIDs: [transaction.transactionID],
+                isASAPSubmitBetaEnabled: false,
+                accountID: CURRENT_USER_ID,
+                email: 'test@example.com',
+                newReport: report,
+                policy,
+                allTransactions,
+            });
+
+            await waitForBatchedUpdates();
+
+            const updatedReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${destinationReportID}`);
+            expect(updatedReport?.stateNum).toBe(CONST.REPORT.STATE_NUM.SUBMITTED);
+            expect(updatedReport?.statusNum).toBe(CONST.REPORT.STATUS_NUM.SUBMITTED);
+        });
+
+        it('updates destination report status to CLOSED when instant submit and submit-and-close are enabled with payments disabled', async () => {
+            const destinationReportID = rand64();
+            const destinationReport: OnyxEntry<Report> = {
+                reportID: destinationReportID,
+                ownerAccountID: CURRENT_USER_ID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            };
+            const transaction = generateTransaction({reportID: CONST.REPORT.UNREPORTED_REPORT_ID});
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${destinationReportID}`, destinationReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
+
+            const report = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${destinationReportID}`);
+            const allTransactions = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: transaction,
+            };
+
+            const policy: Policy = {
+                ...createRandomPolicy(101),
+                autoReporting: true,
+                autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
+                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
+            };
+
+            changeTransactionsReport({
+                transactionIDs: [transaction.transactionID],
+                isASAPSubmitBetaEnabled: false,
+                accountID: CURRENT_USER_ID,
+                email: 'test@example.com',
+                newReport: report,
+                policy,
+                allTransactions,
+            });
+
+            await waitForBatchedUpdates();
+
+            const updatedReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${destinationReportID}`);
+            expect(updatedReport?.stateNum).toBe(CONST.REPORT.STATE_NUM.APPROVED);
+            expect(updatedReport?.statusNum).toBe(CONST.REPORT.STATUS_NUM.CLOSED);
+        });
+
+        it('does not update destination report status when instant submit is disabled', async () => {
+            const destinationReportID = rand64();
+            const destinationReport: OnyxEntry<Report> = {
+                reportID: destinationReportID,
+                ownerAccountID: CURRENT_USER_ID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            };
+            const transaction = generateTransaction({reportID: CONST.REPORT.UNREPORTED_REPORT_ID});
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${destinationReportID}`, destinationReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
+
+            const report = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${destinationReportID}`);
+            const allTransactions = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: transaction,
+            };
+
+            const policy: Policy = {
+                ...createRandomPolicy(102),
+                autoReporting: false,
+                autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.WEEKLY,
+            };
+
+            changeTransactionsReport({
+                transactionIDs: [transaction.transactionID],
+                isASAPSubmitBetaEnabled: false,
+                accountID: CURRENT_USER_ID,
+                email: 'test@example.com',
+                newReport: report,
+                policy,
+                allTransactions,
+            });
+
+            await waitForBatchedUpdates();
+
+            const updatedReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${destinationReportID}`);
+            expect(updatedReport?.stateNum).toBe(CONST.REPORT.STATE_NUM.OPEN);
+            expect(updatedReport?.statusNum).toBe(CONST.REPORT.STATUS_NUM.OPEN);
+        });
+
+        it('does not update destination report status when isASAPSubmitBetaEnabled is true', async () => {
+            const destinationReportID = rand64();
+            const destinationReport: OnyxEntry<Report> = {
+                reportID: destinationReportID,
+                ownerAccountID: CURRENT_USER_ID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            };
+            const transaction = generateTransaction({reportID: CONST.REPORT.UNREPORTED_REPORT_ID});
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${destinationReportID}`, destinationReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
+
+            const report = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${destinationReportID}`);
+            const allTransactions = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: transaction,
+            };
+
+            const policy: Policy = {
+                ...createRandomPolicy(103),
+                autoReporting: true,
+                autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
+            };
+
+            changeTransactionsReport({
+                transactionIDs: [transaction.transactionID],
+                isASAPSubmitBetaEnabled: true,
+                accountID: CURRENT_USER_ID,
+                email: 'test@example.com',
+                newReport: report,
+                policy,
+                allTransactions,
+            });
+
+            await waitForBatchedUpdates();
+
+            const updatedReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${destinationReportID}`);
+            expect(updatedReport?.stateNum).toBe(CONST.REPORT.STATE_NUM.OPEN);
+            expect(updatedReport?.statusNum).toBe(CONST.REPORT.STATUS_NUM.OPEN);
         });
     });
 
