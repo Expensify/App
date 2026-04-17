@@ -113,7 +113,7 @@ function SearchTypeMenuNarrow({queryJSON, onTabPress}: SearchTypeMenuNarrowProps
         'Document',
         'ThumbsUp',
         'CheckCircle',
-    ] as const);
+    ]);
 
     const queryMap = new Map<string, {query: string; name?: string}>();
     const tabItems: TabSelectorBaseItem[] = [];

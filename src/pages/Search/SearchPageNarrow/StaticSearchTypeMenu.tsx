@@ -25,7 +25,7 @@ function getActiveKey(similarSearchHash: number, hasPaidGroupPolicy: boolean): s
 
 function StaticSearchTypeMenu({queryJSON}: {queryJSON: SearchQueryJSON}) {
     const {translate} = useLocalize();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Receipt', 'Document', 'Send'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Receipt', 'Document', 'Pencil']);
     const [policyInfo] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: staticPolicyInfoSelector});
     const hasPaidGroupPolicy = policyInfo?.hasPaidGroupPolicy ?? false;
 
@@ -36,7 +36,7 @@ function StaticSearchTypeMenu({queryJSON}: {queryJSON: SearchQueryJSON}) {
         ];
 
         if (hasPaidGroupPolicy) {
-            result.push({key: submitSearch.key, icon: expensifyIcons.Send, title: translate(submitSearch.translationPath)});
+            result.push({key: submitSearch.key, icon: expensifyIcons.Pencil, title: translate(submitSearch.translationPath)});
         }
 
         return result;

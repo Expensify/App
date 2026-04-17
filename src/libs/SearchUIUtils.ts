@@ -4113,9 +4113,8 @@ function isCorrectSearchUserName(displayName?: string) {
 }
 
 function isTodoSearch(recentSearchHash: number, suggestedSearches: Record<string, SearchTypeMenuItem>) {
-    const TODO_KEYS: SearchKey[] = [CONST.SEARCH.SEARCH_KEYS.SUBMIT, CONST.SEARCH.SEARCH_KEYS.APPROVE, CONST.SEARCH.SEARCH_KEYS.PAY, CONST.SEARCH.SEARCH_KEYS.EXPORT];
     const matchedSearchKey = Object.values(suggestedSearches).find((search) => search.recentSearchHash === recentSearchHash)?.key;
-    return !!matchedSearchKey && TODO_KEYS.includes(matchedSearchKey);
+    return !!matchedSearchKey && TODO_SEARCH_KEYS.has(matchedSearchKey);
 }
 
 type TypeMenuSectionsParams = {
