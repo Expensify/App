@@ -907,7 +907,7 @@ describe('actions/User', () => {
             ];
 
             expect(command).toBe(WRITE_COMMANDS.REVOKE_DEVICE);
-            expect(parameters).toEqual({partnerUserID});
+            expect(parameters).toEqual({partnerID, partnerUserID});
 
             const optimisticData = onyxData.optimisticData ?? [];
             const successData = onyxData.successData ?? [];
