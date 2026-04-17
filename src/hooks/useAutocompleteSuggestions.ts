@@ -1,5 +1,4 @@
 import passthroughPolicyTagListSelector from '@selectors/PolicyTagList';
-import {sortedActionsSelector} from '@selectors/SortedReportActions';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import type {SearchFilterKey, UserFriendlyKey} from '@components/Search/types';
@@ -28,6 +27,7 @@ import {useCurrencyListState} from './useCurrencyList';
 import useExportedToFilterOptions from './useExportedToFilterOptions';
 import type {FeedKeysWithAssignedCards} from './useFeedKeysWithAssignedCards';
 import useOnyx from './useOnyx';
+import useSortedActions from './useSortedActions';
 
 type AutocompleteItemData = {
     filterKey: UserFriendlyKey;
@@ -106,7 +106,7 @@ function useAutocompleteSuggestions({
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [allPoliciesTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {selector: passthroughPolicyTagListSelector});
     const [allRecentTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS);
-    const [sortedActions] = useOnyx(ONYXKEYS.DERIVED.RAM_ONLY_SORTED_REPORT_ACTIONS, {selector: sortedActionsSelector});
+    const sortedActions = useSortedActions();
     const {currencyList} = useCurrencyListState();
     const {exportedToFilterOptions} = useExportedToFilterOptions();
 
