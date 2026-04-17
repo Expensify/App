@@ -1567,6 +1567,9 @@ type ProhibitedExpenses = OnyxCommon.OnyxValueWithOfflineFeedback<{
 
     /** Whether the policy prohibits adult entertainment expenses */
     adultEntertainment?: boolean;
+
+    /** Whether the policy prohibits handwritten receipt expenses */
+    handwrittenReceipt?: boolean;
 }>;
 
 /** Day of the month to schedule submission  */

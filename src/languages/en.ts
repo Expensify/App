@@ -6764,6 +6764,7 @@ const translations = {
                 gambling: 'Gambling',
                 tobacco: 'Tobacco',
                 adultEntertainment: 'Adult entertainment',
+                handwrittenReceipt: 'Handwritten receipts',
                 requireCompanyCard: 'Require company cards for all purchases',
                 requireCompanyCardDescription: 'Flag all cash spend, including mileage and per-diem expenses.',
                 requireCompanyCardDisabledTooltip: 'Enable Company cards (under More features) to unlock.',
@@ -8332,6 +8333,8 @@ const translations = {
                         return `adult entertainment`;
                     case 'hotelIncidentals':
                         return `hotel incidentals`;
+                    case 'handwrittenReceipt':
+                        return `handwritten receipts`;
                     default:
                         return `${prohibitedExpenseType}`;
                 }
