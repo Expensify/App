@@ -1028,6 +1028,10 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             subMenuItems: getExportOptions(),
         };
 
+        if (areAllMatchingItemsSelected) {
+            return [exportButtonOption];
+        }
+
         if (allSelectedAreDeleted) {
             const deletedTransactionOptions: Array<DropdownOption<SearchHeaderOptionValue>> = [
                 {
@@ -1055,10 +1059,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             }
 
             return deletedTransactionOptions;
-        }
-
-        if (areAllMatchingItemsSelected) {
-            return [exportButtonOption];
         }
 
         const isExpenseReportSearch = isExpenseReportType || searchResults?.search.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
