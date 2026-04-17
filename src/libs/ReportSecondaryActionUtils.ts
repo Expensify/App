@@ -245,8 +245,11 @@ function isSubmitAction({
     const isReportSubmitter = isCurrentUserSubmitter(report);
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
 
-    const isManager = report.managerID === currentUserAccountID;
-    if (!isReportSubmitter && !isAdmin && !isManager) {
+    // For OPEN reports, managerID might be stale. Use getSubmitToAccountID for accurate approver check.
+    const submitToAccountID = getSubmitToAccountID(policy, report);
+    const isApprover = submitToAccountID === currentUserAccountID;
+
+    if (!isReportSubmitter && !isAdmin && !isApprover) {
         return false;
     }
 
@@ -255,7 +258,6 @@ function isSubmitAction({
         return false;
     }
 
-    const submitToAccountID = getSubmitToAccountID(policy, report);
     if (submitToAccountID === report.ownerAccountID && policy?.preventSelfApproval) {
         return false;
     }
@@ -271,7 +273,7 @@ function isSubmitAction({
         return true;
     }
 
-    if (isAdmin || isManager) {
+    if (isAdmin || isApprover) {
         return true;
     }
 

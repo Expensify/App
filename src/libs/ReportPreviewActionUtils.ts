@@ -39,8 +39,11 @@ function canSubmit(
     const isExpense = isExpenseReport(report);
     const isSubmitter = isCurrentUserSubmitter(report);
     const isOpen = isOpenReport(report);
-    const isManager = report.managerID === currentUserAccountID;
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
+
+    // For OPEN reports, managerID might be stale. Use getSubmitToAccountID for accurate approver check.
+    const submitToAccountID = getSubmitToAccountID(policy, report);
+    const isApprover = submitToAccountID === currentUserAccountID;
 
     if (!!transactions && transactions?.length > 0 && transactions.every((transaction) => isPending(transaction))) {
         return false;
@@ -56,13 +59,11 @@ function canSubmit(
         return false;
     }
 
-    const submitToAccountID = getSubmitToAccountID(policy, report);
-
     if (submitToAccountID === report.ownerAccountID && policy?.preventSelfApproval) {
         return false;
     }
 
-    return isExpense && (isSubmitter || isManager || isAdmin) && isOpen && !isAnyReceiptBeingScanned && !!transactions && transactions.length > 0;
+    return isExpense && (isSubmitter || isApprover || isAdmin) && isOpen && !isAnyReceiptBeingScanned && !!transactions && transactions.length > 0;
 }
 
 function canApprove(report: Report, currentUserAccountID: number, reportMetadata: OnyxEntry<ReportMetadata>, policy?: Policy, transactions?: Transaction[]) {

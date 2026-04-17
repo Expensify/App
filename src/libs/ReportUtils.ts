@@ -4757,6 +4757,11 @@ function canEditMoneyRequest(
         return true;
     }
 
+    // Allow workflow approvers to edit OPEN expense reports (excludes rule-based approvers who lack pre-submission access).
+    if (isExpenseReport(moneyRequestReport) && isOpenReport(moneyRequestReport) && deprecatedCurrentUserAccountID === getManagerAccountID(reportPolicy, moneyRequestReport)) {
+        return true;
+    }
+
     // On policies with Dynamic External Workflow, non-admin/managers should only be able to submit their expenses on open reports
     if (!isOpenReport(moneyRequestReport) && hasDynamicExternalWorkflow(reportPolicy)) {
         return false;
@@ -4830,6 +4835,7 @@ function canEditReportPolicy(report: OnyxEntry<Report>, reportPolicy: OnyxEntry<
 
     if (isExpenseType) {
         if (isOpen) {
+            // Approvers can edit expenses but not change workspace
             return isSubmitter || isAdmin;
         }
 
@@ -4979,13 +4985,15 @@ function canEditFieldOfMoneyRequest({
     const isAdmin = isExpenseReport(moneyRequestReport) && reportPolicy?.role === CONST.POLICY.ROLE.ADMIN;
     const isManager = isExpenseReport(moneyRequestReport) && deprecatedCurrentUserAccountID === moneyRequestReport?.managerID;
     const isRequestor = deprecatedCurrentUserAccountID === reportAction?.actorAccountID;
+    // Workflow approvers only — excludes rule-based approvers who lack pre-submission access.
+    const isApprover = isExpenseReport(moneyRequestReport) && isOpenReport(moneyRequestReport) && deprecatedCurrentUserAccountID === getManagerAccountID(reportPolicy, moneyRequestReport);
 
     if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.REIMBURSABLE) {
-        return isAdmin || isManager || isRequestor;
+        return isAdmin || isManager || isRequestor || isApprover;
     }
 
     if ((fieldToEdit === CONST.EDIT_REQUEST_FIELD.AMOUNT || fieldToEdit === CONST.EDIT_REQUEST_FIELD.CURRENCY) && isDistanceRequest(transaction)) {
-        return isAdmin || isManager || isRequestor;
+        return isAdmin || isManager || isRequestor || isApprover;
     }
 
     if (
@@ -5002,7 +5010,7 @@ function canEditFieldOfMoneyRequest({
             !isReceiptBeingScanned(transaction) &&
             !isPerDiemRequest(transaction) &&
             (!isDistanceRequest(transaction) || isManualDistanceRequestTransactionUtils(transaction)) &&
-            (isAdmin || isManager || isRequestor) &&
+            (isAdmin || isManager || isRequestor || isApprover) &&
             (isDeleteAction ? isRequestor : true)
         );
     }

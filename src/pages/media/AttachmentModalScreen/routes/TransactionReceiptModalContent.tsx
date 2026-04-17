@@ -144,8 +144,15 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
     const [sourceUri, setSourceUri] = useState<ReceiptSource>('');
 
     const parentReportAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
-    const canEditReceipt = canEditFieldOfMoneyRequest({reportAction: parentReportAction, fieldToEdit: CONST.EDIT_REQUEST_FIELD.RECEIPT, transaction});
-    const canDeleteReceipt = canEditFieldOfMoneyRequest({reportAction: parentReportAction, fieldToEdit: CONST.EDIT_REQUEST_FIELD.RECEIPT, isDeleteAction: true, transaction});
+    const canEditReceipt = canEditFieldOfMoneyRequest({reportAction: parentReportAction, fieldToEdit: CONST.EDIT_REQUEST_FIELD.RECEIPT, transaction, report: transactionReport, policy});
+    const canDeleteReceipt = canEditFieldOfMoneyRequest({
+        reportAction: parentReportAction,
+        fieldToEdit: CONST.EDIT_REQUEST_FIELD.RECEIPT,
+        isDeleteAction: true,
+        transaction,
+        report: transactionReport,
+        policy,
+    });
 
     const receiptFilename = transaction?.receipt?.filename;
     const isStitchedOdometerReceipt = isOdometerDistanceRequest(transaction) && !imageType;
