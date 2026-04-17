@@ -1854,7 +1854,7 @@ describe('TransactionUtils', () => {
             expect(result).toBe('Tax Rate 1 (5%)');
         });
 
-        it('should return default tax name when transaction has empty taxCode', () => {
+        it('should return empty string when transaction has empty taxCode (tax was deleted)', () => {
             const transaction = generateTransaction({
                 taxCode: '',
                 taxValue: undefined,
@@ -1862,7 +1862,7 @@ describe('TransactionUtils', () => {
 
             const result = TransactionUtils.getTaxRateTitle(policy, transaction, false, undefined);
 
-            expect(result).toBe('Tax exempt (0%) • Default');
+            expect(result).toBe('');
         });
 
         it('should return empty string when policy is undefined', () => {
