@@ -17,8 +17,14 @@ import {isRequiredFulfilled} from '@libs/ValidationUtils';
 import {clearErrors, setDraftValues, setErrors, setIsLoading} from '@userActions/FormActions';
 import CONST from '@src/CONST';
 import type {OnyxFormValuesMapping} from '@src/ONYXKEYS';
-import {defaultStyles} from '@src/styles';
+import styles from '@src/styles';
+import {defaultTheme} from '@src/styles/theme';
 import type {Form} from '@src/types/form';
+<<<<<<< HEAD
+=======
+
+const defaultStyles = styles(defaultTheme);
+>>>>>>> 65ad160d0de75f8fb9306bb4855fd3f490601fb4
 
 type FormStory = StoryFn<FormProviderProps & FormProviderOnyxProps>;
 

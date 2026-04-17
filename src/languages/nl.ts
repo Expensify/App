@@ -110,6 +110,7 @@ const translations: TranslationDeepObject<typeof en> = {
         newFeature: 'Nieuwe functie',
         search: 'Zoeken',
         reports: 'Rapporten',
+        spend: 'Uitgaven',
         find: 'Zoeken',
         searchWithThreeDots: 'Zoeken...',
         next: 'Volgende',
@@ -1045,6 +1046,7 @@ const translations: TranslationDeepObject<typeof en> = {
             title: 'Aan de slag',
             createWorkspace: 'Maak een werkruimte',
             connectAccounting: ({integrationName}: {integrationName: string}) => `Verbind met ${integrationName}`,
+            connectAccountingDefault: 'Verbind met boekhouding',
             customizeCategories: 'Boekhoudcategorieën aanpassen',
             linkCompanyCards: 'Bedrijfspassen koppelen',
             setupRules: 'Uitgavenregels instellen',
@@ -5494,6 +5496,8 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                             monthlySpendLimitDescription: 'Het maximale bedrag dat elk lid per maand aan reizen kan besteden.',
                             reduceLimitTitle: 'Reisbestedingslimiet verlagen?',
                             reduceLimitWarning: 'Als u het limiet verlaagt, kunnen leden die dit bedrag al hebben overschreden geen nieuwe reisboekingen maken tot volgende maand.',
+                            provisioningError:
+                                'We konden sommige leden van je workspace niet instellen voor centrale facturatie. Probeer het later opnieuw of neem contact op met Concierge voor hulp.',
                         },
                     },
                     disableModal: {
@@ -9020,6 +9024,7 @@ Hier is een *proefbon* om je te laten zien hoe het werkt:`,
                 removeMember: 'Kan deze gebruiker niet verwijderen. Probeer het opnieuw.',
                 addMember: 'Kan dit lid niet toevoegen. Probeer het opnieuw.',
                 vacationDelegate: 'Kan deze gebruiker niet als vakantiemandataris instellen. Probeer het opnieuw.',
+                moveMember: 'Kan dit lid niet verplaatsen. Probeer het opnieuw.',
             },
             cannotSetVacationDelegateForMember: (email: string) =>
                 `Je kunt geen vakantiemandataris instellen voor ${email} omdat die persoon momenteel gedelegeerde is voor de volgende leden:`,
@@ -9028,6 +9033,8 @@ Hier is een *proefbon* om je te laten zien hoe het werkt:`,
             reportSuspiciousActivityConfirmationPrompt:
                 'We beoordelen de account om te verifiëren dat het veilig is om deze te ontgrendelen en nemen via Concierge contact op als we vragen hebben.',
             emptyMembers: {title: 'Geen leden in deze groep', subtitle: 'Voeg een lid toe of probeer het filter hierboven te wijzigen.'},
+            moveToGroup: 'Verplaatsen naar groep',
+            chooseWhereToMove: ({count}: {count: number}) => `Kies waar je ${count} ${count === 1 ? 'lid' : 'leden'} naartoe wilt verplaatsen.`,
         },
         common: {
             settings: 'Instellingen',

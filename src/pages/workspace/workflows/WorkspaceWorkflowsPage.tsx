@@ -132,6 +132,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         policy,
         personalDetails: personalDetails ?? {},
         localeCompare,
+        currentUserLogin: currentUserEmail,
     });
 
     const hasValidExistingAccounts = getEligibleExistingBusinessBankAccounts(bankAccountList, policy?.outputCurrency, true).length > 0;
