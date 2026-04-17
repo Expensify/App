@@ -119,26 +119,27 @@ function useSelectedTransactionsActions({
         setDuplicateHandlerState(() => handler);
     };
 
-    const selectedTransactionsList = selectedTransactionIDs.reduce((acc, transactionID) => {
-        const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
-        if (transaction) {
-            acc.push(transaction);
-        }
-        return acc;
-    }, [] as Transaction[]);
-
+    const selectedTransactionsList: Transaction[] = [];
+    const selectedTransactionsForDuplicate: Record<string, {reportID?: string}> = {};
     const knownOwnerIDs = new Set<number>();
     let hasUnknownOwner = false;
-    for (const selectedTransaction of selectedTransactionsList) {
-        const transactionID = selectedTransaction?.transactionID;
-        const reportID = selectedTransaction?.reportID;
 
-        const metadataOwnerID = selectedTransactionsMeta?.[transactionID]?.ownerAccountID;
+    for (const id of selectedTransactionIDs) {
+        const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`];
+        selectedTransactionsForDuplicate[id] = {reportID: transaction?.reportID};
+
+        if (!transaction) {
+            continue;
+        }
+        selectedTransactionsList.push(transaction);
+
+        const metadataOwnerID = selectedTransactionsMeta?.[transaction.transactionID]?.ownerAccountID;
         if (typeof metadataOwnerID === 'number') {
             knownOwnerIDs.add(metadataOwnerID);
             continue;
         }
 
+        const reportID = transaction.reportID;
         if (!reportID || reportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
             hasUnknownOwner = true;
             continue;
@@ -146,20 +147,14 @@ function useSelectedTransactionsActions({
 
         const parentReport = getReportOrDraftReport(reportID);
         const ownerAccountID = parentReport?.ownerAccountID;
-
         if (typeof ownerAccountID === 'number') {
             knownOwnerIDs.add(ownerAccountID);
         } else {
             hasUnknownOwner = true;
         }
     }
-    const hasTransactionsFromMultipleOwners = hasUnknownOwner ? knownOwnerIDs.size > 0 || selectedTransactionIDs.length > 1 : knownOwnerIDs.size > 1;
 
-    const selectedTransactionsForDuplicate: Record<string, {reportID?: string}> = {};
-    for (const id of selectedTransactionIDs) {
-        const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`];
-        selectedTransactionsForDuplicate[id] = {reportID: transaction?.reportID};
-    }
+    const hasTransactionsFromMultipleOwners = hasUnknownOwner ? knownOwnerIDs.size > 0 || selectedTransactionIDs.length > 1 : knownOwnerIDs.size > 1;
     const activePolicyExpenseChat = getPolicyExpenseChat(currentUserAccountID, defaultExpensePolicy?.id);
     const isDuplicateOptionVisible =
         !isProduction &&
