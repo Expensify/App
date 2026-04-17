@@ -39,10 +39,9 @@ type ChatActionableButtonsProps = {
     originalReportID: string;
     userBillingFundID: number | undefined;
     introSelected: OnyxEntry<OnyxTypes.IntroSelected>;
-    currentUserAccountID: number;
 };
 
-function ChatActionableButtons({action, report, originalReport, reportID, originalReportID, userBillingFundID, introSelected, currentUserAccountID}: ChatActionableButtonsProps) {
+function ChatActionableButtons({action, report, originalReport, reportID, originalReportID, userBillingFundID, introSelected}: ChatActionableButtonsProps) {
     const styles = useThemeStyles();
     const personalDetail = useCurrentUserPersonalDetails();
     const {isRestrictedToPreferredPolicy, preferredPolicyID} = usePreferredPolicy();
@@ -88,7 +87,14 @@ function ChatActionableButtons({action, report, originalReport, reportID, origin
                 text: `${i + 1} - ${option}`,
                 key: `${action.reportActionID}-conciergeCategoryOptions-${option}`,
                 onPress: () => {
-                    resolveConciergeCategoryOptions(reportActionReport, reportID, action.reportActionID, option, personalDetail.timezone ?? CONST.DEFAULT_TIME_ZONE, currentUserAccountID);
+                    resolveConciergeCategoryOptions(
+                        reportActionReport,
+                        reportID,
+                        action.reportActionID,
+                        option,
+                        personalDetail.timezone ?? CONST.DEFAULT_TIME_ZONE,
+                        personalDetail.accountID,
+                    );
                 },
             }));
         }
@@ -111,7 +117,14 @@ function ChatActionableButtons({action, report, originalReport, reportID, origin
                 text: `${i + 1} - ${option}`,
                 key: `${action.reportActionID}-conciergeDescriptionOptions-${option}`,
                 onPress: () => {
-                    resolveConciergeDescriptionOptions(reportActionReport, reportID, action.reportActionID, option, personalDetail.timezone ?? CONST.DEFAULT_TIME_ZONE, currentUserAccountID);
+                    resolveConciergeDescriptionOptions(
+                        reportActionReport,
+                        reportID,
+                        action.reportActionID,
+                        option,
+                        personalDetail.timezone ?? CONST.DEFAULT_TIME_ZONE,
+                        personalDetail.accountID,
+                    );
                 },
             }));
         }
@@ -130,7 +143,7 @@ function ChatActionableButtons({action, report, originalReport, reportID, origin
                             action,
                             followup,
                             personalDetail.timezone ?? CONST.DEFAULT_TIME_ZONE,
-                            currentUserAccountID,
+                            personalDetail.accountID,
                             personalDetail.email,
                         );
                     },

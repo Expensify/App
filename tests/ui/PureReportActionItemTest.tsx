@@ -2378,4 +2378,39 @@ describe('PureReportActionItem', () => {
             expect(screen.getByText(translateLocal('travel.tripSummary'))).toBeOnTheScreen();
         });
     });
+
+    describe('ChatMessageContent moderation and actionable buttons', () => {
+        it('flagged message shows "Reveal message" button when moderation decision is hidden', async () => {
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, {});
+            action.message = [{type: 'COMMENT', html: 'bad message', text: 'bad message', moderationDecision: {decision: CONST.MODERATION.MODERATOR_DECISION_HIDDEN}}];
+            renderItemWithAction(action);
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByText('Reveal message')).toBeOnTheScreen();
+        });
+
+        it('clicking "Reveal message" toggles to "Hide message"', async () => {
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, {});
+            action.message = [{type: 'COMMENT', html: 'bad message', text: 'bad message', moderationDecision: {decision: CONST.MODERATION.MODERATOR_DECISION_HIDDEN}}];
+            renderItemWithAction(action);
+            await waitForBatchedUpdatesWithAct();
+
+            fireEvent.press(screen.getByText('Reveal message'));
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByText('Hide message')).toBeOnTheScreen();
+        });
+
+        it('ACTIONABLETRACKEXPENSEWHISPER renders track expense buttons', async () => {
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_TRACK_EXPENSE_WHISPER, {
+                transactionID: 'tx123',
+            });
+            action.message = [{type: 'COMMENT', html: 'Track this expense', text: 'Track this expense'}];
+            renderItemWithAction(action);
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByText(translateLocal('actionableMentionTrackExpense.submit' as TranslationPaths))).toBeOnTheScreen();
+            expect(screen.getByText(translateLocal('actionableMentionTrackExpense.nothing' as TranslationPaths))).toBeOnTheScreen();
+        });
+    });
 });

@@ -1133,7 +1133,6 @@ function PureReportActionItem({
                     contextMenuActionsValue={contextMenuActionsValue}
                     userBillingFundID={userBillingFundID}
                     introSelected={introSelected}
-                    currentUserAccountID={currentUserAccountID}
                 />
             );
         }
