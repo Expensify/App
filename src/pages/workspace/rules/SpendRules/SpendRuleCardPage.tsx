@@ -108,6 +108,9 @@ function SpendRuleCardPage({route}: SpendRuleCardPageProps) {
     const isCardSettingsLoading = !isOffline && (!expensifyCardSettings || expensifyCardSettings.isLoading) && !expensifyCardSettings?.hasOnceLoaded;
     const eligibleCards = expensifyCardSettings ? getEligibleCards(cardsList, expensifyCardSettings, ruleID === ROUTES.NEW ? undefined : ruleID) : [];
 
+    const {cardList, ...allCards} = cardsList ?? {};
+    const hasAnyCards = Object.keys(allCards).length > 0;
+
     const filterCard = (card: Card, searchInput: string) => filterCardsByPersonalDetails(card, searchInput, personalDetails);
     const sortCards = (cards: Card[]) => sortCardsByCardholderName(cards, personalDetails, localeCompare);
 
@@ -245,9 +248,13 @@ function SpendRuleCardPage({route}: SpendRuleCardPageProps) {
                                     icon={illustrations.HandCard}
                                     iconWidth={variables.iconSection}
                                     iconHeight={variables.iconSection}
-                                    title={inputValue.trim() ? translate('common.noResultsFound') : translate('workspace.rules.spendRules.noAvailableCards')}
+                                    title={
+                                        inputValue.trim()
+                                            ? translate('common.noResultsFound')
+                                            : translate(hasAnyCards ? 'workspace.rules.spendRules.noAvailableCards' : 'workspace.rules.spendRules.noCardsIssuedTitle')
+                                    }
                                     titleStyles={styles.mb2}
-                                    subtitle={translate('workspace.rules.spendRules.noAvailableCardsSubtitle')}
+                                    subtitle={translate(hasAnyCards ? 'workspace.rules.spendRules.noAvailableCardsSubtitle' : 'workspace.rules.spendRules.noCardsIssuedSubtitle')}
                                     subtitleStyle={styles.textSupporting}
                                 />
                             </ScrollView>
