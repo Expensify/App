@@ -647,6 +647,7 @@ function MoneyRequestConfirmationList({
         transaction?.splitShares,
         onSplitShareChange,
         getCurrencySymbol,
+        convertToDisplayString,
     ]);
 
     const isSplitModified = useMemo(() => {
