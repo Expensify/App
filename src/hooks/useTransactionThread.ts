@@ -2,7 +2,7 @@ import {useCallback} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {getAllNonDeletedTransactions} from '@libs/MoneyRequestReportUtils';
 import {getOneTransactionThreadReportID, getSortedReportActionsForDisplay} from '@libs/ReportActionsUtils';
-import {canUserPerformWriteAction, isReportTransactionThread as isReportTransactionThreadUtil} from '@libs/ReportUtils';
+import {canUserPerformWriteAction} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, ReportAction, ReportActions} from '@src/types/onyx';
@@ -19,7 +19,6 @@ type UseTransactionThreadParams = {
 };
 
 type UseTransactionThreadResult = {
-    isReportTransactionThread: boolean;
     transactionThreadReportID: string | undefined;
     transactionThreadReportActions: ReportAction[] | undefined;
     transactionThreadReport: OnyxEntry<Report>;
@@ -35,8 +34,6 @@ function selectTransactionThreadReportActions(
 }
 
 function useTransactionThread({reportID, report, allReportActions, isOffline}: UseTransactionThreadParams): UseTransactionThreadResult {
-    const isReportTransactionThread = isReportTransactionThreadUtil(report);
-
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`);
 
     const allReportTransactions = useReportTransactionsCollection(reportID);
@@ -72,7 +69,6 @@ function useTransactionThread({reportID, report, allReportActions, isOffline}: U
         : allReportActions?.find((action) => action.reportActionID === transactionThreadReport?.parentReportActionID);
 
     return {
-        isReportTransactionThread,
         transactionThreadReportID,
         transactionThreadReportActions,
         transactionThreadReport,

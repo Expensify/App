@@ -36,7 +36,6 @@ type UseReportActionsScrollParams = {
     loadOlderChats: (force?: boolean) => void;
     loadNewerChats: (force?: boolean) => void;
     linkedReportActionID: string | undefined;
-    shouldFocusToTopOnMount: boolean;
     hasOnceLoadedReportActions: boolean;
     onLayout?: (event: LayoutChangeEvent) => void;
 };
@@ -63,7 +62,6 @@ function useReportActionsScroll({
     loadOlderChats,
     loadNewerChats,
     linkedReportActionID,
-    shouldFocusToTopOnMount,
     hasOnceLoadedReportActions,
     onLayout,
 }: UseReportActionsScrollParams): UseReportActionsScrollResult {
@@ -210,23 +208,6 @@ function useReportActionsScroll({
         });
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [lastAction]);
-
-    // Initial scroll to bottom on mount
-    useEffect(() => {
-        if (linkedReportActionID) {
-            return;
-        }
-
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        InteractionManager.runAfterInteractions(() => {
-            if (shouldFocusToTopOnMount) {
-                return;
-            }
-            setIsFloatingMessageCounterVisible(false);
-            reportScrollManager.scrollToBottom();
-        });
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
 
     // Safari whisper scroll fix
     // https://github.com/Expensify/App/issues/54520

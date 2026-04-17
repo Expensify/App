@@ -34,7 +34,6 @@ type UseReportActionsPaginationResult = {
     reportActionID: string | undefined;
     transactionThreadReport: OnyxEntry<Report>;
     parentReportActionForTransactionThread: ReportAction | undefined;
-    isReportTransactionThread: boolean;
     shouldAddCreatedAction: boolean;
 };
 
@@ -55,8 +54,7 @@ function useReportActionsPagination(reportID: string | undefined): UseReportActi
     const isConciergeSidePanel = isInSidePanel && isConciergeChatReport(report, conciergeReportID);
 
     const isReportTransactionThread = isReportTransactionThreadUtil(report);
-    const isLoadingInitialReportActions = false; // skeleton handled at router level
-    const isInitiallyLoadingTransactionThread = isReportTransactionThread && (!!isLoadingInitialReportActions || (allReportActions ?? [])?.length <= 1);
+    const isInitiallyLoadingTransactionThread = isReportTransactionThread && (allReportActions ?? [])?.length <= 1;
 
     const lastAction = allReportActions?.at(-1);
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -131,7 +129,6 @@ function useReportActionsPagination(reportID: string | undefined): UseReportActi
         reportActionID,
         transactionThreadReport: thread.transactionThreadReport,
         parentReportActionForTransactionThread: thread.parentReportActionForTransactionThread,
-        isReportTransactionThread: thread.isReportTransactionThread,
         shouldAddCreatedAction,
     };
 }

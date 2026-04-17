@@ -1,5 +1,5 @@
 import {getAllNonDeletedTransactions} from '@libs/MoneyRequestReportUtils';
-import {getMostRecentIOURequestActionID, isCreatedAction, isDeletedParentAction, isIOUActionMatchingTransactionList, isReportActionVisible} from '@libs/ReportActionsUtils';
+import {isCreatedAction, isDeletedParentAction, isIOUActionMatchingTransactionList, isReportActionVisible} from '@libs/ReportActionsUtils';
 import {isConciergeChatReport} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -15,8 +15,6 @@ import useTransactionsAndViolationsForReport from './useTransactionsAndViolation
 
 type UseReportActionsVisibilityResult = {
     visibleReportActions: ReportAction[];
-    mostRecentIOUReportActionID: string | null;
-    isConciergeSidePanel: boolean;
     hasPreviousMessages: boolean;
     showFullHistory: boolean;
     handleShowPreviousMessages: () => void;
@@ -91,8 +89,6 @@ function useReportActionsVisibility({reportID, reportActions, canPerformWriteAct
 
     return {
         visibleReportActions,
-        mostRecentIOUReportActionID: getMostRecentIOURequestActionID(reportActions),
-        isConciergeSidePanel,
         hasPreviousMessages: concierge.hasPreviousMessages,
         showFullHistory: concierge.showFullHistory,
         handleShowPreviousMessages: concierge.handleShowPreviousMessages,

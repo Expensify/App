@@ -142,7 +142,6 @@ function ReportActionsList({reportID, onLayout}: ReportActionsListProps) {
         loadOlderChats,
         loadNewerChats,
         linkedReportActionID,
-        shouldFocusToTopOnMount,
         hasOnceLoadedReportActions: !!reportMetadata?.hasOnceLoadedReportActions,
         onLayout,
     });

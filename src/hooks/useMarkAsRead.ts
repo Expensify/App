@@ -31,7 +31,6 @@ type UseMarkAsReadParams = {
 };
 
 type UseMarkAsReadResult = {
-    isVisible: boolean;
     readActionSkippedRef: RefObject<boolean>;
 };
 
@@ -143,7 +142,7 @@ function useMarkAsRead({reportID, sortedVisibleReportActions, transactionThreadR
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [report?.lastVisibleActionCreated, transactionThreadReport?.lastVisibleActionCreated, reportID, isVisible, isFocused, reportMetadata?.hasOnceLoadedReportActions]);
 
-    return {isVisible, readActionSkippedRef};
+    return {readActionSkippedRef};
 }
 
 export default useMarkAsRead;

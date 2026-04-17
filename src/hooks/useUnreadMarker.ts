@@ -32,9 +32,6 @@ type UseUnreadMarkerResult = {
 
     /** The index within sortedVisibleReportActions of the action with the unread marker */
     unreadMarkerReportActionIndex: number;
-
-    /** The timestamp used to determine which actions are unread */
-    unreadMarkerTime: string;
 };
 
 const lastReadTimeSelector = (report: OnyxTypes.Report | undefined) => report?.lastReadTime ?? '';
@@ -145,7 +142,6 @@ function useUnreadMarker({reportID, sortedVisibleReportActions, sortedReportActi
     return {
         unreadMarkerReportActionID,
         unreadMarkerReportActionIndex,
-        unreadMarkerTime,
     };
 }
 
