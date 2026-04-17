@@ -18,7 +18,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {deleteWorkspaceCompanyCardFeed, setWorkspaceCompanyCardTransactionLiability} from '@libs/actions/CompanyCards';
+import {deleteWorkspaceCompanyCardFeed, setAddNewCompanyCardStepAndData, setWorkspaceCompanyCardTransactionLiability} from '@libs/actions/CompanyCards';
 import {getCompanyCardFeed, getCompanyFeeds, getCustomOrFormattedFeedName, getDomainOrWorkspaceAccountID, getSelectedFeed, isDirectFeed} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -55,7 +55,7 @@ function WorkspaceCompanyCardsSettingsPage({
     const {showConfirmModal} = useConfirmModal();
 
     const [cardsList] = useCardsList(selectedFeed);
-    const icons = useMemoizedLazyExpensifyIcons(['Sync', 'Trashcan']);
+    const icons = useMemoizedLazyExpensifyIcons(['Sync', 'Trashcan', 'Table']);
     const feedName = selectedFeed ? getCustomOrFormattedFeedName(translate, feed, cardFeeds?.[selectedFeed]?.customFeedName) : undefined;
     const companyFeeds = getCompanyFeeds(cardFeeds);
     const selectedFeedData = selectedFeed ? companyFeeds[selectedFeed] : undefined;
@@ -64,6 +64,7 @@ function WorkspaceCompanyCardsSettingsPage({
     const domainOrWorkspaceAccountID = getDomainOrWorkspaceAccountID(workspaceAccountID, selectedFeedData);
     const isPending = !!selectedFeedData?.pending;
     const isDirectFeedType = isDirectFeed(feed);
+    const isCsvFeed = !!feed?.includes(CONST.COMPANY_CARD.FEED_BANK_NAME.CSV);
     const statementCloseDate = useMemo(() => {
         if (!selectedFeedData?.statementPeriodEndDay) {
             return undefined;
@@ -170,6 +171,22 @@ function WorkspaceCompanyCardsSettingsPage({
                                         return;
                                     }
                                     startCardFeedRefresh(policyID, selectedFeed, policy?.outputCurrency, currencyList, countryByIp);
+                                }}
+                            />
+                        )}
+                        {isCsvFeed && (
+                            <MenuItem
+                                icon={icons.Table}
+                                title={translate('spreadsheet.importSpreadsheet')}
+                                onPress={() => {
+                                    setAddNewCompanyCardStepAndData({
+                                        data: {
+                                            layoutType: feed,
+                                            companyCardLayoutName: selectedFeedData?.customFeedName ?? feedName ?? '',
+                                            useAdvancedFields: false,
+                                        },
+                                    });
+                                    Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_IMPORT_SPREADSHEET.getRoute(policyID));
                                 }}
                             />
                         )}
