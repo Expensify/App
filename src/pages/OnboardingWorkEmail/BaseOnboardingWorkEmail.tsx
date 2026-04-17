@@ -112,7 +112,6 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
         const emailParts = userEmail.split('@');
         const domain = emailParts.at(1) ?? '';
 
-        // eslint-disable-next-line @typescript-eslint/prefer-optional-chain -- optional chain removes the falsy guard for empty strings, causing a false positive when both emails are empty
         if (session?.email && userEmail.toLowerCase() === session.email.toLowerCase() && !isOffline) {
             addErrorMessage(errors, INPUT_IDS.ONBOARDING_WORK_EMAIL, translate('onboarding.workEmailValidationError.sameAsSignupEmail'));
         } else if ((!Str.isValidEmail(userEmail) || PUBLIC_DOMAINS_SET.has(domain.toLowerCase())) && !isOffline) {
