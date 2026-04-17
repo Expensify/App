@@ -2284,7 +2284,7 @@ const translations = {
     },
     deviceManagementPage: {
         title: 'Device management',
-        description: 'Manage all the devices that you have logged into with your Expensify Account. <a href="">Learn more</a>',
+        description: 'Manage all the devices that you have logged into with your Expensify Account.',
         revoke: 'Revoke',
         unknownDevice: 'Unknown Device',
     },

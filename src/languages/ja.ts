@@ -2190,7 +2190,7 @@ const translations: TranslationDeepObject<typeof en> = {
     },
     deviceManagementPage: {
         title: 'デバイス管理',
-        description: 'Expensifyアカウントでログインしたすべてのデバイスを管理します。<a href="">詳細はこちら</a>',
+        description: 'Expensifyアカウントでログインしたすべてのデバイスを管理します。',
         revoke: '取り消す',
         unknownDevice: '不明なデバイス',
     },

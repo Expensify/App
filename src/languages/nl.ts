@@ -2207,7 +2207,7 @@ const translations: TranslationDeepObject<typeof en> = {
     },
     deviceManagementPage: {
         title: 'Apparaatbeheer',
-        description: 'Beheer alle apparaten waarop u bent ingelogd met uw Expensify-account. <a href="">Meer informatie</a>',
+        description: 'Beheer alle apparaten waarop u bent ingelogd met uw Expensify-account.',
         revoke: 'Intrekken',
         unknownDevice: 'Onbekend Apparaat',
     },
