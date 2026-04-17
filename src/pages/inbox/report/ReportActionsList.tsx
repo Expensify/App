@@ -133,7 +133,18 @@ function ReportActionsList({reportID, onLayout}: ReportActionsListProps) {
 
     const linkedReportActionID = pagination.reportActionID;
 
-    const scroll = useReportActionsScroll({
+    const {
+        reportScrollManager,
+        trackVerticalScrolling,
+        onViewableItemsChanged,
+        isFloatingMessageCounterVisible,
+        scrollToBottomAndMarkReportAsRead,
+        onStartReached,
+        onEndReached,
+        onLayoutInner,
+        retryLoadNewerChatsError,
+        actionIdToHighlight,
+    } = useReportActionsScroll({
         reportID,
         report,
         sortedVisibleReportActions,
@@ -237,7 +248,7 @@ function ReportActionsList({reportID, onLayout}: ReportActionsListProps) {
                     shouldDisplayReplyDivider={sortedVisibleReportActions.length > 1}
                     isFirstVisibleReportAction={firstVisibleReportActionID === reportAction.reportActionID}
                     shouldUseThreadDividerLine={shouldUseThreadDividerLine}
-                    shouldHighlight={reportAction.reportActionID === scroll.actionIdToHighlight}
+                    shouldHighlight={reportAction.reportActionID === actionIdToHighlight}
                     userWalletTierName={userWalletTierName}
                     isUserValidated={isUserValidated}
                     personalDetails={personalDetailsList}
@@ -256,8 +267,8 @@ function ReportActionsList({reportID, onLayout}: ReportActionsListProps) {
         <>
             <FloatingMessageCounter
                 hasNewMessages={!!unreadMarkerReportActionID}
-                isActive={scroll.isFloatingMessageCounterVisible}
-                onClick={scroll.scrollToBottomAndMarkReportAsRead}
+                isActive={isFloatingMessageCounterVisible}
+                onClick={scrollToBottomAndMarkReportAsRead}
             />
             <View
                 style={[styles.flex1, !shouldShowReportRecipientLocalTime && !isWriteActionDisabled ? styles.pb4 : {}]}
@@ -265,7 +276,7 @@ function ReportActionsList({reportID, onLayout}: ReportActionsListProps) {
             >
                 <InvertedFlashList
                     accessibilityLabel={translate('sidebarScreen.listOfChatMessages')}
-                    ref={scroll.reportScrollManager.ref}
+                    ref={reportScrollManager.ref}
                     testID="report-actions-list"
                     style={styles.overscrollBehaviorContain}
                     data={sortedVisibleReportActions}
@@ -274,28 +285,28 @@ function ReportActionsList({reportID, onLayout}: ReportActionsListProps) {
                     drawDistance={1500}
                     renderScrollComponent={renderActionSheetAwareScrollView}
                     contentContainerStyle={[styles.chatContentScrollView, shouldFocusToTopOnMount && styles.justifyContentEnd]}
-                    onEndReached={scroll.onEndReached}
+                    onEndReached={onEndReached}
                     onEndReachedThreshold={0.75}
-                    onStartReached={scroll.onStartReached}
+                    onStartReached={onStartReached}
                     onStartReachedThreshold={0.75}
                     ListHeaderComponent={
                         <ReportActionsListHeader
                             reportID={reportID}
-                            onRetry={scroll.retryLoadNewerChatsError}
+                            onRetry={retryLoadNewerChatsError}
                         />
                     }
                     ListFooterComponent={shouldShowOfflineSkeleton ? <ReportActionsSkeletonView shouldAnimate={false} /> : null}
                     keyboardShouldPersistTaps="handled"
-                    onLayout={scroll.onLayoutInner}
-                    onScroll={scroll.trackVerticalScrolling}
-                    onViewableItemsChanged={scroll.onViewableItemsChanged}
+                    onLayout={onLayoutInner}
+                    onScroll={trackVerticalScrolling}
+                    onViewableItemsChanged={onViewableItemsChanged}
                     extraData={extraData}
                     key={reportID}
                     getItemType={(item) => item.actionName}
                     initialScrollKey={linkedReportActionID}
                     maintainVisibleContentPosition={shouldFocusToTopOnMount && !linkedReportActionID ? {startRenderingFromBottom: true} : undefined}
                     onContentSizeChange={() => {
-                        scroll.trackVerticalScrolling(undefined);
+                        trackVerticalScrolling(undefined);
                     }}
                 />
             </View>
