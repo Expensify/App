@@ -34,6 +34,9 @@ import type {Policy, Report} from '@src/types/onyx';
 import ExpenseReportListItemRow from './ExpenseReportListItemRow';
 import type {ExpenseReportListItemProps, ExpenseReportListItemType} from './types';
 
+/**
+ * An expense report row in search results, showing status badge, total, and participants.
+ */
 function ExpenseReportListItem<TItem extends ListItem>({
     item,
     isLoading,
