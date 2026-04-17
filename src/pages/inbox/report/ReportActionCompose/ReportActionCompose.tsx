@@ -343,13 +343,6 @@ function ReportActionCompose({reportID}: ReportActionComposeProps) {
         return translate('reportActionCompose.writeSomething');
     }, [includesConcierge, translate, userBlockedFromConcierge, isExpenseRelatedReport, canUserPerformWriteAction, isEnglishLocale]);
 
-    const focus = () => {
-        if (composerRef.current === null) {
-            return;
-        }
-        composerRef.current?.focus(true);
-    };
-
     const isKeyboardVisibleWhenShowingModalRef = useRef(false);
     const isNextModalWillOpenRef = useRef(false);
 
@@ -784,7 +777,7 @@ function ReportActionCompose({reportID}: ReportActionComposeProps) {
                                     if (!shouldFocusInputOnScreenFocus) {
                                         return;
                                     }
-                                    focus();
+                                    composerRef.current?.focus(true);
                                 }}
                                 actionButtonRef={actionButtonRef}
                                 shouldDisableAttachmentItem={isExceedingMaxLength}
@@ -851,7 +844,7 @@ function ReportActionCompose({reportID}: ReportActionComposeProps) {
                                     if (activeElementId === CONST.COMPOSER.NATIVE_ID || activeElementId === CONST.EMOJI_PICKER_BUTTON_NATIVE_ID) {
                                         return;
                                     }
-                                    focus();
+                                    composerRef.current?.focus(true);
                                 }}
                                 onEmojiSelected={(...args) => composerRef.current?.replaceSelectionWithText(...args)}
                                 emojiPickerID={report?.reportID}
