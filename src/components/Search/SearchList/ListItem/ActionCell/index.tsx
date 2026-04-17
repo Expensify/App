@@ -80,6 +80,8 @@ function ActionCell({
 
     const text = translate(actionTranslationsMap[action]);
 
+    const buttonInnerStyles = isSelected && action === CONST.SEARCH.ACTION_TYPES.UNDELETE ? styles.buttonDefaultSelected : {};
+
     return (
         <Button
             text={text}
@@ -91,6 +93,7 @@ function ActionCell({
             success={action !== CONST.SEARCH.ACTION_TYPES.UNDELETE}
             isDisabled={isOffline || shouldDisablePointerEvents}
             shouldStayNormalOnDisable={shouldDisablePointerEvents}
+            innerStyles={buttonInnerStyles}
             isNested
             sentryLabel={CONST.SENTRY_LABEL.SEARCH.ACTION_CELL_ACTION}
         />

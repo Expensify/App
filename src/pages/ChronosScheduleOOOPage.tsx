@@ -156,7 +156,7 @@ function ChronosScheduleOOOPage({route}: ChronosScheduleOOOPageProps) {
                         currencyButtonLabel={durationUnitButtonLabel}
                         currencyButtonAccessibilityLabel={`${translate('common.select')}, ${durationUnitButtonLabel}`}
                         currency={CONST.CURRENCY.USD}
-                        decimals={0}
+                        decimals={2}
                         onCurrencyButtonPress={() => setIsDurationUnitModalVisible(true)}
                         isCurrencyPressable
                     />
