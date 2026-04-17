@@ -25,11 +25,11 @@ import CONST from '@src/CONST';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
-function QuickbooksExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
+function DynamicQuickbooksExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {isBetaEnabled} = usePermissions();
-    const route = useRoute<PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_EXPORT>>();
+    const route = useRoute<PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_QUICKBOOKS_ONLINE_EXPORT>>();
     const backTo = route?.params?.backTo;
     const policyID = policy?.id;
     const policyOwner = policy?.owner ?? '';
@@ -73,7 +73,7 @@ function QuickbooksExportConfigurationPage({policy}: WithPolicyConnectionsProps)
         },
         {
             description: translate('workspace.qbo.exportInvoices'),
-            onPress: !policyID ? undefined : () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_INVOICE_ACCOUNT_SELECT.getRoute(policyID, Navigation.getActiveRoute())),
+            onPress: !policyID ? undefined : () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_INVOICE_ACCOUNT_SELECT.path)),
             title: qboConfig?.receivableAccount?.name,
             subscribedSettings: [CONST.QUICKBOOKS_CONFIG.RECEIVABLE_ACCOUNT],
         },
@@ -89,9 +89,7 @@ function QuickbooksExportConfigurationPage({policy}: WithPolicyConnectionsProps)
             : []),
         {
             description: translate('workspace.accounting.exportCompanyCard'),
-            onPress: !policyID
-                ? undefined
-                : () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_ACCOUNT.getRoute(policyID, Navigation.getActiveRoute())),
+            onPress: !policyID ? undefined : () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_ACCOUNT.path)),
             brickRoadIndicator: qboConfig?.errorFields?.exportCompanyCard ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
             title: qboConfig?.nonReimbursableExpensesExportDestination ? translate(`workspace.qbo.accounts.${qboConfig?.nonReimbursableExpensesExportDestination}`) : undefined,
             subscribedSettings: [
@@ -111,7 +109,7 @@ function QuickbooksExportConfigurationPage({policy}: WithPolicyConnectionsProps)
 
     return (
         <ConnectionLayout
-            displayName="QuickbooksExportConfigurationPage"
+            displayName="DynamicQuickbooksExportConfigurationPage"
             headerTitle="workspace.accounting.export"
             title="workspace.qbo.exportDescription"
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
@@ -150,4 +148,4 @@ function QuickbooksExportConfigurationPage({policy}: WithPolicyConnectionsProps)
     );
 }
 
-export default withPolicyConnections(QuickbooksExportConfigurationPage);
+export default withPolicyConnections(DynamicQuickbooksExportConfigurationPage);

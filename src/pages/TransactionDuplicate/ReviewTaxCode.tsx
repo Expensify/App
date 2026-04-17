@@ -26,10 +26,9 @@ function ReviewTaxRate() {
     const {translate} = useLocalize();
     const {getCurrencyDecimals} = useCurrencyListActions();
     const [reviewDuplicates] = useOnyx(ONYXKEYS.REVIEW_DUPLICATES);
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reviewDuplicates?.reportID}`);
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reviewDuplicates?.reportID ?? route.params.threadReportID}`);
     const policy = usePolicy(report?.policyID);
-    const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${route.params.threadReportID}`);
-    const transactionID = getTransactionID(transactionThreadReport);
+    const transactionID = getTransactionID(report);
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`);
     const [transactionViolations] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`);
     const allDuplicateIDs = useMemo(

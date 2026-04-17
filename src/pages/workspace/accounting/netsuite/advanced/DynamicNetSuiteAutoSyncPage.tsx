@@ -6,10 +6,12 @@ import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useAccordionAnimation from '@hooks/useAccordionAnimation';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updateNetSuiteAutoSync} from '@libs/actions/connections/NetSuiteCommands';
 import {getLatestErrorField} from '@libs/ErrorUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {settingsPendingAction} from '@libs/PolicyUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -19,29 +21,24 @@ import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOpt
 import {clearNetSuiteAutoSyncErrorField} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
-import ROUTES from '@src/ROUTES';
-import type {Route} from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 
-type NetSuiteAutoSyncPageRouteParams = {
-    backTo?: Route;
-};
-
-function NetSuiteAutoSyncPage({policy, route}: WithPolicyConnectionsProps) {
+function DynamicNetSuiteAutoSyncPage({policy, route}: WithPolicyConnectionsProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const config = policy?.connections?.netsuite?.options?.config;
     const autoSyncConfig = policy?.connections?.netsuite?.config;
     const policyID = route.params.policyID;
-    const {backTo} = route.params as NetSuiteAutoSyncPageRouteParams;
     const accountingMethod = policy?.connections?.netsuite?.options?.config?.accountingMethod;
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.NETSUITE_AUTO_SYNC.path);
     const pendingAction =
         settingsPendingAction([CONST.NETSUITE_CONFIG.AUTO_SYNC], autoSyncConfig?.pendingFields) ?? settingsPendingAction([CONST.NETSUITE_CONFIG.ACCOUNTING_METHOD], config?.pendingFields);
 
     const {isAccordionExpanded, shouldAnimateAccordionSection} = useAccordionAnimation(!!autoSyncConfig?.autoSync?.enabled);
 
     const goBack = useCallback(() => {
-        Navigation.goBack(backTo ?? ROUTES.POLICY_ACCOUNTING_NETSUITE_ADVANCED.getRoute(policyID));
-    }, [policyID, backTo]);
+        Navigation.goBack(backPath);
+    }, [backPath]);
 
     return (
         <AccessOrNotFoundWrapper
@@ -85,7 +82,7 @@ function NetSuiteAutoSyncPage({policy, route}: WithPolicyConnectionsProps) {
                             }
                             description={translate('workspace.netsuite.advancedConfig.accountingMethods.label')}
                             shouldShowRightIcon
-                            onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_ACCOUNTING_METHOD.getRoute(policyID, backTo))}
+                            onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.NETSUITE_ACCOUNTING_METHOD.path))}
                         />
                     </OfflineWithFeedback>
                 </Accordion>
@@ -94,4 +91,4 @@ function NetSuiteAutoSyncPage({policy, route}: WithPolicyConnectionsProps) {
     );
 }
 
-export default withPolicyConnections(NetSuiteAutoSyncPage);
+export default withPolicyConnections(DynamicNetSuiteAutoSyncPage);
