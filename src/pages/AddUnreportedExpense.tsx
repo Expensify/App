@@ -303,7 +303,7 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
                                     if (
                                         report &&
                                         report.policyID &&
-                                        shouldRestrictUserBillableActions(report.policyID, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, undefined, policy)
+                                        shouldRestrictUserBillableActions(report.policyID, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, undefined, policy, currentUserAccountID)
                                     ) {
                                         Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(report.policyID));
                                         return;

@@ -52,6 +52,7 @@ type SubscriptionPlanIllustrations = {
     ShieldYellow: IconAsset;
 };
 
+// TODO: Remove this one eventually
 let deprecatedCurrentUserAccountID = -1;
 Onyx.connect({
     key: ONYXKEYS.SESSION,
