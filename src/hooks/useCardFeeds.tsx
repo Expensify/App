@@ -50,8 +50,9 @@ const useCardFeeds = (policyID: string | undefined): [CombinedCardFeeds | undefi
     let workspaceFeeds: CombinedCardFeeds | undefined;
     if (policyID && allFeeds) {
         const shouldIncludeFeedPredicate = (combinedCardFeed: CombinedCardFeed) => {
-            if (combinedCardFeed?.linkedPolicyIDs) {
-                return combinedCardFeed.linkedPolicyIDs.includes(policyID);
+            const validLinkedPolicyIDs = combinedCardFeed?.linkedPolicyIDs?.filter(Boolean);
+            if (validLinkedPolicyIDs?.length) {
+                return validLinkedPolicyIDs.includes(policyID);
             }
             return combinedCardFeed.preferredPolicy ? combinedCardFeed.preferredPolicy === policyID : combinedCardFeed.domainID === effectiveWorkspaceAccountID;
         };
