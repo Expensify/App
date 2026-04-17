@@ -7,6 +7,7 @@ import useAgentZeroStatusIndicator from '@hooks/useAgentZeroStatusIndicator';
 import {clearAgentZeroProcessingIndicator, subscribeToReportReasoningEvents, unsubscribeFromReportReasoningChannel} from '@libs/actions/Report';
 import ConciergeReasoningStore from '@libs/ConciergeReasoningStore';
 import {AgentZeroStatusProvider, useAgentZeroStatus, useAgentZeroStatusActions} from '@pages/inbox/AgentZeroStatusContext';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
@@ -768,6 +769,106 @@ describe('AgentZeroStatusContext', () => {
                 expect(result.current.isProcessing).toBe(true);
             });
             expect(result.current.statusLabel).toBe(serverLabel);
+        });
+
+        it('should clear stale NVP on reconnect when only optimistic state was active', async () => {
+            // Regression test: when reconnecting with only optimistic state (no serverLabel),
+            // the NVP may have been set by the server and the CLEAR event lost during the
+            // Pusher disconnect. On reconnect we proactively clear the stale NVP so the
+            // indicator doesn't stay stuck until the 120s safety timeout.
+            const isConciergeChat = true;
+
+            const {result} = renderHook(() => useAgentZeroStatusIndicator(reportID, isConciergeChat));
+            await waitForBatchedUpdates();
+
+            // User sends a message while online → optimistic state (no serverLabel yet)
+            act(() => {
+                result.current.kickoffWaitingIndicator();
+            });
+            await waitForBatchedUpdates();
+            expect(result.current.isProcessing).toBe(true);
+
+            // Go offline, then reconnect
+            await Onyx.set(ONYXKEYS.NETWORK, {isOffline: true, networkStatus: 'offline'});
+            await waitForBatchedUpdates();
+            await Onyx.set(ONYXKEYS.NETWORK, {isOffline: false, networkStatus: 'online'});
+            await waitForBatchedUpdates();
+
+            // onReconnect proactively clears the NVP locally because optimistic state was active.
+            // The label-sync effect can also clear via reasoning store cleanup; either way,
+            // clearAgentZeroProcessingIndicator must have been invoked for this reportID.
+            await waitFor(() => {
+                expect(mockClearAgentZeroProcessingIndicator).toHaveBeenCalledWith(reportID);
+            });
+            expect(result.current.isProcessing).toBe(false);
+        });
+    });
+
+    describe('Concierge DM with pre-existing Concierge actions', () => {
+        const priorConciergeActionID = '100';
+        const newConciergeActionID = '200';
+        const buildConciergeAction = (id: string, created: string, text: string) => ({
+            reportActionID: id,
+            actorAccountID: CONST.ACCOUNT_ID.CONCIERGE,
+            created,
+            message: [{type: 'TEXT', text}],
+        });
+
+        it('should not clear indicator immediately when the newest action is a pre-existing Concierge reply', async () => {
+            // Regression test for situchan's report: in a Concierge DM, the newest action
+            // when the user sends a new message is typically Concierge's previous reply.
+            // The Concierge-reply detection effect must not treat that pre-existing action
+            // as a "new reply" — otherwise the indicator clears before it can show.
+            const isConciergeChat = true;
+
+            // Simulate the Concierge DM state: the latest existing action is from Concierge.
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
+                [priorConciergeActionID]: buildConciergeAction(priorConciergeActionID, '2024-01-01 00:00:00.000', 'Previous Concierge reply'),
+            });
+
+            const {result} = renderHook(() => useAgentZeroStatusIndicator(reportID, isConciergeChat));
+            await waitForBatchedUpdates();
+
+            // When the user sends a new message → optimistic state activates
+            act(() => {
+                result.current.kickoffWaitingIndicator();
+            });
+            await waitForBatchedUpdates();
+
+            // Then the indicator should appear and NOT be cleared by the pre-existing Concierge action
+            expect(result.current.isProcessing).toBe(true);
+            expect(result.current.statusLabel).toBe('Thinking...');
+            expect(mockClearAgentZeroProcessingIndicator).not.toHaveBeenCalled();
+        });
+
+        it('should clear indicator when a NEW Concierge action arrives after the indicator starts', async () => {
+            // Positive case: once a new Concierge reply lands with a different reportActionID
+            // than the one captured at indicator activation, the detection effect fires.
+            const isConciergeChat = true;
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
+                [priorConciergeActionID]: buildConciergeAction(priorConciergeActionID, '2024-01-01 00:00:00.000', 'Previous Concierge reply'),
+            });
+
+            const {result} = renderHook(() => useAgentZeroStatusIndicator(reportID, isConciergeChat));
+            await waitForBatchedUpdates();
+
+            act(() => {
+                result.current.kickoffWaitingIndicator();
+            });
+            await waitForBatchedUpdates();
+            expect(result.current.isProcessing).toBe(true);
+
+            // When a new Concierge reply action arrives (different reportActionID)
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
+                [newConciergeActionID]: buildConciergeAction(newConciergeActionID, '2024-01-01 00:00:01.000', 'New Concierge reply'),
+            });
+            await waitForBatchedUpdates();
+
+            // Then the indicator clears
+            await waitFor(() => {
+                expect(mockClearAgentZeroProcessingIndicator).toHaveBeenCalledWith(reportID);
+            });
         });
     });
 
