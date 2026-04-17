@@ -8,7 +8,6 @@ import Text from '@components/Text';
 import useIndicatorStatus from '@hooks/useIndicatorStatus';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import type {IndicatorStatus} from '@hooks/useNavigationTabBarIndicatorChecks';
 import useOnyx from '@hooks/useOnyx';
 import useReportAttributes from '@hooks/useReportAttributes';
 import {useSidebarOrderedReportsState} from '@hooks/useSidebarOrderedReports';
@@ -25,6 +24,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import type {ReimbursementAccount} from '@src/types/onyx';
+import type IndicatorStatus from '@src/types/utils/IndicatorStatus';
 import NAVIGATION_TABS from './NavigationTabBar/NAVIGATION_TABS';
 
 type DebugTabViewProps = {

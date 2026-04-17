@@ -114,7 +114,11 @@ function MoneyRequestReportPreviewContent({
     const shouldShowSkeleton = shouldShowLoading && transactions.length === 0;
     const shouldShowAccessPlaceHolder = !iouReport && !shouldShowLoading;
     const shouldShowEmptyPlaceholder = transactions.length === 0 && !shouldShowLoading;
+    const shouldShowPreviewPlaceholder = shouldShowAccessPlaceHolder || shouldShowEmptyPlaceholder;
     const showStatusAndSkeleton = !shouldShowEmptyPlaceholder;
+    // Empty/access placeholders do not depend on measured carousel width, so we can show them immediately
+    // once the report data is ready instead of keeping the taller loading state around and causing the preview to reflow.
+    const shouldShowPreviewLoading = shouldShowLoading || shouldShowLoadingDeferred || (!currentWidth && !shouldShowPreviewPlaceholder);
     const skeletonReasonAttributes: SkeletonSpanReasonAttributes = {
         context: 'MoneyRequestReportPreviewContent',
         hasOnceLoadedReportActions: chatReportMetadata?.hasOnceLoadedReportActions,
@@ -133,6 +137,7 @@ function MoneyRequestReportPreviewContent({
     const {translate, formatPhoneNumber} = useLocalize();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
+    const previewCarouselMinWidth = shouldUseNarrowLayout ? CONST.REPORT.TRANSACTION_PREVIEW.CAROUSEL.MIN_NARROW_WIDTH : CONST.REPORT.TRANSACTION_PREVIEW.CAROUSEL.MIN_WIDE_WIDTH;
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'BackArrow']);
 
     const {areAllRequestsBeingSmartScanned, hasNonReimbursableTransactions} = useMemo(
@@ -505,6 +510,61 @@ function MoneyRequestReportPreviewContent({
         return index === MAX_PREVIEWS_NUMBER ? ITEM_LAYOUT_TYPE.SHOW_MORE : ITEM_LAYOUT_TYPE.PREVIEW;
     };
 
+    let previewContent: React.ReactNode;
+
+    if (shouldShowPreviewLoading) {
+        previewContent = (
+            <View
+                style={[
+                    {
+                        height: CONST.REPORT.TRANSACTION_PREVIEW.CAROUSEL.WIDE_HEIGHT,
+                        minWidth: previewCarouselMinWidth,
+                    },
+                    styles.justifyContentCenter,
+                    styles.mtn1,
+                ]}
+            >
+                <ActivityIndicator
+                    size={40}
+                    reasonAttributes={carouselReasonAttributes}
+                />
+            </View>
+        );
+    } else if (shouldShowAccessPlaceHolder) {
+        previewContent = <AccessMoneyRequestReportPreviewPlaceHolder />;
+    } else if (shouldShowEmptyPlaceholder) {
+        previewContent = <EmptyMoneyRequestReportPreview />;
+    } else {
+        previewContent = (
+            <View style={[styles.flex1, styles.flexColumn, styles.overflowVisible, styles.minHeight42]}>
+                <FlashList
+                    key={carouselKey}
+                    snapToAlignment="start"
+                    decelerationRate="fast"
+                    snapToOffsets={snapOffsets}
+                    horizontal
+                    ItemSeparatorComponent={renderSeparator}
+                    data={carouselTransactions}
+                    ref={carouselRef}
+                    nestedScrollEnabled
+                    bounces={false}
+                    keyExtractor={(item) => `${item.transactionID}_${reportPreviewStyles.transactionPreviewCarouselStyle.width}`}
+                    contentContainerStyle={styles.ph2}
+                    style={reportPreviewStyles.flatListStyle}
+                    showsHorizontalScrollIndicator={false}
+                    renderItem={renderItem}
+                    getItemType={getItemType}
+                    onViewableItemsChanged={onViewableItemsChanged}
+                    onEndReached={adjustScroll}
+                    viewabilityConfig={viewabilityConfig}
+                    ListFooterComponent={<View style={styles.pl2} />}
+                    ListHeaderComponent={<View style={styles.pr2} />}
+                    drawDistance={1000}
+                />
+            </View>
+        );
+    }
+
     return (
         <View
             onLayout={onWrapperLayout}
@@ -631,54 +691,7 @@ function MoneyRequestReportPreviewContent({
                                             )}
                                         </View>
                                     </View>
-                                    {!currentWidth || shouldShowLoading || shouldShowLoadingDeferred ? (
-                                        <View
-                                            style={[
-                                                {
-                                                    height: CONST.REPORT.TRANSACTION_PREVIEW.CAROUSEL.WIDE_HEIGHT,
-                                                    minWidth: shouldUseNarrowLayout
-                                                        ? CONST.REPORT.TRANSACTION_PREVIEW.CAROUSEL.MIN_NARROW_WIDTH
-                                                        : CONST.REPORT.TRANSACTION_PREVIEW.CAROUSEL.MIN_WIDE_WIDTH,
-                                                },
-                                                styles.justifyContentCenter,
-                                                styles.mtn1,
-                                            ]}
-                                        >
-                                            <ActivityIndicator
-                                                size={40}
-                                                reasonAttributes={carouselReasonAttributes}
-                                            />
-                                        </View>
-                                    ) : (
-                                        <View style={[styles.flex1, styles.flexColumn, styles.overflowVisible, styles.minHeight42]}>
-                                            <FlashList
-                                                key={carouselKey}
-                                                snapToAlignment="start"
-                                                decelerationRate="fast"
-                                                snapToOffsets={snapOffsets}
-                                                horizontal
-                                                ItemSeparatorComponent={renderSeparator}
-                                                data={carouselTransactions}
-                                                ref={carouselRef}
-                                                nestedScrollEnabled
-                                                bounces={false}
-                                                keyExtractor={(item) => `${item.transactionID}_${reportPreviewStyles.transactionPreviewCarouselStyle.width}`}
-                                                contentContainerStyle={styles.ph2}
-                                                style={reportPreviewStyles.flatListStyle}
-                                                showsHorizontalScrollIndicator={false}
-                                                renderItem={renderItem}
-                                                getItemType={getItemType}
-                                                onViewableItemsChanged={onViewableItemsChanged}
-                                                onEndReached={adjustScroll}
-                                                viewabilityConfig={viewabilityConfig}
-                                                ListFooterComponent={<View style={styles.pl2} />}
-                                                ListHeaderComponent={<View style={styles.pr2} />}
-                                                drawDistance={1000}
-                                            />
-                                            {shouldShowAccessPlaceHolder && <AccessMoneyRequestReportPreviewPlaceHolder />}
-                                            {shouldShowEmptyPlaceholder && !shouldShowAccessPlaceHolder && <EmptyMoneyRequestReportPreview />}
-                                        </View>
-                                    )}
+                                    {previewContent}
                                     <View style={[styles.expenseAndReportPreviewTextContainer]}>
                                         <View style={[totalAmountStyle, styles.justifyContentBetween, styles.gap4, StyleUtils.getMinimumHeight(variables.h28)]}>
                                             <ReportPreviewActionButton
@@ -732,7 +745,7 @@ function MoneyRequestReportPreviewContent({
                                 moneyRequestReport={iouReport}
                                 transactionCount={numberOfRequests}
                                 hasNonHeldExpenses={!hasOnlyHeldExpenses}
-                                startAnimation={() => {
+                                onConfirm={() => {
                                     if (requestType === CONST.IOU.REPORT_ACTION_TYPE.APPROVE) {
                                         startApprovedAnimation();
                                     } else {

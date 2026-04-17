@@ -26,11 +26,11 @@ import {
     getFilteredRecentAttendees,
     getHeaderMessage,
     getParticipantsOption,
-    getPersonalDetailSearchTerms,
     getPolicyExpenseReportOption,
     isCurrentUser,
     orderOptions,
 } from '@libs/OptionsListUtils';
+import {doesPersonalDetailMatchSearchTerm} from '@libs/OptionsListUtils/searchMatchUtils';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import {isPaidGroupPolicy as isPaidGroupPolicyFn} from '@libs/PolicyUtils';
 import type {OptionData} from '@libs/ReportUtils';
@@ -260,15 +260,7 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
                     const isPolicyExpenseChat = participant?.isPolicyExpenseChat ?? false;
                     const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${userToInviteExpenseReport?.reportID}`];
                     return isPolicyExpenseChat
-                        ? getPolicyExpenseReportOption(
-                              participant,
-                              privateIsArchived,
-                              currentUserAccountID,
-                              personalDetails,
-                              userToInviteExpenseReport,
-                              userToInviteExpenseReportPolicy,
-                              reportAttributesDerived,
-                          )
+                        ? getPolicyExpenseReportOption(participant, privateIsArchived, personalDetails, userToInviteExpenseReport, userToInviteExpenseReportPolicy, reportAttributesDerived)
                         : getParticipantsOption(participant, personalDetails);
                 }) as OptionData[],
                 sectionIndex: 3,
@@ -280,7 +272,7 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
             !!orderedAvailableOptions?.userToInvite,
             cleanSearchTerm,
             countryCode,
-            attendees.some((attendee) => getPersonalDetailSearchTerms(attendee, currentUserAccountID).join(' ').toLowerCase().includes(cleanSearchTerm)),
+            attendees.some((attendee) => doesPersonalDetailMatchSearchTerm(attendee, currentUserAccountID, cleanSearchTerm)),
         );
         sections = newSections;
     }

@@ -12,6 +12,7 @@ import Text from '@components/Text';
 import TransactionPreviewSkeletonView from '@components/TransactionPreviewSkeletonView';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useCardFeedErrors from '@hooks/useCardFeedErrors';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useEnvironment from '@hooks/useEnvironment';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -22,7 +23,6 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getBrokenConnectionUrlToFixPersonalCard} from '@libs/CardUtils';
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
-import {convertToDisplayString} from '@libs/CurrencyUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {calculateAmount} from '@libs/IOUUtils';
 import Parser from '@libs/Parser';
@@ -72,6 +72,7 @@ function TransactionPreviewContent({
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {convertToDisplayString} = useCurrencyListActions();
     const {environmentURL} = useEnvironment();
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`);
     const isParentPolicyExpenseChat = isPolicyExpenseChat(chatReport);
@@ -123,7 +124,7 @@ function TransactionPreviewContent({
     const filteredViolations = filterReceiptViolations(violations);
     const firstViolation = filteredViolations.at(0);
     const isIOUActionType = isMoneyRequestAction(action);
-    const canEdit = isIOUActionType && canEditMoneyRequest(action, isChatReportArchived, report, policy, transaction);
+    const canEdit = isIOUActionType && canEditMoneyRequest(action, transaction, isChatReportArchived, report, policy);
     const companyCardPageURL = `${environmentURL}/${ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(report?.policyID)}`;
     const {personalCardsWithBrokenConnection} = useCardFeedErrors();
     const connectionLink = getBrokenConnectionUrlToFixPersonalCard(personalCardsWithBrokenConnection, environmentURL);
@@ -132,18 +133,17 @@ function TransactionPreviewContent({
     const isMarkAsCash = parentReport && currentUserLogin ? isMarkAsCashActionForTransaction(currentUserLogin, parentReport, violations, policy) : false;
 
     const violationMessage = firstViolation
-        ? ViolationsUtils.getViolationTranslation(
-              firstViolation,
+        ? ViolationsUtils.getViolationTranslation({
+              violation: firstViolation,
               translate,
               canEdit,
-              undefined,
               companyCardPageURL,
               connectionLink,
               card,
               isMarkAsCash,
-              transaction?.comment?.customUnit?.routeDistanceMeters,
-              transaction?.comment?.customUnit?.distanceUnit,
-          )
+              routeDistanceMeters: transaction?.comment?.customUnit?.routeDistanceMeters,
+              distanceUnit: transaction?.comment?.customUnit?.distanceUnit,
+          })
         : undefined;
 
     const previewText = useMemo(

@@ -12,7 +12,6 @@ import mockStorage from 'react-native-onyx/dist/storage/__mocks__';
 import type Animated from 'react-native-reanimated';
 import 'setimmediate';
 import {TextDecoder, TextEncoder} from 'util';
-import * as MockedSecureStore from '@src/libs/MultifactorAuthentication/NativeBiometrics/SecureStore/index.web';
 import '@src/polyfills/PromiseWithResolvers';
 import mockFSLibrary from './setupMockFullstoryLib';
 import setupMockImages from './setupMockImages';
@@ -124,9 +123,6 @@ jest.mock('react-native-fs', () => ({
 jest.mock('react-native-share', () => ({
     default: jest.fn(),
 }));
-
-// Jest has no access to the native secure store module, so we mock it with the web implementation.
-jest.mock('@src/libs/MultifactorAuthentication/NativeBiometrics/SecureStore', () => MockedSecureStore);
 
 jest.mock('react-native-reanimated', () => ({
     ...jest.requireActual<typeof Animated>('react-native-reanimated/mock'),
@@ -266,7 +262,7 @@ jest.mock('../src/components/Icon/IllustrationLoader.ts', () => ({
 }));
 
 jest.mock(
-    '@components/FlatList/InvertedFlatList/RenderTaskQueue',
+    '@components/FlatList/RenderTaskQueue',
     () =>
         class SyncRenderTaskQueue {
             private handler: (info: unknown) => void = () => {};
@@ -322,6 +318,16 @@ jest.mock('@shopify/react-native-skia', () => ({
     listFontFamilies: jest.fn(() => []),
 }));
 
+jest.mock('@sbaiahmed1/react-native-biometrics', () => ({
+    isSensorAvailable: jest.fn(() => Promise.resolve({available: false})),
+    createKeys: jest.fn(() => Promise.resolve({publicKey: ''})),
+    deleteKeys: jest.fn(() => Promise.resolve({success: true})),
+    getAllKeys: jest.fn(() => Promise.resolve({keys: []})),
+    signWithOptions: jest.fn(() => Promise.resolve({success: false})),
+    sha256: jest.fn(() => Promise.resolve({hash: ''})),
+    InputEncoding: {Base64: 'base64', Utf8: 'utf8'},
+}));
+
 jest.mock('victory-native', () => ({
     Bar: jest.fn(() => null),
     CartesianChart: jest.fn(
@@ -374,11 +380,4 @@ jest.mock('@src/hooks/useDomainDocumentTitle', () => ({
     // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: jest.fn(),
-}));
-
-jest.mock('react-native-vision-camera', () => ({
-    Camera: 'Camera',
-    useCameraDevice: jest.fn(() => null),
-    useCameraFormat: jest.fn(() => null),
-    useCameraPermission: jest.fn(() => ({hasPermission: false, requestPermission: jest.fn()})),
 }));

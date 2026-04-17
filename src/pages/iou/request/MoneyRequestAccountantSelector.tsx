@@ -72,6 +72,7 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
     const currentUserEmail = currentUserPersonalDetails.email ?? '';
     const currentUserAccountID = currentUserPersonalDetails.accountID;
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const privateIsArchivedMap = usePrivateIsArchivedMap();
 
     useEffect(() => {
@@ -94,6 +95,7 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
             loginList,
             currentUserAccountID,
             currentUserEmail,
+            conciergeReportID,
             {
                 betas,
                 excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
@@ -123,6 +125,7 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
         countryCode,
         currentUserAccountID,
         currentUserEmail,
+        conciergeReportID,
         personalDetails,
     ]);
 
@@ -198,15 +201,7 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
                     const isPolicyExpenseChat = participant?.isPolicyExpenseChat ?? false;
                     const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${userToInviteExpenseReport?.reportID}`];
                     return isPolicyExpenseChat
-                        ? getPolicyExpenseReportOption(
-                              participant,
-                              privateIsArchived,
-                              currentUserAccountID,
-                              personalDetails,
-                              userToInviteExpenseReport,
-                              userToInviteExpenseReportPolicy,
-                              reportAttributesDerived,
-                          )
+                        ? getPolicyExpenseReportOption(participant, privateIsArchived, personalDetails, userToInviteExpenseReport, userToInviteExpenseReportPolicy, reportAttributesDerived)
                         : getParticipantsOption(participant, personalDetails);
                 }),
                 sectionIndex: 3,

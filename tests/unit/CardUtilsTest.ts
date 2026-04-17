@@ -1,6 +1,7 @@
 import {buildFeedKeysWithAssignedCards, isExpensifyCardUkEuSupportedSelector} from '@selectors/Card';
 import lodashSortBy from 'lodash/sortBy';
 import type {OnyxCollection} from 'react-native-onyx';
+import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import type {FeedKeysWithAssignedCards} from '@hooks/useFeedKeysWithAssignedCards';
 import type IllustrationsType from '@styles/theme/illustrations/types';
 import CONST from '@src/CONST';
@@ -21,6 +22,7 @@ import {
     getBankName,
     getBrokenConnectionUrlToFixPersonalCard,
     getCardDescription,
+    getCardDescriptionForSearchTable,
     getCardFeedIcon,
     getCardFeedWithDomainID,
     getCardHintText,
@@ -1148,6 +1150,20 @@ describe('CardUtils', () => {
             expect(buildFeedKeysWithAssignedCards(allWorkspaceCards as unknown as OnyxCollection<WorkspaceCardsList>)).toStrictEqual({});
         });
 
+        it('Should include CSV feed keys even when entries only have cardList', () => {
+            const csvFeed = `${CONST.COMPANY_CARD.FEED_BANK_NAME.CSV}_123456_`;
+            const allWorkspaceCards = {
+                [`cards_12345_${csvFeed}`]: {
+                    cardList: {
+                        'CREDIT CARD...1234': 'encrypted_value',
+                    },
+                },
+            };
+            expect(buildFeedKeysWithAssignedCards(allWorkspaceCards as unknown as OnyxCollection<WorkspaceCardsList>, [CONST.BETAS.CSV_CARD_IMPORT])).toStrictEqual({
+                [`12345_${csvFeed}`]: true,
+            });
+        });
+
         it('Should extract feed keys that have assigned cards', () => {
             const allWorkspaceCards = {
                 'cards_12345_oauth.chase.com': {
@@ -1406,6 +1422,18 @@ describe('CardUtils', () => {
             const feed = CONST.COMPANY_CARD.FEED_BANK_NAME.VISA;
             const exists = doesCardFeedExist(feed, undefined);
             expect(exists).toBe(false);
+        });
+
+        it('Should return true for Expensify Card feed even though it is excluded from company feeds', () => {
+            const feed = CONST.EXPENSIFY_CARD.BANK as CompanyCardFeed;
+            const exists = doesCardFeedExist(feed, cardFeedsCollection);
+            expect(exists).toBe(true);
+        });
+
+        it('Should return true for Expensify Card feed even with empty cardFeeds', () => {
+            const feed = CONST.EXPENSIFY_CARD.BANK as CompanyCardFeed;
+            const exists = doesCardFeedExist(feed, {});
+            expect(exists).toBe(true);
         });
     });
 
@@ -2245,6 +2273,26 @@ describe('CardUtils', () => {
             expect(description).toBe(CONST.EXPENSIFY_CARD.BANK);
         });
 
+        it('should return Central invoicing for travel invoicing cards', () => {
+            const card: Card = {
+                accountID: 18439984,
+                bank: CONST.EXPENSIFY_CARD.BANK,
+                cardID: 21570657,
+                cardName: 'CREDIT CARD...6909',
+                domainName: 'expensify-policy17f617b9fe23d2f1.exfy',
+                fraud: 'none',
+                lastFourPAN: '6909',
+                lastScrape: '',
+                lastUpdated: '',
+                state: 3,
+                nameValuePairs: {
+                    feedCountry: CONST.TRAVEL.PROGRAM_TRAVEL_US,
+                } as Card['nameValuePairs'],
+            };
+            const description = getCardDescription(card, translateLocal);
+            expect(description).toBe('Central invoicing');
+        });
+
         it('should return the correct card description for personal card', () => {
             const personalCard: Card = {
                 accountID: 1,
@@ -2260,6 +2308,45 @@ describe('CardUtils', () => {
             };
             const description = getCardDescription(personalCard, translateLocal);
             expect(description).toBe('Visa • 1234');
+        });
+    });
+
+    describe('getCardDescriptionForSearchTable', () => {
+        it('should return Central invoicing for travel invoicing cards when translate is provided', () => {
+            const card: Card = {
+                accountID: 18439984,
+                bank: CONST.EXPENSIFY_CARD.BANK,
+                cardID: 21570657,
+                cardName: 'CREDIT CARD...6909',
+                domainName: 'expensify-policy17f617b9fe23d2f1.exfy',
+                fraud: 'none',
+                lastFourPAN: '6909',
+                lastScrape: '',
+                lastUpdated: '',
+                state: 3,
+                nameValuePairs: {
+                    feedCountry: CONST.TRAVEL.PROGRAM_TRAVEL_US,
+                } as Card['nameValuePairs'],
+            };
+            const description = getCardDescriptionForSearchTable(card, translateLocal, 'John Doe');
+            expect(description).toBe('Central invoicing');
+        });
+
+        it('should return normal description for non-travel Expensify cards', () => {
+            const card: Card = {
+                accountID: 18439984,
+                bank: CONST.EXPENSIFY_CARD.BANK,
+                cardID: 21570657,
+                cardName: 'Expensify Card',
+                domainName: 'expensify-policy17f617b9fe23d2f1.exfy',
+                fraud: 'none',
+                lastFourPAN: '5644',
+                lastScrape: '',
+                lastUpdated: '',
+                state: 3,
+            };
+            const description = getCardDescriptionForSearchTable(card, translateLocal, 'John Doe');
+            expect(description).toBe("John Doe's card • 5644");
         });
     });
 
@@ -2452,7 +2539,7 @@ describe('CardUtils', () => {
             expect(result).toHaveLength(2); // Both cards shown (admin-issued virtual is not grouped)
         });
 
-        it('should show travel cards separately', () => {
+        it('should exclude travel cards', () => {
             const cardList = {
                 1: {
                     accountID: 10160771,
@@ -2489,7 +2576,8 @@ describe('CardUtils', () => {
                 },
             } as unknown as CardList;
             const result = getDisplayableExpensifyCards(cardList);
-            expect(result).toHaveLength(2); // Both cards shown (travel card is not grouped)
+            expect(result).toHaveLength(1);
+            expect(result.at(0)?.cardID).toBe(18468850);
         });
 
         it('should show cards from different domains separately', () => {
@@ -2825,6 +2913,12 @@ describe('CardUtils', () => {
     });
 
     describe('getCompanyCardDescription', () => {
+        const mockTranslate = ((key: string) => {
+            if (key === 'cardTransactions.centralInvoicing') {
+                return 'Central invoicing';
+            }
+            return key;
+        }) as LocalizedTranslate;
         const cardList: CardList = {
             '21310091': {
                 accountID: 18439984,
@@ -2853,13 +2947,27 @@ describe('CardUtils', () => {
             },
         };
         it('should return the correct description for a company card', () => {
-            const description = getCompanyCardDescription('Test', 21310091, cardList);
+            const description = getCompanyCardDescription(mockTranslate, 'Test', 21310091, cardList);
             expect(description).toBe('480801XXXXXX2554');
         });
 
         it('should return the correct description for an Expensify card', () => {
-            const description = getCompanyCardDescription('Test', 21570657, cardList);
+            const description = getCompanyCardDescription(mockTranslate, 'Test', 21570657, cardList);
             expect(description).toBe('Test');
+        });
+
+        it('should return "Central invoicing" for a travel card', () => {
+            const travelCardList = {
+                '99999': {
+                    cardID: 99999,
+                    bank: CONST.EXPENSIFY_CARD.BANK,
+                    nameValuePairs: {
+                        feedCountry: CONST.TRAVEL.PROGRAM_TRAVEL_US,
+                    },
+                },
+            } as unknown as CardList;
+            const description = getCompanyCardDescription(mockTranslate, 'Expensify Card - 6909', 99999, travelCardList);
+            expect(description).toBe('Central invoicing');
         });
     });
 

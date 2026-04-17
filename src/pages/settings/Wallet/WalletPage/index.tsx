@@ -36,25 +36,16 @@ import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {isPersonalBankAccountMissingInfo} from '@libs/BankAccountUtils';
 import {hasDisplayableAssignedCards, isDirectFeed, maskCardNumber} from '@libs/CardUtils';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {formatPaymentMethods, getPaymentMethodDescription} from '@libs/PaymentUtils';
-import {getStreetLines} from '@libs/PersonalDetailsUtils';
 import {getActiveAdminWorkspaces, getDescriptionForPolicyDomainCard, hasActiveAdminWorkspaces, hasEligibleActiveAdminFromWorkspaces, isPaidGroupPolicy} from '@libs/PolicyUtils';
 import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import PaymentMethodList from '@pages/settings/Wallet/PaymentMethodList';
-import {getFirstPageName} from '@pages/settings/Wallet/UpdatePersonalBankAccountPage';
-import {
-    deletePaymentBankAccount,
-    openPersonalBankAccountSetupView,
-    pressLockedBankAccount,
-    resetPersonalBankAccountForUpdate,
-    setPersonalBankAccountContinueKYCOnSuccess,
-} from '@userActions/BankAccounts';
+import {deletePaymentBankAccount, openPersonalBankAccountSetupView, pressLockedBankAccount, setPersonalBankAccountContinueKYCOnSuccess} from '@userActions/BankAccounts';
 import {deletePersonalCard} from '@userActions/Card';
 import {close as closeModal} from '@userActions/Modal';
 import {clearWalletError, clearWalletTermsError, deletePaymentCard, getPaymentMethods, makeDefaultPaymentMethod as makeDefaultPaymentMethodPaymentMethods} from '@userActions/PaymentMethods';
@@ -195,34 +186,6 @@ function WalletPage() {
     };
 
     const onBankAccountRowPressed = ({accountData}: PaymentMethodPressHandlerParams) => {
-        if (isPersonalBankAccountMissingInfo(accountData) && accountData?.bankAccountID) {
-            const additionalData = accountData?.additionalData;
-            const [street1, street2] = additionalData?.addressStreet ? getStreetLines(additionalData.addressStreet) : [];
-            resetPersonalBankAccountForUpdate(
-                accountData.bankAccountID,
-                {
-                    legalFirstName: additionalData?.firstName,
-                    legalLastName: additionalData?.lastName,
-                    addressStreet: street1,
-                    addressStreet2: street2 ?? '',
-                    addressCity: additionalData?.addressCity,
-                    addressState: additionalData?.addressState,
-                    addressZipCode: additionalData?.addressZipCode,
-                    phoneNumber: additionalData?.companyPhone,
-                },
-                {
-                    addressLine1: street1,
-                    addressLine2: street2 ?? '',
-                    city: additionalData?.addressCity,
-                    state: additionalData?.addressState,
-                    zipPostCode: additionalData?.addressZipCode,
-                    country: CONST.COUNTRY.US,
-                },
-            );
-            Navigation.navigate(ROUTES.SETTINGS_UPDATE_PERSONAL_BANK_ACCOUNT.getRoute(getFirstPageName(bankAccountList, accountData.bankAccountID)));
-            return;
-        }
-
         const accountPolicyID = accountData?.additionalData?.policyID;
         const bankAccountID = accountData?.bankAccountID;
 
@@ -717,7 +680,6 @@ function WalletPage() {
                                 title={translate('walletPage.assignedCards')}
                                 isCentralPane
                                 subtitleMuted
-                                centralPaneContainerStyle={!hasAssignedCard ? styles.pb0 : undefined}
                                 titleStyles={styles.accountSettingsSectionTitle}
                             >
                                 <>
@@ -742,7 +704,7 @@ function WalletPage() {
                                     )}
                                 </>
                                 {isBetaEnabled(CONST.BETAS.PERSONAL_CARD_IMPORT) && (
-                                    <View style={[hasAssignedCard ? styles.mt3 : styles.mt5, shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8]}>
+                                    <View style={[shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8]}>
                                         <MenuItem
                                             title={translate('workspace.companyCards.importTransactions.importButton')}
                                             icon={icons.Table}
@@ -753,20 +715,22 @@ function WalletPage() {
                                         />
                                     </View>
                                 )}
-                                {!hasAssignedCard ? (
-                                    <MenuItem
-                                        iconHeight={48}
-                                        iconWidth={48}
-                                        containerStyle={styles.hoveredComponentBG}
-                                        shouldShowRightIcon
-                                        icon={illustrations.VerticalCreditCards}
-                                        wrapperStyle={styles.sectionMenuItemTopDescription}
-                                        title={translate('personalCard.lookingForCompanyCards')}
-                                        description={translate('personalCard.lookingForCompanyCardsDescription')}
-                                        titleStyle={styles.textStrong}
-                                        onPress={openCompanyCardFlow}
-                                    />
-                                ) : null}
+                                {!hasAssignedCard && (
+                                    <View style={[shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8]}>
+                                        <MenuItem
+                                            iconHeight={40}
+                                            iconWidth={40}
+                                            shouldShowRightIcon
+                                            icon={illustrations.VerticalCreditCards}
+                                            displayInDefaultIconColor
+                                            wrapperStyle={[styles.paymentMethod, shouldUseNarrowLayout ? styles.ph5 : styles.ph8]}
+                                            title={translate('personalCard.lookingForCompanyCards')}
+                                            description={translate('personalCard.lookingForCompanyCardsDescription')}
+                                            titleStyle={styles.textStrong}
+                                            onPress={openCompanyCardFlow}
+                                        />
+                                    </View>
+                                )}
                             </Section>
                         )}
 

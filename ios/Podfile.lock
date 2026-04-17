@@ -176,8 +176,6 @@ PODS:
     - hermes-engine
     - React-Core
     - ReactCommon
-  - ExpoSecureStore (14.2.4):
-    - ExpoModulesCore
   - ExpoStoreReview (9.0.9):
     - ExpoModulesCore
   - ExpoTaskManager (55.0.2):
@@ -310,12 +308,33 @@ PODS:
     - GoogleUtilities/Logger
     - GoogleUtilities/Privacy
   - group-ib-fp (2.6.0):
+    - boost
+    - DoubleConversion
+    - fast_float
+    - fmt
+    - glog
+    - hermes-engine
     - RCT-Folly
+    - RCT-Folly/Fabric
     - RCTRequired
     - RCTTypeSafety
-    - React-Codegen
     - React-Core
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-ImageManager
+    - React-jsi
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-renderercss
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
+    - SocketRocket
+    - Yoga
   - GTMAppAuth (4.1.1):
     - AppAuth/Core (~> 1.7)
     - GTMSessionFetcher/Core (< 4.0, >= 3.3)
@@ -469,7 +488,6 @@ PODS:
     - React-RCTText (= 0.83.1)
     - React-RCTVibration (= 0.83.1)
   - React-callinvoker (0.83.1)
-  - React-Codegen (0.1.0)
   - React-Core (0.83.1):
     - boost
     - DoubleConversion
@@ -490,7 +508,6 @@ PODS:
     - React-jsinspectorcdp
     - React-jsitooling
     - React-perflogger
-    - React-rendererconsistency
     - React-runtimeexecutor
     - React-runtimescheduler
     - React-utils
@@ -516,7 +533,6 @@ PODS:
     - React-jsinspectorcdp
     - React-jsitooling
     - React-perflogger
-    - React-rendererconsistency
     - React-runtimeexecutor
     - React-runtimescheduler
     - React-utils
@@ -541,7 +557,6 @@ PODS:
     - React-jsinspectorcdp
     - React-jsitooling
     - React-perflogger
-    - React-rendererconsistency
     - React-runtimeexecutor
     - React-runtimescheduler
     - React-utils
@@ -568,7 +583,6 @@ PODS:
     - React-jsinspectorcdp
     - React-jsitooling
     - React-perflogger
-    - React-rendererconsistency
     - React-runtimeexecutor
     - React-runtimescheduler
     - React-utils
@@ -594,7 +608,6 @@ PODS:
     - React-jsinspectorcdp
     - React-jsitooling
     - React-perflogger
-    - React-rendererconsistency
     - React-runtimeexecutor
     - React-runtimescheduler
     - React-utils
@@ -620,7 +633,6 @@ PODS:
     - React-jsinspectorcdp
     - React-jsitooling
     - React-perflogger
-    - React-rendererconsistency
     - React-runtimeexecutor
     - React-runtimescheduler
     - React-utils
@@ -646,7 +658,6 @@ PODS:
     - React-jsinspectorcdp
     - React-jsitooling
     - React-perflogger
-    - React-rendererconsistency
     - React-runtimeexecutor
     - React-runtimescheduler
     - React-utils
@@ -672,7 +683,6 @@ PODS:
     - React-jsinspectorcdp
     - React-jsitooling
     - React-perflogger
-    - React-rendererconsistency
     - React-runtimeexecutor
     - React-runtimescheduler
     - React-utils
@@ -698,7 +708,6 @@ PODS:
     - React-jsinspectorcdp
     - React-jsitooling
     - React-perflogger
-    - React-rendererconsistency
     - React-runtimeexecutor
     - React-runtimescheduler
     - React-utils
@@ -724,7 +733,6 @@ PODS:
     - React-jsinspectorcdp
     - React-jsitooling
     - React-perflogger
-    - React-rendererconsistency
     - React-runtimeexecutor
     - React-runtimescheduler
     - React-utils
@@ -750,7 +758,6 @@ PODS:
     - React-jsinspectorcdp
     - React-jsitooling
     - React-perflogger
-    - React-rendererconsistency
     - React-runtimeexecutor
     - React-runtimescheduler
     - React-utils
@@ -776,7 +783,6 @@ PODS:
     - React-jsinspectorcdp
     - React-jsitooling
     - React-perflogger
-    - React-rendererconsistency
     - React-runtimeexecutor
     - React-runtimescheduler
     - React-utils
@@ -802,7 +808,6 @@ PODS:
     - React-jsinspectorcdp
     - React-jsitooling
     - React-perflogger
-    - React-rendererconsistency
     - React-runtimeexecutor
     - React-runtimescheduler
     - React-utils
@@ -828,7 +833,6 @@ PODS:
     - React-jsinspectorcdp
     - React-jsitooling
     - React-perflogger
-    - React-rendererconsistency
     - React-runtimeexecutor
     - React-runtimescheduler
     - React-utils
@@ -3515,6 +3519,34 @@ PODS:
     - React-perflogger (= 0.83.1)
     - React-utils (= 0.83.1)
     - SocketRocket
+  - ReactNativeBiometrics (0.15.0):
+    - boost
+    - DoubleConversion
+    - fast_float
+    - fmt
+    - glog
+    - hermes-engine
+    - RCT-Folly
+    - RCT-Folly/Fabric
+    - RCTRequired
+    - RCTTypeSafety
+    - React-Core
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-ImageManager
+    - React-jsi
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-renderercss
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - SocketRocket
+    - Yoga
   - ReactNativeHybridApp (0.0.0):
     - boost
     - DoubleConversion
@@ -4247,7 +4279,6 @@ DEPENDENCIES:
   - "ExpoLogBox (from `../node_modules/@expo/log-box`)"
   - ExpoModulesCore (from `../node_modules/expo-modules-core`)
   - ExpoModulesJSI (from `../node_modules/expo-modules-core`)
-  - ExpoSecureStore (from `../node_modules/expo-secure-store/ios`)
   - ExpoStoreReview (from `../node_modules/expo-store-review/ios`)
   - ExpoTaskManager (from `../node_modules/expo-task-manager/ios`)
   - ExpoVideo (from `../node_modules/expo-video/ios`)
@@ -4356,6 +4387,7 @@ DEPENDENCIES:
   - ReactAppDependencyProvider (from `build/generated/ios/ReactAppDependencyProvider`)
   - ReactCodegen (from `build/generated/ios/ReactCodegen`)
   - ReactCommon/turbomodule/core (from `../node_modules/react-native/ReactCommon`)
+  - "ReactNativeBiometrics (from `../node_modules/@sbaiahmed1/react-native-biometrics`)"
   - "ReactNativeHybridApp (from `../node_modules/@expensify/react-native-hybrid-app`)"
   - "RNAppleAuthentication (from `../node_modules/@invertase/react-native-apple-authentication`)"
   - "RNCClipboard (from `../node_modules/@react-native-clipboard/clipboard`)"
@@ -4415,7 +4447,6 @@ SPEC REPOS:
     - Plaid
     - PromisesObjC
     - PusherSwift
-    - React-Codegen
     - SDWebImage
     - SDWebImageAVIFCoder
     - SDWebImageSVGCoder
@@ -4461,8 +4492,6 @@ EXTERNAL SOURCES:
     :path: "../node_modules/expo-modules-core"
   ExpoModulesJSI:
     :path: "../node_modules/expo-modules-core"
-  ExpoSecureStore:
-    :path: "../node_modules/expo-secure-store/ios"
   ExpoStoreReview:
     :path: "../node_modules/expo-store-review/ios"
   ExpoTaskManager:
@@ -4676,6 +4705,8 @@ EXTERNAL SOURCES:
     :path: build/generated/ios/ReactCodegen
   ReactCommon:
     :path: "../node_modules/react-native/ReactCommon"
+  ReactNativeBiometrics:
+    :path: "../node_modules/@sbaiahmed1/react-native-biometrics"
   ReactNativeHybridApp:
     :path: "../node_modules/@expensify/react-native-hybrid-app"
   RNAppleAuthentication:
@@ -4737,7 +4768,7 @@ SPEC CHECKSUMS:
   AirshipServiceExtension: 50d11b2f62c4a490d4e81a1c36f70e2ecb70a27e
   AppAuth: d4f13a8fe0baf391b2108511793e4b479691fb73
   AppLogs: 3bc4e9b141dbf265b9464409caaa40416a9ee0e0
-  boost: 659a89341ea4ab3df8259733813b52f26d8be9a5
+  boost: 7e761d76ca2ce687f7cc98e698152abd03a18f90
   DoubleConversion: cb417026b2400c8f53ae97020b2be961b59470cb
   EXConstants: b3c63be5f8648e4ab8e6ff5099b62f629247f969
   expensify-react-native-background-task: 03c640e1f5649692d058cba48c0a138f024a6dd3
@@ -4753,7 +4784,6 @@ SPEC CHECKSUMS:
   ExpoLogBox: 89b634d5a8a64c4a6a7caad8f9985a28463c7002
   ExpoModulesCore: 1158e7941ddcff1677846dfdec27630e036e3904
   ExpoModulesJSI: 455acaa72cb963ceb247df889c8e8cce3e6bbfe6
-  ExpoSecureStore: 3f1b632d6d40bcc62b4983ef9199cd079592a50a
   ExpoStoreReview: 32bb43b6fae9c8db3e33cad69996dff3785eef5f
   ExpoTaskManager: 23d8ea66d21da98ddcef977f258d1fd62359c2db
   ExpoVideo: 17748c0ee95e746b6ec75d8522a714cb3e614fa1
@@ -4773,11 +4803,11 @@ SPEC CHECKSUMS:
   GoogleAppMeasurement: 0dfca1a4b534d123de3945e28f77869d10d0d600
   GoogleSignIn: d4281ab6cf21542b1cfaff85c191f230b399d2db
   GoogleUtilities: 00c88b9a86066ef77f0da2fab05f65d7768ed8e1
-  group-ib-fp: 03efaa63a9996535431452a213ed5c7642576c55
+  group-ib-fp: 42bc98218d2b4b18eac9a2dd0156a3074e0df082
   GTMAppAuth: f69bd07d68cd3b766125f7e072c45d7340dea0de
   GTMSessionFetcher: 5aea5ba6bd522a239e236100971f10cb71b96ab6
   GzipSwift: 893f3e48e597a1a4f62fafcb6514220fcf8287fa
-  hermes-engine: 197bf260539f6ee9f1156cb60db44a05533d1975
+  hermes-engine: 5125891942d0cdeca799d3a5a1bb5e766a783790
   libavif: 84bbb62fb232c3018d6f1bab79beea87e35de7b7
   libdav1d: 23581a4d8ec811ff171ed5e2e05cd27bad64c39f
   libwebp: 02b23773aedb6ff1fd38cec7a77b81414c6842a8
@@ -4804,8 +4834,7 @@ SPEC CHECKSUMS:
   RCTTypeSafety: 27927d0ca04e419ed9467578b3e6297e37210b5c
   React: 4bc1f928568ad4bcfd147260f907b4ea5873a03b
   React-callinvoker: 87f8728235a0dc62e9dc19b3851c829d9347d015
-  React-Codegen: 4b8b4817cea7a54b83851d4c1f91f79aa73de30a
-  React-Core: 176a81025968530159589ec4a67fe2962909fce9
+  React-Core: 76bed73b02821e5630e7f2cb2e82432ee964695d
   React-CoreModules: 752dbfdaeb096658aa0adc4a03ba6214815a08df
   React-cxxreact: b6798528aa601c6db66e6adc7e2da2b059c8be74
   React-debug: b2c9f60a9b7a81cefd737cb61e31c2bc39fdfe17
@@ -4857,7 +4886,7 @@ SPEC CHECKSUMS:
   React-NativeModulesApple: e554252d69442010807867cc7d70c0008048ad20
   React-networking: 669cb54cc7e5b65d7dafeeb36970a1421adc8bb3
   React-oscompat: 80166b66da22e7af7fad94474e9997bd52d4c8c6
-  React-perflogger: decbf4d10c1f77d687af1d83a6ba9dc1b23715d6
+  React-perflogger: d6797918d2b1031e91a9d8f5e7fdd2c8728fb390
   React-performancecdpmetrics: 7706707d5dd49d708518a91abe456dcb585a5865
   React-performancetimeline: c9807b559901c4298a92f6bcb069f49f518b7020
   React-RCTActionSheet: 3bd5f5db9f983cf38d51bb9a7a198e2ebea94821
@@ -4873,7 +4902,7 @@ SPEC CHECKSUMS:
   React-RCTSettings: 2c45623d6c0f30851a123f621eb9d32298bcbb0c
   React-RCTText: 0ee70f5dc18004b4d81b2c214267c6cbec058587
   React-RCTVibration: 88557e21e7cc3fe76b5b174cba28ff45c6def997
-  React-rendererconsistency: 5236fe878921773ef9274c44e189e057672ef5bc
+  React-rendererconsistency: ac8a9e9ee3eb299458cc848944133ff4be46cc41
   React-renderercss: f04cbe3b06ee071c6ca724f41a3c3aa31332601e
   React-rendererdebug: 2a2e4f7d42abcbec2047e989a1afda5d62905679
   React-RuntimeApple: ce2ae0ea88316a7c708be1e6601e4ec5f6febdce
@@ -4887,6 +4916,7 @@ SPEC CHECKSUMS:
   ReactAppDependencyProvider: 0eb286cc274abb059ee601b862ebddac2e681d01
   ReactCodegen: d663254bf59e57e5ed7c65638bd45f358a373bba
   ReactCommon: 15e1e727fa34f760beb7dd52928687fda8edf8dc
+  ReactNativeBiometrics: a0cbd0e25b86964883d38331f32c7643022b7284
   ReactNativeHybridApp: 16ebccf5382436fcb9303ab5f4b50d9942bccf5c
   RNAppleAuthentication: 9027af8aa92b4719ef1b6030a8e954d37079473a
   RNCClipboard: e560338bf6cc4656a09ff90610b62ddc0dbdad65

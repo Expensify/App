@@ -198,6 +198,9 @@ describe('actions/Duplicate', () => {
                 billable: true,
                 reimbursable: false,
                 tag: 'UpdatedProject',
+                taxCode: '',
+                taxAmount: 0,
+                taxValue: '',
                 receiptID: 123,
                 reportID,
             };
@@ -243,10 +246,11 @@ describe('actions/Duplicate', () => {
             expect(getOriginalMessage(updatedReportActions?.action456)).toHaveProperty('deleted');
             expect(getOriginalMessage(updatedReportActions?.action789)).toHaveProperty('deleted');
 
-            // Then: Verify API was called with correct parameters
+            // Then: Verify API was called with correct parameters (taxAmount/taxValue are excluded from API params)
+            const {taxAmount, taxValue, ...expectedApiParams} = mergeParams;
             expect(writeSpy).toHaveBeenCalledWith(
                 WRITE_COMMANDS.MERGE_DUPLICATES,
-                expect.objectContaining(mergeParams),
+                expect.objectContaining(expectedApiParams),
                 expect.objectContaining({
                     optimisticData: expect.arrayContaining([]),
                     failureData: expect.arrayContaining([]),
@@ -279,6 +283,9 @@ describe('actions/Duplicate', () => {
                 billable: true,
                 reimbursable: false,
                 tag: 'UpdatedProject',
+                taxCode: '',
+                taxAmount: 0,
+                taxValue: '',
                 receiptID: 123,
                 reportID,
             };
@@ -330,6 +337,9 @@ describe('actions/Duplicate', () => {
                 billable: true,
                 reimbursable: false,
                 tag: 'UpdatedProject',
+                taxCode: '',
+                taxAmount: 0,
+                taxValue: '',
                 receiptID: 123,
                 reportID,
             };
@@ -427,6 +437,7 @@ describe('actions/Duplicate', () => {
             openReport({
                 reportID: transactionThreadReport1.reportID,
                 introSelected: undefined,
+                betas: undefined,
                 participantLoginList: userLogins,
                 newReportObject: transactionThreadReport1,
                 parentReportActionID: iouAction1?.reportActionID,
@@ -434,6 +445,7 @@ describe('actions/Duplicate', () => {
             openReport({
                 reportID: transactionThreadReport2.reportID,
                 introSelected: undefined,
+                betas: undefined,
                 participantLoginList: userLogins,
                 newReportObject: transactionThreadReport1,
                 parentReportActionID: iouAction2?.reportActionID,
@@ -522,6 +534,9 @@ describe('actions/Duplicate', () => {
                 billable: true,
                 reimbursable: false,
                 tag: 'UpdatedProject',
+                taxCode: '',
+                taxAmount: 0,
+                taxValue: '',
                 receiptID: 123,
                 reportID,
             };
@@ -561,10 +576,11 @@ describe('actions/Duplicate', () => {
                 });
             });
 
-            // Then the transaction thread report should be deleted in the success onyx data
+            // Then the transaction thread report should be deleted in the success onyx data (taxAmount/taxValue are excluded from API params)
+            const {taxAmount, taxValue, ...expectedApiParams} = mergeParams;
             expect(writeSpy).toHaveBeenCalledWith(
                 WRITE_COMMANDS.MERGE_DUPLICATES,
-                expect.objectContaining(mergeParams),
+                expect.objectContaining(expectedApiParams),
                 expect.objectContaining({
                     successData: expect.arrayContaining([
                         expect.objectContaining({key: `${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReport1.reportID}`, value: null}),
@@ -622,6 +638,9 @@ describe('actions/Duplicate', () => {
                 billable: true,
                 reimbursable: false,
                 tag: 'UpdatedProject',
+                taxCode: '',
+                taxAmount: 0,
+                taxValue: '',
                 receiptID: 123,
                 reportID,
             };
@@ -762,6 +781,9 @@ describe('actions/Duplicate', () => {
                 billable: true,
                 reimbursable: false,
                 tag: 'UpdatedProject',
+                taxCode: '',
+                taxAmount: 0,
+                taxValue: '',
                 receiptID: 123,
                 reportID,
             };
@@ -853,6 +875,9 @@ describe('actions/Duplicate', () => {
                 billable: true,
                 reimbursable: false,
                 tag: 'UpdatedProject',
+                taxCode: '',
+                taxAmount: 0,
+                taxValue: '',
                 receiptID: 123,
                 reportID: 'report123',
             };
@@ -895,6 +920,9 @@ describe('actions/Duplicate', () => {
                 billable: true,
                 reimbursable: false,
                 tag: 'UpdatedProject',
+                taxCode: '',
+                taxAmount: 0,
+                taxValue: '',
                 receiptID: 123,
                 reportID,
             };
@@ -951,6 +979,9 @@ describe('actions/Duplicate', () => {
                 billable: true,
                 reimbursable: false,
                 tag: 'UpdatedProject',
+                taxCode: '',
+                taxAmount: 0,
+                taxValue: '',
                 receiptID: 123,
                 reportID,
             };
@@ -1027,6 +1058,9 @@ describe('actions/Duplicate', () => {
                 billable: true,
                 reimbursable: false,
                 tag: 'UpdatedProject',
+                taxCode: '',
+                taxAmount: 0,
+                taxValue: '',
                 receiptID: 123,
                 reportID: reportA,
             };
@@ -1817,6 +1851,9 @@ describe('actions/Duplicate', () => {
                         billable: false,
                         reimbursable: true,
                         tag: '',
+                        taxCode: '',
+                        taxAmount: 0,
+                        taxValue: '',
                         transactionIDList: [transaction2.transactionID],
                     });
                     return waitForBatchedUpdates();
