@@ -34,8 +34,12 @@ function SearchTransactionsChangeReport() {
         () =>
             Object.values(selectedTransactions).reduce(
                 (transactionsCollection, transactionItem) => {
+                    const transactionID = transactionItem.transaction?.transactionID;
+                    if (!transactionID || !transactionItem.transaction) {
+                        return transactionsCollection;
+                    }
                     // eslint-disable-next-line no-param-reassign
-                    transactionsCollection[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionItem.transaction?.transactionID}`] = transactionItem.transaction;
+                    transactionsCollection[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] = transactionItem.transaction;
                     return transactionsCollection;
                 },
                 {} as NonNullable<OnyxCollection<Transaction>>,

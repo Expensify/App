@@ -8,6 +8,7 @@ import type {PaymentMethodType} from '@components/KYCWall/types';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import {useSearchActionsContext, useSearchStateContext} from '@components/Search/SearchContext';
+import getSearchMoveSelectionValidation from '@components/Search/SearchSelectionUtils';
 import type {BulkPaySelectionData, PaymentData, SearchQueryJSON} from '@components/Search/types';
 import {unholdRequest} from '@libs/actions/IOU/Hold';
 import {setupMergeTransactionDataAndNavigate} from '@libs/actions/MergeTransaction';
@@ -34,7 +35,8 @@ import initSplitExpense from '@libs/actions/SplitExpenses';
 import {setNameValuePair} from '@libs/actions/User';
 import {getTransactionsAndReportsFromSearch} from '@libs/MergeTransactionUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {getConnectedIntegration} from '@libs/PolicyUtils';
+import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
+import {getConnectedIntegration, getSubmitToAccountID} from '@libs/PolicyUtils';
 import {getSecondaryExportReportActions, isMergeActionForSelectedTransactions} from '@libs/ReportSecondaryActionUtils';
 import {
     canEditMultipleTransactions,
@@ -1297,28 +1299,15 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             }
         }
 
-        const ownerAccountIDs = new Set<number>();
-        let hasUnknownOwner = false;
-        for (const id of selectedTransactionsKeys) {
-            const transactionEntry = selectedTransactions[id];
-            if (!transactionEntry) {
-                continue;
-            }
-            const ownerAccountID = transactionEntry.ownerAccountID ?? getReportOrDraftReport(transactionEntry.reportID)?.ownerAccountID;
-            if (typeof ownerAccountID === 'number') {
-                ownerAccountIDs.add(ownerAccountID);
-                if (ownerAccountIDs.size > 1) {
-                    break;
-                }
-            } else {
-                hasUnknownOwner = true;
-            }
-        }
-        const hasMultipleOwners = ownerAccountIDs.size > 1 || (hasUnknownOwner && (ownerAccountIDs.size > 0 || selectedTransactionsKeys.length > 1));
+        const {canMoveToReport} = getSearchMoveSelectionValidation(selectedTransactions, {
+            isExpenseReportSearch: isExpenseReportType,
+            getOwnerAccountIDForReportID: (reportID) => getReportOrDraftReport(reportID)?.ownerAccountID,
+            getPolicyForPolicyID: (policyID) => (policyID ? policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`] : undefined),
+            getLoginForAccountID: getLoginByAccountID,
+            resolveSubmitToAccountID: (policy, report) => (policy && report ? getSubmitToAccountID(policy, report) : undefined),
+        });
 
-        const canAllTransactionsBeMoved = selectedTransactionsKeys.every((id) => selectedTransactions[id].canChangeReport);
-
-        if (canAllTransactionsBeMoved && !hasMultipleOwners && !isExpenseReportType) {
+        if (canMoveToReport) {
             options.push({
                 text: translate('iou.moveExpenses'),
                 icon: expensifyIcons.DocumentMerge,
