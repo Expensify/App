@@ -2,6 +2,7 @@ import React from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
+import usePermissions from '@hooks/usePermissions';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
@@ -14,6 +15,7 @@ type GustoFinalApproverPageProps = PlatformStackScreenProps<WorkspaceSplitNaviga
 
 function GustoFinalApproverPage({route}: GustoFinalApproverPageProps) {
     const {translate} = useLocalize();
+    const {isBetaEnabled} = usePermissions();
     const {policyID} = route.params;
 
     return (
@@ -21,6 +23,7 @@ function GustoFinalApproverPage({route}: GustoFinalApproverPageProps) {
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED}
+            shouldBeBlocked={!isBetaEnabled(CONST.BETAS.GUSTO)}
         >
             <ScreenWrapper testID="GustoFinalApproverPage">
                 <HeaderWithBackButton
