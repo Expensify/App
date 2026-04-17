@@ -1,5 +1,5 @@
 import {useIsFocused} from '@react-navigation/core';
-import React, {useEffect} from 'react';
+import React, {useEffect, useRef} from 'react';
 import FormHelpMessage from '@components/FormHelpMessage';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -69,7 +69,12 @@ function IOURequestStepParticipants({
         isFocused,
     });
 
+    const hasEndedSpan = useRef(false);
     useEffect(() => {
+        if (hasEndedSpan.current) {
+            return;
+        }
+        hasEndedSpan.current = true;
         endSpan(CONST.TELEMETRY.SPAN_OPEN_CREATE_EXPENSE);
     }, []);
 
