@@ -385,6 +385,7 @@ function ComposerWithSuggestions({
                 // Editing just ended in the composer – restore the draft comment and its previous selection.
                 applyComposerValue(draftComment ?? '', {selection: previousDraftSelectionRef.current, shouldForceNativeValueUpdate: true});
                 setIsCommentEmpty(getIsCommentEmpty(draftComment ?? ''));
+
                 if (!wasComposerFocusedBeforeEditingRef.current) {
                     composerRef.current?.blur();
                 }
@@ -436,7 +437,7 @@ function ComposerWithSuggestions({
         }
 
         previousEditingReportActionIDRef.current = editingReportActionID;
-    }, [applyComposerValue, draftComment, editingMessage, editingReportActionID, editingState, selection, setIsCommentEmpty, shouldUseNarrowLayout, updateNativeSelectionValue]);
+    }, [applyComposerValue, draftComment, editingMessage, editingReportActionID, editingState, focus, selection, setIsCommentEmpty, shouldUseNarrowLayout, updateNativeSelectionValue]);
 
     const [modal] = useOnyx(ONYXKEYS.MODAL);
     const [preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE] = useOnyx(ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE);

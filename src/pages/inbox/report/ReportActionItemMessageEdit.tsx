@@ -253,7 +253,6 @@ function ReportActionItemMessageEdit({action, reportID, originalReportID, policy
         originalReportID,
         reportAction: action,
         shouldScrollToLastMessage: index === 0,
-        isFocused,
         debouncedCommentMaxLengthValidation,
         composerRef,
     });

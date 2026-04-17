@@ -413,7 +413,6 @@ function ReportActionCompose({reportID}: ReportActionComposeProps) {
         originalReportID,
         reportAction: editingReportAction,
         shouldScrollToLastMessage: isEditingLastReportAction,
-        isFocused,
         debouncedCommentMaxLengthValidation,
         composerRef,
     });

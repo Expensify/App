@@ -103,7 +103,6 @@ describe('useEditMessage', () => {
             reportID: report.reportID,
             originalReportID: report.reportID,
             reportAction,
-            isFocused: true,
             debouncedCommentMaxLengthValidation: makeDebouncedValidator({flushResult: true}),
             composerRef: {current: {blur: jest.fn()} as never},
             ...overrides,
