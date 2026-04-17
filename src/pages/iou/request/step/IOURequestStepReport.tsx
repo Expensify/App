@@ -74,12 +74,14 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
         ? iouActions?.find((iouAction) => getOriginalMessage(iouAction as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>)?.IOUTransactionID === transaction.transactionID)?.actorAccountID
         : selectedReport?.ownerAccountID;
     const ownerPersonalDetails = getPersonalDetailsForAccountID(ownerAccountID, personalDetails) as PersonalDetails;
+    const isPerDiemTransaction = isPerDiemRequest(transaction);
 
     const transactionPolicyID = transaction?.participants?.at(0)?.isPolicyExpenseChat ? transaction?.participants.at(0)?.policyID : undefined;
-    // When moving an expense that belongs to another user, using the policy of their report
-    // (or the transaction's policy as fallback) so the workspace context is preserved.
-    // For the current user's own expenses, fall back to undefined to let the default workspace apply.
-    const targetExpensePolicyID = ownerAccountID !== session?.accountID ? (selectedReport?.policyID ?? transactionPolicyID) : undefined;
+    // When moving an expense that belongs to another user, or when the selection includes per diem
+    // transactions, use the policy of their report (or the transaction's policy as fallback) so the
+    // selected workspace is preserved.
+    // For the current user's own non-per-diem expenses, fall back to undefined to let the default workspace apply.
+    const targetExpensePolicyID = ownerAccountID !== session?.accountID || isPerDiemTransaction ? (selectedReport?.policyID ?? transactionPolicyID) : undefined;
 
     // we need to fall back to transactionPolicyID because for a new workspace there is no report created yet
     // and if we choose this workspace as participant we want to create a new report in the chosen workspace
@@ -90,7 +92,6 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
     const hasViolations = hasViolationsReportUtils(undefined, transactionViolations, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, session?.email ?? '');
     const policyForMovingExpenses = policyForMovingExpensesID ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyForMovingExpensesID}`] : undefined;
     useRestartOnReceiptFailure(transaction, reportIDFromRoute, iouType, action);
-    const isPerDiemTransaction = isPerDiemRequest(transaction);
     const perDiemOriginalPolicy = getPolicyByCustomUnitID(transaction, allPolicies);
     const [transactions] = useOptimisticDraftTransactions(transaction);
     const [betas] = useOnyx(ONYXKEYS.BETAS);

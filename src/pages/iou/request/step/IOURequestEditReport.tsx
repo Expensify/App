@@ -57,10 +57,11 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
 
     const hasPerDiemTransactions = useHasPerDiemTransactions(transactionIDs);
 
-    // When moving an expense that belongs to another user, use the policy of their report
-    // (or the transaction's policy as fallback) so the workspace context is preserved.
-    // For the current user's own expenses, fall back to undefined to let the default workspace apply.
-    const targetExpensePolicyID = selectedReport?.ownerAccountID !== session?.accountID ? selectedReport?.policyID : undefined;
+    // When moving an expense that belongs to another user, or when the selection includes per diem
+    // transactions, use the policy of their report (or the transaction's policy as fallback) so the
+    // selected workspace is preserved.
+    // For the current user's own non-per-diem expenses, fall back to undefined to let the default workspace apply.
+    const targetExpensePolicyID = selectedReport?.ownerAccountID !== session?.accountID || hasPerDiemTransactions ? selectedReport?.policyID : undefined;
     const {policyForMovingExpensesID, shouldSelectPolicy} = usePolicyForMovingExpenses(hasPerDiemTransactions, undefined, targetExpensePolicyID);
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const hasViolations = hasViolationsReportUtils(undefined, transactionViolations, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, session?.email ?? '');
