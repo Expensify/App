@@ -44,7 +44,6 @@ function CollapsibleHeaderOnKeyboard({children, collapsibleHeaderOffset = 0}: Co
 
     const onLayout = (e: LayoutChangeEvent) => {
         const height = e.nativeEvent.layout.height;
-        console.log('height', height);
 
         if (height <= 0) {
             return;
@@ -52,7 +51,6 @@ function CollapsibleHeaderOnKeyboard({children, collapsibleHeaderOffset = 0}: Co
         // First measurement, or content changed while header is fully open
         // (to skip onLayout calls triggered by our own height animation collapsing the view to 0)
         if (naturalHeightRef.current === -1 || animatedHeight.get() >= naturalHeightRef.current) {
-            console.log('setting natural height', height);
             naturalHeightRef.current = height;
             naturalHeight.set(height);
             animatedHeight.set(height);
