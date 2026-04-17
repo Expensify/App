@@ -2401,7 +2401,7 @@ describe('PureReportActionItem', () => {
             expect(screen.getByText('Hide message')).toBeOnTheScreen();
         });
 
-        it('ACTIONABLETRACKEXPENSEWHISPER renders track expense buttons', async () => {
+        it('actionable track expense whisper renders track expense buttons', async () => {
             const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_TRACK_EXPENSE_WHISPER, {
                 transactionID: 'tx123',
             });
