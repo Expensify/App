@@ -1,10 +1,10 @@
 import {InteractionManager} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
+import {removeDraftTransactionsByIDs} from '@libs/actions/TransactionEdit';
+import Navigation from '@libs/Navigation/Navigation';
+import {getReportOrDraftReport, isMoneyRequestReport} from '@libs/ReportUtils';
 import type {Report, ReportAction} from '@src/types/onyx';
-import {removeDraftTransactionsByIDs} from './actions/TransactionEdit';
-import navigateAfterExpenseCreate from './Navigation/helpers/navigateAfterExpenseCreate';
-import Navigation from './Navigation/Navigation';
-import {getReportOrDraftReport, isMoneyRequestReport} from './ReportUtils';
+import navigateAfterExpenseCreate from './navigateAfterExpenseCreate';
 
 type CleanupAndNavigateAfterExpenseCreateParams = {
     report: OnyxEntry<Report>;
