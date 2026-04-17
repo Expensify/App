@@ -42,6 +42,7 @@ function useBulkDuplicateAction({selectedTransactionsKeys, allTransactions, allR
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [recentWaypoints] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS);
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [targetPolicyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${defaultExpensePolicy?.id}`);
     const [targetPolicyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${defaultExpensePolicy?.id}`);
 
@@ -78,6 +79,7 @@ function useBulkDuplicateAction({selectedTransactionsKeys, allTransactions, allR
             draftTransactionIDs,
             betas,
             recentWaypoints,
+            conciergeReportID,
         });
 
         if (onAfterDuplicate) {

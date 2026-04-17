@@ -740,6 +740,7 @@ function IOURequestStepConfirmation({
                     betas,
                     personalDetails,
                     optimisticChatReportID,
+                    conciergeReportID,
                 });
                 if (shouldHandleNav && result && activeReportID) {
                     navigateAfterExpenseCreate({
@@ -770,6 +771,7 @@ function IOURequestStepConfirmation({
             betas,
             personalDetails,
             reportTransactions.length,
+            conciergeReportID,
         ],
     );
 

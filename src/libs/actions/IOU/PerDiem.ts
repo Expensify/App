@@ -216,6 +216,7 @@ type RecentlyUsedParams = {
 };
 
 type PerDiemExpenseInformation = {
+    conciergeReportID: string | undefined;
     report: OnyxEntry<OnyxTypes.Report>;
     participantParams: RequestMoneyParticipantParams;
     policyParams?: BasePolicyParams;
@@ -238,6 +239,7 @@ type PerDiemExpenseInformation = {
 };
 
 type PerDiemExpenseInformationParams = {
+    conciergeReportID: string | undefined;
     parentChatReport: OnyxEntry<OnyxTypes.Report>;
     transactionParams: PerDiemExpenseTransactionParams;
     participantParams: RequestMoneyParticipantParams;
@@ -287,6 +289,7 @@ type PerDiemExpenseInformationForSelfDMResult = {
  */
 function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseInformationParams): MoneyRequestInformation {
     const {
+        conciergeReportID,
         parentChatReport,
         transactionParams,
         participantParams,
@@ -454,7 +457,7 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
     if (reportPreviewAction) {
         reportPreviewAction = updateReportPreview(iouReport, reportPreviewAction, false, comment, optimisticTransaction);
     } else {
-        reportPreviewAction = buildOptimisticReportPreview(chatReport, iouReport, comment, optimisticTransaction, undefined, optimisticReportPreviewActionID);
+        reportPreviewAction = buildOptimisticReportPreview(chatReport, iouReport, comment, optimisticTransaction, undefined, optimisticReportPreviewActionID, conciergeReportID);
         chatReport.lastVisibleActionCreated = reportPreviewAction.created;
 
         // Generated ReportPreview action is a parent report action of the iou report.
@@ -877,6 +880,7 @@ function getPerDiemExpenseInformationForSelfDM(perDiemExpenseInformation: PerDie
  */
 function submitPerDiemExpense(submitPerDiemExpenseInformation: PerDiemExpenseInformation) {
     const {
+        conciergeReportID,
         report,
         participantParams,
         policyParams = {},
@@ -929,6 +933,7 @@ function submitPerDiemExpense(submitPerDiemExpenseInformation: PerDiemExpenseInf
         billable,
         reimbursable,
     } = getPerDiemExpenseInformation({
+        conciergeReportID,
         parentChatReport: currentChatReport,
         participantParams,
         policyParams,

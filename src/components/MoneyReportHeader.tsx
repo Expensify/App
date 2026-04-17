@@ -248,6 +248,7 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
     ]);
     const [lastDistanceExpenseType] = useOnyx(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE);
     const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${moneyRequestReport?.reportID}`);
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [transactionDrafts] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {
         selector: validTransactionDraftsSelector,
     });
@@ -851,6 +852,7 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
                     personalDetails,
                     recentWaypoints,
                     targetPolicyTags,
+                    conciergeReportID,
                 });
             }
         },
@@ -871,6 +873,7 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
             personalDetails,
             recentWaypoints,
             targetPolicyTags,
+            conciergeReportID,
         ],
     );
 
@@ -1557,6 +1560,7 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
                         transactionViolations: allTransactionViolations,
                         translate,
                         recentWaypoints: recentWaypoints ?? [],
+                        conciergeReportID,
                     });
                 });
             },
