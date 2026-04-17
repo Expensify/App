@@ -881,10 +881,10 @@ function MoneyRequestConfirmationList({
                 return;
             }
 
-            const amountForValidation = iouAmount;
-            const isAmountMissingForManualFlow = amountForValidation === null || amountForValidation === undefined;
-
-            if (iouType !== CONST.IOU.TYPE.PAY && isNewManualExpenseFlowEnabled && isAmountMissingForManualFlow) {
+            // In the new manual expense flow the amount field starts empty (transaction.amount defaults to 0).
+            // We block submission until the user explicitly enters an amount (tracked by isAmountSet).
+            // Note: a user-entered $0 is valid – this only blocks the empty field.
+            if (iouType !== CONST.IOU.TYPE.PAY && isNewManualExpenseFlowEnabled && !transaction?.isAmountSet) {
                 setFormError('common.error.invalidAmount');
                 return;
             }
