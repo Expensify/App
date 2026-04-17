@@ -248,6 +248,9 @@ type MenuItemBaseProps = ForwardedFSClassProps &
         /** A right-aligned subtitle for this menu option */
         subtitle?: string | number;
 
+        /** Any additional styles to apply to the subtitle */
+        subtitleStyle?: StyleProp<TextStyle>;
+
         /** Should the title show with normal font weight (not bold) */
         shouldShowBasicTitle?: boolean;
 
@@ -526,6 +529,7 @@ function MenuItem({
     titleComponent,
     titleContainerStyle,
     subtitle,
+    subtitleStyle,
     shouldShowBasicTitle,
     rightLabelIcon,
     label,
@@ -1068,7 +1072,7 @@ function MenuItem({
                                                 {/* Since subtitle can be of type number, we should allow 0 to be shown */}
                                                 {(subtitle === 0 || !!subtitle) && (
                                                     <View style={[styles.justifyContentCenter, styles.mr1]}>
-                                                        <Text style={[styles.textLabelSupporting, ...(combinedStyle as TextStyle[])]}>{subtitle}</Text>
+                                                        <Text style={[styles.textLabelSupporting, ...(combinedStyle as TextStyle[]), subtitleStyle]}>{subtitle}</Text>
                                                     </View>
                                                 )}
                                                 {(!!rightIconAccountID || !!rightIconReportID) && (
@@ -1090,7 +1094,7 @@ function MenuItem({
                                                     </View>
                                                 )}
                                                 {!!brickRoadIndicator && (
-                                                    <View style={[styles.alignItemsCenter, styles.justifyContentCenter, styles.ml1]}>
+                                                    <View style={[styles.alignItemsCenter, styles.justifyContentCenter, styles.ml1, styles.mr2]}>
                                                         <Icon
                                                             src={icons.DotIndicator}
                                                             fill={brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR ? theme.danger : theme.success}
@@ -1114,7 +1118,7 @@ function MenuItem({
                                                     <View
                                                         style={[
                                                             styles.pointerEventsAuto,
-                                                            StyleUtils.getMenuItemIconStyle(isCompact),
+                                                            StyleUtils.getMenuItemIconStyle(true),
                                                             disabled && !shouldUseDefaultCursorWhenDisabled && styles.cursorDisabled,
                                                             hasSubMenuItems && styles.pl6,
                                                             !isHovered && shouldDimIconRight && styles.opacitySemiTransparent,

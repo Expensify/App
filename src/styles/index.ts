@@ -943,6 +943,10 @@ const staticStyles = (theme: ThemeColors) =>
             height: variables.componentSizeXSmall,
         },
 
+        threeDotsMenuIconWidth: {
+            width: variables.componentSizeXSmall,
+        },
+
         touchableButtonImage: {
             alignItems: 'center',
             height: variables.componentSizeNormal,

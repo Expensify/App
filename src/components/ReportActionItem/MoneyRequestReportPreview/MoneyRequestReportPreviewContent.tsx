@@ -662,8 +662,8 @@ function MoneyRequestReportPreviewContent({
                                                         <Icon
                                                             src={expensifyIcons.BackArrow}
                                                             fill={theme.icon}
-                                                            width={variables.iconSizeNormal}
-                                                            height={variables.iconSizeNormal}
+                                                            width={variables.iconSizeExtraSmall}
+                                                            height={variables.iconSizeExtraSmall}
                                                         />
                                                     </PressableWithFeedback>
                                                     <PressableWithFeedback
@@ -683,8 +683,8 @@ function MoneyRequestReportPreviewContent({
                                                         <Icon
                                                             src={expensifyIcons.ArrowRight}
                                                             fill={theme.icon}
-                                                            width={variables.iconSizeNormal}
-                                                            height={variables.iconSizeNormal}
+                                                            width={variables.iconSizeExtraSmall}
+                                                            height={variables.iconSizeExtraSmall}
                                                         />
                                                     </PressableWithFeedback>
                                                 </View>
