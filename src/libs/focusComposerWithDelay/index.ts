@@ -1,4 +1,3 @@
-import {InteractionManager} from 'react-native';
 import {KeyboardController} from 'react-native-keyboard-controller';
 import ComposerFocusManager from '@libs/ComposerFocusManager';
 import getPlatform from '@libs/getPlatform';
