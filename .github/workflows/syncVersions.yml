@@ -62,17 +62,17 @@ jobs:
           echo "APP_VERSION=$APP_VERSION" >> "$GITHUB_OUTPUT"
           echo "ME_VERSION=$ME_VERSION" >> "$GITHUB_OUTPUT"
 
-          if [ "$RECORDED_SHA" != "$ACTUAL_SHA" ]; then
+          if [[ "$RECORDED_SHA" != "$ACTUAL_SHA" ]]; then
             echo "::warning::⚠️ Submodule pointer is behind Mobile-Expensify main (recorded $RECORDED_SHA, latest $ACTUAL_SHA)"
           fi
 
-          if [ "$APP_VERSION" = "$ME_VERSION" ] && [ "$RECORDED_SHA" = "$ACTUAL_SHA" ]; then
+          if [[ "$APP_VERSION" == "$ME_VERSION" && "$RECORDED_SHA" == "$ACTUAL_SHA" ]]; then
             echo "::notice::✅ Versions and submodule are in sync ($APP_VERSION @ $ACTUAL_SHA)"
             echo "IN_SYNC=true" >> "$GITHUB_OUTPUT"
             echo "NEED_FULL_VERSION_SYNC=false" >> "$GITHUB_OUTPUT"
           else
             echo "IN_SYNC=false" >> "$GITHUB_OUTPUT"
-            if [ "$APP_VERSION" != "$ME_VERSION" ]; then
+            if [[ "$APP_VERSION" != "$ME_VERSION" ]]; then
               echo "::warning::⚠️ Versions are out of sync - E/App: $APP_VERSION, Mobile-Expensify: $ME_VERSION"
               echo "NEED_FULL_VERSION_SYNC=true" >> "$GITHUB_OUTPUT"
             else
@@ -85,7 +85,7 @@ jobs:
         if: steps.checkVersions.outputs.IN_SYNC != 'true' && steps.checkVersions.outputs.NEED_FULL_VERSION_SYNC == 'true'
         id: targetVersion
         run: |
-          if [ -n "${{ inputs.TARGET_VERSION }}" ]; then
+          if [[ -n "${{ inputs.TARGET_VERSION }}" ]]; then
             echo "Using provided target version: ${{ inputs.TARGET_VERSION }}"
             echo "VERSION=${{ inputs.TARGET_VERSION }}" >> "$GITHUB_OUTPUT"
           else
@@ -151,7 +151,7 @@ jobs:
         run: |
           EXPECTED_SHA="${{ steps.submoduleRemote.outputs.ACTUAL_SHA }}"
           CURRENT_SHA=$(git -C Mobile-Expensify rev-parse HEAD)
-          if [ "$CURRENT_SHA" != "$EXPECTED_SHA" ]; then
+          if [[ "$CURRENT_SHA" != "$EXPECTED_SHA" ]]; then
             echo "::error::Mobile-Expensify checkout ($CURRENT_SHA) does not match expected main ($EXPECTED_SHA)"
             exit 1
           fi
@@ -175,12 +175,13 @@ jobs:
           echo "::notice::✅ Submodule pointer updated on App main"
 
       - name: Verify sync completed
+        id: verifySync
         if: steps.checkVersions.outputs.IN_SYNC != 'true'
         run: |
           APP_VERSION=$(jq -r .version package.json)
           ME_VERSION=$(jq -r .meta.version Mobile-Expensify/app/config/config.json)
 
-          if [ "$APP_VERSION" != "$ME_VERSION" ]; then
+          if [[ "$APP_VERSION" != "$ME_VERSION" ]]; then
             echo "::error::Sync failed! Versions still don't match"
             echo "::error::E/App: $APP_VERSION, Mobile-Expensify: $ME_VERSION"
             exit 1
@@ -190,11 +191,12 @@ jobs:
 
           RECORDED=$(git rev-parse HEAD:Mobile-Expensify)
           REMOTE_SHA=$(git -C Mobile-Expensify rev-parse origin/main)
-          if [ "$RECORDED" != "$REMOTE_SHA" ]; then
+          if [[ "$RECORDED" != "$REMOTE_SHA" ]]; then
             echo "::error::Submodule on App main ($RECORDED) still differs from Mobile-Expensify origin/main ($REMOTE_SHA)"
             exit 1
           fi
 
+          echo "POST_SYNC_APP_VERSION=$APP_VERSION" >> "$GITHUB_OUTPUT"
           echo "::notice::✅ Verified versions ($APP_VERSION) and submodule match Mobile-Expensify main ($RECORDED)"
 
       - name: Announce sync in Slack
@@ -208,7 +210,7 @@ jobs:
               channel: '#deployer',
               attachments: [{
                 color: "good",
-                text: `✅ Version sync completed. E/App and Mobile-Expensify are at ${{ steps.checkVersions.outputs.APP_VERSION }}; submodule matches Mobile-Expensify main.`
+                text: `✅ Version sync completed. E/App and Mobile-Expensify are at ${{ steps.verifySync.outputs.POST_SYNC_APP_VERSION }}; submodule matches Mobile-Expensify main.`
               }]
             }
         env:
