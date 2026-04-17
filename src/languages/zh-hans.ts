@@ -1616,6 +1616,7 @@ const translations: TranslationDeepObject<typeof en> = {
         failedToApproveViaDEW: (reason: string) => `批准失败。${reason}`,
         cannotDuplicateDistanceExpense: '你无法在不同工作区之间复制里程报销，因为各个工作区的费率可能不同。',
         taxDisabledAlert: {title: '税费已禁用', prompt: '请在工作区中启用税费跟踪，以便编辑此报销的详细信息或从该报销中删除税费。', confirmText: '删除税费'},
+        bulkDuplicateLimit: `您一次最多可以复制 ${CONST.SEARCH.BULK_DUPLICATE_LIMIT} 笔报销。请减少选择的报销数量后重试。`,
         deleted: '已删除',
     },
     transactionMerge: {
@@ -2538,6 +2539,9 @@ ${amount}，商户：${merchant} - 日期：${date}`,
     workflowsExpensesFromPage: {
         title: '支出起始于',
         header: '当以下成员提交报销时：',
+        memberAlreadyInWorkflowTitle: '成员已在工作流中',
+        memberAlreadyInWorkflowPrompt: ({memberName, approverName}: {memberName: string; approverName: string}) =>
+            `${memberName}已在提交给${approverName}的审批流程中。在此处添加将把该成员移动到此工作流。`,
     },
     workflowsApproverPage: {
         genericErrorMessage: '无法更改审批人。请重试或联系支持。',
@@ -2834,9 +2838,11 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         },
         employees: {
             title: '您有多少名员工？',
-            [CONST.ONBOARDING_COMPANY_SIZE.MICRO]: '1–10 名员工',
-            [CONST.ONBOARDING_COMPANY_SIZE.SMALL]: '11-50 名员工',
-            [CONST.ONBOARDING_COMPANY_SIZE.MEDIUM_SMALL]: '51-100 名员工',
+            [CONST.ONBOARDING_COMPANY_SIZE.MICRO_SMALL]: '1–4 名员工',
+            [CONST.ONBOARDING_COMPANY_SIZE.MICRO_MEDIUM]: '5–10 名员工',
+            [CONST.ONBOARDING_COMPANY_SIZE.MICRO]: '1-10 名员工',
+            [CONST.ONBOARDING_COMPANY_SIZE.SMALL]: '11–50 名员工',
+            [CONST.ONBOARDING_COMPANY_SIZE.MEDIUM_SMALL]: '51–100 名员工',
             [CONST.ONBOARDING_COMPANY_SIZE.MEDIUM]: '101–1,000 名员工',
             [CONST.ONBOARDING_COMPANY_SIZE.LARGE]: '超过 1,000 名员工',
         },

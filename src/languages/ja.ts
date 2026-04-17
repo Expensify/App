@@ -1650,6 +1650,7 @@ const translations: TranslationDeepObject<typeof en> = {
             prompt: '経費の詳細を編集したり、この経費から税金を削除したりするには、ワークスペースで税金の追跡を有効にしてください。',
             confirmText: '税を削除',
         },
+        bulkDuplicateLimit: `一度に複製できる経費は最大で ${CONST.SEARCH.BULK_DUPLICATE_LIMIT} 件です。経費の数を減らして、もう一度お試しください。`,
         deleted: '削除済み',
     },
     transactionMerge: {
@@ -2584,6 +2585,9 @@ ${date} の ${merchant} への ${amount}`,
     workflowsExpensesFromPage: {
         title: '経費（開始日）',
         header: '次のメンバーが経費を提出したとき：',
+        memberAlreadyInWorkflowTitle: 'メンバーはすでにワークフローに属しています',
+        memberAlreadyInWorkflowPrompt: ({memberName, approverName}: {memberName: string; approverName: string}) =>
+            `${memberName}はすでに${approverName}に提出する承認ワークフローに属しています。ここに追加すると、このワークフローに移動します。`,
     },
     workflowsApproverPage: {
         genericErrorMessage: '承認者を変更できませんでした。もう一度お試しいただくか、サポートにお問い合わせください。',
@@ -2885,11 +2889,13 @@ ${date} の ${merchant} への ${amount}`,
         },
         employees: {
             title: '従業員は何人いますか？',
+            [CONST.ONBOARDING_COMPANY_SIZE.MICRO_SMALL]: '1～4名の従業員',
+            [CONST.ONBOARDING_COMPANY_SIZE.MICRO_MEDIUM]: '5～10人の従業員',
             [CONST.ONBOARDING_COMPANY_SIZE.MICRO]: '従業員数 1～10 人',
-            [CONST.ONBOARDING_COMPANY_SIZE.SMALL]: '従業員数 11～50 人',
-            [CONST.ONBOARDING_COMPANY_SIZE.MEDIUM_SMALL]: '従業員数 51～100 人',
+            [CONST.ONBOARDING_COMPANY_SIZE.SMALL]: '11～50名の従業員',
+            [CONST.ONBOARDING_COMPANY_SIZE.MEDIUM_SMALL]: '51～100人の従業員',
             [CONST.ONBOARDING_COMPANY_SIZE.MEDIUM]: '101～1,000人の従業員',
-            [CONST.ONBOARDING_COMPANY_SIZE.LARGE]: '1,000人を超える従業員',
+            [CONST.ONBOARDING_COMPANY_SIZE.LARGE]: '1,000人超の従業員',
         },
         accounting: {
             title: '会計ソフトを利用していますか？',

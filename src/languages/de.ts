@@ -1673,6 +1673,7 @@ const translations: TranslationDeepObject<typeof en> = {
             prompt: 'Aktivieren Sie die Steuerverfolgung im Workspace, um die Ausgabendetails zu bearbeiten oder die Steuer aus dieser Ausgabe zu löschen.',
             confirmText: 'Steuer löschen',
         },
+        bulkDuplicateLimit: `Sie können bis zu ${CONST.SEARCH.BULK_DUPLICATE_LIMIT} Ausgaben gleichzeitig duplizieren. Bitte wählen Sie weniger Ausgaben aus und versuchen Sie es erneut.`,
         deleted: 'Gelöscht',
     },
     transactionMerge: {
@@ -2615,6 +2616,9 @@ ${amount} für ${merchant} – ${date}`,
     workflowsExpensesFromPage: {
         title: 'Ausgaben ab',
         header: 'Wenn die folgenden Mitglieder Ausgaben einreichen:',
+        memberAlreadyInWorkflowTitle: 'Mitglied ist bereits in einem Workflow',
+        memberAlreadyInWorkflowPrompt: ({memberName, approverName}: {memberName: string; approverName: string}) =>
+            `${memberName} befindet sich bereits in einem Genehmigungs-Workflow, der an ${approverName} übermittelt wird. Wenn du das Mitglied hier hinzufügst, wird es in diesen Workflow verschoben.`,
     },
     workflowsApproverPage: {
         genericErrorMessage: 'Die genehmigende Person konnte nicht geändert werden. Bitte versuche es erneut oder kontaktiere den Support.',
@@ -2918,7 +2922,9 @@ ${amount} für ${merchant} – ${date}`,
         },
         employees: {
             title: 'Wie viele Mitarbeitende haben Sie?',
-            [CONST.ONBOARDING_COMPANY_SIZE.MICRO]: '1–10 Beschäftigte',
+            [CONST.ONBOARDING_COMPANY_SIZE.MICRO_SMALL]: '1–4 Mitarbeitende',
+            [CONST.ONBOARDING_COMPANY_SIZE.MICRO_MEDIUM]: '5–10 Mitarbeitende',
+            [CONST.ONBOARDING_COMPANY_SIZE.MICRO]: '1–10 Mitarbeitende',
             [CONST.ONBOARDING_COMPANY_SIZE.SMALL]: '11–50 Mitarbeitende',
             [CONST.ONBOARDING_COMPANY_SIZE.MEDIUM_SMALL]: '51–100 Mitarbeitende',
             [CONST.ONBOARDING_COMPANY_SIZE.MEDIUM]: '101–1.000 Mitarbeitende',

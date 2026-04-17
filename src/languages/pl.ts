@@ -1666,6 +1666,7 @@ const translations: TranslationDeepObject<typeof en> = {
             prompt: 'Włącz śledzenie podatku w przestrzeni roboczej, aby edytować szczegóły wydatku lub usunąć podatek z tego wydatku.',
             confirmText: 'Usuń podatek',
         },
+        bulkDuplicateLimit: `Możesz jednocześnie zduplikować maksymalnie ${CONST.SEARCH.BULK_DUPLICATE_LIMIT} wydatków. Wybierz mniej wydatków i spróbuj ponownie.`,
         deleted: 'Usunięto',
     },
     transactionMerge: {
@@ -2602,6 +2603,9 @@ ${amount} dla ${merchant} - ${date}`,
     workflowsExpensesFromPage: {
         title: 'Wydatki od',
         header: 'Gdy następujący członkowie przesyłają wydatki:',
+        memberAlreadyInWorkflowTitle: 'Członek jest już w procesie',
+        memberAlreadyInWorkflowPrompt: ({memberName, approverName}: {memberName: string; approverName: string}) =>
+            `${memberName} jest już w procesie zatwierdzania, który przesyła do ${approverName}. Dodanie go tutaj przeniesie go do tego procesu.`,
     },
     workflowsApproverPage: {
         genericErrorMessage: 'Nie udało się zmienić osoby zatwierdzającej. Spróbuj ponownie lub skontaktuj się z pomocą techniczną.',
@@ -2902,6 +2906,8 @@ ${amount} dla ${merchant} - ${date}`,
         },
         employees: {
             title: 'Ilu masz pracowników?',
+            [CONST.ONBOARDING_COMPANY_SIZE.MICRO_SMALL]: '1–4 pracowników',
+            [CONST.ONBOARDING_COMPANY_SIZE.MICRO_MEDIUM]: '5–10 pracowników',
             [CONST.ONBOARDING_COMPANY_SIZE.MICRO]: '1–10 pracowników',
             [CONST.ONBOARDING_COMPANY_SIZE.SMALL]: '11–50 pracowników',
             [CONST.ONBOARDING_COMPANY_SIZE.MEDIUM_SMALL]: '51–100 pracowników',

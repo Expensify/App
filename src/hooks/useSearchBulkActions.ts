@@ -78,7 +78,6 @@ import useConfirmModal from './useConfirmModal';
 import {useCurrencyListActions} from './useCurrencyList';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useDefaultExpensePolicy from './useDefaultExpensePolicy';
-import useEnvironment from './useEnvironment';
 import {useMemoizedLazyExpensifyIcons} from './useLazyAsset';
 import useLocalize from './useLocalize';
 import useNetwork from './useNetwork';
@@ -176,11 +175,17 @@ function shouldShowBulkDuplicateOption({
 
         const report = reportID ? ((searchData?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] as Report | undefined) ?? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]) : undefined;
 
-        if (isPerDiemRequest(transaction) && report?.policyID && defaultExpensePolicyID !== report.policyID) {
-            return false;
+        if (isPerDiemRequest(transaction)) {
+            const policyID = report?.policyID;
+            if (!policyID || defaultExpensePolicyID !== policyID) {
+                return false;
+            }
         }
 
         if (isDistanceRequest(transaction) && reportID) {
+            if (reportID === CONST.REPORT.UNREPORTED_REPORT_ID && activePolicyExpenseChat) {
+                return false;
+            }
             const chatReportID = report?.chatReportID ?? report?.parentReportID;
             const chatReport = chatReportID
                 ? ((searchData?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`] as Report | undefined) ?? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`])
@@ -201,7 +206,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {isOffline} = useNetwork();
-    const {isProduction} = useEnvironment();
     const {isBetaEnabled} = usePermissions();
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
@@ -708,20 +712,18 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
     const activePolicyExpenseChat = getPolicyExpenseChat(currentUserPersonalDetails.accountID, defaultExpensePolicy?.id);
 
-    const isDuplicateOptionVisible =
-        !isProduction &&
-        shouldShowBulkDuplicateOption({
-            selectedTransactionsKeys,
-            selectedTransactions,
-            allTransactions,
-            allReports,
-            allTransactionViolations,
-            allReportNameValuePairs,
-            defaultExpensePolicyID: defaultExpensePolicy?.id,
-            activePolicyExpenseChat,
-            typeExpenseReport: isExpenseReportType,
-            searchData: currentSearchResults?.data,
-        });
+    const isDuplicateOptionVisible = shouldShowBulkDuplicateOption({
+        selectedTransactionsKeys,
+        selectedTransactions,
+        allTransactions,
+        allReports,
+        allTransactionViolations,
+        allReportNameValuePairs,
+        defaultExpensePolicyID: defaultExpensePolicy?.id,
+        activePolicyExpenseChat,
+        typeExpenseReport: isExpenseReportType,
+        searchData: currentSearchResults?.data,
+    });
 
     let headerButtonsOptions: Array<DropdownOption<SearchHeaderOptionValue>>;
     const allSelectedAreDeleted = selectedTransactionsKeys.length > 0 && selectedTransactionsKeys.every((id) => isDeletedTransaction(selectedTransactions[id] ?? {}));
@@ -1204,12 +1206,24 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             }
 
             if (isDuplicateOptionVisible && duplicateHandler) {
+                const exceedsBulkDuplicateLimit = selectedTransactionsKeys.length > CONST.SEARCH.BULK_DUPLICATE_LIMIT;
                 options.push({
                     text: translate('search.bulkActions.duplicateExpense', {count: selectedTransactionsKeys.length}),
                     icon: expensifyIcons.ExpenseCopy,
                     value: CONST.SEARCH.BULK_ACTION_TYPES.DUPLICATE,
                     shouldCloseModalOnSelect: true,
-                    onSelected: duplicateHandler,
+                    onSelected: () => {
+                        if (exceedsBulkDuplicateLimit) {
+                            showConfirmModal({
+                                title: translate('common.duplicateExpense'),
+                                prompt: translate('iou.bulkDuplicateLimit'),
+                                confirmText: translate('common.buttonConfirm'),
+                                shouldShowCancelButton: false,
+                            });
+                            return;
+                        }
+                        duplicateHandler();
+                    },
                 });
             }
 

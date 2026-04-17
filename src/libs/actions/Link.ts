@@ -271,9 +271,10 @@ function openReportFromDeepLink(
     }
 
     // The Plaid OAuth redirect URI is handled by the native Plaid SDK on iOS — skip navigation to avoid showing NotFound
-    if (route?.includes('partners/plaid/oauth_ios')) {
+    if (route?.includes(CONST.PLAID.OAUTH_REDIRECT_PATH_IOS)) {
         return;
     }
+
 
     // Navigate to the report after sign-in/sign-up.
     // eslint-disable-next-line @typescript-eslint/no-deprecated

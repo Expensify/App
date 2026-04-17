@@ -1670,6 +1670,7 @@ const translations: TranslationDeepObject<typeof en> = {
             prompt: 'Abilita il monitoraggio delle imposte nello spazio di lavoro per modificare i dettagli della spesa o eliminare l’imposta da questa spesa.',
             confirmText: 'Elimina imposta',
         },
+        bulkDuplicateLimit: `Puoi duplicare fino a ${CONST.SEARCH.BULK_DUPLICATE_LIMIT} spese alla volta. Seleziona meno spese e riprova.`,
         deleted: 'Eliminato',
     },
     transactionMerge: {
@@ -2609,6 +2610,9 @@ ${amount} per ${merchant} - ${date}`,
     workflowsExpensesFromPage: {
         title: 'Spese dal',
         header: 'Quando i seguenti membri inviano note spese:',
+        memberAlreadyInWorkflowTitle: 'Membro già in un flusso di lavoro',
+        memberAlreadyInWorkflowPrompt: ({memberName, approverName}: {memberName: string; approverName: string}) =>
+            `${memberName} è già in un flusso di approvazione che invia a ${approverName}. Aggiungendolo qui lo sposterà in questo flusso di lavoro.`,
     },
     workflowsApproverPage: {
         genericErrorMessage: "Non è stato possibile modificare l'approvatore. Riprova o contatta l'assistenza.",
@@ -2911,10 +2915,12 @@ ${amount} per ${merchant} - ${date}`,
         },
         employees: {
             title: 'Quanti dipendenti hai?',
+            [CONST.ONBOARDING_COMPANY_SIZE.MICRO_SMALL]: '1-4 dipendenti',
+            [CONST.ONBOARDING_COMPANY_SIZE.MICRO_MEDIUM]: '5-10 dipendenti',
             [CONST.ONBOARDING_COMPANY_SIZE.MICRO]: '1-10 dipendenti',
             [CONST.ONBOARDING_COMPANY_SIZE.SMALL]: '11-50 dipendenti',
             [CONST.ONBOARDING_COMPANY_SIZE.MEDIUM_SMALL]: '51-100 dipendenti',
-            [CONST.ONBOARDING_COMPANY_SIZE.MEDIUM]: '101-1.000 dipendenti',
+            [CONST.ONBOARDING_COMPANY_SIZE.MEDIUM]: 'Da 101 a 1.000 dipendenti',
             [CONST.ONBOARDING_COMPANY_SIZE.LARGE]: 'Più di 1.000 dipendenti',
         },
         accounting: {

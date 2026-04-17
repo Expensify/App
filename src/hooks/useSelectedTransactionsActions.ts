@@ -36,12 +36,12 @@ import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import type {Policy, Report, ReportAction, Session, Transaction} from '@src/types/onyx';
 import useAllTransactions from './useAllTransactions';
+import useConfirmModal from './useConfirmModal';
 import {useCurrencyListActions} from './useCurrencyList';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useDefaultExpensePolicy from './useDefaultExpensePolicy';
 import useDeleteTransactions from './useDeleteTransactions';
 import useDuplicateTransactionsAndViolations from './useDuplicateTransactionsAndViolations';
-import useEnvironment from './useEnvironment';
 import {useMemoizedLazyExpensifyIcons} from './useLazyAsset';
 import useLocalize from './useLocalize';
 import useNetworkWithOfflineStatus from './useNetworkWithOfflineStatus';
@@ -77,10 +77,10 @@ function useSelectedTransactionsActions({
 }) {
     const {translate, localeCompare} = useLocalize();
     const {isOffline} = useNetworkWithOfflineStatus();
-    const {isProduction} = useEnvironment();
     const {isBetaEnabled} = usePermissions();
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
+    const {showConfirmModal} = useConfirmModal();
     const {selectedTransactionIDs, currentSearchHash, selectedTransactions: selectedTransactionsMeta} = useSearchStateContext();
     const {clearSelectedTransactions} = useSearchActionsContext();
     const {login, accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
@@ -155,21 +155,20 @@ function useSelectedTransactionsActions({
     }
 
     const hasTransactionsFromMultipleOwners = hasUnknownOwner ? knownOwnerIDs.size > 0 || selectedTransactionIDs.length > 1 : knownOwnerIDs.size > 1;
+
     const activePolicyExpenseChat = getPolicyExpenseChat(currentUserAccountID, defaultExpensePolicy?.id);
-    const isDuplicateOptionVisible =
-        !isProduction &&
-        shouldShowBulkDuplicateOption({
-            selectedTransactionsKeys: selectedTransactionIDs,
-            selectedTransactions: selectedTransactionsForDuplicate,
-            allTransactions,
-            allReports,
-            allTransactionViolations,
-            allReportNameValuePairs,
-            defaultExpensePolicyID: defaultExpensePolicy?.id,
-            activePolicyExpenseChat,
-            typeExpenseReport: false,
-            searchData: undefined,
-        });
+    const isDuplicateOptionVisible = shouldShowBulkDuplicateOption({
+        selectedTransactionsKeys: selectedTransactionIDs,
+        selectedTransactions: selectedTransactionsForDuplicate,
+        allTransactions,
+        allReports,
+        allTransactionViolations,
+        allReportNameValuePairs,
+        defaultExpensePolicyID: defaultExpensePolicy?.id,
+        activePolicyExpenseChat,
+        typeExpenseReport: false,
+        searchData: undefined,
+    });
 
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     const isTrackExpenseThread = isTrackExpenseReport(report);
@@ -433,12 +432,24 @@ function useSelectedTransactionsActions({
         }
 
         if (isDuplicateOptionVisible && duplicateHandler) {
+            const exceedsBulkDuplicateLimit = selectedTransactionIDs.length > CONST.SEARCH.BULK_DUPLICATE_LIMIT;
             options.push({
                 text: translate('search.bulkActions.duplicateExpense', {count: selectedTransactionIDs.length}),
                 icon: expensifyIcons.ExpenseCopy,
                 value: DUPLICATE,
                 shouldCloseModalOnSelect: true,
-                onSelected: duplicateHandler,
+                onSelected: () => {
+                    if (exceedsBulkDuplicateLimit) {
+                        showConfirmModal({
+                            title: translate('common.duplicateExpense'),
+                            prompt: translate('iou.bulkDuplicateLimit'),
+                            confirmText: translate('common.buttonConfirm'),
+                            shouldShowCancelButton: false,
+                        });
+                        return;
+                    }
+                    duplicateHandler();
+                },
             });
         }
 

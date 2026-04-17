@@ -12,9 +12,8 @@ import usePrevious from '@hooks/usePrevious';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionDraftReceipts from '@hooks/useTransactionDraftReceipts';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import Navigation from '@libs/Navigation/Navigation';
-import variables from '@styles/variables';
+import useReceiptPreviewsSizes from '@pages/iou/request/step/IOURequestStepScan/hooks/useReceiptPreviewsSizes';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {Receipt} from '@src/types/onyx/Transaction';
@@ -35,35 +34,6 @@ type ReceiptPreviewsProps = {
     /** Whether the component is rendered in landscape orientation */
     isInLandscapeMode?: boolean;
 };
-
-function useReceiptPreviewsSizes(isInLandscapeMode: boolean) {
-    const styles = useThemeStyles();
-    const {windowWidth, windowHeight} = useWindowDimensions();
-
-    if (isInLandscapeMode) {
-        const previewItemSize = styles.receiptPlaceholderLandscape.height + styles.receiptPlaceholderLandscape.marginBottom;
-
-        const submitButtonHeight = styles.singleAvatarMedium.height;
-        const tabSelectorButtonHeight = variables.tabSelectorButtonHeight + styles.pb4.paddingBottom;
-        const contentHeaderHeight = variables.contentHeaderHeight;
-        const initialReceiptsAmount = (windowHeight - submitButtonHeight - tabSelectorButtonHeight - contentHeaderHeight) / previewItemSize;
-
-        return {
-            previewsSize: styles.receiptPlaceholderLandscape.width + styles.ph6.paddingHorizontal * 2,
-            previewItemSize,
-            initialReceiptsAmount,
-        };
-    }
-
-    const previewItemSize = styles.receiptPlaceholder.width + styles.receiptPlaceholder.marginRight;
-    const initialReceiptsAmount = (windowWidth - styles.ph4.paddingHorizontal * 2 - styles.singleAvatarMedium.width) / previewItemSize;
-
-    return {
-        previewsSize: styles.receiptPlaceholder.height + styles.pv2.paddingVertical * 2,
-        previewItemSize,
-        initialReceiptsAmount,
-    };
-}
 
 function ReceiptPreviews({submit, isMultiScanEnabled, isCapturingPhoto = false, isInLandscapeMode = false}: ReceiptPreviewsProps) {
     const icons = useMemoizedLazyExpensifyIcons(['ArrowRight']);

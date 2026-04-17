@@ -1663,6 +1663,7 @@ const translations: TranslationDeepObject<typeof en> = {
             prompt: 'Ative o acompanhamento de impostos no espaço de trabalho para editar os detalhes da despesa ou excluir o imposto desta despesa.',
             confirmText: 'Excluir imposto',
         },
+        bulkDuplicateLimit: `Você pode duplicar até ${CONST.SEARCH.BULK_DUPLICATE_LIMIT} despesas por vez. Selecione menos despesas e tente novamente.`,
         deleted: 'Excluído',
     },
     transactionMerge: {
@@ -2600,6 +2601,9 @@ ${amount} para ${merchant} - ${date}`,
     workflowsExpensesFromPage: {
         title: 'Despesas de',
         header: 'Quando os seguintes membros enviarem despesas:',
+        memberAlreadyInWorkflowTitle: 'Membro já está em um fluxo de trabalho',
+        memberAlreadyInWorkflowPrompt: ({memberName, approverName}: {memberName: string; approverName: string}) =>
+            `${memberName} já está em um fluxo de aprovação que envia para ${approverName}. Adicioná-lo aqui irá movê-lo para este fluxo de trabalho.`,
     },
     workflowsApproverPage: {
         genericErrorMessage: 'O aprovador não pôde ser alterado. Tente novamente ou entre em contato com o suporte.',
@@ -2902,9 +2906,11 @@ ${amount} para ${merchant} - ${date}`,
         },
         employees: {
             title: 'Quantos funcionários você tem?',
-            [CONST.ONBOARDING_COMPANY_SIZE.MICRO]: '1–10 funcionários',
+            [CONST.ONBOARDING_COMPANY_SIZE.MICRO_SMALL]: '1–4 funcionários',
+            [CONST.ONBOARDING_COMPANY_SIZE.MICRO_MEDIUM]: '5–10 funcionários',
+            [CONST.ONBOARDING_COMPANY_SIZE.MICRO]: '1-10 funcionários',
             [CONST.ONBOARDING_COMPANY_SIZE.SMALL]: '11–50 funcionários',
-            [CONST.ONBOARDING_COMPANY_SIZE.MEDIUM_SMALL]: '51–100 funcionários',
+            [CONST.ONBOARDING_COMPANY_SIZE.MEDIUM_SMALL]: '51 a 100 funcionários',
             [CONST.ONBOARDING_COMPANY_SIZE.MEDIUM]: '101–1.000 funcionários',
             [CONST.ONBOARDING_COMPANY_SIZE.LARGE]: 'Mais de 1.000 funcionários',
         },
