@@ -1,5 +1,5 @@
 import lodashIsEmpty from 'lodash/isEmpty';
-import React, {useEffect} from 'react';
+import React, {useCallback, useEffect} from 'react';
 import {InteractionManager, View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
@@ -10,7 +10,7 @@ import {useSearchStateContext} from '@components/Search/SearchContext';
 import type {ListItem} from '@components/SelectionList/types';
 import WorkspaceEmptyStateSection from '@components/WorkspaceEmptyStateSection';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
+import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -20,7 +20,7 @@ import usePolicyForTransaction from '@hooks/usePolicyForTransaction';
 import useRestartOnReceiptFailure from '@hooks/useRestartOnReceiptFailure';
 import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getIOURequestPolicyID, setMoneyRequestCategory} from '@libs/actions/IOU';
+import {clearPendingCategorySelection, getIOURequestPolicyID, setMoneyRequestCategory, setPendingCategorySelection} from '@libs/actions/IOU';
 import {setDraftSplitTransaction} from '@libs/actions/IOU/Split';
 import {updateMoneyRequestCategory} from '@libs/actions/IOU/UpdateMoneyRequest';
 import {enablePolicyCategories, getPolicyCategories} from '@libs/actions/Policy/Category';
@@ -28,7 +28,7 @@ import {isCategoryMissing} from '@libs/CategoryUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
-import {isPolicyAdmin} from '@libs/PolicyUtils';
+import {getValidConnectedIntegration, isPolicyAdmin} from '@libs/PolicyUtils';
 import {getReportOrDraftReport, getTransactionDetails, isGroupPolicy, isReportInGroupPolicy} from '@libs/ReportUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {getRequestType} from '@libs/TransactionUtils';
@@ -56,6 +56,7 @@ function IOURequestStepCategory({
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const illustrations = useMemoizedLazyIllustrations(['EmptyStateExpenses']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Plus']);
     const requestType = getRequestType(transaction);
     const isPerDiemRequest = requestType === CONST.IOU.REQUEST_TYPE.PER_DIEM;
     const transactionReport = getReportOrDraftReport(transaction?.reportID);
@@ -89,6 +90,31 @@ function IOURequestStepCategory({
 
     const categoryForDisplay = isCategoryMissing(transactionCategory) ? '' : transactionCategory;
 
+    const canCreateCategoryInSitu = isPolicyAdmin(policy) && !getValidConnectedIntegration(policy) && !!policy?.areCategoriesEnabled;
+
+    const [pendingCategorySelection] = useOnyx(ONYXKEYS.PENDING_CATEGORY_SELECTION);
+
+    const createCategoryMenuItems = canCreateCategoryInSitu
+        ? [
+              {
+                  icon: expensifyIcons.Plus,
+                  text: translate('workspace.categories.addCategory'),
+                  onSelected: () => {
+                      if (!policyID || !report?.reportID) {
+                          return;
+                      }
+                      setPendingCategorySelection(transactionID);
+                      Navigation.navigate(
+                          ROUTES.SETTINGS_CATEGORY_CREATE.getRoute(
+                              policyID,
+                              ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(action, iouType, transactionID, report.reportID, backTo, reportActionID),
+                          ),
+                      );
+                  },
+              },
+          ]
+        : undefined;
+
     const shouldShowCategory =
         (isReportInGroupPolicy(report) || isGroupPolicy(policy?.type ?? '')) &&
         // The transactionCategory can be an empty string, so to maintain the logic we'd like to keep it in this shape until utils refactor
@@ -120,55 +146,96 @@ function IOURequestStepCategory({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [policyID]);
 
-    const navigateBack = () => {
+    const navigateBack = useCallback(() => {
         Navigation.goBack(backTo);
-    };
+    }, [backTo]);
 
-    const updateCategory = (category: ListItem) => {
-        const categorySearchText = category.searchText ?? '';
-        const isSelectedCategory = categorySearchText === categoryForDisplay;
-        const updatedCategory = isSelectedCategory ? '' : categorySearchText;
+    const updateCategory = useCallback(
+        (category: ListItem) => {
+            const categorySearchText = category.searchText ?? '';
+            const isSelectedCategory = categorySearchText === categoryForDisplay;
+            const updatedCategory = isSelectedCategory ? '' : categorySearchText;
 
-        if (transaction) {
-            // In the split flow, when editing we use SPLIT_TRANSACTION_DRAFT to save draft value
-            if (isEditingSplit) {
-                setDraftSplitTransaction(transaction.transactionID, splitDraftTransaction, {category: updatedCategory}, policy);
-                navigateBack();
+            if (transaction) {
+                // In the split flow, when editing we use SPLIT_TRANSACTION_DRAFT to save draft value
+                if (isEditingSplit) {
+                    setDraftSplitTransaction(transaction.transactionID, splitDraftTransaction, {category: updatedCategory}, policy);
+                    navigateBack();
+                    return;
+                }
+
+                if (isEditing && report) {
+                    updateMoneyRequestCategory({
+                        transactionID: transaction.transactionID,
+                        transactionThreadReport: report,
+                        parentReport,
+                        parentReportNextStep,
+                        category: updatedCategory,
+                        policy,
+                        policyTagList: policyTags,
+                        policyCategories,
+                        policyRecentlyUsedCategories,
+                        currentUserAccountIDParam,
+                        currentUserEmailParam,
+                        isASAPSubmitBetaEnabled,
+                        hash: currentSearchHash,
+                    });
+                    navigateBack();
+                    return;
+                }
+            }
+
+            setMoneyRequestCategory(transactionID, updatedCategory, policy);
+
+            if (action === CONST.IOU.ACTION.CATEGORIZE && !backTo) {
+                if (report?.reportID) {
+                    Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(action, iouType, transactionID, report.reportID));
+                }
                 return;
             }
 
-            if (isEditing && report) {
-                updateMoneyRequestCategory({
-                    transactionID: transaction.transactionID,
-                    transactionThreadReport: report,
-                    parentReport,
-                    parentReportNextStep,
-                    category: updatedCategory,
-                    policy,
-                    policyTagList: policyTags,
-                    policyCategories,
-                    policyRecentlyUsedCategories,
-                    currentUserAccountIDParam,
-                    currentUserEmailParam,
-                    isASAPSubmitBetaEnabled,
-                    hash: currentSearchHash,
-                });
-                navigateBack();
-                return;
-            }
-        }
+            navigateBack();
+        },
+        [
+            action,
+            backTo,
+            categoryForDisplay,
+            currentSearchHash,
+            currentUserAccountIDParam,
+            currentUserEmailParam,
+            isASAPSubmitBetaEnabled,
+            isEditing,
+            isEditingSplit,
+            iouType,
+            navigateBack,
+            parentReport,
+            parentReportNextStep,
+            policy,
+            policyCategories,
+            policyRecentlyUsedCategories,
+            policyTags,
+            report,
+            splitDraftTransaction,
+            transaction,
+            transactionID,
+        ],
+    );
 
-        setMoneyRequestCategory(transactionID, updatedCategory, policy);
-
-        if (action === CONST.IOU.ACTION.CATEGORIZE && !backTo) {
-            if (report?.reportID) {
-                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(action, iouType, transactionID, report.reportID));
-            }
+    useEffect(() => {
+        if (pendingCategorySelection?.transactionID !== transactionID || !pendingCategorySelection?.categoryName) {
             return;
         }
-
-        navigateBack();
-    };
+        const {categoryName} = pendingCategorySelection;
+        // Skip the update until policyCategories reflects the new category — this effect will re-run when it does.
+        if (!policyCategories?.[categoryName]?.enabled) {
+            return;
+        }
+        clearPendingCategorySelection();
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        InteractionManager.runAfterInteractions(() => {
+            updateCategory({searchText: categoryName, keyForList: categoryName, text: categoryName, isSelected: false});
+        });
+    }, [pendingCategorySelection, policyCategories, transactionID, updateCategory]);
 
     return (
         <StepScreenWrapper
@@ -179,6 +246,8 @@ function IOURequestStepCategory({
             shouldShowOfflineIndicator={policyCategories !== undefined}
             testID="IOURequestStepCategory"
             shouldEnableKeyboardAvoidingView={false}
+            threeDotsMenuItems={createCategoryMenuItems}
+            shouldMinimizeMenuButton
         >
             {isLoading && (
                 <ActivityIndicator
