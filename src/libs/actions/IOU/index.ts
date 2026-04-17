@@ -604,6 +604,31 @@ function getPolicyTagsData(policyID: string | undefined) {
 }
 
 /**
+ * @deprecated This function uses Onyx.connect and should be replaced with useOnyx for reactive data access.
+ * TODO: remove `getMoneyRequestPolicyTags` from this file (https://github.com/Expensify/App/issues/72721)
+ * All usages of this function should be replaced with useOnyx hook in React components.
+ */
+function getMoneyRequestPolicyTags({
+    existingIOUReport,
+    moneyRequestReportID,
+    parentChatReport,
+    participant,
+}: {
+    existingIOUReport?: OnyxEntry<OnyxTypes.Report>;
+    moneyRequestReportID?: string;
+    parentChatReport: OnyxEntry<OnyxTypes.Report>;
+    participant: Participant;
+}): OnyxTypes.PolicyTagLists {
+    const iouReportPolicyID =
+        existingIOUReport?.policyID ??
+        (moneyRequestReportID ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${moneyRequestReportID}`]?.policyID : undefined) ??
+        parentChatReport?.policyID ??
+        allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${participant.reportID}`]?.policyID;
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
+    return getPolicyTagsData(iouReportPolicyID) ?? {};
+}
+
+/**
  * @private
  * After finishing the action in RHP from the Inbox tab, besides dismissing the modal, we should open the report.
  * If the action is done from the report RHP, then we just want to dismiss the money request flow screens.
@@ -2191,6 +2216,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
     } = moneyRequestInformation;
     const {payeeAccountID = deprecatedUserAccountID, payeeEmail = deprecatedCurrentUserEmail, participant} = participantParams;
     const {policy, policyCategories, policyTagList, policyRecentlyUsedCategories, policyRecentlyUsedTags} = policyParams;
+
     const {
         attendees,
         amount,
@@ -2392,9 +2418,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
 
     const optimisticPolicyRecentlyUsedCategories = mergePolicyRecentlyUsedCategories(category, policyRecentlyUsedCategories);
     const optimisticPolicyRecentlyUsedTags = buildOptimisticPolicyRecentlyUsedTags({
-        // TODO: Replace getPolicyTagsData (https://github.com/Expensify/App/issues/72721) and getPolicyRecentlyUsedTagsData (https://github.com/Expensify/App/issues/71491) with useOnyx hook
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        policyTags: getPolicyTagsData(iouReport.policyID),
+        policyTags: policyTagList ?? {},
         policyRecentlyUsedTags,
         transactionTags: tag,
     });
@@ -3285,7 +3309,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
         optimisticReportPreviewActionID,
         shouldDeferAutoSubmit,
     } = distanceRequestInformation;
-    const {policy, policyCategories, policyTagList, policyRecentlyUsedCategories, policyRecentlyUsedTags} = policyParams;
+    const {policy, policyCategories, policyRecentlyUsedCategories, policyRecentlyUsedTags} = policyParams;
     const parsedComment = getParsedComment(transactionParams.comment);
     transactionParams.comment = parsedComment;
     const {
@@ -3421,7 +3445,8 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
             policyParams: {
                 policy,
                 policyCategories,
-                policyTagList,
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
+                policyTagList: getMoneyRequestPolicyTags({existingIOUReport, moneyRequestReportID, parentChatReport: currentChatReport, participant}),
                 policyRecentlyUsedCategories,
                 policyRecentlyUsedTags,
             },
@@ -3904,6 +3929,8 @@ export {
     maybeUpdateReportNameForFormulaTitle,
     getSearchOnyxUpdate,
     getPolicyTags,
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
+    getMoneyRequestPolicyTags,
     setMoneyRequestTimeRate,
     setMoneyRequestTimeCount,
     handleNavigateAfterExpenseCreate,
