@@ -49,6 +49,11 @@ const error = (...args: unknown[]) => {
     log(...lines);
 };
 
+const errorDetail = (...args: unknown[]) => {
+    const lines = [`   ${COLOR_RED}↳`, ...args, COLOR_RESET];
+    log(...lines);
+};
+
 const formatLink = (name: string | number, url: string) => `\x1b]8;;${url}\x1b\\${name}\x1b]8;;\x1b\\`;
 
-export {log, info, warn, note, error, success, formatLink, bold};
+export {log, info, warn, note, error, errorDetail, success, formatLink, bold};
