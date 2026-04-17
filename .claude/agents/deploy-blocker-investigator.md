@@ -1,7 +1,7 @@
 ---
 name: deploy-blocker-investigator
 description: Investigates deploy blockers to find the causing PR and recommend resolution.
-tools: Glob, Grep, Read, Bash, BashOutput
+tools: Glob, Grep, Read, Write, Bash, BashOutput
 model: inherit
 ---
 
@@ -114,11 +114,9 @@ See Decision Tree below for label actions.
 
 ### Step 7: Post comment and update labels
 
-Post your findings (use single quotes for the body to handle special characters):
+Write the comment body to a temp file using the Write tool, then post it:
 ```bash
-gh issue comment "$ISSUE_URL" --body '## 🔍 Investigation Summary
-...your comment here...
-'
+gh issue comment "$ISSUE_URL" --body-file /tmp/investigation-summary.md
 ```
 
 Remove label only if the decision tree warrants it:
@@ -170,9 +168,9 @@ Choose ONE:
 
 ---
 
-## Comment Format
+## Comment Format (MANDATORY)
 
-Post ONE comment using this exact format:
+Use the Write tool to create `/tmp/investigation-summary.md` with the following markdown structure. Every field and heading must be present. Do NOT collapse this into a flat paragraph.
 
 ```markdown
 ## 🔍 Investigation Summary
@@ -206,6 +204,8 @@ Technical explanation of what went wrong in the code.
 
 </details>
 ```
+
+Then post with: `gh issue comment "$ISSUE_URL" --body-file /tmp/investigation-summary.md`
 ---
 
 ## Constraints
@@ -218,7 +218,7 @@ Technical explanation of what went wrong in the code.
 - Make assumptions about code you haven't read
 - Recommend DEMOTE for bugs affecting core functionality (auth, payments, data loss)
 - Close the issue—only update labels and comment
-- Use heredocs, temp files, or shell redirects for comments
+- Post the comment as flat/unformatted text — always use the exact markdown template from Comment Format
 
 **DO:**
 - Always verify the causing PR touches the affected code before concluding
