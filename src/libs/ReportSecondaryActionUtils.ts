@@ -1111,4 +1111,5 @@ export {
     getSecondaryExportReportActions,
     isSplitAction,
     isChangeWorkspaceAction,
+    isDuplicateReportAction,
 };

@@ -7640,6 +7640,7 @@ const translations = {
             unhold: 'Remove hold',
             reject: 'Reject',
             duplicateExpense: ({count}: {count: number}) => `Duplicate ${count === 1 ? 'expense' : 'expenses'}`,
+            duplicateReport: ({count}: {count: number}) => `Duplicate ${count === 1 ? 'report' : 'reports'}`,
             undelete: 'Undelete',
             noOptionsAvailable: 'No options available for the selected group of expenses.',
         },

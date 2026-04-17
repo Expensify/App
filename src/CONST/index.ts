@@ -7544,6 +7544,7 @@ const CONST = {
             CHANGE_REPORT: 'changeReport',
             SPLIT: 'split',
             DUPLICATE: 'duplicate',
+            DUPLICATE_REPORT: 'duplicateReport',
             UNDELETE: 'undelete',
         },
         BULK_DUPLICATE_LIMIT: 50,

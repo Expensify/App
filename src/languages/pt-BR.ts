@@ -7603,6 +7603,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             duplicateExpense: ({count}: {count: number}) => `Duplicar ${count === 1 ? 'despesa' : 'despesas'}`,
             noOptionsAvailable: 'Nenhuma opção disponível para o grupo de despesas selecionado.',
             undelete: 'Restaurar',
+            duplicateReport: ({count}: {count: number}) => `Duplicar ${count === 1 ? 'relatório' : 'relatórios'}`,
         },
         filtersHeader: 'Filtros',
         filters: {

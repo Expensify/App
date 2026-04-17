@@ -7646,6 +7646,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             duplicateExpense: ({count}: {count: number}) => `${count === 1 ? 'Ausgabe' : 'Ausgaben'} duplizieren`,
             noOptionsAvailable: 'Für die ausgewählte Ausgabengruppe sind keine Optionen verfügbar.',
             undelete: 'Wiederherstellen',
+            duplicateReport: ({count}: {count: number}) => `Duplikat ${count === 1 ? 'Bericht' : 'Berichte'}`,
         },
         filtersHeader: 'Filter',
         filters: {

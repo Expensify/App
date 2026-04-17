@@ -7601,6 +7601,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             duplicateExpense: ({count}: {count: number}) => `Duplikuj ${count === 1 ? 'wydatek' : 'wydatki'}`,
             noOptionsAvailable: 'Brak opcji dostępnych dla wybranej grupy wydatków.',
             undelete: 'Cofnij usunięcie',
+            duplicateReport: ({count}: {count: number}) => `Duplikat ${count === 1 ? 'raport' : 'raporty'}`,
         },
         filtersHeader: 'Filtry',
         filters: {

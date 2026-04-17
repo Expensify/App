@@ -7610,6 +7610,7 @@ Voeg meer bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             duplicateExpense: ({count}: {count: number}) => `${count === 1 ? 'Declaratie' : 'Declaraties'} dupliceren`,
             noOptionsAvailable: 'Geen opties beschikbaar voor de geselecteerde groep onkosten.',
             undelete: 'Terugzetten',
+            duplicateReport: ({count}: {count: number}) => `Duplicaat ${count === 1 ? 'rapport' : 'rapporten'}`,
         },
         filtersHeader: 'Filters',
         filters: {

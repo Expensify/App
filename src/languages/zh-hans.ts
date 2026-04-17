@@ -7414,6 +7414,7 @@ ${reportName}
             duplicateExpense: ({count}: {count: number}) => `复制${count === 1 ? '报销' : '报销费用'}`,
             noOptionsAvailable: '所选报销的费用组没有可用选项。',
             undelete: '取消删除',
+            duplicateReport: ({count}: {count: number}) => `重复 ${count === 1 ? '报表' : '报表'}`,
         },
         filtersHeader: '筛选器',
         filters: {

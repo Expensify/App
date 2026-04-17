@@ -7543,6 +7543,7 @@ ${reportName}
             duplicateExpense: ({count}: {count: number}) => `${count === 1 ? '経費を複製' : '経費を一括複製'}`,
             noOptionsAvailable: '選択した経費グループには利用できるオプションがありません。',
             undelete: '削除を取り消す',
+            duplicateReport: ({count}: {count: number}) => `${count === 1 ? 'レポート' : 'レポート'} を複製`,
         },
         filtersHeader: 'フィルター',
         filters: {

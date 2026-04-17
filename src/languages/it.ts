@@ -7634,6 +7634,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             duplicateExpense: ({count}: {count: number}) => `Duplica ${count === 1 ? 'spesa' : 'spese'}`,
             noOptionsAvailable: 'Nessuna opzione disponibile per il gruppo di spese selezionato.',
             undelete: 'Ripristina',
+            duplicateReport: ({count}: {count: number}) => `Duplica ${count === 1 ? 'report' : 'report'}`,
         },
         filtersHeader: 'Filtri',
         filters: {

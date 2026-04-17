@@ -273,6 +273,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         'MoneyBag',
         'ArrowSplit',
         'ExpenseCopy',
+        'ReportCopy',
         'RotateLeft',
         'QBOSquare',
         'XeroSquare',
@@ -862,6 +863,27 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         ],
     );
 
+    const duplicateReportHandlerRef = useRef<() => void>(() => {});
+    const setDuplicateReportHandler = useCallback((handler: () => void) => {
+        duplicateReportHandlerRef.current = handler;
+    }, []);
+    const invokeDuplicateReportHandler = useCallback(() => {
+        duplicateReportHandlerRef.current();
+    }, []);
+
+    const isDuplicateReportOptionVisible = useMemo(() => {
+        if (!isExpenseReportType || !defaultExpensePolicy || selectedReports.length === 0) {
+            return false;
+        }
+
+        return selectedReports.every((report) => {
+            if (!report.reportID) {
+                return false;
+            }
+            return report.ownerAccountID === accountID && report.type === CONST.REPORT.TYPE.EXPENSE;
+        });
+    }, [isExpenseReportType, defaultExpensePolicy, selectedReports, accountID]);
+
     const headerButtonsOptions = useMemo(() => {
         if (selectedTransactionsKeys.length === 0 || status == null || !hash) {
             return CONST.EMPTY_ARRAY as unknown as Array<DropdownOption<SearchHeaderOptionValue>>;
@@ -1369,6 +1391,16 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             });
         }
 
+        if (isDuplicateReportOptionVisible) {
+            options.push({
+                text: translate('search.bulkActions.duplicateReport', {count: selectedReports.length}),
+                icon: expensifyIcons.ReportCopy,
+                value: CONST.SEARCH.BULK_ACTION_TYPES.DUPLICATE_REPORT,
+                shouldCloseModalOnSelect: true,
+                onSelected: invokeDuplicateReportHandler,
+            });
+        }
+
         if (shouldShowDeleteOption(selectedTransactions, currentSearchResults?.data, selectedReports, queryJSON?.type)) {
             options.push({
                 icon: expensifyIcons.Trashcan,
@@ -1448,6 +1480,8 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         firstTransactionPolicy,
         isDuplicateOptionVisible,
         invokeDuplicateHandler,
+        isDuplicateReportOptionVisible,
+        invokeDuplicateReportHandler,
         isExpenseReportType,
         handleDeleteSelectedTransactions,
         undeleteTransactions,
@@ -1513,6 +1547,8 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         dismissRejectModalBasedOnAction,
         isDuplicateOptionVisible,
         setDuplicateHandler,
+        isDuplicateReportOptionVisible,
+        setDuplicateReportHandler,
         allTransactions,
         allReports,
         searchData: currentSearchResults?.data,

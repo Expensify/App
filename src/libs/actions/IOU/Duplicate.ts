@@ -3,6 +3,7 @@ import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-nat
 import Onyx from 'react-native-onyx';
 import type {PartialDeep} from 'type-fest';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
+import type {SelectedReports} from '@components/Search/types';
 import * as API from '@libs/API';
 import type {MergeDuplicatesParams, ResolveDuplicatesParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
@@ -11,6 +12,7 @@ import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import {getExistingTransactionID} from '@libs/IOUUtils';
 import * as NumberUtils from '@libs/NumberUtils';
 import Parser from '@libs/Parser';
+import {isPolicyAccessible} from '@libs/PolicyUtils';
 import {getIOUActionForReportID, getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {
     buildOptimisticCreatedReportAction,
@@ -810,6 +812,7 @@ type DuplicateReportParams = {
     transactionViolations: OnyxCollection<OnyxTypes.TransactionViolation[]>;
     translate: LocalizedTranslate;
     recentWaypoints: OnyxEntry<OnyxTypes.RecentWaypoint[]>;
+    shouldPlaySound?: boolean;
 };
 
 function duplicateReport({
@@ -831,8 +834,10 @@ function duplicateReport({
     transactionViolations,
     translate,
     recentWaypoints,
+    shouldPlaySound = true,
 }: DuplicateReportParams) {
     if (!targetPolicy || !parentChatReport) {
+        console.debug(`[duplicateReport] SKIP reportID=${sourceReport?.reportID}: targetPolicy=${!!targetPolicy}, parentChatReport=${!!parentChatReport}`);
         return;
     }
 
@@ -846,23 +851,41 @@ function duplicateReport({
 
     const eligibleTransactions = sourceReportTransactions.filter((transaction) => {
         if (isFromCreditCardImport(transaction)) {
+            console.debug(`[duplicateReport] reportID=${sourceReport?.reportID} txn=${transaction.transactionID} filtered: creditCardImport`);
             return false;
         }
         if (transaction.accountant) {
+            console.debug(`[duplicateReport] reportID=${sourceReport?.reportID} txn=${transaction.transactionID} filtered: accountant`);
             return false;
         }
-        if (isPartialTransaction(transaction) || isScanning(transaction)) {
+        if (isPartialTransaction(transaction)) {
+            console.debug(`[duplicateReport] reportID=${sourceReport?.reportID} txn=${transaction.transactionID} filtered: partialTransaction`);
+            return false;
+        }
+        if (isScanning(transaction)) {
+            console.debug(`[duplicateReport] reportID=${sourceReport?.reportID} txn=${transaction.transactionID} filtered: scanning`);
             return false;
         }
         const txnViolations = transactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`];
         if (hasCustomUnitOutOfPolicyViolation(txnViolations)) {
+            console.debug(`[duplicateReport] reportID=${sourceReport?.reportID} txn=${transaction.transactionID} filtered: customUnitOutOfPolicy`);
             return false;
         }
         if (isCrossWorkspace && (isPerDiemRequest(transaction) || isDistanceRequest(transaction))) {
+            console.debug(`[duplicateReport] reportID=${sourceReport?.reportID} txn=${transaction.transactionID} filtered: crossWorkspacePerDiem/Distance`);
             return false;
         }
         return true;
     });
+
+    console.debug(
+        `[duplicateReport] reportID=${sourceReport?.reportID}: ${sourceReportTransactions.length} total txns, ${eligibleTransactions.length} eligible, isCrossWorkspace=${isCrossWorkspace}`,
+    );
+
+    if (eligibleTransactions.length === 0) {
+        console.debug(`[duplicateReport] SKIP reportID=${sourceReport?.reportID}: 0 eligible transactions`);
+        return;
+    }
 
     const participants = getMoneyRequestParticipantsFromReport(parentChatReport, userAccountID);
 
@@ -879,10 +902,12 @@ function duplicateReport({
     for (let i = 0; i < eligibleTransactions.length; i++) {
         const transaction = eligibleTransactions.at(i);
         if (!transaction) {
+            console.debug(`[duplicateReport] reportID=${sourceReport?.reportID}: txn at index ${i} is falsy`);
             continue;
         }
         const transactionDetails = getTransactionDetails(transaction);
         if (!transactionDetails) {
+            console.debug(`[duplicateReport] reportID=${sourceReport?.reportID}: txn=${transaction.transactionID} has no transactionDetails`);
             continue;
         }
 
@@ -938,7 +963,9 @@ function duplicateReport({
         }
     }
 
-    playSound(SOUNDS.DONE);
+    if (shouldPlaySound) {
+        playSound(SOUNDS.DONE);
+    }
 }
 
 type BulkDuplicateExpensesParams = {
@@ -1049,5 +1076,132 @@ function bulkDuplicateExpenses({
     playSound(SOUNDS.DONE);
 }
 
-export {getIOUActionForTransactions, mergeDuplicates, resolveDuplicates, duplicateExpenseTransaction, bulkDuplicateExpenses, duplicateReport};
-export type {DuplicateExpenseTransactionParams, BulkDuplicateExpensesParams, DuplicateReportParams};
+type BulkDuplicateReportsParams = {
+    selectedReports: SelectedReports[];
+    allReports: NonNullable<OnyxCollection<OnyxTypes.Report>>;
+    searchData: Record<string, unknown> | undefined;
+    allPolicies: OnyxCollection<OnyxTypes.Policy>;
+    allPolicyCategories: OnyxCollection<OnyxTypes.PolicyCategories>;
+    allPolicyTags: OnyxCollection<OnyxTypes.PolicyTagLists>;
+    defaultExpensePolicy: OnyxEntry<OnyxTypes.Policy>;
+    activePolicyExpenseChat: OnyxEntry<OnyxTypes.Report>;
+    ownerPersonalDetails: CurrentUserPersonalDetails;
+    currentUserLogin: string;
+    isASAPSubmitBetaEnabled: boolean;
+    betas: OnyxEntry<OnyxTypes.Beta[]>;
+    personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
+    quickAction: OnyxEntry<OnyxTypes.QuickAction>;
+    policyRecentlyUsedCurrencies: string[];
+    draftTransactionIDs: string[];
+    isSelfTourViewed: boolean;
+    transactionViolations: OnyxCollection<OnyxTypes.TransactionViolation[]>;
+    translate: LocalizedTranslate;
+    recentWaypoints: OnyxEntry<OnyxTypes.RecentWaypoint[]>;
+};
+
+function bulkDuplicateReports({
+    selectedReports: selectedReportsParam,
+    allReports,
+    searchData,
+    allPolicies,
+    allPolicyCategories,
+    allPolicyTags,
+    defaultExpensePolicy,
+    activePolicyExpenseChat,
+    ownerPersonalDetails,
+    currentUserLogin,
+    isASAPSubmitBetaEnabled,
+    betas,
+    personalDetails,
+    quickAction,
+    policyRecentlyUsedCurrencies,
+    draftTransactionIDs,
+    isSelfTourViewed,
+    transactionViolations,
+    translate,
+    recentWaypoints,
+}: BulkDuplicateReportsParams) {
+    const allTransactionsMap = getAllTransactions();
+    const transactionsByReportID = new Map<string, OnyxTypes.Transaction[]>();
+
+    const allTransactionSources = Object.values(allTransactionsMap ?? {}) as OnyxTypes.Transaction[];
+    if (searchData) {
+        for (const [key, value] of Object.entries(searchData)) {
+            if (key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION) && value && typeof value === 'object' && 'transactionID' in value) {
+                const txn = value as OnyxTypes.Transaction;
+                if (!allTransactionsMap?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${txn.transactionID}`]) {
+                    allTransactionSources.push(txn);
+                }
+            }
+        }
+    }
+
+    for (const transaction of allTransactionSources) {
+        if (!transaction || !transaction.reportID || transaction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+            continue;
+        }
+        const list = transactionsByReportID.get(transaction.reportID) ?? [];
+        list.push(transaction);
+        transactionsByReportID.set(transaction.reportID, list);
+    }
+
+    console.debug(`[bulkDuplicateReports] Starting: ${selectedReportsParam.length} selected reports, ${transactionsByReportID.size} reports with transactions`);
+
+    for (const selectedReport of selectedReportsParam) {
+        const reportID = selectedReport.reportID;
+        if (!reportID) {
+            continue;
+        }
+
+        const report =
+            (searchData?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] as OnyxTypes.Report | undefined) ??
+            allReports[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] ??
+            (selectedReport as OnyxTypes.Report);
+
+        const reportPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
+        const isSourcePolicyValid = !!reportPolicy && isPolicyAccessible(reportPolicy, currentUserLogin);
+        const chatReportID = report.chatReportID ?? report.parentReportID;
+        const chatReport = chatReportID
+            ? ((searchData?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`] as OnyxTypes.Report | undefined) ?? allReports[`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`])
+            : undefined;
+        const useSourcePolicy = isSourcePolicyValid && !!chatReport;
+        const targetPolicy = useSourcePolicy ? reportPolicy : defaultExpensePolicy;
+        const parentChatReport = useSourcePolicy ? chatReport : activePolicyExpenseChat;
+        const targetPolicyCategories = allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${targetPolicy?.id}`] ?? {};
+        const targetPolicyTags = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${targetPolicy?.id}`] ?? {};
+
+        const reportTransactions = transactionsByReportID.get(reportID) ?? [];
+
+        console.debug(
+            `[bulkDuplicateReports] reportID=${reportID}: policyID=${report.policyID}, isSourcePolicyValid=${isSourcePolicyValid}, chatReportID=${chatReportID}, hasChatReport=${!!chatReport}, useSourcePolicy=${useSourcePolicy}, hasTargetPolicy=${!!targetPolicy}, hasParentChat=${!!parentChatReport}, txnCount=${reportTransactions.length}`,
+        );
+
+        duplicateReport({
+            sourceReport: report,
+            sourceReportTransactions: reportTransactions,
+            sourceReportName: report.reportName ?? '',
+            targetPolicy: targetPolicy ?? undefined,
+            targetPolicyCategories,
+            targetPolicyTags,
+            parentChatReport,
+            ownerPersonalDetails,
+            isASAPSubmitBetaEnabled,
+            betas,
+            personalDetails,
+            quickAction,
+            policyRecentlyUsedCurrencies,
+            draftTransactionIDs,
+            isSelfTourViewed,
+            transactionViolations,
+            translate,
+            recentWaypoints,
+            shouldPlaySound: false,
+        });
+    }
+
+    console.debug(`[bulkDuplicateReports] Done: processed ${selectedReportsParam.length} reports`);
+    playSound(SOUNDS.DONE);
+}
+
+export {getIOUActionForTransactions, mergeDuplicates, resolveDuplicates, duplicateExpenseTransaction, bulkDuplicateExpenses, duplicateReport, bulkDuplicateReports};
+export type {DuplicateExpenseTransactionParams, BulkDuplicateExpensesParams, DuplicateReportParams, BulkDuplicateReportsParams};
