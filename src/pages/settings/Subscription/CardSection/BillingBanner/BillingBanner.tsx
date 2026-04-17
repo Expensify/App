@@ -74,6 +74,7 @@ function BillingBanner({
                     style={[styles.touchableButtonImage]}
                     role={CONST.ROLE.BUTTON}
                     accessibilityLabel={rightIconAccessibilityLabel}
+                    sentryLabel={CONST.SENTRY_LABEL.BILLING_BANNER.RIGHT_ICON}
                 >
                     <Icon
                         src={rightIcon}
