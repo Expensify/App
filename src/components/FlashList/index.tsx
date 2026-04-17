@@ -1,10 +1,12 @@
 import {FlashList as ShopifyFlashList} from '@shopify/flash-list';
-import type {FlashListProps} from '@shopify/flash-list';
+import type {FlashListProps, FlashListRef} from '@shopify/flash-list';
 import React from 'react';
 import type {NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
 import useEmitComposerScrollEvents from '@hooks/useEmitComposerScrollEvents';
 
-function FlashList<T>({onScroll: onScrollProp, inverted, ...restProps}: FlashListProps<T>) {
+type FlashListPropsWithRef<T> = FlashListProps<T> & {ref?: React.Ref<FlashListRef<T>>};
+
+function FlashList<T>({ref, onScroll: onScrollProp, inverted, ...restProps}: FlashListPropsWithRef<T>) {
     const emitComposerScrollEvents = useEmitComposerScrollEvents({enabled: true, inverted});
 
     const handleScroll = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
@@ -17,6 +19,7 @@ function FlashList<T>({onScroll: onScrollProp, inverted, ...restProps}: FlashLis
         <ShopifyFlashList<T>
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...restProps}
+            ref={ref}
             inverted={inverted}
             onScroll={handleScroll}
         />
