@@ -15,6 +15,7 @@ import type {
     GetStatementPDFParams,
     PusherPingParams,
     RequestContactMethodValidateCodeParams,
+    RevokeDeviceParams,
     SetContactMethodAsDefaultParams,
     SetNameValuePairParams,
     TogglePlatformMuteParams,
@@ -43,14 +44,14 @@ import PusherUtils from '@libs/PusherUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
+import {getLoginKey} from '@libs/UserUtils';
 import Visibility from '@libs/Visibility';
-import * as Device from '@userActions/Device';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {ExpenseRuleForm, MerchantRuleForm, SpendRuleForm} from '@src/types/form';
-import type {AppReview, BlockedFromConcierge, CustomStatusDraft, ExpenseRule, Policy, ReportAttributesDerivedValue} from '@src/types/onyx';
+import type {AppReview, BlockedFromConcierge, CustomStatusDraft, ExpenseRule, NewLogin, Policy, ReportAttributesDerivedValue} from '@src/types/onyx';
 import type Login from '@src/types/onyx/Login';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type {AnyOnyxServerUpdate, OnyxServerUpdate, OnyxUpdateEvent} from '@src/types/onyx/OnyxUpdatesFromServer';
@@ -61,6 +62,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type PrefixedRecord from '@src/types/utils/PrefixedRecord';
 import {reconnectApp} from './App';
 import applyOnyxUpdatesReliably from './applyOnyxUpdatesReliably';
+import {getDeviceInfoWithID} from './Device';
 import {openOldDotLink} from './Link';
 import {showReportActionNotification} from './Report';
 import {resendValidateCode as sessionResendValidateCode} from './Session';
@@ -88,6 +90,62 @@ type LockAccountOnyxKey =
     | `${typeof ONYXKEYS.COLLECTION.DOMAIN}${string}`
     | `${typeof ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${string}`
     | `${typeof ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${string}`;
+
+function revokeDevice(login: NewLogin) {
+    const loginKey = getLoginKey(login);
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.LOGINS>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.LOGINS,
+            value: {
+                [loginKey]: {
+                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                },
+            },
+        },
+    ];
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.LOGINS>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.LOGINS,
+            value: {
+                [loginKey]: null,
+            },
+        },
+    ];
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.LOGINS>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.LOGINS,
+            value: {
+                [loginKey]: {
+                    errorFields: {
+                        revoke: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                    },
+                    pendingAction: null,
+                },
+            },
+        },
+    ];
+
+    const parameters: RevokeDeviceParams = {partnerUserID: login.partnerUserID, partnerID: login.partnerID};
+
+    API.write(WRITE_COMMANDS.REVOKE_DEVICE, parameters, {
+        optimisticData,
+        successData,
+        failureData,
+    });
+}
+
+function clearRevokeError(loginKey: string) {
+    Onyx.merge(ONYXKEYS.LOGINS, {
+        [loginKey]: {
+            errorFields: {
+                revoke: null,
+            },
+        },
+    });
+}
 
 /**
  * Attempt to close the user's account
@@ -188,7 +246,7 @@ function requestContactMethodValidateCode(contactMethod: string) {
         },
     ];
 
-    Device.getDeviceInfoWithID().then((deviceInfo) => {
+    getDeviceInfoWithID().then((deviceInfo) => {
         const parameters: RequestContactMethodValidateCodeParams = {email: contactMethod, deviceInfo};
         API.write(WRITE_COMMANDS.REQUEST_CONTACT_METHOD_VALIDATE_CODE, parameters, {optimisticData, successData, failureData});
     });
@@ -1892,6 +1950,8 @@ function clearDraftSpendRule() {
 }
 
 export {
+    revokeDevice,
+    clearRevokeError,
     closeAccount,
     setServerErrorsOnForm,
     dismissReferralBanner,

@@ -6,6 +6,7 @@ import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs
 import CONST from '@src/CONST';
 import type {OnyxKey} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {NewLogin} from '@src/types/onyx';
 import * as UserActions from '../../src/libs/actions/User';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
@@ -882,6 +883,70 @@ describe('actions/User', () => {
                     ]),
                 }),
             );
+        });
+    });
+
+    describe('revokeDevice', () => {
+        it('should include correct optimistic, success, and failure data', async () => {
+            // Given a device to revoke
+            const partnerID = CONST.PARTNER_ID.IPHONE;
+            const partnerUserID = 'device_123';
+            const loginKey = `${partnerID}_${partnerUserID}`;
+            const login = {partnerID, partnerUserID} as NewLogin;
+
+            // When revokeDevice is called
+            UserActions.revokeDevice(login);
+            await waitForBatchedUpdates();
+
+            // Then API.write should be called with correct command and parameters
+            const calls = (mockAPI.write as jest.Mock).mock.calls;
+            const [command, parameters, onyxData] = calls.at(-1) as [
+                string,
+                Record<string, unknown>,
+                {optimisticData?: Array<{key: string; value: unknown}>; successData?: Array<{key: string; value: unknown}>; failureData?: Array<{key: string; value: unknown}>},
+            ];
+
+            expect(command).toBe(WRITE_COMMANDS.REVOKE_DEVICE);
+            expect(parameters).toEqual({partnerID, partnerUserID});
+
+            const optimisticData = onyxData.optimisticData ?? [];
+            const successData = onyxData.successData ?? [];
+            const failureData = onyxData.failureData ?? [];
+
+            // And it should include correct optimistic, success, and failure data structures
+            // Optimistic: sets pendingAction to DELETE
+            expect(optimisticData.find((update) => update.key === ONYXKEYS.LOGINS)).toEqual({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.LOGINS,
+                value: {
+                    [loginKey]: {
+                        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                    },
+                },
+            });
+
+            // Success: clears the login
+            expect(successData.find((update) => update.key === ONYXKEYS.LOGINS)).toEqual({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.LOGINS,
+                value: {
+                    [loginKey]: null,
+                },
+            });
+
+            // Failure: reverts pendingAction and sets error
+            expect(failureData.find((update) => update.key === ONYXKEYS.LOGINS)).toEqual({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.LOGINS,
+                value: {
+                    [loginKey]: {
+                        errorFields: {
+                            revoke: expect.any(Object) as Record<string, string>,
+                        },
+                        pendingAction: null,
+                    },
+                },
+            });
         });
     });
 });

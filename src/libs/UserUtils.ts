@@ -3,7 +3,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
-import type {LoginList, PrivatePersonalDetails, VacationDelegate} from '@src/types/onyx';
+import type {LoginList, Logins, NewLogin, PrivatePersonalDetails, VacationDelegate} from '@src/types/onyx';
 import type Login from '@src/types/onyx/Login';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import hashCode from './hashCode';
@@ -44,6 +44,20 @@ function hasLoginListError(loginList: OnyxEntry<LoginList>): boolean {
  */
 function hasLoginListInfo(loginList: OnyxEntry<LoginList>, email: string | undefined): boolean {
     return Object.values(loginList ?? {}).some((login) => login.partnerUserID && email !== login.partnerUserID && !login.validatedDate);
+}
+
+function getLoginKey(login: NewLogin) {
+    return `${login.partnerID}_${login.partnerUserID}`;
+}
+
+const PARTNER_IDS = new Set<number>([CONST.PARTNER_ID.IPHONE, CONST.PARTNER_ID.ANDROID, CONST.PARTNER_ID.NEWDOT]);
+
+function getRevokableLogins(logins: OnyxEntry<Logins>) {
+    return Object.values(logins ?? {})?.filter((login) => PARTNER_IDS.has(login.partnerID));
+}
+
+function hasDeviceManagementError(logins: OnyxEntry<Logins>) {
+    return Object.values(logins ?? {})?.some((login) => PARTNER_IDS.has(login.partnerID) && !!login.errorFields?.revoke);
 }
 
 /**
@@ -185,5 +199,8 @@ export {
     getContactMethod,
     isCurrentUserValidated,
     getContactMethodsOptions,
+    getLoginKey,
+    getRevokableLogins,
+    hasDeviceManagementError,
 };
 export type {AvatarSource};
