@@ -4788,7 +4788,6 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         transactionGroupListItemStyle: {
-            borderRadius: 8,
             minHeight: variables.optionRowHeight,
             backgroundColor: theme.transparent,
             flex: 1,
@@ -4797,7 +4796,6 @@ const staticStyles = (theme: ThemeColors) =>
             justifyContent: 'space-between',
             overflow: 'hidden',
             flexDirection: 'row',
-            paddingVertical: 6,
         },
 
         searchQueryListItemStyle: {

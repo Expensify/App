@@ -75,7 +75,7 @@ function TypeCell({transactionItem, shouldUseNarrowLayout, shouldShowTooltip}: T
         <TextWithTooltip
             shouldShowTooltip={shouldShowTooltip}
             text={translate(typeText)}
-            style={[styles.textMicroSupporting, styles.pre, styles.justifyContentCenter]}
+            style={[styles.mutedNormalTextLabel, styles.pre, styles.justifyContentCenter, styles.flexShrink0]}
         />
     ) : (
         <Tooltip text={getTooltipText()}>
