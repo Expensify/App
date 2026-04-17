@@ -675,16 +675,20 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         });
     };
 
-    const submitterReports: Report[] = currentSearchResults?.data
-        ? Object.keys(currentSearchResults.data)
-              .filter((key) => key.startsWith(ONYXKEYS.COLLECTION.REPORT))
-              .map((key) => currentSearchResults.data[key as keyof typeof currentSearchResults.data] as Report)
-              .filter((report): report is Report => report != null && 'reportID' in report)
-        : [];
-    const areAllTransactionsFromSubmitter =
-        !!currentUserPersonalDetails?.accountID &&
-        selectedTransactionReportIDs.length > 0 &&
-        selectedTransactionReportIDs.every((id) => isCurrentUserSubmitter(getReportOrDraftReport(id, submitterReports)));
+    // Lazy — only consumed inside the hold option's onSelected. Search results can hold
+    // thousands of reports, so keep the scan out of the render path.
+    const getAreAllTransactionsFromSubmitter = () => {
+        if (!currentUserPersonalDetails?.accountID || selectedTransactionReportIDs.length === 0) {
+            return false;
+        }
+        const submitterReports: Report[] = currentSearchResults?.data
+            ? Object.keys(currentSearchResults.data)
+                  .filter((key) => key.startsWith(ONYXKEYS.COLLECTION.REPORT))
+                  .map((key) => currentSearchResults.data[key as keyof typeof currentSearchResults.data] as Report)
+                  .filter((report): report is Report => report != null && 'reportID' in report)
+            : [];
+        return selectedTransactionReportIDs.every((id) => isCurrentUserSubmitter(getReportOrDraftReport(id, submitterReports)));
+    };
 
     const activePolicyExpenseChat = getPolicyExpenseChat(currentUserPersonalDetails.accountID, defaultExpensePolicy?.id);
 
@@ -1070,6 +1074,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                             return;
                         }
 
+                        const areAllTransactionsFromSubmitter = getAreAllTransactionsFromSubmitter();
                         const isDismissed = areAllTransactionsFromSubmitter ? dismissedHoldUseExplanation : dismissedRejectUseExplanation;
 
                         if (isDismissed) {
