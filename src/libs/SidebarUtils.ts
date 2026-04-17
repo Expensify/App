@@ -21,7 +21,6 @@ import type Beta from '@src/types/onyx/Beta';
 import type {ReportAttributes} from '@src/types/onyx/DerivedValues';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type Policy from '@src/types/onyx/Policy';
-import type PriorityMode from '@src/types/onyx/PriorityMode';
 import type Report from '@src/types/onyx/Report';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import {formatPhoneNumber as formatPhoneNumberPhoneUtils} from './LocalePhoneNumber';
@@ -169,6 +168,7 @@ import {
     isChatThread,
     isConciergeChatReport,
     isDeprecatedGroupDM,
+    isDM,
     isDomainRoom,
     isExpenseReport,
     isExpenseRequest,
@@ -177,6 +177,7 @@ import {
     isInvoiceReport,
     isInvoiceRoom,
     isIOUOwnedByCurrentUser,
+    isIOUReport,
     isJoinRequestInAdminRoom,
     isMoneyRequestReport,
     isOneOnOneChat,
@@ -264,7 +265,6 @@ function shouldDisplayReportInLHN(
     report: Report,
     reports: OnyxCollection<Report>,
     currentReportId: string | undefined,
-    isInFocusMode: boolean,
     betas: OnyxEntry<Beta[]>,
     transactionViolations: OnyxCollection<TransactionViolation[]>,
     draftComment: OnyxEntry<string>,
@@ -320,7 +320,6 @@ function shouldDisplayReportInLHN(
         report,
         chatReport,
         currentReportId,
-        isInFocusMode,
         betas,
         excludeEmptyChats: true,
         doesReportHaveViolations,
@@ -337,14 +336,12 @@ function getReportsToDisplayInLHN(
     currentReportId: string | undefined,
     reports: OnyxCollection<Report>,
     betas: OnyxEntry<Beta[]>,
-    priorityMode: OnyxEntry<PriorityMode>,
     draftComments: OnyxCollection<string>,
     transactionViolations: OnyxCollection<TransactionViolation[]>,
     transactions: OnyxCollection<Transaction>,
     reportNameValuePairs?: OnyxCollection<ReportNameValuePairs>,
     reportAttributes?: ReportAttributesDerivedValue['reports'],
 ) {
-    const isInFocusMode = priorityMode === CONST.PRIORITY_MODE.GSD;
     const allReportsDictValues = reports ?? {};
     const reportsToDisplay: ReportsToDisplayInLHN = {};
 
@@ -359,7 +356,6 @@ function getReportsToDisplayInLHN(
             report,
             reports,
             currentReportId,
-            isInFocusMode,
             betas,
             transactionViolations,
             reportDraftComment,
@@ -383,7 +379,6 @@ type UpdateReportsToDisplayInLHNProps = {
     reports: OnyxCollection<Report>;
     updatedReportsKeys: string[];
     currentReportId: string | undefined;
-    isInFocusMode: boolean;
     betas: OnyxEntry<Beta[]>;
     transactionViolations: OnyxCollection<TransactionViolation[]>;
     reportNameValuePairs?: OnyxCollection<ReportNameValuePairs>;
@@ -397,7 +392,6 @@ function updateReportsToDisplayInLHN({
     reports,
     updatedReportsKeys,
     currentReportId,
-    isInFocusMode,
     betas,
     transactionViolations,
     reportNameValuePairs,
@@ -431,7 +425,6 @@ function updateReportsToDisplayInLHN({
             report,
             reports,
             currentReportId,
-            isInFocusMode,
             betas,
             transactionViolations,
             reportDraftComment,
@@ -626,24 +619,23 @@ function combineReportCategories(
  */
 function sortReportsToDisplayInLHN(
     reportsToDisplay: ReportsToDisplayInLHN,
-    priorityMode: OnyxEntry<PriorityMode>,
+    useAlphabeticalSort: boolean,
     localeCompare: LocaleContextProps['localeCompare'],
     reportsDrafts: Record<string, boolean> | undefined,
     reportNameValuePairs: OnyxCollection<ReportNameValuePairs> | undefined,
     reportAttributes: ReportAttributesDerivedValue['reports'] | undefined,
 ): string[] {
-    const isInFocusMode = priorityMode === CONST.PRIORITY_MODE.GSD;
-    const isInDefaultMode = !isInFocusMode;
+    const isInDefaultMode = !useAlphabeticalSort;
     // The LHN is split into five distinct groups, and each group is sorted a little differently. The groups will ALWAYS be in this order:
     // 1. Pinned/GBR - Always sorted by reportDisplayName
     // 2. Error reports - Always sorted by reportDisplayName
     // 3. Drafts - Always sorted by reportDisplayName
     // 4. Non-archived reports and settled IOUs
-    //      - Sorted by lastVisibleActionCreated in default (most recent) view mode
-    //      - Sorted by reportDisplayName in GSD (focus) view mode
+    //      - Sorted by lastVisibleActionCreated when not using alphabetical sort
+    //      - Sorted by reportDisplayName when using alphabetical sort
     // 5. Archived reports
-    //      - Sorted by lastVisibleActionCreated in default (most recent) view mode
-    //      - Sorted by reportDisplayName in GSD (focus) view mode
+    //      - Sorted by lastVisibleActionCreated when not using alphabetical sort
+    //      - Sorted by reportDisplayName when using alphabetical sort
 
     // Step 1: Categorize reports
     const categories = categorizeReportsForLHN(reportsToDisplay, reportsDrafts, reportAttributes, reportNameValuePairs);
@@ -1416,6 +1408,45 @@ function getRoomWelcomeMessage(
     return welcomeMessage;
 }
 
+function filterReportsForInboxTab(
+    reportIDs: string[],
+    reportsToDisplay: ReportsToDisplayInLHN,
+    activeTab: ValueOf<typeof CONST.INBOX_TAB>,
+    showUnreadOnly: boolean,
+    reportNameValuePairs?: OnyxCollection<ReportNameValuePairs>,
+): string[] {
+    return reportIDs.filter((reportID) => {
+        const report = reportsToDisplay[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+        if (!report) {
+            return false;
+        }
+
+        // Apply unread filter when the toggle is active
+        if (showUnreadOnly) {
+            const isReportArchived = isArchivedReport(reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`]);
+            const isReportUnread = isUnread(report, undefined, isReportArchived) && getReportNotificationPreference(report) !== CONST.REPORT.NOTIFICATION_PREFERENCE.MUTE;
+            if (!isReportUnread && !report.isPinned && !report.requiresAttention && !report.hasErrorsOtherThanFailedReceipt) {
+                return false;
+            }
+        }
+
+        if (activeTab === CONST.INBOX_TAB.ALL) {
+            return true;
+        }
+
+        switch (activeTab) {
+            case CONST.INBOX_TAB.TODO:
+                return !!report.requiresAttention || !!report.hasErrorsOtherThanFailedReceipt;
+            case CONST.INBOX_TAB.EXPENSES:
+                return isExpenseReport(report) || isIOUReport(report) || isInvoiceReport(report) || isPolicyExpenseChat(report);
+            case CONST.INBOX_TAB.DMS:
+                return isDM(report) || isSelfDM(report) || isGroupChatUtil(report);
+            default:
+                return true;
+        }
+    });
+}
+
 // Exported for unit testing only. Do not use directly in production code.
 export {
     categorizeReportsForLHN as _categorizeReportsForLHN,
@@ -1427,6 +1458,7 @@ export {
 export default {
     getOptionData,
     sortReportsToDisplayInLHN,
+    filterReportsForInboxTab,
     getWelcomeMessage,
     getReasonAndReportActionThatHasRedBrickRoad,
     getReportsToDisplayInLHN,

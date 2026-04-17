@@ -2779,19 +2779,12 @@ ${amount} voor ${merchant} - ${date}`,
         receiveRelevantFeatureUpdatesAndExpensifyNews: 'Ontvang relevante functiewijzigingen en Expensify-nieuws',
         muteAllSounds: 'Alle geluiden van Expensify dempen',
     },
-    priorityModePage: {
-        priorityMode: 'Prioriteitsmodus',
-        explainerText: 'Kies of je je wilt #focussen op alleen ongelezen en vastgezette chats, of alles wilt weergeven met de meest recente en vastgezette chats bovenaan.',
-        priorityModes: {
-            default: {
-                label: 'Meest recent',
-                description: 'Toon alle chats gesorteerd op meest recent',
-            },
-            gsd: {
-                label: '#focus',
-                description: 'Toon alleen ongelezen, alfabetisch gesorteerd',
-            },
-        },
+    inboxTabs: {
+        all: 'All',
+        todo: 'To-do',
+        expenses: 'Expenses',
+        dms: 'DMs',
+        unreadToggle: 'Unreads',
     },
     reportDetailsPage: {
         inWorkspace: (policyName: string) => `in ${policyName}`,
@@ -3334,11 +3327,6 @@ ${amount} voor ${merchant} - ${date}`,
     yearPickerPage: {
         year: 'Jaar',
         selectYear: 'Selecteer een jaar',
-    },
-    focusModeUpdateModal: {
-        title: 'Welkom bij de #focus-modus!',
-        prompt: (priorityModePageUrl: string) =>
-            `Houd het overzicht door alleen ongelezen chats of chats die je aandacht nodig hebben te zien. Geen zorgen, je kunt dit op elk moment wijzigen in de <a href="${priorityModePageUrl}">instellingen</a>.`,
     },
     notFound: {
         chatYouLookingForCannotBeFound: 'De chat die je zoekt, kan niet worden gevonden.',

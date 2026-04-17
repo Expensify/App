@@ -26,6 +26,9 @@ type SwitchProps = {
 
     /** Callback to fire when the switch is toggled in disabled state */
     disabledAction?: () => void;
+
+    /** Size variant. 'small' renders a compact 20px tall switch. */
+    size?: 'default' | 'small';
 };
 
 const OFFSET_X = {
@@ -33,14 +36,21 @@ const OFFSET_X = {
     ON: 20,
 };
 
-function Switch({isOn, onToggle, accessibilityLabel, disabled, showLockIcon, disabledAction}: SwitchProps) {
+const OFFSET_X_SMALL = {
+    OFF: 0,
+    ON: 16,
+};
+
+function Switch({isOn, onToggle, accessibilityLabel, disabled, showLockIcon, disabledAction, size}: SwitchProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const offsetX = useSharedValue(isOn ? OFFSET_X.ON : OFFSET_X.OFF);
+    const isSmall = size === 'small';
+    const offsets = isSmall ? OFFSET_X_SMALL : OFFSET_X;
+    const offsetX = useSharedValue(isOn ? offsets.ON : offsets.OFF);
     const theme = useTheme();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Lock']);
 
-    const targetOffsetX = isOn ? OFFSET_X.ON : OFFSET_X.OFF;
+    const targetOffsetX = isOn ? offsets.ON : offsets.OFF;
     const prevIsOn = useRef(isOn);
     const hasUserToggled = useRef(false);
 
@@ -85,7 +95,7 @@ function Switch({isOn, onToggle, accessibilityLabel, disabled, showLockIcon, dis
     }));
 
     const animatedSwitchTrackStyle = useAnimatedStyle(() => ({
-        backgroundColor: interpolateColor(offsetX.get(), [OFFSET_X.OFF, OFFSET_X.ON], [theme.icon, theme.success]),
+        backgroundColor: interpolateColor(offsetX.get(), [offsets.OFF, offsets.ON], [theme.icon, theme.success]),
     }));
 
     // Enhance accessibility label to include locked state when disabled
@@ -109,8 +119,8 @@ function Switch({isOn, onToggle, accessibilityLabel, disabled, showLockIcon, dis
             pressDimmingValue={0.8}
             sentryLabel={enhancedAccessibilityLabel}
         >
-            <Animated.View style={[styles.switchTrack, animatedSwitchTrackStyle]}>
-                <Animated.View style={[styles.switchThumb, animatedThumbStyle]}>
+            <Animated.View style={[styles.switchTrack, isSmall && styles.switchTrackSmall, animatedSwitchTrackStyle]}>
+                <Animated.View style={[styles.switchThumb, isSmall && styles.switchThumbSmall, animatedThumbStyle]}>
                     {(!!disabled || !!showLockIcon) && (
                         <Icon
                             src={expensifyIcons.Lock}

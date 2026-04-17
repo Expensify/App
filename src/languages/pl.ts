@@ -2772,19 +2772,12 @@ ${amount} dla ${merchant} - ${date}`,
         receiveRelevantFeatureUpdatesAndExpensifyNews: 'Otrzymuj istotne aktualizacje funkcji i wiadomości od Expensify',
         muteAllSounds: 'Wycisz wszystkie dźwięki z Expensify',
     },
-    priorityModePage: {
-        priorityMode: 'Tryb priorytetowy',
-        explainerText: 'Wybierz, czy #skupić się tylko na nieprzeczytanych i przypiętych czatach, czy wyświetlać wszystko, z najnowszymi i przypiętymi czatami na górze.',
-        priorityModes: {
-            default: {
-                label: 'Najnowsze',
-                description: 'Pokaż wszystkie czaty posortowane od najnowszych',
-            },
-            gsd: {
-                label: '#skupienie',
-                description: 'Pokaż tylko nieprzeczytane posortowane alfabetycznie',
-            },
-        },
+    inboxTabs: {
+        all: 'All',
+        todo: 'To-do',
+        expenses: 'Expenses',
+        dms: 'DMs',
+        unreadToggle: 'Unreads',
     },
     reportDetailsPage: {
         inWorkspace: (policyName: string) => `w ${policyName}`,
@@ -3325,11 +3318,6 @@ ${amount} dla ${merchant} - ${date}`,
     yearPickerPage: {
         year: 'Rok',
         selectYear: 'Wybierz rok',
-    },
-    focusModeUpdateModal: {
-        title: 'Witamy w trybie #focus!',
-        prompt: (priorityModePageUrl: string) =>
-            `Miej wszystko pod kontrolą, wyświetlając tylko nieprzeczytane czaty lub czaty wymagające Twojej uwagi. Nie martw się, możesz to zmienić w dowolnym momencie w <a href="${priorityModePageUrl}">ustawieniach</a>.`,
     },
     notFound: {
         chatYouLookingForCannotBeFound: 'Nie można znaleźć czatu, którego szukasz.',

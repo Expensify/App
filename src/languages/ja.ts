@@ -2754,19 +2754,12 @@ ${date} の ${merchant} への ${amount}`,
         receiveRelevantFeatureUpdatesAndExpensifyNews: '関連する機能のアップデートやExpensifyのニュースを受け取る',
         muteAllSounds: 'Expensify のすべてのサウンドをミュートする',
     },
-    priorityModePage: {
-        priorityMode: '優先モード',
-        explainerText: '未読とピン留めされたチャットのみを#focusに表示するか、すべてのチャットを表示して、最新とピン留めされたチャットを上部に表示するかを選択してください。',
-        priorityModes: {
-            default: {
-                label: '最新',
-                description: '最新順ですべてのチャットを表示',
-            },
-            gsd: {
-                label: '#focus',
-                description: '未読のみをアルファベット順で表示',
-            },
-        },
+    inboxTabs: {
+        all: 'All',
+        todo: 'To-do',
+        expenses: 'Expenses',
+        dms: 'DMs',
+        unreadToggle: 'Unreads',
     },
     reportDetailsPage: {
         inWorkspace: (policyName: string) => `${policyName} 内`,
@@ -3309,11 +3302,6 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
     yearPickerPage: {
         year: '年',
         selectYear: '年を選択してください',
-    },
-    focusModeUpdateModal: {
-        title: '#focusモードへようこそ！',
-        prompt: (priorityModePageUrl: string) =>
-            `未読のチャットや対応が必要なチャットだけを表示して、常に状況を把握しましょう。いつでも<a href="${priorityModePageUrl}">設定</a>から変更できます。`,
     },
     notFound: {
         chatYouLookingForCannotBeFound: 'お探しのチャットが見つかりません。',

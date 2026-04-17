@@ -1,6 +1,8 @@
 import {deepEqual} from 'fast-equals';
 import React, {createContext, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
+import {setInboxTab, setInboxUnreadFilter} from '@libs/actions/User';
 import Log from '@libs/Log';
 import {getTransactionThreadReportID} from '@libs/MergeTransactionUtils';
 import {isOneTransactionReport} from '@libs/ReportUtils';
@@ -33,10 +35,14 @@ type SidebarOrderedReportsStateContextValue = {
     orderedReportIDs: string[];
     currentReportID: string | undefined;
     chatTabBrickRoad: BrickRoad;
+    activeTab: ValueOf<typeof CONST.INBOX_TAB>;
+    showUnreadOnly: boolean;
 };
 
 type SidebarOrderedReportsActionsContextValue = {
     clearLHNCache: () => void;
+    setActiveTab: (tab: ValueOf<typeof CONST.INBOX_TAB>) => void;
+    toggleUnreadFilter: () => void;
 };
 
 type ReportsToDisplayInLHN = Record<string, OnyxTypes.Report & {hasErrorsOtherThanFailedReceipt?: boolean; requiresAttention?: boolean}>;
@@ -46,10 +52,14 @@ const SidebarOrderedReportsStateContext = createContext<SidebarOrderedReportsSta
     orderedReportIDs: [],
     currentReportID: '',
     chatTabBrickRoad: undefined,
+    activeTab: CONST.INBOX_TAB.ALL,
+    showUnreadOnly: false,
 });
 
 const SidebarOrderedReportsActionsContext = createContext<SidebarOrderedReportsActionsContextValue>({
     clearLHNCache: () => {},
+    setActiveTab: () => {},
+    toggleUnreadFilter: () => {},
 });
 
 const policyMapper = (policy: OnyxEntry<OnyxTypes.Policy>): PartialPolicyForSidebar =>
@@ -73,7 +83,10 @@ function SidebarOrderedReportsContextProvider({
     currentReportIDForTests,
 }: SidebarOrderedReportsContextProviderProps) {
     const {localeCompare} = useLocalize();
-    const [priorityMode = CONST.PRIORITY_MODE.DEFAULT] = useOnyx(ONYXKEYS.NVP_PRIORITY_MODE);
+    const [inboxTab = CONST.INBOX_TAB.ALL] = useOnyx(ONYXKEYS.NVP_INBOX_TAB);
+    const activeTab = inboxTab ?? CONST.INBOX_TAB.ALL;
+    const [inboxUnreadFilter = false] = useOnyx(ONYXKEYS.NVP_INBOX_UNREAD_FILTER);
+    const showUnreadOnly = inboxUnreadFilter ?? false;
     const [chatReports, {sourceValue: reportUpdates}] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [policies, {sourceValue: policiesUpdates}] = useMappedPolicies(policyMapper);
     const [transactions, {sourceValue: transactionsUpdates}] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
@@ -94,7 +107,6 @@ function SidebarOrderedReportsContextProvider({
     const [clearCacheDummyCounter, setClearCacheDummyCounter] = useState(0);
 
     const prevBetas = usePrevious(betas);
-    const prevPriorityMode = usePrevious(priorityMode);
 
     const perfRef = useRef<{hookDuration: number}>({
         hookDuration: 0,
@@ -107,7 +119,7 @@ function SidebarOrderedReportsContextProvider({
     const getUpdatedReports = useCallback(() => {
         const reportsToUpdate = new Set<string>();
 
-        if (betas !== prevBetas || priorityMode !== prevPriorityMode) {
+        if (betas !== prevBetas) {
             for (const key of Object.keys(chatReports ?? {})) {
                 reportsToUpdate.add(key);
             }
@@ -177,9 +189,7 @@ function SidebarOrderedReportsContextProvider({
         chatReports,
         transactions,
         betas,
-        priorityMode,
         prevBetas,
-        prevPriorityMode,
         prevDerivedCurrentReportID,
         derivedCurrentReportID,
     ]);
@@ -200,7 +210,6 @@ function SidebarOrderedReportsContextProvider({
                 reports: chatReports,
                 updatedReportsKeys: effectiveUpdatedReports,
                 currentReportId: derivedCurrentReportID,
-                isInFocusMode: priorityMode === CONST.PRIORITY_MODE.GSD,
                 betas,
                 transactionViolations,
                 reportNameValuePairs,
@@ -214,7 +223,6 @@ function SidebarOrderedReportsContextProvider({
                 derivedCurrentReportID,
                 chatReports,
                 betas,
-                priorityMode,
                 reportsDrafts,
                 transactionViolations,
                 transactions,
@@ -226,7 +234,7 @@ function SidebarOrderedReportsContextProvider({
         return reportsToDisplay;
         // Rule disabled intentionally — triggering a re-render on currentReportsToDisplay would cause an infinite loop
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [getUpdatedReports, chatReports, derivedCurrentReportID, priorityMode, betas, transactionViolations, reportNameValuePairs, reportAttributes, reportsDrafts, clearCacheDummyCounter]);
+    }, [getUpdatedReports, chatReports, derivedCurrentReportID, betas, transactionViolations, reportNameValuePairs, reportAttributes, reportsDrafts, clearCacheDummyCounter]);
 
     // Derive a stable boolean map indicating which reports have drafts.
     const hasDraftByReportIDRef = useRef<Record<string, boolean>>({});
@@ -254,7 +262,7 @@ function SidebarOrderedReportsContextProvider({
     }, [reportsToDisplayInLHN]);
 
     const getOrderedReportIDs = useCallback(
-        () => SidebarUtils.sortReportsToDisplayInLHN(reportsToDisplayInLHN, priorityMode, localeCompare, hasDraftByReportID, reportNameValuePairs, reportAttributes),
+        () => SidebarUtils.sortReportsToDisplayInLHN(reportsToDisplayInLHN, false, localeCompare, hasDraftByReportID, reportNameValuePairs, reportAttributes),
         // Rule disabled intentionally - reports should be sorted only when the reportsToDisplayInLHN changes
         // eslint-disable-next-line react-hooks/exhaustive-deps
         [reportsToDisplayInLHN, localeCompare, hasDraftByReportID, reportAttributes],
@@ -262,7 +270,12 @@ function SidebarOrderedReportsContextProvider({
 
     const orderedReportIDs = useMemo(() => getOrderedReportIDs(), [getOrderedReportIDs]);
 
-    // Get the actual reports based on the ordered IDs
+    const filteredReportIDs = useMemo(
+        () => SidebarUtils.filterReportsForInboxTab(orderedReportIDs, reportsToDisplayInLHN, activeTab, showUnreadOnly, reportNameValuePairs),
+        [orderedReportIDs, reportsToDisplayInLHN, activeTab, showUnreadOnly, reportNameValuePairs],
+    );
+
+    // Get the actual reports based on the filtered IDs
     const getOrderedReports = useCallback(
         (reportIDs: string[]): OnyxTypes.Report[] => {
             if (!chatReports) {
@@ -273,13 +286,21 @@ function SidebarOrderedReportsContextProvider({
         [chatReports],
     );
 
-    const orderedReports = useMemo(() => getOrderedReports(orderedReportIDs), [getOrderedReports, orderedReportIDs]);
+    const orderedReports = useMemo(() => getOrderedReports(filteredReportIDs), [getOrderedReports, filteredReportIDs]);
 
     const clearLHNCache = useCallback(() => {
         Log.info('[useSidebarOrderedReports] Clearing sidebar cache manually via debug modal');
         setCurrentReportsToDisplay({});
         setClearCacheDummyCounter((current) => current + 1);
     }, []);
+
+    const setActiveTab = useCallback((tab: ValueOf<typeof CONST.INBOX_TAB>) => {
+        setInboxTab(tab);
+    }, []);
+
+    const toggleUnreadFilter = useCallback(() => {
+        setInboxUnreadFilter(!showUnreadOnly);
+    }, [showUnreadOnly]);
 
     const stateValue: SidebarOrderedReportsStateContextValue = useMemo(() => {
         // We need to make sure the current report is in the list of reports, but we do not want
@@ -293,33 +314,51 @@ function SidebarOrderedReportsContextProvider({
         // any expense, a new LHN item is added in the list and is visible on web. But on mobile, we
         // just navigate to the screen with expense details, so there seems no point to execute this logic on mobile.
         if (
-            (!shouldUseNarrowLayout || orderedReportIDs.length === 0) &&
+            (!shouldUseNarrowLayout || filteredReportIDs.length === 0) &&
             derivedCurrentReportID &&
             derivedCurrentReportID !== '-1' &&
-            orderedReportIDs.indexOf(derivedCurrentReportID) === -1
+            filteredReportIDs.indexOf(derivedCurrentReportID) === -1
         ) {
             const updatedReportIDs = getOrderedReportIDs();
-            const updatedReports = getOrderedReports(updatedReportIDs);
+            const updatedFilteredIDs = SidebarUtils.filterReportsForInboxTab(updatedReportIDs, reportsToDisplayInLHN, activeTab, showUnreadOnly, reportNameValuePairs);
+            const updatedReports = getOrderedReports(updatedFilteredIDs);
             return {
                 orderedReports: updatedReports,
-                orderedReportIDs: updatedReportIDs,
+                orderedReportIDs: updatedFilteredIDs,
                 currentReportID: derivedCurrentReportID,
                 chatTabBrickRoad: getChatTabBrickRoad(updatedReportIDs, reportAttributes),
+                activeTab,
+                showUnreadOnly,
             };
         }
 
         return {
             orderedReports,
-            orderedReportIDs,
+            orderedReportIDs: filteredReportIDs,
             currentReportID: derivedCurrentReportID,
             chatTabBrickRoad: getChatTabBrickRoad(orderedReportIDs, reportAttributes),
+            activeTab,
+            showUnreadOnly,
         };
-    }, [getOrderedReportIDs, orderedReportIDs, derivedCurrentReportID, shouldUseNarrowLayout, getOrderedReports, orderedReports, reportAttributes]);
+    }, [
+        getOrderedReportIDs,
+        orderedReportIDs,
+        filteredReportIDs,
+        derivedCurrentReportID,
+        shouldUseNarrowLayout,
+        getOrderedReports,
+        orderedReports,
+        reportAttributes,
+        activeTab,
+        showUnreadOnly,
+        reportsToDisplayInLHN,
+        reportNameValuePairs,
+    ]);
 
-    const actionsValue: SidebarOrderedReportsActionsContextValue = useMemo(() => ({clearLHNCache}), [clearLHNCache]);
+    const actionsValue: SidebarOrderedReportsActionsContextValue = useMemo(() => ({clearLHNCache, setActiveTab, toggleUnreadFilter}), [clearLHNCache, setActiveTab, toggleUnreadFilter]);
 
     const currentDeps = {
-        priorityMode,
+        activeTab,
         chatReports,
         policies,
         transactions,
@@ -334,7 +373,6 @@ function SidebarOrderedReportsContextProvider({
         derivedCurrentReportID,
         prevDerivedCurrentReportID,
         prevBetas,
-        prevPriorityMode,
         reportsToDisplayInLHN,
         orderedReportIDs,
         orderedReports,

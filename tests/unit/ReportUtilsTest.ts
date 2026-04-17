@@ -5881,14 +5881,12 @@ describe('ReportUtils', () => {
         it('should return true when the report is current active report', () => {
             const report = LHNTestUtils.getFakeReport();
             const currentReportId = report.reportID;
-            const isInFocusMode = true;
             const betas = [CONST.BETAS.DEFAULT_ROOMS];
             expect(
                 shouldReportBeInOptionList({
                     report,
                     chatReport: mockedChatReport,
                     currentReportId,
-                    isInFocusMode,
                     betas,
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
@@ -5901,8 +5899,6 @@ describe('ReportUtils', () => {
         it('should return true for empty submitted report if it is the current focused report', async () => {
             const report: Report = {...LHNTestUtils.getFakeReport(), total: 0, statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED, stateNum: CONST.REPORT.STATE_NUM.SUBMITTED};
             const currentReportId = report.reportID;
-
-            const isInFocusMode = true;
             const betas = [CONST.BETAS.DEFAULT_ROOMS];
             const createdReportAction: ReportAction = {...LHNTestUtils.getFakeReportAction(), actionName: CONST.REPORT.ACTIONS.TYPE.CREATED};
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {[createdReportAction.reportActionID]: createdReportAction});
@@ -5912,7 +5908,6 @@ describe('ReportUtils', () => {
                     report,
                     chatReport: mockedChatReport,
                     currentReportId,
-                    isInFocusMode,
                     betas,
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
@@ -5930,8 +5925,6 @@ describe('ReportUtils', () => {
                 stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
             };
             const currentReportId = `${report.reportID}1`;
-
-            const isInFocusMode = true;
             const betas = [CONST.BETAS.DEFAULT_ROOMS];
             const createdReportAction: ReportAction = {...LHNTestUtils.getFakeReportAction(), actionName: CONST.REPORT.ACTIONS.TYPE.CREATED};
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {[createdReportAction.reportActionID]: createdReportAction});
@@ -5941,7 +5934,6 @@ describe('ReportUtils', () => {
                     report,
                     chatReport: mockedChatReport,
                     currentReportId,
-                    isInFocusMode,
                     betas,
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
@@ -5982,7 +5974,6 @@ describe('ReportUtils', () => {
             });
             const transactionThreadReport = buildTransactionThread(expenseCreatedAction1, expenseReport);
             const currentReportId = '1';
-            const isInFocusMode = false;
             const betas = [CONST.BETAS.DEFAULT_ROOMS];
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`, {
@@ -5994,7 +5985,6 @@ describe('ReportUtils', () => {
                     report: transactionThreadReport,
                     chatReport: mockedChatReport,
                     currentReportId,
-                    isInFocusMode,
                     betas,
                     doesReportHaveViolations: true,
                     excludeEmptyChats: false,
@@ -6010,14 +6000,12 @@ describe('ReportUtils', () => {
                 hasOutstandingChildRequest: true,
             };
             const currentReportId = '3';
-            const isInFocusMode = true;
             const betas = [CONST.BETAS.DEFAULT_ROOMS];
             expect(
                 shouldReportBeInOptionList({
                     report: chatReport,
                     chatReport: mockedChatReport,
                     currentReportId,
-                    isInFocusMode,
                     betas,
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
@@ -6030,7 +6018,6 @@ describe('ReportUtils', () => {
         it('should return true when the report has valid draft comment', async () => {
             const report = LHNTestUtils.getFakeReport();
             const currentReportId = '3';
-            const isInFocusMode = false;
             const betas = [CONST.BETAS.DEFAULT_ROOMS];
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${report.reportID}`, 'fake draft');
@@ -6040,7 +6027,6 @@ describe('ReportUtils', () => {
                     report,
                     chatReport: mockedChatReport,
                     currentReportId,
-                    isInFocusMode,
                     betas,
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
@@ -6056,14 +6042,12 @@ describe('ReportUtils', () => {
                 isPinned: true,
             };
             const currentReportId = '3';
-            const isInFocusMode = false;
             const betas = [CONST.BETAS.DEFAULT_ROOMS];
             expect(
                 shouldReportBeInOptionList({
                     report,
                     chatReport: mockedChatReport,
                     currentReportId,
-                    isInFocusMode,
                     betas,
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
@@ -6087,7 +6071,6 @@ describe('ReportUtils', () => {
                 lastMessageText: 'fake',
             };
             const currentReportId = '3';
-            const isInFocusMode = true;
             const betas = [CONST.BETAS.DEFAULT_ROOMS];
 
             await Onyx.merge(ONYXKEYS.SESSION, {
@@ -6099,7 +6082,6 @@ describe('ReportUtils', () => {
                     report,
                     chatReport: mockedChatReport,
                     currentReportId,
-                    isInFocusMode,
                     betas,
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
@@ -6119,7 +6101,6 @@ describe('ReportUtils', () => {
                 private_isArchived: DateUtils.getDBTime(),
             };
             const currentReportId = '3';
-            const isInFocusMode = false;
             const betas = [CONST.BETAS.DEFAULT_ROOMS];
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${archivedReport.reportID}`, reportNameValuePairs);
@@ -6130,7 +6111,6 @@ describe('ReportUtils', () => {
                     report: archivedReport,
                     chatReport: mockedChatReport,
                     currentReportId,
-                    isInFocusMode,
                     betas,
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
@@ -6150,7 +6130,6 @@ describe('ReportUtils', () => {
                 private_isArchived: DateUtils.getDBTime(),
             };
             const currentReportId = '3';
-            const isInFocusMode = true;
             const betas = [CONST.BETAS.DEFAULT_ROOMS];
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${archivedReport.reportID}`, reportNameValuePairs);
@@ -6161,7 +6140,6 @@ describe('ReportUtils', () => {
                     report: archivedReport,
                     chatReport: mockedChatReport,
                     currentReportId,
-                    isInFocusMode,
                     betas,
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
@@ -6177,7 +6155,6 @@ describe('ReportUtils', () => {
                 chatType: CONST.REPORT.CHAT_TYPE.SELF_DM,
             };
             const currentReportId = '3';
-            const isInFocusMode = false;
             const betas = [CONST.BETAS.DEFAULT_ROOMS];
             const includeSelfDM = true;
             expect(
@@ -6185,7 +6162,6 @@ describe('ReportUtils', () => {
                     report,
                     chatReport: mockedChatReport,
                     currentReportId,
-                    isInFocusMode,
                     betas,
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
@@ -6206,14 +6182,12 @@ describe('ReportUtils', () => {
                 },
             };
             const currentReportId = '';
-            const isInFocusMode = true;
             const betas = [CONST.BETAS.DEFAULT_ROOMS];
             expect(
                 shouldReportBeInOptionList({
                     report,
                     chatReport: mockedChatReport,
                     currentReportId,
-                    isInFocusMode,
                     betas,
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
@@ -6226,14 +6200,12 @@ describe('ReportUtils', () => {
         it('should return false when the report does not have participants', () => {
             const report = LHNTestUtils.getFakeReport([]);
             const currentReportId = '';
-            const isInFocusMode = true;
             const betas = [CONST.BETAS.DEFAULT_ROOMS];
             expect(
                 shouldReportBeInOptionList({
                     report,
                     chatReport: mockedChatReport,
                     currentReportId,
-                    isInFocusMode,
                     betas,
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
@@ -6249,14 +6221,12 @@ describe('ReportUtils', () => {
                 chatType: CONST.REPORT.CHAT_TYPE.DOMAIN_ALL,
             };
             const currentReportId = '';
-            const isInFocusMode = false;
             const betas: Beta[] = [];
             expect(
                 shouldReportBeInOptionList({
                     report,
                     chatReport: mockedChatReport,
                     currentReportId,
-                    isInFocusMode,
                     betas,
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
@@ -6288,7 +6258,6 @@ describe('ReportUtils', () => {
             const transactionThreadReport = buildTransactionThread(expenseCreatedAction, expenseReport);
             expenseCreatedAction.childReportID = transactionThreadReport.reportID;
             const currentReportId = '1';
-            const isInFocusMode = false;
             const betas = [CONST.BETAS.DEFAULT_ROOMS];
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`, {
@@ -6299,7 +6268,6 @@ describe('ReportUtils', () => {
                     report: transactionThreadReport,
                     chatReport: mockedChatReport,
                     currentReportId,
-                    isInFocusMode,
                     betas,
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
@@ -6312,14 +6280,12 @@ describe('ReportUtils', () => {
         it('should return false when the report is empty chat and the excludeEmptyChats setting is true', () => {
             const report = LHNTestUtils.getFakeReport();
             const currentReportId = '';
-            const isInFocusMode = false;
             const betas = [CONST.BETAS.DEFAULT_ROOMS];
             expect(
                 shouldReportBeInOptionList({
                     report,
                     chatReport: mockedChatReport,
                     currentReportId,
-                    isInFocusMode,
                     betas,
                     doesReportHaveViolations: false,
                     excludeEmptyChats: true,
@@ -6336,7 +6302,6 @@ describe('ReportUtils', () => {
                 reportID: conciergeReportID,
             };
             const currentReportId = '';
-            const isInFocusMode = false;
             const betas = [CONST.BETAS.DEFAULT_ROOMS];
 
             await Onyx.set(ONYXKEYS.CONCIERGE_REPORT_ID, conciergeReportID);
@@ -6347,7 +6312,6 @@ describe('ReportUtils', () => {
                     report,
                     chatReport: mockedChatReport,
                     currentReportId,
-                    isInFocusMode,
                     betas,
                     doesReportHaveViolations: false,
                     excludeEmptyChats: true,
@@ -6360,14 +6324,12 @@ describe('ReportUtils', () => {
         it('should return false when the users email is domain-based and the includeDomainEmail is false', () => {
             const report = LHNTestUtils.getFakeReport();
             const currentReportId = '';
-            const isInFocusMode = false;
             const betas = [CONST.BETAS.DEFAULT_ROOMS];
             expect(
                 shouldReportBeInOptionList({
                     report,
                     chatReport: mockedChatReport,
                     currentReportId,
-                    isInFocusMode,
                     betas,
                     doesReportHaveViolations: false,
                     login: '+@domain.com',
@@ -6402,7 +6364,6 @@ describe('ReportUtils', () => {
             report.parentReportID = parentReport.reportID;
             report.parentReportActionID = parentReportAction.reportActionID;
             const currentReportId = '';
-            const isInFocusMode = false;
             const betas = [CONST.BETAS.DEFAULT_ROOMS];
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${parentReport.reportID}`, parentReport);
@@ -6415,7 +6376,6 @@ describe('ReportUtils', () => {
                     report,
                     chatReport: mockedChatReport,
                     currentReportId,
-                    isInFocusMode,
                     betas,
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
@@ -6428,14 +6388,12 @@ describe('ReportUtils', () => {
         it('should return false when the report is read and we are in the focus mode', () => {
             const report = LHNTestUtils.getFakeReport();
             const currentReportId = '';
-            const isInFocusMode = true;
             const betas = [CONST.BETAS.DEFAULT_ROOMS];
             expect(
                 shouldReportBeInOptionList({
                     report,
                     chatReport: mockedChatReport,
                     currentReportId,
-                    isInFocusMode,
                     betas,
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
@@ -6469,7 +6427,6 @@ describe('ReportUtils', () => {
                     report,
                     chatReport: mockedChatReport,
                     currentReportId: '',
-                    isInFocusMode: false,
                     betas: [],
                     doesReportHaveViolations: false,
                     excludeEmptyChats: true,
@@ -6500,7 +6457,6 @@ describe('ReportUtils', () => {
                     report,
                     chatReport: mockedChatReport,
                     currentReportId: '',
-                    isInFocusMode: true,
                     betas: [CONST.BETAS.DEFAULT_ROOMS],
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
@@ -6529,7 +6485,6 @@ describe('ReportUtils', () => {
                     report,
                     chatReport: mockedChatReport,
                     currentReportId: '',
-                    isInFocusMode: true,
                     betas: [CONST.BETAS.DEFAULT_ROOMS],
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
@@ -6551,7 +6506,6 @@ describe('ReportUtils', () => {
                     report,
                     chatReport: mockedChatReport,
                     currentReportId: '',
-                    isInFocusMode: false,
                     betas: [CONST.BETAS.DEFAULT_ROOMS],
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
@@ -6595,7 +6549,6 @@ describe('ReportUtils', () => {
                     report: threadReport,
                     chatReport: mockedChatReport,
                     currentReportId: '',
-                    isInFocusMode: false,
                     betas: [CONST.BETAS.DEFAULT_ROOMS],
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
@@ -6646,7 +6599,6 @@ describe('ReportUtils', () => {
                     report: threadReport,
                     chatReport: mockedChatReport,
                     currentReportId: '',
-                    isInFocusMode: false,
                     betas: [CONST.BETAS.DEFAULT_ROOMS],
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
@@ -6667,7 +6619,6 @@ describe('ReportUtils', () => {
                     report,
                     chatReport: mockedChatReport,
                     currentReportId: '',
-                    isInFocusMode: false,
                     betas: [CONST.BETAS.DEFAULT_ROOMS],
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
@@ -6689,7 +6640,6 @@ describe('ReportUtils', () => {
                     report,
                     chatReport: mockedChatReport,
                     currentReportId: '',
-                    isInFocusMode: false,
                     betas: [CONST.BETAS.DEFAULT_ROOMS],
                     doesReportHaveViolations: false,
                     excludeEmptyChats: true,
@@ -6710,7 +6660,6 @@ describe('ReportUtils', () => {
                     report,
                     chatReport: mockedChatReport,
                     currentReportId: '',
-                    isInFocusMode: false,
                     betas: [CONST.BETAS.DEFAULT_ROOMS],
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
@@ -6731,7 +6680,6 @@ describe('ReportUtils', () => {
                     report,
                     chatReport: mockedChatReport,
                     currentReportId: '999',
-                    isInFocusMode: false,
                     betas: [CONST.BETAS.DEFAULT_ROOMS],
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
@@ -6752,7 +6700,6 @@ describe('ReportUtils', () => {
                     report,
                     chatReport: mockedChatReport,
                     currentReportId: '',
-                    isInFocusMode: false,
                     betas: [CONST.BETAS.DEFAULT_ROOMS],
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
@@ -6768,7 +6715,6 @@ describe('ReportUtils', () => {
                     report: null as unknown as Report,
                     chatReport: mockedChatReport,
                     currentReportId: '',
-                    isInFocusMode: false,
                     betas: [CONST.BETAS.DEFAULT_ROOMS],
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
@@ -6824,7 +6770,6 @@ describe('ReportUtils', () => {
                 report: transactionThreadReport,
                 chatReport: mockedChatReport,
                 currentReportId: '',
-                isInFocusMode: false,
                 betas: [CONST.BETAS.DEFAULT_ROOMS],
                 doesReportHaveViolations: true,
                 excludeEmptyChats: false,
@@ -11986,7 +11931,6 @@ describe('ReportUtils', () => {
             report: chatReport,
             chatReport,
             currentReportId: '',
-            isInFocusMode: false,
             betas: [CONST.BETAS.DEFAULT_ROOMS],
             doesReportHaveViolations: false,
             excludeEmptyChats: false,
@@ -12044,7 +11988,6 @@ describe('ReportUtils', () => {
             report: chatReport,
             chatReport,
             currentReportId: '',
-            isInFocusMode: false,
             betas: [CONST.BETAS.DEFAULT_ROOMS],
             doesReportHaveViolations: false,
             excludeEmptyChats: false,
@@ -12151,7 +12094,6 @@ describe('ReportUtils', () => {
                 report: expenseReport,
                 chatReport: undefined,
                 currentReportId: undefined,
-                isInFocusMode: true,
                 betas: undefined,
                 doesReportHaveViolations: false,
                 excludeEmptyChats: false,
@@ -12194,7 +12136,6 @@ describe('ReportUtils', () => {
                 report: expenseReport,
                 chatReport: undefined,
                 currentReportId: undefined,
-                isInFocusMode: true,
                 betas: undefined,
                 doesReportHaveViolations: false,
                 excludeEmptyChats: false,
@@ -12545,7 +12486,6 @@ describe('ReportUtils', () => {
             report: chatReport,
             chatReport,
             currentReportId: '',
-            isInFocusMode: false,
             betas: [CONST.BETAS.DEFAULT_ROOMS],
             doesReportHaveViolations: shouldShowRBR,
             excludeEmptyChats: false,
@@ -12728,7 +12668,6 @@ describe('ReportUtils', () => {
             report: chatReport,
             chatReport,
             currentReportId: '',
-            isInFocusMode: false,
             betas: [CONST.BETAS.DEFAULT_ROOMS],
             doesReportHaveViolations: false,
             excludeEmptyChats: false,
@@ -12913,7 +12852,6 @@ describe('ReportUtils', () => {
             report: chatReport,
             chatReport,
             currentReportId: '',
-            isInFocusMode: false,
             betas: [CONST.BETAS.DEFAULT_ROOMS],
             doesReportHaveViolations: false,
             excludeEmptyChats: false,
@@ -12935,7 +12873,6 @@ describe('ReportUtils', () => {
             report: chatReport,
             chatReport,
             currentReportId: '',
-            isInFocusMode: false,
             betas: [CONST.BETAS.DEFAULT_ROOMS],
             doesReportHaveViolations: false,
             excludeEmptyChats: false,
@@ -13036,7 +12973,6 @@ describe('ReportUtils', () => {
             report: expenseReportChat,
             chatReport: expenseReportChat,
             currentReportId: '',
-            isInFocusMode: false,
             betas: [CONST.BETAS.DEFAULT_ROOMS],
             doesReportHaveViolations: false,
             excludeEmptyChats: false,
@@ -13076,7 +13012,6 @@ describe('ReportUtils', () => {
             report: expenseReportChat,
             chatReport: expenseReportChat,
             currentReportId: '',
-            isInFocusMode: false,
             betas: [CONST.BETAS.DEFAULT_ROOMS],
             doesReportHaveViolations: false,
             excludeEmptyChats: false,
@@ -13552,7 +13487,6 @@ describe('ReportUtils', () => {
                 report: chatReport,
                 chatReport,
                 currentReportId: '',
-                isInFocusMode: false,
                 betas: [CONST.BETAS.DEFAULT_ROOMS],
                 doesReportHaveViolations: false,
                 excludeEmptyChats: false,
@@ -13619,7 +13553,6 @@ describe('ReportUtils', () => {
                 report: chatReport,
                 chatReport,
                 currentReportId: '',
-                isInFocusMode: false,
                 betas: [CONST.BETAS.DEFAULT_ROOMS],
                 doesReportHaveViolations: false,
                 excludeEmptyChats: false,
@@ -13690,7 +13623,6 @@ describe('ReportUtils', () => {
                 report: chatReport,
                 chatReport,
                 currentReportId: '',
-                isInFocusMode: false,
                 betas: [CONST.BETAS.DEFAULT_ROOMS],
                 doesReportHaveViolations: false,
                 excludeEmptyChats: false,
@@ -13760,7 +13692,6 @@ describe('ReportUtils', () => {
                 report: chatReport,
                 chatReport,
                 currentReportId: '',
-                isInFocusMode: false,
                 betas: [CONST.BETAS.DEFAULT_ROOMS],
                 doesReportHaveViolations: false,
                 excludeEmptyChats: false,
@@ -15525,7 +15456,6 @@ describe('ReportUtils', () => {
                 report: policyExpenseChat,
                 chatReport: policyExpenseChat,
                 currentReportId: '',
-                isInFocusMode: false,
                 betas: [CONST.BETAS.DEFAULT_ROOMS],
                 doesReportHaveViolations: false,
                 excludeEmptyChats: false,
@@ -15594,7 +15524,6 @@ describe('ReportUtils', () => {
                 report: policyExpenseChat,
                 chatReport: policyExpenseChat,
                 currentReportId: '',
-                isInFocusMode: false,
                 betas: [CONST.BETAS.DEFAULT_ROOMS],
                 doesReportHaveViolations: false,
                 excludeEmptyChats: false,

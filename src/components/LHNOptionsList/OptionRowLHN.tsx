@@ -89,12 +89,13 @@ function OptionRowLHN({
     const {translate} = useLocalize();
     const [isContextMenuActive, setIsContextMenuActive] = useState(false);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const isInFocusMode = viewMode === CONST.OPTION_MODE.COMPACT;
-    const sidebarInnerRowStyle = StyleSheet.flatten<ViewStyle>(
-        isInFocusMode
-            ? [styles.chatLinkRowPressable, styles.flexGrow1, styles.optionItemAvatarNameWrapper, styles.optionRowCompact, styles.justifyContentCenter]
-            : [styles.chatLinkRowPressable, styles.flexGrow1, styles.optionItemAvatarNameWrapper, styles.optionRow, styles.justifyContentCenter],
-    );
+    const sidebarInnerRowStyle = StyleSheet.flatten<ViewStyle>([
+        styles.chatLinkRowPressable,
+        styles.flexGrow1,
+        styles.optionItemAvatarNameWrapper,
+        styles.optionRow,
+        styles.justifyContentCenter,
+    ]);
 
     const alternateTextContainsCustomEmojiWithText = useMemo(
         () => containsCustomEmojiUtils(optionItem?.alternateText) && !containsOnlyCustomEmoji(optionItem?.alternateText),
@@ -171,11 +172,9 @@ function OptionRowLHN({
     const textStyle = isOptionFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText;
     const textUnreadStyle = shouldUseBoldText(optionItem) ? [textStyle, styles.sidebarLinkTextBold] : [textStyle];
     const displayNameStyle = [styles.optionDisplayName, styles.optionDisplayNameCompact, styles.pre, textUnreadStyle, styles.flexShrink0, style];
-    const alternateTextStyle = isInFocusMode
-        ? [textStyle, styles.textLabelSupporting, styles.optionAlternateTextCompact, styles.ml2, style]
-        : [textStyle, styles.optionAlternateText, styles.textLabelSupporting, style];
+    const alternateTextStyle = [textStyle, styles.optionAlternateText, styles.textLabelSupporting, style];
 
-    const contentContainerStyles = isInFocusMode ? [styles.flex1, styles.flexRow, styles.overflowHidden, StyleUtils.getCompactContentContainerStyles()] : [styles.flex1];
+    const contentContainerStyles = [styles.flex1];
     const hoveredBackgroundColor = !!styles.sidebarLinkHover && 'backgroundColor' in styles.sidebarLinkHover ? styles.sidebarLinkHover.backgroundColor : theme.sidebar;
     const focusedBackgroundColor = styles.sidebarLinkActive.backgroundColor;
 
@@ -329,9 +328,9 @@ function OptionRowLHN({
                                                 <LHNAvatar
                                                     icons={icons}
                                                     shouldShowSubscript={!!optionItem.shouldShowSubscript}
-                                                    size={isInFocusMode ? CONST.AVATAR_SIZE.SMALL : CONST.AVATAR_SIZE.DEFAULT}
+                                                    size={CONST.AVATAR_SIZE.DEFAULT}
                                                     subscriptAvatarBorderColor={hovered && !isOptionFocused ? hoveredBackgroundColor : subscriptAvatarBorderColor}
-                                                    useMidSubscriptSize={isInFocusMode}
+                                                    useMidSubscriptSize={false}
                                                     secondaryAvatarBackgroundColor={secondaryAvatarBgColor}
                                                     singleAvatarContainerStyle={singleAvatarContainerStyle}
                                                     shouldShowTooltip={shouldOptionShowTooltip(optionItem)}

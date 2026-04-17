@@ -9508,7 +9508,6 @@ type ShouldReportBeInOptionListParams = {
     report: OnyxEntry<Report>;
     chatReport: OnyxEntry<Report>;
     currentReportId: string | undefined;
-    isInFocusMode: boolean;
     betas: OnyxEntry<Beta[]>;
     excludeEmptyChats: boolean;
     doesReportHaveViolations: boolean;
@@ -9525,7 +9524,6 @@ function reasonForReportToBeInOptionList({
     report,
     chatReport,
     currentReportId,
-    isInFocusMode,
     betas,
     excludeEmptyChats,
     doesReportHaveViolations,
@@ -9536,8 +9534,6 @@ function reasonForReportToBeInOptionList({
     isReportArchived,
     requiresAttention,
 }: ShouldReportBeInOptionListParams): ValueOf<typeof CONST.REPORT_IN_LHN_REASONS> | null {
-    const isInDefaultMode = !isInFocusMode;
-
     // Include the currently viewed report. If we excluded the currently viewed report, then there
     // would be no way to highlight it in the options list and it would be confusing to users because they lose
     // a sense of context.
@@ -9656,17 +9652,8 @@ function reasonForReportToBeInOptionList({
         return CONST.REPORT_IN_LHN_REASONS.HAS_ADD_WORKSPACE_ROOM_ERRORS;
     }
 
-    // All unread chats (even archived ones) in GSD mode will be shown. This is because GSD mode is specifically for focusing the user on the most relevant chats, primarily, the unread ones
-    if (isInFocusMode) {
-        const oneTransactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, currentReportActions);
-        const oneTransactionThreadReport = deprecatedAllReports?.[`${ONYXKEYS.COLLECTION.REPORT}${oneTransactionThreadReportID}`];
-        return isUnread(report, oneTransactionThreadReport, isReportArchived) && getReportNotificationPreference(report) !== CONST.REPORT.NOTIFICATION_PREFERENCE.MUTE
-            ? CONST.REPORT_IN_LHN_REASONS.IS_UNREAD
-            : null;
-    }
-
-    // Archived reports should always be shown when in default (most recent) mode. This is because you should still be able to access and search for the chats to find them.
-    if (isInDefaultMode && isArchivedNonExpenseReport(report, isReportArchived)) {
+    // Archived reports should always be shown so users can still access and search for them.
+    if (isArchivedNonExpenseReport(report, isReportArchived)) {
         return CONST.REPORT_IN_LHN_REASONS.IS_ARCHIVED;
     }
 

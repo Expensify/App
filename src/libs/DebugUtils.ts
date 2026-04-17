@@ -1405,7 +1405,6 @@ function getReasonForShowingRowInLHN({
     doesReportHaveViolations,
     hasRBR = false,
     isReportArchived,
-    isInFocusMode = false,
     betas = undefined,
     draftComment,
 }: {
@@ -1414,7 +1413,6 @@ function getReasonForShowingRowInLHN({
     doesReportHaveViolations: boolean;
     hasRBR?: boolean;
     isReportArchived: boolean | undefined;
-    isInFocusMode?: boolean;
     betas?: OnyxEntry<Beta[]>;
     draftComment: string | undefined;
 }): TranslationPaths | null {
@@ -1427,7 +1425,6 @@ function getReasonForShowingRowInLHN({
         chatReport,
         // We can't pass report.reportID because it will cause reason to always be isFocused
         currentReportId: '-1',
-        isInFocusMode,
         betas,
         excludeEmptyChats: true,
         doesReportHaveViolations,

@@ -149,10 +149,6 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
             screens: {
                 [SCREENS.RIGHT_MODAL.SETTINGS]: {
                     screens: {
-                        [SCREENS.SETTINGS.PREFERENCES.PRIORITY_MODE]: {
-                            path: ROUTES.SETTINGS_PRIORITY_MODE,
-                            exact: true,
-                        },
                         [SCREENS.SETTINGS.PREFERENCES.LANGUAGE]: {
                             path: ROUTES.SETTINGS_LANGUAGE,
                             exact: true,

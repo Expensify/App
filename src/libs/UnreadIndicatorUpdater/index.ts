@@ -58,7 +58,6 @@ function getUnreadReportsForUnreadIndicator(reports: OnyxCollection<Report>, cur
                 currentReportId: currentReportID,
                 betas: [],
                 doesReportHaveViolations: false,
-                isInFocusMode: false,
                 excludeEmptyChats: false,
                 isReportArchived,
                 draftComment,

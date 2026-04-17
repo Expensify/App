@@ -2088,9 +2088,11 @@ const CONST = {
             MEMORY_THRESHOLD_IOS_WARNING_MB: 300, // > 300MB monitor closely
         },
     },
-    PRIORITY_MODE: {
-        GSD: 'gsd',
-        DEFAULT: 'default',
+    INBOX_TAB: {
+        ALL: 'all',
+        TODO: 'todo',
+        EXPENSES: 'expenses',
+        DMS: 'dms',
     },
     THEME: {
         DEFAULT: 'system',
@@ -9490,7 +9492,6 @@ const CONST = {
             ADDRESS: 'SettingsProfile-Address',
         },
         SETTINGS_PREFERENCES: {
-            PRIORITY_MODE: 'SettingsPreferences-PriorityMode',
             LANGUAGE: 'SettingsPreferences-Language',
             PAYMENT_CURRENCY: 'SettingsPreferences-PaymentCurrency',
             THEME: 'SettingsPreferences-Theme',

@@ -2792,19 +2792,12 @@ ${amount} pour ${merchant} - ${date}`,
         receiveRelevantFeatureUpdatesAndExpensifyNews: 'Recevoir des mises à jour de fonctionnalités pertinentes et des actualités Expensify',
         muteAllSounds: 'Couper tous les sons d’Expensify',
     },
-    priorityModePage: {
-        priorityMode: 'Mode priorité',
-        explainerText: 'Choisissez de #vous concentrer uniquement sur les discussions non lues et épinglées, ou d’afficher tout avec les discussions les plus récentes et épinglées en haut.',
-        priorityModes: {
-            default: {
-                label: 'Le plus récent',
-                description: 'Afficher toutes les discussions triées par les plus récentes',
-            },
-            gsd: {
-                label: '#focus',
-                description: 'Afficher uniquement les non lus triés par ordre alphabétique',
-            },
-        },
+    inboxTabs: {
+        all: 'All',
+        todo: 'To-do',
+        expenses: 'Expenses',
+        dms: 'DMs',
+        unreadToggle: 'Unreads',
     },
     reportDetailsPage: {
         inWorkspace: (policyName: string) => `dans ${policyName}`,
@@ -3354,11 +3347,6 @@ ${amount} pour ${merchant} - ${date}`,
     yearPickerPage: {
         year: 'Année',
         selectYear: 'Veuillez sélectionner une année',
-    },
-    focusModeUpdateModal: {
-        title: 'Bienvenue en mode #focus !',
-        prompt: (priorityModePageUrl: string) =>
-            `Gardez le contrôle en affichant uniquement les discussions non lues ou celles qui nécessitent votre attention. Ne vous inquiétez pas, vous pouvez modifier ce paramètre à tout moment dans les <a href="${priorityModePageUrl}">paramètres</a>.`,
     },
     notFound: {
         chatYouLookingForCannotBeFound: 'La discussion que vous recherchez est introuvable.',

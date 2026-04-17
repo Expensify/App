@@ -159,8 +159,11 @@ const ONYXKEYS = {
     /** Contains the platforms for which the user muted the sounds */
     NVP_MUTED_PLATFORMS: 'nvp_mutedPlatforms',
 
-    /** Contains the user preference for the LHN priority mode */
-    NVP_PRIORITY_MODE: 'nvp_priorityMode',
+    /** Contains the user preference for the active inbox tab filter */
+    NVP_INBOX_TAB: 'nvp_inboxTab',
+
+    /** Whether to show only unread chats in the inbox */
+    NVP_INBOX_UNREAD_FILTER: 'nvp_inboxUnreadFilter',
 
     /** Contains the users's block expiration (if they have one) */
     NVP_BLOCKED_FROM_CONCIERGE: 'nvp_private_blockedFromConcierge',
@@ -211,9 +214,6 @@ const ONYXKEYS = {
 
     /** Whether the app is currently loading a translation */
     RAM_ONLY_ARE_TRANSLATIONS_LOADING: 'areTranslationsLoading',
-
-    /** Whether the user has tried focus mode yet */
-    NVP_TRY_FOCUS_MODE: 'nvp_tryFocusMode',
 
     /** Whether the user has dismissed the hold educational interstitial */
     NVP_DISMISSED_HOLD_USE_EXPLANATION: 'nvp_dismissedHoldUseExplanation',
@@ -1356,7 +1356,8 @@ type OnyxValuesMapping = {
     [ONYXKEYS.BETAS]: OnyxTypes.Beta[];
     [ONYXKEYS.BETA_CONFIGURATION]: OnyxTypes.BetaConfiguration;
     [ONYXKEYS.NVP_MUTED_PLATFORMS]: Partial<Record<Platform, true>>;
-    [ONYXKEYS.NVP_PRIORITY_MODE]: ValueOf<typeof CONST.PRIORITY_MODE>;
+    [ONYXKEYS.NVP_INBOX_TAB]: ValueOf<typeof CONST.INBOX_TAB>;
+    [ONYXKEYS.NVP_INBOX_UNREAD_FILTER]: boolean;
     [ONYXKEYS.NVP_BLOCKED_FROM_CONCIERGE]: OnyxTypes.BlockedFromConcierge;
     [ONYXKEYS.QUEUE_FLUSHED_DATA]: AnyOnyxUpdate[];
     [ONYXKEYS.TRANSACTIONS_PENDING_3DS_REVIEW]: OnyxTypes.TransactionsPending3DSReview;
@@ -1366,7 +1367,6 @@ type OnyxValuesMapping = {
     [ONYXKEYS.NVP_BLOCKED_FROM_CHAT]: string;
     [ONYXKEYS.NVP_PRIVATE_PUSH_NOTIFICATION_ID]: string;
     [ONYXKEYS.NVP_RECENT_ATTENDEES]: Attendee[];
-    [ONYXKEYS.NVP_TRY_FOCUS_MODE]: boolean;
     [ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION]: boolean;
     [ONYXKEYS.NVP_DISMISSED_ASAP_SUBMIT_EXPLANATION]: boolean;
     [ONYXKEYS.NVP_EMPTY_REPORTS_CONFIRMATION_DISMISSED]: boolean;

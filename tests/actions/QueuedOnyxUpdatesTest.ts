@@ -100,7 +100,6 @@ describe('actions/QueuedOnyxUpdates', () => {
 
             await flushQueue();
 
-            await testOnyxKeyValue(ONYXKEYS.NVP_TRY_FOCUS_MODE);
             await testOnyxKeyValue(ONYXKEYS.PREFERRED_THEME);
             await testOnyxKeyValue(ONYXKEYS.NVP_PREFERRED_LOCALE);
             await testOnyxKeyValue(ONYXKEYS.SESSION);
@@ -145,7 +144,6 @@ describe('actions/QueuedOnyxUpdates', () => {
 
             await flushQueue();
 
-            await testOnyxKeyValue(ONYXKEYS.NVP_TRY_FOCUS_MODE);
             await testOnyxKeyValue(ONYXKEYS.PREFERRED_THEME);
             await testOnyxKeyValue(ONYXKEYS.NVP_PREFERRED_LOCALE);
             await testOnyxKeyValue(ONYXKEYS.SESSION);

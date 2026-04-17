@@ -33,7 +33,6 @@ import {startBootsplashMonitor} from './libs/telemetry/bootsplashTelemetry';
 import {cleanupMemoryTrackingTelemetry, initializeMemoryTrackingTelemetry} from './libs/telemetry/TelemetrySynchronizer';
 import Visibility from './libs/Visibility';
 import ONYXKEYS from './ONYXKEYS';
-import PriorityModeHandler from './PriorityModeHandler';
 import type {Route} from './ROUTES';
 import {useSplashScreenActions, useSplashScreenState} from './SplashScreenStateContext';
 
@@ -273,7 +272,6 @@ function Expensify() {
     return (
         <>
             {shouldInit && <GlobalModals />}
-            <PriorityModeHandler />
             <DelegateAccessHandler />
             <FullstoryInitHandler />
             <DeepLinkHandler onInitialUrl={setInitialUrl} />
