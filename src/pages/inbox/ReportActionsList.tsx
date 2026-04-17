@@ -1,6 +1,5 @@
 import {useRoute} from '@react-navigation/native';
 import React, {useEffect, useState} from 'react';
-import {View} from 'react-native';
 import MoneyRequestReportActionsList from '@components/MoneyRequestReportView/MoneyRequestReportActionsList';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
 import useNetwork from '@hooks/useNetwork';
@@ -84,18 +83,10 @@ function ReportActionsList() {
     }
 
     if (shouldDisplayMoneyRequestActionsList) {
-        return (
-            <View style={{flex: 1}}>
-                <MoneyRequestReportActionsList />
-            </View>
-        );
+        return <MoneyRequestReportActionsList />;
     }
 
-    return (
-        <View style={{flex: 1}}>
-            <ReportActionsView reportID={reportIDFromRoute} />
-        </View>
-    );
+    return <ReportActionsView reportID={reportIDFromRoute} />;
 }
 
 export default ReportActionsList;
