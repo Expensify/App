@@ -1,3 +1,4 @@
+import {delegateEmailSelector} from '@selectors/Account';
 import React from 'react';
 import {Image, Linking, View} from 'react-native';
 import HomeTestDriveImage from '@assets/images/home-testdrive-image.png';
@@ -35,6 +36,7 @@ function DiscoverSection() {
     } = useOnboardingTaskInformation(CONST.ONBOARDING_TASK_TYPE.VIEW_TOUR);
     const parentReportAction = useParentReportAction(viewTourTaskReport);
     const [onboarding] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
+    const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
 
     if (onboarding?.selfTourViewed || !onboarding) {
         return null;
@@ -51,6 +53,7 @@ function DiscoverSection() {
                 currentUserPersonalDetails.accountID,
                 hasOutstandingChildTask,
                 parentReportAction,
+                delegateEmail,
                 false,
             );
             return;

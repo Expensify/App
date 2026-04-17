@@ -11,6 +11,7 @@ import SpacerView from '@components/SpacerView';
 import Text from '@components/Text';
 import UnreadActionIndicator from '@components/UnreadActionIndicator';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -82,6 +83,7 @@ function MoneyReportView({
 }: MoneyReportViewProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
@@ -170,7 +172,7 @@ function MoneyReportView({
                                 }
 
                                 const fieldValue = resolveReportFieldValue(reportField, report, policy, fieldValues, fieldsByName);
-                                const isFieldDisabled = isReportFieldDisabledForUser(report, reportField, policy);
+                                const isFieldDisabled = isReportFieldDisabledForUser(report, reportField, policy, currentUserAccountID);
                                 const fieldKey = getReportFieldKey(reportField.fieldID);
 
                                 const violation = isFieldDisabled ? undefined : getFieldViolation(reportField);
