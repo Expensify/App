@@ -26,6 +26,7 @@ import {
     getMoneyRequestParticipantsFromReport,
     initMoneyRequest,
     setMoneyRequestBillable,
+    setMoneyRequestParticipantsFromReport,
     setMoneyRequestReimbursable,
     updateLastLocationPermissionPrompt,
 } from '@libs/actions/IOU';
@@ -138,6 +139,8 @@ function SubmitDetailsPage({
             hasOnlyPersonalPolicies,
             draftTransactionIDs,
         });
+        // Populate transaction.participants so IOURequestStepReport can highlight the destination (mirrors other expense flows).
+        setMoneyRequestParticipantsFromReport(CONST.IOU.OPTIMISTIC_TRANSACTION_ID, report, currentUserPersonalDetails.accountID);
         // initMoneyRequest is an imported action, intentionally excluded to avoid re-initializing on every render
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [reportOrAccountID, policy, personalPolicy, report, parentReport, currentDate, currentUserPersonalDetails, hasOnlyPersonalPolicies]);
