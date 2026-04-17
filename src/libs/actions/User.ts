@@ -46,7 +46,7 @@ import * as ReportUtils from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import {getLoginKey} from '@libs/UserUtils';
 import Visibility from '@libs/Visibility';
-import * as Device from '@userActions/Device';
+import * as Device from './Device';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
