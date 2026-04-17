@@ -79,7 +79,7 @@ function SelectionListWithModal<TItem extends ListItem>({
         [isSelected, displayData, selectedItemsProp],
     );
 
-    useHandleSelectionMode(selectedItems);
+    useHandleSelectionMode(selectedItems, displayData.length);
 
     const style = {
         ...styleProp,
