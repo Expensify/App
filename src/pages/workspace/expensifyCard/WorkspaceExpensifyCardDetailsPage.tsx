@@ -98,12 +98,12 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
     useEffect(() => fetchCardDetails(), [fetchCardDetails]);
 
     useEffect(() => {
-        if (!isAdmin || expensifyCardSettings?.isLoading || expensifyCardSettings?.hasOnceLoaded) {
+        if (!isAdmin || !expensifyCardSettings) {
             return;
         }
 
         openPolicyExpensifyCardsPage(policyID, defaultFundID);
-    }, [defaultFundID, expensifyCardSettings?.isLoading, expensifyCardSettings?.hasOnceLoaded, isAdmin, policyID]);
+    }, [defaultFundID, isAdmin, policyID]);
 
     const deactivateCard = () => {
         setIsDeactivateModalVisible(false);

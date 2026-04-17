@@ -6779,9 +6779,9 @@ ${amount} para ${merchant} - ${date}`,
                 reviewSelectedCards: 'Revisar tarjetas seleccionadas',
                 summaryMoreCount: ({summary, count}) => (count > 0 ? `${summary}, +${count} más` : summary),
                 summaryMerchants: ({merchants, hiddenCount, shownCount, action}) =>
-                    `${action === CONST.SPEND_RULES.ACTION.BLOCK ? 'Bloqueados' : 'Permitidos'} ${shownCount > 1 ? 'comerciantes' : 'comerciante'}: ${merchants}, +${hiddenCount} más`,
+                    `${action === CONST.SPEND_RULES.ACTION.BLOCK ? 'Bloqueados' : 'Permitidos'} ${shownCount > 1 ? 'comerciantes' : 'comerciante'}: ${merchants}${hiddenCount > 0 ? `, +${hiddenCount} más` : ''}`,
                 summaryCategories: ({categories, hiddenCount, shownCount, action}) =>
-                    `${action === CONST.SPEND_RULES.ACTION.BLOCK ? 'Bloqueados' : 'Permitidos'} ${shownCount > 1 ? 'categorías' : 'categoría'}: ${categories}, +${hiddenCount} más`,
+                    `${action === CONST.SPEND_RULES.ACTION.BLOCK ? 'Bloqueados' : 'Permitidos'} ${shownCount > 1 ? 'categorías' : 'categoría'}: ${categories}${hiddenCount > 0 ? `, +${hiddenCount} más` : ''}`,
                 confirmErrorApplyAtLeastOneSpendRuleToOneCard: 'Aplica al menos una regla de gasto a una tarjeta',
                 confirmErrorCardRequired: 'La tarjeta es un campo obligatorio',
                 confirmErrorApplyAtLeastOneSpendRule: 'Aplica al menos una regla de gasto',
