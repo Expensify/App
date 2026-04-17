@@ -1,3 +1,3 @@
-type RevokeDeviceParams = {partnerUserID: string};
+type RevokeDeviceParams = {partnerUserID: string; partnerID: number};
 
 export default RevokeDeviceParams;

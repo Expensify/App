@@ -128,7 +128,7 @@ function revokeDevice(login: NewLogin) {
         },
     ];
 
-    const parameters: RevokeDeviceParams = {partnerUserID: login.partnerUserID};
+    const parameters: RevokeDeviceParams = {partnerUserID: login.partnerUserID, partnerID: login.partnerID};
 
     API.write(WRITE_COMMANDS.REVOKE_DEVICE, parameters, {
         optimisticData,
