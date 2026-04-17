@@ -1,7 +1,7 @@
 ---
 title: Account Settings
 description: Learn how to update your profile settings, preferences, and notifications in Expensify.
-keywords: [New Expensify, profile, account preferences, notifications, language, theme, timezone, personal information]
+keywords: [New Expensify, profile, account preferences, notifications, language, theme, high contrast mode, timezone, personal information]
 ---
 
 Expensify allows you to personalize your experience by customizing your profile, preferences, and notifications. This guide shows you how to update your photo, language, timezone, notification settings, and more—all from the left-hand navigation menu.
@@ -18,7 +18,7 @@ You can update the following profile settings:
 - **Pronouns** – Display your preferred pronouns on your profile.
 - **Language** – Update your account to your preferred language.
 - **Timezone** – Set the correct timezone for expense and report timestamps.
-- **Theme** – Toggle between light mode, dark mode, or follow device settings.
+- **Theme** – Toggle between light mode, dark mode, or follow device settings, and enable high contrast mode.
 - **Notifications** – Customize how and when you receive email and app notifications.
 - **Personal Information** – Add or update your legal name, birth date, and address.
 
@@ -95,7 +95,7 @@ To update your pronouns:
 1. Go to **Account > Profile**.
 2. Click **Pronouns** and choose from the list of options.
 
-## Theme
+## How to change your theme
 
 To change the app’s appearance:
 1. Go to **Account > Preferences**.
@@ -103,6 +103,16 @@ To change the app’s appearance:
    - **Dark Mode**
    - **Light Mode**
    - **Use Device Settings**
+
+## How to enable high contrast mode
+
+High contrast mode increases the visual contrast of UI elements, making text and controls easier to distinguish.
+
+1. Go to **Account > Preferences**.
+2. Click **Theme**.
+3. Toggle **High contrast mode** on.
+
+High contrast mode works with any base theme (light, dark, or device settings).
 
 ## Personal Information
 
@@ -135,7 +145,7 @@ Yes. From the navigation tabs, go to **Account > Preferences** and toggle off bo
 No. To comply with regulations in several US states, Expensify is required to send you an email whenever you send money to another individual.
 
 ## Will theme preferences sync across devices?
-Yes! Your chosen theme applies across web, mobile, and desktop versions of Expensify.
+Yes! Your chosen theme and high contrast mode setting apply across web, mobile, and desktop versions of Expensify.
 
 ## Can I set a permanent status message?
 Yes. After entering your status, choose **Never** under “Clear After” to keep it active indefinitely.
