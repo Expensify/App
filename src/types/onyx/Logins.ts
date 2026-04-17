@@ -2,21 +2,25 @@ import type {ErrorFields, OnyxValueWithOfflineFeedback} from './OnyxCommon';
 
 /** Model of user login data */
 type Login = OnyxValueWithOfflineFeedback<{
+    /** The timestamp of when this login was created */
     created: string;
 
-    /** Account ID */
+    /** The owner of this login */
     accountID: number;
 
+    /** The ID for the partner for this login (either Expensify itself or another 3rd party service)  */
     partnerID: number;
+
+    /** This login's unique user ID for this partner */
     partnerUserID: string;
 
-    /** Last login time */
+    /** Most recent timestamp of when this login was used */
     lastLogin: string;
 
-    /** Validated date */
+    /** Timestamp of when this login was validated */
     validatedDate: string | null;
 
-    /** Additional data */
+    /** Additional name-value pairs for this login */
     additionalData?: {
         // @typescript-eslint/naming-convention
         /** The app version used where this account is logged in */
@@ -34,6 +38,7 @@ type Login = OnyxValueWithOfflineFeedback<{
         /** The device OS version where this account is logged in */
         osVersion: string;
 
+        /** Timestamp of when this device info was collected */
         timestamp: string;
     };
 
