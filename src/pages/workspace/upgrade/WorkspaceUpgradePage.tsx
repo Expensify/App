@@ -22,6 +22,7 @@ import CONST from '@src/CONST';
 import {
     enableAutoApprovalOptions,
     enableCompanyCards,
+    enableExpensifyCard,
     enablePolicyAutoReimbursementLimit,
     enablePolicyReportFields,
     enablePolicyRules,
@@ -197,6 +198,9 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
                 break;
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.id:
                 setWorkspaceApprovalMode(policy, defaultApprover, CONST.POLICY.APPROVAL_MODE.ADVANCED, accountID, email);
+                break;
+            case CONST.UPGRADE_FEATURE_INTRO_MAPPING.expensifyCard.id:
+                enableExpensifyCard(policyID, true);
                 break;
             default:
         }
