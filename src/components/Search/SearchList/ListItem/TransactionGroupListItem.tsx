@@ -556,7 +556,6 @@ function TransactionGroupListItem<TItem extends ListItem>({
                             expandButtonStyle={isLargeScreenWidth ? styles.pv2 : styles.pv4Half}
                             shouldShowToggleButton={isLargeScreenWidth}
                             borderBottomStyle={isLargeScreenWidth && styles.borderNone}
-                            dividerStyle={!isLargeScreenWidth ? [styles.borderBottom] : undefined}
                             sentryLabel={CONST.SENTRY_LABEL.SEARCH.GROUP_EXPAND_TOGGLE}
                         >
                             <TransactionGroupListExpandedItem

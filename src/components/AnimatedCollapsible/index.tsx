@@ -8,6 +8,7 @@ import Icon from '@components/Icon';
 import {easing} from '@components/Modal/ReanimatedModal/utils';
 import {PressableWithFeedback} from '@components/Pressable';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
@@ -52,9 +53,6 @@ type AnimatedCollapsibleProps = WithSentryLabel & {
 
     /** Style for the border bottom */
     borderBottomStyle?: StyleProp<ViewStyle>;
-
-    /** Style for the divider between header and content */
-    dividerStyle?: StyleProp<ViewStyle>;
 };
 
 function AnimatedCollapsible({
@@ -71,11 +69,11 @@ function AnimatedCollapsible({
     disabled = false,
     shouldShowToggleButton = true,
     borderBottomStyle,
-    dividerStyle,
     sentryLabel,
 }: AnimatedCollapsibleProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const {isLargeScreenWidth} = useResponsiveLayout();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['UpArrow', 'DownArrow']);
     const contentHeight = useSharedValue(0);
     const descriptionHeight = useSharedValue(0);
@@ -186,7 +184,7 @@ function AnimatedCollapsible({
                             }
                         }}
                     >
-                        <View style={dividerStyle ?? [styles.pv2, styles.ph3, styles.pb1]}>
+                        <View style={isLargeScreenWidth && [styles.pv2, styles.ph3, styles.pb1]}>
                             <View style={[styles.borderBottom, borderBottomStyle]} />
                         </View>
                         {children}
