@@ -478,8 +478,6 @@ function useSelectedTransactionsActions({
         handleDeleteTransactionsWithNavigation,
         isDuplicateOptionVisible,
         setDuplicateHandler,
-        allTransactions,
-        allReports,
     };
 }
 

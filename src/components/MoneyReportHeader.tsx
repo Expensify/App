@@ -503,8 +503,6 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
         handleDeleteTransactionsWithNavigation,
         isDuplicateOptionVisible,
         setDuplicateHandler,
-        allTransactions: allTransactionsForDuplicate,
-        allReports: allReportsForDuplicate,
     } = useSelectedTransactionsActions({
         report: moneyRequestReport,
         reportActions,
@@ -2018,8 +2016,8 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
             {isDuplicateOptionVisible && (
                 <BulkDuplicateHandler
                     selectedTransactionsKeys={selectedTransactionIDs}
-                    allTransactions={allTransactionsForDuplicate}
-                    allReports={allReportsForDuplicate}
+                    allTransactions={allTransactions}
+                    allReports={allReports}
                     searchData={undefined}
                     onHandlerReady={setDuplicateHandler}
                     onAfterDuplicate={() => clearSelectedTransactions(true)}

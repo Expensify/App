@@ -209,7 +209,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     const {clearSelectedTransactions, selectAllMatchingItems} = useSearchActionsContext();
     const {showConfirmModal} = useConfirmModal();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const {accountID} = currentUserPersonalDetails;
     const defaultExpensePolicy = useDefaultExpensePolicy();
     const allTransactions = useAllTransactions();
     const policyExpenseChatReportActions = useAllPolicyExpenseChatReportActions();
@@ -303,7 +302,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
     const firstSelectedPolicyID = selectedPolicyIDs.at(0);
     const firstSelectedPolicy = firstSelectedPolicyID ? currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.POLICY}${firstSelectedPolicyID}`] : undefined;
-    const onlyShowPayElsewhere = (selectedTransactionReportIDs ?? selectedReportIDs).some((reportID) => {
+    const onlyShowPayElsewhere = selectedTransactionReportIDs.some((reportID) => {
         const report = currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
         const chatReportID = report?.chatReportID;
         const chatReport = chatReportID ? currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`] : undefined;
@@ -412,7 +411,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             if (result.action !== ModalActions.CONFIRM) {
                 return;
             }
-            if (selectedTransactionsKeys.length === 0 || status == null || !hash) {
+            if (selectedTransactionsKeys.length === 0 || !hash) {
                 return;
             }
             const reportIDList = selectedReports?.map((report) => report?.reportID).filter((reportID) => reportID !== undefined) ?? [];
@@ -547,7 +546,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                         selfDMReport,
                         selectedTransactions,
                         currentUserEmailParam: currentUserPersonalDetails.email ?? '',
-                        currentUserAccountIDParam: accountID,
+                        currentUserAccountIDParam: currentUserPersonalDetails?.accountID,
                         reportTransactions: validTransactions,
                         transactionsViolations,
                         bankAccountList,
@@ -1288,12 +1287,8 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         dismissRejectModalBasedOnAction,
         isDuplicateOptionVisible,
         setDuplicateHandler,
-        allTransactions,
-        allReports,
-        searchData: currentSearchResults?.data,
     };
 }
 
 export default useSearchBulkActions;
 export {shouldShowBulkDuplicateOption};
-export type {ShouldShowBulkDuplicateParams};
