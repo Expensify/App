@@ -1289,6 +1289,7 @@ function updateSplitTransactions({
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport?.reportID}`,
             value: {
                 [updatedReportPreviewAction?.reportActionID ?? CONST.DEFAULT_NUMBER_ID]: {
+                    childMoneyRequestCount: originalReportPreviewAction?.childMoneyRequestCount,
                     childVisibleActionCount: originalReportPreviewAction?.childVisibleActionCount,
                     childCommenterCount: originalReportPreviewAction?.childCommenterCount,
                     childLastVisibleActionCreated: originalReportPreviewAction?.childLastVisibleActionCreated,
@@ -1385,7 +1386,6 @@ function updateSplitTransactions({
                 odometerStart: splitExpense.odometerStart,
                 odometerEnd: splitExpense.odometerEnd,
             };
-            requestMoneyInformation.existingTransaction = undefined;
         }
 
         const {participantParams, policyParams, transactionParams, parentChatReport, existingTransaction} = requestMoneyInformation;
@@ -2037,6 +2037,39 @@ function updateSplitTransactions({
                 errors: null,
             },
         });
+
+        // Restore the original transaction to its pre-split state on failure
+        // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
+        onyxData.failureData?.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`,
+            value: originalTransaction,
+        });
+
+        if (firstIOU) {
+            // Clear pendingAction on the firstIOU report action after API success
+            onyxData.successData?.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport?.reportID}`,
+                value: {
+                    [firstIOU.reportActionID]: {
+                        pendingAction: null,
+                    },
+                },
+            });
+
+            onyxData.failureData?.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport?.reportID}`,
+                value: {
+                    [firstIOU.reportActionID]: {
+                        ...firstIOU,
+                        pendingAction: null,
+                    },
+                },
+            });
+        }
+
         pushUpdatedReportPreviewActionToOnyxData();
         const isLastTransactionInReport = Object.values(allTransactionsList ?? {}).filter((itemTransaction) => itemTransaction?.reportID === expenseReportID).length === 1;
         if (isLastTransactionInReport) {
