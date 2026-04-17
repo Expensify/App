@@ -15,7 +15,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
-import {getHumanAgentAccountIDFromReportAction} from '@libs/ReportActionsUtils';
+import {getHumanAgentDisplayName} from '@libs/ReportActionsUtils';
 import {getReportName} from '@libs/ReportNameUtils';
 import type {DisplayNameWithTooltips} from '@libs/ReportUtils';
 import {
@@ -214,8 +214,7 @@ function AvatarWithDisplayName({
     const shouldShowReportTitleEditButton = shouldEnableDetailPageNavigation && !isSmallScreenWidth && canEditReportTitle(report, policy, currentUserAccountID);
 
     const parentReportAction = report?.parentReportActionID ? parentReportActions?.[report.parentReportActionID] : undefined;
-    const humanAgentAccountID = getHumanAgentAccountIDFromReportAction(parentReportAction);
-    const humanAgentName = humanAgentAccountID ? personalDetails?.[humanAgentAccountID]?.displayName : undefined;
+    const humanAgentName = getHumanAgentDisplayName(parentReportAction, personalDetails);
 
     const parentReportActionActorAccountID = parentReportAction?.actorAccountID;
     const actorAccountID = useRef<number | null>(null);

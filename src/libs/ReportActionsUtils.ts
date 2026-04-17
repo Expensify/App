@@ -21,6 +21,7 @@ import type {
     OnyxInputOrEntry,
     OriginalMessageIOU,
     PersonalDetails,
+    PersonalDetailsList,
     Policy,
     PrivatePersonalDetails,
     ReportMetadata,
@@ -546,6 +547,11 @@ function getHumanAgentAccountIDFromReportAction(reportAction: OnyxInputOrEntry<R
     }
 
     return undefined;
+}
+
+function getHumanAgentDisplayName(reportAction: OnyxInputOrEntry<ReportAction>, personalDetails: OnyxEntry<PersonalDetailsList>): string | undefined {
+    const humanAgentAccountID = getHumanAgentAccountIDFromReportAction(reportAction);
+    return humanAgentAccountID ? personalDetails?.[humanAgentAccountID]?.displayName : undefined;
 }
 
 function isExportIntegrationAction(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION> {
@@ -4828,6 +4834,7 @@ export {
     getUpdatedSharedBudgetNotificationMessage,
     getDelegateAccountIDFromReportAction,
     getHumanAgentAccountIDFromReportAction,
+    getHumanAgentDisplayName,
     isPendingHide,
     filterOutDeprecatedReportActions,
     getActionableCardFraudAlertMessage,

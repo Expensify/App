@@ -21,6 +21,7 @@ import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import {
     getDelegateAccountIDFromReportAction,
     getHumanAgentAccountIDFromReportAction,
+    getHumanAgentDisplayName,
     getManagerOnVacation,
     getOriginalMessage,
     getReportActionMessage,
@@ -99,7 +100,7 @@ function ReportActionItemSingle({
     const [primaryAvatar, secondaryAvatar] = avatars;
     const delegateAccountID = getDelegateAccountIDFromReportAction(action);
     const humanAgentAccountID = getHumanAgentAccountIDFromReportAction(action);
-    const humanAgentDetails = humanAgentAccountID ? personalDetails?.[humanAgentAccountID] : undefined;
+    const humanAgentName = getHumanAgentDisplayName(action, personalDetails);
     const mainAccountID = delegateAccountID ? (reportPreviewSenderID ?? potentialIOUReport?.ownerAccountID ?? action?.childOwnerAccountID) : (details.accountID ?? CONST.DEFAULT_NUMBER_ID);
     const mainAccountLogin = mainAccountID ? (personalDetails?.[mainAccountID]?.login ?? details.login) : details.login;
     const accountOwnerDetails = getPersonalDetailByEmail(String(mainAccountLogin ?? ''));
@@ -235,7 +236,7 @@ function ReportActionItemSingle({
                 ) : null}
                 {!!delegateAccountID && <Text style={[styles.chatDelegateMessage]}>{translate('delegate.onBehalfOfMessage', accountOwnerDetails?.displayName ?? '')}</Text>}
                 {!!humanAgentAccountID && (
-                    <Text style={[styles.chatDelegateMessage]}>{translate('reportAction.assistedBy', humanAgentDetails?.displayName ?? translate('reportAction.humanSupportAgent'))}</Text>
+                    <Text style={[styles.chatDelegateMessage]}>{translate('reportAction.assistedBy', humanAgentName ?? translate('reportAction.humanSupportAgent'))}</Text>
                 )}
                 {!!vacationer && !!submittedTo && (
                     <Text style={[styles.chatDelegateMessage]}>
