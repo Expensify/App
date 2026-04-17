@@ -8,6 +8,7 @@ import LHNOptionsList from '@components/LHNOptionsList/LHNOptionsList';
 import type {LHNOptionsListProps} from '@components/LHNOptionsList/types';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
+import {setHasRadio} from '@libs/NetworkState';
 import {showContextMenu} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -236,8 +237,8 @@ describe('LHNOptionsList', () => {
                 originalMessage: {},
             };
             mockUseIsFocused.mockReturnValue(true);
+            setHasRadio(false);
             await act(async () => {
-                await Onyx.merge(ONYXKEYS.NETWORK, {isOffline: true});
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`, {
@@ -293,8 +294,8 @@ describe('LHNOptionsList', () => {
                 message: [{type: 'COMMENT', text: expectedLastMessage, html: expectedLastMessage}],
             };
             mockUseIsFocused.mockReturnValue(true);
+            setHasRadio(true);
             await act(async () => {
-                await Onyx.merge(ONYXKEYS.NETWORK, {isOffline: false});
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`, {
