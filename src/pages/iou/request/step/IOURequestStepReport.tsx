@@ -85,7 +85,7 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
 
     // we need to fall back to transactionPolicyID because for a new workspace there is no report created yet
     // and if we choose this workspace as participant we want to create a new report in the chosen workspace
-    const {policyForMovingExpensesID, shouldSelectPolicy} = usePolicyForMovingExpenses(isPerDiemRequest(transaction), isTimeRequestUtil(transaction), targetExpensePolicyID);
+    const {policyForMovingExpensesID, shouldSelectPolicy} = usePolicyForMovingExpenses(isPerDiemTransaction, isTimeRequestUtil(transaction), targetExpensePolicyID);
 
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
@@ -295,7 +295,7 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
             isEditing={isEditing}
             isUnreported={isUnreported}
             shouldShowNotFoundPage={shouldShowNotFoundPage}
-            isPerDiemRequest={transaction ? isPerDiemRequest(transaction) : false}
+            isPerDiemRequest={transaction ? isPerDiemTransaction : false}
             isTimeRequest={transaction ? isTimeRequestUtil(transaction) : false}
             createReport={policyForMovingExpensesID || shouldSelectPolicy || isPerDiemTransaction ? createReport : undefined}
             targetOwnerAccountID={ownerAccountID}
