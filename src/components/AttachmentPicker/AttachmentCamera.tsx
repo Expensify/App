@@ -1,5 +1,5 @@
-import React, {useCallback, useEffect, useRef, useState} from 'react';
-import {Modal, StyleSheet, View} from 'react-native';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {Modal, View} from 'react-native';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
 import {RESULTS} from 'react-native-permissions';
 import Animated, {useAnimatedStyle, useSharedValue, withDelay, withSequence, withSpring, withTiming} from 'react-native-reanimated';
@@ -17,6 +17,7 @@ import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {showCameraPermissionsAlert} from '@libs/fileDownload/FileUtils';
@@ -52,6 +53,7 @@ function AttachmentCamera({isVisible, onCapture, onClose}: AttachmentCameraProps
     const {translate} = useLocalize();
     const isInLandscapeMode = useIsInLandscapeMode();
     const insets = useSafeAreaInsets();
+    const StyleUtils = useStyleUtils();
     const lazyIcons = useMemoizedLazyExpensifyIcons(['Bolt', 'boltSlash', 'CameraFlip', 'Close']);
     const lazyIllustrations = useMemoizedLazyIllustrations(['Shutter', 'Hand']);
 
@@ -70,6 +72,8 @@ function AttachmentCamera({isVisible, onCapture, onClose}: AttachmentCameraProps
         {photoResolution: {width: CONST.RECEIPT_CAMERA.PHOTO_WIDTH, height: CONST.RECEIPT_CAMERA.PHOTO_HEIGHT}},
     ]);
     const hasFlash = !!device?.hasFlash;
+    // Format dimensions are in landscape orientation, so height/width gives portrait aspect ratio
+    const cameraAspectRatio = useMemo(() => (format ? format.photoHeight / format.photoWidth : undefined), [format]);
 
     // Focus indicator animations (same pattern as useNativeCamera)
     const focusIndicatorOpacity = useSharedValue(0);
@@ -256,14 +260,14 @@ function AttachmentCamera({isVisible, onCapture, onClose}: AttachmentCameraProps
                         </View>
                     )}
                     {cameraPermissionStatus === RESULTS.GRANTED && device != null && (
-                        <View style={[styles.flex1, styles.overflowHidden]}>
+                        <View style={[styles.cameraView, styles.alignItemsCenter]}>
                             <GestureDetector gesture={tapGesture}>
-                                <View style={styles.flex1}>
+                                <View style={StyleUtils.getCameraViewfinderStyle(cameraAspectRatio)}>
                                     <VisionCamera
                                         ref={camera}
                                         device={device}
                                         format={format ?? undefined}
-                                        style={StyleSheet.absoluteFill}
+                                        style={styles.flex1}
                                         zoom={device.neutralZoom}
                                         photo
                                         isActive={isVisible}
