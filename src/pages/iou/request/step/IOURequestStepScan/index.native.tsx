@@ -582,17 +582,15 @@ function IOURequestStepScan({
                     />
                 )}
 
-                {startLocationPermissionFlow && !!receiptFiles.length && (
-                    <LocationPermissionModal
-                        startPermissionFlow={startLocationPermissionFlow}
-                        resetPermissionFlow={() => setStartLocationPermissionFlow(false)}
-                        onGrant={() => navigateToConfirmationStep(receiptFiles, true)}
-                        onDeny={() => {
-                            updateLastLocationPermissionPrompt();
-                            navigateToConfirmationStep(receiptFiles, false);
-                        }}
-                    />
-                )}
+                <LocationPermissionModal
+                    startPermissionFlow={startLocationPermissionFlow && !!receiptFiles.length}
+                    resetPermissionFlow={() => setStartLocationPermissionFlow(false)}
+                    onGrant={() => navigateToConfirmationStep(receiptFiles, true)}
+                    onDeny={() => {
+                        updateLastLocationPermissionPrompt();
+                        navigateToConfirmationStep(receiptFiles, false);
+                    }}
+                />
 
                 {shouldShowMultiScanEducationalPopup && (
                     <FeatureTrainingModal
