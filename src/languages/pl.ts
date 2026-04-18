@@ -5127,6 +5127,7 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
             free: 'Darmowy',
             control: 'Sterowanie',
             collect: 'Zbierz',
+            submit: 'Prześlij',
         },
         companyCards: {
             addCards: 'Dodaj karty',
@@ -6894,6 +6895,10 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
                 corporate: {
                     label: 'Sterowanie',
                     description: 'Dla organizacji z zaawansowanymi wymaganiami.',
+                },
+                submit2026: {
+                    label: 'Prześlij',
+                    description: 'Dla pracowników, którzy chcą przesyłać wydatki do pracodawcy.',
                 },
             },
             description: 'Wybierz plan odpowiedni dla siebie. Szczegółową listę funkcji i cen znajdziesz w naszej',

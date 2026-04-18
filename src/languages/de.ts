@@ -5159,6 +5159,7 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             free: 'Kostenlos',
             control: 'Steuerung',
             collect: 'Einziehen',
+            submit: 'Einreichen',
         },
         companyCards: {
             addCards: 'Karten hinzufügen',
@@ -6937,6 +6938,10 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 corporate: {
                     label: 'Steuerung',
                     description: 'Für Organisationen mit erweiterten Anforderungen.',
+                },
+                submit2026: {
+                    label: 'Einreichen',
+                    description: 'Für Mitarbeiter, die Ausgaben bei ihrem Arbeitgeber einreichen möchten.',
                 },
             },
             description: 'Wähle ein passendes Abo für dich. Eine detaillierte Liste der Funktionen und Preise findest du in unserem',

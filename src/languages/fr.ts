@@ -5169,6 +5169,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             free: 'Gratuit',
             control: 'Contrôle',
             collect: 'Encaisser',
+            submit: 'Soumettre',
         },
         companyCards: {
             addCards: 'Ajouter des cartes',
@@ -6959,6 +6960,10 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 corporate: {
                     label: 'Contrôle',
                     description: 'Pour les organisations ayant des exigences avancées.',
+                },
+                submit2026: {
+                    label: 'Soumettre',
+                    description: 'Pour les employés souhaitant soumettre des dépenses à leur employeur.',
                 },
             },
             description: 'Choisissez l’offre qui vous convient. Pour une liste détaillée des fonctionnalités et des tarifs, consultez notre',

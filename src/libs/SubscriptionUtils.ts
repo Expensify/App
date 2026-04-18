@@ -508,6 +508,11 @@ function getSubscriptionPrice(
         return 0;
     }
 
+    // Submit is a free plan — no subscription price to look up.
+    if (plan === CONST.POLICY.TYPE.SUBMIT) {
+        return 0;
+    }
+
     if (hasTeam2025Pricing && plan === CONST.POLICY.TYPE.TEAM) {
         return CONST.SUBSCRIPTION_PRICES[preferredCurrency][plan][CONST.SUBSCRIPTION.PRICING_TYPE_2025];
     }

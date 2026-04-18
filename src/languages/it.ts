@@ -5143,6 +5143,7 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
             free: 'Gratis',
             control: 'Controllo',
             collect: 'Riscuoti',
+            submit: 'Invia',
         },
         companyCards: {
             addCards: 'Aggiungi carte',
@@ -6922,6 +6923,10 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                 corporate: {
                     label: 'Controllo',
                     description: 'Per le organizzazioni con requisiti avanzati.',
+                },
+                submit2026: {
+                    label: 'Invia',
+                    description: 'Per i dipendenti che desiderano inviare le spese al proprio datore di lavoro.',
                 },
             },
             description: 'Scegli il piano più adatto a te. Per un elenco dettagliato di funzionalità e prezzi, consulta la nostra',
