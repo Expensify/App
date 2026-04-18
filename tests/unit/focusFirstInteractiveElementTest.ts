@@ -40,6 +40,10 @@ function simulateMouse() {
     document.dispatchEvent(new MouseEvent('mousedown', {bubbles: true}));
 }
 
+function simulatePointer() {
+    document.dispatchEvent(new Event('pointerdown', {bubbles: true}));
+}
+
 function simulateEnter() {
     document.dispatchEvent(new KeyboardEvent('keydown', {key: 'Enter', bubbles: true}));
 }
@@ -123,6 +127,17 @@ describe('focusFirstInteractiveElement', () => {
         it('should skip after mousedown', () => {
             simulateTab();
             simulateMouse();
+            const button = document.createElement('button');
+            const container = createContainer(button);
+            const spy = jest.spyOn(button, 'focus');
+
+            expect(focusFirstInteractiveElement(container)).toBe(false);
+            expect(spy).not.toHaveBeenCalled();
+        });
+
+        it('should skip after pointerdown (pen/touch paths that skip synthesized mousedown)', () => {
+            simulateTab();
+            simulatePointer();
             const button = document.createElement('button');
             const container = createContainer(button);
             const spy = jest.spyOn(button, 'focus');
