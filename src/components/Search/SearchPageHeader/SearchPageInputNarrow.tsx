@@ -83,6 +83,7 @@ function SearchPageInputNarrow({queryJSON, searchRouterListVisible, hideSearchRo
                     searchQueryItem={searchQueryItem}
                     onListItemPress={onListItemPress}
                     textInputRef={textInputRef}
+                    autocompleteSubstitutions={autocompleteSubstitutions}
                 />
             )}
         </View>

@@ -47,6 +47,7 @@ import type {SubstitutionMap} from './getQueryWithSubstitutions';
 import {getQueryWithSubstitutions} from './getQueryWithSubstitutions';
 import {getUpdatedSubstitutionsMap} from './getUpdatedSubstitutionsMap';
 import {getContextualReportData, getContextualSearchAutocompleteKey, getContextualSearchQuery} from './SearchRouterUtils';
+import updateAutocompleteSubstitutionsForSelection from './updateAutocompleteSubstitutionsForSelection';
 
 const privateIsArchivedSelector = (nvp: {private_isArchived?: string} | undefined): boolean | undefined => !!nvp?.private_isArchived;
 
@@ -296,10 +297,15 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                     onSearchQueryChange(newSearchQuery, true);
                     setSelection({start: newSearchQuery.length, end: newSearchQuery.length});
 
-                    if (item.mapKey && item.autocompleteID) {
-                        const substitutions = {...autocompleteSubstitutions, [item.mapKey]: item.autocompleteID};
-                        setAutocompleteSubstitutions(substitutions);
-                    }
+                    updateAutocompleteSubstitutionsForSelection({
+                        newSearchQuery,
+                        fieldKey,
+                        mapKey: item.mapKey,
+                        searchQuery: item.searchQuery,
+                        autocompleteID: item.autocompleteID,
+                        substitutions: autocompleteSubstitutions,
+                        setAutocompleteSubstitutions,
+                    });
                     setFocusAndScrollToRight();
                 } else {
                     submitSearch(item.searchQuery, item.keyForList !== CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.FIND_ITEM);
@@ -385,6 +391,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                 onHighlightFirstItem={updateAndScrollToFocusedIndex}
                 ref={listRef}
                 textInputRef={textInputRef}
+                autocompleteSubstitutions={autocompleteSubstitutions}
             />
         </View>
     );

@@ -102,6 +102,7 @@ function SearchPageInputWide({queryJSON, handleSearch}: SearchPageInputWideProps
                             ref={listRef}
                             shouldSubscribeToArrowKeyEvents={isAutocompleteListVisible}
                             textInputRef={textInputRef}
+                            autocompleteSubstitutions={autocompleteSubstitutions}
                         />
                     </View>
                 )}

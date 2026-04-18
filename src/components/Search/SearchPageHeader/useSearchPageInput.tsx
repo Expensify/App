@@ -1,5 +1,4 @@
 import {deepEqual} from 'fast-equals';
-import isEmpty from 'lodash/isEmpty';
 import {useEffect, useRef, useState} from 'react';
 import type {TextInputKeyPressEvent} from 'react-native';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
@@ -10,6 +9,7 @@ import {buildSubstitutionsMap} from '@components/Search/SearchRouter/buildSubsti
 import {getQueryWithSubstitutions} from '@components/Search/SearchRouter/getQueryWithSubstitutions';
 import type {SubstitutionMap} from '@components/Search/SearchRouter/getQueryWithSubstitutions';
 import {getUpdatedSubstitutionsMap} from '@components/Search/SearchRouter/getUpdatedSubstitutionsMap';
+import updateAutocompleteSubstitutionsForSelection from '@components/Search/SearchRouter/updateAutocompleteSubstitutionsForSelection';
 import type {SearchQueryJSON, SearchQueryString} from '@components/Search/types';
 import useFeedKeysWithAssignedCards from '@hooks/useFeedKeysWithAssignedCards';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -155,7 +155,7 @@ function useSearchPageInput({queryJSON, onSearch, onSubmit}: UseSearchPageInputP
         setAutocompleteQueryValue(updatedUserQuery);
 
         const updatedSubstitutionsMap = getUpdatedSubstitutionsMap(singleLineUserQuery, autocompleteSubstitutions);
-        if (!deepEqual(autocompleteSubstitutions, updatedSubstitutionsMap) && !isEmpty(updatedSubstitutionsMap)) {
+        if (!deepEqual(autocompleteSubstitutions, updatedSubstitutionsMap)) {
             setAutocompleteSubstitutions(updatedSubstitutionsMap);
         }
     }
@@ -174,10 +174,15 @@ function useSearchPageInput({queryJSON, onSearch, onSubmit}: UseSearchPageInputP
                 onSearchQueryChange(newSearchQuery);
                 setSelection({start: newSearchQuery.length, end: newSearchQuery.length});
 
-                if (item.mapKey && item.autocompleteID) {
-                    const substitutions = {...autocompleteSubstitutions, [item.mapKey]: item.autocompleteID};
-                    setAutocompleteSubstitutions(substitutions);
-                }
+                updateAutocompleteSubstitutionsForSelection({
+                    newSearchQuery,
+                    fieldKey,
+                    mapKey: item.mapKey,
+                    searchQuery: item.searchQuery,
+                    autocompleteID: item.autocompleteID,
+                    substitutions: autocompleteSubstitutions,
+                    setAutocompleteSubstitutions,
+                });
             } else if (item.searchItemType === CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.SEARCH) {
                 submitSearch(item.searchQuery, item.keyForList !== CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.FIND_ITEM);
             }
