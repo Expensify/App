@@ -15,9 +15,12 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
+import usePolicyForTransaction from '@hooks/usePolicyForTransaction';
 import usePrevious from '@hooks/usePrevious';
+import useReportAttributes from '@hooks/useReportAttributes';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {ViolationField} from '@hooks/useViolations';
+import {getIOURequestPolicyID} from '@libs/actions/IOU';
 import {initDraftSplitExpenseDataForEdit, removeSplitExpenseField, updateSplitExpenseField} from '@libs/actions/IOU/Split';
 import {openPolicyCategoriesPage} from '@libs/actions/Policy/Category';
 import {openPolicyTagsPage} from '@libs/actions/Policy/Tag';
@@ -61,10 +64,14 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
     const splitExpenseDraftTransactionDetails = useMemo<Partial<TransactionDetails>>(() => getTransactionDetails(splitExpenseDraftTransaction) ?? {}, [splitExpenseDraftTransaction]);
     const allTransactions = useAllTransactions();
 
+    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+
     const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`];
     const originalTransaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transaction?.comment?.originalTransactionID)}`];
+    const splitTransaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(splitExpenseTransactionID)}`];
 
     const report = getReportOrDraftReport(reportID);
+    const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`];
     const currentReport = report ?? currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportID)}`];
 
     const policy = usePolicy(currentReport?.policyID);
@@ -72,19 +79,46 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
         ? policy
         : currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(currentReport?.policyID)}`];
 
-    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${currentReport?.policyID}`);
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
 
-    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${currentReport?.policyID}`);
+    // When currentPolicy is undefined (e.g. viewing from self-DM), find the correct policy
+    // by searching all policies for one that contains the transaction's customUnitID.
+    // Fall back to the original transaction's customUnitID when the edit draft's customUnit
+    // was built without it (e.g. optimistic transaction before server response).
+    // If customUnitID is still not available, fall back to searching by customUnitRateID.
+    // Skip both lookups when the rate is P2P — the expense has no workspace policy to resolve.
+    const distanceCustomUnitID = splitExpenseDraftTransaction?.comment?.customUnit?.customUnitID ?? transaction?.comment?.customUnit?.customUnitID;
+    const distanceCustomUnitRateID = splitExpenseDraftTransaction?.comment?.customUnit?.customUnitRateID;
+    const isP2PRate = distanceCustomUnitRateID === CONST.CUSTOM_UNITS.FAKE_P2P_ID;
+    const policyByCustomUnitID = !isP2PRate && distanceCustomUnitID ? (Object.values(allPolicies ?? {}).find((p) => p?.customUnits?.[distanceCustomUnitID]) ?? undefined) : undefined;
+    const policyByCustomUnitRateID =
+        !policyByCustomUnitID && distanceCustomUnitRateID && distanceCustomUnitRateID !== CONST.CUSTOM_UNITS.FAKE_P2P_ID
+            ? (Object.values(allPolicies ?? {}).find((p) => Object.values(p?.customUnits ?? {}).some((unit) => !!unit.rates?.[distanceCustomUnitRateID])) ?? undefined)
+            : undefined;
+    const effectivePolicy = currentPolicy ?? policyByCustomUnitID ?? policyByCustomUnitRateID;
+
+    const reportPolicyID = getIOURequestPolicyID(splitTransaction, currentReport);
+    const {policy: categoryPolicy} = usePolicyForTransaction({
+        transaction: splitTransaction,
+        reportPolicyID,
+        action: CONST.IOU.ACTION.EDIT,
+        iouType: CONST.IOU.TYPE.SPLIT_EXPENSE,
+    });
+    const categoryPolicyID = categoryPolicy?.id;
+
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${categoryPolicyID}`);
+
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${categoryPolicyID}`);
     const {login, accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
     const fetchData = useCallback(() => {
         if (!policyCategories) {
-            openPolicyCategoriesPage(currentReport?.policyID ?? String(CONST.DEFAULT_NUMBER_ID));
+            openPolicyCategoriesPage(categoryPolicyID ?? String(CONST.DEFAULT_NUMBER_ID));
         }
         if (!policyTags) {
-            openPolicyTagsPage(currentReport?.policyID ?? String(CONST.DEFAULT_NUMBER_ID));
+            openPolicyTagsPage(categoryPolicyID ?? String(CONST.DEFAULT_NUMBER_ID));
         }
-    }, [currentReport?.policyID, policyCategories, policyTags]);
+    }, [categoryPolicyID, policyCategories, policyTags]);
 
     // Fetch categories and tags on mount to ensure the screen has the latest data,
     // especially when the edit-split flow is opened from the search screen where these
@@ -101,27 +135,32 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
     const originalSign = (splitExpenseItem?.amount ?? 0) < 0 ? -1 : 1;
     const currentDescription = getParsedComment(Parser.htmlToMarkdown(splitExpenseDraftTransactionDetails?.comment ?? ''));
 
-    const shouldShowCategory = !!currentPolicy?.areCategoriesEnabled && !!policyCategories;
+    const shouldShowCategory = !!categoryPolicy?.areCategoriesEnabled && !!policyCategories;
 
     const transactionTag = getTag(splitExpenseDraftTransaction);
     const policyTagLists = useMemo(() => getTagLists(policyTags), [policyTags]);
 
-    const isSplitAvailable = report && transaction && isSplitAction(currentReport, [transaction], originalTransaction, login ?? '', currentUserAccountID, currentPolicy);
+    const isSplitAvailable = report && transaction && isSplitAction(currentReport, [transaction], originalTransaction, login ?? '', currentUserAccountID, currentPolicy, parentReport);
 
-    const isCategoryRequired = !!currentPolicy?.requiresCategory;
-    const reportName = getReportName(currentReport);
-    const isDescriptionRequired = isCategoryDescriptionRequired(policyCategories, splitExpenseDraftTransactionDetails?.category, currentPolicy?.areRulesEnabled);
+    // For selfDM splits (no workspace policy), don't mark the rate as out-of-policy.
+    // getRate already resolves the P2P rate via defaultP2PRate for selfDM transactions.
+    const isSelfDMSplit = !effectivePolicy;
 
-    const shouldShowTags = !!currentPolicy?.areTagsEnabled && !!(transactionTag || hasEnabledTags(policyTagLists));
+    const isCategoryRequired = !!categoryPolicy?.requiresCategory && !isSelfDMSplit;
+    const reportAttributes = useReportAttributes();
+    const reportName = getReportName(currentReport, reportAttributes) || parentReport?.reportName;
+    const isDescriptionRequired = isCategoryDescriptionRequired(policyCategories, splitExpenseDraftTransactionDetails?.category, categoryPolicy?.areRulesEnabled);
+
+    const shouldShowTags = !!categoryPolicy?.areTagsEnabled && !!(transactionTag || hasEnabledTags(policyTagLists));
     const tagVisibility = useMemo(
         () =>
             getTagVisibility({
                 shouldShowTags,
-                policy: currentPolicy,
+                policy: categoryPolicy,
                 policyTags,
                 transaction: splitExpenseDraftTransaction,
             }),
-        [shouldShowTags, currentPolicy, policyTags, splitExpenseDraftTransaction],
+        [shouldShowTags, categoryPolicy, policyTags, splitExpenseDraftTransaction],
     );
 
     const previousTagsVisibility = usePrevious(tagVisibility.map((v) => v.shouldShow)) ?? [];
@@ -129,7 +168,7 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
     const isDistance = isDistanceRequest(splitExpenseDraftTransaction);
     const isManualDistance = isManualDistanceRequest(splitExpenseDraftTransaction);
     const isOdometerDistance = isOdometerDistanceRequest(splitExpenseDraftTransaction);
-    const {unit, rate, name: rateName} = DistanceRequestUtils.getRate({transaction: splitExpenseDraftTransaction, policy: currentPolicy});
+    const {unit, rate, name: rateName} = DistanceRequestUtils.getRate({transaction: splitExpenseDraftTransaction, policy: effectivePolicy});
     const distance = getDistanceInMeters(splitExpenseDraftTransaction, unit);
     const currentAmount = useMemo(() => {
         if (isDistance && distance && rate) {
@@ -139,10 +178,21 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
     }, [isDistance, distance, rate, unit, originalSign, splitExpenseDraftTransaction?.amount]);
     const distanceToDisplay = DistanceRequestUtils.getDistanceForDisplay(true, distance, unit, rate, translate, false, isManualDistance);
     const currentRateID = getRateID(splitExpenseDraftTransaction);
-    const rates = DistanceRequestUtils.getMileageRates(policy, false, currentRateID);
+    const rates = DistanceRequestUtils.getMileageRates(effectivePolicy, false, currentRateID);
 
     const currency = splitExpenseDraftTransactionDetails.currency ?? CONST.CURRENCY.USD;
-    const isCustomUnitOutOfPolicy = !rates[currentRateID] || (isDistance && !rate);
+
+    // Compute the header merchant from current distance and rate when available,
+    // so that a stale stored merchant (e.g. "Pending..." set before the MAP route was calculated)
+    // does not appear in the title. Falls back to the stored merchant otherwise.
+    const merchantToDisplay = useMemo(() => {
+        if (isDistance && distance && rate && unit) {
+            return DistanceRequestUtils.getDistanceMerchant(true, distance, unit, rate, currency, translate, toLocaleDigit, getCurrencySymbol, true);
+        }
+        return splitExpenseDraftTransactionDetails?.merchant ?? '';
+    }, [isDistance, distance, rate, unit, currency, translate, toLocaleDigit, getCurrencySymbol, splitExpenseDraftTransactionDetails?.merchant]);
+
+    const isCustomUnitOutOfPolicy = !isSelfDMSplit && (!rates[currentRateID] || (isDistance && !rate));
     const rateToDisplay = DistanceRequestUtils.getRateForExpenseDisplay(rateName, isCustomUnitOutOfPolicy, unit, rate, currency, translate, toLocaleDigit, getCurrencySymbol, isOffline);
 
     const getErrorForField = (field: ViolationField) => {
@@ -198,8 +248,8 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
             <MenuItemWithTopDescription
                 description={translate('common.rate')}
                 title={rateToDisplay}
-                interactive
-                shouldShowRightIcon
+                interactive={!isSelfDMSplit}
+                shouldShowRightIcon={!isSelfDMSplit}
                 titleStyle={styles.flex1}
                 brickRoadIndicator={getErrorForField('customUnitRateID') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                 errorText={getErrorForField('customUnitRateID')}
@@ -224,11 +274,7 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
             <FullPageNotFoundView shouldShow={!reportID || isEmptyObject(splitExpenseDraftTransaction) || !isSplitAvailable}>
                 <View style={[styles.flex1]}>
                     <HeaderWithBackButton
-                        title={translate(
-                            'iou.splitExpenseEditTitle',
-                            convertToDisplayString(currentAmount, splitExpenseDraftTransactionDetails?.currency),
-                            splitExpenseDraftTransactionDetails?.merchant ?? '',
-                        )}
+                        title={translate('iou.splitExpenseEditTitle', convertToDisplayString(currentAmount, splitExpenseDraftTransactionDetails?.currency), merchantToDisplay)}
                         onBackButtonPress={() => Navigation.goBack(backTo)}
                     />
                     <ScrollView>
@@ -369,7 +415,7 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
                             style={[styles.w100]}
                             text={translate('common.save')}
                             onPress={() => {
-                                updateSplitExpenseField(splitExpenseDraftTransaction, originalTransactionDraft, splitExpenseTransactionID, transaction, currentPolicy);
+                                updateSplitExpenseField(splitExpenseDraftTransaction, originalTransactionDraft, splitExpenseTransactionID, transaction, effectivePolicy);
                                 Navigation.goBack(backTo);
                             }}
                             pressOnEnter

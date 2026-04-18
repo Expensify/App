@@ -336,6 +336,9 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
     const hasCustomUnitOutOfPolicyViolation = hasCustomUnitOutOfPolicyViolationTransactionUtils(transactionViolations);
     const isPerDiemRequestOnNonDefaultWorkspace = isPerDiemRequest(transaction) && defaultExpensePolicy?.id !== policy?.id;
 
+    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+    const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${moneyRequestReport?.parentReportID}`];
+
     const {showConfirmModal} = useConfirmModal();
     const {triggerExportOrConfirm} = useExportAgainModal(moneyRequestReport?.reportID, moneyRequestReport?.policyID);
     const {showOfflineModal, showDownloadErrorModal} = useMoneyReportHeaderModals();
@@ -346,14 +349,14 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
     const theme = useTheme();
     const {isExpenseSplit} = getOriginalTransactionWithSplitInfo(transaction, originalTransaction);
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
-    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const hasMultipleSplits = useMemo(() => {
         if (!transaction?.comment?.originalTransactionID) {
             return false;
         }
-        const children = getChildTransactions(allTransactions, allReports, transaction.comment.originalTransactionID);
+        const children = getChildTransactions(allTransactions, transaction?.comment?.originalTransactionID);
         return children.length > 1;
-    }, [allTransactions, allReports, transaction?.comment?.originalTransactionID]);
+    }, [allTransactions, transaction?.comment?.originalTransactionID]);
+
     const isReportOpen = isOpenReport(moneyRequestReport);
     const shouldShowSplitIndicator = isExpenseSplit && (hasMultipleSplits || isReportOpen);
 
@@ -1127,6 +1130,7 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
             policies,
             outstandingReportsByPolicyID,
             isChatReportArchived,
+            parentReport,
         });
     }, [
         moneyRequestReport,
@@ -1142,6 +1146,7 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
         reportMetadata,
         policies,
         isChatReportArchived,
+        parentReport,
         bankAccountList,
         outstandingReportsByPolicyID,
     ]);
@@ -1453,7 +1458,7 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
                     return;
                 }
 
-                initSplitExpense(currentTransaction, policy);
+                initSplitExpense(currentTransaction, policy, moneyRequestReport);
             },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.MERGE]: {
