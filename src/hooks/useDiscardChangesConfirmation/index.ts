@@ -64,6 +64,7 @@ function useDiscardChangesConfirmation({getHasUnsavedChanges, onCancel, onVisibi
 
                 e.preventDefault();
                 blockedNavigationAction.current = e.data.action;
+                shouldNavigateBack.current = true;
                 navigateAfterInteraction(showDiscardModal);
             },
             [getHasUnsavedChanges, isFocused, isEnabled, showDiscardModal],
@@ -77,17 +78,18 @@ function useDiscardChangesConfirmation({getHasUnsavedChanges, onCancel, onVisibi
      * So we need to go forward to get back to the current page.
      */
     useEffect(() => {
-        if (!isEnabled || !isFocused) {
+        if (!isEnabled) {
             return undefined;
         }
         const unsubscribe = navigation.addListener('transitionStart', ({data: {closing}}) => {
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-            if (!getHasUnsavedChanges()) {
+            if (!getHasUnsavedChanges() || shouldNavigateBack.current) {
                 return;
             }
             shouldNavigateBack.current = true;
             if (closing) {
                 window.history.go(1);
+                navigateAfterInteraction(showDiscardModal);
                 return;
             }
             window.history.go(1);
