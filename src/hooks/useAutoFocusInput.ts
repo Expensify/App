@@ -5,10 +5,12 @@ import type {TextInput} from 'react-native';
 import {InteractionManager} from 'react-native';
 import Accessibility from '@libs/Accessibility';
 import ComposerFocusManager from '@libs/ComposerFocusManager';
+import {shouldSkipAutoFocusDueToExistingFocus} from '@libs/focusGuards';
 import {moveSelectionToEnd, scrollToBottom} from '@libs/InputUtils';
 import isWindowReadyToFocus from '@libs/isWindowReadyToFocus';
 import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {RootNavigatorParamList} from '@libs/Navigation/types';
+import {Priorities, tryClaim} from '@libs/ScreenFocusArbiter';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {useSplashScreenState} from '@src/SplashScreenStateContext';
@@ -60,7 +62,20 @@ export default function useAutoFocusInput(isMultiline = false): UseAutoFocusInpu
             if (inputRef.current && isMultiline) {
                 moveSelectionToEnd(inputRef.current);
             }
-            isWindowReadyToFocus().then(() => inputRef.current?.focus());
+            isWindowReadyToFocus().then(() => {
+                // Null-ref claim would block fallbacks on the destination screen.
+                const input = inputRef.current;
+                if (!input) {
+                    return;
+                }
+                if (shouldSkipAutoFocusDueToExistingFocus()) {
+                    return;
+                }
+                if (!tryClaim(Priorities.AUTO)) {
+                    return;
+                }
+                input.focus();
+            });
             setIsScreenTransitionEnded(false);
         });
 

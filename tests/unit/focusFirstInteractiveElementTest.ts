@@ -9,7 +9,15 @@
 const {focusFirstInteractiveElement} = require<{
     focusFirstInteractiveElement: (container: HTMLElement | null) => boolean;
 }>('../../src/hooks/useDialogContainerFocus/index.ts');
+const {resetCycle: resetArbiter, tryClaim: arbiterClaim, Priorities: arbiterPriorities} = require<{
+    resetCycle: () => void;
+    tryClaim: (priority: 1 | 2 | 3) => boolean;
+    Priorities: {INITIAL: 1; AUTO: 2; RETURN: 3};
+}>('../../src/libs/ScreenFocusArbiter.ts');
+const {teardownHadTabNavigation, setupHadTabNavigation} = require<{teardownHadTabNavigation: () => void; setupHadTabNavigation: () => void}>('../../src/libs/hadTabNavigation.ts');
 /* eslint-enable @typescript-eslint/no-require-imports, import/extensions */
+
+setupHadTabNavigation();
 
 function createContainer(...children: HTMLElement[]) {
     const container = document.createElement('div');
@@ -32,6 +40,10 @@ function simulateMouse() {
     document.dispatchEvent(new MouseEvent('mousedown', {bubbles: true}));
 }
 
+function simulatePointer() {
+    document.dispatchEvent(new Event('pointerdown', {bubbles: true}));
+}
+
 function simulateEnter() {
     document.dispatchEvent(new KeyboardEvent('keydown', {key: 'Enter', bubbles: true}));
 }
@@ -42,6 +54,7 @@ function simulateSpace() {
 
 afterEach(() => {
     document.body.innerHTML = '';
+    resetArbiter();
 });
 
 describe('focusFirstInteractiveElement', () => {
@@ -50,27 +63,12 @@ describe('focusFirstInteractiveElement', () => {
             simulateTab();
         });
 
-        it('should focus the first button with focusVisible: true', () => {
-            const button = document.createElement('button');
-            const container = createContainer(button);
-            const spy = jest.spyOn(button, 'focus');
-
-            expect(focusFirstInteractiveElement(container)).toBe(true);
-            expect(spy).toHaveBeenCalledWith({preventScroll: true, focusVisible: true});
-        });
-
-        it('should focus after Tab → Enter', () => {
-            simulateEnter();
-            const button = document.createElement('button');
-            const container = createContainer(button);
-            const spy = jest.spyOn(button, 'focus');
-
-            expect(focusFirstInteractiveElement(container)).toBe(true);
-            expect(spy).toHaveBeenCalledWith({preventScroll: true, focusVisible: true});
-        });
-
-        it('should focus after Tab → Space', () => {
-            simulateSpace();
+        it.each<[label: string, after: () => void]>([
+            ['Tab only', () => {}],
+            ['Tab → Enter', simulateEnter],
+            ['Tab → Space', simulateSpace],
+        ])('should focus the first button with focusVisible: true (%s)', (_label, after) => {
+            after();
             const button = document.createElement('button');
             const container = createContainer(button);
             const spy = jest.spyOn(button, 'focus');
@@ -129,6 +127,17 @@ describe('focusFirstInteractiveElement', () => {
         it('should skip after mousedown', () => {
             simulateTab();
             simulateMouse();
+            const button = document.createElement('button');
+            const container = createContainer(button);
+            const spy = jest.spyOn(button, 'focus');
+
+            expect(focusFirstInteractiveElement(container)).toBe(false);
+            expect(spy).not.toHaveBeenCalled();
+        });
+
+        it('should skip after pointerdown (pen/touch paths that skip synthesized mousedown)', () => {
+            simulateTab();
+            simulatePointer();
             const button = document.createElement('button');
             const container = createContainer(button);
             const spy = jest.spyOn(button, 'focus');
@@ -215,6 +224,21 @@ describe('focusFirstInteractiveElement', () => {
             expect(skipSpy).not.toHaveBeenCalled();
             expect(buttonSpy).toHaveBeenCalled();
         });
+
+        it('should skip elements inside an [inert] subtree', () => {
+            const inertWrapper = document.createElement('div');
+            inertWrapper.setAttribute('inert', '');
+            const inertButton = document.createElement('button');
+            inertWrapper.appendChild(inertButton);
+            const visibleButton = document.createElement('button');
+            const container = createContainer(inertWrapper, visibleButton);
+            const inertSpy = jest.spyOn(inertButton, 'focus');
+            const visibleSpy = jest.spyOn(visibleButton, 'focus');
+
+            focusFirstInteractiveElement(container);
+            expect(inertSpy).not.toHaveBeenCalled();
+            expect(visibleSpy).toHaveBeenCalled();
+        });
     });
 
     describe('selector coverage', () => {
@@ -222,58 +246,60 @@ describe('focusFirstInteractiveElement', () => {
             simulateTab();
         });
 
-        it('should find button', () => {
-            const el = document.createElement('button');
-            const spy = jest.spyOn(el, 'focus');
-            focusFirstInteractiveElement(createContainer(el));
-            expect(spy).toHaveBeenCalled();
-        });
-
-        it('should find link (a[href])', () => {
-            const el = document.createElement('a');
-            el.setAttribute('href', '#');
-            const spy = jest.spyOn(el, 'focus');
-            focusFirstInteractiveElement(createContainer(el));
-            expect(spy).toHaveBeenCalled();
-        });
-
-        it('should find input', () => {
-            const el = document.createElement('input');
-            const spy = jest.spyOn(el, 'focus');
-            focusFirstInteractiveElement(createContainer(el));
-            expect(spy).toHaveBeenCalled();
-        });
-
-        it('should find textarea', () => {
-            const el = document.createElement('textarea');
-            const spy = jest.spyOn(el, 'focus');
-            focusFirstInteractiveElement(createContainer(el));
-            expect(spy).toHaveBeenCalled();
-        });
-
-        it('should find select', () => {
-            const el = document.createElement('select');
-            const spy = jest.spyOn(el, 'focus');
-            focusFirstInteractiveElement(createContainer(el));
-            expect(spy).toHaveBeenCalled();
-        });
-
-        it('should find [role="button"]', () => {
+        function makeRoleEl(role: string): HTMLElement {
             const el = document.createElement('div');
-            el.setAttribute('role', 'button');
+            el.setAttribute('role', role);
             el.setAttribute('tabindex', '0');
+            return el;
+        }
+        function makeLink(): HTMLElement {
+            const a = document.createElement('a');
+            a.setAttribute('href', '#');
+            return a;
+        }
+        it.each<[label: string, create: () => HTMLElement]>([
+            ['button', () => document.createElement('button')],
+            ['a[href]', makeLink],
+            ['input', () => document.createElement('input')],
+            ['textarea', () => document.createElement('textarea')],
+            ['select', () => document.createElement('select')],
+            ['[role="button"]', () => makeRoleEl('button')],
+            ['[role="link"]', () => makeRoleEl('link')],
+        ])('should find %s', (_label, create) => {
+            const el = create();
             const spy = jest.spyOn(el, 'focus');
             focusFirstInteractiveElement(createContainer(el));
             expect(spy).toHaveBeenCalled();
         });
+    });
 
-        it('should find [role="link"]', () => {
-            const el = document.createElement('div');
-            el.setAttribute('role', 'link');
-            el.setAttribute('tabindex', '0');
-            const spy = jest.spyOn(el, 'focus');
-            focusFirstInteractiveElement(createContainer(el));
+    describe('arbiter integration', () => {
+        beforeEach(() => {
+            simulateTab();
+        });
+
+        it('should return false (and not focus) when a higher-priority claim already won the cycle', () => {
+            // Simulate useAutoFocusInput (AUTO=2) having claimed earlier — INITIAL=1 cannot preempt.
+            arbiterClaim(arbiterPriorities.AUTO);
+
+            const button = document.createElement('button');
+            const spy = jest.spyOn(button, 'focus');
+            expect(focusFirstInteractiveElement(createContainer(button))).toBe(false);
+            expect(spy).not.toHaveBeenCalled();
+        });
+    });
+
+    describe('hadTabNavigation teardown', () => {
+        it('should stop tracking Tab/mouse after teardown, and revert focus-skip behavior', () => {
+            simulateTab();
+            const button = document.createElement('button');
+            const spy = jest.spyOn(button, 'focus');
+            expect(focusFirstInteractiveElement(createContainer(button))).toBe(true);
             expect(spy).toHaveBeenCalled();
+
+            // After teardown, the mousedown listener is gone so the event must not throw.
+            teardownHadTabNavigation();
+            expect(() => simulateMouse()).not.toThrow();
         });
     });
 });

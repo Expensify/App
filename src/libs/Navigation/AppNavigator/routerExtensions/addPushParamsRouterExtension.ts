@@ -2,6 +2,7 @@ import {CommonActions} from '@react-navigation/native';
 import type {NavigationRoute, ParamListBase, PartialState, Router, RouterConfigOptions, StackActionType} from '@react-navigation/native';
 import type {PlatformStackNavigationState, PlatformStackRouterFactory, PlatformStackRouterOptions} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {GoBackAction, SetParamsAction} from '@libs/Navigation/types';
+import {cancelPendingFocusRestore, compoundParamsKey, notifyPushParamsBackward, notifyPushParamsForward} from '@libs/NavigationFocusReturn';
 import CONST from '@src/CONST';
 import type {CustomHistoryEntry, PushParamsActionType, PushParamsRouterAction} from './types';
 import {enhanceStateWithHistory} from './utils';
@@ -9,6 +10,48 @@ import {enhanceStateWithHistory} from './utils';
 function preserveHistoryForRoutes(oldHistory: CustomHistoryEntry[], routes: Array<{key?: string}>): CustomHistoryEntry[] {
     const remainingKeys = new Set(routes.map((r) => r.key));
     return oldHistory.filter((entry) => typeof entry === 'string' || remainingKeys.has(entry.key));
+}
+
+// noop=match at cursor; backward/forward=move cursor to match; unknown=target not in history.
+type ResetOutcome = {type: 'noop'; cursor: number} | {type: 'backward'; cursor: number} | {type: 'forward'; cursor: number} | {type: 'unknown'};
+
+function resolveCursorForReset(history: CustomHistoryEntry[], currentCursor: number, newFocused: {key: string; params: unknown}): ResetOutcome {
+    const inRange = currentCursor >= 0 && currentCursor < history.length;
+    // Snapped cursor drives direction inference only; adjacent probes are gated on inRange.
+    const cursor = inRange ? currentCursor : history.length - 1;
+    const newCompound = compoundParamsKey(newFocused.key, newFocused.params);
+
+    const matchAt = (idx: number): boolean => {
+        if (idx < 0 || idx >= history.length) {
+            return false;
+        }
+        const entry = history.at(idx);
+        if (typeof entry === 'string' || !entry || entry.key !== newFocused.key) {
+            return false;
+        }
+        return compoundParamsKey(entry.key, entry.params) === newCompound;
+    };
+
+    if (inRange) {
+        if (matchAt(cursor)) {
+            // Same compound at cursor (e.g. useNavigationResetOnLayoutChange).
+            return {type: 'noop', cursor};
+        }
+        // Backward preferred for duplicate compounds ([A, B, A] at cursor 1 targeting A).
+        if (matchAt(cursor - 1)) {
+            return {type: 'backward', cursor: cursor - 1};
+        }
+        if (matchAt(cursor + 1)) {
+            return {type: 'forward', cursor: cursor + 1};
+        }
+    }
+    // Non-adjacent jump or out-of-range cursor: scan whole history.
+    for (let i = 0; i < history.length; i += 1) {
+        if (matchAt(i)) {
+            return i < cursor ? {type: 'backward', cursor: i} : {type: 'forward', cursor: i};
+        }
+    }
+    return {type: 'unknown'};
 }
 
 function isSetParamsAction(action: PushParamsRouterAction): action is SetParamsAction {
@@ -50,6 +93,8 @@ function addPushParamsRouterExtension<RouterOptions extends PlatformStackRouterO
 ) {
     return (options: RouterOptions): Router<PlatformStackNavigationState<ParamListBase>, PushParamsRouterAction> => {
         const router = originalRouter(options);
+        // lastIndex is ambiguous for duplicates (A→B→A), so we track cursor explicitly. Per-router so tests stay isolated.
+        let pushParamsHistoryPosition = -1;
 
         const getInitialState = (configOptions: RouterConfigOptions) => {
             const state = router.getInitialState(configOptions);
@@ -67,6 +112,12 @@ function addPushParamsRouterExtension<RouterOptions extends PlatformStackRouterO
             configOptions: RouterConfigOptions,
         ) => {
             if (isPushParamsAction(action)) {
+                // Capture against outgoing (pre-update) params so GO_BACK can restore to it.
+                const outgoingRoute = state.routes.at(-1);
+                if (outgoingRoute?.key) {
+                    notifyPushParamsForward(outgoingRoute.key, outgoingRoute.params);
+                }
+
                 const setParamsAction = CommonActions.setParams(action.payload.params);
                 const stateWithUpdatedParams = router.getStateForAction(state, setParamsAction, configOptions);
 
@@ -77,51 +128,69 @@ function addPushParamsRouterExtension<RouterOptions extends PlatformStackRouterO
                 const lastRoute = stateWithUpdatedParams.routes.at(-1);
 
                 if (lastRoute) {
-                    return {...stateWithUpdatedParams, history: [...stateWithUpdatedParams.history, lastRoute]};
+                    // Mirror window.history.pushState: pushing mid-cursor discards forward entries.
+                    const existingHistory = stateWithUpdatedParams.history;
+                    const baseHistory =
+                        pushParamsHistoryPosition >= 0 && pushParamsHistoryPosition < existingHistory.length - 1 ? existingHistory.slice(0, pushParamsHistoryPosition + 1) : existingHistory;
+                    const newHistory = [...baseHistory, lastRoute];
+                    pushParamsHistoryPosition = newHistory.length - 1;
+                    return {...stateWithUpdatedParams, history: newHistory};
                 }
 
                 return stateWithUpdatedParams;
             }
 
-            // On native there is no browser history, so GO_BACK/POP operate on state.routes which
-            // PUSH_PARAMS never grew. Without this intercept the StackRouter would either pop the
-            // entire screen (if routes.length > 1) or return null and bubble the action up to the
-            // parent navigator. Instead, we consume the action here by reverting params to the
-            // previous history snapshot — mirroring what the browser does on web via popstate.
+            // No browser history on native — intercept GO_BACK/POP to revert params to the prior snapshot (what the browser does via popstate on web).
             if ((isGoBackAction(action) || isPopAction(action)) && state.history) {
                 const routeHistoryEntries = state.history.filter((entry): entry is NavigationRoute<ParamListBase, string> => typeof entry !== 'string');
 
                 if (routeHistoryEntries.length > state.routes.length) {
-                    const lastTwo = routeHistoryEntries.slice(-2);
+                    const lastRoute = state.routes.at(-1);
+                    if (lastRoute) {
+                        // Cursor-relative, not last-two: last-two drifts out of sync after a mid-cursor browser-back RESET.
+                        const history = state.history as CustomHistoryEntry[];
+                        const currentIdx = pushParamsHistoryPosition >= 0 && pushParamsHistoryPosition < history.length ? pushParamsHistoryPosition : history.length - 1;
+                        const currentEntry = history.at(currentIdx);
 
-                    // Only revert params when the last two history snapshots share the same route key,
-                    // meaning they are consecutive PUSH_PARAMS snapshots of the same screen. If the
-                    // keys differ, a different screen sits on top (e.g. Search{q=A} -> Search{q=B} -> OtherPage)
-                    // and standard POP should remove that screen instead.
-                    if (lastTwo.length === 2 && lastTwo.at(0)?.key === lastTwo.at(1)?.key) {
-                        const newHistory = [...state.history];
-                        newHistory.pop();
+                        if (currentEntry && typeof currentEntry !== 'string' && currentEntry.key === lastRoute.key) {
+                            let prevIdx = -1;
+                            for (let i = currentIdx - 1; i >= 0; i -= 1) {
+                                const e = history.at(i);
+                                if (e && typeof e !== 'string' && e.key === lastRoute.key) {
+                                    prevIdx = i;
+                                    break;
+                                }
+                            }
 
-                        const lastRoute = state.routes.at(-1);
-                        if (lastRoute) {
-                            const routes = [...state.routes];
-                            routes[state.routes.length - 1] = {
-                                ...lastRoute,
-                                params: lastTwo.at(0)?.params,
-                            };
+                            if (prevIdx >= 0) {
+                                const prevEntry = history.at(prevIdx) as NavigationRoute<ParamListBase, string>;
+                                const targetParams = prevEntry.params;
+                                const routes = [...state.routes];
+                                routes[state.routes.length - 1] = {
+                                    ...lastRoute,
+                                    params: targetParams,
+                                };
 
-                            return {
-                                ...state,
-                                routes,
-                                history: newHistory,
-                            };
+                                if (lastRoute.key) {
+                                    notifyPushParamsBackward(lastRoute.key, targetParams);
+                                }
+
+                                // Pop only when cursor was at the end; mid-cursor preserves so browser-forward can still reach skipped entries.
+                                const cursorAtEnd = currentIdx === history.length - 1;
+                                const newHistory = cursorAtEnd ? history.slice(0, -1) : history;
+                                pushParamsHistoryPosition = prevIdx;
+
+                                return {
+                                    ...state,
+                                    routes,
+                                    history: newHistory,
+                                };
+                            }
                         }
                     }
                 }
 
-                // Keys didn't match or no surplus for the focused route — let the StackRouter
-                // handle the pop normally, but preserve history entries for routes that survive
-                // so PUSH_PARAMS snapshots aren't wiped by getRehydratedState.
+                // Fallback: let StackRouter pop, but preserve history entries for surviving routes so snapshots aren't wiped by getRehydratedState.
                 const newState = router.getStateForAction(state, action, configOptions);
                 if (!newState) {
                     return null;
@@ -138,7 +207,6 @@ function addPushParamsRouterExtension<RouterOptions extends PlatformStackRouterO
                 return null;
             }
 
-            // SET_PARAMS should not alter the history stack — keep the existing history as-is.
             if (isSetParamsAction(action) && state.history) {
                 return {
                     ...newState,
@@ -146,22 +214,44 @@ function addPushParamsRouterExtension<RouterOptions extends PlatformStackRouterO
                 };
             }
 
-            // For all other actions, rebuild history from the updated routes.
             // @ts-expect-error newState may be partial, but getRehydratedState handles both partial and full states correctly.
             const rehydratedState = getRehydratedState(newState, configOptions);
 
-            // RESET actions (fired by web URL sync after PUSH_PARAMS changes the URL) would
-            // normally rebuild history 1:1 from routes via getRehydratedState, wiping all
-            // PUSH_PARAMS snapshots. Preserve history entries for routes that still exist
-            // in the rehydrated state (which may have added routes, e.g. for wide layout).
+            // RESET (e.g. web URL sync) would wipe PUSH_PARAMS snapshots via 1:1 rehydration — preserve entries for surviving routes.
             if (action.type === CONST.NAVIGATION.ACTION_TYPE.RESET && state.history) {
-                const preservedHistory = preserveHistoryForRoutes(state.history as CustomHistoryEntry[], rehydratedState.routes);
+                const newFocused = rehydratedState.routes.at(-1);
+                const history = state.history as CustomHistoryEntry[];
+                if (newFocused?.key) {
+                    const outcome = resolveCursorForReset(history, pushParamsHistoryPosition, {key: newFocused.key, params: newFocused.params});
+                    if (outcome.type === 'backward') {
+                        notifyPushParamsBackward(newFocused.key, newFocused.params);
+                        pushParamsHistoryPosition = outcome.cursor;
+                    } else if (outcome.type === 'forward') {
+                        cancelPendingFocusRestore();
+                        pushParamsHistoryPosition = outcome.cursor;
+                    } else if (outcome.type === 'unknown') {
+                        cancelPendingFocusRestore();
+                    }
+                    // 'noop' — pending restore and cursor left intact.
+                }
+
+                const preservedHistory = preserveHistoryForRoutes(history, rehydratedState.routes);
                 if (preservedHistory.length > 0) {
+                    // Remap cursor when preservation removed entries so the numeric index still points at the same logical entry.
+                    if (preservedHistory.length !== history.length) {
+                        const cursorEntry = pushParamsHistoryPosition >= 0 && pushParamsHistoryPosition < history.length ? history.at(pushParamsHistoryPosition) : null;
+                        if (cursorEntry) {
+                            const remapped = preservedHistory.indexOf(cursorEntry);
+                            pushParamsHistoryPosition = remapped >= 0 ? remapped : preservedHistory.length - 1;
+                        }
+                    }
                     return {
                         ...rehydratedState,
                         history: preservedHistory,
                     };
                 }
+                // All routes removed — reset cursor so next PUSH_PARAMS starts fresh.
+                pushParamsHistoryPosition = -1;
             }
 
             return rehydratedState;
@@ -177,3 +267,4 @@ function addPushParamsRouterExtension<RouterOptions extends PlatformStackRouterO
 }
 
 export default addPushParamsRouterExtension;
+export {resolveCursorForReset};

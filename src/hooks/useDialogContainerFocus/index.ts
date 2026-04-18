@@ -1,43 +1,25 @@
 import {useEffect} from 'react';
 import {InteractionManager} from 'react-native';
+import FOCUSABLE_SELECTOR from '@libs/focusableSelector';
+import {hasFocusableAttributes} from '@libs/focusGuards';
+import getHadTabNavigation from '@libs/hadTabNavigation';
+import {Priorities, tryClaim} from '@libs/ScreenFocusArbiter';
 import type UseDialogContainerFocus from './types';
 
-const FOCUSABLE_SELECTOR = 'button, [href], input, textarea, select, [role="button"], [role="link"], [tabindex]:not([tabindex="-1"])';
-
-// Tracks whether the user is Tab-navigating (vs typing in a form or using mouse).
-// Tab sets it, typing keys clear it, Enter/Space preserve it, mousedown clears it.
-let hadTabNavigation = false;
-if (typeof document !== 'undefined') {
-    document.addEventListener(
-        'keydown',
-        (e: KeyboardEvent) => {
-            if (e.key === 'Tab') {
-                hadTabNavigation = true;
-            } else if (e.key !== 'Enter' && e.key !== ' ') {
-                hadTabNavigation = false;
-            }
-        },
-        true,
-    );
-    document.addEventListener(
-        'mousedown',
-        () => {
-            hadTabNavigation = false;
-        },
-        true,
-    );
-}
-
-/** @returns true if an element was focused, false otherwise. */
 function focusFirstInteractiveElement(container: HTMLElement | null): boolean {
-    if (!hadTabNavigation || !container || (document.activeElement && document.activeElement !== document.body)) {
+    if (!getHadTabNavigation() || !container || (document.activeElement && document.activeElement !== document.body)) {
         return false;
     }
     const targets = container.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR);
-    const target = Array.from(targets).find((el) => !el.closest('[aria-hidden="true"]') && !el.matches(':disabled') && el.getAttribute('aria-disabled') !== 'true');
+    const target = Array.from(targets).find(hasFocusableAttributes);
     if (!target) {
         return false;
     }
+    // Arbitrated so a concurrent RETURN restore wins over this dialog's initial focus.
+    if (!tryClaim(Priorities.INITIAL)) {
+        return false;
+    }
+    // focusVisible: Chromium/Firefox only (lib.dom.d.ts too); Safari's :focus-visible heuristic aligns.
     target.focus({preventScroll: true, focusVisible: true} as FocusOptions);
     return true;
 }
@@ -50,7 +32,7 @@ const useDialogContainerFocus: UseDialogContainerFocus = (ref, isReady, claimIni
         }
         let cancelled = false;
         let frameId: number;
-        // Deferred past useAutoFocusInput's InteractionManager + Promise chain.
+        // Deferred past useAutoFocusInput's InteractionManager + Promise chain. InteractionManager is the idiomatic defer primitive despite type-def deprecation.
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         const interactionHandle = InteractionManager.runAfterInteractions(() => {
             if (cancelled) {
@@ -73,4 +55,4 @@ const useDialogContainerFocus: UseDialogContainerFocus = (ref, isReady, claimIni
 };
 
 export default useDialogContainerFocus;
-export {focusFirstInteractiveElement, FOCUSABLE_SELECTOR};
+export {focusFirstInteractiveElement};
