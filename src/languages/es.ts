@@ -1600,6 +1600,7 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         duplicateNonDefaultWorkspacePerDiemError: 'No puedes duplicar gastos de viáticos entre espacios de trabajo porque las tarifas pueden variar entre ellos.',
         cannotDuplicateDistanceExpense: 'No puedes duplicar gastos de distancia entre espacios de trabajo porque las tasas pueden diferir entre espacios de trabajo.',
+        bulkDuplicateLimit: `Solo puedes duplicar hasta ${CONST.SEARCH.BULK_DUPLICATE_LIMIT} gastos a la vez. Por favor, selecciona menos gastos e inténtalo de nuevo.`,
         taxDisabledAlert: {
             title: 'Impuesto deshabilitado',
             prompt: 'Habilita el seguimiento de impuestos en el espacio de trabajo para editar los detalles del gasto o eliminar el impuesto de este gasto.',
@@ -2486,6 +2487,9 @@ ${amount} para ${merchant} - ${date}`,
     workflowsExpensesFromPage: {
         title: 'Gastos de',
         header: 'Cuando los siguientes miembros presenten gastos:',
+        memberAlreadyInWorkflowTitle: 'Miembro ya está en un flujo de trabajo',
+        memberAlreadyInWorkflowPrompt: ({memberName, approverName}: {memberName: string; approverName: string}) =>
+            `${memberName} ya está en un flujo de trabajo de aprobación que envía a ${approverName}. Agregarlo aquí lo moverá a este flujo de trabajo.`,
     },
     workflowsApproverPage: {
         genericErrorMessage: 'El aprobador no pudo ser cambiado. Por favor, inténtelo de nuevo o contacte al soporte.',
@@ -4078,6 +4082,7 @@ ${amount} para ${merchant} - ${date}`,
             travel: 'Viajes',
             members: 'Miembros',
             accounting: 'Contabilidad',
+            hr: 'HR',
             receiptPartners: 'Socios de recibos',
             rules: 'Reglas',
             plan: 'Plan',
@@ -6168,6 +6173,36 @@ ${amount} para ${merchant} - ${date}`,
             },
         },
 
+        hr: {
+            title: 'HR',
+            subtitle: 'Conecta herramientas de HR y mantén sincronizadas las aprobaciones de empleados.',
+            settingsTitle: 'Configuración de Gusto',
+            syncStageName: ({stage}) => {
+                switch (stage) {
+                    case 'startingImportGusto':
+                        return 'Importando datos desde Gusto';
+                    case 'gustoSyncLoadCompany':
+                        return 'Cargando datos de la empresa desde Gusto';
+                    case 'gustoSyncImportEmployees':
+                        return 'Importando empleados';
+                    case 'gustoSyncBuildApprovalChains':
+                        return 'Creando cadenas de aprobación';
+                    case 'gustoSyncFinalize':
+                        return 'Finalizando la sincronización';
+                    case 'jobDone':
+                        return 'Esperando a que se carguen los datos importados';
+                    default: {
+                        // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+                        return `Translation missing for stage: ${stage}`;
+                    }
+                }
+            },
+            gusto: {
+                title: 'Gusto',
+                approvalMode: 'Modo de aprobación',
+                finalApprover: 'Aprobador final',
+            },
+        },
         export: {
             notReadyHeading: 'No está listo para exportar',
             notReadyDescription:

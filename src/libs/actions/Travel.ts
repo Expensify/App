@@ -73,8 +73,7 @@ function requestTravelAccess() {
             onyxMethod: 'merge',
             key: ONYXKEYS.NVP_TRAVEL_SETTINGS,
             value: {
-                // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
-                lastTravelSignupRequestTime: Date.now(),
+                lastTravelSignupRequestTime: Date.now().toString(),
             },
         },
     ];
