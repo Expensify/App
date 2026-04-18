@@ -1,7 +1,7 @@
 ---
 title: Edit Reports
-description: Retract a submitted expense report to make changes, update expenses, and resubmit. 
-keywords: [New Expensify, edit expense report, retract report, update submitted report, resubmit expense report, exported report changes]---
+description: Retract a submitted expense report to make changes, update expenses, and resubmit.
+keywords: [New Expensify, edit expense report, retract report, update submitted report, resubmit expense report, exported report changes]
 internalScope: Audience is Members and Workspace Admins. Covers retracting and updating submitted expense reports. Does not cover creating reports or detailed expense editing workflows.
 ---
 
