@@ -166,6 +166,11 @@ const baseFilterConfig = {
         description: 'search.withdrawalType' as const,
         route: ROUTES.SEARCH_ADVANCED_FILTERS.getRoute(CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.WITHDRAWAL_TYPE),
     },
+    withdrawalStatus: {
+        getTitle: getFilterDisplayTitle,
+        description: 'common.withdrawalStatus' as const,
+        route: ROUTES.SEARCH_ADVANCED_FILTERS.getRoute(CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.WITHDRAWAL_STATUS),
+    },
     withdrawalID: {
         getTitle: getFilterDisplayTitle,
         description: 'common.withdrawalID' as const,
@@ -493,6 +498,20 @@ function getFilterDisplayTitle(
     if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_TYPE) {
         const filterValue = filters[key];
         return filterValue ? translate(`search.filters.withdrawalType.${filterValue}`) : undefined;
+    }
+
+    if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_STATUS) {
+        const filterValue = filters[key];
+        let selectedValues: Array<ValueOf<typeof CONST.SEARCH.SETTLEMENT_STATUS>> = [];
+        if (Array.isArray(filterValue)) {
+            selectedValues = filterValue;
+        } else if (filterValue) {
+            selectedValues = [filterValue];
+        }
+        if (!selectedValues.length) {
+            return undefined;
+        }
+        return selectedValues.map((value) => translate(`settlement.status.${value}`)).join(', ');
     }
 
     if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS) {

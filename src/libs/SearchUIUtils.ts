@@ -4870,6 +4870,7 @@ const FILTER_LABEL_MAP: Partial<Record<SearchAdvancedFiltersKey, TranslationPath
     [FILTER_KEYS.TITLE]: 'common.title',
     [FILTER_KEYS.WITHDRAWAL_ID]: 'common.withdrawalID',
     [FILTER_KEYS.WITHDRAWAL_TYPE]: 'search.withdrawalType',
+    [FILTER_KEYS.WITHDRAWAL_STATUS]: 'common.withdrawalStatus',
 };
 
 function getDateDisplayValue(syntaxKey: SearchDateFilterKeys, form: Partial<SearchAdvancedFiltersForm>, translate: LocalizedTranslate): string {
@@ -5007,6 +5008,23 @@ function getDisplayValue(
     if (key === FILTER_KEYS.WITHDRAWAL_TYPE) {
         const withdrawalType = form[key];
         return withdrawalType ? translate(`search.filters.withdrawalType.${withdrawalType}`) : undefined;
+    }
+
+    if (key === FILTER_KEYS.WITHDRAWAL_STATUS) {
+        const withdrawalStatus = form[key];
+        let selectedValues: Array<ValueOf<typeof CONST.SEARCH.SETTLEMENT_STATUS>> = [];
+        if (Array.isArray(withdrawalStatus)) {
+            selectedValues = withdrawalStatus;
+        } else if (withdrawalStatus) {
+            selectedValues = [withdrawalStatus];
+        }
+        if (!selectedValues.length) {
+            return;
+        }
+        return getWithdrawalStatusOptions(translate)
+            .filter((option) => selectedValues.includes(option.value))
+            .map((option) => option.text)
+            .join(', ');
     }
 
     if (key === FILTER_KEYS.STATUS) {
@@ -5147,11 +5165,19 @@ function getMultiSelectFilterOptions(filterKey: SearchAdvancedFiltersKey, type: 
         return type ? getStatusOptions(translate, type) : [];
     }
 
+    if (filterKey === FILTER_KEYS.WITHDRAWAL_STATUS) {
+        return getWithdrawalStatusOptions(translate);
+    }
+
     return [];
 }
 
 function getWithdrawalTypeOptions(translate: LocaleContextProps['translate']) {
     return Object.values(CONST.SEARCH.WITHDRAWAL_TYPE).map<SingleSelectItem<SearchWithdrawalType>>((value) => ({text: translate(`search.filters.withdrawalType.${value}`), value}));
+}
+
+function getWithdrawalStatusOptions(translate: LocaleContextProps['translate']) {
+    return Object.values(CONST.SEARCH.SETTLEMENT_STATUS).map((value) => ({text: translate(`settlement.status.${value}`), value}));
 }
 
 function getActionOptions(translate: LocaleContextProps['translate']) {
@@ -5906,6 +5932,7 @@ export {
     getDateRangeForPreset,
     createAndOpenSearchTransactionThread,
     getWithdrawalTypeOptions,
+    getWithdrawalStatusOptions,
     getActionOptions,
     getColumnsToShow,
     getHasOptions,
