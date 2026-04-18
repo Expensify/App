@@ -1884,8 +1884,6 @@ function getUserFriendlyWorkspaceType(workspaceType: ValueOf<typeof CONST.POLICY
             return translate('workspace.type.control');
         case CONST.POLICY.TYPE.TEAM:
             return translate('workspace.type.collect');
-        case CONST.POLICY.TYPE.SUBMIT:
-            return translate('workspace.type.submit');
         default:
             return translate('workspace.type.free');
     }
@@ -2018,7 +2016,7 @@ function canModifyPlan(ownerPolicies: Policy[] | undefined, policy: OnyxEntry<Po
         return (ownerPolicies?.length ?? 0) > 1;
     }
 
-    return !!policy && canEditWorkspaceSettings(policy);
+    return !!policy && isPolicyAdmin(policy);
 }
 
 function getAdminsPrivateEmailDomains(policy?: Policy) {

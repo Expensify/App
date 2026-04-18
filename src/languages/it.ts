@@ -5143,7 +5143,6 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
             free: 'Gratis',
             control: 'Controllo',
             collect: 'Riscuoti',
-            submit: 'Invia',
         },
         companyCards: {
             addCards: 'Aggiungi carte',

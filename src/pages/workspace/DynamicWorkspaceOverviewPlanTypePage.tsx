@@ -17,7 +17,6 @@ import usePrivateSubscription from '@hooks/usePrivateSubscription';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import OpenWorkspacePlanPage from '@libs/actions/Policy/Plan';
-import {isSubmitPolicy} from '@libs/PolicyUtils';
 import {isSubscriptionTypeOfInvoicing} from '@libs/SubscriptionUtils';
 import Navigation from '@navigation/Navigation';
 import CardSectionUtils from '@pages/settings/Subscription/CardSection/utils';
@@ -60,7 +59,9 @@ function DynamicWorkspaceOverviewPlanTypePage({policy}: WithPolicyProps) {
             if (type === CONST.POLICY.TYPE.PERSONAL) {
                 return false;
             }
-            if (type === CONST.POLICY.TYPE.SUBMIT && !isSubmitPolicy(policy)) {
+            // Guard: don't leak the SUBMIT plan type into the plan-type list for paid workspaces.
+            // Submit-specific plan-type UX (exposing SUBMIT for Submit policies) ships in #87263.
+            if (type === CONST.POLICY.TYPE.SUBMIT) {
                 return false;
             }
             return true;
@@ -90,11 +91,6 @@ function DynamicWorkspaceOverviewPlanTypePage({policy}: WithPolicyProps) {
         ) : null;
 
     const handleUpdatePlan = () => {
-        if (policyID && isSubmitPolicy(policy) && currentPlan !== CONST.POLICY.TYPE.SUBMIT) {
-            Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policyID));
-            return;
-        }
-
         if (policyID && policy?.type === CONST.POLICY.TYPE.TEAM && currentPlan === CONST.POLICY.TYPE.CORPORATE) {
             Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policyID));
             return;
