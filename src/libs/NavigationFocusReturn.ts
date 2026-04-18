@@ -2,7 +2,7 @@ import {findFocusedRoute} from '@react-navigation/core';
 import type {NavigationState, PartialState} from '@react-navigation/native';
 import {InteractionManager} from 'react-native';
 import getHadTabNavigation from './hadTabNavigation';
-import {consumeLauncher, pickLauncher, resetLauncherStackForTests, scheduleClearActivePopoverLauncher, setActivePopoverLauncher} from './LauncherStack';
+import {consumeLauncher, pickLauncher, resetLauncherStackForTests} from './LauncherStack';
 import navigationRef from './Navigation/navigationRef';
 import {Priorities, resetCycle, tryClaim} from './ScreenFocusArbiter';
 
@@ -367,6 +367,7 @@ function navigationRefHasLiveState(): boolean {
     return typeof navigationRef?.isReady === 'function' && navigationRef.isReady() && typeof navigationRef.getRootState === 'function';
 }
 
+// Invoked twice per app lifetime: once at module load (pre-mount; `navigationRef.isReady()` is false, so the seed is skipped), and once from NavigationRoot.onReady (container is live, seeds `prevState`). The listener-install guard is idempotent across both calls.
 function setupNavigationFocusReturn(): void {
     if (typeof document === 'undefined') {
         return;
@@ -433,8 +434,6 @@ export {
     collectRouteKeys,
     captureTriggerForRoute,
     restoreTriggerForRoute,
-    setActivePopoverLauncher,
-    scheduleClearActivePopoverLauncher,
     notifyPushParamsForward,
     notifyPushParamsBackward,
     cancelPendingFocusRestore,

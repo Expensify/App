@@ -16,8 +16,6 @@ const {
     handleStateChange,
     resetForTests,
     setLastInteractiveElementForTests,
-    setActivePopoverLauncher,
-    scheduleClearActivePopoverLauncher,
     notifyPushParamsForward,
     notifyPushParamsBackward,
     compoundParamsKey,
@@ -31,14 +29,16 @@ const {
     handleStateChange: (state: unknown) => void;
     resetForTests: () => void;
     setLastInteractiveElementForTests: (element: HTMLElement | null) => void;
-    setActivePopoverLauncher: (element: HTMLElement | null) => void;
-    scheduleClearActivePopoverLauncher: (element?: HTMLElement) => void;
     notifyPushParamsForward: (routeKey: string, prevParams: unknown) => void;
     notifyPushParamsBackward: (routeKey: string, targetParams: unknown) => void;
     compoundParamsKey: (routeKey: string, params: unknown) => string;
     setupNavigationFocusReturn: () => void;
     teardownNavigationFocusReturn: () => void;
 }>('../../src/libs/NavigationFocusReturn.ts');
+const {setActivePopoverLauncher, scheduleClearActivePopoverLauncher} = require<{
+    setActivePopoverLauncher: (element: HTMLElement) => void;
+    scheduleClearActivePopoverLauncher: (element?: HTMLElement) => void;
+}>('../../src/libs/LauncherStack.ts');
 /* eslint-enable @typescript-eslint/no-require-imports, import/extensions */
 
 function simulateTab() {
@@ -386,7 +386,6 @@ describe('captureTriggerForRoute', () => {
 
             // Popover closes: menu item is removed from DOM, launcher survives.
             menuItem.remove();
-            setActivePopoverLauncher(null);
 
             const launcherSpy = jest.spyOn(launcher, 'focus');
             expect(restoreTriggerForRoute('route-a')).toBe(true);
@@ -597,6 +596,29 @@ describe('captureTriggerForRoute', () => {
             expect(droppedOldest).not.toHaveBeenCalled();
             expect(warnSpy).toHaveBeenCalled();
             warnSpy.mockRestore();
+        });
+
+        it('captureTriggerForRoute consumes the picked launcher from the stack so a subsequent forward nav does not re-find it', () => {
+            const launcher = appendButton();
+            setActivePopoverLauncher(launcher);
+            launcher.focus();
+            launcher.dispatchEvent(new FocusEvent('focusin', {bubbles: true}));
+            captureTriggerForRoute('route-a');
+
+            // With launcher consumed, a second forward nav without re-opening a trap must see NO launcher: capture falls through to lastInteractiveElement path.
+            const secondTrigger = appendButton();
+            secondTrigger.focus();
+            secondTrigger.dispatchEvent(new FocusEvent('focusin', {bubbles: true}));
+            captureTriggerForRoute('route-b');
+
+            // Detach secondTrigger so the map entry can only be restored via launcher-fallback if launcher was still on stack.
+            secondTrigger.remove();
+            launcher.blur();
+
+            const launcherSpy = jest.spyOn(launcher, 'focus');
+            // Second route has no fallback (launcher was consumed by the first capture), so restore must be 'gone' not 'launcher-focused'.
+            expect(restoreTriggerForRoute('route-b')).toBe(false);
+            expect(launcherSpy).not.toHaveBeenCalled();
         });
 
         it('should cancel a pending deferred clear when a new launcher is set', () => {
@@ -1254,6 +1276,26 @@ describe('teardown / setup lifecycle', () => {
         captureTriggerForRoute('route-a');
         button.blur();
         expect(restoreTriggerForRoute('route-a')).toBe(false);
+    });
+
+    it('teardown preserves launcher stack entries — launcher-stack state is tied to DOM, not navigation lifecycle', () => {
+        // A launcher set before teardown should remain on the stack (stack is pruned lazily via pickLauncher / consumeLauncher or explicit resetForTests).
+        const launcher = appendButton();
+        simulateTab();
+        setActivePopoverLauncher(launcher);
+
+        teardownNavigationFocusReturn();
+
+        // After teardown, if we re-setup and exercise a capture path, the launcher should still be reachable via pickLauncher.
+        setupNavigationFocusReturn();
+        launcher.focus();
+        launcher.dispatchEvent(new FocusEvent('focusin', {bubbles: true}));
+        captureTriggerForRoute('route-a');
+
+        launcher.blur();
+        const launcherSpy = jest.spyOn(launcher, 'focus');
+        expect(restoreTriggerForRoute('route-a')).toBe(true);
+        expect(launcherSpy).toHaveBeenCalled();
     });
 
     it('should be idempotent — re-setup after teardown restores behavior', () => {

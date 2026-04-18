@@ -52,6 +52,7 @@ function pickLauncher(): HTMLElement | null {
     return null;
 }
 
+// Idempotent: silently no-ops if the launcher was already pruned (e.g. by pickLauncher's stale-entry cleanup).
 function consumeLauncher(element: HTMLElement): void {
     const idx = launcherStack.findIndex((e) => e.element === element);
     if (idx >= 0) {
@@ -59,10 +60,8 @@ function consumeLauncher(element: HTMLElement): void {
     }
 }
 
-// Push a launcher onto the stack. Passing null pops the most recent entry (backward-compatible "clear immediately" call).
-function setActivePopoverLauncher(element: HTMLElement | null): void {
-    if (element === null) {
-        launcherStack.pop();
+function setActivePopoverLauncher(element: HTMLElement): void {
+    if (typeof document === 'undefined') {
         return;
     }
     // Re-activating an element already on the stack just clears its deactivated state.
@@ -82,6 +81,9 @@ function setActivePopoverLauncher(element: HTMLElement | null): void {
 
 /** Mark the given launcher (or the top of the stack if omitted) as deactivated. Lazy pruning in pickLauncher enforces LAUNCHER_CLEAR_DELAY_MS. */
 function scheduleClearActivePopoverLauncher(element?: HTMLElement): void {
+    if (typeof document === 'undefined') {
+        return;
+    }
     const entry = element ? launcherStack.find((e) => e.element === element) : launcherStack.at(-1);
     if (entry) {
         entry.deactivatedAt = Date.now();

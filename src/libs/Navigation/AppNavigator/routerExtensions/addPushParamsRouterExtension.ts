@@ -16,8 +16,9 @@ function preserveHistoryForRoutes(oldHistory: CustomHistoryEntry[], routes: Arra
 type ResetOutcome = {type: 'noop'; cursor: number} | {type: 'backward'; cursor: number} | {type: 'forward'; cursor: number} | {type: 'unknown'};
 
 function resolveCursorForReset(history: CustomHistoryEntry[], currentCursor: number, newFocused: {key: string; params: unknown}): ResetOutcome {
-    // Reinitialize when out of range — module-scoped cursor can survive history-shrinking events.
-    const cursor = currentCursor >= 0 && currentCursor < history.length ? currentCursor : history.length - 1;
+    const inRange = currentCursor >= 0 && currentCursor < history.length;
+    // Snapped cursor is used only for direction inference in the full scan — adjacent probes are gated on inRange to avoid classifying a genuine out-of-range jump as "adjacent".
+    const cursor = inRange ? currentCursor : history.length - 1;
     const newCompound = compoundParamsKey(newFocused.key, newFocused.params);
 
     const matchAt = (idx: number): boolean => {
@@ -31,18 +32,20 @@ function resolveCursorForReset(history: CustomHistoryEntry[], currentCursor: num
         return compoundParamsKey(entry.key, entry.params) === newCompound;
     };
 
-    if (matchAt(cursor)) {
-        // Same compound at cursor (e.g. useNavigationResetOnLayoutChange).
-        return {type: 'noop', cursor};
+    if (inRange) {
+        if (matchAt(cursor)) {
+            // Same compound at cursor (e.g. useNavigationResetOnLayoutChange).
+            return {type: 'noop', cursor};
+        }
+        // Backward is preferred over forward for duplicate compounds ([A, B, A] at cursor 1 targeting A); both branches cancel stale restores so duplicates converge semantically.
+        if (matchAt(cursor - 1)) {
+            return {type: 'backward', cursor: cursor - 1};
+        }
+        if (matchAt(cursor + 1)) {
+            return {type: 'forward', cursor: cursor + 1};
+        }
     }
-    // Backward is preferred over forward for duplicate compounds ([A, B, A] at cursor 1 targeting A); both branches cancel stale restores so duplicates converge semantically.
-    if (matchAt(cursor - 1)) {
-        return {type: 'backward', cursor: cursor - 1};
-    }
-    if (matchAt(cursor + 1)) {
-        return {type: 'forward', cursor: cursor + 1};
-    }
-    // Non-adjacent same-key jump (history.go(-n), deep link): scan the whole history and move the cursor to the match, or subsequent GO_BACK reverts from the stale index.
+    // Non-adjacent same-key jump, or cursor was out-of-range (history shrunk): scan the whole history and move the cursor to the match.
     for (let i = 0; i < history.length; i += 1) {
         if (matchAt(i)) {
             return i < cursor ? {type: 'backward', cursor: i} : {type: 'forward', cursor: i};
@@ -275,3 +278,4 @@ function addPushParamsRouterExtension<RouterOptions extends PlatformStackRouterO
 }
 
 export default addPushParamsRouterExtension;
+export {resolveCursorForReset};

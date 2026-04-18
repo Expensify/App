@@ -2,7 +2,7 @@ import {FocusTrap} from 'focus-trap-react';
 import React, {useRef} from 'react';
 import sharedTrapStack from '@components/FocusTrap/sharedTrapStack';
 import blurActiveElement from '@libs/Accessibility/blurActiveElement';
-import {scheduleClearActivePopoverLauncher, setActivePopoverLauncher} from '@libs/NavigationFocusReturn';
+import {scheduleClearActivePopoverLauncher, setActivePopoverLauncher} from '@libs/LauncherStack';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import type FocusTrapForModalProps from './FocusTrapForModalProps';
 

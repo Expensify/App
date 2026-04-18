@@ -1,6 +1,6 @@
 import {CommonActions} from '@react-navigation/native';
 import type {NavigationRoute, ParamListBase, PartialState, Router, RouterConfigOptions, StackNavigationState} from '@react-navigation/native';
-import addPushParamsRouterExtension from '@libs/Navigation/AppNavigator/routerExtensions/addPushParamsRouterExtension';
+import addPushParamsRouterExtension, {resolveCursorForReset} from '@libs/Navigation/AppNavigator/routerExtensions/addPushParamsRouterExtension';
 import type {CustomHistoryEntry, PushParamsRouterAction} from '@libs/Navigation/AppNavigator/routerExtensions/types';
 import type {PlatformStackRouterOptions} from '@libs/Navigation/PlatformStackNavigation/types';
 import {cancelPendingFocusRestore} from '@libs/NavigationFocusReturn';
@@ -618,5 +618,58 @@ describe('addPushParamsRouterExtension', () => {
         const afterPush = enhancedRouter.getStateForAction(state, {type: CONST.NAVIGATION.ACTION_TYPE.PUSH_PARAMS, payload: {params: {tab: 'bar'}}}, CONFIG_OPTIONS) as TestState;
         expect(afterPush.history?.length).toBeGreaterThanOrEqual(1);
         expect((afterPush.routes.at(0)?.params as {tab: string}).tab).toBe('bar');
+    });
+});
+
+describe('resolveCursorForReset (pure function)', () => {
+    const mkHistory = (...params: string[]): CustomHistoryEntry[] => params.map((q) => makeRoute('Search', 'search-1', {q})) as CustomHistoryEntry[];
+
+    it("returns 'noop' when target compound matches the cursor's entry", () => {
+        const history = mkHistory('A', 'B', 'C');
+        expect(resolveCursorForReset(history, 1, {key: 'search-1', params: {q: 'B'}})).toEqual({type: 'noop', cursor: 1});
+    });
+
+    it("returns 'backward' when target matches cursor-1 (adjacent back)", () => {
+        const history = mkHistory('A', 'B', 'C');
+        expect(resolveCursorForReset(history, 2, {key: 'search-1', params: {q: 'B'}})).toEqual({type: 'backward', cursor: 1});
+    });
+
+    it("returns 'forward' when target matches cursor+1 (adjacent forward)", () => {
+        const history = mkHistory('A', 'B', 'C');
+        expect(resolveCursorForReset(history, 0, {key: 'search-1', params: {q: 'B'}})).toEqual({type: 'forward', cursor: 1});
+    });
+
+    it("prefers 'backward' over 'forward' for duplicate compounds at cursor±1", () => {
+        // [A, B, A] at cursor=1 targeting A: both 0 and 2 match; backward (0) preferred.
+        const history = mkHistory('A', 'B', 'A');
+        expect(resolveCursorForReset(history, 1, {key: 'search-1', params: {q: 'A'}})).toEqual({type: 'backward', cursor: 0});
+    });
+
+    it("returns 'backward' for a non-adjacent jump to an earlier entry (history.go(-2))", () => {
+        const history = mkHistory('A', 'B', 'C', 'D');
+        expect(resolveCursorForReset(history, 3, {key: 'search-1', params: {q: 'A'}})).toEqual({type: 'backward', cursor: 0});
+    });
+
+    it("returns 'forward' for a non-adjacent jump to a later entry", () => {
+        const history = mkHistory('A', 'B', 'C', 'D');
+        expect(resolveCursorForReset(history, 0, {key: 'search-1', params: {q: 'D'}})).toEqual({type: 'forward', cursor: 3});
+    });
+
+    it("returns 'unknown' when the target compound isn't in history at all", () => {
+        const history = mkHistory('A', 'B', 'C');
+        expect(resolveCursorForReset(history, 1, {key: 'search-1', params: {q: 'Z'}})).toEqual({type: 'unknown'});
+    });
+
+    it('when cursor is out-of-range it skips adjacent probes and relies on the full scan', () => {
+        // Cursor was 5 from a prior longer history; history shrunk to 2. Target matches at i=1 in the new history.
+        // Without skipping adjacent probes, this would match at the snapped cursor and mis-classify as 'noop'.
+        const history = mkHistory('A', 'B');
+        const outcome = resolveCursorForReset(history, 5, {key: 'search-1', params: {q: 'B'}});
+        expect(outcome.type === 'backward' || outcome.type === 'forward').toBe(true);
+    });
+
+    it("returns 'unknown' when different route key even if compound matches", () => {
+        const history = mkHistory('A', 'B');
+        expect(resolveCursorForReset(history, 1, {key: 'other-route', params: {q: 'B'}})).toEqual({type: 'unknown'});
     });
 });
