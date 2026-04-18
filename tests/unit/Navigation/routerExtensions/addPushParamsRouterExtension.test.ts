@@ -3,13 +3,12 @@ import type {NavigationRoute, ParamListBase, PartialState, Router, RouterConfigO
 import addPushParamsRouterExtension from '@libs/Navigation/AppNavigator/routerExtensions/addPushParamsRouterExtension';
 import type {CustomHistoryEntry, PushParamsRouterAction} from '@libs/Navigation/AppNavigator/routerExtensions/types';
 import type {PlatformStackRouterOptions} from '@libs/Navigation/PlatformStackNavigation/types';
-import type * as NavigationFocusReturnModule from '@libs/NavigationFocusReturn';
 import {cancelPendingFocusRestore} from '@libs/NavigationFocusReturn';
 import CONST from '@src/CONST';
 
 jest.mock('@libs/NavigationFocusReturn', () => {
     // Use the real compoundParamsKey so its normalization/sorting stays in sync with the extension's callers.
-    const actual = jest.requireActual<typeof NavigationFocusReturnModule>('@libs/NavigationFocusReturn');
+    const actual = jest.requireActual<{compoundParamsKey: (routeKey: string, params: unknown) => string}>('@libs/NavigationFocusReturn');
     return {
         compoundParamsKey: actual.compoundParamsKey,
         cancelPendingFocusRestore: jest.fn(),

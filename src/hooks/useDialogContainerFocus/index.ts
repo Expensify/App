@@ -15,6 +15,7 @@ function focusFirstInteractiveElement(container: HTMLElement | null): boolean {
     if (!target) {
         return false;
     }
+    // Participates in arbitration so a concurrent back-nav RETURN restore wins over this dialog's initial focus.
     if (!tryClaim(Priorities.INITIAL)) {
         return false;
     }

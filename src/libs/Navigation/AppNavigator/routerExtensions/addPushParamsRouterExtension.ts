@@ -209,6 +209,7 @@ function addPushParamsRouterExtension<RouterOptions extends PlatformStackRouterO
                     if (matchAt(pushParamsHistoryPosition)) {
                         // No-op RESET (same compound at cursor): e.g. useNavigationResetOnLayoutChange. Don't cancel, don't adjust.
                     } else if (matchAt(pushParamsHistoryPosition - 1)) {
+                        // Backward is preferred over forward for duplicate compounds ([A, B, A] at cursor 1 targeting A); both branches cancel stale restores so duplicates converge semantically.
                         notifyPushParamsBackward(newFocused.key, newFocused.params);
                         pushParamsHistoryPosition -= 1;
                     } else if (matchAt(pushParamsHistoryPosition + 1)) {

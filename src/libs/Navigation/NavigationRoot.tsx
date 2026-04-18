@@ -12,7 +12,7 @@ import useTheme from '@hooks/useTheme';
 import useThemePreference from '@hooks/useThemePreference';
 import FS from '@libs/Fullstory';
 import Log from '@libs/Log';
-import {setupNavigationFocusReturn} from '@libs/NavigationFocusReturn';
+import {setupNavigationFocusReturn, teardownNavigationFocusReturn} from '@libs/NavigationFocusReturn';
 import shouldOpenLastVisitedPath from '@libs/shouldOpenLastVisitedPath';
 import {getPathFromURL} from '@libs/Url';
 import {getBaseTheme} from '@styles/theme/utils';
@@ -251,6 +251,9 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
         navigationIntegration.registerNavigationContainer(navigationRef);
         setupNavigationFocusReturn();
     }, [onReady]);
+
+    // Tear down focus-return listeners on full unmount (HMR in dev; symmetric lifecycle for tests).
+    useEffect(() => teardownNavigationFocusReturn, []);
 
     return (
         <NavigationContainer

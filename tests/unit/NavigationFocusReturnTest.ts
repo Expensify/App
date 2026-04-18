@@ -32,7 +32,7 @@ const {
     resetForTests: () => void;
     setLastInteractiveElementForTests: (element: HTMLElement | null) => void;
     setActivePopoverLauncher: (element: HTMLElement | null) => void;
-    scheduleClearActivePopoverLauncher: () => void;
+    scheduleClearActivePopoverLauncher: (element?: HTMLElement) => void;
     notifyPushParamsForward: (routeKey: string, prevParams: unknown) => void;
     notifyPushParamsBackward: (routeKey: string, targetParams: unknown) => void;
     compoundParamsKey: (routeKey: string, params: unknown) => string;
