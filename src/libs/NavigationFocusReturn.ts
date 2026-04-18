@@ -244,7 +244,7 @@ function canAcceptFocus(el: HTMLElement): boolean {
     return !el.matches(':disabled') && el.getAttribute('aria-disabled') !== 'true' && !el.closest('[aria-hidden="true"]');
 }
 
-// 'retry' = in DOM but unfocusable; 'gone' = detached, drop the entry.
+// 'retry' = in DOM but cannot accept focus now; 'gone' = detached, drop the entry.
 type RestorePick = {target: HTMLElement; source: 'primary' | 'fallback'} | 'retry' | 'gone';
 
 function pickRestoreTarget(entry: TriggerEntry): RestorePick {
