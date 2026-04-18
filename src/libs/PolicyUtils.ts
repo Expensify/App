@@ -484,6 +484,11 @@ function isExpensifyTeam(email: string | undefined): boolean {
     return emailDomain === CONST.EXPENSIFY_PARTNER_NAME || emailDomain === CONST.EMAIL.GUIDES_DOMAIN;
 }
 
+/** Whether Expensify team members should be hidden from the given policy/user combination. */
+function shouldFilterExpensifyTeam(policyOwner: string | undefined, currentUserLogin: string | undefined): boolean {
+    return !!policyOwner && !!currentUserLogin && !isExpensifyTeam(policyOwner) && !isExpensifyTeam(currentUserLogin);
+}
+
 /**
  * Checks if the current user is of the role "user" on the policy.
  */
@@ -692,22 +697,70 @@ function hasCustomCategories(policyCategories: OnyxEntry<PolicyCategories>): boo
 }
 
 /**
- * Checks if a policy has any non-default rules configured.
- * Defaults are: no approval/expense/coding rules and no custom rules text.
+ * Checks if a policy has any rules configured (structured rules, individual expense limits, or prohibited expenses).
  */
-function hasNonDefaultRules(policy: OnyxEntry<Policy>): boolean {
+function hasConfiguredRules(policy: OnyxEntry<Policy>): boolean {
     if (!policy) {
         return false;
     }
 
-    const hasCustomRules = !!policy.customRules && policy.customRules.trim().length > 0;
+    if (!!policy.customRules && policy.customRules.trim().length > 0) {
+        return true;
+    }
 
     const {rules} = policy;
-    const hasApprovalRules = !!rules?.approvalRules && rules.approvalRules.length > 0;
-    const hasExpenseRules = !!rules?.expenseRules && rules.expenseRules.length > 0;
-    const hasCodingRules = !!rules?.codingRules && Object.keys(rules.codingRules).length > 0;
+    if (!!rules?.approvalRules && rules.approvalRules.length > 0) {
+        return true;
+    }
+    if (!!rules?.expenseRules && rules.expenseRules.length > 0) {
+        return true;
+    }
+    if (!!rules?.codingRules && Object.keys(rules.codingRules).length > 0) {
+        return true;
+    }
 
-    return hasCustomRules || hasApprovalRules || hasExpenseRules || hasCodingRules;
+    if (!!policy.maxExpenseAmount && policy.maxExpenseAmount !== CONST.DISABLED_MAX_EXPENSE_VALUE && policy.maxExpenseAmount !== CONST.POLICY.DEFAULT_MAX_EXPENSE_AMOUNT) {
+        return true;
+    }
+    if (!!policy.maxExpenseAge && policy.maxExpenseAge !== CONST.DISABLED_MAX_EXPENSE_VALUE && policy.maxExpenseAge !== CONST.POLICY.DEFAULT_MAX_EXPENSE_AGE) {
+        return true;
+    }
+    if (
+        !!policy.maxExpenseAmountNoReceipt &&
+        policy.maxExpenseAmountNoReceipt !== CONST.DISABLED_MAX_EXPENSE_VALUE &&
+        policy.maxExpenseAmountNoReceipt !== CONST.POLICY.DEFAULT_MAX_AMOUNT_NO_RECEIPT
+    ) {
+        return true;
+    }
+    if (
+        !!policy.maxExpenseAmountNoItemizedReceipt &&
+        policy.maxExpenseAmountNoItemizedReceipt !== CONST.DISABLED_MAX_EXPENSE_VALUE &&
+        policy.maxExpenseAmountNoItemizedReceipt !== CONST.POLICY.DEFAULT_MAX_AMOUNT_NO_ITEMIZED_RECEIPT
+    ) {
+        return true;
+    }
+
+    if (policy.defaultBillable) {
+        return true;
+    }
+    if (policy.defaultReimbursable === false) {
+        return true;
+    }
+    if (policy.eReceipts) {
+        return true;
+    }
+    if (policy.requireCompanyCardsEnabled) {
+        return true;
+    }
+
+    const {prohibitedExpenses} = policy;
+    return (
+        !!prohibitedExpenses &&
+        Object.entries(CONST.POLICY.DEFAULT_PROHIBITED_EXPENSES).some(([key, defaultValue]) => {
+            const value = prohibitedExpenses[key as keyof typeof CONST.POLICY.DEFAULT_PROHIBITED_EXPENSES];
+            return value !== undefined && value !== defaultValue;
+        })
+    );
 }
 
 /**
@@ -2132,7 +2185,7 @@ export {
     getTagLists,
     hasTags,
     hasCustomCategories,
-    hasNonDefaultRules,
+    hasConfiguredRules,
     getTaxByID,
     getUnitRateValue,
     getRateDisplayValue,
@@ -2149,6 +2202,7 @@ export {
     shouldShowTaxRateError,
     isControlOnAdvancedApprovalMode,
     isExpensifyTeam,
+    shouldFilterExpensifyTeam,
     isDeletedPolicyEmployee,
     isInstantSubmitEnabled,
     isDelayedSubmissionEnabled,

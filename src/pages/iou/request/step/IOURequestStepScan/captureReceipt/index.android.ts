@@ -1,10 +1,10 @@
 import type {CaptureReceipt} from './types';
 
-const captureReceipt: CaptureReceipt = (camera, {flash, hasFlash, isPlatformMuted, path}) => {
+const captureReceipt: CaptureReceipt = (camera, {flash, hasFlash, isPlatformMuted, path, isInLandscapeMode}) => {
     const useFlash = flash && hasFlash;
-    if (useFlash) {
+    if (useFlash || isInLandscapeMode) {
         return camera.takePhoto({
-            flash: 'on',
+            flash: useFlash ? 'on' : 'off',
             enableShutterSound: !isPlatformMuted,
             path,
         });

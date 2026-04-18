@@ -99,6 +99,7 @@ import {
     getAllTransactions,
     getMoneyRequestInformation,
     getMoneyRequestParticipantsFromReport,
+    getMoneyRequestPolicyTags,
     getOrCreateOptimisticSplitChatReport,
     getReceiptError,
     getReportPreviewAction,
@@ -1401,7 +1402,11 @@ function updateSplitTransactions({
         } = getMoneyRequestInformation({
             participantParams,
             parentChatReport,
-            policyParams,
+            policyParams: {
+                ...policyParams,
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
+                policyTagList: getMoneyRequestPolicyTags({moneyRequestReportID: splitExpense?.reportID, parentChatReport, participant: participantParams.participant}),
+            },
             transactionParams,
             moneyRequestReportID: splitExpense?.reportID,
             existingTransaction,
@@ -1950,11 +1955,10 @@ function updateSplitTransactions({
             },
         });
 
-        // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
         onyxData.failureData?.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`,
-            value: originalTransaction,
+            value: originalTransaction ?? null,
         });
 
         if (firstIOU) {
