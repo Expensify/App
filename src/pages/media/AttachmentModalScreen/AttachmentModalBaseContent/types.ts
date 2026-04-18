@@ -70,9 +70,6 @@ type AttachmentModalBaseContentProps = {
     /** The type of the attachment */
     type?: ValueOf<typeof CONST.ATTACHMENT_TYPE>;
 
-    /** If the attachment originates from a note, the accountID will represent the author of that note. */
-    accountID?: number;
-
     /** The data is loading or not */
     isLoading?: boolean;
 

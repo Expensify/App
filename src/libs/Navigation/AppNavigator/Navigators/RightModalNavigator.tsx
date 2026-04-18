@@ -22,7 +22,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {abandonReviewDuplicateTransactions} from '@libs/actions/Transaction';
 import {clearTwoFactorAuthData} from '@libs/actions/TwoFactorAuthActions';
-import hideKeyboardOnSwipe from '@libs/Navigation/AppNavigator/hideKeyboardOnSwipe';
 import * as ModalStackNavigators from '@libs/Navigation/AppNavigator/ModalStackNavigators';
 import useModalStackScreenOptions from '@libs/Navigation/AppNavigator/ModalStackNavigators/useModalStackScreenOptions';
 import useRHPScreenOptions from '@libs/Navigation/AppNavigator/useRHPScreenOptions';
@@ -374,11 +373,6 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                                 <Stack.Screen
                                     name={SCREENS.RIGHT_MODAL.REFERRAL}
                                     component={ModalStackNavigators.ReferralModalStackNavigator}
-                                />
-                                <Stack.Screen
-                                    name={SCREENS.RIGHT_MODAL.PRIVATE_NOTES}
-                                    component={ModalStackNavigators.PrivateNotesModalStackNavigator}
-                                    options={hideKeyboardOnSwipe}
                                 />
                                 <Stack.Screen
                                     name={SCREENS.RIGHT_MODAL.TRANSACTION_DUPLICATE}

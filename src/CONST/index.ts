@@ -2494,7 +2494,6 @@ const CONST = {
 
     ATTACHMENT_TYPE: {
         REPORT: 'r',
-        NOTE: 'n',
         SEARCH: 's',
         ONBOARDING: 'o',
     },
@@ -4687,7 +4686,6 @@ const CONST = {
         INVITE: 'invite',
         SETTINGS: 'settings',
         LEAVE_ROOM: 'leaveRoom',
-        PRIVATE_NOTES: 'privateNotes',
         DOWNLOAD_CSV: 'downloadCSV',
         DOWNLOAD_PDF: 'downloadPDF',
         EXPORT: 'export',

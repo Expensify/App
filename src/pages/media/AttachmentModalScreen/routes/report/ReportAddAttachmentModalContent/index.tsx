@@ -29,7 +29,6 @@ function ReportAddAttachmentModalContent({route, navigation}: AttachmentModalScr
         isAuthTokenRequired,
         attachmentLink,
         originalFileName,
-        accountID = CONST.DEFAULT_NUMBER_ID,
         reportID,
         shouldDisableSendButton,
         headerTitle,
@@ -149,7 +148,6 @@ function ReportAddAttachmentModalContent({route, navigation}: AttachmentModalScr
             attachmentLink,
             originalFileName,
             attachmentID,
-            accountID,
             headerTitle,
             shouldDisableSendButton,
             submitRef,
@@ -157,20 +155,7 @@ function ReportAddAttachmentModalContent({route, navigation}: AttachmentModalScr
             onDownloadAttachment,
             AttachmentContent: AddAttachmentModalCarouselView,
         };
-    }, [
-        validFiles,
-        source,
-        isLoading,
-        isAuthTokenRequired,
-        attachmentLink,
-        originalFileName,
-        attachmentID,
-        accountID,
-        headerTitle,
-        shouldDisableSendButton,
-        onConfirm,
-        onDownloadAttachment,
-    ]);
+    }, [validFiles, source, isLoading, isAuthTokenRequired, attachmentLink, originalFileName, attachmentID, headerTitle, shouldDisableSendButton, onConfirm, onDownloadAttachment]);
 
     return (
         <AttachmentModalContainer

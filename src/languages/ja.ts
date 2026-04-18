@@ -2252,16 +2252,6 @@ const translations: TranslationDeepObject<typeof en> = {
         passwordUpdated: 'パスワードを更新しました！',
         allSet: 'これで準備完了です。新しいパスワードは安全に保管してください。',
     },
-    privateNotes: {
-        title: '非公開メモ',
-        personalNoteMessage: 'このチャットに関するメモをここに残しましょう。メモの追加、編集、閲覧ができるのはあなただけです。',
-        sharedNoteMessage: 'このチャットに関するメモをここに残しましょう。Expensify の従業員と team.expensify.com ドメインの他のメンバーがこれらのメモを閲覧できます。',
-        composerLabel: 'メモ',
-        myNote: '自分のメモ',
-        error: {
-            genericFailureMessage: '非公開メモを保存できませんでした',
-        },
-    },
     billingCurrency: {
         error: {
             securityCode: '有効なセキュリティコードを入力してください',

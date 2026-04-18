@@ -2270,16 +2270,6 @@ const translations: TranslationDeepObject<typeof en> = {
         passwordUpdated: 'Wachtwoord bijgewerkt!',
         allSet: 'Je bent klaar. Bewaar je nieuwe wachtwoord veilig.',
     },
-    privateNotes: {
-        title: 'Privénotities',
-        personalNoteMessage: 'Bewaar notities over deze chat hier. Jij bent de enige die deze notities kan toevoegen, bewerken of bekijken.',
-        sharedNoteMessage: 'Maak hier notities over deze chat. Expensify-medewerkers en andere leden met het team.expensify.com-domein kunnen deze notities bekijken.',
-        composerLabel: 'Notities',
-        myNote: 'Mijn notitie',
-        error: {
-            genericFailureMessage: 'Privénotities konden niet worden opgeslagen',
-        },
-    },
     billingCurrency: {
         error: {
             securityCode: 'Voer een geldige beveiligingscode in',
