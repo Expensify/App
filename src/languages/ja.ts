@@ -6808,6 +6808,8 @@ ${reportName}
                 merchants: '加盟店',
                 noAvailableCards: 'すべてのカードにはすでにルールがあります',
                 noAvailableCardsSubtitle: '既存のカードルールを編集して変更します',
+                noCardsIssuedTitle: 'Expensify カードは発行されていません',
+                noCardsIssuedSubtitle: 'Expensify カードを発行して支出ルールを作成しましょう',
                 max: '最大',
                 categoryOptions: {
                     [CONST.SPEND_RULES.CATEGORIES.AIRLINES]: '航空会社',

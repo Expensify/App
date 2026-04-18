@@ -6862,6 +6862,8 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                 merchants: 'Comerciantes',
                 noAvailableCards: 'Todos os cartões já têm uma regra',
                 noAvailableCardsSubtitle: 'Edite uma regra de cartão existente para fazer alterações',
+                noCardsIssuedTitle: 'Nenhum Cartão Expensify emitido',
+                noCardsIssuedSubtitle: 'Emita Cartões Expensify para criar regras de gastos',
                 max: 'Máx.',
                 categoryOptions: {
                     [CONST.SPEND_RULES.CATEGORIES.AIRLINES]: 'Companhias aéreas',

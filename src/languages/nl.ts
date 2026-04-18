@@ -6864,6 +6864,8 @@ Voeg meer bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 merchants: 'Handelaars',
                 noAvailableCards: 'Alle kaarten hebben al een regel',
                 noAvailableCardsSubtitle: 'Bewerk een bestaande kaartregel om wijzigingen aan te brengen',
+                noCardsIssuedTitle: 'Geen Expensify Kaarten uitgegeven',
+                noCardsIssuedSubtitle: 'Geef Expensify Kaarten uit om bestedingsregels te maken',
                 max: 'Max',
                 categoryOptions: {
                     [CONST.SPEND_RULES.CATEGORIES.AIRLINES]: 'Luchtvaartmaatschappijen',

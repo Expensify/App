@@ -240,17 +240,23 @@ function SpendRuleCardPage({route}: SpendRuleCardPageProps) {
                         shouldUpdateFocusedIndex
                         shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
                         listEmptyContent={
-                            <ScrollView contentContainerStyle={[styles.flexGrow1]}>
-                                <BlockingView
-                                    icon={illustrations.HandCard}
-                                    iconWidth={variables.iconSection}
-                                    iconHeight={variables.iconSection}
-                                    title={inputValue.trim() ? translate('common.noResultsFound') : translate('workspace.rules.spendRules.noAvailableCards')}
-                                    titleStyles={styles.mb2}
-                                    subtitle={translate('workspace.rules.spendRules.noAvailableCardsSubtitle')}
-                                    subtitleStyle={styles.textSupporting}
-                                />
-                            </ScrollView>
+                            !inputValue.trim() || hasEligibleCards ? (
+                                <ScrollView contentContainerStyle={[styles.flexGrow1]}>
+                                    <BlockingView
+                                        icon={illustrations.HandCard}
+                                        iconWidth={variables.iconSection}
+                                        iconHeight={variables.iconSection}
+                                        title={
+                                            inputValue.trim()
+                                                ? translate('common.noResultsFound')
+                                                : translate(hasEligibleCards ? 'workspace.rules.spendRules.noAvailableCards' : 'workspace.rules.spendRules.noCardsIssuedTitle')
+                                        }
+                                        titleStyles={styles.mb2}
+                                        subtitle={translate(hasEligibleCards ? 'workspace.rules.spendRules.noAvailableCardsSubtitle' : 'workspace.rules.spendRules.noCardsIssuedSubtitle')}
+                                        subtitleStyle={styles.textSupporting}
+                                    />
+                                </ScrollView>
+                            ) : undefined
                         }
                         footerContent={
                             <FormAlertWithSubmitButton

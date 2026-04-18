@@ -6856,6 +6856,8 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
                 merchants: 'Sprzedawcy',
                 noAvailableCards: 'Wszystkie karty mają już regułę',
                 noAvailableCardsSubtitle: 'Edytuj istniejącą regułę karty, aby wprowadzić zmiany',
+                noCardsIssuedTitle: 'Nie wydano żadnych Kart Expensify',
+                noCardsIssuedSubtitle: 'Wydaj karty Expensify, aby utworzyć zasady wydatków',
                 max: 'Maks',
                 categoryOptions: {
                     [CONST.SPEND_RULES.CATEGORIES.AIRLINES]: 'Linie lotnicze',

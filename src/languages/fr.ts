@@ -6921,6 +6921,8 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 merchants: 'Commerçants',
                 noAvailableCards: 'Toutes les cartes ont déjà une règle',
                 noAvailableCardsSubtitle: 'Modifier une règle de carte existante pour apporter des changements',
+                noCardsIssuedTitle: 'Aucune Carte Expensify émise',
+                noCardsIssuedSubtitle: 'Émettre des cartes Expensify pour créer des règles de dépense',
                 max: 'Max',
                 categoryOptions: {
                     [CONST.SPEND_RULES.CATEGORIES.AIRLINES]: 'Compagnies aériennes',

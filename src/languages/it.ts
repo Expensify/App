@@ -6884,6 +6884,8 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                 merchants: 'Esercenti',
                 noAvailableCards: 'Tutte le carte hanno già una regola',
                 noAvailableCardsSubtitle: 'Modifica una regola carta esistente per apportare modifiche',
+                noCardsIssuedTitle: 'Nessuna Carta Expensify emessa',
+                noCardsIssuedSubtitle: 'Emetti Carte Expensify per creare regole di spesa',
                 max: 'Massimo',
                 categoryOptions: {
                     [CONST.SPEND_RULES.CATEGORIES.AIRLINES]: 'Compagnie aeree',

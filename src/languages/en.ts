@@ -6909,6 +6909,8 @@ const translations = {
                 merchants: 'Merchants',
                 noAvailableCards: 'All cards already have a rule',
                 noAvailableCardsSubtitle: 'Edit an existing card rule to make changes',
+                noCardsIssuedTitle: 'No Expensify cards issued',
+                noCardsIssuedSubtitle: 'Issue Expensify cards to create spend rules',
                 max: 'Max',
                 categoryOptions: {
                     [CONST.SPEND_RULES.CATEGORIES.AIRLINES]: 'Airlines',
