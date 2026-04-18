@@ -9,6 +9,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {MergeTransaction, Policy, Report, SearchResults, Transaction} from '@src/types/onyx';
 import type {Attendee} from '@src/types/onyx/IOU';
 import SafeString from '@src/utils/SafeString';
+import {getDecodedLeafCategoryName} from './CategoryUtils';
 import {convertToBackendAmount, convertToDisplayString} from './CurrencyUtils';
 import Parser from './Parser';
 import {getCommaSeparatedTagNameWithSanitizedColons} from './PolicyUtils';
@@ -528,6 +529,10 @@ function getDisplayValue(field: MergeFieldKey, transaction: Transaction, policy:
 
     if (field === 'taxValue') {
         return getTaxName(policy, transaction) ?? transaction.taxValue ?? '';
+    }
+
+    if (field === 'category') {
+        return getDecodedLeafCategoryName(SafeString(fieldValue));
     }
 
     return SafeString(fieldValue);

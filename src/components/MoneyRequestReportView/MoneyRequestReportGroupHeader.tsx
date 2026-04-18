@@ -6,6 +6,7 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayoutOnWideRHP from '@hooks/useResponsiveLayoutOnWideRHP';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {getDecodedLeafCategoryName} from '@libs/CategoryUtils';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import {getCommaSeparatedTagNameWithSanitizedColons} from '@libs/PolicyUtils';
 import variables from '@styles/variables';
@@ -66,10 +67,9 @@ function MoneyRequestReportGroupHeader({
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayoutOnWideRHP();
 
-    const cleanedGroupName = isGroupedByTag && group.groupName ? getCommaSeparatedTagNameWithSanitizedColons(group.groupName) : group.groupName;
+    const cleanedGroupName = isGroupedByTag && group.groupName ? getCommaSeparatedTagNameWithSanitizedColons(group.groupName) : getDecodedLeafCategoryName(group.groupName);
     const displayName = cleanedGroupName || translate(isGroupedByTag ? 'reportLayout.noTag' : 'reportLayout.uncategorized');
     const formattedAmount = convertToDisplayString(group.subTotalAmount, currency);
-
     const shouldShowCheckbox = isSelectionModeEnabled || !shouldUseNarrowLayout;
 
     const conditionalHeight = useMemo(

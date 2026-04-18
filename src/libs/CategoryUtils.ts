@@ -137,6 +137,49 @@ function getDecodedCategoryName(categoryName: string) {
     return Str.htmlDecode(categoryName);
 }
 
+/**
+ * Splits a category name on the colon separator, removes empty middle segments,
+ * and merges a trailing empty segment into the previous part (preserving trailing colons).
+ *
+ * Examples:
+ *   "Food: Meat" → ["Food", "Meat"]
+ *   "A: B:" → ["A", "B:"]
+ *   "A: B: :" → ["A", "B:"]
+ *   "A: B::" → ["A", "B:"]
+ *   "A: B:::" → ["A", "B:"]
+ *   ":D" → ["D"]
+ *   "Plain" → ["Plain"]
+ */
+function processCategoryNameSegments(categoryName: string): string[] {
+    const parts = categoryName.split(CONST.PARENT_CHILD_SEPARATOR);
+    const result: string[] = [];
+
+    // Keep only parts that contain at least one non‑whitespace character.
+    for (let i = 0; i < parts.length; i++) {
+        const part = parts.at(i);
+        if (part === undefined) {
+            continue;
+        }
+        if (part.trim() !== '') {
+            result.push(part);
+        }
+    }
+
+    // If the original name ends with a colon (allowing trailing spaces), append a colon to the last segment.
+    const endsWithColon = categoryName.trim().endsWith(CONST.PARENT_CHILD_SEPARATOR);
+    if (endsWithColon && result.length > 0) {
+        result[result.length - 1] = result.at(result.length - 1) + CONST.PARENT_CHILD_SEPARATOR;
+    }
+
+    return result;
+}
+
+function getDecodedLeafCategoryName(categoryName: string): string {
+    const segments = processCategoryNameSegments(categoryName);
+    const leaf = segments.at(segments.length - 1) ?? '';
+    return Str.htmlDecode(leaf.trim());
+}
+
 function getAvailableNonPersonalPolicyCategories(policyCategories: OnyxCollection<PolicyCategories>, personalPolicyID: string | undefined) {
     return Object.fromEntries(
         Object.entries(policyCategories ?? {}).filter(([key, categories]) => {
@@ -161,5 +204,7 @@ export {
     isCategoryMissing,
     isCategoryDescriptionRequired,
     getDecodedCategoryName,
+    getDecodedLeafCategoryName,
+    processCategoryNameSegments,
     getAvailableNonPersonalPolicyCategories,
 };
