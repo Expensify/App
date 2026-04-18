@@ -6945,6 +6945,10 @@ const translations = {
                     label: 'Control',
                     description: 'For organizations with advanced requirements.',
                 },
+                submit2026: {
+                    label: 'Submit',
+                    description: 'For employees looking to submit expenses to their employer.',
+                },
             },
             description: "Choose a plan that's right for you. For a detailed list of features and pricing, check out our",
             subscriptionLink: 'plan types and pricing help page',

@@ -881,6 +881,32 @@ function isPaidGroupPolicy(policy: OnyxInputOrEntry<Policy>): boolean {
     return policy?.type === CONST.POLICY.TYPE.TEAM || policy?.type === CONST.POLICY.TYPE.CORPORATE;
 }
 
+function isSubmitPolicy(policy: OnyxInputOrEntry<Policy>): boolean {
+    return policy?.type === CONST.POLICY.TYPE.SUBMIT;
+}
+
+function isPolicyEditor(policy: OnyxEntry<Policy>): boolean {
+    return policy?.role === CONST.POLICY.ROLE.EDITOR;
+}
+
+/**
+ * Returns true if the user can edit workspace settings — admins on any workspace, or editors on Submit workspaces.
+ */
+function canEditWorkspaceSettings(policy: OnyxEntry<Policy>): boolean {
+    return isPolicyAdmin(policy) || (isSubmitPolicy(policy) && isPolicyEditor(policy));
+}
+
+/**
+ * Returns true for any group workspace: paid (Team/Corporate) or Submit.
+ *
+ * Note: not to be confused with `ReportUtils.isGroupPolicy(policyType: string)`,
+ * which excludes Submit. Use this helper when Submit workspaces should be treated
+ * like paid workspaces (e.g. access gating for shared workspace pages).
+ */
+function isGroupPolicy(policy: OnyxInputOrEntry<Policy>): boolean {
+    return isPaidGroupPolicy(policy) || isSubmitPolicy(policy);
+}
+
 function getOwnedPaidPolicies(policies: OnyxCollection<Policy> | null, currentUserAccountID: number | undefined): Policy[] {
     return Object.values(policies ?? {}).filter((policy): policy is Policy => isPolicyOwner(policy, currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID) && isPaidGroupPolicy(policy));
 }
@@ -2208,6 +2234,10 @@ export {
     isDelayedSubmissionEnabled,
     getCorrectedAutoReportingFrequency,
     isPaidGroupPolicy,
+    isSubmitPolicy,
+    isPolicyEditor,
+    canEditWorkspaceSettings,
+    isGroupPolicy,
     isPendingDeletePolicy,
     isPolicyAdmin,
     isPolicyUser,

@@ -846,6 +846,42 @@ describe('actions/Policy', () => {
             });
         });
 
+        it('creates a Submit workspace with ADVANCED approval mode and correct feature flags', async () => {
+            const policyID = Policy.generatePolicyID();
+            Policy.createWorkspace({
+                policyOwnerEmail: ESH_EMAIL,
+                makeMeAdmin: true,
+                policyName: WORKSPACE_NAME,
+                policyID,
+                engagementChoice: CONST.ONBOARDING_CHOICES.EMPLOYER,
+                introSelected: {choice: CONST.ONBOARDING_CHOICES.EMPLOYER},
+                currentUserAccountIDParam: ESH_ACCOUNT_ID,
+                currentUserEmailParam: ESH_EMAIL,
+                isSelfTourViewed: false,
+                betas: undefined,
+                hasActiveAdminPolicies: false,
+                type: CONST.POLICY.TYPE.SUBMIT,
+            });
+            await waitForBatchedUpdates();
+
+            await TestHelper.getOnyxData({
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                waitForCollectionCallback: false,
+                callback: (policy) => {
+                    expect(policy?.type).toBe(CONST.POLICY.TYPE.SUBMIT);
+                    expect(policy?.role).toBe(CONST.POLICY.ROLE.EDITOR);
+                    expect(policy?.approvalMode).toBe(CONST.POLICY.APPROVAL_MODE.ADVANCED);
+                    expect(policy?.areWorkflowsEnabled).toBe(true);
+                    expect(policy?.areTagsEnabled).toBe(true);
+                    expect(policy?.areDistanceRatesEnabled).toBe(true);
+                    expect(policy?.areCompanyCardsEnabled).toBe(false);
+                    expect(policy?.harvesting?.enabled).toBe(false);
+                    expect(policy?.autoReportingFrequency).toBe(CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE);
+                    expect(policy?.employeeList?.[ESH_EMAIL]?.role).toBe(CONST.POLICY.ROLE.EDITOR);
+                },
+            });
+        });
+
         it('should pass areDistanceRatesEnabled as true when creating workspace with distance rates feature enabled', async () => {
             await Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
             await waitForBatchedUpdates();

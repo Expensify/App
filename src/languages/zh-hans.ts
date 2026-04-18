@@ -6729,6 +6729,10 @@ ${reportName}
                     label: '控制',
                     description: '适用于具有高级需求的组织。',
                 },
+                submit2026: {
+                    label: '提交',
+                    description: '适用于希望向雇主提交费用的员工。',
+                },
             },
             description: '选择适合您的方案。要查看详细的功能和价格列表，请访问我们的',
             subscriptionLink: '方案类型和价格帮助页面',

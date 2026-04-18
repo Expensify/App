@@ -13,7 +13,6 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import useCardFeedErrors from '@hooks/useCardFeedErrors';
 import useConfirmReadyToOpenApp from '@hooks/useConfirmReadyToOpenApp';
-import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useGetReceiptPartnersIntegrationData from '@hooks/useGetReceiptPartnersIntegrationData';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -33,14 +32,14 @@ import {convertToDisplayString} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {
+    canEditWorkspaceSettings,
     canPolicyAccessFeature,
     shouldShowPolicy as checkIfShouldShowPolicy,
     goBackFromInvalidPolicy,
     hasAccountingFeatureConnection,
     hasPolicyCategoriesError,
-    isPaidGroupPolicy,
+    isGroupPolicy,
     isPendingDeletePolicy,
-    isPolicyAdmin,
     isTimeTrackingEnabled,
     shouldShowEmployeeListError,
     shouldShowSyncError,
@@ -94,7 +93,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {translate} = useLocalize();
     const {isBetaEnabled} = usePermissions();
-    const {login} = useCurrentUserPersonalDetails();
+
     const isFocused = useIsFocused();
     const activeRoute = useNavigationState((state) => findFocusedRoute(state)?.name);
     const waitForNavigate = useWaitForNavigation();
@@ -133,7 +132,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
 
     const policyName = policy?.name ?? '';
     const hasPolicyCreationError = policy?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD && !isEmptyObject(policy.errors);
-    const shouldShowProtectedItems = isPolicyAdmin(policy, login);
+    const shouldShowProtectedItems = canEditWorkspaceSettings(policy);
     const shouldDisplayLHB = !shouldUseNarrowLayout;
 
     const accountingConnectionNames = CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES;
@@ -183,8 +182,10 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
     const shouldShowPolicy = checkIfShouldShowPolicy(policy, true, currentUserLogin);
     const isPendingDelete = isPendingDeletePolicy(policy);
     const prevIsPendingDelete = isPendingDeletePolicy(prevPolicy);
+    // While the policy is being fetched (e.g., right after joinAccessiblePolicy), the role is not yet populated,
+    // so checkIfShouldShowPolicy returns false. Suppress NotFound during this loading window.
     // eslint-disable-next-line rulesdir/no-negated-variables
-    const shouldShowNotFoundPage = !shouldShowPolicy && (!isPendingDelete || prevIsPendingDelete);
+    const shouldShowNotFoundPage = !shouldShowPolicy && !policy?.isLoading && (!isPendingDelete || prevIsPendingDelete);
     const shouldShowNavigationTabBar = !shouldShowNotFoundPage;
 
     const fetchPolicyData = () => {
@@ -228,7 +229,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
         },
     ];
 
-    if (isPaidGroupPolicy(policy) && shouldShowProtectedItems) {
+    if (isGroupPolicy(policy) && shouldShowProtectedItems) {
         workspaceMenuItems.push({
             translationKey: 'common.reports',
             icon: expensifyIcons.Document,

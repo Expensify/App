@@ -6847,6 +6847,10 @@ ${reportName}
                     label: 'コントロール',
                     description: '高度な要件を持つ組織向け。',
                 },
+                submit2026: {
+                    label: '提出',
+                    description: '雇用主に経費を提出したい従業員向け。',
+                },
             },
             description: '自分に合ったプランをお選びください。機能と料金の詳細な一覧は、こちらのページをご覧ください',
             subscriptionLink: 'プランの種類と料金のヘルプページ',

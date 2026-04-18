@@ -6960,6 +6960,10 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                     label: 'Contrôle',
                     description: 'Pour les organisations ayant des exigences avancées.',
                 },
+                submit2026: {
+                    label: 'Soumettre',
+                    description: 'Pour les employés souhaitant soumettre des dépenses à leur employeur.',
+                },
             },
             description: 'Choisissez l’offre qui vous convient. Pour une liste détaillée des fonctionnalités et des tarifs, consultez notre',
             subscriptionLink: "page d'aide sur les types de forfaits et les tarifs",

@@ -3,10 +3,12 @@ import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
-import {isControlPolicy} from '@libs/PolicyUtils';
+import {isControlPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import type {Policy} from '@src/types/onyx';
 import HeaderWithBackButton from './HeaderWithBackButton';
@@ -32,6 +34,7 @@ type WorkspaceMemberRoleListProps = {
 function WorkspaceMemberRoleList({role, policy, navigateBackTo = undefined, isLoading = false, onSelectRole = () => {}}: WorkspaceMemberRoleListProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const [session] = useOnyx(ONYXKEYS.SESSION);
 
     const workspaceRoles: ListItemType[] = [
         {
@@ -58,7 +61,18 @@ function WorkspaceMemberRoleList({role, policy, navigateBackTo = undefined, isLo
     ];
 
     const isPolicyControl = isControlPolicy(policy);
-    const availableRoleItems: ListItemType[] = workspaceRoles.filter((item) => isPolicyControl || item.value !== CONST.POLICY.ROLE.AUDITOR);
+    // Only strict admins can assign the ADMIN role. Editors (e.g. Submit workspace owners) can
+    // invite/manage members but must not be able to escalate anyone to admin.
+    const canAssignAdminRole = isPolicyAdmin(policy, session?.email);
+    const availableRoleItems: ListItemType[] = workspaceRoles.filter((item) => {
+        if (item.value === CONST.POLICY.ROLE.AUDITOR && !isPolicyControl) {
+            return false;
+        }
+        if (item.value === CONST.POLICY.ROLE.ADMIN && !canAssignAdminRole) {
+            return false;
+        }
+        return true;
+    });
 
     return (
         <>
