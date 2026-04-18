@@ -66,7 +66,14 @@ describe('useReportPreviewSenderID', () => {
         });
 
         initOnyxDerivedValues();
-        jest.spyOn(PersonalDetailsUtils, 'getPersonalDetailByEmail').mockImplementation((email) => personalDetails[mockedEmailToID[email]]);
+        jest.spyOn(PersonalDetailsUtils, 'getPersonalDetailByEmail').mockImplementation((email?: string) => {
+            if (!email) {
+                return undefined;
+            }
+
+            const accountID = mockedEmailToID[email];
+            return accountID ? personalDetails[accountID] : undefined;
+        });
     });
 
     beforeEach(() => {

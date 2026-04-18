@@ -249,4 +249,22 @@ describe('getReportPreviewSenderID', () => {
 
         expect(result).toBe(OWNER_ACCOUNT_ID);
     });
+
+    it('ignores attendees with undefined email without crashing', () => {
+        const result = getReportPreviewSenderID({
+            ...baseParams,
+            iouReport: makeIOUReport(),
+            action: makeAction(),
+            iouActions: [makeIOUAction(CONST.IOU.REPORT_ACTION_TYPE.CREATE)],
+            transactions: [
+                makeTransaction(100, 'user@test.com', {
+                    comment: {
+                        attendees: [{avatarUrl: '', displayName: 'Login Only User'}],
+                    },
+                }),
+            ],
+        });
+
+        expect(result).toBe(OWNER_ACCOUNT_ID);
+    });
 });
