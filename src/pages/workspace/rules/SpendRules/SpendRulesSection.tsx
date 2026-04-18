@@ -8,6 +8,7 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Section from '@components/Section';
 import Text from '@components/Text';
 import useConfirmModal from '@hooks/useConfirmModal';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useDefaultFundID from '@hooks/useDefaultFundID';
 import useEnvironment from '@hooks/useEnvironment';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
@@ -21,7 +22,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {getSpendRuleFormValuesFromCardRule} from '@libs/actions/Card';
 import {openPolicyExpensifyCardsPage} from '@libs/actions/Policy/Policy';
 import {filterInactiveCards, getCardDescriptionForSearchTable, getSelectedCardsSharedCurrency} from '@libs/CardUtils';
-import {convertToBackendAmount, convertToDisplayString} from '@libs/CurrencyUtils';
+import {convertToBackendAmount} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import variables from '@styles/variables';
@@ -47,6 +48,7 @@ function getSpendRuleSummaryParts(
     selectedCurrency: string | undefined,
     actionLabel: string,
     translate: ReturnType<typeof useLocalize>['translate'],
+    convertToDisplayString: ReturnType<typeof useCurrencyListActions>['convertToDisplayString'],
 ): SpendRuleSummaryPart[] {
     const summaryParts: SpendRuleSummaryPart[] = [];
     const merchantNames = getTruncatedSpendRuleSummary(formValues.merchantNames, (summary, count) => translate('workspace.rules.spendRules.summaryMoreCount', {summary, count}));
@@ -76,6 +78,7 @@ function getSpendRuleSummaryParts(
 }
 
 function SpendRulesSection({policyID}: SpendRulesSectionProps) {
+    const {convertToDisplayString} = useCurrencyListActions();
     const {translate, localeCompare} = useLocalize();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -148,7 +151,7 @@ function SpendRulesSection({policyID}: SpendRulesSectionProps) {
                 ruleID,
                 actionLabel,
                 cardSummary,
-                summaryParts: getSpendRuleSummaryParts(formValues, selectedCurrency, actionLabel, translate),
+                summaryParts: getSpendRuleSummaryParts(formValues, selectedCurrency, actionLabel, translate, convertToDisplayString),
                 isBlock: formValues.restrictionAction === CONST.SPEND_RULES.ACTION.BLOCK,
                 created: cardRule.created,
                 pendingAction: cardRule.pendingAction,
