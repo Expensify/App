@@ -61,6 +61,9 @@ type ExpensifyCardSettingsBase = {
     /** Number of the bank account used for the card settlement */
     paymentBankAccountNumber?: string;
 
+    /** Whether Expensify Card cash back should be applied toward payment of the Expensify bill */
+    shouldApplyCashbackToBill?: boolean;
+
     /** Collections of form field errors */
     errorFields?: OnyxCommon.ErrorFields;
 
