@@ -195,7 +195,7 @@ function DropdownButton({
                 // This must be false because we dont want the modal to close if we open the RHP for selections
                 // such as date years
                 shouldCloseWhenBrowserNavigationChanged={false}
-                innerContainerStyle={containerStyles}
+                innerContainerStyle={{...containerStyles, ...styles.p0}}
                 popoverDimensions={{
                     width: actualPopoverWidth,
                     height: CONST.POPOVER_DROPDOWN_MIN_HEIGHT,

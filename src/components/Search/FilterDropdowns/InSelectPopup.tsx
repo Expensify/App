@@ -49,7 +49,8 @@ function inSelector(searchAdvancedFiltersForm: SearchAdvancedFiltersForm | undef
 function InSelectPopup({closeOverlay, updateFilterForm}: InSelectPopupProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const {shouldUseNarrowLayout, isInLandscapeMode} = useResponsiveLayout();
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
+    const {isSmallScreenWidth, isInLandscapeMode} = useResponsiveLayout();
     const {windowHeight} = useWindowDimensions();
     const personalDetails = usePersonalDetails();
     const {options, areOptionsInitialized} = useOptionsList();
@@ -187,7 +188,9 @@ function InSelectPopup({closeOverlay, updateFilterForm}: InSelectPopupProps) {
             onApply={applyChanges}
             resetSentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_RESET_REPORT}
             applySentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY_REPORT}
-            style={[styles.getCommonSelectionListPopoverHeight(itemCount, variables.optionRowHeight, windowHeight, shouldUseNarrowLayout, isInLandscapeMode, true)]}
+            style={[
+                styles.getSelectionListPopoverHeight({itemCount, itemHeight: variables.optionRowHeight, windowHeight, isInLandscapeMode, hasTitle: isSmallScreenWidth, isSearchable: true}),
+            ]}
         >
             <SelectionListWithSections
                 sections={sections}
