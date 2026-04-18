@@ -876,6 +876,30 @@ describe('getViolationsOnyxData', () => {
 
             expect(result.value).toEqual([]);
         });
+        it('should not return allTagLevelsRequired when only non-required dependent tag levels are empty', () => {
+            // Make Department non-required
+            policyTags.Department.required = false;
+            // Transaction has only Region and Project filled, Department (non-required) is empty
+            transaction.tag = 'Africa::Project1';
+
+            // hasDependentTags = true to exercise getTagViolationsForDependentTags
+            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, true, false);
+
+            expect(result.value).not.toContainEqual(expect.objectContaining({name: CONST.VIOLATIONS.ALL_TAG_LEVELS_REQUIRED}));
+        });
+
+        it('should return allTagLevelsRequired when a required dependent tag level is empty', () => {
+            // Make Project non-required, keep Region and Department required
+            policyTags.Project.required = false;
+            // Transaction has only Region filled, Department (required) is empty
+            transaction.tag = 'Africa';
+
+            // hasDependentTags = true to exercise getTagViolationsForDependentTags
+            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, true, false);
+
+            expect(result.value).toContainEqual(expect.objectContaining({name: CONST.VIOLATIONS.ALL_TAG_LEVELS_REQUIRED}));
+        });
+
         it('should return missingTag when all dependent tags are enabled in the policy but are not set in the transaction', () => {
             const missingDepartmentTag = {...missingTagViolation, data: {tagName: 'Department'}};
             const missingRegionTag = {...missingTagViolation, data: {tagName: 'Region'}};
@@ -1162,6 +1186,33 @@ describe('getViolationsOnyxData', () => {
                 transaction.taxAmount = undefined;
                 transaction.taxValue = undefined;
                 transactionViolations = [taxOutOfPolicyViolation];
+                const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
+                expect(result.value).not.toContainEqual(taxOutOfPolicyViolation);
+            });
+        });
+
+        describe('time and per diem requests', () => {
+            it('should not add taxOutOfPolicy violation for time requests even with tax data and tax tracking disabled', () => {
+                policy.tax = {trackingEnabled: false};
+                transaction.taxCode = 'SOME_TAX';
+                transaction.comment = {...transaction.comment, type: CONST.TRANSACTION.TYPE.TIME};
+                const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
+                expect(result.value).not.toContainEqual(taxOutOfPolicyViolation);
+            });
+
+            it('should not add taxOutOfPolicy violation for per diem requests even with tax data and tax tracking disabled', () => {
+                policy.tax = {trackingEnabled: false};
+                transaction.taxCode = 'SOME_TAX';
+                transaction.comment = {...transaction.comment, type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT, customUnit: {name: CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL}};
+                const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
+                expect(result.value).not.toContainEqual(taxOutOfPolicyViolation);
+            });
+
+            it('should not add taxOutOfPolicy violation for time requests even with invalid taxCode and tax tracking enabled', () => {
+                policy.tax = {trackingEnabled: true};
+                transaction.taxCode = 'UNKNOWN_TAX';
+                transaction.comment = {...transaction.comment, type: CONST.TRANSACTION.TYPE.TIME};
+                policy.taxRates = {name: 'Taxes', defaultExternalID: 'TAX_10', defaultValue: '10%', foreignTaxDefault: 'TAX_10', taxes: {TAX_10: {name: '10%', value: '10%'}}};
                 const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
                 expect(result.value).not.toContainEqual(taxOutOfPolicyViolation);
             });
