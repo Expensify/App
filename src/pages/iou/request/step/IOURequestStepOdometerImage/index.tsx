@@ -14,6 +14,7 @@ import useFilesValidation from '@hooks/useFilesValidation';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useRestartOnOdometerImagesFailure from '@hooks/useRestartOnOdometerImagesFailure';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWebCamera from '@hooks/useWebCamera';
@@ -53,6 +54,8 @@ function IOURequestStepOdometerImage({
     const actionValue: IOUAction = action ?? CONST.IOU.ACTION.CREATE;
     const iouTypeValue: IOUType = iouType ?? CONST.IOU.TYPE.REQUEST;
     const isTransactionDraft = shouldUseTransactionDraft(actionValue, iouTypeValue);
+
+    useRestartOnOdometerImagesFailure(transaction, reportID, iouTypeValue, actionValue);
     const dropBlobUrlsRef = useRef<string[]>([]);
     const shouldRevokeOnUnmountRef = useRef(true);
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout because drag and drop is not supported on mobile.

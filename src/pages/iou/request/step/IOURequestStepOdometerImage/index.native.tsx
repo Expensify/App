@@ -23,6 +23,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNativeCamera from '@hooks/useNativeCamera';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {getMimeTypeFromUri} from '@libs/fileDownload/FileUtils';
 import getPhotoSource from '@libs/fileDownload/getPhotoSource';
 import getReceiptsUploadFolderPath from '@libs/getReceiptsUploadFolderPath';
 import {shouldUseTransactionDraft} from '@libs/IOUUtils';
@@ -184,7 +185,7 @@ function IOURequestStepOdometerImage({
                                     {
                                         uri: source,
                                         name: filename,
-                                        type: (file as FileObject | undefined)?.type ?? 'image/jpeg',
+                                        type: (file as FileObject | undefined)?.type ?? getMimeTypeFromUri(source) ?? 'image/jpeg',
                                         size: (file as FileObject | undefined)?.size,
                                     },
                                     isTransactionDraft,

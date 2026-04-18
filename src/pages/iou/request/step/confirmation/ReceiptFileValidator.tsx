@@ -20,6 +20,7 @@ type ReceiptFileValidatorProps = {
     initialTransactionID: string;
     reportID: string;
     action: IOUAction;
+    backToReport: string | undefined;
     report: OnyxEntry<Report>;
     participants: Participant[];
     draftTransactionIDs: string[] | undefined;
@@ -38,6 +39,7 @@ function ReceiptFileValidator({
     initialTransactionID,
     reportID,
     action,
+    backToReport,
     report,
     participants,
     draftTransactionIDs,
@@ -104,7 +106,7 @@ function ReceiptFileValidator({
             }
             removeDraftTransactionsByIDs(draftTransactionIDs, true);
             if (requestType) {
-                navigateToStartMoneyRequestStep(requestType, iouType, initialTransactionID, reportID);
+                navigateToStartMoneyRequestStep(requestType, iouType, initialTransactionID, reportID, action, backToReport);
             }
         });
 
@@ -112,7 +114,7 @@ function ReceiptFileValidator({
             ignore = true;
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps -- draftTransactionIDs is intentionally excluded to avoid re-running on draft changes
-    }, [requestType, iouType, initialTransactionID, reportID, action, report, transactions, participants, onReceiptFilesChange]);
+    }, [requestType, iouType, initialTransactionID, reportID, action, backToReport, report, transactions, participants, onReceiptFilesChange]);
 
     return null;
 }

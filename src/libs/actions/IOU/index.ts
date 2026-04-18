@@ -1244,7 +1244,7 @@ function setMoneyRequestDistance(transactionID: string, distanceAsFloat: number,
 /**
  * Set the odometer readings for a transaction
  */
-function setMoneyRequestOdometerReading(transactionID: string, startReading: number, endReading: number, isDraft: boolean) {
+function setMoneyRequestOdometerReading(transactionID: string, startReading: number | null, endReading: number | null, isDraft: boolean) {
     Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
         comment: {
             odometerStart: startReading,

@@ -13,7 +13,7 @@ import {endSpan} from '@libs/telemetry/activeSpans';
 import withFullTransactionOrNotFound from '@pages/iou/request/step/withFullTransactionOrNotFound';
 import withWritableReportOrNotFound from '@pages/iou/request/step/withWritableReportOrNotFound';
 import {updateLastLocationPermissionPrompt} from '@userActions/IOU';
-import {checkIfScanFileCanBeRead, replaceReceipt} from '@userActions/IOU/Receipt';
+import {checkIfLocalFileIsAccessible, replaceReceipt} from '@userActions/IOU/Receipt';
 import {removeDraftTransactionsByIDs, removeTransactionReceipt} from '@userActions/TransactionEdit';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -122,7 +122,7 @@ function IOURequestStepScan({
                     isAllScanFilesCanBeRead = false;
                 };
 
-                return checkIfScanFileCanBeRead(item.receipt?.filename, itemReceiptPath, item.receipt?.type, () => {}, onFailure);
+                return checkIfLocalFileIsAccessible(item.receipt?.filename, itemReceiptPath, item.receipt?.type, () => {}, onFailure);
             }),
         ).then(() => {
             if (isAllScanFilesCanBeRead) {

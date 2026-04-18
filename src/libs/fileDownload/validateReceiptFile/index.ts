@@ -1,4 +1,4 @@
-import {checkIfScanFileCanBeRead} from '@libs/actions/IOU/Receipt';
+import {checkIfLocalFileIsAccessible} from '@libs/actions/IOU/Receipt';
 import type {ReceiptSource} from '@src/types/onyx/Transaction';
 
 /**
@@ -12,7 +12,7 @@ function validateReceiptFile(
     onSuccess: (file: File) => void,
     onFailure: () => void,
 ): Promise<void | File> | undefined {
-    return checkIfScanFileCanBeRead(receiptFilename, receiptPath, receiptType, onSuccess, onFailure);
+    return checkIfLocalFileIsAccessible(receiptFilename, receiptPath, receiptType, onSuccess, onFailure);
 }
 
 export default validateReceiptFile;
