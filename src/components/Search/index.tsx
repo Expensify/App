@@ -17,6 +17,7 @@ import useLocalize from '@hooks/useLocalize';
 import useMultipleSnapshots from '@hooks/useMultipleSnapshots';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchHighlightAndScroll from '@hooks/useSearchHighlightAndScroll';
@@ -82,6 +83,7 @@ import type {SearchColumnType, SearchParams, SearchQueryJSON, SelectedTransactio
 
 type SearchProps = {
     queryJSON: SearchQueryJSON;
+    hasFilterBars?: boolean;
     onSearchListScroll?: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
     contentContainerStyle?: StyleProp<ViewStyle>;
     searchResults?: SearchResults;
@@ -212,6 +214,7 @@ function prepareTransactionsList(
 
 function Search({
     queryJSON,
+    hasFilterBars,
     searchResults,
     onSearchListScroll,
     contentContainerStyle,
@@ -283,7 +286,7 @@ function Search({
     const {isOffline} = useNetwork();
     const prevIsOffline = usePrevious(isOffline);
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
-    const {shouldUseNarrowLayout, isSmallScreenWidth, isLargeScreenWidth} = useResponsiveLayout();
+    const {shouldUseNarrowLayout, isSmallScreenWidth, isLargeScreenWidth, isInLandscapeMode} = useResponsiveLayout();
     const styles = useThemeStyles();
     const navigation = useNavigation<PlatformStackNavigationProp<SearchFullscreenNavigatorParamList>>();
     const isFocused = useIsFocused();
@@ -300,7 +303,7 @@ function Search({
         suggestedSearches,
     } = useSearchStateContext();
 
-    const {setSelectedTransactions, clearSelectedTransactions, setShouldShowActionsBarLoading, setShouldShowSelectAllMatchingItems, selectAllMatchingItems, setShouldResetSearchQuery} =
+    const {setSelectedTransactions, clearSelectedTransactions, setShouldShowFiltersBarLoading, setShouldShowSelectAllMatchingItems, selectAllMatchingItems, setShouldResetSearchQuery} =
         useSearchActionsContext();
     const [offset, setOffset] = useState(0);
 
@@ -317,6 +320,7 @@ function Search({
     const [allReportMetadata] = useOnyx(ONYXKEYS.COLLECTION.REPORT_METADATA);
     const [visibleColumns] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {selector: columnsSelector});
     const [customCardNames] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES);
+    const [nonPersonalAndWorkspaceCards] = useOnyx(ONYXKEYS.DERIVED.NON_PERSONAL_AND_WORKSPACE_CARD_LIST);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
 
     const isExpenseReportType = type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
@@ -327,6 +331,8 @@ function Search({
         canEvict: false,
         selector: selectFilteredReportActions,
     });
+
+    const {policyForMovingExpenses} = usePolicyForMovingExpenses();
 
     const [cardFeeds, cardFeedsResult] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER);
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
@@ -494,19 +500,19 @@ function Search({
 
     const prevIsSearchResultEmpty = usePrevious(isSearchResultsEmpty);
 
-    const [baseFilteredData, filteredDataLength, allDataLength] = useMemo(() => {
-        if (shouldDeferHeavySearchWork || searchResults === undefined || !isDataLoaded) {
-            return [[], 0, 0];
+    const {baseFilteredData, filteredDataLength, allDataLength, hasDeletedTransaction} = useMemo(() => {
+        if (shouldDeferHeavySearchWork || searchResults === undefined || !isDataLoaded || !searchResults.data) {
+            return {baseFilteredData: [], filteredDataLength: 0, allDataLength: 0, hasDeletedTransaction: false};
         }
 
         // Group-by option cannot be used for chats or tasks
         const isChat = type === CONST.SEARCH.DATA_TYPES.CHAT;
         const isTask = type === CONST.SEARCH.DATA_TYPES.TASK;
         if (validGroupBy && (isChat || isTask)) {
-            return [[], 0, 0];
+            return {baseFilteredData: [], filteredDataLength: 0, allDataLength: 0, hasDeletedTransaction: false};
         }
 
-        const [filteredData1, allLength] = getSections({
+        const [filteredData1, allLength, hasDeletedTransactionFromSections] = getSections({
             type,
             data: searchResults.data,
             policies,
@@ -528,8 +534,14 @@ function Search({
             allReportMetadata,
             conciergeReportID,
             onyxPersonalDetailsList,
+            policyForMovingExpenses,
         });
-        return [filteredData1, filteredData1.length, allLength];
+        return {
+            baseFilteredData: filteredData1,
+            filteredDataLength: filteredData1.length,
+            allDataLength: allLength,
+            hasDeletedTransaction: hasDeletedTransactionFromSections,
+        };
     }, [
         currentSearchKey,
         isOffline,
@@ -554,6 +566,7 @@ function Search({
         allReportMetadata,
         conciergeReportID,
         onyxPersonalDetailsList,
+        policyForMovingExpenses,
     ]);
 
     // For group-by views, each grouped item has a transactionsQueryJSON with a hash pointing to a separate snapshot
@@ -638,8 +651,8 @@ function Search({
 
     useEffect(() => {
         /** We only want to display the skeleton for the status filters the first time we load them for a specific data type */
-        setShouldShowActionsBarLoading(shouldShowLoadingState && lastSearchType !== type);
-    }, [lastSearchType, setShouldShowActionsBarLoading, shouldShowLoadingState, type]);
+        setShouldShowFiltersBarLoading(shouldShowLoadingState && lastSearchType !== type);
+    }, [lastSearchType, setShouldShowFiltersBarLoading, shouldShowLoadingState, type]);
 
     const shouldRetrySearchWithTotalsOrGroupedRef = useRef(false);
 
@@ -1076,7 +1089,7 @@ function Search({
             if (isTransactionGroupListItemType(item) && !isTransactionReportGroupListItemType(item) && item.transactionsQueryJSON) {
                 handleSearch({
                     queryJSON: item.transactionsQueryJSON,
-                    searchKey: currentSearchKey,
+                    searchKey: undefined,
                     offset: 0,
                     shouldCalculateTotals: false,
                     isLoading: false,
@@ -1507,7 +1520,7 @@ function Search({
             <SearchRowSkeleton
                 shouldAnimate
                 onLayout={onSkeletonLayout}
-                containerStyle={shouldUseNarrowLayout ? styles.searchListContentContainerStyles : styles.mt3}
+                containerStyle={shouldUseNarrowLayout ? styles.searchListContentContainerStyles(!!hasFilterBars) : styles.mt3}
                 reasonAttributes={deferredWorkReasonAttributes}
             />
         );
@@ -1523,7 +1536,7 @@ function Search({
         const isInvalidQuery = searchRequestResponseStatusCode === CONST.JSON_CODE.INVALID_SEARCH_QUERY;
         cancelNavigationSpans();
         return (
-            <View style={[shouldUseNarrowLayout ? styles.searchListContentContainerStyles : styles.mt3, styles.flex1]}>
+            <View style={[shouldUseNarrowLayout ? styles.searchListContentContainerStyles(!!hasFilterBars) : styles.mt3, styles.flex1]}>
                 <FullPageErrorView
                     shouldShow
                     containerStyle={styles.searchBlockingErrorViewContainer}
@@ -1550,12 +1563,14 @@ function Search({
     ) {
         cancelNavigationSpans();
         return (
-            <View style={[shouldUseNarrowLayout ? styles.searchListContentContainerStyles : styles.mt3, styles.flex1]}>
+            <View style={[styles.flex1, isInLandscapeMode ? undefined : [shouldUseNarrowLayout ? styles.searchListContentContainerStyles(!!hasFilterBars) : styles.mt3]]}>
                 <EmptySearchView
                     similarSearchHash={similarSearchHash}
                     type={type}
                     hasResults={searchResults?.search?.hasResults}
                     queryJSON={queryJSON}
+                    onScroll={onSearchListScroll}
+                    contentContainerStyle={isInLandscapeMode ? styles.searchListContentContainerStyles(!!hasFilterBars) : undefined}
                 />
             </View>
         );
@@ -1594,7 +1609,7 @@ function Search({
                     onLayout={onLayoutChart}
                     scrollEventThrottle={CONST.TIMING.MIN_SMOOTH_SCROLL_EVENT_THROTTLE}
                 >
-                    <View style={[shouldUseNarrowLayout ? styles.searchListContentContainerStyles : styles.mt3, styles.mh4, styles.mb4, styles.flex1]}>
+                    <View style={[shouldUseNarrowLayout ? styles.searchListContentContainerStyles(!!hasFilterBars) : styles.mt3, styles.mh4, styles.mb4, styles.flex1]}>
                         <SearchChartWrapper
                             title={chartTitle}
                             groupBy={validGroupBy}
@@ -1628,7 +1643,7 @@ function Search({
                     shouldPreventLongPressRow={isChat || isTask}
                     SearchTableHeader={
                         !shouldShowTableHeader ? undefined : (
-                            <View style={[!isTask && styles.pr8, styles.flex1]}>
+                            <View style={[!isTask && styles.pr9, styles.flex1]}>
                                 <SearchTableHeader
                                     canSelectMultiple={canSelectMultiple}
                                     columns={columnsToShow}
@@ -1647,12 +1662,13 @@ function Search({
                                     shouldShowSorting
                                     groupBy={validGroupBy}
                                     isExpenseReportView={isExpenseReportType}
+                                    isActionColumnWide={isTask || hasDeletedTransaction}
                                 />
                             </View>
                         )
                     }
                     contentContainerStyle={[styles.pb3, contentContainerStyle]}
-                    containerStyle={[styles.pv0, !tableHeaderVisible && !isSmallScreenWidth && styles.pt3]}
+                    containerStyle={[styles.pv0, !tableHeaderVisible && !isSmallScreenWidth && styles.pt1]}
                     shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
                     onScroll={onSearchListScroll}
                     onEndReachedThreshold={0.75}
@@ -1677,7 +1693,9 @@ function Search({
                     shouldAnimate={type === CONST.SEARCH.DATA_TYPES.EXPENSE}
                     newTransactions={newTransactions}
                     hasLoadedAllTransactions={hasLoadedAllTransactions}
-                    customCardNames={customCardNames}
+                    policyForMovingExpenses={policyForMovingExpenses}
+                    nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}
+                    isActionColumnWide={isTask || hasDeletedTransaction}
                 />
             </Animated.View>
         </SearchScopeProvider>

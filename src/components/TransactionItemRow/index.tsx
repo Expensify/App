@@ -23,6 +23,7 @@ import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {getCompanyCardDescription} from '@libs/CardUtils';
 import {isCategoryMissing} from '@libs/CategoryUtils';
 import getBase62ReportID from '@libs/getBase62ReportID';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
@@ -43,6 +44,7 @@ import {
     getCreated as getTransactionCreated,
     hasMissingSmartscanFields,
     isAmountMissing,
+    isDeletedTransaction as isDeletedTransactionUtil,
     isMerchantMissing,
     isScanning,
     isTimeRequest,
@@ -51,7 +53,7 @@ import {
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
-import type {PersonalDetails, Policy, Report, ReportAction, TransactionViolation} from '@src/types/onyx';
+import type {CardList, PersonalDetails, Policy, Report, ReportAction, TransactionViolation} from '@src/types/onyx';
 import type {SearchTransactionAction} from '@src/types/onyx/SearchResults';
 import CategoryCell from './DataCells/CategoryCell';
 import ChatBubbleCell from './DataCells/ChatBubbleCell';
@@ -87,9 +89,6 @@ type TransactionWithOptionalSearchFields = TransactionWithOptionalHighlight & {
 
     /** formatted "merchant" value used for displaying and sorting on Reports page */
     formattedMerchant?: string;
-
-    /** Whether the card feed has been deleted */
-    isCardFeedDeleted?: boolean;
 
     /** information about whether to show merchant, that is provided on Reports page */
     shouldShowMerchant?: boolean;
@@ -142,10 +141,12 @@ type TransactionItemRowProps = {
     onArrowRightPress?: () => void;
     isHover?: boolean;
     shouldShowArrowRightOnNarrowLayout?: boolean;
-    customCardNames?: Record<number, string>;
     reportActions?: ReportAction[];
     checkboxSentryLabel?: string;
     isLargeScreenWidth?: boolean;
+    policyForMovingExpenses?: Policy;
+    nonPersonalAndWorkspaceCards?: CardList;
+    isActionColumnWide?: boolean;
 };
 
 const EMPTY_ACTIVE_STYLE: StyleProp<ViewStyle> = [];
@@ -195,10 +196,12 @@ function TransactionItemRow({
     onArrowRightPress,
     isHover = false,
     shouldShowArrowRightOnNarrowLayout,
-    customCardNames,
     reportActions,
     checkboxSentryLabel,
+    nonPersonalAndWorkspaceCards = {},
     isLargeScreenWidth: isLargeScreenWidthProp,
+    policyForMovingExpenses,
+    isActionColumnWide: isActionColumnWideProp,
 }: TransactionItemRowProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -210,6 +213,7 @@ function TransactionItemRow({
     const expensicons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const transactionThreadReportID = reportActions ? getIOUActionForTransactionID(reportActions, transactionItem.transactionID)?.childReportID : undefined;
+    const isDeletedTransaction = isDeletedTransactionUtil(transactionItem);
 
     const isDateColumnWide = dateColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE;
     const isSubmittedColumnWide = submittedColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE;
@@ -256,24 +260,11 @@ function TransactionItemRow({
     }, [transactionItem, translate, report]);
 
     const exchangeRateMessage = getExchangeRate(transactionItem, report?.currency);
-
-    const cardName = useMemo(() => {
-        if (transactionItem.cardName === CONST.EXPENSE.TYPE.CASH_CARD_NAME) {
-            return '';
-        }
-        if (transactionItem.isCardFeedDeleted && transactionItem.cardID) {
-            return translate('workspace.companyCards.deletedCard');
-        }
-        const cardID = transactionItem.cardID;
-        if (cardID && customCardNames?.[cardID]) {
-            return customCardNames[cardID];
-        }
-        return transactionItem.cardName;
-    }, [transactionItem.cardID, transactionItem.cardName, transactionItem.isCardFeedDeleted, customCardNames, translate]);
-
+    const cardName = getCompanyCardDescription(translate, transactionItem?.cardName, transactionItem?.cardID, nonPersonalAndWorkspaceCards);
     const transactionAttendees = useMemo(() => getAttendees(transactionItem, currentUserPersonalDetails), [transactionItem, currentUserPersonalDetails]);
 
-    const shouldShowAttendees = shouldShowAttendeesUtils(CONST.IOU.TYPE.SUBMIT, policy) && transactionAttendees.length > 0;
+    const isUnreported = transactionItem.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
+    const shouldShowAttendees = shouldShowAttendeesUtils(CONST.IOU.TYPE.SUBMIT, isUnreported ? policyForMovingExpenses : policy) && transactionAttendees.length > 0;
 
     const totalPerAttendee = useMemo(() => {
         const attendeesCount = transactionAttendees.length ?? 0;
@@ -427,14 +418,14 @@ function TransactionItemRow({
                 return (
                     <View
                         key={column}
-                        style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.ACTION)]}
+                        style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.ACTION, {isActionColumnWide: isActionColumnWideProp ?? isDeletedTransaction})]}
                     >
                         {!!transactionItem.action && (
                             <ActionCell
                                 action={transactionItem.action}
                                 isSelected={isSelected}
                                 isChildListItem={isReportItemChild}
-                                goToItem={onButtonPress}
+                                onButtonPress={onButtonPress}
                                 isLoading={isActionLoading}
                                 reportID={transactionItem.reportID}
                                 policyID={report?.policyID}
@@ -667,6 +658,7 @@ function TransactionItemRow({
                         <StatusCell
                             stateNum={transactionItem.report?.stateNum}
                             statusNum={transactionItem.report?.statusNum}
+                            isDeleted={isDeletedTransaction}
                         />
                     </View>
                 );
@@ -754,7 +746,7 @@ function TransactionItemRow({
                                 </View>
                             )}
                         </View>
-                        {!!shouldShowArrowRightOnNarrowLayout && (
+                        {!!shouldShowArrowRightOnNarrowLayout && !!onArrowRightPress && (
                             <View style={[styles.justifyContentEnd, styles.alignItemsEnd, styles.mbHalf, styles.ml1]}>
                                 <Icon
                                     src={expensicons.ArrowRight}
@@ -853,24 +845,27 @@ function TransactionItemRow({
                             />
                         </View>
                     )}
-                    {!!isLargeScreenWidth && !!onArrowRightPress && (
-                        <PressableWithFeedback
-                            disabled={!!isDisabled}
-                            onPress={() => onArrowRightPress?.()}
-                            style={[styles.pv2, styles.justifyContentCenter, styles.alignItemsEnd]}
-                            accessibilityRole={CONST.ROLE.BUTTON}
-                            accessibilityLabel={CONST.ROLE.BUTTON}
-                            sentryLabel={CONST.SENTRY_LABEL.TRANSACTION_ITEM_ROW.ARROW_RIGHT}
-                        >
-                            <Icon
-                                src={expensicons.ArrowRight}
-                                fill={theme.icon}
-                                additionalStyles={!isHover && styles.opacitySemiTransparent}
-                                width={variables.iconSizeNormal}
-                                height={variables.iconSizeNormal}
-                            />
-                        </PressableWithFeedback>
-                    )}
+                    {!!isLargeScreenWidth &&
+                        (onArrowRightPress ? (
+                            <PressableWithFeedback
+                                disabled={!!isDisabled}
+                                onPress={() => onArrowRightPress?.()}
+                                style={[styles.pv2, styles.justifyContentCenter, styles.alignItemsEnd]}
+                                accessibilityRole={CONST.ROLE.BUTTON}
+                                accessibilityLabel={CONST.ROLE.BUTTON}
+                                sentryLabel={CONST.SENTRY_LABEL.TRANSACTION_ITEM_ROW.ARROW_RIGHT}
+                            >
+                                <Icon
+                                    src={expensicons.ArrowRight}
+                                    fill={theme.icon}
+                                    additionalStyles={!isHover && styles.opacitySemiTransparent}
+                                    width={variables.iconSizeNormal}
+                                    height={variables.iconSizeNormal}
+                                />
+                            </PressableWithFeedback>
+                        ) : (
+                            <View style={[styles.p3Half, styles.pl0half, styles.pr0half, {width: variables.iconSizeNormal}]} />
+                        ))}
                 </View>
                 {shouldShowErrors && (
                     <TransactionItemRowRBR

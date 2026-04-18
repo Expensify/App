@@ -33,6 +33,8 @@ type SelectPaymentTypeParams = {
     event: KYCFlowEvent;
     iouPaymentType: PaymentMethodType;
     triggerKYCFlow: TriggerKYCFlow;
+    /** The policy corresponding to iouReport.policyID. Used for billing restriction checks. */
+    expenseReportPolicy: OnyxEntry<Policy>;
     policy: OnyxEntry<Policy>;
     onPress: (params: PaymentActionParams) => void;
     currentAccountID: number;
@@ -220,6 +222,7 @@ const selectPaymentType = (params: SelectPaymentTypeParams) => {
         event,
         iouPaymentType,
         triggerKYCFlow,
+        expenseReportPolicy,
         policy,
         onPress,
         currentAccountID,
@@ -236,7 +239,7 @@ const selectPaymentType = (params: SelectPaymentTypeParams) => {
         ownerBillingGracePeriodEnd,
         delegateEmail,
     } = params;
-    if (policy && shouldRestrictUserBillableActions(policy.id, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed)) {
+    if (policy && shouldRestrictUserBillableActions(policy.id, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, policy)) {
         Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
         return;
     }
@@ -256,6 +259,7 @@ const selectPaymentType = (params: SelectPaymentTypeParams) => {
         } else {
             approveMoneyRequest({
                 expenseReport: iouReport,
+                expenseReportPolicy,
                 policy,
                 currentUserAccountIDParam: currentAccountID,
                 currentUserEmailParam: currentEmail,
