@@ -7616,6 +7616,11 @@ ${reportName}
                 [CONST.SEARCH.WITHDRAWAL_TYPE.EXPENSIFY_CARD]: 'Expensify カード',
                 [CONST.SEARCH.WITHDRAWAL_TYPE.REIMBURSEMENT]: '払い戻し',
             },
+            withdrawalStatus: {
+                [CONST.SEARCH.SETTLEMENT_STATUS.PENDING]: '保留中',
+                [CONST.SEARCH.SETTLEMENT_STATUS.CLEARED]: '決済済み',
+                [CONST.SEARCH.SETTLEMENT_STATUS.FAILED]: '失敗',
+            },
             is: 'は',
             action: {
                 [CONST.SEARCH.ACTION_FILTERS.SUBMIT]: '送信',
@@ -7654,6 +7659,7 @@ ${reportName}
         noTag: 'タグなし',
         expenseType: '経費の種類',
         withdrawalType: '出金の種類',
+        withdrawalStatus: '出金ステータス',
         recentSearches: '最近の検索',
         recentChats: '最近のチャット',
         searchIn: '検索対象',

@@ -7487,6 +7487,11 @@ ${reportName}
                 [CONST.SEARCH.WITHDRAWAL_TYPE.EXPENSIFY_CARD]: 'Expensify 卡',
                 [CONST.SEARCH.WITHDRAWAL_TYPE.REIMBURSEMENT]: '报销',
             },
+            withdrawalStatus: {
+                [CONST.SEARCH.SETTLEMENT_STATUS.PENDING]: '待处理',
+                [CONST.SEARCH.SETTLEMENT_STATUS.CLEARED]: '已清算',
+                [CONST.SEARCH.SETTLEMENT_STATUS.FAILED]: '失败',
+            },
             is: '是',
             action: {
                 [CONST.SEARCH.ACTION_FILTERS.SUBMIT]: '提交',
@@ -7525,6 +7530,7 @@ ${reportName}
         noTag: '无标签',
         expenseType: '报销类型',
         withdrawalType: '提款类型',
+        withdrawalStatus: '提款状态',
         recentSearches: '最近搜索',
         recentChats: '最近聊天',
         searchIn: '搜索范围',

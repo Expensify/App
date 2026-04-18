@@ -17,7 +17,7 @@ import TextInputPopup from '@components/Search/FilterDropdowns/TextInputPopup';
 import UserSelectPopup from '@components/Search/FilterDropdowns/UserSelectPopup';
 import WorkspaceSelectPopup from '@components/Search/FilterDropdowns/WorkspaceSelectPopup';
 import {useSearchStateContext} from '@components/Search/SearchContext';
-import type {ReportFieldKey, SearchAmountFilterKeys, SearchDateFilterKeys, SearchFilterKey, SearchQueryJSON} from '@components/Search/types';
+import type {ReportFieldKey, SearchAmountFilterKeys, SearchDateFilterKeys, SearchFilterKey, SearchQueryJSON, SearchWithdrawalStatus} from '@components/Search/types';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -320,11 +320,16 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON): UseSearchFiltersBarRes
             case FILTER_KEYS.HAS:
             case FILTER_KEYS.IS:
             case FILTER_KEYS.EXPENSE_TYPE:
+            case FILTER_KEYS.WITHDRAWAL_STATUS:
             case FILTER_KEYS.STATUS: {
                 let formValues = searchAdvancedFiltersForm[filterKey] ?? [];
 
                 if (filterKey === FILTER_KEYS.STATUS) {
                     formValues = Array.isArray(formValues) ? formValues : formValues.split(',');
+                }
+
+                if (filterKey === FILTER_KEYS.WITHDRAWAL_STATUS && !Array.isArray(formValues)) {
+                    formValues = [formValues];
                 }
 
                 const items = getMultiSelectFilterOptions(filterKey, type, translate);
@@ -342,7 +347,7 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON): UseSearchFiltersBarRes
                                 return;
                             }
                             const update: Partial<SearchAdvancedFiltersForm> = {};
-                            update[filterKey] = selectedItems.map((item) => item.value) as ExpenseTypeValues & HasFilterValues & IsFilterValues;
+                            update[filterKey] = selectedItems.map((item) => item.value) as ExpenseTypeValues & HasFilterValues & (IsFilterValues & SearchWithdrawalStatus);
                             updateFilterForm(update);
                         }}
                     />

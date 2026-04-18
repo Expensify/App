@@ -7741,6 +7741,11 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 [CONST.SEARCH.WITHDRAWAL_TYPE.EXPENSIFY_CARD]: 'Carte Expensify',
                 [CONST.SEARCH.WITHDRAWAL_TYPE.REIMBURSEMENT]: 'Remboursement',
             },
+            withdrawalStatus: {
+                [CONST.SEARCH.SETTLEMENT_STATUS.PENDING]: 'En attente',
+                [CONST.SEARCH.SETTLEMENT_STATUS.CLEARED]: 'Réglé',
+                [CONST.SEARCH.SETTLEMENT_STATUS.FAILED]: 'Échoué',
+            },
             is: 'Est',
             action: {
                 [CONST.SEARCH.ACTION_FILTERS.SUBMIT]: 'Soumettre',
@@ -7785,6 +7790,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         noTag: 'Aucun tag',
         expenseType: 'Type de dépense',
         withdrawalType: 'Type de retrait',
+        withdrawalStatus: 'Statut du retrait',
         recentSearches: 'Recherches récentes',
         recentChats: 'Discussions récentes',
         searchIn: 'Rechercher dans',

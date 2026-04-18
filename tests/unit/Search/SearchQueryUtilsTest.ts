@@ -412,6 +412,30 @@ describe('SearchQueryUtils', () => {
             expect(result).toEqual('type:expense withdrawalType:expensify-card');
         });
 
+        test('with single withdrawal status filter', () => {
+            const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                type: 'expense',
+                status: CONST.SEARCH.STATUS.EXPENSE.ALL,
+                withdrawalStatus: [CONST.SEARCH.SETTLEMENT_STATUS.PENDING],
+            };
+
+            const result = buildQueryStringFromFilterFormValues(filterValues);
+
+            expect(result).toEqual('type:expense withdrawalStatus:pending');
+        });
+
+        test('with multi-value withdrawal status filter', () => {
+            const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                type: 'expense',
+                status: CONST.SEARCH.STATUS.EXPENSE.ALL,
+                withdrawalStatus: [CONST.SEARCH.SETTLEMENT_STATUS.PENDING, CONST.SEARCH.SETTLEMENT_STATUS.CLEARED, CONST.SEARCH.SETTLEMENT_STATUS.FAILED],
+            };
+
+            const result = buildQueryStringFromFilterFormValues(filterValues);
+
+            expect(result).toEqual('type:expense withdrawalStatus:pending,cleared,failed');
+        });
+
         test('with withdrawn filter', () => {
             const filterValues: Partial<SearchAdvancedFiltersForm> = {
                 type: 'expense',
