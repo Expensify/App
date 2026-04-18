@@ -1,7 +1,7 @@
 import Onyx from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import {shouldUseUpdateNetSuiteTokens} from '@libs/actions/connections';
-import {connectPolicyToNetSuite, updateNetSuiteTokens} from '@libs/actions/connections/NetSuiteCommands';
+import {connectPolicyToNetSuite, updateNetSuiteTokens, updateNetSuiteTravelInvoicingPayableAccount, updateNetSuiteTravelInvoicingVendor} from '@libs/actions/connections/NetSuiteCommands';
 // eslint-disable-next-line no-restricted-syntax -- this is required to allow mocking
 import * as API from '@libs/API';
 import type {WriteCommand} from '@libs/API/types';
@@ -155,6 +155,62 @@ describe('actions/connections/NetSuite', () => {
         it('returns false for unverified connection without auth error', () => {
             const policy = createPolicy({isAuthError: false, verified: false});
             expect(shouldUseUpdateNetSuiteTokens(policy)).toBe(false);
+        });
+    });
+
+    describe('updateNetSuiteTravelInvoicingVendor', () => {
+        it('writes the UpdateManyPolicyConnectionConfigs command with travelInvoicingVendorID', () => {
+            updateNetSuiteTravelInvoicingVendor(MOCK_POLICY_ID, 'vendor-123', 'old-vendor');
+
+            const {command} = getFirstWriteCall();
+            expect(command).toBe(WRITE_COMMANDS.UPDATE_MANY_POLICY_CONNECTION_CONFIGS);
+
+            const call = writeSpy.mock.calls.at(0);
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- API.write's params argument is typed as a broad union, so narrow to the shape this command sends
+            const params = call?.[1] as {connectionName: string; configUpdate: string; policyID: string};
+            expect(params.policyID).toBe(MOCK_POLICY_ID);
+            expect(params.connectionName).toBe(CONST.POLICY.CONNECTIONS.NAME.NETSUITE);
+            expect(JSON.parse(params.configUpdate)).toEqual({[CONST.NETSUITE_CONFIG.TRAVEL_INVOICING_VENDOR]: 'vendor-123'});
+        });
+
+        it('merges travelInvoicingVendorID optimistically onto the NetSuite options config', () => {
+            updateNetSuiteTravelInvoicingVendor(MOCK_POLICY_ID, 'vendor-123', 'old-vendor');
+
+            const {onyxData} = getFirstWriteCall();
+            const optimisticUpdate = onyxData?.optimisticData?.at(0);
+            expect(optimisticUpdate?.key).toBe(`${ONYXKEYS.COLLECTION.POLICY}${MOCK_POLICY_ID}`);
+
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- optimisticData values are typed as unknown; narrow to the partial Policy shape this update writes
+            const value = optimisticUpdate?.value as {connections: {netsuite: {options: {config: Record<string, unknown>}}}};
+            expect(value.connections.netsuite.options.config[CONST.NETSUITE_CONFIG.TRAVEL_INVOICING_VENDOR]).toBe('vendor-123');
+        });
+    });
+
+    describe('updateNetSuiteTravelInvoicingPayableAccount', () => {
+        it('writes the UpdateManyPolicyConnectionConfigs command with travelInvoicingPayableAccountID', () => {
+            updateNetSuiteTravelInvoicingPayableAccount(MOCK_POLICY_ID, 'account-123', 'old-account');
+
+            const {command} = getFirstWriteCall();
+            expect(command).toBe(WRITE_COMMANDS.UPDATE_MANY_POLICY_CONNECTION_CONFIGS);
+
+            const call = writeSpy.mock.calls.at(0);
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- API.write's params argument is typed as a broad union, so narrow to the shape this command sends
+            const params = call?.[1] as {connectionName: string; configUpdate: string; policyID: string};
+            expect(params.policyID).toBe(MOCK_POLICY_ID);
+            expect(params.connectionName).toBe(CONST.POLICY.CONNECTIONS.NAME.NETSUITE);
+            expect(JSON.parse(params.configUpdate)).toEqual({[CONST.NETSUITE_CONFIG.TRAVEL_INVOICING_PAYABLE_ACCOUNT]: 'account-123'});
+        });
+
+        it('merges travelInvoicingPayableAccountID optimistically onto the NetSuite options config', () => {
+            updateNetSuiteTravelInvoicingPayableAccount(MOCK_POLICY_ID, 'account-123', 'old-account');
+
+            const {onyxData} = getFirstWriteCall();
+            const optimisticUpdate = onyxData?.optimisticData?.at(0);
+            expect(optimisticUpdate?.key).toBe(`${ONYXKEYS.COLLECTION.POLICY}${MOCK_POLICY_ID}`);
+
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- optimisticData values are typed as unknown; narrow to the partial Policy shape this update writes
+            const value = optimisticUpdate?.value as {connections: {netsuite: {options: {config: Record<string, unknown>}}}};
+            expect(value.connections.netsuite.options.config[CONST.NETSUITE_CONFIG.TRAVEL_INVOICING_PAYABLE_ACCOUNT]).toBe('account-123');
         });
     });
 });

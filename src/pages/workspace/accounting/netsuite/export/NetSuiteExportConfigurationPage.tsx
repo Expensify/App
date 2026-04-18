@@ -5,9 +5,12 @@ import ConnectionLayout from '@components/ConnectionLayout';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
 import {updateNetSuiteAllowForeignCurrency, updateNetSuiteExportToNextOpenPeriod} from '@libs/actions/connections/NetSuiteCommands';
+import {getCardSettings} from '@libs/CardUtils';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
@@ -18,6 +21,7 @@ import {
     findSelectedTaxAccountWithDefaultSelect,
     settingsPendingAction,
 } from '@libs/PolicyUtils';
+import {getIsTravelInvoicingEnabled, getTravelInvoicingCardSettingsKey} from '@libs/TravelInvoicingUtils';
 import goBackFromExportConnection from '@navigation/helpers/goBackFromExportConnection';
 import type {PlatformStackRouteProp} from '@navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@navigation/types';
@@ -61,10 +65,16 @@ function NetSuiteExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
         return goBackFromExportConnection(shouldGoBackToSpecificRoute, backTo);
     };
 
-    const {subsidiaryList, receivableList, taxAccountsList, items} = policy?.connections?.netsuite?.options?.data ?? {};
+    const {subsidiaryList, receivableList, taxAccountsList, items, payableList} = policy?.connections?.netsuite?.options?.data ?? {};
     const selectedSubsidiary = (subsidiaryList ?? []).find((subsidiary) => subsidiary.internalID === config?.subsidiaryID);
     const selectedReceivable = findSelectedBankAccountWithDefaultSelect(receivableList, config?.receivableAccount);
     const selectedItem = findSelectedInvoiceItemWithDefaultSelect(items, config?.invoiceItem);
+    const travelPayableAccount = payableList?.find((account) => account.id === config?.travelInvoicingPayableAccountID);
+
+    const workspaceAccountID = useWorkspaceAccountID(policyID);
+    const [cardSettings] = useOnyx(getTravelInvoicingCardSettingsKey(workspaceAccountID));
+    const travelSettings = getCardSettings(cardSettings, CONST.TRAVEL.PROGRAM_TRAVEL_US);
+    const isTravelInvoicingEnabled = isBetaEnabled(CONST.BETAS.TRAVEL_INVOICING) && getIsTravelInvoicingEnabled(travelSettings);
 
     let invoiceItemValue = translate('workspace.netsuite.invoiceItem.values.create.label');
     if (config?.invoiceItemPreference === CONST.NETSUITE_INVOICE_ITEM_PREFERENCE.CREATE) {
@@ -173,6 +183,14 @@ function NetSuiteExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
             onPress: !policyID ? undefined : () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_TAX_POSTING_ACCOUNT_SELECT.getRoute(policyID)),
             subscribedSettings: [CONST.NETSUITE_CONFIG.TAX_POSTING_ACCOUNT],
             shouldHide: shouldHideTaxPostingAccountSelect(isBetaEnabled(CONST.BETAS.NETSUITE_USA_TAX), selectedSubsidiary, config),
+        },
+        {
+            type: 'menuitem',
+            title: travelPayableAccount?.name,
+            description: translate('workspace.netsuite.travelInvoicing'),
+            onPress: !policyID ? undefined : () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_TRAVEL_INVOICING_CONFIGURATION.getRoute(policyID)),
+            subscribedSettings: [CONST.NETSUITE_CONFIG.TRAVEL_INVOICING_VENDOR, CONST.NETSUITE_CONFIG.TRAVEL_INVOICING_PAYABLE_ACCOUNT],
+            shouldHide: !isTravelInvoicingEnabled,
         },
         {
             type: 'toggle',
