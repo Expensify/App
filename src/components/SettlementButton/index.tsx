@@ -219,7 +219,7 @@ function SettlementButton({
                     if (policy?.achAccount?.bankAccountID === undefined) {
                         return;
                     }
-                    pressLockedBankAccount(policy?.achAccount?.bankAccountID, translate, conciergeReportID);
+                    pressLockedBankAccount(policy?.achAccount?.bankAccountID, translate, conciergeReportID, delegateEmail);
                     navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas);
                 });
                 return true;
@@ -254,6 +254,7 @@ function SettlementButton({
             isSelfTourViewed,
             betas,
             amountOwed,
+            delegateEmail,
         ],
     );
 
