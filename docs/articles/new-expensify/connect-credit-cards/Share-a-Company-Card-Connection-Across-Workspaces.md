@@ -20,7 +20,7 @@ If you haven’t set up a feed yet, learn how to connect to your bank:
 
 ## Who can share a company card feed across Workspaces 
 
-Workspace Admins with an email on a private domain can share a company card feed. 
+Workspace Admins with an email on a private domain can share a company card feed. When a workspace feed is shared across workspaces, it is converted to a domain feed. If you do not have a private domain email, you will be prompted to add one before sharing.
 
  - On the **Collect** plan, you can add one company card feed per Workspace. 
  - On the **Control** plan, you can add unlimited company card feeds. 

@@ -37,6 +37,8 @@ You can manage the following options:
 - **Remove card feed**  
   Remove the card feed from the workspace and unassign all cards. If the feed is not connected to another workspace, it is permanently deleted.
   
+  For Expensify Cards, disabling the **Expensify Card** toggle on a workspace removes that workspace's members from the feed. If it is the last workspace linked to the feed, the feed is deprovisioned entirely.
+  
   **Note:** Removing the feed or unassigning a card deletes all imported expenses in the **Unreported** and **Draft** states.
 
 ![Tap settings to open the card feed settings page]({{site.url}}/assets/images/Direct Feed HelpDot Images/directfeeds_12.png){:width="100%"}
