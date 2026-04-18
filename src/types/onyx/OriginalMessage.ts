@@ -481,6 +481,12 @@ type OriginalMessagePolicyChangeLog = {
     /** New value for max expense amount with no receipt */
     newMaxExpenseAmountNoReceipt?: number;
 
+    /** Old value for max expense amount with no itemized receipt */
+    oldMaxExpenseAmountNoItemizedReceipt?: number;
+
+    /** New value for max expense amount with no itemized receipt */
+    newMaxExpenseAmountNoItemizedReceipt?: number;
+
     /** Currency of the policy */
     currency?: string;
 
