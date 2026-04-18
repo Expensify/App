@@ -6,19 +6,22 @@ import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {TravelNavigatorParamList} from '@libs/Navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
-type PublicDomainErrorPageProps = StackScreenProps<TravelNavigatorParamList, typeof SCREENS.TRAVEL.PUBLIC_DOMAIN_ERROR>;
+type DynamicPublicDomainErrorPageProps = StackScreenProps<TravelNavigatorParamList, typeof SCREENS.TRAVEL.DYNAMIC_PUBLIC_DOMAIN_ERROR>;
 
-function PublicDomainErrorPage({route}: PublicDomainErrorPageProps) {
+function DynamicPublicDomainErrorPage({route}: DynamicPublicDomainErrorPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const policyID = route.params.policyID;
+    const policyID = route.params?.policyID;
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.TRAVEL_PUBLIC_DOMAIN_ERROR.path);
 
     return (
         <AccessOrNotFoundWrapper policyID={policyID}>
@@ -28,7 +31,7 @@ function PublicDomainErrorPage({route}: PublicDomainErrorPageProps) {
             >
                 <HeaderWithBackButton
                     title={translate('travel.header')}
-                    onBackButtonPress={() => Navigation.goBack(route.params.backTo)}
+                    onBackButtonPress={() => Navigation.goBack(backPath)}
                 />
                 <View style={[styles.flex1]}>
                     <View style={[styles.mt3, styles.mr5, styles.ml5]}>
@@ -52,4 +55,4 @@ function PublicDomainErrorPage({route}: PublicDomainErrorPageProps) {
     );
 }
 
-export default PublicDomainErrorPage;
+export default DynamicPublicDomainErrorPage;

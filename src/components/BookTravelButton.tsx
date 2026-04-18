@@ -13,6 +13,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {cleanupTravelProvisioningSession, requestTravelAccess, setTravelProvisioningNextStep} from '@libs/actions/Travel';
 import {isEmailPublicDomain} from '@libs/LoginUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {openTravelDotLink} from '@libs/openTravelDotLink';
 import {areTravelPersonalDetailsMissing} from '@libs/PersonalDetailsUtils';
@@ -20,7 +21,7 @@ import {getActivePolicies, getAdminsPrivateEmailDomains, isPaidGroupPolicy} from
 import colors from '@styles/theme/colors';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type WithSentryLabel from '@src/types/utils/SentryLabel';
 import Button from './Button';
@@ -48,7 +49,10 @@ const navigateToAcceptTerms = (domain: string, isUserValidated?: boolean, policy
     // Remove the previous provision session information if any is cached.
     cleanupTravelProvisioningSession();
     if (isUserValidated) {
-        Navigation.navigate(ROUTES.TRAVEL_TCS.getRoute(domain, policyID, Navigation.getActiveRoute()));
+        const activeRouteParams = new URLSearchParams(Navigation.getActiveRoute().split('?').at(1));
+        const travelTCSRoute = activeRouteParams.has('policyID') ? DYNAMIC_ROUTES.TRAVEL_TCS.getRoute(domain) : DYNAMIC_ROUTES.TRAVEL_TCS.getRoute(domain, policyID);
+
+        Navigation.navigate(createDynamicRoute(travelTCSRoute));
         return;
     }
     Navigation.navigate(ROUTES.TRAVEL_VERIFY_ACCOUNT.getRoute(domain, policyID, Navigation.getActiveRoute()));
@@ -100,6 +104,14 @@ function BookTravelButton({
         setShouldScrollToBottom?.(true);
     }, [errorMessage, setShouldScrollToBottom]);
 
+    const navigateToPublicDomainError = () => {
+        const activeRoute = Navigation.getActiveRoute();
+        const activeRouteParams = new URLSearchParams(activeRoute.split('?').at(1));
+        const route = activeRouteParams.has('policyID') ? DYNAMIC_ROUTES.TRAVEL_PUBLIC_DOMAIN_ERROR.path : DYNAMIC_ROUTES.TRAVEL_PUBLIC_DOMAIN_ERROR.getRoute(activePolicyID);
+
+        Navigation.navigate(createDynamicRoute(route));
+    };
+
     const bookATrip = () => {
         setErrorMessage('');
 
@@ -122,18 +134,18 @@ function BookTravelButton({
 
         // Spotnana requires a private domain email for travel booking
         if (isEmailPublicDomain(primaryContactMethod)) {
-            Navigation.navigate(ROUTES.TRAVEL_PUBLIC_DOMAIN_ERROR.getRoute(activePolicyID, Navigation.getActiveRoute()));
+            navigateToPublicDomainError();
             return;
         }
 
         const adminDomains = getAdminsPrivateEmailDomains(policy);
         if (adminDomains.length === 0) {
-            Navigation.navigate(ROUTES.TRAVEL_PUBLIC_DOMAIN_ERROR.getRoute(activePolicyID, Navigation.getActiveRoute()));
+            navigateToPublicDomainError();
             return;
         }
 
         if (groupPaidPolicies.length < 1) {
-            Navigation.navigate(ROUTES.TRAVEL_UPGRADE.getRoute(Navigation.getActiveRoute()));
+            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.TRAVEL_UPGRADE.path));
             return;
         }
 
@@ -168,9 +180,11 @@ function BookTravelButton({
             // Always validate OTP first before proceeding to address details or terms acceptance
             if (!isUserValidated) {
                 // Determine where to redirect after OTP validation
+                const activeRouteParams = new URLSearchParams(Navigation.getActiveRoute().split('?').at(1));
+                const nextStepRoute = activeRouteParams.has('policyID') ? DYNAMIC_ROUTES.TRAVEL_TCS.getRoute(domain) : DYNAMIC_ROUTES.TRAVEL_TCS.getRoute(domain, activePolicyID);
                 const nextStep = isEmptyObject(policy?.address)
                     ? ROUTES.TRAVEL_WORKSPACE_ADDRESS.getRoute(domain, activePolicyID, Navigation.getActiveRoute())
-                    : ROUTES.TRAVEL_TCS.getRoute(domain, activePolicyID);
+                    : createDynamicRoute(nextStepRoute);
                 setTravelProvisioningNextStep(nextStep);
                 Navigation.navigate(ROUTES.TRAVEL_VERIFY_ACCOUNT.getRoute(domain, activePolicyID, Navigation.getActiveRoute()));
                 return;
@@ -182,7 +196,7 @@ function BookTravelButton({
                 navigateToAcceptTerms(domain, !!isUserValidated, activePolicyID ?? undefined);
             }
         } else {
-            Navigation.navigate(ROUTES.TRAVEL_DOMAIN_SELECTOR.getRoute(activePolicyID, Navigation.getActiveRoute()));
+            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.TRAVEL_DOMAIN_SELECTOR.path));
         }
     };
 

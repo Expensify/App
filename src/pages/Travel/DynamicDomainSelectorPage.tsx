@@ -9,18 +9,20 @@ import SelectionList from '@components/SelectionList';
 import TravelDomainListItem from '@components/SelectionList/ListItem/TravelDomainListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {cleanupTravelProvisioningSession, setTravelProvisioningNextStep} from '@libs/actions/Travel';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {TravelNavigatorParamList} from '@libs/Navigation/types';
 import {getAdminsPrivateEmailDomains, getMostFrequentEmailDomain} from '@libs/PolicyUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
@@ -29,9 +31,9 @@ type DomainItem = ListItem & {
     isRecommended: boolean;
 };
 
-type DomainSelectorPageProps = StackScreenProps<TravelNavigatorParamList, typeof SCREENS.TRAVEL.DOMAIN_SELECTOR>;
+type DynamicDomainSelectorPageProps = StackScreenProps<TravelNavigatorParamList, typeof SCREENS.TRAVEL.DYNAMIC_DOMAIN_SELECTOR>;
 
-function DomainSelectorPage({route}: DomainSelectorPageProps) {
+function DynamicDomainSelectorPage({route}: DynamicDomainSelectorPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
@@ -43,6 +45,7 @@ function DomainSelectorPage({route}: DomainSelectorPageProps) {
 
     const domains = useMemo(() => getAdminsPrivateEmailDomains(policy), [policy]);
     const recommendedDomain = useMemo(() => getMostFrequentEmailDomain(domains, policy), [policy, domains]);
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.TRAVEL_DOMAIN_SELECTOR.path);
 
     const data: DomainItem[] = useMemo(() => {
         return domains.map((domain) => {
@@ -58,12 +61,13 @@ function DomainSelectorPage({route}: DomainSelectorPageProps) {
 
     const provisionTravelForDomain = () => {
         const domain = selectedDomain ?? CONST.TRAVEL.DEFAULT_DOMAIN;
+        const activeRouteParams = new URLSearchParams(Navigation.getActiveRoute().split('?').at(1));
+        const travelTCSRoute = activeRouteParams.has('policyID') ? DYNAMIC_ROUTES.TRAVEL_TCS.getRoute(domain) : DYNAMIC_ROUTES.TRAVEL_TCS.getRoute(domain, policyID);
+
         // Always validate OTP first before proceeding to address details or terms acceptance
         if (!isUserValidated) {
             // Determine where to redirect after OTP validation
-            const nextStep = isEmptyObject(policy?.address)
-                ? ROUTES.TRAVEL_WORKSPACE_ADDRESS.getRoute(domain, policyID, Navigation.getActiveRoute())
-                : ROUTES.TRAVEL_TCS.getRoute(domain, policyID);
+            const nextStep = isEmptyObject(policy?.address) ? ROUTES.TRAVEL_WORKSPACE_ADDRESS.getRoute(domain, policyID, Navigation.getActiveRoute()) : createDynamicRoute(travelTCSRoute);
             setTravelProvisioningNextStep(nextStep);
             Navigation.navigate(ROUTES.TRAVEL_VERIFY_ACCOUNT.getRoute(domain, policyID));
             return;
@@ -73,7 +77,7 @@ function DomainSelectorPage({route}: DomainSelectorPageProps) {
             Navigation.navigate(ROUTES.TRAVEL_WORKSPACE_ADDRESS.getRoute(domain, policyID, Navigation.getActiveRoute()));
         } else {
             cleanupTravelProvisioningSession();
-            Navigation.navigate(ROUTES.TRAVEL_TCS.getRoute(domain, policyID));
+            Navigation.navigate(createDynamicRoute(travelTCSRoute));
         }
     };
 
@@ -85,7 +89,7 @@ function DomainSelectorPage({route}: DomainSelectorPageProps) {
             >
                 <HeaderWithBackButton
                     title={translate('travel.domainSelector.title')}
-                    onBackButtonPress={() => Navigation.goBack(route.params.backTo)}
+                    onBackButtonPress={() => Navigation.goBack(backPath)}
                 />
                 <Text style={[styles.mt3, styles.mr5, styles.mb5, styles.ml5]}>{translate('travel.domainSelector.subtitle')}</Text>
                 <View style={[styles.optionsListSectionHeader]}>
@@ -112,4 +116,4 @@ function DomainSelectorPage({route}: DomainSelectorPageProps) {
     );
 }
 
-export default DomainSelectorPage;
+export default DynamicDomainSelectorPage;
