@@ -21,16 +21,12 @@ import type OriginalMessage from '@src/types/onyx/OriginalMessage';
 import type {OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
 import type en from './en';
 import type {
-    AddBudgetParams,
-    AddedOrDeletedPolicyReportFieldParams,
-    AddOrDeletePolicyCustomUnitRateParams,
     ChangeFieldParams,
     ConciergeBrokenCardConnectionParams,
     ConnectionNameParams,
     CreatedReportForUnapprovedTransactionsParams,
     DelegateRoleParams,
     DeleteActionParams,
-    DeleteBudgetParams,
     DeleteConfirmationParams,
     EditActionParams,
     ExportAgainModalDescriptionParams,
@@ -57,17 +53,8 @@ import type {
     SyncStageNameConnectionsParams,
     UnshareParams,
     UnsupportedFormulaValueErrorParams,
-    UpdatedBudgetParams,
-    UpdatedPolicyApprovalRuleParams,
-    UpdatedPolicyCategoryMaxAmountNoReceiptParams,
-    UpdatedPolicyCurrencyDefaultTaxParams,
-    UpdatedPolicyCustomTaxNameParams,
-    UpdatedPolicyForeignCurrencyDefaultTaxParams,
-    UpdatedPolicyManualApprovalThresholdParams,
     UpdatedTheDistanceMerchantParams,
     UpdatedTheRequestParams,
-    UpdatePolicyCustomUnitDefaultCategoryParams,
-    UpdatePolicyCustomUnitParams,
     UpdateRoleParams,
     UserIsAlreadyMemberParams,
     ViolationsIncreasedDistanceParams,
@@ -7027,7 +7014,7 @@ Voeg meer bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             `${approverName} (${approverEmail}) toegevoegd als fiatteur voor het veld ${field} "${name}"`,
         deleteApprovalRule: (approverEmail: string, approverName: string, field: string, name: string) =>
             `heeft ${approverName} (${approverEmail}) verwijderd als fiatteur voor het veld ${field} „${name}”`,
-        updateApprovalRule: ({field, name, newApproverEmail, newApproverName, oldApproverEmail, oldApproverName}: UpdatedPolicyApprovalRuleParams) => {
+        updateApprovalRule: (field: string, name: string, newApproverEmail: string, newApproverName: string | undefined, oldApproverEmail: string, oldApproverName: string | undefined) => {
             const formatApprover = (displayName?: string, email?: string) => (displayName ? `${displayName} (${email})` : email);
             return `heeft de fiatteur voor het ${field} „${name}” gewijzigd in ${formatApprover(newApproverName, newApproverEmail)} (voorheen ${formatApprover(oldApproverName, oldApproverEmail)})`;
         },
@@ -7076,7 +7063,7 @@ Voeg meer bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             }
             return `heeft de categorie „${categoryName}” gewijzigd naar ${newValue} (voorheen ${oldValue})`;
         },
-        updateCategoryMaxAmountNoItemizedReceipt: ({categoryName, oldValue, newValue}: UpdatedPolicyCategoryMaxAmountNoReceiptParams) => {
+        updateCategoryMaxAmountNoItemizedReceipt: (categoryName: string, oldValue: string | undefined, newValue: string) => {
             if (!oldValue) {
                 return `heeft de categorie "${categoryName}" bijgewerkt door Gespecificeerde bonnetten te wijzigen in ${newValue}`;
             }
@@ -7103,7 +7090,7 @@ Voeg meer bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             }
             return `heeft de tag ‘${tagName}’ in de lijst ‘${tagListName}’ bijgewerkt door een ${updatedField} met de waarde ‘${newValue}’ toe te voegen`;
         },
-        updateCustomUnit: ({customUnitName, newValue, oldValue, updatedField}: UpdatePolicyCustomUnitParams) =>
+        updateCustomUnit: (customUnitName: string, newValue: string, oldValue: string, updatedField: string) =>
             `heeft de ${customUnitName} ${updatedField} gewijzigd naar "${newValue}" (voorheen "${oldValue}")`,
         updateCustomUnitTaxEnabled: (newValue: boolean) => `${newValue ? 'ingeschakeld' : 'uitgeschakeld'} belastingregistratie op afstandstarieven`,
         addCustomUnitRate: (customUnitName: string, rateName: string) => `heeft een nieuw ${customUnitName}-tarief "${rateName}" toegevoegd`,
@@ -7124,7 +7111,7 @@ Voeg meer bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         updatedCustomUnitRateEnabled: (customUnitName: string, customUnitRateName: string, newValue: boolean) => {
             return `${newValue ? 'ingeschakeld' : 'uitgeschakeld'} het ${customUnitName}-tarief "${customUnitRateName}"`;
         },
-        deleteCustomUnitRate: ({customUnitName, rateName}: AddOrDeletePolicyCustomUnitRateParams) => `heeft het tarief „${rateName}” van de eenheid „${customUnitName}” verwijderd`,
+        deleteCustomUnitRate: (customUnitName: string, rateName: string) => `heeft het tarief „${rateName}” van de eenheid „${customUnitName}” verwijderd`,
         updateReportFieldDefaultValue: (defaultValue?: string, fieldName?: string) => `stel de standaardwaarde van rapportveld "${fieldName}" in op "${defaultValue}"`,
         addedReportFieldOption: (fieldName: string, optionName: string) => `heeft de optie ‘${optionName}’ toegevoegd aan het rapportveld ‘${fieldName}’`,
         removedReportFieldOption: (fieldName: string, optionName: string) => `heeft de optie "${optionName}" verwijderd uit het rapportveld "${fieldName}"`,
@@ -7179,7 +7166,7 @@ Voeg meer bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         downgradedWorkspace: 'heeft deze workspace teruggezet naar het Collect-abonnement',
         updatedAuditRate: (oldAuditRate: number, newAuditRate: number) =>
             `heeft het percentage rapporten dat willekeurig voor handmatige goedkeuring wordt doorgestuurd gewijzigd naar ${Math.round(newAuditRate * 100)}% (voorheen ${Math.round(oldAuditRate * 100)}%)`,
-        updatedManualApprovalThreshold: ({oldLimit, newLimit}: UpdatedPolicyManualApprovalThresholdParams) =>
+        updatedManualApprovalThreshold: (oldLimit: string, newLimit: string) =>
             `heeft de handmatige goedkeuringslimiet voor alle declaraties gewijzigd naar ${newLimit} (voorheen ${oldLimit})`,
         updatedFeatureEnabled: ({enabled, featureName}: {enabled: boolean; featureName: string}) => {
             switch (featureName) {
@@ -7282,11 +7269,9 @@ Voeg meer bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 ? `heeft de gemachtigde betaler gewijzigd in „${newReimburser}” (voorheen „${previousReimburser}”)`
                 : `heeft de gemachtigde betaler gewijzigd naar ‘${newReimburser}’`,
         updateReimbursementEnabled: (enabled: boolean) => `${enabled ? 'ingeschakeld' : 'uitgeschakeld'} terugbetalingen`,
-        updateCustomTaxName: ({oldName, newName}: UpdatedPolicyCustomTaxNameParams) => `de aangepaste belastingnaam gewijzigd in "${newName}" (voorheen "${oldName}")`,
-        updateCurrencyDefaultTax: ({oldName, newName}: UpdatedPolicyCurrencyDefaultTaxParams) =>
-            `heeft het standaardbelastingtarief van de werkruimtevaluta gewijzigd in "${newName}" (voorheen "${oldName}")`,
-        updateForeignCurrencyDefaultTax: ({oldName, newName}: UpdatedPolicyForeignCurrencyDefaultTaxParams) =>
-            `heeft het standaardbelastingtarief voor vreemde valuta gewijzigd in '${newName}' (voorheen '${oldName}')`,
+        updateCustomTaxName: (oldName: string, newName: string) => `de aangepaste belastingnaam gewijzigd in "${newName}" (voorheen "${oldName}")`,
+        updateCurrencyDefaultTax: (oldName: string, newName: string) => `heeft het standaardbelastingtarief van de werkruimtevaluta gewijzigd in "${newName}" (voorheen "${oldName}")`,
+        updateForeignCurrencyDefaultTax: (oldName: string, newName: string) => `heeft het standaardbelastingtarief voor vreemde valuta gewijzigd in '${newName}' (voorheen '${oldName}')`,
         addTax: (taxName: string) => `heeft de belasting ‘${taxName}’ toegevoegd`,
         deleteTax: (taxName: string) => `heeft de belasting ‘${taxName}’ verwijderd`,
         updateTax: (oldValue?: string | boolean | number, taxName?: string, updatedField?: string, newValue?: string | boolean | number) => {
@@ -7325,14 +7310,14 @@ Voeg meer bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         updateTagListRequired: (tagListsName: string, isRequired: boolean) => `heeft taglijst "${tagListsName}" gewijzigd naar ${isRequired ? 'vereist' : 'niet vereist'}`,
         importTags: 'geïmporteerde labels uit een spreadsheet',
         deletedAllTags: 'alle tags verwijderd',
-        updateCustomUnitDefaultCategory: ({customUnitName, newValue, oldValue}: UpdatePolicyCustomUnitDefaultCategoryParams) =>
+        updateCustomUnitDefaultCategory: (customUnitName: string, newValue?: string, oldValue?: string) =>
             `heeft de standaardcategorie voor ${customUnitName} gewijzigd in „${newValue}” ${oldValue ? `(eerder "${oldValue}")` : ''}`,
         importCustomUnitRates: (customUnitName: string) => `geïmporteerde tarieven voor aangepaste eenheid "${customUnitName}"`,
         updateCustomUnitSubRate: (customUnitName: string, customUnitRateName: string, customUnitSubRateName: string, oldValue: string, newValue: string, updatedField: string) =>
             `heeft "${customUnitName}" tarief "${customUnitRateName}" subtarief "${customUnitSubRateName}" ${updatedField} gewijzigd naar "${newValue}" (voorheen "${oldValue}")`,
         removedCustomUnitSubRate: (customUnitName: string, customUnitRateName: string, removedSubRateName: string) =>
             `heeft subtarief „${removedSubRateName}” verwijderd uit tarief „${customUnitRateName}” van eenheid „${customUnitName}”`,
-        addBudget: ({frequency, entityName, entityType, shared, individual, notificationThreshold}: AddBudgetParams) => {
+        addBudget: (frequency: string, entityName: string, entityType: string, shared?: string, individual?: string, notificationThreshold?: number) => {
             const thresholdSuffix = typeof notificationThreshold === 'number' ? `met een meldingsdrempel van "${notificationThreshold}%"` : '';
             if (typeof shared !== 'undefined' && typeof individual !== 'undefined') {
                 return `heeft ${frequency} individueel budget „${individual}” en ${frequency} gedeeld budget „${shared}”${thresholdSuffix} toegevoegd aan de ${entityType} „${entityName}”`;
@@ -7342,18 +7327,18 @@ Voeg meer bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             }
             return `heeft ${frequency} gedeeld budget van "${shared}"${thresholdSuffix} toegevoegd aan de ${entityType} "${entityName}"`;
         },
-        updateBudget: ({
-            entityType,
-            entityName,
-            oldFrequency,
-            newFrequency,
-            oldIndividual,
-            newIndividual,
-            oldShared,
-            newShared,
-            oldNotificationThreshold,
-            newNotificationThreshold,
-        }: UpdatedBudgetParams) => {
+        updateBudget: (
+            entityType: string,
+            entityName: string,
+            oldFrequency?: string,
+            newFrequency?: string,
+            oldIndividual?: string,
+            newIndividual?: string,
+            oldShared?: string,
+            newShared?: string,
+            oldNotificationThreshold?: number,
+            newNotificationThreshold?: number,
+        ) => {
             const frequencyChanged = !!(newFrequency && oldFrequency !== newFrequency);
             const sharedChanged = !!(newShared && oldShared !== newShared);
             const individualChanged = !!(newIndividual && oldIndividual !== newIndividual);
@@ -7388,7 +7373,7 @@ Voeg meer bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             }
             return `bijgewerkt budget voor de ${entityType} "${entityName}": ${changesList.join('; ')}`;
         },
-        deleteBudget: ({entityType, entityName, frequency, individual, shared, notificationThreshold}: DeleteBudgetParams) => {
+        deleteBudget: (entityType: string, entityName: string, frequency?: string, individual?: string, shared?: string, notificationThreshold?: number) => {
             const thresholdSuffix = typeof notificationThreshold === 'number' ? `met een meldingsdrempel van "${notificationThreshold}%"` : '';
             if (shared && individual) {
                 return `heeft ${frequency} gedeeld budget van „${shared}” en individueel budget van „${individual}”${thresholdSuffix} verwijderd uit de ${entityType} „${entityName}”`;
@@ -7453,7 +7438,7 @@ Voeg meer bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             `${enabled ? 'ingeschakeld' : 'uitgeschakeld'} kaarthouders om kaarttransacties te verwijderen voor kaartfeed "${feedName}"`,
         updatedCardFeedStatementPeriod: (feedName: string, newValue?: string, previousValue?: string) =>
             `heeft de einddag van de afrekenperiode van kaartfeed "${feedName}" gewijzigd${newValue ? ` naar "${newValue}"` : ''}${previousValue ? ` (voorheen "${previousValue}")` : ''}`,
-        addedReportField: ({fieldType, fieldName, defaultValue}: AddedOrDeletedPolicyReportFieldParams) =>
+        addedReportField: (fieldType: string, fieldName?: string, defaultValue?: string) =>
             `heeft ${fieldType}-rapportveld "${fieldName}" toegevoegd${defaultValue ? ` met standaardwaarde "${defaultValue}"` : ''}`,
     },
     roomMembersPage: {

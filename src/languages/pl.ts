@@ -21,16 +21,12 @@ import type OriginalMessage from '@src/types/onyx/OriginalMessage';
 import type {OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
 import type en from './en';
 import type {
-    AddBudgetParams,
-    AddedOrDeletedPolicyReportFieldParams,
-    AddOrDeletePolicyCustomUnitRateParams,
     ChangeFieldParams,
     ConciergeBrokenCardConnectionParams,
     ConnectionNameParams,
     CreatedReportForUnapprovedTransactionsParams,
     DelegateRoleParams,
     DeleteActionParams,
-    DeleteBudgetParams,
     DeleteConfirmationParams,
     EditActionParams,
     ExportAgainModalDescriptionParams,
@@ -57,17 +53,8 @@ import type {
     SyncStageNameConnectionsParams,
     UnshareParams,
     UnsupportedFormulaValueErrorParams,
-    UpdatedBudgetParams,
-    UpdatedPolicyApprovalRuleParams,
-    UpdatedPolicyCategoryMaxAmountNoReceiptParams,
-    UpdatedPolicyCurrencyDefaultTaxParams,
-    UpdatedPolicyCustomTaxNameParams,
-    UpdatedPolicyForeignCurrencyDefaultTaxParams,
-    UpdatedPolicyManualApprovalThresholdParams,
     UpdatedTheDistanceMerchantParams,
     UpdatedTheRequestParams,
-    UpdatePolicyCustomUnitDefaultCategoryParams,
-    UpdatePolicyCustomUnitParams,
     UpdateRoleParams,
     UserIsAlreadyMemberParams,
     ViolationsIncreasedDistanceParams,
@@ -7019,7 +7006,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             `dodano ${approverName} (${approverEmail}) jako osobę zatwierdzającą dla pola ${field} „${name}”`,
         deleteApprovalRule: (approverEmail: string, approverName: string, field: string, name: string) =>
             `usunięto ${approverName} (${approverEmail}) jako osobę zatwierdzającą dla pola ${field} „${name}”`,
-        updateApprovalRule: ({field, name, newApproverEmail, newApproverName, oldApproverEmail, oldApproverName}: UpdatedPolicyApprovalRuleParams) => {
+        updateApprovalRule: (field: string, name: string, newApproverEmail: string, newApproverName: string | undefined, oldApproverEmail: string, oldApproverName: string | undefined) => {
             const formatApprover = (displayName?: string, email?: string) => (displayName ? `${displayName} (${email})` : email);
             return `zmieniono akceptującego dla pola ${field} „${name}” na ${formatApprover(newApproverName, newApproverEmail)} (wcześniej ${formatApprover(oldApproverName, oldApproverEmail)})`;
         },
@@ -7068,7 +7055,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             }
             return `zmieniono kategorię „${categoryName}” na ${newValue} (wcześniej ${oldValue})`;
         },
-        updateCategoryMaxAmountNoItemizedReceipt: ({categoryName, oldValue, newValue}: UpdatedPolicyCategoryMaxAmountNoReceiptParams) => {
+        updateCategoryMaxAmountNoItemizedReceipt: (categoryName: string, oldValue: string | undefined, newValue: string) => {
             if (!oldValue) {
                 return `zaktualizowano kategorię „${categoryName}”, zmieniając Pozycjonowane paragony na ${newValue}`;
             }
@@ -7095,7 +7082,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             }
             return `zaktualizowano znacznik „${tagName}” na liście „${tagListName}”, dodając ${updatedField} o wartości „${newValue}”`;
         },
-        updateCustomUnit: ({customUnitName, newValue, oldValue, updatedField}: UpdatePolicyCustomUnitParams) =>
+        updateCustomUnit: (customUnitName: string, newValue: string, oldValue: string, updatedField: string) =>
             `zmienił(a) ${updatedField} jednostki ${customUnitName} na „${newValue}” (wcześniej „${oldValue}”)`,
         updateCustomUnitTaxEnabled: (newValue: boolean) => `${newValue ? 'włączone' : 'wyłączone'} śledzenie podatku dla stawek za dystans`,
         addCustomUnitRate: (customUnitName: string, rateName: string) => `dodano nową stawkę ${customUnitName} „${rateName}”`,
@@ -7116,7 +7103,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
         updatedCustomUnitRateEnabled: (customUnitName: string, customUnitRateName: string, newValue: boolean) => {
             return `${newValue ? 'włączone' : 'wyłączone'} stawkę jednostki niestandardowej ${customUnitName} „${customUnitRateName}”`;
         },
-        deleteCustomUnitRate: ({customUnitName, rateName}: AddOrDeletePolicyCustomUnitRateParams) => `usunięto stawkę „${rateName}” jednostki „${customUnitName}”`,
+        deleteCustomUnitRate: (customUnitName: string, rateName: string) => `usunięto stawkę „${rateName}” jednostki „${customUnitName}”`,
         updateReportFieldDefaultValue: (defaultValue?: string, fieldName?: string) => `ustaw domyślną wartość pola raportu „${fieldName}” na „${defaultValue}”`,
         addedReportFieldOption: (fieldName: string, optionName: string) => `dodano opcję „${optionName}” do pola raportu „${fieldName}”`,
         removedReportFieldOption: (fieldName: string, optionName: string) => `usunął opcję „${optionName}” z pola raportu „${fieldName}”`,
@@ -7169,8 +7156,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
         downgradedWorkspace: 'zmniejszono plan tego workspace’u do Collect',
         updatedAuditRate: (oldAuditRate: number, newAuditRate: number) =>
             `zmienił(a) odsetek raportów losowo kierowanych do ręcznej akceptacji na ${Math.round(newAuditRate * 100)}% (wcześniej ${Math.round(oldAuditRate * 100)}%)`,
-        updatedManualApprovalThreshold: ({oldLimit, newLimit}: UpdatedPolicyManualApprovalThresholdParams) =>
-            `zmienił(a) ręczny limit zatwierdzania dla wszystkich wydatków na ${newLimit} (wcześniej ${oldLimit})`,
+        updatedManualApprovalThreshold: (oldLimit: string, newLimit: string) => `zmienił(a) ręczny limit zatwierdzania dla wszystkich wydatków na ${newLimit} (wcześniej ${oldLimit})`,
         updatedFeatureEnabled: ({enabled, featureName}: {enabled: boolean; featureName: string}) => {
             switch (featureName) {
                 case 'categories':
@@ -7272,11 +7258,9 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
                 ? `zmienił(a) upoważnioną osobę zwracającą wydatki na „${newReimburser}” (wcześniej „${previousReimburser}”)`
                 : `zmienił(a) upoważnionego płatnika na „${newReimburser}”`,
         updateReimbursementEnabled: (enabled: boolean) => `${enabled ? 'włączone' : 'wyłączone'} zwrotów kosztów`,
-        updateCustomTaxName: ({oldName, newName}: UpdatedPolicyCustomTaxNameParams) => `zmieniono niestandardową nazwę podatku na „${newName}" (poprzednio „${oldName}")`,
-        updateCurrencyDefaultTax: ({oldName, newName}: UpdatedPolicyCurrencyDefaultTaxParams) =>
-            `zmienił domyślną stawkę podatku waluty w przestrzeni roboczej na „${newName}" (wcześniej „${oldName}")`,
-        updateForeignCurrencyDefaultTax: ({oldName, newName}: UpdatedPolicyForeignCurrencyDefaultTaxParams) =>
-            `zmieniono domyślną stawkę podatku dla obcej waluty na „${newName}" (wcześniej „${oldName}")`,
+        updateCustomTaxName: (oldName: string, newName: string) => `zmieniono niestandardową nazwę podatku na „${newName}" (poprzednio „${oldName}")`,
+        updateCurrencyDefaultTax: (oldName: string, newName: string) => `zmienił domyślną stawkę podatku waluty w przestrzeni roboczej na „${newName}" (wcześniej „${oldName}")`,
+        updateForeignCurrencyDefaultTax: (oldName: string, newName: string) => `zmieniono domyślną stawkę podatku dla obcej waluty na „${newName}" (wcześniej „${oldName}")`,
         addTax: (taxName: string) => `dodano podatek „${taxName}”`,
         deleteTax: (taxName: string) => `usunął(-ę) podatek „${taxName}”`,
         updateTax: (oldValue?: string | boolean | number, taxName?: string, updatedField?: string, newValue?: string | boolean | number) => {
@@ -7315,14 +7299,14 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
         updateTagListRequired: (tagListsName: string, isRequired: boolean) => `zmieniono listę tagów „${tagListsName}” na ${isRequired ? 'wymagane' : 'niewymagane'}`,
         importTags: 'zaimportowano tagi z arkusza kalkulacyjnego',
         deletedAllTags: 'usunął(-ę) wszystkie tagi',
-        updateCustomUnitDefaultCategory: ({customUnitName, newValue, oldValue}: UpdatePolicyCustomUnitDefaultCategoryParams) =>
+        updateCustomUnitDefaultCategory: (customUnitName: string, newValue?: string, oldValue?: string) =>
             `zmienił(a) domyślną kategorię jednostki ${customUnitName} na „${newValue}” ${oldValue ? `(uprzednio „${oldValue}”)` : ''}`,
         importCustomUnitRates: (customUnitName: string) => `zaimportowano stawki dla niestandardowej jednostki „${customUnitName}”`,
         updateCustomUnitSubRate: (customUnitName: string, customUnitRateName: string, customUnitSubRateName: string, oldValue: string, newValue: string, updatedField: string) =>
             `zmieniono stawkę „${customUnitName}” stawka „${customUnitRateName}” stawka podrzędna „${customUnitSubRateName}” ${updatedField} na „${newValue}” (wcześniej „${oldValue}”)`,
         removedCustomUnitSubRate: (customUnitName: string, customUnitRateName: string, removedSubRateName: string) =>
             `usunięto stawkę „${customUnitName}” o nazwie „${customUnitRateName}” i podstawkę „${removedSubRateName}”`,
-        addBudget: ({frequency, entityName, entityType, shared, individual, notificationThreshold}: AddBudgetParams) => {
+        addBudget: (frequency: string, entityName: string, entityType: string, shared?: string, individual?: string, notificationThreshold?: number) => {
             const thresholdSuffix = typeof notificationThreshold === 'number' ? `z progiem powiadomień wynoszącym „${notificationThreshold}%”` : '';
             if (typeof shared !== 'undefined' && typeof individual !== 'undefined') {
                 return `dodano ${frequency} indywidualny budżet „${individual}” oraz ${frequency} współdzielony budżet „${shared}”${thresholdSuffix} do ${entityType} „${entityName}”`;
@@ -7332,18 +7316,18 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             }
             return `dodano ${frequency} współdzielony budżet „${shared}”${thresholdSuffix} do ${entityType} „${entityName}”`;
         },
-        updateBudget: ({
-            entityType,
-            entityName,
-            oldFrequency,
-            newFrequency,
-            oldIndividual,
-            newIndividual,
-            oldShared,
-            newShared,
-            oldNotificationThreshold,
-            newNotificationThreshold,
-        }: UpdatedBudgetParams) => {
+        updateBudget: (
+            entityType: string,
+            entityName: string,
+            oldFrequency?: string,
+            newFrequency?: string,
+            oldIndividual?: string,
+            newIndividual?: string,
+            oldShared?: string,
+            newShared?: string,
+            oldNotificationThreshold?: number,
+            newNotificationThreshold?: number,
+        ) => {
             const frequencyChanged = !!(newFrequency && oldFrequency !== newFrequency);
             const sharedChanged = !!(newShared && oldShared !== newShared);
             const individualChanged = !!(newIndividual && oldIndividual !== newIndividual);
@@ -7378,7 +7362,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             }
             return `zaktualizowano budżet dla ${entityType} „${entityName}”: ${changesList.join('; ')}`;
         },
-        deleteBudget: ({entityType, entityName, frequency, individual, shared, notificationThreshold}: DeleteBudgetParams) => {
+        deleteBudget: (entityType: string, entityName: string, frequency?: string, individual?: string, shared?: string, notificationThreshold?: number) => {
             const thresholdSuffix = typeof notificationThreshold === 'number' ? `z progiem powiadomień wynoszącym „${notificationThreshold}%”` : '';
             if (shared && individual) {
                 return `usunięto ${frequency} współdzielony budżet „${shared}” oraz indywidualny budżet „${individual}”${thresholdSuffix} z ${entityType} „${entityName}”`;
@@ -7444,7 +7428,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             `${enabled ? 'włączone' : 'wyłączone'} posiadaczy karty może usuwać transakcje z karty dla kanału kart „${feedName}”`,
         updatedCardFeedStatementPeriod: (feedName: string, newValue?: string, previousValue?: string) =>
             `zmienił dzień zakończenia okresu rozliczeniowego dla źródła karty „${feedName}”${newValue ? ` na „${newValue}”` : ''}${previousValue ? ` (wcześniej „${previousValue}”)` : ''}`,
-        addedReportField: ({fieldType, fieldName, defaultValue}: AddedOrDeletedPolicyReportFieldParams) =>
+        addedReportField: (fieldType: string, fieldName?: string, defaultValue?: string) =>
             `dodano pole raportu typu ${fieldType} „${fieldName}”${defaultValue ? ` z domyślną wartością „${defaultValue}”` : ''}`,
     },
     roomMembersPage: {
