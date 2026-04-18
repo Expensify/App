@@ -83,7 +83,7 @@ function useBulkDuplicateAction({selectedTransactionsKeys, allTransactions, allR
         if (onAfterDuplicate) {
             onAfterDuplicate();
         } else {
-            clearSelectedTransactions(undefined, true);
+            clearSelectedTransactions();
         }
     };
 

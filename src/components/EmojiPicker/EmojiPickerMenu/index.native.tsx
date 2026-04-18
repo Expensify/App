@@ -8,6 +8,7 @@ import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -42,6 +43,8 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji, ref}: EmojiPickerMenuPro
         emojiListRef,
     } = useEmojiPickerMenu();
     const StyleUtils = useStyleUtils();
+    const insets = useSafeAreaInsets();
+    const {paddingLeft: safeAreaPaddingLeft, paddingRight: safeAreaPaddingRight} = StyleUtils.getPlatformSafeAreaPadding(insets);
     const [searchText, setSearchText] = useState('');
 
     const headerRefs = useRef<Record<number, React.RefObject<View | null>>>({});
@@ -198,7 +201,7 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji, ref}: EmojiPickerMenuPro
                 listWrapperStyle={[
                     listStyle,
                     {
-                        width: Math.floor(windowWidth),
+                        width: Math.floor(windowWidth - safeAreaPaddingLeft - safeAreaPaddingRight),
                     },
                 ]}
                 ref={emojiListRef}
