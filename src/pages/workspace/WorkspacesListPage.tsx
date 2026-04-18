@@ -1,6 +1,6 @@
 import {useIsFocused, useRoute} from '@react-navigation/native';
 import {Str} from 'expensify-common';
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useCallback, useContext, useEffect, useLayoutEffect, useRef, useState} from 'react';
 import {FlatList, InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -19,6 +19,8 @@ import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import ScreenWrapper from '@components/ScreenWrapper';
+import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
+import type {ScrollViewProps} from '@components/ScrollView';
 import SearchBar from '@components/SearchBar';
 import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
@@ -40,6 +42,7 @@ import useSearchResults from '@hooks/useSearchResults';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionViolationOfWorkspace from '@hooks/useTransactionViolationOfWorkspace';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import {isConnectionInProgress} from '@libs/actions/connections';
 import {close} from '@libs/actions/Modal';
 import {clearWorkspaceOwnerChangeFlow, requestWorkspaceOwnerChange} from '@libs/actions/Policy/Member';
@@ -68,6 +71,7 @@ import shouldRenderTransferOwnerButton from '@libs/shouldRenderTransferOwnerButt
 import {isSubscriptionTypeOfInvoicing, shouldCalculateBillNewDot as shouldCalculateBillNewDotFn} from '@libs/SubscriptionUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
+import variables from '@styles/variables';
 import {setNameValuePair} from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -134,6 +138,13 @@ function WorkspacesListPage() {
     const icons = useMemoizedLazyExpensifyIcons(['Building', 'Exit', 'Copy', 'Star', 'Trashcan', 'Transfer', 'FallbackWorkspaceAvatar']);
     const theme = useTheme();
     const styles = useThemeStyles();
+
+    // Fallback estimated height (in px) for a workspace row: avatar + vertical padding (styles.p5 top + bottom) + bottom margin (styles.mb2).
+    // Used to calculate initialNumToRender when no measured height is available yet.
+    const rowMarginBottom = (styles.mb2 as Partial<Record<'marginBottom', number>>)?.marginBottom ?? 0;
+    const rowPaddingVertical = (styles.p5 as Partial<Record<'padding', number>>)?.padding ?? 0;
+    const estimatedItemHeight = variables.avatarSizeNormal + rowPaddingVertical * 2 + rowMarginBottom;
+
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Building', 'Exit', 'Copy', 'Star', 'Trashcan', 'Transfer', 'Plus', 'FallbackWorkspaceAvatar']);
     const {translate, localeCompare} = useLocalize();
     useDocumentTitle(translate('common.workspaces'));
@@ -185,13 +196,40 @@ function WorkspacesListPage() {
 
     const policyToDelete = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyIDToDelete}`];
 
+    const {saveScrollOffset, getScrollOffset, saveAverageItemLength, getAverageItemLength} = useContext(ScrollOffsetContext);
+    const {windowHeight} = useWindowDimensions();
+    const onScroll = useCallback<NonNullable<ScrollViewProps['onScroll']>>(
+        (e) => {
+            // If the layout measurement is 0, it means the list is not displayed but the onScroll may be triggered with offset value 0.
+            // We should ignore this case.
+            if (e.nativeEvent.layoutMeasurement.height === 0) {
+                return;
+            }
+            saveScrollOffset(route, e.nativeEvent.contentOffset.y);
+        },
+        [route, saveScrollOffset],
+    );
+
+    const flatlistRef = useRef<FlatList | null>(null);
+    const measuredItemHeight = useRef<number>(getAverageItemLength(route) ?? 0);
+
+    useLayoutEffect(() => {
+        const scrollOffset = getScrollOffset(route);
+        if (!scrollOffset || !flatlistRef.current) {
+            return;
+        }
+        flatlistRef.current.scrollToOffset({
+            offset: scrollOffset,
+            animated: false,
+        });
+    }, [getScrollOffset, route]);
+
     // We need this to update translation for deleting a workspace when it has third party card feeds or expensify card assigned.
     const workspaceAccountID = policyToDelete?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const [cardFeeds, , defaultCardFeeds] = useCardFeeds(policyIDToDelete);
     const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`, {
         selector: filterInactiveCards,
     });
-    const flatlistRef = useRef<FlatList | null>(null);
     const [lastAccessedWorkspacePolicyID] = useOnyx(ONYXKEYS.LAST_ACCESSED_WORKSPACE_POLICY_ID);
 
     const hasCardFeedOrExpensifyCard =
@@ -458,48 +496,61 @@ function WorkspacesListPage() {
         }
 
         return (
-            <OfflineWithFeedback
+            <View
                 key={`${item.title}_${index}`}
-                pendingAction={item.pendingAction}
-                errorRowStyles={[styles.ph5, styles.mt3]}
-                onClose={item.dismissError}
-                errors={item.errors}
-                style={styles.mb2}
-                shouldShowErrorMessages={item.policyID !== policyIDToDelete}
-                shouldHideOnDelete={false}
+                onLayout={(e) => {
+                    const height = e.nativeEvent.layout.height;
+                    if (height <= 0) {
+                        return;
+                    }
+                    if (height !== getAverageItemLength(route)) {
+                        measuredItemHeight.current = height;
+                        saveAverageItemLength(route, height);
+                    }
+                }}
             >
-                <PressableWithoutFeedback
-                    accessible={false}
-                    style={[styles.mh5]}
-                    disabled={item.disabled}
-                    onPress={item.action}
-                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKSPACE_MENU_ITEM}
+                <OfflineWithFeedback
+                    pendingAction={item.pendingAction}
+                    errorRowStyles={[styles.ph5, styles.mt3]}
+                    onClose={item.dismissError}
+                    errors={item.errors}
+                    style={styles.mb2}
+                    shouldShowErrorMessages={item.policyID !== policyIDToDelete}
+                    shouldHideOnDelete={false}
                 >
-                    {({hovered}) => (
-                        <WorkspacesListRow
-                            title={item.title}
-                            policyID={item.policyID}
-                            menuItems={threeDotsMenuItems}
-                            workspaceIcon={item.icon}
-                            ownerAccountID={item.ownerAccountID}
-                            workspaceType={item.type}
-                            shouldAnimateInHighlight={shouldAnimateInHighlight}
-                            isJoinRequestPending={item?.isJoinRequestPending}
-                            rowStyles={hovered && styles.hoveredComponentBG}
-                            layoutWidth={isLessThanMediumScreen ? CONST.LAYOUT_WIDTH.NARROW : CONST.LAYOUT_WIDTH.WIDE}
-                            brickRoadIndicator={item.brickRoadIndicator}
-                            shouldDisableThreeDotsMenu={item.disabled}
-                            style={[item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ? styles.offlineFeedbackDeleted : {}]}
-                            isDefault={isDefault}
-                            isLoadingBill={isLoadingBill}
-                            resetLoadingSpinnerIconIndex={resetLoadingSpinnerIconIndex}
-                            isHovered={hovered}
-                            disabled={item.disabled}
-                            onPress={item.action}
-                        />
-                    )}
-                </PressableWithoutFeedback>
-            </OfflineWithFeedback>
+                    <PressableWithoutFeedback
+                        accessible={false}
+                        style={[styles.mh5]}
+                        disabled={item.disabled}
+                        onPress={item.action}
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKSPACE_MENU_ITEM}
+                    >
+                        {({hovered}) => (
+                            <WorkspacesListRow
+                                title={item.title}
+                                policyID={item.policyID}
+                                menuItems={threeDotsMenuItems}
+                                workspaceIcon={item.icon}
+                                ownerAccountID={item.ownerAccountID}
+                                workspaceType={item.type}
+                                shouldAnimateInHighlight={shouldAnimateInHighlight}
+                                isJoinRequestPending={item?.isJoinRequestPending}
+                                rowStyles={hovered && styles.hoveredComponentBG}
+                                layoutWidth={isLessThanMediumScreen ? CONST.LAYOUT_WIDTH.NARROW : CONST.LAYOUT_WIDTH.WIDE}
+                                brickRoadIndicator={item.brickRoadIndicator}
+                                shouldDisableThreeDotsMenu={item.disabled}
+                                style={[item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ? styles.offlineFeedbackDeleted : {}]}
+                                isDefault={isDefault}
+                                isLoadingBill={isLoadingBill}
+                                resetLoadingSpinnerIconIndex={resetLoadingSpinnerIconIndex}
+                                isHovered={hovered}
+                                disabled={item.disabled}
+                                onPress={item.action}
+                            />
+                        )}
+                    </PressableWithoutFeedback>
+                </OfflineWithFeedback>
+            </View>
         );
     };
 
@@ -705,6 +756,21 @@ function WorkspacesListPage() {
         shouldShowDomainsSection && !domains.length ? [{listItemType: 'domains-empty-state' as const}] : [],
     ].flat();
 
+    // Compute initialNumToRender: render enough items to cover the saved scroll offset so
+    // useLayoutEffect can restore position before first paint. Uses measured row height when
+    // available (persisted across navigations via ScrollOffsetContext), otherwise falls back to an estimate.
+    const savedScrollOffset = getScrollOffset(route) ?? 0;
+    const computedInitialNumToRender = (() => {
+        if (savedScrollOffset <= 0 || data.length === 0) {
+            return undefined;
+        }
+        // eslint-disable-next-line react-hooks/refs -- Reading the local measured height during render is intentional; the value is an optimization hint for initialNumToRender.
+        const localMeasured = measuredItemHeight.current > 0 ? measuredItemHeight.current : undefined;
+        const itemHeight = localMeasured ?? getAverageItemLength(route) ?? estimatedItemHeight;
+        const viewportItems = Math.ceil(windowHeight / itemHeight);
+        return Math.min(Math.ceil(savedScrollOffset / itemHeight) + viewportItems, data.length);
+    })();
+
     // eslint-disable-next-line react/no-unused-prop-types
     const renderItem = ({item, index}: {item: WorkspaceOrDomainListItem; index: number}) => {
         switch (item.listItemType) {
@@ -787,6 +853,8 @@ function WorkspacesListPage() {
                         ListHeaderComponent={listHeaderComponent}
                         keyboardShouldPersistTaps="handled"
                         contentContainerStyle={styles.pb20}
+                        onScroll={onScroll}
+                        initialNumToRender={computedInitialNumToRender}
                     />
                 )}
             </View>
