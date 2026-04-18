@@ -22,6 +22,11 @@ type UseAutoFocusInput = {
     inputRef: RefObject<TextInput | null>;
 };
 
+/** AUTO's async chain can outlive RETURN_HOLD_MS; skip when another element (e.g. a restored RETURN target) already holds focus. */
+function shouldSkipAutoFocusDueToExistingFocus(): boolean {
+    return typeof document !== 'undefined' && !!document.activeElement && document.activeElement !== document.body;
+}
+
 export default function useAutoFocusInput(isMultiline = false): UseAutoFocusInput {
     const [isInputInitialized, setIsInputInitialized] = useState(false);
     const [isScreenTransitionEnded, setIsScreenTransitionEnded] = useState(false);
@@ -67,8 +72,7 @@ export default function useAutoFocusInput(isMultiline = false): UseAutoFocusInpu
                 if (!input) {
                     return;
                 }
-                // Auto-focus only when focus hasn't been placed; AUTO's async chain can outlive RETURN_HOLD_MS.
-                if (typeof document !== 'undefined' && document.activeElement && document.activeElement !== document.body) {
+                if (shouldSkipAutoFocusDueToExistingFocus()) {
                     return;
                 }
                 if (!tryClaim(Priorities.AUTO)) {
@@ -141,3 +145,5 @@ export default function useAutoFocusInput(isMultiline = false): UseAutoFocusInpu
 
     return {inputCallbackRef, inputRef};
 }
+
+export {shouldSkipAutoFocusDueToExistingFocus};

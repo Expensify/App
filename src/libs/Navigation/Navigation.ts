@@ -15,8 +15,7 @@ import clearSelectedText from '@libs/clearSelectedText/clearSelectedText';
 import clearSelectedTextIfComposerBlurred from '@libs/clearSelectedTextIfComposerBlurred/clearSelectedTextIfComposerBlurred';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import Log from '@libs/Log';
-// Side-effect import — installs the focus-return listeners.
-import '@libs/NavigationFocusReturn';
+import {setupNavigationFocusReturn} from '@libs/NavigationFocusReturn';
 import {shallowCompare} from '@libs/ObjectUtils';
 import {getSpan, startSpan} from '@libs/telemetry/activeSpans';
 import variables from '@styles/variables';
@@ -60,6 +59,9 @@ type FocusedScreen = {
     name: string;
     params?: Record<string, unknown>;
 };
+
+// Installs focusin/click listeners; NavigationRoot.onReady attaches the state listener once live.
+setupNavigationFocusReturn();
 
 // Screens which are part of the 2FA setup flow - used to determine when to hide the RequireTwoFactorAuthOverlay
 const SET_UP_2FA_SCREENS = new Set<string>([

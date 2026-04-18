@@ -18,7 +18,8 @@ let lastClaimTimestamp = 0;
 
 // Equal-priority re-claims succeed (>=) so RETURN retries after transient aria-hidden don't self-veto.
 function tryClaim(priority: Priority): boolean {
-    const now = Date.now();
+    // Monotonic — Date.now() would misbehave on clock jumps.
+    const now = performance.now();
     if (now - lastClaimTimestamp > CYCLE_TIMEOUT_MS) {
         currentPriority = 0;
     }

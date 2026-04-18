@@ -36,12 +36,12 @@ describe('ScreenFocusArbiter', () => {
         });
 
         it('should allow AUTO after RETURN once the cycle expires', () => {
-            jest.useFakeTimers({now: 0});
+            jest.useFakeTimers();
             try {
                 expect(tryClaim(Priorities.RETURN)).toBe(true);
                 expect(tryClaim(Priorities.AUTO)).toBe(false);
 
-                jest.setSystemTime(CYCLE_TIMEOUT_MS + 1);
+                jest.advanceTimersByTime(CYCLE_TIMEOUT_MS + 1);
                 expect(tryClaim(Priorities.AUTO)).toBe(true);
             } finally {
                 jest.useRealTimers();
@@ -49,18 +49,18 @@ describe('ScreenFocusArbiter', () => {
         });
 
         it('should keep the cycle fresh on every claim within the window', () => {
-            jest.useFakeTimers({now: 0});
+            jest.useFakeTimers();
             try {
                 expect(tryClaim(Priorities.RETURN)).toBe(true);
 
-                jest.setSystemTime(CYCLE_TIMEOUT_MS - 100);
+                jest.advanceTimersByTime(CYCLE_TIMEOUT_MS - 100);
                 expect(tryClaim(Priorities.RETURN)).toBe(true);
 
-                jest.setSystemTime(CYCLE_TIMEOUT_MS + 50);
+                jest.advanceTimersByTime(150);
                 // Window resets from the last successful claim, not from the first.
                 expect(tryClaim(Priorities.AUTO)).toBe(false);
 
-                jest.setSystemTime(2 * CYCLE_TIMEOUT_MS + 200);
+                jest.advanceTimersByTime(CYCLE_TIMEOUT_MS + 150);
                 expect(tryClaim(Priorities.AUTO)).toBe(true);
             } finally {
                 jest.useRealTimers();

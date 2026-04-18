@@ -18,11 +18,16 @@ type TriggerEntry = {primary: HTMLElement; fallback?: HTMLElement};
 const COMPOUND_KEY_DELIMITER = '::';
 
 let lastInteractiveElement: HTMLElement | null = null;
+// Cross-modality: mouse-click-forward → keyboard-back still needs focus returned (WCAG 2.4.3).
+let lastMouseTrigger: HTMLElement | null = null;
 const triggerMap = new Map<string, TriggerEntry>();
 let prevState: NavigationState | undefined;
 let pendingRestore: {cancel: () => void} | null = null;
 let focusinHandler: ((e: FocusEvent) => void) | null = null;
+let clickHandler: ((e: MouseEvent) => void) | null = null;
 let stateUnsubscribe: (() => void) | null = null;
+
+const MOUSE_TRIGGER_SELECTOR = 'button, a[href], input, textarea, select, [role="button"], [role="link"], [tabindex]:not([tabindex="-1"])';
 
 function collectRouteKeys(state: AnyState, out = new Set<string>()): Set<string> {
     if (!state?.routes) {
@@ -71,15 +76,16 @@ function captureTriggerForRoute(routeKey: string): void {
     if (typeof document === 'undefined') {
         return;
     }
-    // Mouse-driven nav: lastInteractiveElement is a stale keyboard target.
-    if (!getHadTabNavigation()) {
-        return;
-    }
 
     const launcher = pickLauncher();
-    const active = document.activeElement;
-    const innerIsStale = lastInteractiveElement && active && active !== document.body && active !== lastInteractiveElement;
-    const inner = lastInteractiveElement && document.contains(lastInteractiveElement) && !innerIsStale ? lastInteractiveElement : null;
+    let inner: HTMLElement | null;
+    if (getHadTabNavigation()) {
+        const active = document.activeElement;
+        const innerIsStale = lastInteractiveElement && active && active !== document.body && active !== lastInteractiveElement;
+        inner = lastInteractiveElement && document.contains(lastInteractiveElement) && !innerIsStale ? lastInteractiveElement : null;
+    } else {
+        inner = lastMouseTrigger && document.contains(lastMouseTrigger) ? lastMouseTrigger : null;
+    }
 
     if (launcher) {
         // Prefer the in-trap element; fall back to the launcher when primary is removed on trap close.
@@ -166,7 +172,8 @@ function cancelPendingFocusRestore(): void {
     cancelPendingRestore();
 }
 
-function canAcceptFocus(el: HTMLElement): boolean {
+/** Attribute-level focusability only. Geometry (display:none, visibility:hidden, zero-size) is caught post-focus via document.activeElement verification. */
+function hasFocusableAttributes(el: HTMLElement): boolean {
     return !el.matches(':disabled') && el.getAttribute('aria-disabled') !== 'true' && !el.closest('[aria-hidden="true"]') && !el.closest('[inert]');
 }
 
@@ -178,10 +185,10 @@ function pickRestoreTarget(entry: TriggerEntry): RestorePick {
     const primaryInDom = document.contains(primary);
     const fallbackInDom = !!fallback && document.contains(fallback);
 
-    if (primaryInDom && canAcceptFocus(primary)) {
+    if (primaryInDom && hasFocusableAttributes(primary)) {
         return {target: primary, source: 'primary'};
     }
-    if (fallbackInDom && fallback && canAcceptFocus(fallback)) {
+    if (fallbackInDom && fallback && hasFocusableAttributes(fallback)) {
         return {target: fallback, source: 'fallback'};
     }
     if (primaryInDom || fallbackInDom) {
@@ -237,11 +244,11 @@ function restoreTriggerForRoute(routeKey: string): boolean {
 
     // activeElement verification catches silent-focus failures (display:none / visibility:hidden ancestors).
     const candidates: HTMLElement[] = [pick.target];
-    if (pick.source === 'primary' && entry.fallback && document.contains(entry.fallback) && canAcceptFocus(entry.fallback)) {
+    if (pick.source === 'primary' && entry.fallback && document.contains(entry.fallback) && hasFocusableAttributes(entry.fallback)) {
         candidates.push(entry.fallback);
     }
 
-    // focusVisible is spec'd (Chromium/Firefox) but not in lib.dom.d.ts yet.
+    // focusVisible: Chromium/Firefox only (lib.dom.d.ts too); Safari's :focus-visible heuristic aligns.
     const focusOptions = {preventScroll: true, focusVisible: getHadTabNavigation()} as FocusOptions;
     for (const candidate of candidates) {
         candidate.focus(focusOptions);
@@ -377,6 +384,18 @@ function setupNavigationFocusReturn(): void {
         };
         document.addEventListener('focusin', focusinHandler, true);
     }
+    if (!clickHandler) {
+        clickHandler = (e: MouseEvent) => {
+            if (!(e.target instanceof HTMLElement)) {
+                return;
+            }
+            const target = e.target.closest<HTMLElement>(MOUSE_TRIGGER_SELECTOR);
+            if (target) {
+                lastMouseTrigger = target;
+            }
+        };
+        document.addEventListener('click', clickHandler, true);
+    }
     // getRootState() pre-mount triggers React Navigation's "not initialized" console.error. Retries on each setup call so NavigationRoot.onReady picks up live state.
     if (!prevState && navigationRefHasLiveState()) {
         prevState = navigationRef.getRootState() ?? prevState;
@@ -395,10 +414,16 @@ function setupNavigationFocusReturn(): void {
 function teardownNavigationFocusReturn(): void {
     cancelPendingRestore();
     cancelReturnHoldRelease();
-    if (focusinHandler && typeof document !== 'undefined') {
-        document.removeEventListener('focusin', focusinHandler, true);
+    if (typeof document !== 'undefined') {
+        if (focusinHandler) {
+            document.removeEventListener('focusin', focusinHandler, true);
+        }
+        if (clickHandler) {
+            document.removeEventListener('click', clickHandler, true);
+        }
     }
     focusinHandler = null;
+    clickHandler = null;
     stateUnsubscribe?.();
     stateUnsubscribe = null;
 }
@@ -410,13 +435,16 @@ function resetForTests(): void {
     resetLauncherStackForTests();
     prevState = undefined;
     lastInteractiveElement = null;
+    lastMouseTrigger = null;
 }
 
 function setLastInteractiveElementForTests(element: HTMLElement | null): void {
     lastInteractiveElement = element;
 }
 
-setupNavigationFocusReturn();
+function setLastMouseTriggerForTests(element: HTMLElement | null): void {
+    lastMouseTrigger = element;
+}
 
 export {
     setupNavigationFocusReturn,
@@ -432,4 +460,5 @@ export {
     compoundParamsKey,
     resetForTests,
     setLastInteractiveElementForTests,
+    setLastMouseTriggerForTests,
 };

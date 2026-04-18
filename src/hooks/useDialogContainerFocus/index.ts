@@ -19,6 +19,7 @@ function focusFirstInteractiveElement(container: HTMLElement | null): boolean {
     if (!tryClaim(Priorities.INITIAL)) {
         return false;
     }
+    // focusVisible: Chromium/Firefox only (lib.dom.d.ts too); Safari's :focus-visible heuristic aligns.
     target.focus({preventScroll: true, focusVisible: true} as FocusOptions);
     return true;
 }

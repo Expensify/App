@@ -16,6 +16,7 @@ const {
     handleStateChange,
     resetForTests,
     setLastInteractiveElementForTests,
+    setLastMouseTriggerForTests,
     notifyPushParamsForward,
     notifyPushParamsBackward,
     compoundParamsKey,
@@ -29,6 +30,7 @@ const {
     handleStateChange: (state: unknown) => void;
     resetForTests: () => void;
     setLastInteractiveElementForTests: (element: HTMLElement | null) => void;
+    setLastMouseTriggerForTests: (element: HTMLElement | null) => void;
     notifyPushParamsForward: (routeKey: string, prevParams: unknown) => void;
     notifyPushParamsBackward: (routeKey: string, targetParams: unknown) => void;
     compoundParamsKey: (routeKey: string, params: unknown) => string;
@@ -39,6 +41,9 @@ const {setActivePopoverLauncher, scheduleClearActivePopoverLauncher} = require<{
     setActivePopoverLauncher: (element: HTMLElement) => void;
     scheduleClearActivePopoverLauncher: (element?: HTMLElement) => void;
 }>('../../src/libs/LauncherStack.ts');
+const {shouldSkipAutoFocusDueToExistingFocus} = require<{
+    shouldSkipAutoFocusDueToExistingFocus: () => boolean;
+}>('../../src/hooks/useAutoFocusInput.ts');
 /* eslint-enable @typescript-eslint/no-require-imports, import/extensions */
 
 function simulateTab() {
@@ -104,6 +109,8 @@ function withFakeTimers<T>(fn: () => T): T {
         jest.useRealTimers();
     }
 }
+
+setupNavigationFocusReturn();
 
 beforeEach(() => {
     resetForTests();
@@ -518,25 +525,55 @@ describe('captureTriggerForRoute', () => {
     });
 
     describe('when navigation is mouse-driven', () => {
-        it('should not store even when a keyboard target was tracked earlier', () => {
+        it('should store the clicked trigger (not lastInteractiveElement, which is a stale keyboard target)', () => {
             simulateTab();
-            const tracked = document.createElement('button');
-            document.body.appendChild(tracked);
-            setLastInteractiveElementForTests(tracked);
+            const staleKeyboardTarget = document.createElement('button');
+            const clickedButton = document.createElement('button');
+            document.body.appendChild(staleKeyboardTarget);
+            document.body.appendChild(clickedButton);
+            setLastInteractiveElementForTests(staleKeyboardTarget);
             simulateMouse();
+            setLastMouseTriggerForTests(clickedButton);
 
+            captureTriggerForRoute('route-a');
+
+            const staleSpy = jest.spyOn(staleKeyboardTarget, 'focus');
+            const clickedSpy = jest.spyOn(clickedButton, 'focus');
+            expect(restoreTriggerForRoute('route-a')).toBe(true);
+            expect(clickedSpy).toHaveBeenCalled();
+            expect(staleSpy).not.toHaveBeenCalled();
+        });
+
+        it('should not store on a pure mouse session when no click target was recorded', () => {
+            simulateMouse();
             captureTriggerForRoute('route-a');
             expect(restoreTriggerForRoute('route-a')).toBe(false);
         });
 
-        it('should not store on a pure mouse session (no prior Tab)', () => {
+        it('should skip capture when the recorded click target has been removed from the DOM', () => {
             simulateMouse();
-            const tracked = document.createElement('button');
-            document.body.appendChild(tracked);
-            setLastInteractiveElementForTests(tracked);
-
+            const detached = document.createElement('button');
+            setLastMouseTriggerForTests(detached);
             captureTriggerForRoute('route-a');
             expect(restoreTriggerForRoute('route-a')).toBe(false);
+        });
+    });
+
+    describe('cross-modality capture', () => {
+        it('mouse-click forward then keyboard back: restore lands on the mouse-clicked trigger (WCAG 2.4.3 across modalities)', () => {
+            const statusButton = appendButton();
+
+            // User mouse-clicks Status on Profile — hadTab=false at the forward nav.
+            simulateMouse();
+            setLastMouseTriggerForTests(statusButton);
+            captureTriggerForRoute('route-profile');
+
+            // User switches to keyboard inside Status, Tabs to Clear after, Enters. Not relevant to the restore of the Profile route — we just verify the earlier capture survives.
+            simulateTab();
+
+            const spy = jest.spyOn(statusButton, 'focus');
+            expect(restoreTriggerForRoute('route-profile')).toBe(true);
+            expect(spy).toHaveBeenCalled();
         });
     });
 });
@@ -791,7 +828,7 @@ describe('restoreTriggerForRoute', () => {
 
             // Now simulate useAutoFocusInput's guarded late-fire. The guard must prevent input.focus().
             const messageSpy = jest.spyOn(messageInput, 'focus');
-            const guardSaysSkip = typeof document !== 'undefined' && !!document.activeElement && document.activeElement !== document.body;
+            const guardSaysSkip = shouldSkipAutoFocusDueToExistingFocus();
             expect(guardSaysSkip).toBe(true);
             if (!guardSaysSkip && tryClaim(Priorities.AUTO)) {
                 messageInput.focus();
@@ -830,6 +867,20 @@ describe('restoreTriggerForRoute', () => {
         const spy = jest.spyOn(trigger, 'focus');
         expect(restoreTriggerForRoute('route-a')).toBe(true);
         expect(spy).toHaveBeenCalledWith({preventScroll: true, focusVisible: expectedFocusVisible});
+    });
+});
+
+describe('shouldSkipAutoFocusDueToExistingFocus', () => {
+    it('returns false when body holds focus (nothing else claimed)', () => {
+        (document.activeElement as HTMLElement | null)?.blur();
+        expect(shouldSkipAutoFocusDueToExistingFocus()).toBe(false);
+    });
+
+    it('returns true when a non-body element holds focus (e.g. a restored RETURN target)', () => {
+        const btn = document.createElement('button');
+        document.body.appendChild(btn);
+        btn.focus();
+        expect(shouldSkipAutoFocusDueToExistingFocus()).toBe(true);
     });
 });
 

@@ -12,13 +12,15 @@ const LAUNCHER_STACK_MAX = 8;
 
 // Stack (not slot) so nested + sequential traps retain correct launcher context.
 const launcherStack: LauncherEntry[] = [];
+let hasWarnedAboutOverflow = false;
 
 // Two passes so nested traps resolve to the outer (active) launcher, not the just-closed inner.
 function pickLauncher(): HTMLElement | null {
     if (typeof document === 'undefined') {
         return null;
     }
-    const now = Date.now();
+    // Monotonic — Date.now() would misbehave on clock jumps.
+    const now = performance.now();
     for (let i = launcherStack.length - 1; i >= 0; i -= 1) {
         const entry = launcherStack.at(i);
         if (!entry) {
@@ -67,11 +69,16 @@ function setActivePopoverLauncher(element: HTMLElement): void {
         return;
     }
     launcherStack.push({element});
-    while (launcherStack.length > LAUNCHER_STACK_MAX) {
-        // Overflow drops the oldest (outermost) launcher. Should never happen in normal use.
-        // eslint-disable-next-line no-console
-        console.warn('[NavigationFocusReturn] launcherStack overflow — dropping oldest entry');
-        launcherStack.shift();
+    if (launcherStack.length > LAUNCHER_STACK_MAX) {
+        if (!hasWarnedAboutOverflow) {
+            hasWarnedAboutOverflow = true;
+            // Once-per-session so a pathological trap loop doesn't spam dev logs.
+            // eslint-disable-next-line no-console
+            console.warn('[NavigationFocusReturn] launcherStack overflow — dropping oldest entry');
+        }
+        while (launcherStack.length > LAUNCHER_STACK_MAX) {
+            launcherStack.shift();
+        }
     }
 }
 
@@ -82,12 +89,13 @@ function scheduleClearActivePopoverLauncher(element?: HTMLElement): void {
     }
     const entry = element ? launcherStack.find((e) => e.element === element) : launcherStack.at(-1);
     if (entry) {
-        entry.deactivatedAt = Date.now();
+        entry.deactivatedAt = performance.now();
     }
 }
 
 function resetLauncherStackForTests(): void {
     launcherStack.length = 0;
+    hasWarnedAboutOverflow = false;
 }
 
 export {pickLauncher, consumeLauncher, setActivePopoverLauncher, scheduleClearActivePopoverLauncher, resetLauncherStackForTests, LAUNCHER_CLEAR_DELAY_MS, LAUNCHER_STACK_MAX};
