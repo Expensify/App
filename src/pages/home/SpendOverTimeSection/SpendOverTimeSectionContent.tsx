@@ -43,7 +43,7 @@ function SpendOverTimeSectionContent() {
                         shouldShowRightIcon
                         textStyles={styles.pb0}
                         style={styles.widgetItemButton}
-                        isContentCentered
+                        iconWrapperStyles={styles.justifyContentCenter}
                     />
                 ) : null
             }
