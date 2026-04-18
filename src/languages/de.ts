@@ -6899,8 +6899,6 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 merchants: 'Händler',
                 noAvailableCards: 'Alle Karten haben bereits eine Regel',
                 noAvailableCardsSubtitle: 'Bearbeiten Sie eine vorhandene Kartenregel, um Änderungen vorzunehmen',
-                noCardsIssuedTitle: 'Keine Expensify-Karten ausgestellt',
-                noCardsIssuedSubtitle: 'Stellen Sie Expensify-Karten aus, um Ausgaberegeln zu erstellen',
                 max: 'Max',
                 categoryOptions: {
                     [CONST.SPEND_RULES.CATEGORIES.AIRLINES]: 'Fluggesellschaften',

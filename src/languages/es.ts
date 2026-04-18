@@ -6783,8 +6783,6 @@ ${amount} para ${merchant} - ${date}`,
                 merchants: 'Comerciantes',
                 noAvailableCards: 'No hay tarjetas activas en este feed',
                 noAvailableCardsSubtitle: 'Edita una regla de tarjeta existente para hacer cambios',
-                noCardsIssuedTitle: 'No se han emitido tarjetas Expensify',
-                noCardsIssuedSubtitle: 'Emite tarjetas Expensify para crear reglas de gasto',
                 max: 'Máx.',
                 categoryOptions: {
                     [CONST.SPEND_RULES.CATEGORIES.AIRLINES]: 'Aerolíneas',
