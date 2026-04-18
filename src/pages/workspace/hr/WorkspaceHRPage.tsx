@@ -19,7 +19,7 @@ function WorkspaceHRPage({route}: WorkspaceHRPageProps) {
 
     return (
         <AccessOrNotFoundWrapper
-            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
+            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED}
             shouldBeBlocked={!isBetaEnabled(CONST.BETAS.GUSTO)}

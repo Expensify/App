@@ -23,6 +23,7 @@ import {
     enableAutoApprovalOptions,
     enableCompanyCards,
     enablePolicyAutoReimbursementLimit,
+    enablePolicyHR,
     enablePolicyReportFields,
     enablePolicyRules,
     setPolicyPreventMemberCreatedTitle,
@@ -120,6 +121,7 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
                 return;
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.rules.id:
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.perDiem.id:
+            case CONST.UPGRADE_FEATURE_INTRO_MAPPING.hr.id:
                 return Navigation.goBack(ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID));
             default:
                 return route.params.backTo ? Navigation.goBack(route.params.backTo) : Navigation.goBack();
@@ -193,6 +195,9 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
                 break;
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.perDiem.id:
                 enablePerDiem(policyID, true, perDiemCustomUnit?.customUnitID, false);
+                break;
+            case CONST.UPGRADE_FEATURE_INTRO_MAPPING.hr.id:
+                enablePolicyHR(policyID, true);
                 break;
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.id:
                 setWorkspaceApprovalMode(policy, defaultApprover, CONST.POLICY.APPROVAL_MODE.ADVANCED, accountID, email);

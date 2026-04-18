@@ -1554,12 +1554,6 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.TIME_TRACKING_DEFAULT_RATE]: {
         policyID: string;
     };
-    [SCREENS.WORKSPACE.HR_GUSTO_APPROVAL_MODE]: {
-        policyID: string;
-    };
-    [SCREENS.WORKSPACE.HR_GUSTO_FINAL_APPROVER]: {
-        policyID: string;
-    };
     [SCREENS.DOMAIN.VERIFY]: {
         domainAccountID: number;
     };
@@ -2789,12 +2783,6 @@ type WorkspaceSplitNavigatorParamList = {
         policyID: string;
     };
     [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_LOCATIONS_DISPLAYED_AS]: {
-        policyID: string;
-    };
-    [SCREENS.WORKSPACE.HR_GUSTO_APPROVAL_MODE]: {
-        policyID: string;
-    };
-    [SCREENS.WORKSPACE.HR_GUSTO_FINAL_APPROVER]: {
         policyID: string;
     };
     [SCREENS.WORKSPACE.RULES]: {

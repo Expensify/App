@@ -8374,6 +8374,14 @@ const CONST = {
                 description: 'workspace.upgrade.perDiem.description' as const,
                 icon: 'PerDiem',
             },
+            hr: {
+                id: 'hr' as const,
+                alias: 'hr',
+                name: 'HR',
+                title: 'workspace.upgrade.hr.title' as const,
+                description: 'workspace.upgrade.hr.description' as const,
+                icon: 'Members',
+            },
             travel: {
                 id: 'travel' as const,
                 alias: 'travel',

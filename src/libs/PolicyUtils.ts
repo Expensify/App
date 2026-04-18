@@ -905,7 +905,11 @@ function canPolicyAccessFeature(policy: OnyxEntry<Policy>, featureName: PolicyFe
     if (!isPaidGroupPolicy(policy)) {
         return false;
     }
-    const corporateOnlyFeatures = new Set<PolicyFeatureName>([CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED, CONST.POLICY.MORE_FEATURES.ARE_PER_DIEM_RATES_ENABLED]);
+    const corporateOnlyFeatures = new Set<PolicyFeatureName>([
+        CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED,
+        CONST.POLICY.MORE_FEATURES.ARE_PER_DIEM_RATES_ENABLED,
+        CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED,
+    ]);
     if (corporateOnlyFeatures.has(featureName)) {
         return isControlPolicy(policy);
     }

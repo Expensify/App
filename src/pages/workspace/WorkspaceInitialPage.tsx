@@ -164,7 +164,10 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
         [CONST.POLICY.MORE_FEATURES.ARE_TAXES_ENABLED]: policy?.tax?.trackingEnabled,
         [CONST.POLICY.MORE_FEATURES.ARE_COMPANY_CARDS_ENABLED]: policy?.areCompanyCardsEnabled,
         [CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED]: !!policy?.areConnectionsEnabled || hasAccountingFeatureConnection(policy),
-        [CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED]: isBetaEnabled(CONST.BETAS.GUSTO) && (policy?.isHREnabled === true || !!policy?.connections?.gusto),
+        [CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED]:
+            isBetaEnabled(CONST.BETAS.GUSTO) &&
+            (policy?.isHREnabled === true || !!policy?.connections?.gusto) &&
+            canPolicyAccessFeature(policy, CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED),
         [CONST.POLICY.MORE_FEATURES.ARE_EXPENSIFY_CARDS_ENABLED]: policy?.areExpensifyCardsEnabled,
         [CONST.POLICY.MORE_FEATURES.ARE_REPORT_FIELDS_ENABLED]: policy?.areReportFieldsEnabled,
         [CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED]: policy?.areRulesEnabled,

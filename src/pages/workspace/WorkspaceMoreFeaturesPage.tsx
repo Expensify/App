@@ -516,11 +516,18 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
             icon: illustrations.Members,
             titleTranslationKey: 'workspace.hr.title',
             subtitleTranslationKey: 'workspace.hr.subtitle',
-            isActive: policy?.isHREnabled === true || !!policy?.connections?.gusto,
+            isActive:
+                ((policy?.isHREnabled === true || !!policy?.connections?.gusto) &&
+                    canPolicyAccessFeature(policy, CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED)) ??
+                false,
             pendingAction: policy?.pendingFields?.isHREnabled,
             disabled: !!policy?.connections?.gusto,
             action: (isEnabled: boolean) => {
                 if (!policyID) {
+                    return;
+                }
+                if (isEnabled && !isControlPolicy(policy)) {
+                    Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.hr.alias, ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID)));
                     return;
                 }
                 enablePolicyHR(policyID, isEnabled);
