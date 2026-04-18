@@ -17,7 +17,6 @@ type NetSuiteSectionType = {
     title?: string;
     description?: string;
     onPress: () => void;
-    errorText?: string;
     hintText?: string;
     subscribedSettings: string[];
     pendingAction?: PendingAction;
