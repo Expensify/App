@@ -1,6 +1,7 @@
 import {findFocusedRoute} from '@react-navigation/core';
 import type {NavigationState, PartialState} from '@react-navigation/native';
 import {InteractionManager} from 'react-native';
+import {FOCUSABLE_SELECTOR} from './focusUtils';
 import getHadTabNavigation from './hadTabNavigation';
 import {consumeLauncher, pickLauncher, resetLauncherStackForTests} from './LauncherStack';
 import navigationRef from './Navigation/navigationRef';
@@ -24,10 +25,11 @@ const triggerMap = new Map<string, TriggerEntry>();
 let prevState: NavigationState | undefined;
 let pendingRestore: {cancel: () => void} | null = null;
 let focusinHandler: ((e: FocusEvent) => void) | null = null;
-let clickHandler: ((e: MouseEvent) => void) | null = null;
+let mouseActivationHandler: ((e: MouseEvent) => void) | null = null;
 let stateUnsubscribe: (() => void) | null = null;
 
-const MOUSE_TRIGGER_SELECTOR = 'button, a[href], input, textarea, select, [role="button"], [role="link"], [tabindex]:not([tabindex="-1"])';
+// mousedown fires before click and is rarely stopImmediatePropagation'd; click covers drag-to-release (target differs from mousedown target). Both update the same handler idempotently.
+const MOUSE_ACTIVATION_EVENTS = ['mousedown', 'click'] as const;
 
 function collectRouteKeys(state: AnyState, out = new Set<string>()): Set<string> {
     if (!state?.routes) {
@@ -384,17 +386,19 @@ function setupNavigationFocusReturn(): void {
         };
         document.addEventListener('focusin', focusinHandler, true);
     }
-    if (!clickHandler) {
-        clickHandler = (e: MouseEvent) => {
+    if (!mouseActivationHandler) {
+        mouseActivationHandler = (e: MouseEvent) => {
             if (!(e.target instanceof HTMLElement)) {
                 return;
             }
-            const target = e.target.closest<HTMLElement>(MOUSE_TRIGGER_SELECTOR);
+            const target = e.target.closest<HTMLElement>(FOCUSABLE_SELECTOR);
             if (target) {
                 lastMouseTrigger = target;
             }
         };
-        document.addEventListener('click', clickHandler, true);
+        for (const event of MOUSE_ACTIVATION_EVENTS) {
+            document.addEventListener(event, mouseActivationHandler, true);
+        }
     }
     // getRootState() pre-mount triggers React Navigation's "not initialized" console.error. Retries on each setup call so NavigationRoot.onReady picks up live state.
     if (!prevState && navigationRefHasLiveState()) {
@@ -418,12 +422,14 @@ function teardownNavigationFocusReturn(): void {
         if (focusinHandler) {
             document.removeEventListener('focusin', focusinHandler, true);
         }
-        if (clickHandler) {
-            document.removeEventListener('click', clickHandler, true);
+        if (mouseActivationHandler) {
+            for (const event of MOUSE_ACTIVATION_EVENTS) {
+                document.removeEventListener(event, mouseActivationHandler, true);
+            }
         }
     }
     focusinHandler = null;
-    clickHandler = null;
+    mouseActivationHandler = null;
     stateUnsubscribe?.();
     stateUnsubscribe = null;
 }

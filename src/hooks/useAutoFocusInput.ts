@@ -5,6 +5,7 @@ import type {TextInput} from 'react-native';
 import {InteractionManager} from 'react-native';
 import Accessibility from '@libs/Accessibility';
 import ComposerFocusManager from '@libs/ComposerFocusManager';
+import {shouldSkipAutoFocusDueToExistingFocus} from '@libs/focusUtils';
 import {moveSelectionToEnd, scrollToBottom} from '@libs/InputUtils';
 import isWindowReadyToFocus from '@libs/isWindowReadyToFocus';
 import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -21,11 +22,6 @@ type UseAutoFocusInput = {
     inputCallbackRef: (ref: TextInput | null) => void;
     inputRef: RefObject<TextInput | null>;
 };
-
-/** AUTO's async chain can outlive RETURN_HOLD_MS; skip when another element (e.g. a restored RETURN target) already holds focus. */
-function shouldSkipAutoFocusDueToExistingFocus(): boolean {
-    return typeof document !== 'undefined' && !!document.activeElement && document.activeElement !== document.body;
-}
 
 export default function useAutoFocusInput(isMultiline = false): UseAutoFocusInput {
     const [isInputInitialized, setIsInputInitialized] = useState(false);
@@ -145,5 +141,3 @@ export default function useAutoFocusInput(isMultiline = false): UseAutoFocusInpu
 
     return {inputCallbackRef, inputRef};
 }
-
-export {shouldSkipAutoFocusDueToExistingFocus};

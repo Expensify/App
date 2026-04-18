@@ -1,10 +1,9 @@
 import {useEffect} from 'react';
 import {InteractionManager} from 'react-native';
+import {FOCUSABLE_SELECTOR} from '@libs/focusUtils';
 import getHadTabNavigation from '@libs/hadTabNavigation';
 import {Priorities, tryClaim} from '@libs/ScreenFocusArbiter';
 import type UseDialogContainerFocus from './types';
-
-const FOCUSABLE_SELECTOR = 'button, [href], input, textarea, select, [role="button"], [role="link"], [tabindex]:not([tabindex="-1"])';
 
 function focusFirstInteractiveElement(container: HTMLElement | null): boolean {
     if (!getHadTabNavigation() || !container || (document.activeElement && document.activeElement !== document.body)) {
@@ -55,4 +54,4 @@ const useDialogContainerFocus: UseDialogContainerFocus = (ref, isReady, claimIni
 };
 
 export default useDialogContainerFocus;
-export {focusFirstInteractiveElement, FOCUSABLE_SELECTOR};
+export {focusFirstInteractiveElement};
