@@ -26,7 +26,7 @@ import useSelfDMReport from '@hooks/useSelfDMReport';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {setMoneyRequestDistance, setMoneyRequestOdometerReading} from '@libs/actions/IOU';
+import {clearOdometerDraft, hydrateOdometerDraftToTransaction, saveOdometerDraft, setMoneyRequestDistance, setMoneyRequestOdometerReading} from '@libs/actions/IOU';
 import {handleMoneyRequestStepDistanceNavigation} from '@libs/actions/IOU/MoneyRequest';
 import {setDraftSplitTransaction} from '@libs/actions/IOU/Split';
 import {updateMoneyRequestDistance} from '@libs/actions/IOU/UpdateMoneyRequest';
@@ -36,6 +36,7 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {shouldUseTransactionDraft} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {roundToTwoDecimalPlaces} from '@libs/NumberUtils';
+import {getOdometerImageUri} from '@libs/OdometerImageUtils';
 import {isPolicyExpenseChat as isPolicyExpenseChatUtils} from '@libs/ReportUtils';
 import shouldUseDefaultExpensePolicyUtil from '@libs/shouldUseDefaultExpensePolicy';
 import {startSpan} from '@libs/telemetry/activeSpans';
@@ -96,6 +97,7 @@ function IOURequestStepDistanceOdometer({
     const initialStartImageRef = useRef<FileObject | string | undefined>(undefined);
     const initialEndImageRef = useRef<FileObject | string | undefined>(undefined);
     const prevSelectedTabRef = useRef<string | undefined>(undefined);
+    const prevSelectedTabForHydrationRef = useRef<string | undefined>(undefined);
     const transactionWasSaved = useRef(false);
     const backupHandledManually = useRef(false);
 
@@ -125,6 +127,7 @@ function IOURequestStepDistanceOdometer({
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [selectedTab, selectedTabResult] = useOnyx(`${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.DISTANCE_REQUEST_TYPE}`);
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
+    const [odometerDraft] = useOnyx(ONYXKEYS.ODOMETER_DRAFT);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const isLoadingSelectedTab = isLoadingOnyxValue(selectedTabResult);
 
@@ -183,6 +186,50 @@ function IOURequestStepDistanceOdometer({
 
         prevSelectedTabRef.current = selectedTab;
     }, [selectedTab, isLoadingSelectedTab]);
+
+    useEffect(() => {
+        if (isLoadingSelectedTab) {
+            return;
+        }
+
+        const previousSelectedTabForHydration = prevSelectedTabForHydrationRef.current;
+        const isEnteringOdometerTab = previousSelectedTabForHydration !== CONST.TAB_REQUEST.DISTANCE_ODOMETER && selectedTab === CONST.TAB_REQUEST.DISTANCE_ODOMETER;
+        prevSelectedTabForHydrationRef.current = selectedTab;
+
+        if (!isEnteringOdometerTab || !isCreatingNewRequest || !odometerDraft) {
+            return;
+        }
+
+        const hasStoredDraftData =
+            odometerDraft.odometerStartReading !== undefined || odometerDraft.odometerEndReading !== undefined || !!odometerDraft.odometerStartImage || !!odometerDraft.odometerEndImage;
+
+        if (!hasStoredDraftData) {
+            return;
+        }
+
+        if (!!startReadingRef.current || !!endReadingRef.current) {
+            return;
+        }
+
+        const hydratedComment = hydrateOdometerDraftToTransaction(transactionID, isTransactionDraft, odometerDraft);
+        if (!hydratedComment) {
+            return;
+        }
+
+        const hydratedStartValue = hydratedComment.odometerStart !== undefined && hydratedComment.odometerStart !== null ? hydratedComment.odometerStart.toString() : '';
+        const hydratedEndValue = hydratedComment.odometerEnd !== undefined && hydratedComment.odometerEnd !== null ? hydratedComment.odometerEnd.toString() : '';
+
+        setStartReading(hydratedStartValue);
+        setEndReading(hydratedEndValue);
+        startReadingRef.current = hydratedStartValue;
+        endReadingRef.current = hydratedEndValue;
+        initialStartReadingRef.current = hydratedStartValue;
+        initialEndReadingRef.current = hydratedEndValue;
+        initialStartImageRef.current = hydratedComment.odometerStartImage;
+        initialEndImageRef.current = hydratedComment.odometerEndImage;
+        hasInitializedRefs.current = true;
+        setFormError('');
+    }, [isCreatingNewRequest, isLoadingSelectedTab, selectedTab, odometerDraft, transactionID, isTransactionDraft]);
 
     // Initialize initial values refs on mount for DiscardChangesConfirmation
     // These should never be updated after mount - they represent the "baseline" state
@@ -556,11 +603,43 @@ function IOURequestStepDistanceOdometer({
         navigateToNextPage();
     };
 
+    const handleSaveForLater = useCallback(async () => {
+        setShouldEnableDiscardConfirmation(false);
+
+        const normalizedStart = DistanceRequestUtils.normalizeOdometerText(startReading, fromLocaleDigit);
+        const normalizedEnd = DistanceRequestUtils.normalizeOdometerText(endReading, fromLocaleDigit);
+        const parsedStart = startReading ? parseFloat(normalizedStart) : undefined;
+        const parsedEnd = endReading ? parseFloat(normalizedEnd) : undefined;
+        const startReadingValue = parsedStart !== undefined && !Number.isNaN(parsedStart) ? parsedStart : undefined;
+        const endReadingValue = parsedEnd !== undefined && !Number.isNaN(parsedEnd) ? parsedEnd : undefined;
+        const hasAnyInput = startReadingValue !== undefined || endReadingValue !== undefined || !!odometerStartImage || !!odometerEndImage;
+
+        if (!hasAnyInput) {
+            clearOdometerDraft();
+            navigateBack();
+            return;
+        }
+
+        try {
+            await saveOdometerDraft({
+                startReading: startReadingValue,
+                endReading: endReadingValue,
+                startImage: odometerStartImage,
+                endImage: odometerEndImage,
+            });
+        } catch {
+            // If draft save fails, we still close to match "save for later" flow behavior.
+        }
+        navigateBack();
+    }, [fromLocaleDigit, startReading, endReading, odometerStartImage, odometerEndImage, navigateBack]);
+
     useDiscardChangesConfirmation({
         isEnabled: shouldEnableDiscardConfirmation,
         getHasUnsavedChanges: () => {
             const hasReadingChanges = startReadingRef.current !== initialStartReadingRef.current || endReadingRef.current !== initialEndReadingRef.current;
-            const hasImageChanges = transaction?.comment?.odometerStartImage !== initialStartImageRef.current || transaction?.comment?.odometerEndImage !== initialEndImageRef.current;
+            const hasImageChanges =
+                getOdometerImageUri(transaction?.comment?.odometerStartImage) !== getOdometerImageUri(initialStartImageRef.current) ||
+                getOdometerImageUri(transaction?.comment?.odometerEndImage) !== getOdometerImageUri(initialEndImageRef.current);
             return hasReadingChanges || hasImageChanges;
         },
     });
@@ -690,6 +769,17 @@ function IOURequestStepDistanceOdometer({
                         testID="next-save-button"
                         sentryLabel={CONST.SENTRY_LABEL.IOU_REQUEST_STEP.DISTANCE_ODOMETER_NEXT_BUTTON}
                     />
+                    {isCreatingNewRequest && (
+                        <Button
+                            allowBubble
+                            medium={isExtraSmallScreenHeight}
+                            large={!isExtraSmallScreenHeight}
+                            style={[styles.w100, styles.mt3]}
+                            onPress={handleSaveForLater}
+                            text={translate('distance.odometer.saveForLater')}
+                            testID="save-for-later-button"
+                        />
+                    )}
                 </View>
             </View>
         </StepScreenWrapper>
