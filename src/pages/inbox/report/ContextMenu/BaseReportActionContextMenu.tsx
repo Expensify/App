@@ -15,6 +15,7 @@ import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useEnvironment from '@hooks/useEnvironment';
 import useGetExpensifyCardFromReportAction from '@hooks/useGetExpensifyCardFromReportAction';
+import useHoldEducationalModal from '@hooks/useHoldEducationalModal';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -244,6 +245,7 @@ function BaseReportActionContextMenu({
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const {holdWithEducation} = useHoldEducationalModal({moneyRequestReport, originalReport});
 
     const isTryNewDotNVPDismissed = !!tryNewDot?.classicRedirect?.dismissed;
     const session = useSession();
@@ -417,6 +419,7 @@ function BaseReportActionContextMenu({
                             bankAccountList,
                             isOffline,
                             conciergeReportID,
+                            holdWithEducation,
                         };
 
                         if ('renderContent' in contextAction) {
