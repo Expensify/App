@@ -108,8 +108,7 @@ function SpendRuleCardPage({route}: SpendRuleCardPageProps) {
     const isCardSettingsLoading = !isOffline && (!expensifyCardSettings || expensifyCardSettings.isLoading) && !expensifyCardSettings?.hasOnceLoaded;
     const eligibleCards = expensifyCardSettings ? getEligibleCards(cardsList, expensifyCardSettings, ruleID === ROUTES.NEW ? undefined : ruleID) : [];
 
-    const {cardList, ...allCards} = cardsList ?? {};
-    const hasAnyCards = Object.keys(allCards).length > 0;
+    const hasAnyCards = eligibleCards.length > 0;
 
     const filterCard = (card: Card, searchInput: string) => filterCardsByPersonalDetails(card, searchInput, personalDetails);
     const sortCards = (cards: Card[]) => sortCardsByCardholderName(cards, personalDetails, localeCompare);
@@ -243,21 +242,23 @@ function SpendRuleCardPage({route}: SpendRuleCardPageProps) {
                         shouldUpdateFocusedIndex
                         shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
                         listEmptyContent={
-                            <ScrollView contentContainerStyle={[styles.flexGrow1]}>
-                                <BlockingView
-                                    icon={illustrations.HandCard}
-                                    iconWidth={variables.iconSection}
-                                    iconHeight={variables.iconSection}
-                                    title={
-                                        inputValue.trim()
-                                            ? translate('common.noResultsFound')
-                                            : translate(hasAnyCards ? 'workspace.rules.spendRules.noAvailableCards' : 'workspace.rules.spendRules.noCardsIssuedTitle')
-                                    }
-                                    titleStyles={styles.mb2}
-                                    subtitle={translate(hasAnyCards ? 'workspace.rules.spendRules.noAvailableCardsSubtitle' : 'workspace.rules.spendRules.noCardsIssuedSubtitle')}
-                                    subtitleStyle={styles.textSupporting}
-                                />
-                            </ScrollView>
+                            (!inputValue.trim() || hasAnyCards) ? (
+                                <ScrollView contentContainerStyle={[styles.flexGrow1]}>
+                                    <BlockingView
+                                        icon={illustrations.HandCard}
+                                        iconWidth={variables.iconSection}
+                                        iconHeight={variables.iconSection}
+                                        title={
+                                            inputValue.trim()
+                                                ? translate('common.noResultsFound')
+                                                : translate(hasAnyCards ? 'workspace.rules.spendRules.noAvailableCards' : 'workspace.rules.spendRules.noCardsIssuedTitle')
+                                        }
+                                        titleStyles={styles.mb2}
+                                        subtitle={translate(hasAnyCards ? 'workspace.rules.spendRules.noAvailableCardsSubtitle' : 'workspace.rules.spendRules.noCardsIssuedSubtitle')}
+                                        subtitleStyle={styles.textSupporting}
+                                    />
+                                </ScrollView>
+                            ) : undefined
                         }
                         footerContent={
                             <FormAlertWithSubmitButton
