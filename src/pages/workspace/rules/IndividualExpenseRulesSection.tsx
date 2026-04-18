@@ -82,7 +82,7 @@ function IndividualExpenseRulesSection({policyID}: IndividualExpenseRulesSection
         }
 
         return convertToDisplayString(policy?.maxExpenseAmountNoReceipt, policyCurrency);
-    }, [policy?.maxExpenseAmountNoReceipt, policyCurrency]);
+    }, [convertToDisplayString, policy?.maxExpenseAmountNoReceipt, policyCurrency]);
 
     const maxExpenseAmountText = useMemo(() => {
         if (policy?.maxExpenseAmount === CONST.DISABLED_MAX_EXPENSE_VALUE) {
@@ -90,7 +90,7 @@ function IndividualExpenseRulesSection({policyID}: IndividualExpenseRulesSection
         }
 
         return convertToDisplayString(policy?.maxExpenseAmount, policyCurrency);
-    }, [policy?.maxExpenseAmount, policyCurrency]);
+    }, [convertToDisplayString, policy?.maxExpenseAmount, policyCurrency]);
 
     const maxExpenseAgeText = useMemo(() => {
         if (policy?.maxExpenseAge === CONST.DISABLED_MAX_EXPENSE_VALUE) {
@@ -141,7 +141,7 @@ function IndividualExpenseRulesSection({policyID}: IndividualExpenseRulesSection
         }
 
         return convertToDisplayString(policy?.maxExpenseAmountNoItemizedReceipt, policyCurrency);
-    }, [policy?.maxExpenseAmountNoItemizedReceipt, policyCurrency]);
+    }, [convertToDisplayString, policy?.maxExpenseAmountNoItemizedReceipt, policyCurrency]);
 
     const individualExpenseRulesItems: IndividualExpenseRulesMenuItem[] = [
         {
