@@ -26,16 +26,19 @@ function setup(): void {
             hadTabNavigation = false;
         }
     };
-    const mousedownHandler = () => {
+    // pointerdown covers pen/touch; mousedown is the legacy fallback.
+    const pointerActivationHandler = () => {
         hadTabNavigation = false;
     };
 
     document.addEventListener('keydown', keydownHandler, true);
-    document.addEventListener('mousedown', mousedownHandler, true);
+    document.addEventListener('pointerdown', pointerActivationHandler, true);
+    document.addEventListener('mousedown', pointerActivationHandler, true);
 
     teardown = () => {
         document.removeEventListener('keydown', keydownHandler, true);
-        document.removeEventListener('mousedown', mousedownHandler, true);
+        document.removeEventListener('pointerdown', pointerActivationHandler, true);
+        document.removeEventListener('mousedown', pointerActivationHandler, true);
         teardown = null;
     };
 }

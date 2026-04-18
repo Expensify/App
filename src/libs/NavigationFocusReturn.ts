@@ -111,6 +111,7 @@ function captureTriggerForRoute(routeKey: string): void {
 const UNDEFINED_SENTINEL = '\u0000undefined';
 
 // URL-rehydrated params are always strings; PUSH_PARAMS dispatches may use numbers/booleans.
+// Top-level undefined is dropped by the caller's filter; nested undefined is preserved via UNDEFINED_SENTINEL — asymmetric but inert (URL params are flat).
 function normalizeForKey(value: unknown): unknown {
     if (value === null) {
         return null;
