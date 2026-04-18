@@ -29,7 +29,7 @@ function SearchPage({route}: SearchPageProps) {
     useDocumentTitle(translate('common.search'));
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
-    const {selectedTransactions, lastSearchType, areAllMatchingItemsSelected, currentSearchKey, currentSearchResults, currentSearchQueryJSON} = useSearchStateContext();
+    const {selectedTransactions, areAllMatchingItemsSelected, currentSearchKey, currentSearchResults, currentSearchQueryJSON} = useSearchStateContext();
     const {clearSelectedTransactions, setLastSearchType} = useSearchActionsContext();
 
     const isMobileSelectionModeEnabled = useMobileSelectionMode(clearSelectedTransactions);
@@ -48,7 +48,8 @@ function SearchPage({route}: SearchPageProps) {
         if (currentSearchResults.data) {
             lastNonEmptySearchResults.current = currentSearchResults;
         }
-    }, [lastSearchType, currentSearchQueryJSON, setLastSearchType, currentSearchResults]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- setLastSearchType is stable; lastSearchType and currentSearchQueryJSON removed to avoid circular re-fire
+    }, [currentSearchResults, setLastSearchType]);
 
     const selectedTransactionsKeys = Object.keys(selectedTransactions ?? {});
 
