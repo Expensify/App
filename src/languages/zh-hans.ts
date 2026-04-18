@@ -1203,8 +1203,10 @@ const translations: TranslationDeepObject<typeof en> = {
         findExpense: '查找报销',
         deletedTransaction: (amount: string, merchant: string) => `已删除一笔报销（${merchant} 的 ${amount}）`,
         movedFromReport: (reportName: string) => `已移动一笔报销${reportName ? `来自${reportName}` : ''}`,
-        movedTransactionTo: (reportUrl: string, reportName?: string) => `已移动此报销${reportName ? `到 <a href="${reportUrl}">${reportName}</a>` : ''}`,
-        movedTransactionFrom: (reportUrl: string, reportName?: string) => `已移动此报销${reportName ? `来自 <a href="${reportUrl}">${reportName}</a>` : ''}`,
+        movedTransactionTo: (toReportID: string, reportUrl: string, reportName?: string) =>
+            `已移动此报销${reportName ? `到<a href="${reportUrl}">${reportName}</a>` : `到报表 ID ${toReportID}`}`,
+        movedTransactionFrom: (fromReportID: string, reportUrl: string, reportName?: string) =>
+            `已移动此报销${reportName ? `来自<a href="${reportUrl}">${reportName}</a>` : `来自报表 ID ${fromReportID}`}`,
         unreportedTransaction: (reportUrl: string) => `已将此报销移动到你的<a href="${reportUrl}">个人空间</a>`,
         movedAction: (shouldHideMovedReportUrl: boolean, movedReportUrl: string, newParentReportUrl: string, toPolicyName: string) => {
             if (shouldHideMovedReportUrl) {

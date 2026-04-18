@@ -1240,8 +1240,10 @@ const translations: TranslationDeepObject<typeof en> = {
         findExpense: 'Uitgave zoeken',
         deletedTransaction: (amount: string, merchant: string) => `heeft een uitgave verwijderd (${amount} voor ${merchant})`,
         movedFromReport: (reportName: string) => `heeft een uitgave verplaatst${reportName ? `van ${reportName}` : ''}`,
-        movedTransactionTo: (reportUrl: string, reportName?: string) => `heeft deze uitgave verplaatst${reportName ? `naar <a href="${reportUrl}">${reportName}</a>` : ''}`,
-        movedTransactionFrom: (reportUrl: string, reportName?: string) => `heeft deze uitgave verplaatst${reportName ? `van <a href="${reportUrl}">${reportName}</a>` : ''}`,
+        movedTransactionTo: (toReportID: string, reportUrl: string, reportName?: string) =>
+            `heeft deze uitgave naar${reportName ? ` <a href="${reportUrl}">${reportName}</a>` : ` rapport-ID ${toReportID}`} verplaatst`,
+        movedTransactionFrom: (fromReportID: string, reportUrl: string, reportName?: string) =>
+            `heeft deze uitgave van${reportName ? ` <a href="${reportUrl}">${reportName}</a>` : ` rapport-ID ${fromReportID}`} verplaatst`,
         unreportedTransaction: (reportUrl: string) => `heeft deze uitgave verplaatst naar je <a href="${reportUrl}">persoonlijke ruimte</a>`,
         movedAction: (shouldHideMovedReportUrl: boolean, movedReportUrl: string, newParentReportUrl: string, toPolicyName: string) => {
             if (shouldHideMovedReportUrl) {

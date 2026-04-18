@@ -16,9 +16,6 @@ type MovedTransactionActionProps = {
     /** The moved transaction action data */
     action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION>;
 
-    /** The element to render when there is no report that the transaction was moved to or from */
-    emptyHTML: React.JSX.Element;
-
     /** The child report of the action item */
     childReport: OnyxEntry<Report>;
 
@@ -26,26 +23,15 @@ type MovedTransactionActionProps = {
     originalReport: OnyxEntry<Report>;
 };
 
-function MovedTransactionAction({action, emptyHTML, childReport, originalReport}: MovedTransactionActionProps) {
+function MovedTransactionAction({action, childReport, originalReport}: MovedTransactionActionProps) {
     const {translate} = useLocalize();
     const movedTransactionOriginalMessage = getOriginalMessage(action);
-    const toReportID = movedTransactionOriginalMessage?.toReportID;
     const fromReportID = movedTransactionOriginalMessage?.fromReportID;
 
-    const [toReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${toReportID}`);
     const [fromReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${fromReportID}`);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
 
     const isPendingDelete = fromReport?.pendingFields?.preview === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
-    // When the transaction is moved from personal space (unreported), fromReportID will be "0" which doesn't exist in allReports
-    const hasFromReport = fromReportID === CONST.REPORT.UNREPORTED_REPORT_ID ? true : !!fromReport;
-
-    // When expenses are merged multiple times, the previous fromReportID may reference a deleted report,
-    // making it impossible to retrieve the report name for display
-    // Ref: https://github.com/Expensify/App/issues/70338
-    if (!toReport && !hasFromReport) {
-        return emptyHTML;
-    }
 
     const message = getMovedTransactionMessage(translate, action, conciergeReportID);
 
