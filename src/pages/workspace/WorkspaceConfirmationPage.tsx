@@ -12,6 +12,7 @@ import {createWorkspaceWithPolicyDraftAndNavigateToIt} from '@libs/actions/App';
 import {generatePolicyID} from '@libs/actions/Policy/Policy';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
 import {isSubscriptionTypeOfInvoicing} from '@libs/SubscriptionUtils';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {LastPaymentMethodType} from '@src/types/onyx';
@@ -29,6 +30,7 @@ function WorkspaceConfirmationPage() {
 
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const privateSubscription = usePrivateSubscription();
+    const isAnnualSubscription = privateSubscription?.type === CONST.SUBSCRIPTION.TYPE.ANNUAL;
     const hasActiveAdminPolicies = useHasActiveAdminPolicies();
 
     const onSubmit = (params: WorkspaceConfirmationSubmitFunctionParams) => {
@@ -54,6 +56,7 @@ function WorkspaceConfirmationPage() {
             isSelfTourViewed,
             betas,
             hasActiveAdminPolicies,
+            isAnnualSubscription,
         });
     };
     const currentUrl = getCurrentUrl();
