@@ -14,8 +14,10 @@ const {resetCycle: resetArbiter, tryClaim: arbiterClaim, Priorities: arbiterPrio
     tryClaim: (priority: 1 | 2 | 3) => boolean;
     Priorities: {INITIAL: 1; AUTO: 2; RETURN: 3};
 }>('../../src/libs/ScreenFocusArbiter.ts');
-const {teardownHadTabNavigation} = require<{teardownHadTabNavigation: () => void}>('../../src/libs/hadTabNavigation.ts');
+const {teardownHadTabNavigation, setupHadTabNavigation} = require<{teardownHadTabNavigation: () => void; setupHadTabNavigation: () => void}>('../../src/libs/hadTabNavigation.ts');
 /* eslint-enable @typescript-eslint/no-require-imports, import/extensions */
+
+setupHadTabNavigation();
 
 function createContainer(...children: HTMLElement[]) {
     const container = document.createElement('div');
@@ -206,6 +208,21 @@ describe('focusFirstInteractiveElement', () => {
             focusFirstInteractiveElement(container);
             expect(skipSpy).not.toHaveBeenCalled();
             expect(buttonSpy).toHaveBeenCalled();
+        });
+
+        it('should skip elements inside an [inert] subtree', () => {
+            const inertWrapper = document.createElement('div');
+            inertWrapper.setAttribute('inert', '');
+            const inertButton = document.createElement('button');
+            inertWrapper.appendChild(inertButton);
+            const visibleButton = document.createElement('button');
+            const container = createContainer(inertWrapper, visibleButton);
+            const inertSpy = jest.spyOn(inertButton, 'focus');
+            const visibleSpy = jest.spyOn(visibleButton, 'focus');
+
+            focusFirstInteractiveElement(container);
+            expect(inertSpy).not.toHaveBeenCalled();
+            expect(visibleSpy).toHaveBeenCalled();
         });
     });
 

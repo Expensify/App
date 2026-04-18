@@ -2,6 +2,7 @@ import {findFocusedRoute} from '@react-navigation/core';
 import type {NavigationState, PartialState} from '@react-navigation/native';
 import {InteractionManager} from 'react-native';
 import FOCUSABLE_SELECTOR from './focusableSelector';
+import {hasFocusableAttributes} from './focusGuards';
 import getHadTabNavigation from './hadTabNavigation';
 import {consumeLauncher, pickLauncher, resetLauncherStackForTests} from './LauncherStack';
 import navigationRef from './Navigation/navigationRef';
@@ -106,10 +107,16 @@ function captureTriggerForRoute(routeKey: string): void {
     triggerMap.set(routeKey, {primary: inner});
 }
 
+// Sentinel so JSON.stringify can't collapse [undefined] → [null].
+const UNDEFINED_SENTINEL = '\u0000undefined';
+
 // URL-rehydrated params are always strings; PUSH_PARAMS dispatches may use numbers/booleans.
 function normalizeForKey(value: unknown): unknown {
-    if (value == null) {
-        return value;
+    if (value === null) {
+        return null;
+    }
+    if (value === undefined) {
+        return UNDEFINED_SENTINEL;
     }
     if (typeof value === 'number' || typeof value === 'boolean') {
         return String(value);
@@ -172,11 +179,6 @@ function notifyPushParamsBackward(routeKey: string, targetParams: unknown): void
 /** For PUSH_PARAMS browser-forward RESET: cancel a queued restore without capturing. */
 function cancelPendingFocusRestore(): void {
     cancelPendingRestore();
-}
-
-/** Attribute-level focusability only. Geometry (display:none, visibility:hidden, zero-size) is caught post-focus via document.activeElement verification. */
-function hasFocusableAttributes(el: HTMLElement): boolean {
-    return !el.matches(':disabled') && el.getAttribute('aria-disabled') !== 'true' && !el.closest('[aria-hidden="true"]') && !el.closest('[inert]');
 }
 
 // 'retry' = in DOM but cannot accept focus now; 'gone' = detached, drop the entry.
@@ -281,6 +283,7 @@ const RESTORE_RETRY_MS = 50;
 
 function scheduleRestore(routeKey: string): void {
     cancelPendingRestore();
+    // Belt-and-suspenders: cancel primitives + cancelled flag, in case a cancel doesn't prevent the already-queued callback.
     let cancelled = false;
     let attempts = 0;
     let frameId: number | undefined;
@@ -388,11 +391,12 @@ function setupNavigationFocusReturn(): void {
     }
     if (!mouseActivationHandler) {
         mouseActivationHandler = (e: MouseEvent) => {
-            if (!(e.target instanceof HTMLElement)) {
+            if (!(e.target instanceof Element)) {
                 return;
             }
-            const target = e.target.closest<HTMLElement>(FOCUSABLE_SELECTOR);
-            if (target) {
+            const target = e.target.closest(FOCUSABLE_SELECTOR);
+            // SVG role="button" matches would return SVGElement; instanceof filters to HTMLElement to match the rest of the module's typing.
+            if (target instanceof HTMLElement && target !== lastMouseTrigger) {
                 lastMouseTrigger = target;
             }
         };

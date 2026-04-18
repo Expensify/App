@@ -52,7 +52,5 @@ function resetForTests(): void {
     hadTabNavigation = false;
 }
 
-setup();
-
 export default getHadTabNavigation;
-export {teardownHadTabNavigation, resetForTests};
+export {teardownHadTabNavigation, resetForTests, setup as setupHadTabNavigation};

@@ -35,7 +35,8 @@ function FocusTrapForModal({children, active, initialFocus = false, shouldPreven
                 trapStack: sharedTrapStack,
                 clickOutsideDeactivates: true,
                 initialFocus,
-                fallbackFocus: document.body,
+                // Lazy so document.body isn't evaluated at render time (SSR-safe).
+                fallbackFocus: () => document.body,
                 setReturnFocus: (element) => {
                     if (ReportActionComposeFocusManager.isFocused()) {
                         return false;

@@ -14,6 +14,7 @@ import SidePanelActions from '@libs/actions/SidePanel';
 import clearSelectedText from '@libs/clearSelectedText/clearSelectedText';
 import clearSelectedTextIfComposerBlurred from '@libs/clearSelectedTextIfComposerBlurred/clearSelectedTextIfComposerBlurred';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
+import {setupHadTabNavigation} from '@libs/hadTabNavigation';
 import Log from '@libs/Log';
 import {setupNavigationFocusReturn} from '@libs/NavigationFocusReturn';
 import {shallowCompare} from '@libs/ObjectUtils';
@@ -60,7 +61,8 @@ type FocusedScreen = {
     params?: Record<string, unknown>;
 };
 
-// Installs focusin/click listeners; NavigationRoot.onReady attaches the state listener once live.
+// Installs the modality flag (keydown/mousedown) and focus-return listeners (focusin/click); NavigationRoot.onReady attaches the state listener once live.
+setupHadTabNavigation();
 setupNavigationFocusReturn();
 
 // Screens which are part of the 2FA setup flow - used to determine when to hide the RequireTwoFactorAuthOverlay

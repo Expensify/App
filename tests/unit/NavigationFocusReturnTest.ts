@@ -5,8 +5,9 @@ const {resetCycle: resetArbiter, tryClaim, Priorities} = require<{
     tryClaim: (priority: number) => boolean;
     Priorities: {INITIAL: number; AUTO: number; RETURN: number};
 }>('../../src/libs/ScreenFocusArbiter.ts');
-const {resetForTests: resetHadTabNavigation} = require<{
+const {resetForTests: resetHadTabNavigation, setupHadTabNavigation} = require<{
     resetForTests: () => void;
+    setupHadTabNavigation: () => void;
 }>('../../src/libs/hadTabNavigation.ts');
 const {
     diffNavigationState,
@@ -41,7 +42,10 @@ const {setActivePopoverLauncher, scheduleClearActivePopoverLauncher} = require<{
     setActivePopoverLauncher: (element: HTMLElement) => void;
     scheduleClearActivePopoverLauncher: (element?: HTMLElement) => void;
 }>('../../src/libs/LauncherStack.ts');
-const shouldSkipAutoFocusDueToExistingFocus = require<{default: () => boolean}>('../../src/libs/focusGuards.ts').default;
+const {shouldSkipAutoFocusDueToExistingFocus, hasFocusableAttributes} = require<{
+    shouldSkipAutoFocusDueToExistingFocus: () => boolean;
+    hasFocusableAttributes: (el: Element) => boolean;
+}>('../../src/libs/focusGuards.ts');
 /* eslint-enable @typescript-eslint/no-require-imports, import/extensions */
 
 function simulateTab() {
@@ -108,6 +112,7 @@ function withFakeTimers<T>(fn: () => T): T {
     }
 }
 
+setupHadTabNavigation();
 setupNavigationFocusReturn();
 
 beforeEach(() => {
@@ -882,6 +887,34 @@ describe('shouldSkipAutoFocusDueToExistingFocus', () => {
     });
 });
 
+describe('hasFocusableAttributes', () => {
+    it('returns true for a plain button', () => {
+        const btn = document.createElement('button');
+        document.body.appendChild(btn);
+        expect(hasFocusableAttributes(btn)).toBe(true);
+    });
+
+    it.each<[label: string, mutate: (wrapper: HTMLElement, btn: HTMLButtonElement) => void]>([
+        [
+            'disabled',
+            (_, btn) => {
+                // eslint-disable-next-line no-param-reassign
+                btn.disabled = true;
+            },
+        ],
+        ['aria-disabled="true"', (_, btn) => btn.setAttribute('aria-disabled', 'true')],
+        ['inside an [aria-hidden="true"] ancestor', (wrapper) => wrapper.setAttribute('aria-hidden', 'true')],
+        ['inside an [inert] ancestor', (wrapper) => wrapper.setAttribute('inert', '')],
+    ])('returns false when %s', (_label, mutate) => {
+        const wrapper = document.createElement('div');
+        const btn = document.createElement('button');
+        wrapper.appendChild(btn);
+        document.body.appendChild(wrapper);
+        mutate(wrapper, btn);
+        expect(hasFocusableAttributes(btn)).toBe(false);
+    });
+});
+
 describe('focusin listener', () => {
     it('should update the tracked element when Tab was used', () => {
         simulateTab();
@@ -1120,6 +1153,14 @@ describe('compoundParamsKey', () => {
 
     it('should distinguish explicit null from absent (null is a real value)', () => {
         expect(compoundParamsKey('search-x', {q: 'foo', rawQuery: null})).not.toBe(compoundParamsKey('search-x', {q: 'foo'}));
+    });
+
+    it('should distinguish array [undefined] from array [null] (JSON.stringify would otherwise collapse both to "null")', () => {
+        expect(compoundParamsKey('search-x', {ids: [undefined]})).not.toBe(compoundParamsKey('search-x', {ids: [null]}));
+    });
+
+    it('should produce the same key for two [undefined] arrays', () => {
+        expect(compoundParamsKey('search-x', {ids: [undefined, undefined]})).toBe(compoundParamsKey('search-x', {ids: [undefined, undefined]}));
     });
 
     it('should treat number and string-of-number as equivalent (URL-rehydrated params are always strings)', () => {
