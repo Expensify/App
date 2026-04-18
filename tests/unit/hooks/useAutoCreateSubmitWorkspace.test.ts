@@ -96,7 +96,7 @@ describe('useAutoCreateSubmitWorkspace', () => {
 
     it('creates a Submit workspace with the correct parameters for a new EMPLOYER user', () => {
         // Given a new user going through onboarding with no existing workspace (onboardingPolicyID is undefined,
-        // hasPaidGroupAdminPolicy is false, and policy creation is not restricted)
+        // hasEditableGroupPolicy is false, and policy creation is not restricted)
 
         // When the autoCreateSubmitWorkspace function is invoked during onboarding
         const {result} = renderHook(() => useAutoCreateSubmitWorkspace());

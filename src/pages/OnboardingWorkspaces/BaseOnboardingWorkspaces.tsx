@@ -25,7 +25,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import {isCurrentUserValidated} from '@libs/UserUtils';
 import {askToJoinPolicy, joinAccessiblePolicy} from '@userActions/Policy/Member';
-import {getAccessiblePolicies, setPolicyLoading} from '@userActions/Policy/Policy';
+import {getAccessiblePolicies} from '@userActions/Policy/Policy';
 import {completeOnboarding} from '@userActions/Report';
 import {setOnboardingAdminsChatReportID, setOnboardingPolicyID} from '@userActions/Welcome';
 import CONST from '@src/CONST';
@@ -100,7 +100,6 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
         setOnboardingPolicyID(policy.policyID);
 
         if (isEmployerWithSubmit && policy.automaticJoiningEnabled) {
-            setPolicyLoading(policy.policyID, true);
             navigateToSubmitWorkspaceAfterOnboardingWithMicrotaskQueue(policy.policyID);
             return;
         }

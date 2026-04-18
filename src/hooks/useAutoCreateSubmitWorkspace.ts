@@ -3,7 +3,7 @@ import {useCallback, useMemo} from 'react';
 import type {OnyxCollection} from 'react-native-onyx';
 import {navigateToSubmitWorkspaceAfterOnboardingWithMicrotaskQueue} from '@libs/navigateAfterOnboarding';
 import {createDisplayName} from '@libs/PersonalDetailsUtils';
-import {isPaidGroupPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
+import {canEditWorkspaceSettings, isGroupPolicy} from '@libs/PolicyUtils';
 import {createWorkspace, generatePolicyID, newGenerateDefaultWorkspaceName} from '@userActions/Policy/Policy';
 import {completeOnboarding} from '@userActions/Report';
 import {setOnboardingAdminsChatReportID, setOnboardingPolicyID} from '@userActions/Welcome';
@@ -31,9 +31,9 @@ function useAutoCreateSubmitWorkspace() {
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [session] = useOnyx(ONYXKEYS.SESSION);
-    const paidGroupPolicySelector = useMemo(
-        () => (policies: OnyxCollection<Policy>) => Object.values(policies ?? {}).some((policy) => isPaidGroupPolicy(policy) && isPolicyAdmin(policy, session?.email)),
-        [session?.email],
+    const groupPolicySelector = useMemo(
+        () => (policies: OnyxCollection<Policy>) => Object.values(policies ?? {}).some((policy) => isGroupPolicy(policy) && canEditWorkspaceSettings(policy)),
+        [],
     );
     const lastWorkspaceNumberWithEmailSelector = useCallback(
         (policies: OnyxCollection<Policy>) => {
@@ -41,7 +41,7 @@ function useAutoCreateSubmitWorkspace() {
         },
         [session?.email],
     );
-    const [hasPaidGroupAdminPolicy] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: paidGroupPolicySelector});
+    const [hasEditableGroupPolicy] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: groupPolicySelector});
     const [lastWorkspaceNumber] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: lastWorkspaceNumberWithEmailSelector});
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -52,7 +52,7 @@ function useAutoCreateSubmitWorkspace() {
 
     const autoCreateSubmitWorkspace = useCallback(
         (firstName: string, lastName: string) => {
-            const shouldCreateWorkspace = !isRestrictedPolicyCreation && !onboardingPolicyID && !hasPaidGroupAdminPolicy;
+            const shouldCreateWorkspace = !isRestrictedPolicyCreation && !onboardingPolicyID && !hasEditableGroupPolicy;
             const displayName = createDisplayName(session?.email ?? '', {firstName, lastName}, formatPhoneNumber);
 
             const {adminsChatReportID: newAdminsChatReportID, policyID: newPolicyID} = shouldCreateWorkspace
@@ -102,7 +102,7 @@ function useAutoCreateSubmitWorkspace() {
             formatPhoneNumber,
             isRestrictedPolicyCreation,
             onboardingPolicyID,
-            hasPaidGroupAdminPolicy,
+            hasEditableGroupPolicy,
             onboardingAdminsChatReportID,
             currentUserPersonalDetails.localCurrencyCode,
             introSelected,

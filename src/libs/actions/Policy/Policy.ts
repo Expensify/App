@@ -7065,10 +7065,6 @@ function setWorkspaceConfirmationCurrency(currency: string) {
     Onyx.merge(ONYXKEYS.FORMS.WORKSPACE_CONFIRMATION_FORM_DRAFT, {currency});
 }
 
-function setPolicyLoading(policyID: string, isLoading: boolean) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {isLoading});
-}
-
 export {
     leaveWorkspace,
     addBillingCardAndRequestPolicyOwnerChange,
@@ -7194,6 +7190,5 @@ export {
     setWorkspaceConfirmationCurrency,
     setPolicyRequireCompanyCardsEnabled,
     setPolicyTimeTrackingDefaultRate,
-    setPolicyLoading,
 };
 export type {BuildPolicyDataKeys, WorkspaceMembersChats};

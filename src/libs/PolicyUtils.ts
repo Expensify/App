@@ -893,9 +893,16 @@ function isPolicyEditor(policy: OnyxEntry<Policy>): boolean {
  * Returns true if the user can edit workspace settings — admins on any workspace, or editors on Submit workspaces.
  */
 function canEditWorkspaceSettings(policy: OnyxEntry<Policy>): boolean {
-    return isPolicyAdmin(policy) || isPolicyEditor(policy);
+    return isPolicyAdmin(policy) || (isSubmitPolicy(policy) && isPolicyEditor(policy));
 }
 
+/**
+ * Returns true for any group workspace: paid (Team/Corporate) or Submit.
+ *
+ * Note: not to be confused with `ReportUtils.isGroupPolicy(policyType: string)`,
+ * which excludes Submit. Use this helper when Submit workspaces should be treated
+ * like paid workspaces (e.g. access gating for shared workspace pages).
+ */
 function isGroupPolicy(policy: OnyxInputOrEntry<Policy>): boolean {
     return isPaidGroupPolicy(policy) || isSubmitPolicy(policy);
 }
@@ -2009,7 +2016,7 @@ function canModifyPlan(ownerPolicies: Policy[] | undefined, policy: OnyxEntry<Po
         return (ownerPolicies?.length ?? 0) > 1;
     }
 
-    return !!policy && isPolicyAdmin(policy);
+    return !!policy && canEditWorkspaceSettings(policy);
 }
 
 function getAdminsPrivateEmailDomains(policy?: Policy) {
