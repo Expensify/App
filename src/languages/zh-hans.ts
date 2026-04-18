@@ -5008,6 +5008,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             free: '免费',
             control: '控制',
             collect: '收款',
+            submit: '提交',
         },
         companyCards: {
             addCards: '添加卡片',

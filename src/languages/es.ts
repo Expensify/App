@@ -5017,6 +5017,7 @@ ${amount} para ${merchant} - ${date}`,
             free: 'Gratis',
             control: 'Controlar',
             collect: 'Recopilar',
+            submit: 'Enviar',
         },
         companyCards: {
             addCards: 'Añadir tarjetas',

@@ -5154,6 +5154,7 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             free: 'Kostenlos',
             control: 'Steuerung',
             collect: 'Einziehen',
+            submit: 'Einreichen',
         },
         companyCards: {
             addCards: 'Karten hinzufügen',

@@ -5122,6 +5122,7 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
             free: 'Darmowy',
             control: 'Sterowanie',
             collect: 'Zbierz',
+            submit: 'Prześlij',
         },
         companyCards: {
             addCards: 'Dodaj karty',
