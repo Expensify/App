@@ -1673,6 +1673,7 @@ const translations: TranslationDeepObject<typeof en> = {
             prompt: 'Aktivieren Sie die Steuerverfolgung im Workspace, um die Ausgabendetails zu bearbeiten oder die Steuer aus dieser Ausgabe zu löschen.',
             confirmText: 'Steuer löschen',
         },
+        bulkDuplicateLimit: `Sie können bis zu ${CONST.SEARCH.BULK_DUPLICATE_LIMIT} Ausgaben gleichzeitig duplizieren. Bitte wählen Sie weniger Ausgaben aus und versuchen Sie es erneut.`,
         deleted: 'Gelöscht',
     },
     transactionMerge: {
@@ -2615,6 +2616,9 @@ ${amount} für ${merchant} – ${date}`,
     workflowsExpensesFromPage: {
         title: 'Ausgaben ab',
         header: 'Wenn die folgenden Mitglieder Ausgaben einreichen:',
+        memberAlreadyInWorkflowTitle: 'Mitglied ist bereits in einem Workflow',
+        memberAlreadyInWorkflowPrompt: ({memberName, approverName}: {memberName: string; approverName: string}) =>
+            `${memberName} befindet sich bereits in einem Genehmigungs-Workflow, der an ${approverName} übermittelt wird. Wenn du das Mitglied hier hinzufügst, wird es in diesen Workflow verschoben.`,
     },
     workflowsApproverPage: {
         genericErrorMessage: 'Die genehmigende Person konnte nicht geändert werden. Bitte versuche es erneut oder kontaktiere den Support.',
@@ -4298,6 +4302,7 @@ ${amount} für ${merchant} – ${date}`,
             budgetFrequencyUnit: {monthly: 'Monat', yearly: 'Jahr'},
             budgetTypeForNotificationMessage: {tag: 'Tag', category: 'Kategorie'},
             deepDiveExpensifyCard: `<muted-text-label>Transaktionen der Expensify Karte werden automatisch in ein „Expensify Karte Verbindlichkeitskonto“ exportiert, das mit <a href="${CONST.DEEP_DIVE_EXPENSIFY_CARD}">unserer Integration</a> erstellt wird.</muted-text-label>`,
+            hr: 'Personalwesen',
         },
         receiptPartners: {
             uber: {
@@ -6941,6 +6946,31 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 other: `Sie haben sich bis zum Ende Ihres Jahresabonnements am ${annualSubscriptionEndDate} zu ${count} aktiven Mitgliedern im Control-Tarif verpflichtet. Ab dem ${annualSubscriptionEndDate} können Sie durch Deaktivieren der automatischen Verlängerung in ein nutzungsabhängiges Abonnement wechseln und auf den Collect-Tarif herabstufen in`,
             }),
             subscriptions: 'Abonnements',
+        },
+        hr: {
+            title: 'Personalwesen',
+            subtitle: 'HR-Tools verbinden und Mitarbeitergenehmigungen synchron halten.',
+            settingsTitle: 'Gusto-Einstellungen',
+            syncStageName: ({stage}: SyncStageNameConnectionsParams) => {
+                switch (stage) {
+                    case 'startingImportGusto':
+                        return 'Gusto-Daten werden importiert';
+                    case 'gustoSyncLoadCompany':
+                        return 'Gusto-Unternehmensdaten werden geladen';
+                    case 'gustoSyncImportEmployees':
+                        return 'Mitarbeitende importieren';
+                    case 'gustoSyncBuildApprovalChains':
+                        return 'Genehmigungsketten erstellen';
+                    case 'gustoSyncFinalize':
+                        return 'Synchronisierung wird abgeschlossen';
+                    case 'jobDone':
+                        return 'Warten auf das Laden der importierten Daten';
+                    default: {
+                        return `Übersetzung fehlt für Stufe: ${stage}`;
+                    }
+                }
+            },
+            gusto: {title: 'Gusto', approvalMode: 'Genehmigungsmodus', finalApprover: 'Endgültige:r Genehmiger:in'},
         },
     },
     getAssistancePage: {
