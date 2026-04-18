@@ -27,6 +27,7 @@ import * as User from '@src/libs/actions/User';
 import DateUtils from '@src/libs/DateUtils';
 import Log from '@src/libs/Log';
 import * as SequentialQueue from '@src/libs/Network/SequentialQueue';
+import {setHasRadio} from '@src/libs/NetworkState';
 import * as ReportUtils from '@src/libs/ReportUtils';
 import type * as SearchQueryUtilsType from '@src/libs/SearchQueryUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -189,6 +190,7 @@ describe('actions/Report', () => {
 
     beforeEach(() => {
         HttpUtils.xhr = originalXHR;
+        setHasRadio(true);
         const promise = Onyx.clear().then(() => {
             jest.useRealTimers();
             waitForBatchedUpdates();
@@ -1122,7 +1124,8 @@ describe('actions/Report', () => {
 
         const REPORT_ID = '1';
 
-        await Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
+        setHasRadio(false);
+        await waitForBatchedUpdates();
         await waitForBatchedUpdates();
 
         for (let i = 0; i < 5; i++) {
@@ -1139,7 +1142,9 @@ describe('actions/Report', () => {
 
         expect(PersistedRequests.getAll().length).toBe(1);
 
-        await Onyx.set(ONYXKEYS.NETWORK, {isOffline: false});
+        await waitForBatchedUpdates();
+        setHasRadio(true);
+        await waitForBatchedUpdates();
         await waitForBatchedUpdates();
 
         TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.OPEN_REPORT, 1);
@@ -1222,7 +1227,8 @@ describe('actions/Report', () => {
 
         const REPORT_ID = '1';
 
-        await Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
+        setHasRadio(false);
+        await waitForBatchedUpdates();
         await waitForBatchedUpdates();
 
         for (let i = 0; i < 8; i++) {
@@ -1243,7 +1249,9 @@ describe('actions/Report', () => {
 
         expect(PersistedRequests.getAll().length).toBe(4);
 
-        await Onyx.set(ONYXKEYS.NETWORK, {isOffline: false});
+        await waitForBatchedUpdates();
+        setHasRadio(true);
+        await waitForBatchedUpdates();
         await waitForBatchedUpdates();
 
         TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.OPEN_REPORT, 4);
@@ -1258,7 +1266,7 @@ describe('actions/Report', () => {
         const TEN_MINUTES_AGO = subMinutes(new Date(), 10);
         const created = format(addSeconds(TEN_MINUTES_AGO, 10), CONST.DATE.FNS_DB_FORMAT_STRING);
 
-        Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
+        setHasRadio(false);
 
         Report.addComment({
             report: REPORT,
@@ -1327,7 +1335,7 @@ describe('actions/Report', () => {
             },
         });
 
-        Onyx.set(ONYXKEYS.NETWORK, {isOffline: false});
+        setHasRadio(true);
         await waitForBatchedUpdates();
 
         // Checking no requests were or will be made
@@ -1343,7 +1351,7 @@ describe('actions/Report', () => {
         const REPORT: OnyxTypes.Report = createRandomReport(1, undefined);
         const created = format(addSeconds(subMinutes(new Date(), 10), 10), CONST.DATE.FNS_DB_FORMAT_STRING);
 
-        Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
+        setHasRadio(false);
         Report.addComment({
             report: REPORT,
             notifyReportID: REPORT_ID,
@@ -1370,7 +1378,7 @@ describe('actions/Report', () => {
         await waitForBatchedUpdates();
 
         expect(PersistedRequests.getAll().length).toBe(0);
-        Onyx.set(ONYXKEYS.NETWORK, {isOffline: false});
+        setHasRadio(true);
         await waitForBatchedUpdates();
 
         TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.ADD_COMMENT, 0);
@@ -1387,7 +1395,8 @@ describe('actions/Report', () => {
         const TEN_MINUTES_AGO = subMinutes(new Date(), 10);
         const created = format(addSeconds(TEN_MINUTES_AGO, 10), CONST.DATE.FNS_DB_FORMAT_STRING);
 
-        await Onyx.set(ONYXKEYS.NETWORK, {isOffline: false});
+        setHasRadio(true);
+        await waitForBatchedUpdates();
 
         Report.addComment({
             report: REPORT,
@@ -1398,12 +1407,19 @@ describe('actions/Report', () => {
             currentUserAccountID: TEST_USER_ACCOUNT_ID,
         });
 
-        // Need the reportActionID to delete the comments
+        await waitForBatchedUpdates();
+
+        // Need the reportActionID to delete the comments — read before the queue processes the request
         const newComment = PersistedRequests.getAll().at(1);
         const reportActionID = newComment?.data?.reportActionID as string | undefined;
         const reportAction = TestHelper.buildTestReportComment(created, TEST_USER_ACCOUNT_ID, reportActionID);
 
-        await Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
+        // Let the queue process the online ADD_COMMENT request before going offline.
+        // setHasRadio(false) calls pause() synchronously, which blocks processing immediately.
+        await waitForBatchedUpdates();
+
+        setHasRadio(false);
+        await waitForBatchedUpdates();
 
         const originalReport = {
             reportID: REPORT_ID,
@@ -1431,7 +1447,7 @@ describe('actions/Report', () => {
         await waitForBatchedUpdates();
         expect(PersistedRequests.getAll().length).toBe(1);
 
-        Onyx.set(ONYXKEYS.NETWORK, {isOffline: false});
+        setHasRadio(true);
         await waitForBatchedUpdates();
 
         // Checking no requests were or will be made
@@ -1512,7 +1528,8 @@ describe('actions/Report', () => {
         const TEN_MINUTES_AGO = subMinutes(new Date(), 10);
         const created = format(addSeconds(TEN_MINUTES_AGO, 10), CONST.DATE.FNS_DB_FORMAT_STRING);
 
-        await Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
+        setHasRadio(false);
+        await waitForBatchedUpdates();
 
         const file = new File([''], 'test.txt', {type: 'text/plain'});
         const REPORT: OnyxTypes.Report = createRandomReport(1, undefined);
@@ -1566,7 +1583,7 @@ describe('actions/Report', () => {
             },
         });
 
-        Onyx.set(ONYXKEYS.NETWORK, {isOffline: false});
+        setHasRadio(true);
         await waitForBatchedUpdates();
 
         // Checking no requests were or will be made
@@ -1588,7 +1605,8 @@ describe('actions/Report', () => {
         const created = format(addSeconds(TEN_MINUTES_AGO, 10), CONST.DATE.FNS_DB_FORMAT_STRING);
         const file = new File([''], 'test.txt', {type: 'text/plain'});
 
-        await Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
+        setHasRadio(false);
+        await waitForBatchedUpdates();
 
         const REPORT: OnyxTypes.Report = createRandomReport(1, undefined);
         Report.addAttachmentWithComment({report: REPORT, notifyReportID: REPORT_ID, ancestors: [], attachments: file, currentUserAccountID: 1, text: 'Attachment with comment'});
@@ -1641,7 +1659,7 @@ describe('actions/Report', () => {
             },
         });
 
-        Onyx.set(ONYXKEYS.NETWORK, {isOffline: false});
+        setHasRadio(true);
         await waitForBatchedUpdates();
 
         // Checking no requests were or will be made
@@ -1657,7 +1675,8 @@ describe('actions/Report', () => {
             }),
         });
         const playSoundMock = playSound as jest.MockedFunction<typeof playSound>;
-        await Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
+        setHasRadio(false);
+        await waitForBatchedUpdates();
         await waitForBatchedUpdates();
 
         const relevantPromise = new Promise((resolve) => {
@@ -1706,7 +1725,8 @@ describe('actions/Report', () => {
             }),
         });
         const playSoundMock = playSound as jest.MockedFunction<typeof playSound>;
-        await Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
+        setHasRadio(false);
+        await waitForBatchedUpdates();
         await waitForBatchedUpdates();
 
         const relevantPromise = new Promise((resolve) => {
@@ -1754,7 +1774,8 @@ describe('actions/Report', () => {
             }),
         });
         const playSoundMock = playSound as jest.MockedFunction<typeof playSound>;
-        await Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
+        setHasRadio(false);
+        await waitForBatchedUpdates();
         await waitForBatchedUpdates();
 
         const relevantPromise = new Promise((resolve) => {
@@ -1939,7 +1960,8 @@ describe('actions/Report', () => {
         const TEN_MINUTES_AGO = subMinutes(new Date(), 10);
         const created = format(addSeconds(TEN_MINUTES_AGO, 10), CONST.DATE.FNS_DB_FORMAT_STRING);
 
-        await Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
+        setHasRadio(false);
+        await waitForBatchedUpdates();
         await Promise.resolve();
 
         Report.addComment({
@@ -2026,7 +2048,7 @@ describe('actions/Report', () => {
             },
         });
 
-        Onyx.set(ONYXKEYS.NETWORK, {isOffline: false});
+        setHasRadio(true);
         await waitForBatchedUpdates();
 
         // Checking no requests were or will be made
@@ -2058,11 +2080,16 @@ describe('actions/Report', () => {
             currentUserAccountID: TEST_USER_ACCOUNT_ID,
         });
 
-        // Need the reportActionID to delete the comments
+        // Need the reportActionID to delete the comments — read before the queue processes the request
         const newComment = PersistedRequests.getAll().at(0);
         const reportActionID = newComment?.data?.reportActionID as string | undefined;
         const reportAction = TestHelper.buildTestReportComment(created, TEST_USER_ACCOUNT_ID, reportActionID);
-        await Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
+
+        // Let the queue process the online ADD_COMMENT request before going offline
+        await waitForBatchedUpdates();
+
+        setHasRadio(false);
+        await waitForBatchedUpdates();
 
         // wait for Onyx.connect execute the callback and start processing the queue
         await Promise.resolve();
@@ -2109,7 +2136,7 @@ describe('actions/Report', () => {
         await waitForBatchedUpdates();
         expect(PersistedRequests.getAll().length).toBe(1);
 
-        Onyx.set(ONYXKEYS.NETWORK, {isOffline: false});
+        setHasRadio(true);
         await waitForBatchedUpdates();
 
         // Checking no requests were or will be made
@@ -2128,7 +2155,8 @@ describe('actions/Report', () => {
         const TEN_MINUTES_AGO = subMinutes(new Date(), 10);
         const created = format(addSeconds(TEN_MINUTES_AGO, 10), CONST.DATE.FNS_DB_FORMAT_STRING);
 
-        await Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
+        setHasRadio(false);
+        await waitForBatchedUpdates();
         await waitForBatchedUpdates();
 
         Report.addComment({
@@ -2172,7 +2200,7 @@ describe('actions/Report', () => {
         expect(persistedRequests?.at(1)?.command).toBe(WRITE_COMMANDS.OPEN_REPORT);
         expect(persistedRequests?.at(2)?.command).toBe(WRITE_COMMANDS.DELETE_COMMENT);
 
-        Onyx.set(ONYXKEYS.NETWORK, {isOffline: false});
+        setHasRadio(true);
         await waitForBatchedUpdates();
 
         // Checking no requests were or will be made
@@ -2190,7 +2218,7 @@ describe('actions/Report', () => {
         const TEN_MINUTES_AGO = subMinutes(new Date(), 10);
         const created = format(addSeconds(TEN_MINUTES_AGO, 10), CONST.DATE.FNS_DB_FORMAT_STRING);
 
-        Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
+        setHasRadio(false);
 
         Report.addComment({
             report: REPORT,
@@ -2218,7 +2246,7 @@ describe('actions/Report', () => {
         await waitForBatchedUpdates();
         expect(PersistedRequests.getAll().length).toBe(1);
 
-        Onyx.set(ONYXKEYS.NETWORK, {isOffline: false});
+        setHasRadio(true);
         await waitForBatchedUpdates();
 
         // Checking no requests were or will be made
@@ -2230,7 +2258,8 @@ describe('actions/Report', () => {
         global.fetch = TestHelper.getGlobalFetchMock();
         const reportID = '123';
 
-        await Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
+        setHasRadio(false);
+        await waitForBatchedUpdates();
 
         const action: OnyxEntry<OnyxTypes.ReportAction> = {
             reportID,
@@ -2255,7 +2284,9 @@ describe('actions/Report', () => {
         expect(requests?.at(0)?.command).toBe(WRITE_COMMANDS.UPDATE_COMMENT);
         expect(requests?.at(0)?.data?.reportComment).toBe('value3');
 
-        await Onyx.set(ONYXKEYS.NETWORK, {isOffline: false});
+        await waitForBatchedUpdates();
+        setHasRadio(true);
+        await waitForBatchedUpdates();
 
         TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.UPDATE_COMMENT, 1);
     });
@@ -2283,7 +2314,8 @@ describe('actions/Report', () => {
             },
         });
 
-        await Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
+        setHasRadio(false);
+        await waitForBatchedUpdates();
 
         Report.addComment({
             report: REPORT,
@@ -2326,13 +2358,15 @@ describe('actions/Report', () => {
                 },
             });
         });
-        await Onyx.set(ONYXKEYS.NETWORK, {isOffline: false});
+        setHasRadio(true);
+        await waitForBatchedUpdates();
         await waitForBatchedUpdates();
     });
 
     it('it should only send the last sequential UpdateComment request to BE with currentUserLogin', async () => {
         global.fetch = TestHelper.getGlobalFetchMock();
-        await Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
+        setHasRadio(false);
+        await waitForBatchedUpdates();
 
         const action: OnyxEntry<OnyxTypes.ReportAction> = {
             reportID: '123',
@@ -2353,7 +2387,10 @@ describe('actions/Report', () => {
         expect(requests?.at(0)?.command).toBe(WRITE_COMMANDS.UPDATE_COMMENT);
         expect(requests?.at(0)?.data?.reportComment).toBe('value3');
 
-        await Onyx.set(ONYXKEYS.NETWORK, {isOffline: false});
+        await waitForBatchedUpdates();
+        setHasRadio(true);
+        await waitForBatchedUpdates();
+
         TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.UPDATE_COMMENT, 1);
     });
 
@@ -3280,6 +3317,7 @@ describe('actions/Report', () => {
                 },
                 formatPhoneNumber: TestHelper.formatPhoneNumber,
                 isReportLastVisibleArchived: undefined,
+                reportNextStep: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -3366,6 +3404,7 @@ describe('actions/Report', () => {
                 employeeList,
                 formatPhoneNumber: TestHelper.formatPhoneNumber,
                 isReportLastVisibleArchived: false,
+                reportNextStep: undefined,
             });
             await waitForBatchedUpdates();
 

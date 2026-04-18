@@ -71,7 +71,6 @@ function IOURequestStepAccountant({
                 onFinish={navigateToNextStep}
                 onAccountantSelected={setAccountant}
                 iouType={iouType}
-                action={action}
             />
         </StepScreenWrapper>
     );

@@ -110,6 +110,7 @@ const translations: TranslationDeepObject<typeof en> = {
         newFeature: '新功能',
         search: '搜索',
         reports: '报表',
+        spend: '支出',
         find: '查找',
         searchWithThreeDots: '搜索…',
         next: '下一步',
@@ -1012,6 +1013,7 @@ const translations: TranslationDeepObject<typeof en> = {
             title: '入门',
             createWorkspace: '创建工作区',
             connectAccounting: ({integrationName}: {integrationName: string}) => `连接到 ${integrationName}`,
+            connectAccountingDefault: '连接会计系统',
             customizeCategories: '自定义会计类别',
             linkCompanyCards: '关联公司卡',
             setupRules: '设置消费规则',
@@ -1614,6 +1616,8 @@ const translations: TranslationDeepObject<typeof en> = {
         failedToApproveViaDEW: (reason: string) => `批准失败。${reason}`,
         cannotDuplicateDistanceExpense: '你无法在不同工作区之间复制里程报销，因为各个工作区的费率可能不同。',
         taxDisabledAlert: {title: '税费已禁用', prompt: '请在工作区中启用税费跟踪，以便编辑此报销的详细信息或从该报销中删除税费。', confirmText: '删除税费'},
+        bulkDuplicateLimit: `您一次最多可以复制 ${CONST.SEARCH.BULK_DUPLICATE_LIMIT} 笔报销。请减少选择的报销数量后重试。`,
+        deleted: '已删除',
     },
     transactionMerge: {
         listPage: {
@@ -2049,7 +2053,16 @@ const translations: TranslationDeepObject<typeof en> = {
         accountSettings: '账户设置',
         account: '账户',
         general: '常规',
-        helpPage: {title: '帮助与支持', description: '我们全天候 24/7 为您提供帮助', helpSite: '帮助网站', conciergeChat: 'Concierge', conciergeChatDescription: '你的个人 AI 助理'},
+        helpPage: {
+            title: '帮助与支持',
+            description: '我们全天候 24/7 为您提供帮助',
+            helpSite: '帮助网站',
+            conciergeChat: 'Concierge',
+            conciergeChatDescription: '你的个人 AI 助理',
+            accountManagerDescription: '您的客户经理',
+            partnerManagerDescription: '您的合作伙伴经理',
+            guideDescription: '您的设置专员',
+        },
     },
     closeAccountPage: {
         closeAccount: '关闭账户',
@@ -2526,6 +2539,9 @@ ${amount}，商户：${merchant} - 日期：${date}`,
     workflowsExpensesFromPage: {
         title: '支出起始于',
         header: '当以下成员提交报销时：',
+        memberAlreadyInWorkflowTitle: '成员已在工作流中',
+        memberAlreadyInWorkflowPrompt: ({memberName, approverName}: {memberName: string; approverName: string}) =>
+            `${memberName}已在提交给${approverName}的审批流程中。在此处添加将把该成员移动到此工作流。`,
     },
     workflowsApproverPage: {
         genericErrorMessage: '无法更改审批人。请重试或联系支持。',
@@ -2822,9 +2838,11 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         },
         employees: {
             title: '您有多少名员工？',
-            [CONST.ONBOARDING_COMPANY_SIZE.MICRO]: '1–10 名员工',
-            [CONST.ONBOARDING_COMPANY_SIZE.SMALL]: '11-50 名员工',
-            [CONST.ONBOARDING_COMPANY_SIZE.MEDIUM_SMALL]: '51-100 名员工',
+            [CONST.ONBOARDING_COMPANY_SIZE.MICRO_SMALL]: '1–4 名员工',
+            [CONST.ONBOARDING_COMPANY_SIZE.MICRO_MEDIUM]: '5–10 名员工',
+            [CONST.ONBOARDING_COMPANY_SIZE.MICRO]: '1-10 名员工',
+            [CONST.ONBOARDING_COMPANY_SIZE.SMALL]: '11–50 名员工',
+            [CONST.ONBOARDING_COMPANY_SIZE.MEDIUM_SMALL]: '51–100 名员工',
             [CONST.ONBOARDING_COMPANY_SIZE.MEDIUM]: '101–1,000 名员工',
             [CONST.ONBOARDING_COMPANY_SIZE.LARGE]: '超过 1,000 名员工',
         },
@@ -4169,6 +4187,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             budgetTypeForNotificationMessage: {tag: '标签', category: '类别'},
             policyExpenseChatName: (displayName: string) => `${displayName} 的报销费用`,
             deepDiveExpensifyCard: `<muted-text-label>Expensify 卡交易将自动导出到使用<a href="${CONST.DEEP_DIVE_EXPENSIFY_CARD}">我们的集成</a>创建的“Expensify 卡负债账户”。</muted-text-label>`,
+            hr: '人力资源',
         },
         receiptPartners: {
             uber: {
@@ -5344,6 +5363,11 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                             settlementAccountLabel: '结算账户',
                             settlementFrequencyLabel: '结算频率',
                             settlementFrequencyDescription: 'Expensify 从您的企业银行账户中扣款以结算最近 Expensify Travel 交易的频率。',
+                            monthlySpendLimitLabel: '每位成员的月度支出限额',
+                            monthlySpendLimitDescription: '每位成员每月可用于出差的最高金额。',
+                            reduceLimitTitle: '降低出差支出限额？',
+                            reduceLimitWarning: '如果您降低限额，已超出该金额的成员将无法进行新的出差预订，直至下个月。',
+                            provisioningError: '我们无法为您工作区中的部分成员开通集中开票功能。请稍后重试或联系 Concierge 获得协助。',
                         },
                     },
                     disableModal: {title: '关闭差旅开票？', body: '即将到来的酒店和汽车租赁预订可能需要使用不同的付款方式重新预订，以避免被取消。', confirm: '关闭'},
@@ -6714,6 +6738,31 @@ ${reportName}
             }),
             subscriptions: '订阅',
         },
+        hr: {
+            title: '人力资源',
+            subtitle: '连接人力资源工具，保持员工审批同步。',
+            settingsTitle: 'Gusto 设置',
+            syncStageName: ({stage}: SyncStageNameConnectionsParams) => {
+                switch (stage) {
+                    case 'startingImportGusto':
+                        return '正在导入 Gusto 数据';
+                    case 'gustoSyncLoadCompany':
+                        return '正在加载 Gusto 公司数据';
+                    case 'gustoSyncImportEmployees':
+                        return '正在导入员工';
+                    case 'gustoSyncBuildApprovalChains':
+                        return '构建审批链';
+                    case 'gustoSyncFinalize':
+                        return '正在完成同步';
+                    case 'jobDone':
+                        return '正在加载导入的数据';
+                    default: {
+                        return `阶段缺少翻译：${stage}`;
+                    }
+                }
+            },
+            gusto: {title: 'Gusto', approvalMode: '审批模式', finalApprover: '最终审批人'},
+        },
     },
     getAssistancePage: {
         title: '获取帮助',
@@ -7364,6 +7413,7 @@ ${reportName}
             reject: '拒绝',
             duplicateExpense: ({count}: {count: number}) => `复制${count === 1 ? '报销' : '报销费用'}`,
             noOptionsAvailable: '所选报销的费用组没有可用选项。',
+            undelete: '取消删除',
         },
         filtersHeader: '筛选器',
         filters: {
@@ -7416,6 +7466,10 @@ ${reportName}
             billable: '可计费',
             reimbursable: '可报销',
             purchaseCurrency: '购买货币',
+            sortOrder: {
+                [CONST.SEARCH.SORT_ORDER.ASC]: '升序',
+                [CONST.SEARCH.SORT_ORDER.DESC]: '降序',
+            },
             groupBy: {
                 [CONST.SEARCH.GROUP_BY.FROM]: '来自',
                 [CONST.SEARCH.GROUP_BY.CARD]: '卡片',
@@ -7444,6 +7498,7 @@ ${reportName}
         display: {
             label: '显示',
             sortBy: '按排序',
+            sortOrder: '排序顺序',
             groupBy: '分组依据',
             limitResults: '限制结果',
         },
@@ -7473,7 +7528,7 @@ ${reportName}
         recentSearches: '最近搜索',
         recentChats: '最近聊天',
         searchIn: '搜索范围',
-        searchPlaceholder: '搜索内容',
+        searchPlaceholder: '搜索内容...',
         suggestions: '建议',
         suggestionsAvailable: (
             {
@@ -8765,12 +8820,15 @@ ${reportName}
                 removeMember: '无法移除此用户。请重试。',
                 addMember: '无法添加此成员。请重试。',
                 vacationDelegate: '无法将此用户设置为休假代理人。请重试。',
+                moveMember: '无法移动此成员。请重试。',
             },
             cannotSetVacationDelegateForMember: (email: string) => `您无法为 ${email} 设置休假代理人，因为 TA 当前是以下成员的代理人：`,
             reportSuspiciousActivityPrompt: (email: string) =>
                 `你确定要这样做吗？这将锁定 <strong>${email}</strong> 的账户。<br /><br />我们的团队随后会审核该账户并移除任何未经授权的访问。若要重新获得访问权限，他们需要与 Concierge 配合处理。`,
             reportSuspiciousActivityConfirmationPrompt: '我们会审核账户以确认解锁是否安全，如有任何问题将通过 Concierge 与您联系。',
             emptyMembers: {title: '此群组中没有成员', subtitle: '添加成员或尝试更改上方的筛选条件。'},
+            moveToGroup: '移至群组',
+            chooseWhereToMove: ({count}: {count: number}) => `选择将 ${count} 个 ${count === 1 ? '成员' : '成员'} 移动到哪里。`,
         },
         common: {
             settings: '设置',
