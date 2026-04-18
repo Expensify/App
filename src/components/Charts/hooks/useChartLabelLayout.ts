@@ -1,7 +1,9 @@
 import type {SkTypefaceFontProvider} from '@shopify/react-native-skia';
-import {ELLIPSIS, LABEL_PADDING, LABEL_ROTATIONS, MIN_TRUNCATED_CHARS, SIN_45} from '@components/Charts/constants';
+import {useMemo} from 'react';
+import {LABEL_PADDING, LABEL_ROTATIONS, SIN_45} from '@components/Charts/constants';
 import type {ChartDataPoint, LabelRotation} from '@components/Charts/types';
-import {edgeLabelsFit, edgeMaxLabelWidth, effectiveHeight, effectiveWidth, getFontLineMetrics, maxVisibleCount, measureTextWidth, truncateLabel} from '@components/Charts/utils';
+import {edgeLabelsFit, edgeMaxLabelWidth, effectiveHeight, effectiveWidth, maxVisibleCount} from '@components/Charts/utils';
+import useChartLabelMeasurements from './useChartLabelMeasurements';
 
 type LabelLayoutConfig = {
     /** Chart data points whose labels will be laid out. */
@@ -29,6 +31,17 @@ type LabelLayoutConfig = {
     allowTightDiagonalPacking?: boolean;
 };
 
+const EMPTY_LAYOUT = {
+    labelRotation: LABEL_ROTATIONS.HORIZONTAL,
+    labelSkipInterval: 1,
+    labelMaxWidths: [] as number[],
+    truncatedLabelWidths: [] as number[],
+    xAxisLabelHeight: 0,
+    regularLabelMaxWidth: Infinity,
+    firstLabelMaxWidth: Infinity,
+    lastLabelMaxWidth: Infinity,
+};
+
 function useChartLabelLayout({
     data,
     fontMgr,
@@ -39,105 +52,97 @@ function useChartLabelLayout({
     lastTickRightSpace = Infinity,
     allowTightDiagonalPacking = false,
 }: LabelLayoutConfig) {
-    if (!fontMgr || data.length === 0 || tickSpacing <= 0 || labelAreaWidth <= 0) {
-        return {labelRotation: LABEL_ROTATIONS.HORIZONTAL, labelSkipInterval: 1, truncatedLabels: [] as string[]};
-    }
+    // Phase 1: font/data measurements — stable across geometry-only changes (resize).
+    const measurements = useChartLabelMeasurements(data, fontMgr, fontSize);
 
-    // With a single data point there are no adjacent labels to overlap, so edge constraints
-    // based on canvas boundaries are irrelevant for the rotation decision.
-    const effectiveFirstTickLeftSpace = data.length === 1 ? Infinity : firstTickLeftSpace;
-    const effectiveLastTickRightSpace = data.length === 1 ? Infinity : lastTickRightSpace;
+    // Phase 2: layout decisions + label truncation.
+    // Memoized on all geometry inputs so labelMaxWidths and truncatedLabelWidths have stable
+    // references between re-renders where only unrelated state changes.
+    return useMemo(() => {
+        if (!fontMgr || !measurements || tickSpacing <= 0 || labelAreaWidth <= 0) {
+            return EMPTY_LAYOUT;
+        }
 
-    const {ascent, descent} = getFontLineMetrics(fontMgr, fontSize);
-    const lineHeight = Math.abs(ascent) + Math.abs(descent);
-    const ellipsisWidth = measureTextWidth(ELLIPSIS, fontMgr, fontSize);
-    const labelWidths = data.map((point) => measureTextWidth(point.label, fontMgr, fontSize));
-    const maxLabelWidth = Math.max(...labelWidths);
-    const firstLabelWidth = labelWidths.at(0) ?? 0;
-    const lastLabelWidth = labelWidths.at(-1) ?? 0;
-    const minTruncatedWidth = Math.max(
-        ...data.map((point, index) => {
-            if (point.label.length <= MIN_TRUNCATED_CHARS) {
-                return labelWidths.at(index) ?? 0;
+        const {lineHeight, labelWidths, maxLabelWidth, firstLabelWidth, lastLabelWidth, minTruncatedWidth, firstMinTrunc, lastMinTrunc} = measurements;
+
+        // With a single data point there are no adjacent labels to overlap, so edge constraints
+        // based on canvas boundaries are irrelevant for the rotation decision.
+        const effectiveFirstTickLeftSpace = data.length === 1 ? Infinity : firstTickLeftSpace;
+        const effectiveLastTickRightSpace = data.length === 1 ? Infinity : lastTickRightSpace;
+
+        // Pick rotation (prefer 0° → 45° → 90°)
+        let rotation: LabelRotation = LABEL_ROTATIONS.VERTICAL;
+
+        const hWidth = effectiveWidth(maxLabelWidth, lineHeight, LABEL_ROTATIONS.HORIZONTAL);
+        const hFitsInTicks = hWidth + LABEL_PADDING <= tickSpacing && maxVisibleCount(labelAreaWidth, hWidth) >= data.length;
+        const hEdgeFits = edgeLabelsFit({
+            firstLabelWidth,
+            lastLabelWidth,
+            lineHeight,
+            rotation: LABEL_ROTATIONS.HORIZONTAL,
+            firstTickLeftSpace: effectiveFirstTickLeftSpace,
+            lastTickRightSpace: effectiveLastTickRightSpace,
+            rightAligned: false,
+        });
+
+        if (hFitsInTicks && hEdgeFits) {
+            rotation = LABEL_ROTATIONS.HORIZONTAL;
+        } else {
+            const diagonalOverlap = allowTightDiagonalPacking ? lineHeight * SIN_45 : 0;
+            const minDiagWidth = minTruncatedWidth * SIN_45 - diagonalOverlap;
+            const dFitsInTicks = minDiagWidth + LABEL_PADDING <= tickSpacing;
+
+            const firstEdgeMax = edgeMaxLabelWidth(effectiveFirstTickLeftSpace, lineHeight, LABEL_ROTATIONS.DIAGONAL, allowTightDiagonalPacking, 'first');
+            const lastEdgeMax = edgeMaxLabelWidth(effectiveLastTickRightSpace, lineHeight, LABEL_ROTATIONS.DIAGONAL, allowTightDiagonalPacking, 'last');
+            const dEdgeFits = firstEdgeMax >= firstMinTrunc && lastEdgeMax >= lastMinTrunc;
+
+            if (dFitsInTicks && dEdgeFits) {
+                rotation = LABEL_ROTATIONS.DIAGONAL;
             }
-            return measureTextWidth(point.label.slice(0, MIN_TRUNCATED_CHARS) + ELLIPSIS, fontMgr, fontSize);
-        }),
-    );
-
-    const firstLabel = data.at(0)?.label ?? '';
-    const lastLabel = data.at(-1)?.label ?? '';
-    const firstMinTrunc = firstLabel.length <= MIN_TRUNCATED_CHARS ? firstLabelWidth : measureTextWidth(firstLabel.slice(0, MIN_TRUNCATED_CHARS) + ELLIPSIS, fontMgr, fontSize);
-    const lastMinTrunc = lastLabel.length <= MIN_TRUNCATED_CHARS ? lastLabelWidth : measureTextWidth(lastLabel.slice(0, MIN_TRUNCATED_CHARS) + ELLIPSIS, fontMgr, fontSize);
-
-    // Pick rotation (prefer 0° → 45° → 90°)
-    let rotation: LabelRotation = LABEL_ROTATIONS.VERTICAL;
-
-    const hWidth = effectiveWidth(maxLabelWidth, lineHeight, LABEL_ROTATIONS.HORIZONTAL);
-    const hFitsInTicks = hWidth + LABEL_PADDING <= tickSpacing && maxVisibleCount(labelAreaWidth, hWidth) >= data.length;
-    const hEdgeFits = edgeLabelsFit({
-        firstLabelWidth,
-        lastLabelWidth,
-        lineHeight,
-        rotation: LABEL_ROTATIONS.HORIZONTAL,
-        firstTickLeftSpace: effectiveFirstTickLeftSpace,
-        lastTickRightSpace: effectiveLastTickRightSpace,
-        rightAligned: false,
-    });
-
-    if (hFitsInTicks && hEdgeFits) {
-        rotation = LABEL_ROTATIONS.HORIZONTAL;
-    } else {
-        const diagonalOverlap = allowTightDiagonalPacking ? lineHeight * SIN_45 : 0;
-        const minDiagWidth = minTruncatedWidth * SIN_45 - diagonalOverlap;
-        const dFitsInTicks = minDiagWidth + LABEL_PADDING <= tickSpacing;
-
-        const firstEdgeMax = edgeMaxLabelWidth(effectiveFirstTickLeftSpace, lineHeight, LABEL_ROTATIONS.DIAGONAL, allowTightDiagonalPacking, 'first');
-        const lastEdgeMax = edgeMaxLabelWidth(effectiveLastTickRightSpace, lineHeight, LABEL_ROTATIONS.DIAGONAL, allowTightDiagonalPacking, 'last');
-        const dEdgeFits = firstEdgeMax >= firstMinTrunc && lastEdgeMax >= lastMinTrunc;
-
-        if (dFitsInTicks && dEdgeFits) {
-            rotation = LABEL_ROTATIONS.DIAGONAL;
-        }
-    }
-
-    // Truncate labels
-    const truncDiagonalOverlap = allowTightDiagonalPacking ? lineHeight : 0;
-    const tickMaxWidth = rotation === LABEL_ROTATIONS.DIAGONAL ? (tickSpacing - LABEL_PADDING) / SIN_45 + truncDiagonalOverlap : Infinity;
-
-    const finalLabels = data.map((point, index) => {
-        let maxWidth = tickMaxWidth;
-
-        if (index === 0) {
-            const edgeMax = edgeMaxLabelWidth(effectiveFirstTickLeftSpace, lineHeight, rotation, allowTightDiagonalPacking, 'first');
-            maxWidth = Math.min(maxWidth, edgeMax);
-        }
-        if (index === data.length - 1) {
-            const edgeMax = edgeMaxLabelWidth(effectiveLastTickRightSpace, lineHeight, rotation, allowTightDiagonalPacking, 'last');
-            maxWidth = Math.min(maxWidth, edgeMax);
         }
 
-        return truncateLabel(point.label, labelWidths.at(index) ?? 0, maxWidth, ellipsisWidth);
-    });
+        // Compute per-label max-width constraints (used by ChartXAxisLabels for truncation).
+        const truncDiagonalOverlap = allowTightDiagonalPacking ? lineHeight : 0;
+        const tickMaxWidth = rotation === LABEL_ROTATIONS.DIAGONAL ? (tickSpacing - LABEL_PADDING) / SIN_45 + truncDiagonalOverlap : Infinity;
 
-    // Compute skip interval (only at 90°)
-    const finalWidths = finalLabels.map((label) => measureTextWidth(label, fontMgr, fontSize));
-    const finalMaxWidth = Math.max(...finalWidths);
-    let skipInterval = 1;
-    if (rotation === LABEL_ROTATIONS.VERTICAL) {
-        const verticalWidth = effectiveWidth(finalMaxWidth, lineHeight, rotation);
-        const visibleCount = maxVisibleCount(labelAreaWidth, verticalWidth);
-        skipInterval = visibleCount >= data.length ? 1 : Math.ceil(data.length / Math.max(1, visibleCount));
-    }
+        const labelMaxWidths = data.map((_, index) => {
+            let maxWidth = tickMaxWidth;
+            if (index === 0) {
+                const edgeMax = edgeMaxLabelWidth(effectiveFirstTickLeftSpace, lineHeight, rotation, allowTightDiagonalPacking, 'first');
+                maxWidth = Math.min(maxWidth, edgeMax);
+            }
+            if (index === data.length - 1) {
+                const edgeMax = edgeMaxLabelWidth(effectiveLastTickRightSpace, lineHeight, rotation, allowTightDiagonalPacking, 'last');
+                maxWidth = Math.min(maxWidth, edgeMax);
+            }
+            return maxWidth;
+        });
 
-    // Compute vertical space needed for x-axis labels
-    const xAxisLabelHeight = effectiveHeight(finalMaxWidth, lineHeight, rotation);
+        // Approximate truncated widths for hit-testing: exact for non-truncated labels,
+        // at most ellipsisWidth px over for truncated ones — acceptable for bounding boxes.
+        const truncatedLabelWidths = labelMaxWidths.map((maxW, i) => Math.min(labelWidths.at(i) ?? 0, maxW));
+        const finalMaxWidth = Math.max(...truncatedLabelWidths);
 
-    return {
-        labelRotation: rotation,
-        labelSkipInterval: skipInterval,
-        truncatedLabels: finalLabels,
-        xAxisLabelHeight,
-    };
+        let skipInterval = 1;
+        if (rotation === LABEL_ROTATIONS.VERTICAL) {
+            const verticalWidth = effectiveWidth(finalMaxWidth, lineHeight, rotation);
+            const visibleCount = maxVisibleCount(labelAreaWidth, verticalWidth);
+            skipInterval = visibleCount >= data.length ? 1 : Math.ceil(data.length / Math.max(1, visibleCount));
+        }
+
+        const lastIndex = data.length - 1;
+
+        return {
+            labelRotation: rotation,
+            labelSkipInterval: skipInterval,
+            labelMaxWidths,
+            truncatedLabelWidths,
+            xAxisLabelHeight: effectiveHeight(finalMaxWidth, lineHeight, rotation),
+            regularLabelMaxWidth: tickMaxWidth,
+            firstLabelMaxWidth: labelMaxWidths.at(0) ?? tickMaxWidth,
+            lastLabelMaxWidth: labelMaxWidths.at(lastIndex) ?? tickMaxWidth,
+        };
+    }, [fontMgr, measurements, data, tickSpacing, labelAreaWidth, firstTickLeftSpace, lastTickRightSpace, allowTightDiagonalPacking]);
 }
 
 export {useChartLabelLayout};

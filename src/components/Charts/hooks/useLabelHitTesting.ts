@@ -5,7 +5,7 @@ import {useSharedValue} from 'react-native-reanimated';
 import type {Scale} from 'victory-native';
 import {DIAGONAL_ANGLE_RADIAN_THRESHOLD} from '@components/Charts/constants';
 import type {LabelRotation} from '@components/Charts/types';
-import {getFontLineMetrics, isCursorOverChartLabel, measureTextWidth} from '@components/Charts/utils';
+import {getFontLineMetrics, isCursorOverChartLabel} from '@components/Charts/utils';
 import variables from '@styles/variables';
 import type {HitTestArgs} from './useChartInteractions';
 
@@ -60,7 +60,8 @@ type ComputeGeometryFn = (input: ComputeGeometryInput) => LabelHitGeometry;
 type UseLabelHitTestingParams = {
     fontMgr: SkTypefaceFontProvider | null | undefined;
     fontSize: number;
-    truncatedLabels: string[];
+    /** Pre-computed pixel widths of each truncated label, from useChartLabelLayout. */
+    truncatedLabelWidths: number[];
     labelRotation: LabelRotation;
     labelSkipInterval: number;
     chartBottom: SharedValue<number>;
@@ -77,24 +78,27 @@ type UseLabelHitTestingParams = {
 /**
  * Shared hook for x-axis label hit-testing in cartesian charts.
  *
- * Encapsulates label width measurement, angle conversion, pre-computed hit geometry,
- * and the isCursorOverLabel / findLabelCursorX worklets — all of which are identical
+ * Encapsulates angle conversion, pre-computed hit geometry, and the
+ * isCursorOverLabel / findLabelCursorX worklets — all of which are identical
  * between bar and line chart except for how the hit geometry is computed.
+ *
+ * Label widths are accepted as a pre-computed array (from useChartLabelLayout)
+ * so no Skia measurement happens here.
  *
  * Chart-specific geometry (45° corner anchor offsets, 90° vertical bounds) is supplied
  * via the `computeGeometry` callback, which should be a stable module-level constant.
  */
-function useLabelHitTesting({fontMgr, fontSize, truncatedLabels, labelRotation, labelSkipInterval, chartBottom, computeGeometry}: UseLabelHitTestingParams) {
+function useLabelHitTesting({fontMgr, fontSize, truncatedLabelWidths, labelRotation, labelSkipInterval, chartBottom, computeGeometry}: UseLabelHitTestingParams) {
     const tickXPositions = useSharedValue<number[]>([]);
 
-    const labelWidths = useMemo(() => {
-        if (!fontMgr) {
-            return [] as number[];
-        }
-        return truncatedLabels.map((label) => measureTextWidth(label, fontMgr, fontSize));
-    }, [fontMgr, fontSize, truncatedLabels]);
-
     const angleRad = (Math.abs(labelRotation) * Math.PI) / 180;
+
+    const fontMetrics = useMemo(() => {
+        if (!fontMgr) {
+            return null;
+        }
+        return getFontLineMetrics(fontMgr, fontSize);
+    }, [fontMgr, fontSize]);
 
     /**
      * Pre-computed geometry for label hit-testing.
@@ -103,14 +107,14 @@ function useLabelHitTesting({fontMgr, fontSize, truncatedLabels, labelRotation, 
      * chart-specific differences (bar vs. line anchor offsets).
      */
     const labelHitGeometry = useMemo((): LabelHitGeometry | null => {
-        if (!fontMgr) {
+        if (!fontMetrics) {
             return null;
         }
-        const {ascent, descent} = getFontLineMetrics(fontMgr, fontSize);
+        const {ascent, descent} = fontMetrics;
         const sinA = Math.sin(angleRad);
         const padding = variables.iconSizeExtraSmall / 2;
-        return computeGeometry({ascent, descent, sinA, angleRad, labelWidths, padding});
-    }, [fontMgr, fontSize, angleRad, labelWidths, computeGeometry]);
+        return computeGeometry({ascent, descent, sinA, angleRad, labelWidths: truncatedLabelWidths, padding});
+    }, [fontMetrics, angleRad, truncatedLabelWidths, computeGeometry]);
 
     /**
      * Hit-tests whether the cursor is over the x-axis label at `activeIndex`.
