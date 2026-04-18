@@ -45,6 +45,14 @@ const fraudSignalFactoryByApiCommand: Record<string, FraudSignalFactory> = {
         const newAccountCountAttribute = responseData?.newAccountCount ? {key: 'new_account_count', value: responseData?.newAccountCount as string} : undefined;
         return {event: FRAUD_PROTECTION_EVENT.NEW_EMAILS_INVITED, attribute: newAccountCountAttribute};
     },
+    [WRITE_COMMANDS.SEND_MONEY_ELSEWHERE]: (_, responseData) => {
+        const newAccountCountAttribute = responseData?.newAccountCount ? {key: 'new_account_count', value: responseData?.newAccountCount as string} : undefined;
+        return {event: FRAUD_PROTECTION_EVENT.NEW_EMAILS_INVITED, attribute: newAccountCountAttribute};
+    },
+    [WRITE_COMMANDS.SEND_MONEY_WITH_WALLET]: (_, responseData) => {
+        const newAccountCountAttribute = responseData?.newAccountCount ? {key: 'new_account_count', value: responseData?.newAccountCount as string} : undefined;
+        return {event: FRAUD_PROTECTION_EVENT.NEW_EMAILS_INVITED, attribute: newAccountCountAttribute};
+    },
 };
 
 const FraudMonitoring: Middleware = (response, request) =>
