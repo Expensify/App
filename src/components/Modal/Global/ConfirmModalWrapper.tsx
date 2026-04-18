@@ -14,14 +14,24 @@ type ConfirmModalWrapperProps = ModalProps & Omit<ConfirmModalProps, 'onConfirm'
 // - handle closeModal inside ConfirmModal
 // - remove ConfirmModalWrapper
 
-function ConfirmModalWrapper({closeModal, onModalHide, ...props}: ConfirmModalWrapperProps) {
+function ConfirmModalWrapper({closeModal, onModalHide, resolveModal, ...props}: ConfirmModalWrapperProps) {
     const activeElementRole = useActiveElementRole();
     const [isVisible, setIsVisible] = useState(true);
     const [closeAction, setCloseAction] = useState<typeof ModalActions.CONFIRM | typeof ModalActions.CLOSE>(ModalActions.CLOSE);
+    const [isConfirmLoading, setIsConfirmLoading] = useState(false);
 
     const handleConfirm = () => {
         setCloseAction(ModalActions.CONFIRM);
-        setIsVisible(false);
+        // If isConfirmLoading is passed, don't close immediately - show loading state instead
+        // The caller should use closeModal() from useConfirmModal when the async operation completes
+        if (props.isConfirmLoading !== undefined) {
+            setIsConfirmLoading(true);
+            // Resolve the promise so the caller's .then() handler can start the async operation
+            // The modal stays visible with loading state until closeModal() is called
+            resolveModal({action: ModalActions.CONFIRM});
+        } else {
+            setIsVisible(false);
+        }
     };
 
     const handleCancel = () => {
@@ -38,7 +48,7 @@ function ConfirmModalWrapper({closeModal, onModalHide, ...props}: ConfirmModalWr
     };
 
     const shortcutConfig = {
-        isActive: activeElementRole !== CONST.ROLE.BUTTON,
+        isActive: activeElementRole !== CONST.ROLE.BUTTON && !isConfirmLoading,
         shouldPreventDefault: false,
         shouldBubble: false,
     };
@@ -53,6 +63,7 @@ function ConfirmModalWrapper({closeModal, onModalHide, ...props}: ConfirmModalWr
             onConfirm={handleConfirm}
             onCancel={handleCancel}
             onModalHide={handleModalHide}
+            isConfirmLoading={isConfirmLoading || props.isConfirmLoading}
         />
     );
 }

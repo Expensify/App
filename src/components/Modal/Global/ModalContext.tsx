@@ -14,16 +14,24 @@ type ModalStateChangePayload<A extends ModalAction = ModalAction> = {action: A};
 
 type ModalProps = {
     closeModal: (param?: ModalStateChangePayload) => void;
+    resolveModal: (param?: ModalStateChangePayload) => void;
 };
 
 type ModalContextType = {
-    showModal<P extends ModalProps>(options: {component: React.FunctionComponent<P>; props?: Omit<P, 'closeModal'>; id?: string; isCloseable?: boolean}): Promise<ModalStateChangePayload>;
+    showModal<P extends ModalProps>(options: {
+        component: React.FunctionComponent<P>;
+        props?: Omit<P, 'closeModal' | 'resolveModal'>;
+        id?: string;
+        isCloseable?: boolean;
+    }): Promise<ModalStateChangePayload>;
     closeModal(data?: ModalStateChangePayload): void;
+    resolveModal(data?: ModalStateChangePayload): void;
 };
 
 const ModalContext = React.createContext<ModalContextType>({
     showModal: () => Promise.resolve({action: 'CLOSE'}),
     closeModal: noop,
+    resolveModal: noop,
 });
 
 const useModal = () => useContext(ModalContext);
@@ -75,7 +83,23 @@ function ModalProvider({children}: {children: React.ReactNode}) {
         return closeModalPromise.promise;
     };
 
-    const closeModal: ModalContextType['closeModal'] = (data = {action: 'CLOSE'}) => {
+    // Resolves the modal promise without closing the modal
+    // Used for async confirmation flows where the modal stays open with loading state
+    const resolveModal: ModalContextType['resolveModal'] = (data = {action: ModalActions.CONFIRM}) => {
+        const lastModalId = modalStack.modals.at(-1)?.id;
+
+        if (!lastModalId) {
+            return;
+        }
+
+        const lastModalPromise = modalPromisesStack.current?.[lastModalId];
+        if (lastModalPromise) {
+            lastModalPromise.resolve(data);
+            delete modalPromisesStack.current[lastModalId];
+        }
+    };
+
+    const closeModal: ModalContextType['closeModal'] = (data = {action: ModalActions.CLOSE}) => {
         setModalStack((prevState) => {
             const lastModalId = prevState.modals.at(-1)?.id;
 
@@ -84,7 +108,7 @@ function ModalProvider({children}: {children: React.ReactNode}) {
             } else {
                 const lastModalPromise = modalPromisesStack.current?.[lastModalId];
                 if (!lastModalPromise) {
-                    Log.alert(`${CONST.ERROR.ENSURE_BUG_BOT} Missing modal promise while attempting to close modal with id ${lastModalId}. This should never happen.`);
+                    // Promise may have already been resolved by resolveModal, which is fine
                 } else {
                     lastModalPromise.resolve(data);
                     delete modalPromisesStack.current[lastModalId];
@@ -102,7 +126,7 @@ function ModalProvider({children}: {children: React.ReactNode}) {
     const ModalComponent = modalToRender?.component;
 
     return (
-        <ModalContext.Provider value={{showModal, closeModal}}>
+        <ModalContext.Provider value={{showModal, closeModal, resolveModal}}>
             {children}
             {!!ModalComponent && (
                 <ModalComponent
@@ -110,6 +134,7 @@ function ModalProvider({children}: {children: React.ReactNode}) {
                     {...modalToRender.props}
                     key={modalToRender.id}
                     closeModal={closeModal}
+                    resolveModal={resolveModal}
                 />
             )}
         </ModalContext.Provider>
