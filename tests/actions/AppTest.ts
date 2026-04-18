@@ -116,7 +116,7 @@ describe('actions/App', () => {
         };
 
         jest.spyOn(Navigation, 'clearPreloadedRoutes').mockImplementation(() => {});
-        await Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
+        await Onyx.set(ONYXKEYS.NETWORK, {shouldForceOffline: true});
         await PersistedRequests.save(persistedRequest);
         await waitForBatchedUpdates();
 

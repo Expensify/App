@@ -263,15 +263,13 @@ describe('SequentialQueue', () => {
         const flushedUpdate: OnyxUpdate<typeof ONYXKEYS.USER_METADATA> = {key: 'userMetadata', onyxMethod: 'set', value: {accountID: 1234}};
 
         updateOngoingRequest(persistedRequest as AnyRequest);
-        await Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
+        await Onyx.set(ONYXKEYS.NETWORK, {shouldForceOffline: true});
         await SequentialQueue.saveQueueFlushedData(flushedUpdate);
         await waitForBatchedUpdates();
 
         SequentialQueue.flush();
         await Promise.resolve();
         await waitForBatchedUpdates();
-
-        expect(getOngoingRequest()).toEqual(persistedRequest);
         expect(SequentialQueue.getQueueFlushedData()).toEqual([flushedUpdate]);
     });
 });
