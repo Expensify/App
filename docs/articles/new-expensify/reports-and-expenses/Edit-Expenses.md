@@ -9,7 +9,7 @@ internalScope: Audience is all members. Covers editing expenses individually and
 
 You can edit a single expense from within a report, or update multiple expenses at once using bulk edit. Both options let you change details like merchant, category, amount, and more.
 
-# Who can edit expenses
+## Who can edit expenses
 
 - **All members**: Can edit expenses on their own Draft or Outstanding reports.
 - **Current approver**: Can edit expenses on Outstanding reports pending their approval.
@@ -52,9 +52,9 @@ On Draft and Outstanding reports, you can edit:
  - Description
  - Merchant
  - Date
- - Other fields like Category, Tag and Attendees.
+ - Other fields like Category, Tag and Attendees
 
-**Note:** **Note:** Expenses on Approved reports must be unapproved before they can be edited. Expenses on Paid or Done reports cannot be edited. Learn how to unapprove a report in [Approve expenses](/articles/new-expensify/reports-and-expenses/Approve-Expenses).
+**Note:** Expenses on Approved reports must be unapproved before they can be edited. Expenses on Paid or Done reports cannot be edited. [Learn how to unapprove a report](Approve expenses](/articles/new-expensify/reports-and-expenses/Approve-Expenses).
 
 ---
 
