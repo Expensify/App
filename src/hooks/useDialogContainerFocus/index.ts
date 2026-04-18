@@ -31,7 +31,7 @@ const useDialogContainerFocus: UseDialogContainerFocus = (ref, isReady, claimIni
         }
         let cancelled = false;
         let frameId: number;
-        // Deferred past useAutoFocusInput's IM + Promise chain. IM is the idiomatic defer primitive despite type-def deprecation.
+        // Deferred past useAutoFocusInput's InteractionManager + Promise chain. InteractionManager is the idiomatic defer primitive despite type-def deprecation.
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         const interactionHandle = InteractionManager.runAfterInteractions(() => {
             if (cancelled) {
