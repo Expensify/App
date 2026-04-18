@@ -1,3 +1,4 @@
+import {useIsFocused} from '@react-navigation/native';
 import lodashIsEmpty from 'lodash/isEmpty';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
@@ -96,7 +97,8 @@ function IOURequestStepDistanceOdometer({
     const initialStartImageRef = useRef<FileObject | string | undefined>(undefined);
     const initialEndImageRef = useRef<FileObject | string | undefined>(undefined);
     const prevSelectedTabRef = useRef<string | undefined>(undefined);
-    const transactionWasSaved = useRef(false);
+    const didSaveEditingConfirmationRef = useRef(false);
+    const shouldBypassDiscardConfirmationRef = useRef(false);
     const backupHandledManually = useRef(false);
 
     const isArchived = useReportIsArchived(report?.reportID);
@@ -137,7 +139,8 @@ function IOURequestStepDistanceOdometer({
     const isTransactionDraft = shouldUseTransactionDraft(action, iouType);
     const currentUserAccountIDParam = currentUserPersonalDetails.accountID;
     const currentUserEmailParam = currentUserPersonalDetails.login ?? '';
-    const [shouldEnableDiscardConfirmation, setShouldEnableDiscardConfirmation] = useState(!isEditingConfirmation && !isEditing);
+    const shouldEnableDiscardConfirmation = !isEditing;
+    const isFocused = useIsFocused();
 
     const shouldUseDefaultExpensePolicy = useMemo(
         () => shouldUseDefaultExpensePolicyUtil(iouType, defaultExpensePolicy, amountOwed, userBillingGracePeriodEnds, ownerBillingGracePeriodEnd),
@@ -151,10 +154,6 @@ function IOURequestStepDistanceOdometer({
     const shouldSkipConfirmation: boolean = !skipConfirmation || !report?.reportID ? false : !(isArchived || isPolicyExpenseChatUtils(report));
 
     const confirmationRoute = ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(action, iouType, transactionID, reportID, backToReport);
-
-    useEffect(() => {
-        setShouldEnableDiscardConfirmation(!isEditingConfirmation && !isEditing);
-    }, [isEditing, isEditingConfirmation]);
 
     // Get odometer images from transaction (only for display, not for initialization)
     const odometerStartImage = transaction?.comment?.odometerStartImage;
@@ -246,7 +245,7 @@ function IOURequestStepDistanceOdometer({
             if (backupHandledManually.current) {
                 return;
             }
-            if (transactionWasSaved.current) {
+            if (didSaveEditingConfirmationRef.current) {
                 removeBackupTransactionWithImageCleanup(transactionID, isTransactionDraft);
                 return;
             }
@@ -373,14 +372,11 @@ function IOURequestStepDistanceOdometer({
 
     const navigateBack = useCallback(() => {
         if (isEditingConfirmation) {
-            backupHandledManually.current = true;
-            restoreOriginalTransactionFromBackupWithImageCleanup(transactionID, isTransactionDraft, () => {
-                Navigation.goBack(confirmationRoute);
-            });
+            Navigation.goBack(confirmationRoute);
             return;
         }
         Navigation.goBack();
-    }, [isEditingConfirmation, confirmationRoute, transactionID, isTransactionDraft]);
+    }, [confirmationRoute, isEditingConfirmation]);
 
     const handlePressStartImage = useCallback(() => {
         if (odometerStartImage) {
@@ -458,13 +454,14 @@ function IOURequestStepDistanceOdometer({
         }
 
         if (isEditingConfirmation) {
-            transactionWasSaved.current = true;
+            didSaveEditingConfirmationRef.current = true;
             Navigation.goBack(confirmationRoute);
             return;
         }
 
         if (shouldSkipConfirmation) {
-            setShouldEnableDiscardConfirmation(false);
+            // Skip-confirmation submit navigates away and should never be blocked by discard modal.
+            shouldBypassDiscardConfirmationRef.current = true;
         }
 
         startSpan(CONST.TELEMETRY.SPAN_ODOMETER_TO_CONFIRMATION, {
@@ -557,12 +554,20 @@ function IOURequestStepDistanceOdometer({
     };
 
     useDiscardChangesConfirmation({
-        isEnabled: shouldEnableDiscardConfirmation,
         getHasUnsavedChanges: () => {
+            if (!isFocused || !shouldEnableDiscardConfirmation || shouldBypassDiscardConfirmationRef.current || didSaveEditingConfirmationRef.current) {
+                return false;
+            }
             const hasReadingChanges = startReadingRef.current !== initialStartReadingRef.current || endReadingRef.current !== initialEndReadingRef.current;
             const hasImageChanges = transaction?.comment?.odometerStartImage !== initialStartImageRef.current || transaction?.comment?.odometerEndImage !== initialEndImageRef.current;
             return hasReadingChanges || hasImageChanges;
         },
+        onConfirm: isEditingConfirmation
+            ? async () => {
+                  await restoreOriginalTransactionFromBackupWithImageCleanup(transactionID, isTransactionDraft);
+                  backupHandledManually.current = true;
+              }
+            : undefined,
     });
 
     return (
