@@ -948,6 +948,8 @@ function PureReportActionItem({
         reportID,
         currentUserAccountID,
         currentUserEmail,
+        personalDetail.accountID,
+        personalDetail.email,
         personalDetail.timezone,
         createDraftTransactionAndNavigateToParticipantSelector,
         isRestrictedToPreferredPolicy,
@@ -1238,10 +1240,13 @@ function PureReportActionItem({
                 </ReportActionItemBasicMessage>
             );
         } else if (isActionableCardFraudAlert(action)) {
+            const cardID = getOriginalMessage(action)?.cardID;
+            const possibleFraud = cardID ? (cardList?.[cardID]?.nameValuePairs?.possibleFraud ?? null) : null;
             children = (
                 <FraudAlertContent
                     action={action}
                     reportID={reportID}
+                    possibleFraud={possibleFraud}
                 />
             );
         } else if (isActionableJoinRequest(action)) {

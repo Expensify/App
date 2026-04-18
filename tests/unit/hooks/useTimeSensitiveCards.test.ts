@@ -6,6 +6,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Card, CardList} from '@src/types/onyx';
 import {createRandomExpensifyCard} from '../../utils/collections/card';
+import createRandomReportAction from '../../utils/collections/reportActions';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 describe('useTimeSensitiveCards', () => {
@@ -178,8 +179,15 @@ describe('useTimeSensitiveCards', () => {
             possibleFraud: {triggerAmount: 5663, triggerMerchant: 'WAL-MART #2366', currency: 'USD', fraudAlertReportID: 123456},
         });
         const cardList: CardList = {'1': cardWithFraud};
+        const unresolvedFraudAction = {
+            ...createRandomReportAction(1),
+            actionName: CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_CARD_FRAUD_ALERT,
+        };
 
         await Onyx.merge(ONYXKEYS.CARD_LIST, cardList);
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${cardWithFraud.nameValuePairs?.possibleFraud?.fraudAlertReportID}`, {
+            [unresolvedFraudAction.reportActionID]: unresolvedFraudAction,
+        });
         await waitForBatchedUpdates();
 
         const {result} = renderHook(() => useTimeSensitiveCards());
@@ -210,8 +218,15 @@ describe('useTimeSensitiveCards', () => {
             possibleFraud: {triggerAmount: 5663, triggerMerchant: 'WAL-MART #2366', currency: 'USD', fraudAlertReportID: 5230242215684213},
         });
         const cardList: CardList = {'1': cardWithPendingFraudAlert};
+        const unresolvedFraudAction = {
+            ...createRandomReportAction(2),
+            actionName: CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_CARD_FRAUD_ALERT,
+        };
 
         await Onyx.merge(ONYXKEYS.CARD_LIST, cardList);
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${cardWithPendingFraudAlert.nameValuePairs?.possibleFraud?.fraudAlertReportID}`, {
+            [unresolvedFraudAction.reportActionID]: unresolvedFraudAction,
+        });
         await waitForBatchedUpdates();
 
         const {result} = renderHook(() => useTimeSensitiveCards());
@@ -283,8 +298,15 @@ describe('useTimeSensitiveCards', () => {
             } as Card['nameValuePairs'],
         };
         const cardList: CardList = {'1': zeroLimitFraudCard};
+        const unresolvedFraudAction = {
+            ...createRandomReportAction(3),
+            actionName: CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_CARD_FRAUD_ALERT,
+        };
 
         await Onyx.merge(ONYXKEYS.CARD_LIST, cardList);
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${zeroLimitFraudCard.nameValuePairs?.possibleFraud?.fraudAlertReportID}`, {
+            [unresolvedFraudAction.reportActionID]: unresolvedFraudAction,
+        });
         await waitForBatchedUpdates();
 
         const {result} = renderHook(() => useTimeSensitiveCards());

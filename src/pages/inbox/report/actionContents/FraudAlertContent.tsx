@@ -8,13 +8,15 @@ import ReportActionItemBasicMessage from '@pages/inbox/report/ReportActionItemBa
 import {resolveFraudAlert} from '@userActions/Card';
 import CONST from '@src/CONST';
 import type {ReportAction} from '@src/types/onyx';
+import type {PossibleFraudData} from '@src/types/onyx/Card';
 
 type FraudAlertContentProps = {
     action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_CARD_FRAUD_ALERT>;
     reportID: string | undefined;
+    possibleFraud: PossibleFraudData | null;
 };
 
-function FraudAlertContent({action, reportID}: FraudAlertContentProps) {
+function FraudAlertContent({action, reportID, possibleFraud}: FraudAlertContentProps) {
     const {translate, getLocalDateFromDatetime} = useLocalize();
 
     const reportActionID = action?.reportActionID;
@@ -28,7 +30,7 @@ function FraudAlertContent({action, reportID}: FraudAlertContentProps) {
                   text: 'cardPage.cardFraudAlert.confirmButtonText',
                   key: `${action.reportActionID}-cardFraudAlert-confirm`,
                   onPress: () => {
-                      resolveFraudAlert(cardID, false, reportID, reportActionID);
+                      resolveFraudAlert(cardID, false, reportID, reportActionID, possibleFraud);
                   },
                   isPrimary: true,
               },
@@ -36,7 +38,7 @@ function FraudAlertContent({action, reportID}: FraudAlertContentProps) {
                   text: 'cardPage.cardFraudAlert.reportFraudButtonText',
                   key: `${action.reportActionID}-cardFraudAlert-reportFraud`,
                   onPress: () => {
-                      resolveFraudAlert(cardID, true, reportID, reportActionID);
+                      resolveFraudAlert(cardID, true, reportID, reportActionID, possibleFraud);
                   },
               },
           ];
