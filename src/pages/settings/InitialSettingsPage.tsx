@@ -563,13 +563,11 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
             shouldEnableKeyboardAvoidingView={false}
         >
             {shouldDisplayLHB && <NavigationTabBar selectedTab={NAVIGATION_TABS.SETTINGS} />}
-            {shouldUseNarrowLayout && (
-                <TopBarWithLoadingBar
-                    breadcrumbLabel={translate('initialSettingsPage.account')}
-                    shouldDisplaySearch
-                    shouldDisplayHelpButton
-                />
-            )}
+            <TopBarWithLoadingBar
+                breadcrumbLabel={translate('initialSettingsPage.account')}
+                shouldDisplaySearch={shouldUseNarrowLayout}
+                shouldDisplayHelpButton={shouldUseNarrowLayout}
+            />
             <ScrollView
                 ref={scrollViewRef}
                 onScroll={onScroll}
