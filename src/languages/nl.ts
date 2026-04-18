@@ -5136,6 +5136,7 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
             free: 'Gratis',
             control: 'Beheer',
             collect: 'Incasseren',
+            submit: 'Indienen',
         },
         companyCards: {
             addCards: 'Kaarten toevoegen',
@@ -6902,6 +6903,10 @@ Voeg meer bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 corporate: {
                     label: 'Beheer',
                     description: 'Voor organisaties met geavanceerde vereisten.',
+                },
+                submit2026: {
+                    label: 'Indienen',
+                    description: 'Voor werknemers die onkosten bij hun werkgever willen indienen.',
                 },
             },
             description: 'Kies een pakket dat bij je past. Voor een gedetailleerd overzicht van functies en prijzen, bekijk onze',

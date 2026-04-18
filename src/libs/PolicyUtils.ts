@@ -881,6 +881,22 @@ function isPaidGroupPolicy(policy: OnyxInputOrEntry<Policy>): boolean {
     return policy?.type === CONST.POLICY.TYPE.TEAM || policy?.type === CONST.POLICY.TYPE.CORPORATE;
 }
 
+function isSubmitPolicy(policy: OnyxInputOrEntry<Policy>): boolean {
+    return policy?.type === CONST.POLICY.TYPE.SUBMIT;
+}
+
+function isPolicyEditor(policy: OnyxInputOrEntry<Policy>): boolean {
+    return policy?.role === CONST.POLICY.ROLE.EDITOR;
+}
+
+/**
+ * Returns true if the current user can edit workspace settings — admins on any workspace,
+ * or editors on Submit workspaces (Submit has no admin role, so editors manage it).
+ */
+function canEditWorkspaceSettings(policy: OnyxInputOrEntry<Policy>): boolean {
+    return isPolicyAdmin(policy) || (isSubmitPolicy(policy) && isPolicyEditor(policy));
+}
+
 function getOwnedPaidPolicies(policies: OnyxCollection<Policy> | null, currentUserAccountID: number | undefined): Policy[] {
     return Object.values(policies ?? {}).filter((policy): policy is Policy => isPolicyOwner(policy, currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID) && isPaidGroupPolicy(policy));
 }
@@ -1858,6 +1874,8 @@ function getUserFriendlyWorkspaceType(workspaceType: ValueOf<typeof CONST.POLICY
             return translate('workspace.type.control');
         case CONST.POLICY.TYPE.TEAM:
             return translate('workspace.type.collect');
+        case CONST.POLICY.TYPE.SUBMIT:
+            return translate('workspace.type.submit');
         default:
             return translate('workspace.type.free');
     }
@@ -2208,6 +2226,9 @@ export {
     isDelayedSubmissionEnabled,
     getCorrectedAutoReportingFrequency,
     isPaidGroupPolicy,
+    isSubmitPolicy,
+    isPolicyEditor,
+    canEditWorkspaceSettings,
     isPendingDeletePolicy,
     isPolicyAdmin,
     isPolicyUser,

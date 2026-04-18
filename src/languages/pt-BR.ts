@@ -5129,6 +5129,7 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
             free: 'Grátis',
             control: 'Controle',
             collect: 'Cobrar',
+            submit: 'Enviar',
         },
         companyCards: {
             addCards: 'Adicionar cartões',
@@ -6900,6 +6901,10 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                 corporate: {
                     label: 'Controle',
                     description: 'Para organizações com requisitos avançados.',
+                },
+                submit2026: {
+                    label: 'Enviar',
+                    description: 'Para funcionários que desejam enviar despesas ao empregador.',
                 },
             },
             description: 'Escolha o plano ideal para você. Para ver a lista detalhada de recursos e preços, confira nosso',
