@@ -6,6 +6,7 @@ import Onyx from 'react-native-onyx';
 import useAgentZeroStatusIndicator from '@hooks/useAgentZeroStatusIndicator';
 import {clearAgentZeroProcessingIndicator, subscribeToReportReasoningEvents, unsubscribeFromReportReasoningChannel} from '@libs/actions/Report';
 import ConciergeReasoningStore from '@libs/ConciergeReasoningStore';
+import {setForceOffline} from '@libs/NetworkState';
 import {AgentZeroStatusProvider, useAgentZeroStatus, useAgentZeroStatusActions} from '@pages/inbox/AgentZeroStatusContext';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -76,6 +77,8 @@ describe('AgentZeroStatusContext', () => {
 
     afterEach(() => {
         jest.clearAllTimers();
+        // Ensure each test starts online again; NetworkState is module-level so state leaks.
+        setForceOffline(false);
     });
 
     describe('basic functionality', () => {
@@ -753,14 +756,14 @@ describe('AgentZeroStatusContext', () => {
             expect(result.current.isProcessing).toBe(true);
 
             // When the network goes offline
-            await Onyx.merge(ONYXKEYS.NETWORK, {isOffline: true});
+            act(() => setForceOffline(true));
             await waitForBatchedUpdates();
 
             // The indicator is hidden while offline (original design: !isOffline in isProcessing)
             expect(result.current.isProcessing).toBe(false);
 
             // When the network reconnects
-            await Onyx.merge(ONYXKEYS.NETWORK, {isOffline: false});
+            act(() => setForceOffline(false));
             await waitForBatchedUpdates();
 
             // The indicator reappears (server NVP still has processing state)
@@ -789,9 +792,9 @@ describe('AgentZeroStatusContext', () => {
             expect(result.current.isProcessing).toBe(true);
 
             // Go offline, then reconnect
-            await Onyx.merge(ONYXKEYS.NETWORK, {isOffline: true});
+            act(() => setForceOffline(true));
             await waitForBatchedUpdates();
-            await Onyx.merge(ONYXKEYS.NETWORK, {isOffline: false});
+            act(() => setForceOffline(false));
             await waitForBatchedUpdates();
 
             // onReconnect proactively clears the NVP locally because optimistic state was active.
