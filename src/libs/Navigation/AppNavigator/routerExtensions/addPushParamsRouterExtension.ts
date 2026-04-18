@@ -12,6 +12,45 @@ function preserveHistoryForRoutes(oldHistory: CustomHistoryEntry[], routes: Arra
     return oldHistory.filter((entry) => typeof entry === 'string' || remainingKeys.has(entry.key));
 }
 
+// 'noop' = same compound at cursor (keep); 'backward'/'forward' = move cursor to match; 'unknown' = target not in history (cancel pending).
+type ResetOutcome = {type: 'noop'; cursor: number} | {type: 'backward'; cursor: number} | {type: 'forward'; cursor: number} | {type: 'unknown'};
+
+function resolveCursorForReset(history: CustomHistoryEntry[], currentCursor: number, newFocused: {key: string; params: unknown}): ResetOutcome {
+    // Reinitialize when out of range — module-scoped cursor can survive history-shrinking events.
+    const cursor = currentCursor >= 0 && currentCursor < history.length ? currentCursor : history.length - 1;
+    const newCompound = compoundParamsKey(newFocused.key, newFocused.params);
+
+    const matchAt = (idx: number): boolean => {
+        if (idx < 0 || idx >= history.length) {
+            return false;
+        }
+        const entry = history.at(idx);
+        if (typeof entry === 'string' || !entry || entry.key !== newFocused.key) {
+            return false;
+        }
+        return compoundParamsKey(entry.key, entry.params) === newCompound;
+    };
+
+    if (matchAt(cursor)) {
+        // Same compound at cursor (e.g. useNavigationResetOnLayoutChange).
+        return {type: 'noop', cursor};
+    }
+    // Backward is preferred over forward for duplicate compounds ([A, B, A] at cursor 1 targeting A); both branches cancel stale restores so duplicates converge semantically.
+    if (matchAt(cursor - 1)) {
+        return {type: 'backward', cursor: cursor - 1};
+    }
+    if (matchAt(cursor + 1)) {
+        return {type: 'forward', cursor: cursor + 1};
+    }
+    // Non-adjacent same-key jump (history.go(-n), deep link): scan the whole history and move the cursor to the match, or subsequent GO_BACK reverts from the stale index.
+    for (let i = 0; i < history.length; i += 1) {
+        if (matchAt(i)) {
+            return i < cursor ? {type: 'backward', cursor: i} : {type: 'forward', cursor: i};
+        }
+    }
+    return {type: 'unknown'};
+}
+
 function isSetParamsAction(action: PushParamsRouterAction): action is SetParamsAction {
     return action.type === CONST.NAVIGATION.ACTION_TYPE.SET_PARAMS;
 }
@@ -191,52 +230,17 @@ function addPushParamsRouterExtension<RouterOptions extends PlatformStackRouterO
                 const newFocused = rehydratedState.routes.at(-1);
                 const history = state.history as CustomHistoryEntry[];
                 if (newFocused?.key) {
-                    // Reinitialize when out of range — module-scoped cursor can survive history-shrinking events.
-                    if (pushParamsHistoryPosition < 0 || pushParamsHistoryPosition >= history.length) {
-                        pushParamsHistoryPosition = history.length - 1;
-                    }
-                    const newCompound = compoundParamsKey(newFocused.key, newFocused.params);
-                    const matchAt = (idx: number) => {
-                        if (idx < 0 || idx >= history.length) {
-                            return false;
-                        }
-                        const entry = history.at(idx);
-                        if (typeof entry === 'string' || !entry || entry.key !== newFocused.key) {
-                            return false;
-                        }
-                        return compoundParamsKey(entry.key, entry.params) === newCompound;
-                    };
-                    if (matchAt(pushParamsHistoryPosition)) {
-                        // No-op RESET (same compound at cursor): e.g. useNavigationResetOnLayoutChange. Don't cancel, don't adjust.
-                    } else if (matchAt(pushParamsHistoryPosition - 1)) {
-                        // Backward is preferred over forward for duplicate compounds ([A, B, A] at cursor 1 targeting A); both branches cancel stale restores so duplicates converge semantically.
+                    const outcome = resolveCursorForReset(history, pushParamsHistoryPosition, {key: newFocused.key, params: newFocused.params});
+                    if (outcome.type === 'backward') {
                         notifyPushParamsBackward(newFocused.key, newFocused.params);
-                        pushParamsHistoryPosition -= 1;
-                    } else if (matchAt(pushParamsHistoryPosition + 1)) {
-                        // Browser-forward: cancel any pending backward restore — handleStateChange classifies same-key transitions as noop.
+                        pushParamsHistoryPosition = outcome.cursor;
+                    } else if (outcome.type === 'forward') {
                         cancelPendingFocusRestore();
-                        pushParamsHistoryPosition += 1;
-                    } else {
-                        // Non-adjacent same-key jump (history.go(-n), deep link): scan the whole history and move the cursor to the match, or subsequent GO_BACK reverts from the stale index.
-                        let foundIdx = -1;
-                        for (let i = 0; i < history.length; i += 1) {
-                            if (matchAt(i)) {
-                                foundIdx = i;
-                                break;
-                            }
-                        }
-                        if (foundIdx >= 0) {
-                            if (foundIdx < pushParamsHistoryPosition) {
-                                notifyPushParamsBackward(newFocused.key, newFocused.params);
-                            } else {
-                                cancelPendingFocusRestore();
-                            }
-                            pushParamsHistoryPosition = foundIdx;
-                        } else {
-                            // New params not in history at all — drop any stale pending restore.
-                            cancelPendingFocusRestore();
-                        }
+                        pushParamsHistoryPosition = outcome.cursor;
+                    } else if (outcome.type === 'unknown') {
+                        cancelPendingFocusRestore();
                     }
+                    // 'noop' — preserve pending restore and cursor.
                 }
 
                 const preservedHistory = preserveHistoryForRoutes(history, rehydratedState.routes);
@@ -254,6 +258,8 @@ function addPushParamsRouterExtension<RouterOptions extends PlatformStackRouterO
                         history: preservedHistory,
                     };
                 }
+                // RESET with all routes removed: no history survives — reset the cursor so subsequent PUSH_PARAMS starts fresh.
+                pushParamsHistoryPosition = -1;
             }
 
             return rehydratedState;

@@ -598,4 +598,25 @@ describe('addPushParamsRouterExtension', () => {
         state = enhancedRouter.getStateForAction(state, CommonActions.goBack(), CONFIG_OPTIONS) as TestState;
         expect((state.routes.at(0)?.params as {q: string}).q).toBe('A');
     });
+
+    it('RESET that replaces every route resets the cursor so a subsequent PUSH_PARAMS starts fresh', () => {
+        const factory = createMockRouterFactory();
+        const enhancedRouter = addPushParamsRouterExtension(factory)({} as PlatformStackRouterOptions);
+        const initial = makeRoute('Search', 'search-1', {q: 'A'});
+        let state: TestState = makeState([initial], {history: [{...initial}] as CustomHistoryEntry[]});
+        state = enhancedRouter.getStateForAction(state, {type: CONST.NAVIGATION.ACTION_TYPE.PUSH_PARAMS, payload: {params: {q: 'B'}}}, CONFIG_OPTIONS) as TestState;
+        state = enhancedRouter.getStateForAction(state, {type: CONST.NAVIGATION.ACTION_TYPE.PUSH_PARAMS, payload: {params: {q: 'C'}}}, CONFIG_OPTIONS) as TestState;
+
+        // RESET with an entirely different route key so preserveHistoryForRoutes filters out everything.
+        const replaceAll: PushParamsRouterAction = {
+            type: CONST.NAVIGATION.ACTION_TYPE.RESET,
+            payload: {routes: [{name: 'Other', key: 'other-1', params: {tab: 'foo'}}], index: 0},
+        };
+        state = enhancedRouter.getStateForAction(state, replaceAll, CONFIG_OPTIONS) as TestState;
+
+        // A subsequent PUSH_PARAMS on a new route must start a fresh cursor — if the old cursor leaked (at 2), this would truncate nothing because the new history has 1 entry.
+        const afterPush = enhancedRouter.getStateForAction(state, {type: CONST.NAVIGATION.ACTION_TYPE.PUSH_PARAMS, payload: {params: {tab: 'bar'}}}, CONFIG_OPTIONS) as TestState;
+        expect(afterPush.history?.length).toBeGreaterThanOrEqual(1);
+        expect((afterPush.routes.at(0)?.params as {tab: string}).tab).toBe('bar');
+    });
 });

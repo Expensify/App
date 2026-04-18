@@ -2,6 +2,7 @@ import {findFocusedRoute} from '@react-navigation/core';
 import type {NavigationState, PartialState} from '@react-navigation/native';
 import {InteractionManager} from 'react-native';
 import getHadTabNavigation from './hadTabNavigation';
+import {consumeLauncher, pickLauncher, resetLauncherStackForTests, scheduleClearActivePopoverLauncher, setActivePopoverLauncher} from './LauncherStack';
 import navigationRef from './Navigation/navigationRef';
 import {Priorities, resetCycle, tryClaim} from './ScreenFocusArbiter';
 
@@ -18,18 +19,9 @@ type DiffAction = {type: 'forward'; captureKey: string} | {type: 'backward'; res
 // Fallback (if set) is the surrounding trap's launcher — used when primary cannot accept focus at restore. `triggerMap` is bounded by the nav tree (one entry per route key; `removedKeys` purges on route unmount).
 type TriggerEntry = {primary: HTMLElement; fallback?: HTMLElement};
 
-// `deactivatedAt` set when the trap closes; entry lives for LAUNCHER_CLEAR_DELAY_MS so a deferred-nav popover can still consume it.
-type LauncherEntry = {element: HTMLElement; deactivatedAt?: number};
-
 const COMPOUND_KEY_DELIMITER = '::';
-// Covers the click → state-listener → captureTriggerForRoute chain for deferred-nav popovers; conservative for slower devices.
-const LAUNCHER_CLEAR_DELAY_MS = 1000;
-// Guard against pathological trap storms. Typical stack depth is 1–2.
-const LAUNCHER_STACK_MAX = 8;
 
 let lastInteractiveElement: HTMLElement | null = null;
-// Stack (not slot) so nested + sequential traps retain correct launcher context.
-const launcherStack: LauncherEntry[] = [];
 const triggerMap = new Map<string, TriggerEntry>();
 let prevState: NavigationState | undefined;
 let pendingRestore: {cancel: () => void} | null = null;
@@ -79,50 +71,6 @@ function diffNavigationState(prev: AnyState, next: NavigationState): {action: Di
     return {action, removedKeys};
 }
 
-// Prefer topmost active, then most recent deactivated-within-window. Two passes so nested traps resolve to the outer (active) launcher, not the just-closed inner.
-function pickLauncher(): HTMLElement | null {
-    if (typeof document === 'undefined') {
-        return null;
-    }
-    const now = Date.now();
-    for (let i = launcherStack.length - 1; i >= 0; i -= 1) {
-        const entry = launcherStack.at(i);
-        if (!entry) {
-            continue;
-        }
-        if (!document.contains(entry.element)) {
-            launcherStack.splice(i, 1);
-            continue;
-        }
-        if (entry.deactivatedAt === undefined) {
-            return entry.element;
-        }
-    }
-    for (let i = launcherStack.length - 1; i >= 0; i -= 1) {
-        const entry = launcherStack.at(i);
-        if (entry?.deactivatedAt === undefined) {
-            continue;
-        }
-        if (!document.contains(entry.element)) {
-            launcherStack.splice(i, 1);
-            continue;
-        }
-        if (now - entry.deactivatedAt > LAUNCHER_CLEAR_DELAY_MS) {
-            launcherStack.splice(i, 1);
-            continue;
-        }
-        return entry.element;
-    }
-    return null;
-}
-
-function consumeLauncher(element: HTMLElement): void {
-    const idx = launcherStack.findIndex((e) => e.element === element);
-    if (idx >= 0) {
-        launcherStack.splice(idx, 1);
-    }
-}
-
 function captureTriggerForRoute(routeKey: string): void {
     if (typeof document === 'undefined') {
         return;
@@ -156,32 +104,6 @@ function captureTriggerForRoute(routeKey: string): void {
     triggerMap.set(routeKey, {primary: inner});
 }
 
-// Push a launcher onto the stack. Passing null pops the most recent entry (backward-compatible "clear immediately" call).
-function setActivePopoverLauncher(element: HTMLElement | null): void {
-    if (element === null) {
-        launcherStack.pop();
-        return;
-    }
-    // Re-activating an element already on the stack just clears its deactivated state.
-    const existing = launcherStack.find((e) => e.element === element);
-    if (existing) {
-        existing.deactivatedAt = undefined;
-        return;
-    }
-    launcherStack.push({element});
-    while (launcherStack.length > LAUNCHER_STACK_MAX) {
-        launcherStack.shift();
-    }
-}
-
-/** Mark the given launcher (or the top of the stack if omitted) as deactivated. Lazy pruning in pickLauncher enforces LAUNCHER_CLEAR_DELAY_MS. */
-function scheduleClearActivePopoverLauncher(element?: HTMLElement): void {
-    const entry = element ? launcherStack.find((e) => e.element === element) : launcherStack.at(-1);
-    if (entry) {
-        entry.deactivatedAt = Date.now();
-    }
-}
-
 // Normalize primitive values to strings so URL-rehydrated params (always strings) match PUSH_PARAMS dispatches that may use numbers/booleans.
 function normalizeForKey(value: unknown): unknown {
     if (value == null) {
@@ -195,7 +117,18 @@ function normalizeForKey(value: unknown): unknown {
         return value.map(normalizeForKey);
     }
     if (typeof value === 'object') {
-        const entries = Object.entries(value as Record<string, unknown>).map(([k, v]) => [k, normalizeForKey(v)]);
+        // Sort keys recursively so nested objects with differently-ordered keys produce the same compound key (URL rehydration can reorder).
+        const entries = Object.entries(value as Record<string, unknown>)
+            .sort(([a], [b]) => {
+                if (a < b) {
+                    return -1;
+                }
+                if (a > b) {
+                    return 1;
+                }
+                return 0;
+            })
+            .map(([k, v]) => [k, normalizeForKey(v)]);
         return Object.fromEntries(entries);
     }
     return value;
@@ -241,7 +174,7 @@ function cancelPendingFocusRestore(): void {
 }
 
 function canAcceptFocus(el: HTMLElement): boolean {
-    return !el.matches(':disabled') && el.getAttribute('aria-disabled') !== 'true' && !el.closest('[aria-hidden="true"]');
+    return !el.matches(':disabled') && el.getAttribute('aria-disabled') !== 'true' && !el.closest('[aria-hidden="true"]') && !el.closest('[inert]');
 }
 
 // 'retry' = in DOM but cannot accept focus now; 'gone' = detached, drop the entry.
@@ -481,7 +414,7 @@ function resetForTests(): void {
     cancelPendingRestore();
     cancelReturnHoldRelease();
     triggerMap.clear();
-    launcherStack.length = 0;
+    resetLauncherStackForTests();
     prevState = undefined;
     lastInteractiveElement = null;
 }

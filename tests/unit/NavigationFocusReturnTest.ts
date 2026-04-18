@@ -575,6 +575,30 @@ describe('captureTriggerForRoute', () => {
             });
         });
 
+        it('should bound launcherStack at LAUNCHER_STACK_MAX and drop the oldest when overflowed', () => {
+            // Pushing 10 launchers when max is 8 → first two evicted, last 8 retained (FIFO drop).
+            const launchers = Array.from({length: 10}, () => appendButton());
+            const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+            for (const l of launchers) {
+                setActivePopoverLauncher(l);
+            }
+
+            const oldest = launchers.at(0);
+            const newest = launchers.at(-1);
+            if (!oldest || !newest) {
+                throw new Error('test setup');
+            }
+            const droppedOldest = jest.spyOn(oldest, 'focus');
+            const newestKept = jest.spyOn(newest, 'focus');
+            captureTriggerForRoute('route-a');
+            newest.blur();
+            expect(restoreTriggerForRoute('route-a')).toBe(true);
+            expect(newestKept).toHaveBeenCalled();
+            expect(droppedOldest).not.toHaveBeenCalled();
+            expect(warnSpy).toHaveBeenCalled();
+            warnSpy.mockRestore();
+        });
+
         it('should cancel a pending deferred clear when a new launcher is set', () => {
             withFakeTimers(() => {
                 const launcherA = appendButton();
@@ -803,6 +827,32 @@ describe('restoreTriggerForRoute', () => {
         expect(restoreTriggerForRoute('route-a')).toBe(true);
         expect(document.activeElement).toBe(redirectTarget);
         expect(launcherSpy).not.toHaveBeenCalled();
+    });
+
+    it('should restore without scrolling the viewport (preventScroll must be preserved)', () => {
+        const trigger = appendButton();
+        trigger.focus();
+        setLastInteractiveElementForTests(trigger);
+        captureTriggerForRoute('route-a');
+        trigger.blur();
+
+        const focusSpy = jest.spyOn(trigger, 'focus');
+        expect(restoreTriggerForRoute('route-a')).toBe(true);
+        expect(focusSpy).toHaveBeenCalledWith(expect.objectContaining({preventScroll: true}));
+    });
+
+    it('should skip focus when trigger is inside an [inert] subtree', () => {
+        const inertWrapper = document.createElement('div');
+        inertWrapper.setAttribute('inert', '');
+        const primary = document.createElement('button');
+        inertWrapper.appendChild(primary);
+        document.body.appendChild(inertWrapper);
+        primary.focus();
+        setLastInteractiveElementForTests(primary);
+        captureTriggerForRoute('route-a');
+
+        // Inside [inert] → canAcceptFocus returns false; no fallback present → 'retry'.
+        expect(restoreTriggerForRoute('route-a')).toBe(false);
     });
 
     it("Status → Clear after → Esc: restores to 'Clear after' even when Status AUTO-focuses the Message input", () => {
@@ -1129,6 +1179,11 @@ describe('compoundParamsKey', () => {
         const asObject = {ids: {'0': 'a', '1': 'b'}};
         expect(compoundParamsKey('search-x', {ids: ['a', 'b']})).not.toBe(compoundParamsKey('search-x', asObject));
     });
+
+    it('should produce the same key for nested objects with differently-ordered keys (recursive sort)', () => {
+        // URL-rehydrated params may reorder nested keys; the compound key must be stable so backward/forward classification holds.
+        expect(compoundParamsKey('search-x', {filters: {a: 1, b: 2}})).toBe(compoundParamsKey('search-x', {filters: {b: 2, a: 1}}));
+    });
 });
 
 describe('PUSH_PARAMS notifications', () => {
@@ -1214,6 +1269,28 @@ describe('teardown / setup lifecycle', () => {
         captureTriggerForRoute('route-a');
         button.blur();
         expect(restoreTriggerForRoute('route-a')).toBe(true);
+    });
+
+    it('teardown during an in-flight scheduleRestore cancels cleanly — no focus after teardown', () => {
+        withFakeTimers(() => {
+            simulateTab();
+            const trigger = appendButton();
+            fireFocusIn(trigger);
+            handleStateChange(stackState(0, [{key: 'a', name: 'A'}]));
+            handleStateChange(
+                stackState(1, [
+                    {key: 'a', name: 'A'},
+                    {key: 'b', name: 'B'},
+                ]),
+            );
+            trigger.blur();
+            handleStateChange(stackState(0, [{key: 'a', name: 'A'}])); // backward diff queues scheduleRestore
+
+            const spy = jest.spyOn(trigger, 'focus');
+            teardownNavigationFocusReturn();
+            jest.runAllTimers(); // if cancellation failed, restore would fire here
+            expect(spy).not.toHaveBeenCalled();
+        });
     });
 
     it('should seed prevState from navigationRef so the first transition is not misclassified as noop', () => {
