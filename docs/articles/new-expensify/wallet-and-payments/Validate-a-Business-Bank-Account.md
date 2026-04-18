@@ -22,6 +22,7 @@ Any member who has a **Pending** business bank account in **Wallet** can validat
 ## When can a business bank account be validated
 
 After your business bank account is approved: 
+
  - Expensify sends three test transactions to your bank account - two small withdrawals and one small deposit.
  - When the test transactions are sent, Concierge will send a message to notify you that says "Your bank account is almost set up!".
  - The test transactions will arrive 1-2 days after sending. 
@@ -31,11 +32,23 @@ After your business bank account is approved:
 When you see the three test amounts post to your bank account: 
 
 1. In the navigation tabs (on the left on web, on the bottom on mobile) go to **Account > Wallet**.
-2. In the **Bank accounts** section, click the business bank account with the **Pending** badge. 
-3. Enter all three amounts exactly as they appear.
+2. In the **Bank accounts** section, click the business bank account with the **Action required** badge. 
+3. In the **Validate your bank account** section that appears, enter each transaction amount. 
 4. Click **Validate**.
 
 Once the values are confirmed, your business bank account is fully connected and ready to use.
+
+---
+
+<!-- SCREENSHOT:
+Account > Wallet > bank account with a callout on the Action required badge. 
+Design request: https://github.com/Expensify/Expensify/issues/623901
+-->
+
+<!-- SCREENSHOT:
+Account > Wallet > bank account with an Action required badge > expose validation pane. 
+Design request: https://github.com/Expensify/Expensify/issues/623901
+-->
 
 ---
 
@@ -56,6 +69,10 @@ If the test deposits don't appear after two business days:
 ## How many test transactions will I receive?
 
 Three total: two small withdrawals and one small deposit. These are temporary and used only for verification.
+
+## What is the name on the test transactions? 
+
+The test transactions will have a name like "Expensify, Inc. Validation".
 
 ## What happens if I enter the wrong amounts?
 
