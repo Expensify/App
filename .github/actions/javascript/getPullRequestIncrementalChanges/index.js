@@ -12023,11 +12023,11 @@ class GithubUtils {
     /**
      * Fetch all pull requests given a list of PR numbers.
      */
-    static fetchAllPullRequests(pullRequestNumbers) {
+    static fetchAllPullRequests(pullRequestNumbers, repo = CONST_1.default.APP_REPO) {
         const oldestPR = pullRequestNumbers.sort((a, b) => a - b).at(0);
         return this.paginate(this.octokit.pulls.list, {
             owner: CONST_1.default.GITHUB_OWNER,
-            repo: CONST_1.default.APP_REPO,
+            repo,
             state: 'all',
             sort: 'created',
             direction: 'desc',
@@ -12410,8 +12410,8 @@ class Git {
      * @throws Error when git command fails (invalid refs, not a git repo, file not found, etc.)
      */
     static diff(fromRef, toRef, filePaths, shouldIncludeUntrackedFiles = false) {
-        // Build git diff command (with 0 context lines for easier parsing)
-        let command = `git diff -U0 ${fromRef}`;
+        // Build git diff command (with 0 context lines for easier parsing, -M for rename detection)
+        let command = `git diff -U0 -M ${fromRef}`;
         if (toRef) {
             command += ` ${toRef}`;
         }
@@ -12453,12 +12453,12 @@ class Git {
         const files = [];
         let currentFile = null;
         let currentHunk = null;
-        let oldFilePath = null; // Track old file path to determine fileDiffType
+        let oldFilePath = null;
+        let renameFromPath = null;
         for (const line of lines) {
             // File header: diff --git a/file b/file
             if (line.startsWith('diff --git')) {
                 if (currentFile) {
-                    // Push the current hunk to the current file before processing the new file
                     if (currentHunk) {
                         currentFile.hunks.push(currentHunk);
                     }
@@ -12466,41 +12466,51 @@ class Git {
                 }
                 currentFile = null;
                 currentHunk = null;
-                oldFilePath = null; // Reset for next file
+                oldFilePath = null;
+                renameFromPath = null;
+                continue;
+            }
+            // Rename detection: "rename from <path>" appears before --- / +++
+            if (line.startsWith('rename from ')) {
+                renameFromPath = line.slice('rename from '.length);
+                continue;
+            }
+            if (line.startsWith('rename to ') || line.startsWith('similarity index ')) {
                 continue;
             }
             // Old file path: --- a/file or --- /dev/null (for new files)
-            // This comes before +++ in git diff output
             if (line.startsWith('--- ')) {
-                oldFilePath = line.slice(4); // Store the old file path (remove '--- ')
+                oldFilePath = line.slice(4);
                 continue;
             }
             // New file path: +++ b/file or +++ /dev/null (for removed files)
             if (line.startsWith('+++ ')) {
-                const newFilePath = line.slice(4); // Remove '+++ '
-                // Determine fileDiffType based on old and new file paths
-                // Note: oldFilePath should always be set by the time we see +++, but handle null for type safety
+                const newFilePath = line.slice(4);
                 let fileDiffType = 'modified';
                 let diffFilePath;
+                let previousFilePath;
                 const oldPath = oldFilePath ?? '';
                 if (oldPath === '/dev/null') {
-                    // New file: use the new file path
                     fileDiffType = 'added';
                     diffFilePath = newFilePath.startsWith('b/') ? newFilePath.slice(2) : newFilePath;
                 }
                 else if (newFilePath === '/dev/null') {
-                    // Removed file: use the old file path
                     fileDiffType = 'removed';
                     diffFilePath = oldPath.startsWith('a/') ? oldPath.slice(2) : oldPath;
                 }
+                else if (renameFromPath) {
+                    fileDiffType = 'renamed';
+                    diffFilePath = newFilePath.startsWith('b/') ? newFilePath.slice(2) : newFilePath;
+                    previousFilePath = renameFromPath;
+                }
                 else {
-                    // Modified file: use the new file path
                     fileDiffType = 'modified';
                     diffFilePath = newFilePath.startsWith('b/') ? newFilePath.slice(2) : newFilePath;
                 }
                 currentFile = {
                     filePath: diffFilePath,
                     diffType: fileDiffType,
+                    previousFilePath,
                     hunks: [],
                     addedLines: new Set(),
                     removedLines: new Set(),
@@ -12648,7 +12658,7 @@ class Git {
             return; // Reference is already available locally
         }
         try {
-            (0, Logger_1.log)(`🔄 Fetching missing ref: ${ref}`);
+            console.log(`🔄 Fetching missing ref: ${ref}`);
             await exec(`git fetch ${remote} ${ref} --no-tags --depth=1 --quiet`);
             // Verify the ref is now available
             if (!this.isValidRef(ref)) {
@@ -12723,20 +12733,37 @@ class Git {
             return false;
         }
     }
-    static async getChangedFileNames(fromRef, toRef, shouldIncludeUntrackedFiles = false) {
+    /**
+     * Get changed files with their status (added, modified, removed, renamed).
+     * In CI, uses the GitHub API with pagination for accuracy.
+     * Locally, uses git diff against the provided ref.
+     */
+    static async getChangedFilesWithStatus(fromRef, toRef, shouldIncludeUntrackedFiles = false) {
         if (IS_CI) {
-            const { data: changedFiles } = await GithubUtils_1.default.octokit.pulls.listFiles({
+            const files = await GithubUtils_1.default.paginate(GithubUtils_1.default.octokit.pulls.listFiles, {
                 owner: CONST_1.default.GITHUB_OWNER,
                 repo: CONST_1.default.APP_REPO,
                 // eslint-disable-next-line @typescript-eslint/naming-convention
                 pull_number: github_1.context.payload.pull_request?.number ?? 0,
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                per_page: 100,
             });
-            return changedFiles.map((file) => file.filename);
+            return files.map((file) => ({
+                filename: file.filename,
+                status: file.status,
+                previousFilename: file.previous_filename,
+            }));
         }
-        // Get the diff output and check status
         const diffResult = this.diff(fromRef, toRef, undefined, shouldIncludeUntrackedFiles);
-        const files = diffResult.files.map((file) => file.filePath);
-        return files;
+        return diffResult.files.map((file) => ({
+            filename: file.filePath,
+            status: file.diffType,
+            previousFilename: file.previousFilePath,
+        }));
+    }
+    static async getChangedFileNames(fromRef, toRef, shouldIncludeUntrackedFiles = false) {
+        const files = await this.getChangedFilesWithStatus(fromRef, toRef, shouldIncludeUntrackedFiles);
+        return files.map((file) => file.filename);
     }
     /**
      * Get list of untracked files from git.
@@ -12842,7 +12869,7 @@ exports["default"] = Git;
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.bold = exports.formatLink = exports.success = exports.error = exports.note = exports.warn = exports.info = exports.log = void 0;
+exports.bold = exports.formatLink = exports.success = exports.errorDetail = exports.error = exports.note = exports.warn = exports.info = void 0;
 const COLOR_DIM = '\x1b[2m';
 const COLOR_RESET = '\x1b[0m';
 const COLOR_YELLOW = '\x1b[33m';
@@ -12857,40 +12884,34 @@ const EMOJIS = {
     SUCCESS: '✅',
     ERROR: '🔴',
 };
-const log = (...args) => {
-    console.debug(...args);
-};
-exports.log = log;
 const info = (...args) => {
-    const lines = [EMOJIS.INFO, ...args];
-    log(...lines);
+    console.log(EMOJIS.INFO, ...args);
 };
 exports.info = info;
 const bold = (...args) => {
-    const lines = [COLOR_BOLD, ...args, COLOR_RESET];
-    log(...lines);
+    console.log(COLOR_BOLD, ...args, COLOR_RESET);
 };
 exports.bold = bold;
 const success = (...args) => {
-    const lines = [`${EMOJIS.SUCCESS}${COLOR_GREEN}`, ...args, COLOR_RESET];
-    log(...lines);
+    console.log(`${EMOJIS.SUCCESS}${COLOR_GREEN}`, ...args, COLOR_RESET);
 };
 exports.success = success;
 const warn = (...args) => {
-    const lines = [`${EMOJIS.WARN}${COLOR_YELLOW}`, ...args, COLOR_RESET];
-    log(...lines);
+    console.warn(`${EMOJIS.WARN}${COLOR_YELLOW}`, ...args, COLOR_RESET);
 };
 exports.warn = warn;
 const note = (...args) => {
-    const lines = [COLOR_DIM, ...args, COLOR_RESET];
-    log(...lines);
+    console.log(COLOR_DIM, ...args, COLOR_RESET);
 };
 exports.note = note;
 const error = (...args) => {
-    const lines = [`${EMOJIS.ERROR}${COLOR_RED}`, ...args, COLOR_RESET];
-    log(...lines);
+    console.error(`${EMOJIS.ERROR}${COLOR_RED}`, ...args, COLOR_RESET);
 };
 exports.error = error;
+const errorDetail = (...args) => {
+    console.error(`   ${COLOR_RED}↳`, ...args, COLOR_RESET);
+};
+exports.errorDetail = errorDetail;
 const formatLink = (name, url) => `\x1b]8;;${url}\x1b\\${name}\x1b]8;;\x1b\\`;
 exports.formatLink = formatLink;
 

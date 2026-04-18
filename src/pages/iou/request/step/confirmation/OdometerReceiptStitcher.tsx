@@ -5,7 +5,9 @@ import {shouldUseTransactionDraft} from '@libs/IOUUtils';
 import Log from '@libs/Log';
 import {getOdometerImageName, getOdometerImageType, getOdometerImageUri} from '@libs/OdometerImageUtils';
 import stitchOdometerImages from '@libs/stitchOdometerImages';
+import {cancelSpan, endSpan, startSpan} from '@libs/telemetry/activeSpans';
 import {setMoneyRequestReceipt} from '@userActions/IOU/Receipt';
+import CONST from '@src/CONST';
 import type {IOUAction, IOUType} from '@src/CONST';
 import type {FileObject} from '@src/types/utils/Attachment';
 
@@ -82,9 +84,15 @@ function OdometerReceiptStitcher({
         onStitchingChange(true);
         onStitchError('');
 
+        startSpan(CONST.TELEMETRY.SPAN_ODOMETER_IMAGE_STITCH, {
+            name: CONST.TELEMETRY.SPAN_ODOMETER_IMAGE_STITCH,
+            op: CONST.TELEMETRY.SPAN_ODOMETER_IMAGE_STITCH,
+        });
+
         stitchOdometerImages(odometerStartImage, odometerEndImage)
             .then((stitchedImage) => {
                 if (ignore || !stitchedImage) {
+                    cancelSpan(CONST.TELEMETRY.SPAN_ODOMETER_IMAGE_STITCH);
                     return;
                 }
                 setMoneyRequestReceipt(
@@ -95,8 +103,10 @@ function OdometerReceiptStitcher({
                     getOdometerImageType(stitchedImage),
                 );
                 lastStitchedImages.current = {startImage: odometerStartImage, endImage: odometerEndImage};
+                endSpan(CONST.TELEMETRY.SPAN_ODOMETER_IMAGE_STITCH);
             })
             .catch((error: unknown) => {
+                cancelSpan(CONST.TELEMETRY.SPAN_ODOMETER_IMAGE_STITCH);
                 if (ignore) {
                     return;
                 }
@@ -112,6 +122,7 @@ function OdometerReceiptStitcher({
 
         return () => {
             ignore = true;
+            cancelSpan(CONST.TELEMETRY.SPAN_ODOMETER_IMAGE_STITCH);
         };
     }, [isOdometerDistanceRequest, isFocused, currentTransactionID, odometerStartImage, odometerEndImage, action, translate, iouType, onStitchingChange, onStitchError]);
 
