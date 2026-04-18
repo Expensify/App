@@ -1112,6 +1112,7 @@ const translations: TranslationDeepObject<typeof en> = {
         dropTitle: '随它去',
         dropMessage: '将文件拖放到此处',
         flash: '闪光',
+        flipCamera: '切换相机',
         multiScan: '多重扫描',
         shutter: '快门',
         gallery: '图库',

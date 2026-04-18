@@ -1150,6 +1150,7 @@ const translations: TranslationDeepObject<typeof en> = {
         dropTitle: 'Lascia perdere',
         dropMessage: 'Rilascia qui il tuo file',
         flash: 'flash',
+        flipCamera: 'Cambia fotocamera',
         multiScan: 'scansione multipla',
         shutter: 'otturatore',
         gallery: 'galleria',
