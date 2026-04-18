@@ -188,6 +188,10 @@ function WorkspacesListPage() {
     // We need this to update translation for deleting a workspace when it has third party card feeds or expensify card assigned.
     const workspaceAccountID = policyToDelete?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const [cardFeeds, , defaultCardFeeds] = useCardFeeds(policyIDToDelete);
+    const [workspaceExpensifyCardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`);
+    const [workspaceExpensifyCardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`);
+    const [lastSelectedFeed] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyIDToDelete}`);
+    const [lastSelectedExpensifyCardFeed] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_EXPENSIFY_CARD_FEED}${policyIDToDelete}`);
     const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`, {
         selector: filterInactiveCards,
     });
@@ -236,6 +240,10 @@ function WorkspacesListPage() {
             policyName: policyNameToDelete,
             lastAccessedWorkspacePolicyID,
             policyCardFeeds: defaultCardFeeds,
+            policyExpensifyCardSettings: workspaceExpensifyCardSettings,
+            policyExpensifyCardsList: workspaceExpensifyCardsList,
+            lastSelectedFeed,
+            lastSelectedExpensifyCardFeed,
             reportsToArchive,
             transactionViolations,
             reimbursementAccountError,

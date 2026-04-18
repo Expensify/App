@@ -109,6 +109,7 @@ import type {
     Beta,
     CardFeeds,
     DuplicateWorkspace,
+    ExpensifyCardSettings,
     IntroSelected,
     InvitedEmailsToAccountIDs,
     LastPaymentMethod,
@@ -124,7 +125,9 @@ import type {
     TaxRatesWithDefault,
     Transaction,
     TransactionViolations,
+    WorkspaceCardsList,
 } from '@src/types/onyx';
+import type {CompanyCardFeedWithDomainID, FundID} from '@src/types/onyx/CardFeeds';
 import type {Participant} from '@src/types/onyx/IOU';
 import type {ErrorFields, Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {
@@ -366,6 +369,10 @@ type DeleteWorkspaceActionParams = {
     policyName: string;
     lastAccessedWorkspacePolicyID: string | undefined;
     policyCardFeeds: CardFeeds | undefined;
+    policyExpensifyCardSettings: ExpensifyCardSettings | undefined;
+    policyExpensifyCardsList: WorkspaceCardsList | undefined;
+    lastSelectedFeed: CompanyCardFeedWithDomainID | undefined;
+    lastSelectedExpensifyCardFeed: FundID | undefined;
     reportsToArchive: Report[];
     transactionViolations: OnyxCollection<TransactionViolations> | undefined;
     reimbursementAccountError: Errors | undefined;
@@ -387,6 +394,10 @@ function deleteWorkspace(params: DeleteWorkspaceActionParams) {
         policyName,
         lastAccessedWorkspacePolicyID,
         policyCardFeeds,
+        policyExpensifyCardSettings,
+        policyExpensifyCardsList,
+        lastSelectedFeed,
+        lastSelectedExpensifyCardFeed,
         reportsToArchive,
         transactionViolations,
         reimbursementAccountError,
@@ -406,6 +417,10 @@ function deleteWorkspace(params: DeleteWorkspaceActionParams) {
         OnyxUpdate<
             | typeof ONYXKEYS.COLLECTION.POLICY
             | typeof ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER
+            | typeof ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS
+            | typeof ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST
+            | typeof ONYXKEYS.COLLECTION.LAST_SELECTED_FEED
+            | typeof ONYXKEYS.COLLECTION.LAST_SELECTED_EXPENSIFY_CARD_FEED
             | typeof ONYXKEYS.REIMBURSEMENT_ACCOUNT
             | typeof ONYXKEYS.NVP_ACTIVE_POLICY_ID
             | typeof ONYXKEYS.COLLECTION.REPORT
@@ -430,6 +445,26 @@ function deleteWorkspace(params: DeleteWorkspaceActionParams) {
             key: `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`,
             value: null,
         },
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`,
+            value: null,
+        },
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`,
+            value: null,
+        },
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`,
+            value: null,
+        },
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.LAST_SELECTED_EXPENSIFY_CARD_FEED}${policyID}`,
+            value: null,
+        },
         ...(!hasActiveChatEnabledPolicies(filteredPolicies, true)
             ? [
                   {
@@ -449,6 +484,10 @@ function deleteWorkspace(params: DeleteWorkspaceActionParams) {
             | typeof ONYXKEYS.REIMBURSEMENT_ACCOUNT
             | typeof ONYXKEYS.COLLECTION.POLICY
             | typeof ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER
+            | typeof ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS
+            | typeof ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST
+            | typeof ONYXKEYS.COLLECTION.LAST_SELECTED_FEED
+            | typeof ONYXKEYS.COLLECTION.LAST_SELECTED_EXPENSIFY_CARD_FEED
             | typeof ONYXKEYS.NVP_ACTIVE_POLICY_ID
             | typeof ONYXKEYS.COLLECTION.REPORT
             | typeof ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS
@@ -476,6 +515,26 @@ function deleteWorkspace(params: DeleteWorkspaceActionParams) {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`,
             value: policyCardFeeds ?? null,
+        },
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`,
+            value: policyExpensifyCardSettings ?? null,
+        },
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`,
+            value: policyExpensifyCardsList ?? null,
+        },
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`,
+            value: lastSelectedFeed ?? null,
+        },
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.LAST_SELECTED_EXPENSIFY_CARD_FEED}${policyID}`,
+            value: lastSelectedExpensifyCardFeed ?? null,
         },
     ];
 
