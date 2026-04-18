@@ -47,12 +47,14 @@ import {
     buildOptimisticIOUReportAction,
     buildOptimisticMoneyRequestEntities,
     buildOptimisticReportPreview,
+    computeOptimisticReportName,
     generateReportID,
     getChatByParticipants,
     getOutstandingChildRequest,
     getParsedComment,
     getReportNotificationPreference,
     getReportOrDraftReport,
+    getReportTransactions,
     hasOutstandingChildRequest,
     hasViolations as hasViolationsReportUtils,
     isDeprecatedGroupDM,
@@ -68,7 +70,6 @@ import {
     isSelectedManagerMcTest,
     isSelfDM,
     isTestTransactionReport,
-    populateOptimisticReportFormula,
     shouldCreateNewMoneyRequestReport as shouldCreateNewMoneyRequestReportReportUtils,
     updateReportPreview,
 } from '@libs/ReportUtils';
@@ -2153,7 +2154,7 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
  * This is needed when report totals change (e.g., adding expenses or changing reimbursable status)
  * to ensure the report title reflects the updated values like {report:reimbursable}.
  */
-function recalculateOptimisticReportName(iouReport: OnyxTypes.Report, policy: OnyxEntry<OnyxTypes.Policy>): string | undefined {
+function recalculateOptimisticReportName(iouReport: OnyxTypes.Report, policy: OnyxEntry<OnyxTypes.Policy>, newTransaction?: OnyxTypes.Transaction): string | undefined {
     if (!policy?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE]) {
         return undefined;
     }
@@ -2161,17 +2162,37 @@ function recalculateOptimisticReportName(iouReport: OnyxTypes.Report, policy: On
     if (!titleFormula) {
         return undefined;
     }
-    return populateOptimisticReportFormula(titleFormula, iouReport as Parameters<typeof populateOptimisticReportFormula>[1], policy);
+
+    // Gather existing transactions + the optimistic one not yet in Onyx.
+    const existingTransactions = getReportTransactions(iouReport.reportID);
+    const transactionsRecord: Record<string, OnyxTypes.Transaction> = {};
+    for (const transaction of existingTransactions) {
+        if (transaction?.transactionID) {
+            transactionsRecord[transaction.transactionID] = transaction;
+        }
+    }
+    if (newTransaction?.transactionID) {
+        transactionsRecord[newTransaction.transactionID] = newTransaction;
+    }
+
+    const computedName = computeOptimisticReportName(iouReport, policy, iouReport.policyID, transactionsRecord);
+    return computedName ?? undefined;
 }
 
-function maybeUpdateReportNameForFormulaTitle(iouReport: OnyxTypes.Report, policy: OnyxEntry<OnyxTypes.Policy>): OnyxTypes.Report {
+function maybeUpdateReportNameForFormulaTitle(iouReport: OnyxTypes.Report, policy: OnyxEntry<OnyxTypes.Policy>, newTransaction?: OnyxTypes.Transaction): OnyxTypes.Report {
     const reportNameValuePairs = allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${iouReport.reportID}`];
     const titleField = reportNameValuePairs?.expensify_text_title;
-    if (titleField?.type !== CONST.REPORT_FIELD_TYPES.FORMULA) {
+
+    // Fall back to policy.fieldList when reportNameValuePairs doesn't exist yet (optimistic reports).
+    const isFormulaTitle = reportNameValuePairs
+        ? titleField?.type === CONST.REPORT_FIELD_TYPES.FORMULA
+        : policy?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE]?.type === CONST.REPORT_FIELD_TYPES.FORMULA;
+
+    if (!isFormulaTitle) {
         return iouReport;
     }
 
-    const updatedReportName = recalculateOptimisticReportName(iouReport, policy);
+    const updatedReportName = recalculateOptimisticReportName(iouReport, policy, newTransaction);
     if (!updatedReportName) {
         return iouReport;
     }
@@ -2357,8 +2378,6 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
                         iouReport.nonReimbursableTotal = (iouReport.nonReimbursableTotal ?? 0) - amount;
                     }
                 }
-
-                iouReport = maybeUpdateReportNameForFormulaTitle(iouReport, policy);
             }
             if (typeof iouReport.unheldTotal === 'number') {
                 // Use newReportTotal in scenarios where the total is based on more than just the current transaction amount, and we need to override it manually
@@ -2456,6 +2475,11 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         if (originalConvertedAmount && originalAmount && splitAmount) {
             optimisticTransaction.convertedAmount = Math.round((originalConvertedAmount * splitAmount) / originalAmount);
         }
+    }
+
+    // Recalculate report name after STEP 3 so the optimistic transaction is included in formula computation.
+    if (!shouldCreateNewMoneyRequestReport && isPolicyExpenseChat) {
+        iouReport = maybeUpdateReportNameForFormulaTitle(iouReport, policy, optimisticTransaction);
     }
 
     // STEP 4: Build optimistic reportActions. We need:
