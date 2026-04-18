@@ -1714,6 +1714,7 @@ const translations = {
         },
         duplicateNonDefaultWorkspacePerDiemError: "You can't duplicate per diem expenses across workspaces because the rates may differ between workspaces.",
         cannotDuplicateDistanceExpense: "You can't duplicate distance expenses across workspaces because the rates may differ between workspaces.",
+        bulkDuplicateLimit: `You can duplicate up to ${CONST.SEARCH.BULK_DUPLICATE_LIMIT} expenses at a time. Please select fewer expenses and try again.`,
         taxDisabledAlert: {
             title: 'Tax disabled',
             prompt: 'Enable tax tracking on the workspace to edit the expense details or delete the tax from this expense.',
@@ -4258,6 +4259,7 @@ const translations = {
             travel: 'Travel',
             members: 'Members',
             accounting: 'Accounting',
+            hr: 'HR',
             receiptPartners: 'Receipt partners',
             rules: 'Rules',
             displayedAs: 'Displayed as',
@@ -6324,6 +6326,36 @@ const translations = {
                     `Make sure this account matches your <a href="${settlementAccountUrl}">Expensify Card settlement account</a> (ending in ${lastFourPAN}) so Continuous Reconciliation works properly.`,
             },
         },
+        hr: {
+            title: 'HR',
+            subtitle: 'Connect HR tools and keep employee approvals in sync.',
+            settingsTitle: 'Gusto settings',
+            syncStageName: ({stage}: SyncStageNameConnectionsParams) => {
+                switch (stage) {
+                    case 'startingImportGusto':
+                        return 'Importing Gusto data';
+                    case 'gustoSyncLoadCompany':
+                        return 'Loading Gusto company data';
+                    case 'gustoSyncImportEmployees':
+                        return 'Importing employees';
+                    case 'gustoSyncBuildApprovalChains':
+                        return 'Building approval chains';
+                    case 'gustoSyncFinalize':
+                        return 'Finalizing sync';
+                    case 'jobDone':
+                        return 'Waiting for imported data to load';
+                    default: {
+                        // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+                        return `Translation missing for stage: ${stage}`;
+                    }
+                }
+            },
+            gusto: {
+                title: 'Gusto',
+                approvalMode: 'Approval mode',
+                finalApprover: 'Final approver',
+            },
+        },
         export: {
             notReadyHeading: 'Not ready to export',
             notReadyDescription: 'Draft or pending expense reports cannot be exported to the accounting system. Please approve or pay these expenses before exporting them.',
@@ -6877,8 +6909,6 @@ const translations = {
                 merchants: 'Merchants',
                 noAvailableCards: 'All cards already have a rule',
                 noAvailableCardsSubtitle: 'Edit an existing card rule to make changes',
-                noCardsIssuedTitle: 'No Expensify cards issued',
-                noCardsIssuedSubtitle: 'Issue Expensify cards to create spend rules',
                 max: 'Max',
                 categoryOptions: {
                     [CONST.SPEND_RULES.CATEGORIES.AIRLINES]: 'Airlines',
