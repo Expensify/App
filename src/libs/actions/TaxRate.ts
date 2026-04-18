@@ -342,13 +342,14 @@ function deletePolicyTaxes(policy: OnyxEntry<Policy>, taxesToDelete: string[], l
                             return acc;
                         }, {}),
                     },
-                    // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
-                    customUnits: distanceRateCustomUnit &&
-                        customUnitID && {
-                            [customUnitID]: {
-                                rates: optimisticRates,
-                            },
-                        },
+                    customUnits:
+                        distanceRateCustomUnit && customUnitID
+                            ? {
+                                  [customUnitID]: {
+                                      rates: optimisticRates,
+                                  },
+                              }
+                            : undefined,
                 },
             },
         ],
@@ -364,13 +365,14 @@ function deletePolicyTaxes(policy: OnyxEntry<Policy>, taxesToDelete: string[], l
                             return acc;
                         }, {}),
                     },
-                    // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
-                    customUnits: distanceRateCustomUnit &&
-                        customUnitID && {
-                            [customUnitID]: {
-                                rates: successRates,
-                            },
-                        },
+                    customUnits:
+                        distanceRateCustomUnit && customUnitID
+                            ? {
+                                  [customUnitID]: {
+                                      rates: successRates,
+                                  },
+                              }
+                            : undefined,
                 },
             },
         ],
@@ -390,13 +392,14 @@ function deletePolicyTaxes(policy: OnyxEntry<Policy>, taxesToDelete: string[], l
                             return acc;
                         }, {}),
                     },
-                    // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
-                    customUnits: distanceRateCustomUnit &&
-                        customUnitID && {
-                            [customUnitID]: {
-                                rates: failureRates,
-                            },
-                        },
+                    customUnits:
+                        distanceRateCustomUnit && customUnitID
+                            ? {
+                                  [customUnitID]: {
+                                      rates: failureRates,
+                                  },
+                              }
+                            : undefined,
                 },
             },
         ],
