@@ -2,6 +2,7 @@ import {delegateEmailSelector} from '@selectors/Account';
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import {useEffect, useRef, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
+import useLastWorkspaceNumber from '@hooks/useLastWorkspaceNumber';
 import useLocalize from '@hooks/useLocalize';
 import useOnboardingTaskInformation from '@hooks/useOnboardingTaskInformation';
 import useOnyx from '@hooks/useOnyx';
@@ -10,6 +11,7 @@ import useParticipantsInvoiceReport from '@hooks/useParticipantsInvoiceReport';
 import useParticipantsPolicyTags from '@hooks/useParticipantsPolicyTags';
 import usePermissions from '@hooks/usePermissions';
 import useReportTransactions from '@hooks/useReportTransactions';
+import {generateDefaultWorkspaceName} from '@libs/actions/Policy/Policy';
 import {completeTestDriveTask} from '@libs/actions/Task';
 import {getCurrencySymbol} from '@libs/CurrencyUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
@@ -49,8 +51,6 @@ import type {Receipt} from '@src/types/onyx/Transaction';
 import type Transaction from '@src/types/onyx/Transaction';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import { generateDefaultWorkspaceName } from '@libs/actions/Policy/Policy';
-import useLastWorkspaceNumber from '@hooks/useLastWorkspaceNumber';
 
 // Ends the submit expense span, starts a geolocation child span, then calls getCurrentPosition.
 // The expense callback receives GPS coordinates on success or undefined on error.
