@@ -272,6 +272,9 @@ const ONYXKEYS = {
     /** ID associated with the payment card added by the user. */
     NVP_BILLING_FUND_ID: 'nvp_expensify_billingFundID',
 
+    /** The user's freebie credits balance (in cents). */
+    NVP_PRIVATE_FREEBIE_CREDITS: 'nvp_private_freebieCredits',
+
     /** The amount owed by the workspace’s owner. */
     NVP_PRIVATE_AMOUNT_OWED: 'nvp_private_amountOwed',
 
@@ -1475,6 +1478,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL]: string;
     [ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL]: string;
     [ONYXKEYS.NVP_BILLING_FUND_ID]: number;
+    [ONYXKEYS.NVP_PRIVATE_FREEBIE_CREDITS]: number;
     [ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED]: number;
     [ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END]: number;
     [ONYXKEYS.NVP_DELETE_TRANSACTION_NAVIGATE_BACK_URL]: string | undefined;

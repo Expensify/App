@@ -8658,6 +8658,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         details: {
             title: 'Détails de l’abonnement',
             annual: 'Abonnement annuel',
+            creditBalance: 'Solde créditeur',
             taxExempt: 'Demander le statut d’exonération fiscale',
             taxExemptEnabled: 'Exonéré d’impôt',
             taxExemptStatus: 'Statut d’exonération fiscale',

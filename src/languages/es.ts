@@ -8852,6 +8852,7 @@ ${amount} para ${merchant} - ${date}`,
         details: {
             title: 'Datos de suscripción',
             annual: 'Suscripción anual',
+            creditBalance: 'Saldo de crédito',
             taxExempt: 'Solicitar estado de exención de impuestos',
             taxExemptEnabled: 'Exento de impuestos',
             taxExemptStatus: 'Estado de exención de impuestos',
