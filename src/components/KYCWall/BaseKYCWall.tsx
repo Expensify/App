@@ -171,7 +171,7 @@ function KYCWall({
                     }
 
                     const lastWorkspaceNumber = lastWorkspaceNumberSelector(policies, currentUserEmail);
-                    const {policyID, workspaceChatReportID, reportPreviewReportActionID, adminsChatReportID} =
+                    const {policyID, workspaceChatReportID, adminsChatReportID} =
                         createWorkspaceFromIOUPayment(
                             iouReport,
                             reportPreviewAction,
@@ -188,12 +188,11 @@ function KYCWall({
                         savePreferredPaymentMethod(iouReport.policyID, policyID, CONST.LAST_PAYMENT_METHOD.IOU, lastPaymentMethod?.[iouReport?.policyID]);
                     }
                     completePaymentOnboarding(CONST.PAYMENT_SELECTED.BBA, introSelected, isSelfTourViewed, betas, adminsChatReportID, policyID);
-                    if (workspaceChatReportID) {
-                        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(workspaceChatReportID, reportPreviewReportActionID));
-                    }
+                    const workspaceReportRoute = workspaceChatReportID ? ROUTES.REPORT_WITH_ID.getRoute(workspaceChatReportID) : undefined;
 
-                    // Navigate to the bank account set up flow for this specific policy
-                    Navigation.navigate(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute({policyID}));
+                    setNavigationActionToMicrotaskQueue(() => {
+                        Navigation.navigate(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute({policyID, backTo: workspaceReportRoute}));
+                    });
                     return;
                 }
 
