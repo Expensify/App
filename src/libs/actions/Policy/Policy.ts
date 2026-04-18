@@ -2181,7 +2181,7 @@ function getDisplayNameForWorkspace(email: string, displayNameOverride?: string)
 /**
  * Generate a policy name based on an email and the last workspace number.
  */
-function newGenerateDefaultWorkspaceName(email: string, lastWorkspaceNumber: number | undefined, localeTranslate: LocalizedTranslate, displayNameOverride?: string): string {
+function generateDefaultWorkspaceName(email: string, lastWorkspaceNumber: number | undefined, localeTranslate: LocalizedTranslate, displayNameOverride?: string): string {
     const emailParts = email.split('@');
     if (!emailParts || emailParts.length !== 2) {
         return '';
@@ -2202,7 +2202,7 @@ function newGenerateDefaultWorkspaceName(email: string, lastWorkspaceNumber: num
  * Generate a policy name based on an email and policy list.
  * @param [email] the email to base the workspace name on. If not passed, will use the logged-in user's email instead
  */
-function generateDefaultWorkspaceName(email = '', displayNameOverride?: string): string {
+function oldGenerateDefaultWorkspaceName(email = '', displayNameOverride?: string): string {
     const emailParts = email ? email.split('@') : deprecatedSessionEmail.split('@');
     if (!emailParts || emailParts.length !== 2) {
         return '';
@@ -2432,7 +2432,7 @@ function buildPolicyData(options: BuildPolicyDataOptions): OnyxData<BuildPolicyD
         isSelfTourViewed,
         betas,
     } = options;
-    const workspaceName = policyName || generateDefaultWorkspaceName(policyOwnerEmail);
+    const workspaceName = policyName || oldGenerateDefaultWorkspaceName(policyOwnerEmail);
 
     const {customUnits, customUnitID, customUnitRateID, outputCurrency} = buildOptimisticDistanceRateCustomUnits(currency);
 
@@ -3948,7 +3948,7 @@ function createWorkspaceFromIOUPayment(
 
     // Generate new variables for the policy
     const policyID = generatePolicyID();
-    const workspaceName = newGenerateDefaultWorkspaceName(currentUserEmail, lastWorkspaceNumber, localeTranslate);
+    const workspaceName = generateDefaultWorkspaceName(currentUserEmail, lastWorkspaceNumber, localeTranslate);
     const employeeAccountID = iouReport?.ownerAccountID;
     const {customUnits, customUnitID, customUnitRateID} = buildOptimisticDistanceRateCustomUnits(iouReport?.currency ?? currentUserLocalCurrency);
     const oldPersonalPolicyID = iouReport?.policyID;
@@ -7048,8 +7048,8 @@ export {
     clearDeleteWorkspaceError,
     setWorkspaceDefaultSpendCategory,
     getDisplayNameForWorkspace,
-    newGenerateDefaultWorkspaceName,
     generateDefaultWorkspaceName,
+    oldGenerateDefaultWorkspaceName,
     updateGeneralSettings,
     deleteWorkspaceAvatar,
     updateWorkspaceAvatar,

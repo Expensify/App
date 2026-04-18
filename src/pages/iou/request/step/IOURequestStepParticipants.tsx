@@ -34,7 +34,7 @@ import {
 } from '@userActions/IOU';
 import {navigateToStartStepIfScanFileCannotBeRead} from '@userActions/IOU/Receipt';
 import {setSplitShares} from '@userActions/IOU/Split';
-import {createDraftWorkspace, newGenerateDefaultWorkspaceName} from '@userActions/Policy/Policy';
+import {createDraftWorkspace, generateDefaultWorkspaceName} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -339,7 +339,7 @@ function IOURequestStepParticipants({
                 const lastWorkspaceNumber = lastWorkspaceNumberSelector(allPolicies, email);
                 const {expenseChatReportID, policyID, policyName} = createDraftWorkspace(
                     introSelected,
-                    newGenerateDefaultWorkspaceName(email, lastWorkspaceNumber, translate),
+                    generateDefaultWorkspaceName(email, lastWorkspaceNumber, translate),
                     currentUserPersonalDetails.accountID,
                     email,
                 );

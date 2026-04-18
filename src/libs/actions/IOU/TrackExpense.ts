@@ -191,6 +191,7 @@ type GetTrackExpenseInformationParams = {
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
     betas: OnyxEntry<OnyxTypes.Beta[]>;
     isSelfTourViewed: boolean;
+    defaultWorkspaceName?: string;
 };
 
 type DeleteTrackExpenseParams = {
@@ -828,6 +829,7 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
         quickAction,
         betas,
         isSelfTourViewed,
+        defaultWorkspaceName,
     } = params;
     const {payeeAccountID = getUserAccountID(), payeeEmail = getCurrentUserEmail(), participant} = participantParams;
     const {policy} = policyParams;
@@ -962,7 +964,7 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
         const workspaceData = buildPolicyData({
             policyOwnerEmail: undefined,
             makeMeAdmin: policy?.makeMeAdmin,
-            policyName: policy?.name,
+            policyName: policy?.name ?? defaultWorkspaceName ?? '',
             policyID: policy?.id,
             expenseReportId: chatReport?.reportID,
             engagementChoice: CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE,
@@ -2264,6 +2266,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
         betas,
         draftTransactionIDs = [],
         isSelfTourViewed,
+        defaultWorkspaceName,
     } = params;
     const {participant, payeeAccountID, payeeEmail} = participantParams;
     const {policy, policyCategories, policyTagList} = policyData;
@@ -2404,6 +2407,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
         quickAction,
         betas,
         isSelfTourViewed,
+        defaultWorkspaceName,
     }) ?? {};
     const activeReportID = isMoneyRequestReport ? report?.reportID : chatReport?.reportID;
     const onyxData: TrackedExpenseParams['onyxData'] = trackExpenseInformationOnyxData;

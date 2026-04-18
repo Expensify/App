@@ -27,7 +27,7 @@ import {navigateAfterOnboardingWithMicrotaskQueue} from '@libs/navigateAfterOnbo
 import Navigation from '@libs/Navigation/Navigation';
 import {isPaidGroupPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
 import {getSubscriptionPrice} from '@libs/SubscriptionUtils';
-import {createWorkspace, generatePolicyID, newGenerateDefaultWorkspaceName} from '@userActions/Policy/Policy';
+import {createWorkspace, generateDefaultWorkspaceName, generatePolicyID} from '@userActions/Policy/Policy';
 import {completeOnboarding as completeOnboardingReport} from '@userActions/Report';
 import {setOnboardingAdminsChatReportID, setOnboardingErrorMessage, setOnboardingPolicyID} from '@userActions/Welcome';
 import CONST from '@src/CONST';
@@ -166,7 +166,7 @@ function BaseOnboardingWorkspaceOptional({shouldUseNativeStyles}: BaseOnboarding
             ? createWorkspace({
                   policyOwnerEmail: undefined,
                   makeMeAdmin: true,
-                  policyName: newGenerateDefaultWorkspaceName(email, lastWorkspaceNumber, translate),
+                  policyName: generateDefaultWorkspaceName(email, lastWorkspaceNumber, translate),
                   policyID: generatePolicyID(),
                   engagementChoice: CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE,
                   currency: currentUserPersonalDetails.localCurrencyCode ?? CONST.CURRENCY.USD,
