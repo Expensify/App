@@ -41,9 +41,7 @@ const {setActivePopoverLauncher, scheduleClearActivePopoverLauncher} = require<{
     setActivePopoverLauncher: (element: HTMLElement) => void;
     scheduleClearActivePopoverLauncher: (element?: HTMLElement) => void;
 }>('../../src/libs/LauncherStack.ts');
-const {shouldSkipAutoFocusDueToExistingFocus} = require<{
-    shouldSkipAutoFocusDueToExistingFocus: () => boolean;
-}>('../../src/libs/focusUtils.ts');
+const shouldSkipAutoFocusDueToExistingFocus = require<{default: () => boolean}>('../../src/libs/focusGuards.ts').default;
 /* eslint-enable @typescript-eslint/no-require-imports, import/extensions */
 
 function simulateTab() {

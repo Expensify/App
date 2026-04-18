@@ -5,7 +5,7 @@ import type {TextInput} from 'react-native';
 import {InteractionManager} from 'react-native';
 import Accessibility from '@libs/Accessibility';
 import ComposerFocusManager from '@libs/ComposerFocusManager';
-import {shouldSkipAutoFocusDueToExistingFocus} from '@libs/focusUtils';
+import shouldSkipAutoFocusDueToExistingFocus from '@libs/focusGuards';
 import {moveSelectionToEnd, scrollToBottom} from '@libs/InputUtils';
 import isWindowReadyToFocus from '@libs/isWindowReadyToFocus';
 import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNavigation/types';

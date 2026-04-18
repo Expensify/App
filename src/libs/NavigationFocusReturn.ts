@@ -1,7 +1,7 @@
 import {findFocusedRoute} from '@react-navigation/core';
 import type {NavigationState, PartialState} from '@react-navigation/native';
 import {InteractionManager} from 'react-native';
-import {FOCUSABLE_SELECTOR} from './focusUtils';
+import FOCUSABLE_SELECTOR from './focusableSelector';
 import getHadTabNavigation from './hadTabNavigation';
 import {consumeLauncher, pickLauncher, resetLauncherStackForTests} from './LauncherStack';
 import navigationRef from './Navigation/navigationRef';
@@ -28,8 +28,8 @@ let focusinHandler: ((e: FocusEvent) => void) | null = null;
 let mouseActivationHandler: ((e: MouseEvent) => void) | null = null;
 let stateUnsubscribe: (() => void) | null = null;
 
-// mousedown fires before click and is rarely stopImmediatePropagation'd; click covers drag-to-release (target differs from mousedown target). Both update the same handler idempotently.
-const MOUSE_ACTIVATION_EVENTS = ['mousedown', 'click'] as const;
+// pointerdown covers touch/pen and PointerEvent-shim mice that bypass mousedown; mousedown is the legacy fallback; click covers drag-to-release. All three update the same handler idempotently.
+const MOUSE_ACTIVATION_EVENTS = ['pointerdown', 'mousedown', 'click'] as const;
 
 function collectRouteKeys(state: AnyState, out = new Set<string>()): Set<string> {
     if (!state?.routes) {

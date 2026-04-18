@@ -1,6 +1,6 @@
 import {useEffect} from 'react';
 import {InteractionManager} from 'react-native';
-import {FOCUSABLE_SELECTOR} from '@libs/focusUtils';
+import FOCUSABLE_SELECTOR from '@libs/focusableSelector';
 import getHadTabNavigation from '@libs/hadTabNavigation';
 import {Priorities, tryClaim} from '@libs/ScreenFocusArbiter';
 import type UseDialogContainerFocus from './types';
