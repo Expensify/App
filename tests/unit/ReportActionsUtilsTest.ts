@@ -1280,6 +1280,98 @@ describe('ReportActionsUtils', () => {
         });
     });
 
+    describe('getLastVisibleNonSystemAction', () => {
+        it('should return the last non-room-change-log action when the newest action is a room change log', () => {
+            const report: Report = {
+                ...LHNTestUtils.getFakeReport([8401445480599174, 9401445480599174], 3, true),
+                reportID: '2',
+            };
+            const commentAction: ReportAction = {
+                ...LHNTestUtils.getFakeReportAction('email1@test.com', 3),
+                created: '2023-08-01 16:00:00',
+                reportActionID: 'action1',
+                reportID: '2',
+                actionName: 'ADDCOMMENT',
+                originalMessage: {
+                    html: 'Hello world',
+                    whisperedTo: [],
+                },
+            };
+            const systemAction: ReportAction = {
+                ...LHNTestUtils.getFakeReportAction('email2@test.com', 3),
+                created: '2023-08-01 18:00:00',
+                reportActionID: 'action2',
+                reportID: '2',
+                actionName: CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.INVITE_TO_ROOM,
+                originalMessage: {
+                    targetAccountIDs: [9401445480599174],
+                },
+            };
+            return waitForBatchedUpdates()
+                .then(() =>
+                    Onyx.multiSet({
+                        [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
+                        [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`]: {
+                            [commentAction.reportActionID]: commentAction,
+                            [systemAction.reportActionID]: systemAction,
+                        },
+                    } as unknown as KeyValueMapping),
+                )
+                .then(
+                    () =>
+                        new Promise<void>((resolve) => {
+                            const connection = Onyx.connect({
+                                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`,
+                                callback: () => {
+                                    Onyx.disconnect(connection);
+                                    const res = ReportActionsUtils.getLastVisibleNonSystemAction(report.reportID);
+                                    expect(res).toEqual(commentAction);
+                                    resolve();
+                                },
+                            });
+                        }),
+                );
+        });
+
+        it('should return undefined when all visible actions are room change log actions', () => {
+            const report: Report = {
+                ...LHNTestUtils.getFakeReport([8401445480599174, 9401445480599174], 3, true),
+                reportID: '3',
+            };
+            const systemAction: ReportAction = {
+                ...LHNTestUtils.getFakeReportAction('email1@test.com', 3),
+                created: '2023-08-01 16:00:00',
+                reportActionID: 'action3',
+                reportID: '3',
+                actionName: CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.LEAVE_ROOM,
+                originalMessage: {
+                    targetAccountIDs: [8401445480599174],
+                },
+            };
+            return waitForBatchedUpdates()
+                .then(() =>
+                    Onyx.multiSet({
+                        [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
+                        [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`]: {[systemAction.reportActionID]: systemAction},
+                    } as unknown as KeyValueMapping),
+                )
+                .then(
+                    () =>
+                        new Promise<void>((resolve) => {
+                            const connection = Onyx.connect({
+                                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`,
+                                callback: () => {
+                                    Onyx.disconnect(connection);
+                                    const res = ReportActionsUtils.getLastVisibleNonSystemAction(report.reportID);
+                                    expect(res).toBeUndefined();
+                                    resolve();
+                                },
+                            });
+                        }),
+                );
+        });
+    });
+
     describe('getReportActionMessageFragments', () => {
         it('should return the correct fragment for the REIMBURSED action', () => {
             const action = {
