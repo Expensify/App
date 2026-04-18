@@ -1451,6 +1451,8 @@ const translations: TranslationDeepObject<typeof en> = {
             receiptDeleteFailureError: 'Onverwachte fout bij het verwijderen van deze bon. Probeer het later opnieuw.',
             receiptFailureMessage: '<rbr>Er is een fout opgetreden bij het uploaden van je bon. <a href="download">Sla de bon op</a> en <a href="retry">probeer het later opnieuw</a>.</rbr>',
             receiptFailureMessageShort: 'Er is een fout opgetreden bij het uploaden van je bon.',
+            downloadReceipt: 'Bon downloaden',
+            tryAgain: 'Probeer opnieuw',
             genericDeleteFailureMessage: 'Onverwachte fout bij het verwijderen van deze uitgave. Probeer het later opnieuw.',
             genericEditFailureMessage: 'Onverwachte fout bij het bewerken van deze uitgave. Probeer het later opnieuw.',
             genericSmartscanFailureMessage: 'Transactie mist velden',

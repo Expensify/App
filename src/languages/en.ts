@@ -1509,6 +1509,8 @@ const translations = {
             receiptDeleteFailureError: 'Unexpected error deleting this receipt. Please try again later.',
             receiptFailureMessage: '<rbr>There was an error uploading your receipt. Please <a href="download">save the receipt</a> and <a href="retry">try again</a> later.</rbr>',
             receiptFailureMessageShort: 'There was an error uploading your receipt.',
+            downloadReceipt: 'Download receipt',
+            tryAgain: 'Try again',
             genericDeleteFailureMessage: 'Unexpected error deleting this expense. Please try again later.',
             genericEditFailureMessage: 'Unexpected error editing this expense. Please try again later.',
             genericSmartscanFailureMessage: 'Transaction is missing fields',

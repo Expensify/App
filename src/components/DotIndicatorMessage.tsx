@@ -18,8 +18,8 @@ import handleRetryPress from '@libs/ReceiptUploadRetryHandler';
 import CONST from '@src/CONST';
 import type {TranslationKeyError} from '@src/types/onyx/OnyxCommon';
 import type {ReceiptError} from '@src/types/onyx/Transaction';
+import Button from './Button';
 import Icon from './Icon';
-import RenderHTML from './RenderHTML';
 import Text from './Text';
 
 type DotIndicatorMessageProps = {
@@ -51,7 +51,8 @@ function DotIndicatorMessage({messages = {}, style, type, textStyles, dismissErr
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['DotIndicator']);
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
+    const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
     const {showConfirmModal} = useConfirmModal();
 
     if (Object.keys(messages).length === 0) {
@@ -68,36 +69,12 @@ function DotIndicatorMessage({messages = {}, style, type, textStyles, dismissErr
 
     const isErrorMessage = type === 'error';
     const receiptError = uniqueMessages.find(isReceiptError);
-    const handleLinkPress = (href: string) => {
-        if (!receiptError) {
-            return;
-        }
-
-        if (href.endsWith('retry')) {
-            handleRetryPress(receiptError, dismissError, () => {
-                showConfirmModal({
-                    prompt: translate('common.genericErrorMessage'),
-                    confirmText: translate('common.ok'),
-                    shouldShowCancelButton: false,
-                });
-            });
-        } else if (href.endsWith('download')) {
-            fileDownload(translate, receiptError.source, receiptError.filename).finally(() => dismissError());
-        }
-    };
 
     const isTextSelectable = !canUseTouchScreen() || !shouldUseNarrowLayout;
 
     const renderMessage = (message: string | ReceiptError | ReactElement, index: number) => {
         if (isReceiptError(message)) {
-            return (
-                <View style={[styles.renderHTML, styles.flexRow]}>
-                    <RenderHTML
-                        html={translate('iou.error.receiptFailureMessage')}
-                        onLinkPress={(_evt, href) => handleLinkPress(href)}
-                    />
-                </View>
-            );
+            return null;
         }
 
         const displayMessage = isTranslationKeyError(message) ? translate(message.translationKey) : message;
@@ -115,6 +92,49 @@ function DotIndicatorMessage({messages = {}, style, type, textStyles, dismissErr
             </Text>
         );
     };
+
+    if (receiptError) {
+        return (
+            <View style={[styles.mt3, styles.mb3, style]}>
+                <View style={[styles.dotIndicatorMessage]}>
+                    <View style={styles.offlineFeedbackErrorDot}>
+                        <Icon
+                            src={expensifyIcons.DotIndicator}
+                            fill={isErrorMessage ? theme.danger : theme.success}
+                        />
+                    </View>
+                    <Text style={[StyleUtils.getDotIndicatorTextStyles(isErrorMessage), textStyles]}>{translate('iou.error.receiptFailureMessageShort')}</Text>
+                </View>
+                <View style={[styles.flexRow, styles.gap3, styles.mt3]}>
+                    <View style={isSmallScreenWidth && styles.flex1}>
+                        <Button
+                            medium
+                            text={translate('iou.error.downloadReceipt')}
+                            onPress={() => {
+                                fileDownload(translate, receiptError.source, receiptError.filename);
+                            }}
+                        />
+                    </View>
+                    <View style={isSmallScreenWidth && styles.flex1}>
+                        <Button
+                            medium
+                            success
+                            text={translate('iou.error.tryAgain')}
+                            onPress={() => {
+                                handleRetryPress(receiptError, dismissError, () => {
+                                    showConfirmModal({
+                                        prompt: translate('common.genericErrorMessage'),
+                                        confirmText: translate('common.ok'),
+                                        shouldShowCancelButton: false,
+                                    });
+                                });
+                            }}
+                        />
+                    </View>
+                </View>
+            </View>
+        );
+    }
 
     return (
         <View style={[styles.dotIndicatorMessage, style]}>

@@ -698,8 +698,9 @@ function PureReportActionItem({
      */
     const showPopover = useCallback(
         (event: GestureResponderEvent | MouseEvent) => {
-            // Block menu on the message being Edited or if the report action item has errors
-            if (draftMessage !== undefined || !isEmptyValueObject(action.errors) || !shouldDisplayContextMenuValue) {
+            // Block menu on the message being Edited or if the report action item has errors (except receipt upload errors, to allow Delete)
+            const hasOnlyReceiptErrors = !isEmptyValueObject(action.errors) && Object.values(action.errors ?? {}).every((error) => error === null || isReceiptError(error));
+            if (draftMessage !== undefined || (!isEmptyValueObject(action.errors) && !hasOnlyReceiptErrors) || !shouldDisplayContextMenuValue) {
                 return;
             }
 

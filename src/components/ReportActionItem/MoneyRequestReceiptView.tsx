@@ -29,6 +29,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useOriginalReportID from '@hooks/useOriginalReportID';
 import usePrevious from '@hooks/usePrevious';
+import useReceiptRetryParams from '@hooks/useReceiptRetryParams';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
@@ -36,7 +37,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionViolations from '@hooks/useTransactionViolations';
 import {getBrokenConnectionUrlToFixPersonalCard} from '@libs/CardUtils';
 import {hasHoverSupport} from '@libs/DeviceCapabilities';
-import {getMicroSecondOnyxErrorWithTranslationKey, isReceiptError} from '@libs/ErrorUtils';
+import {getMicroSecondOnyxErrorObject, getMicroSecondOnyxErrorWithTranslationKey, isReceiptError} from '@libs/ErrorUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
@@ -153,6 +154,7 @@ function MoneyRequestReceiptView({
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(linkedTransactionID)}`);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${moneyRequestReport?.policyID}`);
     const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
+    const retryAction = useReceiptRetryParams(transaction, iouReport, chatReport, policy, isTrackExpense);
     const transactionViolations = useTransactionViolations(transaction?.transactionID);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${moneyRequestReport?.policyID}`);
 
@@ -312,7 +314,31 @@ function MoneyRequestReceiptView({
         [transaction?.errorFields?.route, transaction?.errorFields?.waypoints, transaction?.errors, parentReportAction?.errors],
     );
     const reportCreationError = useMemo(() => (getCreationReportErrors(report) ? getMicroSecondOnyxErrorWithTranslationKey('report.genericCreateReportFailureMessage') : {}), [report]);
-    const errors = useMemo(() => ({...errorsWithoutReportCreation, ...reportCreationError}), [errorsWithoutReportCreation, reportCreationError]);
+    const hasReceiptUploadError = useMemo(() => Object.values(errorsWithoutReportCreation).some((error) => isReceiptError(error)), [errorsWithoutReportCreation]);
+
+    const fallbackReceiptError = useMemo(() => {
+        if (hasReceiptUploadError || isEmptyObject(reportCreationError) || !hasReceipt || !transaction?.receipt) {
+            return {};
+        }
+
+        return getMicroSecondOnyxErrorObject({
+            error: CONST.IOU.RECEIPT_ERROR,
+            source: transaction.receipt.source?.toString() ?? '',
+            filename: transaction.receipt.filename ?? '',
+            action: retryAction?.action ?? '',
+            retryParams: retryAction?.retryParams ?? '',
+        });
+    }, [hasReceiptUploadError, reportCreationError, hasReceipt, transaction, retryAction?.action, retryAction?.retryParams]);
+
+    const errors = useMemo(() => {
+        if (hasReceiptUploadError) {
+            return errorsWithoutReportCreation;
+        }
+        if (!isEmptyObject(fallbackReceiptError)) {
+            return {...errorsWithoutReportCreation, ...fallbackReceiptError};
+        }
+        return {...errorsWithoutReportCreation, ...reportCreationError};
+    }, [hasReceiptUploadError, fallbackReceiptError, errorsWithoutReportCreation, reportCreationError]);
     const showReceiptErrorWithEmptyState = shouldShowReceiptEmptyState && !hasReceipt && !isEmptyObject(errors);
 
     const {showConfirmModal} = useConfirmModal();

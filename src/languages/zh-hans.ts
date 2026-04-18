@@ -1408,6 +1408,8 @@ const translations: TranslationDeepObject<typeof en> = {
             receiptDeleteFailureError: '删除此收据时发生意外错误。请稍后再试。',
             receiptFailureMessage: '<rbr>上传您的收据时出错。请<a href="download">保存收据</a>并在稍后<a href="retry">重试</a>。</rbr>',
             receiptFailureMessageShort: '上传您的收据时出错。',
+            downloadReceipt: '下载收据',
+            tryAgain: '重试',
             genericDeleteFailureMessage: '删除此报销时发生意外错误。请稍后重试。',
             genericEditFailureMessage: '编辑此报销时发生意外错误。请稍后再试。',
             genericSmartscanFailureMessage: '交易缺少字段',

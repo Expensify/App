@@ -9562,6 +9562,9 @@ const CONST = {
         SETTINGS_EXIT_SURVEY: {
             GO_TO_CLASSIC: 'SettingsExitSurvey-GoToExpensifyClassic',
         },
+        MESSAGES_ROW: {
+            DISMISS: 'MessagesRow-Dismiss',
+        },
         PROFILE_PAGE: {
             AVATAR: 'ProfilePage-Avatar',
         },

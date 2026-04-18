@@ -107,8 +107,16 @@ function getLatestErrorMessageField<TOnyxData extends OnyxDataWithErrors>(onyxDa
     if (isEmptyValueObject(errors)) {
         return {};
     }
+    const filteredKeys = Object.keys(errors)
+        .filter((k) => !isReceiptError(errors[k]))
+        .sort()
+        .reverse();
 
-    const key = Object.keys(errors).sort().reverse().at(0) ?? '';
+    const key = filteredKeys.at(0) ?? '';
+    if (!key) {
+        return {};
+    }
+
     const currentLocale = IntlStore.getCurrentLocale();
 
     if (errors[key] === CONST.ERROR.BANK_ACCOUNT_SAME_DEPOSIT_AND_WITHDRAWAL_ERROR) {
