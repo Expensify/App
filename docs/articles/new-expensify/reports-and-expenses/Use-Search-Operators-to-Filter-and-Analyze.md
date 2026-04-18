@@ -1,56 +1,58 @@
 ---
-title: How to use search operators in Expensify
-description: Learn how to use advanced search filters, comparisons, and groupings to find exactly what you need across expenses, chats, reports, and more.
-keywords: [New Expensify, search operators, filters, search rules, expense search, report search, chat filters, advanced search, group-by, view, chart, search syntax]
-internalScope: Audience is all Expensify users. Covers search operator syntax for filtering, grouping, and chart views. Does not cover saved search management or Search page UI navigation.
+title: Use Search Operators to Filter and Analyze 
+description: Learn how to use advanced search filters, comparisons, and groupings to filter, group, and analyze expenses, chats, reports, and more in Expensify.
+keywords: [New Expensify, search operators, advanced filters, search rules, expense search, report search, chat filters, advanced search, group-by, view, chart, search syntax]
+internalScope: Audience is all Expensify members. Covers search operator syntax for filtering, grouping, and chart views. Does not cover saved search management or Search page UI navigation.
 ---
 
-The search operator framework lets you quickly filter, sort, and group items like expenses, chats, reports, and tasks using powerful text-based rules. This guide walks you through the supported syntax, available filters, and usage tips.
+# Use search operators to filter and analyze
 
----
+Search operators let you quickly filter, sort, and group results across expenses, chats, reports, and tasks using powerful text-based queries.These operators work like advanced filters, helping you narrow results, combine conditions, and analyze data directly from the search bar.
 
-# Who can use search operators in Expensify
-
-Anyone can use search operators when filtering data in features like Expenses, Reports, Chats, and Tasks. This is especially helpful for Workspace Admins, accountants, and finance teams looking to analyze or export targeted data.
-
----
-
-# Key rules for using search operators
-
-Here are the core rules and behaviors you’ll use across all filters:
-
-- `field:value` is the basic format.
-- Use commas for **OR**: `status:drafts,outstanding`.
-- Chaining fields means **AND**: `amount>50 status:approved`.
-- Use `-` to negate: `-has:receipt`.
-- Add quotes for exact phrases: `description:"team lunch"`.
-- Supports relative dates: `date:this-week`.
-- Autocomplete kicks in after typing `:`.
+This guide walks you through the supported syntax, available filters, and usage tips.
 
 ---
 
-# Type and type-agnostic filters
+## Who can use search operators in Expensify
 
-These filters help you refine searches across object types, workspaces, or user-specific data.
+Anyone can use search operators when filtering results in Expenses, Reports, Chats, and Tasks. 
+
+This is especially useful for Workspace Admins, accountants, and finance teams who need to review, audit, or export specific datasets.
+
+---
+
+## How use search operators to build a search query
+
+Use these core rules to create your searches:
+
+- Use `field:value` is the basic format.
+- Use commas for **OR** conditions: `status:drafts,outstanding`.
+- Combine fields for **AND** conditions: `amount>50 status:approved`.
+- Use `-` to exclude results: `-has:receipt`.
+- Use quotes for exact phrases: `description:"team lunch"`.
+- Relative dates are supported: `date:this-week`.
+- Start typing after `:` to see autocomplete suggestions.
+
+---
+
+## How to filter results across expenses, chats, reports, and tasks
+
+Use these operators to refine results across different types:
 
 | **Syntax**       | **Description**                                                               | **Example**                  |
 |------------------|-------------------------------------------------------------------------------|------------------------------|
-| `type:`          | Filter by object type: `expense`, `chat`, `trip`, or `task`       | `type:expense`               |
+| `type:`          | Filter by object type (`expense`, `chat`, `trip`,`task`)       | `type:expense`               |
 | `workspace:`     | Filter by workspace name (wrap in quotes if the name has spaces)             | `workspace:"Acme Inc."`      |
-| `from:`          | Filter by sender (email, phone, display name, or `me` for yourself)          | `from:alice@acme.com`        |
-| `to:`            | Filter by recipient (email, phone, display name, or `me` for yourself)       | `to:me`                      |
+| `from:`          | Filter by sender (email, phone, display name, or `me`)          | `from:alice@acme.com`        |
+| `to:`            | Filter by recipient (email, phone, display name, or `me`)       | `to:me`                      |
 
 **Note:** Quotes are required when filtering by names with spaces, such as `workspace:"Sales Team"`.
 
 ---
 
-# Filters by type
+## What search operator filters are available for expenses 
 
-## Available filters for Expenses
-
-```
-type:expense merchant:Starbucks category:Meals amount>20 has:receipt
-```
+You can use the following operators to filter expenses: 
 
 - `merchant:` – expense merchant name
 - `category:` – expense category label
@@ -64,7 +66,14 @@ type:expense merchant:Starbucks category:Meals amount>20 has:receipt
 - `attendee:` – expense attendees, e.g. `attendee:"Jason Mills"`
 - `posted:` – credit card posted date, e.g. `posted:last-statement`
 
-## Available filters for Reports
+**Example query:**
+`type:expense merchant:Starbucks category:Meals amount>20 has:receipt`
+
+---
+
+## What search operator filters are available for reports
+
+You can use the following operators to filter reports: 
 
 - `report-id:` – unique report reference
 - `status:` – draft, outstanding, approved, paid, done
@@ -75,28 +84,35 @@ type:expense merchant:Starbucks category:Meals amount>20 has:receipt
 - `withdrawal-type:` – reimbursement or expensify-card
 - `action:` – blocking report action, e.g. `action:approve`
 
+**Example query:**
+`status:paid exported<=2026-01-01`
+
 ## Available filters for Chat
 
-```
-type:chat in:"Concierge" is:unread
-```
+You can use the following operators to filter chats:
 
 - `in:` – channel name or DM
 - `has:` – attachment, link
 - `is:` – unread, read, pinned
 - `date:` – message timestamp
 
+**Example query:**
+`type:chat in:"Concierge" is:unread`
+
+---
+
 ## Available filters for Tasks
 
-```
-type:task assignee:"Charlie Brown" status:outstanding
-```
+You can use the following operators to filter Tasks:
 
 - `assignee:` – assigned member
 - `status:` – outstanding, completed
 - `description:` – task description
 - `title:` – task title
 - `in:` – channel name or DM for tasks
+
+**Example query**
+`type:task assignee:"Charlie Brown" status:outstanding`
 
 ---
 
