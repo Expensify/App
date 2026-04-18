@@ -105,6 +105,9 @@ type Card = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Last update result */
     lastScrapeResult?: number;
 
+    /** Last import attempt */
+    lastImportAttempt?: string;
+
     /** Card related error messages */
     errors?: OnyxCommon.Errors;
 

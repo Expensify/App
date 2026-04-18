@@ -1,8 +1,10 @@
 import type {KeyValueMapping} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
+import {getLatestUserChronosTimerCommand, isChronosStartOrStopMessage, isChronosTimerRunningFromVisibleActions, isConsecutiveChronosAutomaticTimerAction} from '@libs/ChronosUtils';
 import {getEnvironmentURL} from '@libs/Environment/Environment';
 import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import getReportURLForCurrentContext from '@libs/Navigation/helpers/getReportURLForCurrentContext';
+import {setHasRadio} from '@libs/NetworkState';
 import {isExpenseReport} from '@libs/ReportUtils';
 import IntlStore from '@src/languages/IntlStore';
 import ROUTES from '@src/ROUTES';
@@ -42,7 +44,6 @@ import {
     hasNextActionMadeBySameActor,
     hasReasoning,
     isConsecutiveActionMadeByPreviousActor,
-    isConsecutiveChronosAutomaticTimerAction,
     isIOUActionMatchingTransactionList,
     isNewerReportAction,
     isReportActionVisibleAsLastAction,
@@ -75,7 +76,7 @@ describe('ReportActionsUtils', () => {
         wrapOnyxWithWaitForBatchedUpdates(Onyx);
         IntlStore.load(CONST.LOCALES.DEFAULT);
         // Initialize the network key for OfflineWithFeedback
-        Onyx.merge(ONYXKEYS.NETWORK, {isOffline: false});
+        setHasRadio(true);
         return waitForBatchedUpdates();
     });
 
@@ -1151,12 +1152,12 @@ describe('ReportActionsUtils', () => {
         });
 
         it('should return false for a deleted IOU report action', () => {
-            const result = ReportActionsUtils.hasRequestFromCurrentAccount(deletedIOUReportID, currentUserAccountID);
+            const result = ReportActionsUtils.hasRequestFromCurrentAccount({reportID: deletedIOUReportID} as Report, currentUserAccountID);
             expect(result).toBe(false);
         });
 
         it('should return true for an active IOU report action', () => {
-            const result = ReportActionsUtils.hasRequestFromCurrentAccount(activeIOUReportID, currentUserAccountID);
+            const result = ReportActionsUtils.hasRequestFromCurrentAccount({reportID: activeIOUReportID} as Report, currentUserAccountID);
             expect(result).toBe(true);
         });
 
@@ -1183,7 +1184,7 @@ describe('ReportActionsUtils', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionFromOtherUser.transactionID}`, transactionFromOtherUser);
 
             // Then: should return true
-            let result = ReportActionsUtils.hasRequestFromCurrentAccount(unloadedActionsReportID, currentUserAccountID);
+            let result = ReportActionsUtils.hasRequestFromCurrentAccount(iouReport, currentUserAccountID);
             expect(result).toBe(true);
 
             // When: all transactions from the current user account have been deleted
@@ -1193,8 +1194,34 @@ describe('ReportActionsUtils', () => {
             });
 
             // Then: should return false
-            result = ReportActionsUtils.hasRequestFromCurrentAccount(unloadedActionsReportID, currentUserAccountID);
+            result = ReportActionsUtils.hasRequestFromCurrentAccount(iouReport, currentUserAccountID);
             expect(result).toBe(false);
+        });
+
+        it('should use explicit allReports parameter when provided and reportActions are unloaded', async () => {
+            const unloadedActionsReportID = '6';
+            const iouReport = {
+                type: CONST.REPORT.TYPE.IOU,
+                reportID: unloadedActionsReportID,
+            };
+            const transactionFromCurrentUser = {
+                ...createRandomTransaction(1),
+                reportID: unloadedActionsReportID,
+                amount: -100,
+            };
+            const transactionFromOtherUser = {
+                ...createRandomTransaction(2),
+                reportID: unloadedActionsReportID,
+                amount: 500,
+            };
+
+            // Set up transactions
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionFromCurrentUser.transactionID}`, transactionFromCurrentUser);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionFromOtherUser.transactionID}`, transactionFromOtherUser);
+
+            // Pass report explicitly instead of relying on Onyx state
+            const result = ReportActionsUtils.hasRequestFromCurrentAccount(iouReport, currentUserAccountID);
+            expect(result).toBe(true);
         });
     });
 
@@ -1287,9 +1314,27 @@ describe('ReportActionsUtils', () => {
                     },
                 ],
             };
-            const expectedMessage = ReportActionsUtils.getReportActionMessageText(action);
+            const expectedMessage = ReportActionsUtils.getReimbursedMessage(translateLocal, action, undefined, 0);
             const expectedFragments = ReportActionsUtils.getReportActionMessageFragments(translateLocal, action);
             expect(expectedFragments).toEqual([{text: expectedMessage, html: `<muted-text>${expectedMessage}</muted-text>`, type: 'COMMENT'}]);
+        });
+
+        it('should translate the REIMBURSED action using originalMessage.method when paymentMethod is absent (Pusher path)', () => {
+            // Given a REIMBURSED action that arrived via Pusher with only `method` set (as Auth stores it)
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSED> = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSED,
+                reportActionID: '2',
+                created: '2024-01-01',
+                originalMessage: {
+                    method: 'Check',
+                },
+            };
+            // When we get the message fragments
+            const fragments = ReportActionsUtils.getReportActionMessageFragments(translateLocal, action);
+            // Then the translated message is used (not raw backend text)
+            const expectedMessage = ReportActionsUtils.getReimbursedMessage(translateLocal, action, undefined, 0);
+            expect(fragments).toEqual([{text: expectedMessage, html: `<muted-text>${expectedMessage}</muted-text>`, type: 'COMMENT'}]);
+            expect(expectedMessage).toContain('check');
         });
 
         it('should return the correct fragment for the DYNAMIC_EXTERNAL_WORKFLOW_ROUTED action', () => {
@@ -1938,6 +1983,47 @@ describe('ReportActionsUtils', () => {
             expect(actual).toBe(true);
         });
 
+        it('should return true for REIMBURSED action from OldDot', () => {
+            // Given a REIMBURSED action created from OldDot (no isNewDot flag)
+            const reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSED> = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSED,
+                reportActionID: '1',
+                created: '2025-01-01',
+                message: [
+                    {
+                        type: 'TEXT',
+                        style: 'normal',
+                        text: 'Reimbursed via ACH',
+                    },
+                ],
+            };
+
+            // Then the action should be visible
+            const actual = ReportActionsUtils.shouldReportActionBeVisible(reportAction, reportAction.reportActionID, true);
+            expect(actual).toBe(true);
+        });
+
+        it('should return false for REIMBURSED action from NewDot', () => {
+            // Given a REIMBURSED action created from NewDot (isNewDot=true)
+            const reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSED> = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSED,
+                reportActionID: '1',
+                created: '2025-01-01',
+                message: [
+                    {
+                        type: 'TEXT',
+                        style: 'normal',
+                        text: 'Reimbursed via ACH',
+                    },
+                ],
+                originalMessage: {isNewDot: true},
+            };
+
+            // Then the action should NOT be visible (IOU PAY action is shown instead)
+            const actual = ReportActionsUtils.shouldReportActionBeVisible(reportAction, reportAction.reportActionID, true);
+            expect(actual).toBe(false);
+        });
+
         it('should return false for TAKE_CONTROL when automaticAction is true and mentionedAccountIDs is empty', () => {
             const reportAction = {
                 actionName: CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL,
@@ -1952,6 +2038,27 @@ describe('ReportActionsUtils', () => {
 
             const actual = ReportActionsUtils.shouldReportActionBeVisible(reportAction, reportAction.reportActionID, true);
             expect(actual).toBe(false);
+        });
+
+        it('should return true for MARKED_REIMBURSED action from OldDot', () => {
+            // Given a MARKED_REIMBURSED action created from OldDot (no isNewDot flag)
+            const reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED> = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED,
+                reportActionID: '1',
+                created: '2025-01-01',
+                message: [
+                    {
+                        type: 'TEXT',
+                        style: 'normal',
+                        text: 'Marked as reimbursed',
+                    },
+                ],
+                originalMessage: {},
+            };
+
+            // Then the action should be visible
+            const actual = ReportActionsUtils.shouldReportActionBeVisible(reportAction, reportAction.reportActionID, true);
+            expect(actual).toBe(true);
         });
 
         it('should return true for TAKE_CONTROL when automaticAction is true but mentionedAccountIDs has values', () => {
@@ -1969,6 +2076,27 @@ describe('ReportActionsUtils', () => {
 
             const actual = ReportActionsUtils.shouldReportActionBeVisible(reportAction, reportAction.reportActionID, true);
             expect(actual).toBe(true);
+        });
+
+        it('should return false for MARKED_REIMBURSED action from NewDot', () => {
+            // Given a MARKED_REIMBURSED action created from NewDot (isNewDot=true)
+            const reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED> = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED,
+                reportActionID: '1',
+                created: '2025-01-01',
+                message: [
+                    {
+                        type: 'TEXT',
+                        style: 'normal',
+                        text: 'Marked as reimbursed',
+                    },
+                ],
+                originalMessage: {isNewDot: true},
+            };
+
+            // Then the action should NOT be visible (IOU PAY action is shown instead)
+            const actual = ReportActionsUtils.shouldReportActionBeVisible(reportAction, reportAction.reportActionID, true);
+            expect(actual).toBe(false);
         });
 
         it('should return true for TAKE_CONTROL when automaticAction is false', () => {
@@ -4680,6 +4808,120 @@ describe('ReportActionsUtils', () => {
         it('includes pending-delete timer action as previous when offline', () => {
             const actions = [makeChronosAction('started'), makeChronosAction('stopped', {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}), makeChronosAction('started')];
             expect(isConsecutiveChronosAutomaticTimerAction(actions, 0, true, true)).toBe(true);
+        });
+    });
+
+    describe('isChronosStartOrStopMessage', () => {
+        it('returns stop when stop pattern matches', () => {
+            expect(isChronosStartOrStopMessage('stop')).toBe(CONST.CHRONOS.TIMER_COMMAND.STOP);
+            expect(isChronosStartOrStopMessage('stopped')).toBe(CONST.CHRONOS.TIMER_COMMAND.STOP);
+            expect(isChronosStartOrStopMessage('stop now')).toBe(CONST.CHRONOS.TIMER_COMMAND.STOP);
+            expect(isChronosStartOrStopMessage('stopped at 10:00 AM')).toBe(CONST.CHRONOS.TIMER_COMMAND.STOP);
+            expect(isChronosStartOrStopMessage('Stopped at 3pm')).toBe(CONST.CHRONOS.TIMER_COMMAND.STOP);
+        });
+
+        it('returns start when only start pattern matches', () => {
+            expect(isChronosStartOrStopMessage('start')).toBe(CONST.CHRONOS.TIMER_COMMAND.START);
+            expect(isChronosStartOrStopMessage('started')).toBe(CONST.CHRONOS.TIMER_COMMAND.START);
+            expect(isChronosStartOrStopMessage('start now')).toBe(CONST.CHRONOS.TIMER_COMMAND.START);
+            expect(isChronosStartOrStopMessage('started at 9:00')).toBe(CONST.CHRONOS.TIMER_COMMAND.START);
+            expect(isChronosStartOrStopMessage('Started at noon')).toBe(CONST.CHRONOS.TIMER_COMMAND.START);
+        });
+
+        it('returns null when start or stop appears only inside a longer message', () => {
+            expect(isChronosStartOrStopMessage('stop then start')).toBe(null);
+            expect(isChronosStartOrStopMessage('I will start later')).toBe(null);
+            expect(isChronosStartOrStopMessage('please stop by later')).toBe(null);
+            expect(isChronosStartOrStopMessage('stop at the corner')).toBe(null);
+            expect(isChronosStartOrStopMessage('start at home')).toBe(null);
+        });
+
+        it('returns null for unrelated text', () => {
+            expect(isChronosStartOrStopMessage('hello chronos')).toBe(null);
+        });
+
+        it('returns null when start or stop appears only inside other words', () => {
+            expect(isChronosStartOrStopMessage('kickstart')).toBe(null);
+            expect(isChronosStartOrStopMessage('nonstop')).toBe(null);
+            expect(isChronosStartOrStopMessage('upstart')).toBe(null);
+        });
+    });
+
+    describe('getLatestUserChronosTimerCommand', () => {
+        const currentUserAccountID = 100;
+
+        function makeUserTimerComment(text: string, actorAccountID: number, overrides: Partial<ReportAction> = {}): ReportAction {
+            return getFakeReportAction(actorAccountID, {
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                actorAccountID,
+                message: [{html: text, isDeletedParentAction: false, isEdited: false, text, type: 'TEXT', whisperedTo: []}],
+                ...overrides,
+            });
+        }
+
+        it('returns null when there are no matching comments', () => {
+            expect(getLatestUserChronosTimerCommand([], currentUserAccountID)).toBe(null);
+            expect(getLatestUserChronosTimerCommand([makeUserTimerComment('hello', currentUserAccountID)], currentUserAccountID)).toBe(null);
+        });
+
+        it('returns the newest matching command when sorted newest-first', () => {
+            const sortedNewestFirst = [
+                makeUserTimerComment('start', currentUserAccountID, {reportActionID: '3', created: '2024-01-03 10:00:00.000'}),
+                makeUserTimerComment('stop', currentUserAccountID, {reportActionID: '2', created: '2024-01-02 10:00:00.000'}),
+                makeUserTimerComment('start', currentUserAccountID, {reportActionID: '1', created: '2024-01-01 10:00:00.000'}),
+            ];
+            expect(getLatestUserChronosTimerCommand(sortedNewestFirst, currentUserAccountID)).toBe(CONST.CHRONOS.TIMER_COMMAND.START);
+        });
+
+        it('returns stop when the newest timer command is stop', () => {
+            const sortedNewestFirst = [
+                makeUserTimerComment('stopped', currentUserAccountID, {reportActionID: '2', created: '2024-01-02 10:00:00.000'}),
+                makeUserTimerComment('start', currentUserAccountID, {reportActionID: '1', created: '2024-01-01 10:00:00.000'}),
+            ];
+            expect(getLatestUserChronosTimerCommand(sortedNewestFirst, currentUserAccountID)).toBe(CONST.CHRONOS.TIMER_COMMAND.STOP);
+        });
+
+        it('ignores comments from other users', () => {
+            const sortedNewestFirst = [makeUserTimerComment('start', 999, {reportActionID: '2'}), makeUserTimerComment('hello', currentUserAccountID, {reportActionID: '1'})];
+            expect(getLatestUserChronosTimerCommand(sortedNewestFirst, currentUserAccountID)).toBe(null);
+        });
+
+        it('ignores non-ADD_COMMENT actions', () => {
+            const sortedNewestFirst = [
+                getFakeReportAction(currentUserAccountID, {
+                    actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
+                    actorAccountID: currentUserAccountID,
+                    message: [{html: 'start', isDeletedParentAction: false, isEdited: false, text: 'start', type: 'TEXT', whisperedTo: []}],
+                }),
+            ];
+            expect(getLatestUserChronosTimerCommand(sortedNewestFirst, currentUserAccountID)).toBe(null);
+        });
+    });
+
+    describe('isChronosTimerRunningFromVisibleActions', () => {
+        const currentUserAccountID = 200;
+
+        function makeUserTimerComment(text: string, overrides: Partial<ReportAction> = {}): ReportAction {
+            return getFakeReportAction(currentUserAccountID, {
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                actorAccountID: currentUserAccountID,
+                message: [{html: text, isDeletedParentAction: false, isEdited: false, text, type: 'TEXT', whisperedTo: []}],
+                ...overrides,
+            });
+        }
+
+        it('returns true when the latest user timer command is start', () => {
+            const sortedNewestFirst = [makeUserTimerComment('start', {reportActionID: '2'}), makeUserTimerComment('stop', {reportActionID: '1'})];
+            expect(isChronosTimerRunningFromVisibleActions(sortedNewestFirst, currentUserAccountID)).toBe(true);
+        });
+
+        it('returns false when the latest user timer command is stop', () => {
+            const sortedNewestFirst = [makeUserTimerComment('stop', {reportActionID: '2'}), makeUserTimerComment('start', {reportActionID: '1'})];
+            expect(isChronosTimerRunningFromVisibleActions(sortedNewestFirst, currentUserAccountID)).toBe(false);
+        });
+
+        it('returns false when there is no timer command', () => {
+            expect(isChronosTimerRunningFromVisibleActions([makeUserTimerComment('stats')], currentUserAccountID)).toBe(false);
         });
     });
 

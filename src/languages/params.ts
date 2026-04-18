@@ -1,16 +1,7 @@
-import type {ValueOf} from 'type-fest';
-import type CONST from '@src/CONST';
 import type {OnyxInputOrEntry, ReportAction} from '@src/types/onyx';
 import type {DelegateRole} from '@src/types/onyx/Account';
 import type {AllConnectionName, ConnectionName, PolicyConnectionSyncStage, SageIntacctMappingName} from '@src/types/onyx/Policy';
 import type {ViolationDataType} from '@src/types/onyx/TransactionViolation';
-
-type MultifactorAuthenticationTranslationParams = {
-    authType?: string;
-    registered?: boolean;
-    otherDeviceCount?: number;
-    status?: string;
-};
 
 type EditActionParams = {
     action: OnyxInputOrEntry<ReportAction>;
@@ -60,8 +51,6 @@ type SizeExceededParams = {maxUploadSizeInMB: number};
 
 type NotAllowedExtensionParams = {allowedExtensions: string[]};
 
-type WeSentYouMagicSignInLinkParams = {login: string; loginType: string};
-
 type StepCounterParams = {step: number; total?: number; text?: string};
 
 type UserIsAlreadyMemberParams = {login: string; name: string};
@@ -78,26 +67,6 @@ type ViolationsModifiedAmountParams = {type?: ViolationDataType; displayPercentV
 
 type ViolationsIncreasedDistanceParams = {formattedRouteDistance?: string};
 
-type ViolationsReceiptRequiredParams = {formattedLimit?: string; category?: string};
-
-type ViolationsRterParams = {
-    brokenBankConnection: boolean;
-    isAdmin: boolean;
-    isTransactionOlderThan7Days: boolean;
-    member?: string;
-    rterType?: ValueOf<typeof CONST.RTER_VIOLATION_TYPES>;
-    companyCardPageURL?: string;
-    connectionLink?: string;
-    isPersonalCard?: boolean;
-    isMarkAsCash?: boolean;
-};
-
-type ViolationsTagOutOfPolicyParams = {tagName?: string} | undefined;
-
-type ViolationsProhibitedExpenseParams = {prohibitedExpenseTypes: string | string[]};
-
-type ViolationsTaxOutOfPolicyParams = {taxName?: string} | undefined;
-
 type OptionalParam<T> = Partial<T>;
 
 type LogSizeAndDateParams = {size: number; date: string};
@@ -106,53 +75,13 @@ type ChangeFieldParams = {oldValue?: string; newValue: string; fieldName: string
 
 type UpdatedPolicyCategoryMaxAmountNoReceiptParams = {categoryName: string; oldValue?: string; newValue: string};
 
-type UpdatedPolicyTaxParams = {taxName: string; oldValue?: string | boolean | number; newValue?: string | boolean | number; updatedField?: string};
-
-type UpdatedPolicyTagParams = {tagListName: string; tagName?: string; enabled?: boolean; count?: string};
-
-type UpdatedPolicyTagNameParams = {oldName: string; newName: string; tagListName: string};
-
-type UpdatedPolicyTagFieldParams = {oldValue?: string; newValue: string; tagName: string; tagListName: string; updatedField: string};
-
-type UpdatedPolicyTagListRequiredParams = {tagListsName: string; isRequired: boolean};
-
 type UpdatePolicyCustomUnitDefaultCategoryParams = {customUnitName: string; newValue?: string; oldValue?: string};
 
 type UpdatePolicyCustomUnitParams = {oldValue: string; newValue: string; customUnitName: string; updatedField: string};
 
-type UpdatedPolicyCustomUnitSubRateParams = {customUnitName: string; customUnitRateName: string; customUnitSubRateName: string; oldValue: string; newValue: string; updatedField: string};
-
-type RemovedPolicyCustomUnitSubRateParams = {customUnitName: string; customUnitRateName: string; removedSubRateName: string};
-
 type AddedOrDeletedPolicyReportFieldParams = {fieldType: string; fieldName?: string; defaultValue?: string};
 
-type UpdatedPolicyReportFieldDefaultValueParams = {fieldName?: string; defaultValue?: string};
-
 type UpdatedPolicyApprovalRuleParams = {oldApproverEmail: string; oldApproverName?: string; newApproverEmail: string; newApproverName?: string; field: string; name: string};
-
-type UpdatedPolicyPreventSelfApprovalParams = {oldValue: string; newValue: string};
-
-type UpdatedPolicyOwnershipParams = {oldOwnerEmail: string; oldOwnerName: string; policyName: string};
-
-type UpdatedPolicyTimeRateParams = {newRate?: string; oldRate?: string};
-
-type UpdatedPolicyBudgetNotificationParams = {
-    budgetAmount: string;
-    budgetFrequency: string;
-    budgetName: string;
-    budgetTypeForNotificationMessage: string;
-    summaryLink?: string;
-    thresholdPercentage: number;
-    totalSpend: number;
-    unsubmittedSpend: number;
-    userEmail?: string;
-    awaitingApprovalSpend: number;
-    approvedReimbursedClosedSpend: number;
-};
-
-type UpdatedPolicyReimbursementChoiceParams = {newReimbursementChoice: string; oldReimbursementChoice: string};
-
-type UpdatedPolicyDefaultTitleParams = {newDefaultTitle: string; oldDefaultTitle: string};
 
 type UpdatedPolicyManualApprovalThresholdParams = {oldLimit: string; newLimit: string};
 
@@ -161,8 +90,6 @@ type UpdatedPolicyCustomTaxNameParams = {oldName: string; newName: string};
 type UpdatedPolicyCurrencyDefaultTaxParams = {oldName: string; newName: string};
 
 type UpdatedPolicyForeignCurrencyDefaultTaxParams = {oldName: string; newName: string};
-
-type UpdatedPolicyReimburserParams = {newReimburser: string; previousReimburser?: string};
 
 type ExportedToIntegrationParams = {label: string; markedManually?: boolean; inProgress?: boolean; lastModified?: string};
 
@@ -208,6 +135,10 @@ type IntegrationsMessageParams = {
 type MarkReimbursedFromIntegrationParams = {amount: string; currency: string};
 
 type ShareParams = {to: string};
+
+type UnsupportedFormulaValueErrorParams = {
+    value: string;
+};
 
 type UnshareParams = {to: string};
 
@@ -259,31 +190,9 @@ type InvalidValueParams = {
     expectedValues: string;
 };
 
-type WorkspaceYouMayJoin = {
-    domain: string;
-    email: string;
-};
-
-type WorkspaceMemberList = {
-    employeeCount: number;
-    policyOwner: string;
-};
-
 type WorkspaceLockedPlanTypeParams = {
     count: number;
     annualSubscriptionEndDate: string;
-};
-
-type UpgradeSuccessMessageParams = {
-    policyName: string;
-    subscriptionLink: string;
-};
-
-type NextStepParams = {
-    actor: string;
-    actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>;
-    eta?: string;
-    etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>;
 };
 
 type ConciergeBrokenCardConnectionParams = {
@@ -325,18 +234,13 @@ export type {
     ViolationsMissingTagParams,
     ViolationsModifiedAmountParams,
     ViolationsIncreasedDistanceParams,
-    ViolationsReceiptRequiredParams,
-    ViolationsRterParams,
-    ViolationsTagOutOfPolicyParams,
-    ViolationsProhibitedExpenseParams,
-    ViolationsTaxOutOfPolicyParams,
-    WeSentYouMagicSignInLinkParams,
     ChangeFieldParams,
     ExportedToIntegrationParams,
     IntegrationsMessageParams,
     MarkReimbursedFromIntegrationParams,
     ShareParams,
     UnshareParams,
+    UnsupportedFormulaValueErrorParams,
     ConnectionNameParams,
     ExportAgainModalDescriptionParams,
     UpdateRoleParams,
@@ -345,25 +249,12 @@ export type {
     DisconnectPromptParams,
     DisconnectTitleParams,
     OptionalParam,
-    WorkspaceYouMayJoin,
-    WorkspaceMemberList,
     WorkspaceLockedPlanTypeParams,
-    UpdatedPolicyTagListRequiredParams,
-    UpdatedPolicyPreventSelfApprovalParams,
-    UpdatedPolicyTimeRateParams,
-    UpdatedPolicyTagParams,
-    UpdatedPolicyTaxParams,
-    UpdatedPolicyTagNameParams,
-    UpdatedPolicyTagFieldParams,
-    UpdatedPolicyReportFieldDefaultValueParams,
-    RemovedPolicyCustomUnitSubRateParams,
-    UpdatedPolicyCustomUnitSubRateParams,
     AddedOrDeletedPolicyReportFieldParams,
     UpdatedPolicyManualApprovalThresholdParams,
     UpdatedPolicyCustomTaxNameParams,
     UpdatedPolicyCurrencyDefaultTaxParams,
     UpdatedPolicyForeignCurrencyDefaultTaxParams,
-    UpdatedPolicyReimburserParams,
     UpdatePolicyCustomUnitDefaultCategoryParams,
     UpdatePolicyCustomUnitParams,
     UpdatedPolicyApprovalRuleParams,
@@ -372,11 +263,4 @@ export type {
     UpdatedBudgetParams,
     DeleteBudgetParams,
     AddOrDeletePolicyCustomUnitRateParams,
-    UpgradeSuccessMessageParams,
-    NextStepParams,
-    UpdatedPolicyOwnershipParams,
-    UpdatedPolicyBudgetNotificationParams,
-    UpdatedPolicyReimbursementChoiceParams,
-    UpdatedPolicyDefaultTitleParams,
-    MultifactorAuthenticationTranslationParams,
 };
