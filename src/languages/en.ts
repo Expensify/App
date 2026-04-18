@@ -7715,11 +7715,6 @@ const translations = {
                 [CONST.SEARCH.WITHDRAWAL_TYPE.EXPENSIFY_CARD]: 'Expensify Card',
                 [CONST.SEARCH.WITHDRAWAL_TYPE.REIMBURSEMENT]: 'Reimbursement',
             },
-            withdrawalStatus: {
-                [CONST.SEARCH.SETTLEMENT_STATUS.PENDING]: 'Pending',
-                [CONST.SEARCH.SETTLEMENT_STATUS.CLEARED]: 'Cleared',
-                [CONST.SEARCH.SETTLEMENT_STATUS.FAILED]: 'Failed',
-            },
             is: 'Is',
             action: {
                 [CONST.SEARCH.ACTION_FILTERS.SUBMIT]: 'Submit',
@@ -7764,7 +7759,6 @@ const translations = {
         noTag: 'No tag',
         expenseType: 'Expense type',
         withdrawalType: 'Withdrawal type',
-        withdrawalStatus: 'Withdrawal status',
         recentSearches: 'Recent searches',
         recentChats: 'Recent chats',
         searchIn: 'Search in',

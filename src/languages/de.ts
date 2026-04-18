@@ -7719,11 +7719,6 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 [CONST.SEARCH.WITHDRAWAL_TYPE.EXPENSIFY_CARD]: 'Expensify Karte',
                 [CONST.SEARCH.WITHDRAWAL_TYPE.REIMBURSEMENT]: 'Rückerstattung',
             },
-            withdrawalStatus: {
-                [CONST.SEARCH.SETTLEMENT_STATUS.PENDING]: 'Ausstehend',
-                [CONST.SEARCH.SETTLEMENT_STATUS.CLEARED]: 'Abgerechnet',
-                [CONST.SEARCH.SETTLEMENT_STATUS.FAILED]: 'Fehlgeschlagen',
-            },
             is: 'Ist',
             action: {
                 [CONST.SEARCH.ACTION_FILTERS.SUBMIT]: 'Senden',
@@ -7768,7 +7763,6 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         noTag: 'Kein Tag',
         expenseType: 'Ausgabenart',
         withdrawalType: 'Auszahlungsart',
-        withdrawalStatus: 'Auszahlungsstatus',
         recentSearches: 'Letzte Suchen',
         recentChats: 'Neueste Chats',
         searchIn: 'Suchen in',

@@ -87,7 +87,7 @@ function SearchFiltersWithdrawalStatusPage() {
             shouldEnableMaxHeight
         >
             <HeaderWithBackButton
-                title={translate('search.withdrawalStatus')}
+                title={translate('common.withdrawalStatus')}
                 onBackButtonPress={() => {
                     Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS.getRoute());
                 }}

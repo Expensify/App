@@ -4870,7 +4870,7 @@ const FILTER_LABEL_MAP: Partial<Record<SearchAdvancedFiltersKey, TranslationPath
     [FILTER_KEYS.TITLE]: 'common.title',
     [FILTER_KEYS.WITHDRAWAL_ID]: 'common.withdrawalID',
     [FILTER_KEYS.WITHDRAWAL_TYPE]: 'search.withdrawalType',
-    [FILTER_KEYS.WITHDRAWAL_STATUS]: 'search.withdrawalStatus',
+    [FILTER_KEYS.WITHDRAWAL_STATUS]: 'common.withdrawalStatus',
 };
 
 function getDateDisplayValue(syntaxKey: SearchDateFilterKeys, form: Partial<SearchAdvancedFiltersForm>, translate: LocalizedTranslate): string {
@@ -5177,7 +5177,7 @@ function getWithdrawalTypeOptions(translate: LocaleContextProps['translate']) {
 }
 
 function getWithdrawalStatusOptions(translate: LocaleContextProps['translate']) {
-    return Object.values(CONST.SEARCH.SETTLEMENT_STATUS).map((value) => ({text: translate(`search.filters.withdrawalStatus.${value}`), value}));
+    return Object.values(CONST.SEARCH.SETTLEMENT_STATUS).map((value) => ({text: translate(`settlement.status.${value}`), value}));
 }
 
 function getActionOptions(translate: LocaleContextProps['translate']) {
