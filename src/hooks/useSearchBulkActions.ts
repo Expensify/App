@@ -261,6 +261,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     const expensifyIcons = useMemoizedLazyExpensifyIcons([
         'Export',
         'Table',
+        'TablePencil',
         'DocumentMerge',
         'Send',
         'Trashcan',
@@ -1021,9 +1022,11 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             });
 
             for (const template of exportTemplates) {
+                const isStandardTemplate =
+                    template.templateName === CONST.REPORT.EXPORT_OPTIONS.EXPENSE_LEVEL_EXPORT || template.templateName === CONST.REPORT.EXPORT_OPTIONS.REPORT_LEVEL_EXPORT;
                 exportOptions.push({
                     text: template.name,
-                    icon: expensifyIcons.Table,
+                    icon: isStandardTemplate ? expensifyIcons.Table : expensifyIcons.TablePencil,
                     description: template.description,
                     onSelected: () => {
                         beginExportWithTemplate(template.templateName, template.type, template.policyID);

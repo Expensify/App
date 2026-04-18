@@ -97,6 +97,7 @@ function useSelectedTransactionsActions({
         'Trashcan',
         'ArrowRight',
         'Table',
+        'TablePencil',
         'DocumentMerge',
         'Export',
         'ArrowCollapse',
@@ -387,10 +388,12 @@ function useSelectedTransactionsActions({
 
             // If the user has any custom integration export templates, add them as export options
             const exportTemplates = getExportTemplates(integrationsExportTemplates ?? [], csvExportLayouts ?? {}, translate, policy, includeReportLevelExport);
+            const standardTemplateNames = new Set<string>([CONST.REPORT.EXPORT_OPTIONS.EXPENSE_LEVEL_EXPORT, CONST.REPORT.EXPORT_OPTIONS.REPORT_LEVEL_EXPORT]);
             for (const template of exportTemplates) {
+                const isStandardTemplate = standardTemplateNames.has(template.templateName);
                 exportOptions.push({
                     text: template.name,
-                    icon: expensifyIcons.Table,
+                    icon: isStandardTemplate ? expensifyIcons.Table : expensifyIcons.TablePencil,
                     description: template.description,
                     onSelected: () => beginExportWithTemplate(template.templateName, template.type, selectedTransactionIDs, template.policyID),
                 });

@@ -21,6 +21,7 @@ import {getExportTemplates, updateAdvancedFilters} from '@userActions/Search';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type IconAsset from '@src/types/utils/IconAsset';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 /** Maps standard export template IDs to the display label used in search query/filter */
@@ -34,7 +35,17 @@ function SearchFiltersExportedToPage() {
     const {translate} = useLocalize();
     const StyleUtils = useStyleUtils();
     const theme = useTheme();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['XeroSquare', 'QBOSquare', 'NetSuiteSquare', 'IntacctSquare', 'QBDSquare', 'CertiniaSquare', 'GustoSquare', 'Table']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons([
+        'XeroSquare',
+        'QBOSquare',
+        'NetSuiteSquare',
+        'IntacctSquare',
+        'QBDSquare',
+        'CertiniaSquare',
+        'GustoSquare',
+        'Table',
+        'TablePencil',
+    ]);
 
     const [searchAdvancedFiltersForm, searchAdvancedFiltersFormResult] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
     const [integrationsExportTemplates] = useOnyx(ONYXKEYS.NVP_INTEGRATION_SERVER_EXPORT_TEMPLATES);
@@ -46,10 +57,10 @@ function SearchFiltersExportedToPage() {
     const selectedExportedToValues = searchAdvancedFiltersForm?.exportedTo ?? [];
     const connectedIntegrationNames = getConnectedIntegrationNamesForPolicies(policies, policyIDs.length > 0 ? policyIDs : undefined);
 
-    const tableIconForExportOption = (
+    const tableIconForExportOption = (tableIcon: IconAsset) => (
         <View style={[styles.mr3, styles.alignItemsCenter, styles.justifyContentCenter, StyleUtils.getWidthAndHeightStyle(variables.w28, variables.h28)]}>
             <Icon
-                src={expensifyIcons.Table}
+                src={tableIcon}
                 fill={theme.icon}
                 width={variables.iconSizeNormal}
                 height={variables.iconSizeNormal}
@@ -74,7 +85,7 @@ function SearchFiltersExportedToPage() {
                         />
                     </View>
                 ) : (
-                    tableIconForExportOption
+                    tableIconForExportOption(expensifyIcons.Table)
                 );
                 return {
                     name: CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName],
@@ -111,10 +122,11 @@ function SearchFiltersExportedToPage() {
             }
 
             usedPickerValueKeys.add(filterValue);
+            const isStandardTemplate = !!STANDARD_EXPORT_TEMPLATE_ID_TO_DISPLAY_LABEL[template.templateName];
             standardAndIntegrationCustomTemplatePickerItems.push({
                 name: displayName,
                 value: filterValue,
-                leftElement: tableIconForExportOption,
+                leftElement: tableIconForExportOption(isStandardTemplate ? expensifyIcons.Table : expensifyIcons.TablePencil),
             });
         }
 
@@ -142,7 +154,7 @@ function SearchFiltersExportedToPage() {
                     />
                 </View>
             ) : (
-                tableIconForExportOption
+                tableIconForExportOption(expensifyIcons.Table)
             );
             return {
                 name: value,
