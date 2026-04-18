@@ -9183,9 +9183,7 @@ function getViolatingReportIDForRBRInLHN(report: OnyxEntry<Report>, transactionV
                 return false;
             }
 
-            const transactionViolationsForNoticeCheck = isProcessingReport(potentialReport)
-                ? filterOutModifiedAmountViolationsForTransactions(transactionViolations, transactions)
-                : transactionViolations;
+            const excludedNoticeNamesForLHN = isProcessingReport(potentialReport) ? [CONST.VIOLATIONS.MODIFIED_AMOUNT] : [];
 
             return (
                 !isInvoiceReport(potentialReport) &&
@@ -9217,43 +9215,37 @@ function getViolatingReportIDForRBRInLHN(report: OnyxEntry<Report>, transactionV
                         potentialReport,
                         policy,
                     ) ||
-                    hasNoticeTypeViolations(
-                        potentialReport.reportID,
-                        transactionViolationsForNoticeCheck,
+                    hasNoticeTypeViolationsForRBRInLHN(
+                        transactionViolations,
                         deprecatedCurrentUserAccountID ?? CONST.DEFAULT_NUMBER_ID,
                         deprecatedCurrentUserEmail ?? '',
-                        true,
                         transactions,
                         potentialReport,
                         policy,
+                        excludedNoticeNamesForLHN,
                     ))
             );
         });
     return violatingReport ? violatingReport.reportID : null;
 }
 
-function filterOutModifiedAmountViolationsForTransactions(
+function hasNoticeTypeViolationsForRBRInLHN(
     transactionViolations: OnyxCollection<TransactionViolation[]>,
-    transactions: Transaction[],
-): OnyxCollection<TransactionViolation[]> {
-    const filteredViolations = {...transactionViolations};
-
-    for (const transaction of transactions) {
-        const transactionID = transaction?.transactionID;
-        if (!transactionID) {
-            continue;
+    currentUserAccountIDParam: number,
+    currentUserEmailParam: string,
+    reportTransactions: Transaction[],
+    report: OnyxEntry<Report>,
+    policy: OnyxEntry<Policy>,
+    excludedViolationNames: string[],
+): boolean {
+    return reportTransactions.some((transaction) => {
+        const rawViolations = transactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction?.transactionID}`];
+        if (!rawViolations?.length) {
+            return false;
         }
-
-        const transactionViolationKey = `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`;
-        const violations = filteredViolations[transactionViolationKey];
-        if (!violations?.length) {
-            continue;
-        }
-
-        filteredViolations[transactionViolationKey] = violations.filter((violation) => violation.name !== CONST.VIOLATIONS.MODIFIED_AMOUNT);
-    }
-
-    return filteredViolations;
+        const filteredViolations = excludedViolationNames.length > 0 ? rawViolations.filter((violation) => !excludedViolationNames.includes(violation.name)) : rawViolations;
+        return hasNoticeTypeViolation(transaction, filteredViolations, currentUserEmailParam, currentUserAccountIDParam, report, policy, true);
+    });
 }
 
 /**
