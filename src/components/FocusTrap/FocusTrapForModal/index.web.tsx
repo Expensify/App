@@ -7,18 +7,16 @@ import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManag
 import type FocusTrapForModalProps from './FocusTrapForModalProps';
 
 function FocusTrapForModal({children, active, initialFocus = false, shouldPreventScroll = false, shouldReturnFocus = true}: FocusTrapForModalProps) {
-    // Track this trap's own launcher so onPostDeactivate targets the right stack entry (nested / sequential traps share the stack).
+    // Track this trap's own launcher so onPostDeactivate targets the right shared-stack entry.
     const cachedLauncherRef = useRef<HTMLElement | null>(null);
     return (
         <FocusTrap
             active={active}
             focusTrapOptions={{
                 onActivate: () => {
-                    // Capture the launcher before blur — items inside the trap get removed on close.
-                    // Coexists with setReturnFocus (below): that handles same-screen close; this cache only fires if a navigation state change follows.
+                    // Capture before blur — items inside the trap get removed on close. Only fires if a nav state change follows; setReturnFocus handles same-screen close.
                     const launcher = document.activeElement;
                     blurActiveElement();
-                    // Respect shouldReturnFocus={false} (e.g. DatePickerModal) — skip the launcher cache entirely.
                     if (shouldReturnFocus && launcher instanceof HTMLElement && launcher !== document.body) {
                         cachedLauncherRef.current = launcher;
                         setActivePopoverLauncher(launcher);
@@ -30,7 +28,7 @@ function FocusTrapForModal({children, active, initialFocus = false, shouldPreven
                     if (!shouldReturnFocus || !launcher) {
                         return;
                     }
-                    // Defer so popover paths that navigate after modal-hide can still consume the launcher.
+                    // Deferred so popover paths that navigate after modal-hide can still consume.
                     scheduleClearActivePopoverLauncher(launcher);
                 },
                 preventScroll: shouldPreventScroll,

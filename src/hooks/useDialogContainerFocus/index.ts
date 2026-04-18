@@ -15,7 +15,7 @@ function focusFirstInteractiveElement(container: HTMLElement | null): boolean {
     if (!target) {
         return false;
     }
-    // Participates in arbitration so a concurrent back-nav RETURN restore wins over this dialog's initial focus.
+    // Arbitrated so a concurrent RETURN restore wins over this dialog's initial focus.
     if (!tryClaim(Priorities.INITIAL)) {
         return false;
     }
@@ -31,8 +31,7 @@ const useDialogContainerFocus: UseDialogContainerFocus = (ref, isReady, claimIni
         }
         let cancelled = false;
         let frameId: number;
-        // Deferred past useAutoFocusInput's InteractionManager + Promise chain.
-        // InteractionManager is marked deprecated in type defs but remains the idiomatic defer primitive across this codebase.
+        // Deferred past useAutoFocusInput's IM + Promise chain. IM is the idiomatic defer primitive despite type-def deprecation.
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         const interactionHandle = InteractionManager.runAfterInteractions(() => {
             if (cancelled) {

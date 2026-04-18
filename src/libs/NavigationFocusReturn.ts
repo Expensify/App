@@ -6,17 +6,13 @@ import {consumeLauncher, pickLauncher, resetLauncherStackForTests} from './Launc
 import navigationRef from './Navigation/navigationRef';
 import {Priorities, resetCycle, tryClaim} from './ScreenFocusArbiter';
 
-/**
- * A document focusin listener tracks the last keyboard-focused element; a
- * navigation state listener captures it against the outgoing route on forward
- * nav and restores it on backward nav.
- */
+/** focusin tracks the last keyboard-focused element; a nav state listener captures it against the outgoing route and restores it on backward nav. */
 
 type AnyState = NavigationState | PartialState<NavigationState> | undefined;
 
 type DiffAction = {type: 'forward'; captureKey: string} | {type: 'backward'; restoreKey: string} | {type: 'lateral'} | {type: 'noop'};
 
-// Fallback (if set) is the surrounding trap's launcher — used when primary cannot accept focus at restore. `triggerMap` is bounded by the nav tree (one entry per route key; `removedKeys` purges on route unmount).
+// Fallback is the surrounding trap's launcher, used when primary can't accept focus at restore.
 type TriggerEntry = {primary: HTMLElement; fallback?: HTMLElement};
 
 const COMPOUND_KEY_DELIMITER = '::';
@@ -75,20 +71,18 @@ function captureTriggerForRoute(routeKey: string): void {
     if (typeof document === 'undefined') {
         return;
     }
-    // Skip mouse-driven nav: lastInteractiveElement would be a stale keyboard target.
+    // Mouse-driven nav: lastInteractiveElement is a stale keyboard target.
     if (!getHadTabNavigation()) {
         return;
     }
 
     const launcher = pickLauncher();
-
-    // Reject lastInteractiveElement if focus has since drifted to another non-body element.
     const active = document.activeElement;
     const innerIsStale = lastInteractiveElement && active && active !== document.body && active !== lastInteractiveElement;
     const inner = lastInteractiveElement && document.contains(lastInteractiveElement) && !innerIsStale ? lastInteractiveElement : null;
 
     if (launcher) {
-        // Dual-capture in trapped UI: prefer the in-trap element on restore; fall back to the launcher only when the primary is removed on trap close.
+        // Prefer the in-trap element; fall back to the launcher when primary is removed on trap close.
         if (inner && inner !== launcher) {
             triggerMap.set(routeKey, {primary: inner, fallback: launcher});
         } else {
@@ -104,7 +98,7 @@ function captureTriggerForRoute(routeKey: string): void {
     triggerMap.set(routeKey, {primary: inner});
 }
 
-// Normalize primitive values to strings so URL-rehydrated params (always strings) match PUSH_PARAMS dispatches that may use numbers/booleans.
+// URL-rehydrated params are always strings; PUSH_PARAMS dispatches may use numbers/booleans.
 function normalizeForKey(value: unknown): unknown {
     if (value == null) {
         return value;
@@ -113,11 +107,10 @@ function normalizeForKey(value: unknown): unknown {
         return String(value);
     }
     if (Array.isArray(value)) {
-        // Preserve array shape; explicit `undefined` elements coalesce to `null` via JSON spec (URL-rehydrated arrays never contain undefined, so safe).
         return value.map(normalizeForKey);
     }
     if (typeof value === 'object') {
-        // Sort keys recursively so nested objects with differently-ordered keys produce the same compound key (URL rehydration can reorder).
+        // Recursively sort so differently-ordered nested keys produce the same compound.
         const entries = Object.entries(value as Record<string, unknown>)
             .sort(([a], [b]) => {
                 if (a < b) {
@@ -134,7 +127,7 @@ function normalizeForKey(value: unknown): unknown {
     return value;
 }
 
-/** Compound key for PUSH_PARAMS history (same route.key across params snapshots). Sorts top-level keys for insertion-order stability. */
+/** Compound key for PUSH_PARAMS history (same route.key across params snapshots). */
 function compoundParamsKey(routeKey: string, params: unknown): string {
     if (params == null) {
         return `${routeKey}${COMPOUND_KEY_DELIMITER}`;
@@ -142,7 +135,7 @@ function compoundParamsKey(routeKey: string, params: unknown): string {
     if (typeof params !== 'object') {
         return `${routeKey}${COMPOUND_KEY_DELIMITER}${JSON.stringify(normalizeForKey(params))}`;
     }
-    // Drop undefined so explicit-undefined fields match path-rehydrated (omitted) params.
+    // Explicit-undefined fields must match path-rehydrated (omitted) params.
     const entries = Object.entries(params as Record<string, unknown>)
         .filter(([, value]) => value !== undefined)
         .map(([k, v]) => [k, normalizeForKey(v)] as const)
@@ -159,7 +152,7 @@ function compoundParamsKey(routeKey: string, params: unknown): string {
 }
 
 function notifyPushParamsForward(routeKey: string, prevParams: unknown): void {
-    // Same-key transitions are classified as noop by handleStateChange, which doesn't cancel — do it here.
+    // Same-key transitions are noop in handleStateChange, which doesn't cancel — do it here.
     cancelPendingRestore();
     captureTriggerForRoute(compoundParamsKey(routeKey, prevParams));
 }
@@ -168,7 +161,7 @@ function notifyPushParamsBackward(routeKey: string, targetParams: unknown): void
     scheduleRestore(compoundParamsKey(routeKey, targetParams));
 }
 
-/** Cancel a queued restore without capturing anything — e.g. PUSH_PARAMS browser-forward RESET. */
+/** For PUSH_PARAMS browser-forward RESET: cancel a queued restore without capturing. */
 function cancelPendingFocusRestore(): void {
     cancelPendingRestore();
 }
@@ -197,7 +190,7 @@ function pickRestoreTarget(entry: TriggerEntry): RestorePick {
     return 'gone';
 }
 
-// Grace window after a successful restore: RETURN keeps in-flight AUTO/INITIAL from the destination screen losing, then releases so unrelated later claimers (side-panels, etc.) aren't blocked for CYCLE_TIMEOUT_MS.
+// Grace window after a successful restore: vetoes in-flight AUTO/INITIAL, then releases so unrelated later claimers aren't blocked for CYCLE_TIMEOUT_MS.
 const RETURN_HOLD_MS = 500;
 let returnHoldTimerId: ReturnType<typeof setTimeout> | undefined;
 
@@ -242,15 +235,15 @@ function restoreTriggerForRoute(routeKey: string): boolean {
         return false;
     }
 
-    // Preferred pick first, then fallback. Each attempt is verified via document.activeElement so silent-focus failures (display:none / visibility:hidden ancestors) fall through.
+    // activeElement verification catches silent-focus failures (display:none / visibility:hidden ancestors).
     const candidates: HTMLElement[] = [pick.target];
     if (pick.source === 'primary' && entry.fallback && document.contains(entry.fallback) && canAcceptFocus(entry.fallback)) {
         candidates.push(entry.fallback);
     }
 
+    // focusVisible is spec'd (Chromium/Firefox) but not in lib.dom.d.ts yet.
     const focusOptions = {preventScroll: true, focusVisible: getHadTabNavigation()} as FocusOptions;
     for (const candidate of candidates) {
-        // Cast: focusVisible is a spec'd FocusOptions field (Chromium/Firefox) but lib.dom.d.ts hasn't adopted it yet.
         candidate.focus(focusOptions);
         const active = document.activeElement;
         if (active === candidate) {
@@ -258,13 +251,13 @@ function restoreTriggerForRoute(routeKey: string): boolean {
             return true;
         }
         if (active && active !== document.body) {
-            // onFocus handler redirected (composite-widget pattern) — respect it, don't override with the fallback.
+            // onFocus redirected (composite-widget pattern) — respect it.
             scheduleReturnHoldRelease();
             return true;
         }
     }
 
-    // All candidates silently no-op'd. Release the claim immediately so AUTO/INITIAL can still try.
+    // All silent no-ops — release so AUTO/INITIAL can try.
     resetCycle();
     return false;
 }
@@ -332,7 +325,7 @@ function handleStateChange(newState: NavigationState | undefined): void {
     if (!newState) {
         return;
     }
-    // Cancel pending return-hold release; a stale timer firing later would reset the new cycle's priority.
+    // A stale return-hold timer would reset the new cycle's priority.
     cancelReturnHoldRelease();
     resetCycle();
     const {action, removedKeys} = diffNavigationState(prevState, newState);
@@ -343,14 +336,14 @@ function handleStateChange(newState: NavigationState | undefined): void {
     } else if (action.type === 'backward') {
         scheduleRestore(action.restoreKey);
     } else if (action.type === 'lateral') {
-        // Sibling route — stale restore would steal focus back.
+        // Stale restore would steal focus back on sibling nav.
         cancelPendingRestore();
     }
-    // noop (same focused route, e.g. setParams): leave any pending restore intact.
+    // noop (e.g. setParams on same route): leave pending restore intact.
 
     for (const key of removedKeys) {
         triggerMap.delete(key);
-        // Drop compound PUSH_PARAMS entries (`${key}::...`) for the removed route.
+        // Also drop compound PUSH_PARAMS entries for this route.
         const compoundPrefix = `${key}${COMPOUND_KEY_DELIMITER}`;
         for (const mapKey of triggerMap.keys()) {
             if (mapKey.startsWith(compoundPrefix)) {
@@ -362,12 +355,12 @@ function handleStateChange(newState: NavigationState | undefined): void {
     prevState = newState;
 }
 
-// UI test mocks of navigationRef may omit isReady/getRootState; call-site guards defend without forcing test hygiene across 12+ files.
+// UI test mocks of navigationRef may omit isReady/getRootState; defend at call sites.
 function navigationRefHasLiveState(): boolean {
     return typeof navigationRef?.isReady === 'function' && navigationRef.isReady() && typeof navigationRef.getRootState === 'function';
 }
 
-// Invoked twice per app lifetime: once at module load (pre-mount; `navigationRef.isReady()` is false, so the seed is skipped), and once from NavigationRoot.onReady (container is live, seeds `prevState`). The listener-install guard is idempotent across both calls.
+// Called twice: module load (pre-mount, seed skipped) and NavigationRoot.onReady (container live). Idempotent across both.
 function setupNavigationFocusReturn(): void {
     if (typeof document === 'undefined') {
         return;
@@ -384,12 +377,11 @@ function setupNavigationFocusReturn(): void {
         };
         document.addEventListener('focusin', focusinHandler, true);
     }
-    // Gate the seed behind isReady() — calling getRootState() pre-mount triggers React Navigation's "not initialized" console.error.
-    // Retries on every setup() call so NavigationRoot.onReady re-invocation picks up the live state, independently of stateUnsubscribe.
+    // getRootState() pre-mount triggers React Navigation's "not initialized" console.error. Retries on each setup call so NavigationRoot.onReady picks up live state.
     if (!prevState && navigationRefHasLiveState()) {
         prevState = navigationRef.getRootState() ?? prevState;
     }
-    // addListener is absent pre-mount and in test mocks; NavigationRoot.onReady re-invokes once the container is live.
+    // addListener is absent pre-mount and in test mocks; NavigationRoot.onReady re-invokes once live.
     if (!stateUnsubscribe && typeof navigationRef?.addListener === 'function') {
         stateUnsubscribe = navigationRef.addListener('state', () => {
             if (typeof navigationRef.getRootState !== 'function') {

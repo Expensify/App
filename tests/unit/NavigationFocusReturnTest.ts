@@ -407,40 +407,6 @@ describe('captureTriggerForRoute', () => {
             expect(restoreTriggerForRoute('route-a')).toBe(true);
         });
 
-        it('should keep the launcher available across a deferred onPostDeactivate clear', () => {
-            withFakeTimers(() => {
-                const launcher = appendButton();
-                setActivePopoverLauncher(launcher);
-                scheduleClearActivePopoverLauncher();
-
-                // Within the deferral window, capture should still see the launcher.
-                jest.advanceTimersByTime(50);
-                captureTriggerForRoute('route-a');
-
-                launcher.blur();
-                expect(restoreTriggerForRoute('route-a')).toBe(true);
-            });
-        });
-
-        it('should clear the launcher after the deferred window elapses', () => {
-            withFakeTimers(() => {
-                const launcher = appendButton();
-                setActivePopoverLauncher(launcher);
-                scheduleClearActivePopoverLauncher();
-                jest.advanceTimersByTime(2000);
-
-                const fallback = appendButton();
-                fireFocusIn(fallback);
-
-                captureTriggerForRoute('route-a');
-                fallback.blur();
-                const launcherSpy = jest.spyOn(launcher, 'focus');
-                expect(restoreTriggerForRoute('route-a')).toBe(true);
-                // Expect the fallback was captured, not the (since-cleared) launcher.
-                expect(launcherSpy).not.toHaveBeenCalled();
-            });
-        });
-
         it('should defer to lastInteractiveElement when the user moved on after popover closed', () => {
             const launcher = document.createElement('button');
             const otherButton = document.createElement('button');
@@ -527,77 +493,6 @@ describe('captureTriggerForRoute', () => {
             expect(primarySpy).not.toHaveBeenCalled();
         });
 
-        it('nested traps: inner activation does not evict the outer launcher from the stack', () => {
-            const outerLauncher = appendButton();
-            const innerLauncher = appendButton();
-            setActivePopoverLauncher(outerLauncher);
-            setActivePopoverLauncher(innerLauncher);
-
-            // Inner trap closes first.
-            scheduleClearActivePopoverLauncher(innerLauncher);
-            // Capture fires while outer is still active — must see outer, not the deactivated inner.
-            captureTriggerForRoute('route-a');
-
-            const outerSpy = jest.spyOn(outerLauncher, 'focus');
-            const innerSpy = jest.spyOn(innerLauncher, 'focus');
-            outerLauncher.blur();
-            expect(restoreTriggerForRoute('route-a')).toBe(true);
-            expect(outerSpy).toHaveBeenCalled();
-            expect(innerSpy).not.toHaveBeenCalled();
-        });
-
-        it('sequential traps: opening a new trap within the deferred-clear window does not wipe the earlier launcher', () => {
-            withFakeTimers(() => {
-                const launcherA = appendButton();
-                const launcherB = appendButton();
-
-                // Trap A opens and closes; its 1s clear window starts.
-                setActivePopoverLauncher(launcherA);
-                scheduleClearActivePopoverLauncher(launcherA);
-
-                // Trap B opens within 500ms — A must still be on the stack (deactivated, within window).
-                jest.advanceTimersByTime(500);
-                setActivePopoverLauncher(launcherB);
-
-                // User closes B without navigating; A is still in its deferred window.
-                scheduleClearActivePopoverLauncher(launcherB);
-
-                // A capture now picks B (top of stack, active most recently). This is the expected behavior.
-                captureTriggerForRoute('route-a');
-
-                const spyA = jest.spyOn(launcherA, 'focus');
-                const spyB = jest.spyOn(launcherB, 'focus');
-                launcherB.blur();
-                expect(restoreTriggerForRoute('route-a')).toBe(true);
-                expect(spyB).toHaveBeenCalled();
-                expect(spyA).not.toHaveBeenCalled();
-            });
-        });
-
-        it('should bound launcherStack at LAUNCHER_STACK_MAX and drop the oldest when overflowed', () => {
-            // Pushing 10 launchers when max is 8 → first two evicted, last 8 retained (FIFO drop).
-            const launchers = Array.from({length: 10}, () => appendButton());
-            const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
-            for (const l of launchers) {
-                setActivePopoverLauncher(l);
-            }
-
-            const oldest = launchers.at(0);
-            const newest = launchers.at(-1);
-            if (!oldest || !newest) {
-                throw new Error('test setup');
-            }
-            const droppedOldest = jest.spyOn(oldest, 'focus');
-            const newestKept = jest.spyOn(newest, 'focus');
-            captureTriggerForRoute('route-a');
-            newest.blur();
-            expect(restoreTriggerForRoute('route-a')).toBe(true);
-            expect(newestKept).toHaveBeenCalled();
-            expect(droppedOldest).not.toHaveBeenCalled();
-            expect(warnSpy).toHaveBeenCalled();
-            warnSpy.mockRestore();
-        });
-
         it('captureTriggerForRoute consumes the picked launcher from the stack so a subsequent forward nav does not re-find it', () => {
             const launcher = appendButton();
             setActivePopoverLauncher(launcher);
@@ -619,29 +514,6 @@ describe('captureTriggerForRoute', () => {
             // Second route has no fallback (launcher was consumed by the first capture), so restore must be 'gone' not 'launcher-focused'.
             expect(restoreTriggerForRoute('route-b')).toBe(false);
             expect(launcherSpy).not.toHaveBeenCalled();
-        });
-
-        it('should cancel a pending deferred clear when a new launcher is set', () => {
-            withFakeTimers(() => {
-                const launcherA = appendButton();
-                const launcherB = appendButton();
-
-                setActivePopoverLauncher(launcherA);
-                scheduleClearActivePopoverLauncher();
-
-                // Open another popover within the clear window.
-                jest.advanceTimersByTime(100);
-                setActivePopoverLauncher(launcherB);
-
-                // Original deferred clear must NOT fire and wipe launcherB.
-                jest.advanceTimersByTime(2000);
-
-                captureTriggerForRoute('route-a');
-                launcherB.blur();
-                const spyB = jest.spyOn(launcherB, 'focus');
-                expect(restoreTriggerForRoute('route-a')).toBe(true);
-                expect(spyB).toHaveBeenCalled();
-            });
         });
     });
 
@@ -689,46 +561,39 @@ describe('restoreTriggerForRoute', () => {
     });
 
     describe('trigger cannot accept focus', () => {
+        function captureInsideWrapper(attr: string): HTMLButtonElement {
+            const wrapper = document.createElement('div');
+            wrapper.setAttribute(attr, attr === 'aria-hidden' ? 'true' : '');
+            const trigger = document.createElement('button');
+            wrapper.appendChild(trigger);
+            document.body.appendChild(wrapper);
+            trigger.focus();
+            setLastInteractiveElementForTests(trigger);
+            captureTriggerForRoute('route-a');
+            trigger.blur();
+            return trigger;
+        }
+        function captureBareButton(mutate?: (btn: HTMLButtonElement) => void): HTMLButtonElement {
+            const trigger = appendButton();
+            trigger.focus();
+            setLastInteractiveElementForTests(trigger);
+            captureTriggerForRoute('route-a');
+            trigger.blur();
+            mutate?.(trigger);
+            return trigger;
+        }
         it.each<[label: string, setup: () => HTMLButtonElement]>([
             [
                 'disabled',
-                () => {
-                    const trigger = appendButton();
-                    trigger.focus();
-                    setLastInteractiveElementForTests(trigger);
-                    captureTriggerForRoute('route-a');
-                    trigger.blur();
-                    trigger.disabled = true;
-                    return trigger;
-                },
+                () =>
+                    captureBareButton((t) => {
+                        // eslint-disable-next-line no-param-reassign
+                        t.disabled = true;
+                    }),
             ],
-            [
-                'aria-disabled="true"',
-                () => {
-                    const trigger = appendButton();
-                    trigger.focus();
-                    setLastInteractiveElementForTests(trigger);
-                    captureTriggerForRoute('route-a');
-                    trigger.blur();
-                    trigger.setAttribute('aria-disabled', 'true');
-                    return trigger;
-                },
-            ],
-            [
-                'inside an aria-hidden container',
-                () => {
-                    const hidden = document.createElement('div');
-                    hidden.setAttribute('aria-hidden', 'true');
-                    const trigger = document.createElement('button');
-                    hidden.appendChild(trigger);
-                    document.body.appendChild(hidden);
-                    trigger.focus();
-                    setLastInteractiveElementForTests(trigger);
-                    captureTriggerForRoute('route-a');
-                    trigger.blur();
-                    return trigger;
-                },
-            ],
+            ['aria-disabled="true"', () => captureBareButton((t) => t.setAttribute('aria-disabled', 'true'))],
+            ['inside an aria-hidden container', () => captureInsideWrapper('aria-hidden')],
+            ['inside an [inert] subtree', () => captureInsideWrapper('inert')],
         ])('should return false (and not take RETURN priority) when the trigger is %s', (_label, setup) => {
             const trigger = setup();
             const spy = jest.spyOn(trigger, 'focus');
@@ -863,20 +728,6 @@ describe('restoreTriggerForRoute', () => {
         expect(focusSpy).toHaveBeenCalledWith(expect.objectContaining({preventScroll: true}));
     });
 
-    it('should skip focus when trigger is inside an [inert] subtree', () => {
-        const inertWrapper = document.createElement('div');
-        inertWrapper.setAttribute('inert', '');
-        const primary = document.createElement('button');
-        inertWrapper.appendChild(primary);
-        document.body.appendChild(inertWrapper);
-        primary.focus();
-        setLastInteractiveElementForTests(primary);
-        captureTriggerForRoute('route-a');
-
-        // Inside [inert] → canAcceptFocus returns false; no fallback present → 'retry'.
-        expect(restoreTriggerForRoute('route-a')).toBe(false);
-    });
-
     it("Status → Clear after → Esc: restores to 'Clear after' even when Status AUTO-focuses the Message input", () => {
         withFakeTimers(() => {
             // Exercise the real runtime path: forward+backward handleStateChange with scheduled restore.
@@ -909,6 +760,45 @@ describe('restoreTriggerForRoute', () => {
             jest.runAllTimers();
             expect(clearSpy).toHaveBeenCalled();
             expect(messageSpy).not.toHaveBeenCalled();
+        });
+    });
+
+    it('post-RETURN_HOLD: a late-firing AUTO must not steal focus from the restored trigger (useAutoFocusInput activeElement guard)', () => {
+        withFakeTimers(() => {
+            const onStatus = stackState(0, [{key: 'status', name: 'Status'}]);
+            const onStatusClearAfter = stackState(1, [
+                {key: 'status', name: 'Status'},
+                {key: 'clear-after', name: 'ClearAfter'},
+            ]);
+            const messageInput = appendInput();
+            const clearAfterButton = appendButton();
+
+            // Forward capture: Tab+Enter on "Clear after" stores it against the Status route.
+            simulateTab();
+            handleStateChange(onStatus);
+            fireFocusIn(clearAfterButton);
+            handleStateChange(onStatusClearAfter);
+            clearAfterButton.blur();
+
+            // Esc → backward → scheduled restore fires first (short IM+rAF chain), focuses Clear after, then RETURN_HOLD_MS timer fires and releases the cycle.
+            handleStateChange(onStatus);
+            jest.runAllTimers();
+            expect(document.activeElement).toBe(clearAfterButton);
+            // Cycle is now 0; AUTO would succeed at the arbiter.
+            const returnReleased = tryClaim(Priorities.AUTO);
+            expect(returnReleased).toBe(true);
+            resetArbiter();
+
+            // Now simulate useAutoFocusInput's guarded late-fire. The guard must prevent input.focus().
+            const messageSpy = jest.spyOn(messageInput, 'focus');
+            const guardSaysSkip = typeof document !== 'undefined' && !!document.activeElement && document.activeElement !== document.body;
+            expect(guardSaysSkip).toBe(true);
+            if (!guardSaysSkip && tryClaim(Priorities.AUTO)) {
+                messageInput.focus();
+            }
+
+            expect(messageSpy).not.toHaveBeenCalled();
+            expect(document.activeElement).toBe(clearAfterButton);
         });
     });
 

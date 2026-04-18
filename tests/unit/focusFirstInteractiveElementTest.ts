@@ -57,27 +57,12 @@ describe('focusFirstInteractiveElement', () => {
             simulateTab();
         });
 
-        it('should focus the first button with focusVisible: true', () => {
-            const button = document.createElement('button');
-            const container = createContainer(button);
-            const spy = jest.spyOn(button, 'focus');
-
-            expect(focusFirstInteractiveElement(container)).toBe(true);
-            expect(spy).toHaveBeenCalledWith({preventScroll: true, focusVisible: true});
-        });
-
-        it('should focus after Tab → Enter', () => {
-            simulateEnter();
-            const button = document.createElement('button');
-            const container = createContainer(button);
-            const spy = jest.spyOn(button, 'focus');
-
-            expect(focusFirstInteractiveElement(container)).toBe(true);
-            expect(spy).toHaveBeenCalledWith({preventScroll: true, focusVisible: true});
-        });
-
-        it('should focus after Tab → Space', () => {
-            simulateSpace();
+        it.each<[label: string, after: () => void]>([
+            ['Tab only', () => {}],
+            ['Tab → Enter', simulateEnter],
+            ['Tab → Space', simulateSpace],
+        ])('should focus the first button with focusVisible: true (%s)', (_label, after) => {
+            after();
             const button = document.createElement('button');
             const container = createContainer(button);
             const spy = jest.spyOn(button, 'focus');
@@ -229,55 +214,27 @@ describe('focusFirstInteractiveElement', () => {
             simulateTab();
         });
 
-        it('should find button', () => {
-            const el = document.createElement('button');
-            const spy = jest.spyOn(el, 'focus');
-            focusFirstInteractiveElement(createContainer(el));
-            expect(spy).toHaveBeenCalled();
-        });
-
-        it('should find link (a[href])', () => {
-            const el = document.createElement('a');
-            el.setAttribute('href', '#');
-            const spy = jest.spyOn(el, 'focus');
-            focusFirstInteractiveElement(createContainer(el));
-            expect(spy).toHaveBeenCalled();
-        });
-
-        it('should find input', () => {
-            const el = document.createElement('input');
-            const spy = jest.spyOn(el, 'focus');
-            focusFirstInteractiveElement(createContainer(el));
-            expect(spy).toHaveBeenCalled();
-        });
-
-        it('should find textarea', () => {
-            const el = document.createElement('textarea');
-            const spy = jest.spyOn(el, 'focus');
-            focusFirstInteractiveElement(createContainer(el));
-            expect(spy).toHaveBeenCalled();
-        });
-
-        it('should find select', () => {
-            const el = document.createElement('select');
-            const spy = jest.spyOn(el, 'focus');
-            focusFirstInteractiveElement(createContainer(el));
-            expect(spy).toHaveBeenCalled();
-        });
-
-        it('should find [role="button"]', () => {
+        function makeRoleEl(role: string): HTMLElement {
             const el = document.createElement('div');
-            el.setAttribute('role', 'button');
+            el.setAttribute('role', role);
             el.setAttribute('tabindex', '0');
-            const spy = jest.spyOn(el, 'focus');
-            focusFirstInteractiveElement(createContainer(el));
-            expect(spy).toHaveBeenCalled();
-        });
-
-        it('should find [role="link"]', () => {
-            const el = document.createElement('div');
-            el.setAttribute('role', 'link');
-            el.setAttribute('tabindex', '0');
+            return el;
+        }
+        function makeLink(): HTMLElement {
+            const a = document.createElement('a');
+            a.setAttribute('href', '#');
+            return a;
+        }
+        it.each<[label: string, create: () => HTMLElement]>([
+            ['button', () => document.createElement('button')],
+            ['a[href]', makeLink],
+            ['input', () => document.createElement('input')],
+            ['textarea', () => document.createElement('textarea')],
+            ['select', () => document.createElement('select')],
+            ['[role="button"]', () => makeRoleEl('button')],
+            ['[role="link"]', () => makeRoleEl('link')],
+        ])('should find %s', (_label, create) => {
+            const el = create();
             const spy = jest.spyOn(el, 'focus');
             focusFirstInteractiveElement(createContainer(el));
             expect(spy).toHaveBeenCalled();

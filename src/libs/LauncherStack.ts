@@ -1,21 +1,19 @@
 /**
- * Stack of popover/modal "launcher" elements — the element that opened a focus trap. The top of the stack is the most recently opened trap.
- * `pickLauncher` prefers the topmost still-active entry; if none is active, falls back to the most recent deactivated entry still within LAUNCHER_CLEAR_DELAY_MS.
- * Split out from NavigationFocusReturn so the data structure and its lifecycle rules are independent from the trigger-map / state-listener subsystems.
+ * Stack of popover/modal launcher elements — the element that opened a focus trap. Top is the most recent.
+ * pickLauncher prefers the topmost active entry, else the most recent deactivated-within-LAUNCHER_CLEAR_DELAY_MS.
  */
 
-// `deactivatedAt` set when the trap closes; entry lives for LAUNCHER_CLEAR_DELAY_MS so a deferred-nav popover can still consume it.
+// deactivatedAt is set on trap close; entry lives LAUNCHER_CLEAR_DELAY_MS so deferred-nav popovers can still consume it.
 type LauncherEntry = {element: HTMLElement; deactivatedAt?: number};
 
-// Covers the click → state-listener → captureTriggerForRoute chain for deferred-nav popovers; conservative for slower devices.
+// Covers click → state-listener → captureTriggerForRoute on slow devices.
 const LAUNCHER_CLEAR_DELAY_MS = 1000;
-// Guard against pathological trap storms. Typical stack depth is 1–2.
 const LAUNCHER_STACK_MAX = 8;
 
 // Stack (not slot) so nested + sequential traps retain correct launcher context.
 const launcherStack: LauncherEntry[] = [];
 
-// Prefer topmost active, then most recent deactivated-within-window. Two passes so nested traps resolve to the outer (active) launcher, not the just-closed inner.
+// Two passes so nested traps resolve to the outer (active) launcher, not the just-closed inner.
 function pickLauncher(): HTMLElement | null {
     if (typeof document === 'undefined') {
         return null;
@@ -52,7 +50,6 @@ function pickLauncher(): HTMLElement | null {
     return null;
 }
 
-// Idempotent: silently no-ops if the launcher was already pruned (e.g. by pickLauncher's stale-entry cleanup).
 function consumeLauncher(element: HTMLElement): void {
     const idx = launcherStack.findIndex((e) => e.element === element);
     if (idx >= 0) {
@@ -64,7 +61,6 @@ function setActivePopoverLauncher(element: HTMLElement): void {
     if (typeof document === 'undefined') {
         return;
     }
-    // Re-activating an element already on the stack just clears its deactivated state.
     const existing = launcherStack.find((e) => e.element === element);
     if (existing) {
         existing.deactivatedAt = undefined;
@@ -72,14 +68,14 @@ function setActivePopoverLauncher(element: HTMLElement): void {
     }
     launcherStack.push({element});
     while (launcherStack.length > LAUNCHER_STACK_MAX) {
-        // Overflow drops the oldest (outermost) launcher — typically the most important to restore to. Should never happen in normal use.
+        // Overflow drops the oldest (outermost) launcher. Should never happen in normal use.
         // eslint-disable-next-line no-console
         console.warn('[NavigationFocusReturn] launcherStack overflow — dropping oldest entry');
         launcherStack.shift();
     }
 }
 
-/** Mark the given launcher (or the top of the stack if omitted) as deactivated. Lazy pruning in pickLauncher enforces LAUNCHER_CLEAR_DELAY_MS. */
+/** Mark a launcher (or top-of-stack) as deactivated. pickLauncher lazy-prunes on LAUNCHER_CLEAR_DELAY_MS. */
 function scheduleClearActivePopoverLauncher(element?: HTMLElement): void {
     if (typeof document === 'undefined') {
         return;

@@ -16,7 +16,7 @@ const CYCLE_TIMEOUT_MS = 2000;
 let currentPriority: Priority | 0 = 0;
 let lastClaimTimestamp = 0;
 
-// Equal-priority re-claims are allowed (>= succeeds): two successive RETURN claims within the same cycle must both win so retries after a transient aria-hidden don't self-veto.
+// Equal-priority re-claims succeed (>=) so RETURN retries after transient aria-hidden don't self-veto.
 function tryClaim(priority: Priority): boolean {
     const now = Date.now();
     if (now - lastClaimTimestamp > CYCLE_TIMEOUT_MS) {
