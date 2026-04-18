@@ -815,7 +815,20 @@ function ReportActionsList({
         );
     }, [canShowHeader, report, retryLoadNewerChatsError]);
 
-    const shouldShowSkeleton = isOffline && !sortedVisibleReportActions.some((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED);
+    // Using isLoadingInitialReportActions so that if the OpenReport API fails
+    // (which clears isLoadingInitialReportActions but never sets hasOnceLoadedReportActions),
+    // the skeleton resolves instead of being stuck forever.
+    const isWaitingForInitialLoad = !isOffline && !!reportMetadata?.isLoadingInitialReportActions && !reportMetadata?.hasOnceLoadedReportActions;
+    const isOfflineWithIncompleteData = isOffline && !sortedVisibleReportActions.some((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED);
+    const shouldShowSkeleton = isWaitingForInitialLoad || isOfflineWithIncompleteData;
+
+    // While report actions are loading online, show only the last action as a fallback
+    // since it's available before the rest finish loading. This avoids the empty space issue
+    // and prevents the UI jump where old messages get inserted between preloaded ones.
+    const reportActionsToRender = useMemo(
+        () => (isWaitingForInitialLoad && lastAction ? [lastAction] : sortedVisibleReportActions),
+        [isWaitingForInitialLoad, lastAction, sortedVisibleReportActions],
+    );
 
     const listFooterComponent = useMemo(() => {
         if (!shouldShowSkeleton) {
@@ -876,7 +889,7 @@ function ReportActionsList({
                     ref={reportScrollManager.ref}
                     testID="report-actions-list"
                     style={styles.overscrollBehaviorContain}
-                    data={sortedVisibleReportActions}
+                    data={reportActionsToRender}
                     renderItem={renderItem}
                     keyExtractor={keyExtractor}
                     drawDistance={1500}
