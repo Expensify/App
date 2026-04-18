@@ -113,7 +113,7 @@ function CategorySettingsPage({
         return `${convertToDisplayString(policyCategory?.maxExpenseAmount, policyCurrency)} ${CONST.DOT_SEPARATOR} ${translate(
             `workspace.rules.categoryRules.expenseLimitTypes.${policyCategoryExpenseLimitType}`,
         )}`;
-    }, [policyCategory?.maxExpenseAmount, policyCategoryExpenseLimitType, policyCurrency, translate]);
+    }, [convertToDisplayString, policyCategory?.maxExpenseAmount, policyCategoryExpenseLimitType, policyCurrency, translate]);
 
     const approverText = useMemo(() => {
         const categoryApprover = getCategoryApproverRule(policy?.rules?.approvalRules ?? [], categoryName)?.approver ?? '';
