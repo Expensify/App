@@ -2113,7 +2113,7 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         mccGroup?: Record<string, MccGroup>;
 
         /** Workspace account ID configured for Expensify Card */
-        workspaceAccountID?: number;
+        policyAccountID?: number;
 
         /** Setup specialist guide assigned for the policy */
         assignedGuide?: {

@@ -12,7 +12,7 @@ const domainID = 19475968;
 const mockPolicyID = '123456';
 const workspaceAccountID = 11111111;
 
-const mockPolicy = {...createRandomPolicy(Number(mockPolicyID), CONST.POLICY.TYPE.TEAM, 'TestPolicy'), policyID: mockPolicyID, workspaceAccountID};
+const mockPolicy = {...createRandomPolicy(Number(mockPolicyID), CONST.POLICY.TYPE.TEAM, 'TestPolicy'), policyID: mockPolicyID, policyAccountID: workspaceAccountID};
 
 const mockedFeeds = {
     // eslint-disable-next-line @typescript-eslint/naming-convention

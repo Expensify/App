@@ -133,7 +133,7 @@ function AddNewCardPage({policy}: WithPolicyAndFullscreenLoadingProps) {
             CurrentStep = (
                 <StatementCloseDateStep
                     policyID={policyID}
-                    workspaceAccountID={workspaceAccountID}
+                    policyAccountID={workspaceAccountID}
                 />
             );
             break;
