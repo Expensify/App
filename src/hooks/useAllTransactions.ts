@@ -31,10 +31,24 @@ function useAllTransactions() {
                 {} as Record<string, OnyxEntry<Transaction>>,
             );
 
-        return {
+        const mergedTransactions = {
             ...filteredSearchTransactions,
             ...allTransactionsCollection,
         };
+
+        for (const [key, snapshotTransaction] of Object.entries(filteredSearchTransactions)) {
+            const onyxTransaction = mergedTransactions[key];
+            if (!snapshotTransaction?.transactionThreadReportID || !onyxTransaction || onyxTransaction.transactionThreadReportID) {
+                continue;
+            }
+
+            mergedTransactions[key] = {
+                ...onyxTransaction,
+                transactionThreadReportID: snapshotTransaction.transactionThreadReportID,
+            };
+        }
+
+        return mergedTransactions;
     }, [currentSearchResults?.data, allTransactionsCollection]);
 
     return allTransactions;

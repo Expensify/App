@@ -1,9 +1,17 @@
 import Onyx from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {getReportPreviewAction} from '@libs/actions/IOU';
-import {areTransactionsEligibleForMerge, mergeTransactionRequest, setMergeTransactionKey, setupMergeTransactionData} from '@libs/actions/MergeTransaction';
+import {
+    areTransactionsEligibleForMerge,
+    mergeTransactionRequest,
+    setMergeTransactionKey,
+    setupMergeTransactionData,
+    setupMergeTransactionDataAndNavigate,
+} from '@libs/actions/MergeTransaction';
+import type {TargetTransactionThreadReportCandidate} from '@libs/actions/MergeTransaction';
 import {addComment, openReport} from '@libs/actions/Report';
 import {WRITE_COMMANDS} from '@libs/API/types';
+import Navigation from '@libs/Navigation/Navigation';
 import {getLoginsByAccountIDs} from '@libs/PersonalDetailsUtils';
 import {getOriginalMessage, getReportAction} from '@libs/ReportActionsUtils';
 import {buildTransactionThread} from '@libs/ReportUtils';
@@ -62,6 +70,8 @@ function createAllTransactionViolations(
 
 const TEST_EMAIL = 'test@expensifail.com';
 const TEST_ACCOUNT_ID = 1;
+const mockLocaleCompare = (a: string, b: string) => a.localeCompare(b);
+const mockGetCurrencyDecimals = () => 2;
 
 describe('mergeTransactionRequest', () => {
     let mockFetch: MockFetch;
@@ -1249,6 +1259,267 @@ describe('setupMergeTransactionData', () => {
     });
 });
 
+describe('setupMergeTransactionDataAndNavigate', () => {
+    beforeEach(() => {
+        return Onyx.clear().then(waitForBatchedUpdates);
+    });
+
+    it('should persist targetTransactionThreadReportID for the bulk merge flow', async () => {
+        const transactionID = 'merge-transaction-123';
+        const threadReportID = 'thread-report-123';
+        const targetTransaction = {
+            ...createRandomTransaction(1),
+            transactionID: 'target-transaction-123',
+            reportID: 'report-123',
+            transactionThreadReportID: threadReportID,
+            managedCard: false,
+            bank: CONST.COMPANY_CARD.FEED_BANK_NAME.UPLOAD,
+            cardName: CONST.EXPENSE.TYPE.CASH_CARD_NAME,
+            cardNumber: undefined,
+            receipt: undefined,
+            comment: {
+                comment: 'target',
+            },
+        };
+        const sourceTransaction = {
+            ...createRandomTransaction(2),
+            transactionID: 'source-transaction-123',
+            reportID: 'report-456',
+            managedCard: false,
+            bank: CONST.COMPANY_CARD.FEED_BANK_NAME.UPLOAD,
+            cardName: CONST.EXPENSE.TYPE.CASH_CARD_NAME,
+            cardNumber: undefined,
+            receipt: undefined,
+            comment: {
+                comment: 'source',
+            },
+        };
+
+        const navigateSpy = jest.spyOn(Navigation, 'navigate').mockImplementation(jest.fn());
+        const getActiveRouteSpy = jest.spyOn(Navigation, 'getActiveRoute').mockReturnValue('/reports/expenses');
+
+        setupMergeTransactionDataAndNavigate(transactionID, [targetTransaction, sourceTransaction], mockLocaleCompare, mockGetCurrencyDecimals, undefined, false, true);
+        await waitForBatchedUpdates();
+
+        const mergeTransaction = await new Promise<MergeTransactionType | null>((resolve) => {
+            const connection = Onyx.connect({
+                key: `${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${transactionID}`,
+                callback: (currentMergeTransaction) => {
+                    Onyx.disconnect(connection);
+                    resolve(currentMergeTransaction ?? null);
+                },
+            });
+        });
+
+        expect(mergeTransaction).toEqual({
+            targetTransactionID: targetTransaction.transactionID,
+            sourceTransactionID: sourceTransaction.transactionID,
+            targetTransactionThreadReportID: threadReportID,
+        });
+        expect(navigateSpy).toHaveBeenCalled();
+
+        navigateSpy.mockRestore();
+        getActiveRouteSpy.mockRestore();
+    });
+
+    it('should persist targetTransactionThreadReportID for the single-selection merge flow when an override is provided', async () => {
+        const transactionID = 'merge-transaction-single-123';
+        const threadReportID = 'thread-report-single-123';
+        const targetTransactionThreadReportCandidate: TargetTransactionThreadReportCandidate = {
+            transactionID: 'target-transaction-single-123',
+            threadReportID,
+        };
+        const targetTransaction = {
+            ...createRandomTransaction(1),
+            transactionID: 'target-transaction-single-123',
+            reportID: 'report-single-123',
+        };
+
+        const navigateSpy = jest.spyOn(Navigation, 'navigate').mockImplementation(jest.fn());
+        const getActiveRouteSpy = jest.spyOn(Navigation, 'getActiveRoute').mockReturnValue('/search?q=type:expense');
+
+        setupMergeTransactionDataAndNavigate(
+            transactionID,
+            [targetTransaction],
+            mockLocaleCompare,
+            mockGetCurrencyDecimals,
+            undefined,
+            false,
+            true,
+            undefined,
+            targetTransactionThreadReportCandidate,
+        );
+        await waitForBatchedUpdates();
+
+        const mergeTransaction = await new Promise<MergeTransactionType | null>((resolve) => {
+            const connection = Onyx.connect({
+                key: `${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${transactionID}`,
+                callback: (currentMergeTransaction) => {
+                    Onyx.disconnect(connection);
+                    resolve(currentMergeTransaction ?? null);
+                },
+            });
+        });
+
+        expect(mergeTransaction).toEqual({
+            targetTransactionID: targetTransaction.transactionID,
+            targetTransactionThreadReportID: threadReportID,
+        });
+        expect(navigateSpy).toHaveBeenCalled();
+
+        navigateSpy.mockRestore();
+        getActiveRouteSpy.mockRestore();
+    });
+
+    it('should persist the override when reseeding the two-transaction merge flow from the list page', async () => {
+        const transactionID = 'merge-transaction-override-123';
+        const threadReportID = 'thread-report-override-123';
+        const targetTransactionThreadReportCandidate: TargetTransactionThreadReportCandidate = {
+            transactionID: 'target-transaction-override-123',
+            threadReportID,
+        };
+        const targetTransaction = {
+            ...createRandomTransaction(1),
+            transactionID: 'target-transaction-override-123',
+            reportID: 'report-override-123',
+            managedCard: false,
+            bank: CONST.COMPANY_CARD.FEED_BANK_NAME.UPLOAD,
+            cardName: CONST.EXPENSE.TYPE.CASH_CARD_NAME,
+            cardNumber: undefined,
+            receipt: undefined,
+            comment: {
+                comment: 'target',
+            },
+        };
+        const sourceTransaction = {
+            ...createRandomTransaction(2),
+            transactionID: 'source-transaction-override-123',
+            reportID: 'report-override-456',
+            managedCard: false,
+            bank: CONST.COMPANY_CARD.FEED_BANK_NAME.UPLOAD,
+            cardName: CONST.EXPENSE.TYPE.CASH_CARD_NAME,
+            cardNumber: undefined,
+            receipt: undefined,
+            comment: {
+                comment: 'source',
+            },
+        };
+
+        const navigateSpy = jest.spyOn(Navigation, 'navigate').mockImplementation(jest.fn());
+        const getActiveRouteSpy = jest.spyOn(Navigation, 'getActiveRoute').mockReturnValue('/merge/test');
+
+        setupMergeTransactionDataAndNavigate(
+            transactionID,
+            [targetTransaction, sourceTransaction],
+            mockLocaleCompare,
+            mockGetCurrencyDecimals,
+            undefined,
+            true,
+            true,
+            undefined,
+            targetTransactionThreadReportCandidate,
+        );
+        await waitForBatchedUpdates();
+
+        const mergeTransaction = await new Promise<MergeTransactionType | null>((resolve) => {
+            const connection = Onyx.connect({
+                key: `${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${transactionID}`,
+                callback: (currentMergeTransaction) => {
+                    Onyx.disconnect(connection);
+                    resolve(currentMergeTransaction ?? null);
+                },
+            });
+        });
+
+        expect(mergeTransaction).toEqual({
+            targetTransactionID: targetTransaction.transactionID,
+            sourceTransactionID: sourceTransaction.transactionID,
+            targetTransactionThreadReportID: threadReportID,
+        });
+        expect(navigateSpy).toHaveBeenCalled();
+
+        navigateSpy.mockRestore();
+        getActiveRouteSpy.mockRestore();
+    });
+
+    it('should ignore the candidate thread when the final target swaps to the selected split expense', async () => {
+        const transactionID = 'merge-transaction-split-swap-123';
+        const cashThreadReportID = 'thread-report-cash-123';
+        const splitThreadReportID = 'thread-report-split-123';
+        const targetTransactionThreadReportCandidate: TargetTransactionThreadReportCandidate = {
+            transactionID: 'cash-transaction-123',
+            threadReportID: cashThreadReportID,
+        };
+        const cashTransaction = {
+            ...createRandomTransaction(1),
+            transactionID: 'cash-transaction-123',
+            reportID: 'report-cash-123',
+            transactionThreadReportID: cashThreadReportID,
+            managedCard: false,
+            bank: CONST.COMPANY_CARD.FEED_BANK_NAME.UPLOAD,
+            cardName: CONST.EXPENSE.TYPE.CASH_CARD_NAME,
+            cardNumber: undefined,
+            receipt: undefined,
+            comment: {
+                comment: 'cash',
+            },
+        };
+        const splitTransaction = {
+            ...createRandomTransaction(2),
+            transactionID: 'split-transaction-123',
+            reportID: 'report-split-123',
+            transactionThreadReportID: splitThreadReportID,
+            managedCard: false,
+            bank: CONST.COMPANY_CARD.FEED_BANK_NAME.UPLOAD,
+            cardName: CONST.EXPENSE.TYPE.CASH_CARD_NAME,
+            cardNumber: undefined,
+            receipt: undefined,
+            comment: {
+                ...createRandomTransaction(2).comment,
+                comment: 'split',
+                originalTransactionID: 'original-split-transaction-123',
+                source: CONST.IOU.TYPE.SPLIT,
+            },
+        } as Transaction;
+
+        const navigateSpy = jest.spyOn(Navigation, 'navigate').mockImplementation(jest.fn());
+        const getActiveRouteSpy = jest.spyOn(Navigation, 'getActiveRoute').mockReturnValue('/merge/test');
+
+        setupMergeTransactionDataAndNavigate(
+            transactionID,
+            [cashTransaction, splitTransaction],
+            mockLocaleCompare,
+            mockGetCurrencyDecimals,
+            undefined,
+            true,
+            true,
+            undefined,
+            targetTransactionThreadReportCandidate,
+        );
+        await waitForBatchedUpdates();
+
+        const mergeTransaction = await new Promise<MergeTransactionType | null>((resolve) => {
+            const connection = Onyx.connect({
+                key: `${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${transactionID}`,
+                callback: (currentMergeTransaction) => {
+                    Onyx.disconnect(connection);
+                    resolve(currentMergeTransaction ?? null);
+                },
+            });
+        });
+
+        expect(mergeTransaction).toEqual({
+            targetTransactionID: splitTransaction.transactionID,
+            sourceTransactionID: cashTransaction.transactionID,
+            targetTransactionThreadReportID: splitThreadReportID,
+        });
+        expect(navigateSpy).toHaveBeenCalled();
+
+        navigateSpy.mockRestore();
+        getActiveRouteSpy.mockRestore();
+    });
+});
+
 describe('setMergeTransactionKey', () => {
     beforeEach(() => {
         return Onyx.clear().then(waitForBatchedUpdates);
@@ -1292,6 +1563,39 @@ describe('setMergeTransactionKey', () => {
             amount: 1000, // Preserved
             category: 'New Category', // Added
             description: 'New Description', // Added
+        });
+    });
+
+    it('should preserve targetTransactionThreadReportID when updating merge state for confirmation', async () => {
+        const transactionID = 'test-transaction-456';
+        const existingMergeTransaction = {
+            targetTransactionID: transactionID,
+            targetTransactionThreadReportID: 'thread-report-456',
+            eligibleTransactions: [createRandomTransaction(1), createRandomTransaction(2)],
+        };
+
+        await Onyx.set(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${transactionID}`, existingMergeTransaction);
+
+        setMergeTransactionKey(transactionID, {
+            sourceTransactionID: 'source-transaction-456',
+        });
+        await waitForBatchedUpdates();
+
+        const mergeTransaction = await new Promise<MergeTransactionType | null>((resolve) => {
+            const connection = Onyx.connect({
+                key: `${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${transactionID}`,
+                callback: (currentMergeTransaction) => {
+                    Onyx.disconnect(connection);
+                    resolve(currentMergeTransaction ?? null);
+                },
+            });
+        });
+
+        expect(mergeTransaction).toEqual({
+            targetTransactionID: transactionID,
+            targetTransactionThreadReportID: 'thread-report-456',
+            sourceTransactionID: 'source-transaction-456',
+            eligibleTransactions: existingMergeTransaction.eligibleTransactions,
         });
     });
 });
