@@ -203,7 +203,8 @@ function isDeletedAction(reportAction: OnyxInputOrEntry<ReportAction | Optimisti
     // for report actions with this type we get an empty array as message by design
     if (
         reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DIRECTOR_INFORMATION_REQUIRED ||
-        reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED_REPORT_FOR_UNAPPROVED_TRANSACTIONS
+        reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED_REPORT_FOR_UNAPPROVED_TRANSACTIONS ||
+        reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REASSIGN_APPROVER
     ) {
         return false;
     }
@@ -4273,11 +4274,18 @@ function getUpdatedOwnershipMessage(translate: LocalizedTranslate, reportAction:
     return translate('workspaceActions.updatedOwnership', oldOwnerEmail, oldOwnerName, policy?.name ?? '');
 }
 
-function getChangedApproverActionMessage<T extends typeof CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL | typeof CONST.REPORT.ACTIONS.TYPE.REROUTE>(
-    translate: LocalizedTranslate,
-    reportAction: OnyxEntry<ReportAction>,
-) {
-    const {mentionedAccountIDs} = getOriginalMessage(reportAction as ReportAction<T>) ?? {};
+function getChangedApproverActionMessage(translate: LocalizedTranslate, reportAction: OnyxEntry<ReportAction>) {
+    if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.REASSIGN_APPROVER)) {
+        const originalMessage = getOriginalMessage(reportAction);
+        const newApproverID = originalMessage?.newApproverID;
+        if (newApproverID) {
+            return translate('iou.changeApprover.reassignedApproverMessage', newApproverID);
+        }
+        Log.warn('REASSIGN_APPROVER action missing newApproverID');
+        return '';
+    }
+
+    const {mentionedAccountIDs} = getOriginalMessage(reportAction as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL | typeof CONST.REPORT.ACTIONS.TYPE.REROUTE>) ?? {};
 
     // If mentionedAccountIDs exists and has values, use the first one
     if (mentionedAccountIDs?.length) {
