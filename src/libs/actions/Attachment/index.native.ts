@@ -5,11 +5,25 @@ import {getImageCacheFileExtension} from '@libs/AttachmentUtils';
 import Log from '@libs/Log';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {CacheAttachmentProps, GetCachedAttachmentProps, RemoveCachedAttachmentProps} from './types';
 
 const ATTACHMENT_DIR = `${RNFS.DocumentDirectoryPath}/attachments`;
 
-async function cacheAttachment({attachmentID, uri, mimeType}: CacheAttachmentProps) {
+async function cacheAttachment({attachmentID, source, mimeType}: CacheAttachmentProps): Promise<string | undefined> {
+    const uri = source.uri;
+    const isAuthRemoteAttachment = !isEmptyObject(source.headers);
+
+    if (!uri || isAuthRemoteAttachment || !attachmentID) {
+        return;
+    }
+
+    // Create attachment directory if it's not yet exists
+    const isAttachmentDirExists = await RNFS.exists(ATTACHMENT_DIR);
+    if (!isAttachmentDirExists) {
+        await RNFS.mkdir(ATTACHMENT_DIR);
+    }
+
     const isLocalFile = uri.startsWith('file://');
     const fileExtension = getImageCacheFileExtension(mimeType ?? '');
 
@@ -24,11 +38,11 @@ async function cacheAttachment({attachmentID, uri, mimeType}: CacheAttachmentPro
                 attachmentID,
                 source: destPath,
             });
-        } catch (error) {
-            Log.warn('[AttachmentCache] Failed to cache attachment', {error});
-        }
 
-        return;
+            return destPath;
+        } catch (error) {
+            throw new Error('[AttachmentCache] Failed to cache attachment');
+        }
     }
 
     try {
@@ -39,16 +53,14 @@ async function cacheAttachment({attachmentID, uri, mimeType}: CacheAttachmentPro
 
         // Exit if the attachment size is too large
         if (contentSize > CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE) {
-            Log.warn('[AttachmentCache] Attachment is too large, skipping cache', {attachmentID, contentSize});
-            return;
+            throw new Error('[AttachmentCache] Attachment is too large, skipping cache');
         }
 
         const attachmentFileExtension = getImageCacheFileExtension(contentType ?? '');
 
         // If attachmentFileExtension is not set properly / or doesn't exist in our lists, then we need to exit
         if (!attachmentFileExtension) {
-            Log.warn('[AttachmentCache] Unsupported file type, skipping cache', {attachmentID, contentType});
-            return;
+            throw new Error('[AttachmentCache] Unsupported file type, skipping cache');
         }
 
         const fileName = `${attachmentID}.${attachmentFileExtension}`;
@@ -60,25 +72,38 @@ async function cacheAttachment({attachmentID, uri, mimeType}: CacheAttachmentPro
             source: filePath,
             remoteSource: uri,
         });
+
+        return filePath;
     } catch (error) {
-        Log.warn('[AttachmentCache] Failed to cache attachment', {error});
+        throw new Error('[AttachmentCache] Failed to cache attachment');
     }
 }
 
-async function getCachedAttachment({attachmentID, attachment, currentSource}: GetCachedAttachmentProps) {
-    const isStale = attachment ? attachment?.remoteSource && attachment.remoteSource !== currentSource : false;
+async function getCachedAttachment({attachmentID, attachment, source}: GetCachedAttachmentProps) {
+    if (isEmptyObject(source) || !source.uri || !isEmptyObject(source.headers)) {
+        return;
+    }
+    const imageSource = source.uri;
+
+    if (!attachmentID) {
+        return imageSource;
+    }
+
+    const isStale = attachment ? attachment?.remoteSource && attachment.remoteSource !== imageSource : false;
     if (isStale) {
-        // Only re-cache the [markdown-attachment] if it is outdated (updated)
-        cacheAttachment({attachmentID, uri: currentSource});
-        return currentSource;
+        // Only re-cache the [markdown-attachment] if it's outdated
+        const cachedUri = await cacheAttachment({attachmentID, source: {uri: imageSource}}).catch(() => {
+            throw new Error('[AttachmentCache] Failed to re-cache markdown attachment');
+        });
+        return cachedUri;
     }
 
-    const localSource = attachment?.source;
-    if (localSource) {
-        return localSource;
+    const cachedSource = attachment?.source;
+    if (cachedSource) {
+        return cachedSource;
     }
 
-    return currentSource;
+    return imageSource;
 }
 
 async function removeCachedAttachment({attachmentID, localSource}: RemoveCachedAttachmentProps): Promise<void> {

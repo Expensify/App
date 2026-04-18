@@ -7412,10 +7412,6 @@ const CONST = {
         BOOK_MEETING_LINK: 'https://calendly.com/d/cqsm-2gm-fxr/expensify-product-team',
     },
 
-    CACHE_API_KEYS: {
-        ATTACHMENTS: 'attachments',
-    },
-
     SESSION_STORAGE_KEYS: {
         INITIAL_URL: 'INITIAL_URL',
         ACTIVE_WORKSPACE_ID: 'ACTIVE_WORKSPACE_ID',
@@ -9628,6 +9624,7 @@ const CONST = {
 
     CACHE_NAME: {
         AUTH_IMAGES: 'auth-images',
+        ATTACHMENTS: 'attachments',
     },
 
     MODAL_MAX_HEIGHT_TO_WINDOW_HEIGHT_RATIO_LANDSCAPE_MODE: 0.75,

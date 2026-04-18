@@ -1,7 +1,11 @@
 import type {ImageSource} from 'expo-image';
-import {useEffect, useState} from 'react';
+import {useContext, useEffect, useState} from 'react';
+import {AttachmentIDContext} from '@components/Attachments/AttachmentIDContext';
+import useOnyx from '@hooks/useOnyx';
+import {getCachedAttachment} from '@libs/actions/Attachment';
 import Log from '@libs/Log';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 
 const clearAuthImagesCache = async () => {
     if (!('caches' in window)) {
@@ -18,64 +22,47 @@ const clearAuthImagesCache = async () => {
 function useCachedImageSource(source: ImageSource | undefined): ImageSource | null | undefined {
     const uri = typeof source === 'object' ? source.uri : undefined;
     const hasHeaders = typeof source === 'object' && !!source.headers;
+    const {attachmentID} = useContext(AttachmentIDContext);
     const [cachedUri, setCachedUri] = useState<string | null>(null);
     const [hasError, setHasError] = useState(false);
+    const [attachment, attachmentMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.ATTACHMENT}${attachmentID}`);
 
     useEffect(() => {
         setCachedUri(null);
         setHasError(false);
 
-        if (!hasHeaders || !uri) {
+        if ((!hasHeaders && !attachmentID) || !uri) {
+            return;
+        }
+
+        if (attachmentID && attachmentMetadata.status === 'loading') {
             return;
         }
 
         let revoked = false;
         let objectURL: string | undefined;
 
-        (async () => {
-            try {
-                const cache = await caches.open(CONST.CACHE_NAME.AUTH_IMAGES);
-                const cachedResponse = await cache.match(uri);
-
-                if (cachedResponse) {
-                    const blob = await cachedResponse.blob();
-                    objectURL = URL.createObjectURL(blob);
-                    if (!revoked) {
-                        setCachedUri(objectURL);
-                    } else {
-                        URL.revokeObjectURL(objectURL);
-                    }
-                    return;
-                }
-
-                const response = await fetch(uri, {headers: source.headers});
-
-                if (!response.ok) {
+        getCachedAttachment({attachmentID, attachment, source})
+            .then((cachedSource) => {
+                if (!cachedSource) {
                     if (!revoked) {
                         setHasError(true);
                     }
                     return;
                 }
-
-                // Store in cache before consuming
-                await cache.put(uri, response.clone());
-
-                const blob = await response.blob();
-                objectURL = URL.createObjectURL(blob);
                 if (!revoked) {
-                    setCachedUri(objectURL);
+                    setCachedUri(cachedSource);
                 } else {
-                    URL.revokeObjectURL(objectURL);
+                    URL.revokeObjectURL(cachedSource);
                 }
-            } catch (error) {
-                if (error instanceof DOMException && error.name === 'QuotaExceededError') {
-                    await clearAuthImagesCache();
-                }
+            })
+            .catch(() => {
                 if (!revoked) {
                     setHasError(true);
                 }
-            }
-        })();
+                // TODO: Improve error loging
+                Log.hmmm('[AttachmentCache] Failed to get cached attachment');
+            });
 
         return () => {
             revoked = true;
@@ -83,11 +70,11 @@ function useCachedImageSource(source: ImageSource | undefined): ImageSource | nu
                 URL.revokeObjectURL(objectURL);
             }
         };
-    }, [uri, hasHeaders, source?.headers]);
+    }, [uri, hasHeaders, source?.headers, attachment, attachmentMetadata.status, attachmentID, source]);
 
     // Images without headers are cached natively by the browser,
     // so pass them through as-is — no Cache API needed
-    if (!hasHeaders) {
+    if (!hasHeaders && !attachmentID) {
         return source;
     }
 
