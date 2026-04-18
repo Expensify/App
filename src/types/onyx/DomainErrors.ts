@@ -28,6 +28,10 @@ type DomainMemberErrors = {
      * Errors related to specific domain member lock account status.
      */
     lockAccountErrors?: OnyxCommon.Errors;
+    /**
+     * Errors related to changing domain member group.
+     */
+    changeDomainSecurityGroupErrors?: OnyxCommon.Errors;
 } & GeneralDomainMemberErrors;
 
 /**

@@ -110,6 +110,7 @@ const translations: TranslationDeepObject<typeof en> = {
         newFeature: 'Novo recurso',
         search: 'Buscar',
         reports: 'Relatórios',
+        spend: 'Gastos',
         find: 'Localizar',
         searchWithThreeDots: 'Buscar...',
         next: 'Próximo',
@@ -1044,6 +1045,7 @@ const translations: TranslationDeepObject<typeof en> = {
             title: 'Introdução',
             createWorkspace: 'Criar um workspace',
             connectAccounting: ({integrationName}: {integrationName: string}) => `Conectar ao ${integrationName}`,
+            connectAccountingDefault: 'Conectar à contabilidade',
             customizeCategories: 'Personalizar categorias contábeis',
             linkCompanyCards: 'Vincular cartões corporativos',
             setupRules: 'Configurar regras de gasto',
@@ -1661,6 +1663,7 @@ const translations: TranslationDeepObject<typeof en> = {
             prompt: 'Ative o acompanhamento de impostos no espaço de trabalho para editar os detalhes da despesa ou excluir o imposto desta despesa.',
             confirmText: 'Excluir imposto',
         },
+        bulkDuplicateLimit: `Você pode duplicar até ${CONST.SEARCH.BULK_DUPLICATE_LIMIT} despesas por vez. Selecione menos despesas e tente novamente.`,
         deleted: 'Excluído',
     },
     transactionMerge: {
@@ -2598,6 +2601,9 @@ ${amount} para ${merchant} - ${date}`,
     workflowsExpensesFromPage: {
         title: 'Despesas de',
         header: 'Quando os seguintes membros enviarem despesas:',
+        memberAlreadyInWorkflowTitle: 'Membro já está em um fluxo de trabalho',
+        memberAlreadyInWorkflowPrompt: ({memberName, approverName}: {memberName: string; approverName: string}) =>
+            `${memberName} já está em um fluxo de aprovação que envia para ${approverName}. Adicioná-lo aqui irá movê-lo para este fluxo de trabalho.`,
     },
     workflowsApproverPage: {
         genericErrorMessage: 'O aprovador não pôde ser alterado. Tente novamente ou entre em contato com o suporte.',
@@ -2900,9 +2906,11 @@ ${amount} para ${merchant} - ${date}`,
         },
         employees: {
             title: 'Quantos funcionários você tem?',
-            [CONST.ONBOARDING_COMPANY_SIZE.MICRO]: '1–10 funcionários',
+            [CONST.ONBOARDING_COMPANY_SIZE.MICRO_SMALL]: '1–4 funcionários',
+            [CONST.ONBOARDING_COMPANY_SIZE.MICRO_MEDIUM]: '5–10 funcionários',
+            [CONST.ONBOARDING_COMPANY_SIZE.MICRO]: '1-10 funcionários',
             [CONST.ONBOARDING_COMPANY_SIZE.SMALL]: '11–50 funcionários',
-            [CONST.ONBOARDING_COMPANY_SIZE.MEDIUM_SMALL]: '51–100 funcionários',
+            [CONST.ONBOARDING_COMPANY_SIZE.MEDIUM_SMALL]: '51 a 100 funcionários',
             [CONST.ONBOARDING_COMPANY_SIZE.MEDIUM]: '101–1.000 funcionários',
             [CONST.ONBOARDING_COMPANY_SIZE.LARGE]: 'Mais de 1.000 funcionários',
         },
@@ -4270,6 +4278,7 @@ ${amount} para ${merchant} - ${date}`,
             budgetFrequencyUnit: {monthly: 'mês', yearly: 'ano'},
             budgetTypeForNotificationMessage: {tag: 'etiqueta', category: 'categoria'},
             deepDiveExpensifyCard: `<muted-text-label>As transações do Cartão Expensify serão exportadas automaticamente para uma “Conta de Responsabilidade do Cartão Expensify” criada com <a href="${CONST.DEEP_DIVE_EXPENSIFY_CARD}">nossa integração</a>.</muted-text-label>`,
+            hr: 'RH',
         },
         receiptPartners: {
             uber: {
@@ -5485,6 +5494,12 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                             settlementFrequencyLabel: 'Frequência de liquidação',
                             settlementFrequencyDescription:
                                 'Com que frequência o Expensify vai debitar da sua conta bancária empresarial para liquidar as transações recentes do Expensify Travel.',
+                            monthlySpendLimitLabel: 'Limite de gastos mensal por membro',
+                            monthlySpendLimitDescription: 'O valor máximo que cada membro pode gastar em viagens por mês.',
+                            reduceLimitTitle: 'Reduzir o limite de gastos com viagens?',
+                            reduceLimitWarning: 'Se você reduzir o limite, os membros que já gastaram mais do que esse valor não poderão fazer novas reservas de viagem até o próximo mês.',
+                            provisioningError:
+                                'Não conseguimos provisionar alguns membros do seu workspace para faturamento centralizado. Tente novamente mais tarde ou entre em contato com o Concierge para obter ajuda.',
                         },
                     },
                     disableModal: {
@@ -6894,6 +6909,31 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                 other: `Você se comprometeu com ${count} membros ativos no plano Control até o fim da sua assinatura anual em ${annualSubscriptionEndDate}. Você pode mudar para a assinatura pós-paga e fazer downgrade para o plano Collect a partir de ${annualSubscriptionEndDate} desativando a renovação automática em`,
             }),
             subscriptions: 'Assinaturas',
+        },
+        hr: {
+            title: 'RH',
+            subtitle: 'Conecte ferramentas de RH e mantenha as aprovações de funcionários em sincronia.',
+            settingsTitle: 'Configurações do Gusto',
+            syncStageName: ({stage}: SyncStageNameConnectionsParams) => {
+                switch (stage) {
+                    case 'startingImportGusto':
+                        return 'Importando dados do Gusto';
+                    case 'gustoSyncLoadCompany':
+                        return 'Carregando dados da empresa Gusto';
+                    case 'gustoSyncImportEmployees':
+                        return 'Importando funcionários';
+                    case 'gustoSyncBuildApprovalChains':
+                        return 'Criando cadeias de aprovação';
+                    case 'gustoSyncFinalize':
+                        return 'Finalizando a sincronização';
+                    case 'jobDone':
+                        return 'Aguardando o carregamento dos dados importados';
+                    default: {
+                        return `Tradução ausente para o estágio: ${stage}`;
+                    }
+                }
+            },
+            gusto: {title: 'Gusto', approvalMode: 'Modo de aprovação', finalApprover: 'Aprovador final'},
         },
     },
     getAssistancePage: {
@@ -9008,12 +9048,15 @@ Aqui está um *comprovante de teste* para mostrar como funciona:`,
                 removeMember: 'Não foi possível remover este usuário. Tente novamente.',
                 addMember: 'Não foi possível adicionar este membro. Tente novamente.',
                 vacationDelegate: 'Não foi possível definir este usuário como delegado de férias. Tente novamente.',
+                moveMember: 'Não foi possível mover este membro. Tente novamente.',
             },
             cannotSetVacationDelegateForMember: (email: string) => `Você não pode definir um procurador de férias para ${email} porque esta pessoa já é procuradora dos seguintes membros:`,
             reportSuspiciousActivityPrompt: (email: string) =>
                 `Tem certeza? Isso irá bloquear a conta de <strong>${email}</strong>. <br /><br /> Nossa equipe irá então analisar a conta e remover qualquer acesso não autorizado. Para recuperar o acesso, será necessário que trabalhem com a Concierge.`,
             reportSuspiciousActivityConfirmationPrompt: 'Vamos revisar a conta para verificar se é seguro desbloqueá-la e entraremos em contato via Concierge caso haja dúvidas.',
             emptyMembers: {title: 'Nenhum membro neste grupo', subtitle: 'Adicione um membro ou tente mudar o filtro acima.'},
+            moveToGroup: 'Mover para grupo',
+            chooseWhereToMove: ({count}: {count: number}) => `Escolha para onde mover ${count} ${count === 1 ? 'membro' : 'membros'}.`,
         },
         common: {
             settings: 'Configurações',

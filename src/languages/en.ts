@@ -106,6 +106,7 @@ const translations = {
         newFeature: 'New feature',
         search: 'Search',
         reports: 'Reports',
+        spend: 'Spend',
         find: 'Find',
         searchWithThreeDots: 'Search...',
         next: 'Next',
@@ -1083,6 +1084,7 @@ const translations = {
             title: 'Getting started',
             createWorkspace: 'Create a workspace',
             connectAccounting: ({integrationName}: {integrationName: string}) => `Connect to ${integrationName}`,
+            connectAccountingDefault: 'Connect to accounting',
             customizeCategories: 'Customize accounting categories',
             linkCompanyCards: 'Link company cards',
             setupRules: 'Set up spend rules',
@@ -1712,6 +1714,7 @@ const translations = {
         },
         duplicateNonDefaultWorkspacePerDiemError: "You can't duplicate per diem expenses across workspaces because the rates may differ between workspaces.",
         cannotDuplicateDistanceExpense: "You can't duplicate distance expenses across workspaces because the rates may differ between workspaces.",
+        bulkDuplicateLimit: `You can duplicate up to ${CONST.SEARCH.BULK_DUPLICATE_LIMIT} expenses at a time. Please select fewer expenses and try again.`,
         taxDisabledAlert: {
             title: 'Tax disabled',
             prompt: 'Enable tax tracking on the workspace to edit the expense details or delete the tax from this expense.',
@@ -2668,6 +2671,9 @@ const translations = {
     workflowsExpensesFromPage: {
         title: 'Expenses from',
         header: 'When the following members submit expenses:',
+        memberAlreadyInWorkflowTitle: 'Member already in a workflow',
+        memberAlreadyInWorkflowPrompt: ({memberName, approverName}: {memberName: string; approverName: string}) =>
+            `${memberName} is already in an approval workflow that submits to ${approverName}. Adding them here will move them to this workflow.`,
     },
     workflowsApproverPage: {
         genericErrorMessage: "The approver couldn't be changed. Please try again or contact support.",
@@ -2968,6 +2974,8 @@ const translations = {
         },
         employees: {
             title: 'How many employees do you have?',
+            [CONST.ONBOARDING_COMPANY_SIZE.MICRO_SMALL]: '1-4 employees',
+            [CONST.ONBOARDING_COMPANY_SIZE.MICRO_MEDIUM]: '5-10 employees',
             [CONST.ONBOARDING_COMPANY_SIZE.MICRO]: '1-10 employees',
             [CONST.ONBOARDING_COMPANY_SIZE.SMALL]: '11-50 employees',
             [CONST.ONBOARDING_COMPANY_SIZE.MEDIUM_SMALL]: '51-100 employees',
@@ -4251,6 +4259,7 @@ const translations = {
             travel: 'Travel',
             members: 'Members',
             accounting: 'Accounting',
+            hr: 'HR',
             receiptPartners: 'Receipt partners',
             rules: 'Rules',
             displayedAs: 'Displayed as',
@@ -5522,6 +5531,12 @@ const translations = {
                             settlementAccountLabel: 'Settlement account',
                             settlementFrequencyLabel: 'Settlement frequency',
                             settlementFrequencyDescription: 'How often Expensify will pull from your business bank account to settle recent Expensify Travel transactions.',
+                            monthlySpendLimitLabel: 'Monthly spend limit per member',
+                            monthlySpendLimitDescription: 'The maximum amount each member can spend on travel per month.',
+                            reduceLimitTitle: 'Reduce travel spend limit?',
+                            reduceLimitWarning: 'If you reduce the limit, members who have already spent more than this amount will be unable to make new travel bookings until next month.',
+                            provisioningError:
+                                "We weren't able to provision some of the members of your workspace for central invoicing. Please try again later or reach out to Concierge for assistance.",
                         },
                     },
                     disableModal: {
@@ -6309,6 +6324,36 @@ const translations = {
                 chooseBankAccount: 'Choose the bank account that your Expensify Card payments will be reconciled against.',
                 settlementAccountReconciliation: (settlementAccountUrl: string, lastFourPAN: string) =>
                     `Make sure this account matches your <a href="${settlementAccountUrl}">Expensify Card settlement account</a> (ending in ${lastFourPAN}) so Continuous Reconciliation works properly.`,
+            },
+        },
+        hr: {
+            title: 'HR',
+            subtitle: 'Connect HR tools and keep employee approvals in sync.',
+            settingsTitle: 'Gusto settings',
+            syncStageName: ({stage}: SyncStageNameConnectionsParams) => {
+                switch (stage) {
+                    case 'startingImportGusto':
+                        return 'Importing Gusto data';
+                    case 'gustoSyncLoadCompany':
+                        return 'Loading Gusto company data';
+                    case 'gustoSyncImportEmployees':
+                        return 'Importing employees';
+                    case 'gustoSyncBuildApprovalChains':
+                        return 'Building approval chains';
+                    case 'gustoSyncFinalize':
+                        return 'Finalizing sync';
+                    case 'jobDone':
+                        return 'Waiting for imported data to load';
+                    default: {
+                        // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+                        return `Translation missing for stage: ${stage}`;
+                    }
+                }
+            },
+            gusto: {
+                title: 'Gusto',
+                approvalMode: 'Approval mode',
+                finalApprover: 'Final approver',
             },
         },
         export: {
@@ -9036,9 +9081,12 @@ const translations = {
                 one: 'Close account',
                 other: 'Close accounts',
             }),
+            moveToGroup: 'Move to group',
+            chooseWhereToMove: ({count}: {count: number}) => `Choose where to move ${count} ${count === 1 ? 'member' : 'members'}.`,
             error: {
                 addMember: 'Unable to add this member. Please try again.',
                 removeMember: 'Unable to remove this user. Please try again.',
+                moveMember: 'Unable to move this member. Please try again.',
                 vacationDelegate: 'Unable to set this user as a vacation delegate. Please try again.',
             },
             cannotSetVacationDelegateForMember: (email: string) => `You can't set a vacation delegate for ${email} because they're currently the delegate for the following members:`,
