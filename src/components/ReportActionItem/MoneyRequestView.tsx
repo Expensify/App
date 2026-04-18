@@ -453,7 +453,7 @@ function MoneyRequestView({
 
     const isTaxEnabled = isTaxTrackingEnabled(isPolicyExpenseChat || isExpenseUnreported, policy, isDistanceRequest, isPerDiemRequest, isTimeRequest);
     const shouldShowTaxDisabledAlert = !isTaxEnabled && !!transaction?.taxCode && !isTimeRequest && !isPerDiemRequest;
-    const shouldShowTax = isTaxEnabled || !!transaction?.taxName || shouldShowTaxDisabledAlert;
+    const shouldShowTax = isFromMergeTransaction ? !!transaction?.taxName : isTaxEnabled || shouldShowTaxDisabledAlert;
 
     let amountDescription = `${translate('iou.amount')}`;
     let dateDescription = `${translate('common.date')}`;
