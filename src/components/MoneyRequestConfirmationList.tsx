@@ -1,10 +1,11 @@
 import {useFocusEffect, useIsFocused} from '@react-navigation/native';
 import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {InteractionManager, View} from 'react-native';
+import {InteractionManager, Keyboard, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
+import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import useLocalize from '@hooks/useLocalize';
 import {MouseProvider} from '@hooks/useMouseContext';
 import useOnyx from '@hooks/useOnyx';
@@ -247,6 +248,7 @@ function MoneyRequestConfirmationList({
     const isNewManualExpenseFlowEnabled = isBetaEnabled(CONST.BETAS.NEW_MANUAL_EXPENSE_FLOW);
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
+    const isInLandscapeMode = useIsInLandscapeMode();
 
     const isTestReceipt = useMemo(() => {
         return transaction?.receipt?.isTestReceipt ?? false;
@@ -323,7 +325,7 @@ function MoneyRequestConfirmationList({
 
     // A flag for showing the categories field
     const shouldShowCategories = isTrackExpense
-        ? !policy || shouldSelectPolicy || hasEnabledOptions(Object.values(policyCategories ?? {}))
+        ? !policy || shouldSelectPolicy || !!iouCategory || hasEnabledOptions(Object.values(policyCategories ?? {}))
         : (isPolicyExpenseChat || isTypeInvoice) && (!!iouCategory || hasEnabledOptions(Object.values(policyCategories ?? {})));
 
     const shouldShowMerchant = (shouldShowSmartScanFields || isTypeSend) && !isDistanceRequest && !isPerDiemRequest && (!isTimeRequest || action !== CONST.IOU.ACTION.CREATE);
@@ -661,6 +663,9 @@ function MoneyRequestConfirmationList({
                 {!shouldShowReadOnlySplits && !!isSplitModified && (
                     <PressableWithFeedback
                         onPress={() => {
+                            // Dismiss the keyboard so that MoneyRequestAmountInput's useEffect syncs the new amount.
+                            // Without this, the effect skips the update while the input is focused (see formatAmountOnBlur guard).
+                            Keyboard.dismiss();
                             resetSplitShares(transaction);
                         }}
                         accessibilityLabel={CONST.ROLE.BUTTON}
@@ -1050,7 +1055,7 @@ function MoneyRequestConfirmationList({
         isLoadingReceipt,
     ]);
 
-    const isCompactMode = useMemo(() => !showMoreFields && isScanRequest, [isScanRequest, showMoreFields]);
+    const isCompactMode = useMemo(() => !showMoreFields && isScanRequest && !isInLandscapeMode, [isScanRequest, showMoreFields, isInLandscapeMode]);
     const selectionListStyle = useMemo(
         () => ({
             containerStyle: [styles.flexBasisAuto],

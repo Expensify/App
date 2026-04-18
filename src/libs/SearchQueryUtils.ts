@@ -1545,7 +1545,7 @@ function buildUserReadableQueryString({
     autoCompleteWithSpace: boolean;
     translate: LocalizedTranslate;
     feedKeysWithCards?: FeedKeysWithAssignedCards;
-    reportAttributes?: OnyxTypes.ReportAttributesDerivedValue['reports'];
+    reportAttributes: OnyxTypes.ReportAttributesDerivedValue['reports'] | undefined;
 }) {
     const {type, status, groupBy, view, columns, policyID, rawFilterList, flatFilters: filters = [], limit} = queryJSON;
 
