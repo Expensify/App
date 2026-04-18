@@ -6647,6 +6647,13 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
                 upgradeWorkspaceWarningForRestrictedPolicyCreationPrompt:
                     'Ihr Unternehmen hat das Erstellen von Arbeitsbereichen eingeschränkt. Bitte wenden Sie sich an eine*n Admin, um Hilfe zu erhalten.',
             },
+            hr: {
+                title: 'HR-Integrationen',
+                description:
+                    'Verbinden Sie Ihren HR-Anbieter, um Mitarbeitende automatisch zu synchronisieren und Genehmigungsworkflows zu verwalten. Halten Sie Ihr Teamverzeichnis und Ihre Berichtsstruktur ohne manuellen Aufwand auf dem neuesten Stand.',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>HR-Integrationen sind nur im Control-Tarif verfügbar, ab <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `pro Mitglied und Monat.` : `pro aktivem Mitglied und Monat.`}</muted-text>`,
+            },
         },
         downgrade: {
             commonFeatures: {

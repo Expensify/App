@@ -6445,6 +6445,12 @@ ${reportName}
                 upgradeWorkspaceWarning: `无法升级工作空间`,
                 upgradeWorkspaceWarningForRestrictedPolicyCreationPrompt: '您的公司已限制创建工作区。请联系管理员获取帮助。',
             },
+            hr: {
+                title: '人力资源集成',
+                description: '连接你的 HR 提供商，自动同步员工并管理审批流程。无需手动操作，即可保持团队成员名单和汇报结构的最新状态。',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>人力资源集成功能仅在 Control 方案中提供，起价为 <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `每位成员每月。` : `每位活跃成员每月。`}</muted-text>`,
+            },
         },
         downgrade: {
             commonFeatures: {

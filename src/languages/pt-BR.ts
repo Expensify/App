@@ -6610,6 +6610,13 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
                 upgradeWorkspaceWarning: `Não é possível atualizar o workspace`,
                 upgradeWorkspaceWarningForRestrictedPolicyCreationPrompt: 'Sua empresa restringiu a criação de espaços de trabalho. Entre em contato com um administrador para obter ajuda.',
             },
+            hr: {
+                title: 'Integrações de RH',
+                description:
+                    'Conecte seu provedor de RH para sincronizar automaticamente funcionários e gerenciar fluxos de aprovação. Mantenha a lista de integrantes da equipe e a estrutura de relatórios sempre atualizadas sem trabalho manual.',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Integrações de RH estão disponíveis apenas no plano Control, a partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `por membro por mês.` : `por membro ativo por mês.`}</muted-text>`,
+            },
         },
         downgrade: {
             commonFeatures: {

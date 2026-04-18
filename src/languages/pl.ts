@@ -6604,6 +6604,13 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
                 upgradeWorkspaceWarningForRestrictedPolicyCreationPrompt:
                     'Twoja firma ograniczyła możliwość tworzenia przestrzeni roboczych. Skontaktuj się z administratorem, aby uzyskać pomoc.',
             },
+            hr: {
+                title: 'Integracje HR',
+                description:
+                    'Połącz się ze swoim dostawcą HR, aby automatycznie synchronizować pracowników i zarządzać ścieżkami akceptacji. Utrzymuj listę członków zespołu i strukturę raportowania na bieżąco, bez ręcznej pracy.',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Integracje HR są dostępne tylko w planie Control, zaczynającym się od <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `za osobę miesięcznie.` : `za aktywnego członka miesięcznie.`}</muted-text>`,
+            },
         },
         downgrade: {
             commonFeatures: {

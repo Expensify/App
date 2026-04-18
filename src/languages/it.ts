@@ -6631,6 +6631,13 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
                 upgradeWorkspaceWarning: `Impossibile eseguire l'upgrade dello spazio di lavoro`,
                 upgradeWorkspaceWarningForRestrictedPolicyCreationPrompt: 'La tua azienda ha limitato la creazione degli spazi di lavoro. Contatta un amministratore per assistenza.',
             },
+            hr: {
+                title: 'Integrazioni HR',
+                description:
+                    'Collega il tuo provider HR per sincronizzare automaticamente i dipendenti e gestire i flussi di approvazione. Mantieni l’organigramma del tuo team e la struttura dei report sempre aggiornati senza lavoro manuale.',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Le integrazioni HR sono disponibili solo con il piano Control, a partire da <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per membro al mese.` : `per membro attivo al mese.`}</muted-text>`,
+            },
         },
         downgrade: {
             commonFeatures: {
