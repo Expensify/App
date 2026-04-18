@@ -15,15 +15,14 @@ type AnyState = NavigationState | PartialState<NavigationState> | undefined;
 
 type DiffAction = {type: 'forward'; captureKey: string} | {type: 'backward'; restoreKey: string} | {type: 'lateral'} | {type: 'noop'};
 
-// Fallback (if set) is the surrounding trap's launcher, used only when primary cannot accept focus at restore time.
-// triggerMap holds at most one entry per currently-mounted route key (Map.set overwrites); `removedKeys` in handleStateChange purges entries as routes leave the tree, bounding memory by the nav tree size.
+// Fallback (if set) is the surrounding trap's launcher — used when primary cannot accept focus at restore. `triggerMap` is bounded by the nav tree (one entry per route key; `removedKeys` purges on route unmount).
 type TriggerEntry = {primary: HTMLElement; fallback?: HTMLElement};
 
 // `deactivatedAt` set when the trap closes; entry lives for LAUNCHER_CLEAR_DELAY_MS so a deferred-nav popover can still consume it.
 type LauncherEntry = {element: HTMLElement; deactivatedAt?: number};
 
 const COMPOUND_KEY_DELIMITER = '::';
-// Covers the click → state-listener dispatch → focusin → captureTriggerForRoute chain for deferred-navigation popovers. 1s is conservative for slower devices.
+// Covers the click → state-listener → captureTriggerForRoute chain for deferred-nav popovers; conservative for slower devices.
 const LAUNCHER_CLEAR_DELAY_MS = 1000;
 // Guard against pathological trap storms. Typical stack depth is 1–2.
 const LAUNCHER_STACK_MAX = 8;
@@ -86,7 +85,6 @@ function pickLauncher(): HTMLElement | null {
         return null;
     }
     const now = Date.now();
-    // Pass 1: topmost active, pruning detached as we go.
     for (let i = launcherStack.length - 1; i >= 0; i -= 1) {
         const entry = launcherStack.at(i);
         if (!entry) {
@@ -100,7 +98,6 @@ function pickLauncher(): HTMLElement | null {
             return entry.element;
         }
     }
-    // Pass 2: most recent deactivated within the clear window, pruning stale as we go.
     for (let i = launcherStack.length - 1; i >= 0; i -= 1) {
         const entry = launcherStack.at(i);
         if (entry?.deactivatedAt === undefined) {
@@ -247,9 +244,7 @@ function canAcceptFocus(el: HTMLElement): boolean {
     return !el.matches(':disabled') && el.getAttribute('aria-disabled') !== 'true' && !el.closest('[aria-hidden="true"]');
 }
 
-// Resolve the best restore candidate for a TriggerEntry.
-// 'retry' = something is in the DOM but cannot currently accept focus (scheduler will retry).
-// 'gone' = nothing is in the DOM anymore (permanent failure, drop the entry).
+// 'retry' = in DOM but unfocusable; 'gone' = detached, drop the entry.
 type RestorePick = {target: HTMLElement; source: 'primary' | 'fallback'} | 'retry' | 'gone';
 
 function pickRestoreTarget(entry: TriggerEntry): RestorePick {
@@ -334,7 +329,6 @@ function restoreTriggerForRoute(routeKey: string): boolean {
             scheduleReturnHoldRelease();
             return true;
         }
-        // active is body → silent no-op; try next candidate.
     }
 
     // All candidates silently no-op'd. Release the claim immediately so AUTO/INITIAL can still try.
@@ -405,7 +399,7 @@ function handleStateChange(newState: NavigationState | undefined): void {
     if (!newState) {
         return;
     }
-    // Cancel any pending return-hold release: a new navigation starts a fresh cycle, and a stale timer firing later would reset the new cycle's priority.
+    // Cancel pending return-hold release; a stale timer firing later would reset the new cycle's priority.
     cancelReturnHoldRelease();
     resetCycle();
     const {action, removedKeys} = diffNavigationState(prevState, newState);
@@ -414,7 +408,6 @@ function handleStateChange(newState: NavigationState | undefined): void {
         cancelPendingRestore();
         captureTriggerForRoute(action.captureKey);
     } else if (action.type === 'backward') {
-        // scheduleRestore cancels any prior pending internally.
         scheduleRestore(action.restoreKey);
     } else if (action.type === 'lateral') {
         // Sibling route — stale restore would steal focus back.
@@ -436,6 +429,11 @@ function handleStateChange(newState: NavigationState | undefined): void {
     prevState = newState;
 }
 
+// UI test mocks of navigationRef may omit isReady/getRootState; call-site guards defend without forcing test hygiene across 12+ files.
+function navigationRefHasLiveState(): boolean {
+    return typeof navigationRef?.isReady === 'function' && navigationRef.isReady() && typeof navigationRef.getRootState === 'function';
+}
+
 function setupNavigationFocusReturn(): void {
     if (typeof document === 'undefined') {
         return;
@@ -454,7 +452,7 @@ function setupNavigationFocusReturn(): void {
     }
     // Gate the seed behind isReady() — calling getRootState() pre-mount triggers React Navigation's "not initialized" console.error.
     // Retries on every setup() call so NavigationRoot.onReady re-invocation picks up the live state, independently of stateUnsubscribe.
-    if (!prevState && typeof navigationRef?.isReady === 'function' && navigationRef.isReady() && typeof navigationRef.getRootState === 'function') {
+    if (!prevState && navigationRefHasLiveState()) {
         prevState = navigationRef.getRootState() ?? prevState;
     }
     // addListener is absent pre-mount and in test mocks; NavigationRoot.onReady re-invokes once the container is live.

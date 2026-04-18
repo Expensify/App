@@ -762,6 +762,26 @@ describe('restoreTriggerForRoute', () => {
         });
     });
 
+    it('should cancel a pending return-hold timer when a new navigation starts so stale timers do not wipe the new cycle', () => {
+        withFakeTimers(() => {
+            const trigger = appendButton();
+            trigger.focus();
+            setLastInteractiveElementForTests(trigger);
+            captureTriggerForRoute('route-a');
+            trigger.blur();
+            expect(restoreTriggerForRoute('route-a')).toBe(true);
+
+            // New nav 100ms later. handleStateChange must cancel the stale return-hold timer along with resetCycle.
+            jest.advanceTimersByTime(100);
+            handleStateChange(stackState(0, [{key: 'other', name: 'Other'}]));
+            expect(tryClaim(Priorities.AUTO)).toBe(true);
+
+            // Stale 500ms timer must NOT wipe AUTO later.
+            jest.advanceTimersByTime(1000);
+            expect(tryClaim(Priorities.INITIAL)).toBe(false);
+        });
+    });
+
     it('should respect an onFocus redirect and not override by trying the fallback', () => {
         // Captured primary has an onFocus handler that redirects focus to a composite-widget's internal element.
         // Our post-focus check must see "focus moved somewhere non-body" and treat it as success, not try the fallback and override the redirect.
@@ -1198,11 +1218,13 @@ describe('teardown / setup lifecycle', () => {
 
     it('should seed prevState from navigationRef so the first transition is not misclassified as noop', () => {
         // eslint-disable-next-line @typescript-eslint/no-require-imports, import/extensions
-        const navigationRefModule = require<{default: {getRootState: () => unknown}}>('../../src/libs/Navigation/navigationRef.ts');
+        const navigationRefModule = require<{default: {getRootState: () => unknown; isReady: () => boolean}}>('../../src/libs/Navigation/navigationRef.ts');
         const navigationRef = navigationRefModule.default;
         const originalGetRootState = navigationRef.getRootState.bind(navigationRef);
+        const originalIsReady = navigationRef.isReady.bind(navigationRef);
         const initialState = stackState(0, [{key: 'home', name: 'Home'}]);
         navigationRef.getRootState = () => initialState;
+        navigationRef.isReady = () => true;
         try {
             teardownNavigationFocusReturn();
             resetForTests();
@@ -1224,17 +1246,20 @@ describe('teardown / setup lifecycle', () => {
             expect(restoreTriggerForRoute('home')).toBe(true);
         } finally {
             navigationRef.getRootState = originalGetRootState;
+            navigationRef.isReady = originalIsReady;
         }
     });
 
     it('should seed prevState on the NavigationRoot.onReady re-invocation even when the module-load call already attached the listener', () => {
         // eslint-disable-next-line @typescript-eslint/no-require-imports, import/extensions
-        const navigationRefModule = require<{default: {getRootState: () => unknown}}>('../../src/libs/Navigation/navigationRef.ts');
+        const navigationRefModule = require<{default: {getRootState: () => unknown; isReady: () => boolean}}>('../../src/libs/Navigation/navigationRef.ts');
         const navigationRef = navigationRefModule.default;
         const originalGetRootState = navigationRef.getRootState.bind(navigationRef);
+        const originalIsReady = navigationRef.isReady.bind(navigationRef);
         const liveInitialState = stackState(0, [{key: 'home', name: 'Home'}]);
 
-        // Phase 1: pre-mount — getRootState is undefined.
+        // Phase 1: pre-mount — isReady=false, seed is skipped (no React Navigation console.error either).
+        navigationRef.isReady = () => false;
         navigationRef.getRootState = () => undefined;
         try {
             teardownNavigationFocusReturn();
@@ -1242,6 +1267,7 @@ describe('teardown / setup lifecycle', () => {
             setupNavigationFocusReturn();
 
             // Phase 2: onReady — container is live. Re-invoking setup must reseed even though stateUnsubscribe is already set.
+            navigationRef.isReady = () => true;
             navigationRef.getRootState = () => liveInitialState;
             setupNavigationFocusReturn();
 
@@ -1260,6 +1286,7 @@ describe('teardown / setup lifecycle', () => {
             expect(restoreTriggerForRoute('home')).toBe(true);
         } finally {
             navigationRef.getRootState = originalGetRootState;
+            navigationRef.isReady = originalIsReady;
         }
     });
 });

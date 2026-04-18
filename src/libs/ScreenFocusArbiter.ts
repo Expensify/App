@@ -1,11 +1,6 @@
 /**
- * Priority-based arbitration between the systems that attempt to move focus
- * when a screen gains focus. Callers consult tryClaim() before calling
- * `.focus()`; higher-priority claims within the same cycle veto lower ones.
- *
- * Cycles reset on navigation state change (explicit) or after a silent window
- * elapses (prevents stale priorities from blocking legitimate later claims,
- * e.g. a side-panel close long after the last nav transition).
+ * Priority arbiter for focus-moving systems. Callers `tryClaim()` before `.focus()`; higher priorities veto lower within a cycle.
+ * Cycles reset on navigation state change, or after CYCLE_TIMEOUT_MS of silence (prevents stale priorities blocking legitimate later claims).
  */
 
 const INITIAL = 1;

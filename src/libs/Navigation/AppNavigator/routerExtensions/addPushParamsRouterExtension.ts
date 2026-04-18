@@ -188,7 +188,6 @@ function addPushParamsRouterExtension<RouterOptions extends PlatformStackRouterO
             // PUSH_PARAMS snapshots. Preserve history entries for routes that still exist
             // in the rehydrated state (which may have added routes, e.g. for wide layout).
             if (action.type === CONST.NAVIGATION.ACTION_TYPE.RESET && state.history) {
-                // Only position±1 is adjacent browser nav; non-adjacent jumps are forward URL nav (skip).
                 const newFocused = rehydratedState.routes.at(-1);
                 const history = state.history as CustomHistoryEntry[];
                 if (newFocused?.key) {

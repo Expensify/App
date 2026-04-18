@@ -1,8 +1,4 @@
-/**
- * True when the user is keyboard-navigating the UI, false when typing into a
- * form field or using a mouse. Typing keys clear; navigational / named keys
- * preserve.
- */
+/** True when the user is keyboard-navigating; false when typing or using a mouse. Typing/printable keys clear; Tab/Arrow/named keys preserve. */
 let hadTabNavigation = false;
 let teardown: (() => void) | null = null;
 

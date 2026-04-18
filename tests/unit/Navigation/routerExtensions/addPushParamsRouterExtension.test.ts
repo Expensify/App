@@ -3,15 +3,20 @@ import type {NavigationRoute, ParamListBase, PartialState, Router, RouterConfigO
 import addPushParamsRouterExtension from '@libs/Navigation/AppNavigator/routerExtensions/addPushParamsRouterExtension';
 import type {CustomHistoryEntry, PushParamsRouterAction} from '@libs/Navigation/AppNavigator/routerExtensions/types';
 import type {PlatformStackRouterOptions} from '@libs/Navigation/PlatformStackNavigation/types';
+import type * as NavigationFocusReturnModule from '@libs/NavigationFocusReturn';
 import {cancelPendingFocusRestore} from '@libs/NavigationFocusReturn';
 import CONST from '@src/CONST';
 
-jest.mock('@libs/NavigationFocusReturn', () => ({
-    cancelPendingFocusRestore: jest.fn(),
-    compoundParamsKey: (routeKey: string, params: unknown) => `${routeKey}::${JSON.stringify(params ?? null)}`,
-    notifyPushParamsBackward: jest.fn(),
-    notifyPushParamsForward: jest.fn(),
-}));
+jest.mock('@libs/NavigationFocusReturn', () => {
+    // Use the real compoundParamsKey so its normalization/sorting stays in sync with the extension's callers.
+    const actual = jest.requireActual<typeof NavigationFocusReturnModule>('@libs/NavigationFocusReturn');
+    return {
+        compoundParamsKey: actual.compoundParamsKey,
+        cancelPendingFocusRestore: jest.fn(),
+        notifyPushParamsBackward: jest.fn(),
+        notifyPushParamsForward: jest.fn(),
+    };
+});
 
 type TestState = StackNavigationState<ParamListBase> & {history?: CustomHistoryEntry[]};
 
@@ -571,5 +576,27 @@ describe('addPushParamsRouterExtension', () => {
         expect(afterPush.history).toHaveLength(2);
         expect((asRouteEntry(afterPush.history?.at(0) as CustomHistoryEntry).params as {q: string}).q).toBe('v2');
         expect((asRouteEntry(afterPush.history?.at(1) as CustomHistoryEntry).params as {q: string}).q).toBe('v3');
+    });
+
+    it('non-adjacent same-key RESET moves the cursor to the matching entry so subsequent GO_BACK reverts from the right position', () => {
+        // Build [A, B, C, D] with cursor=3 (at D). Browser jumps to B (position 1) via history.go(-2). A subsequent GO_BACK must revert to A (history[0]), not C (history[2]).
+        const factory = createMockRouterFactory();
+        const enhancedRouter = addPushParamsRouterExtension(factory)({} as PlatformStackRouterOptions);
+        const initial = makeRoute('Search', 'search-1', {q: 'A'});
+        let state: TestState = makeState([initial], {history: [{...initial}] as CustomHistoryEntry[]});
+
+        state = enhancedRouter.getStateForAction(state, {type: CONST.NAVIGATION.ACTION_TYPE.PUSH_PARAMS, payload: {params: {q: 'B'}}}, CONFIG_OPTIONS) as TestState;
+        state = enhancedRouter.getStateForAction(state, {type: CONST.NAVIGATION.ACTION_TYPE.PUSH_PARAMS, payload: {params: {q: 'C'}}}, CONFIG_OPTIONS) as TestState;
+        state = enhancedRouter.getStateForAction(state, {type: CONST.NAVIGATION.ACTION_TYPE.PUSH_PARAMS, payload: {params: {q: 'D'}}}, CONFIG_OPTIONS) as TestState;
+        expect(state.history).toHaveLength(4);
+
+        const jumpToB: PushParamsRouterAction = {
+            type: CONST.NAVIGATION.ACTION_TYPE.RESET,
+            payload: {routes: [{name: 'Search', key: 'search-1', params: {q: 'B'}}], index: 0},
+        };
+        state = enhancedRouter.getStateForAction(state, jumpToB, CONFIG_OPTIONS) as TestState;
+
+        state = enhancedRouter.getStateForAction(state, CommonActions.goBack(), CONFIG_OPTIONS) as TestState;
+        expect((state.routes.at(0)?.params as {q: string}).q).toBe('A');
     });
 });
