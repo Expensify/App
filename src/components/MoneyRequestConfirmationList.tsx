@@ -1,10 +1,11 @@
 import {useFocusEffect, useIsFocused} from '@react-navigation/native';
 import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {InteractionManager, View} from 'react-native';
+import {InteractionManager, Keyboard, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
+import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import useLocalize from '@hooks/useLocalize';
 import {MouseProvider} from '@hooks/useMouseContext';
 import useOnyx from '@hooks/useOnyx';
@@ -35,16 +36,12 @@ import {
     areRequiredFieldsEmpty,
     calculateTaxAmount,
     getAttendees,
-    getBillable,
     getCategory,
-    getCreated,
     getCurrency,
     getDefaultTaxCode,
-    getDescription,
     getDistanceInMeters,
     getMerchant,
     getRateID,
-    getReimbursable,
     getTag,
     getTaxValue,
     hasMissingSmartscanFields,
@@ -251,6 +248,7 @@ function MoneyRequestConfirmationList({
     const isNewManualExpenseFlowEnabled = isBetaEnabled(CONST.BETAS.NEW_MANUAL_EXPENSE_FLOW);
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
+    const isInLandscapeMode = useIsInLandscapeMode();
 
     const isTestReceipt = useMemo(() => {
         return transaction?.receipt?.isTestReceipt ?? false;
@@ -291,15 +289,9 @@ function MoneyRequestConfirmationList({
     const isGPSDistanceRequest = isGPSDistanceRequestUtil(transaction);
 
     const iouAmount = hasValidModifiedAmount(transaction) ? Number(transaction?.modifiedAmount) : (transaction?.amount ?? 0);
-    const iouComment = getDescription(transaction);
     const iouCurrencyCode = getCurrency(transaction);
     const iouMerchant = getMerchant(transaction);
-    const iouCreated = getCreated(transaction);
     const iouCategory = getCategory(transaction);
-    const iouIsBillable = getBillable(transaction);
-    const iouIsReimbursable = getReimbursable(transaction);
-    const iouTimeCount = transaction?.comment?.units?.count;
-    const iouTimeRate = transaction?.comment?.units?.rate;
     const iouAttendees = useMemo(() => getAttendees(transaction, currentUserPersonalDetails), [transaction, currentUserPersonalDetails]);
 
     const isTypeRequest = iouType === CONST.IOU.TYPE.SUBMIT;
@@ -333,7 +325,7 @@ function MoneyRequestConfirmationList({
 
     // A flag for showing the categories field
     const shouldShowCategories = isTrackExpense
-        ? !policy || shouldSelectPolicy || hasEnabledOptions(Object.values(policyCategories ?? {}))
+        ? !policy || shouldSelectPolicy || !!iouCategory || hasEnabledOptions(Object.values(policyCategories ?? {}))
         : (isPolicyExpenseChat || isTypeInvoice) && (!!iouCategory || hasEnabledOptions(Object.values(policyCategories ?? {})));
 
     const shouldShowMerchant = (shouldShowSmartScanFields || isTypeSend) && !isDistanceRequest && !isPerDiemRequest && (!isTimeRequest || action !== CONST.IOU.ACTION.CREATE);
@@ -671,6 +663,9 @@ function MoneyRequestConfirmationList({
                 {!shouldShowReadOnlySplits && !!isSplitModified && (
                     <PressableWithFeedback
                         onPress={() => {
+                            // Dismiss the keyboard so that MoneyRequestAmountInput's useEffect syncs the new amount.
+                            // Without this, the effect skips the update while the input is focused (see formatAmountOnBlur guard).
+                            Keyboard.dismiss();
                             resetSplitShares(transaction);
                         }}
                         accessibilityLabel={CONST.ROLE.BUTTON}
@@ -1060,7 +1055,7 @@ function MoneyRequestConfirmationList({
         isLoadingReceipt,
     ]);
 
-    const isCompactMode = useMemo(() => !showMoreFields && isScanRequest, [isScanRequest, showMoreFields]);
+    const isCompactMode = useMemo(() => !showMoreFields && isScanRequest && !isInLandscapeMode, [isScanRequest, showMoreFields, isInLandscapeMode]);
     const selectionListStyle = useMemo(
         () => ({
             containerStyle: [styles.flexBasisAuto],
@@ -1082,16 +1077,7 @@ function MoneyRequestConfirmationList({
                 formattedAmountPerAttendee={formattedAmountPerAttendee}
                 formError={formError}
                 hasRoute={hasRoute}
-                iouAttendees={iouAttendees}
-                iouCategory={iouCategory}
-                iouComment={iouComment}
-                iouCreated={iouCreated}
-                iouCurrencyCode={iouCurrencyCode}
-                iouIsBillable={iouIsBillable}
-                iouMerchant={iouMerchant}
                 iouType={iouType}
-                iouTimeCount={iouTimeCount}
-                iouTimeRate={iouTimeRate}
                 isCategoryRequired={isCategoryRequired}
                 isDistanceRequest={isDistanceRequest}
                 isManualDistanceRequest={isManualDistanceRequest}
@@ -1100,7 +1086,6 @@ function MoneyRequestConfirmationList({
                 isGPSDistanceRequest={isGPSDistanceRequest}
                 isPerDiemRequest={isPerDiemRequest}
                 isTimeRequest={isTimeRequest}
-                isMerchantEmpty={isMerchantEmpty}
                 isMerchantRequired={isMerchantRequired}
                 isPolicyExpenseChat={isPolicyExpenseChat}
                 isReadOnly={isReadOnly}
@@ -1129,7 +1114,6 @@ function MoneyRequestConfirmationList({
                 unit={unit}
                 onPDFLoadError={onPDFLoadError}
                 onPDFPassword={onPDFPassword}
-                iouIsReimbursable={iouIsReimbursable}
                 onToggleReimbursable={onToggleReimbursable}
                 isReceiptEditable={isReceiptEditable}
                 isDescriptionRequired={isDescriptionRequired}

@@ -2,6 +2,7 @@ import React from 'react';
 import type {SelectionListApprover} from '@components/ApproverSelectionList';
 import ApproverSelectionList from '@components/ApproverSelectionList';
 import Text from '@components/Text';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -10,7 +11,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
-import {getMemberAccountIDsForWorkspace} from '@libs/PolicyUtils';
+import {getMemberAccountIDsForWorkspace, isExpensifyTeam, shouldFilterExpensifyTeam} from '@libs/PolicyUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import MemberRightIcon from '@pages/workspace/MemberRightIcon';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
@@ -31,6 +32,7 @@ function WorkspaceWorkflowsApprovalsOverLimitApproverPage({policy, personalDetai
     const [approvalWorkflow, approvalWorkflowMetadata] = useOnyx(ONYXKEYS.APPROVAL_WORKFLOW);
     const isApprovalWorkflowLoading = isLoadingOnyxValue(approvalWorkflowMetadata);
     const personalDetailsByEmail = usePersonalDetailsByEmail();
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['FallbackAvatar']);
 
     const policyID = route.params.policyID;
@@ -42,6 +44,8 @@ function WorkspaceWorkflowsApprovalsOverLimitApproverPage({policy, personalDetai
     const membersEmail = approvalWorkflow?.members.map((member) => member.email);
 
     const currentApproverEmail = currentApprover?.email;
+
+    const shouldFilterOutExpensifyTeam = shouldFilterExpensifyTeam(policy?.owner, currentUserPersonalDetails?.login);
 
     const allApprovers: SelectionListApprover[] = (() => {
         if (isApprovalWorkflowLoading || !employeeList) {
@@ -55,6 +59,14 @@ function WorkspaceWorkflowsApprovalsOverLimitApproverPage({policy, personalDetai
                 const email = employee.email;
 
                 if (!email) {
+                    return null;
+                }
+
+                if (employee.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+                    return null;
+                }
+
+                if (shouldFilterOutExpensifyTeam && isExpensifyTeam(email) && currentApprover?.overLimitForwardsTo !== email) {
                     return null;
                 }
 
