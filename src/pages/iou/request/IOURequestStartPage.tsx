@@ -1,8 +1,6 @@
-import {useFocusEffect} from '@react-navigation/native';
 import {iouRequestPolicyCollectionSelector} from '@selectors/Policy';
-import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {Keyboard, View} from 'react-native';
+import React, {useEffect, useMemo, useRef, useState} from 'react';
+import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
 import FocusTrapContainerElement from '@components/FocusTrap/FocusTrapContainerElement';
@@ -17,9 +15,8 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
-import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import usePolicy from '@hooks/usePolicy';
-import usePrevious from '@hooks/usePrevious';
+import useResetIOUType from '@hooks/useResetIOUType';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {dismissProductTraining} from '@libs/actions/Welcome';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
@@ -33,15 +30,12 @@ import {
     getActivePoliciesWithExpenseChatAndPerDiemEnabledAndHasRates,
     getActivePoliciesWithExpenseChatAndTimeEnabled,
     getPerDiemCustomUnit,
-    hasOnlyPersonalPolicies as hasOnlyPersonalPoliciesUtil,
     isControlPolicy,
     isTimeTrackingEnabled,
 } from '@libs/PolicyUtils';
 import {getPayeeName} from '@libs/ReportUtils';
 import {endSpan} from '@libs/telemetry/activeSpans';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
-import type {IOURequestType} from '@userActions/IOU';
-import {initMoneyRequest} from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -81,10 +75,8 @@ function IOURequestStartPage({
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const shouldUseTab = iouType !== CONST.IOU.TYPE.SEND && iouType !== CONST.IOU.TYPE.PAY && iouType !== CONST.IOU.TYPE.INVOICE;
-    const personalPolicy = usePersonalPolicy();
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [reportDraft] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${reportID}`);
-    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`);
     const policy = usePolicy(report?.policyID);
     const [lastSelectedTab, selectedTabResult] = useOnyx(`${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.IOU_REQUEST_TYPE}`);
     // Derive selectedTab directly instead of using state
@@ -97,12 +89,8 @@ function IOURequestStartPage({
         selector: iouRequestPolicyCollectionSelector,
     });
 
-    const [lastSelectedDistanceRates] = useOnyx(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES);
-    const [currentDate] = useOnyx(ONYXKEYS.CURRENT_DATE);
     const {isOffline} = useNetwork();
     const [hasUserSubmittedExpenseOrScannedReceipt] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {selector: isTestReceiptTooltipDismissedSelector});
-    const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
-    const hasOnlyPersonalPolicies = useMemo(() => hasOnlyPersonalPoliciesUtil(allPolicies), [allPolicies]);
 
     const perDiemInputRef = useRef<AnimatedTextInputRef | null>(null);
 
@@ -163,7 +151,16 @@ function IOURequestStartPage({
         return transaction.iouRequestType;
     }, [transaction?.iouRequestType, shouldUseTab, selectedTab, shouldShowPerDiemOption]);
 
-    const prevTransactionReportID = usePrevious(transaction?.reportID);
+    const resetIOUTypeIfChanged = useResetIOUType({
+        reportID,
+        report,
+        transaction,
+        isLoadingTransaction,
+        isLoadingSelectedTab,
+        transactionRequestType,
+        policy,
+        skipKeyboardDismissForPerDiem: true,
+    });
 
     useEffect(() => {
         // Don't end span for scan flows - it will be ended when camera initializes (or canceled if permission is denied).
@@ -178,83 +175,6 @@ function IOURequestStartPage({
     const navigateBack = () => {
         Navigation.closeRHPFlow();
     };
-
-    const resetIOUTypeIfChanged = useCallback(
-        (newIOUType: IOURequestType) => {
-            if (newIOUType !== CONST.IOU.REQUEST_TYPE.PER_DIEM) {
-                Keyboard.dismiss();
-            }
-            if (transaction?.iouRequestType === newIOUType) {
-                return;
-            }
-            initMoneyRequest({
-                reportID,
-                policy,
-                personalPolicy,
-                isFromGlobalCreate: transaction?.isFromGlobalCreate ?? isFromGlobalCreate,
-                isFromFloatingActionButton: transaction?.isFromFloatingActionButton ?? transaction?.isFromGlobalCreate ?? isFromGlobalCreate,
-                currentIouRequestType: transaction?.iouRequestType,
-                newIouRequestType: newIOUType,
-                report,
-                parentReport,
-                currentDate,
-                lastSelectedDistanceRates,
-                currentUserPersonalDetails,
-                hasOnlyPersonalPolicies,
-                draftTransactionIDs,
-            });
-        },
-        [
-            transaction?.iouRequestType,
-            transaction?.isFromGlobalCreate,
-            transaction?.isFromFloatingActionButton,
-            reportID,
-            policy,
-            personalPolicy,
-            isFromGlobalCreate,
-            report,
-            parentReport,
-            currentDate,
-            lastSelectedDistanceRates,
-            currentUserPersonalDetails,
-            hasOnlyPersonalPolicies,
-            draftTransactionIDs,
-        ],
-    );
-
-    const tabSelectedTypeRef = useRef<IOURequestType | null>(null);
-
-    const onTabSelected = useCallback(
-        (newIouType: IOURequestType) => {
-            tabSelectedTypeRef.current = newIouType;
-            resetIOUTypeIfChanged(newIouType);
-        },
-        [resetIOUTypeIfChanged],
-    );
-
-    // Clear out the temporary expense if the reportID in the URL has changed from the transaction's reportID.
-    useFocusEffect(
-        useCallback(() => {
-            // Skip until transactionRequestType catches up with the tab onTabSelected already set.
-            if (tabSelectedTypeRef.current && transactionRequestType !== tabSelectedTypeRef.current) {
-                return;
-            }
-            tabSelectedTypeRef.current = null;
-
-            // The test transaction can change the reportID of the transaction on the flow so we should prevent the reportID from being reverted again.
-            if (
-                transaction?.reportID === reportID ||
-                isLoadingTransaction ||
-                isLoadingSelectedTab ||
-                !transactionRequestType ||
-                prevTransactionReportID !== transaction?.reportID ||
-                !personalPolicy?.id
-            ) {
-                return;
-            }
-            resetIOUTypeIfChanged(transactionRequestType);
-        }, [transaction?.reportID, reportID, resetIOUTypeIfChanged, transactionRequestType, isLoadingSelectedTab, prevTransactionReportID, isLoadingTransaction, personalPolicy?.id]),
-    );
 
     const [headerWithBackBtnContainerElement, setHeaderWithBackButtonContainerElement] = useState<HTMLElement | null>(null);
     const [tabBarContainerElement, setTabBarContainerElement] = useState<HTMLElement | null>(null);
@@ -303,7 +223,7 @@ function IOURequestStartPage({
             iouType={iouType}
             policyID={policy?.id}
             accessVariants={[CONST.IOU.ACCESS_VARIANTS.CREATE]}
-            allPolicies={allPolicies}
+            allPolicies={iouType === CONST.IOU.TYPE.INVOICE ? allPolicies : undefined}
         >
             <ScreenWrapper
                 shouldEnableKeyboardAvoidingView={false}
@@ -328,7 +248,7 @@ function IOURequestStartPage({
                             <OnyxTabNavigator
                                 id={CONST.TAB.IOU_REQUEST_TYPE}
                                 defaultSelectedTab={defaultSelectedTab}
-                                onTabSelected={onTabSelected}
+                                onTabSelected={resetIOUTypeIfChanged}
                                 onTabSelect={onTabSelectFocusHandler}
                                 tabBar={TabSelector}
                                 onTabBarFocusTrapContainerElementChanged={setTabBarContainerElement}
