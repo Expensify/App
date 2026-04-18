@@ -247,6 +247,7 @@ const WRITE_COMMANDS = {
     DETACH_RECEIPT: 'DetachReceipt',
     PAY_MONEY_REQUEST_WITH_WALLET: 'PayMoneyRequestWithWallet',
     PAY_MONEY_REQUEST: 'PayMoneyRequest',
+    MARK_REPORT_PAYMENT_RECEIVED: 'MarkReportPaymentReceived',
     CANCEL_PAYMENT: 'CancelPayment',
     ACCEPT_ACH_CONTRACT_FOR_BANK_ACCOUNT: 'AcceptACHContractForBankAccount',
     SWITCH_TO_OLD_DOT: 'SwitchToOldDot',
@@ -817,6 +818,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.DETACH_RECEIPT]: Parameters.DetachReceiptParams;
     [WRITE_COMMANDS.PAY_MONEY_REQUEST_WITH_WALLET]: Parameters.PayMoneyRequestParams;
     [WRITE_COMMANDS.PAY_MONEY_REQUEST]: Parameters.PayMoneyRequestParams;
+    [WRITE_COMMANDS.MARK_REPORT_PAYMENT_RECEIVED]: Parameters.MarkReportPaymentReceivedParams;
     [WRITE_COMMANDS.CANCEL_PAYMENT]: Parameters.CancelPaymentParams;
     [WRITE_COMMANDS.ACCEPT_ACH_CONTRACT_FOR_BANK_ACCOUNT]: Parameters.AcceptACHContractForBankAccount;
     [WRITE_COMMANDS.SET_WORKSPACE_AUTO_HARVESTING]: Parameters.SetWorkspaceAutoHarvestingParams;

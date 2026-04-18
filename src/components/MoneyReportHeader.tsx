@@ -107,7 +107,7 @@ import {
     isPerDiemRequest,
     isTransactionPendingDelete,
 } from '@libs/TransactionUtils';
-import {startMoneyRequest} from '@userActions/IOU';
+import {markReportPaymentReceived, startMoneyRequest} from '@userActions/IOU';
 import {getNavigationUrlOnMoneyRequestDelete} from '@userActions/IOU/DeleteMoneyRequest';
 import {cancelPayment, payInvoice, payMoneyRequest} from '@userActions/IOU/PayMoneyRequest';
 import {approveMoneyRequest, canApproveIOU, canIOUBePaid as canIOUBePaidAction, reopenReport, retractReport, submitReport, unapproveExpenseReport} from '@userActions/IOU/ReportWorkflow';
@@ -214,6 +214,7 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
         'Building',
         'Buildings',
         'Plus',
+        'MoneyBag',
         'Cash',
         'Stopwatch',
         'Send',
@@ -1348,6 +1349,44 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
             value: CONST.REPORT.SECONDARY_ACTIONS.APPROVE,
             sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.APPROVE,
             onSelected: confirmApproval,
+        },
+        [CONST.REPORT.SECONDARY_ACTIONS.RECEIVED_PAYMENT]: {
+            text: translate('iou.receivedPayment'),
+            icon: expensifyIcons.MoneyBag,
+            value: CONST.REPORT.SECONDARY_ACTIONS.RECEIVED_PAYMENT,
+            sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.RECEIVED_PAYMENT,
+            onSelected: async () => {
+                if (isDelegateAccessRestricted) {
+                    showDelegateNoAccessModal();
+                    return;
+                }
+
+                const result = await showConfirmModal({
+                    title: translate('iou.confirmPaymentReceived'),
+                    prompt: translate('iou.receivedPaymentConfirmation'),
+                    confirmText: translate('iou.yesIHaveReceivedPayment'),
+                    cancelText: translate('common.cancel'),
+                });
+
+                if (result.action !== ModalActions.CONFIRM) {
+                    return;
+                }
+
+                if (isAnyTransactionOnHold) {
+                    openHoldMenu({
+                        requestType: CONST.IOU.REPORT_ACTION_TYPE.PAY,
+                        paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
+                        onConfirm: () => {
+                            startAnimation();
+                            markReportPaymentReceived(chatReport, moneyRequestReport, nextStep);
+                        },
+                    });
+                    return;
+                }
+
+                startAnimation();
+                markReportPaymentReceived(chatReport, moneyRequestReport, nextStep);
+            },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.UNAPPROVE]: {
             text: translate('iou.unapprove'),
