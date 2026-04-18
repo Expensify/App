@@ -127,6 +127,18 @@ function IOURequestStepScan({
 
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID}`);
 
+    useEffect(() => {
+        endSpan(CONST.TELEMETRY.SPAN_ENTRY_TO_SCAN_NAVIGATION);
+        const entryParentSpan = getSpan(CONST.TELEMETRY.SPAN_ENTRY_TO_SCAN);
+        if (entryParentSpan) {
+            startSpan(CONST.TELEMETRY.SPAN_ENTRY_TO_SCAN_READY, {
+                name: CONST.TELEMETRY.SPAN_ENTRY_TO_SCAN_READY,
+                op: CONST.TELEMETRY.SPAN_ENTRY_TO_SCAN_READY,
+                parentSpan: entryParentSpan,
+            });
+        }
+    }, []);
+
     // Track camera init telemetry
     const cameraInitSpanStarted = useRef(false);
     const cameraInitialized = useRef(false);
@@ -149,6 +161,9 @@ function IOURequestStepScan({
             return;
         }
         cancelSpan(CONST.TELEMETRY.SPAN_OPEN_CREATE_EXPENSE);
+        cancelSpan(CONST.TELEMETRY.SPAN_ENTRY_TO_SCAN_NAVIGATION);
+        cancelSpan(CONST.TELEMETRY.SPAN_ENTRY_TO_SCAN_READY);
+        cancelSpan(CONST.TELEMETRY.SPAN_ENTRY_TO_SCAN);
     }, [cameraPermissionStatus]);
 
     // Cancel spans on unmount if camera never initialized
@@ -164,6 +179,10 @@ function IOURequestStepScan({
             }
             // Always cancel the create expense span if camera never initialized
             cancelSpan(CONST.TELEMETRY.SPAN_OPEN_CREATE_EXPENSE);
+            // Cancel entry-to-scan spans if they haven't ended naturally
+            cancelSpan(CONST.TELEMETRY.SPAN_ENTRY_TO_SCAN_NAVIGATION);
+            cancelSpan(CONST.TELEMETRY.SPAN_ENTRY_TO_SCAN_READY);
+            cancelSpan(CONST.TELEMETRY.SPAN_ENTRY_TO_SCAN);
         };
     }, []);
 
@@ -178,6 +197,8 @@ function IOURequestStepScan({
             endSpan(CONST.TELEMETRY.SPAN_CAMERA_INIT);
         }
         endSpan(CONST.TELEMETRY.SPAN_OPEN_CREATE_EXPENSE);
+        endSpan(CONST.TELEMETRY.SPAN_ENTRY_TO_SCAN_READY);
+        endSpan(CONST.TELEMETRY.SPAN_ENTRY_TO_SCAN);
 
         // Preload the confirmation screen module so its JS is parsed and ready
         // when we navigate after capture — eliminates cold-start module load cost.
