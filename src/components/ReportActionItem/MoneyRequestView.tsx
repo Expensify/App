@@ -53,6 +53,7 @@ import {
     getLengthOfTag,
     getPerDiemCustomUnit,
     getPolicyByCustomUnitID,
+    getPolicyByCustomUnitRateID,
     getTagLists,
     hasDependentTags as hasDependentTagsPolicyUtils,
     isAttendeeTrackingEnabled,
@@ -209,19 +210,26 @@ function MoneyRequestView({
     const [policiesWithPerDiem] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
         selector: perDiemPoliciesSelector,
     });
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const isPerDiemRequest = isPerDiemRequestTransactionUtils(transaction);
     const perDiemOriginalPolicy = getPolicyByCustomUnitID(transaction, policiesWithPerDiem);
+    const isDistanceRequestForPolicy = isDistanceRequestTransactionUtils(transaction);
+    const distanceOriginalPolicy = isDistanceRequestForPolicy ? getPolicyByCustomUnitRateID(transaction, allPolicies) : undefined;
 
     let policy;
     let policyID;
     // If the expense is unreported the policy should be the user's default policy, if the expense is a per diem request and is unreported
-    // the policy should be the one where the per diem rates are enabled, otherwise it should be the expense's report policy
-    if (isExpenseUnreported && !isPerDiemRequest) {
-        policy = policyForMovingExpenses;
-        policyID = policyForMovingExpensesID;
+    // the policy should be the one where the per diem rates are enabled, if the expense is a distance request and is unreported
+    // the policy should be the one where the distance rate belongs to, otherwise it should be the expense's report policy
+    if (isExpenseUnreported && isDistanceRequestForPolicy && distanceOriginalPolicy) {
+        policy = distanceOriginalPolicy;
+        policyID = distanceOriginalPolicy?.id;
     } else if (isExpenseUnreported && isPerDiemRequest) {
         policy = perDiemOriginalPolicy;
         policyID = perDiemOriginalPolicy?.id;
+    } else if (isExpenseUnreported) {
+        policy = policyForMovingExpenses;
+        policyID = policyForMovingExpensesID;
     } else {
         policy = expensePolicy;
         policyID = parentReport?.policyID;
