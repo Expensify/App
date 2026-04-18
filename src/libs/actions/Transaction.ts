@@ -11,7 +11,7 @@ import type {
     MarkAsCashParams,
     TransactionThreadInfo,
 } from '@libs/API/parameters';
-import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as CollectionUtils from '@libs/CollectionUtils';
 import DateUtils from '@libs/DateUtils';
 import {buildNextStepNew, buildOptimisticNextStep} from '@libs/NextStepUtils';
@@ -66,6 +66,7 @@ import type {
     TransactionViolation,
     TransactionViolations,
 } from '@src/types/onyx';
+import type DefaultP2PMileageRate from '@src/types/onyx/DefaultP2PMileageRate';
 import type {OriginalMessageIOU, OriginalMessageModifiedExpense} from '@src/types/onyx/OriginalMessage';
 import type {OnyxData} from '@src/types/onyx/Request';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
@@ -1657,6 +1658,24 @@ function changeTransactionsReport({
     });
 }
 
+let storedDefaultP2PMileageRate: DefaultP2PMileageRate | undefined;
+
+function getDefaultP2PMileageRate() {
+    // eslint-disable-next-line rulesdir/no-api-side-effects-method
+    API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.GET_DEFAULT_P2P_MILEAGE_RATE, null).then((response) => {
+        const updates = response?.onyxData as Array<{key: string; value: unknown}> | undefined;
+        const rateUpdate = updates?.find((update) => update.key === 'defaultP2PMileageRate');
+        const value = rateUpdate?.value;
+        if (value && typeof value === 'object' && 'rate' in value && 'unit' in value) {
+            storedDefaultP2PMileageRate = value as DefaultP2PMileageRate;
+        }
+    });
+}
+
+function getStoredDefaultP2PMileageRate(): DefaultP2PMileageRate | undefined {
+    return storedDefaultP2PMileageRate;
+}
+
 function mergeTransactionIdsHighlightOnSearchRoute(type: SearchDataTypes, data: Record<string, boolean> | null) {
     return Onyx.merge(ONYXKEYS.TRANSACTION_IDS_HIGHLIGHT_ON_SEARCH_ROUTE, {[type]: data});
 }
@@ -1692,6 +1711,8 @@ export {
     revert,
     changeTransactionsReport,
     setTransactionReport,
+    getDefaultP2PMileageRate,
+    getStoredDefaultP2PMileageRate,
     mergeTransactionIdsHighlightOnSearchRoute,
     getDuplicateTransactionDetails,
 };
