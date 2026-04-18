@@ -2264,6 +2264,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.MORE_FEATURES]: {
                             path: ROUTES.WORKSPACE_MORE_FEATURES.route,
                         },
+                        [SCREENS.WORKSPACE.HR]: {
+                            path: ROUTES.WORKSPACE_HR.route,
+                        },
                         [SCREENS.WORKSPACE.TAGS]: {
                             path: ROUTES.WORKSPACE_TAGS.route,
                         },
