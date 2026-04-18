@@ -256,14 +256,15 @@ function restoreTriggerForRoute(routeKey: string): boolean {
     // focusVisible: Chromium/Firefox only (lib.dom.d.ts too); Safari's :focus-visible heuristic aligns.
     const focusOptions = {preventScroll: true, focusVisible: getHadTabNavigation()} as FocusOptions;
     for (const candidate of candidates) {
+        const before = document.activeElement;
         candidate.focus(focusOptions);
-        const active = document.activeElement;
-        if (active === candidate) {
+        const after = document.activeElement;
+        if (after === candidate) {
             scheduleReturnHoldRelease();
             return true;
         }
-        if (active && active !== document.body) {
-            // onFocus redirected (composite-widget pattern) — respect it.
+        // Only accept as onFocus redirect when focus actually moved — pre-existing focus with a silent no-op must fall through to the fallback.
+        if (after !== before && after && after !== document.body) {
             scheduleReturnHoldRelease();
             return true;
         }

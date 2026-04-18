@@ -756,6 +756,28 @@ describe('restoreTriggerForRoute', () => {
         expect(launcherSpy).not.toHaveBeenCalled();
     });
 
+    it('must not treat pre-existing non-body focus as an onFocus redirect when the candidate silently no-ops', () => {
+        const launcher = appendButton();
+        const primary = appendButton();
+        const preExistingInput = appendInput();
+        setActivePopoverLauncher(launcher);
+        primary.focus();
+        primary.dispatchEvent(new FocusEvent('focusin', {bubbles: true}));
+        captureTriggerForRoute('route-a');
+        primary.blur();
+
+        // Simulate AUTO having already focused an input on the destination screen before RETURN fires.
+        preExistingInput.focus();
+
+        // Primary's .focus() is a silent no-op (simulates display:none / visibility:hidden).
+        jest.spyOn(primary, 'focus').mockImplementation(() => {});
+        const launcherSpy = jest.spyOn(launcher, 'focus');
+
+        // Fallback (launcher) is in the DOM and accepts focus — restore should try it.
+        expect(restoreTriggerForRoute('route-a')).toBe(true);
+        expect(launcherSpy).toHaveBeenCalled();
+    });
+
     it('should restore without scrolling the viewport (preventScroll must be preserved)', () => {
         const trigger = appendButton();
         trigger.focus();
