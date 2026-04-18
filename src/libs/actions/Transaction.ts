@@ -57,6 +57,7 @@ import type {
     PersonalDetails,
     Policy,
     PolicyCategories,
+    PolicyTagLists,
     RecentWaypoint,
     Report,
     ReportAction,
@@ -71,7 +72,6 @@ import type {OnyxData} from '@src/types/onyx/Request';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 import type {Waypoint, WaypointCollection} from '@src/types/onyx/Transaction';
 import type TransactionState from '@src/types/utils/TransactionStateType';
-import {getPolicyTags} from './IOU/index';
 
 let allReports: OnyxCollection<Report> = {};
 Onyx.connect({
@@ -102,16 +102,6 @@ Onyx.connect({
     key: ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
     callback: (val) => (allTransactionViolations = val ?? []),
 });
-
-/**
- * @deprecated This function uses Onyx.connect and should be replaced with useOnyx for reactive data access.
- * TODO: remove `getPolicyTagsData` from this file (https://github.com/Expensify/App/issues/72720)
- * All usages of this function should be replaced with useOnyx hook in React components.
- */
-function getPolicyTagsData(policyID: string | undefined) {
-    const allPolicyTags = getPolicyTags();
-    return allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] ?? {};
-}
 
 // Helper to safely check for a string 'name' property
 function isViolationWithName(violation: unknown): violation is {name: string} {
@@ -850,6 +840,7 @@ type ChangeTransactionsReportProps = {
     reportNextStep?: OnyxEntry<ReportNextStepDeprecated>;
     policyCategories?: OnyxEntry<PolicyCategories>;
     allTransactions: OnyxCollection<Transaction>;
+    policyTagList: OnyxEntry<PolicyTagLists>;
 };
 
 function changeTransactionsReport({
@@ -862,6 +853,7 @@ function changeTransactionsReport({
     reportNextStep,
     policyCategories,
     allTransactions,
+    policyTagList,
 }: ChangeTransactionsReportProps) {
     const reportID = newReport?.reportID ?? CONST.REPORT.UNREPORTED_REPORT_ID;
 
@@ -998,9 +990,6 @@ function changeTransactionsReport({
     let transactionsMoved = false;
     let shouldFixViolations = false;
 
-    // TODO: Replace getPolicyTagsData with useOnyx hook (https://github.com/Expensify/App/issues/72720)
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const policyTagList = getPolicyTagsData(policy?.id);
     const policyHasDependentTags = hasDependentTags(policy, policyTagList);
 
     // Determine the destination currency for convertedAmount clearing logic
@@ -1133,7 +1122,7 @@ function changeTransactionsReport({
                 transaction,
                 currentTransactionViolations[transaction.transactionID] ?? [],
                 policy,
-                policyTagList,
+                policyTagList ?? {},
                 policyCategories ?? {},
                 policyHasDependentTags,
                 false,
@@ -1524,7 +1513,7 @@ function changeTransactionsReport({
             transaction,
             currentTransactionViolations[transaction.transactionID] ?? [],
             policy,
-            policyTagList,
+            policyTagList ?? {},
             policyCategories ?? {},
             policyHasDependentTags,
             false,
