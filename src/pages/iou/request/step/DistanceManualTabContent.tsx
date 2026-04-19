@@ -1,4 +1,5 @@
 import React from 'react';
+import type {TextInput} from 'react-native';
 import Button from '@components/Button';
 import NumberWithSymbolForm from '@components/NumberWithSymbolForm';
 import type {NumberWithSymbolFormRef} from '@components/NumberWithSymbolForm';
@@ -31,7 +32,7 @@ function DistanceManualTabContent({currentDistance, distanceUnit, onSubmit, manu
     const setInputRef = (ref: BaseTextInputRef | null) => {
         // eslint-disable-next-line no-param-reassign
         manualTextInputRef.current = ref;
-        inputCallbackRef(ref);
+        inputCallbackRef(ref as unknown as TextInput | null);
     };
 
     return (
