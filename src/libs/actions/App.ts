@@ -160,12 +160,10 @@ Onyx.connectWithoutView({
             return;
         }
 
-        Onyx.clear(KEYS_TO_PRESERVE).then(() => {
+        // eslint-disable-next-line @typescript-eslint/no-use-before-define -- clearOnyxAndResetApp is defined later in this file but must be called here in the RESET_REQUIRED callback
+        clearOnyxAndResetApp().finally(() => {
             // Set this to false to reset the flag for this client
             Onyx.set(ONYXKEYS.RESET_REQUIRED, false);
-
-            // eslint-disable-next-line @typescript-eslint/no-use-before-define
-            openApp();
         });
     },
 });
@@ -833,11 +831,11 @@ function setPreservedAccount(account: OnyxTypes.Account) {
 function clearOnyxAndResetApp(shouldNavigateToHomepage?: boolean) {
     // The value of isUsingImportedState will be lost once Onyx is cleared, so we need to store it
     const isStateImported = isUsingImportedState;
+    rollbackOngoingRequest();
     const sequentialQueue = getAll();
 
-    rollbackOngoingRequest();
     Navigation.clearPreloadedRoutes();
-    Onyx.clear(KEYS_TO_PRESERVE)
+    const resetPromise = Onyx.clear(KEYS_TO_PRESERVE)
         .then(() => {
             // Network key is preserved, so when exiting imported state, we should:
             // 1. Stop forcing offline mode so the app can reconnect
@@ -879,6 +877,7 @@ function clearOnyxAndResetApp(shouldNavigateToHomepage?: boolean) {
             });
         });
     clearSoundAssetsCache();
+    return resetPromise;
 }
 
 /**

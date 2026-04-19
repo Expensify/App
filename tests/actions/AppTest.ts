@@ -1,11 +1,15 @@
+import {waitFor} from '@testing-library/react-native';
 import type {OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import DateUtils from '@libs/DateUtils';
 import '@libs/Navigation/AppNavigator/AuthScreens';
+import Navigation from '@libs/Navigation/Navigation';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy} from '@src/types/onyx';
 import * as App from '../../src/libs/actions/App';
+import * as PersistedRequests from '../../src/libs/actions/PersistedRequests';
+import type Request from '../../src/types/onyx/Request';
 import getOnyxValue from '../utils/getOnyxValue';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -101,6 +105,42 @@ describe('actions/App', () => {
 
         // Then ReconnectApp should NOT get called
         expect(reconnectApp).toHaveBeenCalledTimes(0);
+    });
+
+    test('clearOnyxAndResetApp preserves rolled-back ongoing requests across reset', async () => {
+        const persistedRequest: Request<'reportMetadata_1' | 'reportMetadata_2'> = {
+            command: 'AddComment',
+            successData: [{key: 'reportMetadata_1', onyxMethod: 'merge', value: {}}],
+            failureData: [{key: 'reportMetadata_2', onyxMethod: 'merge', value: {}}],
+            requestID: 123,
+        };
+
+        jest.spyOn(Navigation, 'clearPreloadedRoutes').mockImplementation(() => {});
+        await Onyx.set(ONYXKEYS.NETWORK, {shouldForceOffline: true});
+        await PersistedRequests.save(persistedRequest);
+        await waitForBatchedUpdates();
+
+        PersistedRequests.processNextRequest();
+        await waitForBatchedUpdates();
+
+        expect(PersistedRequests.getOngoingRequest()).toEqual(persistedRequest);
+
+        await App.clearOnyxAndResetApp();
+        await waitForBatchedUpdates();
+
+        await waitFor(async () => {
+            const diskQueue = (await getOnyxValue(ONYXKEYS.PERSISTED_REQUESTS)) ?? [];
+            expect(diskQueue).toEqual(
+                expect.arrayContaining([
+                    expect.objectContaining({
+                        command: 'AddComment',
+                        requestID: 123,
+                        isRollback: true,
+                    }),
+                ]),
+            );
+            expect((await getOnyxValue(ONYXKEYS.PERSISTED_ONGOING_REQUESTS)) == null).toBe(true);
+        });
     });
 
     describe('getNonOptimisticPolicyIDs', () => {
