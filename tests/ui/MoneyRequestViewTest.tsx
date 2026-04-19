@@ -244,7 +244,7 @@ describe('MoneyRequestView edit fields', () => {
                 taxCode: 'TAX_10',
                 taxAmount: 500,
                 taxValue: '10%',
-                comment: {type: CONST.TRANSACTION.TYPE.TIME},
+                iouRequestType: CONST.IOU.REQUEST_TYPE.TIME,
             });
         });
         await waitForBatchedUpdatesWithAct();

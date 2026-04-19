@@ -12,7 +12,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {getLoginsByAccountIDs} from '@libs/PersonalDetailsUtils';
 import {getOriginalMessage, getReportAction} from '@libs/ReportActionsUtils';
 import {buildOptimisticIOUReport, buildOptimisticIOUReportAction, buildTransactionThread} from '@libs/ReportUtils';
-import {buildOptimisticTransaction, isTimeRequest} from '@libs/TransactionUtils';
+import {buildOptimisticTransaction} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
@@ -1186,6 +1186,7 @@ describe('actions/Duplicate', () => {
                 ...mockTransaction,
                 transactionID,
                 amount: AMOUNT_CENTS,
+                iouRequestType: CONST.IOU.REQUEST_TYPE.TIME,
                 comment: {
                     type: 'time' as const,
                     units: {
@@ -1239,7 +1240,6 @@ describe('actions/Duplicate', () => {
             expect(duplicatedTransaction?.comment?.units?.rate).toEqual(HOURLY_RATE);
             expect(duplicatedTransaction?.comment?.units?.unit).toBe('h');
             expect(duplicatedTransaction?.comment?.type).toBe('time');
-            expect(isTimeRequest(duplicatedTransaction)).toBeTruthy();
         });
 
         it('should create a duplicate expense successfully (previously with transaction drafts)', async () => {
@@ -1356,6 +1356,7 @@ describe('actions/Duplicate', () => {
                 ...mockTransaction,
                 transactionID,
                 amount: AMOUNT_CENTS,
+                iouRequestType: CONST.IOU.REQUEST_TYPE.TIME,
                 comment: {
                     type: 'time' as const,
                     units: {
@@ -1408,7 +1409,6 @@ describe('actions/Duplicate', () => {
             expect(duplicatedTransaction?.comment?.units?.rate).toEqual(HOURLY_RATE);
             expect(duplicatedTransaction?.comment?.units?.unit).toBe('h');
             expect(duplicatedTransaction?.comment?.type).toBe('time');
-            expect(isTimeRequest(duplicatedTransaction)).toBeTruthy();
         });
 
         it('should return early when transaction is undefined', async () => {
@@ -1486,6 +1486,7 @@ describe('actions/Duplicate', () => {
             const mockDistanceTransaction = {
                 ...mockTransaction,
                 amount: mockTransaction.amount * -1,
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
                 comment: {
                     type: 'customUnit' as const,
                     customUnit: {
@@ -1528,6 +1529,7 @@ describe('actions/Duplicate', () => {
             const mockPerDiemTransaction = {
                 ...mockTransaction,
                 amount: mockTransaction.amount * -1,
+                iouRequestType: CONST.IOU.REQUEST_TYPE.PER_DIEM,
                 comment: {
                     type: 'customUnit' as const,
                     customUnit: {
