@@ -175,7 +175,7 @@ import {clearByKey} from '@userActions/CachedPDFPaths';
 import {setDownload} from '@userActions/Download';
 import {close} from '@userActions/Modal';
 import navigateFromNotification from '@userActions/navigateFromNotification';
-import {getAll} from '@userActions/PersistedRequests';
+import {getAll, deleteRequestsByIndices} from '@userActions/PersistedRequests';
 import {buildAddMembersToWorkspaceOnyxData, buildRoomMembersOnyxData} from '@userActions/Policy/Member';
 import {createPolicyExpenseChats} from '@userActions/Policy/Policy';
 import {
@@ -2330,6 +2330,21 @@ function readNewestAction(reportID: string | undefined, hasOnceLoadedReportActio
         if (!hasReportActions) {
             return;
         }
+    }
+
+    // Cancel any pending MARK_AS_UNREAD requests for this report
+    // This prevents the unread state from being applied after the user has read the report
+    // Fixes issue #79837 where report remains marked as unread in LHN after returning online
+    const persistedRequests = getAll();
+    const markAsUnreadIndices: number[] = [];
+    persistedRequests.forEach((request, index) => {
+        if (request.command === WRITE_COMMANDS.MARK_AS_UNREAD && request.data?.reportID === reportID) {
+            markAsUnreadIndices.push(index);
+        }
+    });
+
+    if (markAsUnreadIndices.length > 0) {
+        deleteRequestsByIndices(markAsUnreadIndices);
     }
 
     const lastReadTime = getDBTimeWithSkew();
