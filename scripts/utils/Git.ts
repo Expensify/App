@@ -6,7 +6,7 @@ import path from 'path';
 import {promisify} from 'util';
 import CONST from '@github/libs/CONST';
 import GitHubUtils from '@github/libs/GithubUtils';
-import {log, error as logError, warn as logWarn} from './Logger';
+import {error as logError, warn as logWarn} from './Logger';
 
 type ExecOptions = Omit<ExecWithCallbackOptions, 'encoding'> & {cwd?: ExecWithCallbackOptions['cwd']};
 function exec(command: string, options?: ExecOptions) {
@@ -392,7 +392,7 @@ class Git {
         }
 
         try {
-            log(`🔄 Fetching missing ref: ${ref}`);
+            console.log(`🔄 Fetching missing ref: ${ref}`);
             await exec(`git fetch ${remote} ${ref} --no-tags --depth=1 --quiet`);
 
             // Verify the ref is now available

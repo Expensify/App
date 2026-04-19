@@ -70,8 +70,7 @@ function reportVirtualExpensifyCardFraud(card: Card, validateCode: string) {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.FORMS.REPORT_VIRTUAL_CARD_FRAUD,
             value: {
-                // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
-                cardID,
+                cardID: cardID.toString(),
                 isLoading: true,
                 errors: null,
             },
