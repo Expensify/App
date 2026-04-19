@@ -87,6 +87,33 @@ describe('PersistedRequests', () => {
         expect(PersistedRequests.getOngoingRequest()).toEqual(newRequest);
     });
 
+    it('updateOngoingRequest should clear persisted ongoing request when data contains a File/Blob', async () => {
+        PersistedRequests.processNextRequest();
+        await waitForBatchedUpdates();
+
+        const originalFile = global.File;
+        class MockFile {}
+        global.File = MockFile as unknown as typeof File;
+
+        try {
+            const newRequest: Request<'reportMetadata_1' | 'reportMetadata_2'> = {
+                command: 'OpenReport',
+                successData: [{key: 'reportMetadata_1', onyxMethod: 'set', value: {}}],
+                failureData: [{key: 'reportMetadata_2', onyxMethod: 'set', value: {}}],
+                requestID: 5,
+                data: {file: new MockFile() as unknown as File},
+            };
+
+            PersistedRequests.updateOngoingRequest(newRequest);
+            await waitForBatchedUpdates();
+
+            expect(PersistedRequests.getOngoingRequest()).toEqual(newRequest);
+            expect((await OnyxUtils.get(ONYXKEYS.PERSISTED_ONGOING_REQUESTS)) == null).toBe(true);
+        } finally {
+            global.File = originalFile;
+        }
+    });
+
     it('when removing a request should update the persistedRequests queue and clear the ongoing request', () => {
         PersistedRequests.processNextRequest();
         expect(PersistedRequests.getOngoingRequest()).toEqual(request);
