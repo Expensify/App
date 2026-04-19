@@ -64,7 +64,8 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
     const [errorTitle, setErrorTitle] = useState<string | undefined>(undefined);
     const [errorMessage, setErrorMessage] = useState<string | undefined>(undefined);
 
-    const report: OnyxEntry<ReportType> = getReportOrDraftReport(reportOrAccountID);
+    const [reportOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportOrAccountID}`);
+    const report: OnyxEntry<ReportType> = getReportOrDraftReport(reportOrAccountID, undefined, undefined, undefined, reportOnyx);
     const privateIsArchived = useReportIsArchived(report?.reportID);
     const ancestors = useAncestors(report);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`);

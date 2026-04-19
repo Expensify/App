@@ -58,7 +58,8 @@ function IOURequestStepCategory({
     const illustrations = useMemoizedLazyIllustrations(['EmptyStateExpenses']);
     const requestType = getRequestType(transaction);
     const isPerDiemRequest = requestType === CONST.IOU.REQUEST_TYPE.PER_DIEM;
-    const transactionReport = getReportOrDraftReport(transaction?.reportID);
+    const [transactionReportOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(transaction?.reportID)}`);
+    const transactionReport = getReportOrDraftReport(transaction?.reportID, undefined, undefined, undefined, transactionReportOnyx);
     const report = reportReal ?? reportDraft ?? transactionReport;
     const policyIdReal = getIOURequestPolicyID(transaction, reportReal ?? transactionReport);
     const policyIdDraft = getIOURequestPolicyID(transaction, reportDraft);
