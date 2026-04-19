@@ -24,7 +24,7 @@ import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan
 import {isRequiredFulfilled} from '@libs/ValidationUtils';
 import {clearWorkspaceDetailsDraft} from '@userActions/Onboarding';
 import {createWorkspace, generateDefaultWorkspaceName, generatePolicyID} from '@userActions/Policy/Policy';
-import {setOnboardingAdminsChatReportID, setOnboardingErrorMessage, setOnboardingPolicyID} from '@userActions/Welcome';
+import {setOnboardingAdminsChatReportID, setOnboardingErrorMessageTranslationKey, setOnboardingPolicyID} from '@userActions/Welcome';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -64,7 +64,7 @@ function BaseOnboardingWorkspaceConfirmation({shouldUseNativeStyles}: BaseOnboar
     const defaultCurrency = draftValues?.currency ?? currentUserPersonalDetails?.localCurrencyCode ?? CONST.CURRENCY.USD;
 
     useEffect(() => {
-        setOnboardingErrorMessage(null);
+        setOnboardingErrorMessageTranslationKey(null);
     }, []);
 
     const handleSubmit = useCallback(

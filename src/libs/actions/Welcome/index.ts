@@ -14,6 +14,8 @@ import ROUTES from '@src/ROUTES';
 import type {OnboardingPurpose} from '@src/types/onyx';
 import type Onboarding from '@src/types/onyx/Onboarding';
 import type {OnboardingCompanySize} from './OnboardingFlow';
+import { getMicroSecondOnyxErrorWithMessage } from '@libs/ErrorUtils';
+import INPUT_IDS from '@src/types/form/OnboardingWorkEmailForm';
 
 let isLoadingReportData = true;
 
@@ -49,8 +51,12 @@ function setOnboardingUserReportedIntegration(value: OnboardingAccounting | null
     Onyx.set(ONYXKEYS.ONBOARDING_USER_REPORTED_INTEGRATION, value);
 }
 
-function setOnboardingErrorMessage(value: TranslationPaths | null) {
+function setOnboardingErrorMessageTranslationKey(value: TranslationPaths | null) {
     Onyx.set(ONYXKEYS.ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY, value);
+}
+
+function setOnboardingErrorMessage(value: string | null) {
+    Onyx.set(ONYXKEYS.ONBOARDING_ERROR_MESSAGE, value);
 }
 
 function setOnboardingAdminsChatReportID(adminsChatReportID?: string) {
@@ -111,7 +117,22 @@ function completeHybridAppOnboarding() {
         HybridAppModule.completeOnboarding({status: true});
     });
 }
-
+function addWorkEmailFormError(error:string, isLoading: boolean = false) {
+    Onyx.merge(ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM, {
+        errors: getMicroSecondOnyxErrorWithMessage(error),
+        errorFields: {
+            [INPUT_IDS.ONBOARDING_WORK_EMAIL]: getMicroSecondOnyxErrorWithMessage(error),
+        },
+        isLoading,
+    });
+}
+function clearWorkEmailFormErrors(isLoading :boolean = false) {
+    Onyx.merge(ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM, {
+        errors: null,
+        errorFields: null,
+        isLoading,
+    });
+}
 // We use `connectWithoutView` here since this connection only to get loading flag
 // and doesn't need to trigger component re-renders.
 Onyx.connectWithoutView({
@@ -176,7 +197,10 @@ export {
     setOnboardingAdminsChatReportID,
     setOnboardingPolicyID,
     completeHybridAppOnboarding,
+    setOnboardingErrorMessageTranslationKey,
     setOnboardingErrorMessage,
+    addWorkEmailFormError,
+    clearWorkEmailFormErrors,
     setOnboardingCompanySize,
     setSelfTourViewed,
     setOnboardingMergeAccountStepValue,

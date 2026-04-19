@@ -5,7 +5,7 @@ import {hasCompletedGuidedSetupFlowSelector, tryNewDotOnyxSelector, wasInvitedTo
 import Onyx from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
-import {setOnboardingErrorMessage} from '@libs/actions/Welcome';
+import {setOnboardingErrorMessageTranslationKey} from '@libs/actions/Welcome';
 import Log from '@libs/Log';
 import {isOnboardingFlowName} from '@libs/Navigation/helpers/isNavigatorName';
 import {getOnboardingInitialPath} from '@userActions/Welcome/OnboardingFlow';
@@ -123,7 +123,7 @@ function shouldPreventReset(state: NavigationState, action: NavigationAction) {
 
     // We want to prevent the user from navigating back to a non-onboarding screen if they are currently on an onboarding screen
     if (isOnboardingFlowName(currentFocusedRoute?.name) && !isOnboardingFlowName(targetFocusedRoute?.name)) {
-        setOnboardingErrorMessage('onboarding.purpose.errorBackButton');
+        setOnboardingErrorMessageTranslationKey('onboarding.purpose.errorBackButton');
         return true;
     }
 

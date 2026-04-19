@@ -27,7 +27,7 @@ import {addErrorMessage} from '@libs/ErrorUtils';
 import getOperatingSystem from '@libs/getOperatingSystem';
 import Navigation from '@libs/Navigation/Navigation';
 import {AddWorkEmail} from '@userActions/Session';
-import {setOnboardingErrorMessage, setOnboardingMergeAccountStepValue} from '@userActions/Welcome';
+import {setOnboardingErrorMessageTranslationKey,setOnboardingErrorMessage, setOnboardingMergeAccountStepValue, addWorkEmailFormError, clearWorkEmailFormErrors} from '@userActions/Welcome';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import Log from '@src/libs/Log';
@@ -52,7 +52,8 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [formValue] = useOnyx(ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM);
     const workEmail = formValue?.[INPUT_IDS.ONBOARDING_WORK_EMAIL];
-    const [onboardingErrorMessage] = useOnyx(ONYXKEYS.ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY);
+    const [onboardingErrorMessageTranslationKey] = useOnyx(ONYXKEYS.ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY);
+    const [onboardingErrorMessage] = useOnyx(ONYXKEYS.ONBOARDING_ERROR_MESSAGE);
     const isVsb = onboardingValues && 'signupQualifier' in onboardingValues && onboardingValues.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.VSB;
     const isSmb = onboardingValues?.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.SMB;
     const {onboardingIsMediumOrLargerScreenWidth} = useResponsiveLayout();
@@ -65,14 +66,14 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
     const onboardingStep = useOnboardingStepCounter(SCREENS.ONBOARDING.WORK_EMAIL);
 
     useEffect(() => {
-        setOnboardingErrorMessage(null);
+        setOnboardingErrorMessageTranslationKey(null);
     }, []);
 
     useEffect(() => {
         if (onboardingValues?.shouldValidate === undefined && onboardingValues?.isMergeAccountStepCompleted === undefined) {
             return;
         }
-        setOnboardingErrorMessage(null);
+        setOnboardingErrorMessageTranslationKey(null);
 
         if (onboardingValues?.shouldValidate) {
             Navigation.navigate(ROUTES.ONBOARDING_WORK_EMAIL_VALIDATION.getRoute());
@@ -101,6 +102,21 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
     const submitWorkEmail = useCallback((values: FormOnyxValues<typeof ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM>) => {
         AddWorkEmail(values[INPUT_IDS.ONBOARDING_WORK_EMAIL].trim());
     }, []);
+
+    useEffect(() => {
+        if (!onboardingErrorMessage) {
+            clearWorkEmailFormErrors();
+        } else {
+            addWorkEmailFormError(onboardingErrorMessage);
+        }
+    }, [onboardingErrorMessage]);
+
+    const turnOffOnboardingErrorMessageOnValueChange = useCallback(() => {
+        if (onboardingErrorMessage) {
+            setOnboardingErrorMessage(null);
+        }
+    }, [onboardingErrorMessage]);
+
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM>) => {
         if (!shouldValidateOnChange) {
@@ -182,16 +198,16 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
                         <OfflineWithFeedback
                             shouldDisplayErrorAbove
                             style={styles.mb3}
-                            errors={onboardingErrorMessage ? {addWorkEmailError: translate(onboardingErrorMessage)} : undefined}
+                            errors={onboardingErrorMessageTranslationKey ? {addWorkEmailError: translate(onboardingErrorMessageTranslationKey)} : undefined}
                             errorRowStyles={[styles.mt2, styles.textWrap]}
-                            onClose={() => setOnboardingErrorMessage(null)}
+                            onClose={() => setOnboardingErrorMessageTranslationKey(null)}
                         >
                             <Button
                                 large
                                 text={translate('common.skip')}
                                 testID="onboardingPrivateEmailSkipButton"
                                 onPress={() => {
-                                    setOnboardingErrorMessage(null);
+                                    setOnboardingErrorMessageTranslationKey(null);
 
                                     setOnboardingMergeAccountStepValue(true, true);
                                 }}
@@ -260,6 +276,7 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
                             maxLength={CONST.LOGIN_CHARACTER_LIMIT}
                             spellCheck={false}
                             autoComplete="email"
+                            onValueChange={turnOffOnboardingErrorMessageOnValueChange}
                         />
                     </View>
                 </FormProvider>
