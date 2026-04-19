@@ -3270,6 +3270,9 @@ const CONST = {
             isLoading: false,
             errors: {},
         },
+        // Redirect URI used by the native Plaid SDK on iOS. It is not a registered app route —
+        // the SDK handles the OAuth callback itself, so deep-link handlers must ignore this path.
+        OAUTH_REDIRECT_PATH_IOS: 'partners/plaid/oauth_ios',
     },
 
     ONFIDO: {
@@ -3602,6 +3605,7 @@ const CONST = {
             IS_TRAVEL_ENABLED: 'isTravelEnabled',
             REQUIRE_COMPANY_CARDS_ENABLED: 'requireCompanyCardsEnabled',
             IS_TIME_TRACKING_ENABLED: 'isTimeTrackingEnabled',
+            IS_HR_ENABLED: 'isHREnabled',
         },
         DEFAULT_CATEGORIES: {
             ADVERTISING: 'Advertising',
@@ -3731,6 +3735,7 @@ const CONST = {
                 STARTING_IMPORT_QBO: 'startingImportQBO',
                 STARTING_IMPORT_XERO: 'startingImportXero',
                 STARTING_IMPORT_QBD: 'startingImportQBD',
+                STARTING_IMPORT_GUSTO: 'startingImportGusto',
                 QBO_IMPORT_MAIN: 'quickbooksOnlineImportMain',
                 QBO_IMPORT_CUSTOMERS: 'quickbooksOnlineImportCustomers',
                 QBO_IMPORT_EMPLOYEES: 'quickbooksOnlineImportEmployees',
@@ -3796,6 +3801,10 @@ const CONST = {
                 SAGE_INTACCT_SYNC_IMPORT_EMPLOYEES: 'intacctImportEmployees',
                 SAGE_INTACCT_SYNC_IMPORT_DIMENSIONS: 'intacctImportDimensions',
                 SAGE_INTACCT_SYNC_IMPORT_SYNC_REIMBURSED_REPORTS: 'intacctImportSyncBillPayments',
+                GUSTO_SYNC_LOAD_COMPANY: 'gustoSyncLoadCompany',
+                GUSTO_SYNC_IMPORT_EMPLOYEES: 'gustoSyncImportEmployees',
+                GUSTO_SYNC_BUILD_APPROVAL_CHAINS: 'gustoSyncBuildApprovalChains',
+                GUSTO_SYNC_FINALIZE: 'gustoSyncFinalize',
             },
             SYNC_STAGE_TIMEOUT_MINUTES: 20,
         },
@@ -7537,6 +7546,7 @@ const CONST = {
             DUPLICATE: 'duplicate',
             UNDELETE: 'undelete',
         },
+        BULK_DUPLICATE_LIMIT: 50,
         TRANSACTION_TYPE: {
             CASH: 'cash',
             CARD: 'card',
@@ -9253,6 +9263,7 @@ const CONST = {
                 MEMBERS: 'WorkspaceInitial-Members',
                 REPORTS: 'WorkspaceInitial-Reports',
                 ACCOUNTING: 'WorkspaceInitial-Accounting',
+                HR: 'WorkspaceInitial-HR',
                 RECEIPT_PARTNERS: 'WorkspaceInitial-ReceiptPartners',
                 CATEGORIES: 'WorkspaceInitial-Categories',
                 TAGS: 'WorkspaceInitial-Tags',

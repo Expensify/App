@@ -502,7 +502,6 @@ function prepareRejectMoneyRequestData(
                     onyxMethod: Onyx.METHOD.SET,
                     key: `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${rejectedToReportID}`,
                     value: {
-                        // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
                         parentReportID: report?.chatReportID,
                     },
                 },
@@ -902,11 +901,10 @@ function markRejectViolationAsResolved(transactionID: string, isOffline: boolean
 
     // Build optimistic data
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [
-        // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
-            value: updatedViolations,
+            value: updatedViolations ?? null,
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -930,11 +928,10 @@ function markRejectViolationAsResolved(transactionID: string, isOffline: boolean
     ];
 
     const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [
-        // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
-            value: currentViolations,
+            value: currentViolations ?? null,
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
