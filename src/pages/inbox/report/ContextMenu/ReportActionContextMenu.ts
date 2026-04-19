@@ -7,7 +7,6 @@ import type {ValueOf} from 'type-fest';
 import type {ComposerType} from '@libs/ReportActionComposeFocusManager';
 import type CONST from '@src/CONST';
 import type {ReportAction} from '@src/types/onyx';
-import type {ContextMenuAction} from './ContextMenuActions';
 
 type OnConfirm = () => void;
 
@@ -26,21 +25,16 @@ type ShowContextMenuParams = {
         reportID?: string;
         originalReportID?: string;
         isArchivedRoom?: boolean;
-        isChronos?: boolean;
-        isPinnedChat?: boolean;
-        isUnreadChat?: boolean;
     };
     reportAction?: {
         reportActionID?: string;
         draftMessage?: string;
-        isThreadReportParentAction?: boolean;
     };
     callbacks?: {
         onShow?: () => void;
         onHide?: () => void;
         setIsEmojiPickerActive?: (state: boolean) => void;
     };
-    disabledOptions?: ContextMenuAction[];
     shouldCloseOnTarget?: boolean;
     isOverflowMenu?: boolean;
     withoutOverlay?: boolean;
@@ -58,7 +52,14 @@ type HideContextMenu = (params?: HideContextMenuParams) => void;
 type ReportActionContextMenu = {
     showContextMenu: ShowContextMenu;
     hideContextMenu: HideContextMenu;
-    showDeleteModal: (reportID: string, reportAction: OnyxEntry<ReportAction>, shouldSetModalVisibility?: boolean, onConfirm?: OnConfirm, onCancel?: OnCancel) => void;
+    showDeleteModal: (
+        reportID: string,
+        reportAction: OnyxEntry<ReportAction>,
+        shouldSetModalVisibility?: boolean,
+        onConfirm?: OnConfirm,
+        onCancel?: OnCancel,
+        actionSourceReportID?: string,
+    ) => void;
     hideDeleteModal: () => void;
     isActiveReportAction: (accountID: string | number) => boolean;
     instanceIDRef: RefObject<string>;
@@ -157,11 +158,18 @@ function hideDeleteModal() {
 /**
  * Opens the Confirm delete action modal
  */
-function showDeleteModal(reportID: string | undefined, reportAction: OnyxEntry<ReportAction>, shouldSetModalVisibility?: boolean, onConfirm?: OnConfirm, onCancel?: OnCancel) {
+function showDeleteModal(
+    reportID: string | undefined,
+    reportAction: OnyxEntry<ReportAction>,
+    shouldSetModalVisibility?: boolean,
+    onConfirm?: OnConfirm,
+    onCancel?: OnCancel,
+    actionSourceReportID?: string,
+) {
     if (!contextMenuRef.current || !reportID) {
         return;
     }
-    contextMenuRef.current.showDeleteModal(reportID, reportAction, shouldSetModalVisibility, onConfirm, onCancel);
+    contextMenuRef.current.showDeleteModal(reportID, reportAction, shouldSetModalVisibility, onConfirm, onCancel, actionSourceReportID);
 }
 
 /**

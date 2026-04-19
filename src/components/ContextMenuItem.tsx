@@ -1,15 +1,12 @@
 import React from 'react';
-import type {GestureResponderEvent, StyleProp, View, ViewStyle} from 'react-native';
+import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useThrottledButtonState from '@hooks/useThrottledButtonState';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import getButtonState from '@libs/getButtonState';
 import type IconAsset from '@src/types/utils/IconAsset';
 import type WithSentryLabel from '@src/types/utils/SentryLabel';
-import BaseMiniContextMenuItem from './BaseMiniContextMenuItem';
 import FocusableMenuItem from './FocusableMenuItem';
-import Icon from './Icon';
 
 type ContextMenuItemProps = WithSentryLabel & {
     /** Icon Component */
@@ -23,9 +20,6 @@ type ContextMenuItemProps = WithSentryLabel & {
 
     /** Text to show when interaction was successful */
     successText?: string;
-
-    /** Whether to show the mini menu */
-    isMini?: boolean;
 
     /** Callback to fire when the item is pressed */
     onPress: (event?: GestureResponderEvent | MouseEvent | KeyboardEvent) => void;
@@ -44,11 +38,6 @@ type ContextMenuItemProps = WithSentryLabel & {
 
     /** Styles to apply to MenuItem wrapper */
     wrapperStyle?: StyleProp<ViewStyle>;
-
-    shouldPreventDefaultFocusOnPress?: boolean;
-
-    /** The ref of mini context menu item */
-    buttonRef?: React.RefObject<View | null>;
 
     /** Handles what to do when the item is focused */
     onFocus?: () => void;
@@ -69,14 +58,11 @@ function ContextMenuItem({
     successText = '',
     icon,
     text,
-    isMini = false,
     description = '',
     isAnonymousAction = false,
     isFocused = false,
     shouldLimitWidth = true,
     wrapperStyle,
-    shouldPreventDefaultFocusOnPress = true,
-    buttonRef = {current: null},
     onFocus = () => {},
     onBlur = () => {},
     disabled = false,
@@ -104,24 +90,7 @@ function ContextMenuItem({
     const itemIcon = !isThrottledButtonActive && successIcon ? successIcon : icon;
     const itemText = !isThrottledButtonActive && successText ? successText : text;
 
-    return isMini ? (
-        <BaseMiniContextMenuItem
-            ref={buttonRef}
-            tooltipText={itemText}
-            onPress={triggerPressAndUpdateSuccess}
-            isDelayButtonStateComplete={!isThrottledButtonActive}
-            shouldPreventDefaultFocusOnPress={shouldPreventDefaultFocusOnPress}
-            sentryLabel={sentryLabel}
-        >
-            {({hovered, pressed}) => (
-                <Icon
-                    small
-                    src={itemIcon}
-                    fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed, !isThrottledButtonActive))}
-                />
-            )}
-        </BaseMiniContextMenuItem>
-    ) : (
+    return (
         <FocusableMenuItem
             title={itemText}
             icon={itemIcon}
