@@ -213,7 +213,7 @@ function getTagVisibility({
     const policyTagLists = getTagLists(policyTags);
 
     return policyTagLists.map(({tags, required}, index) => {
-        const isTagRequired = required ?? false;
+        const isTagRequired = required || !!policy?.requiresTag;
         let shouldShow = false;
 
         if (shouldShowTags) {

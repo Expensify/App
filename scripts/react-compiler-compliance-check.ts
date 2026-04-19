@@ -15,7 +15,7 @@ import path from 'path';
 import CLI from './utils/CLI';
 import FileUtils from './utils/FileUtils';
 import Git from './utils/Git';
-import {log, error as logError, info as logInfo, success as logSuccess, warn as logWarn} from './utils/Logger';
+import {error as logError, errorDetail as logErrorDetail, info as logInfo, success as logSuccess, warn as logWarn} from './utils/Logger';
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-unsafe-assignment
 const ReactCompilerConfig = require('../config/babel/reactCompilerConfig');
@@ -120,7 +120,7 @@ function checkReactCompilerCompliance(source: string, filename: string): Compila
 function formatErrorLocation(filename: string, error: CompilerError): string {
     const loc = error.loc ?? error.fnLoc;
     if (loc) {
-        return `${filename}:${loc.start.line}:${loc.start.column}`;
+        return `${loc.start.line}:${loc.start.column}`;
     }
     return filename;
 }
@@ -131,7 +131,7 @@ function printErrors(filename: string, errors: CompilerError[]): void {
     }
     for (const error of errors) {
         const location = formatErrorLocation(filename, error);
-        logError(`    ${location}: ${error.reason}`);
+        logErrorDetail(`${location}: ${error.reason}`);
     }
     if (IS_CI) {
         console.log('::endgroup::');
@@ -157,10 +157,10 @@ function checkFiles(inputs: string[], verbose: boolean): boolean {
 
         switch (result.status) {
             case 'compiled':
-                logSuccess(`COMPILED ${file}`);
+                logSuccess(`COMPILED  ${file}`);
                 break;
             case 'failed':
-                logError(`FAILED   ${file}`);
+                logError(`FAILED  ${file}`);
                 printErrors(file, result.errors);
                 hasFailure = true;
                 break;
@@ -230,7 +230,7 @@ async function checkChangedFiles(remote: string, verbose: boolean): Promise<bool
 
             if (mainStatus === 'compiled') {
                 failures.push({file: filename, reason: 'File compiled on main but fails to compile on this branch (regression)', errors: result.errors});
-                logError(`FAILED   ${filename} (regression: compiled on main)`);
+                logError(`FAILED  ${filename} (regression: compiled on main)`);
                 printErrors(filename, result.errors);
             } else if (verbose) {
                 logWarn(`WARNING  ${filename} (fails to compile, but also failed on main)`);
@@ -241,10 +241,10 @@ async function checkChangedFiles(remote: string, verbose: boolean): Promise<bool
         }
     }
 
-    log();
+    console.log();
     if (failures.length > 0) {
         logError(`React Compiler compliance check failed with ${failures.length} error(s).`);
-        log();
+        console.log();
         logInfo('See contributingGuides/REACT_COMPILER.md for help fixing these errors.');
         return false;
     }
