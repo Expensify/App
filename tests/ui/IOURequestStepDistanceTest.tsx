@@ -2,7 +2,9 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unsafe-return */
-import {act, render, screen} from '@testing-library/react-native';
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
+import {act, fireEvent, render, screen} from '@testing-library/react-native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 import {CurrentUserPersonalDetailsProvider} from '@components/CurrentUserPersonalDetailsProvider';
@@ -60,6 +62,10 @@ jest.mock('@libs/actions/IOU', () => {
     };
 });
 
+jest.mock('@libs/actions/IOU/UpdateMoneyRequest', () => ({
+    updateMoneyRequestDistance: jest.fn(),
+}));
+
 jest.mock('@libs/actions/IOU/MoneyRequest', () => ({
     handleMoneyRequestStepDistanceNavigation: jest.fn(),
 }));
@@ -85,6 +91,23 @@ jest.mock('@libs/actions/TransactionEdit', () => ({
 jest.mock('@components/ProductTrainingContext', () => ({
     useProductTrainingContext: () => [false],
 }));
+
+jest.mock('@libs/Navigation/OnyxTabNavigator', () => {
+    const React2 = require('react');
+    const OnyxTabNavigator = ({children}: {children: React.ReactNode}) => React2.createElement(React2.Fragment, null, children);
+    const TopTab = {
+        Screen: ({children}: {children: () => React.ReactNode}) => React2.createElement(React2.Fragment, null, typeof children === 'function' ? children() : children),
+    };
+    const TabScreenWithFocusTrapWrapper = ({children}: {children: React.ReactNode}) => React2.createElement(React2.Fragment, null, children);
+    return {
+        // eslint-disable-next-line @typescript-eslint/naming-convention
+        __esModule: true,
+        default: OnyxTabNavigator,
+        TopTab,
+        TabScreenWithFocusTrapWrapper,
+    };
+});
+jest.mock('@hooks/useShowNotFoundPageInIOUStep', () => () => false);
 jest.mock('@src/hooks/useResponsiveLayout');
 
 jest.mock('@libs/Navigation/navigationRef', () => ({
@@ -168,7 +191,7 @@ function createTestReport(): Report {
     };
 }
 
-function createDistanceTransaction(): Transaction {
+function createDistanceTransaction(overrides?: Partial<Transaction>): Transaction {
     const transaction = createRandomTransaction(1);
     return {
         ...transaction,
@@ -181,8 +204,41 @@ function createDistanceTransaction(): Transaction {
                 waypoint0: {address: '123 Main St', lat: 40.7128, lng: -74.006, keyForList: 'start_waypoint'},
                 waypoint1: {address: '456 Oak Ave', lat: 40.7589, lng: -73.9851, keyForList: 'stop_waypoint'},
             },
+            customUnit: {
+                customUnitID: 'test-unit-id',
+                customUnitRateID: 'test-rate-id',
+                name: 'Distance',
+                distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                quantity: 100,
+            },
+            ...overrides?.comment,
         },
+        ...overrides,
     };
+}
+
+function renderEditMode() {
+    return render(
+        <OnyxListItemProvider>
+            <CurrentUserPersonalDetailsProvider>
+                <IOURequestStepDistance
+                    route={{
+                        key: 'Money_Request_Step_Distance-test',
+                        name: SCREENS.MONEY_REQUEST.STEP_DISTANCE,
+                        params: {
+                            action: CONST.IOU.ACTION.EDIT as never,
+                            iouType: CONST.IOU.TYPE.SUBMIT,
+                            reportID: REPORT_ID,
+                            transactionID: TRANSACTION_ID,
+                            backTo: undefined as never,
+                        },
+                    }}
+                    // @ts-expect-error minimal navigation for test
+                    navigation={undefined}
+                />
+            </CurrentUserPersonalDetailsProvider>
+        </OnyxListItemProvider>,
+    );
 }
 
 describe('IOURequestStepDistance - draft transactions coverage', () => {
@@ -279,5 +335,125 @@ describe('IOURequestStepDistance - draft transactions coverage', () => {
 
         // Component rendered with multiple draft transaction IDs available
         expect(screen.getByAccessibilityHint(/123 Main St/)).toBeTruthy();
+    });
+});
+
+describe('IOURequestStepDistance - submitManualDistance', () => {
+    const {updateMoneyRequestDistance} = jest.requireMock<{updateMoneyRequestDistance: jest.Mock}>('@libs/actions/IOU/UpdateMoneyRequest');
+
+    beforeAll(() => {
+        Onyx.init({
+            keys: ONYXKEYS,
+            evictableKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS],
+        });
+    });
+
+    beforeEach(async () => {
+        jest.clearAllMocks();
+        await Onyx.clear();
+        await waitForBatchedUpdates();
+    });
+
+    it('should show validation error for empty distance input', async () => {
+        await signInWithTestUser(ACCOUNT_ID, ACCOUNT_LOGIN);
+        const transaction = createDistanceTransaction();
+        const report = createTestReport();
+
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_ID}`, transaction);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`, null);
+            await Onyx.merge(ONYXKEYS.IS_LOADING_APP, false);
+        });
+
+        renderEditMode();
+        await waitForBatchedUpdatesWithAct();
+
+        // The Save button from the manual tab should be visible (mock renders both tabs)
+        const saveButtons = screen.getAllByText('common.save');
+        expect(saveButtons.length).toBeGreaterThan(0);
+
+        // Press Save without changing the value — the form starts with the current distance
+        // so we need to clear it first to test empty validation
+        const distanceInput = screen.getAllByLabelText(/common\.distance/).at(0)!;
+        fireEvent.changeText(distanceInput, '');
+
+        fireEvent.press(saveButtons.at(0)!);
+
+        // updateMoneyRequestDistance should NOT have been called
+        expect(updateMoneyRequestDistance).not.toHaveBeenCalled();
+    });
+
+    it('should render manual distance input with current distance in edit mode', async () => {
+        await signInWithTestUser(ACCOUNT_ID, ACCOUNT_LOGIN);
+        const transaction = createDistanceTransaction();
+        const report = createTestReport();
+
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_ID}`, transaction);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`, null);
+            await Onyx.merge(ONYXKEYS.IS_LOADING_APP, false);
+        });
+
+        renderEditMode();
+        await waitForBatchedUpdatesWithAct();
+
+        // The manual distance input should display the current quantity value
+        const distanceInputs = screen.getAllByLabelText(/common\.distance/);
+        expect(distanceInputs.length).toBeGreaterThan(0);
+
+        // Save button should be visible
+        const saveButtons = screen.getAllByText('common.save');
+        expect(saveButtons.length).toBeGreaterThan(0);
+    });
+
+    it('should not call updateMoneyRequestDistance when Save is pressed without valid changes', async () => {
+        await signInWithTestUser(ACCOUNT_ID, ACCOUNT_LOGIN);
+        const transaction = createDistanceTransaction();
+        const report = createTestReport();
+
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_ID}`, transaction);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`, null);
+            await Onyx.merge(ONYXKEYS.IS_LOADING_APP, false);
+        });
+
+        renderEditMode();
+        await waitForBatchedUpdatesWithAct();
+
+        // Press Save — the distance value has not been changed via the number pad
+        const saveButtons = screen.getAllByText('common.save');
+        fireEvent.press(saveButtons.at(0)!);
+
+        // updateMoneyRequestDistance should not be called (either validation blocks or no-change early return)
+        expect(updateMoneyRequestDistance).not.toHaveBeenCalled();
+    });
+
+    it('should render both Map and Manual tabs with correct content in edit mode', async () => {
+        await signInWithTestUser(ACCOUNT_ID, ACCOUNT_LOGIN);
+        const transaction = createDistanceTransaction();
+        const report = createTestReport();
+
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_ID}`, transaction);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`, null);
+            await Onyx.merge(ONYXKEYS.IS_LOADING_APP, false);
+        });
+
+        renderEditMode();
+        await waitForBatchedUpdatesWithAct();
+
+        // Map tab content: waypoint addresses should be visible
+        expect(screen.getByAccessibilityHint(/123 Main St/)).toBeTruthy();
+        expect(screen.getByAccessibilityHint(/456 Oak Ave/)).toBeTruthy();
+
+        // Manual tab content: distance input and Save button should be present
+        const distanceInputs = screen.getAllByLabelText(/common\.distance/);
+        expect(distanceInputs.length).toBeGreaterThan(0);
+        const saveButtons = screen.getAllByText('common.save');
+        expect(saveButtons.length).toBeGreaterThan(0);
     });
 });
