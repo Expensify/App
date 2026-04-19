@@ -5,6 +5,7 @@ import InputWrapper from '@components/Form/InputWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useFilterCardValue from '@components/Search/hooks/useFilterCardValue';
+import useFilterFeedValue from '@components/Search/hooks/useFilterFeedValue';
 import useFilterReportValue from '@components/Search/hooks/useFilterReportValue';
 import useFilterTaxRateValue from '@components/Search/hooks/useFilterTaxRateValue';
 import useFilterUserValue from '@components/Search/hooks/useFilterUserValue';
@@ -44,6 +45,10 @@ function FilterWorkspaceValue({value}: FilterValueProps) {
     return useFilterWorkspaceValue(value);
 }
 
+function FilterFeedValue() {
+    return useFilterFeedValue();
+}
+
 function FilterCardValue() {
     return useFilterCardValue();
 }
@@ -65,7 +70,11 @@ function FilterValue({filterKey, value}: FilterValueWithKeyProps) {
         return <FilterWorkspaceValue value={value} />;
     }
 
-    if (filterKey === FILTER_KEYS.FEED || filterKey === FILTER_KEYS.CARD_ID) {
+    if (filterKey === FILTER_KEYS.FEED) {
+        return <FilterFeedValue />;
+    }
+
+    if (filterKey === FILTER_KEYS.CARD_ID) {
         return <FilterCardValue />;
     }
 
@@ -83,25 +92,19 @@ function FilterValue({filterKey, value}: FilterValueWithKeyProps) {
 function SearchSavePage() {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
-    const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES);
     const [searchAdvancedFiltersForm = getEmptyObject<Partial<SearchAdvancedFiltersForm>>()] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
     const [name, setName] = useState('');
 
     const {currentSearchQueryJSON} = useSearchStateContext();
 
     const onSaveSearch = () => {
-        const savedSearchKeys = Object.keys(savedSearches ?? {});
-        if (!currentSearchQueryJSON || (savedSearches && savedSearchKeys.includes(String(currentSearchQueryJSON.hash)))) {
-            // If the search is already saved, we only display the results as we don't need to save it.
+        if (!currentSearchQueryJSON) {
             Navigation.goBack();
             return;
         }
 
-        if (name) {
-            saveSearch({queryJSON: currentSearchQueryJSON, newName: name});
-        } else {
-            saveSearch({queryJSON: currentSearchQueryJSON});
-        }
+        const newName = name.trim() || currentSearchQueryJSON?.inputQuery;
+        saveSearch({queryJSON: currentSearchQueryJSON, newName});
         Navigation.goBack();
     };
 

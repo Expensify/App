@@ -1,4 +1,3 @@
-import {useRoute} from '@react-navigation/native';
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
@@ -7,31 +6,28 @@ import type {ListItem} from '@components/SelectionList/types';
 import SelectionScreen from '@components/SelectionScreen';
 import type {SelectorType} from '@components/SelectionScreen';
 import Text from '@components/Text';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updateNetSuiteExportDate} from '@libs/actions/connections/NetSuiteCommands';
 import {clearNetSuiteErrorField} from '@libs/actions/Policy/Policy';
 import {getLatestErrorField} from '@libs/ErrorUtils';
-import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {settingsPendingAction} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
-import type SCREENS from '@src/SCREENS';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 
 type MenuListItem = ListItem & {
     value: ValueOf<typeof CONST.NETSUITE_EXPORT_DATE>;
 };
 
-function NetSuiteDateSelectPage({policy}: WithPolicyConnectionsProps) {
+function DynamicNetSuiteDateSelectPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
     const policyID = policy?.id;
     const styles = useThemeStyles();
-    const route = useRoute<PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_DATE_SELECT>>();
-    const backTo = route.params?.backTo;
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.POLICY_ACCOUNTING_NETSUITE_DATE_SELECT.path);
     const config = policy?.connections?.netsuite?.options.config;
     const selectedValue = Object.values(CONST.NETSUITE_EXPORT_DATE).find((value) => value === config?.exportDate) ?? CONST.NETSUITE_EXPORT_DATE.LAST_EXPENSE;
     const data: MenuListItem[] = Object.values(CONST.NETSUITE_EXPORT_DATE).map((dateType) => ({
@@ -52,8 +48,8 @@ function NetSuiteDateSelectPage({policy}: WithPolicyConnectionsProps) {
     );
 
     const goBack = useCallback(() => {
-        Navigation.goBack(backTo ?? (policyID && ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT.getRoute(policyID)));
-    }, [backTo, policyID]);
+        Navigation.goBack(backPath);
+    }, [backPath]);
 
     const selectExportDate = useCallback(
         (row: MenuListItem) => {
@@ -67,7 +63,7 @@ function NetSuiteDateSelectPage({policy}: WithPolicyConnectionsProps) {
 
     return (
         <SelectionScreen
-            displayName="NetSuiteDateSelectPage"
+            displayName="DynamicNetSuiteDateSelectPage"
             title="workspace.netsuite.exportDate.label"
             headerContent={headerContent}
             data={data}
@@ -87,4 +83,4 @@ function NetSuiteDateSelectPage({policy}: WithPolicyConnectionsProps) {
     );
 }
 
-export default withPolicyConnections(NetSuiteDateSelectPage);
+export default withPolicyConnections(DynamicNetSuiteDateSelectPage);

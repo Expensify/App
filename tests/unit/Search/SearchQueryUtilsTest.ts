@@ -650,6 +650,7 @@ describe('SearchQueryUtils', () => {
                 currentUserAccountID,
                 autoCompleteWithSpace: false,
                 translate: translateLocal,
+                reportAttributes: undefined,
             });
 
             expect(result).toBe('type:expense date:this-month group-by:from tag:travel');
@@ -680,6 +681,7 @@ describe('SearchQueryUtils', () => {
                 currentUserAccountID,
                 autoCompleteWithSpace: false,
                 translate: translateLocal,
+                reportAttributes: undefined,
             });
 
             expect(result).toBe('type:expense status:all merchant:Uber');
@@ -715,6 +717,7 @@ describe('SearchQueryUtils', () => {
                 currentUserAccountID,
                 autoCompleteWithSpace: false,
                 translate: translateLocal,
+                reportAttributes: undefined,
             });
 
             expect(result).toBe('workspace:"Team Space" type:expense merchant:Starbucks');
@@ -753,6 +756,7 @@ describe('SearchQueryUtils', () => {
                 currentUserAccountID,
                 autoCompleteWithSpace: false,
                 translate: translateLocal,
+                reportAttributes: undefined,
             });
 
             expect(result).toContain('limit:25');
@@ -776,6 +780,7 @@ describe('SearchQueryUtils', () => {
                 currentUserAccountID,
                 autoCompleteWithSpace: false,
                 translate: translateLocal,
+                reportAttributes: undefined,
             });
 
             expect(result).not.toContain('limit:');
@@ -799,6 +804,7 @@ describe('SearchQueryUtils', () => {
                 currentUserAccountID,
                 autoCompleteWithSpace: false,
                 translate: translateLocal,
+                reportAttributes: undefined,
             });
 
             expect(result).toContain('limit:50');
@@ -2297,6 +2303,7 @@ describe('SearchQueryUtils', () => {
                 currentUserAccountID,
                 autoCompleteWithSpace: false,
                 translate: translateLocal,
+                reportAttributes: undefined,
             });
 
             expect(result).toContain('in:');
@@ -2329,6 +2336,7 @@ describe('SearchQueryUtils', () => {
                 currentUserAccountID,
                 autoCompleteWithSpace: false,
                 translate: translateLocal,
+                reportAttributes: undefined,
             });
 
             expect(result).toContain('from:"Jane Doe"');
@@ -2360,6 +2368,7 @@ describe('SearchQueryUtils', () => {
                 currentUserAccountID,
                 autoCompleteWithSpace: false,
                 translate: translateLocal,
+                reportAttributes: undefined,
             });
 
             expect(result).toContain(`from:${CONST.SEARCH.ME}`);
@@ -2383,6 +2392,7 @@ describe('SearchQueryUtils', () => {
                 currentUserAccountID,
                 autoCompleteWithSpace: true,
                 translate: translateLocal,
+                reportAttributes: undefined,
             });
 
             expect(result.endsWith(' ')).toBe(true);

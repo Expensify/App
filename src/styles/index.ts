@@ -19,7 +19,6 @@ import {getBrowser, isMobile, isMobileSafari, isSafari} from '@libs/Browser';
 import getPlatform from '@libs/getPlatform';
 import CONST from '@src/CONST';
 import type {Dimensions} from '@src/types/utils/Layout';
-import {defaultTheme} from './theme';
 import colors from './theme/colors';
 import type {ThemeColors} from './theme/types';
 import addOutlineWidth from './utils/addOutlineWidth';
@@ -3725,6 +3724,21 @@ const staticStyles = (theme: ThemeColors) =>
             backgroundColor: theme.hoverComponentBG,
         },
 
+        receiptsSubmitButtonLandscape: {
+            position: 'absolute',
+            left: 20,
+            bottom: 8,
+            backgroundColor: theme.appBG,
+        },
+
+        receiptPlaceholderLandscape: {
+            height: 52,
+            marginBottom: 8,
+            width: variables.w44,
+            borderRadius: variables.componentBorderRadiusSmall,
+            backgroundColor: theme.hoverComponentBG,
+        },
+
         isDraggingOver: {
             backgroundColor: theme.fileDropUIBG,
         },
@@ -6588,8 +6602,5 @@ const styles = (theme: ThemeColors) =>
 
 type ThemeStyles = ReturnType<typeof styles>;
 
-const defaultStyles = styles(defaultTheme);
-
 export default styles;
-export {defaultStyles};
 export type {ThemeStyles, StatusBarStyle, ColorScheme, AnchorPosition, AnchorDimensions, OverlayStylesParams};

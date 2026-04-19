@@ -46,7 +46,7 @@ function getStartStepIndex(issueNewCard: OnyxEntry<IssueNewCard>): number {
 
 function IssueNewCardPage({policy, route}: IssueNewCardPageProps) {
     const policyID = policy?.id;
-    const [issueNewCard] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_ISSUE_NEW_EXPENSIFY_CARD}${policyID}`);
+    const [issueNewCard] = useOnyx(`${ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD}${policyID}`, {initWithStoredValues: false});
     const {currentStep} = issueNewCard ?? {};
     const backTo = route?.params?.backTo;
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();

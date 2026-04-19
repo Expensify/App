@@ -6,6 +6,7 @@ import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import SelectionScreen from '@components/SelectionScreen';
 import type {SelectorType} from '@components/SelectionScreen';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updateNetSuiteNonReimbursableExpensesExportDestination, updateNetSuiteReimbursableExpensesExportDestination} from '@libs/actions/connections/NetSuiteCommands';
@@ -19,24 +20,24 @@ import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnec
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import {clearNetSuiteErrorField} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
 type MenuListItem = ListItem & {
     value: ValueOf<typeof CONST.NETSUITE_EXPORT_DESTINATION>;
 };
 
-function NetSuiteExportExpensesDestinationSelectPage({policy}: WithPolicyConnectionsProps) {
+function DynamicNetSuiteExportExpensesDestinationSelectPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policyID = policy?.id;
     const config = policy?.connections?.netsuite?.options.config;
     const [isWarningModalVisible, setIsWarningModalVisible] = useState(false);
 
-    const route = useRoute<PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_EXPORT_EXPENSES_DESTINATION_SELECT>>();
+    const route = useRoute<PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_NETSUITE_EXPORT_EXPENSES_DESTINATION_SELECT>>();
     const params = route.params;
-    const backTo = params.backTo;
     const isReimbursable = params.expenseType === CONST.NETSUITE_EXPENSE_TYPE.REIMBURSABLE;
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT_EXPENSES_DESTINATION_SELECT.path);
 
     const currentSettingName = exportExpensesDestinationSettingName(isReimbursable);
     const currentDestination = config?.[currentSettingName];
@@ -49,8 +50,8 @@ function NetSuiteExportExpensesDestinationSelectPage({policy}: WithPolicyConnect
     }));
 
     const goBack = useCallback(() => {
-        Navigation.goBack(backTo ?? ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT_EXPENSES.getRoute(policyID, params.expenseType));
-    }, [backTo, policyID, params.expenseType]);
+        Navigation.goBack(backPath);
+    }, [backPath]);
 
     const selectDestination = useCallback(
         (row: MenuListItem, isWarningConfirmed?: boolean) => {
@@ -77,7 +78,7 @@ function NetSuiteExportExpensesDestinationSelectPage({policy}: WithPolicyConnect
     return (
         <>
             <SelectionScreen
-                displayName="NetSuiteExportExpensesDestinationSelectPage"
+                displayName="DynamicNetSuiteExportExpensesDestinationSelectPage"
                 title="workspace.accounting.exportAs"
                 data={data}
                 listItem={RadioListItem}
@@ -109,4 +110,4 @@ function NetSuiteExportExpensesDestinationSelectPage({policy}: WithPolicyConnect
     );
 }
 
-export default withPolicyConnections(NetSuiteExportExpensesDestinationSelectPage);
+export default withPolicyConnections(DynamicNetSuiteExportExpensesDestinationSelectPage);

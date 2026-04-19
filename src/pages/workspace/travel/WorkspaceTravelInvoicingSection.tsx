@@ -2,6 +2,7 @@ import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
 import ConfirmModal from '@components/ConfirmModal';
+import FormHelpMessageRowWithRetryButton from '@components/Domain/FormHelpMessageRowWithRetryButton';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -21,6 +22,7 @@ import {
     configureTravelInvoicingForPolicy,
     deactivateTravelInvoicing,
     payTravelInvoicingSpend,
+    retryTravelCardsProvisioning,
 } from '@libs/actions/TravelInvoicing';
 import {getLastFourDigits} from '@libs/BankAccountUtils';
 import {getCardSettings, getEligibleBankAccountsForCard} from '@libs/CardUtils';
@@ -80,7 +82,7 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
-    const [cardManualBilling] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_MANUAL_BILLING}${workspaceAccountID}`);
+    const [domainMemberData] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`);
 
     // Resolve travel-specific settings from the shared card settings key
     const travelSettings = getCardSettings(cardSettings, CONST.TRAVEL.PROGRAM_TRAVEL_US);
@@ -89,21 +91,19 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
     const hasSettlementAccount = hasTravelInvoicingSettlementAccount(travelSettings);
     const travelSpend = getTravelSpend(travelSettings);
 
-    // Derive the payment queued state from the manual billing Onyx key
-    const isPaymentQueued = !!cardManualBilling;
+    const pendingSettlementAmount = travelSettings?.pendingSettlementAmount ?? 0;
+    const hasPendingSettlement = pendingSettlementAmount > 0;
     const travelLimit = getTravelLimit(travelSettings);
     const settlementAccount = getTravelSettlementAccount(travelSettings, bankAccountList);
     const settlementFrequency = getTravelSettlementFrequency(travelSettings);
     const isMonthlySettlementFrequency = settlementFrequency === CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.MONTHLY;
     const localizedFrequency = isMonthlySettlementFrequency ? translate('workspace.expensifyCard.frequency.monthly') : translate('workspace.expensifyCard.frequency.daily');
 
-    const shouldShowPayButton = travelSpend > 0 && isMonthlySettlementFrequency && !isPaymentQueued;
-    // Format currency values (assuming USD for Travel Invoicing based on PROGRAM_TRAVEL_US)
-    // Current spend resets to $0.00 once payment is queued, since the balance has been paid
-    const formattedSpend = convertToDisplayString(isPaymentQueued ? 0 : travelSpend, CONST.CURRENCY.USD);
+    const shouldShowPayButton = travelSpend > 0 && isMonthlySettlementFrequency && !hasPendingSettlement;
+    const formattedSpend = convertToDisplayString(travelSpend, CONST.CURRENCY.USD);
 
-    // Queued amount preserves the original travelSpend value for the "payment queued" subtitle
-    const formattedQueuedAmount = convertToDisplayString(travelSpend, CONST.CURRENCY.USD);
+    // The pending settlement amount for the "payment queued" subtitle
+    const formattedQueuedAmount = convertToDisplayString(pendingSettlementAmount, CONST.CURRENCY.USD);
     const formattedLimit = convertToDisplayString(travelLimit, CONST.CURRENCY.USD);
 
     // Settlement account display - show empty if no account is selected
@@ -141,6 +141,7 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
     const isTravelInvoicingEnabled = getIsTravelInvoicingEnabled(travelSettings);
     const isOnWaitlist = !!cardOnWaitlist;
     const isLoading = !!cardSettings?.isLoading;
+    const hasTravelProvisioningErrors = isTravelInvoicingEnabled && !!domainMemberData?.settings?.travelInvoicing?.errors?.length;
 
     /**
      * Opens the pay balance confirmation modal.
@@ -155,7 +156,7 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
      */
     const handleConfirmPayBalance = () => {
         setIsPayBalanceModalVisible(false);
-        payTravelInvoicingSpend(workspaceAccountID);
+        payTravelInvoicingSpend(workspaceAccountID, travelSpend);
     };
 
     const continueToggleFlow = () => {
@@ -279,17 +280,28 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
 
     const centralInvoicingSubMenuItems = (
         <>
+            {hasTravelProvisioningErrors && (
+                <View style={styles.mt4}>
+                    <FormHelpMessageRowWithRetryButton
+                        message={translate('workspace.moreFeatures.travel.travelInvoicing.centralInvoicingSection.subsections.provisioningError')}
+                        isButtonSmall
+                        onRetry={() => retryTravelCardsProvisioning(policyID, workspaceAccountID, domainMemberData?.settings?.travelInvoicing?.errors ?? [])}
+                        danger
+                        shouldAlignButtonToMessage
+                    />
+                </View>
+            )}
             <View style={[styles.dFlex, styles.flexRow, styles.mt6, styles.gap4, styles.alignItemsCenter]}>
                 <View style={styles.flex1}>
                     <MenuItemWithTopDescription
                         description={translate('workspace.moreFeatures.travel.travelInvoicing.centralInvoicingSection.subsections.currentTravelSpendLabel')}
                         title={formattedSpend}
-                        wrapperStyle={[styles.sectionMenuItemTopDescription, isPaymentQueued && styles.pb1]}
+                        wrapperStyle={[styles.sectionMenuItemTopDescription, hasPendingSettlement && styles.pb1]}
                         titleStyle={[styles.textNormalThemeText, styles.headerAnonymousFooter]}
                         descriptionTextStyle={styles.textLabelSupportingNormal}
                         interactive={false}
                     />
-                    {isPaymentQueued && (
+                    {hasPendingSettlement && (
                         <Text style={[styles.textLabelSupporting, styles.pb3]}>
                             {translate('workspace.moreFeatures.travel.travelInvoicing.centralInvoicingSection.subsections.currentTravelSpendPaymentQueued', formattedQueuedAmount)}
                         </Text>

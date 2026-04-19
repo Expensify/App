@@ -87,6 +87,9 @@ function ActionCell({
     const shouldUseMarkAsDone = isTrackIntentUser && isSubmitAndClose(actionCellPolicy) && action === CONST.SEARCH.ACTION_TYPES.SUBMIT;
     const text = shouldUseMarkAsDone ? translate('common.done') : translate(actionTranslationsMap[action]);
 
+    const shouldBeDisabledOffline = action !== CONST.SEARCH.ACTION_TYPES.UNDELETE && isOffline;
+    const buttonInnerStyles = isSelected && action === CONST.SEARCH.ACTION_TYPES.UNDELETE ? styles.buttonDefaultSelected : {};
+
     return (
         <Button
             text={text}
@@ -96,8 +99,9 @@ function ActionCell({
             style={[styles.w100, shouldDisablePointerEvents && styles.pointerEventsNone]}
             isLoading={isLoading}
             success={action !== CONST.SEARCH.ACTION_TYPES.UNDELETE}
-            isDisabled={isOffline || shouldDisablePointerEvents}
+            isDisabled={shouldBeDisabledOffline || shouldDisablePointerEvents}
             shouldStayNormalOnDisable={shouldDisablePointerEvents}
+            innerStyles={buttonInnerStyles}
             isNested
             sentryLabel={CONST.SENTRY_LABEL.SEARCH.ACTION_CELL_ACTION}
         />
