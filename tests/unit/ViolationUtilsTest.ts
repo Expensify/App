@@ -1195,6 +1195,7 @@ describe('getViolationsOnyxData', () => {
             it('should not add taxOutOfPolicy violation for time requests even with tax data and tax tracking disabled', () => {
                 policy.tax = {trackingEnabled: false};
                 transaction.taxCode = 'SOME_TAX';
+                transaction.iouRequestType = CONST.IOU.REQUEST_TYPE.TIME;
                 transaction.comment = {...transaction.comment, type: CONST.TRANSACTION.TYPE.TIME};
                 const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
                 expect(result.value).not.toContainEqual(taxOutOfPolicyViolation);
@@ -1203,6 +1204,7 @@ describe('getViolationsOnyxData', () => {
             it('should not add taxOutOfPolicy violation for per diem requests even with tax data and tax tracking disabled', () => {
                 policy.tax = {trackingEnabled: false};
                 transaction.taxCode = 'SOME_TAX';
+                transaction.iouRequestType = CONST.IOU.REQUEST_TYPE.PER_DIEM;
                 transaction.comment = {...transaction.comment, type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT, customUnit: {name: CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL}};
                 const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
                 expect(result.value).not.toContainEqual(taxOutOfPolicyViolation);
@@ -1211,6 +1213,7 @@ describe('getViolationsOnyxData', () => {
             it('should not add taxOutOfPolicy violation for time requests even with invalid taxCode and tax tracking enabled', () => {
                 policy.tax = {trackingEnabled: true};
                 transaction.taxCode = 'UNKNOWN_TAX';
+                transaction.iouRequestType = CONST.IOU.REQUEST_TYPE.TIME;
                 transaction.comment = {...transaction.comment, type: CONST.TRANSACTION.TYPE.TIME};
                 policy.taxRates = {name: 'Taxes', defaultExternalID: 'TAX_10', defaultValue: '10%', foreignTaxDefault: 'TAX_10', taxes: {TAX_10: {name: '10%', value: '10%'}}};
                 const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
