@@ -21,7 +21,7 @@ function getGPSWaypoints(gpsDraftDetails: GpsDraftDetails | undefined): Waypoint
         ...(firstPoint
             ? {
                   waypoint0: {
-                      keyForList: 'gps_start', // temporary for hasGPSWaypoints()
+                      keyForList: 'gps_start',
                       lat: firstPoint.lat,
                       lng: firstPoint.long,
                       address: startAddress,
@@ -32,7 +32,7 @@ function getGPSWaypoints(gpsDraftDetails: GpsDraftDetails | undefined): Waypoint
         ...(lastPoint
             ? {
                   waypoint1: {
-                      keyForList: 'gps_stop', // temporary for hasGPSWaypoints()
+                      keyForList: 'gps_stop',
                       lat: lastPoint.lat,
                       lng: lastPoint.long,
                       address: endAddress,

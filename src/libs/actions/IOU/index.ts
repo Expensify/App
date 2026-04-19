@@ -2307,13 +2307,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReport.iouReportID}`] ?? null;
     }
 
-    const isScanRequest = isScanRequestTransactionUtils({
-        amount,
-        receipt,
-        ...(existingTransaction && {
-            iouRequestType: existingTransaction.iouRequestType,
-        }),
-    });
+    const isScanRequest = existingTransaction ? isScanRequestTransactionUtils(existingTransaction) : !!receipt?.source && amount === 0;
 
     const shouldCreateNewMoneyRequestReport = isSplitExpense ? false : shouldCreateNewMoneyRequestReportReportUtils(iouReport, chatReport, isScanRequest, betas, action);
 
