@@ -4,7 +4,19 @@ import type {SearchColumnType, SearchGroupBy, SearchQueryJSON} from '@components
 import type {ListItemProps} from '@components/SelectionList/ListItem/types';
 import type {ListItem} from '@components/SelectionList/types';
 import type CONST from '@src/CONST';
-import type {LastPaymentMethod, PersonalDetails, PersonalDetailsList, Policy, Report, ReportAction, SearchResults, TransactionViolation, TransactionViolations} from '@src/types/onyx';
+import type {
+    BillingGraceEndPeriod,
+    CardList,
+    LastPaymentMethod,
+    PersonalDetails,
+    PersonalDetailsList,
+    Policy,
+    Report,
+    ReportAction,
+    SearchResults,
+    TransactionViolation,
+    TransactionViolations,
+} from '@src/types/onyx';
 import type {Attendee} from '@src/types/onyx/IOU';
 import type {Errors, Icon} from '@src/types/onyx/OnyxCommon';
 import type {
@@ -23,6 +35,17 @@ import type {
     SearchYearGroup,
 } from '@src/types/onyx/SearchResults';
 import type Transaction from '@src/types/onyx/Transaction';
+
+type SearchListActionProps = {
+    /** The last payment method used per policy */
+    lastPaymentMethod?: OnyxEntry<LastPaymentMethod>;
+    /** The user's personal policy ID */
+    personalPolicyID?: string;
+    /** Billing grace period end dates for workspace owners (shared across all list items) */
+    userBillingGracePeriodEnds?: OnyxCollection<BillingGraceEndPeriod>;
+    /** The workspace owner's billing grace period end date */
+    ownerBillingGracePeriodEnd?: OnyxEntry<number>;
+};
 
 type ChatListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
     queryJSONHash?: number;
@@ -43,19 +66,14 @@ type ChatListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
     userBillingFundID: number | undefined;
 };
 
-type ExpenseReportListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
-    /** The visible columns for the report */
-    columns?: SearchColumnType[];
+type ExpenseReportListItemProps<TItem extends ListItem> = ListItemProps<TItem> &
+    SearchListActionProps & {
+        /** The visible columns for the report */
+        columns?: SearchColumnType[];
 
-    /** Whether the item's action is loading */
-    isLoading?: boolean;
-
-    /** The last payment method used per policy */
-    lastPaymentMethod?: OnyxEntry<LastPaymentMethod>;
-
-    /** The user's personal policy ID */
-    personalPolicyID?: string;
-};
+        /** Whether the item's action is loading */
+        isLoading?: boolean;
+    };
 
 type TransactionListItemType = ListItem &
     Transaction & {
@@ -101,9 +119,6 @@ type TransactionListItemType = ListItem &
         /** final and formatted "merchant" value used for displaying and sorting */
         formattedMerchant: string;
 
-        /** Whether the card feed has been deleted */
-        isCardFeedDeleted?: boolean;
-
         /** The original amount of the transaction */
         originalAmount?: number;
 
@@ -144,6 +159,11 @@ type TransactionListItemType = ListItem &
         isAmountColumnWide: boolean;
 
         isTaxAmountColumnWide: boolean;
+
+        /** Whether the action column should use its wider variant.
+         * This is true if at least one transaction in the dataset is deleted.
+         */
+        isActionColumnWide?: boolean;
 
         /** Key used internally by React */
         keyForList: string;
@@ -253,6 +273,12 @@ type TransactionReportGroupListItemType = TransactionGroupListItemType & {groupe
         /** Pre-computed reimbursable spend amount */
         reimbursableSpend?: number;
 
+        /** Whether the amount column should use the wide layout */
+        isAmountColumnWide?: boolean;
+
+        /** Whether the action column should use its wider variant when any transaction in the dataset is deleted */
+        isActionColumnWide?: boolean;
+
         /** Pre-computed flag indicating whether all transactions are scanning */
         isAllScanning?: boolean;
 
@@ -356,6 +382,9 @@ type TransactionMonthGroupListItemType = TransactionGroupListItemType & {grouped
 type TransactionWithdrawalIDGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID} & SearchWithdrawalIDGroup & {
         /** Final and formatted "withdrawalID" value used for displaying and sorting */
         formattedWithdrawalID?: string;
+
+        /** Whether any withdrawn date in the current results belongs to a past year */
+        shouldShowYearWithdrawn?: boolean;
     };
 
 type TransactionCategoryGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.CATEGORY} & SearchCategoryGroup & {
@@ -394,35 +423,49 @@ type TransactionQuarterGroupListItemType = TransactionGroupListItemType & {group
         sortKey: number;
     };
 
-type TransactionListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
-    /** Whether the item's action is loading */
-    isLoading?: boolean;
-    columns?: SearchColumnType[];
-    violations?: Record<string, TransactionViolations | undefined> | undefined;
-    customCardNames?: Record<number, string>;
-    /** The last payment method used per policy */
-    lastPaymentMethod?: OnyxEntry<LastPaymentMethod>;
-    /** The user's personal policy ID */
-    personalPolicyID?: string;
-};
+type TransactionListItemProps<TItem extends ListItem> = ListItemProps<TItem> &
+    SearchListActionProps & {
+        /** Whether the item's action is loading */
+        isLoading?: boolean;
+        columns?: SearchColumnType[];
+        violations?: Record<string, TransactionViolations | undefined> | undefined;
+        policyForMovingExpenses?: Policy;
+        /** Non-personal and workspace cards for company card display */
+        nonPersonalAndWorkspaceCards?: CardList;
+        /** Callback to undelete a transaction */
+        onUndelete?: (transaction: Transaction) => void;
+    };
 
-type TransactionGroupListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
-    groupBy?: SearchGroupBy;
-    searchType?: SearchDataTypes;
-    policies?: OnyxCollection<Policy>;
-    accountID?: number;
-    columns?: SearchColumnType[];
-    newTransactionID?: string;
-    violations?: Record<string, TransactionViolations | undefined> | undefined;
-    /** The last payment method used per policy */
-    lastPaymentMethod?: OnyxEntry<LastPaymentMethod>;
-    /** The user's personal policy ID */
-    personalPolicyID?: string;
-};
+type TransactionGroupListItemProps<TItem extends ListItem> = ListItemProps<TItem> &
+    SearchListActionProps & {
+        groupBy?: SearchGroupBy;
+        searchType?: SearchDataTypes;
+        policies?: OnyxCollection<Policy>;
+        accountID?: number;
+        columns?: SearchColumnType[];
+        newTransactionID?: string;
+        violations?: Record<string, TransactionViolations | undefined> | undefined;
+        policyForMovingExpenses?: Policy;
+        /** Non-personal and workspace cards for company card display */
+        nonPersonalAndWorkspaceCards?: CardList;
+        /** Callback to undelete a transaction */
+        onUndelete?: (transaction: Transaction) => void;
+    };
 
 type TransactionGroupListExpandedProps<TItem extends ListItem> = Pick<
     TransactionGroupListItemProps<TItem>,
-    'showTooltip' | 'canSelectMultiple' | 'onCheckboxPress' | 'columns' | 'groupBy' | 'accountID' | 'isOffline' | 'violations' | 'onSelectRow'
+    | 'showTooltip'
+    | 'canSelectMultiple'
+    | 'onCheckboxPress'
+    | 'columns'
+    | 'groupBy'
+    | 'accountID'
+    | 'isOffline'
+    | 'violations'
+    | 'onSelectRow'
+    | 'nonPersonalAndWorkspaceCards'
+    | 'onUndelete'
+    | 'policyForMovingExpenses'
 > & {
     transactions: TransactionListItemType[];
     transactionsVisibleLimit: number;
@@ -444,6 +487,7 @@ type UnreportedExpenseListItemType = Transaction & {
 };
 
 export type {
+    SearchListActionProps,
     ChatListItemProps,
     ExpenseReportListItemProps,
     TransactionReportGroupListItemType,

@@ -232,7 +232,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
     }
 
     useEffect(() => {
-        if (isPreviousPolicy && !!reimbursementAccount) {
+        if ((isPreviousPolicy && !!reimbursementAccount) || isLoadingOnyxValue(reimbursementAccountMetadata)) {
             return;
         }
 
@@ -336,10 +336,21 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
 
             // Use the current page navigation object to set the param to the correct route in the stack
             const stepToOpen = getRouteForCurrentStep(currentStep);
-            navigation.setParams({stepToOpen});
+            if (stepToOpen && !isNonUSDSetup) {
+                navigation.setParams({stepToOpen});
+            }
         },
         // eslint-disable-next-line react-hooks/exhaustive-deps
-        [isOffline, reimbursementAccount?.draftStep, reimbursementAccount?.pendingAction, reimbursementAccount?.isLoading, hasACHDataBeenLoaded, shouldShowContinueSetupButton, currentStep],
+        [
+            isOffline,
+            reimbursementAccount?.draftStep,
+            reimbursementAccount?.pendingAction,
+            reimbursementAccount?.isLoading,
+            hasACHDataBeenLoaded,
+            shouldShowContinueSetupButton,
+            currentStep,
+            isNonUSDSetup,
+        ],
     );
 
     const continueUSDVBBASetup = useCallback(() => {

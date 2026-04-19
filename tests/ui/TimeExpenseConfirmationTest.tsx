@@ -6,7 +6,7 @@ import HTMLEngineProvider from '@components/HTMLEngineProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import type {MenuItemProps} from '@components/MenuItem';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
-import {requestMoney} from '@libs/actions/IOU';
+import {requestMoney} from '@libs/actions/IOU/TrackExpense';
 import IOURequestStepConfirmation from '@pages/iou/request/step/IOURequestStepConfirmation';
 import type {IOUAction} from '@src/CONST';
 import CONST from '@src/CONST';
@@ -14,6 +14,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import type {Policy} from '@src/types/onyx';
 import type Transaction from '@src/types/onyx/Transaction';
+import type * as TrackExpense from '../../src/libs/actions/IOU/TrackExpense';
 import createRandomPolicy from '../utils/collections/policies';
 import {signInWithTestUser} from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
@@ -43,6 +44,13 @@ jest.mock('@libs/actions/IOU', () => {
     return {
         ...jest.requireActual('@libs/actions/IOU'),
         startMoneyRequest: jest.fn(),
+    };
+});
+
+jest.mock('@libs/actions/IOU/TrackExpense', () => {
+    const actual = jest.requireActual<typeof TrackExpense>('@libs/actions/IOU/TrackExpense');
+    return {
+        ...actual,
         requestMoney: jest.fn(() => ({iouReport: undefined})),
     };
 });
@@ -68,11 +76,18 @@ jest.mock('@libs/Navigation/Navigation', () => {
             params: {},
         })),
         getState: jest.fn(() => ({})),
+        getRootState: jest.fn(() => ({routes: [], index: 0})),
+        isReady: jest.fn(() => true),
     };
     return {
         navigate: jest.fn(),
         goBack: jest.fn(),
+        dismissModal: jest.fn(),
         dismissModalWithReport: jest.fn(),
+        getIsFullscreenPreInsertedUnderRHP: jest.fn(() => false),
+        getPreInsertedFullscreenRouteName: jest.fn(() => undefined),
+        clearFullscreenPreInsertedFlag: jest.fn(),
+        revealRouteBeforeDismissingModal: jest.fn(),
         navigationRef: mockRef,
     };
 });
@@ -270,8 +285,15 @@ describe('TimeExpenseConfirmationTest', () => {
             renderConfirmation(CONST.IOU.ACTION.SUBMIT);
             await waitForBatchedUpdatesWithAct();
 
-            // Merchant is shown for non-CREATE actions
-            expect(screen.getByTestId('menu-item-Merchant')).toBeDefined();
+            const merchantRow = screen.queryByTestId('menu-item-Merchant');
+
+            // In the new manual expense flow, merchant is rendered as a text input instead of a menu item.
+            if (merchantRow) {
+                expect(merchantRow).toBeDefined();
+            } else {
+                const merchantInput = screen.getByLabelText('Merchant');
+                expect(merchantInput).toBeDefined();
+            }
 
             // Hours and Rate are only shown during CREATE
             expect(screen.queryByTestId('menu-item-Hours')).toBeNull();

@@ -42,7 +42,6 @@ import {
     isOnHold,
     isPending,
     isScanning,
-    isUnreportedAndHasInvalidDistanceRateTransaction,
 } from './TransactionUtils';
 import {isInvalidMerchantValue} from './ValidationUtils';
 import {filterReceiptViolations} from './Violations/ViolationsUtils';
@@ -303,11 +302,7 @@ function getTransactionPreviewTextAndTranslationPaths({
 
     let previewHeaderText: TranslationPathOrText[] = [{translationPath: getExpenseTypeTranslationKey(getTransactionType(transaction))}];
 
-    if (isDistanceRequest(transaction)) {
-        if (RBRMessage === undefined && isUnreportedAndHasInvalidDistanceRateTransaction(transaction, policy)) {
-            RBRMessage = {translationPath: 'violations.customUnitOutOfPolicy'};
-        }
-    } else if (isTransactionScanning) {
+    if (isTransactionScanning) {
         previewHeaderText = [{translationPath: 'common.receipt'}];
     } else if (isBillSplit) {
         previewHeaderText = [{translationPath: 'iou.split'}];
@@ -423,9 +418,7 @@ function createTransactionPreviewConditionals({
     const shouldShowCategory = !!categoryForDisplay && isReportAPolicyExpenseChat;
 
     const hasAnyViolations =
-        isUnreportedAndHasInvalidDistanceRateTransaction(transaction, policy) ||
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        hasViolationsOfTypeNotice ||
+        !!hasViolationsOfTypeNotice ||
         hasWarningTypeViolation(transaction, violations, currentUserEmail ?? '', currentUserAccountID, iouReport ?? undefined, policy) ||
         hasViolation(transaction, violations, currentUserEmail ?? '', currentUserAccountID, iouReport ?? undefined, policy, true) ||
         (isDistanceRequest(transaction) &&

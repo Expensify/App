@@ -20,6 +20,7 @@ import type {AnchorPosition} from '@styles/index';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import KeyboardUtils from '@src/utils/keyboard';
 import type ThreeDotsMenuProps from './types';
 
 function ThreeDotsMenu({
@@ -84,16 +85,31 @@ function ThreeDotsMenu({
         hideProductTrainingTooltip?.();
         buttonRef.current?.blur();
 
-        if (getMenuPosition) {
-            getMenuPosition?.().then((value) => {
-                setPosition(value);
-                showPopoverMenu();
-            });
-        } else {
-            showPopoverMenu();
-        }
-
+        // Dismiss the keyboard before opening the menu so the menu doesn't
+        // render while the keyboard is still animating closed (which creates
+        // a blank-space flash on mobile web).
         onIconPress?.();
+
+        const openMenu = () => {
+            if (getMenuPosition) {
+                getMenuPosition?.().then((value) => {
+                    setPosition(value);
+                    showPopoverMenu();
+                });
+            } else {
+                showPopoverMenu();
+            }
+        };
+
+        // On mobile web, wait for the keyboard to fully close before opening the menu.
+        // KeyboardUtils.dismiss() uses visualViewport to detect keyboard state and resolves
+        // immediately if the keyboard is not open. On desktop, call openMenu() synchronously
+        // to preserve the original behavior (avoids async microtask deferral on desktop Chrome).
+        if (isMobile()) {
+            KeyboardUtils.dismiss().then(openMenu);
+        } else {
+            openMenu();
+        }
     };
 
     useImperativeHandle(threeDotsMenuRef as React.RefObject<{hidePopoverMenu: () => void; isPopupMenuVisible: boolean; onThreeDotsPress: () => void}> | undefined, () => ({

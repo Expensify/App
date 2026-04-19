@@ -439,6 +439,7 @@ type SearchTableHeaderProps = {
     shouldShowYearApproved?: boolean;
     shouldShowYearPosted?: boolean;
     shouldShowYearExported?: boolean;
+    shouldShowYearWithdrawn?: boolean;
     isAmountColumnWide: boolean;
     isTaxAmountColumnWide: boolean;
     shouldShowSorting: boolean;
@@ -447,6 +448,9 @@ type SearchTableHeaderProps = {
 
     /** True when we are inside an expense report view, false if we're in the Reports page. */
     isExpenseReportView?: boolean;
+
+    /** True when the action column should render in its wider variant (e.g. tasks, deleted expenses). */
+    isActionColumnWide?: boolean;
 };
 
 function SearchTableHeader({
@@ -460,12 +464,14 @@ function SearchTableHeader({
     shouldShowYearApproved,
     shouldShowYearPosted,
     shouldShowYearExported,
+    shouldShowYearWithdrawn,
     shouldShowSorting,
     canSelectMultiple,
     isAmountColumnWide,
     isTaxAmountColumnWide,
     groupBy,
     isExpenseReportView,
+    isActionColumnWide,
 }: SearchTableHeaderProps) {
     const styles = useThemeStyles();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
@@ -531,15 +537,16 @@ function SearchTableHeader({
             approvedColumnSize={shouldShowYearApproved ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
             postedColumnSize={shouldShowYearPosted ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
             exportedColumnSize={shouldShowYearExported ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
+            withdrawnColumnSize={shouldShowYearWithdrawn ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
             amountColumnSize={isAmountColumnWide ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
             taxAmountColumnSize={isTaxAmountColumnWide ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
             shouldShowSorting={shouldShowSorting}
             sortBy={sortBy}
             sortOrder={sortOrder}
-            // In GroupBy views, disable flex expansion for Total columns so Expenses column gets more space
-            shouldRemoveTotalColumnFlex={!!groupBy && !isExpenseReportView}
+            shouldRemoveTotalColumnFlex={!!groupBy !== !!isExpenseReportView}
+            isActionColumnWide={isActionColumnWide ?? type === CONST.SEARCH.DATA_TYPES.TASK}
             // Don't butt up against the 'select all' checkbox if present
-            containerStyles={canSelectMultiple && [styles.pl4]}
+            containerStyles={canSelectMultiple && [styles.pl3]}
             onSortPress={(columnName, order) => {
                 if (columnName === CONST.SEARCH.TABLE_COLUMNS.COMMENTS) {
                     return;

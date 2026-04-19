@@ -801,6 +801,7 @@ function validateReportActionDraftProperty(key: keyof ReportAction, value: strin
                 reservationList: 'string',
                 isTestReceipt: 'boolean',
                 isTestDriveReceipt: 'boolean',
+                thumbnail: 'string',
             });
         case 'childRecentReceiptTransactionIDs':
             return validateObject<ObjectElement<ReportAction, 'childRecentReceiptTransactionIDs'>>(value, {}, 'string');
@@ -1152,6 +1153,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                 reservationList: 'array',
                 isTestReceipt: 'boolean',
                 isTestDriveReceipt: 'boolean',
+                thumbnail: 'string',
             });
         case 'taxRate':
             return validateObject<ObjectElement<Transaction, 'taxRate'>>(value, {

@@ -13,7 +13,6 @@ import MoneyRequestReceiptView from '@components/ReportActionItem/MoneyRequestRe
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
 import ReportHeaderSkeletonView from '@components/ReportHeaderSkeletonView';
 import useNetwork from '@hooks/useNetwork';
-import useNewTransactions from '@hooks/useNewTransactions';
 import useOnyx from '@hooks/useOnyx';
 import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
 import useReportTransactionsCollection from '@hooks/useReportTransactionsCollection';
@@ -50,9 +49,6 @@ type MoneyRequestReportViewProps = {
 
     /** Metadata for report */
     reportMetadata: OnyxEntry<OnyxTypes.ReportMetadata>;
-
-    /** Current policy */
-    policy: OnyxEntry<OnyxTypes.Policy>;
 
     /** Whether Report footer (that includes Composer) should be displayed */
     shouldDisplayReportFooter: boolean;
@@ -108,7 +104,7 @@ function InitialLoadingSkeleton({styles, onLayout, reasonAttributes}: {styles: T
     );
 }
 
-function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayReportFooter, backToRoute, onLayout}: MoneyRequestReportViewProps) {
+function MoneyRequestReportView({report, reportMetadata, shouldDisplayReportFooter, backToRoute, onLayout}: MoneyRequestReportViewProps) {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
 
@@ -120,14 +116,13 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
     const {reportPendingAction, reportErrors} = getReportOfflinePendingActionAndErrors(report);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.chatReportID)}`);
 
-    const {reportActions: unfilteredReportActions, hasNewerActions, hasOlderActions} = usePaginatedReportActions(reportID);
+    const {reportActions: unfilteredReportActions} = usePaginatedReportActions(reportID);
 
     const reportActions = useMemo(() => {
         return getFilteredReportActionsForReportView(unfilteredReportActions);
     }, [unfilteredReportActions]);
 
     const reportTransactions = useReportTransactionsCollection(reportID);
-    const hasPendingDeletionTransaction = Object.values(reportTransactions ?? {}).some((transaction) => transaction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
     const transactions = useMemo(() => getAllNonDeletedTransactions(reportTransactions, reportActions, isOffline, true), [reportTransactions, reportActions, isOffline]);
 
     const visibleTransactions = useMemo(() => {
@@ -145,7 +140,6 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
     }, [transactions, isOffline]);
     const reportTransactionIDs = visibleTransactions.map((transaction) => transaction.transactionID);
     const transactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, reportActions ?? [], isOffline, reportTransactionIDs);
-    const newTransactions = useNewTransactions(reportMetadata?.hasOnceLoadedReportActions, transactions);
 
     const isLoadingInitialReportActions = reportMetadata?.isLoadingInitialReportActions;
     const dismissReportCreationError = useCallback(() => {
@@ -279,19 +273,7 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
                     )}
                     <View style={[styles.overflowHidden, styles.justifyContentEnd, styles.flex1]}>
                         {shouldDisplayMoneyRequestActionsList ? (
-                            <MoneyRequestReportActionsList
-                                report={report}
-                                policy={policy}
-                                transactions={visibleTransactions}
-                                hasPendingDeletionTransaction={hasPendingDeletionTransaction}
-                                newTransactions={newTransactions}
-                                reportActions={reportActions}
-                                hasOlderActions={hasOlderActions}
-                                onLayout={onLayout}
-                                hasNewerActions={hasNewerActions}
-                                showReportActionsLoadingState={isLoadingInitialReportActions && !reportMetadata?.hasOnceLoadedReportActions}
-                                reportPendingAction={reportPendingAction}
-                            />
+                            <MoneyRequestReportActionsList onLayout={onLayout} />
                         ) : (
                             <ReportActionsView
                                 reportID={reportID}

@@ -40,6 +40,11 @@ type ProductTrainingContextConfig = {
      * Callback to be called when the tooltip is confirmed
      */
     onConfirm?: () => void;
+
+    /**
+     * Callback to be called when the tooltip is shown
+     */
+    onShown?: () => void;
 };
 
 const ProductTrainingContext = createContext<ProductTrainingContextType>({
@@ -267,8 +272,12 @@ const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shou
 
     const renderProductTrainingTooltip = useCallback(() => {
         const tooltip = TOOLTIPS[tooltipName];
+
         return (
-            <View fsClass={CONST.FULLSTORY.CLASS.UNMASK}>
+            <View
+                fsClass={CONST.FULLSTORY.CLASS.UNMASK}
+                onLayout={config.onShown}
+            >
                 <View
                     style={[
                         styles.alignItemsCenter,
@@ -341,6 +350,7 @@ const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shou
         theme.tooltipHighlightText,
         theme.icon,
         translate,
+        config.onShown,
         config.onConfirm,
         config.onDismiss,
         hideTooltip,

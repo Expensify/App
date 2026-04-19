@@ -1,4 +1,4 @@
-import {isTrackIntentUserSelector} from '@selectors/Onboarding';
+import {delegateEmailSelector} from '@selectors/Account';
 import React from 'react';
 import AnimatedSubmitButton from '@components/AnimatedSubmitButton';
 import useConfirmPendingRTERAndProceed from '@hooks/useConfirmPendingRTERAndProceed';
@@ -7,13 +7,14 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
-import {isSubmitAndClose} from '@libs/PolicyUtils';
-import {canSubmitAndIsAwaitingForCurrentUser, getReportTransactions, hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
+import useReportTransactionsCollection from '@hooks/useReportTransactionsCollection';
+import {canSubmitAndIsAwaitingForCurrentUser, hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
 import {hasAnyPendingRTERViolation as hasAnyPendingRTERViolationTransactionUtils} from '@libs/TransactionUtils';
-import {submitReport} from '@userActions/IOU';
+import {submitReport} from '@userActions/IOU/ReportWorkflow';
 import {markPendingRTERTransactionsAsCash} from '@userActions/Transaction';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Transaction} from '@src/types/onyx';
 
 type SubmitActionButtonProps = {
     iouReportID: string | undefined;
@@ -39,9 +40,12 @@ function SubmitActionButton({iouReportID, chatReportID, isSubmittingAnimationRun
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`);
-    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
+    const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
     const {isOffline} = useNetwork();
-    const transactions = getReportTransactions(iouReportID).filter((t) => isOffline || t.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+    const reportTransactionsCollection = useReportTransactionsCollection(iouReportID);
+    const transactions = Object.values(reportTransactionsCollection ?? {}).filter(
+        (t): t is Transaction => !!t && (isOffline || t.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE),
+    );
 
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const hasViolations = hasViolationsReportUtils(iouReport?.reportID, transactionViolations, currentUserAccountID, currentUserEmail);
@@ -67,7 +71,7 @@ function SubmitActionButton({iouReportID, chatReportID, isSubmittingAnimationRun
     return (
         <AnimatedSubmitButton
             success={isWaitingForSubmissionFromCurrentUser}
-            text={isTrackIntentUser && isSubmitAndClose(policy) ? translate('common.markAsDone') : translate('common.submit')}
+            text={translate('common.submit')}
             onPress={() => {
                 confirmPendingRTERAndProceed(() => {
                     submitReport({
@@ -82,13 +86,13 @@ function SubmitActionButton({iouReportID, chatReportID, isSubmittingAnimationRun
                         amountOwed,
                         onSubmitted: startSubmittingAnimation,
                         ownerBillingGracePeriodEnd,
+                        delegateEmail,
                     });
                 });
             }}
             isSubmittingAnimationRunning={isSubmittingAnimationRunning}
             onAnimationFinish={stopAnimation}
             sentryLabel={CONST.SENTRY_LABEL.REPORT_PREVIEW.SUBMIT_BUTTON}
-            policyID={iouReport?.policyID}
         />
     );
 }

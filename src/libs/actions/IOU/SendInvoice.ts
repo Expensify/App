@@ -35,7 +35,6 @@ import type {Receipt} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {
     getAllPersonalDetails,
-    getPolicyTags,
     getReceiptError,
     getSearchOnyxUpdate,
     handleNavigateAfterExpenseCreate,
@@ -43,7 +42,7 @@ import {
     mergePolicyRecentlyUsedCategories,
     mergePolicyRecentlyUsedCurrencies,
 } from '.';
-import type {BasePolicyParams} from '.';
+import type BasePolicyParams from './types/BasePolicyParams';
 
 type SendInvoiceInformation = {
     senderWorkspaceID: string | undefined;
@@ -86,6 +85,7 @@ type SendInvoiceOptions = {
     policyRecentlyUsedCategories?: OnyxEntry<OnyxTypes.RecentlyUsedCategories>;
     policyRecentlyUsedTags?: OnyxEntry<OnyxTypes.RecentlyUsedTags>;
     isFromGlobalCreate?: boolean;
+    senderPolicyTags: OnyxEntry<OnyxTypes.PolicyTagLists>;
 };
 
 type BuildOnyxDataForInvoiceParams = {
@@ -116,16 +116,6 @@ type BuildOnyxDataForInvoiceParams = {
     companyWebsite?: string;
     participant?: Participant;
 };
-
-/**
- * @deprecated This function uses Onyx.connect and should be replaced with useOnyx for reactive data access.
- * TODO: remove `getPolicyTagsData` from this file https://github.com/Expensify/App/issues/80048
- * All usages of this function should be replaced with useOnyx hook in React components.
- */
-function getPolicyTagsData(policyID: string | undefined) {
-    const allPolicyTags = getPolicyTags();
-    return allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] ?? {};
-}
 
 /** Builds the Onyx data for an invoice */
 function buildOnyxDataForInvoice(
@@ -599,7 +589,7 @@ function getSendInvoiceInformation({
     policyRecentlyUsedCategories,
     policyRecentlyUsedTags,
     senderPolicyTags,
-}: SendInvoiceOptions & {senderPolicyTags: OnyxTypes.PolicyTagLists}): SendInvoiceInformation {
+}: SendInvoiceOptions): SendInvoiceInformation {
     const {amount = 0, currency = '', created = '', merchant = '', category = '', tag = '', taxCode = '', taxAmount = 0, taxValue, billable, comment, participants} = transaction ?? {};
     const trimmedComment = (comment?.comment ?? '').trim();
     const senderWorkspaceID = participants?.find((participant) => participant?.isSender)?.policyID;
@@ -620,6 +610,7 @@ function getSendInvoiceInformation({
             participantList: [receiverAccountID, currentUserAccountID],
             chatType: CONST.REPORT.CHAT_TYPE.INVOICE,
             policyID: senderWorkspaceID,
+            currentUserAccountID,
         });
     }
 
@@ -655,7 +646,7 @@ function getSendInvoiceInformation({
 
     const optimisticPolicyRecentlyUsedCategories = mergePolicyRecentlyUsedCategories(category, policyRecentlyUsedCategories);
     const optimisticPolicyRecentlyUsedTags = buildOptimisticPolicyRecentlyUsedTags({
-        policyTags: senderPolicyTags,
+        policyTags: senderPolicyTags ?? {},
         policyRecentlyUsedTags,
         transactionTags: tag,
     });
@@ -743,11 +734,8 @@ function sendInvoice({
     policyRecentlyUsedCategories,
     policyRecentlyUsedTags,
     isFromGlobalCreate,
+    senderPolicyTags,
 }: SendInvoiceOptions) {
-    // TODO: remove `allPolicyTags` from this file https://github.com/Expensify/App/issues/80048
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const senderPolicyTags = getPolicyTagsData(transaction?.participants?.find((p) => p?.isSender)?.policyID) ?? {};
-
     const parsedComment = getParsedComment(transaction?.comment?.comment?.trim() ?? '');
     if (transaction?.comment) {
         // eslint-disable-next-line no-param-reassign
@@ -780,7 +768,7 @@ function sendInvoice({
         companyWebsite,
         policyRecentlyUsedCategories,
         policyRecentlyUsedTags,
-        senderPolicyTags,
+        senderPolicyTags: senderPolicyTags ?? {},
     });
 
     const parameters: SendInvoiceParams = {

@@ -16,7 +16,9 @@ type ListItemRendererProps<TItem extends ListItem> = Omit<BaseListItemProps<TIte
         singleExecution: ReturnType<typeof useSingleExecution>['singleExecution'];
         titleStyles?: StyleProp<TextStyle>;
         titleContainerStyles?: StyleProp<ViewStyle>;
+        isLastItem?: boolean;
         shouldHighlightSelectedItem: boolean;
+        shouldPreventEnterKeySubmit?: boolean;
     };
 
 function ListItemRenderer<TItem extends ListItem>({
@@ -53,6 +55,8 @@ function ListItemRenderer<TItem extends ListItem>({
     shouldDisableHoverStyle,
     shouldShowRightCaret,
     errorRowStyles,
+    isLastItem,
+    shouldPreventEnterKeySubmit = true,
 }: ListItemRendererProps<TItem>) {
     const handleOnCheckboxPress = () => {
         if (isTransactionGroupListItemType(item)) {
@@ -81,8 +85,7 @@ function ListItemRenderer<TItem extends ListItem>({
                 onCheckboxPress={handleOnCheckboxPress()}
                 onDismissError={() => onDismissError?.(item)}
                 shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
-                // We're already handling the Enter key press in the useKeyboardShortcut hook, so we don't want the list item to submit the form
-                shouldPreventEnterKeySubmit
+                shouldPreventEnterKeySubmit={shouldPreventEnterKeySubmit}
                 rightHandSideComponent={rightHandSideComponent}
                 keyForList={item.keyForList}
                 shouldUseDefaultRightHandSideComponent={shouldUseDefaultRightHandSideComponent}
@@ -111,6 +114,7 @@ function ListItemRenderer<TItem extends ListItem>({
                 shouldHighlightSelectedItem={shouldHighlightSelectedItem}
                 shouldDisableHoverStyle={shouldDisableHoverStyle}
                 shouldShowRightCaret={shouldShowRightCaret}
+                isLastItem={isLastItem}
             />
             {item.footerContent && item.footerContent}
         </>

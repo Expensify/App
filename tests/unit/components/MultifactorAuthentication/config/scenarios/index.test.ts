@@ -31,7 +31,7 @@ describe('MultifactorAuthentication Scenarios Config', () => {
         const biometricsTestScenario = config[CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.BIOMETRICS_TEST];
 
         expect(biometricsTestScenario).toBeDefined();
-        expect(biometricsTestScenario.allowedAuthenticationMethods).toStrictEqual([CONST.MULTIFACTOR_AUTHENTICATION.TYPE.BIOMETRICS, CONST.MULTIFACTOR_AUTHENTICATION.TYPE.PASSKEYS]);
+        expect(biometricsTestScenario.allowedAuthenticationMethods).toStrictEqual([CONST.MULTIFACTOR_AUTHENTICATION.TYPE.BIOMETRICS_HSM, CONST.MULTIFACTOR_AUTHENTICATION.TYPE.PASSKEYS]);
         expect(biometricsTestScenario.screen).toBe(SCREENS.MULTIFACTOR_AUTHENTICATION.BIOMETRICS_TEST);
         expect(biometricsTestScenario.pure).toBe(true);
         expect(biometricsTestScenario.action).toBeDefined();
@@ -108,7 +108,7 @@ describe('MultifactorAuthentication Scenarios Config', () => {
             const setPinScenario = config[CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.SET_PIN_ORDER_CARD];
 
             expect(setPinScenario).toBeDefined();
-            expect(setPinScenario.allowedAuthenticationMethods).toStrictEqual([CONST.MULTIFACTOR_AUTHENTICATION.TYPE.BIOMETRICS, CONST.MULTIFACTOR_AUTHENTICATION.TYPE.PASSKEYS]);
+            expect(setPinScenario.allowedAuthenticationMethods).toStrictEqual([CONST.MULTIFACTOR_AUTHENTICATION.TYPE.BIOMETRICS_HSM, CONST.MULTIFACTOR_AUTHENTICATION.TYPE.PASSKEYS]);
             expect(setPinScenario.action).toBeDefined();
             expect(setPinScenario.callback).toBeDefined();
             expect(typeof setPinScenario.callback).toBe('function');

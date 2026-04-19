@@ -16,6 +16,7 @@ import type {
     OpenDomainSplitActionType,
     OpenWorkspaceSplitActionType,
     PushActionType,
+    RemoveFullscreenUnderRHPActionType,
     ReplaceActionType,
     ReplaceFullscreenUnderRHPActionType,
     ToggleSidePanelWithHistoryActionType,
@@ -269,6 +270,42 @@ function handleReplaceFullscreenUnderRHP(
 }
 
 /**
+ * Reverses handleReplaceFullscreenUnderRHP by removing the fullscreen route that
+ * was pre-inserted underneath the currently open modal.
+ *
+ * State transition: [Home, Search, RHP] -> [Home, RHP]
+ *
+ * Used when the user backs out of the expense confirmation screen without submitting,
+ * so the pre-inserted destination route is cleaned up.
+ */
+function handleRemoveFullscreenUnderRHP(
+    state: StackNavigationState<ParamListBase>,
+    action: RemoveFullscreenUnderRHPActionType,
+    configOptions: RouterConfigOptions,
+    stackRouter: Router<StackNavigationState<ParamListBase>, CommonActions.Action | StackActionType>,
+) {
+    const rhpRoute = state.routes.at(-1);
+    if (rhpRoute?.name !== NAVIGATORS.RIGHT_MODAL_NAVIGATOR) {
+        return null;
+    }
+
+    const routesWithoutRHP = state.routes.slice(0, -1);
+    if (routesWithoutRHP.length < 2) {
+        return null;
+    }
+
+    const preInsertedRoute = routesWithoutRHP.at(-1);
+    if (!preInsertedRoute || !isFullScreenName(preInsertedRoute.name) || preInsertedRoute.name !== action.payload.expectedRouteName) {
+        return null;
+    }
+
+    const routesWithoutPreInserted = routesWithoutRHP.slice(0, -1);
+    const newRoutes = [...routesWithoutPreInserted, rhpRoute];
+    const rehydratedState = stackRouter.getRehydratedState({...state, routes: newRoutes, index: newRoutes.length - 1}, configOptions);
+    return rehydratedState;
+}
+
+/**
  * Handles the DISMISS_MODAL action.
  * If the last route is a modal route, it has to be popped from the navigation stack.
  */
@@ -328,6 +365,7 @@ export {
     handleOpenDomainSplitAction,
     handlePushFullscreenAction,
     handleReplaceFullscreenUnderRHP,
+    handleRemoveFullscreenUnderRHP,
     handleReplaceReportsSplitNavigatorAction,
     screensWithEnteringAnimation,
     handleToggleSidePanelWithHistoryAction,
