@@ -1,9 +1,9 @@
-import {useFocusEffect} from '@react-navigation/native';
-import React, {useCallback, useRef} from 'react';
+import React from 'react';
 import Button from '@components/Button';
 import NumberWithSymbolForm from '@components/NumberWithSymbolForm';
 import type {NumberWithSymbolFormRef} from '@components/NumberWithSymbolForm';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
+import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -26,23 +26,17 @@ function DistanceManualTabContent({currentDistance, distanceUnit, onSubmit, manu
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isExtraSmallScreenHeight} = useResponsiveLayout();
-    const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+    const {inputCallbackRef} = useAutoFocusInput();
 
-    useFocusEffect(
-        useCallback(() => {
-            focusTimeoutRef.current = setTimeout(() => manualTextInputRef.current?.focus(), CONST.ANIMATED_TRANSITION);
-            return () => {
-                if (!focusTimeoutRef.current) {
-                    return;
-                }
-                clearTimeout(focusTimeoutRef.current);
-            };
-        }, [manualTextInputRef]),
-    );
+    const setInputRef = (ref: BaseTextInputRef | null) => {
+        // eslint-disable-next-line no-param-reassign
+        manualTextInputRef.current = ref;
+        inputCallbackRef(ref);
+    };
 
     return (
         <NumberWithSymbolForm
-            ref={manualTextInputRef}
+            ref={setInputRef}
             numberFormRef={manualNumberFormRef}
             value={currentDistance?.toString()}
             shouldUseDynamicFontSize

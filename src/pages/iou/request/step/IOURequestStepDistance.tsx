@@ -323,14 +323,8 @@ function IOURequestStepDistance({
     }, []);
 
     const navigateBack = useCallback(() => {
-        // When editing, the OnyxTabNavigator's backBehavior="initialRoute" causes
-        // goBack() without a route to first navigate within the tab navigator
-        // (e.g. manual tab → map tab) instead of exiting the screen.
-        // Provide an explicit fallback route to bypass the tab navigator.
-        const resolvedReportID = report?.reportID ?? reportID;
-        const fallbackRoute = backTo ?? (isEditing && resolvedReportID ? ROUTES.REPORT_WITH_ID.getRoute(resolvedReportID) : undefined);
-        Navigation.goBack(fallbackRoute);
-    }, [backTo, isEditing, report?.reportID, reportID]);
+        Navigation.goBack(backTo);
+    }, [backTo]);
 
     /**
      * Takes the user to the page for editing a specific waypoint
@@ -342,12 +336,15 @@ function IOURequestStepDistance({
             if (isEditingSplit) {
                 iouWaypointType = CONST.IOU.TYPE.SPLIT_EXPENSE;
             }
-            const distanceBackTo = isEditing
-                ? ROUTES.MONEY_REQUEST_STEP_DISTANCE.getRoute(action, iouWaypointType, transactionID, report?.reportID ?? reportID)
-                : Navigation.getActiveRoute();
-            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_WAYPOINT.getRoute(action, iouWaypointType, transactionID, report?.reportID ?? reportID, index.toString(), distanceBackTo));
+            // Construct the backTo URL explicitly to match the stack entry created when we navigated
+            // to this distance edit page. Using Navigation.getActiveRoute() would return a URL with
+            // the OnyxTabNavigator's tab suffix (e.g. "/distance-map") which doesn't match the stack
+            // entry — causing Navigation.goBack() to REPLACE instead of POP and creating a duplicate
+            // distance page entry in the stack.
+            const waypointBackTo = ROUTES.MONEY_REQUEST_STEP_DISTANCE.getRoute(action, iouType, transactionID, report?.reportID ?? reportID, backTo);
+            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_WAYPOINT.getRoute(action, iouWaypointType, transactionID, report?.reportID ?? reportID, index.toString(), waypointBackTo));
         },
-        [action, transactionID, report?.reportID, reportID, isEditingSplit, isEditing],
+        [action, iouType, transactionID, report?.reportID, reportID, backTo, isEditingSplit],
     );
 
     const navigateToNextStep = useCallback(() => {
