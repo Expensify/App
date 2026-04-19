@@ -35,7 +35,7 @@ function resetUSDBankAccount(
         | typeof ONYXKEYS.ONFIDO_TOKEN
         | typeof ONYXKEYS.ONFIDO_APPLICANT_ID
         | typeof ONYXKEYS.PLAID_DATA
-        | typeof ONYXKEYS.PLAID_LINK_TOKEN
+        | typeof ONYXKEYS.RAM_ONLY_PLAID_LINK_TOKEN
         | typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT
         | typeof ONYXKEYS.NVP_LAST_PAYMENT_METHOD
     > = {
@@ -76,7 +76,7 @@ function resetUSDBankAccount(
             },
             {
                 onyxMethod: Onyx.METHOD.SET,
-                key: ONYXKEYS.PLAID_LINK_TOKEN,
+                key: ONYXKEYS.RAM_ONLY_PLAID_LINK_TOKEN,
                 value: '',
             },
             {

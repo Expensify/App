@@ -315,7 +315,7 @@ const ONYXKEYS = {
     IS_PLAID_DISABLED: 'isPlaidDisabled',
 
     /** Token needed to initialize Plaid link */
-    PLAID_LINK_TOKEN: 'plaidLinkToken',
+    RAM_ONLY_PLAID_LINK_TOKEN: 'plaidLinkToken',
 
     /** Capture Plaid event  */
     PLAID_CURRENT_EVENT: 'plaidCurrentEvent',
@@ -421,7 +421,7 @@ const ONYXKEYS = {
     IS_BETA: 'isBeta',
 
     /** Whether we're checking if the room is public or not */
-    IS_CHECKING_PUBLIC_ROOM: 'isCheckingPublicRoom',
+    RAM_ONLY_IS_CHECKING_PUBLIC_ROOM: 'isCheckingPublicRoom',
 
     /** A map of the user's security group IDs they belong to in specific domains */
     MY_DOMAIN_SECURITY_GROUPS: 'myDomainSecurityGroups',
@@ -1377,7 +1377,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.NVP_SEEN_NEW_USER_MODAL]: boolean;
     [ONYXKEYS.PLAID_DATA]: OnyxTypes.PlaidData;
     [ONYXKEYS.IS_PLAID_DISABLED]: boolean;
-    [ONYXKEYS.PLAID_LINK_TOKEN]: string;
+    [ONYXKEYS.RAM_ONLY_PLAID_LINK_TOKEN]: string;
     [ONYXKEYS.ONFIDO_TOKEN]: string;
     [ONYXKEYS.ONFIDO_APPLICANT_ID]: string;
     [ONYXKEYS.NVP_PREFERRED_LOCALE]: OnyxTypes.Locale;
@@ -1427,7 +1427,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.LAST_ACCESSED_WORKSPACE_POLICY_ID]: string;
     [ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT]: boolean;
     [ONYXKEYS.IS_BETA]: boolean;
-    [ONYXKEYS.IS_CHECKING_PUBLIC_ROOM]: boolean;
+    [ONYXKEYS.RAM_ONLY_IS_CHECKING_PUBLIC_ROOM]: boolean;
     [ONYXKEYS.MY_DOMAIN_SECURITY_GROUPS]: Record<string, string>;
     [ONYXKEYS.DOMAIN_MEMBERS_SELECTED_FOR_MOVE]: string[];
     [ONYXKEYS.VERIFY_3DS_SUBSCRIPTION]: string;

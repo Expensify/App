@@ -57,7 +57,7 @@ function Expensify() {
     const [hasAttemptedToOpenPublicRoom, setAttemptedToOpenPublicRoom] = useState(false);
     const {preferredLocale} = useLocalize();
     const [lastRoute] = useOnyx(ONYXKEYS.LAST_ROUTE);
-    const [isCheckingPublicRoom = true] = useOnyx(ONYXKEYS.IS_CHECKING_PUBLIC_ROOM, {initWithStoredValues: false});
+    const [isCheckingPublicRoom = true] = useOnyx(ONYXKEYS.RAM_ONLY_IS_CHECKING_PUBLIC_ROOM);
     const [updateRequired] = useOnyx(ONYXKEYS.RAM_ONLY_UPDATE_REQUIRED);
     const [lastVisitedPath] = useOnyx(ONYXKEYS.LAST_VISITED_PATH);
 
@@ -72,7 +72,7 @@ function Expensify() {
 
     const bootsplashSpan = useRef<Sentry.Span>(null);
 
-    const [initialUrl, setInitialUrl] = useState<Route | null>(null);
+    const [initialUrl, setInitialUrl] = useState<Route | null | undefined>(undefined);
     const {setIsAuthenticatedAtStartup} = useInitialURLActions();
 
     useEffect(() => {
@@ -278,12 +278,15 @@ function Expensify() {
             <FullstoryInitHandler />
             <DeepLinkHandler onInitialUrl={setInitialUrl} />
             <AppleAuthWrapper />
-            {hasAttemptedToOpenPublicRoom && (
+            {/* Wait for the initial URL to resolve before mounting NavigationRoot, because its initialState
+                is computed once on mount. In HybridApp, getInitialURL() may never resolve (OldDot native
+                bridge), so we skip this guard to avoid blocking the app. */}
+            {hasAttemptedToOpenPublicRoom && (CONFIG.IS_HYBRID_APP || initialUrl !== undefined) && (
                 <NavigationRoot
                     onReady={setNavigationReady}
                     authenticated={isAuthenticated}
                     lastVisitedPath={lastVisitedPath as Route}
-                    initialUrl={initialUrl}
+                    initialUrl={initialUrl ?? null}
                 />
             )}
             {(isSplashVisible || isSplashReadyToBeHidden) && (
