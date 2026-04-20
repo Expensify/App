@@ -910,10 +910,7 @@ describe('PureReportActionItem', () => {
                                     iouReportOfLinkedReport={undefined}
                                     currentUserAccountID={ACTOR_ACCOUNT_ID}
                                     betas={undefined}
-                                    draftTransactionIDs={[]}
-                                    userBillingGracePeriodEnds={undefined}
                                     policy={policy}
-                                    currentUserEmail={undefined}
                                 />
                             </PortalProvider>
                         </ScreenWrapper>
