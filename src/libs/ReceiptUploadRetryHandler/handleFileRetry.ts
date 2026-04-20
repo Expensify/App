@@ -1,3 +1,4 @@
+import cleanupAfterExpenseCreate from '@libs/Navigation/helpers/cleanupAfterExpenseCreate';
 import type * as IOU from '@userActions/IOU';
 import {replaceReceipt} from '@userActions/IOU/Receipt';
 import {startSplitBill} from '@userActions/IOU/Split';
@@ -34,6 +35,10 @@ export default function handleFileRetry(message: ReceiptError, file: File, dismi
             trackExpenseParams.isRetry = true;
             trackExpenseParams.shouldPlaySound = false;
             TrackExpense.trackExpense(trackExpenseParams);
+            cleanupAfterExpenseCreate({
+                draftTransactionIDs: trackExpenseParams.existingTransaction?.transactionID ? [trackExpenseParams.existingTransaction.transactionID] : undefined,
+                linkedTrackedExpenseReportAction: trackExpenseParams.transactionParams.linkedTrackedExpenseReportAction,
+            });
             break;
         }
         case CONST.IOU.ACTION_PARAMS.MONEY_REQUEST: {
@@ -43,6 +48,10 @@ export default function handleFileRetry(message: ReceiptError, file: File, dismi
             requestMoneyParams.isRetry = true;
             requestMoneyParams.shouldPlaySound = false;
             TrackExpense.requestMoney(requestMoneyParams);
+            cleanupAfterExpenseCreate({
+                draftTransactionIDs: requestMoneyParams.existingTransactionDraft?.transactionID ? [requestMoneyParams.existingTransactionDraft.transactionID] : undefined,
+                linkedTrackedExpenseReportAction: requestMoneyParams.transactionParams.linkedTrackedExpenseReportAction,
+            });
             break;
         }
         default:

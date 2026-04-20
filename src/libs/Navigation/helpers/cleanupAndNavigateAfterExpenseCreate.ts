@@ -1,9 +1,8 @@
-import {InteractionManager} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {removeDraftTransactionsByIDs} from '@libs/actions/TransactionEdit';
 import Navigation from '@libs/Navigation/Navigation';
 import {getReportOrDraftReport, isMoneyRequestReport} from '@libs/ReportUtils';
 import type {Report, ReportAction} from '@src/types/onyx';
+import cleanupAfterExpenseCreate from './cleanupAfterExpenseCreate';
 import navigateAfterExpenseCreate from './navigateAfterExpenseCreate';
 
 type CleanupAndNavigateAfterExpenseCreateParams = {
@@ -33,16 +32,7 @@ function cleanupAndNavigateAfterExpenseCreate({
     isInvoice,
     linkedTrackedExpenseReportAction,
 }: CleanupAndNavigateAfterExpenseCreateParams) {
-    // Defer cleanup until after modal-dismiss animation so it doesn't block the JS thread.
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    InteractionManager.runAfterInteractions(() => removeDraftTransactionsByIDs(draftTransactionIDs));
-
-    if (linkedTrackedExpenseReportAction?.childReportID) {
-        const trackReport = Navigation.getReportRouteByID(linkedTrackedExpenseReportAction.childReportID);
-        if (trackReport?.key) {
-            Navigation.removeScreenByKey(trackReport.key);
-        }
-    }
+    cleanupAfterExpenseCreate({draftTransactionIDs, linkedTrackedExpenseReportAction});
 
     const isExpenseReport = isMoneyRequestReport(report);
     const linkedChatReport = isExpenseReport ? getReportOrDraftReport(report?.chatReportID) : undefined;

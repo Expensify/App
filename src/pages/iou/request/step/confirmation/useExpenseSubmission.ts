@@ -545,6 +545,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
             transactionID: lastTransaction.transactionID,
             isFromGlobalCreate: lastTransaction.isFromFloatingActionButton ?? lastTransaction.isFromGlobalCreate,
             hasMultipleTransactions: reportTransactions.length > 0,
+            optimisticChatReportID: selfDMReport?.reportID,
         });
     }
 
