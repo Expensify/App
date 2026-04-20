@@ -239,7 +239,8 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         const optimisticReportPreviewActionID = rand64();
         let existingIOUReport: Report | undefined;
 
-        for (const item of transactions) {
+        for (const [index, item] of transactions.entries()) {
+            const isLastBatchItem = index === transactions.length - 1;
             const receipt = receiptFiles[item.transactionID];
             const isTestReceipt = receipt?.isTestReceipt ?? false;
             const isTestDriveReceipt = receipt?.isTestDriveReceipt ?? false;
@@ -288,6 +289,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
             const {iouReport} = requestMoneyIOUActions({
                 report,
                 existingIOUReport,
+                shouldDeferAPIWrite: isLastBatchItem,
                 optimisticChatReportID,
                 optimisticCreatedReportActionID,
                 optimisticReportPreviewActionID,
@@ -468,7 +470,8 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         if (!participant) {
             return;
         }
-        for (const item of transactions) {
+        for (const [index, item] of transactions.entries()) {
+            const isLastBatchItem = index === transactions.length - 1;
             const isLinkedTrackedExpenseReportArchived =
                 !!item.linkedTrackedExpenseReportID && privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${item.linkedTrackedExpenseReportID}`];
             const itemDistance = isManualDistanceRequest || isOdometerDistanceRequest || isGPSDistanceRequest ? (item.comment?.customUnit?.quantity ?? undefined) : undefined;
@@ -478,6 +481,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 report,
                 isDraftPolicy,
                 action,
+                shouldDeferAPIWrite: isLastBatchItem,
                 participantParams: {
                     payeeEmail: currentUserPersonalDetails.login,
                     payeeAccountID: currentUserPersonalDetails.accountID,

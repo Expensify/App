@@ -264,6 +264,37 @@ describe('MoneyRequest', () => {
             ).not.toThrow();
         });
 
+        it('should pass shouldDeferAPIWrite=false for non-last files and true for the last file', () => {
+            const files = [
+                {...fakeReceiptFile, transactionID: '111'},
+                {...fakeReceiptFile, transactionID: '222'},
+                {...fakeReceiptFile, transactionID: '333'},
+            ];
+
+            createTransaction({
+                ...baseParams,
+                iouType: CONST.IOU.TYPE.TRACK,
+                files,
+                allTransactionDrafts: {},
+            });
+
+            expect(TrackExpense.trackExpense).toHaveBeenCalledTimes(files.length);
+            expect(TrackExpense.trackExpense).toHaveBeenNthCalledWith(1, expect.objectContaining({shouldDeferAPIWrite: false}));
+            expect(TrackExpense.trackExpense).toHaveBeenNthCalledWith(2, expect.objectContaining({shouldDeferAPIWrite: false}));
+            expect(TrackExpense.trackExpense).toHaveBeenNthCalledWith(3, expect.objectContaining({shouldDeferAPIWrite: true}));
+        });
+
+        it('should default shouldDeferAPIWrite to true for a single-item batch', () => {
+            createTransaction({
+                ...baseParams,
+                iouType: CONST.IOU.TYPE.TRACK,
+                allTransactionDrafts: {},
+            });
+
+            expect(TrackExpense.trackExpense).toHaveBeenCalledTimes(1);
+            expect(TrackExpense.trackExpense).toHaveBeenCalledWith(expect.objectContaining({shouldDeferAPIWrite: true}));
+        });
+
         it('should default receipt source and state correctly when file is missing', () => {
             const files = [{...fakeReceiptFile, file: undefined}];
 

@@ -1552,6 +1552,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
         gpsPoint,
         action,
         shouldPlaySound = true,
+        shouldDeferAPIWrite = true,
         optimisticChatReportID,
         optimisticCreatedReportActionID,
         optimisticIOUReportID,
@@ -1820,7 +1821,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
     // Register the deferred write BEFORE navigation so the Search component's
     // hasDeferredWrite() check on mount always sees the pending channel.
     if (deferredAPIWrite) {
-        if (!requestMoneyInformation.isRetry && isFromGlobalCreate && !isReportTopmostSplitNavigator()) {
+        if (shouldDeferAPIWrite && !requestMoneyInformation.isRetry && isFromGlobalCreate && !isReportTopmostSplitNavigator()) {
             registerDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH, deferredAPIWrite, {
                 optimisticWatchKey: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
             });
@@ -2232,6 +2233,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
         transactionParams: transactionData,
         accountantParams,
         shouldPlaySound = true,
+        shouldDeferAPIWrite = true,
         isASAPSubmitBetaEnabled,
         currentUserAccountIDParam,
         currentUserEmailParam,
@@ -2574,7 +2576,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
                 parameters.actionableWhisperReportActionID = actionableWhisperReportActionIDParam;
             }
 
-            const shouldDeferWrite = !params.isRetry && isFromGlobalCreate && !isReportTopmostSplitNavigator();
+            const shouldDeferWrite = shouldDeferAPIWrite && !params.isRetry && isFromGlobalCreate && !isReportTopmostSplitNavigator();
             const apiWrite = () => {
                 API.write(WRITE_COMMANDS.TRACK_EXPENSE, parameters, onyxData);
             };
