@@ -31,6 +31,7 @@ The navigation in the app is built on top of the `react-navigation` library. To 
     - [Dynamic routes with query parameters](#dynamic-routes-with-query-parameters)
     - [How to add a new dynamic route](#how-to-add-a-new-dynamic-route)
     - [Migrating from backTo to dynamic routes](#migrating-from-backto-to-dynamic-routes)
+    - [Backward compatibility for changed paths](#backward-compatibility-for-changed-paths)
   - [How to remove backTo from URL (Legacy)](#how-to-remove-backto-from-url)
     - [Separating routes for each screen instance](#separating-routes-for-each-screen-instance)
   - [Generating state from a path](#generating-state-from-a-path)
@@ -930,6 +931,46 @@ If you are migrating an existing flow that uses `backTo` (or multiple static rou
 6. Remove old static route constants and old screen bindings that are replaced by the single dynamic screen.
 
 For the legacy approach (e.g. separating routes per screen instance) and edge cases like RHP underlay, see [How to remove backTo from URL](#how-to-remove-backto-from-url) and [Separating routes for each screen instance](#separating-routes-for-each-screen-instance).
+
+### Backward compatibility for changed paths
+
+When migrating a static route to a dynamic route, the resulting URL often changes because dynamic routes build the target path on top of the entry screen's URL. Here is a concrete example:
+
+**Static routes** — the entry screen and the target screen have independent, unrelated paths:
+
+| | Path |
+|---|---|
+| Entry screen | `/r/:reportID/details` |
+| Target screen | `/r/:reportID/settings/name` |
+
+The target path `/r/:reportID/settings/name` stands on its own; it does not contain the entry screen's `/details` segment.
+
+**Dynamic routes** — the target URL is formed by appending a suffix to the entry screen's URL:
+
+| | Path |
+|---|---|
+| Entry screen (base path) | `/r/:reportID/details` |
+| Dynamic suffix | `settings/name` |
+| Target screen | `/r/:reportID/details/settings/name` |
+
+Because the suffix `settings/name` is appended to `/r/:reportID/details`, the resulting URL now includes the entry screen's path as a prefix. The old static URL (`/r/:reportID/settings/name`) no longer matches the new dynamic one (`/r/:reportID/details/settings/name`).
+
+If the new path does not match the old one, you **must** add a redirect mapping to [`src/libs/Navigation/linkingConfig/OldRoutes.ts`](../src/libs/Navigation/linkingConfig/OldRoutes.ts) so that bookmarks, shared links, and browser history still work.
+
+Each entry in `OldRoutes.ts` maps an old path pattern to the new path. Use `*` as a wildcard for dynamic segments and `$1`, `$2`, etc. in the replacement to reference captured segments:
+
+```ts
+const oldRoutes: Record<string, string> = {
+    '/r/*/settings/name': '/r/$1/details/settings/name',
+    '/workspaces/*/accounting/*/card-reconciliation/account': '/workspaces/$1/accounting/$2/card-reconciliation/account-reconciliation-settings',
+};
+```
+
+- A `*` in the **middle** of a pattern matches a single path segment (everything except `/`).
+- A `*` at the **end** of a pattern matches the entire remaining path (including `/`).
+- `$1`, `$2`, ... in the replacement string correspond to the captured wildcards in order.
+
+After adding a mapping, add test cases in [`tests/navigation/getMatchingNewRouteTest.ts`](../tests/navigation/getMatchingNewRouteTest.ts) to verify that the old path redirects to the new one and that query parameters are preserved.
 
 ## How to remove backTo from URL
 

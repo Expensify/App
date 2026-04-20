@@ -113,6 +113,9 @@ jest.mock('@userActions/User', () => ({
 
 jest.mock('@src/CONFIG', () => ({
     IS_USING_LOCAL_WEB: false,
+    EXPENSIFY: {
+        DEFAULT_API_ROOT: 'https://www.expensify.com.dev/',
+    },
 }));
 
 jest.mock('@components/Button', () => {

@@ -7,8 +7,8 @@ const mockIsReportTopmostSplitNavigator = jest.fn();
 const mockIsSearchTopmostFullScreenRoute = jest.fn();
 const mockIsReportOpenInRHP = jest.fn();
 const mockGetIsNarrowLayout = jest.fn();
-const mockGetSpan = jest.fn();
-// Declared but assigned after jest.mock hoisting — use require() to access the mock in tests
+const mockGetTrackingState = jest.fn();
+// Declared but assigned after jest.mock hoisting - use require() to access the mock in tests
 let mockSetPendingSubmitFollowUpAction: jest.Mock;
 const mockGetCurrentSearchQueryJSON = jest.fn();
 
@@ -20,12 +20,10 @@ jest.mock('@libs/Navigation/helpers/setNavigationActionToMicrotaskQueue', () => 
     callback();
 });
 jest.mock('@libs/getIsNarrowLayout', () => () => mockGetIsNarrowLayout() as boolean);
-jest.mock('@libs/telemetry/activeSpans', () => ({
-    getSpan: (...args: unknown[]) => mockGetSpan(...args) as boolean,
-}));
 jest.mock('@libs/telemetry/submitFollowUpAction', () => ({
-    setPendingSubmitFollowUpAction: jest.fn(),
+    isTracking: (...args: unknown[]) => mockGetTrackingState(...args) as boolean,
     endSubmitFollowUpActionSpan: jest.fn(),
+    setPendingSubmitFollowUpAction: jest.fn(),
 }));
 jest.mock('@libs/SearchQueryUtils', () => ({
     buildCannedSearchQuery: jest.fn(({type}: {type: string}) => `type:${type}`),
@@ -55,8 +53,8 @@ jest.mock('@react-navigation/native');
 describe('navigateAfterExpenseCreate', () => {
     beforeAll(() => {
         // eslint-disable-next-line @typescript-eslint/no-require-imports
-        const telemetryMock = require('@libs/telemetry/submitFollowUpAction') as {setPendingSubmitFollowUpAction: jest.Mock};
-        mockSetPendingSubmitFollowUpAction = telemetryMock.setPendingSubmitFollowUpAction;
+        const followUpMock = require('@libs/telemetry/submitFollowUpAction') as {setPendingSubmitFollowUpAction: jest.Mock};
+        mockSetPendingSubmitFollowUpAction = followUpMock.setPendingSubmitFollowUpAction;
     });
 
     beforeEach(() => {
@@ -64,7 +62,7 @@ describe('navigateAfterExpenseCreate', () => {
         mockIsReportTopmostSplitNavigator.mockReturnValue(false);
         mockIsSearchTopmostFullScreenRoute.mockReturnValue(false);
         mockIsReportOpenInRHP.mockReturnValue(false);
-        mockGetSpan.mockReturnValue(false);
+        mockGetTrackingState.mockReturnValue(null);
         mockGetCurrentSearchQueryJSON.mockReturnValue(undefined);
     });
 

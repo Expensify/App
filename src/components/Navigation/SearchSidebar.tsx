@@ -51,7 +51,7 @@ function SearchSidebar({state}: SearchSidebarProps) {
             <View style={styles.flex1}>
                 <TopBar
                     shouldShowLoadingBar={shouldShowLoadingState || shouldShowLoadingBarForReports}
-                    breadcrumbLabel={translate('common.reports')}
+                    breadcrumbLabel={translate('common.spend')}
                     shouldDisplaySearch={false}
                     shouldDisplayHelpButton={false}
                 />

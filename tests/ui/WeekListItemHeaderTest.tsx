@@ -2,6 +2,7 @@ import {act, fireEvent, render, screen} from '@testing-library/react-native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 import ComposeProviders from '@components/ComposeProviders';
+import {CurrencyListContextProvider} from '@components/CurrencyListContextProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import {SearchActionsContext, SearchStateContext} from '@components/Search/SearchContext';
@@ -35,7 +36,7 @@ const mockSearchStateContext = {
     lastSearchType: undefined,
     areAllMatchingItemsSelected: false,
     shouldShowSelectAllMatchingItems: false,
-    shouldShowActionsBarLoading: false,
+    shouldShowFiltersBarLoading: false,
     shouldUseLiveData: false,
     currentSimilarSearchHash: -1,
     suggestedSearches: {} as SearchStateContextValue['suggestedSearches'],
@@ -47,7 +48,7 @@ const mockSearchActionsContext = {
     setSelectedTransactions: jest.fn(),
     removeTransaction: jest.fn(),
     clearSelectedTransactions: jest.fn(),
-    setShouldShowActionsBarLoading: jest.fn(),
+    setShouldShowFiltersBarLoading: jest.fn(),
     setShouldShowSelectAllMatchingItems: jest.fn(),
     selectAllMatchingItems: jest.fn(),
     setShouldResetSearchQuery: jest.fn(),
@@ -81,7 +82,7 @@ const renderWeekListItemHeader = (
     }> = {},
 ) => {
     return render(
-        <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
+        <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrencyListContextProvider]}>
             <SearchStateContext.Provider value={mockSearchStateContext}>
                 <SearchActionsContext.Provider value={mockSearchActionsContext}>
                     <WeekListItemHeader

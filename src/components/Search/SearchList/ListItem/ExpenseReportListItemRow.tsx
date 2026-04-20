@@ -6,6 +6,7 @@ import Icon from '@components/Icon';
 import SearchReportAvatar from '@components/ReportActionAvatars/SearchReportAvatar';
 import ReportSearchHeader from '@components/ReportSearchHeader';
 import type {SearchColumnType} from '@components/Search/types';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -13,7 +14,6 @@ import usePolicy from '@hooks/usePolicy';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {convertToDisplayString} from '@libs/CurrencyUtils';
 import getBase62ReportID from '@libs/getBase62ReportID';
 import {getParentNavigationSubtitle, getReportStatusTranslation} from '@libs/ReportUtils';
 import {isCorrectSearchUserName} from '@libs/SearchUIUtils';
@@ -73,6 +73,7 @@ function ExpenseReportListItemRow({
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
+    const {convertToDisplayString} = useCurrencyListActions();
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const shouldUseNarrowLayout = !isLargeScreenWidth;
     const policy = usePolicy(item.policyID);
@@ -216,7 +217,7 @@ function ExpenseReportListItemRow({
             <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.ACTION)]}>
                 <ActionCell
                     action={item.action}
-                    goToItem={onButtonPress}
+                    onButtonPress={onButtonPress}
                     isSelected={item.isSelected}
                     isLoading={isActionLoading}
                     policyID={item.policyID}
@@ -321,7 +322,7 @@ function ExpenseReportListItemRow({
                 <View style={[styles.pAbsolute, styles.t0, styles.r0, {width: variables.w72}, styles.alignItemsEnd]}>
                     <ActionCell
                         action={item.action}
-                        goToItem={onButtonPress}
+                        onButtonPress={onButtonPress}
                         isSelected={item.isSelected}
                         isLoading={isActionLoading}
                         policyID={item.policyID}

@@ -9,6 +9,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import useConfirmModal from '@hooks/useConfirmModal';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useDefaultFundID from '@hooks/useDefaultFundID';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -16,7 +17,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {deleteExpensifyCardRule, getSpendRuleFormValuesFromCardRule, setExpensifyCardRule} from '@libs/actions/Card';
 import {clearDraftSpendRule, setDraftSpendRule, updateDraftSpendRule} from '@libs/actions/User';
 import {filterInactiveCards, getCardDescriptionForSearchTable, getSelectedCardsSharedCurrency} from '@libs/CardUtils';
-import {convertToBackendAmount, convertToDisplayString} from '@libs/CurrencyUtils';
+import {convertToBackendAmount} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {rand64} from '@libs/NumberUtils';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
@@ -51,6 +52,7 @@ function getErrorMessage(hasSelectedCards: boolean, hasAnyRuleApplied: boolean, 
 }
 
 function SpendRulePageBase({policyID, ruleID, titleKey, testID}: SpendRulePageBaseProps) {
+    const {convertToDisplayString} = useCurrencyListActions();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
@@ -107,8 +109,9 @@ function SpendRulePageBase({policyID, ruleID, titleKey, testID}: SpendRulePageBa
     };
 
     function getCardsMenuTitle(cardIDsToSummarize: string[] | undefined): string {
+        const activeCardIDs = cardIDsToSummarize?.filter((id) => cardsList?.[id] !== undefined);
         return getTruncatedSpendRuleSummary(
-            cardIDsToSummarize?.map((id) => {
+            activeCardIDs?.map((id) => {
                 const card = cardsList?.[id];
                 if (card === undefined) {
                     return id;

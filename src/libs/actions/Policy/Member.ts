@@ -451,6 +451,7 @@ function removeMembers(policy: OnyxEntry<Policy>, selectedMemberEmails: string[]
     const pendingChatMembers = ReportUtils.getPendingChatMembers(accountIDs, [], CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
 
     for (const report of workspaceChats) {
+        const currentTime = DateUtils.getDBTime();
         optimisticData.push(
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -472,12 +473,10 @@ function removeMembers(policy: OnyxEntry<Policy>, selectedMemberEmails: string[]
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`,
                 value: {
-                    // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
-                    private_isArchived: true,
+                    private_isArchived: currentTime,
                 },
             },
         );
-        const currentTime = DateUtils.getDBTime();
         const reportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.reportID}`] ?? {};
         for (const action of Object.values(reportActions)) {
             if (action.actionName !== CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) {
@@ -517,8 +516,7 @@ function removeMembers(policy: OnyxEntry<Policy>, selectedMemberEmails: string[]
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`,
                 value: {
-                    // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
-                    private_isArchived: false,
+                    private_isArchived: null,
                 },
             },
         );
