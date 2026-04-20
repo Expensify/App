@@ -12,6 +12,7 @@ import trackMFAFlowStart from '@components/MultifactorAuthentication/observabili
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useNetwork from '@hooks/useNetwork';
 import {requestValidateCodeAction} from '@libs/actions/User';
+import {getErrorMessage} from '@libs/ErrorUtils';
 import getPlatform from '@libs/getPlatform';
 import type {ChallengeType, MultifactorAuthenticationCallbackInput} from '@libs/MultifactorAuthentication/shared/types';
 import Navigation from '@navigation/Navigation';
@@ -219,7 +220,7 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
         }
 
         // 2b. Check if the device can actually perform the allowed authentication method
-        if (!biometrics.doesDeviceSupportAuthenticationMethod()) {
+        if (!(await biometrics.doesDeviceSupportAuthenticationMethod())) {
             const reason = biometrics.deviceCheckFailureReason;
             const message = `Device check failed (deviceVerificationType: ${biometrics.deviceVerificationType})`;
             addMFABreadcrumb('Device check failed', {reason, deviceVerificationType: biometrics.deviceVerificationType, message}, 'warning');
@@ -283,7 +284,7 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
                     {
                         success: result.success,
                         reason: result.reason,
-                        authMethod: result.success ? result.authenticationMethod.code : undefined,
+                        message: result.success ? undefined : result?.message,
                     },
                     result.success ? 'info' : 'error',
                 );
@@ -300,7 +301,6 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
 
                 const registrationResponse = await processRegistration({
                     keyInfo: result.keyInfo,
-                    authenticationMethod: result.authenticationMethod.marqetaValue,
                 });
 
                 addMFABreadcrumb(
@@ -384,6 +384,7 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
                             success: result.success,
                             reason: result.reason,
                             authMethod: result.success ? result.authenticationMethod.code : undefined,
+                            message: result.success ? undefined : result?.message,
                         },
                         result.success ? 'info' : 'error',
                     );
@@ -392,7 +393,7 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
                         // Re-registration may be needed even though we checked credentials above, because:
                         // - The local public key was deleted between the check and authorization
                         // - The server no longer accepts the local public key (not in allowCredentials)
-                        if (result.reason === CONST.MULTIFACTOR_AUTHENTICATION.REASON.KEYSTORE.REGISTRATION_REQUIRED) {
+                        if (result.reason === CONST.MULTIFACTOR_AUTHENTICATION.REASON.HSM.KEY_ACCESS_FAILED || result.reason === CONST.MULTIFACTOR_AUTHENTICATION.REASON.HSM.KEY_NOT_FOUND) {
                             addMFABreadcrumb('Authorization key reset', {reason: result.reason}, 'warning');
                             await biometrics.deleteLocalKeysForAccount();
                             dispatch({type: 'SET_REGISTRATION_COMPLETE', payload: false});
@@ -476,12 +477,12 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
         }
 
         process().catch((error: unknown) => {
-            addMFABreadcrumb('Unhandled error', {message: error instanceof Error ? error.message : String(error)}, 'error');
+            addMFABreadcrumb('Unhandled error', {message: getErrorMessage(error)}, 'error');
             dispatch({
                 type: 'SET_ERROR',
                 payload: {
                     reason: CONST.MULTIFACTOR_AUTHENTICATION.REASON.GENERIC.UNHANDLED_ERROR,
-                    message: error instanceof Error ? error.message : String(error),
+                    message: getErrorMessage(error),
                 },
             });
         });

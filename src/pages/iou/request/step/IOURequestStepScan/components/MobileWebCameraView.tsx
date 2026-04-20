@@ -1,10 +1,7 @@
-import {useIsFocused} from '@react-navigation/native';
-import React, {useCallback, useEffect, useReducer, useRef, useState} from 'react';
-import type {LayoutRectangle} from 'react-native';
+import React, {useCallback} from 'react';
 import {StyleSheet, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Animated from 'react-native-reanimated';
-import type Webcam from 'react-webcam';
 import ActivityIndicator from '@components/ActivityIndicator';
 import AttachmentPicker from '@components/AttachmentPicker';
 import Button from '@components/Button';
@@ -17,7 +14,7 @@ import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hook
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {isMobileWebKit} from '@libs/Browser';
+import useWebCamera from '@hooks/useWebCamera';
 import {base64ToFile} from '@libs/fileDownload/FileUtils';
 import {cancelSpan, endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
@@ -26,7 +23,8 @@ import type {ImageObject} from '@pages/iou/request/step/IOURequestStepScan/cropI
 import useMobileReceiptScan from '@pages/iou/request/step/IOURequestStepScan/hooks/useMobileReceiptScan';
 import type {ReceiptFile} from '@pages/iou/request/step/IOURequestStepScan/types';
 import StepScreenWrapper from '@pages/iou/request/step/StepScreenWrapper';
-import {setMoneyRequestReceipt} from '@userActions/IOU';
+import variables from '@styles/variables';
+import {setMoneyRequestReceipt} from '@userActions/IOU/Receipt';
 import {buildOptimisticTransactionAndCreateDraft} from '@userActions/TransactionEdit';
 import CONST from '@src/CONST';
 import type {IOUType} from '@src/CONST';
@@ -43,10 +41,10 @@ type MobileWebCameraViewProps = {
     iouType: IOUType;
     currentUserPersonalDetails: CurrentUserPersonalDetails;
     reportID: string;
-    isMultiScanEnabled?: boolean;
-    isStartingScan?: boolean;
+    isMultiScanEnabled: boolean;
+    isStartingScan: boolean;
     updateScanAndNavigate: (file: FileObject, source: string) => void;
-    setIsMultiScanEnabled?: (value: boolean) => void;
+    setIsMultiScanEnabled: (value: boolean) => void;
     PDFValidationComponent: React.ReactNode;
     shouldAcceptMultipleFiles: boolean;
     receiptFiles: ReceiptFile[];
@@ -56,46 +54,10 @@ type MobileWebCameraViewProps = {
     navigateToConfirmationStep: (files: ReceiptFile[], locationPermissionGranted?: boolean, isTestTransaction?: boolean) => void;
     shouldSkipConfirmation: boolean;
     setStartLocationPermissionFlow: (value: boolean) => void;
-    onLayout?: () => void;
     onBackButtonPress: () => void;
+    onLayout?: () => void;
     shouldShowWrapper: boolean;
 };
-
-/**
- * Preload camera permission state at module load so first render can use a cached value.
- */
-let cachedPermissionState: PermissionState | undefined;
-
-if (typeof navigator !== 'undefined' && navigator.permissions) {
-    navigator.permissions
-        .query({name: 'camera'})
-        .then((status) => {
-            cachedPermissionState = status.state;
-            if ('addEventListener' in status) {
-                status.addEventListener('change', () => {
-                    cachedPermissionState = status.state;
-                });
-            }
-        })
-        .catch(() => {
-            cachedPermissionState = 'denied';
-        });
-}
-
-function queryCameraPermission(): Promise<PermissionState> {
-    if (cachedPermissionState !== undefined) {
-        return Promise.resolve(cachedPermissionState);
-    }
-
-    if (typeof navigator === 'undefined' || !navigator.permissions) {
-        return Promise.resolve('denied');
-    }
-
-    return navigator.permissions
-        .query({name: 'camera'})
-        .then((status) => status.state)
-        .catch(() => 'denied');
-}
 
 function MobileWebCameraView({
     initialTransaction,
@@ -103,7 +65,7 @@ function MobileWebCameraView({
     iouType,
     currentUserPersonalDetails,
     reportID,
-    isMultiScanEnabled = false,
+    isMultiScanEnabled,
     isStartingScan,
     updateScanAndNavigate,
     setIsMultiScanEnabled,
@@ -116,8 +78,8 @@ function MobileWebCameraView({
     navigateToConfirmationStep,
     shouldSkipConfirmation,
     setStartLocationPermissionFlow,
-    onLayout,
     onBackButtonPress,
+    onLayout,
     shouldShowWrapper,
 }: MobileWebCameraViewProps) {
     const {blinkStyle, canUseMultiScan, shouldShowMultiScanEducationalPopup, showBlink, toggleMultiScan, dismissMultiScanEducationalPopup, submitReceipts, submitMultiScanReceipts} =
@@ -131,130 +93,33 @@ function MobileWebCameraView({
             shouldSkipConfirmation,
             setStartLocationPermissionFlow,
             setIsMultiScanEnabled,
+            setReceiptFiles,
         });
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const lazyIllustrations = useMemoizedLazyIllustrations(['MultiScan', 'Hand', 'Shutter']);
     const lazyIcons = useMemoizedLazyExpensifyIcons(['Bolt', 'Gallery', 'ReceiptMultiple', 'boltSlash']);
-    const isTabActive = useIsFocused();
-    const [cameraPermissionState, setCameraPermissionState] = useState<PermissionState | undefined>(() => cachedPermissionState ?? 'prompt');
-    const [isFlashLightOn, toggleFlashlight] = useReducer((state: boolean) => !state, false);
-    const [isTorchAvailable, setIsTorchAvailable] = useState(false);
-    const [isQueriedPermissionState, setIsQueriedPermissionState] = useState(() => cachedPermissionState !== undefined);
-    const [deviceConstraints, setDeviceConstraints] = useState<MediaTrackConstraints>();
-    const videoConstraints = isTabActive ? deviceConstraints : undefined;
-    const cameraRef = useRef<Webcam>(null);
-    const trackRef = useRef<MediaStreamTrack | null>(null);
-    const viewfinderLayout = useRef<LayoutRectangle>(null);
-    const getScreenshotTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-    /**
-     * On phones that have ultra-wide lens, react-webcam uses ultra-wide by default.
-     * The last deviceId is of regular lens camera.
-     */
-    const requestCameraPermission = useCallback(() => {
-        const defaultConstraints = {facingMode: {exact: 'environment'}};
-        navigator.mediaDevices
-            .getUserMedia({video: {facingMode: {exact: 'environment'}, zoom: {ideal: 1}}})
-            .then((stream) => {
-                setCameraPermissionState('granted');
-                for (const track of stream.getTracks()) {
-                    track.stop();
-                }
-                // Only Safari 17+ supports zoom constraint
-                if (isMobileWebKit() && stream.getTracks().length > 0) {
-                    let deviceId;
-                    for (const track of stream.getTracks()) {
-                        const setting = track.getSettings();
-                        if (setting.zoom === 1) {
-                            deviceId = setting.deviceId;
-                            break;
-                        }
-                    }
-                    if (deviceId) {
-                        setDeviceConstraints({deviceId});
-                        return;
-                    }
-                }
-                if (!navigator.mediaDevices.enumerateDevices) {
-                    setDeviceConstraints(defaultConstraints);
-                    return;
-                }
-                navigator.mediaDevices.enumerateDevices().then((devices) => {
-                    let lastBackDeviceId = '';
-                    for (let i = devices.length - 1; i >= 0; i--) {
-                        const device = devices.at(i);
-                        if (device?.kind === 'videoinput') {
-                            lastBackDeviceId = device.deviceId;
-                            break;
-                        }
-                    }
-                    if (!lastBackDeviceId) {
-                        setDeviceConstraints(defaultConstraints);
-                        return;
-                    }
-                    setDeviceConstraints({deviceId: lastBackDeviceId});
-                });
-            })
-            .catch(() => {
-                setDeviceConstraints(defaultConstraints);
-                setCameraPermissionState('denied');
-            });
+    const onUnmount = useCallback(() => {
+        cancelSpan(CONST.TELEMETRY.SPAN_SHUTTER_TO_CONFIRMATION);
+        cancelSpan(CONST.TELEMETRY.SPAN_RECEIPT_CAPTURE);
     }, []);
 
-    useEffect(() => {
-        if (!isTabActive) {
-            return;
-        }
-        queryCameraPermission()
-            .then((state) => {
-                setCameraPermissionState(state);
-                if (state === 'granted') {
-                    requestCameraPermission();
-                }
-            })
-            .catch(() => {
-                setCameraPermissionState('denied');
-            })
-            .finally(() => {
-                setIsQueriedPermissionState(true);
-            });
-        // Refresh permission state whenever this tab regains focus.
-    }, [isTabActive, requestCameraPermission]);
-
-    useEffect(
-        () => () => {
-            cancelSpan(CONST.TELEMETRY.SPAN_SHUTTER_TO_CONFIRMATION);
-            cancelSpan(CONST.TELEMETRY.SPAN_RECEIPT_CAPTURE);
-            if (!getScreenshotTimeoutRef.current) {
-                return;
-            }
-            clearTimeout(getScreenshotTimeoutRef.current);
-        },
-        [],
-    );
-
-    const setupCameraPermissionsAndCapabilities = (stream: MediaStream) => {
-        setCameraPermissionState('granted');
-
-        const [track] = stream.getVideoTracks();
-        const capabilities = track.getCapabilities();
-
-        if ('torch' in capabilities && capabilities.torch) {
-            trackRef.current = track;
-        }
-        setIsTorchAvailable('torch' in capabilities && !!capabilities.torch);
-    };
-
-    const clearTorchConstraints = () => {
-        if (!trackRef.current) {
-            return;
-        }
-        trackRef.current.applyConstraints({
-            advanced: [{torch: false}],
-        });
-    };
+    const {
+        cameraRef,
+        viewfinderLayout,
+        cameraPermissionState,
+        setCameraPermissionState,
+        isFlashLightOn,
+        toggleFlashlight,
+        isTorchAvailable,
+        isQueriedPermissionState,
+        videoConstraints,
+        requestCameraPermission,
+        setupCameraPermissionsAndCapabilities,
+        capturePhotoWithFlash,
+    } = useWebCamera({onUnmount});
 
     const onCapture = (file: FileObject, filename: string, source: string) => {
         const transaction =
@@ -317,6 +182,13 @@ function MobileWebCameraView({
 
         const originalFileName = `receipt_${Date.now()}.png`;
         const originalFile = base64ToFile(imageBase64 ?? '', originalFileName);
+
+        if (originalFile.size === 0) {
+            cancelSpan(CONST.TELEMETRY.SPAN_RECEIPT_CAPTURE);
+            cancelSpan(CONST.TELEMETRY.SPAN_SHUTTER_TO_CONFIRMATION);
+            return;
+        }
+
         const imageObject: ImageObject = {file: originalFile, filename: originalFile.name, source: URL.createObjectURL(originalFile)};
         // Some browsers center-crop the viewfinder inside the video element (due to object-position: center),
         // while other browsers let the video element overflow and the container crops it from the top.
@@ -331,21 +203,7 @@ function MobileWebCameraView({
     };
 
     const capturePhoto = () => {
-        if (trackRef.current && isFlashLightOn) {
-            trackRef.current
-                .applyConstraints({
-                    advanced: [{torch: true}],
-                })
-                .then(() => {
-                    getScreenshotTimeoutRef.current = setTimeout(() => {
-                        getScreenshot();
-                        clearTorchConstraints();
-                    }, CONST.RECEIPT.FLASH_DELAY_MS);
-                });
-            return;
-        }
-
-        getScreenshot();
+        capturePhotoWithFlash(getScreenshot);
     };
 
     return (
@@ -434,8 +292,8 @@ function MobileWebCameraView({
                                             sentryLabel={CONST.SENTRY_LABEL.REQUEST_STEP.SCAN.FLASH}
                                         >
                                             <Icon
-                                                height={16}
-                                                width={16}
+                                                height={variables.iconSizeSmall}
+                                                width={variables.iconSizeSmall}
                                                 src={lazyIcons.Bolt}
                                                 fill={isFlashLightOn ? theme.white : theme.icon}
                                             />
@@ -444,7 +302,7 @@ function MobileWebCameraView({
                                 ) : null}
                                 <Animated.View
                                     pointerEvents="none"
-                                    style={[StyleSheet.absoluteFillObject, styles.backgroundWhite, blinkStyle, styles.zIndex10]}
+                                    style={[StyleSheet.absoluteFill, styles.backgroundWhite, blinkStyle, styles.zIndex10]}
                                 />
                             </View>
                         )}
@@ -468,8 +326,8 @@ function MobileWebCameraView({
                                     sentryLabel={shouldAcceptMultipleFiles ? CONST.SENTRY_LABEL.REQUEST_STEP.SCAN.CHOOSE_FILES : CONST.SENTRY_LABEL.REQUEST_STEP.SCAN.CHOOSE_FILE}
                                 >
                                     <Icon
-                                        height={32}
-                                        width={32}
+                                        height={variables.iconSizeMenuItem}
+                                        width={variables.iconSizeMenuItem}
                                         src={lazyIcons.Gallery}
                                         fill={theme.textSupporting}
                                     />
@@ -499,8 +357,8 @@ function MobileWebCameraView({
                                 sentryLabel={CONST.SENTRY_LABEL.REQUEST_STEP.SCAN.MULTI_SCAN}
                             >
                                 <Icon
-                                    height={32}
-                                    width={32}
+                                    height={variables.iconSizeMenuItem}
+                                    width={variables.iconSizeMenuItem}
                                     src={lazyIcons.ReceiptMultiple}
                                     fill={isMultiScanEnabled ? theme.iconMenu : theme.textSupporting}
                                 />
@@ -515,8 +373,8 @@ function MobileWebCameraView({
                                 sentryLabel={CONST.SENTRY_LABEL.REQUEST_STEP.SCAN.FLASH}
                             >
                                 <Icon
-                                    height={32}
-                                    width={32}
+                                    height={variables.iconSizeMenuItem}
+                                    width={variables.iconSizeMenuItem}
                                     src={isFlashLightOn ? lazyIcons.Bolt : lazyIcons.boltSlash}
                                     fill={theme.textSupporting}
                                 />

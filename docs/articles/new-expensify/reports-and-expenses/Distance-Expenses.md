@@ -1,13 +1,13 @@
 ---
 title: Distance Expenses
-description: Learn how to create a Distance expense using GPS tracking, map-based routes, or manual entry, and how the reimbursement rate is determined in New Expensify.
-keywords: [New Expensify, distance expense, mileage reimbursement, create expense, distance rate, workspace rate, map route, reimbursement rate, manual mileage, manual distance, global create, track distance, GPS, GPS tracking, start GPS, track route, track mileage, mileage tracking, calculate mileage reimbursement, mileage rate]
-internalScope: Audience is all members. Covers creating Distance expenses using GPS tracking, map-based routes, and manual entry, plus how reimbursement rates are applied. Does not cover configuring Workspace distance rates in detail or broader report submission workflows.
+description: Learn how to create a Distance expense using GPS tracking, map-based routes, manual entry, or odometer readings, and how the reimbursement rate is determined in New Expensify.
+keywords: [New Expensify, distance expense, mileage reimbursement, create expense, distance rate, workspace rate, map route, reimbursement rate, manual mileage, manual distance, global create, track distance, GPS, GPS tracking, start GPS, track route, track mileage, mileage tracking, calculate mileage reimbursement, mileage rate, odometer, odometer reading, odometer image, odometer mileage, odometer distance, start reading, end reading]
+internalScope: Audience is all members. Covers creating Distance expenses using GPS tracking, map-based routes, manual entry, and odometer readings, plus how reimbursement rates are applied. Does not cover configuring Workspace distance rates in detail or broader report submission workflows.
 ---
 
 # Distance Expenses
 
-Expensify offers three ways to create a Distance expense: **GPS tracking** on mobile, **map-based routes** using start and end locations, or **manual entry** by typing in the distance. This guide explains each method and how the reimbursement rate is determined.
+Expensify offers four ways to create a Distance expense: **GPS tracking** on mobile, **map-based routes** using start and end locations, **manual entry** by typing in the distance, or **odometer readings** using start and end values from your vehicle. This guide explains each method and how the reimbursement rate is determined.
 
 ---
 
@@ -42,7 +42,7 @@ To create an expense using distance between the starting and ending locations of
    - Distance
    - Amount
    - Date
-   - (Optional) Add a description, category, or tag. 
+   - Other optional fields
 6. Select **Create expense**. 
 
 ---
@@ -59,10 +59,31 @@ To create an expense by inputting a distance manually:
    - Distance
    - Amount
    - Date
-   - (Optional) Add a description, category, tag or receipt.
+   - Other optional fields
 6. Select **Create expense**.
 
-Once a Distance expense is created, it can be submitted on a report. To learn how to add expenses to a report, see [Create and Submit Reports](https://help.expensify.com/articles/new-expensify/reports-and-expenses/Create-and-Submit-Reports). 
+---
+
+## How to create a Distance expense using Odometer readings (Web and Mobile)
+
+To create an expense using your vehicle's odometer readings:
+
+1. Select the **➕ Create** button and select **Track distance**.
+2. Select **Odometer** from the top row.
+3. Enter the **Start reading** from your odometer before the trip.
+4. Enter the **End reading** from your odometer after the trip.
+   - The total distance is calculated automatically as you type.
+5. (Optional) Select the image icon next to each reading to attach a photo of your odometer.
+6. Select **Next**.
+7. On the confirmation screen, review and confirm:
+   - Distance
+   - Amount
+   - Rate
+   - Date
+   - (Optional) Add a description, category, or tag.
+8. Select **Create expense**.
+
+Once a Distance expense is created, it can be submitted on a report. To learn how to add expenses to a report, see [Create and Submit Reports](/articles/new-expensify/reports-and-expenses/Create-and-Submit-Reports).
 
 ---
 
@@ -75,7 +96,7 @@ If you are creating expenses on a Workspace:
 - Workspace Admins set and manage the reimbursement rates for the workspace's distance unit (miles or kilometers).
 - When creating a Distance expense, the available reimbursement rates will show for selection.
 
-[Learn how to manage distance rates as a Workspace Admin](https://help.expensify.com/articles/new-expensify/reports-and-expenses/Managing-Distance-Rates)
+[Learn how to manage distance rates as a Workspace Admin](/articles/new-expensify/reports-and-expenses/Managing-Distance-Rates)
 
 ### Distance expenses created for personal tracking
 
@@ -108,7 +129,7 @@ The expense amount is automatically calculated by multiplying the distance by th
 
 ## Can I edit a Distance expense after I’ve created it?
 
-Yes! You can edit the expense before it is approved. To learn how to edit an expense, see [Managing Expenses in a Report](https://help.expensify.com/articles/new-expensify/reports-and-expenses/Managing-Expenses-in-a-Report).
+Yes! You can edit the expense before it is approved. To learn how to edit an expense, see [Managing Expenses in a Report](/articles/new-expensify/reports-and-expenses/Managing-Expenses-in-a-Report).
 
 ## Can I update the Distance expense unit or rate?
 
@@ -131,4 +152,16 @@ The GPS receipt shows a map of your actual route driven, along with the total di
 ## Can I use GPS tracking on web or desktop?
 
 No. GPS tracking requires the iOS or Android mobile app because it uses your device's location services. On web or desktop, you'll see a prompt to download the mobile app when selecting GPS. You can still use map-based or manual distance entry on any platform.
+
+## Can my odometer images be SmartScanned?
+
+SmartScan does not read odometer readings. You will need to manually enter the reading and upload supporting images.
+
+## Can I attach a photo of my odometer readings to the expense?
+
+Yes. Manual readings are required, but you have the option to attach images of the readings to your expense.
+
+## Can I add two odometer images to a distance expense?
+
+Yes. When you add two odometer images to a distance expense, they will be merged into a single image for easy viewing.
 

@@ -1,15 +1,16 @@
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import type {OnyxCollection} from 'react-native-onyx';
-import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
+import useConfirmModal from '@hooks/useConfirmModal';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -36,8 +37,7 @@ type PolicyDistanceRateDetailsPageProps = PlatformStackScreenProps<SettingsNavig
 function PolicyDistanceRateDetailsPage({route}: PolicyDistanceRateDetailsPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [isWarningModalVisible, setIsWarningModalVisible] = useState(false);
-    const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
+    const {showConfirmModal} = useConfirmModal();
     const policyID = route.params.policyID;
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${route.params.policyID}`);
     const rateID = route.params.rateID;
@@ -120,18 +120,26 @@ function PolicyDistanceRateDetailsPage({route}: PolicyDistanceRateDetailsPagePro
         Navigation.navigate(ROUTES.WORKSPACE_DISTANCE_RATE_TAX_RATE_EDIT.getRoute(policyID, rateID));
     };
 
+    const showWarningModal = () => {
+        showConfirmModal({
+            title: translate('workspace.distanceRates.oopsNotSoFast'),
+            prompt: translate('workspace.distanceRates.workspaceNeeds'),
+            confirmText: translate('common.buttonConfirm'),
+            shouldShowCancelButton: false,
+        });
+    };
+
     const toggleRate = () => {
         if (!rate?.enabled || canDisableOrDeleteRate) {
             setPolicyDistanceRatesEnabled(policyID, customUnit, [{...rate, enabled: !rate?.enabled}]);
         } else {
-            setIsWarningModalVisible(true);
+            showWarningModal();
         }
     };
 
     const deleteRate = () => {
-        Navigation.goBack();
         deletePolicyDistanceRates(policyID, customUnit, [rateID], Array.from(eligibleTransactionIDs ?? []), transactionViolations);
-        setIsDeleteModalVisible(false);
+        Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.goBack());
     };
 
     const rateValueToDisplay = convertAmountToDisplayString(rate?.rate, currency);
@@ -250,32 +258,22 @@ function PolicyDistanceRateDetailsPage({route}: PolicyDistanceRateDetailsPagePro
                     <MenuItem
                         icon={icons.Trashcan}
                         title={translate('common.delete')}
-                        onPress={() => {
-                            if (canDisableOrDeleteRate) {
-                                setIsDeleteModalVisible(true);
+                        onPress={async () => {
+                            if (!canDisableOrDeleteRate) {
+                                showWarningModal();
                                 return;
                             }
-                            setIsWarningModalVisible(true);
+                            const {action} = await showConfirmModal({
+                                title: translate('workspace.distanceRates.deleteDistanceRate'),
+                                prompt: translate('workspace.distanceRates.areYouSureDelete', {count: 1}),
+                                confirmText: translate('common.delete'),
+                                cancelText: translate('common.cancel'),
+                                danger: true,
+                            });
+                            if (action === ModalActions.CONFIRM) {
+                                deleteRate();
+                            }
                         }}
-                    />
-                    <ConfirmModal
-                        onConfirm={() => setIsWarningModalVisible(false)}
-                        onCancel={() => setIsWarningModalVisible(false)}
-                        isVisible={isWarningModalVisible}
-                        title={translate('workspace.distanceRates.oopsNotSoFast')}
-                        prompt={translate('workspace.distanceRates.workspaceNeeds')}
-                        confirmText={translate('common.buttonConfirm')}
-                        shouldShowCancelButton={false}
-                    />
-                    <ConfirmModal
-                        title={translate('workspace.distanceRates.deleteDistanceRate')}
-                        isVisible={isDeleteModalVisible}
-                        onConfirm={deleteRate}
-                        onCancel={() => setIsDeleteModalVisible(false)}
-                        prompt={translate('workspace.distanceRates.areYouSureDelete', {count: 1})}
-                        confirmText={translate('common.delete')}
-                        cancelText={translate('common.cancel')}
-                        danger
                     />
                 </ScrollView>
             </ScreenWrapper>

@@ -53,7 +53,10 @@ type PlaidAccountProps = {
 type OnfidoStepProps = {
     isOnfidoSetupComplete: boolean;
 };
-type PersonalBankAccountForm = Form<InputID, BankAccountStepProps & PlaidAccountProps> & OnfidoStepProps;
+type ConfirmedOwnershipDetailsProps = {
+    confirmedOwnershipDetails?: boolean;
+};
+type PersonalBankAccountForm = Form<InputID, BankAccountStepProps & PlaidAccountProps> & OnfidoStepProps & ConfirmedOwnershipDetailsProps;
 
 export type {PersonalBankAccountForm};
 

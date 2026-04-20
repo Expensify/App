@@ -1,7 +1,6 @@
 import {getActionFromState} from '@react-navigation/core';
 import type {NavigationContainerRef, NavigationState, PartialState} from '@react-navigation/native';
 import {findFocusedRoute, StackActions} from '@react-navigation/native';
-import findMatchingDynamicSuffix from '@libs/Navigation/helpers/dynamicRoutesUtils/findMatchingDynamicSuffix';
 import {getMatchingFullScreenRoute, isFullScreenName} from '@libs/Navigation/helpers/getAdaptedStateFromPath';
 import getStateFromPath from '@libs/Navigation/helpers/getStateFromPath';
 import normalizePath from '@libs/Navigation/helpers/normalizePath';
@@ -152,12 +151,10 @@ export default function linkTo(navigation: NavigationContainerRef<RootNavigatorP
     // If not, it will be replaced. This way, navigating between one attachment screen and another won't be added to the browser history.
     // Report screen - Also a special case. If we are navigating to the report with same reportID we want to replace it (navigate will do that).
     // This covers the case when we open a specific message in report (reportActionID).
-    // Dynamic routes - Keep NAVIGATE so that StackRouter preserves `path` on the route (PUSH explicitly sets path to undefined).
     else if (
         action.type === CONST.NAVIGATION.ACTION_TYPE.NAVIGATE &&
         !isNavigatingToAttachmentScreen(focusedRouteFromPath?.name) &&
-        !isNavigatingToReportWithSameReportID(currentFocusedRoute, focusedRouteFromPath) &&
-        !findMatchingDynamicSuffix(normalizedPath)
+        !isNavigatingToReportWithSameReportID(currentFocusedRoute, focusedRouteFromPath)
     ) {
         // We want to PUSH by default to add entries to the browser history.
         action.type = CONST.NAVIGATION.ACTION_TYPE.PUSH;
@@ -171,15 +168,20 @@ export default function linkTo(navigation: NavigationContainerRef<RootNavigatorP
 
             const lastFullScreenRoute = currentState.routes.findLast((route) => isFullScreenName(route.name));
             if (matchingFullScreenRoute && lastFullScreenRoute && shouldChangeToMatchingFullScreen(newFocusedRoute, matchingFullScreenRoute, lastFullScreenRoute as NavigationPartialRoute)) {
+                // When navigating from HOME to an RHP that maps to a different fullscreen (e.g. Settings),
+                // replace HOME instead of pushing on top. Pushing creates [HOME, SETTINGS, RHP] which causes
+                // Android's useCustomRootStackNavigatorState to trim HOME from the render tree, producing
+                // a wrong back animation. Replacing matches the reload state shape: [SETTINGS, RHP].
+                const shouldReplace = lastFullScreenRoute.name === SCREENS.HOME;
                 if (isRoutePreloaded(currentState, matchingFullScreenRoute)) {
-                    navigation.dispatch(StackActions.push(matchingFullScreenRoute.name));
+                    navigation.dispatch(shouldReplace ? StackActions.replace(matchingFullScreenRoute.name) : StackActions.push(matchingFullScreenRoute.name));
                 } else {
                     const lastRouteInMatchingFullScreen = matchingFullScreenRoute.state?.routes?.at(-1);
-                    const additionalAction = StackActions.push(matchingFullScreenRoute.name, {
+                    const routeParams = {
                         screen: lastRouteInMatchingFullScreen?.name,
                         params: lastRouteInMatchingFullScreen?.params,
-                    });
-                    navigation.dispatch(additionalAction);
+                    };
+                    navigation.dispatch(shouldReplace ? StackActions.replace(matchingFullScreenRoute.name, routeParams) : StackActions.push(matchingFullScreenRoute.name, routeParams));
                 }
             }
         }

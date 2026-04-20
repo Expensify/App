@@ -2,7 +2,7 @@ import {NavigationContainer} from '@react-navigation/native';
 import type * as NativeNavigation from '@react-navigation/native';
 import {act, render} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
-import {trackExpense} from '@libs/actions/IOU';
+import {trackExpense} from '@libs/actions/IOU/TrackExpense';
 import {addPaymentCard, addSubscriptionPaymentCard} from '@libs/actions/PaymentMethods';
 import {createWorkspace} from '@libs/actions/Policy/Policy';
 import GoogleTagManager from '@libs/GoogleTagManager';
@@ -22,34 +22,41 @@ jest.mock('@libs/Navigation/AppNavigator/Navigators/Overlay');
 jest.mock('@src/components/ConfirmedRoute.tsx');
 
 // Mock navigation ref to prevent navigation errors
-jest.mock('@libs/Navigation/navigationRef', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
-    __esModule: true,
-    default: {
-        getRootState: jest.fn(() => ({
-            routes: [
-                {
-                    name: 'Main',
-                    state: {
-                        routes: [
-                            {
-                                name: 'Home',
-                                params: {},
-                            },
-                        ],
-                        index: 0,
-                    },
+jest.mock('@libs/Navigation/navigationRef', () => {
+    const mockState = {
+        routes: [
+            {
+                name: 'Main',
+                state: {
+                    routes: [
+                        {
+                            name: 'Home',
+                            params: {},
+                        },
+                    ],
+                    index: 0,
                 },
-            ],
-            index: 0,
-        })),
-        resetRoot: jest.fn(),
-        navigate: jest.fn(),
-        addListener: jest.fn(),
-        isReady: jest.fn(() => true),
-        getCurrentRoute: jest.fn(() => ({name: 'Home'})),
-    },
-}));
+            },
+        ],
+        index: 0,
+    };
+    return {
+        // eslint-disable-next-line @typescript-eslint/naming-convention
+        __esModule: true,
+        default: {
+            getRootState: jest.fn(() => mockState),
+            getState: jest.fn(() => mockState),
+            resetRoot: jest.fn(),
+            navigate: jest.fn(),
+            dispatch: jest.fn(),
+            addListener: jest.fn(),
+            // isReady=false prevents dismissModal/dismissModalWithReport from executing
+            // real navigation side effects during GTM-focused tests.
+            isReady: jest.fn(() => false),
+            getCurrentRoute: jest.fn(() => ({name: 'Home'})),
+        },
+    };
+});
 
 // Mock react-navigation/native to prevent navigation errors
 jest.mock('@react-navigation/native', () => {

@@ -30,7 +30,7 @@ Onyx.connect({
  */
 function getCurrencyDecimals(currency: string = CONST.CURRENCY.USD): number {
     const decimals = currencyList?.[currency]?.decimals;
-    return decimals ?? 2;
+    return decimals ?? CONST.DEFAULT_CURRENCY_DECIMALS;
 }
 
 /**
@@ -84,12 +84,11 @@ function convertToFrontendAmountAsInteger(amountAsInt: number, decimals: number)
  *
  * @note we do not support any currencies with more than two decimal places.
  */
-function convertToFrontendAmountAsString(amountAsInt: number | null | undefined, currency: string = CONST.CURRENCY.USD, withDecimals = true): string {
+function convertToFrontendAmountAsString(amountAsInt: number | null | undefined, decimals: number): string {
     if (amountAsInt === null || amountAsInt === undefined) {
         return '';
     }
-    const decimals = withDecimals ? getCurrencyDecimals(currency) : 0;
-    return convertToFrontendAmountAsInteger(amountAsInt, decimals).toFixed(decimals);
+    return (Math.trunc(amountAsInt) / 100.0).toFixed(decimals);
 }
 
 /**
@@ -202,14 +201,6 @@ function convertToDisplayStringWithoutCurrency(amountInCents: number, currency: 
         .join('');
 }
 
-/**
- * Checks if passed currency code is a valid currency based on currency list
- */
-function isValidCurrencyCode(currencyCode: string): boolean {
-    const currency = currencyList?.[currencyCode];
-    return !!currency;
-}
-
 export {
     getCurrencyDecimals,
     getCurrencyUnit,
@@ -222,6 +213,5 @@ export {
     convertAmountToDisplayString,
     convertToDisplayStringWithoutCurrency,
     convertToDisplayStringWithExplicitCurrency,
-    isValidCurrencyCode,
     convertToShortDisplayString,
 };

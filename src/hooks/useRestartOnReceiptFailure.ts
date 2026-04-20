@@ -1,6 +1,6 @@
 import {useEffect} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
-import {checkIfScanFileCanBeRead, setMoneyRequestReceipt} from '@libs/actions/IOU';
+import {checkIfScanFileCanBeRead, setMoneyRequestReceipt} from '@libs/actions/IOU/Receipt';
 import {removeDraftTransactionsByIDs} from '@libs/actions/TransactionEdit';
 import {isLocalFile as isLocalFileUtil} from '@libs/fileDownload/FileUtils';
 import {navigateToStartMoneyRequestStep} from '@libs/IOUUtils';

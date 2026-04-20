@@ -11,6 +11,7 @@ import ScrollView from '@components/ScrollView';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
 import useConfirmModal from '@hooks/useConfirmModal';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useEnvironment from '@hooks/useEnvironment';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -28,13 +29,12 @@ import {
     getCategoryDefaultTaxRate,
     getDecodedCategoryName,
 } from '@libs/CategoryUtils';
-import {convertToDisplayString} from '@libs/CurrencyUtils';
 import {getLatestErrorMessageField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {isDisablingOrDeletingLastEnabledCategory} from '@libs/OptionsListUtils';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
-import {getWorkflowApprovalsUnavailable, hasTags, isControlPolicy} from '@libs/PolicyUtils';
+import {getWorkflowApprovalsUnavailable, hasTags, isAttendeeTrackingEnabled, isControlPolicy} from '@libs/PolicyUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -57,6 +57,7 @@ function CategorySettingsPage({
 }: CategorySettingsPageProps) {
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
+    const {convertToDisplayString} = useCurrencyListActions();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Trashcan']);
     const {showConfirmModal} = useConfirmModal();
     const policyData = usePolicyData(policyID);
@@ -112,7 +113,7 @@ function CategorySettingsPage({
         return `${convertToDisplayString(policyCategory?.maxExpenseAmount, policyCurrency)} ${CONST.DOT_SEPARATOR} ${translate(
             `workspace.rules.categoryRules.expenseLimitTypes.${policyCategoryExpenseLimitType}`,
         )}`;
-    }, [policyCategory?.maxExpenseAmount, policyCategoryExpenseLimitType, policyCurrency, translate]);
+    }, [convertToDisplayString, policyCategory?.maxExpenseAmount, policyCategoryExpenseLimitType, policyCurrency, translate]);
 
     const approverText = useMemo(() => {
         const categoryApprover = getCategoryApproverRule(policy?.rules?.approvalRules ?? [], categoryName)?.approver ?? '';
@@ -155,17 +156,17 @@ function CategorySettingsPage({
         if (!policyCategory) {
             return '';
         }
-        return formatRequiredFieldsTitle(translate, policyCategory, policy?.isAttendeeTrackingEnabled);
-    }, [policyCategory, translate, policy?.isAttendeeTrackingEnabled]);
+        return formatRequiredFieldsTitle(translate, policyCategory, isAttendeeTrackingEnabled(policy));
+    }, [policyCategory, translate, policy]);
 
     const requireFieldsPendingAction = useMemo(() => {
-        if (policy?.isAttendeeTrackingEnabled) {
+        if (isAttendeeTrackingEnabled(policy)) {
             // Pending fields are objects so we can't use nullish coalescing
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             return policyCategory?.pendingFields?.areAttendeesRequired || policyCategory?.pendingFields?.areCommentsRequired;
         }
         return policyCategory?.pendingFields?.areCommentsRequired;
-    }, [policyCategory?.pendingFields, policy?.isAttendeeTrackingEnabled]);
+    }, [policyCategory?.pendingFields, policy]);
 
     // eslint-disable-next-line rulesdir/no-negated-variables
     const showCannotDeleteOrDisableLastCategoryModal = useCallback(() => {

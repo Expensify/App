@@ -29,16 +29,12 @@ const STANDARD_EXPORT_TEMPLATE_ID_TO_DISPLAY_LABEL: Record<string, string> = {
     [CONST.REPORT.EXPORT_OPTIONS.EXPENSE_LEVEL_EXPORT]: CONST.REPORT.EXPORT_OPTION_LABELS.EXPENSE_LEVEL_EXPORT,
 };
 
-function getPickerItemValueKey(value: SearchMultipleSelectionPickerItem['value']): string {
-    return typeof value === 'string' ? value : (value.at(0) ?? '');
-}
-
 function SearchFiltersExportedToPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const StyleUtils = useStyleUtils();
     const theme = useTheme();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['XeroSquare', 'QBOSquare', 'NetSuiteSquare', 'IntacctSquare', 'QBDSquare', 'CertiniaSquare', 'Table']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['XeroSquare', 'QBOSquare', 'NetSuiteSquare', 'IntacctSquare', 'QBDSquare', 'CertiniaSquare', 'GustoSquare', 'Table']);
 
     const [searchAdvancedFiltersForm, searchAdvancedFiltersFormResult] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
     const [integrationsExportTemplates] = useOnyx(ONYXKEYS.NVP_INTEGRATION_SERVER_EXPORT_TEMPLATES);
@@ -46,7 +42,7 @@ function SearchFiltersExportedToPage() {
     const policyIDs = searchAdvancedFiltersForm?.policyID ?? [];
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
 
-    const integrationConnectionNames = Object.values(CONST.POLICY.CONNECTIONS.NAME);
+    const integrationConnectionNames = CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES;
     const selectedExportedToValues = searchAdvancedFiltersForm?.exportedTo ?? [];
     const connectedIntegrationNames = getConnectedIntegrationNamesForPolicies(policies, policyIDs.length > 0 ? policyIDs : undefined);
 
@@ -61,10 +57,10 @@ function SearchFiltersExportedToPage() {
         </View>
     );
 
-    const exportedToPickerOptions: SearchMultipleSelectionPickerItem[] = (() => {
+    const exportedToPickerOptions: Array<SearchMultipleSelectionPickerItem<string>> = (() => {
         const integrationConnectionNamesSet = new Set<string>(integrationConnectionNames);
 
-        const connectedIntegrationPickerItems: SearchMultipleSelectionPickerItem[] = integrationConnectionNames
+        const connectedIntegrationPickerItems: Array<SearchMultipleSelectionPickerItem<string>> = integrationConnectionNames
             .filter((connectionName) => connectedIntegrationNames.has(connectionName))
             .map((connectionName) => {
                 const icon = getIntegrationIcon(connectionName, expensifyIcons);
@@ -87,7 +83,7 @@ function SearchFiltersExportedToPage() {
                 };
             });
 
-        const usedPickerValueKeys = new Set(connectedIntegrationPickerItems.map((item) => getPickerItemValueKey(item.value)));
+        const usedPickerValueKeys = new Set(connectedIntegrationPickerItems.map((item) => item.value));
         const policiesToLoadTemplatesFrom = policyIDs.length > 0 ? policyIDs.map((id) => policies?.[`${ONYXKEYS.COLLECTION.POLICY}${id}`]).filter(Boolean) : Object.values(policies ?? {});
         const exportTemplatesFromPolicies = policiesToLoadTemplatesFrom.flatMap((policy) => getExportTemplates([], {}, translate, policy, false));
         const exportTemplatesFromAccount = getExportTemplates(integrationsExportTemplates ?? [], csvExportLayouts ?? {}, translate, undefined, true);
@@ -101,7 +97,7 @@ function SearchFiltersExportedToPage() {
         }
         const deduplicatedExportTemplates = Array.from(exportTemplatesByTemplateId.values());
 
-        const standardAndIntegrationCustomTemplatePickerItems: SearchMultipleSelectionPickerItem[] = [];
+        const standardAndIntegrationCustomTemplatePickerItems: Array<SearchMultipleSelectionPickerItem<string>> = [];
 
         for (const template of deduplicatedExportTemplates) {
             if (!template.templateName || integrationConnectionNamesSet.has(template.templateName) || template.type === CONST.EXPORT_TEMPLATE_TYPES.IN_APP) {
@@ -110,12 +106,11 @@ function SearchFiltersExportedToPage() {
 
             const displayName = template.name ?? template.templateName ?? '';
             const filterValue = STANDARD_EXPORT_TEMPLATE_ID_TO_DISPLAY_LABEL[template.templateName] ?? displayName;
-            const filterValueKey = getPickerItemValueKey(filterValue);
-            if (usedPickerValueKeys.has(filterValueKey)) {
+            if (usedPickerValueKeys.has(filterValue)) {
                 continue;
             }
 
-            usedPickerValueKeys.add(filterValueKey);
+            usedPickerValueKeys.add(filterValue);
             standardAndIntegrationCustomTemplatePickerItems.push({
                 name: displayName,
                 value: filterValue,
@@ -126,18 +121,15 @@ function SearchFiltersExportedToPage() {
         return [...connectedIntegrationPickerItems, ...standardAndIntegrationCustomTemplatePickerItems];
     })();
 
-    const initiallySelectedPickerItems: SearchMultipleSelectionPickerItem[] | undefined = (() => {
+    const initiallySelectedPickerItems: Array<SearchMultipleSelectionPickerItem<string>> | undefined = (() => {
         if (selectedExportedToValues.length === 0) {
             return undefined;
         }
         const normalizedSelectedValues = new Set(selectedExportedToValues);
-        const selectedOptionsPresentInCurrentList = exportedToPickerOptions.filter((option) => {
-            const optionValue = getPickerItemValueKey(option.value);
-            return normalizedSelectedValues.has(optionValue);
-        });
-        const selectedValueIdsFoundInCurrentOptions = new Set(selectedOptionsPresentInCurrentList.map((option) => getPickerItemValueKey(option.value)));
+        const selectedOptionsPresentInCurrentList = exportedToPickerOptions.filter((option) => normalizedSelectedValues.has(option.value));
+        const selectedValueIdsFoundInCurrentOptions = new Set(selectedOptionsPresentInCurrentList.map((option) => option.value));
         const unavailableSelectedValues = selectedExportedToValues.filter((value) => !selectedValueIdsFoundInCurrentOptions.has(value));
-        const unavailableSelectedOptions: SearchMultipleSelectionPickerItem[] = unavailableSelectedValues.map((value) => {
+        const unavailableSelectedOptions: Array<SearchMultipleSelectionPickerItem<string>> = unavailableSelectedValues.map((value) => {
             const connectionName = integrationConnectionNames.find((name) => CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[name] === value);
             const integrationIcon = connectionName ? getIntegrationIcon(connectionName, expensifyIcons) : null;
             const leftElement = integrationIcon ? (

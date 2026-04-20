@@ -67,7 +67,7 @@ function buildNextStepMessage(nextStep: ReportNextStep, translate: LocaleContext
         etaType = CONST.NEXT_STEP.ETA_TYPE.DATE_TIME;
     }
 
-    return `<next-step>${translate(`nextStep.message.${nextStep.messageKey}`, {actor, actorType, eta, etaType})}</next-step>`;
+    return `<next-step>${translate(`nextStep.message.${nextStep.messageKey}`, actor, actorType, eta, etaType)}</next-step>`;
 }
 
 function doesReportContainTransactions(report: OnyxEntry<Report>): boolean {
@@ -277,8 +277,8 @@ function parseMessage(messages: Message[] | undefined, currentUserEmail: string)
             const nextPart = messages.at(index + 1);
 
             if (currentUserEmail === part.text || part.clickToCopyText === currentUserEmail) {
-                tagType = 'strong';
                 content = nextPart?.text === `'s` ? 'your' : 'you';
+                tagType = content === 'your' ? 'span' : 'strong';
             } else if (part.text === `'s` && (previousPart?.text === currentUserEmail || previousPart?.clickToCopyText === currentUserEmail)) {
                 content = '';
             } else if (isEmail) {

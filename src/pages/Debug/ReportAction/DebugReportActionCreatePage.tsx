@@ -118,7 +118,6 @@ function DebugReportActionCreatePage({
                                     report={{reportID}}
                                     parentReportAction={undefined}
                                     displayAsGroup={false}
-                                    isMostRecentIOUReportAction={false}
                                     shouldDisplayNewMarker={false}
                                     index={0}
                                     isFirstVisibleReportAction={false}
