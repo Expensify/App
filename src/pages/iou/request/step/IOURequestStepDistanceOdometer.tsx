@@ -522,7 +522,7 @@ function IOURequestStepDistanceOdometer({
                     draftTransactionIDs,
                     transactionID: lastTransactionID,
                     isFromGlobalCreate: transaction?.isFromFloatingActionButton ?? transaction?.isFromGlobalCreate,
-                    hasMultipleTransactions: false,
+                    hasMultipleTransactions: true,
                     backToReport,
                 });
             },

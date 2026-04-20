@@ -296,6 +296,7 @@ function IOURequestStepAmount({
                         quickAction,
                         policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
                         existingTransactionDraft,
+                        draftTransactionIDs,
                         isSelfTourViewed,
                         personalDetails,
                         optimisticChatReportID,
@@ -324,6 +325,7 @@ function IOURequestStepAmount({
                         quickAction,
                         recentWaypoints,
                         betas,
+                        draftTransactionIDs,
                         isSelfTourViewed,
                     });
                 } else {
@@ -334,7 +336,7 @@ function IOURequestStepAmount({
                     draftTransactionIDs,
                     transactionID,
                     isFromGlobalCreate: transaction?.isFromFloatingActionButton ?? transaction?.isFromGlobalCreate,
-                    hasMultipleTransactions: reportTransactions.length > 0,
+                    hasMultipleTransactions: true,
                     backToReport,
                     optimisticChatReportID,
                 });

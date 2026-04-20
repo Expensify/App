@@ -6,7 +6,6 @@ import {startSplitBill} from '@userActions/IOU/Split';
 import * as TrackExpense from '@userActions/IOU/TrackExpense';
 import CONST from '@src/CONST';
 import type {ReportAction} from '@src/types/onyx';
-import type Transaction from '@src/types/onyx/Transaction';
 import type {ReceiptError} from '@src/types/onyx/Transaction';
 
 jest.mock('@libs/Navigation/helpers/cleanupAfterExpenseCreate', () => jest.fn());
@@ -28,7 +27,7 @@ const file = new File([], 'receipt.jpg');
 function makeTrackExpenseRetry(overrides?: Partial<TrackExpense.CreateTrackExpenseParams>): ReceiptError {
     const retryParams: Partial<TrackExpense.CreateTrackExpenseParams> = {
         transactionParams: {amount: 500, currency: 'USD', created: '2026-04-20'},
-        existingTransaction: {transactionID: 'txn-track-1'} as Transaction,
+        draftTransactionIDs: ['txn-track-1', 'txn-track-2'],
         ...overrides,
     };
     return {
@@ -40,7 +39,7 @@ function makeTrackExpenseRetry(overrides?: Partial<TrackExpense.CreateTrackExpen
 function makeMoneyRequestRetry(overrides?: Partial<IOU.RequestMoneyInformation>): ReceiptError {
     const retryParams: Partial<IOU.RequestMoneyInformation> = {
         transactionParams: {amount: 500, currency: 'USD', created: '2026-04-20', merchant: 'Starbucks'},
-        existingTransactionDraft: {transactionID: 'txn-money-1'} as Transaction,
+        draftTransactionIDs: ['txn-money-1', 'txn-money-2'],
         ...overrides,
     };
     return {
@@ -55,7 +54,7 @@ describe('handleFileRetry', () => {
     });
 
     describe('TRACK_EXPENSE retry', () => {
-        it('calls trackExpense with isRetry=true, then cleanupAfterExpenseCreate with the existing transactionID', () => {
+        it('calls trackExpense with isRetry=true, then cleanupAfterExpenseCreate with the retry-payload draft list', () => {
             const callOrder: string[] = [];
             (TrackExpense.trackExpense as jest.Mock).mockImplementation(() => callOrder.push('trackExpense'));
             (cleanupAfterExpenseCreate as jest.Mock).mockImplementation(() => callOrder.push('cleanup'));
@@ -73,7 +72,7 @@ describe('handleFileRetry', () => {
             // Cleanup MUST fire after the action, never before
             expect(callOrder).toEqual(['trackExpense', 'cleanup']);
             expect(cleanupAfterExpenseCreate).toHaveBeenCalledWith({
-                draftTransactionIDs: ['txn-track-1'],
+                draftTransactionIDs: ['txn-track-1', 'txn-track-2'],
                 linkedTrackedExpenseReportAction: undefined,
             });
         });
@@ -97,8 +96,8 @@ describe('handleFileRetry', () => {
             );
         });
 
-        it('passes undefined draftTransactionIDs when existingTransaction is missing (helper tolerates undefined)', () => {
-            handleFileRetry(makeTrackExpenseRetry({existingTransaction: undefined}), file, dismissError, setShouldShowErrorModal);
+        it('passes undefined draftTransactionIDs when the retry payload omits them (helper tolerates undefined)', () => {
+            handleFileRetry(makeTrackExpenseRetry({draftTransactionIDs: undefined}), file, dismissError, setShouldShowErrorModal);
 
             expect(cleanupAfterExpenseCreate).toHaveBeenCalledWith(
                 expect.objectContaining({
@@ -109,7 +108,7 @@ describe('handleFileRetry', () => {
     });
 
     describe('MONEY_REQUEST retry', () => {
-        it('calls requestMoney with isRetry=true, then cleanupAfterExpenseCreate with the existing draft transactionID', () => {
+        it('calls requestMoney with isRetry=true, then cleanupAfterExpenseCreate with the retry-payload draft list', () => {
             const callOrder: string[] = [];
             (TrackExpense.requestMoney as jest.Mock).mockImplementation(() => callOrder.push('requestMoney'));
             (cleanupAfterExpenseCreate as jest.Mock).mockImplementation(() => callOrder.push('cleanup'));
@@ -126,7 +125,7 @@ describe('handleFileRetry', () => {
             );
             expect(callOrder).toEqual(['requestMoney', 'cleanup']);
             expect(cleanupAfterExpenseCreate).toHaveBeenCalledWith({
-                draftTransactionIDs: ['txn-money-1'],
+                draftTransactionIDs: ['txn-money-1', 'txn-money-2'],
                 linkedTrackedExpenseReportAction: undefined,
             });
         });

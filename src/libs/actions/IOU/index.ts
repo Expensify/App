@@ -223,6 +223,7 @@ type RequestMoneyInformation = {
     isRetry?: boolean;
     shouldPlaySound?: boolean;
     shouldDeferAPIWrite?: boolean;
+    draftTransactionIDs?: string[];
     optimisticChatReportID?: string;
     optimisticCreatedReportActionID?: string;
     optimisticIOUReportID?: string;

@@ -210,6 +210,7 @@ function createTransaction({
     recentWaypoints,
     onTransactionsCreated,
 }: CreateTransactionParams) {
+    const draftTransactionIDs = Object.keys(allTransactionDrafts ?? {});
     for (const [index, receiptFile] of files.entries()) {
         const isLastBatchItem = index === files.length - 1;
         const transaction = transactions.find((item) => item.transactionID === receiptFile.transactionID);
@@ -242,6 +243,7 @@ function createTransaction({
                 },
                 ...(policyParams ?? {}),
                 shouldDeferAPIWrite: isLastBatchItem,
+                draftTransactionIDs,
                 isASAPSubmitBetaEnabled,
                 currentUserAccountIDParam: currentUserAccountID,
                 currentUserEmailParam: currentUserEmail ?? '',
@@ -279,6 +281,7 @@ function createTransaction({
                     taxAmount,
                 },
                 shouldDeferAPIWrite: isLastBatchItem,
+                draftTransactionIDs,
                 shouldGenerateTransactionThreadReport,
                 isASAPSubmitBetaEnabled,
                 currentUserAccountIDParam: currentUserAccountID,

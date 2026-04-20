@@ -36,7 +36,7 @@ export default function handleFileRetry(message: ReceiptError, file: File, dismi
             trackExpenseParams.shouldPlaySound = false;
             TrackExpense.trackExpense(trackExpenseParams);
             cleanupAfterExpenseCreate({
-                draftTransactionIDs: trackExpenseParams.existingTransaction?.transactionID ? [trackExpenseParams.existingTransaction.transactionID] : undefined,
+                draftTransactionIDs: trackExpenseParams.draftTransactionIDs,
                 linkedTrackedExpenseReportAction: trackExpenseParams.transactionParams.linkedTrackedExpenseReportAction,
             });
             break;
@@ -49,7 +49,7 @@ export default function handleFileRetry(message: ReceiptError, file: File, dismi
             requestMoneyParams.shouldPlaySound = false;
             TrackExpense.requestMoney(requestMoneyParams);
             cleanupAfterExpenseCreate({
-                draftTransactionIDs: requestMoneyParams.existingTransactionDraft?.transactionID ? [requestMoneyParams.existingTransactionDraft.transactionID] : undefined,
+                draftTransactionIDs: requestMoneyParams.draftTransactionIDs,
                 linkedTrackedExpenseReportAction: requestMoneyParams.transactionParams.linkedTrackedExpenseReportAction,
             });
             break;

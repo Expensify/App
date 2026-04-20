@@ -290,6 +290,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 report,
                 existingIOUReport,
                 shouldDeferAPIWrite: isLastBatchItem,
+                draftTransactionIDs,
                 optimisticChatReportID,
                 optimisticCreatedReportActionID,
                 optimisticReportPreviewActionID,
@@ -362,7 +363,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
             draftTransactionIDs,
             transactionID: lastTransaction.transactionID,
             isFromGlobalCreate: lastTransaction.isFromFloatingActionButton ?? lastTransaction.isFromGlobalCreate,
-            hasMultipleTransactions: reportTransactions.length > 0,
+            hasMultipleTransactions: true,
             backToReport,
             optimisticChatReportID,
             linkedTrackedExpenseReportAction: lastTransaction.linkedTrackedExpenseReportAction,
@@ -456,7 +457,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                     activeReportID,
                     transactionID: transaction.transactionID,
                     isFromGlobalCreate: transaction.isFromFloatingActionButton ?? transaction.isFromGlobalCreate,
-                    hasMultipleTransactions: reportTransactions.length > 0,
+                    hasMultipleTransactions: true,
                 });
             }
         }
@@ -482,6 +483,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 isDraftPolicy,
                 action,
                 shouldDeferAPIWrite: isLastBatchItem,
+                draftTransactionIDs,
                 participantParams: {
                     payeeEmail: currentUserPersonalDetails.login,
                     payeeAccountID: currentUserPersonalDetails.accountID,
@@ -548,7 +550,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
             draftTransactionIDs,
             transactionID: lastTransaction.transactionID,
             isFromGlobalCreate: lastTransaction.isFromFloatingActionButton ?? lastTransaction.isFromGlobalCreate,
-            hasMultipleTransactions: reportTransactions.length > 0,
+            hasMultipleTransactions: true,
             optimisticChatReportID: selfDMReport?.reportID,
         });
     }

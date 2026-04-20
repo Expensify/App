@@ -19,7 +19,6 @@ import usePolicyForTransaction from '@hooks/usePolicyForTransaction';
 import usePrivateIsArchivedMap from '@hooks/usePrivateIsArchivedMap';
 import useReportAttributes from '@hooks/useReportAttributes';
 import useReportIsArchived from '@hooks/useReportIsArchived';
-import useReportTransactions from '@hooks/useReportTransactions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {GpsPoint} from '@libs/actions/IOU';
 import {
@@ -92,7 +91,6 @@ function SubmitDetailsPage({
     const [currentAttachment] = useOnyx(ONYXKEYS.SHARE_TEMP_FILE);
     const shouldUsePreValidatedFile = shouldValidateFile(currentAttachment);
     const isLinkedTrackedExpenseReportArchived = useReportIsArchived(transaction?.linkedTrackedExpenseReportID);
-    const reportTransactions = useReportTransactions(report?.reportID);
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
@@ -247,6 +245,7 @@ function SubmitDetailsPage({
                 quickAction,
                 recentWaypoints,
                 betas,
+                draftTransactionIDs,
                 isSelfTourViewed,
             });
         } else {
@@ -287,6 +286,7 @@ function SubmitDetailsPage({
                 policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
                 quickAction,
                 existingTransactionDraft,
+                draftTransactionIDs,
                 isSelfTourViewed,
                 betas,
                 personalDetails,
@@ -297,7 +297,7 @@ function SubmitDetailsPage({
             draftTransactionIDs,
             transactionID: transaction.transactionID,
             isFromGlobalCreate: transaction.isFromFloatingActionButton ?? transaction.isFromGlobalCreate,
-            hasMultipleTransactions: reportTransactions.length > 0,
+            hasMultipleTransactions: true,
             optimisticChatReportID: reportOrAccountID,
         });
     };
