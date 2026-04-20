@@ -37,6 +37,8 @@ import SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/DisplayNameForm';
 import type {BaseOnboardingPersonalDetailsProps} from './types';
 
+const ONBOARDING_DYNAMIC_PERSONAL_DETAILS_PATH = createDynamicRoute(DYNAMIC_ROUTES.ONBOARDING_PERSONAL_DETAILS.path, ROUTES.ONBOARDING_PURPOSE.route);
+
 function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNativeStyles}: BaseOnboardingPersonalDetailsProps) {
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
@@ -137,7 +139,7 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
                     Navigation.navigate(ROUTES.ONBOARDING_WORKSPACES.getRoute());
                     return;
                 }
-                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.ONBOARDING_PRIVATE_DOMAIN.path));
+                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.ONBOARDING_PRIVATE_DOMAIN.path, ONBOARDING_DYNAMIC_PERSONAL_DETAILS_PATH));
                 return;
             }
 

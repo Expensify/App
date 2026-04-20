@@ -22,7 +22,7 @@ describe('OnboardingFlow', () => {
                 onboardingValues: undefined,
             };
             const path = getOnboardingInitialPath(params);
-            expect(path).toBe('/onboarding/personal-details');
+            expect(path).toBe('/onboarding/purpose/personal-details');
         });
 
         it('should return the correct path for SMB', () => {
